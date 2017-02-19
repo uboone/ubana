@@ -4431,11 +4431,6 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       fData->evtwgt_weight.push_back(it->second);       // filling the vector with the weights
       std::vector<double> mytemp = it->second;          // getting the vector of weights
 
-      std::cout<<" *************************************"<<std::endl;
-      std::cout<<" mytemp : "<<mytemp.size()<<std::endl;
-      for(unsigned int nweight =0; nweight < mytemp.size(); nweight++) std::cout<<" weight : "<<mytemp[nweight]<<std::endl;
-      std::cout<<" *************************************"<<std::endl;
-
       fData->evtwgt_nweight.push_back(mytemp.size());   // filling the number of weights
       countFunc++;
     }
