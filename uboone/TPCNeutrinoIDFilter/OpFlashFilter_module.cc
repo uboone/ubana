@@ -71,9 +71,11 @@ private:
   } FlashCutCollection_t;
 
   std::vector< std::vector<FlashCutCollection_t> > fCuts;
+  bool fVerbose;
 
   bool PassesCuts(recob::OpFlash const&, FlashCutCollection_t const&, size_t);
-
+  void PrintCuts(FlashCutCollection_t const&);
+  
 };
 
 
@@ -82,16 +84,29 @@ op::OpFlashFilter::OpFlashFilter(fhicl::ParameterSet const & p)
   this->reconfigure(p);
 }
 
+void op::OpFlashFilter::PrintCuts(op::OpFlashFilter::FlashCutCollection_t const& cut)
+{
+  std::cout << "\tMinPE:\t" << cut.MinPE << std::endl;
+  std::cout << "\tMaxPE:\t" << cut.MaxPE << std::endl;
+  std::cout << "\tMinTime:\t" << cut.MinTime << std::endl;
+  std::cout << "\tMaxTime:\t" << cut.MaxTime << std::endl;
+  std::cout << "\tMinMultiplicity:\t" << cut.MinMultiplicity << std::endl;
+  std::cout << "\tMaxMultiplicity:\t" << cut.MaxMultiplicity << std::endl;
+  std::cout << "\tMultiplicityMinPE:\t" << cut.MultiplicityMinPE << std::endl;
+  std::cout << "\tMultiplicityMaxPE:\t" << cut.MultiplicityMaxPE << std::endl;
+  std::cout << "\tInvert:\t" << cut.Invert << std::endl;
+}
+
 bool op::OpFlashFilter::PassesCuts(recob::OpFlash const& flash,
 				   op::OpFlashFilter::FlashCutCollection_t const& cut,
 				   size_t N_OPDETS)
 {
   bool pass=true;
   
-  if(flash.TotalPE() > cut.MinPE) pass=false;
-  else if(flash.TotalPE() < cut.MaxPE) pass=false;
-  else if(flash.Time() > cut.MinTime) pass=false;
-  else if(flash.Time() < cut.MaxTime) pass=false;
+  if(flash.TotalPE() < cut.MinPE) pass=false;
+  else if(flash.TotalPE() > cut.MaxPE) pass=false;
+  else if(flash.Time() < cut.MinTime) pass=false;
+  else if(flash.Time() > cut.MaxTime) pass=false;
   else{
     size_t n_hits=0;
     for(size_t i_opdet=0; i_opdet < N_OPDETS; ++i_opdet)
@@ -101,8 +116,15 @@ bool op::OpFlashFilter::PassesCuts(recob::OpFlash const& flash,
     else if(n_hits > cut.MaxMultiplicity) pass=false;
   }
 
-  if(!pass && cut.Invert) pass=true;
-
+  if(cut.Invert)
+    pass=!pass;
+  
+  if(pass && fVerbose){
+    std::cout << "-----------------------------------------------" << std::endl;
+    std::cout << "Passed cut" << std::endl;
+    PrintCuts(cut);
+  }
+  
   return pass;
 }
 
@@ -149,6 +171,7 @@ bool op::OpFlashFilter::filter(art::Event & e)
 void op::OpFlashFilter::reconfigure(fhicl::ParameterSet const & p)
 {
   fOpFlashTag = p.get<art::InputTag>("OpFlashTag");
+  fVerbose = p.get<bool>("Verbose",false);
 
   auto const& cutcollection_psets = p.get< std::vector< std::vector<fhicl::ParameterSet> > >("FlashCuts");
   fCuts.resize(cutcollection_psets.size());
@@ -162,20 +185,27 @@ void op::OpFlashFilter::reconfigure(fhicl::ParameterSet const & p)
       auto & this_cut = cutcollection[i_c];
       auto const& this_pset = psets[i_c];
       
-      this_cut.MinPE = this_pset.get<double>("MinPE",std::numeric_limits<double>::min());
+      this_cut.MinPE = this_pset.get<double>("MinPE",std::numeric_limits<double>::lowest());
       this_cut.MaxPE = this_pset.get<double>("MaxPE",std::numeric_limits<double>::max());
       
-      this_cut.MinTime = this_pset.get<double>("MinTime",std::numeric_limits<double>::min());
+      this_cut.MinTime = this_pset.get<double>("MinTime",std::numeric_limits<double>::lowest());
       this_cut.MaxTime = this_pset.get<double>("MaxTime",std::numeric_limits<double>::max());
       
-      this_cut.MinMultiplicity = this_pset.get<unsigned int>("MinMultiplicity",std::numeric_limits<unsigned int>::min());
+      this_cut.MinMultiplicity = this_pset.get<unsigned int>("MinMultiplicity",std::numeric_limits<unsigned int>::lowest());
       this_cut.MaxMultiplicity = this_pset.get<unsigned int>("MaxMultiplicity",std::numeric_limits<unsigned int>::max());
-      this_cut.MultiplicityMinPE = this_pset.get<double>("MultiplicityMinPE",std::numeric_limits<int>::min());
-      this_cut.MultiplicityMaxPE = this_pset.get<double>("MultiplicityMaxPE",std::numeric_limits<int>::max());
+      this_cut.MultiplicityMinPE = this_pset.get<double>("MultiplicityMinPE",std::numeric_limits<double>::lowest());
+      this_cut.MultiplicityMaxPE = this_pset.get<double>("MultiplicityMaxPE",std::numeric_limits<double>::max());
       
       this_cut.Invert = this_pset.get<bool>("Invert",false);
+
+      if(fVerbose){
+	std::cout << "=========================================" << std::endl;
+	PrintCuts(this_cut);
+      }
     }
   }
+
+  
 
 }
 
