@@ -320,6 +320,7 @@
 #include "lardataobj/AnalysisBase/T0.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
+#include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
 #include <cstddef> // std::ptrdiff_t
 #include <cstring> // std::memcpy()
@@ -1009,6 +1010,9 @@ namespace microboone {
     Float_t  nuvtxx_truth[kMaxTruth];    //neutrino vertex x
     Float_t  nuvtxy_truth[kMaxTruth];    //neutrino vertex y
     Float_t  nuvtxz_truth[kMaxTruth];    //neutrino vertex z
+    Float_t  sp_charge_corrected_nuvtxx_truth[kMaxTruth]; 
+    Float_t  sp_charge_corrected_nuvtxy_truth[kMaxTruth]; 
+    Float_t  sp_charge_corrected_nuvtxz_truth[kMaxTruth]; 
     Float_t  nu_dcosx_truth[kMaxTruth];  //neutrino dcos x
     Float_t  nu_dcosy_truth[kMaxTruth];  //neutrino dcos y
     Float_t  nu_dcosz_truth[kMaxTruth];  //neutrino dcos z
@@ -1107,6 +1111,9 @@ namespace microboone {
     std::vector<Float_t>  Pz;
     std::vector<Float_t>  P;
     std::vector<Float_t>  StartPointx;
+    std::vector<Float_t>  sp_charge_corrected_StartPointx; 
+    std::vector<Float_t>  sp_charge_corrected_StartPointy; 
+    std::vector<Float_t>  sp_charge_corrected_StartPointz; 
     std::vector<Float_t>  StartPointy;
     std::vector<Float_t>  StartPointz;
     std::vector<Float_t>  StartT;  
@@ -1114,6 +1121,9 @@ namespace microboone {
     std::vector<Float_t>  EndPointx;
     std::vector<Float_t>  EndPointy;
     std::vector<Float_t>  EndPointz;
+    std::vector<Float_t>  sp_charge_corrected_EndPointx; 
+    std::vector<Float_t>  sp_charge_corrected_EndPointy;
+    std::vector<Float_t>  sp_charge_corrected_EndPointz; 
     std::vector<Float_t>  theta;    
     std::vector<Float_t>  phi;    
     std::vector<Float_t>  theta_xz;    
@@ -1123,6 +1133,9 @@ namespace microboone {
     std::vector<Float_t>  StartPointx_tpcAV;
     std::vector<Float_t>  StartPointy_tpcAV;
     std::vector<Float_t>  StartPointz_tpcAV;
+    std::vector<Float_t>  sp_charge_corrected_StartPointx_tpcAV; 
+    std::vector<Float_t>  sp_charge_corrected_StartPointy_tpcAV; 
+    std::vector<Float_t>  sp_charge_corrected_StartPointz_tpcAV; 
     std::vector<Float_t>  StartT_tpcAV;
     std::vector<Float_t>  StartE_tpcAV;
     std::vector<Float_t>  StartP_tpcAV;
@@ -1132,6 +1145,9 @@ namespace microboone {
     std::vector<Float_t>  EndPointx_tpcAV;
     std::vector<Float_t>  EndPointy_tpcAV;
     std::vector<Float_t>  EndPointz_tpcAV;
+    std::vector<Float_t>  sp_charge_corrected_EndPointx_tpcAV; 
+    std::vector<Float_t>  sp_charge_corrected_EndPointy_tpcAV; 
+    std::vector<Float_t>  sp_charge_corrected_EndPointz_tpcAV;
     std::vector<Float_t>  EndT_tpcAV;
     std::vector<Float_t>  EndE_tpcAV;
     std::vector<Float_t>  EndP_tpcAV;
@@ -1143,6 +1159,9 @@ namespace microboone {
     std::vector<Float_t>  StartPointx_drifted;
     std::vector<Float_t>  StartPointy_drifted;
     std::vector<Float_t>  StartPointz_drifted;
+    std::vector<Float_t>  sp_charge_corrected_StartPointx_drifted; 
+    std::vector<Float_t>  sp_charge_corrected_StartPointy_drifted;
+    std::vector<Float_t>  sp_charge_corrected_StartPointz_drifted;
     std::vector<Float_t>  StartT_drifted;
     std::vector<Float_t>  StartE_drifted;
     std::vector<Float_t>  StartP_drifted;
@@ -1152,6 +1171,9 @@ namespace microboone {
     std::vector<Float_t>  EndPointx_drifted;
     std::vector<Float_t>  EndPointy_drifted;
     std::vector<Float_t>  EndPointz_drifted;
+    std::vector<Float_t>  sp_charge_corrected_EndPointx_drifted;
+    std::vector<Float_t>  sp_charge_corrected_EndPointy_drifted;
+    std::vector<Float_t>  sp_charge_corrected_EndPointz_drifted;
     std::vector<Float_t>  EndT_drifted;
     std::vector<Float_t>  EndE_drifted;
     std::vector<Float_t>  EndP_drifted;
@@ -2987,6 +3009,9 @@ void microboone::AnalysisTreeDataStruct::ClearLocalData() {
   std::fill(nuvtxx_truth, nuvtxx_truth + sizeof(nuvtxx_truth)/sizeof(nuvtxx_truth[0]), -99999.);
   std::fill(nuvtxy_truth, nuvtxy_truth + sizeof(nuvtxy_truth)/sizeof(nuvtxy_truth[0]), -99999.);
   std::fill(nuvtxz_truth, nuvtxz_truth + sizeof(nuvtxz_truth)/sizeof(nuvtxz_truth[0]), -99999.);
+  std::fill(sp_charge_corrected_nuvtxx_truth, sp_charge_corrected_nuvtxx_truth + sizeof(sp_charge_corrected_nuvtxx_truth)/sizeof(sp_charge_corrected_nuvtxx_truth[0]), -99999.); 
+  std::fill(sp_charge_corrected_nuvtxy_truth, sp_charge_corrected_nuvtxy_truth + sizeof(sp_charge_corrected_nuvtxy_truth)/sizeof(sp_charge_corrected_nuvtxy_truth[0]), -99999.); 
+  std::fill(sp_charge_corrected_nuvtxz_truth, sp_charge_corrected_nuvtxz_truth + sizeof(sp_charge_corrected_nuvtxz_truth)/sizeof(sp_charge_corrected_nuvtxz_truth[0]), -99999.); 
   std::fill(nu_dcosx_truth, nu_dcosx_truth + sizeof(nu_dcosx_truth)/sizeof(nu_dcosx_truth[0]), -99999.);
   std::fill(nu_dcosy_truth, nu_dcosy_truth + sizeof(nu_dcosy_truth)/sizeof(nu_dcosy_truth[0]), -99999.);
   std::fill(nu_dcosz_truth, nu_dcosz_truth + sizeof(nu_dcosz_truth)/sizeof(nu_dcosz_truth[0]), -99999.);
@@ -3045,14 +3070,20 @@ void microboone::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(Py, -99999.);
   FillWith(Pz, -99999.);
   FillWith(P, -99999.);
-  FillWith(StartPointx, -99999.);
+  FillWith(StartPointx, -99999.); 
   FillWith(StartPointy, -99999.);
   FillWith(StartPointz, -99999.);
+  FillWith(sp_charge_corrected_StartPointx,-99999.); 
+  FillWith(sp_charge_corrected_StartPointy,-99999.); 
+  FillWith(sp_charge_corrected_StartPointz,-99999.); 
   FillWith(StartT, -99999.);
   FillWith(EndT, -99999.);    
   FillWith(EndPointx, -99999.);
   FillWith(EndPointy, -99999.);
   FillWith(EndPointz, -99999.);
+  FillWith(sp_charge_corrected_EndPointx,-99999.); 
+  FillWith(sp_charge_corrected_EndPointy,-99999.); 
+  FillWith(sp_charge_corrected_EndPointz,-99999.); 
   FillWith(EndT, -99999.);
   FillWith(theta, -99999.);
   FillWith(phi, -99999.);
@@ -3063,6 +3094,9 @@ void microboone::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPointx_tpcAV, -99999.);
   FillWith(StartPointy_tpcAV, -99999.);
   FillWith(StartPointz_tpcAV, -99999.);
+  FillWith(sp_charge_corrected_StartPointx_tpcAV, -99999.); 
+  FillWith(sp_charge_corrected_StartPointy_tpcAV, -99999.); 
+  FillWith(sp_charge_corrected_StartPointz_tpcAV, -99999.); 
   FillWith(StartT_tpcAV, -99999.);
   FillWith(StartE_tpcAV, -99999.);
   FillWith(StartP_tpcAV, -99999.);
@@ -3072,6 +3106,9 @@ void microboone::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(EndPointx_tpcAV, -99999.);
   FillWith(EndPointy_tpcAV, -99999.);
   FillWith(EndPointz_tpcAV, -99999.);
+  FillWith(sp_charge_corrected_EndPointx_tpcAV, -99999.); 
+  FillWith(sp_charge_corrected_EndPointy_tpcAV, -99999.); 
+  FillWith(sp_charge_corrected_EndPointz_tpcAV, -99999.); 
   FillWith(EndT_tpcAV, -99999.);
   FillWith(EndE_tpcAV, -99999.);
   FillWith(EndP_tpcAV, -99999.);
@@ -3083,6 +3120,9 @@ void microboone::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(StartPointx_drifted, -99999.);
   FillWith(StartPointy_drifted, -99999.);
   FillWith(StartPointz_drifted, -99999.);
+  FillWith(sp_charge_corrected_StartPointx_drifted, -99999.);
+  FillWith(sp_charge_corrected_StartPointy_drifted, -99999.);
+  FillWith(sp_charge_corrected_StartPointz_drifted, -99999.);
   FillWith(StartT_drifted, -99999.);
   FillWith(StartE_drifted, -99999.);
   FillWith(StartP_drifted, -99999.);
@@ -3092,6 +3132,9 @@ void microboone::AnalysisTreeDataStruct::ClearLocalData() {
   FillWith(EndPointx_drifted, -99999.);
   FillWith(EndPointy_drifted, -99999.);
   FillWith(EndPointz_drifted, -99999.); 
+  FillWith(sp_charge_corrected_EndPointx_drifted, -99999.);
+  FillWith(sp_charge_corrected_EndPointy_drifted, -99999.);
+  FillWith(sp_charge_corrected_EndPointz_drifted, -99999.);
   FillWith(EndT_drifted, -99999.);
   FillWith(EndE_drifted, -99999.);
   FillWith(EndP_drifted, -99999.); 
@@ -3237,11 +3280,17 @@ void microboone::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   StartPointx.resize(MaxGEANTparticles);
   StartPointy.resize(MaxGEANTparticles);
   StartPointz.resize(MaxGEANTparticles);
+  sp_charge_corrected_StartPointx.resize(MaxGEANTparticles); 
+  sp_charge_corrected_StartPointy.resize(MaxGEANTparticles); 
+  sp_charge_corrected_StartPointz.resize(MaxGEANTparticles); 
   StartT.resize(MaxGEANTparticles); 
   EndT.resize(MaxGEANTparticles);    
   EndPointx.resize(MaxGEANTparticles);
   EndPointy.resize(MaxGEANTparticles);
   EndPointz.resize(MaxGEANTparticles);
+  sp_charge_corrected_EndPointx.resize(MaxGEANTparticles); 
+  sp_charge_corrected_EndPointy.resize(MaxGEANTparticles); 
+  sp_charge_corrected_EndPointz.resize(MaxGEANTparticles); 
   EndT.resize(MaxGEANTparticles);  
   theta.resize(MaxGEANTparticles);
   phi.resize(MaxGEANTparticles);
@@ -3252,6 +3301,9 @@ void microboone::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   StartPointx_tpcAV.resize(MaxGEANTparticles);
   StartPointy_tpcAV.resize(MaxGEANTparticles);
   StartPointz_tpcAV.resize(MaxGEANTparticles);
+  sp_charge_corrected_StartPointx_tpcAV.resize(MaxGEANTparticles); 
+  sp_charge_corrected_StartPointy_tpcAV.resize(MaxGEANTparticles); 
+  sp_charge_corrected_StartPointz_tpcAV.resize(MaxGEANTparticles); 
   StartT_tpcAV.resize(MaxGEANTparticles);
   StartE_tpcAV.resize(MaxGEANTparticles);
   StartP_tpcAV.resize(MaxGEANTparticles);
@@ -3261,6 +3313,9 @@ void microboone::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   EndPointx_tpcAV.resize(MaxGEANTparticles);
   EndPointy_tpcAV.resize(MaxGEANTparticles);
   EndPointz_tpcAV.resize(MaxGEANTparticles); 
+  sp_charge_corrected_EndPointx_tpcAV.resize(MaxGEANTparticles); 
+  sp_charge_corrected_EndPointy_tpcAV.resize(MaxGEANTparticles); 
+  sp_charge_corrected_EndPointz_tpcAV.resize(MaxGEANTparticles); 
   EndT_tpcAV.resize(MaxGEANTparticles);
   EndE_tpcAV.resize(MaxGEANTparticles);
   EndP_tpcAV.resize(MaxGEANTparticles);
@@ -3272,6 +3327,9 @@ void microboone::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   StartPointx_drifted.resize(MaxGEANTparticles);
   StartPointy_drifted.resize(MaxGEANTparticles);
   StartPointz_drifted.resize(MaxGEANTparticles);
+  sp_charge_corrected_StartPointx_drifted.resize(MaxGEANTparticles);
+  sp_charge_corrected_StartPointy_drifted.resize(MaxGEANTparticles);
+  sp_charge_corrected_StartPointz_drifted.resize(MaxGEANTparticles);
   StartT_drifted.resize(MaxGEANTparticles);
   StartE_drifted.resize(MaxGEANTparticles);
   StartP_drifted.resize(MaxGEANTparticles);
@@ -3280,7 +3338,10 @@ void microboone::AnalysisTreeDataStruct::ResizeGEANT(int nParticles) {
   StartPz_drifted.resize(MaxGEANTparticles);
   EndPointx_drifted.resize(MaxGEANTparticles);
   EndPointy_drifted.resize(MaxGEANTparticles);
-  EndPointz_drifted.resize(MaxGEANTparticles); 
+  EndPointz_drifted.resize(MaxGEANTparticles);
+  sp_charge_corrected_EndPointx_drifted.resize(MaxGEANTparticles);
+  sp_charge_corrected_EndPointy_drifted.resize(MaxGEANTparticles);
+  sp_charge_corrected_EndPointz_drifted.resize(MaxGEANTparticles);
   EndT_drifted.resize(MaxGEANTparticles);   
   EndE_drifted.resize(MaxGEANTparticles);   
   EndP_drifted.resize(MaxGEANTparticles);   
@@ -3632,6 +3693,9 @@ void microboone::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("nuvtxx_truth",nuvtxx_truth,"nuvtxx_truth[mcevts_truth]/F");
     CreateBranch("nuvtxy_truth",nuvtxy_truth,"nuvtxy_truth[mcevts_truth]/F");
     CreateBranch("nuvtxz_truth",nuvtxz_truth,"nuvtxz_truth[mcevts_truth]/F");
+    CreateBranch("sp_charge_corrected_nuvtxx_truth",sp_charge_corrected_nuvtxx_truth,"sp_charge_corrected_nuvtxx_truth[mcevts_truth]/F"); 
+    CreateBranch("sp_charge_corrected_nuvtxy_truth",sp_charge_corrected_nuvtxy_truth,"sp_charge_corrected_nuvtxy_truth[mcevts_truth]/F"); 
+    CreateBranch("sp_charge_corrected_nuvtxz_truth",sp_charge_corrected_nuvtxz_truth,"sp_charge_corrected_nuvtxz_truth[mcevts_truth]/F"); 
     CreateBranch("nu_dcosx_truth",nu_dcosx_truth,"nu_dcosx_truth[mcevts_truth]/F");
     CreateBranch("nu_dcosy_truth",nu_dcosy_truth,"nu_dcosy_truth[mcevts_truth]/F");
     CreateBranch("nu_dcosz_truth",nu_dcosz_truth,"nu_dcosz_truth[mcevts_truth]/F");
@@ -3722,10 +3786,16 @@ void microboone::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("StartPointx",StartPointx,"StartPointx[geant_list_size]/F");
     CreateBranch("StartPointy",StartPointy,"StartPointy[geant_list_size]/F");
     CreateBranch("StartPointz",StartPointz,"StartPointz[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_StartPointx",sp_charge_corrected_StartPointx,"sp_charge_corrected_StartPointx[geant_list_size]/F"); 
+    CreateBranch("sp_charge_corrected_StartPointy",sp_charge_corrected_StartPointy,"sp_charge_corrected_StartPointy[geant_list_size]/F"); 
+    CreateBranch("sp_charge_corrected_StartPointz",sp_charge_corrected_StartPointz,"sp_charge_corrected_StartPointz[geant_list_size]/F"); 
     CreateBranch("StartT",StartT,"StartT[geant_list_size]/F");
     CreateBranch("EndPointx",EndPointx,"EndPointx[geant_list_size]/F");
     CreateBranch("EndPointy",EndPointy,"EndPointy[geant_list_size]/F");
     CreateBranch("EndPointz",EndPointz,"EndPointz[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_EndPointx",sp_charge_corrected_EndPointx,"sp_charge_corrected_EndPointx[geant_list_size]/F"); 
+    CreateBranch("sp_charge_corrected_EndPointy",sp_charge_corrected_EndPointy,"sp_charge_corrected_EndPointy[geant_list_size]/F"); 
+    CreateBranch("sp_charge_corrected_EndPointz",sp_charge_corrected_EndPointz,"sp_charge_corrected_EndPointz[geant_list_size]/F"); 
     CreateBranch("EndT",EndT,"EndT[geant_list_size]/F");
     CreateBranch("theta",theta,"theta[geant_list_size]/F");
     CreateBranch("phi",phi,"phi[geant_list_size]/F");
@@ -3736,6 +3806,9 @@ void microboone::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("StartPointx_tpcAV",StartPointx_tpcAV,"StartPointx_tpcAV[geant_list_size]/F");
     CreateBranch("StartPointy_tpcAV",StartPointy_tpcAV,"StartPointy_tpcAV[geant_list_size]/F");
     CreateBranch("StartPointz_tpcAV",StartPointz_tpcAV,"StartPointz_tpcAV[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_StartPointx_tpcAV",sp_charge_corrected_StartPointx_tpcAV,"sp_charge_corrected_StartPointx_tpcAV[geant_list_size]/F"); 
+    CreateBranch("sp_charge_corrected_StartPointy_tpcAV",sp_charge_corrected_StartPointy_tpcAV,"sp_charge_corrected_StartPointy_tpcAV[geant_list_size]/F"); 
+    CreateBranch("sp_charge_corrected_StartPointz_tpcAV",sp_charge_corrected_StartPointz_tpcAV,"sp_charge_corrected_StartPointz_tpcAV[geant_list_size]/F"); 
     CreateBranch("StartT_tpcAV",StartT_tpcAV,"StartT_tpcAV[geant_list_size]/F");
     CreateBranch("StartE_tpcAV",StartE_tpcAV,"StartE_tpcAV[geant_list_size]/F");
     CreateBranch("StartP_tpcAV",StartP_tpcAV,"StartP_tpcAV[geant_list_size]/F");
@@ -3745,6 +3818,9 @@ void microboone::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("EndPointx_tpcAV",EndPointx_tpcAV,"EndPointx_tpcAV[geant_list_size]/F");
     CreateBranch("EndPointy_tpcAV",EndPointy_tpcAV,"EndPointy_tpcAV[geant_list_size]/F");
     CreateBranch("EndPointz_tpcAV",EndPointz_tpcAV,"EndPointz_tpcAV[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_EndPointx_tpcAV",sp_charge_corrected_EndPointx_tpcAV,"sp_charge_corrected_EndPointx_tpcAV[geant_list_size]/F"); 
+    CreateBranch("sp_charge_corrected_EndPointy_tpcAV",sp_charge_corrected_EndPointy_tpcAV,"sp_charge_corrected_EndPointy_tpcAV[geant_list_size]/F"); 
+    CreateBranch("sp_charge_corrected_EndPointz_tpcAV",sp_charge_corrected_EndPointz_tpcAV,"sp_charge_corrected_EndPointz_tpcAV[geant_list_size]/F"); 
     CreateBranch("EndT_tpcAV",EndT_tpcAV,"EndT_tpcAV[geant_list_size]/F");
     CreateBranch("EndE_tpcAV",EndE_tpcAV,"EndE_tpcAV[geant_list_size]/F");
     CreateBranch("EndP_tpcAV",EndP_tpcAV,"EndP_tpcAV[geant_list_size]/F");
@@ -3756,6 +3832,9 @@ void microboone::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("StartPointx_drifted",StartPointx_drifted,"StartPointx_drifted[geant_list_size]/F");
     CreateBranch("StartPointy_drifted",StartPointy_drifted,"StartPointy_drifted[geant_list_size]/F");
     CreateBranch("StartPointz_drifted",StartPointz_drifted,"StartPointz_drifted[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_StartPointx_drifted",sp_charge_corrected_StartPointx_drifted,"sp_charge_corrected_StartPointx_drifted[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_StartPointy_drifted",sp_charge_corrected_StartPointy_drifted,"sp_charge_corrected_StartPointy_drifted[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_StartPointz_drifted",sp_charge_corrected_StartPointz_drifted,"sp_charge_corrected_StartPointz_drifted[geant_list_size]/F");
     CreateBranch("StartT_drifted",StartT_drifted,"StartT_drifted[geant_list_size]/F");
     CreateBranch("StartE_drifted",StartE_drifted,"StartE_drifted[geant_list_size]/F");
     CreateBranch("StartP_drifted",StartP_drifted,"StartP_drifted[geant_list_size]/F");
@@ -3765,6 +3844,9 @@ void microboone::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("EndPointx_drifted",EndPointx_drifted,"EndPointx_drifted[geant_list_size]/F");
     CreateBranch("EndPointy_drifted",EndPointy_drifted,"EndPointy_drifted[geant_list_size]/F");
     CreateBranch("EndPointz_drifted",EndPointz_drifted,"EndPointz_drifted[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_EndPointx_drifted",sp_charge_corrected_EndPointx_drifted,"sp_charge_corrected_EndPointx_drifted[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_EndPointy_drifted",sp_charge_corrected_EndPointy_drifted,"sp_charge_corrected_EndPointy_drifted[geant_list_size]/F");
+    CreateBranch("sp_charge_corrected_EndPointz_drifted",sp_charge_corrected_EndPointz_drifted,"sp_charge_corrected_EndPointz_drifted[geant_list_size]/F");
     CreateBranch("EndT_drifted",EndT_drifted,"EndT_drifted[geant_list_size]/F");
     CreateBranch("EndE_drifted",EndE_drifted,"EndE_drifted[geant_list_size]/F");
     CreateBranch("EndP_drifted",EndP_drifted,"EndP_drifted[geant_list_size]/F");
@@ -5581,6 +5663,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
     }// end fSaveCryInfo   
     //save neutrino interaction information
     fData->mcevts_truth = mclist.size();
+    auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>(); 
     if (fData->mcevts_truth > 0){//at least one mc record
       if (fSaveGenieInfo){
 	int neutrino_i = 0;
@@ -5598,6 +5681,10 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx();
 	    fData->nuvtxy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vy();
 	    fData->nuvtxz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vz();
+	    fData->sp_charge_corrected_nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx() + 0.7 - SCE->GetPosOffsets(geo::Point_t(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())).X();
+	    fData->sp_charge_corrected_nuvtxy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vy() + SCE->GetPosOffsets(geo::Point_t(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())).Y();
+	    fData->sp_charge_corrected_nuvtxz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vz() + SCE->GetPosOffsets(geo::Point_t(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())).Z();
+	    
 	    if (mclist[iList]->GetNeutrino().Nu().P()){
 	      fData->nu_dcosx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Px()/mclist[iList]->GetNeutrino().Nu().P();
 	      fData->nu_dcosy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Py()/mclist[iList]->GetNeutrino().Nu().P();
@@ -5814,6 +5901,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	std::map<int, size_t> TrackIDtoIndex;
 	std::vector<int> gpdg;
 	std::vector<int> gmother;
+	auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>(); 
         for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart){
           const simb::MCParticle* pPart = (itPart++)->second;
           if (!pPart) {
@@ -5856,10 +5944,16 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->StartPointx[geant_particle]=pPart->Vx();
 	    fData->StartPointy[geant_particle]=pPart->Vy();
 	    fData->StartPointz[geant_particle]=pPart->Vz();
+	    fData->sp_charge_corrected_StartPointx[geant_particle] = pPart->Vx() + 0.7 - SCE->GetPosOffsets(geo::Point_t(pPart->Vx(),pPart->Vy(),pPart->Vy())).X(); 
+	    fData->sp_charge_corrected_StartPointy[geant_particle] = pPart->Vy() + SCE->GetPosOffsets(geo::Point_t(pPart->Vx(),pPart->Vy(),pPart->Vy())).Y(); 
+	    fData->sp_charge_corrected_StartPointz[geant_particle] = pPart->Vz() + SCE->GetPosOffsets(geo::Point_t(pPart->Vx(),pPart->Vy(),pPart->Vy())).Z(); 
 	    fData->StartT[geant_particle] = pPart->T();
 	    fData->EndPointx[geant_particle]=pPart->EndPosition()[0];
 	    fData->EndPointy[geant_particle]=pPart->EndPosition()[1];
 	    fData->EndPointz[geant_particle]=pPart->EndPosition()[2];
+	    fData->sp_charge_corrected_EndPointx[geant_particle] = pPart->EndPosition()[0] + 0.7 - SCE->GetPosOffsets(geo::Point_t(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])).X(); 
+	    fData->sp_charge_corrected_EndPointy[geant_particle] = pPart->EndPosition()[1] + SCE->GetPosOffsets(geo::Point_t(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])).Y(); 
+	    fData->sp_charge_corrected_EndPointz[geant_particle] = pPart->EndPosition()[2] + SCE->GetPosOffsets(geo::Point_t(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])).Z(); 
 	    fData->EndT[geant_particle] = pPart->EndT();
 	    fData->theta[geant_particle] = pPart->Momentum().Theta();
 	    fData->phi[geant_particle] = pPart->Momentum().Phi();
@@ -5879,6 +5973,9 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->StartPointx_tpcAV[geant_particle] = mcstart.X();
 	      fData->StartPointy_tpcAV[geant_particle] = mcstart.Y();
 	      fData->StartPointz_tpcAV[geant_particle] = mcstart.Z();
+	      fData->sp_charge_corrected_StartPointx_tpcAV[geant_particle] = mcstart.X() + 0.7 - SCE->GetPosOffsets(geo::Point_t(mcstart.X(),mcstart.Y(),mcstart.Z())).X(); 
+	      fData->sp_charge_corrected_StartPointy_tpcAV[geant_particle] = mcstart.Y() + SCE->GetPosOffsets(geo::Point_t(mcstart.X(),mcstart.Y(),mcstart.Z())).Y(); 
+	      fData->sp_charge_corrected_StartPointz_tpcAV[geant_particle] = mcstart.Z() + SCE->GetPosOffsets(geo::Point_t(mcstart.X(),mcstart.Y(),mcstart.Z())).Z(); 
 	      fData->StartT_tpcAV[geant_particle] = mcstart.T();
 	      fData->StartE_tpcAV[geant_particle] = pPart->E(pstarti);
 	      fData->StartP_tpcAV[geant_particle] = pPart->P(pstarti);
@@ -5888,6 +5985,9 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->EndPointx_tpcAV[geant_particle] = mcend.X();
 	      fData->EndPointy_tpcAV[geant_particle] = mcend.Y();
 	      fData->EndPointz_tpcAV[geant_particle] = mcend.Z();
+	      fData->sp_charge_corrected_EndPointx_tpcAV[geant_particle] = mcend.X() + 0.7 - SCE->GetPosOffsets(geo::Point_t(mcend.X(),mcend.Y(),mcend.Z())).X(); 
+	      fData->sp_charge_corrected_EndPointy_tpcAV[geant_particle] = mcend.Y() + SCE->GetPosOffsets(geo::Point_t(mcend.X(),mcend.Y(),mcend.Z())).Y(); 
+	      fData->sp_charge_corrected_EndPointz_tpcAV[geant_particle] = mcend.Z() + SCE->GetPosOffsets(geo::Point_t(mcend.X(),mcend.Y(),mcend.Z())).Z(); 
 	      fData->EndT_tpcAV[geant_particle] = mcend.T();
 	      fData->EndE_tpcAV[geant_particle] = pPart->E(pendi);
 	      fData->EndP_tpcAV[geant_particle] = pPart->P(pendi);
@@ -5899,6 +5999,9 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->StartPointx_drifted[geant_particle] = mcstartdrifted.X();
 	      fData->StartPointy_drifted[geant_particle] = mcstartdrifted.Y();
 	      fData->StartPointz_drifted[geant_particle] = mcstartdrifted.Z();
+	      fData->sp_charge_corrected_StartPointx_drifted[geant_particle] = mcstartdrifted.X() + 0.7 - SCE->GetPosOffsets(geo::Point_t(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())).X();
+	      fData->sp_charge_corrected_StartPointy_drifted[geant_particle] = mcstartdrifted.Y() + SCE->GetPosOffsets(geo::Point_t(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())).Y();
+	      fData->sp_charge_corrected_StartPointz_drifted[geant_particle] = mcstartdrifted.Z() + SCE->GetPosOffsets(geo::Point_t(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())).Z();
 	      fData->StartT_drifted[geant_particle] = mcstartdrifted.T();
 	      fData->StartE_drifted[geant_particle] = pPart->E(pstartdriftedi);
 	      fData->StartP_drifted[geant_particle] = pPart->P(pstartdriftedi);
@@ -5908,6 +6011,9 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->EndPointx_drifted[geant_particle] = mcenddrifted.X();
 	      fData->EndPointy_drifted[geant_particle] = mcenddrifted.Y();
 	      fData->EndPointz_drifted[geant_particle] = mcenddrifted.Z();
+	      fData->sp_charge_corrected_EndPointx_drifted[geant_particle] = mcenddrifted.X() + 0.7 - SCE->GetPosOffsets(geo::Point_t(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())).X();
+	      fData->sp_charge_corrected_EndPointy_drifted[geant_particle] = mcenddrifted.Y() + SCE->GetPosOffsets(geo::Point_t(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())).Y();
+	      fData->sp_charge_corrected_EndPointz_drifted[geant_particle] = mcenddrifted.Z() + SCE->GetPosOffsets(geo::Point_t(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())).Z();
 	      fData->EndT_drifted[geant_particle] = mcenddrifted.T();
 	      fData->EndE_drifted[geant_particle] = pPart->E(penddriftedi);
 	      fData->EndP_drifted[geant_particle] = pPart->P(penddriftedi);
