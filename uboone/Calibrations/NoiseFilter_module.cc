@@ -192,8 +192,9 @@ namespace calibration {
     std::vector< short > waveform;
     int waveNoiseGroupNum  = 48;
     Int_t waveNoiseCounter = -1;
-    int waveNoiseHistsCh[waveNoiseGroupNum];
-    float waveNoiseHistsChirp[waveNoiseGroupNum];
+    // just use the value of waveNoiseGroupNum
+    int waveNoiseHistsCh[48];
+    float waveNoiseHistsChirp[48];
 
     //loop over channels in raw digit container, get mapping to wire plane and number
     const unsigned int n_channels = rawDigitVector.size();
@@ -833,8 +834,8 @@ void NoiseFilter::RawAdaptiveBaselineAlg(TH1F *filtHist)
   Int_t numBins = filtHist->GetNbinsX();
   Int_t minWindowBins = windowSize/2;
 
-  Double_t baselineVec[numBins];
-  Bool_t isFilledVec[numBins];
+  std::vector<Double_t> baselineVec(numBins,0);
+  std::vector<Bool_t> isFilledVec(numBins,0);
 
   Int_t numFlaggedBins = 0;
   for(Int_t j = 0; j < numBins; j++)
