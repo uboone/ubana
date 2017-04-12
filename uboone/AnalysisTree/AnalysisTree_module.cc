@@ -4396,7 +4396,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       if (vertex_v.empty()) continue;
       if (lar_pandora::LArPandoraHelper::IsNeutrino(pfParticle)) {
         if (vertex_v.size() == 1) // require 1 vtx associated to the neutrino PFP
-          nuvertexlist[vtxLabel].emplace_back(vertex_v[0]); 
+         { nuvertexlist[vtxLabel].emplace_back(vertex_v[0]); }
           nuvertexlistToPfp[vtxLabel].emplace_back(pfParticle);
       }
     }
@@ -4704,8 +4704,8 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
    	 if (chan){
    	   auto const& tdcidemap = chan->TDCIDEMap();
    	   int k=-1;
-   	   double elec[tdcidemap.size()];
-   	   int tdc[tdcidemap.size()];
+   	   std::vector<double> elec(tdcidemap.size(),0.);
+   	   std::vector<int> tdc(tdcidemap.size(),0.);
    	   for(auto mapitr = tdcidemap.begin(); mapitr != tdcidemap.end(); mapitr++){
    	      k++;
    	      tdc[k]=(*mapitr).first;
