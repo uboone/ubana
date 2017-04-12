@@ -168,19 +168,19 @@ namespace calibration {
       std::cerr << "Gain calculation cannot proceed. voltages, data and error vectors not the same size!" << std::endl;
 
     const int n = voltages.size();
-    float Data[n];
-    float Errors[n];
-    float Voltages[n];
+    std::vector<float> Data(n,0.);
+    std::vector<float> Errors(n,0.);
+    std::vector<float> Voltages(n,0.);
     // Error for voltages: none for now
-    float VoltErr[n];
+    std::vector<float> VoltErr(n,0.);
     for (int i=0; i < n; i++)
       VoltErr[i] = 0.;
 
-    std::copy(data.begin(), data.end(), Data);
-    std::copy(errors.begin(), errors.end(), Errors);
-    std::copy(voltages.begin(), voltages.end(), Voltages);
+    std::copy(data.begin(), data.end(), Data.data());
+    std::copy(errors.begin(), errors.end(), Errors.data());
+    std::copy(voltages.begin(), voltages.end(), Voltages.data());
 
-    gr = new TGraphErrors(n,Voltages,Data,VoltErr,Errors);
+    gr = new TGraphErrors(n,Voltages.data(),Data.data(),VoltErr.data(),Errors.data());
     gainModel->SetRange(voltages.front(), voltages.back());
     // ease the fitting by setting the params
     float s = (data.back()-data.front())/(voltages.back()-voltages.front());
