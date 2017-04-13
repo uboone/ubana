@@ -4395,9 +4395,10 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       lar_pandora::VertexVector   vertex_v   = it->second;
       if (vertex_v.empty()) continue;
       if (lar_pandora::LArPandoraHelper::IsNeutrino(pfParticle)) {
-        if (vertex_v.size() == 1) // require 1 vtx associated to the neutrino PFP
+        if (vertex_v.size() == 1) { // require 1 vtx associated to the neutrino PFP
           nuvertexlist[vtxLabel].emplace_back(vertex_v[0]); 
           nuvertexlistToPfp[vtxLabel].emplace_back(pfParticle);
+        }
       }
     }
   }
