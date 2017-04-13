@@ -9,8 +9,8 @@ namespace fememu {
     //std::cout << __PRETTY_FUNCTION__ << std::endl;
 
     // first calculate accumulators for each waveform
-    std::vector<int> chdiff[NChannels];
-    std::vector<int> chhit[NChannels];
+    std::vector<std::vector<int> > chdiff(NChannels);
+    std::vector<std::vector<int> > chhit(NChannels);
     for (int ch=0; ch<NChannels; ch++) {
       
       const std::vector<int>& wfm = chwfms[ch];
