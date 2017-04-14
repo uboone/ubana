@@ -4705,8 +4705,8 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
    	 if (chan){
    	   auto const& tdcidemap = chan->TDCIDEMap();
    	   int k=-1;
-   	   double elec[tdcidemap.size()];
-   	   int tdc[tdcidemap.size()];
+   	   std::vector<double> elec(tdcidemap.size(),0.);
+   	   std::vector<int> tdc(tdcidemap.size(),0.);
    	   for(auto mapitr = tdcidemap.begin(); mapitr != tdcidemap.end(); mapitr++){
    	      k++;
    	      tdc[k]=(*mapitr).first;
