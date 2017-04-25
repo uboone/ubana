@@ -54,7 +54,9 @@ art_make( BASENAME_ONLY
 			${ROOT_MINUIT2}	
         )
 
+FILE(GLOB data_files channelStatusList_*.txt channelStatusList_*.dat detPedestalsList_*.txt detPedestalsList_*.dat )
+
 install_headers()
 install_fhicl()
 install_source()
-
+install_fw( LIST ${data_files} )
