@@ -146,5 +146,4 @@ physics.analyzers.analysistree.SaveHitInfo: true
 #physics.analyzers.analysistree.SaveGeantInfo: false
 #physics.analyzers.analysistree.SaveClusterInfo: false
 
-
-
+services.SpaceCharge.EnableSimSpatialSCE: true
