@@ -3,7 +3,7 @@
 #include_directories ( $ENV{DLPMTPRECUTALGO_INCDIR} )
 #find_library( DLPMTPRECUTALGO_LIBBASE NAMES LEEPreCutAlgo PATHS $ENV{DLPMTPRECUTALGO_LIBDIR} )
 
-#add_subdirectory(fcl)
+add_subdirectory(fcl)
 
 art_make_library( LIBRARY_NAME uboone_LEEPreCutAlgo
 		  SOURCE LEEPreCutAlgo.cxx
