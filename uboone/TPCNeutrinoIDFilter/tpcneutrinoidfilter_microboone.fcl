@@ -121,13 +121,14 @@ microboone_NuMuCCSelectionIIAlg:
 
 microboone_tpcNeutrinoID:
 {
-    module_type:                "TPCNeutrinoID"
-    NeutrinoIDAlgName:          "TrackPairPlusVertexAlg"
-    NuMuCCInclusiveAlg:         @local::microboone_NuMuCCInclusiveAlg
-    AltNuMuCCInclusiveAlg:      @local::microboone_AltNuMuCCInclusiveAlg
-    TPCTracksPlusVertexAlg:     @local::microboone_tpcTracksPlusVtxAlg
-    TPCCluster2DNuAlg:          @local::microboone_tpcCluster2DNuAlg
-    NuMuCCSelectionIIAlg:       @local::microboone_NuMuCCSelectionIIAlg
+    module_type:                 "TPCNeutrinoID"
+    NeutrinoIDAlgName:           "TrackPairPlusVertexAlg"
+    NuMuCCInclusiveAlg:          @local::microboone_NuMuCCInclusiveAlg
+    AltNuMuCCInclusiveAlg:       @local::microboone_AltNuMuCCInclusiveAlg
+    TPCTracksPlusVertexAlg:      @local::microboone_tpcTracksPlusVtxAlg
+    TPCCluster2DNuAlg:           @local::microboone_tpcCluster2DNuAlg
+    NuMuCCSelectionIIAlg:        @local::microboone_NuMuCCSelectionIIAlg
+    ChargedTrackMultiplicityAlg: @local::microboone_ChargedTrackMultiplicityAlg
 }
 
 microboone_tpcneutrinoidfilter:

@@ -98,7 +98,7 @@ void ChargedTrackMultiplicityAlg::produces(art::EDProducer* owner)
 {
     fMyProducerModule = owner;
     fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
+    //fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
 
     if(fCreateAnalysisCollection){
       fMyProducerModule->produces< std::vector<recob::Vertex> >();
@@ -255,13 +255,16 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
                 {
 		  FinalVertexCandidate = VertexCandidate;
 		  FinalTrackCandidate = TrackCandidate;
-		  /*		  
+		  
+		  /*		  		  
                     // Make an association between the best vertex and the matching tracks
                     art::Ptr<recob::Vertex> vertex(vertexVecHandle,VertexCandidate);
                     art::Ptr<recob::Track>  track(trackVecHandle,TrackCandidate);
                     
-                    util::CreateAssn(*fMyProducerModule, event, track, vertex, *vertexTrackAssociations);
-                    
+                    //util::CreateAssn(*fMyProducerModule, event, track, vertex, *vertexTrackAssociations);
+                    util::CreateAssn(*fMyProducerModule, event, vertex, track, *vertexTrackAssociations);
+		  */
+		  /*  
                     // Find the associated PFParticle
                     std::vector<art::Ptr<recob::PFParticle>> pfParticleVec = trackToPFPartAssns.at(track.key());
                     
@@ -304,13 +307,17 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
 
 	if(keep_track || (int)i_trk==FinalTrackCandidate){
 
+	  //	  std::cout << "Adding track " << i_trk << std::endl;
+
 	  //push back track
 	  anaTrackCollection->push_back(trk);
-
-	  if((int)i_trk==FinalTrackCandidate)
+	  
+	  if((int)i_trk==FinalTrackCandidate){
+	    //std::cout << "Adding final track " << i_trk << std::endl;
 	    util::CreateAssn(*fMyProducerModule,event,*anaTrackCollection,*anaVertexCollection,*vertexTrackAssociations,
 			     anaVertexCollection->size()-1,anaVertexCollection->size());
-
+	  }
+	  
 	  //get associated hits to track
 	  //note, there is a chance here that the same hit, if associated to multiple tracks, could be added to
 	  //the event multiple times, as I'm not checking for that here.
@@ -331,6 +338,7 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
       
     }
 
+    //std::cout << "There are " << vertexTrackAssociations->size() << " vtx-trk associations." << std::endl;
 
     // Add associations to event.
     event.put(std::move(vertexTrackAssociations));
