@@ -112,8 +112,8 @@ void ChargedTrackMultiplicityAlg::produces(art::EDProducer* owner)
 bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) const
 {
     // Agreed convention is to ALWAYS output to the event store so get a pointer to our collection
-    std::unique_ptr<art::Assns<recob::Vertex, recob::Track>>      vertexTrackAssociations(new art::Assns<recob::Vertex, recob::Track>);
-    std::unique_ptr<art::Assns<recob::Vertex, recob::PFParticle>> vertexPFParticleAssociations(new art::Assns<recob::Vertex, recob::PFParticle>);
+  std::unique_ptr<art::Assns<recob::Track,recob::Vertex>>      vertexTrackAssociations(new art::Assns<recob::Track,recob::Vertex>);
+    //std::unique_ptr<art::Assns<recob::Vertex, recob::PFParticle>> vertexPFParticleAssociations(new art::Assns<recob::Vertex, recob::PFParticle>);
 
     //these will only be included in event if fCreateAnalysisCollection is set
     std::unique_ptr< std::vector<recob::Vertex> >          anaVertexCollection(new std::vector<recob::Vertex> );
@@ -137,6 +137,7 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
 
     //final vertex to be used
     int    FinalVertexCandidate=-1;
+    int    FinalTrackCandidate=-1;
     
     // Require valid handles, otherwise nothing to do
     if (vertexVecHandle.isValid() && vertexVecHandle->size() > 0 && trackVecHandle.isValid() && trackVecHandle->size() > 0)
@@ -253,7 +254,8 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
                 if(TrackCandLength>fMinTrackLen && trackContainedFlag && inFV(trackstartxcandidate, trackstartycandidate, trackstartzcandidate) && inFV(trackendxcandidate, trackendycandidate, trackendzcandidate) )
                 {
 		  FinalVertexCandidate = VertexCandidate;
-		  
+		  FinalTrackCandidate = TrackCandidate;
+		  /*		  
                     // Make an association between the best vertex and the matching tracks
                     art::Ptr<recob::Vertex> vertex(vertexVecHandle,VertexCandidate);
                     art::Ptr<recob::Track>  track(trackVecHandle,TrackCandidate);
@@ -267,15 +269,19 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
                     {
                         util::CreateAssn(*fMyProducerModule, event, pfParticleVec[0], vertex, *vertexPFParticleAssociations);
                     }
+		  */
                 }
             }
         }  //end of if flag
     }
 
     // Now, if we want to create a separate collection for analysis objects, we do that here.
-    if(fCreateAnalysisCollection && FinalVertexCandidate>-1){
+    if(fCreateAnalysisCollection && FinalVertexCandidate>-1 && FinalTrackCandidate>-1){
 
       recob::Vertex const& myVertex((*vertexVecHandle).at(FinalVertexCandidate));
+
+      //put the vertex onto the analysis collection
+      anaVertexCollection->push_back(myVertex);
 
       double vtx_xyz[3]; myVertex.XYZ(vtx_xyz);
       bool keep_track=false;
@@ -296,10 +302,14 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
 	  }
 	}//end loop over trajectory points
 
-	if(keep_track){
+	if(keep_track || (int)i_trk==FinalTrackCandidate){
 
 	  //push back track
 	  anaTrackCollection->push_back(trk);
+
+	  if((int)i_trk==FinalTrackCandidate)
+	    util::CreateAssn(*fMyProducerModule,event,*anaTrackCollection,*anaVertexCollection,*vertexTrackAssociations,
+			     anaVertexCollection->size()-1,anaVertexCollection->size());
 
 	  //get associated hits to track
 	  //note, there is a chance here that the same hit, if associated to multiple tracks, could be added to
@@ -319,14 +329,12 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
 
       }//end loop over tracks
       
-      //finally, put the vertex onto the analysis collection
-      anaVertexCollection->push_back(myVertex);
     }
 
 
     // Add associations to event.
     event.put(std::move(vertexTrackAssociations));
-    event.put(std::move(vertexPFParticleAssociations));
+    //event.put(std::move(vertexPFParticleAssociations));
 
     if(fCreateAnalysisCollection){
 
