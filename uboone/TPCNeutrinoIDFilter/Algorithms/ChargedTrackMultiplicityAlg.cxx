@@ -97,7 +97,8 @@ void ChargedTrackMultiplicityAlg::beginJob(art::ServiceHandle<art::TFileService>
 void ChargedTrackMultiplicityAlg::produces(art::EDProducer* owner)
 {
     fMyProducerModule = owner;
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
+    //fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
+    fMyProducerModule->produces< art::Assns<recob::Track, recob::Vertex> >();
     fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
 
     if(fCreateAnalysisCollection){
@@ -113,7 +114,7 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
 {
     // Agreed convention is to ALWAYS output to the event store so get a pointer to our collection
   std::unique_ptr<art::Assns<recob::Track,recob::Vertex>>      vertexTrackAssociations(new art::Assns<recob::Track,recob::Vertex>);
-    //std::unique_ptr<art::Assns<recob::Vertex, recob::PFParticle>> vertexPFParticleAssociations(new art::Assns<recob::Vertex, recob::PFParticle>);
+  //std::unique_ptr<art::Assns<recob::Vertex, recob::PFParticle>> vertexPFParticleAssociations(new art::Assns<recob::Vertex, recob::PFParticle>);
 
     //these will only be included in event if fCreateAnalysisCollection is set
     std::unique_ptr< std::vector<recob::Vertex> >          anaVertexCollection(new std::vector<recob::Vertex> );
