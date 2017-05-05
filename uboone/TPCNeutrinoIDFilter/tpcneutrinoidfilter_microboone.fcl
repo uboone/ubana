@@ -1,5 +1,20 @@
 BEGIN_PROLOG
 
+microboone_ChargedTrackMultiplicityAlg:
+{
+    TrackModuleLabel:   "pandoraNu"
+    VertexModuleLabel:  "pandoraNu"
+    OpFlashModuleLabel: "simpleFlashBeam"
+    FlashWidth:         100.
+    BeamMin:            3.2
+    BeamMax:            4.8
+    PEThresh:           50.
+    MinTrk2VtxDist:     5.
+    MinTrackLen:        60.
+    FillHistograms:     false
+    CreateAnalysisCollection: true
+}
+
 microboone_NuMuCCInclusiveAlg:
 {
     TrackModuleLabel:   "pandoraNu"
