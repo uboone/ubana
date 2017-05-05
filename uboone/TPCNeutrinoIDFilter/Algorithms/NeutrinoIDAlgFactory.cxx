@@ -15,6 +15,8 @@
 #include "uboone/TPCNeutrinoIDFilter/Algorithms/Cluster2DNuAlg.h"
 #include "uboone/TPCNeutrinoIDFilter/Algorithms/NuMuCCSelectionIIAlg.h"
 
+#include "uboone/TPCNeutrinoIDFilter/Algorithms/ChargedTrackMultiplicityAlg.h"
+
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace neutrinoid
@@ -53,6 +55,10 @@ std::unique_ptr< NeutrinoIDAlgBase > NeutrinoIDAlgFactory::MakeNeutrinoIDAlg(fhi
     }
     else if(algName.compare("NuMuCCSelectionIIAlg")==0){
         std::unique_ptr< NeutrinoIDAlgBase > new_ptr(new NuMuCCSelectionIIAlg(p));
+        ptr.swap(new_ptr);
+    }      
+    else if(algName.compare("ChargedTrackMultiplicityAlg")==0){
+        std::unique_ptr< NeutrinoIDAlgBase > new_ptr(new ChargedTrackMultiplicityAlg(p));
         ptr.swap(new_ptr);
     }      
     else{
