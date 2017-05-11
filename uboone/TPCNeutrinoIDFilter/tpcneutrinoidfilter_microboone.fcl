@@ -8,7 +8,7 @@ microboone_ChargedTrackMultiplicityAlg:
     FlashWidth:         100.
     BeamMin:            3.2
     BeamMax:            4.8
-    PEThresh:           50.
+    PEThresh:           40.
     MinTrk2VtxDist:     5.
     MinTrackLen:        60.
     FillHistograms:     false
@@ -102,7 +102,7 @@ microboone_NuMuCCSelectionIIAlg:
     DistToEdgeZ:          10
     BeamMin:              3.3 
     BeamMax:              4.9
-    PEThresh:             50
+    PEThresh:             40
     Trk2FlashDist:        70
     MinTrk2VtxDist:       3
     MinTrackLen:          8. #15
