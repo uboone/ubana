@@ -128,12 +128,13 @@ bool TPCNeutrinoIDFilter::filter(art::Event& event)
     
         if (vertexVecHandle.isValid())
         {
+
             // Recover associations relating vertices and tracks
             art::FindManyP<recob::Track> vertexTrackAssns(vertexVecHandle, event, fVtxTrackAssnsModuleLabelVec[assnIdx]);
         
             // First check that we have something
-            if (vertexTrackAssns.isValid() && vertexTrackAssns.size() > 0)
-            {
+            if (vertexTrackAssns.isValid() && vertexTrackAssns.size()>0){
+
                 // Look for the first valid association
                 for (size_t vtxIdx = 0; vtxIdx < vertexVecHandle->size(); vtxIdx++)
                 {
@@ -144,7 +145,7 @@ bool TPCNeutrinoIDFilter::filter(art::Event& event)
                         break;
                     }
                 }
-            }
+	    }
         }
     }
     
