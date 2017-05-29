@@ -22,13 +22,11 @@ ubopt_algo_pedestal_ub.SampleSize:       7
 ubopt_algo_pedestal_ub.Threshold:        0.6
 ubopt_algo_pedestal_ub.Verbose:          true
 ubopt_algo_pedestal_ub.NWaveformsToFile: 12
-#ubopt_algo_pedestal_ub.SampleSize:      2
-#ubopt_algo_pedestal_ub.PedRangeMax:     2150
-#ubopt_algo_pedestal_ub.PedRangeMin:     100
-#ubopt_algo_pedestal_ub.Threshold:       4
+ubopt_algo_pedestal_ub.PedRangeMax:      2150
+ubopt_algo_pedestal_ub.PedRangeMin:      100
 ubopt_algo_pedestal_ub.DiffBetweenGapsThreshold: 2
-ubopt_algo_pedestal_ub.DiffADCCounts:   2
-ubopt_algo_pedestal_ub.NPrePostSamples: 5
+ubopt_algo_pedestal_ub.DiffADCCounts:    2
+ubopt_algo_pedestal_ub.NPrePostSamples:  5
 
 
 #
