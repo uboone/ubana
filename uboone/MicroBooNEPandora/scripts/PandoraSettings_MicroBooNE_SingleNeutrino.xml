@@ -244,7 +244,7 @@
                 <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
                 <OutputVertexListName>NeutrinoVertices3D</OutputVertexListName>
                 <ReplaceCurrentVertexList>true</ReplaceCurrentVertexList>
-                <SvmFileName>/r05/dune/MachineLearningData/SvmVertexSelection_uboone_mcc7.xml</SvmFileName>
+                <SvmFileName>SvmVertexSelection_uboone_mcc7.xml</SvmFileName>
                 <RegionSvmName>VertexSelectionRegion</RegionSvmName>
                 <VertexSvmName>VertexSelectionVertex</VertexSvmName>
                 <FeatureTools>
