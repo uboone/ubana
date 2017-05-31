@@ -314,6 +314,18 @@
                 <NeutrinoPfoListName>NeutrinoParticles3D</NeutrinoPfoListName>
                 <OutputVertexListName>DaughterVertices3D</OutputVertexListName>
             </algorithm>
+            <algorithm type = "LArSvmPfoCharacterisation">
+                <TrackPfoListName>AllTrackParticles3D</TrackPfoListName>
+                <ShowerPfoListName>AllShowerParticles3D</ShowerPfoListName>
+                <SvmFileName>SvmPfoCharacterisation_uboone_mcc7.xml</SvmFileName>
+                <SvmName>FinalPfoCharacterisation</SvmName>
+                <RatioVariables>true</RatioVariables>
+                <FeatureTools>
+                    <tool type = "LArLinearFitFeatureTool"/>
+                    <tool type = "LArShowerFitFeatureTool"/>
+                    <tool type = "LArVertexDistanceFeatureTool"/>
+                </FeatureTools>
+            </algorithm>
             <algorithm type = "LArNeutrinoProperties">
                 <NeutrinoPfoListName>NeutrinoParticles3D</NeutrinoPfoListName>
             </algorithm>
