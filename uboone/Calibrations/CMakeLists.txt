@@ -29,7 +29,8 @@ art_make( BASENAME_ONLY
 			larevt_Filters
                         lardata_Utilities_LArFFT_service
 			SignalShapingServiceMicroBooNE_service
-			nusimdata_SimulationBase
+            larevt_CalibrationDBI_Providers
+            nusimdata_SimulationBase
 			${LARRECO_LIB}
 			${LARDATA_LIB}
                         ${ART_FRAMEWORK_CORE}
