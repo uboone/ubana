@@ -1,0 +1,17 @@
+BEGIN_PROLOG
+
+microboone_dlpmtprecuts: {
+  module_type: "DLPMTPreCuts"
+
+  OpHitProducer: "ophit"
+  BinTickWidth: 6
+  WinStartTick: 190
+  WinEndTick: 320
+  PEThreshold: 20.0
+  VetoStartTick: 60
+  VetoEndTick: 190
+  PMTMaxFrac: 0.6
+
+}
+
+END_PROLOG
