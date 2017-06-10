@@ -13,7 +13,7 @@ services:
   #Load the service that manages root files for histograms.
   TFileService:          { fileName: "tpcneutrinoid.root" }
   TimeTracker:           {}
-  MemoryTracker:         { ignoreTotal: 1 }     #default is one
+  MemoryTracker:         { }     #default is one
   RandomNumberGenerator: {}                     #ART native random number generator
   FileCatalogMetadata:   @local::art_file_catalog_data
   message:               @local::standard_info

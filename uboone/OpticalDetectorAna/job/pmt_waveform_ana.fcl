@@ -6,7 +6,7 @@ services:
 {
   TFileService:            { fileName: "reco_stage_1_hist.root" }
   TimeTracker:             {}
-  MemoryTracker:           { ignoreTotal: 1 }
+  MemoryTracker:           { }
   RandomNumberGenerator:   {}
   message:                 @local::microboone_message_services_prod_debug
   @table::microboone_simulation_services
