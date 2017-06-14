@@ -110,15 +110,16 @@
             </algorithm>
 
             <!-- Shower reconstruction -->
-            <algorithm type = "LArPfoCharacterisation">
+            <algorithm type = "LArCutPfoCharacterisation">
                 <TrackPfoListName>TrackParticles3D</TrackPfoListName>
                 <ShowerPfoListName>ShowerParticles3D</ShowerPfoListName>
             </algorithm>
             <algorithm type = "LArListDeletion">
                 <PfoListNames>ShowerParticles3D</PfoListNames>
             </algorithm>
-            <algorithm type = "LArClusterCharacterisation">
+            <algorithm type = "LArCutClusterCharacterisation">
                 <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
+                <OverwriteExistingId>true</OverwriteExistingId>
             </algorithm>
             <algorithm type = "LArShowerGrowing">
                 <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
@@ -197,7 +198,7 @@
         </ThreeDAlgorithms>
 
         <ThreeDHitAlgorithms>
-            <algorithm type = "LArPfoCharacterisation">
+            <algorithm type = "LArCutPfoCharacterisation">
                 <TrackPfoListName>TrackParticles3D</TrackPfoListName>
                 <ShowerPfoListName>ShowerParticles3D</ShowerPfoListName>
                 <PostBranchAddition>true</PostBranchAddition>
@@ -235,12 +236,28 @@
                 <ReplaceCurrentVertexList>true</ReplaceCurrentVertexList>
                 <EnableCrossingCandidates>true</EnableCrossingCandidates>
             </algorithm>
-            <algorithm type = "LArEnergyKickVertexSelection">
+            <algorithm type = "LArCutClusterCharacterisation">
+                <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
+            </algorithm>
+            <algorithm type = "LArSvmVertexSelection">
                 <InputCaloHitListNames>CaloHitListU CaloHitListV CaloHitListW</InputCaloHitListNames>
                 <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
                 <OutputVertexListName>NeutrinoVertices3D</OutputVertexListName>
                 <ReplaceCurrentVertexList>true</ReplaceCurrentVertexList>
-                <BeamMode>true</BeamMode>
+                <SvmFileName>PandoraSvm_VertexSelection_MicroBooNE_mcc7.xml</SvmFileName>
+                <RegionSvmName>VertexSelectionRegion</RegionSvmName>
+                <VertexSvmName>VertexSelectionVertex</VertexSvmName>
+                <FeatureTools>
+                    <tool type = "LArEnergyKickFeature"/>
+                    <tool type = "LArLocalAsymmetryFeature"/>
+                    <tool type = "LArGlobalAsymmetryFeature"/>
+                    <tool type = "LArShowerAsymmetryFeature"/>
+                    <tool type = "LArRPhiFeature"/>
+                </FeatureTools>
+            </algorithm>
+            <algorithm type = "LArCutClusterCharacterisation">
+                <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
+                <ZeroMode>true</ZeroMode>
             </algorithm>
             <algorithm type = "LArVertexSplitting">
                 <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
@@ -297,6 +314,18 @@
                 <NeutrinoPfoListName>NeutrinoParticles3D</NeutrinoPfoListName>
                 <OutputVertexListName>DaughterVertices3D</OutputVertexListName>
             </algorithm>
+            <algorithm type = "LArSvmPfoCharacterisation">
+                <TrackPfoListName>TrackParticles3D</TrackPfoListName>
+                <ShowerPfoListName>ShowerParticles3D</ShowerPfoListName>
+                <SvmFileName>PandoraSvm_PfoCharacterisation_MicroBooNE_mcc7.xml</SvmFileName>
+                <SvmName>FinalPfoCharacterisation</SvmName>
+                <RatioVariables>true</RatioVariables>
+                <FeatureTools>
+                    <tool type = "LArLinearFitFeatureTool"/>
+                    <tool type = "LArShowerFitFeatureTool"/>
+                    <tool type = "LArVertexDistanceFeatureTool"/>
+                </FeatureTools>
+            </algorithm>
             <algorithm type = "LArNeutrinoProperties">
                 <NeutrinoPfoListName>NeutrinoParticles3D</NeutrinoPfoListName>
             </algorithm>
@@ -321,7 +350,7 @@
         <PfoListName>AllTrackParticles3D</PfoListName>
         <VertexListName>AllDaughterVertices3D</VertexListName>
     </algorithm>
-    <algorithm type = "LArPCAShowerParticleBuilding">
+    <algorithm type = "LArPcaShowerParticleBuilding">
         <PfoListName>AllShowerParticles3D</PfoListName>
         <VertexListName>AllDaughterVertices3D</VertexListName>
     </algorithm>
