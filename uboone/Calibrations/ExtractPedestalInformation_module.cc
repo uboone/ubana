@@ -77,24 +77,24 @@ class ExtractPedestalInformation : public art::EDAnalyzer {
         int fRun;
         int fSubRun;
 
-        std::vector< TH1D* > fRetrievedPedMeans;
-        std::vector< TH1D* > fRetrievedPedRmss;
+        std::vector< TH1D* > fGetPedMeans;
+        std::vector< TH1D* > fGetPedRmss;
         std::vector< TH1D* > fMedianPedMeans;
         std::vector< TH1D* > fMedianPedRmss;
         std::vector< TH1D* > fGausPedMeans;
         std::vector< TH1D* > fGausPedRmss;
         std::vector< TH1D* > fModePedMeans;
-        std::vector< TH1D* > fGetPedMeans;
-        std::vector< TH1D* > fGetPedRmss;
+        //std::vector< TH1D* > fRetPedMeans;
+        //std::vector< TH1D* > fRetPedRmss;
 
-        TH2D* fMedianvRetPed;
-        TH1D* fRetMinusMedianPed;
-        TH2D* fGausvRetPed;
-        TH1D* fRetMinusGausPed;
-        TH2D* fModevRetPed;
-        TH1D* fRetMinusModePed;
-        TH2D* fGetvRetPed;
-        TH1D* fRetMinusGetPed;
+        TH2D* fMedianvGetPed;
+        TH1D* fGetMinusMedianPed;
+        TH2D* fGausvGetPed;
+        TH1D* fGetMinusGausPed;
+        TH2D* fModevGetPed;
+        TH1D* fGetMinusModePed;
+        //TH2D* fGetvRetPed;
+        //TH1D* fRetMinusGetPed;
 
         int channel;
 
@@ -131,48 +131,52 @@ void ExtractPedestalInformation::beginJob()
     art::TFileDirectory gausPedRmsDir    = tfs->mkdir("gausPedRmsDir");
     art::TFileDirectory medianPedMeanDir = tfs->mkdir("medianPedMeanDir");
     art::TFileDirectory medianPedRmsDir  = tfs->mkdir("medianPedRmsDir");
-    art::TFileDirectory retPedMeanDir    = tfs->mkdir("retPedMeanDir");
-    art::TFileDirectory retPedRmsDir     = tfs->mkdir("retPedRmsDir");
+    art::TFileDirectory getPedMeanDir    = tfs->mkdir("getPedMeanDir");
+    art::TFileDirectory getPedRmsDir     = tfs->mkdir("getPedRmsDir");
 
     // define branches
     pedestalInfo->Branch("Event", &fEvent, "Event/I");
     pedestalInfo->Branch("Run", &fRun, "Run/I");
     pedestalInfo->Branch("SubRun", &fSubRun, "SubRun/I");
 
+    int NBINS = 1000;
+    int LOWPED = 400;
+    int HIGHPED = 500;
+
     // histograms
-    fModevRetPed       = tfs->make<TH2D>("fModevRetPed", ";Pedestal from DB; Calculated pedestal (mode)", 1000, 400, 500, 1000, 400, 500);
-    fRetMinusModePed   = tfs->make<TH1D>("fRetMinusModePed", ";|Pedestal from DB - Calculated pedestal (mode)|;", 1000, 0, 10);
-    fMedianvRetPed     = tfs->make<TH2D>("fMedianvRetPed", ";Pedestal from DB; Calculated pedestal (median);", 1000, 400, 500, 1000, 400, 500);
-    fRetMinusMedianPed = tfs->make<TH1D>("fRetMinusMedianPed", ";|Pedestal from DB - Calculated pedestal (median)|;", 1000, 0, 10);
-    fGausvRetPed       = tfs->make<TH2D>("fGausvRetPed", ";Pedestal from DB; Calculated pedestal (gaussian fit);", 1000, 400, 500, 1000, 400, 500);
-    fRetMinusGausPed   = tfs->make<TH1D>("fRetMinusGausPed", ";|Pedestal from DB - Calculated pedestal (median)|;", 1000, 0, 10);
-    fGetvRetPed        = tfs->make<TH2D>("fGetvRetPed", ";Pedestal from DB; Pedestal from rawd.Get()", 1000, 400, 500, 1000, 400, 500);
-    fRetMinusGetPed    = tfs->make<TH1D>("fRetMinusGetPed", ";|Pedestal from DB - pedestal from rawd.Get()|;", 1000, 0, 10);
+    fModevGetPed       = tfs->make<TH2D>("fModevGetPed", ";Pedestal from Get; Calculated pedestal (mode)", NBINS, LOWPED, HIGHPED, NBINS, LOWPED, HIGHPED);
+    fGetMinusModePed   = tfs->make<TH1D>("fGetMinusModePed", ";|Pedestal from Get - Calculated pedestal (mode)|;", NBINS, 0, 10);
+    fMedianvGetPed     = tfs->make<TH2D>("fMedianvGetPed", ";Pedestal from Get; Calculated pedestal (median);", NBINS, LOWPED, HIGHPED, NBINS, LOWPED, HIGHPED);
+    fGetMinusMedianPed = tfs->make<TH1D>("fGetMinusMedianPed", ";|Pedestal from Get - Calculated pedestal (median)|;", NBINS, 0, 10);
+    fGausvGetPed       = tfs->make<TH2D>("fGausvGetPed", ";Pedestal from Get; Calculated pedestal (Gaussian fit);", NBINS, LOWPED, HIGHPED, NBINS, LOWPED, HIGHPED);
+    fGetMinusGausPed   = tfs->make<TH1D>("fGetMinusGausPed", ";|Pedestal from Get - Calculated pedestal (median)|;", NBINS, 0, 10);
+    //fGetvRetPed        = tfs->make<TH2D>("fGetvRetPed", ";Pedestal from //DB; Pedestal from rawd.Get()", 1000, LOWPED, HIGHPED, 1000, LOWPED, HIGHPED);
+    //fRetMinusGetPed    = tfs->make<TH1D>("fRetMinusGetPed", ";|Pedestal from DB - pedestal from rawd.Get()|;", 1000, 0, 10);
 
     // produce one histogram per channel in a TDirectoryFile
 
     for (int i = 0; i <8256; i++){
 
         TString modePedMeanName = Form("ModePedMean_Channel%i", i);
-        fModePedMeans.push_back(modePedMeanDir.make<TH1D>(modePedMeanName, ";Pedestal mean (using mode);", 10000, 400, 2500));
+        fModePedMeans.push_back(modePedMeanDir.make<TH1D>(modePedMeanName, ";Pedestal mean (using mode);", NBINS, LOWPED, HIGHPED));
 
         TString gausPedMeanName = Form("GausPedMean_Channel%i", i);
-        fGausPedMeans.push_back(gausPedMeanDir.make<TH1D>(gausPedMeanName, ";Pedestal mean (from gaussian);", 10000, 400, 2500));
+        fGausPedMeans.push_back(gausPedMeanDir.make<TH1D>(gausPedMeanName, ";Pedestal mean (from Gaussian);", NBINS, LOWPED, HIGHPED));
 
         TString gausPedRmsName = Form("GausPedRmss_Channel%i", i);
         fGausPedRmss.push_back(gausPedRmsDir.make<TH1D>(gausPedRmsName, ";Pedestal RMS (from Gaussian);", 200, 0, 5));
 
         TString medianPedMeanName = Form("MedianPedMean_Channel%i", i);
-        fMedianPedMeans.push_back(medianPedMeanDir.make<TH1D>(medianPedMeanName, ";Estimated pedestal mean (using median);", 10000, 400, 2500));
+        fMedianPedMeans.push_back(medianPedMeanDir.make<TH1D>(medianPedMeanName, ";Estimated pedestal mean (using median);", NBINS, LOWPED, HIGHPED));
 
         TString medianPedRmssName = Form("MedianPedRmss_Channel%i", i);
         fMedianPedRmss.push_back(medianPedRmsDir.make<TH1D>(medianPedRmssName, ";Estimated pedestal RMS (using median);", 200, 0, 5));
 
-        TString retPedMeanName = Form("RetPedMean_Channel%i", i);
-        fRetrievedPedMeans.push_back(retPedMeanDir.make<TH1D>(retPedMeanName, ";Pedestal Mean (from DB);", 10000, 400, 2500));
+        TString getPedMeanName = Form("GetPedMean_Channel%i", i);
+        fGetPedMeans.push_back(getPedMeanDir.make<TH1D>(getPedMeanName, ";Pedestal Mean (from rawd.GetPedestal());", NBINS, LOWPED, HIGHPED));
 
-        TString retPedRmssName = Form("RetPedRmss_Channel%i", i);
-        fRetrievedPedRmss.push_back(retPedRmsDir.make<TH1D>(retPedRmssName, ";Pedestal RMS (from DB);", 200, 0, 5));
+        TString getPedRmssName = Form("GetPedRmss_Channel%i", i);
+        fGetPedRmss.push_back(getPedRmsDir.make<TH1D>(getPedRmssName, ";Pedestal RMS (from rawd.GetPedestal());", 200, 0, 5));
 
     }
 
@@ -198,16 +202,18 @@ void ExtractPedestalInformation::reconfigure(fhicl::ParameterSet const& pset)
 void ExtractPedestalInformation::analyze(art::Event const & event)
 {
 
+    std::cout << "beginning" << std::endl;
+
     fEvent = event.id().event();
     fRun = event.run();
     fSubRun = event.subRun();
 
     //get pedestal conditions
-    const lariov::DetPedestalProvider& pedestalRetrievalAlg 
-        = art::ServiceHandle<lariov::DetPedestalService>()->GetPedestalProvider();
+    //const lariov::DetPedestalProvider& pedestalRetrievalAlg 
+    //    = art::ServiceHandle<lariov::DetPedestalService>()->GetPedestalProvider();
 
-    float pedMeanFromDb = 0;
-    float pedRmsFromDb  = 0;
+    //float pedMeanFromDb = 0;
+    //float pedRmsFromDb  = 0;
 
     // get handle to rawdigit
     art::Handle< std::vector<raw::RawDigit> > rawDHandle;
@@ -221,8 +227,8 @@ void ExtractPedestalInformation::analyze(art::Event const & event)
         int nTicks = rawd.NADC();
 
         // extract pedestal values from database
-        pedMeanFromDb = pedestalRetrievalAlg.PedMean(channel);
-        pedRmsFromDb = pedestalRetrievalAlg.PedRms(channel);
+        //pedMeanFromDb = pedestalRetrievalAlg.PedMean(channel);
+        //pedRmsFromDb = pedestalRetrievalAlg.PedRms(channel);
 
         // get adc vals and fill a histogram in order to calculate median and
         // signal removed RMS of waveform
@@ -261,8 +267,6 @@ void ExtractPedestalInformation::analyze(art::Event const & event)
 
             calculatedMedian = pars[1];
 
-            fMedianPedRmss.at(channel)->Fill(calculatedRms);
-            fMedianPedMeans.at(channel)->Fill(calculatedMedian);
 
         }
 
@@ -286,14 +290,6 @@ void ExtractPedestalInformation::analyze(art::Event const & event)
 
         }
 
-        if (fDebug)
-            std::cout << "\nRemoving ADC values above " << upperBound 
-                << " and below " << lowerBound  
-                << "\nMedian value is " << calculatedMedian 
-                << "\nSum of histo is " << h_adc->GetSum()
-                << "\nadcSigma:" << adcSigma
-                << "\nfNSigma: " << fNSigma << std::endl;
-
         //
         // calculate mode
         //
@@ -311,28 +307,53 @@ void ExtractPedestalInformation::analyze(art::Event const & event)
         //gaussian->SetParameters(10, 470, 0.5);
 
         if (h_adc->GetMaximum() > 0){
+        
             h_adc->Fit("gaus", "Q");
             gausMean = h_adc->GetFunction("gaus")->GetParameter(1);
             gausRms = h_adc->GetFunction("gaus")->GetParameter(2);
+        
         }
 
+        float truePedMean = rawd.GetPedestal();
+        float truePedRmss = rawd.GetSigma();
+
         fModePedMeans.at(channel)->Fill(modeVal);
-        fGausPedMeans.at(channel)->Fill(gausMean);
+        fModevGetPed->Fill(truePedMean, modeVal);
+        fGetMinusModePed->Fill(std::abs(truePedMean - modeVal));
+        
+        fGausPedMeans.at(channel)->Fill(gausMean - 0.5);
         fGausPedRmss.at(channel)->Fill(gausRms);
-        fGausvRetPed->Fill(gausMean, pedMeanFromDb);
-        fRetMinusGausPed->Fill(std::abs(pedMeanFromDb - gausMean));
-        fRetrievedPedMeans.at(channel)->Fill(pedMeanFromDb);
-        fRetrievedPedRmss.at(channel)->Fill(pedRmsFromDb);
-        fMedianvRetPed->Fill(calculatedMedian, pedMeanFromDb);
-        fRetMinusMedianPed->Fill(std::abs(pedMeanFromDb - calculatedMedian));       
-        fGetvRetPed->Fill(rawd.GetPedestal(), pedMeanFromDb);
-        fRetMinusGetPed->Fill(std::abs(pedMeanFromDb - rawd.GetPedestal()));
+        fGausvGetPed->Fill(truePedMean, gausMean-0.5);
+        fGetMinusGausPed->Fill(std::abs(truePedMean - gausMean+0.5));
+        
+        fGetPedMeans.at(channel)->Fill(truePedMean);
+        fGetPedRmss.at(channel)->Fill(truePedRmss);
+       
+        fMedianPedMeans.at(channel)->Fill(calculatedMedian);
+        fMedianvGetPed->Fill(truePedMean, calculatedMedian-0.5);
+        fGetMinusMedianPed->Fill(std::abs(truePedMean - calculatedMedian+0.5));       
+        fMedianPedRmss.at(channel)->Fill(calculatedRms);
+        
+        if (fDebug){
+
+             std::cout << "\nRemoving ADC values above " << upperBound 
+                << " and below " << lowerBound  
+                << "\nSum of histo is " << h_adc->GetSum()
+                << "\nTrue pedestal is " << truePedMean
+                //<< "\nFrom DB; " << pedMeanFromDb 
+                << "\nMedian value is " << calculatedMedian 
+                << "\nModal value is " << modeVal
+                << "\nGaussian Mean value is " << gausMean
+                << "\nadcSigma:" << adcSigma
+                << "\nfNSigma: " << fNSigma << std::endl;
+        
+        }
 
         delete h_adc;
-
+        pedestalInfo->Fill();
+    
     } // rawdigits
 
-    pedestalInfo->Fill();
 
 }
 
