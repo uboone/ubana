@@ -1,5 +1,5 @@
 /**
- *  @file   NuMuCCSelectionIIAlg.cxx
+ *  @file   NuMuCCSelectionIIAlgMCC7.cxx
  * 
  *  @brief  Implementation of the Selection II Neutrino ID alg
  *          This module outputs associations between vertices
@@ -10,7 +10,7 @@
  */
 
 // The main include
-#include "uboone/TPCNeutrinoIDFilter/Algorithms/NuMuCCSelectionIIAlg.h"
+#include "uboone/TPCNeutrinoIDFilter/Algorithms/NuMuCCSelectionIIAlgMCC7.h"
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
@@ -38,7 +38,7 @@
 
 namespace neutrinoid {
 
-NuMuCCSelectionIIAlg::NuMuCCSelectionIIAlg(fhicl::ParameterSet const &pset) :
+NuMuCCSelectionIIAlgMCC7::NuMuCCSelectionIIAlgMCC7(fhicl::ParameterSet const &pset) :
     fMyProducerModule(0),
     fGeometry(lar::providerFrom<geo::Geometry>()),
     fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
@@ -48,14 +48,14 @@ NuMuCCSelectionIIAlg::NuMuCCSelectionIIAlg(fhicl::ParameterSet const &pset) :
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
-NuMuCCSelectionIIAlg::~NuMuCCSelectionIIAlg()
+NuMuCCSelectionIIAlgMCC7::~NuMuCCSelectionIIAlgMCC7()
 {
 }
     
-void NuMuCCSelectionIIAlg::reconfigure(fhicl::ParameterSet const &inputPset)
+void NuMuCCSelectionIIAlgMCC7::reconfigure(fhicl::ParameterSet const &inputPset)
 {
     // Assume we could be called externally with the top level module's complete parameter set
-    const fhicl::ParameterSet& pset = inputPset.get<fhicl::ParameterSet>("NuMuCCSelectionIIAlg");
+    const fhicl::ParameterSet& pset = inputPset.get<fhicl::ParameterSet>("NuMuCCSelectionIIAlgMCC7");
     
     fTrackModuleLabel        = pset.get<std::string> ("TrackModuleLabel");
     fVertexModuleLabel       = pset.get<std::string> ("VertexModuleLabel");
@@ -85,13 +85,13 @@ void NuMuCCSelectionIIAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fDebug                   = pset.get<int>         ("Debug",                                   0);
 }
     
-void NuMuCCSelectionIIAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs)
+void NuMuCCSelectionIIAlgMCC7::beginJob(art::ServiceHandle<art::TFileService>& tfs)
 {
     
     return;
 }
     
-void NuMuCCSelectionIIAlg::produces(art::EDProducer* owner)
+void NuMuCCSelectionIIAlgMCC7::produces(art::EDProducer* owner)
 {
     fMyProducerModule = owner;
     fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
@@ -99,7 +99,7 @@ void NuMuCCSelectionIIAlg::produces(art::EDProducer* owner)
 }
 
     
-bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
+bool NuMuCCSelectionIIAlgMCC7::findNeutrinoCandidates(art::Event & evt) const
 {
     // Agreed convention is to ALWAYS output to the event store so get a pointer to our collection
     std::unique_ptr<art::Assns<recob::Vertex, recob::Track>>      vertexTrackAssociations(new art::Assns<recob::Vertex, recob::Track>);
@@ -526,7 +526,7 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
     return true;
 }
     
-bool NuMuCCSelectionIIAlg::inFV(double x, double y, double z) const
+bool NuMuCCSelectionIIAlgMCC7::inFV(double x, double y, double z) const
 {
     double distInX = x - fGeometry->DetHalfWidth();
     double distInY = y;
@@ -537,14 +537,12 @@ bool NuMuCCSelectionIIAlg::inFV(double x, double y, double z) const
     return false;
 }
 
-
-// These scalings apply to the updated mcc8 selectionII
-double NuMuCCSelectionIIAlg::scaledEdx(double x, int plane, bool isdata) const{
+double NuMuCCSelectionIIAlgMCC7::scaledEdx(double x, int plane, bool isdata) const{
   double dEdx = 1.63;
-  double p0_data[3] = {1.53, 2.5, 1.4};
-  double p1_data[3] = {-0.0003125, 0.0027344, 0.0001953};
-  double p0_mc[3] = {1.7, 1.7, 1.6};
-  double p1_mc[3] = {0.0009766, 0.0009766, 0.0007812};
+  double p0_data[3] = {1.927, 2.215, 1.936};
+  double p1_data[3] = {0.001495, 0.0001655, 0.001169};
+  double p0_mc[3] = {1.843, 1.904, 1.918};
+  double p1_mc[3] = {-0.0008329, -0.001357, -0.0007563};
   if (isdata){
     return dEdx/(p0_data[plane]+x*p1_data[plane]);
   }
@@ -552,22 +550,6 @@ double NuMuCCSelectionIIAlg::scaledEdx(double x, int plane, bool isdata) const{
     return  dEdx/(p0_mc[plane]+x*p1_mc[plane]);
   }
 }
-
-//double NuMuCCSelectionIIAlg::scaledEdx(double x, int plane, bool isdata) const{
-//  double dEdx = 1.63;
-//  double p0_data[3] = {1.927, 2.215, 1.936};
-//  double p1_data[3] = {0.001495, 0.0001655, 0.001169};
-//  double p0_mc[3] = {1.843, 1.904, 1.918};
-//  double p1_mc[3] = {-0.0008329, -0.001357, -0.0007563};
-//  if (isdata){
-//    return dEdx/(p0_data[plane]+x*p1_data[plane]);
-//  }
-//  else{
-//    return  dEdx/(p0_mc[plane]+x*p1_mc[plane]);
-//  }
-//}
-
-
 
 
 } // namespace

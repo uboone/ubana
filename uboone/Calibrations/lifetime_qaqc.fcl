@@ -16,7 +16,7 @@ services:
   #Load the service that manages root files for histograms.
   TFileService: { fileName: "lifetimeQAQC.root" }
   TimeTracker:  {}
-  MemoryTracker:     { ignoreTotal: 1 }     #default is one
+  MemoryTracker:     { }     #default is one
   RandomNumberGenerator: {}                     #ART native random number generator
   @table::microboone_services
   message:      @local::standard_info
