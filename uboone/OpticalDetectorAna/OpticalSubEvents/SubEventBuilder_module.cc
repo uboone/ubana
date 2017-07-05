@@ -30,7 +30,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/OpDetGeo.h"
+#include "larcorealg/Geometry/OpDetGeo.h"
 
 #include "uboone/OpticalDetectorAna/OpticalSubEvents/subevent_algo/FlashList.hh"
 #include "uboone/OpticalDetectorAna/OpticalSubEvents/subevent_algo/SubEvent.hh"
