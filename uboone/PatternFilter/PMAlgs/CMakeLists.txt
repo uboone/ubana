@@ -1,6 +1,6 @@
 art_make( LIB_LIBRARIES
 				 lardataobj_RecoBase
-				 larcore_Geometry
+				 larcorealg_Geometry
 				 lardata_DetectorInfo
                                  ${BOOST_LIB}
                                  ${FHICLCPP}
