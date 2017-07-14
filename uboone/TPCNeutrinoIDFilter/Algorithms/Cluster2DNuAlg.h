@@ -10,7 +10,7 @@
 #include "uboone/TPCNeutrinoIDFilter/Algorithms/NeutrinoIDAlgBase.h"
 
 // LArSoft includes
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 //------------------------------------------------------------------------------------------------------------------------------------------

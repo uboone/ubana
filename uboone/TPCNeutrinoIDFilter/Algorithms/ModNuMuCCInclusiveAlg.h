@@ -10,7 +10,7 @@
 #include "uboone/TPCNeutrinoIDFilter/Algorithms/NeutrinoIDAlgBase.h"
 
 // LArSoft includes
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Framework Includes
@@ -20,8 +20,8 @@
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
 #include "lardataobj/RecoBase/Hit.h"

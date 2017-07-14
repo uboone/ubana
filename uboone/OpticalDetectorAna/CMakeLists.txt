@@ -6,7 +6,7 @@ art_make( BASENAME_ONLY
 			larana_OpticalDetector_OpHitFinder
                         ${ROOT_BASIC_LIB_LIST}
 
-	  MODULE_LIBRARIES larcore_Geometry
+	  MODULE_LIBRARIES larcorealg_Geometry
 	  	        larcore_Geometry_Geometry_service
 		        lardata_Utilities
 	                uboone_Geometry

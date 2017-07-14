@@ -14,7 +14,7 @@
 #include "art/Framework/Principal/Handle.h"
 
 // LArSoft includes
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 #include "lardata/DetectorInfo/DetectorProperties.h"
 #include "lardata/DetectorInfo/DetectorClocks.h"
 
