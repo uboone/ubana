@@ -20,7 +20,7 @@ ubopt_algo_pedestal_rmsslider: @local::standard_algo_pedestal_rmsslider
 ubopt_algo_pedestal_rmsslider.SampleSize:       7
 ubopt_algo_pedestal_rmsslider.Threshold:        0.6
 ubopt_algo_pedestal_rmsslider.Verbose:          false
-ubopt_algo_pedestal_rmsslider.NWaveformsToFile: 12
+ubopt_algo_pedestal_rmsslider.NWaveformsToFile: 0
 ubopt_algo_pedestal_rmsslider.MaxSigma:         0.5
 ubopt_algo_pedestal_rmsslider.PedRangeMax:      2150
 ubopt_algo_pedestal_rmsslider.PedRangeMin:      100
@@ -29,8 +29,8 @@ ubopt_algo_pedestal_ub: @local::standard_algo_pedestal_ub
 ubopt_algo_pedestal_ub.BeamGateSamples:   1500
 ubopt_algo_pedestal_ub.SampleSize:        7
 ubopt_algo_pedestal_ub.Threshold:         0.6
-ubopt_algo_pedestal_ub.Verbose:           true
-ubopt_algo_pedestal_ub.NWaveformsToFile:  12
+ubopt_algo_pedestal_ub.Verbose:           false
+ubopt_algo_pedestal_ub.NWaveformsToFile:  0
 ubopt_algo_pedestal_ub.MaxSigma:          0.5
 ubopt_algo_pedestal_ub.PedRangeMax:       2150
 ubopt_algo_pedestal_ub.PedRangeMin:       100
