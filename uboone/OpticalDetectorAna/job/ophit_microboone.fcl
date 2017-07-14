@@ -58,7 +58,7 @@ ubopt_algo_hit_slidingwindow.ADCThreshold:       4
 ubopt_algo_hit_slidingwindow.NSigmaThreshold:    4
 ubopt_algo_hit_slidingwindow.EndADCThreshold:    2
 ubopt_algo_hit_slidingwindow.EndNSigmaThreshold: 1
-ubopt_algo_hit_slidingwindow.Verbosity:          true
+ubopt_algo_hit_slidingwindow.Verbosity:          false
 
 ubopt_algo_hit_cfd: @local::standard_algo_cfd
 ubopt_algo_hit_cfd.Fraction:    0.9
