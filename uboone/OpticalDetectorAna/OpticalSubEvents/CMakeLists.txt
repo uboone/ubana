@@ -25,7 +25,7 @@ simple_plugin( SubEventBuilder "module"
 	       OpticalSubEvents
 	       uboone_OpticalDetectorAna_OpticalSubEvents_dict
 	       lardataobj_RecoBase
-	       larcore_Geometry
+	       larcorealg_Geometry
 	       larcore_Geometry_Geometry_service
 	       lardata_Utilities
                ${ART_FRAMEWORK_CORE}
