@@ -22,9 +22,9 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/OpDetGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/OpDetGeo.h"
 #include "uboone/Geometry/UBOpReadoutMap.h"
 
 // data-products

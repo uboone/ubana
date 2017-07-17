@@ -17,7 +17,7 @@ art_make( BASENAME_ONLY
 			uboonecode_uboone_Calibrations
 			lardataobj_RawData
 			CalData
-			larcore_Geometry
+			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			larsim_MCCheater_BackTracker_service
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation

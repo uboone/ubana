@@ -3,7 +3,7 @@
 art_make(
 	MODULE_LIBRARIES
 			uboone_PatternFilter_PMAlgs
-			larcore_Geometry
+			larcorealg_Geometry
 			lardata_DetectorInfo
 			lardataobj_RecoBase
                         ${ART_FRAMEWORK_CORE}
