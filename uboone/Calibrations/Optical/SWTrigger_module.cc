@@ -37,11 +37,11 @@
 //#include "larcore/LArUtilities/TimeService.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
-#include "uboonecode/uboone/TriggerSim/UBTriggerTypes.h"
+#include "uboone/TriggerSim/UBTriggerTypes.h"
 
 //Optical Channel Maps
-#include "uboonecode/uboone/Geometry/UBOpChannelTypes.h"
-#include "uboonecode/uboone/Geometry/UBOpReadoutMap.h"
+#include "uboone/Geometry/UBOpChannelTypes.h"
+#include "uboone/Geometry/UBOpReadoutMap.h"
 
 //RawDigits
 #include "lardataobj/RawData/raw.h"
@@ -50,8 +50,8 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include "lardataobj/RawData/DAQHeader.h"
-#include "uboonecode/uboone/TriggerSim/UBTriggerTypes.h"
-#include "uboonecode/uboone/RawData/utils/ubdaqSoftwareTriggerData.h"
+#include "uboone/TriggerSim/UBTriggerTypes.h"
+#include "uboone/RawData/utils/ubdaqSoftwareTriggerData.h"
 
 // Trigger Emulator Code
 #include "SWTriggerBase/SWTriggerTypes.h"
