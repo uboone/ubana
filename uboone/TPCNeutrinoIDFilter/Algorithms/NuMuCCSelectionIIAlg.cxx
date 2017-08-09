@@ -481,7 +481,7 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
         }//second track is longer
         if (((trkstartdedx0>trkenddedx0&&
               trkstartdedx0>fMinStartdEdx1stTrk&&trkenddedx0<fMaxEnddEdx1stTrk)||
-               trkendy0>fDistToEdgeY)&&trklen1<fMinTrackLen2ndTrk)
+               trkendy0>fDistToEdgeY)&&trklen1<30) //fMinTrackLen2ndTrk)
           isMichel = true;
         
         if (isMichel){
