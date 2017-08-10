@@ -67,8 +67,8 @@ physics:
  #ana: [ mcinfo, reco2d, opreco, pandora ]
  #ana: [ reco2d, opreco, pandora ]
 
- #end_paths:     [ stream1, ana ]    
- end_paths:     [ ana ]    
+end_paths:     [ stream1, ana ]    
+# end_paths:     [ ana ]    
 
 
 }
@@ -78,7 +78,7 @@ outputs:
  out1:
  {
    module_type: RootOutput
-   fileName:    "TEMP.root"
+   fileName:    "artroot_output.root"
 #   sam_ignore:  true
    dataTier:    "reconstructed-2d"
    SelectEvents: [ reco ]
@@ -100,10 +100,10 @@ services.FileCatalogMetadataMicroBooNE: {
 }
 
 ## Adjust the window/offset for the reduced total frame size (9600 -> 6400 ticks)
-services.DetectorPropertiesService.NumberTimeSamples:                  6400
-services.DetectorPropertiesService.ReadOutWindowSize:                  6400
-services.DetectorClocksService.InheritClockConfig:                     false
-services.DetectorClocksService.TriggerOffsetTPC:                       -0.400e3
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -400
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400
 
 physics.producers.NuMuCCSelectionII.NeutrinoIDAlgName:                         "NuMuCCSelectionIIAlg"
 physics.producers.NuMuCCSelectionII.NuMuCCSelectionIIAlg.BeamMin : 3.65 #3.3 #3.65 #3.2 
