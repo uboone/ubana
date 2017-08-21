@@ -666,12 +666,13 @@ namespace microboone {
       FlashData_t<Float_t> flsTime;                     ///< Flash time (us)
       FlashData_t<Float_t> flsPe;                       ///< Flash total PE
       FlashDataSpec_t<Double_t> flsPePerOpDet;          ///< Flash PE per optical detector
+      FlashData_t<Float_t> flsXcenter;                  ///< Flash X center (cm)
       FlashData_t<Float_t> flsYcenter;                  ///< Flash Y center (cm)
       FlashData_t<Float_t> flsZcenter;                  ///< Flash Z center (cm)
       FlashData_t<Float_t> flsYwidth;                   ///< Flash Y width (cm)
       FlashData_t<Float_t> flsZwidth;                   ///< Flash Z width (cm)
       FlashData_t<Float_t> flsTwidth;                   ///< Flash time width (us)
- 
+
       void Clear();
       void SetMaxFlashes(size_t maxFlashes)
       { MaxFlashes = maxFlashes; Resize(MaxFlashes); }
@@ -2541,6 +2542,7 @@ void microboone::AnalysisTreeDataStruct::FlashDataStruct::Resize(size_t nFlashes
   flsTime.resize(MaxFlashes);
   flsPe.resize(MaxFlashes);
   flsPePerOpDet.resize(MaxFlashes);
+  flsXcenter.resize(MaxFlashes);
   flsYcenter.resize(MaxFlashes);
   flsZcenter.resize(MaxFlashes);
   flsYwidth.resize(MaxFlashes);
@@ -2566,6 +2568,7 @@ void microboone::AnalysisTreeDataStruct::FlashDataStruct::Clear() {
 
   FillWith(flsTime        , -9999  );
   FillWith(flsPe          , -9999  );
+  FillWith(flsXcenter     , -9999  );
   FillWith(flsYcenter     , -9999  );
   FillWith(flsZcenter     , -9999  );
   FillWith(flsYwidth      , -9999  );
@@ -2605,6 +2608,9 @@ void microboone::AnalysisTreeDataStruct::FlashDataStruct::SetAddresses(
 
   BranchName = "flsPePerOpDet_" + FlashLabel;
   CreateBranch(BranchName, flsPePerOpDet, BranchName + NFlashIndexStr + NOpDetIndexString + "/D");
+
+  BranchName = "flsXcenter_" + FlashLabel;
+  CreateBranch(BranchName, flsXcenter, BranchName + NFlashIndexStr + "/F");
 
   BranchName = "flsYcenter_" + FlashLabel;
   CreateBranch(BranchName, flsYcenter, BranchName + NFlashIndexStr + "/F");
@@ -5632,6 +5638,9 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
           }
         }
 
+        // Convert flash time to x coordinate (tjyang)
+        geo::PlaneID pid(0, 0, 0);
+        FlashData.flsXcenter[i] = detprop->ConvertTicksToX(flashlist[iFlashAlg][i]->Time()/detprop->SamplingRate()*1e3 + detprop->GetXTicksOffset(pid),pid);
       }
     }
   } // if fSaveFlashInfo
