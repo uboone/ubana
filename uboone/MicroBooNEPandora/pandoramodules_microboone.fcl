@@ -2,33 +2,69 @@ BEGIN_PROLOG
 
 microboone_pandora:
 {
-  module_type:           "StandardPandora"
-  GeantModuleLabel:      "largeant"
-  HitFinderModuleLabel:  "gaushit"
-  EnableMCParticles:     false
-  EnableProduction:      true
-  EnableMonitoring:      false
-  EnableLineGaps:        true
-  UseHitWidths:          true
-  BuildTracks:           true
-  BuildShowers:          true
+  module_type:                                          "StandardPandora"
+  GeantModuleLabel:                                     "largeant"
+  HitFinderModuleLabel:                                 "gaushit"
+  EnableMCParticles:                                    false
+  EnableProduction:                                     true
+  EnableMonitoring:                                     false
+  EnableLineGaps:                                       true
+  UseHitWidths:                                         true
+  BuildTracks:                                          true
+  BuildShowers:                                         true
+  ConfigFile:                                           "PandoraSettings_MicroBooNE.xml"
+  ShouldRunAllHitsCosmicReco:                           false
+  ShouldRunCosmicHitRemoval:                            false
+  ShouldRunSlicing:                                     false
+  ShouldRunNeutrinoRecoOption:                          false
+  ShouldRunCosmicRecoOption:                            false
+  ShouldIdentifyNeutrinoSlice:                          false
+  PrintOverallRecoStatus:                               false
   ShowerEnergy: {
-      UseArea:           true
-      Recombination: {
-         Model:          ModBox
-      }
+    UseArea:                                            true
+    Recombination: {
+      Model:                                            ModBox
+    }
   }
 }
 
-microboone_pandoracosmic:   @local::microboone_pandora
-microboone_pandoracosmic.ConfigFile:          "PandoraSettings_MicroBooNE_Cosmic.xml"
+microboone_pandoraFull:                                             @local::microboone_pandora
+microboone_pandoraFull.ShouldRunAllHitsCosmicReco:                  true
+microboone_pandoraFull.ShouldRunCosmicHitRemoval:                   true
+microboone_pandoraFull.ShouldRunSlicing:                            true
+microboone_pandoraFull.ShouldRunNeutrinoRecoOption:                 true
+microboone_pandoraFull.ShouldRunCosmicRecoOption:                   true
+microboone_pandoraFull.ShouldIdentifyNeutrinoSlice:                 true
 
-microboone_pandoraneutrino: @local::microboone_pandora
-microboone_pandoraneutrino.ConfigFile:        "PandoraSettings_MicroBooNE_Neutrino.xml"
+microboone_pandoraAllHitsCR:                                        @local::microboone_pandora
+microboone_pandoraAllHitsCR.ShouldRunAllHitsCosmicReco:             true
 
-microboone_pandorawriter:   @local::microboone_pandora
-microboone_pandorawriter.ConfigFile:          "PandoraSettings_Write.xml"
-microboone_pandorawriter.EnableMCParticles:   true
-microboone_pandorawriter.EnableProduction:    false
+microboone_pandoraAllHitsNu:                                        @local::microboone_pandora
+microboone_pandoraAllHitsNu.ShouldRunNeutrinoRecoOption:            true
+
+microboone_pandoraAllHitsSliceCR:                                   @local::microboone_pandora
+microboone_pandoraAllHitsSliceCR.ShouldRunSlicing:                  true
+microboone_pandoraAllHitsSliceCR.ShouldRunCosmicRecoOption:         true
+
+microboone_pandoraAllHitsSliceNu:                                   @local::microboone_pandora
+microboone_pandoraAllHitsSliceNu.ShouldRunSlicing:                  true
+microboone_pandoraAllHitsSliceNu.ShouldRunNeutrinoRecoOption:       true
+
+microboone_pandoraCRRemHitsSliceCR:                                 @local::microboone_pandora
+microboone_pandoraCRRemHitsSliceCR.ShouldRunAllHitsCosmicReco:      true
+microboone_pandoraCRRemHitsSliceCR.ShouldRunCosmicHitRemoval:       true
+microboone_pandoraCRRemHitsSliceCR.ShouldRunSlicing:                true
+microboone_pandoraCRRemHitsSliceCR.ShouldRunCosmicRecoOption:       true
+
+microboone_pandoraCRRemHitsSliceNu:                                 @local::microboone_pandora
+microboone_pandoraCRRemHitsSliceNu.ShouldRunAllHitsCosmicReco:      true
+microboone_pandoraCRRemHitsSliceNu.ShouldRunCosmicHitRemoval:       true
+microboone_pandoraCRRemHitsSliceNu.ShouldRunSlicing:                true
+microboone_pandoraCRRemHitsSliceNu.ShouldRunNeutrinoRecoOption:     true
+
+microboone_pandorawriter:                                           @local::microboone_pandora
+microboone_pandorawriter.ConfigFile:                                "PandoraSettings_Write.xml"
+microboone_pandorawriter.EnableMCParticles:                         true
+microboone_pandorawriter.EnableProduction:                          false
 
 END_PROLOG
