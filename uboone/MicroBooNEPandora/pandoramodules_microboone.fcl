@@ -7,7 +7,6 @@ microboone_pandora:
   HitFinderModuleLabel:                                 "gaushit"
   EnableMCParticles:                                    false
   EnableProduction:                                     true
-  EnableMonitoring:                                     false
   EnableLineGaps:                                       true
   UseHitWidths:                                         true
   BuildTracks:                                          true
