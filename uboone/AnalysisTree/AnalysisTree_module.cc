@@ -5242,7 +5242,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
             dir_end   = track.EndDirection();
             end       = track.End();
 
-            tlen        = length(track);
+            tlen        = track.Length(); //length(track);
             if(track.NumberFitMomentum() > 0)
               mom = track.VertexMomentum();
             // fill non-bezier-track reco branches
