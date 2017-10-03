@@ -21,6 +21,7 @@ microboone_analysistree:
  T0RecoAnodeCathodePiercingLabel:  [ "t0reco" ]
  FlashT0FinderLabel:       ["t0"]
  MCT0FinderLabel:          ["mct0"]
+ TrackMCSFitLabel:         ["pandoraNuMCSMu"]
  ShowerModuleLabel:        ["showerrecofuzzy"]
  CosmicClusterTaggerAssocLabel: "ccclustertag"
  CosmicTaggerAssocLabel: ["trackkalmanhit"]
