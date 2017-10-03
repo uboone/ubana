@@ -310,6 +310,7 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Wire.h"
+#include "lardataobj/RecoBase/MCSFitResult.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
@@ -563,6 +564,12 @@ namespace microboone {
       TrackData_t<Float_t> trkmomrange;    // track momentum from range using CSDA tables
       TrackData_t<Float_t> trkmommschi2;   // track momentum from multiple scattering Chi2 method
       TrackData_t<Float_t> trkmommsllhd;   // track momentum from multiple scattering LLHD method
+      TrackData_t<Float_t> trkmcsfwdmom;   // track momentum assuming forward direction
+      TrackData_t<Float_t> trkmcsfwdll;    // MCS likelihood assuming forward direction
+      TrackData_t<Float_t> trkmcsfwderr;   // MCS uncertainty assuming forward direction
+      TrackData_t<Float_t> trkmcsbwdmom;   // track momentum assuming backward direction
+      TrackData_t<Float_t> trkmcsbwdll;    // MCS likelihood assuming backward direction
+      TrackData_t<Float_t> trkmcsbwderr;   // MCS uncertainty assuming backward direction
       TrackData_t<Short_t> trksvtxid;     // Vertex ID associated with the track start
       TrackData_t<Short_t> trkevtxid;     // Vertex ID associated with the track end
       PlaneData_t<Int_t> trkpidpdg;       // particle PID pdg code
@@ -1666,6 +1673,7 @@ namespace microboone {
     std::vector<std::string> fT0RecoAnodeCathodePiercingLabel; 
     std::vector<std::string> fFlashT0FinderLabel;
     std::vector<std::string> fMCT0FinderLabel;
+    std::vector<std::string> fTrackMCSFitLabel;
     std::string fPOTModuleLabel;
     std::string fCosmicClusterTaggerAssocLabel;
     std::string fSWTriggerLabel;
@@ -2064,6 +2072,12 @@ void microboone::AnalysisTreeDataStruct::TrackDataStruct::Resize(size_t nTracks)
   trkmomrange.resize(MaxTracks);
   trkmommschi2.resize(MaxTracks);
   trkmommsllhd.resize(MaxTracks);  
+  trkmcsfwdmom.resize(MaxTracks);
+  trkmcsfwdll.resize(MaxTracks);
+  trkmcsfwderr.resize(MaxTracks);
+  trkmcsbwdmom.resize(MaxTracks);
+  trkmcsbwdll.resize(MaxTracks);
+  trkmcsbwderr.resize(MaxTracks);
   trklen.resize(MaxTracks);
   trksvtxid.resize(MaxTracks);
   trkevtxid.resize(MaxTracks);
@@ -2144,6 +2158,12 @@ void microboone::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
   FillWith(trkmomrange  , -99999.);  
   FillWith(trkmommschi2 , -99999.);  
   FillWith(trkmommsllhd , -99999.);  
+  FillWith(trkmcsfwdmom , -99999.);
+  FillWith(trkmcsfwdll  , -99999.);
+  FillWith(trkmcsfwderr , -99999.);
+  FillWith(trkmcsbwdmom , -99999.);
+  FillWith(trkmcsbwdll  , -99999.);
+  FillWith(trkmcsbwderr , -99999.);
   FillWith(trklen       , -99999.);
   FillWith(trksvtxid    , -1);
   FillWith(trkevtxid    , -1);
@@ -2359,6 +2379,24 @@ void microboone::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
 
   BranchName = "trkmommsllhd_" + TrackLabel;
   CreateBranch(BranchName, trkmommsllhd, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkmcsfwdmom_" + TrackLabel;
+  CreateBranch(BranchName, trkmcsfwdmom, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkmcsfwdll_" + TrackLabel;
+  CreateBranch(BranchName, trkmcsfwdll, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkmcsfwderr_" + TrackLabel;
+  CreateBranch(BranchName, trkmcsfwderr, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkmcsbwdmom_" + TrackLabel;
+  CreateBranch(BranchName, trkmcsbwdmom, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkmcsbwdll_" + TrackLabel;
+  CreateBranch(BranchName, trkmcsbwdll, BranchName + NTracksIndexStr + "/F");
+
+  BranchName = "trkmcsbwderr_" + TrackLabel;
+  CreateBranch(BranchName, trkmcsbwderr, BranchName + NTracksIndexStr + "/F");
   
   BranchName = "trklen_" + TrackLabel;
   CreateBranch(BranchName, trklen, BranchName + NTracksIndexStr + "/F");
@@ -4014,6 +4052,7 @@ microboone::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fT0RecoAnodeCathodePiercingLabel (pset.get< std::vector<std::string> >("T0RecoAnodeCathodePiercingLabel") ),
   fFlashT0FinderLabel       (pset.get< std::vector<std::string> >("FlashT0FinderLabel")   ),
   fMCT0FinderLabel          (pset.get< std::vector<std::string> >("MCT0FinderLabel")   ),
+  fTrackMCSFitLabel         (pset.get< std::vector<std::string> >("TrackMCSFitLabel")),
   fPOTModuleLabel           (pset.get< std::string >("POTModuleLabel")),   
   fCosmicClusterTaggerAssocLabel (pset.get< std::string >("CosmicClusterTaggerAssocLabel")), 
   fSWTriggerLabel           (pset.get< std::string >("SWTriggerModuleLabel")),
@@ -4108,6 +4147,12 @@ microboone::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
     throw art::Exception(art::errors::Configuration)
       << "fTrackModuleLabel.size() = "<<fTrackModuleLabel.size()<<" does not match "
       << "fContainmentTaggerAssocLabel.size() = "<<fContainmentTaggerAssocLabel.size();
+  }
+
+  if (fTrackModuleLabel.size() != fTrackMCSFitLabel.size()){
+    throw art::Exception(art::errors::Configuration)
+      << "fTrackModuleLabel.size() = "<<fTrackModuleLabel.size()<<" does not match "
+      << "fTrackMCSFitLabel.size() = "<<fTrackMCSFitLabel.size();
   }
 
 
@@ -4428,6 +4473,14 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
     if (evt.getByLabel(fTrackModuleLabel[it],trackListHandle[it]))
       art::fill_ptr_vector(tracklist[it], trackListHandle[it]);
   }
+
+  // * tracks MCS 
+  std::vector< art::Handle< std::vector<recob::MCSFitResult> > > mcsfitListHandle(NTrackers);
+  std::vector< std::vector<art::Ptr<recob::MCSFitResult> > > mcsfitlist(NTrackers);
+  for (unsigned int it = 0; it < NTrackers; ++it){
+    if (evt.getByLabel(fTrackMCSFitLabel[it],mcsfitListHandle[it]))
+      art::fill_ptr_vector(mcsfitlist[it], mcsfitListHandle[it]);
+  }  
 
   // * showers
   // It seems that sometimes the shower data product does not exist;
@@ -5227,7 +5280,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
             end.SetXYZ(xyz[0],xyz[1],xyz[2]);
 
             tlen = btrack.GetLength();
-            if (btrack.NumberFitMomentum() > 0)
+            if (btrack.NumberTrajectoryPoints() > 0)
               mom = btrack.VertexMomentum();
             // fill bezier track reco branches
             TrackID = iTrk;  //bezier has some screwed up track IDs
@@ -5242,7 +5295,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
             end       = track.End();
 
             tlen        = track.Length(); //length(track);
-            if(track.NumberFitMomentum() > 0)
+            if(track.NumberTrajectoryPoints() > 0)
               mom = track.VertexMomentum();
             // fill non-bezier-track reco branches
             TrackID = track.ID();
@@ -5277,9 +5330,16 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
           TrackerData.trkmom[iTrk]		  = mom;
           TrackerData.trklen[iTrk]		  = tlen;
           TrackerData.trkmomrange[iTrk] 	  = trkm.GetTrackMomentum(tlen,13);
-          TrackerData.trkmommschi2[iTrk]	  = trkm.GetMomentumMultiScatterChi2(ptrack);
-          TrackerData.trkmommsllhd[iTrk]	  = trkm.GetMomentumMultiScatterLLHD(ptrack);
-          
+          //TrackerData.trkmommschi2[iTrk]	  = trkm.GetMomentumMultiScatterChi2(ptrack);
+          //TrackerData.trkmommsllhd[iTrk]	  = trkm.GetMomentumMultiScatterLLHD(ptrack);
+          if (tracklist[iTracker].size() == mcsfitlist[iTracker].size()){
+            TrackerData.trkmcsfwdmom[iTrk]        = mcsfitlist[iTracker][iTrk]->fwdMomentum();
+            TrackerData.trkmcsfwdll[iTrk]         = mcsfitlist[iTracker][iTrk]->fwdLogLikelihood();
+            TrackerData.trkmcsfwderr[iTrk]        = mcsfitlist[iTracker][iTrk]->fwdMomUncertainty();
+            TrackerData.trkmcsbwdmom[iTrk]        = mcsfitlist[iTracker][iTrk]->bwdMomentum();
+            TrackerData.trkmcsbwdll[iTrk]         = mcsfitlist[iTracker][iTrk]->bwdLogLikelihood();
+            TrackerData.trkmcsbwderr[iTrk]        = mcsfitlist[iTracker][iTrk]->bwdMomUncertainty();
+          }
           if (fSavePFParticleInfo) {
             auto mapIter = trackIDtoPFParticleIDMap.find(TrackID);
             if (mapIter != trackIDtoPFParticleIDMap.end()) {
