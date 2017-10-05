@@ -11,10 +11,10 @@ microboone_swtrigger_data:
     MinReadoutTicks:  1499
 
     drop_event : true
-    swtrg_algonames : ["EXT_BNBwin","EXT_NUMIwin","EXT_unbiased","BNB","BNB_unbiased","NUMI","NUMI_unbiased"]
-    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","PrescaleAlgo"]
+    swtrg_algonames : ["EXT_BNBwin","EXT_NUMIwin","EXT_unbiased","BNB","BNB_unbiased","NUMI","NUMI_unbiased","BNB_HSN_c0"]
+    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo"]
     swtrg_beam_window_size : 1100
-    swtrg_bits : [0x200,0x200,0x200,0x800,0x800,0x1000,0x1000]
+    swtrg_bits : [0x200,0x200,0x200,0x800,0x800,0x1000,0x1000,0x800]
     BNB_FEMBeamTriggerAlgo:{
       Discr0deadtime : 6
       Discr0delay : 4
@@ -99,6 +99,25 @@ microboone_swtrigger_data:
     }
     NUMI_unbiased_PrescaleAlgo:{
       PrescaleFactor : 0.016
+    }
+    BNB_HSN_c0_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 164
+      Discr3WindowStart : 186
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 1.0
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 210
+      TriggerWindowSize : 160
+      TriggerWindowStart : 190
+      Verbosity : 3
     }
 }
 
