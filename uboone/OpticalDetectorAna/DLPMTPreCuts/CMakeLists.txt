@@ -29,3 +29,5 @@ simple_plugin( DLPMTPreCuts "module"
 
 install_fhicl()
 install_headers()
+install_source()
+
