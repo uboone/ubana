@@ -31,6 +31,7 @@ art_make(BASENAME_ONLY
 		     larcorealg_Geometry
 		     larcore_Geometry_Geometry_service
 		     lardata_Utilities
+                     nusimdata_SimulationBase
 		     art_Persistency_Common canvas
 		     art_Persistency_Provenance canvas
 		     ${ART_FRAMEWORK_CORE}
