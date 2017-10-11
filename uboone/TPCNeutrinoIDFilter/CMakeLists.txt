@@ -32,6 +32,7 @@ art_make(BASENAME_ONLY
 		     larcore_Geometry_Geometry_service
 		     lardata_Utilities
                      nusimdata_SimulationBase
+                     larsim_MCCheater_BackTracker_service
 		     art_Persistency_Common canvas
 		     art_Persistency_Provenance canvas
 		     ${ART_FRAMEWORK_CORE}

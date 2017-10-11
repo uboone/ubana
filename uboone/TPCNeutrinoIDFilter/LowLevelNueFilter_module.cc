@@ -14,6 +14,7 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -65,6 +66,8 @@ private:
   TH1F* h_flash_time;
   TH1F* h_ophits_per_flash;
   TH1F* h_ophits_per_flash_2pe;
+
+  void GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits, int& origin, int& pdgcode);
 
 };
 
@@ -119,7 +122,6 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
     std::cout<<"NuPDG = "<<NuPDG<<" mode = "<<mode<<" CCNC = "<<CCNC<<" nue energy = "<<enutruth<<" nu Vertex = ["<<nuvtxx<<" , "<<nuvtxy<<" , "<<nuvtxz<<"]"<<" lepton momentum = "<<lep_mom_truth<<std::endl;
 
     //Flashes
-    // Clusters
     art::Handle<std::vector<recob::OpFlash> > opflashHandle;
     std::vector<art::Ptr<recob::OpFlash> > OpFlash_vec;
     if (e.getByLabel(fOpFlash_tag, opflashHandle))
@@ -157,6 +159,8 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
     std::vector<art::Ptr<recob::Cluster> > Cluster_vec;
     if (e.getByLabel(fCluster_tag, clusterHandle))
       art::fill_ptr_vector(Cluster_vec, clusterHandle);
+
+    art::FindManyP<recob::Hit>  fmhc(clusterHandle, e, fCluster_tag);
     
     for( auto const& cluster : Cluster_vec){
       auto ID = cluster->ID();
@@ -170,7 +174,10 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 	  auto StartCharge = cluster->StartCharge();
 	  auto EndCharge = cluster->EndCharge();
 	  auto TotalCharge = cluster->Integral();
-          std::cout<<"ClusterID="<<ID<<" plane="<<plane<<"nhits = "<<nHits<<" startwire = "<<StartWire<<" starttick = "<<StartTick<<" StartCharge = "<<StartCharge<<" EndCharge = "<<EndCharge<<" TotalCharge = "<<TotalCharge<<std::endl;
+          int origin = 0;
+          int pdgcode = 0;
+          GetTruthInfo(fmhc.at(cluster.key()), origin, pdgcode);
+          std::cout<<"ClusterID="<<ID<<" plane="<<plane<<"nhits = "<<nHits<<" startwire = "<<StartWire<<" starttick = "<<StartTick<<" StartCharge = "<<StartCharge<<" EndCharge = "<<EndCharge<<" TotalCharge = "<<TotalCharge<<" origin = "<<origin<<" pdgcode = "<<pdgcode<<std::endl;
 	}
     }
 
@@ -219,4 +226,41 @@ void ub::LowLevelNueFilter::beginJob()
   h_ophits_per_flash_2pe = tfs->make<TH1F>("h_ophits_per_flash_2pe","OpHits (> 2 PE) per Flash;N_{optical hits};Events / bin",20,-0.5,19.5);
 }
 
+void ub::LowLevelNueFilter::GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits, int& origin, int& pdgcode){
+  
+  art::ServiceHandle<cheat::BackTracker> bt;
+
+  origin = 0;
+  pdgcode = 0;
+
+  std::map<int,double> trkide;
+  for(size_t h = 0; h < hits.size(); ++h){
+    art::Ptr<recob::Hit> hit = hits[h];
+    //std::vector<sim::IDE> ides;
+    std::vector<sim::TrackIDE> TrackIDs = bt->HitToEveID(hit);
+    
+    for(size_t e = 0; e < TrackIDs.size(); ++e){
+      trkide[TrackIDs[e].trackID] += TrackIDs[e].energy;
+    }
+  }
+  // Work out which IDE despoited the most charge in the hit if there was more than one.
+  double maxe = -1;
+  double tote = 0;
+  int Trackid = 0;
+  for (std::map<int,double>::iterator ii = trkide.begin(); ii!=trkide.end(); ++ii){
+    tote += ii->second;
+    if ((ii->second)>maxe){
+      maxe = ii->second;
+      //if(pfPartIdx < max_pfparticles) origin=ii->first;
+      Trackid=ii->first;
+    }
+  }
+  
+  const simb::MCParticle* particle=bt->TrackIDToParticle(Trackid);	    
+  if(particle){
+    pdgcode = particle->PdgCode();
+    origin = bt->TrackIDToMCTruth(Trackid)->Origin();
+  }
+}
+    
 DEFINE_ART_MODULE(ub::LowLevelNueFilter)
