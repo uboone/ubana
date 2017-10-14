@@ -319,6 +319,7 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "ubooneobj/UbooneOpticalFilter.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
@@ -845,6 +846,7 @@ namespace microboone {
         tdPandoraNuVertex = 0x20000,
         tdPFParticle = 0x40000,
         tdSWTrigger = 0x80000,
+        tdOpticalFilter = 0x100000,
 	tdDefault = 0
 	}; // DataBits_t
     
@@ -902,6 +904,11 @@ namespace microboone {
     std::vector<std::vector<double>> evtwgt_weight;    // the weights (a vector for each function used)
     std::vector<int> evtwgt_nweight;                   // number of weights for each function
     Int_t evtwgt_nfunc;                                // number of functions used
+
+    //Optical Filter Information
+    Float_t opfilter_pebeam;      // pe in the beam window period
+    Float_t opfilter_peveto;      // pe in the veto window period
+    Float_t opfilter_pmtmaxfrac;  // max fraction of pe in single pmt
 
     // Software trigger information
     std::vector<std::string> swtrigger_name;           // name of the software trigger used 
@@ -1334,6 +1341,9 @@ namespace microboone {
     /// Returns whether we have Hit data
     bool hasSWTriggerInfo() const { return bits & tdSWTrigger; }
 
+    /// Returns whether we have OpFilter data
+    bool hasOpticalFilterInfo() const { return bits & tdOpticalFilter; }
+
     /// Returns whether we have Hit data
     bool hasRawDigitInfo() const { return bits & tdRawDigit; }
     
@@ -1677,6 +1687,7 @@ namespace microboone {
     std::string fPOTModuleLabel;
     std::string fCosmicClusterTaggerAssocLabel;
     std::string fSWTriggerLabel;
+    std::string fOpticalFilterLabel;
     bool fUseBuffer; ///< whether to use a permanent buffer (faster, huge memory)    
     bool fSaveAuxDetInfo; ///< whether to extract and save auxiliary detector data
     bool fSaveCryInfo; ///whether to extract and save CRY particle data
@@ -1698,6 +1709,7 @@ namespace microboone {
     bool fSaveShowerInfo;  ///whether to extract and save Shower information
     bool fSavePFParticleInfo; ///whether to extract and save PFParticle information
     bool fSaveSWTriggerInfo; ///whether to extract and save software trigger information
+    bool fSaveOpticalFilterInfo; ///whether to extract and save optical filter information
 
     std::vector<std::string> fCosmicTaggerAssocLabel;
     std::vector<std::string> fContainmentTaggerAssocLabel;
@@ -1741,6 +1753,7 @@ namespace microboone {
 	fData->SetBits(AnalysisTreeDataStruct::tdMCtrk,  !fSaveMCTrackInfo); 
 	fData->SetBits(AnalysisTreeDataStruct::tdHit,    !fSaveHitInfo);
         fData->SetBits(AnalysisTreeDataStruct::tdSWTrigger,    !fSaveSWTriggerInfo);
+        fData->SetBits(AnalysisTreeDataStruct::tdOpticalFilter,    !fSaveOpticalFilterInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdRawDigit,    !fSaveRawDigitInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdCalWire,    !fSaveCalWireInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdSimChannel,    !fSaveSimChannelInfo);
@@ -2961,6 +2974,10 @@ void microboone::AnalysisTreeDataStruct::ClearLocalData() {
   potnumitgt = 0;
   potnumi101 = 0;
 
+  opfilter_pebeam = -999;
+  opfilter_peveto = -999;
+  opfilter_pmtmaxfrac = -999;
+
   evtwgt_nfunc = 0;
   FillWith(evtwgt_funcname, "noname");
   FillWith(evtwgt_nweight, 0);
@@ -3577,6 +3594,12 @@ void microboone::AnalysisTreeDataStruct::SetAddresses(
   CreateBranch("evtwgt_nweight",evtwgt_nweight);
   CreateBranch("evtwgt_nfunc",&evtwgt_nfunc,"evtwgt_nfunc/I");
 
+  if(hasOpticalFilterInfo()){
+    CreateBranch("opfilter_pebeam",&opfilter_pebeam,"opfilter_pebeam/F");
+    CreateBranch("opfilter_peveto",&opfilter_peveto,"opfilter_peveto/F");
+    CreateBranch("opfilter_pmtmaxfrac",&opfilter_pmtmaxfrac,"opfilter_pmtmaxfrac/F");
+  }
+
   if (hasSWTriggerInfo()){
     CreateBranch("swtrigger_name",      swtrigger_name);
     CreateBranch("swtrigger_triggered", swtrigger_triggered);
@@ -4056,6 +4079,7 @@ microboone::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fPOTModuleLabel           (pset.get< std::string >("POTModuleLabel")),   
   fCosmicClusterTaggerAssocLabel (pset.get< std::string >("CosmicClusterTaggerAssocLabel")), 
   fSWTriggerLabel           (pset.get< std::string >("SWTriggerModuleLabel")),
+  fOpticalFilterLabel       (pset.get< std::string >("OpticalFilterLabel")),
   fUseBuffer                (pset.get< bool >("UseBuffers", false)),
   fSaveAuxDetInfo           (pset.get< bool >("SaveAuxDetInfo", false)),
   fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),  
@@ -4613,6 +4637,23 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   } // swtrigger
 
 
+  //*****************************
+  //
+  // Common Optical Filter
+  //
+  //***************************** 
+  if(fSaveOpticalFilterInfo){
+    art::Handle<uboone::UbooneOpticalFilter> opticalFilterHandle;
+    evt.getByLabel(fOpticalFilterLabel,opticalFilterHandle);
+
+    if(!opticalFilterHandle.isValid() || opticalFilterHandle.failedToGet()){
+      std::cerr << "Failed to get optical filter data product with label " << fOpticalFilterLabel << std::endl;
+    }
+
+    fData->opfilter_pebeam = opticalFilterHandle->PE_Beam();
+    fData->opfilter_peveto = opticalFilterHandle->PE_Veto();
+    fData->opfilter_pmtmaxfrac = opticalFilterHandle->PMT_MaxFraction();
+  }
 
 
   //  std::cout<<detprop->NumberTimeSamples()<<" "<<detprop->ReadOutWindowSize()<<std::endl;
