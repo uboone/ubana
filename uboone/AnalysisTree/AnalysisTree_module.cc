@@ -4650,10 +4650,11 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
     if(!opticalFilterHandle.isValid() || opticalFilterHandle.failedToGet()){
       std::cerr << "Failed to get optical filter data product with label " << fOpticalFilterLabel << std::endl;
     }
-
-    fData->opfilter_pebeam = opticalFilterHandle->PE_Beam();
-    fData->opfilter_peveto = opticalFilterHandle->PE_Veto();
-    fData->opfilter_pmtmaxfrac = opticalFilterHandle->PMT_MaxFraction();
+    else{
+      fData->opfilter_pebeam = opticalFilterHandle->PE_Beam();
+      fData->opfilter_peveto = opticalFilterHandle->PE_Veto();
+      fData->opfilter_pmtmaxfrac = opticalFilterHandle->PMT_MaxFraction();
+    }
   }
 
 
