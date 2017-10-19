@@ -1,0 +1,52 @@
+BEGIN_PROLOG
+celltreeub: {
+ module_type : "CellTreeUB"
+ OutFile                       : "celltree.root"
+ TPC_rawLabel                  : "wcNoiseFilter"
+ #TPC_rawLabel                  : "daq"
+ TPC_deconWienerProducer       : "nfsp"
+ TPC_deconGaussianProducer     : "nfsp"
+ TPC_deconWienerLabel          : "wiener"
+ TPC_deconGaussianLabel        : "gauss"
+ TPC_badChannelListProducer    : "nfsp"
+ TPC_badChannelListLabel       : "bad"
+ TPC_channelThresholdProducer  : "nfsp"
+ TPC_channelThresholdLabel     : "threshold"
+ PMT_HG_cosmicLabel            : "OpdetCosmicHighGain"
+ PMT_LG_cosmicLabel            : "OpdetCosmicLowGain"
+ PMT_HG_beamLabel              : "OpdetBeamHighGain"
+ PMT_LG_beamLabel              : "OpdetBeamLowGain"
+ PMT_HG_cosmicProducer         : "pmtreadout"
+ PMT_LG_cosmicProducer         : "pmtreadout"
+ PMT_HG_beamProducer           : "pmtreadout"
+ PMT_LG_beamProducer           : "pmtreadout"
+ PMT_wfmSaturationLabel        : "saturation"
+ PMT_recoLabel                 : "opflash"
+ #PMT_recoLabel                 : "saturation"
+ HWTrigger_label               : "daq"
+ SWTrigger_label               : "daq"
+ Beam_label                    : "beaminfo"
+ POT_producer                  : "beamdata"
+ POT_bnb1label                 : "bnbETOR875"
+ POT_bnb2label                 : "bnbETOR860"
+ POT_numilabel                 : "numiETORTGT"
+ SaveTPC_raw                   : true
+ SaveTPC_deconWiener           : true
+ SaveTPC_deconGaussian         : true
+ SaveTPC_badChannelList        : true
+ SaveTPC_channelThreshold      : true
+ SavePMT_raw                   : true
+ SavePMT_wfmSaturation         : false
+ SavePMT_reco                  : true
+ SavePMT_gain                  : true
+ SaveHWTrigger                 : true
+ SaveSWTrigger                 : true
+ SaveBeam                      : true
+ SavePOT                       : true
+ UseLGBeamForHGCosmic          : true
+ FlashMultPEThreshold          : 5
+ DeconRebin                    : 4
+
+}
+
+END_PROLOG
