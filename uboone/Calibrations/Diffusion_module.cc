@@ -569,7 +569,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
     //and crashes, so check that the simIDEs have non-zero size before 
     //extracting hit true XYZ from simIDEs
     if (isMC){
-      std::vector<sim::IDE*> ides = bt_serv->HitToSimIDEs(hitlist[i]);
+      const std::vector<const sim::IDE*> ides = bt_serv->HitToSimIDEs(hitlist[i]);
       if (ides.size()>0){
          std::vector<double> xyz = bt_serv->SimIDEsToXYZ(ides);
          hit_trueX[i] = xyz[0];
@@ -1063,7 +1063,7 @@ void microboone::Diffusion::HitsPurity(std::vector< art::Ptr<recob::Hit> > const
     art::Ptr<recob::Hit> hit = hits[h];
     std::vector<sim::IDE> ides;
     //bt_serv->HitToSimIDEs(hit,ides);
-    std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveIDEs(hit);
+    std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){
       trkide[eveIDs[e].trackID] += eveIDs[e].energy;

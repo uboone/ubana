@@ -4218,8 +4218,8 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 {
   //services
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  art::ServiceHandle<cheat::BackTrackerService> bt;
-  art::ServiceHandle<cheat::ParticleInventoryService> bt;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
   // collect the sizes which might me needed to resize the tree data structure:
   bool isMC = !evt.isRealData();
