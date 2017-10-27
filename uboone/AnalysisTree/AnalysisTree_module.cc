@@ -4596,7 +4596,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       //and crashes, so check that the simIDEs have non-zero size before 
       //extracting hit true XYZ from simIDEs
       if (isMC){
-        const std::vector<const sim::IDE*> ides;
+        std::vector<const sim::IDE*> ides;
       	try{
 	        ides = bt_serv->HitToSimIDEs_Ps(hitlist[i]);
 	      }

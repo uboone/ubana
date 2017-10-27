@@ -569,7 +569,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
     //and crashes, so check that the simIDEs have non-zero size before 
     //extracting hit true XYZ from simIDEs
     if (isMC){
-      const std::vector<const sim::IDE*> ides = bt_serv->HitToSimIDEs(hitlist[i]);
+      const std::vector<const sim::IDE*> ides = bt_serv->HitToSimIDEs_Ps(hitlist[i]);
       if (ides.size()>0){
          std::vector<double> xyz = bt_serv->SimIDEsToXYZ(ides);
          hit_trueX[i] = xyz[0];
