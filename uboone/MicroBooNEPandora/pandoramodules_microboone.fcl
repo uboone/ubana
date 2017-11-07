@@ -2,29 +2,23 @@ BEGIN_PROLOG
 
 microboone_pandora:
 {
-  module_type:                                          "StandardPandora"
-  GeantModuleLabel:                                     "largeant"
-  HitFinderModuleLabel:                                 "gaushit"
-  EnableMCParticles:                                    false
-  EnableProduction:                                     true
-  EnableLineGaps:                                       true
-  UseHitWidths:                                         true
-  BuildTracks:                                          true
-  BuildShowers:                                         true
-  ConfigFile:                                           "PandoraSettings_MicroBooNE.xml"
-  ShouldRunAllHitsCosmicReco:                           false
-  ShouldRunCosmicHitRemoval:                            false
-  ShouldRunSlicing:                                     false
-  ShouldRunNeutrinoRecoOption:                          false
-  ShouldRunCosmicRecoOption:                            false
-  ShouldIdentifyNeutrinoSlice:                          false
-  PrintOverallRecoStatus:                               false
-  ShowerEnergy: {
-    UseArea:                                            true
-    Recombination: {
-      Model:                                            ModBox
-    }
-  }
+    module_type:                                                    "StandardPandora"
+    GeantModuleLabel:                                               "largeant"
+    HitFinderModuleLabel:                                           "gaushit"
+    EnableMCParticles:                                              false
+    EnableProduction:                                               true
+    EnableLineGaps:                                                 true
+    UseHitWidths:                                                   true
+    BuildTracks:                                                    true
+    BuildShowers:                                                   true
+    ConfigFile:                                                     "PandoraSettings_MicroBooNE.xml"
+    ShouldRunAllHitsCosmicReco:                                     false
+    ShouldRunCosmicHitRemoval:                                      false
+    ShouldRunSlicing:                                               false
+    ShouldRunNeutrinoRecoOption:                                    false
+    ShouldRunCosmicRecoOption:                                      false
+    ShouldIdentifyNeutrinoSlice:                                    false
+    PrintOverallRecoStatus:                                         false
 }
 
 microboone_pandoraFull:                                             @local::microboone_pandora
@@ -61,9 +55,31 @@ microboone_pandoraCRRemHitsSliceNu.ShouldRunCosmicHitRemoval:       true
 microboone_pandoraCRRemHitsSliceNu.ShouldRunSlicing:                true
 microboone_pandoraCRRemHitsSliceNu.ShouldRunNeutrinoRecoOption:     true
 
-microboone_pandorawriter:                                           @local::microboone_pandora
-microboone_pandorawriter.ConfigFile:                                "PandoraSettings_Write.xml"
-microboone_pandorawriter.EnableMCParticles:                         true
-microboone_pandorawriter.EnableProduction:                          false
+microboone_pandoraWriter:                                           @local::microboone_pandora
+microboone_pandoraWriter.ConfigFile:                                "PandoraSettings_Write.xml"
+microboone_pandoraWriter.EnableMCParticles:                         true
+microboone_pandoraWriter.EnableProduction:                          false
+
+microboone_pandoraTrackCreation:
+{
+    module_type:                                                    "LArPandoraTrackCreation"
+}
+
+microboone_pandoraShowerCreation:
+{
+    module_type:                                                    "LArPandoraShowerCreation"
+}
+
+microboone_pandoraSplitting:
+{
+    module_type:                                                    "CollectionSplitting"
+    ShouldProduceNeutrinos:                                         true
+    ShouldProduceCosmics:                                           true
+}
+
+microboone_pandoraMerging:
+{
+    module_type:                                                    "CollectionMerging"
+}
 
 END_PROLOG
