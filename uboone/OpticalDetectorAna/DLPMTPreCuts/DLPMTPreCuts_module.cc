@@ -18,6 +18,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "lardataobj/RecoBase/OpHit.h"
+#include "ubooneobj/UbooneOpticalFilter.h"
 
 // from dlpmtprecutalgo in UPS
 #include "LEEPreCutAlgo.h"
@@ -56,7 +57,8 @@ private:
   int fVetoEndTick;
   float fPEThreshold;    
   float fPMTMaxFrac;
-
+  bool  fStoreOpticalFilterObj;
+  
 };
 
 
@@ -65,7 +67,10 @@ dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.
-
+  fStoreOpticalFilterObj = p.get<bool>("StoreOpticalFilterObj",true);
+  if(fStoreOpticalFilterObj)
+    produces<uboone::UbooneOpticalFilter>();
+  
   fOpHitProducer = p.get< std::string >("OpHitProducer");
   fBinTickWidth  = p.get< int >("BinTickWidth",     6);
   fWinStartTick  = p.get< int >("WinStartTick",   190);
@@ -103,6 +108,12 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
   std::vector<float> vetoPEinfo = m_algo.GetTotalPE( fPEThreshold , vetobins );
   
   float maxfrac     = m_algo.PMTMaxFrac( ophit_peaktime_v, ophit_pe_v, ophit_femch_v, beamPEinfo, fBinTickWidth,  fWinStartTick);
+
+  if(fStoreOpticalFilterObj)
+    {
+      std::unique_ptr<uboone::UbooneOpticalFilter> ubopfilter_obj( new uboone::UbooneOpticalFilter(beamPEinfo[0],vetoPEinfo[0],maxfrac));
+      e.put(std::move(ubopfilter_obj));
+    }
   
   if ( beamPEinfo[0]>fPEThreshold && vetoPEinfo[0]<fPEThreshold && maxfrac < fPMTMaxFrac )
     return true;
