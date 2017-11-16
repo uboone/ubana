@@ -24,7 +24,8 @@
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/PFParticle.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "larcore/Geometry/Geometry.h"
 
 
@@ -1415,7 +1416,8 @@ void ub::LowLevelNueFilter::beginJob()
 
 void ub::LowLevelNueFilter::GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits, int& origin, int& pdgcode){
   
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
   origin = 0;
   pdgcode = 0;
@@ -1424,7 +1426,7 @@ void ub::LowLevelNueFilter::GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits,
   for(size_t h = 0; h < hits.size(); ++h){
     art::Ptr<recob::Hit> hit = hits[h];
     //std::vector<sim::IDE> ides;
-    std::vector<sim::TrackIDE> TrackIDs = bt->HitToEveID(hit);
+    std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveIDEs(hit);
     
     for(size_t e = 0; e < TrackIDs.size(); ++e){
       trkide[TrackIDs[e].trackID] += TrackIDs[e].energy;
@@ -1443,10 +1445,10 @@ void ub::LowLevelNueFilter::GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits,
     }
   }
   
-  const simb::MCParticle* particle=bt->TrackIDToParticle(Trackid);	    
+  const simb::MCParticle* particle=pi_serv->TrackIdToParticle_P(Trackid);	    
   if(particle){
     pdgcode = particle->PdgCode();
-    origin = bt->TrackIDToMCTruth(Trackid)->Origin();
+    origin = pi_serv->TrackIdToMCTruth_P(Trackid)->Origin();
   }
 }
     
