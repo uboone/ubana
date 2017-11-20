@@ -1426,7 +1426,7 @@ void ub::LowLevelNueFilter::GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits,
   for(size_t h = 0; h < hits.size(); ++h){
     art::Ptr<recob::Hit> hit = hits[h];
     //std::vector<sim::IDE> ides;
-    std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveIDEs(hit);
+    std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
     
     for(size_t e = 0; e < TrackIDs.size(); ++e){
       trkide[TrackIDs[e].trackID] += TrackIDs[e].energy;
