@@ -9,25 +9,24 @@ microboone_pandora:
     EnableProduction:                                               true
     EnableLineGaps:                                                 true
     UseHitWidths:                                                   true
-    BuildTracks:                                                    true
-    BuildShowers:                                                   true
     ConfigFile:                                                     "PandoraSettings_MicroBooNE.xml"
     ShouldRunAllHitsCosmicReco:                                     false
+    ShouldRunStitching:                                             false
     ShouldRunCosmicHitRemoval:                                      false
     ShouldRunSlicing:                                               false
     ShouldRunNeutrinoRecoOption:                                    false
     ShouldRunCosmicRecoOption:                                      false
-    ShouldIdentifyNeutrinoSlice:                                    false
+    ShouldPerformSliceId:                                           false
     PrintOverallRecoStatus:                                         false
 }
 
-microboone_pandoraFull:                                             @local::microboone_pandora
-microboone_pandoraFull.ShouldRunAllHitsCosmicReco:                  true
-microboone_pandoraFull.ShouldRunCosmicHitRemoval:                   true
-microboone_pandoraFull.ShouldRunSlicing:                            true
-microboone_pandoraFull.ShouldRunNeutrinoRecoOption:                 true
-microboone_pandoraFull.ShouldRunCosmicRecoOption:                   true
-microboone_pandoraFull.ShouldIdentifyNeutrinoSlice:                 true
+microboone_pandora:                                                 @local::microboone_pandora
+microboone_pandora.ShouldRunAllHitsCosmicReco:                      true
+microboone_pandora.ShouldRunCosmicHitRemoval:                       true
+microboone_pandora.ShouldRunSlicing:                                true
+microboone_pandora.ShouldRunNeutrinoRecoOption:                     true
+microboone_pandora.ShouldRunCosmicRecoOption:                       true
+microboone_pandora.ShouldPerformSliceId:                            true
 
 microboone_pandoraAllHitsCR:                                        @local::microboone_pandora
 microboone_pandoraAllHitsCR.ShouldRunAllHitsCosmicReco:             true
