@@ -1,0 +1,18 @@
+#include "mctruthassociations_uboone.fcl"
+
+BEGIN_PROLOG
+
+BackTrackerTruthTool:
+{
+  tool_type:          "BackTrackerTruth"
+  TrackProducerLabel: "pandoraNu"
+}
+
+AssociationsTruthTool:
+{
+  tool_type:           "AssociationsTruth"
+  AssnsProducerLabels: ["gaushit"]
+  MCTruthAssociations: @local::MCTruthAssociations
+}
+
+END_PROLOG
