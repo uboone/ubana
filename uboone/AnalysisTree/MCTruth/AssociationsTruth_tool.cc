@@ -148,6 +148,7 @@ private:
     
     // Fcl parameters.
     std::vector<art::InputTag>         fAssnsProducerLabels;  ///< tag for finding the tracks
+    art::InputTag                      fG4ProducerLabel;      ///< Input tag for G4 producer (MCParticle/MCTruth)
     
     // The class that does all the work...
     MCTruthAssociations                fMCTruthAssociations;  ///< The class that does the work
@@ -194,6 +195,7 @@ AssociationsTruth::~AssociationsTruth()
 void AssociationsTruth::reconfigure(fhicl::ParameterSet const & pset)
 {
     fAssnsProducerLabels = pset.get<std::vector<art::InputTag>>("AssnsProducerLabels");
+    fG4ProducerLabel     = pset.get<art::InputTag>             ("G4ProducerLabel");
 }
 
 //----------------------------------------------------------------------------
@@ -223,8 +225,12 @@ void AssociationsTruth::Rebuild(const art::Event& evt)
         partHitAssnsVec.emplace_back(&*partHitAssnsHandle);
     }
     
+    // Recover the associations between MCTruth and MCParticles
+    art::Handle<MCTruthParticleAssociations> truthPartAssnsHandle;
+    evt.getByLabel(fG4ProducerLabel, truthPartAssnsHandle);
+    
     // Pass this to the truth associations code
-    fMCTruthAssociations.setup(partHitAssnsVec, *fGeometry, *fDetectorProperties);
+    fMCTruthAssociations.setup(partHitAssnsVec, *truthPartAssnsHandle, *fGeometry, *fDetectorProperties);
 }
 
 //----------------------------------------------------------------------

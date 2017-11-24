@@ -36,6 +36,7 @@ MCTruthAssociations::MCTruthAssociations(const fhicl::ParameterSet& config)
 }
 
 void MCTruthAssociations::setup(const HitParticleAssociationsVec&  partToHitAssnsVec,
+                                const MCTruthParticleAssociations& truthToPartAssns,
                                 const geo::GeometryCore&           geometry,
                                 const detinfo::DetectorProperties& detectorProperties)
 {
@@ -58,8 +59,6 @@ void MCTruthAssociations::setup(const HitParticleAssociationsVec&  partToHitAssn
         hitPartAssns.fHitToPartVecMap.clear();
         hitPartAssns.fPartToHitVecMap.clear();
         hitPartAssns.fParticleList.clear();
-        hitPartAssns.fMCTruthList.clear();
-        hitPartAssns.fTrackIDToMCTruthIndex.clear();
     
         // Build out the maps between hits/particles
         for(HitParticleAssociations::const_iterator partHitItr = partToHitAssns->begin(); partHitItr != partToHitAssns->end(); partHitItr++)
@@ -72,6 +71,19 @@ void MCTruthAssociations::setup(const HitParticleAssociationsVec&  partToHitAssn
             hitPartAssns.fPartToHitVecMap[mcParticle.get()].insert(HitMatchDataPair(recoHit.get(),data));
             hitPartAssns.fParticleList.Add(mcParticle.get());
         }
+    }
+    
+    // Note that there is only one instance of MCTruth <--> MCParticle associations so we do this external to the above loop
+    fMCTruthVec.clear();
+    fTrackIDToMCTruthIndex.clear();
+    
+    for(const auto& truthPartAssn : truthToPartAssns)
+    {
+        const art::Ptr<simb::MCTruth>&    mcTruth    = truthPartAssn.first;
+        const art::Ptr<simb::MCParticle>& mcParticle = truthPartAssn.second;
+        
+        fMCTruthVec.emplace_back(mcTruth);
+        fTrackIDToMCTruthIndex.insert(std::pair<int,art::Ptr<simb::MCTruth>>(mcParticle->TrackId(),mcTruth));
     }
 }
     
@@ -136,14 +148,14 @@ const simb::MCParticle* MCTruthAssociations::TrackIDToMotherParticle(int const& 
 const art::Ptr<simb::MCTruth>& MCTruthAssociations::TrackIDToMCTruth(int const& id) const
 {
     // find the entry in the MCTruth collection for this track id
-    size_t mct = fHitPartAssnsVec.back().fTrackIDToMCTruthIndex.find(abs(id))->second;
+    MCTruthTrackIDMap::const_iterator trackTruthItr = fTrackIDToMCTruthIndex.find(abs(id));
     
-    if(/* mct < 0 || */ mct > fHitPartAssnsVec.back().fMCTruthList.size() )
+    if (trackTruthItr == fTrackIDToMCTruthIndex.end())
         throw cet::exception("MCTruthAssociations") << "attempting to find MCTruth index for "
-        << "out of range value: " << mct
-        << "/" << fHitPartAssnsVec.back().fMCTruthList.size() << "\n";
+        << "out of range value: " << id
+        << "/" << fMCTruthVec.size() << "\n";
     
-    return fHitPartAssnsVec.back().fMCTruthList[mct];
+    return trackTruthItr->second;
 }
     
 const art::Ptr<simb::MCTruth>& MCTruthAssociations::ParticleToMCTruth(const simb::MCParticle* p) const
@@ -164,12 +176,11 @@ std::vector<const simb::MCParticle*> MCTruthAssociations::MCTruthToParticles(art
     return ret;
 }
     
-const std::vector< art::Ptr<simb::MCTruth> >& MCTruthAssociations::MCTruthVector() const
+const MCTruthTruthVec& MCTruthAssociations::MCTruthVector() const
 {
-    return fHitPartAssnsVec.back().fMCTruthList;
+    return fMCTruthVec;
 }
     
-
 // this method will return the Geant4 track IDs of
 // the particles contributing ionization electrons to the identified hit
 std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* hit) const

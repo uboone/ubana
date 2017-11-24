@@ -12,6 +12,7 @@ AssociationsTruthTool:
 {
   tool_type:           "AssociationsTruth"
   AssnsProducerLabels: ["gaushit"]
+  G4ProducerLabel:     "largeant"
   MCTruthAssociations: @local::MCTruthAssociations
 }
 

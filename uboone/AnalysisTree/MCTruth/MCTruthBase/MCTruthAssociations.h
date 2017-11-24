@@ -34,10 +34,10 @@
 
 namespace truth
 {
-using MCTruthTruthList           = std::vector< art::Ptr<simb::MCTruth>>;
-using MCTruthTrackIDMap          = std::map<int, int>;
-using HitParticleAssociations    = art::Assns<simb::MCParticle, recob::Hit, anab::BackTrackerHitMatchingData>;
-using HitParticleAssociationsVec = std::vector<const HitParticleAssociations*>;
+using MCTruthTruthVec             = std::vector<art::Ptr<simb::MCTruth>>;
+using HitParticleAssociations     = art::Assns<simb::MCParticle, recob::Hit, anab::BackTrackerHitMatchingData>;
+using HitParticleAssociationsVec  = std::vector<const HitParticleAssociations*>;
+using MCTruthParticleAssociations = art::Assns<simb::MCTruth, simb::MCParticle, void>;
     
 /**
  * @brief Obtains truth matching by using hit <--> MCParticle associations
@@ -52,7 +52,10 @@ public:
   
     MCTruthAssociations(fhicl::ParameterSet const& config);
   
-    void setup(const HitParticleAssociationsVec&, const geo::GeometryCore&, const detinfo::DetectorProperties&);
+    void setup(const HitParticleAssociationsVec&,
+               const MCTruthParticleAssociations&,
+               const geo::GeometryCore&,
+               const detinfo::DetectorProperties&);
     
     const MCTruthParticleList& getParticleList() const;
 
@@ -62,10 +65,10 @@ public:
     const simb::MCParticle* TrackIDToMotherParticle(int const& id) const;
     
     // Get art::Ptr<> to simb::MCTruth and related information
-    const art::Ptr<simb::MCTruth>&                TrackIDToMCTruth(int const& id)                        const;
-    const art::Ptr<simb::MCTruth>&                ParticleToMCTruth(const simb::MCParticle* p)           const;
-    std::vector<const simb::MCParticle*>          MCTruthToParticles(art::Ptr<simb::MCTruth> const& mct) const;
-    const std::vector< art::Ptr<simb::MCTruth> >& MCTruthVector()                                        const;
+    const art::Ptr<simb::MCTruth>&       TrackIDToMCTruth(int const& id)                        const;
+    const art::Ptr<simb::MCTruth>&       ParticleToMCTruth(const simb::MCParticle* p)           const;
+    std::vector<const simb::MCParticle*> MCTruthToParticles(art::Ptr<simb::MCTruth> const& mct) const;
+    const MCTruthTruthVec&               MCTruthVector()                                        const;
     
     // this method will return the Geant4 track IDs of
     // the particles contributing ionization electrons to the identified hit
@@ -127,7 +130,8 @@ private:
     using PartMatchDataPair = std::pair<const simb::MCParticle*,const anab::BackTrackerHitMatchingData*>;
     using HitToPartVecMap   = std::map<const recob::Hit*,std::set<PartMatchDataPair>>;
     using PartToHitVecMap   = std::map<const simb::MCParticle*, std::set<HitMatchDataPair>>;
-    
+    using MCTruthTrackIDMap = std::map<int, art::Ptr<simb::MCTruth>>;
+
     // Must allow for the case of multiple instances of hit <--> MCParticle associations
     // You ask "why do it this way? Can't these all be in a single set of containers?"
     // The answer is no because you want to avoid multiple counting
@@ -137,8 +141,6 @@ private:
         HitToPartVecMap     fHitToPartVecMap;       ///< Mapping from hits to associated MCParticle/data pairs
         PartToHitVecMap     fPartToHitVecMap;       ///< Mapping from MCParticle to associated hit/data pairs
         MCTruthParticleList fParticleList;          ///< ParticleList to map track ID to
-        MCTruthTruthList    fMCTruthList;           ///< all the MCTruths for the event
-        MCTruthTrackIDMap   fTrackIDToMCTruthIndex; ///< map of track ids to MCTruthList entry
     };
     
     using HitPartAssnsList = std::list<HitPartAssnsStruct>;
@@ -150,7 +152,9 @@ private:
                   unsigned int tpc = 0, unsigned int cstat = 0) const;
     
     HitPartAssnsList                   fHitPartAssnsVec;       ///< Container for the (multiple) associations
-    
+    MCTruthTruthVec                    fMCTruthVec;            ///< all the MCTruths for the event
+    MCTruthTrackIDMap                  fTrackIDToMCTruthIndex; ///< map of track ids to MCTruthList entry
+
     float                              fMinHitEnergyFraction;  ///< minimum fraction of energy a track id has to
                                                                ///< contribute to a hit to be counted in
                                                                ///< purity and efficiency calculations
