@@ -58,7 +58,6 @@ void MCTruthAssociations::setup(const HitParticleAssociationsVec&  partToHitAssn
         // Clear the maps in case they were previously filled
         hitPartAssns.fHitToPartVecMap.clear();
         hitPartAssns.fPartToHitVecMap.clear();
-        hitPartAssns.fParticleList.clear();
     
         // Build out the maps between hits/particles
         for(HitParticleAssociations::const_iterator partHitItr = partToHitAssns->begin(); partHitItr != partToHitAssns->end(); partHitItr++)
@@ -69,11 +68,13 @@ void MCTruthAssociations::setup(const HitParticleAssociationsVec&  partToHitAssn
         
             hitPartAssns.fHitToPartVecMap[recoHit.get()].insert(PartMatchDataPair(mcParticle.get(),data));
             hitPartAssns.fPartToHitVecMap[mcParticle.get()].insert(HitMatchDataPair(recoHit.get(),data));
-            hitPartAssns.fParticleList.Add(mcParticle.get());
         }
+        
+        mf::LogDebug("MCTruthAssociations") << "Built maps with " << hitPartAssns.fHitToPartVecMap.size() << " hits, " << hitPartAssns.fPartToHitVecMap.size() << "\n";
     }
     
     // Note that there is only one instance of MCTruth <--> MCParticle associations so we do this external to the above loop
+    fParticleList.clear();
     fMCTruthVec.clear();
     fTrackIDToMCTruthIndex.clear();
     
@@ -82,20 +83,21 @@ void MCTruthAssociations::setup(const HitParticleAssociationsVec&  partToHitAssn
         const art::Ptr<simb::MCTruth>&    mcTruth    = truthPartAssn.first;
         const art::Ptr<simb::MCParticle>& mcParticle = truthPartAssn.second;
         
-        fMCTruthVec.emplace_back(mcTruth);
-        fTrackIDToMCTruthIndex.insert(std::pair<int,art::Ptr<simb::MCTruth>>(mcParticle->TrackId(),mcTruth));
+        fParticleList.Add(mcParticle.get());
+
+        if (fTrackIDToMCTruthIndex.find(mcParticle->TrackId()) == fTrackIDToMCTruthIndex.end())
+        {
+            fMCTruthVec.emplace_back(mcTruth);
+            fTrackIDToMCTruthIndex[mcParticle->TrackId()] = mcTruth;
+        }
     }
+    
+    return;
 }
     
 const MCTruthParticleList& MCTruthAssociations::getParticleList() const
 {
-    // return the largest particle list
-    HitPartAssnsList::const_iterator largestItr = fHitPartAssnsVec.begin();
-    
-    for(HitPartAssnsList::const_iterator itr = fHitPartAssnsVec.begin(); itr != fHitPartAssnsVec.end(); itr++)
-        if ((*itr).fParticleList.size() > (*largestItr).fParticleList.size()) largestItr = itr;
-    
-    return (*largestItr).fParticleList;
+    return fParticleList;
 }
 
 // Return a pointer to the simb::MCParticle object corresponding to the given TrackID
@@ -104,17 +106,9 @@ const simb::MCParticle* MCTruthAssociations::TrackIDToParticle(int const& id) co
     // Pointer to return
     const simb::MCParticle* mcParticle(0);
     
-    // Brute force search through all possibilities...
-    for(const auto& hitPartAssns : fHitPartAssnsVec)
-    {
-        MCTruthParticleList::const_iterator partItr = hitPartAssns.fParticleList.find(id);
-        
-        if (partItr != hitPartAssns.fParticleList.end())
-        {
-            mcParticle = partItr->second;
-            break;
-        }
-    }
+    MCTruthParticleList::const_iterator partItr = fParticleList.find(id);
+    
+    if (partItr != fParticleList.end()) mcParticle = partItr->second;
     
     if(!mcParticle)
     {
@@ -130,18 +124,7 @@ const simb::MCParticle* MCTruthAssociations::TrackIDToMotherParticle(int const& 
 {
     // get the mother id from the particle navigator
     // the EveId was adopted in the Rebuild method
-    // Pointer to return
-    int eveId(0);
-    
-    // Brute force search through all possibilities...
-    for(const auto& hitPartAssns : fHitPartAssnsVec)
-    {
-        eveId = hitPartAssns.fParticleList.EveId(abs(id));
-        
-        if (eveId != 0) break;
-    }
-
-    return this->TrackIDToParticle(eveId);
+    return this->TrackIDToParticle(fParticleList.EveId(abs(id)));
 }
 
 // Get art::Ptr<> to simb::MCTruth and related information
@@ -167,8 +150,10 @@ std::vector<const simb::MCParticle*> MCTruthAssociations::MCTruthToParticles(art
 {
     std::vector<const simb::MCParticle*> ret;
     
+    // I'm slightly uncertain what is going on here since I naively would think a track ID is
+    // unique to an MCParticle... but this is what was done previously so copied here...
     // sim::ParticleList::value_type is a pair (track ID, particle pointer)
-    for (const MCTruthParticleList::value_type& TrackIDpair: fHitPartAssnsVec.back().fParticleList)
+    for (const MCTruthParticleList::value_type& TrackIDpair : fParticleList)
     {
         if (TrackIDToMCTruth(TrackIDpair.first) == mct) ret.push_back(TrackIDpair.second);
     }
@@ -192,7 +177,7 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* h
     {
         HitToPartVecMap::const_iterator hitMatchPairItr = hitPartAssns.fHitToPartVecMap.find(hit);
     
-        if (hitMatchPairItr != fHitPartAssnsVec.back().fHitToPartVecMap.end())
+        if (hitMatchPairItr != hitPartAssns.fHitToPartVecMap.end())
         {
             float totalE(0.);
         
@@ -200,7 +185,7 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* h
             {
                 const simb::MCParticle*                 part = matchPair.first;
                 const anab::BackTrackerHitMatchingData* data = matchPair.second;
-            
+                
                 sim::TrackIDE info;
                 info.trackID      = part->TrackId();
                 info.energyFrac   = data->ideFraction;

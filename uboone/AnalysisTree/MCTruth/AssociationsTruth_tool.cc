@@ -231,6 +231,19 @@ void AssociationsTruth::Rebuild(const art::Event& evt)
     
     // Pass this to the truth associations code
     fMCTruthAssociations.setup(partHitAssnsVec, *truthPartAssnsHandle, *fGeometry, *fDetectorProperties);
+    
+    // Ugliness to follow! Basically, we need to build the "particle list" and the current implementation of
+    // that code requires a copy...
+    const MCTruthParticleList& locParticleList = fMCTruthAssociations.getParticleList();
+    
+    // Clear the current container
+    fParticleList.clear();
+    
+    // Now we add particles back in one at a time...
+    for(const auto& element : locParticleList)
+    {
+        fParticleList.Add(new simb::MCParticle(*(element.second)));
+    }
 }
 
 //----------------------------------------------------------------------

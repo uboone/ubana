@@ -130,7 +130,7 @@ private:
     using PartMatchDataPair = std::pair<const simb::MCParticle*,const anab::BackTrackerHitMatchingData*>;
     using HitToPartVecMap   = std::map<const recob::Hit*,std::set<PartMatchDataPair>>;
     using PartToHitVecMap   = std::map<const simb::MCParticle*, std::set<HitMatchDataPair>>;
-    using MCTruthTrackIDMap = std::map<int, art::Ptr<simb::MCTruth>>;
+    using MCTruthTrackIDMap = std::unordered_map<int, art::Ptr<simb::MCTruth>>;
 
     // Must allow for the case of multiple instances of hit <--> MCParticle associations
     // You ask "why do it this way? Can't these all be in a single set of containers?"
@@ -140,7 +140,6 @@ private:
         // Declare containers as member variables
         HitToPartVecMap     fHitToPartVecMap;       ///< Mapping from hits to associated MCParticle/data pairs
         PartToHitVecMap     fPartToHitVecMap;       ///< Mapping from MCParticle to associated hit/data pairs
-        MCTruthParticleList fParticleList;          ///< ParticleList to map track ID to
     };
     
     using HitPartAssnsList = std::list<HitPartAssnsStruct>;
@@ -152,6 +151,7 @@ private:
                   unsigned int tpc = 0, unsigned int cstat = 0) const;
     
     HitPartAssnsList                   fHitPartAssnsVec;       ///< Container for the (multiple) associations
+    MCTruthParticleList                fParticleList;          ///< ParticleList to map track ID to
     MCTruthTruthVec                    fMCTruthVec;            ///< all the MCTruths for the event
     MCTruthTrackIDMap                  fTrackIDToMCTruthIndex; ///< map of track ids to MCTruthList entry
 

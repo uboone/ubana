@@ -266,12 +266,7 @@ void MCTruthParticleList::insert( const simb::MCParticle* particle )
         // the end of the list.
         m_MCTruthParticleList.insert( insertion, value_type( trackID, particle ) );
     }
-    else if ( (*insertion).first == trackID ){
-        throw cet::exception("MCTruthParticleList") << "sim::MCTruthParticleList::insert - ERROR - "
-				   << "track ID=" << trackID 
-				   << " is already in the list\n";
-    }
-    else{
+    else if ( (*insertion).first != trackID ){
         // It turns out that the best hint we can give is one more
         // than the result of lower_bound.
         m_MCTruthParticleList.insert( ++insertion, value_type( trackID, particle ) );
@@ -315,10 +310,6 @@ int MCTruthParticleList::GetMotherOf( const key_type& key ) const
 //----------------------------------------------------------------------------
 void MCTruthParticleList::clear()
 {
-    for ( iterator i = m_MCTruthParticleList.begin(); i != m_MCTruthParticleList.end(); ++i ){
-        delete (*i).second;
-    }
-
     m_MCTruthParticleList.clear();
     m_archive.clear();
     m_primaries.clear();
