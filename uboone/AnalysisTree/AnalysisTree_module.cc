@@ -4300,6 +4300,11 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 
   // collect the sizes which might me needed to resize the tree data structure:
   bool isMC = !evt.isRealData();
+    
+  // If this is MC then we want to "rebuild"
+  // For the BackTracker this call will be a noop (the interface intercepts) since it is a service
+  // For the assocaitions version then it builds out the maps
+  fMCTruthMatching->Rebuild(evt);
   
   // * hits
   art::Handle< std::vector<recob::Hit> > hitListHandle;
@@ -4561,10 +4566,6 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
     evt.getView(fLArG4ModuleLabel, fAuxDetSimChannels);
   }
 
-  std::vector<const sim::SimChannel*> fSimChannels;
-  if (isMC && fSaveGeantInfo)
-    evt.getView(fLArG4ModuleLabel, fSimChannels);
-
   fData->run = evt.run();
   fData->subrun = evt.subRun();
   fData->event = evt.id().event();
@@ -4808,75 +4809,72 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->rawD_rms[i] = sqrt(mean_t2-mean_t*mean_t);
 	  }   }
       
-      //Hit to SimChannel information
-       if (isMC && fSaveSimChannelInfo){
-   	 const sim::SimChannel* chan = 0;
-   	 for(size_t sc = 0; sc < fSimChannels.size(); ++sc){
-   	   if(fSimChannels[sc]->Channel() == hitlist[i]->Channel()) 
-   	      chan = fSimChannels[sc];
-   	 }     
-   	 if (chan){
-   	   auto const& tdcidemap = chan->TDCIDEMap();
-   	   int k=-1;
-   	   std::vector<double> elec(tdcidemap.size(),0.);
-   	   std::vector<int> tdc(tdcidemap.size(),0.);
-   	   for(auto mapitr = tdcidemap.begin(); mapitr != tdcidemap.end(); mapitr++){
-   	      k++;
-   	      tdc[k]=(*mapitr).first;
-   	      const std::vector<sim::IDE> idevec = (*mapitr).second;
-   	      double nelec=0;
-   	      for(size_t iv = 0; iv < idevec.size(); ++iv){
-   		 nelec += idevec[iv].numElectrons;   		 
-   	      }
-   	      elec[k] = nelec;
-   	   }
-   	   fData->sim_ph[i] = -1;
-   	   fData->sim_tdc[i] = -1;
-   	   for(unsigned int f=0;f<tdcidemap.size();f++){
-   	     if (elec[f]>fData->sim_ph[i]){
-   	       fData->sim_ph[i] = elec[f];
-   	       fData->sim_tdc[i] = tdc[f]; 
-   	     }         
-   	   }
-   	   fData->sim_charge[i] = 0;
-	   fData->sim_fwhh[i] = 0;
-   	   double mean_t = 0;
-   	   double mean_t2 = 0;
-   	   for (unsigned int f = 0; f<tdcidemap.size();f++){
-	      if (elec[f]>=0.5*fData->sim_ph[i]){
-		++fData->sim_fwhh[i];
-	      }	   
-   	      if (elec[f]>=0.1*fData->sim_ph[i]){
-   		  fData->sim_charge[i]+= elec[f];
-   		  mean_t+= double(tdc[f])*elec[f];
-   		  mean_t2+= double(tdc[f])*double(tdc[f])*elec[f];
-   	      }
-   	   }
-   	   mean_t/=fData->sim_charge[i];
-   	   mean_t2/=fData->sim_charge[i];
-   	   fData->sim_rms[i] = sqrt(mean_t2-mean_t*mean_t);
-   	 }
+        //Hit to SimChannel information
+        if (isMC && fSaveSimChannelInfo)
+        {
+            std::vector<const sim::SimChannel*> fSimChannels;
+            evt.getView(fLArG4ModuleLabel, fSimChannels);
+            
+            const sim::SimChannel* chan = 0;
+            for(size_t sc = 0; sc < fSimChannels.size(); ++sc){
+                if(fSimChannels[sc]->Channel() == hitlist[i]->Channel())
+                    chan = fSimChannels[sc];
+            }
+            if (chan){
+                auto const& tdcidemap = chan->TDCIDEMap();
+                int k=-1;
+                std::vector<double> elec(tdcidemap.size(),0.);
+                std::vector<int> tdc(tdcidemap.size(),0.);
+                for(auto mapitr = tdcidemap.begin(); mapitr != tdcidemap.end(); mapitr++){
+                    k++;
+                    tdc[k]=(*mapitr).first;
+                    const std::vector<sim::IDE> idevec = (*mapitr).second;
+                    double nelec=0;
+                    for(size_t iv = 0; iv < idevec.size(); ++iv){
+                        nelec += idevec[iv].numElectrons;
+                    }
+                    elec[k] = nelec;
+                }
+                fData->sim_ph[i] = -1;
+                fData->sim_tdc[i] = -1;
+                for(unsigned int f=0;f<tdcidemap.size();f++){
+                    if (elec[f]>fData->sim_ph[i]){
+                        fData->sim_ph[i] = elec[f];
+                        fData->sim_tdc[i] = tdc[f];
+                    }
+                }
+                fData->sim_charge[i] = 0;
+                fData->sim_fwhh[i] = 0;
+                double mean_t = 0;
+                double mean_t2 = 0;
+                for (unsigned int f = 0; f<tdcidemap.size();f++){
+                    if (elec[f]>=0.5*fData->sim_ph[i]){
+                        ++fData->sim_fwhh[i];
+                    }
+                    if (elec[f]>=0.1*fData->sim_ph[i]){
+                        fData->sim_charge[i]+= elec[f];
+                        mean_t+= double(tdc[f])*elec[f];
+                        mean_t2+= double(tdc[f])*double(tdc[f])*elec[f];
+                    }
+                }
+                mean_t/=fData->sim_charge[i];
+                mean_t2/=fData->sim_charge[i];
+                fData->sim_rms[i] = sqrt(mean_t2-mean_t*mean_t);
+            }
        } 
       
-      if (!evt.isRealData()&&!isCosmics){
-	fData -> hit_nelec[i] = 0;
-	fData -> hit_energy[i] = 0;
-	const sim::SimChannel* chan = 0;
-	for(size_t sc = 0; sc < fSimChannels.size(); ++sc){
-	  if(fSimChannels[sc]->Channel() == hitlist[i]->Channel()) chan = fSimChannels[sc];
-	}
-	if (chan){
-	  auto const& tdcidemap = chan->TDCIDEMap();
-	  for(auto mapitr = tdcidemap.begin(); mapitr != tdcidemap.end(); mapitr++){
-	    // loop over the vector of IDE objects.
-	    const std::vector<sim::IDE> idevec = (*mapitr).second;
-	    for(size_t iv = 0; iv < idevec.size(); ++iv){
-	      fData -> hit_nelec[i] += idevec[iv].numElectrons;
-	      fData -> hit_energy[i] += idevec[iv].energy;
-	    }
-	  }
-	}
-      }
+        if (!evt.isRealData()&&!isCosmics)
+        {
+            std::vector<sim::TrackIDE> trackIDEVec = fMCTruthMatching->HitToTrackID(hitlist[i]);
+            fData -> hit_nelec[i] = 0;
+            fData -> hit_energy[i] = 0;
+            
+            for(const auto& trackIDE : trackIDEVec)
+            {
+                fData -> hit_nelec[i]  += trackIDE.numElectrons;
+                fData -> hit_energy[i] += trackIDE.energy;
+            }
+        }
     }
 
     if (evt.getByLabel(fHitsModuleLabel,hitListHandle)){
