@@ -28,6 +28,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "cetlib/exception.h"
+#include "canvas/Persistency/Common/FindManyP.h"
+#include "canvas/Persistency/Common/PtrVector.h"
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
@@ -103,6 +105,7 @@ private:
     
     // Where the data comes from
     art::InputTag                            fHitProducerLabel;
+    art::InputTag                            fTrackProducerLabel;
     
     // For keeping track of the replacement backtracker
     std::unique_ptr<truth::IMCTruthMatching> fMCTruthMatching;
@@ -113,6 +116,8 @@ private:
     TH1D*                                    fNegEnergyHist;
     TH1D*                                    fNegNElecHist;
     TH1D*                                    fIDEMisMatchHist;
+    TH2D*                                    fEfficiencyCompHist;
+    TH2D*                                    fPurityCompHist;
 
     // Other variables that will be shared between different methods.
     const geo::GeometryCore*                 fGeometry;       // pointer to Geometry service
@@ -155,11 +160,13 @@ void MCTruthTestAna::beginJob()
     // Define the histograms. Putting semi-colons around the title
     // causes it to be displayed as the x-axis label if the histogram
     // is drawn.
-    fNumIDEHist      = tfs->make<TH1D>("NumIDEs",    ";# ides",        20,   0.,  20.);
-    fDeltaIDEHist    = tfs->make<TH1D>("DeltaIDE",   ";delta",         20, -10.,  10.);
-    fNegEnergyHist   = tfs->make<TH1D>("NegEnergy",  ";energy",       500,   0.,  10.);
-    fNegNElecHist    = tfs->make<TH1D>("NegNumElec", ";# electrons",  200,   0., 100.);
-    fIDEMisMatchHist = tfs->make<TH1D>("IDEMisMatch", ";# mismatches", 20,  10.,  10.);
+    fNumIDEHist         = tfs->make<TH1D>("NumIDEs",    ";# ides",                    20,   0.,  20.);
+    fDeltaIDEHist       = tfs->make<TH1D>("DeltaIDE",   ";delta",                     20, -10.,  10.);
+    fNegEnergyHist      = tfs->make<TH1D>("NegEnergy",  ";energy",                   500,   0.,  10.);
+    fNegNElecHist       = tfs->make<TH1D>("NegNumElec", ";# electrons",              200,   0., 100.);
+    fIDEMisMatchHist    = tfs->make<TH1D>("IDEMisMatch", ";# mismatches",             20,  10.,  10.);
+    fEfficiencyCompHist = tfs->make<TH2D>("Efficiency",  ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
+    fPurityCompHist     = tfs->make<TH2D>("Purity",      ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
 
 }
 
@@ -172,6 +179,7 @@ void MCTruthTestAna::reconfigure(fhicl::ParameterSet const& pset)
     // Read parameters from the .fcl file. The names in the arguments
     // to p.get<TYPE> must match names in the .fcl file.
     fHitProducerLabel              = pset.get<art::InputTag>("HitModuleLabel");
+    fTrackProducerLabel            = pset.get<art::InputTag>("TrackProducerLabel");
 
     // Get the tool for MC Truth matching
     fMCTruthMatching = art::make_tool<truth::IMCTruthMatching>(pset.get<fhicl::ParameterSet>("MCTruthMatching"));
@@ -253,6 +261,100 @@ void MCTruthTestAna::analyze(const art::Event& event)
         }
         
         mf::LogInfo("MCTruthTestAna") << "==> Found " << nTotalMisMatches << " between BackTracker and Associations, BT reported " << nNegTrackIDs << " negative track ids \n";
+    }
+    
+    // We're on a roll now!
+    // So let's see if we can recover information about tracks
+    art::Handle<std::vector<recob::Track>> trackHandle;
+    event.getByLabel(fTrackProducerLabel, trackHandle);
+    
+    if (trackHandle.isValid())
+    {
+        // We are going to want a vector of art pointers to hits, so build here
+        std::vector<art::Ptr<recob::Hit>> hitPtrVector;
+        
+        art::fill_ptr_vector(hitPtrVector, hitHandle);
+
+        // Recover the associations between tracks and hits
+        art::FindManyP<recob::Hit> hitTrackAssns(trackHandle, event, fTrackProducerLabel);
+        
+        int nBadEffMatches(0);
+        int nBadPurMatches(0);
+
+        for(size_t trackIdx = 0; trackIdx < trackHandle->size(); trackIdx++)
+        {
+            art::Ptr<recob::Track> track(trackHandle,trackIdx);
+            
+            std::vector<art::Ptr<recob::Hit>> trackHitVec = hitTrackAssns.at(track.key());
+            
+            std::set<int> trackIDSet = fMCTruthMatching->GetSetOfTrackIDs(trackHitVec);
+            std::set<int> btTrkIDSet = backTracker->GetSetOfTrackIDs(trackHitVec);
+            
+            // Check for case were we might have negative track IDs from the BackTracker
+            if (btTrkIDSet.size() > trackIDSet.size())
+            {
+                // Note that the container here is a std::set which will be ordered smallest to largest.
+                // In this case we want to remove elements from the front until they are positive
+                for(std::set<int>::iterator btTrkIDSetItr = btTrkIDSet.begin(); btTrkIDSetItr != btTrkIDSet.end();)
+                {
+                    if (!(*btTrkIDSetItr < 0)) break;
+                    
+                    btTrkIDSetItr = btTrkIDSet.erase(btTrkIDSetItr);
+                }
+            }
+            
+            if (btTrkIDSet.size() != trackIDSet.size())
+                mf::LogDebug("MCTruthTestAna") << "Mismatch in associated track ids, backtracker: " << btTrkIDSet.size() << ", associations: " << trackIDSet.size() << ", track id: " << track.key() << "\n";
+
+            // Ok, turn the "set" of track ID's into a vector of track ID's
+            std::vector<int> btTrkIDVec;
+            
+            for(auto& trackID : btTrkIDSet) btTrkIDVec.emplace_back(trackID);
+            
+            // And then use this to recover the vectors of hits associated to each MC track
+            std::vector<std::vector<art::Ptr<recob::Hit>>> trkHitVecVec = backTracker->TrackIDsToHits(hitPtrVector, btTrkIDVec);
+            
+            // Apply majority logic - we declare the MCParticle with the most hits to be the "winner"
+            std::vector<std::vector<art::Ptr<recob::Hit>>>::iterator bestTrkHitVecItr = std::max_element(trkHitVecVec.begin(),trkHitVecVec.end(),[](const auto& a, const auto& b){return a.size() < b.size();});
+            
+            if (bestTrkHitVecItr == trkHitVecVec.end())
+            {
+                // I have been watching way too much Star Trek (the original!)
+                mf::LogDebug("MCTruthTestAna") << ">>>>>>> ERROR! >>>>>>> ERROR! >>>>>> MUST PURIFY! >>>>>> ERROR!" << "\n";
+                continue;
+            }
+            
+            int indexToBestMC = std::distance(trkHitVecVec.begin(),bestTrkHitVecItr);
+            int bestMCTrackID = btTrkIDVec.at(indexToBestMC);
+            
+            std::vector<art::Ptr<recob::Hit>>& bestMCTrackHitVec = *bestTrkHitVecItr;
+            
+            std::set<int> mcTrackIdxSet = {bestMCTrackID};
+            
+            double btTrkEffic = backTracker->HitCollectionEfficiency(mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
+            double trackEffic = fMCTruthMatching->HitCollectionEfficiency(mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
+            
+            if (btTrkEffic != trackEffic)
+            {
+                mf::LogDebug("MCTruthTestAna") << "Efficiency mismatch, track ID: " << bestMCTrackID << ", track: " << track.key() << ", # hits: " << trackHitVec.size() << ", # MC hits: " << bestMCTrackHitVec.size() << ", btTrkEff: " << btTrkEffic << ", trackEff: " << trackEffic << "\n|";
+                nBadEffMatches++;
+            }
+            
+            fEfficiencyCompHist->Fill(std::min(1.01,btTrkEffic), std::min(1.01,trackEffic), 1.);
+            
+            double btTrkPurity = backTracker->HitCollectionEfficiency(mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
+            double trackPurity = fMCTruthMatching->HitCollectionEfficiency(mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
+            
+            if (btTrkPurity != trackPurity)
+            {
+                mf::LogDebug("MCTruthTestAna") << "Purity mismatch, track ID: " << bestMCTrackID << ", track: " << track.key() << ", # hits: " << trackHitVec.size() << ", # MC hits: " << bestMCTrackHitVec.size() << ", btTrkPurity: " << btTrkPurity << ", trackPurity: " << trackPurity << "\n|";
+                nBadPurMatches++;
+            }
+            
+            fPurityCompHist->Fill(std::min(1.01,btTrkPurity),std::min(1.01,trackPurity), 1.);
+        }
+        
+        mf::LogDebug("MCTruthTestAna") << "Event with " << trackHandle->size() << " reconstructed tracks, found " << nBadEffMatches << " efficiency mismatches, " << nBadPurMatches << " purity mismatchs \n";
     }
 
     return;
