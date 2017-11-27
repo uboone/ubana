@@ -33,9 +33,6 @@ namespace recob{
 namespace truth
 {
     
-// Some definitions that will be useful
-using TrackIDToMCParticleMap = std::unordered_map<int, const simb::MCParticle*>;
-    
 class IMCTruthMatching
 {
 public:
