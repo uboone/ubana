@@ -2,7 +2,7 @@ BEGIN_PROLOG
 
 MCTruthAssociations:
 {
-  MinHitEnergyFraction: 0.
+  MinHitEnergyFraction: 0.1
 }
 
 END_PROLOG
