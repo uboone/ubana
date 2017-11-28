@@ -116,7 +116,11 @@ private:
     TH1D*                                    fNegEnergyHist;
     TH1D*                                    fNegNElecHist;
     TH1D*                                    fIDEMisMatchHist;
+    TH1D*                                    fBTEfficiencyHist;
+    TH1D*                                    fAssocEfficiencyHist;
     TH2D*                                    fEfficiencyCompHist;
+    TH1D*                                    fBTPurityHist;
+    TH1D*                                    fAssocPurityHist;
     TH2D*                                    fPurityCompHist;
 
     // Other variables that will be shared between different methods.
@@ -160,13 +164,17 @@ void MCTruthTestAna::beginJob()
     // Define the histograms. Putting semi-colons around the title
     // causes it to be displayed as the x-axis label if the histogram
     // is drawn.
-    fNumIDEHist         = tfs->make<TH1D>("NumIDEs",    ";# ides",                    20,   0.,  20.);
-    fDeltaIDEHist       = tfs->make<TH1D>("DeltaIDE",   ";delta",                     20, -10.,  10.);
-    fNegEnergyHist      = tfs->make<TH1D>("NegEnergy",  ";energy",                   500,   0.,  10.);
-    fNegNElecHist       = tfs->make<TH1D>("NegNumElec", ";# electrons",              200,   0., 100.);
-    fIDEMisMatchHist    = tfs->make<TH1D>("IDEMisMatch", ";# mismatches",             20,  10.,  10.);
-    fEfficiencyCompHist = tfs->make<TH2D>("Efficiency",  ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
-    fPurityCompHist     = tfs->make<TH2D>("Purity",      ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
+    fNumIDEHist          = tfs->make<TH1D>("NumIDEs",      ";# ides",                   20,   0.,  20.);
+    fDeltaIDEHist        = tfs->make<TH1D>("DeltaIDE",     ";delta",                    20, -10.,  10.);
+    fNegEnergyHist       = tfs->make<TH1D>("NegEnergy",    ";energy",                  500,   0.,  10.);
+    fNegNElecHist        = tfs->make<TH1D>("NegNumElec",   ";# electrons",             200,   0., 100.);
+    fIDEMisMatchHist     = tfs->make<TH1D>("IDEMisMatch",  ";# mismatches",             20,  10.,  10.);
+    fBTEfficiencyHist    = tfs->make<TH1D>("BTEfficiency", ";efficiency",              102,   0.,   1.02);
+    fAssocEfficiencyHist = tfs->make<TH1D>("AssocEffic",   ";efficiency",              102,   0.,   1.02);
+    fEfficiencyCompHist  = tfs->make<TH2D>("Efficiency",   ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
+    fBTPurityHist        = tfs->make<TH1D>("BTPurity",     ";Purity",                  102,   0.,   1.02);
+    fAssocPurityHist     = tfs->make<TH1D>("AssocPurity",  ";Purity",                  102,   0.,   1.02);
+    fPurityCompHist      = tfs->make<TH2D>("Purity",       ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
 
 }
 
@@ -340,10 +348,12 @@ void MCTruthTestAna::analyze(const art::Event& event)
                 nBadEffMatches++;
             }
             
+            fBTEfficiencyHist->Fill(std::min(1.01,btTrkEffic), 1.);
+            fAssocEfficiencyHist->Fill(std::min(1.01,trackEffic), 1.);
             fEfficiencyCompHist->Fill(std::min(1.01,btTrkEffic), std::min(1.01,trackEffic), 1.);
             
-            double btTrkPurity = backTracker->HitCollectionEfficiency(mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
-            double trackPurity = fMCTruthMatching->HitCollectionEfficiency(mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
+            double btTrkPurity = backTracker->HitCollectionPurity(mcTrackIdxSet, trackHitVec);
+            double trackPurity = fMCTruthMatching->HitCollectionPurity(mcTrackIdxSet, trackHitVec);
             
             if (btTrkPurity != trackPurity)
             {
@@ -351,6 +361,8 @@ void MCTruthTestAna::analyze(const art::Event& event)
                 nBadPurMatches++;
             }
             
+            fBTPurityHist->Fill(std::min(1.01,btTrkPurity), 1.);
+            fAssocPurityHist->Fill(std::min(1.01,trackPurity), 1.);
             fPurityCompHist->Fill(std::min(1.01,btTrkPurity),std::min(1.01,trackPurity), 1.);
         }
         
