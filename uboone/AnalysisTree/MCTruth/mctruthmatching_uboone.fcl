@@ -11,7 +11,7 @@ BackTrackerTruthTool:
 AssociationsTruthTool:
 {
   tool_type:           "AssociationsTruth"
-  AssnsProducerLabels: ["gaushitTruthMatch", "pandoraCosmicHitRemoval"]
+  AssnsProducerLabels: ["gaushitTruthMatch", "crHitRemovalTruthMatch", "trajclusterTruthMatch"]
   G4ProducerLabel:     "largeant"
   MCTruthAssociations: @local::MCTruthAssociations
 }

@@ -1,3 +1,5 @@
+#include "mctruthmatching_uboone.fcl"
+
 BEGIN_PROLOG
 
 microboone_analysistree:
@@ -55,7 +57,8 @@ microboone_analysistree:
  RawDigitROI:              3.0 
  CalWireROI:               3.0 
  RawDigitThresh:           10 
- CalWireThresh:            10 
+ CalWireThresh:            10
+ MCTruthMatching:          @local::AssociationsTruthTool
 }
 
 END_PROLOG
