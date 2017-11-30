@@ -50,6 +50,8 @@
 // The stuff we really need
 #include "larsim/MCCheater/BackTracker.h"
 #include "uboone/AnalysisTree/MCTruth/IMCTruthMatching.h"
+#include "uboone/AnalysisTree/MCTruth/AssociationsTruth_tool.h"
+#include "uboone/AnalysisTree/MCTruth/BackTrackerTruth_tool.h"
 
 // ROOT includes. Note: To look up the properties of the ROOT classes,
 // use the ROOT web site; e.g.,
@@ -191,6 +193,18 @@ void MCTruthTestAna::reconfigure(fhicl::ParameterSet const& pset)
 
     // Get the tool for MC Truth matching
 //    fMCTruthMatching = art::make_tool<truth::IMCTruthMatching>(pset.get<fhicl::ParameterSet>("MCTruthMatching"));
+
+    // Get the tool for MC Truth matching
+    const fhicl::ParameterSet& truthParams = pset.get<fhicl::ParameterSet>("MCTruthMatching");
+    
+    if (truthParams.get<std::string>("tool_type") == "AssociationsTruth")
+    {
+        fMCTruthMatching = std::unique_ptr<truth::IMCTruthMatching>(new truth::AssociationsTruth(truthParams));
+    }
+    else
+    {
+        fMCTruthMatching = std::unique_ptr<truth::IMCTruthMatching>(new truth::BackTrackerTruth(truthParams));
+    }
 
     return;
 }

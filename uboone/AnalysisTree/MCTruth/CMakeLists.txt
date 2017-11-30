@@ -8,6 +8,7 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            lardata_Utilities
                            larsim_MCCheater_BackTracker_service
                            uboone_AnalysisTree_MCTruth_MCTruthBase
+                           uboone_AnalysisTree_MCTruth
                            nutools_ParticleNavigation
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
