@@ -300,7 +300,8 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -4287,7 +4288,8 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 {
   //services
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
   // collect the sizes which might me needed to resize the tree data structure:
   bool isMC = !evt.isRealData();
@@ -4394,7 +4396,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       if (mctruth->NeutrinoSet()) nGeniePrimaries = mctruth->NParticles();
       //} //end (fSaveGenieInfo)
       
-      const sim::ParticleList& plist = bt->ParticleList();
+      const sim::ParticleList& plist = pi_serv->ParticleList();
       nGEANTparticles = plist.size();
 
       // to know the number of particles in AV would require
@@ -4685,18 +4687,18 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       fData->hit_rms[i] = hitlist[i]->RMS();
       fData->hit_goodnessOfFit[i] = hitlist[i]->GoodnessOfFit();
       fData->hit_multiplicity[i] = hitlist[i]->Multiplicity();
-      //std::vector<double> xyz = bt->HitToXYZ(hitlist[i]);
+      //std::vector<double> xyz = bt_serv->HitToXYZ(hitlist[i]);
       //when the size of simIDEs is zero, the above function throws an exception
       //and crashes, so check that the simIDEs have non-zero size before 
       //extracting hit true XYZ from simIDEs
       if (isMC){
-        std::vector<sim::IDE> ides;
-	try{
-	  bt->HitToSimIDEs(hitlist[i], ides);
-	}
-	catch(...){}
+        std::vector<const sim::IDE*> ides;
+      	try{
+	        ides = bt_serv->HitToSimIDEs_Ps(hitlist[i]);
+	      }
+	      catch(...){} //A silent catch all is typically ill advised
         if (ides.size()>0){
-          std::vector<double> xyz = bt->SimIDEsToXYZ(ides);
+          std::vector<double> xyz = bt_serv->SimIDEsToXYZ(ides);
           fData->hit_trueX[i] = xyz[0];
         }
       }	 
@@ -5540,13 +5542,13 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    HitsPurity(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
 	    //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<trkidtruth[iTracker][iTrk][ipl]<<"\t"<<trkpurtruth[iTracker][iTrk][ipl]<<"\t"<<maxe;
 	    if (TrackerData.trkidtruth[iTrk][ipl]>0){
-	      const art::Ptr<simb::MCTruth> mc = bt->TrackIDToMCTruth(TrackerData.trkidtruth[iTrk][ipl]);
+	      const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkidtruth[iTrk][ipl]);
 	      TrackerData.trkorigin[iTrk][ipl] = mc->Origin();
-	      const simb::MCParticle *particle = bt->TrackIDToParticle(TrackerData.trkidtruth[iTrk][ipl]);
+	      const simb::MCParticle *particle = pi_serv->TrackIdToParticle_P(TrackerData.trkidtruth[iTrk][ipl]);
 	      double tote = 0;
-	      std::vector<sim::IDE> vide(bt->TrackIDToSimIDE(TrackerData.trkidtruth[iTrk][ipl]));
-	      for (const sim::IDE& ide: vide) {
-		tote += ide.energy;
+	      const std::vector<const sim::IDE*> vide(bt_serv->TrackIdToSimIDEs_Ps(TrackerData.trkidtruth[iTrk][ipl]));
+	      for (auto ide: vide) {
+      		tote += ide->energy;
 	      }
 	      TrackerData.trkpdgtruth[iTrk][ipl] = particle->PdgCode();
 	      TrackerData.trkefftruth[iTrk][ipl] = maxe/(tote/kNplanes); //tote include both induction and collection energies
@@ -5557,7 +5559,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	  double maxe = 0;
 	  HitsPurity(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
 	  if (TrackerData.trkg4id[iTrk]>0){
-	    const art::Ptr<simb::MCTruth> mc = bt->TrackIDToMCTruth(TrackerData.trkg4id[iTrk]);
+	    const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkg4id[iTrk]);
 	    TrackerData.trkorig[iTrk] = mc->Origin();
 	  }
 	  if (allHits.size()){
@@ -5570,8 +5572,8 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 
 		art::Ptr<recob::Hit> hit = all_hits[h];
 		std::vector<sim::IDE> ides;
-		//bt->HitToSimIDEs(hit,ides);
-		std::vector<sim::TrackIDE> eveIDs = bt->HitToEveID(hit);
+		//bt_serv->HitToSimIDEs(hit,ides);
+		std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
 		
 		for(size_t e = 0; e < eveIDs.size(); ++e){
 		  //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
@@ -6001,7 +6003,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       //GEANT particles information
       if (fSaveGeantInfo){ 
 
-        const sim::ParticleList& plist = bt->ParticleList();
+        const sim::ParticleList& plist = pi_serv->ParticleList();
         
         std::string pri("primary");
         int primary=0;
@@ -6077,7 +6079,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->NumberDaughters[geant_particle]=pPart->NumberDaughters();
 	    fData->inTPCActive[geant_particle] = int(isActive);
 	    fData->inTPCDrifted[geant_particle] = int(isDrifted);
-	    art::Ptr<simb::MCTruth> const& mc_truth = bt->ParticleToMCTruth(pPart);
+	    art::Ptr<simb::MCTruth> const& mc_truth = pi_serv->ParticleToMCTruth_P(pPart);
 	    if (mc_truth){
 	      fData->origin[geant_particle] = mc_truth->Origin();
 	      fData->MCTruthIndex[geant_particle] = mc_truth.key();
@@ -6389,7 +6391,7 @@ void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > co
   trackid = -1;
   purity = -1;
 
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
   std::map<int,double> trkide;
 
@@ -6397,8 +6399,8 @@ void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > co
 
     art::Ptr<recob::Hit> hit = hits[h];
     std::vector<sim::IDE> ides;
-    //bt->HitToSimIDEs(hit,ides);
-    std::vector<sim::TrackIDE> eveIDs = bt->HitToEveID(hit);
+    //bt_serv->HitToSimIDEs(hit,ides);
+    std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){
       //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;

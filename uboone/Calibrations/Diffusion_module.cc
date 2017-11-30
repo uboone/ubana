@@ -37,7 +37,8 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larsim/MCCheater/BackTrackerService.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -508,7 +509,8 @@ void microboone::Diffusion::analyze(const art::Event& evt)
 
   //services
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   
   //associations
   if (fSaveTrackInfo){
@@ -562,15 +564,14 @@ void microboone::Diffusion::analyze(const art::Event& evt)
     hit_starttick[i] = hitlist[i]->StartTick();
     hit_endtick[i] = hitlist[i]->EndTick();
     hit_RMS[i] = hitlist[i]->RMS();	
-    //std::vector<double> xyz = bt->HitToXYZ(hitlist[i]);
+    //std::vector<double> xyz = bt_serv->HitToXYZ(hitlist[i]);
     //when the size of simIDEs is zero, the above function throws an exception
     //and crashes, so check that the simIDEs have non-zero size before 
     //extracting hit true XYZ from simIDEs
     if (isMC){
-      std::vector<sim::IDE> ides;
-      bt->HitToSimIDEs(hitlist[i], ides);
+      const std::vector<const sim::IDE*> ides = bt_serv->HitToSimIDEs_Ps(hitlist[i]);
       if (ides.size()>0){
-         std::vector<double> xyz = bt->SimIDEsToXYZ(ides);
+         std::vector<double> xyz = bt_serv->SimIDEsToXYZ(ides);
          hit_trueX[i] = xyz[0];
       }
     }   
@@ -957,7 +958,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
 	 float purity;
      	 HitsPurity(hits[ipl],trkidtruth[i][ipl],purity,maxe);
      	 if (trkidtruth[i][ipl]>0){
-     	   const simb::MCParticle *particle = bt->TrackIDToParticle(trkidtruth[i][ipl]);
+     	   const simb::MCParticle *particle = pi_serv->TrackIdToParticle_P(trkidtruth[i][ipl]);
      	   trkpdgtruth[i][ipl] = particle->PdgCode();
      	 }
        }
@@ -970,7 +971,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
     Int_t mcevts_truth = mclist.size();
     if (mcevts_truth){//at least one mc record 
       //GEANT particles information
-      const sim::ParticleList& plist = bt->ParticleList();    
+      const sim::ParticleList& plist = pi_serv->ParticleList();    
       
       std::string pri("primary");
       int primary=0;
@@ -1053,7 +1054,7 @@ void microboone::Diffusion::HitsPurity(std::vector< art::Ptr<recob::Hit> > const
   trackid = -1;
   purity = -1;
 
-  art::ServiceHandle<cheat::BackTracker> bt;
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
 
   std::map<int,double> trkide;
 
@@ -1061,8 +1062,8 @@ void microboone::Diffusion::HitsPurity(std::vector< art::Ptr<recob::Hit> > const
 
     art::Ptr<recob::Hit> hit = hits[h];
     std::vector<sim::IDE> ides;
-    //bt->HitToSimIDEs(hit,ides);
-    std::vector<sim::TrackIDE> eveIDs = bt->HitToEveID(hit);
+    //bt_serv->HitToSimIDEs(hit,ides);
+    std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){
       trkide[eveIDs[e].trackID] += eveIDs[e].energy;
