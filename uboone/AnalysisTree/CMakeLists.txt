@@ -4,7 +4,7 @@ art_make(
           MODULE_LIBRARIES larcore_Geometry
 			               larcore_Geometry_Geometry_service
 			               larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
-			               larsim_MCCheater_BackTracker_service
+                           uboone_AnalysisTree_MCTruth
 	                       lardata_Utilities
 			               larevt_Filters
                            lardataobj_RawData
