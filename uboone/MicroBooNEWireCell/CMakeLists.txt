@@ -129,4 +129,4 @@ art_make( EXCLUDE CellTreeUB_module.cc
 install_headers()
 install_source()
 
-#add_subdirectory(job)
+add_subdirectory(job)

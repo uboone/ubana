@@ -1,0 +1,7 @@
+# A main FCL for running Wire-Cell noise filter (NF) and signal
+# process (SP) and celltree (CT) and event butchering on pre hardware
+# noise fix (prehwf) data.
+
+#include "ubnfspct-generic.fcl"
+physics.producers.nfsp.wcls_main.configs: ["ubnfsp-before.json.bz2"]
+
