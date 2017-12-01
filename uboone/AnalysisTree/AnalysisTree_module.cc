@@ -6406,8 +6406,6 @@ void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > co
   trackid = -1;
   purity = -1;
 
-  art::ServiceHandle<cheat::BackTracker> bt;
-
   std::map<int,double> trkide;
 
   for(size_t h = 0; h < hits.size(); ++h){
