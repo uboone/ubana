@@ -19,6 +19,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "lardata/Utilities/AssociationUtil.h"
+#include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 
@@ -58,13 +59,14 @@ private:
   std::vector<std::string> fCorr_YZ;
   std::vector<std::string> fCorr_X;
 
+  calo::CalorimetryAlg caloAlg;
+
+  //histograms for calibration
   std::vector<TH2F*> hCorr_YZ;
   std::vector<TH1F*> hCorr_X;
 
   double GetYZCorrection(TVector3& xyz, TH2F *his);
   double GetXCorrection(TVector3& xyz, TH1F *his);
-
-  // Declare member data here.
 
 };
 
@@ -73,9 +75,9 @@ ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
   : fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
   , fCalorimetryModuleLabel(p.get< std::string >("CalorimetryModuleLabel"))
   , fCalibrationFileName   (p.get< std::string >("CalibrationFileName"))
-  , fCorr_YZ               (p.get< std::vector<std::string>>("Corr_YZ"))
-  , fCorr_X                (p.get< std::vector<std::string>>("Corr_X"))
-// Initialize member data here.
+  , fCorr_YZ               (p.get< std::vector<std::string> >("Corr_YZ"))
+  , fCorr_X                (p.get< std::vector<std::string> >("Corr_X"))
+  , caloAlg(p.get< fhicl::ParameterSet >("CaloAlg"))
 {
   // Call appropriate produces<>() functions here.
   if (fCorr_YZ.size()!=3 || fCorr_X.size()!=3){
