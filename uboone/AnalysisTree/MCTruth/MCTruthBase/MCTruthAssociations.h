@@ -21,6 +21,7 @@
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 //#include "lardataobj/Simulation/SimChannel.h"   // need this for TrackIDE definition
 #include "canvas/Persistency/Common/Assns.h"
+#include "canvas/Persistency/Common/FindOneP.h"
 
 // nutools
 #include "uboone/AnalysisTree/MCTruth/MCTruthBase/MCTruthParticleList.h"
@@ -35,6 +36,8 @@
 namespace truth
 {
 using MCTruthTruthVec             = std::vector<art::Ptr<simb::MCTruth>>;
+using MCParticleVec               = std::vector<art::Ptr<simb::MCParticle>>;
+using MCTruthAssns                = art::FindOneP<simb::MCTruth>;
 using HitParticleAssociations     = art::Assns<simb::MCParticle, recob::Hit, anab::BackTrackerHitMatchingData>;
 using HitParticleAssociationsVec  = std::vector<const HitParticleAssociations*>;
 using MCTruthParticleAssociations = art::Assns<simb::MCTruth, simb::MCParticle, void>;
@@ -62,7 +65,8 @@ public:
     MCTruthAssociations(fhicl::ParameterSet const& config);
   
     void setup(const HitParticleAssociationsVec&,
-               const MCTruthParticleAssociations&,
+               const MCParticleVec&,
+               const MCTruthAssns&,
                const geo::GeometryCore&,
                const detinfo::DetectorProperties&);
     

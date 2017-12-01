@@ -16,7 +16,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // nutools
-#include "nutools/ParticleNavigation/EmEveIdCalculator.h"
+#include "uboone/AnalysisTree/MCTruth/MCTruthBase/MCTruthEmEveIdCalculator.h"
 
 // canvas libraries
 #include "canvas/Persistency/Common/FindMany.h"
@@ -36,7 +36,8 @@ MCTruthAssociations::MCTruthAssociations(const fhicl::ParameterSet& config)
 }
 
 void MCTruthAssociations::setup(const HitParticleAssociationsVec&  partToHitAssnsVec,
-                                const MCTruthParticleAssociations& truthToPartAssns,
+                                const MCParticleVec&               mcPartVec,
+                                const MCTruthAssns&                truthToPartAssns,
                                 const geo::GeometryCore&           geometry,
                                 const detinfo::DetectorProperties& detectorProperties)
 {
@@ -78,20 +79,30 @@ void MCTruthAssociations::setup(const HitParticleAssociationsVec&  partToHitAssn
     fMCTruthVec.clear();
     fTrackIDToMCTruthIndex.clear();
     
-    for(const auto& truthPartAssn : truthToPartAssns)
+    for(const auto& mcParticle : mcPartVec)
     {
-        const art::Ptr<simb::MCTruth>&    mcTruth    = truthPartAssn.first;
-        const art::Ptr<simb::MCParticle>& mcParticle = truthPartAssn.second;
-        
         fParticleList.Add(mcParticle.get());
-
-        if (fTrackIDToMCTruthIndex.find(mcParticle->TrackId()) == fTrackIDToMCTruthIndex.end())
+        
+        try
         {
-            fMCTruthVec.emplace_back(mcTruth);
+            art::Ptr<simb::MCTruth> mcTruth = truthToPartAssns.at(mcParticle.key());
+            
+            // Add to the list
+            if (std::find(fMCTruthVec.begin(),fMCTruthVec.end(),mcTruth) == fMCTruthVec.end())
+                fMCTruthVec.push_back(mcTruth);
+            
             fTrackIDToMCTruthIndex[mcParticle->TrackId()] = mcTruth;
         }
+        catch(...)
+        {
+            mf::LogDebug("MCTruthAssociations") << ">>>> No MCTruth found for particle: " << *mcParticle << "\n";
+        }
     }
-    
+
+    // Follow former backtracker convention of resetting the eve id calculator each event...
+    // Note that the calculator is stored as a unique_ptr (mutable) so memory ok
+    fParticleList.AdoptEveIdCalculator(new MCTruthEmEveIdCalculator);
+
     return;
 }
     
@@ -576,11 +587,6 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
     int n = part.NumberTrajectoryPoints();
     bool first = true;
     
-    // The following for debugging purposes
-    int findTrackID(-1);
-    
-    if (part.TrackId() == findTrackID) std::cout << ">>> length, mcpart: " << part << std::endl;
-    
     // Loop over the complete collection of trajectory points
     for(int i = 0; i < n; ++i)
     {
@@ -619,14 +625,6 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
                 disp = pos;
                 end = pos;
                 endmom = part.Momentum(i).Vect();
-            }
-            
-            if (part.TrackId() == findTrackID)
-            {
-                std::cout << ">>> Track #" << findTrackID << ", pos: " << pos.X() << ", " << pos.Y() << ", " << pos.Z() << ", ticks: " << ticks << ", nearest Y wire: ";
-                double worldLoc[] = {pos.X(),pos.Y(),pos.Z()};
-                geo::WireID wireID = fGeometry->NearestWireID(worldLoc, 2);
-                std::cout << wireID << std::endl;
             }
         }
     }

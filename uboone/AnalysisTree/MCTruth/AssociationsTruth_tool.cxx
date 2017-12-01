@@ -8,6 +8,7 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 
 #include "lardata/Utilities/AssociationUtil.h"
+#include "nutools/ParticleNavigation/EmEveIdCalculator.h"
 
 #include <cmath>
 #include <algorithm>
@@ -80,11 +81,16 @@ void AssociationsTruth::Rebuild(const art::Event& evt)
     }
     
     // Recover the associations between MCTruth and MCParticles
-    art::Handle<MCTruthParticleAssociations> truthPartAssnsHandle;
-    evt.getByLabel(fG4ProducerLabel, truthPartAssnsHandle);
+    art::Handle<std::vector<simb::MCParticle>> mcParticleHandle;
+    evt.getByLabel(fG4ProducerLabel, mcParticleHandle);
+    
+    std::vector<art::Ptr<simb::MCParticle>> mcParticlePtrVec;
+    art::fill_ptr_vector(mcParticlePtrVec, mcParticleHandle);
+    
+    MCTruthAssns mcTruthAssns(mcParticleHandle, evt, fG4ProducerLabel);
     
     // Pass this to the truth associations code
-    fMCTruthAssociations.setup(partHitAssnsVec, *truthPartAssnsHandle, *fGeometry, *fDetectorProperties);
+    fMCTruthAssociations.setup(partHitAssnsVec, mcParticlePtrVec, mcTruthAssns, *fGeometry, *fDetectorProperties);
     
     // Ugliness to follow! Basically, we need to build the "particle list" and the current implementation of
     // that code requires a copy...
@@ -98,6 +104,9 @@ void AssociationsTruth::Rebuild(const art::Event& evt)
     {
         fParticleList.Add(new simb::MCParticle(*(element.second)));
     }
+    
+    // Just to be consistent with the backtracker...
+    fParticleList.AdoptEveIdCalculator(new sim::EmEveIdCalculator);
 }
 
 //----------------------------------------------------------------------
