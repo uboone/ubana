@@ -4567,11 +4567,6 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   if (evt.getByLabel(fGenieGenModuleLabel,mcfluxListHandle))
     art::fill_ptr_vector(fluxlist, mcfluxListHandle);
 
-  std::vector<const sim::AuxDetSimChannel*> fAuxDetSimChannels;
-  if (fSaveAuxDetInfo){
-    evt.getView(fLArG4ModuleLabel, fAuxDetSimChannels);
-  }
-
   fData->run = evt.run();
   fData->subrun = evt.subRun();
   fData->event = evt.id().event();
@@ -6154,7 +6149,12 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    //access auxiliary detector parameters
             if (fSaveAuxDetInfo) {
               unsigned short nAD = 0; // number of cells that particle hit
-              
+                
+              std::vector<const sim::AuxDetSimChannel*> fAuxDetSimChannels;
+              if (fSaveAuxDetInfo){
+                evt.getView(fLArG4ModuleLabel, fAuxDetSimChannels);
+              }
+
               // find deposit of this particle in each of the detector cells
               for (const sim::AuxDetSimChannel* c: fAuxDetSimChannels) {
 		

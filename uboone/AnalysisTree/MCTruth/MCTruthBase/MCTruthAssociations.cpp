@@ -172,6 +172,8 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* h
 {
     std::vector<sim::TrackIDE> trackIDEs;
     
+    trackIDEs.clear();
+    
     // Apply brute force loop through all possible collections
     for(const auto& hitPartAssns : fHitPartAssnsVec)
     {
@@ -179,8 +181,6 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* h
     
         if (hitMatchPairItr != hitPartAssns.fHitToPartVecMap.end())
         {
-            float totalE(0.);
-        
             for (const auto& matchPair : hitMatchPairItr->second)
             {
                 const simb::MCParticle*                 part = matchPair.first;
@@ -192,9 +192,7 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* h
                 info.energy       = data->energy;
                 info.numElectrons = data->numElectrons;
             
-                totalE += data->energy;
-            
-                trackIDEs.push_back(info);
+                trackIDEs.emplace_back(info);
             }
             
             break;
