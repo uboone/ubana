@@ -22,6 +22,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
+#include "art/Framework/Services/Optional/TFileDirectory.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "canvas/Persistency/Common/FindOneP.h"
 #include "canvas/Persistency/Common/FindMany.h"
@@ -29,9 +30,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 
-#include "TFile.h"
 #include "TTree.h"
-#include "TDirectory.h"
 #include "TClonesArray.h"
 #include "TTimeStamp.h"
 #include "TObject.h"
@@ -60,6 +59,7 @@ namespace wc{
     void initOutput();
     void reset();
     void processTPC_raw(const art::Event& evt);
+    void processTPC_noiseFiltered(const art::Event& evt);
     void processTPC_deconWiener(const art::Event& evt);
     void processTPC_deconGaussian(const art::Event& evt);
     void processTPC_badChannelList(const art::Event& evt);
@@ -72,10 +72,12 @@ namespace wc{
     void processSWTrigger(const art::Event& evt);
     void processBeam(const art::Event& evt);
     void processPOT(const art::SubRun& subrun);
-    void SetUpChannelMap();
   private:
-    std::string fOutFileName;
+    // --- fhicl parameters ---
     std::string fTPC_rawLabel;
+    std::string fTPC_rawProducer;
+    std::string fTPC_noiseFilteredLabel;
+    std::string fTPC_noiseFilteredProducer;
     std::string fTPC_deconWienerLabel;
     std::string fTPC_deconGaussianLabel;
     std::string fTPC_deconWienerProducer;
@@ -103,6 +105,7 @@ namespace wc{
     std::string fPOT_producer;
     bool _use_LG_beam_for_HG_cosmic;
     bool fSaveTPC_raw;
+    bool fSaveTPC_noiseFiltered;
     bool fSaveTPC_deconWiener;
     bool fSaveTPC_deconGaussian;
     bool fSaveTPC_badChannelList;
@@ -117,7 +120,10 @@ namespace wc{
     bool fSavePOT;
     int deconRebin;
     float flashMultPEThreshold;
-    TFile *fOutFile;
+    bool saveVYshorted;
+    short scaleRawdigit;
+    short shiftRawdigit;
+
     TTree *fEventTree;
     int fEvent;
     int fRun;
@@ -127,6 +133,12 @@ namespace wc{
     int fTPCraw_nChannel;
     vector<int> fTPCraw_channelId;
     TClonesArray *fTPCraw_wf;
+    // --- TPC noise filtered ---
+    int fTPCnoiseFiltered_nChannel;
+    vector<int> fTPCnoiseFiltered_channelId;
+    TClonesArray *fTPCnoiseFiltered_wf;
+    short fScaleRawdigit;
+    short fShiftRawdigit;
     // --- TPC deconvolution Wiener filter ---
     int fTPCdeconWiener_nChannel;
     vector<int> fTPCdeconWiener_channelId;
@@ -136,7 +148,9 @@ namespace wc{
     vector<int> fTPCdeconGaussian_channelId;
     TClonesArray *fTPCdeconGaussian_wf;
     // --- TPC bad channel list ---
-    vector<int> fBadChannelList;
+    vector<int> fBadChannel;
+    vector<int> fBadBegin;
+    vector<int> fBadEnd;
     // --- TPC channel thresholds ---
     vector<double> fChannelThreshold;
     // --- PMT raw ---
@@ -148,19 +162,10 @@ namespace wc{
     vector<double> fOp_cosmic_lg_timestamp;
     vector<double> fOp_beam_hg_timestamp;
     vector<double> fOp_beam_lg_timestamp;
-    vector<short> fOp_cosmic_hg_category;
-    vector<short> fOp_cosmic_lg_category;
-    vector<short> fOp_beam_hg_category;
-    vector<short> fOp_beam_lg_category;
     TClonesArray *fOp_cosmic_hg_wf;
     TClonesArray *fOp_cosmic_lg_wf;
     TClonesArray *fOp_beam_hg_wf;
     TClonesArray *fOp_beam_lg_wf;
-    vector<opdet::UBOpticalChannelType_t> _opch_to_chtype_m;
-    vector<opdet::UBOpticalChannelCategory_t> _opch_to_chcategory_m;
-    vector<short> _opch_to_opdet_m;
-    vector<std::set<int> > _opdet_to_opch_m;
-    map<int,int> _opchLG_to_opchHG_m;
     // --- PMT waveform saturation ---
     TClonesArray *fOp_wf;
     vector<short> fOp_femch;
@@ -215,8 +220,6 @@ namespace wc{
     int fgoodspills_bnbETOR875;
     int fgoodspills_numiETORTGT;
     int fgoodspills_bnbETOR860;
-
-    int rebin = 4;
   }; // class CellTreeUB
 
   CellTreeUB::CellTreeUB(fhicl::ParameterSet const& pset)
@@ -229,8 +232,10 @@ namespace wc{
   }
 
   void CellTreeUB::reconfigure(fhicl::ParameterSet const& pset){
-    fOutFileName = pset.get<std::string>("OutFile");
     fTPC_rawLabel = pset.get<std::string>("TPC_rawLabel");
+    fTPC_rawProducer = pset.get<std::string>("TPC_rawProducer");
+    fTPC_noiseFilteredLabel = pset.get<std::string>("TPC_noiseFilteredLabel");
+    fTPC_noiseFilteredProducer = pset.get<std::string>("TPC_noiseFilteredProducer");
     fTPC_deconWienerLabel = pset.get<std::string>("TPC_deconWienerLabel");
     fTPC_deconGaussianLabel = pset.get<std::string>("TPC_deconGaussianLabel");
     fTPC_deconWienerProducer = pset.get<std::string>("TPC_deconWienerProducer");
@@ -252,7 +257,12 @@ namespace wc{
     fHWTrigger_label = pset.get<std::string>("HWTrigger_label");
     fSWTrigger_label = pset.get<std::string>("SWTrigger_label");
     fBeam_label = pset.get<std::string>("Beam_label");
+    fPOT_bnb1label = pset.get<std::string>("POT_bnb1label");
+    fPOT_bnb2label = pset.get<std::string>("POT_bnb2label");
+    fPOT_numilabel = pset.get<std::string>("POT_numilabel");
+    fPOT_producer = pset.get<std::string>("POT_producer");
     fSaveTPC_raw = pset.get<bool>("SaveTPC_raw");
+    fSaveTPC_noiseFiltered = pset.get<bool>("SaveTPC_noiseFiltered");
     fSaveTPC_deconWiener = pset.get<bool>("SaveTPC_deconWiener");
     fSaveTPC_deconGaussian = pset.get<bool>("SaveTPC_deconGaussian");
     fSaveTPC_badChannelList = pset.get<bool>("SaveTPC_badChannelList");
@@ -264,17 +274,18 @@ namespace wc{
     fSaveHWTrigger = pset.get<bool>("SaveHWTrigger");
     fSaveSWTrigger = pset.get<bool>("SaveSWTrigger");
     fSaveBeam = pset.get<bool>("SaveBeam");
+    fSavePOT = pset.get<bool>("SavePOT");
     _use_LG_beam_for_HG_cosmic = pset.get<bool>("UseLGBeamForHGCosmic");
     flashMultPEThreshold = pset.get<float>("FlashMultPEThreshold");
     deconRebin = pset.get<int>("DeconRebin");
+    saveVYshorted = pset.get<bool>("SaveVYshorted");
+    scaleRawdigit = pset.get<short>("ScaleRawdigit");
+    shiftRawdigit = pset.get<short>("ShiftRawdigit");
   }
 
   void CellTreeUB::initOutput(){
-    TDirectory* tmpDir = gDirectory;
-    fOutFile = new TFile(fOutFileName.c_str(), "update");
-    TDirectory* subDir = fOutFile->mkdir("Event");
-    subDir->cd();
-    fEventTree = new TTree("Sim", "");
+    art::ServiceHandle<art::TFileService> tfs;
+    fEventTree = tfs->make<TTree>("Sim","");
     fEventTree->Branch("eventNo", &fEvent);
     fEventTree->Branch("runNo", &fRun);
     fEventTree->Branch("subRunNo", &fSubRun);
@@ -282,8 +293,16 @@ namespace wc{
     if(fSaveTPC_raw){
       fEventTree->Branch("raw_nChannel", &fTPCraw_nChannel);
       fEventTree->Branch("raw_channelId",&fTPCraw_channelId);
-      fTPCraw_wf = new TClonesArray("TH1F");
+      fTPCraw_wf = new TClonesArray("TH1S");
       fEventTree->Branch("raw_wf", &fTPCraw_wf, 256000, 0);
+    }
+    if(fSaveTPC_noiseFiltered){
+      fEventTree->Branch("nf_nChannel", &fTPCnoiseFiltered_nChannel);
+      fEventTree->Branch("nf_channelId",&fTPCnoiseFiltered_channelId);
+      fTPCnoiseFiltered_wf = new TClonesArray("TH1S");
+      fEventTree->Branch("nf_wf", &fTPCnoiseFiltered_wf, 256000, 0);
+      fEventTree->Branch("nf_scale", &fScaleRawdigit);
+      fEventTree->Branch("nf_shift",&fShiftRawdigit);
     }
     if(fSaveTPC_deconWiener){
     fEventTree->Branch("calibWiener_nChannel", &fTPCdeconWiener_nChannel);
@@ -298,7 +317,9 @@ namespace wc{
       fEventTree->Branch("calibGaussian_wf", &fTPCdeconGaussian_wf, 256000, 0);
     }
     if(fSaveTPC_badChannelList){
-      fEventTree->Branch("badChannelList", &fBadChannelList);
+      fEventTree->Branch("badChannel", &fBadChannel);
+      fEventTree->Branch("badBegin", &fBadBegin);
+      fEventTree->Branch("badEnd", &fBadEnd);
     }
     if(fSaveTPC_channelThreshold){
       fEventTree->Branch("channelThreshold", &fChannelThreshold);
@@ -312,10 +333,6 @@ namespace wc{
       fEventTree->Branch("cosmic_lg_timestamp", &fOp_cosmic_lg_timestamp);
       fEventTree->Branch("beam_hg_timestamp", &fOp_beam_hg_timestamp);
       fEventTree->Branch("beam_lg_timestamp", &fOp_beam_lg_timestamp);
-      fEventTree->Branch("cosmic_hg_category", &fOp_cosmic_hg_category);
-      fEventTree->Branch("cosmic_lg_category", &fOp_cosmic_lg_category);
-      fEventTree->Branch("beam_hg_category", &fOp_beam_hg_category);
-      fEventTree->Branch("beam_lg_category", &fOp_beam_lg_category);
       fOp_cosmic_hg_wf = new TClonesArray("TH1S");
       fEventTree->Branch("cosmic_hg_wf", &fOp_cosmic_hg_wf, 256000, 0);
       fOp_cosmic_lg_wf = new TClonesArray("TH1S");
@@ -324,9 +341,6 @@ namespace wc{
       fEventTree->Branch("beam_hg_wf", &fOp_beam_hg_wf, 256000, 0);
       fOp_beam_lg_wf = new TClonesArray("TH1S");
       fEventTree->Branch("beam_lg_wf", &fOp_beam_lg_wf, 256000, 0);
-      fEventTree->Branch("opch_to_opdet", &_opch_to_opdet_m);
-      fEventTree->Branch("opdet_to_opch", &_opdet_to_opch_m);
-      fEventTree->Branch("opchLG_to_opchHG", &_opchLG_to_opchHG_m);
     }
     if(fSavePMT_wfmSaturation){
       fOp_wf = new TClonesArray("TH1S");
@@ -391,18 +405,13 @@ namespace wc{
       fEventTree->Branch("goodspills_numiETORTGT", &fgoodspills_numiETORTGT);
       fEventTree->Branch("goodspills_bnbETOR860", &fgoodspills_bnbETOR860);
     }
-    gDirectory = tmpDir;
   }
 
   void CellTreeUB::beginJob(){
   }
 
   void CellTreeUB::endJob(){
-    TDirectory* tmpDir = gDirectory;
-    fOutFile->cd("/Event");
-    fEventTree->Write(0,TObject::kWriteDelete,0);
-    gDirectory = tmpDir;
-    fOutFile->Close();
+    fEventTree->Fill();
   }
 
   void CellTreeUB::beginRun(const art::Run& ){
@@ -414,7 +423,7 @@ namespace wc{
   }
 
   void CellTreeUB::endSubRun(const art::SubRun& subrun){
-    if(fSavePOT) processPOT(subrun);
+    if(fSavePOT) processPOT(subrun); 
   }
 
   void CellTreeUB::analyze(const art::Event& evt){
@@ -426,6 +435,7 @@ namespace wc{
     TTimeStamp tts(ts.timeHigh(), ts.timeLow());
     fEventTime = tts.AsDouble();
     if(fSaveTPC_raw) processTPC_raw(evt);
+    if(fSaveTPC_noiseFiltered) processTPC_noiseFiltered(evt);
     if(fSaveTPC_deconWiener) processTPC_deconWiener(evt);
     if(fSaveTPC_deconGaussian) processTPC_deconGaussian(evt);
     if(fSaveTPC_badChannelList) processTPC_badChannelList(evt);
@@ -437,13 +447,17 @@ namespace wc{
     if(fSaveHWTrigger) processHWTrigger(evt);
     if(fSaveSWTrigger) processSWTrigger(evt);
     if(fSaveBeam) processBeam(evt);
-    fEventTree->Fill();
+    //fEventTree->Fill();
   }
 
   void CellTreeUB::reset(){
     if(fSaveTPC_raw){
       fTPCraw_channelId.clear();
       fTPCraw_wf->Clear();
+    }
+    if(fSaveTPC_noiseFiltered){
+      fTPCnoiseFiltered_channelId.clear();
+      fTPCnoiseFiltered_wf->Clear();
     }
     if(fSaveTPC_deconWiener){
       fTPCdeconWiener_channelId.clear();
@@ -454,7 +468,9 @@ namespace wc{
       fTPCdeconGaussian_wf->Clear();
     }
     if(fSaveTPC_badChannelList){
-      fBadChannelList.clear();
+      fBadChannel.clear();
+      fBadBegin.clear();
+      fBadEnd.clear();
     }
     if(fSaveTPC_channelThreshold){
       fChannelThreshold.clear();
@@ -468,10 +484,6 @@ namespace wc{
       fOp_cosmic_lg_timestamp.clear();
       fOp_beam_hg_timestamp.clear();
       fOp_beam_lg_timestamp.clear();
-      fOp_cosmic_hg_category.clear();
-      fOp_cosmic_lg_category.clear();
-      fOp_beam_hg_category.clear();
-      fOp_beam_lg_category.clear();
       fOp_cosmic_hg_wf->Clear();
       fOp_cosmic_lg_wf->Clear();
       fOp_beam_hg_wf->Clear();
@@ -509,8 +521,9 @@ namespace wc{
 
   void CellTreeUB::processTPC_raw(const art::Event& evt){
     art::Handle<std::vector<raw::RawDigit> > rawdigit;
-    if(! evt.getByLabel(fTPC_rawLabel, rawdigit)){
-      cout << "WARNING: no raw::RawDigit label " << fTPC_rawLabel << endl;
+    if(! evt.getByLabel(fTPC_rawProducer, fTPC_rawLabel,  rawdigit)){
+      cout << "WARNING: no raw::RawDigit producer" << fTPC_rawProducer 
+	   << " or label " << fTPC_rawLabel << endl;
       return;
     }
     std::vector<art::Ptr<raw::RawDigit> > rd_v;
@@ -518,8 +531,8 @@ namespace wc{
     fTPCraw_nChannel = rd_v.size();
     int i=0;
     for(auto const& rd : rd_v){
-      //std::cout << "TPC Channel: " << rd->Channel() << std::endl;
-      if(rd->Channel()<3566 || rd->Channel()>4305) continue; // save select V-plane channels
+      int refChan = rd->Channel();
+      if(saveVYshorted == true && (refChan<3566 || refChan>4305)) continue;
       fTPCraw_channelId.push_back(rd->Channel());
       int nSamples = rd->Samples();
       std::vector<short> uncompressed(nSamples);
@@ -529,6 +542,36 @@ namespace wc{
       i++;
     } 
   }
+
+  void CellTreeUB::processTPC_noiseFiltered(const art::Event& evt){
+    art::Handle<std::vector<recob::Wire> > wire;
+    if(! evt.getByLabel(fTPC_noiseFilteredProducer, fTPC_noiseFilteredLabel, wire)){
+      cout << "WARNING: no recob::Wire producer " << fTPC_noiseFilteredProducer 
+	   << " or label " << fTPC_noiseFilteredLabel << endl;
+      return;
+    }
+    fScaleRawdigit = scaleRawdigit;
+    fShiftRawdigit = shiftRawdigit;
+
+    std::vector<art::Ptr<recob::Wire> > w_v;
+    art::fill_ptr_vector(w_v, wire);
+    fTPCnoiseFiltered_nChannel = w_v.size();
+    int i=0;
+    for(auto const& w : w_v){
+      int refChan = w->Channel();
+      if(saveVYshorted == true && (refChan<3566 || refChan>4305)) continue;
+      fTPCnoiseFiltered_channelId.push_back(w->Channel());
+      std::vector<float> wf = w->Signal();
+      int nbin = (int)wf.size();
+      TH1S *h = new((*fTPCnoiseFiltered_wf)[i]) TH1S("","",nbin,0,nbin);
+      for(int j=1; j<=nbin; j++){ 
+	short temp = short(wf[j]*fScaleRawdigit+0.5-fShiftRawdigit);
+	h->SetBinContent(j, temp); 
+      }
+      i++;
+    }
+  }
+  
 
   void CellTreeUB::processTPC_deconWiener(const art::Event& evt){
     art::Handle<std::vector<recob::Wire> > wire;
@@ -602,7 +645,13 @@ namespace wc{
       return;
     }
     vector<int> const& bad_v(*bad);
-    fBadChannelList = bad_v;
+    int nch = (int)bad_v.size()/3;
+    for(int i=0; i<nch; i++){
+      const int offset = 3*i;
+      fBadChannel.push_back(bad_v[offset+0]);
+      fBadBegin.push_back(bad_v[offset+1]);
+      fBadEnd.push_back(bad_v[offset+2]);
+    } 
   }
 
   void CellTreeUB::processTPC_channelThreshold(const art::Event& evt){
@@ -617,7 +666,6 @@ namespace wc{
   }
 
   void CellTreeUB::processPMT_raw(const art::Event& evt){
-    SetUpChannelMap();
     art::Handle<std::vector<raw::OpDetWaveform> > opwf_cosmic_hg;
     evt.getByLabel(fPMT_HG_cosmicProducer, fPMT_HG_cosmicLabel, opwf_cosmic_hg);
     if(opwf_cosmic_hg.isValid()){
@@ -626,7 +674,6 @@ namespace wc{
       for(auto const& op : opwf_v){
 	fOp_cosmic_hg_opch.push_back(op.ChannelNumber());
 	fOp_cosmic_hg_timestamp.push_back(op.TimeStamp());
-	fOp_cosmic_hg_category.push_back(_opch_to_chcategory_m[op.ChannelNumber()]);
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_cosmic_hg_wf)[i]) TH1S("","",nbins,0,nbins);
 	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
@@ -645,7 +692,6 @@ namespace wc{
       for(auto const& op : opwf_v){
 	fOp_beam_hg_opch.push_back(op.ChannelNumber());
 	fOp_beam_hg_timestamp.push_back(op.TimeStamp());
-	fOp_beam_hg_category.push_back(_opch_to_chcategory_m[op.ChannelNumber()]);
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_beam_hg_wf)[i]) TH1S("","",nbins,0,nbins);
 	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
@@ -666,7 +712,6 @@ namespace wc{
       for(auto const& op : opwf_v){
 	fOp_cosmic_lg_opch.push_back(op.ChannelNumber());
 	fOp_cosmic_lg_timestamp.push_back(op.TimeStamp());
-	fOp_cosmic_lg_category.push_back(_opch_to_chcategory_m[op.ChannelNumber()]);
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_cosmic_lg_wf)[i]) TH1S("","",nbins,0,nbins);
 	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
@@ -685,7 +730,6 @@ namespace wc{
       for(auto const& op : opwf_v){
 	fOp_beam_lg_opch.push_back(op.ChannelNumber());
 	fOp_beam_lg_timestamp.push_back(op.TimeStamp());
-	fOp_beam_lg_category.push_back(_opch_to_chcategory_m[op.ChannelNumber()]);
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_beam_lg_wf)[i]) TH1S("","",nbins,0,nbins);
 	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
@@ -858,11 +902,11 @@ namespace wc{
 	     << " or label " << fPOT_bnb1label << endl;
 	return;
       }
-      sumdata::POTSummary const& p1(*pots1);
-      ftotpot_bnbETOR875 = p1.totpot;
-      ftotgoodpot_bnbETOR875 = p1.totgoodpot;
-      ftotspills_bnbETOR875 = p1.totspills;
-      fgoodspills_bnbETOR875 = p1.goodspills;
+    sumdata::POTSummary const& p1(*pots1);
+    ftotpot_bnbETOR875 = p1.totpot;
+    ftotgoodpot_bnbETOR875 = p1.totgoodpot;
+    ftotspills_bnbETOR875 = p1.totspills;
+    fgoodspills_bnbETOR875 = p1.goodspills;
 
     art::Handle<sumdata::POTSummary> pots2;
     if(! subrun.getByLabel(fPOT_producer, fPOT_bnb2label, pots2)){
@@ -870,11 +914,11 @@ namespace wc{
 	     << " or label " << fPOT_bnb2label << endl;
 	return;
       }
-      sumdata::POTSummary const& p2(*pots2);
-      ftotpot_bnbETOR860 = p2.totpot;
-      ftotgoodpot_bnbETOR860 = p2.totgoodpot;
-      ftotspills_bnbETOR860 = p2.totspills;
-      fgoodspills_bnbETOR860 = p2.goodspills;
+    sumdata::POTSummary const& p2(*pots2);
+    ftotpot_bnbETOR860 = p2.totpot;
+    ftotgoodpot_bnbETOR860 = p2.totgoodpot;
+    ftotspills_bnbETOR860 = p2.totspills;
+    fgoodspills_bnbETOR860 = p2.goodspills;
 
     art::Handle<sumdata::POTSummary> pots3;
     if(! subrun.getByLabel(fPOT_producer, fPOT_numilabel, pots3)){
@@ -882,88 +926,11 @@ namespace wc{
 	     << " or label " << fPOT_numilabel << endl;
 	return;
       }
-      sumdata::POTSummary const& p3(*pots3);
-      ftotpot_numiETORTGT = p3.totpot;
-      ftotgoodpot_numiETORTGT = p3.totgoodpot;
-      ftotspills_numiETORTGT = p3.totspills;
-      fgoodspills_numiETORTGT = p3.goodspills;
-  }
-
-  void CellTreeUB::SetUpChannelMap(){
-    if(!_opch_to_opdet_m.empty()) return;
-
-    // Get generic geometry                                                               
-    ::art::ServiceHandle<geo::Geometry> geom;
-
-    // Get Optical Readout Channel Map Geometry                                           
-    ::art::ServiceHandle<geo::UBOpReadoutMap> ub_geom;
-
-    // Load a full set of Optical Channels                                                
-    auto const& readout_channel_set = ub_geom->GetReadoutChannelSet();
-
-    // Loop over channel set, create OpChannel=>OpDet and OpChannel=>ChannelType mapping  
-    for(auto const& ch : readout_channel_set) {
-
-      // Make sure mapping has enough entries                                             
-      if(ch >= _opch_to_opdet_m.size()) {
-	_opch_to_chtype_m.resize(ch+1,opdet::Undefined);
-	_opch_to_chcategory_m.resize(ch+1,opdet::Uncategorized);
-	_opch_to_opdet_m.resize(ch+1,-1);
-      }
-
-      bool skip=true;
-      for(size_t i=0; i<geom->Cryostat().NOpDet(); ++i) {
-	try{
-	  skip = !(geom->OpDetFromOpChannel(ch) < geom->Cryostat().NOpDet());
-	}catch(...){
-	  skip = true;
-	}
-	if(!skip) break;
-      }
-
-      _opch_to_chcategory_m[ch] = ub_geom->GetChannelCategory(ch);
-
-      _opch_to_chtype_m[ch] = ub_geom->GetChannelType(ch);
-
-      if(skip) _opch_to_opdet_m[ch] = -1;
-      else _opch_to_opdet_m[ch] = geom->OpDetFromOpChannel(ch);
-    }
-
-    // Reverse-engineer OpDet => set of OpChannel mapping (probably not really useful)    
-    for(size_t opch=0; opch < _opch_to_opdet_m.size(); ++opch) {
-      auto const& opdet = _opch_to_opdet_m[opch];
-      if(opdet < 0) continue;
-      if(_opdet_to_opch_m.size() <= (size_t)opdet) _opdet_to_opch_m.resize(opdet+1,std::set<int>());
-      _opdet_to_opch_m[opdet].insert(opch);
-    }
-
-    // loop through _opdet_to_opch_m and for the various entries find which               
-    // HG and LG channel numbers are associated with the same FEM                 
-    for(auto const& opch_set : _opdet_to_opch_m) {
-      // map beamgate LG to HG                                                     
-      for (auto const& opch1 : opch_set) {
-	if ( _opch_to_chcategory_m[opch1] == opdet::OpdetBeamHighGain){
-	  for(auto const& opch2 : opch_set) {
-	    if ( _opch_to_chcategory_m[opch2] == opdet::OpdetBeamLowGain) {
-	      _opchLG_to_opchHG_m[ opch2 ] = opch1;
-	      break;
-	    }
-	  }
-	}// map Beam LG => HG                                                       
-	if ( _opch_to_chcategory_m[opch1] == opdet::OpdetCosmicHighGain){
-	  for(auto const& opch2 : opch_set) {
-	    if ( !_use_LG_beam_for_HG_cosmic && _opch_to_chcategory_m[opch2] == opdet::OpdetCosmicLowGain) {
-	      _opchLG_to_opchHG_m[ opch2 ] = opch1;
-	      break;
-	    }
-	    if ( _use_LG_beam_for_HG_cosmic && _opch_to_chcategory_m[opch2] == opdet::OpdetBeamLowGain) {
-	      _opchLG_to_opchHG_m[ opch2 ] = opch1;
-	      break;
-	    }
-	  }
-	}// map Cosmic LG => HG                                                   
-      }
-    }// for all PMTs                                                                
+    sumdata::POTSummary const& p3(*pots3);
+    ftotpot_numiETORTGT = p3.totpot;
+    ftotgoodpot_numiETORTGT = p3.totgoodpot;
+    ftotspills_numiETORTGT = p3.totspills;
+    fgoodspills_numiETORTGT = p3.goodspills;
   }
 
   DEFINE_ART_MODULE(CellTreeUB)
