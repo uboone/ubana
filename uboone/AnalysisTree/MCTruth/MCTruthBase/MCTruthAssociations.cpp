@@ -168,11 +168,9 @@ const MCTruthTruthVec& MCTruthAssociations::MCTruthVector() const
     
 // this method will return the Geant4 track IDs of
 // the particles contributing ionization electrons to the identified hit
-std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* hit) const
+std::vector<TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* hit) const
 {
-    std::vector<sim::TrackIDE> trackIDEs;
-    
-    trackIDEs.clear();
+    std::vector<TrackIDE> trackIDEs;
     
     // Apply brute force loop through all possible collections
     for(const auto& hitPartAssns : fHitPartAssnsVec)
@@ -181,18 +179,23 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* h
     
         if (hitMatchPairItr != hitPartAssns.fHitToPartVecMap.end())
         {
+            size_t nTrackIDEs(hitMatchPairItr->second.size());
+            
+            trackIDEs.reserve(nTrackIDEs);
+                              
             for (const auto& matchPair : hitMatchPairItr->second)
             {
                 const simb::MCParticle*                 part = matchPair.first;
                 const anab::BackTrackerHitMatchingData* data = matchPair.second;
                 
-                sim::TrackIDE info;
-                info.trackID      = part->TrackId();
-                info.energyFrac   = data->ideFraction;
-                info.energy       = data->energy;
-                info.numElectrons = data->numElectrons;
-            
-                trackIDEs.emplace_back(info);
+                TrackIDE trackIDE;
+                
+                trackIDE.trackID      = part->TrackId();
+                trackIDE.energyFrac   = data->ideFraction;
+                trackIDE.energy       = data->energy;
+                trackIDE.numElectrons = data->numElectrons;
+                
+                trackIDEs.emplace_back(trackIDE);
             }
             
             break;
@@ -202,7 +205,7 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* h
     return trackIDEs;
 }
     
-std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const art::Ptr<recob::Hit>& hit) const
+std::vector<TrackIDE> MCTruthAssociations::HitToTrackID(const art::Ptr<recob::Hit>& hit) const
 {
     return HitToTrackID(hit.get());
 }
@@ -220,7 +223,7 @@ const std::vector<std::vector<art::Ptr<recob::Hit>>> MCTruthAssociations::TrackI
     
     for(const auto& hit : allHits)
     {
-        std::vector<sim::TrackIDE> trackIDEVec = this->HitToTrackID(hit.get());
+        std::vector<TrackIDE> trackIDEVec = this->HitToTrackID(hit.get());
         
         for(const auto trackIDE : trackIDEVec)
         {
@@ -246,20 +249,20 @@ const std::vector<std::vector<art::Ptr<recob::Hit>>> MCTruthAssociations::TrackI
 // the particle list is assumed to have adopted the appropriate EveIdCalculator prior to
 // having been passed to this method. It is likely that the EmEveIdCalculator is
 // the one you always want to use
-std::vector<sim::TrackIDE> MCTruthAssociations::HitToEveID(const art::Ptr<recob::Hit>& hit) const
+std::vector<TrackIDE> MCTruthAssociations::HitToEveID(const art::Ptr<recob::Hit>& hit) const
 {
-    std::vector<sim::TrackIDE> trackIDEVec = this->HitToTrackID(hit.get());
+    std::vector<TrackIDE> trackIDEVec = this->HitToTrackID(hit.get());
     
     // Need the particle list, want the "biggest" one to make sure we have all the particles
     const MCTruthParticleList& particleList = getParticleList();
 
     // Create a map which will go between eve ids and TrackIDEs
-    std::unordered_map<int, sim::TrackIDE> idToTrackIDEMap;
+    std::unordered_map<int, TrackIDE> idToTrackIDEMap;
     
     for(const auto& trackID : trackIDEVec)
     {
-        int            eveTrackID  = particleList.EveId(trackID.trackID);
-        sim::TrackIDE& eveTrackIDE = idToTrackIDEMap[eveTrackID];
+        int       eveTrackID  = particleList.EveId(trackID.trackID);
+        TrackIDE& eveTrackIDE = idToTrackIDEMap[eveTrackID];
         
         eveTrackIDE.trackID       = eveTrackID;
         eveTrackIDE.energyFrac   += trackID.energyFrac;
@@ -268,7 +271,7 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToEveID(const art::Ptr<recob:
     }
     
     // Now create an output container and move info to it
-    std::vector<sim::TrackIDE> eveTrackIDEVec;
+    std::vector<TrackIDE> eveTrackIDEVec;
     
     for(const auto& eveIDEPair : idToTrackIDEMap) eveTrackIDEVec.emplace_back(eveIDEPair.second);
     
@@ -303,7 +306,7 @@ double MCTruthAssociations::HitCollectionPurity(std::set<int>                   
     // the correct plane by definition then.
     for(const auto& hit : hitVec)
     {
-        std::vector<sim::TrackIDE> hitTrackIDEVec = this->HitToTrackID(hit.get());
+        std::vector<TrackIDE> hitTrackIDEVec = this->HitToTrackID(hit.get());
         
         for(const auto& trackIDE : hitTrackIDEVec)
         {
@@ -338,7 +341,7 @@ double MCTruthAssociations::HitCollectionEfficiency(std::set<int>               
     // the correct view by definition then.
     for(const auto& hit : hitVec)
     {
-        std::vector<sim::TrackIDE> hitTrackIDs = this->HitToTrackID(hit);
+        std::vector<TrackIDE> hitTrackIDs = this->HitToTrackID(hit);
         
         // don't worry about hits where the energy fraction for the chosen
         // trackID is < 0.1
@@ -363,7 +366,7 @@ double MCTruthAssociations::HitCollectionEfficiency(std::set<int>               
         // in the case of 3D objects we take all hits
         if(hit->View() != view && view != geo::k3D ) continue;
         
-        std::vector<sim::TrackIDE> hitTrackIDs = this->HitToTrackID(hit);
+        std::vector<TrackIDE> hitTrackIDs = this->HitToTrackID(hit);
 
         for (const auto& trackIDE : hitTrackIDs)
         {
@@ -396,7 +399,7 @@ double MCTruthAssociations::HitChargeCollectionPurity(std::set<int>             
     // the correct view by definition then.
     for(const auto& hit : hitVec)
     {
-        std::vector<sim::TrackIDE> hitTrackIDEVec = this->HitToTrackID(hit);
+        std::vector<TrackIDE> hitTrackIDEVec = this->HitToTrackID(hit);
         
         total += hit->Integral();
         
@@ -434,7 +437,7 @@ double MCTruthAssociations::HitChargeCollectionEfficiency(std::set<int>         
     // the correct view by definition then.
     for(const auto& hit : hitVec)
     {
-        std::vector<sim::TrackIDE> hitTrackIDs = this->HitToTrackID(hit);
+        std::vector<TrackIDE> hitTrackIDs = this->HitToTrackID(hit);
         
         // don't worry about hits where the energy fraction for the chosen
         // trackID is < 0.1
@@ -459,7 +462,7 @@ double MCTruthAssociations::HitChargeCollectionEfficiency(std::set<int>         
         // in the case of 3D objects we take all hits
         if(hit->View() != view && view != geo::k3D ) continue;
         
-        std::vector<sim::TrackIDE> hitTrackIDs = this->HitToTrackID(hit);
+        std::vector<TrackIDE> hitTrackIDs = this->HitToTrackID(hit);
         
         for (const auto& trackIDE : hitTrackIDs)
         {
@@ -508,7 +511,7 @@ std::set<int> MCTruthAssociations::GetSetOfEveIDs(const std::vector< art::Ptr<re
     
     for(const auto& hit : hitVec)
     {
-        const std::vector<sim::TrackIDE> ideVec = HitToEveID(hit);
+        const std::vector<TrackIDE> ideVec = HitToEveID(hit);
         
         // loop over the ides and extract the track ids
         for(const auto& trackIDE : ideVec) eveIDs.insert(trackIDE.trackID);
@@ -524,7 +527,7 @@ std::set<int> MCTruthAssociations::GetSetOfTrackIDs(std::vector< art::Ptr<recob:
     
     for(const auto& hit : hitVec)
     {
-        std::vector<sim::TrackIDE> trackIDEVec = this->HitToTrackID(hit);
+        std::vector<TrackIDE> trackIDEVec = this->HitToTrackID(hit);
         
         for(const auto& trackIDE : trackIDEVec) trackIDs.insert(trackIDE.trackID);
     }

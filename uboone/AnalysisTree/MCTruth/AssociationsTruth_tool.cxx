@@ -134,13 +134,20 @@ const std::vector< art::Ptr<simb::MCTruth> >&  AssociationsTruth::MCTruthVector(
 //----------------------------------------------------------------------
 std::vector<sim::TrackIDE> AssociationsTruth::HitToTrackID(recob::Hit const& hit) const
 {
-    return fMCTruthAssociations.HitToTrackID(&hit);
+    std::vector<truth::TrackIDE> locTrackIDEVec = fMCTruthAssociations.HitToTrackID(&hit);
+    std::vector<sim::TrackIDE>   outputVec;
+    
+    outputVec.reserve(locTrackIDEVec.size());
+
+    for(const auto& trackIDE : locTrackIDEVec) outputVec.emplace_back(trackIDE.trackID,trackIDE.energyFrac,trackIDE.energy,trackIDE.numElectrons);
+    
+    return outputVec;
 }
 
 //----------------------------------------------------------------------
 std::vector<sim::TrackIDE> AssociationsTruth::HitToTrackID(art::Ptr<recob::Hit> const& hit) const
 {
-    return fMCTruthAssociations.HitToTrackID(hit);
+    return HitToTrackID(*hit.get());
 }
 
 //----------------------------------------------------------------------
@@ -156,7 +163,14 @@ const std::vector<std::vector<art::Ptr<recob::Hit>>> AssociationsTruth::TrackIDs
 // the one you always want to use
 std::vector<sim::TrackIDE> AssociationsTruth::HitToEveID(art::Ptr<recob::Hit> const& hit) const
 {
-    return fMCTruthAssociations.HitToEveID(hit);
+    std::vector<truth::TrackIDE> locTrackIDEVec = fMCTruthAssociations.HitToEveID(hit);
+    std::vector<sim::TrackIDE>   outputVec;
+    
+    outputVec.reserve(locTrackIDEVec.size());
+    
+    for(const auto& trackIDE : locTrackIDEVec) outputVec.emplace_back(trackIDE.trackID,trackIDE.energyFrac,trackIDE.energy,trackIDE.numElectrons);
+    
+    return outputVec;
 }
     
 //----------------------------------------------------------------------
