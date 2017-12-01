@@ -223,7 +223,8 @@ namespace wc{
   }; // class CellTreeUB
 
   CellTreeUB::CellTreeUB(fhicl::ParameterSet const& pset)
-    : EDAnalyzer(pset){
+    : EDAnalyzer(pset),
+      fEventTree(nullptr){
     reconfigure(pset);
     initOutput();
   }
@@ -411,7 +412,6 @@ namespace wc{
   }
 
   void CellTreeUB::endJob(){
-    fEventTree->Fill();
   }
 
   void CellTreeUB::beginRun(const art::Run& ){
@@ -447,7 +447,7 @@ namespace wc{
     if(fSaveHWTrigger) processHWTrigger(evt);
     if(fSaveSWTrigger) processSWTrigger(evt);
     if(fSaveBeam) processBeam(evt);
-    //fEventTree->Fill();
+    fEventTree->Fill();
   }
 
   void CellTreeUB::reset(){
