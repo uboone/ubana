@@ -6404,7 +6404,7 @@ void microboone::AnalysisTree::FillShowers(
 void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
 
   trackid = -1;
-  purity = -1;
+  purity  = -1;
 
   std::map<int,double> trkide;
 
