@@ -19,6 +19,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "lardata/Utilities/AssociationUtil.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
@@ -68,6 +69,8 @@ private:
   double GetYZCorrection(TVector3& xyz, TH2F *his);
   double GetXCorrection(TVector3& xyz, TH1F *his);
 
+  const detinfo::DetectorProperties* detprop;
+
 };
 
 
@@ -84,6 +87,7 @@ ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
     throw art::Exception(art::errors::Configuration)
       <<"Size of Corr_YZ and Corr_X need to be 3.";
   }
+  detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
 
   //create calorimetry product and its association with track
   produces< std::vector<anab::Calorimetry>              >();
@@ -157,6 +161,9 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
           double yzcorrection = GetYZCorrection(vXYZ[j], hCorr_YZ[planeID.Plane]);
           double xcorrection = GetXCorrection(vXYZ[j], hCorr_X[planeID.Plane]);
           vdQdx[j] = yzcorrection*xcorrection*vdQdx[j];
+          //set time to be trgger time so we don't do lifetime correction
+          //we will turn off lifetime correction in caloAlg, this is just to be double sure
+          vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detprop->TriggerOffset(), planeID.Plane, 0);
         }
         //save new calorimetry information 
         calorimetrycol->push_back(anab::Calorimetry(Kin_En,
