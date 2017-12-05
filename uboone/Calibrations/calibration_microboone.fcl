@@ -25,7 +25,7 @@ microboone_calibrationdedx :
     module_type:             CalibrationdEdX
     TrackModuleLabel:        "pandoraNu"
     CalorimetryModuleLabel:  "pandoraNucalo"
-    CalibrationFileName:     "/uboone/app/users/tjyang/larsoft_v06_03_00/job/dedx/calibration_mcc8.4.root"
+    CalibrationFileName:     "calibration_mcc8.4_v1.root"
     Corr_YZ:                 ["correction_yz_plane0", "correction_yz_plane1", "correction_yz_plane2"]
     Corr_X:                  ["correction_x_plane0", "correction_x_plane1", "correction_x_plane2"]
     CaloAlg:                 @local::microboone_calorimetryalgmcc84mc

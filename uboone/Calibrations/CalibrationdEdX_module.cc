@@ -191,7 +191,14 @@ void ub::CalibrationdEdX::beginJob()
   // Implementation of optional member function here.
 
   // Open root file with YZ and X corrections
-  TFile f(fCalibrationFileName.c_str());
+  cet::search_path sp("FW_SEARCH_PATH");
+  std::string fROOTfile;
+  if( !sp.find_file(fCalibrationFileName, fROOTfile) )
+    throw cet::exception("CalibrationdEdX") << "cannot find the calibration root file: \n" 
+					   << fROOTfile
+					   << "\n bail ungracefully.\n";
+
+  TFile f(fROOTfile.c_str());
 
   // Read in correction histograms
   for (size_t i = 0; i<fCorr_YZ.size(); ++i){
