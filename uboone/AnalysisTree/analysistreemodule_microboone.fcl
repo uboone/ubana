@@ -28,6 +28,7 @@ microboone_analysistree:
  ContainmentTaggerAssocLabel: ["isotag"]
  FlashMatchAssocLabel:   ["flashTrackMatchkHit"]
  POTModuleLabel:           "generator"
+ OpticalFilterLabel:       "opfiltercommonbnb"
  UseBuffers:               false
  IgnoreMissingShowers:     false
  SaveAuxDetInfo:           false
@@ -49,6 +50,7 @@ microboone_analysistree:
  SaveFlashInfo:            true
  SaveShowerInfo:           true
  SaveCaloCosmics:          true
+ SaveOpticalFilterInfo:    true
  G4minE:                   0.01
  RawDigitROI:              3.0 
  CalWireROI:               3.0 

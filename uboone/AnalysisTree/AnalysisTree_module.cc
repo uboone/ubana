@@ -319,6 +319,7 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "ubooneobj/UbooneOpticalFilter.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
@@ -845,6 +846,7 @@ namespace microboone {
         tdPandoraNuVertex = 0x20000,
         tdPFParticle = 0x40000,
         tdSWTrigger = 0x80000,
+        tdOpticalFilter = 0x100000,
 	tdDefault = 0
 	}; // DataBits_t
     
@@ -902,6 +904,11 @@ namespace microboone {
     std::vector<std::vector<double>> evtwgt_weight;    // the weights (a vector for each function used)
     std::vector<int> evtwgt_nweight;                   // number of weights for each function
     Int_t evtwgt_nfunc;                                // number of functions used
+
+    //Optical Filter Information
+    Float_t opfilter_pebeam;      // pe in the beam window period
+    Float_t opfilter_peveto;      // pe in the veto window period
+    Float_t opfilter_pmtmaxfrac;  // max fraction of pe in single pmt
 
     // Software trigger information
     std::vector<std::string> swtrigger_name;           // name of the software trigger used 
@@ -1334,6 +1341,9 @@ namespace microboone {
     /// Returns whether we have Hit data
     bool hasSWTriggerInfo() const { return bits & tdSWTrigger; }
 
+    /// Returns whether we have OpFilter data
+    bool hasOpticalFilterInfo() const { return bits & tdOpticalFilter; }
+
     /// Returns whether we have Hit data
     bool hasRawDigitInfo() const { return bits & tdRawDigit; }
     
@@ -1677,6 +1687,7 @@ namespace microboone {
     std::string fPOTModuleLabel;
     std::string fCosmicClusterTaggerAssocLabel;
     std::string fSWTriggerLabel;
+    std::string fOpticalFilterLabel;
     bool fUseBuffer; ///< whether to use a permanent buffer (faster, huge memory)    
     bool fSaveAuxDetInfo; ///< whether to extract and save auxiliary detector data
     bool fSaveCryInfo; ///whether to extract and save CRY particle data
@@ -1698,6 +1709,7 @@ namespace microboone {
     bool fSaveShowerInfo;  ///whether to extract and save Shower information
     bool fSavePFParticleInfo; ///whether to extract and save PFParticle information
     bool fSaveSWTriggerInfo; ///whether to extract and save software trigger information
+    bool fSaveOpticalFilterInfo; ///whether to extract and save optical filter information
 
     std::vector<std::string> fCosmicTaggerAssocLabel;
     std::vector<std::string> fContainmentTaggerAssocLabel;
@@ -1741,6 +1753,7 @@ namespace microboone {
 	fData->SetBits(AnalysisTreeDataStruct::tdMCtrk,  !fSaveMCTrackInfo); 
 	fData->SetBits(AnalysisTreeDataStruct::tdHit,    !fSaveHitInfo);
         fData->SetBits(AnalysisTreeDataStruct::tdSWTrigger,    !fSaveSWTriggerInfo);
+        fData->SetBits(AnalysisTreeDataStruct::tdOpticalFilter,    !fSaveOpticalFilterInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdRawDigit,    !fSaveRawDigitInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdCalWire,    !fSaveCalWireInfo);
 	fData->SetBits(AnalysisTreeDataStruct::tdSimChannel,    !fSaveSimChannelInfo);
@@ -2961,6 +2974,10 @@ void microboone::AnalysisTreeDataStruct::ClearLocalData() {
   potnumitgt = 0;
   potnumi101 = 0;
 
+  opfilter_pebeam = -999;
+  opfilter_peveto = -999;
+  opfilter_pmtmaxfrac = -999;
+
   evtwgt_nfunc = 0;
   FillWith(evtwgt_funcname, "noname");
   FillWith(evtwgt_nweight, 0);
@@ -3577,6 +3594,12 @@ void microboone::AnalysisTreeDataStruct::SetAddresses(
   CreateBranch("evtwgt_nweight",evtwgt_nweight);
   CreateBranch("evtwgt_nfunc",&evtwgt_nfunc,"evtwgt_nfunc/I");
 
+  if(hasOpticalFilterInfo()){
+    CreateBranch("opfilter_pebeam",&opfilter_pebeam,"opfilter_pebeam/F");
+    CreateBranch("opfilter_peveto",&opfilter_peveto,"opfilter_peveto/F");
+    CreateBranch("opfilter_pmtmaxfrac",&opfilter_pmtmaxfrac,"opfilter_pmtmaxfrac/F");
+  }
+
   if (hasSWTriggerInfo()){
     CreateBranch("swtrigger_name",      swtrigger_name);
     CreateBranch("swtrigger_triggered", swtrigger_triggered);
@@ -4056,6 +4079,7 @@ microboone::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fPOTModuleLabel           (pset.get< std::string >("POTModuleLabel")),   
   fCosmicClusterTaggerAssocLabel (pset.get< std::string >("CosmicClusterTaggerAssocLabel")), 
   fSWTriggerLabel           (pset.get< std::string >("SWTriggerModuleLabel")),
+  fOpticalFilterLabel       (pset.get< std::string >("OpticalFilterLabel")),
   fUseBuffer                (pset.get< bool >("UseBuffers", false)),
   fSaveAuxDetInfo           (pset.get< bool >("SaveAuxDetInfo", false)),
   fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),  
@@ -4077,6 +4101,7 @@ microboone::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fSaveShowerInfo            (pset.get< bool >("SaveShowerInfo", false)),
   fSavePFParticleInfo	    (pset.get< bool >("SavePFParticleInfo", false)),
   fSaveSWTriggerInfo        (pset.get< bool >("SaveSWTriggerInfo", false)),
+  fSaveOpticalFilterInfo    (pset.get< bool >("SaveOpticalFilterInfo", false)),
   fCosmicTaggerAssocLabel  (pset.get<std::vector< std::string > >("CosmicTaggerAssocLabel") ),
   fContainmentTaggerAssocLabel  (pset.get<std::vector< std::string > >("ContainmentTaggerAssocLabel") ),
   fFlashMatchAssocLabel (pset.get<std::vector< std::string > >("FlashMatchAssocLabel") ),
@@ -4613,6 +4638,24 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   } // swtrigger
 
 
+  //*****************************
+  //
+  // Common Optical Filter
+  //
+  //***************************** 
+  if(fSaveOpticalFilterInfo){
+    art::Handle<uboone::UbooneOpticalFilter> opticalFilterHandle;
+    evt.getByLabel(fOpticalFilterLabel,opticalFilterHandle);
+
+    if(!opticalFilterHandle.isValid() || opticalFilterHandle.failedToGet()){
+      std::cerr << "Failed to get optical filter data product with label " << fOpticalFilterLabel << std::endl;
+    }
+    else{
+      fData->opfilter_pebeam = opticalFilterHandle->PE_Beam();
+      fData->opfilter_peveto = opticalFilterHandle->PE_Veto();
+      fData->opfilter_pmtmaxfrac = opticalFilterHandle->PMT_MaxFraction();
+    }
+  }
 
 
   //  std::cout<<detprop->NumberTimeSamples()<<" "<<detprop->ReadOutWindowSize()<<std::endl;
@@ -5750,7 +5793,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx();
 	    fData->nuvtxy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vy();
 	    fData->nuvtxz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vz();
-	    fData->sp_charge_corrected_nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx() + 0.7 - SCE->GetPosOffsets(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())[0];
+	    fData->sp_charge_corrected_nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx() - SCE->GetPosOffsets(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())[0];
 	    fData->sp_charge_corrected_nuvtxy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vy() + SCE->GetPosOffsets(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())[1];
 	    fData->sp_charge_corrected_nuvtxz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vz() + SCE->GetPosOffsets(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())[2];
 	    
@@ -6013,14 +6056,14 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->StartPointx[geant_particle]=pPart->Vx();
 	    fData->StartPointy[geant_particle]=pPart->Vy();
 	    fData->StartPointz[geant_particle]=pPart->Vz();
-	    fData->sp_charge_corrected_StartPointx[geant_particle] = pPart->Vx() + 0.7 - SCE->GetPosOffsets(pPart->Vx(),pPart->Vy(),pPart->Vy())[0]; 
-	    fData->sp_charge_corrected_StartPointy[geant_particle] = pPart->Vy() + SCE->GetPosOffsets(pPart->Vx(),pPart->Vy(),pPart->Vy())[1]; 
-	    fData->sp_charge_corrected_StartPointz[geant_particle] = pPart->Vz() + SCE->GetPosOffsets(pPart->Vx(),pPart->Vy(),pPart->Vy())[2]; 
+	    fData->sp_charge_corrected_StartPointx[geant_particle] = pPart->Vx() - SCE->GetPosOffsets(pPart->Vx(),pPart->Vy(),pPart->Vz())[0]; 
+	    fData->sp_charge_corrected_StartPointy[geant_particle] = pPart->Vy() + SCE->GetPosOffsets(pPart->Vx(),pPart->Vy(),pPart->Vz())[1]; 
+	    fData->sp_charge_corrected_StartPointz[geant_particle] = pPart->Vz() + SCE->GetPosOffsets(pPart->Vx(),pPart->Vy(),pPart->Vz())[2]; 
 	    fData->StartT[geant_particle] = pPart->T();
 	    fData->EndPointx[geant_particle]=pPart->EndPosition()[0];
 	    fData->EndPointy[geant_particle]=pPart->EndPosition()[1];
 	    fData->EndPointz[geant_particle]=pPart->EndPosition()[2];
-	    fData->sp_charge_corrected_EndPointx[geant_particle] = pPart->EndPosition()[0] + 0.7 - SCE->GetPosOffsets(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])[0]; 
+	    fData->sp_charge_corrected_EndPointx[geant_particle] = pPart->EndPosition()[0] - SCE->GetPosOffsets(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])[0]; 
 	    fData->sp_charge_corrected_EndPointy[geant_particle] = pPart->EndPosition()[1] + SCE->GetPosOffsets(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])[1]; 
 	    fData->sp_charge_corrected_EndPointz[geant_particle] = pPart->EndPosition()[2] + SCE->GetPosOffsets(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])[2]; 
 	    fData->EndT[geant_particle] = pPart->EndT();
@@ -6042,7 +6085,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->StartPointx_tpcAV[geant_particle] = mcstart.X();
 	      fData->StartPointy_tpcAV[geant_particle] = mcstart.Y();
 	      fData->StartPointz_tpcAV[geant_particle] = mcstart.Z();
-	      fData->sp_charge_corrected_StartPointx_tpcAV[geant_particle] = mcstart.X() + 0.7 - SCE->GetPosOffsets(mcstart.X(),mcstart.Y(),mcstart.Z())[0]; 
+	      fData->sp_charge_corrected_StartPointx_tpcAV[geant_particle] = mcstart.X() - SCE->GetPosOffsets(mcstart.X(),mcstart.Y(),mcstart.Z())[0]; 
 	      fData->sp_charge_corrected_StartPointy_tpcAV[geant_particle] = mcstart.Y() + SCE->GetPosOffsets(mcstart.X(),mcstart.Y(),mcstart.Z())[1]; 
 	      fData->sp_charge_corrected_StartPointz_tpcAV[geant_particle] = mcstart.Z() + SCE->GetPosOffsets(mcstart.X(),mcstart.Y(),mcstart.Z())[2]; 
 	      fData->StartT_tpcAV[geant_particle] = mcstart.T();
@@ -6054,7 +6097,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->EndPointx_tpcAV[geant_particle] = mcend.X();
 	      fData->EndPointy_tpcAV[geant_particle] = mcend.Y();
 	      fData->EndPointz_tpcAV[geant_particle] = mcend.Z();
-	      fData->sp_charge_corrected_EndPointx_tpcAV[geant_particle] = mcend.X() + 0.7 - SCE->GetPosOffsets(mcend.X(),mcend.Y(),mcend.Z())[0]; 
+	      fData->sp_charge_corrected_EndPointx_tpcAV[geant_particle] = mcend.X() - SCE->GetPosOffsets(mcend.X(),mcend.Y(),mcend.Z())[0]; 
 	      fData->sp_charge_corrected_EndPointy_tpcAV[geant_particle] = mcend.Y() + SCE->GetPosOffsets(mcend.X(),mcend.Y(),mcend.Z())[1]; 
 	      fData->sp_charge_corrected_EndPointz_tpcAV[geant_particle] = mcend.Z() + SCE->GetPosOffsets(mcend.X(),mcend.Y(),mcend.Z())[2]; 
 	      fData->EndT_tpcAV[geant_particle] = mcend.T();
@@ -6068,7 +6111,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->StartPointx_drifted[geant_particle] = mcstartdrifted.X();
 	      fData->StartPointy_drifted[geant_particle] = mcstartdrifted.Y();
 	      fData->StartPointz_drifted[geant_particle] = mcstartdrifted.Z();
-	      fData->sp_charge_corrected_StartPointx_drifted[geant_particle] = mcstartdrifted.X() + 0.7 - SCE->GetPosOffsets(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())[0];
+	      fData->sp_charge_corrected_StartPointx_drifted[geant_particle] = mcstartdrifted.X() - SCE->GetPosOffsets(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())[0];
 	      fData->sp_charge_corrected_StartPointy_drifted[geant_particle] = mcstartdrifted.Y() + SCE->GetPosOffsets(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())[1];
 	      fData->sp_charge_corrected_StartPointz_drifted[geant_particle] = mcstartdrifted.Z() + SCE->GetPosOffsets(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())[2];
 	      fData->StartT_drifted[geant_particle] = mcstartdrifted.T();
@@ -6080,7 +6123,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->EndPointx_drifted[geant_particle] = mcenddrifted.X();
 	      fData->EndPointy_drifted[geant_particle] = mcenddrifted.Y();
 	      fData->EndPointz_drifted[geant_particle] = mcenddrifted.Z();
-	      fData->sp_charge_corrected_EndPointx_drifted[geant_particle] = mcenddrifted.X() + 0.7 - SCE->GetPosOffsets(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())[0];
+	      fData->sp_charge_corrected_EndPointx_drifted[geant_particle] = mcenddrifted.X() - SCE->GetPosOffsets(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())[0];
 	      fData->sp_charge_corrected_EndPointy_drifted[geant_particle] = mcenddrifted.Y() + SCE->GetPosOffsets(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())[1];
 	      fData->sp_charge_corrected_EndPointz_drifted[geant_particle] = mcenddrifted.Z() + SCE->GetPosOffsets(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())[2];
 	      fData->EndT_drifted[geant_particle] = mcenddrifted.T();

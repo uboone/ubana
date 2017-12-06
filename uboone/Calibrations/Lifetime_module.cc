@@ -292,7 +292,7 @@ void Lifetime::analyze( const art::Event& evt ){
         dir_end   = track.EndDirection();
         end	 = track.End();
         tlen	 = length(track);
-	if(track.NumberFitMomentum() > 0)
+	if(track.NumberTrajectoryPoints() > 0)
      	     mom = track.VertexMomentum();
 	trklen[i] = tlen;
 	double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
