@@ -59,6 +59,7 @@ private:
   std::string fCalibrationFileName;
   std::vector<std::string> fCorr_YZ;
   std::vector<std::string> fCorr_X;
+  bool fUseRecoTrackDir;
 
   calo::CalorimetryAlg caloAlg;
 
@@ -80,6 +81,7 @@ ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
   , fCalibrationFileName   (p.get< std::string >("CalibrationFileName"))
   , fCorr_YZ               (p.get< std::vector<std::string> >("Corr_YZ"))
   , fCorr_X                (p.get< std::vector<std::string> >("Corr_X"))
+  , fUseRecoTrackDir       (p.get< bool>("UseRecoTrackDir"))
   , caloAlg(p.get< fhicl::ParameterSet >("CaloAlg"))
 {
   // Call appropriate produces<>() functions here.
@@ -157,6 +159,22 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
           throw art::Exception(art::errors::Configuration)
             <<"plane is invalid "<<planeID.Plane;
         }
+        bool flipdir = false;
+        if (fUseRecoTrackDir){
+          // we want to undo the direction flip done in Calorimetry_module.cc
+          // use the reconstructed track end to calculate residual range
+          TVector3 trkstartcalo = vXYZ[0];
+          TVector3 trkendcalo = vXYZ.back();
+          if (vresRange[0]<vresRange.back()){
+            trkstartcalo = vXYZ.back();
+            trkendcalo = vXYZ[0];
+          }
+          if ((trkstartcalo - tracklist[trkIter]->Vertex()).Mag()+(trkendcalo - tracklist[trkIter]->End()).Mag()>
+              (trkstartcalo - tracklist[trkIter]->End()).Mag()+(trkendcalo - tracklist[trkIter]->Vertex()).Mag()){
+            flipdir = true;
+          }
+        }
+
         for (size_t j = 0; j<vdQdx.size(); ++j){
           double yzcorrection = GetYZCorrection(vXYZ[j], hCorr_YZ[planeID.Plane]);
           double xcorrection = GetXCorrection(vXYZ[j], hCorr_X[planeID.Plane]);
@@ -164,6 +182,12 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
           //set time to be trgger time so we don't do lifetime correction
           //we will turn off lifetime correction in caloAlg, this is just to be double sure
           vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detprop->TriggerOffset(), planeID.Plane, 0);
+          if (flipdir) {
+            double rr = Trk_Length - vresRange[j];
+            if (rr<0) rr = 0;
+            if (rr>Trk_Length) rr = Trk_Length;
+            vresRange[j] = rr;
+          }
         }
         //save new calorimetry information 
         calorimetrycol->push_back(anab::Calorimetry(Kin_En,
