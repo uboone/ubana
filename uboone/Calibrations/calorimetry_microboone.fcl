@@ -40,7 +40,7 @@ microboone_calomc.CaloAlg.CaloUseModBox: true
 microboone_calomc.UseArea: true
 
 microboone_calorimetryalgmcc84mc:                          @local::standard_calorimetryalgmc
-microboone_calorimetryalgmcc84mc.CalAreaConstants:         [ 0.00518274, 0.00508889, 0.00507669 ]
+microboone_calorimetryalgmcc84mc.CalAreaConstants:         [ 0.00518279, 0.00507506, 0.00507669 ]
 microboone_calorimetryalgmcc84mc.CaloDoLifeTimeCorrection: false
 
 microboone_generalcalomc:
