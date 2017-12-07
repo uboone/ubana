@@ -32,10 +32,10 @@ physics:
 {
   analyzers:
   {
-    WCUB : @local::celltreeub
+    Event : @local::celltreeub
   }
 
-  analysis: [ WCUB ]
+  analysis: [ Event ]
   end_paths: [ analysis ]
 }
 
