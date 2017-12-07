@@ -75,8 +75,8 @@ physics:
 
 #physics.analyzers.XYZcorrection:  @local::microboone_XYZcorrection
 
-physics.analyzers.XYZcorrection.TrackModuleLabel:        "pandoracosmicKalmanTrack"
-physics.analyzers.XYZcorrection.CalorimetryModuleLabel:  "pandoracosmicKalmanTrackcalo"
+physics.analyzers.XYZcorrection.TrackModuleLabel:        "pandoraCosmicKalmanTrack"
+physics.analyzers.XYZcorrection.CalorimetryModuleLabel:  "pandoraCosmicKalmanTrackcalo"
 physics.analyzers.XYZcorrection.HitsModuleLabel:  "gaushit"
 
 physics.analyzers.XYZcorrection.SaveTrackInfo: true
