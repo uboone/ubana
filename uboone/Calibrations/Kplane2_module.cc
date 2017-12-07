@@ -24,7 +24,8 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -385,9 +386,9 @@ void Kplane2::analyze( const art::Event& evt){
       if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
       art::fill_ptr_vector(clusterlist,clusterListHandle);
   } 
-  
-  art::ServiceHandle<cheat::BackTracker> bt;
-  
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+
   if (fSaveTrackInfo){
     art::FindManyP<recob::Track>      fmtk(hitListHandle, evt, fTrackModuleLabel);
     art::FindManyP<recob::Hit>        fmht(trackListHandle, evt, fTrackModuleLabel);
@@ -855,7 +856,7 @@ void Kplane2::analyze( const art::Event& evt){
 											                   reco_mu_bplane->Fill(mu_best_planenum);
 											////////////////////////////////// End of k mu angle //////////////////////////////
 											
-											const sim::ParticleList& plist = bt->ParticleList();
+											sim::ParticleList const& plist = pi_serv->ParticleList();
                                                                                         sim::ParticleList::const_iterator itPart = plist.begin(),pend = plist.end();
                                                                                         std::string pri("primary");
 										        for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart){
@@ -878,7 +879,7 @@ void Kplane2::analyze( const art::Event& evt){
 													      std::map<int,double> trk_k_ide;
 													      for(size_t h = 0; h < allKHits.size(); ++h){
 													          art::Ptr<recob::Hit> hit = allKHits[h];
-													          std::vector<sim::TrackIDE> TrackIDs = bt->HitToEveID(hit);
+													          std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
 														  for(size_t e = 0; e < TrackIDs.size(); ++e){
 														      trk_k_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 													          }
@@ -896,7 +897,7 @@ void Kplane2::analyze( const art::Event& evt){
 													        std::map<int,double> trk_mu_ide;
 														for(size_t h = 0; h < allMuHits.size(); ++h){
 														    art::Ptr<recob::Hit> hit = allMuHits[h];
-														    std::vector<sim::TrackIDE> TrackIDs = bt->HitToEveID(hit);
+														    std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
 														    for(size_t e = 0; e < TrackIDs.size(); ++e){
 															trk_mu_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 														    }
@@ -1271,7 +1272,7 @@ void Kplane2::analyze( const art::Event& evt){
 													  reco_mu_bplane->Fill(mu_best_planenum);
 											                  ////////////////////////////////// End of k mu angle //////////////////////////////
 											                  
-													  const sim::ParticleList& plist = bt->ParticleList();
+                                                                                                          sim::ParticleList const& plist = pi_serv->ParticleList();
                                                                                                           sim::ParticleList::const_iterator itPart = plist.begin(),pend = plist.end();
                                                                                                           std::string pri("primary");
 										                          for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart){
@@ -1294,7 +1295,7 @@ void Kplane2::analyze( const art::Event& evt){
 													                       std::map<int,double> trk_k_ide;
 													                       for(size_t h = 0; h < allKHits.size(); ++h){
 													                           art::Ptr<recob::Hit> hit = allKHits[h];
-													                           std::vector<sim::TrackIDE> TrackIDs = bt->HitToEveID(hit);
+													                           std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
 														                   for(size_t e = 0; e < TrackIDs.size(); ++e){
 														                       trk_k_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 													                           }
@@ -1312,7 +1313,7 @@ void Kplane2::analyze( const art::Event& evt){
 													                          std::map<int,double> trk_mu_ide;
 														                  for(size_t h = 0; h < allMuHits.size(); ++h){
 														                       art::Ptr<recob::Hit> hit = allMuHits[h];
-														                       std::vector<sim::TrackIDE> TrackIDs = bt->HitToEveID(hit);
+														                       std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
 														                       for(size_t e = 0; e < TrackIDs.size(); ++e){
 															                   trk_mu_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 														                       }
