@@ -19,7 +19,7 @@ wcls: {
 	    #inputers: ["wclsRawFrameSource"]
 	    inputers: ["wclsRawFrameSource", "wclsChannelNoiseDB"]
 	    # Two-faced output components.  Needs to also be mentioned in WCT config.
-	    outputers: ["wclsFrameSaver:nfsaver", "wclsFrameSaver:spsaver"]
+	    outputers: ["wclsFrameSaver:nfsaver", "wclsFrameSaver:nfrsaver", "wclsFrameSaver:spsaver"]
 	    # external parameters injected into the WCT configuration
 	    params: { }
 	 }

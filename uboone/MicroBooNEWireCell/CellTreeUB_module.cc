@@ -35,6 +35,7 @@
 #include "TTimeStamp.h"
 #include "TObject.h"
 #include "TH1F.h"
+#include "TH1I.h"
 #include "TH1S.h"
 
 #include <map>
@@ -588,10 +589,12 @@ namespace wc{
       fTPCdeconWiener_channelId.push_back(w->Channel());
       std::vector<float> wf = w->Signal();
       int nbin = (int)wf.size()/deconRebin;
+     // TH1I *h = new((*fTPCdeconWiener_wf)[i]) TH1I("","",nbin,0,nbin);
       TH1F *h = new((*fTPCdeconWiener_wf)[i]) TH1F("","",nbin,0,nbin);
-      int ctr = 0, binCtr = 0;
+      int ctr = 0, binCtr = 1;
       float content = 0;
-      for(int j=1; j<=9600; j++){ 
+      int nSamples = (int)wf.size();
+      for(int j=0; j<nSamples; j++){ 
 	ctr++;
 	content += wf[j];
 	if(ctr %  deconRebin == 0){
@@ -620,10 +623,12 @@ namespace wc{
       fTPCdeconGaussian_channelId.push_back(w->Channel());
       std::vector<float> wf = w->Signal();
       int nbin = (int)wf.size()/deconRebin;
+      //TH1I *h = new((*fTPCdeconGaussian_wf)[i]) TH1I("","",nbin,0,nbin);
       TH1F *h = new((*fTPCdeconGaussian_wf)[i]) TH1F("","",nbin,0,nbin);
-      int ctr = 0, binCtr = 0;
+      int ctr = 0, binCtr = 1;
       float content = 0;
-      for(int j=1; j<=9600; j++){ 
+      int nSamples = (int)wf.size();
+      for(int j=0; j<nSamples; j++){ 
 	ctr++;
 	content += wf[j];
 	if(ctr % deconRebin == 0){
