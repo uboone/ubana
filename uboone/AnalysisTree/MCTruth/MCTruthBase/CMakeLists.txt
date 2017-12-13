@@ -8,6 +8,7 @@ art_make( LIB_LIBRARIES lardataobj_RecoBase
                         nusimdata_SimulationBase
                         canvas_Persistency_Common
                         canvas_Persistency_Provenance
+                        canvas_Utilities
                         ${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}
                         ${FHICLCPP}
