@@ -20,6 +20,7 @@
 
 // canvas libraries
 #include "canvas/Persistency/Common/FindMany.h"
+#include "canvas/Utilities/Exception.h"
 
 // ROOT libraries
 #include "TVector3.h"
@@ -145,7 +146,7 @@ const art::Ptr<simb::MCTruth>& MCTruthAssociations::TrackIDToMCTruth(int const& 
     MCTruthTrackIDMap::const_iterator trackTruthItr = fTrackIDToMCTruthIndex.find(abs(id));
     
     if (trackTruthItr == fTrackIDToMCTruthIndex.end())
-        throw cet::exception("MCTruthAssociations") << "attempting to find MCTruth index for "
+        throw art::Exception(art::errors::NotFound) << "attempting to find MCTruth index for "
         << "out of range value: " << id
         << "/" << fMCTruthVec.size() << "\n";
     
