@@ -11,10 +11,11 @@ microboone_swtrigger_data:
     MinReadoutTicks:  1499
 
     drop_event : true
-    swtrg_algonames : ["EXT_BNBwin","EXT_NUMIwin","EXT_unbiased","BNB","BNB_unbiased","NUMI","NUMI_unbiased","BNB_HSN_c0"]
-    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo"]
+    swtrg_algonames : ["EXT_BNBwin","EXT_BNBwin_2017Dec_SWTrigger5PE","EXT_NUMIwin","EXT_unbiased","BNB","BNB_2017Dec_SWTrigger5PE","BNB_unbiased","NUMI","NUMI_unbiased","BNB_HSN_c0"]
+    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo"]
     swtrg_beam_window_size : 1100
-    swtrg_bits : [0x200,0x200,0x200,0x800,0x800,0x1000,0x1000,0x800]
+    swtrg_beam_window_size : 1100
+    swtrg_bits : [0x200,0x200,0x200,0x200,0x800,0x800,0x800,0x1000,0x1000,0x800]
     BNB_FEMBeamTriggerAlgo:{
       Discr0deadtime : 6
       Discr0delay : 4
@@ -30,6 +31,25 @@ microboone_swtrigger_data:
       PrescaleFactor : 1.0
       TriggerThresMult : 1
       TriggerThresPHMAX : 130
+      TriggerWindowSize : 120
+      TriggerWindowStart : 190
+      Verbosity : 3
+    }
+    BNB_2017Dec_SWTrigger5PE_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 124
+      Discr3WindowStart : 186
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 1.0
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 100
       TriggerWindowSize : 120
       TriggerWindowStart : 190
       Verbosity : 3
@@ -52,6 +72,25 @@ microboone_swtrigger_data:
       PrescaleFactor : 1.0
       TriggerThresMult : 1
       TriggerThresPHMAX : 130
+      TriggerWindowSize : 120
+      TriggerWindowStart : 190
+      Verbosity : 3
+    }
+    EXT_BNBwin_2017Dec_SWTrigger5PE_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 124
+      Discr3WindowStart : 186
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 1.0
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 100
       TriggerWindowSize : 120
       TriggerWindowStart : 190
       Verbosity : 3
@@ -132,10 +171,10 @@ microboone_swtrigger_mc_bnb:
     MinReadoutTicks:  1499
 
     drop_event : true
-    swtrg_algonames : ["BNB"]
-    swtrg_algotype : ["FEMBeamTriggerAlgo"]
+    swtrg_algonames : ["BNB","BNB_2017Dec_SWTrigger5PE","BNB_HSN_c0"]
+    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo"]
     swtrg_beam_window_size : 1100
-    swtrg_bits : [0x800]
+    swtrg_bits : [0x800,0x800,0x800]
     BNB_FEMBeamTriggerAlgo:{
       Discr0deadtime : 6
       Discr0delay : 4
@@ -155,6 +194,44 @@ microboone_swtrigger_mc_bnb:
       TriggerWindowStart : 190
       Verbosity : 3
     }
+    BNB_2017Dec_SWTrigger5PE_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 124
+      Discr3WindowStart : 186
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 1.0
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 100
+      TriggerWindowSize : 120
+      TriggerWindowStart : 190
+      Verbosity : 0
+    }
+    BNB_HSN_c0_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 164
+      Discr3WindowStart : 186
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 1.0
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 210
+      TriggerWindowSize : 160
+      TriggerWindowStart : 190
+      Verbosity : 3
+    }
 }
 
 microboone_swtrigger_mc_ext:
@@ -168,10 +245,10 @@ microboone_swtrigger_mc_ext:
     MinReadoutTicks:  1499
 
     drop_event : true
-    swtrg_algonames : ["EXT_BNBwin"]
-    swtrg_algotype : ["FEMBeamTriggerAlgo"]
+    swtrg_algonames : ["EXT_BNBwin","EXT_BNBwin_2017Dec_SWTrigger5PE"]
+    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo"]
     swtrg_beam_window_size : 1100
-    swtrg_bits : [0x200]
+    swtrg_bits : [0x800,0x800]
     EXT_BNBwin_FEMBeamTriggerAlgo:{
       Discr0deadtime : 6
       Discr0delay : 4
@@ -187,6 +264,25 @@ microboone_swtrigger_mc_ext:
       PrescaleFactor : 1.0
       TriggerThresMult : 1
       TriggerThresPHMAX : 130
+      TriggerWindowSize : 120
+      TriggerWindowStart : 190
+      Verbosity : 3
+    }
+    EXT_BNBwin_2017Dec_SWTrigger5PE_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 124
+      Discr3WindowStart : 186
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 1.0
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 100
       TriggerWindowSize : 120
       TriggerWindowStart : 190
       Verbosity : 3
