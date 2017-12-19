@@ -162,4 +162,14 @@ microboone_tpcneutrinoidana:
     FullyQualifiedInputFile:      "/pnfs/uboone/data/uboone/some/path/to/recon/file/recon.root"
 }
 
+microboone_lowlevelnuefilter:
+{
+    module_type:                  "LowLevelNueFilter"
+    OpFlash_tag:                  "simpleFlashBeam"
+    MCtruth_tag:                  "generator"
+    Cluster_tag:                  "trajcluster"
+    Vertex_tag:                   "pandoraNu"
+    PFParticle_tag:               "trajcluster"
+}
+
 END_PROLOG

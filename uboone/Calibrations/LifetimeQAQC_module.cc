@@ -18,7 +18,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larsim/MCCheater/BackTracker.h"
+//#include "larsim/MCCheater/BackTracker.h" //I find no use of the backtracker in this module. Removing include
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
@@ -614,7 +614,7 @@ void LifetimeQAQC::analyze( const art::Event& evt ){
         dir_end   = track.EndDirection();
         end	 = track.End();
         tlen	 = length(track);
-	if(track.NumberFitMomentum() > 0)
+	if(track.NumberTrajectoryPoints() > 0)
      	     mom = track.VertexMomentum();
 	trklen[i] = tlen;
 

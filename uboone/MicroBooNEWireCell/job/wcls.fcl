@@ -1,0 +1,60 @@
+BEGIN_PROLOG
+wcls: {
+   producers : {
+
+      # This configures for WCT noise filter and signal processing
+      nfsp : {
+	 module_type : WireCellToolkit
+	 wcls_main: {
+	    # Configure Wire Cell / Larsoft integration layer
+	    tool_type: WCLS
+	    # The "apps" are the main executing components on the WCT side
+	    apps: ["Omnibus"]
+	    # Plugins are libraries of WCT components
+	    plugins: ["WireCellGen", "WireCellSigProc", "WireCellSio", "WireCellLarsoft"]
+	    # The top-level WCT configuration sequence.
+	    # it probably get's overridden in whatever includes this chunk.
+	    configs: ["ubnfsp.json.bz2"]
+	    # Two-faced input components.  Needs to also be mentioned in WCT config.
+	    #inputers: ["wclsRawFrameSource"]
+	    inputers: ["wclsRawFrameSource", "wclsChannelNoiseDB"]
+	    # Two-faced output components.  Needs to also be mentioned in WCT config.
+	    outputers: ["wclsFrameSaver:nfsaver", "wclsFrameSaver:nfrsaver", "wclsFrameSaver:spsaver"]
+	    # external parameters injected into the WCT configuration
+	    params: { }
+	 }
+      } # nfsp
+
+      # This rewrites existing raw::RawDigit and recob::Wire
+      # collections in order to truncate and scale them.  This is not
+      # WCT related but happens to run generic art modules currently
+      # living in larwirecell.  The intention is to satisfy
+      # assumptions made by legacy code.
+      butcher : {
+         module_type : "EventButcher"
+
+         inRawTag: "nfsp:raw:"
+         inSigTag: "nfsp:gauss:"
+
+	 # apparently downstream code is too brittle to handle giving
+         # any instance names.
+
+	 outRawTag: ""
+	 outSigTag: ""
+	 outAssnTag: ""
+
+	 # throw away perfectly cromulent data.  very dubious but
+         # that's what people want.
+
+         ndrop: 2400
+         nkeep: 6400
+
+	 # match some arbitrary and inaplicable "ADC" charge scale
+         # instead of number of ionized electrons.
+
+         sigscale: 0.005
+      }
+   }
+}
+END_PROLOG
+
