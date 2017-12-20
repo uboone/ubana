@@ -34,7 +34,6 @@
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-//#include "lardata/RecoObjects/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
@@ -159,6 +158,11 @@ private:
     Int_t    event;
     Int_t    reco_events;
     Int_t    true_events;
+    Int_t    candidate_k; 
+    Int_t    pri_mu_id;
+    Int_t    pri_k_id;
+    Int_t    dec_mu_id;
+    Int_t    break_value;
     
     std::string fDigitModuleLabel;
     std::string fHitsModuleLabel;
@@ -199,14 +203,55 @@ private:
     TH1F *true_k_dedx_ratio;
     TH1F *reco_mu_dedx_ratio;
     TH1F *true_mu_dedx_ratio;
-    TH1F *reco_k_bplane;
-    TH1F *reco_mu_bplane;
     TH1F *reco_de_dx_median_gradient;
     TH1F *true_de_dx_median_gradient;
     TH1F *reco_k_median_dedx_ratio;
     TH1F *true_k_median_dedx_ratio;
     TH1F *reco_mu_median_dedx_ratio;
     TH1F *true_mu_median_dedx_ratio;
+    TH1F *reco_k_mean_first_dedx;
+    TH1F *true_k_mean_first_dedx;
+    TH1F *reco_k_mean_last_dedx;
+    TH1F *true_k_mean_last_dedx;
+    TH1F *reco_mu_mean_first_dedx;
+    TH1F *true_mu_mean_first_dedx;
+    TH1F *reco_mu_mean_last_dedx;
+    TH1F *true_mu_mean_last_dedx;
+    TH1F *reco_k_median_first_dedx;
+    TH1F *true_k_median_first_dedx;
+    TH1F *reco_k_median_last_dedx;
+    TH1F *true_k_median_last_dedx;
+    TH1F *reco_mu_median_first_dedx;
+    TH1F *true_mu_median_first_dedx;
+    TH1F *reco_mu_median_last_dedx;
+    TH1F *true_mu_median_last_dedx;
+    TH1F *reco_k_mean_len_ratio;
+    TH1F *true_k_mean_len_ratio;
+    TH1F *reco_mu_mean_len_ratio;
+    TH1F *true_mu_mean_len_ratio;
+    TH1F *reco_k_median_len_ratio;
+    TH1F *true_k_median_len_ratio;
+    TH1F *reco_mu_median_len_ratio;
+    TH1F *true_mu_median_len_ratio;
+    TH1F *reco_all_trk_median_dedx;
+    TH1F *true_all_trk_median_dedx;
+    TH1F *reco_all_trmu_median_dedx;
+    TH1F *true_all_trmu_median_dedx;
+    TH1F *k_best_plane_hist;
+    TH1F *mu_best_plane_hist;
+    
+    ////////////// Test ///////////
+    TH1F *event_k_pida;
+    TH1F *event_mu_pida;
+    TH1F *event_k_trklen;
+    TH1F *event_mu_trklen;
+    TH1F *event_de_dx_median_gradient;
+    TH1F *event_de_dx_mean_gradient;
+    TH1F *event_k_mu_open_angle_cosine;
+    TH1F *event_mu_mom_range;
+    TH2F *event_kaon_cont_plane_best_res_range_dEdX_hist;
+    //////////// End test ////////
+    
  }; 
 
 //========================================================================
@@ -314,12 +359,6 @@ void Kplane2::beginJob(){
   true_mu_dedx_ratio = tfs->make<TH1F>("true_mu_dedx_ratio","",50,0,50);
   true_mu_dedx_ratio->GetXaxis()->SetTitle("dE/dx ratio");
   
-  reco_k_bplane = tfs->make<TH1F>("reco_k_bplane","",3,0,3);
-  reco_k_bplane->GetXaxis()->SetTitle("Best Plane");
-  
-  reco_mu_bplane = tfs->make<TH1F>("reco_mu_bplane","",3,0,3);
-  reco_mu_bplane->GetXaxis()->SetTitle("Best Plane");
-  
   reco_de_dx_median_gradient = tfs->make<TH1F>("reco_de_dx_median_gradient","",500,-100,1000);
   reco_de_dx_median_gradient->GetXaxis()->SetTitle("Median energy gradient (MeV)");
   
@@ -338,12 +377,139 @@ void Kplane2::beginJob(){
   true_mu_median_dedx_ratio = tfs->make<TH1F>("true_mu_median_dedx_ratio","",50,0,50);
   true_mu_median_dedx_ratio->GetXaxis()->SetTitle("Median dE/dx ratio");
   
+  reco_k_mean_first_dedx = tfs->make<TH1F>("reco_k_mean_first_dedx","",100,0,200);
+  reco_k_mean_first_dedx->GetXaxis()->SetTitle("First dEdx average(MeV/cm)");
+  
+  true_k_mean_first_dedx = tfs->make<TH1F>("true_k_mean_first_dedx","",100,0,200);
+  true_k_mean_first_dedx->GetXaxis()->SetTitle("First dE/dx average(MeV/cm)");
+  
+  reco_k_mean_last_dedx = tfs->make<TH1F>("reco_k_mean_last_dedx","",100,0,200);
+  reco_k_mean_last_dedx->GetXaxis()->SetTitle("Last dE/dx average(MeV/cm)");
+  
+  true_k_mean_last_dedx = tfs->make<TH1F>("true_k_mean_last_dedx","",100,0,200);
+  true_k_mean_last_dedx->GetXaxis()->SetTitle("Last dE/dx average(MeV/cm)");
+  
+  reco_mu_mean_first_dedx = tfs->make<TH1F>("reco_mu_mean_first_dedx","",100,0,200);
+  reco_mu_mean_first_dedx->GetXaxis()->SetTitle("First dE/dx average(MeV/cm)");
+  
+  true_mu_mean_first_dedx = tfs->make<TH1F>("true_mu_mean_first_dedx","",100,0,200);
+  true_mu_mean_first_dedx->GetXaxis()->SetTitle("First dEdx average(cm)");
+  
+  reco_mu_mean_last_dedx = tfs->make<TH1F>("reco_mu_mean_last_dedx","",100,0,200);
+  reco_mu_mean_last_dedx->GetXaxis()->SetTitle("Last dE/dx average(MeV/cm)");
+  
+  true_mu_mean_last_dedx = tfs->make<TH1F>("true_mu_mean_last_dedx","",100,0,200);
+  true_mu_mean_last_dedx->GetXaxis()->SetTitle("Last dE/dx average(MeV/cm)");
+  
+  reco_k_median_first_dedx = tfs->make<TH1F>("reco_k_median_first_dedx","",100,0,200);
+  reco_k_median_first_dedx->GetXaxis()->SetTitle("First dE/dx median(MeV/cm)");
+  
+  true_k_median_first_dedx = tfs->make<TH1F>("true_k_median_first_dedx","",100,0,200);
+  true_k_median_first_dedx->GetXaxis()->SetTitle("First dE/dx median(MeV/cm)");
+  
+  reco_k_median_last_dedx = tfs->make<TH1F>("reco_k_median_last_dedx","",100,0,200);
+  reco_k_median_last_dedx->GetXaxis()->SetTitle("Last dE/dx median(MeV/cm)");
+  
+  true_k_median_last_dedx = tfs->make<TH1F>("true_k_median_last_dedx","",100,0,200);
+  true_k_median_last_dedx->GetXaxis()->SetTitle("Last dE/dx median(MeV/cm)");
+  
+  reco_mu_median_first_dedx = tfs->make<TH1F>("reco_mu_median_first_dedx","",100,0,200);
+  reco_mu_median_first_dedx->GetXaxis()->SetTitle("First dE/dx median(MeV/cm)");
+  
+  true_mu_median_first_dedx = tfs->make<TH1F>("true_mu_median_first_dedx","",100,0,200);
+  true_mu_median_first_dedx->GetXaxis()->SetTitle("First dE/dx median(MeV/cm)");
+  
+  reco_mu_median_last_dedx = tfs->make<TH1F>("reco_mu_median_last_dedx","",100,0,200);
+  reco_mu_median_last_dedx->GetXaxis()->SetTitle("Last dE/dx median(MeV/cm)");
+  
+  true_mu_median_last_dedx = tfs->make<TH1F>("true_mu_median_last_dedx","",100,0,200);
+  true_mu_median_last_dedx->GetXaxis()->SetTitle("Last dE/dx median(MeV/cm)");
+  
+  reco_k_mean_len_ratio = tfs->make<TH1F>("reco_k_mean_len_ratio","",100,-20,100);
+  reco_k_mean_len_ratio->GetXaxis()->SetTitle("Mean dE/dx/traklength");
+  
+  true_k_mean_len_ratio = tfs->make<TH1F>("true_k_mean_len_ratio","",100,-20,100);
+  true_k_mean_len_ratio->GetXaxis()->SetTitle("Mean dE/dx/traklength");
+  
+  reco_mu_mean_len_ratio = tfs->make<TH1F>("reco_mu_mean_len_ratio","",100,-20,100);
+  reco_mu_mean_len_ratio->GetXaxis()->SetTitle("Mean dE/dx/traklength");
+  
+  true_mu_mean_len_ratio = tfs->make<TH1F>("true_mu_mean_len_ratio","",100,-20,100);
+  true_mu_mean_len_ratio->GetXaxis()->SetTitle("Mean dE/dx/traklength");
+  
+  reco_k_median_len_ratio = tfs->make<TH1F>("reco_k_median_len_ratio","",100,-20,100);
+  reco_k_median_len_ratio->GetXaxis()->SetTitle("Median dE/dx/traklength");
+  
+  true_k_median_len_ratio = tfs->make<TH1F>("true_k_median_len_ratio","",100,-20,100);
+  true_k_median_len_ratio->GetXaxis()->SetTitle("Median dE/dx/traklength");
+  
+  reco_mu_median_len_ratio = tfs->make<TH1F>("reco_mu_median_len_ratio","",100,-20,100);
+  reco_mu_median_len_ratio->GetXaxis()->SetTitle("Median dE/dx/traklength");
+  
+  true_mu_median_len_ratio = tfs->make<TH1F>("true_mu_median_len_ratio","",100,-20,100);
+  true_mu_median_len_ratio->GetXaxis()->SetTitle("Median dE/dx/traklength");
+  
+  reco_all_trk_median_dedx = tfs->make<TH1F>("reco_all_trk_median_dedx","",100,0,200);
+  reco_all_trk_median_dedx->GetXaxis()->SetTitle("Median dE/dx");
+  
+  true_all_trk_median_dedx = tfs->make<TH1F>("true_all_trk_median_dedx","",100,0,200);
+  true_all_trk_median_dedx->GetXaxis()->SetTitle("Median dE/dx");
+  
+  reco_all_trmu_median_dedx = tfs->make<TH1F>("reco_all_trmu_median_dedx","",100,0,200);
+  reco_all_trmu_median_dedx->GetXaxis()->SetTitle("Median dE/dx");
+  
+  true_all_trmu_median_dedx = tfs->make<TH1F>("true_all_trmu_median_dedx","",100,0,200);
+  true_all_trmu_median_dedx->GetXaxis()->SetTitle("Median dE/dx");
+  
+  k_best_plane_hist = tfs->make<TH1F>("k_best_plane_hist","",4,0,4);
+  k_best_plane_hist->GetXaxis()->SetTitle("Kaon best plane");
+  
+  mu_best_plane_hist = tfs->make<TH1F>("mu_best_plane_hist","",4,0,4);
+  mu_best_plane_hist->GetXaxis()->SetTitle("Muon best plane");
+  
+  /////////////// Test ////////////////
+  
+  event_k_pida = tfs->make<TH1F>("event_k_pida","",50,0,100);
+  event_k_pida->GetXaxis()->SetTitle("PIDA");
+  
+  event_mu_pida = tfs->make<TH1F>("event_mu_pida","",50,0,100);
+  event_mu_pida->GetXaxis()->SetTitle("PIDA");
+  
+  event_k_trklen = tfs->make<TH1F>("event_k_trklen","",100,0,1000);
+  event_k_trklen->GetXaxis()->SetTitle("Track length (cm)");
+  
+  event_mu_trklen = tfs->make<TH1F>("event_mu_trklen","",100,0,1000);
+  event_mu_trklen->GetXaxis()->SetTitle("Track length (cm)");
+  
+  event_de_dx_median_gradient = tfs->make<TH1F>("event_de_dx_median_gradient","",500,-100,1000);
+  event_de_dx_median_gradient->GetXaxis()->SetTitle("Median energy gradient (MeV)");
+  
+  event_de_dx_mean_gradient = tfs->make<TH1F>("event_de_dx_mean_gradient","",500,-100,1000);
+  event_de_dx_mean_gradient->GetXaxis()->SetTitle("Mean energy gradient (MeV)");
+  
+  event_k_mu_open_angle_cosine = tfs->make<TH1F>("event_k_mu_open_angle_cosine","",50,-1,1);
+  event_k_mu_open_angle_cosine->GetXaxis()->SetTitle("Cosine of open angle");
+  
+  event_mu_mom_range = tfs->make<TH1F>("event_mu_mom_range","",100,0,1000);
+  event_mu_mom_range->GetXaxis()->SetTitle("Transverse momentum (GeV/c)");
+  
+  event_kaon_cont_plane_best_res_range_dEdX_hist = tfs->make<TH2F>("event_kaon_cont_plane_best_res_range_dEdX_hist","",200,0,100,200,0,50);
+  event_kaon_cont_plane_best_res_range_dEdX_hist->GetXaxis()->SetTitle("Residual range R(cm)");
+  event_kaon_cont_plane_best_res_range_dEdX_hist->GetYaxis()->SetTitle("dE/dx (MeV/cm)");
+  
+  ////////////// End of test /////////
+  
   fEventTree = tfs->make<TTree>("Event", "Event Tree from Reco");
   fEventTree->Branch("event", &event);
   fEventTree->Branch("run", &run);
   fEventTree->Branch("subrun", &subrun);
+  fEventTree->Branch("pri_mu_id",&pri_mu_id);
+  fEventTree->Branch("pri_k_id",&pri_k_id);
+  fEventTree->Branch("dec_mu_id",&dec_mu_id);
   fEventTree->Branch("reco_events",&reco_events,"reco_events/I");
   fEventTree->Branch("true_events",&true_events,"true_events/I");
+  fEventTree->Branch("candidate_k",&candidate_k,"candidate_k/I");
+  fEventTree->Branch("break_value",&break_value,"break_value/I");
 }
 
 //========================================================================
@@ -366,14 +532,14 @@ void Kplane2::analyze( const art::Event& evt){
   if (isMC){
      if (evt.getByLabel(fGenieGenModuleLabel,mctruthListHandle))
         art::fill_ptr_vector(mclist, mctruthListHandle);
-  }  
+  } 
   
   art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
   if (fSaveTrackInfo){
     if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
        art::fill_ptr_vector(tracklist, trackListHandle);
-  } 
+  }
   
   art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
@@ -385,6 +551,7 @@ void Kplane2::analyze( const art::Event& evt){
   if (fSaveClusterInfo){
       if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
       art::fill_ptr_vector(clusterlist,clusterListHandle);
+
   } 
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
@@ -395,13 +562,15 @@ void Kplane2::analyze( const art::Event& evt){
     art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
   } 
   
-  
   art::Handle< std::vector<recob::Vertex> > vertexListHandle;
   std::vector<art::Ptr<recob::Vertex> > vertexlist;
   if (fSaveVertexInfo){
       if (evt.getByLabel(fVertexModuleLabel,vertexListHandle))
       art::fill_ptr_vector(vertexlist,vertexListHandle);
   }
+  
+  art::FindMany<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
+  art::FindManyP<recob::Hit> fmht(trackListHandle,evt,fTrackModuleLabel);
   
   run = evt.run();
   subrun = evt.subRun();
@@ -417,10 +586,11 @@ void Kplane2::analyze( const art::Event& evt){
   
   size_t n_reco_evt=0;
   size_t n_true_evt=0;
+  size_t n_candidates=0;
   int break_indicator=0;
   
   if (!isdata){
-     if (fSaveVertexInfo){
+     if (fSaveTrackInfo){
          size_t NTracks = tracklist.size(); 
 	 trkf::TrackMomentumCalculator trkm;
 	 if(NTracks >=3){
@@ -433,14 +603,13 @@ void Kplane2::analyze( const art::Event& evt){
      	         dir_start = track.VertexDirection();
      	         dir_end   = track.EndDirection();
      	         end = track.End();
-	         mup_tlen = length(track);
+	         mup_tlen = track.Length();
+		 int plane_2_primu=0;
+	         int plane_1_primu=0;
+	         int plane_0_primu=0;
 		 if (mup_tlen >= 60){
-		     art::FindMany<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
 		     if (fmcal.isValid()){
 		         std::vector<const anab::Calorimetry*> calos = fmcal.at(i);
-			 int plane_2_primu=0;
-			 int plane_1_primu=0;
-			 int plane_0_primu=0;
 			 for (size_t ical = 0; ical<calos.size(); ++ical){
 			      if (!calos[ical]) continue;
 			      if (!calos[ical]->PlaneID().isValid) continue;
@@ -449,7 +618,8 @@ void Kplane2::analyze( const art::Event& evt){
 			      if (planenum == 2) plane_2_primu = int(calos[ical] -> dEdx().size());
 			      if (planenum == 1) plane_1_primu = int(calos[ical] -> dEdx().size());
 			      if (planenum == 0) plane_0_primu = int(calos[ical] -> dEdx().size());
-			 }     
+			 }
+		      }	      
 			      if(plane_2_primu>=10 || plane_1_primu>=10 || plane_0_primu>=10){
 			         float p_mu_st_x=pos.X();
 			         float p_mu_st_y=pos.Y();
@@ -468,8 +638,8 @@ void Kplane2::analyze( const art::Event& evt){
      	                             dir_start = track.VertexDirection();
      	                             dir_end   = track.EndDirection();
      	                             end = track.End();
-	                             k_tlen = length(track);
-				     if (k_tlen >10){
+	                             k_tlen = track.Length();
+				     if (k_tlen >=10){
 				         std::vector<const anab::Calorimetry*> calos = fmcal.at(i_1);
 					 int k_plane_2=0;
 					 int k_plane_1=0;
@@ -496,7 +666,7 @@ void Kplane2::analyze( const art::Event& evt){
 				                      double st_k_en_p_mu = TMath::Sqrt((p_k_st_x-p_mu_en_x)*(p_k_st_x-p_mu_en_x) + (p_k_st_y-p_mu_en_y)*(p_k_st_y-p_mu_en_y) + (p_k_st_z-p_mu_en_z)*(p_k_st_z-p_mu_en_z));
 				                      double en_k_st_p_mu = TMath::Sqrt((p_k_en_x-p_mu_st_x)*(p_k_en_x-p_mu_st_x) + (p_k_en_y-p_mu_st_y)*(p_k_en_y-p_mu_st_y) + (p_k_en_z-p_mu_st_z)*(p_k_en_z-p_mu_st_z));
 				                      double en_k_en_p_mu = TMath::Sqrt((p_k_en_x-p_mu_en_x)*(p_k_en_x-p_mu_en_x) + (p_k_en_y-p_mu_en_y)*(p_k_en_y-p_mu_en_y) + (p_k_en_z-p_mu_en_z)*(p_k_en_z-p_mu_en_z));
-						      if(st_k_st_p_mu < 5 || st_k_en_p_mu < 5 || en_k_st_p_mu < 5 || en_k_en_p_mu < 5){
+						      if(st_k_st_p_mu < 10 || st_k_en_p_mu < 10 || en_k_st_p_mu < 10 || en_k_en_p_mu < 10){
 						         vector<double>dis_pri_mu_k_vec;
 						         dis_pri_mu_k_vec.push_back(st_k_st_p_mu);
 				                         dis_pri_mu_k_vec.push_back(st_k_en_p_mu);
@@ -522,12 +692,13 @@ void Kplane2::analyze( const art::Event& evt){
      	                                                        dir_start = track.VertexDirection();
      	                                                        dir_end   = track.EndDirection();
      	                                                        end = track.End();
-	                                                        mud_tlen = length(track);
-								if (mud_tlen >= 40){ // mud_tlen >= 50 && mud_tlen <= 60
+	                                                        mud_tlen = track.Length();
+								if (mud_tlen>50 && mud_tlen<60){ // mud_tlen>50 && mud_tlen<60
 								    calos = fmcal.at(i_2);
 								    int dmu_plane_2=0;
 								    int dmu_plane_1=0;
 								    int dmu_plane_0=0;
+								    std::vector<const anab::Calorimetry*> calos = fmcal.at(i_2);
 								    for (size_t ical = 0; ical<calos.size(); ++ical){
 								         if (!calos[ical]) continue;
 			                                                 if (!calos[ical]->PlaneID().isValid) continue;
@@ -554,12 +725,12 @@ void Kplane2::analyze( const art::Event& evt){
 										////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 										 
 										 if((pri_mu_pri_k_index==0) || (pri_mu_pri_k_index==1)){
-										     if(en_k_st_d_mu < 5 || en_k_en_d_mu < 5){
+										     if(en_k_st_d_mu < 10 || en_k_en_d_mu < 10){
 										     
 										        //////////////////////////////////////////// Acccessing calorimetry inormation for Kaons //////////////
 											
 											int k_best_planenum=-1;
-											calos = fmcal.at(prim_kaon_index);
+											/*std::vector<const anab::Calorimetry*>*/ calos = fmcal.at(prim_kaon_index); // here
 			                                                                int k_plane_0_hits=-1;int k_plane_1_hits=-1;int k_plane_2_hits=-1;
 							                                for (size_t ical = 0; ical<calos.size(); ++ical){
 							                                     if(!calos[ical]) continue;
@@ -587,6 +758,7 @@ void Kplane2::analyze( const art::Event& evt){
 											int lastk_nhits=0;
 											vector<float>dedx_firstk_vec;
 											vector<float>dedx_lastk_vec; 
+											vector<float>dedx_allk_vec;
 											for (size_t ical = 0; ical<calos.size(); ++ical){
 											     if(!calos[ical]) continue;
 			                                                                     if(!calos[ical]->PlaneID().isValid) continue;
@@ -596,6 +768,7 @@ void Kplane2::analyze( const art::Event& evt){
 											         const size_t NHits = calos[ical] -> dEdx().size();
 												 for(size_t iHit = 0; iHit < NHits; ++iHit){
 												     if((calos[ical]->dEdx())[iHit]>100) continue;
+												     dedx_allk_vec.push_back((calos[ical]->dEdx())[iHit]);
 												     if((calos[ical]->ResidualRange())[iHit] < 3){
 												         dedxk_first_sum=dedxk_first_sum+(calos[ical]->dEdx())[iHit];
 													 firstk_nhits++;
@@ -616,6 +789,7 @@ void Kplane2::analyze( const art::Event& evt){
 											 if(lastk_nhits!=0) lastk_dedx_av=float(dedxk_last_sum)/lastk_nhits;
 											 std::sort(dedx_firstk_vec.begin(),dedx_firstk_vec.end());
 	                                                                                 std::sort(dedx_lastk_vec.begin(),dedx_lastk_vec.end());
+											 std::sort(dedx_allk_vec.begin(),dedx_allk_vec.end());
 											 float med_firstk=0;
 											 if(dedx_firstk_vec.size()){
 	                                                                                    if(dedx_firstk_vec.size()%2==1){
@@ -634,6 +808,15 @@ void Kplane2::analyze( const art::Event& evt){
 	                                                                                       med_lastk=float(dedx_lastk_vec[dedx_lastk_vec.size()/2] + dedx_lastk_vec[(dedx_lastk_vec.size()/2)-1])/2;
 	                                                                                    }
 	                                                                                  }
+											  float med_allk=0;
+											  if(dedx_allk_vec.size()){
+											     if(dedx_allk_vec.size()%2==1){
+											        med_allk=dedx_allk_vec[(dedx_allk_vec.size()-1)/2];
+											     }
+											     if(dedx_allk_vec.size()%2==0){
+											        med_allk=float(dedx_allk_vec[dedx_allk_vec.size()/2] + dedx_allk_vec[(dedx_allk_vec.size()/2)-1])/2;
+											     }
+											  }
 											 /////////////// If you want min max inforamtions insert here /////////////
 											 float k_pida=0;
 											 float k_pida_sum=0;
@@ -691,6 +874,7 @@ void Kplane2::analyze( const art::Event& evt){
 											int lastmu_nhits=0;
 											vector<float>dedx_firstmu_vec;
 											vector<float>dedx_lastmu_vec; 
+											vector<float>dedx_allmu_vec;
 											for (size_t ical = 0; ical<calos.size(); ++ical){
 											     if(!calos[ical]) continue;
 			                                                                     if(!calos[ical]->PlaneID().isValid) continue;
@@ -700,6 +884,7 @@ void Kplane2::analyze( const art::Event& evt){
 											         const size_t NHits = calos[ical] -> dEdx().size();
 												 for(size_t iHit = 0; iHit < NHits; ++iHit){
 												     if((calos[ical]->dEdx())[iHit]>100) continue;
+												     dedx_allmu_vec.push_back((calos[ical]->dEdx())[iHit]);
 												     if((calos[ical]->ResidualRange())[iHit] < 3){
 												         dedxmu_first_sum=dedxmu_first_sum+(calos[ical]->dEdx())[iHit];
 													 firstmu_nhits++;
@@ -720,6 +905,7 @@ void Kplane2::analyze( const art::Event& evt){
 											 if(lastmu_nhits!=0) lastmu_dedx_av=float(dedxmu_last_sum)/lastmu_nhits;
 											 std::sort(dedx_firstmu_vec.begin(),dedx_firstmu_vec.end());
 	                                                                                 std::sort(dedx_lastmu_vec.begin(),dedx_lastmu_vec.end());
+											 std::sort(dedx_allmu_vec.begin(),dedx_allmu_vec.end());
 											 float med_firstmu=0;
 											 if(dedx_firstmu_vec.size()){
 	                                                                                    if(dedx_firstmu_vec.size()%2==1){
@@ -738,6 +924,15 @@ void Kplane2::analyze( const art::Event& evt){
 	                                                                                       med_lastmu=float(dedx_lastmu_vec[dedx_lastmu_vec.size()/2] + dedx_lastmu_vec[(dedx_lastmu_vec.size()/2)-1])/2;
 	                                                                                    }
 	                                                                                  }
+											  float med_allmu=0;
+											  if(dedx_allmu_vec.size()){
+											     if(dedx_allmu_vec.size()%2==1){
+											        med_allmu=dedx_allmu_vec[(dedx_allmu_vec.size()-1)/2];
+											     }
+											     if(dedx_allmu_vec.size()%2==0){
+											        med_allmu=float(dedx_allmu_vec[dedx_allmu_vec.size()/2] + dedx_allmu_vec[(dedx_allmu_vec.size()/2)-1])/2;
+											     }
+											  }
 											 /////////////// If you want min max inforamtions insert here /////////////
 											 float mu_pida=0;
 											 float mu_pida_sum=0;
@@ -805,16 +1000,21 @@ void Kplane2::analyze( const art::Event& evt){
 											float av_common_open_angle = TMath::ACos(av_common_k_cos_alpha*av_common_mu_cos_alpha + av_common_k_cos_beta*av_common_mu_cos_beta +av_common_k_cos_gamma*av_common_mu_cos_gamma);
 											n_reco_evt++;
 											
-											//if(firstk_dedx_av-lastmu_dedx_av > 5){ ///////////////////// K/Mu Energy gradient cut here *****************
+											if(med_firstk-med_lastmu>=5){ ///////////////////// K/Mu Energy gradient cut here *****************
 											
-											  //if(TMath::Cos(av_common_open_angle) < 0.8 && TMath::Cos(av_common_open_angle) >=-0.6){ ///////////// K/Mu open angle cut *******************
+											  if(TMath::Cos(av_common_open_angle) <= 0.9 && TMath::Cos(av_common_open_angle) >=-0.9){ ///////////// K/Mu open angle cut *******************
 											     float mu_mom= (trkm.GetTrackMomentum(mud_tlen,13))*1000;
-											     //if(k_pida > 12 && k_pida < 16){ // K PIDA cut ***********
-												//if(mu_pida < 10){ // Mu PIDA cut *********
+											     if(k_pida > 10 && k_pida < 20){ // K PIDA cut *********** // k_pida > 10 && k_pida < 20
+												//if(med_allk >=2 && med_allk <=10){ // K all med dE/dx
+												if(mu_pida < 10){ // Mu PIDA cut *********
+												//if(med_allmu >=2 && med_allmu <=4){ // Mu all med dE/dx
 												  //if(mu_mom*TMath::Sin(av_common_open_angle) < 200 && mu_mom*TMath::Sin(av_common_open_angle)> 150){ //// Mu mom cut ********
-											               //if(break_indicator==0){
-											                  break_indicator++;
-											                  calos = fmcal.at(prim_kaon_index);
+											              if(break_indicator==0){
+											                  pri_mu_id = prim_mu_index;
+													  pri_k_id = prim_kaon_index;
+													  dec_mu_id = dec_mu_index;
+													  break_indicator++;
+											                  /*std::vector<const anab::Calorimetry*>*/ calos = fmcal.at(prim_kaon_index); /// *** here
 											                  for (size_t ical = 0; ical<calos.size(); ++ical){
 											                       if (!calos[ical]) continue;
 			                                                                                       if (!calos[ical]->PlaneID().isValid) continue;
@@ -852,8 +1052,22 @@ void Kplane2::analyze( const art::Event& evt){
 											                   }
 											                   reco_k_pida->Fill(k_pida);
 											                   reco_mu_pida->Fill(mu_pida);
-													   reco_k_bplane->Fill(k_best_planenum);
-											                   reco_mu_bplane->Fill(mu_best_planenum);
+													   reco_k_mean_first_dedx->Fill(firstk_dedx_av);
+													   reco_k_mean_last_dedx->Fill(lastk_dedx_av);
+													   reco_mu_mean_first_dedx->Fill(firstmu_dedx_av);
+													   reco_mu_mean_last_dedx->Fill(lastmu_dedx_av);
+													   reco_k_median_first_dedx->Fill(med_firstk);
+													   reco_k_median_last_dedx->Fill(med_lastk);
+													   reco_mu_median_first_dedx->Fill(med_firstmu);
+													   reco_mu_median_last_dedx->Fill(med_lastmu);
+													   reco_k_mean_len_ratio->Fill((float(firstk_dedx_av-lastk_dedx_av))/k_tlen);
+													   reco_mu_mean_len_ratio->Fill((float(firstmu_dedx_av-lastmu_dedx_av))/mud_tlen);
+													   reco_k_median_len_ratio->Fill((float(med_firstk-med_lastk))/k_tlen);
+													   reco_mu_median_len_ratio->Fill((float(med_firstmu-med_lastmu))/mud_tlen);
+													   reco_all_trk_median_dedx->Fill(med_allk);
+													   reco_all_trmu_median_dedx->Fill(med_allmu);
+													   k_best_plane_hist->Fill(k_best_planenum);
+													   mu_best_plane_hist->Fill(mu_best_planenum);
 											////////////////////////////////// End of k mu angle //////////////////////////////
 											
 											sim::ParticleList const& plist = pi_serv->ParticleList();
@@ -872,8 +1086,35 @@ void Kplane2::analyze( const art::Event& evt){
 											            for(size_t jPart = 0; (jPart < plist.size()) && (jtPart != send); ++jPart){
 												    const simb::MCParticle* sPart = (jtPart++)->second;
 												    if ((sPart->Process()=="Decay") && (sPart->Mother()==trk_id) &&(std::abs(sPart->Vx()-end_x)<0.01) && (std::abs(sPart->Vy()-end_y)<0.01) && (std::abs(sPart->Vz()-end_z)<0.01)){
-												         if (sPart->PdgCode() == -13){
-													      art::FindManyP<recob::Hit> fmht(trackListHandle,evt,fTrackModuleLabel);
+												         if (sPart->PdgCode() == -13 || sPart->PdgCode() == 211){
+													      
+													      ///////////////////// Test ///////////////
+													      
+													      event_k_pida->Fill(k_pida);
+													      event_mu_pida->Fill(mu_pida);
+													      event_k_trklen->Fill(k_tlen);
+													      event_mu_trklen->Fill(mud_tlen);
+													      event_de_dx_median_gradient->Fill(med_firstk-med_lastmu);
+													      event_de_dx_mean_gradient->Fill(firstk_dedx_av-lastmu_dedx_av);
+													      event_k_mu_open_angle_cosine->Fill(TMath::Cos(av_common_open_angle));
+													      event_mu_mom_range->Fill(mu_mom*TMath::Sin(av_common_open_angle));
+													      std::vector<const anab::Calorimetry*> calos = fmcal.at(prim_kaon_index);
+											                      for(size_t ical = 0; ical<calos.size(); ++ical){
+											                          if(!calos[ical]) continue;
+			                                                                                          if(!calos[ical]->PlaneID().isValid) continue;
+			                                                                                          int planenum = calos[ical]->PlaneID().Plane;
+			                                                                                          if(planenum<0||planenum>2) continue;
+											                          if(planenum==k_best_planenum){
+											                              const size_t NHits = calos[ical] -> dEdx().size();
+											                              for(size_t iHit = 0; iHit < NHits; ++iHit){
+													                  event_kaon_cont_plane_best_res_range_dEdX_hist->Fill((calos[ical]->ResidualRange())[iHit],(calos[ical]->dEdx())[iHit]);
+												                      }
+												                   }
+											                       }
+													      
+													      //////////////////// End test ////////////
+													      
+													      n_candidates++;
 													      std::vector< art::Ptr<recob::Hit> > allKHits = fmht.at(prim_kaon_index);
 													      std::vector< art::Ptr<recob::Hit> > allMuHits = fmht.at(dec_mu_index);
 													      std::map<int,double> trk_k_ide;
@@ -913,8 +1154,12 @@ void Kplane2::analyze( const art::Event& evt){
 														     }
 														  }
 													          if(Track_k_id==int(pPart->TrackId()) && Track_mu_id==int(sPart->TrackId())){
+														     std::cout << "K id : " << Track_k_id << "  " << int(pPart->TrackId()) << std::endl;
+														     std::cout << "Mu id : " << Track_mu_id << "  " << int(sPart->TrackId()) << std::endl;
+														     
+														     
 														     n_true_evt++;
-														     calos = fmcal.at(prim_kaon_index);
+														     std::vector<const anab::Calorimetry*> calos = fmcal.at(prim_kaon_index);
 											                             for(size_t ical = 0; ical<calos.size(); ++ical){
 											                                 if(!calos[ical]) continue;
 			                                                                                                 if(!calos[ical]->PlaneID().isValid) continue;
@@ -953,6 +1198,20 @@ void Kplane2::analyze( const art::Event& evt){
 											                             }
 														     true_k_pida->Fill(k_pida);
 														     true_mu_pida->Fill(mu_pida);
+														     true_k_mean_first_dedx->Fill(firstk_dedx_av);
+														     true_k_mean_last_dedx->Fill(lastk_dedx_av);
+														     true_mu_mean_first_dedx->Fill(firstmu_dedx_av);
+													             true_mu_mean_last_dedx->Fill(lastmu_dedx_av);
+														     true_k_median_first_dedx->Fill(med_firstk);
+													             true_k_median_last_dedx->Fill(med_lastk);
+														     true_mu_median_first_dedx->Fill(med_firstmu);
+													             true_mu_median_last_dedx->Fill(med_lastmu);
+														     true_k_mean_len_ratio->Fill((float(firstk_dedx_av-lastk_dedx_av))/k_tlen);
+														     true_mu_mean_len_ratio->Fill((float(firstmu_dedx_av-lastmu_dedx_av))/mud_tlen);
+														     true_k_median_len_ratio->Fill((float(med_firstk-med_lastk))/k_tlen);
+														     true_mu_median_len_ratio->Fill((float(med_firstmu-med_lastmu))/mud_tlen);
+														     true_all_trk_median_dedx->Fill(med_allk);
+														     true_all_trmu_median_dedx->Fill(med_allmu);
 													          } // trk g4 match
 													       } // getting true mu
 													    } // getting scttering particles
@@ -960,24 +1219,26 @@ void Kplane2::analyze( const art::Event& evt){
 												      } // getting stopping K
 											           } // getting primary K...
 											         } // 1 st loop over geant list for P...
-										               //} // break indicator....
-											   //} // Mu mom cut .....
-											   //} // mu PIDA cut ...
-											 //} // K PIDA cut....
+										               } // break indicator....
+											     //} // Mu mom cut .....
+											    //} // mu all dE/dx cut
+											   } // mu PIDA cut ...
+											  //} // K all dE/dx cut...
+											 } // K PIDA cut....
 										     //} // K and Mu min max hit cut....
 										   //} // Muon track length cut .....
-									          //} // K/Mu open angle cut....
-									       //} // K/Mu energy gradient cut ......
+									          } // K/Mu open angle cut....
+									       } // K/Mu energy gradient cut ......
 									    } // decay mu connected to end of K....
 									} // primary mu is connected to start of K....
 									    
                                                                        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 										 
 								      if((pri_mu_pri_k_index==2) || (pri_mu_pri_k_index==3)){
-								          if(st_k_st_d_mu < 5 || st_k_en_d_mu < 5){
+								          if(st_k_st_d_mu < 10 || st_k_en_d_mu < 10){
 								             //////////////////////////////////////////// Acccessing calorimetry inormation for Kaons //////////////
 									     int k_best_planenum=-1;
-									     calos = fmcal.at(prim_kaon_index);
+									     /*std::vector<const anab::Calorimetry*>*/ calos = fmcal.at(prim_kaon_index);
 			                                                     int k_plane_0_hits=-1;int k_plane_1_hits=-1;int k_plane_2_hits=-1;
 							                     for (size_t ical = 0; ical<calos.size(); ++ical){
 							                          if(!calos[ical]) continue;
@@ -1004,7 +1265,8 @@ void Kplane2::analyze( const art::Event& evt){
 									      int firstk_nhits=0;
 									      int lastk_nhits=0;
 									      vector<float>dedx_firstk_vec;
-									      vector<float>dedx_lastk_vec; 
+									      vector<float>dedx_lastk_vec;
+									      vector<float>dedx_allk_vec; 
 									      for (size_t ical = 0; ical<calos.size(); ++ical){
 									           if(!calos[ical]) continue;
 			                                                           if(!calos[ical]->PlaneID().isValid) continue;
@@ -1014,19 +1276,20 @@ void Kplane2::analyze( const art::Event& evt){
 										      const size_t NHits = calos[ical] -> dEdx().size();
 									              for(size_t iHit = 0; iHit < NHits; ++iHit){
 										          if((calos[ical]->dEdx())[iHit]>100) continue;
-											      if((calos[ical]->ResidualRange())[iHit] < 3){
-												  dedxk_first_sum=dedxk_first_sum+(calos[ical]->dEdx())[iHit];
-											          firstk_nhits++;
-												  dedx_firstk_vec.push_back((calos[ical]->dEdx())[iHit]);
-											      }
-											      if(calos[ical]->Range()-(calos[ical]->ResidualRange())[iHit] < 3){
-												 dedxk_last_sum=dedxk_last_sum+(calos[ical]->dEdx())[iHit];
-											         lastk_nhits++;
-												 dedx_lastk_vec.push_back((calos[ical]->dEdx())[iHit]);
-											      }
-											    }
-											  }
-										       }
+											  dedx_allk_vec.push_back((calos[ical]->dEdx())[iHit]);    
+											  if((calos[ical]->ResidualRange())[iHit] < 3){
+											      dedxk_first_sum=dedxk_first_sum+(calos[ical]->dEdx())[iHit];
+											      firstk_nhits++;
+											      dedx_firstk_vec.push_back((calos[ical]->dEdx())[iHit]);
+											   }
+											   if(calos[ical]->Range()-(calos[ical]->ResidualRange())[iHit] < 3){
+											      dedxk_last_sum=dedxk_last_sum+(calos[ical]->dEdx())[iHit];
+											      lastk_nhits++;
+											      dedx_lastk_vec.push_back((calos[ical]->dEdx())[iHit]);
+											   }
+											}
+										     }
+									          }
 											 
 										       float firstk_dedx_av=0;
 										       float lastk_dedx_av=0;
@@ -1034,6 +1297,7 @@ void Kplane2::analyze( const art::Event& evt){
 										       if(lastk_nhits!=0) lastk_dedx_av=float(dedxk_last_sum)/lastk_nhits;
 										       std::sort(dedx_firstk_vec.begin(),dedx_firstk_vec.end());
 	                                                                               std::sort(dedx_lastk_vec.begin(),dedx_lastk_vec.end());
+										       std::sort(dedx_allk_vec.begin(),dedx_allk_vec.end());
 										       float med_firstk=0;
 										       if(dedx_firstk_vec.size()){
 	                                                                                  if(dedx_firstk_vec.size()%2==1){
@@ -1052,6 +1316,15 @@ void Kplane2::analyze( const art::Event& evt){
 	                                                                                     med_lastk=float(dedx_lastk_vec[dedx_lastk_vec.size()/2] + dedx_lastk_vec[(dedx_lastk_vec.size()/2)-1])/2;
 	                                                                                  }
 	                                                                               }
+										       float med_allk=0;
+										       if(dedx_allk_vec.size()){
+											  if(dedx_allk_vec.size()%2==1){
+											     med_allk=dedx_allk_vec[(dedx_allk_vec.size()-1)/2];
+											  }
+											  if(dedx_allk_vec.size()%2==0){
+											     med_allk=float(dedx_allk_vec[dedx_allk_vec.size()/2] + dedx_allk_vec[(dedx_allk_vec.size()/2)-1])/2;
+											  }
+										       }
 										        /////////////// If you want min max inforamtions insert here /////////////
 											float k_pida=0;
 											float k_pida_sum=0;
@@ -1108,6 +1381,7 @@ void Kplane2::analyze( const art::Event& evt){
 											int lastmu_nhits=0;
 											vector<float>dedx_firstmu_vec;
 									                vector<float>dedx_lastmu_vec; 
+											vector<float>dedx_allmu_vec;
 											for (size_t ical = 0; ical<calos.size(); ++ical){
 											     if(!calos[ical]) continue;
 			                                                                     if(!calos[ical]->PlaneID().isValid) continue;
@@ -1117,6 +1391,7 @@ void Kplane2::analyze( const art::Event& evt){
 											         const size_t NHits = calos[ical] -> dEdx().size();
 												 for(size_t iHit = 0; iHit < NHits; ++iHit){
 												     if((calos[ical]->dEdx())[iHit]>100) continue;
+												     dedx_allmu_vec.push_back((calos[ical]->dEdx())[iHit]);
 												     if((calos[ical]->ResidualRange())[iHit] < 3){
 												         dedxmu_first_sum=dedxmu_first_sum+(calos[ical]->dEdx())[iHit];
 													 firstmu_nhits++;
@@ -1137,6 +1412,7 @@ void Kplane2::analyze( const art::Event& evt){
 											 if(lastmu_nhits!=0) lastmu_dedx_av=float(dedxmu_last_sum)/lastmu_nhits;
 											 std::sort(dedx_firstmu_vec.begin(),dedx_firstmu_vec.end());
 	                                                                                 std::sort(dedx_lastmu_vec.begin(),dedx_lastmu_vec.end());
+											 std::sort(dedx_allmu_vec.begin(),dedx_allmu_vec.end());
 										         float med_firstmu=0;
 										         if(dedx_firstmu_vec.size()){
 	                                                                                    if(dedx_firstmu_vec.size()%2==1){
@@ -1155,6 +1431,15 @@ void Kplane2::analyze( const art::Event& evt){
 	                                                                                     med_lastmu=float(dedx_lastmu_vec[dedx_lastmu_vec.size()/2] + dedx_lastmu_vec[(dedx_lastmu_vec.size()/2)-1])/2;
 	                                                                                  }
 	                                                                               }
+										       float med_allmu=0;
+										       if(dedx_allmu_vec.size()){
+										          if(dedx_allmu_vec.size()%2==1){
+											     med_allmu=dedx_allmu_vec[(dedx_allmu_vec.size()-1)/2];
+											  }
+											  if(dedx_allmu_vec.size()%2==0){
+											     med_allmu=float(dedx_allmu_vec[dedx_allmu_vec.size()/2] + dedx_allmu_vec[(dedx_allmu_vec.size()/2)-1])/2;
+											  }
+										       }
 										       /////////////// If you want min max inforamtions insert here /////////////
 											 float mu_pida=0;
 											 float mu_pida_sum=0;
@@ -1222,15 +1507,20 @@ void Kplane2::analyze( const art::Event& evt){
 											float av_common_open_angle = TMath::ACos(av_common_k_cos_alpha*av_common_mu_cos_alpha + av_common_k_cos_beta*av_common_mu_cos_beta +av_common_k_cos_gamma*av_common_mu_cos_gamma);
 											n_reco_evt++;
 											
-											//if(firstk_dedx_av-lastmu_dedx_av > 5){ ////// K/Mu Energy gradient cut **********************************
-											   //if(TMath::Cos(av_common_open_angle) < 0.8 && TMath::Cos(av_common_open_angle) >=-0.6){ /////// K/Mu open angle cut ***********************
+											if(med_firstk-med_lastmu>=5){ ////// K/Mu Energy gradient cut **********************************
+											   if(TMath::Cos(av_common_open_angle) <= 0.9 && TMath::Cos(av_common_open_angle) >=-0.9){ /////// K/Mu open angle cut ***********************
 											      float mu_mom= (trkm.GetTrackMomentum(mud_tlen,13))*1000;
-											       //if(k_pida > 12 && k_pida < 16){ //// K PIDA cut *********
-											          //if(mu_pida < 10){ //// Mu PIDA cut *********
+											       if(k_pida > 10 && k_pida < 20){ //// K PIDA cut ********* // k_pida > 10 && k_pida < 20
+											          //if(med_allk >=2 && med_allk <=10){ // all K mean dE/dx
+												  if(mu_pida < 10){ //// Mu PIDA cut *********
+												  //if(med_allmu >=2 && med_allmu <=4){ // Mu all med dE/dx
 												    //if(mu_mom*TMath::Sin(av_common_open_angle) < 200 && mu_mom*TMath::Sin(av_common_open_angle)> 150){ //// Mu mom cut ***********
-											                 //if(break_indicator==0){
+											                if(break_indicator==0){
+													    pri_mu_id = prim_mu_index;
+													    pri_k_id = prim_kaon_index;
+													    dec_mu_id = dec_mu_index;
 													    break_indicator++;
-											                    calos = fmcal.at(prim_kaon_index);
+											                    /*std::vector<const anab::Calorimetry*>*/ calos = fmcal.at(prim_kaon_index);
 											                    for (size_t ical = 0; ical<calos.size(); ++ical){
 											                         if (!calos[ical]) continue;
 			                                                                                         if (!calos[ical]->PlaneID().isValid) continue;
@@ -1268,8 +1558,22 @@ void Kplane2::analyze( const art::Event& evt){
 											                  }
 											                  reco_k_pida->Fill(k_pida);
 											                  reco_mu_pida->Fill(mu_pida);
-										                          reco_k_bplane->Fill(k_best_planenum);
-													  reco_mu_bplane->Fill(mu_best_planenum);
+										                          reco_k_mean_first_dedx->Fill(firstk_dedx_av);
+													  reco_k_mean_last_dedx->Fill(lastk_dedx_av);
+													  reco_mu_mean_first_dedx->Fill(firstmu_dedx_av);
+													  reco_mu_mean_last_dedx->Fill(lastmu_dedx_av);
+													  reco_k_median_first_dedx->Fill(med_firstk);
+													  reco_k_median_last_dedx->Fill(med_lastk);
+													  reco_mu_median_first_dedx->Fill(med_firstmu);
+													  reco_mu_median_last_dedx->Fill(med_lastmu);
+													  reco_k_mean_len_ratio->Fill((float(firstk_dedx_av-lastk_dedx_av))/k_tlen);
+													  reco_mu_mean_len_ratio->Fill((float(firstmu_dedx_av-lastmu_dedx_av))/mud_tlen);
+													  reco_k_median_len_ratio->Fill((float(med_firstk-med_lastk))/k_tlen);
+													  reco_mu_median_len_ratio->Fill((float(med_firstmu-med_lastmu))/mud_tlen);
+													  reco_all_trk_median_dedx->Fill(med_allk);
+													  reco_all_trmu_median_dedx->Fill(med_allmu);
+													  k_best_plane_hist->Fill(k_best_planenum);
+													  mu_best_plane_hist->Fill(mu_best_planenum);
 											                  ////////////////////////////////// End of k mu angle //////////////////////////////
 											                  
                                                                                                           sim::ParticleList const& plist = pi_serv->ParticleList();
@@ -1288,8 +1592,35 @@ void Kplane2::analyze( const art::Event& evt){
 											                          for(size_t jPart = 0; (jPart < plist.size()) && (jtPart != send); ++jPart){
 												                      const simb::MCParticle* sPart = (jtPart++)->second;
 												                      if ((sPart->Process()=="Decay") && (sPart->Mother()==trk_id) &&(std::abs(sPart->Vx()-end_x)<0.01) && (std::abs(sPart->Vy()-end_y)<0.01) && (std::abs(sPart->Vz()-end_z)<0.01)){
-												                           if (sPart->PdgCode() == -13){
-													                       art::FindManyP<recob::Hit> fmht(trackListHandle,evt,fTrackModuleLabel);
+												                           if (sPart->PdgCode() == -13 || sPart->PdgCode() == 211){
+													                       
+															       ///////////////////////// Test /////////////////////
+															       
+													                       event_k_pida->Fill(k_pida);
+													                       event_mu_pida->Fill(mu_pida);
+													                       event_k_trklen->Fill(k_tlen);
+													                       event_mu_trklen->Fill(mud_tlen);
+													                       event_de_dx_median_gradient->Fill(med_firstk-med_lastmu);
+													                       event_de_dx_mean_gradient->Fill(firstk_dedx_av-lastmu_dedx_av);
+															       event_k_mu_open_angle_cosine->Fill(TMath::Cos(av_common_open_angle));
+													                       event_mu_mom_range->Fill(mu_mom*TMath::Sin(av_common_open_angle));
+															       std::vector<const anab::Calorimetry*> calos = fmcal.at(prim_kaon_index);
+															       for(size_t ical = 0; ical<calos.size(); ++ical){
+											                                           if(!calos[ical]) continue;
+			                                                                                                           if(!calos[ical]->PlaneID().isValid) continue;
+			                                                                                                           int planenum = calos[ical]->PlaneID().Plane;
+			                                                                                                           if(planenum<0||planenum>2) continue;
+											                                           if(planenum==k_best_planenum){
+											                                              const size_t NHits = calos[ical] -> dEdx().size();
+											                                              for(size_t iHit = 0; iHit < NHits; ++iHit){
+													                                  event_kaon_cont_plane_best_res_range_dEdX_hist->Fill((calos[ical]->ResidualRange())[iHit],(calos[ical]->dEdx())[iHit]);
+												                                      }
+												                                   }
+											                                        }
+													      
+													                       //////////////////////// End of test ///////////////
+															       
+															       n_candidates++;
 													                       std::vector< art::Ptr<recob::Hit> > allKHits = fmht.at(prim_kaon_index);
 													                       std::vector< art::Ptr<recob::Hit> > allMuHits = fmht.at(dec_mu_index);
 													                       std::map<int,double> trk_k_ide;
@@ -1329,8 +1660,11 @@ void Kplane2::analyze( const art::Event& evt){
 														                       }
 														                    }
 													                            if(Track_k_id==int(pPart->TrackId()) && Track_mu_id==int(sPart->TrackId())){
-														                       n_true_evt++;
-														                       calos = fmcal.at(prim_kaon_index);
+														                       std::cout << "K id : " << Track_k_id << "  " << int(pPart->TrackId()) << std::endl;
+														                       std::cout << "Mu id : " << Track_mu_id << "  " << int(sPart->TrackId()) << std::endl;
+																       
+																       n_true_evt++;
+														                       std::vector<const anab::Calorimetry*> calos = fmcal.at(prim_kaon_index);
 											                                               for(size_t ical = 0; ical<calos.size(); ++ical){
 											                                                   if(!calos[ical]) continue;
 			                                                                                                                   if(!calos[ical]->PlaneID().isValid) continue;
@@ -1369,6 +1703,20 @@ void Kplane2::analyze( const art::Event& evt){
 											                                                   }
 														                           true_k_pida->Fill(k_pida);
 														                           true_mu_pida->Fill(mu_pida);
+																	   true_k_mean_first_dedx->Fill(firstk_dedx_av);
+													                                   true_k_mean_last_dedx->Fill(lastk_dedx_av);
+																	   reco_mu_mean_first_dedx->Fill(firstmu_dedx_av);
+													                                   reco_mu_mean_last_dedx->Fill(lastmu_dedx_av);
+																	   true_k_median_first_dedx->Fill(med_firstk);
+													                                   true_k_median_last_dedx->Fill(med_lastk);
+																	   true_mu_median_first_dedx->Fill(med_firstmu);
+													                                   true_mu_median_last_dedx->Fill(med_lastmu);
+																	   true_k_mean_len_ratio->Fill((float(firstk_dedx_av-lastk_dedx_av))/k_tlen);
+																	   true_mu_mean_len_ratio->Fill((float(firstmu_dedx_av-lastmu_dedx_av))/mud_tlen);
+																	   true_k_median_len_ratio->Fill((float(med_firstk-med_lastk))/k_tlen);
+																	   true_mu_median_len_ratio->Fill((float(med_firstmu-med_lastmu))/mud_tlen);
+																	   true_all_trk_median_dedx->Fill(med_allk);
+																	   true_all_trmu_median_dedx->Fill(med_allmu);
 													                                   } // trk g4 match
 													                               } // getting true mu
 													                           } // getting scttering particles
@@ -1376,14 +1724,16 @@ void Kplane2::analyze( const art::Event& evt){
 											                                 } // getting stopping K
 											                             } // getting primary K...
 											                         } // 1 st loop over geant list for P...
-										                             //} // break indicator...
+										                             } // break indicator...
 											                 //} // Mu mom cut ....
-											               //} // Mu PIDA .....
-											            //} // K PIDA cut ......
+											                //} // Med all mu dE/dx...
+												       } // Mu PIDA .....
+											              //} // Med all K dE/dx...
+												    } // K PIDA cut ......
 											        //} // K/Mu min-max hit cut .....
 											     //} // Muon tracklength cut ......
-											    //} // K/Mu open angle cut .....
-										          //} // K/Mu energy gradient cut.....
+											    } // K/Mu open angle cut .....
+										          } // K/Mu energy gradient cut.....
 										      } // decay mu connected to start of K
 										 } // primary mu is connected to end of K
 									         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1401,7 +1751,7 @@ void Kplane2::analyze( const art::Event& evt){
 				 } // 2 nd loop over tracks...
 			      } // more thans 10 hits for pri mu...
 			 //} // 1 st loop over cal of i track...
-		     } // calorimetry info saved...
+		     //} // calorimetry info saved...
 		 } // primary mu >= 60 mc ...
 	    } // 1 st loop over tracks....
 	 } // tracks > 3 in the event....
@@ -1410,6 +1760,8 @@ void Kplane2::analyze( const art::Event& evt){
    
    reco_events = int(n_reco_evt);
    true_events=int(n_true_evt);
+   candidate_k=int(n_candidates);
+   break_value=int(break_indicator);
    fEventTree->Fill();
 
 } // end of analyze function
@@ -1420,11 +1772,15 @@ void Kplane2::reset(){
      run = -99999;
      subrun = -99999;
      event = -99999;
+     pri_mu_id = -99999;
+     pri_k_id = -99999;
+     dec_mu_id = -99999;
      reco_events=0;
      true_events=0;
+     candidate_k=0;
+     break_value=0;
 }
-
-//////////////////////// End of definition ///////////////	
+/////////////////////// End of definition ///////////////	
 	   
 	   
 DEFINE_ART_MODULE(Kplane2)
