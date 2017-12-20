@@ -24,7 +24,8 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
-#include "larsim/MCCheater/BackTracker.h"
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -341,6 +342,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
      if(isMC){
            if(evt.getByLabel(fGenieGenModuleLabel,mctruthListHandle))
            art::fill_ptr_vector(mclist, mctruthListHandle);
+	   
      } 
   
      art::Handle< std::vector<recob::Track> > trackListHandle;
@@ -355,7 +357,11 @@ void XYZvalidatioin::analyze( const art::Event& evt){
      if(evt.getByLabel(fHitsModuleLabel,hitListHandle))
         art::fill_ptr_vector(hitlist, hitListHandle);
 
-     art::ServiceHandle<cheat::BackTracker> bt;
+     //art::ServiceHandle<cheat::BackTracker> bt;
+     
+     art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+     art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+     
      art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
      art::FindManyP<recob::Hit> fmht(trackListHandle,evt,fTrackModuleLabel);
      art::FindManyP<anab::ParticleID> fmpid(trackListHandle, evt, fParticleIDModuleLabel);
@@ -398,7 +404,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 	           std::map<int,double> trk_mu_ide;
 	           for(size_t h = 0; h < allKHits.size(); ++h){
 		       art::Ptr<recob::Hit> hit = allKHits[h];
-		       std::vector<sim::TrackIDE> TrackIDs = bt->HitToEveID(hit);
+		       std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
 		       for(size_t e = 0; e < TrackIDs.size(); ++e){
 		           trk_mu_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 		       }
@@ -415,8 +421,8 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 		       }
 		    }
 		     
-		    int origin=bt->TrackIDToMCTruth(Track_mu_id)->Origin();
-		    const simb::MCParticle* particle=bt->TrackIDToParticle(Track_mu_id);
+		    int origin=pi_serv->TrackIdToMCTruth_P(Track_mu_id)->Origin();
+		    const simb::MCParticle* particle=pi_serv->TrackIdToParticle_P(Track_mu_id);
 		    int pdg=-1;
 		    float end_eng=0;
 		    float tr_stx=0;
@@ -509,7 +515,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 		       if(pdg==211 && end_eng<140){
 		          int pion_trk_id=particle->TrackId();
 			  int n_daughters=0;
-			  const sim::ParticleList& plist = bt->ParticleList();
+			  const sim::ParticleList& plist = pi_serv->ParticleList();
                           sim::ParticleList::const_iterator itPart = plist.begin(),pend = plist.end();
 			  for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart){
 			      const simb::MCParticle* pPart = (itPart++)->second;
@@ -634,7 +640,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 		      if(pdg==2212 && end_eng<940){
 		         int proton_trk_id=particle->TrackId();
 			 int n_daughters=0;
-			 const sim::ParticleList& plist = bt->ParticleList();
+			 const sim::ParticleList& plist = pi_serv->ParticleList();
                          sim::ParticleList::const_iterator itPart = plist.begin(),pend = plist.end();
 			 for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart){
 			     const simb::MCParticle* pPart = (itPart++)->second;
