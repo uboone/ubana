@@ -14,6 +14,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCFlux.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
@@ -37,6 +38,7 @@
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
+#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -365,6 +367,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
      art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
      art::FindManyP<recob::Hit> fmht(trackListHandle,evt,fTrackModuleLabel);
      art::FindManyP<anab::ParticleID> fmpid(trackListHandle, evt, fParticleIDModuleLabel);
+     art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> fmhitmc(hitListHandle,evt,"crHitRemovalTruthMatch");
   
      run = evt.run();
      subrun = evt.subRun();
@@ -404,9 +407,13 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 	           std::map<int,double> trk_mu_ide;
 	           for(size_t h = 0; h < allKHits.size(); ++h){
 		       art::Ptr<recob::Hit> hit = allKHits[h];
-		       std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
-		       for(size_t e = 0; e < TrackIDs.size(); ++e){
-		           trk_mu_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
+		       auto particles = fmhitmc.at(hit.key());
+		       auto hitmatch = fmhitmc.data(hit.key());
+		       for(size_t e = 0; e<particles.size(); ++e){
+		       	 if (!particles[e]) continue;
+			 if (!pi_serv->TrackIdToMotherParticle_P(particles[e]->TrackId())) continue;
+		       	 size_t trkid = (pi_serv->TrackIdToMotherParticle_P(particles[e]->TrackId()))->TrackId();
+		         trk_mu_ide[trkid] += hitmatch[e]->energy;
 		       }
 	           }
 			 
