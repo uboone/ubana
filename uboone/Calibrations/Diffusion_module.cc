@@ -825,8 +825,8 @@ void microboone::Diffusion::analyze(const art::Event& evt)
          end.SetXYZ(xyz[0],xyz[1],xyz[2]);
 
          tlen = btrack.GetLength();
-         if (btrack.NumberTrajectoryPoints() > 0)
-            mom = btrack.VertexMomentum();
+         if (btrack.GetTrajectory().NumberTrajectoryPoints() > 0)
+            mom = btrack.GetTrajectory().StartMomentum(); // ?!? always 1!!!
          // fill bezier track reco branches
          TrackID = i;  //bezier has some screwed up track IDs
        }
