@@ -13,8 +13,6 @@
 #include "litemc_reco3d_pandora.fcl"
 #include "litemc_reco2d.fcl"
 #include "litemc_opreco.fcl"
-#include "litemc_wire.fcl"
-#include "litemc_simch.fcl"
 
 process_name: TPCNeutrinoIDFilter
 
@@ -56,21 +54,20 @@ physics:
  analyzers:
   {
    mcinfo:  @local::litemc_mcinfo
-   simch :  @local::litemc_simch
    opreco:  @local::litemc_opreco
    reco2d:  @local::litemc_reco2d
    pandora:     @local::litemc_reco3d_pandora
   }
 
- reco:          [ dlprecuts, NuMuCCSelectionII, tpcneutrinoidfilter ]
- #reco:          [ NuMuCCSelectionII, tpcneutrinoidfilter ]
+ #reco:          [ dlprecuts, NuMuCCSelectionII, tpcneutrinoidfilter ]
+ reco:          [ NuMuCCSelectionII, tpcneutrinoidfilter ]
  
  stream1:       [ out1 ]
 
  trigger_paths: [ reco ]
 
- ana: [ mcinfo, simch, reco2d, opreco, pandora ]
- #ana: [ mcinfo, reco2d, opreco, pandora ]
+ #ana: [ mcinfo, simch, reco2d, opreco, pandora ]
+ ana: [ mcinfo, reco2d, opreco, pandora ]
 
  #end_paths:     [ stream1, ana ]    
  end_paths:     [ ana ]    
@@ -127,20 +124,17 @@ physics.filters.tpcneutrinoidfilter.Cluster2DCosmicClusterAssns:             ""
 physics.analyzers.pandora.AssociationProducers: ["NuMuCCSelectionII"] #, "pandoraNuTruthMatch"]
 
 physics.analyzers.mcinfo.stream:      "mcinfo"
-physics.analyzers.simch.stream:       "simch"
 physics.analyzers.reco2d.stream:      "reco2d"
 physics.analyzers.opreco.stream:      "opreco"
 physics.analyzers.pandora.stream:      "pandora"
 
 physics.analyzers.mcinfo.SelectEvents:  [ reco ] 
-physics.analyzers.simch.SelectEvents:  [ reco ] 
 physics.analyzers.reco2d.SelectEvents:  [ reco ]
 physics.analyzers.opreco.SelectEvents:  [ reco ] 
 physics.analyzers.pandora.SelectEvents: [ reco ] 
 
 
 physics.analyzers.mcinfo.out_filename:      "larlite_mcinfo.root"
-physics.analyzers.simch.out_filename:      "larlite_simch.root"
 physics.analyzers.reco2d.out_filename:      "larlite_reco2d.root"
 physics.analyzers.opreco.out_filename:      "larlite_opreco.root"
 physics.analyzers.pandora.out_filename:      "larlite_pandora.root"
