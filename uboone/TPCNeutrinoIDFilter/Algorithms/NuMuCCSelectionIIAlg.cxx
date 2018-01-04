@@ -24,12 +24,14 @@
 #include "lardata/Utilities/AssociationUtil.h"
 
 #include "lardataobj/RecoBase/Hit.h"
-#include "lardataobj/RecoBase/Track.h"
+//#include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
+
+#include "TMath.h"
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -81,9 +83,70 @@ void NuMuCCSelectionIIAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fMaxTrkLengthySingle     = pset.get<double>      ("MaxTrkLengthySingle",                   25.);
     fMinStartdEdx1stTrk      = pset.get<double>      ("MinStartdEdx1stTrk",                    2.5);
     fMaxEnddEdx1stTrk        = pset.get<double>      ("MaxEnddEdx1stTrk",                      4.0);
+
+    fDeflection              = pset.get<double>      ("Delection",                              8.);
+    fMIPLength               = pset.get<double>      ("MIPLength",                             40.);
+    fMIPdQdx                 = pset.get<double>      ("MIPdQdx",                            70000.);
+    fIncludeMIPCuts          = pset.get<bool>      ("IncludeMIPCuts",                       true);
+    fUseBNB                  = pset.get<bool>        ("UseBNB",                               true);
+
     fDoHists                 = pset.get<bool>        ("FillHistograms",                      false);
     fDebug                   = pset.get<int>         ("Debug",                                   0);
 }
+
+  double NuMuCCSelectionIIAlg::Median(std::vector<double> input) const{
+
+    int N = input.size();
+
+    double median;
+
+    std::sort(input.begin(), input.end());
+    if (N % 2 == 0){ median = (input[((N/2) - 1)] + input[N/2]) / 2;}
+    else if( N == 1){median = input[N];}
+    else{            median = input[N/2];}
+    return median;
+  }
+
+  double NuMuCCSelectionIIAlg::TrunMean(std::vector <double> poop) const{
+
+    double RMS = TMath::RMS(poop.begin(),poop.end());
+    double median = Median(poop);
+
+    std::vector<double> TLMean;
+
+    for(int i = 0; i < int(poop.size()); i++){
+      if(poop[i] < median+RMS && poop[i] > median-RMS){TLMean.push_back(poop[i]);}
+    }
+
+    return TMath::Mean(TLMean.begin(), TLMean.end());
+  }
+
+  //double NuMuCCSelectionIIAlg::MaxDeflection(recob::Track trk) const{
+
+  //  int first = trk.Trajectory().FirstValidPoint();
+  //  int last  = trk.Trajectory().LastValidPoint();
+  //  double max = 0;
+
+  //  std::vector<TVector3> mom;
+
+  //  for(int i = first; i < last; i++){
+  //  
+  //    if(trk.Trajectory().HasValidPoint(i)){
+  //      TVector3 nextpos;
+  //      TVector3 nextmom;
+  //      trk.Trajectory().TrajectoryAtPoint(i,nextpos,nextmom);    
+  //      mom.push_back(nextmom);    
+  //    }   
+  //  }   
+
+  //  for(int i = 0; i < int(mom.size())-1; i++){
+  //    if(max < mom.at(i).Angle(mom.at(i+1))) max = mom.at(i).Angle(mom.at(i+1));
+  //  }
+
+  //  return max*(180./3.14159265);
+
+  //}
+
     
 void NuMuCCSelectionIIAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs)
 {
@@ -513,6 +576,77 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
         }
       }
     }//Loop over all vertices
+
+  //////////////////////////////////////////////////////////////
+  if (ivtx!=-1 && itrk!=-1 && fIncludeMIPCuts){
+
+    auto trk = tracklist[itrk] ;
+
+    int first = trk->Trajectory().FirstValidPoint();
+    int last  = trk->Trajectory().LastValidPoint();
+    double max = 0;
+
+    std::vector<TVector3> mom;
+
+    for(int i = first; i < last; i++){
+    
+      if(trk->Trajectory().HasValidPoint(i)){
+        TVector3 nextpos;
+        TVector3 nextmom;
+        trk->Trajectory().TrajectoryAtPoint(i,nextpos,nextmom);    
+        mom.push_back(nextmom);    
+      }   
+    }   
+
+    for(int i = 0; i < int(mom.size())-1; i++){
+      if(max < mom.at(i).Angle(mom.at(i+1))) max = mom.at(i).Angle(mom.at(i+1));
+    }
+
+    if( max*(180./3.14159265) >= fDeflection ) {
+     ivtx = -1;   
+     itrk = -1;
+    }
+    else{
+      //auto TrackMaxDeflection = MaxDeflection(tracklist[itrk]);
+	  int N = 0;
+	  int Nnull = 0;
+	  std::vector<double> dqdx; 
+	  
+	  for( int i = 0; i < int(trk->NumberdQdx(geo::kW)); i++){	  
+	    
+	    if(trk->DQdxAtPoint(i,geo::kW) < 0) continue; 
+	    if(trk->DQdxAtPoint(i,geo::kW) == 0){ Nnull++; continue;} 
+	    N++;
+
+        double dqdx_i = double(trk->DQdxAtPoint(i,geo::kW)) ;
+        
+        if ( fUseBNB )
+          dqdx.push_back( dqdx_i * 198.);
+        else 
+          dqdx.push_back( dqdx_i * 243.);
+	  }
+	  
+	  if(N != 0){
+	  
+	    std::sort(dqdx.begin(),dqdx.end());
+
+	    auto TrackTLMeandQdx = TrunMean(dqdx);
+	    dqdx.clear();
+
+        if( trklen[itrk] <= fMIPLength && TrackTLMeandQdx >= fMIPdQdx ){
+          ivtx = -1 ;
+          itrk = -1 ;
+        }
+      }
+      else{
+        ivtx = -1;
+        itrk = -1;
+      }
+    }
+
+  }
+  //////////////////////////////////////////////////////////////
+
     if (ivtx!=-1 && itrk!=-1){
       if (fDebug) std::cout<<ivtx<<" "<<itrk<<std::endl;
       //outputfile[isample]<<run<<" "<<subrun<<" "<<event<<" "<<ivtx<<" "<<trkindex[ivtx][itrk]<<" "<<trkindex[ivtx].size()<<std::endl;

@@ -59,8 +59,8 @@ physics:
    pandora:     @local::litemc_reco3d_pandora
   }
 
- #reco:          [ dlprecuts, NuMuCCSelectionII, tpcneutrinoidfilter ]
- reco:          [ NuMuCCSelectionII, tpcneutrinoidfilter ]
+ reco:          [ dlprecuts, NuMuCCSelectionII, tpcneutrinoidfilter ]
+ #reco:          [ NuMuCCSelectionII, tpcneutrinoidfilter ]
  
  stream1:       [ out1 ]
 

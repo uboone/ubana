@@ -115,6 +115,13 @@ microboone_NuMuCCSelectionIIAlg:
     MinStartdEdx1stTrk:   2.5
     MaxEnddEdx1stTrk:     4.0
     MinTrackLen:          15
+ 
+    MIPLength:            40.
+    MIPdQdx  :            70000.
+    Deflection:           8.
+    UseBNB:               true
+    IncludeMIPCuts:       true 
+
     FillHistograms:       false
     Debug:                1 
 }

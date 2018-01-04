@@ -14,6 +14,8 @@
 #include "larcore/Geometry/GeometryCore.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
+#include "lardataobj/RecoBase/Track.h"
+
 // Root includes
 #include "TH1D.h"
 
@@ -66,6 +68,12 @@ private:
     bool   inFV(double x, double y, double z) const;
     
     double scaledEdx(double x, int plane, bool isdata) const;
+
+    //double MaxDeflection(recob::Track track) ;
+
+    double TrunMean(std::vector<double> dqdx_v) const;
+
+    double Median(std::vector<double> input) const;
     
     /**
      *  @ brief FHICL parameters.
@@ -94,6 +102,13 @@ private:
     double                     fMaxTrkLengthySingle;     ///< Maximum track length in y projection
     double                     fMinStartdEdx1stTrk;      ///< Minimum dEdx of track start
     double                     fMaxEnddEdx1stTrk;        ///< Maximum dEdx of track end
+   
+    bool                       fUseBNB;                  ///< MIP Consistency
+    double                     fDeflection;              ///< MIP Consistency
+    double                     fMIPLength;               ///< MIP Consistency
+    double                     fMIPdQdx ;                ///< MIP Consistency
+    bool                       fIncludeMIPCuts;          ///< MIP Consistency
+
     bool                       fDoHists;                 ///< Fill histograms
     int                        fDebug;                   ///< Print out debug information
     TH1D*                      fNFlashPerEvent;          ///< number of flashes per event
