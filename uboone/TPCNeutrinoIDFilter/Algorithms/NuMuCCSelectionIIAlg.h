@@ -103,7 +103,6 @@ private:
     double                     fMinStartdEdx1stTrk;      ///< Minimum dEdx of track start
     double                     fMaxEnddEdx1stTrk;        ///< Maximum dEdx of track end
    
-    bool                       fUseCalibratedMCC8;       ///<Use calibrated MCC8 dedx+dqdx
     bool                       fIncludeMIPCuts;          ///< MIP Consistency
     bool                       fUseBNB;                  ///< MIP Consistency
     double                     fDeflection;              ///< MIP Consistency

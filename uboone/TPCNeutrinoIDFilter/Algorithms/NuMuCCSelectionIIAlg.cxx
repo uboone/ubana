@@ -85,7 +85,6 @@ void NuMuCCSelectionIIAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fMaxEnddEdx1stTrk        = pset.get<double>      ("MaxEnddEdx1stTrk",                      4.0);
 
     fIncludeMIPCuts          = pset.get<bool>        ("IncludeMIPCuts",                       true);
-    fUseCalibratedMCC8       = pset.get<bool>        ("UseCalibratedMCC8",                    true);
     fDeflection              = pset.get<double>      ("Delection",                              8.);
     fMIPLength               = pset.get<double>      ("MIPLength",                             40.);
     fMIPdQdx                 = pset.get<double>      ("MIPdQdx",                            70000.);
@@ -189,6 +188,11 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
 
     // associations
     art::FindMany<anab::Calorimetry>  fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
+
+    bool UseCalibratedMCC8 = false;
+
+    if ( fCalorimetryModuleLabel == "pandoraNucali" ) 
+      UseCalibratedMCC8 = true;
 
     //check the flash info
     double FlashPEmax=0;
@@ -341,7 +345,7 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
           MaxHits=totalnhits/2;
         }
         for(int ihit=0;ihit<MaxHits;ihit++){
-          if ( fUseCalibratedMCC8){
+          if ( UseCalibratedMCC8){
             sumdEdxStart += calos[icalo]->dEdx()[ihit] ;
             sumdEdxEnd   += calos[icalo]->dEdx()[totalnhits-ihit-1]; 
           }
@@ -617,7 +621,7 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
 	  std::vector<double> dqdx; 
 
       // Calculate dqdx using calibrated info
-      if ( fUseCalibratedMCC8 ){
+      if ( UseCalibratedMCC8 ){
 
         std::cout<<"Using calibrated mcc8! "<<std::endl ;
 

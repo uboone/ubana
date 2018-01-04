@@ -96,7 +96,8 @@ microboone_NuMuCCSelectionIIAlg:
     TrackModuleLabel:   "pandoraNu"
     VertexModuleLabel:  "pandoraNu"
     OpFlashModuleLabel: "simpleFlashBeam"
-    CalorimetryModuleLabel: "pandoraNucalo"
+    #CalorimetryModuleLabel: "pandoraNucalo"
+    CalorimetryModuleLabel: "pandoraNucali"
     DistToEdgeX:          20
     DistToEdgeY:          20
     DistToEdgeZ:          10
@@ -117,7 +118,6 @@ microboone_NuMuCCSelectionIIAlg:
     MinTrackLen:          15
  
     IncludeMIPCuts:       true 
-    UseCalibratedMCC8:    true 
     MIPLength:            40.
     MIPdQdx  :            70000.
     Deflection:           8.
