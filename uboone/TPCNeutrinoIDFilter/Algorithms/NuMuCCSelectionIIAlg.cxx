@@ -84,10 +84,11 @@ void NuMuCCSelectionIIAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fMinStartdEdx1stTrk      = pset.get<double>      ("MinStartdEdx1stTrk",                    2.5);
     fMaxEnddEdx1stTrk        = pset.get<double>      ("MaxEnddEdx1stTrk",                      4.0);
 
+    fIncludeMIPCuts          = pset.get<bool>        ("IncludeMIPCuts",                       true);
+    fUseCalibratedMCC8       = pset.get<bool>        ("UseCalibratedMCC8",                    true);
     fDeflection              = pset.get<double>      ("Delection",                              8.);
     fMIPLength               = pset.get<double>      ("MIPLength",                             40.);
     fMIPdQdx                 = pset.get<double>      ("MIPdQdx",                            70000.);
-    fIncludeMIPCuts          = pset.get<bool>      ("IncludeMIPCuts",                       true);
     fUseBNB                  = pset.get<bool>        ("UseBNB",                               true);
 
     fDoHists                 = pset.get<bool>        ("FillHistograms",                      false);
@@ -340,8 +341,14 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
           MaxHits=totalnhits/2;
         }
         for(int ihit=0;ihit<MaxHits;ihit++){
-          sumdEdxStart += calos[icalo]->dEdx()[ihit]*scaledEdx(calos[icalo]->XYZ()[ihit].X(), calos[icalo]->PlaneID().Plane, evt.isRealData());
-          sumdEdxEnd += calos[icalo]->dEdx()[totalnhits-ihit-1]*scaledEdx(calos[icalo]->XYZ()[totalnhits-ihit-1].X(), calos[icalo]->PlaneID().Plane, evt.isRealData());
+          if ( fUseCalibratedMCC8){
+            sumdEdxStart += calos[icalo]->dEdx()[ihit] ;
+            sumdEdxEnd   += calos[icalo]->dEdx()[totalnhits-ihit-1]; 
+          }
+          else{
+            sumdEdxStart += calos[icalo]->dEdx()[ihit]*scaledEdx(calos[icalo]->XYZ()[ihit].X(), calos[icalo]->PlaneID().Plane, evt.isRealData());
+            sumdEdxEnd += calos[icalo]->dEdx()[totalnhits-ihit-1]*scaledEdx(calos[icalo]->XYZ()[totalnhits-ihit-1].X(), calos[icalo]->PlaneID().Plane, evt.isRealData());
+          }
         }
         //        if (fDebug) std::cout<<trkxyz[i*3*2000*3+iplane*2000*3+0*3+0]<<" "
         //            <<trkxyz[i*3*2000*3+iplane*2000*3+0*3+1]<<" "
@@ -577,11 +584,13 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
       }
     }//Loop over all vertices
 
-  //////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+  // Choose whether or not to include MIP cuts that satisfy blinding condition
+  //////////////////////////////////////////////////////////////////////////////
   if (ivtx!=-1 && itrk!=-1 && fIncludeMIPCuts){
 
+    // First calculate the angular deflection
     auto trk = tracklist[itrk] ;
-
     int first = trk->Trajectory().FirstValidPoint();
     int last  = trk->Trajectory().LastValidPoint();
     double max = 0;
@@ -602,38 +611,56 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
       if(max < mom.at(i).Angle(mom.at(i+1))) max = mom.at(i).Angle(mom.at(i+1));
     }
 
-    if( max*(180./3.14159265) >= fDeflection ) {
-     ivtx = -1;   
-     itrk = -1;
-    }
-    else{
-      //auto TrackMaxDeflection = MaxDeflection(tracklist[itrk]);
-	  int N = 0;
-	  int Nnull = 0;
-	  std::vector<double> dqdx; 
-	  
-	  for( int i = 0; i < int(trk->NumberdQdx(geo::kW)); i++){	  
-	    
-	    if(trk->DQdxAtPoint(i,geo::kW) < 0) continue; 
-	    if(trk->DQdxAtPoint(i,geo::kW) == 0){ Nnull++; continue;} 
-	    N++;
+    // If we pass angular deflection cut, perform MIP cuts
+    if( max*(180./3.14159265) < fDeflection ) {
 
-        double dqdx_i = double(trk->DQdxAtPoint(i,geo::kW)) ;
-        
-        if ( fUseBNB )
-          dqdx.push_back( dqdx_i * 198.);
-        else 
-          dqdx.push_back( dqdx_i * 243.);
-	  }
-	  
-	  if(N != 0){
+	  std::vector<double> dqdx; 
+
+      // Calculate dqdx using calibrated info
+      if ( fUseCalibratedMCC8 ){
+
+        std::cout<<"Using calibrated mcc8! "<<std::endl ;
+
+        double gain = 1./0.00507669; // 196.97;
+
+        if ( fmcal.isValid() ){
+          std::vector<const anab::Calorimetry*> calos = fmcal.at(itrk);
+
+          for (size_t j = 0; j<calos.size(); j++){ 
+
+            if(calos[j]->PlaneID().Plane == 2){  
+
+              for(int q = 0; q < int(calos[j]->dQdx().size()); q++){
+                if(calos[j]->dQdx().at(q) > 0)
+                  dqdx.push_back(gain*calos[j]->dQdx().at(q));
+              }
+            }//collection plane
+          }
+        }
+      }
+      // Otherwise, calculate it using the old method ala MCC8.3
+	  else{
+	    for( int i = 0; i < int(trk->NumberdQdx(geo::kW)); i++){	  
+	      
+	      if(trk->DQdxAtPoint(i,geo::kW) <= 0) continue; 
+
+          double dqdx_i = double(trk->DQdxAtPoint(i,geo::kW)) ;
+          
+          if ( fUseBNB )
+            dqdx.push_back( dqdx_i * 198.);
+          else 
+            dqdx.push_back( dqdx_i * 243.);
+	    }
+      }
+	    
+	  if(dqdx.size()){
 	  
 	    std::sort(dqdx.begin(),dqdx.end());
 
 	    auto TrackTLMeandQdx = TrunMean(dqdx);
 	    dqdx.clear();
 
-        if( trklen[itrk] <= fMIPLength && TrackTLMeandQdx >= fMIPdQdx ){
+        if( trklen[itrk] <= fMIPLength || TrackTLMeandQdx >= fMIPdQdx ){
           ivtx = -1 ;
           itrk = -1 ;
         }
@@ -642,10 +669,15 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
         ivtx = -1;
         itrk = -1;
       }
+    } // We passed angular deflection cut!
+    else{
+      ivtx = -1;   
+      itrk = -1;
     }
-
-  }
-  //////////////////////////////////////////////////////////////
+  } 
+  //////////////////////////////////////////////////////////////////////////////
+  // End of MIP cuts
+  //////////////////////////////////////////////////////////////////////////////
 
     if (ivtx!=-1 && itrk!=-1){
       if (fDebug) std::cout<<ivtx<<" "<<itrk<<std::endl;
@@ -686,22 +718,5 @@ double NuMuCCSelectionIIAlg::scaledEdx(double x, int plane, bool isdata) const{
     return  dEdx/(p0_mc[plane]+x*p1_mc[plane]);
   }
 }
-
-//double NuMuCCSelectionIIAlg::scaledEdx(double x, int plane, bool isdata) const{
-//  double dEdx = 1.63;
-//  double p0_data[3] = {1.927, 2.215, 1.936};
-//  double p1_data[3] = {0.001495, 0.0001655, 0.001169};
-//  double p0_mc[3] = {1.843, 1.904, 1.918};
-//  double p1_mc[3] = {-0.0008329, -0.001357, -0.0007563};
-//  if (isdata){
-//    return dEdx/(p0_data[plane]+x*p1_data[plane]);
-//  }
-//  else{
-//    return  dEdx/(p0_mc[plane]+x*p1_mc[plane]);
-//  }
-//}
-
-
-
 
 } // namespace
