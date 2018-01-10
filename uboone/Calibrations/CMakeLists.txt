@@ -5,53 +5,54 @@ art_make( BASENAME_ONLY
 	  EXCLUDE Lifetime.C
 	  LIBRARY_NAME  uboonecode_uboone_Calibrations
 	  LIB_LIBRARIES
-                        lardata_Utilities_LArFFT_service
-			${ART_FRAMEWORK_CORE}
-			art_Utilities canvas_Utilities
-			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
-			${CETLIB}
-      ${Boost_SYSTEM_LIBRARY}
-			${ROOT_BASIC_LIB_LIST}
-          MODULE_LIBRARIES 
-			uboonecode_uboone_Calibrations
-			lardataobj_RawData
-			CalData
-			larcore_Geometry
-			larcore_Geometry_Geometry_service
-			larsim_MCCheater_BackTracker_service
-			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
-			lardataobj_RecoBase
-			lardata_RecoObjects larreco_Deprecated  
-			larreco_RecoAlg
-                        larreco_Calorimetry
-			lardata_Utilities
-			larevt_Filters
-                        lardata_Utilities_LArFFT_service
-			SignalShapingServiceMicroBooNE_service
-			nusimdata_SimulationBase
-			${LARRECO_LIB}
-			${LARDATA_LIB}
-                        ${ART_FRAMEWORK_CORE}
-			${ART_FRAMEWORK_PRINCIPAL}
-			${ART_FRAMEWORK_SERVICES_REGISTRY}
-			${ART_FRAMEWORK_SERVICES_OPTIONAL}
-			${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-			${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-			art_Persistency_Common canvas_Persistency_Common
-			art_Persistency_Provenance canvas_Persistency_Provenance
-			art_Utilities canvas_Utilities
-			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+                    lardata_Utilities_LArFFT_service
+			        ${ART_FRAMEWORK_CORE}
+			        art_Utilities canvas_Utilities
+			        ${MF_MESSAGELOGGER}
+			        ${MF_UTILITIES}
+			        ${CETLIB}
+                    ${Boost_SYSTEM_LIBRARY}
+			        ${ROOT_BASIC_LIB_LIST}
+      MODULE_LIBRARIES
+			        uboonecode_uboone_Calibrations
+			        CalData
+			        larcore_Geometry
+			        larcore_Geometry_Geometry_service
+			        larsim_MCCheater_BackTracker_service
+			        larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+                    lardataobj_RawData
+			        lardataobj_RecoBase
+                    lardataobj_AnalysisBase
+			        lardata_RecoObjects larreco_Deprecated
+			        larreco_RecoAlg
+                    larreco_Calorimetry
+			        lardata_Utilities
+			        larevt_Filters
+                    lardata_Utilities_LArFFT_service
+			        SignalShapingServiceMicroBooNE_service
+			        nusimdata_SimulationBase
+			        ${LARRECO_LIB}
+			        ${LARDATA_LIB}
+                    ${ART_FRAMEWORK_CORE}
+			        ${ART_FRAMEWORK_PRINCIPAL}
+			        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+			        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+			        ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
+			        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+			        art_Persistency_Common canvas_Persistency_Common
+			        art_Persistency_Provenance canvas_Persistency_Provenance
+			        art_Utilities canvas_Utilities
+			        ${MF_MESSAGELOGGER}
+			        ${MF_UTILITIES}
 	                ${FHICLCPP}
-			${CETLIB}
-			${CLHEP}
-                        ${ROOT_GEOM}
-                        ${ROOT_XMLIO}
-                        ${ROOT_GDML}
-			${ROOT_BASIC_LIB_LIST}
-			${ROOT_MINUIT}
-			${ROOT_MINUIT2}	
+			        ${CETLIB}
+			        ${CLHEP}
+                    ${ROOT_GEOM}
+                    ${ROOT_XMLIO}
+                    ${ROOT_GDML}
+			        ${ROOT_BASIC_LIB_LIST}
+			        ${ROOT_MINUIT}
+			        ${ROOT_MINUIT2}
         )
 
 FILE(GLOB data_files calibrationList_*.dat )

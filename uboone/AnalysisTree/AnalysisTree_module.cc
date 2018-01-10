@@ -300,7 +300,6 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
-#include "larsim/MCCheater/BackTracker.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -320,6 +319,9 @@
 #include "lardataobj/AnalysisBase/FlashMatch.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "ubooneobj/UbooneOpticalFilter.h"
+
+#include "uboone/AnalysisTree/MCTruth/AssociationsTruth_tool.h"
+#include "uboone/AnalysisTree/MCTruth/BackTrackerTruth_tool.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
@@ -724,6 +726,10 @@ namespace microboone {
       ShowerData_t<Short_t>  showerID;        ///< Shower ID
       ShowerData_t<Short_t>  shwr_bestplane;  ///< Shower best plane
       ShowerData_t<Float_t>  shwr_length;     ///< Shower length
+      ShowerData_t<Float_t>  shwr_theta;      ///< Shower theta
+      ShowerData_t<Float_t>  shwr_thetaxz;    ///< Shower theta xz projection
+      ShowerData_t<Float_t>  shwr_thetayz;    ///< Shower theta yz projection
+      ShowerData_t<Float_t>  shwr_phi;        ///< Shower phi
       ShowerData_t<Float_t>  shwr_startdcosx; ///< X directional cosine at start of shower
       ShowerData_t<Float_t>  shwr_startdcosy; ///< Y directional cosine at start of shower
       ShowerData_t<Float_t>  shwr_startdcosz; ///< Z directional cosine at start of shower
@@ -1651,6 +1657,9 @@ namespace microboone {
     double driftedLength(const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom);
     double length(const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
     double bdist(const TVector3& pos);
+      
+    // For keeping track of the replacement backtracker
+    std::unique_ptr<truth::IMCTruthMatching> fMCTruthMatching;
 
     TTree* fTree;
     TTree* fPOT;
@@ -2818,6 +2827,10 @@ void microboone::AnalysisTreeDataStruct::ShowerDataStruct::Resize
   showerID.resize(MaxShowers);
   shwr_bestplane.resize(MaxShowers);
   shwr_length.resize(MaxShowers);
+  shwr_theta.resize(MaxShowers);
+  shwr_thetaxz.resize(MaxShowers);
+  shwr_thetayz.resize(MaxShowers);
+  shwr_phi.resize(MaxShowers);
   shwr_startdcosx.resize(MaxShowers);
   shwr_startdcosy.resize(MaxShowers);
   shwr_startdcosz.resize(MaxShowers);
@@ -2840,6 +2853,10 @@ void microboone::AnalysisTreeDataStruct::ShowerDataStruct::Clear() {
   FillWith(showerID,         -9999 );
   FillWith(shwr_bestplane,   -9999 );
   FillWith(shwr_length,     -99999.);
+  FillWith(shwr_theta,      -99999.);
+  FillWith(shwr_thetaxz,    -99999.);
+  FillWith(shwr_thetayz,    -99999.);
+  FillWith(shwr_phi,        -99999.);
   FillWith(shwr_startdcosx, -99999.);
   FillWith(shwr_startdcosy, -99999.);
   FillWith(shwr_startdcosz, -99999.);
@@ -2914,7 +2931,19 @@ void microboone::AnalysisTreeDataStruct::ShowerDataStruct::SetAddresses
   
   BranchName = "shwr_length_" + ShowerLabel;
   CreateBranch(BranchName, shwr_length, BranchName + NShowerIndexStr + "/F");
+ 
+  BranchName = "shwr_theta_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_theta, BranchName + NShowerIndexStr + "/F");
   
+  BranchName = "shwr_thetaxz_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_thetaxz, BranchName + NShowerIndexStr + "/F");
+
+  BranchName = "shwr_thetayz_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_thetayz, BranchName + NShowerIndexStr + "/F");
+  
+  BranchName = "shwr_phi_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_phi, BranchName + NShowerIndexStr + "/F");
+
   BranchName = "shwr_startdcosx_" + ShowerLabel;
   CreateBranch(BranchName, shwr_startdcosx, BranchName + NShowerIndexStr + "/F");
   
@@ -4201,6 +4230,18 @@ microboone::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
       << " flash algorithms, but " << GetNFlashAlgos() << " are specified."
       << "\nYou can increase kMaxFlashAlgos and recompile.";
   } // if too many flashes
+
+  // Get the tool for MC Truth matching
+  const fhicl::ParameterSet& truthParams = pset.get<fhicl::ParameterSet>("MCTruthMatching");
+  
+    if (truthParams.get<std::string>("tool_type") == "AssociationsTruth")
+    {
+        fMCTruthMatching = std::unique_ptr<truth::IMCTruthMatching>(new truth::AssociationsTruth(truthParams));
+    }
+    else
+    {
+        fMCTruthMatching = std::unique_ptr<truth::IMCTruthMatching>(new truth::BackTrackerTruth(truthParams));
+    }
 } // microboone::AnalysisTree::AnalysisTree()
 
 //-------------------------------------------------
@@ -4287,11 +4328,15 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 {
   //services
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  art::ServiceHandle<cheat::BackTracker> bt;
 
   // collect the sizes which might me needed to resize the tree data structure:
   bool isMC = !evt.isRealData();
-  
+    
+  // If this is MC then we want to "rebuild"
+  // For the BackTracker this call will be a noop (the interface intercepts) since it is a service
+  // For the assocaitions version then it builds out the maps
+  fMCTruthMatching->Rebuild(evt);
+
   // * hits
   art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
@@ -4394,7 +4439,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       if (mctruth->NeutrinoSet()) nGeniePrimaries = mctruth->NParticles();
       //} //end (fSaveGenieInfo)
       
-      const sim::ParticleList& plist = bt->ParticleList();
+      const sim::ParticleList& plist = fMCTruthMatching->ParticleList();
       nGEANTparticles = plist.size();
 
       // to know the number of particles in AV would require
@@ -4546,15 +4591,6 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   if (evt.getByLabel(fGenieGenModuleLabel,mcfluxListHandle))
     art::fill_ptr_vector(fluxlist, mcfluxListHandle);
 
-  std::vector<const sim::AuxDetSimChannel*> fAuxDetSimChannels;
-  if (fSaveAuxDetInfo){
-    evt.getView(fLArG4ModuleLabel, fAuxDetSimChannels);
-  }
-
-  std::vector<const sim::SimChannel*> fSimChannels;
-  if (isMC && fSaveGeantInfo)
-    evt.getView(fLArG4ModuleLabel, fSimChannels);
-
   fData->run = evt.run();
   fData->subrun = evt.subRun();
   fData->event = evt.id().event();
@@ -4688,17 +4724,20 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       //when the size of simIDEs is zero, the above function throws an exception
       //and crashes, so check that the simIDEs have non-zero size before 
       //extracting hit true XYZ from simIDEs
+      // *** REMOVING IN SWITCH TO ASSOCIATIONS TRUTH SINCE SIMCHANNEL DOESN'T EXIST
+      /*
       if (isMC){
         std::vector<sim::IDE> ides;
 	try{
-	  bt->HitToSimIDEs(hitlist[i], ides);
+	  fMCTruthMatching->HitToSimIDEs(hitlist[i], ides);
 	}
 	catch(...){}
         if (ides.size()>0){
-          std::vector<double> xyz = bt->SimIDEsToXYZ(ides);
+          std::vector<double> xyz = fMCTruthMatching->SimIDEsToXYZ(ides);
           fData->hit_trueX[i] = xyz[0];
         }
-      }	 
+      }
+       */
       
       /*
 	for (unsigned int it=0; it<fTrackModuleLabel.size();++it){
@@ -4798,11 +4837,15 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       
       //Hit to SimChannel information
        if (isMC && fSaveSimChannelInfo){
-   	 const sim::SimChannel* chan = 0;
-   	 for(size_t sc = 0; sc < fSimChannels.size(); ++sc){
-   	   if(fSimChannels[sc]->Channel() == hitlist[i]->Channel()) 
-   	      chan = fSimChannels[sc];
-   	 }     
+           std::vector<const sim::SimChannel*> fSimChannels;
+           if (isMC && fSaveGeantInfo)
+               evt.getView(fLArG4ModuleLabel, fSimChannels);
+   	 
+           const sim::SimChannel* chan = 0;
+           for(size_t sc = 0; sc < fSimChannels.size(); ++sc){
+               if(fSimChannels[sc]->Channel() == hitlist[i]->Channel())
+                   chan = fSimChannels[sc];
+           }
    	 if (chan){
    	   auto const& tdcidemap = chan->TDCIDEMap();
    	   int k=-1;
@@ -4847,23 +4890,15 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
        } 
       
       if (!evt.isRealData()&&!isCosmics){
-	fData -> hit_nelec[i] = 0;
-	fData -> hit_energy[i] = 0;
-	const sim::SimChannel* chan = 0;
-	for(size_t sc = 0; sc < fSimChannels.size(); ++sc){
-	  if(fSimChannels[sc]->Channel() == hitlist[i]->Channel()) chan = fSimChannels[sc];
-	}
-	if (chan){
-	  auto const& tdcidemap = chan->TDCIDEMap();
-	  for(auto mapitr = tdcidemap.begin(); mapitr != tdcidemap.end(); mapitr++){
-	    // loop over the vector of IDE objects.
-	    const std::vector<sim::IDE> idevec = (*mapitr).second;
-	    for(size_t iv = 0; iv < idevec.size(); ++iv){
-	      fData -> hit_nelec[i] += idevec[iv].numElectrons;
-	      fData -> hit_energy[i] += idevec[iv].energy;
-	    }
-	  }
-	}
+          std::vector<sim::TrackIDE> trackIDEVec = fMCTruthMatching->HitToTrackID(hitlist[i]);
+          fData -> hit_nelec[i] = 0;
+          fData -> hit_energy[i] = 0;
+          
+          for(const auto& trackIDE : trackIDEVec)
+          {
+              fData -> hit_nelec[i]  += trackIDE.numElectrons;
+              fData -> hit_energy[i] += trackIDE.energy;
+          }
       }
     }
 
@@ -5539,14 +5574,16 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    HitsPurity(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
 	    //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<trkidtruth[iTracker][iTrk][ipl]<<"\t"<<trkpurtruth[iTracker][iTrk][ipl]<<"\t"<<maxe;
 	    if (TrackerData.trkidtruth[iTrk][ipl]>0){
-	      const art::Ptr<simb::MCTruth> mc = bt->TrackIDToMCTruth(TrackerData.trkidtruth[iTrk][ipl]);
+	      const art::Ptr<simb::MCTruth> mc = fMCTruthMatching->TrackIDToMCTruth(TrackerData.trkidtruth[iTrk][ipl]);
 	      TrackerData.trkorigin[iTrk][ipl] = mc->Origin();
-	      const simb::MCParticle *particle = bt->TrackIDToParticle(TrackerData.trkidtruth[iTrk][ipl]);
-	      double tote = 0;
-	      std::vector<sim::IDE> vide(bt->TrackIDToSimIDE(TrackerData.trkidtruth[iTrk][ipl]));
+	      const simb::MCParticle *particle = fMCTruthMatching->TrackIDToParticle(TrackerData.trkidtruth[iTrk][ipl]);
+          double tote = particle->E(); //0;
+            /*
+	      std::vector<sim::IDE> vide(fMCTruthMatching->TrackIDToSimIDE(TrackerData.trkidtruth[iTrk][ipl]));
 	      for (const sim::IDE& ide: vide) {
 		tote += ide.energy;
 	      }
+             */
 	      TrackerData.trkpdgtruth[iTrk][ipl] = particle->PdgCode();
 	      TrackerData.trkefftruth[iTrk][ipl] = maxe/(tote/kNplanes); //tote include both induction and collection energies
 	      //std::cout<<"\n"<<trkpdgtruth[iTracker][iTrk][ipl]<<"\t"<<trkefftruth[iTracker][iTrk][ipl];
@@ -5556,7 +5593,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	  double maxe = 0;
 	  HitsPurity(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
 	  if (TrackerData.trkg4id[iTrk]>0){
-	    const art::Ptr<simb::MCTruth> mc = bt->TrackIDToMCTruth(TrackerData.trkg4id[iTrk]);
+	    const art::Ptr<simb::MCTruth> mc = fMCTruthMatching->TrackIDToMCTruth(TrackerData.trkg4id[iTrk]);
 	    TrackerData.trkorig[iTrk] = mc->Origin();
 	  }
 	  if (allHits.size()){
@@ -5570,7 +5607,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 		art::Ptr<recob::Hit> hit = all_hits[h];
 		std::vector<sim::IDE> ides;
 		//bt->HitToSimIDEs(hit,ides);
-		std::vector<sim::TrackIDE> eveIDs = bt->HitToEveID(hit);
+		std::vector<sim::TrackIDE> eveIDs = fMCTruthMatching->HitToEveID(hit);
 		
 		for(size_t e = 0; e < eveIDs.size(); ++e){
 		  //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
@@ -6000,7 +6037,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       //GEANT particles information
       if (fSaveGeantInfo){ 
 
-        const sim::ParticleList& plist = bt->ParticleList();
+        const sim::ParticleList& plist = fMCTruthMatching->ParticleList();
         
         std::string pri("primary");
         int primary=0;
@@ -6076,7 +6113,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->NumberDaughters[geant_particle]=pPart->NumberDaughters();
 	    fData->inTPCActive[geant_particle] = int(isActive);
 	    fData->inTPCDrifted[geant_particle] = int(isDrifted);
-	    art::Ptr<simb::MCTruth> const& mc_truth = bt->ParticleToMCTruth(pPart);
+	    art::Ptr<simb::MCTruth> const& mc_truth = fMCTruthMatching->ParticleToMCTruth(pPart);
 	    if (mc_truth){
 	      fData->origin[geant_particle] = mc_truth->Origin();
 	      fData->MCTruthIndex[geant_particle] = mc_truth.key();
@@ -6136,7 +6173,12 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    //access auxiliary detector parameters
             if (fSaveAuxDetInfo) {
               unsigned short nAD = 0; // number of cells that particle hit
-              
+                
+              std::vector<const sim::AuxDetSimChannel*> fAuxDetSimChannels;
+              if (fSaveAuxDetInfo){
+                evt.getView(fLArG4ModuleLabel, fAuxDetSimChannels);
+              }
+
               // find deposit of this particle in each of the detector cells
               for (const sim::AuxDetSimChannel* c: fAuxDetSimChannels) {
 		
@@ -6308,10 +6350,16 @@ void microboone::AnalysisTree::FillShower(
   showerData.shwr_length[iShower]     = shower.Length();
   
   TVector3 const& dir_start = shower.Direction();
+  double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
+  double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
+  showerData.shwr_theta[iShower] = dir_start.Theta();
+  showerData.shwr_phi[iShower] = dir_start.Phi();
+  showerData.shwr_thetaxz[iShower] = theta_xz;
+  showerData.shwr_thetayz[iShower] = theta_yz;
   showerData.shwr_startdcosx[iShower] = dir_start.X();
   showerData.shwr_startdcosy[iShower] = dir_start.Y();
   showerData.shwr_startdcosz[iShower] = dir_start.Z();
-  
+
   TVector3 const& pos_start = shower.ShowerStart();
   showerData.shwr_startx[iShower]     = pos_start.X();
   showerData.shwr_starty[iShower]     = pos_start.Y();
@@ -6386,9 +6434,7 @@ void microboone::AnalysisTree::FillShowers(
 void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
 
   trackid = -1;
-  purity = -1;
-
-  art::ServiceHandle<cheat::BackTracker> bt;
+  purity  = -1;
 
   std::map<int,double> trkide;
 
@@ -6397,7 +6443,7 @@ void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > co
     art::Ptr<recob::Hit> hit = hits[h];
     std::vector<sim::IDE> ides;
     //bt->HitToSimIDEs(hit,ides);
-    std::vector<sim::TrackIDE> eveIDs = bt->HitToEveID(hit);
+    std::vector<sim::TrackIDE> eveIDs = fMCTruthMatching->HitToEveID(hit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){
       //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
