@@ -5326,6 +5326,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
             end.SetXYZ(xyz[0],xyz[1],xyz[2]);
 
             tlen = btrack.GetLength();
+
             if (btrack.GetTrajectory().NPoints() > 0)
               mom = btrack.GetTrajectory().StartMomentum();
             // fill bezier track reco branches
