@@ -6,7 +6,8 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            larcore_Geometry_Geometry_service
                            lardata_RecoObjects
                            lardata_Utilities
-                           larsim_MCCheater_BackTracker_service
+                           larsim_MCCheater_BackTrackerService_service
+                           larsim_MCCheater_ParticleInventoryService_service
                            uboone_AnalysisTree_MCTruth_MCTruthBase
                            nutools_ParticleNavigation
                            ${ART_FRAMEWORK_CORE}
@@ -35,7 +36,8 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            larcore_Geometry_Geometry_service
                            lardata_RecoObjects
                            lardata_Utilities
-                           larsim_MCCheater_BackTracker_service
+                           larsim_MCCheater_BackTrackerService_service
+                           larsim_MCCheater_ParticleInventoryService_service
                            uboone_AnalysisTree_MCTruth_MCTruthBase
                            nutools_ParticleNavigation
                            ${ART_FRAMEWORK_CORE}
