@@ -301,7 +301,6 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
-//#include "larsim/MCCheater/BackTracker.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -4296,7 +4295,6 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 {
   //services
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-//  art::ServiceHandle<cheat::BackTracker> bt;
 
   // collect the sizes which might me needed to resize the tree data structure:
   bool isMC = !evt.isRealData();
@@ -4409,6 +4407,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       //} //end (fSaveGenieInfo)
       
       const sim::ParticleList& plist = fMCTruthMatching->ParticleList();
+
       nGEANTparticles = plist.size();
 
       // to know the number of particles in AV would require
@@ -4695,23 +4694,10 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       fData->hit_rms[i] = hitlist[i]->RMS();
       fData->hit_goodnessOfFit[i] = hitlist[i]->GoodnessOfFit();
       fData->hit_multiplicity[i] = hitlist[i]->Multiplicity();
-      //std::vector<double> xyz = fMCTruthMatching->HitToXYZ(hitlist[i]);
+
       //when the size of simIDEs is zero, the above function throws an exception
       //and crashes, so check that the simIDEs have non-zero size before 
       //extracting hit true XYZ from simIDEs
-/*
-      if (isMC){
-        std::vector<sim::IDE> ides;
-	try{
-	  fMCTruthMatching->HitToSimIDEs(hitlist[i], ides);
-	}
-	catch(...){}
-        if (ides.size()>0){
-          std::vector<double> xyz = fMCTruthMatching->SimIDEsToXYZ(ides);
-          fData->hit_trueX[i] = xyz[0];
-        }
-      }
-*/
       
       /*
 	for (unsigned int it=0; it<fTrackModuleLabel.size();++it){
@@ -5333,8 +5319,8 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
             end.SetXYZ(xyz[0],xyz[1],xyz[2]);
 
             tlen = btrack.GetLength();
-            if (btrack.NumberTrajectoryPoints() > 0)
-              mom = btrack.VertexMomentum();
+            if (btrack.GetTrajectory().NPoints() > 0)
+              mom = btrack.GetTrajectory().StartMomentum();
             // fill bezier track reco branches
             TrackID = iTrk;  //bezier has some screwed up track IDs
           }
@@ -5554,12 +5540,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      const simb::MCParticle *particle = fMCTruthMatching->TrackIDToParticle(TrackerData.trkidtruth[iTrk][ipl]);
 
           double tote = 1.; //0;
-/*
-	      std::vector<sim::IDE> vide(fMCTruthMatching->TrackIDToSimIDE(TrackerData.trkidtruth[iTrk][ipl]));
-	      for (const sim::IDE& ide: vide) {
-		tote += ide.energy;
-	      }
-*/
+
 	      TrackerData.trkpdgtruth[iTrk][ipl] = particle->PdgCode();
 	      TrackerData.trkefftruth[iTrk][ipl] = maxe/(tote/kNplanes); //tote include both induction and collection energies
 	      //std::cout<<"\n"<<trkpdgtruth[iTracker][iTrk][ipl]<<"\t"<<trkefftruth[iTracker][iTrk][ipl];
@@ -5582,6 +5563,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 
 		art::Ptr<recob::Hit> hit = all_hits[h];
 		std::vector<sim::IDE> ides;
+
 		//fMCTruthMatching->HitToSimIDEs(hit,ides);
 		std::vector<sim::TrackIDE> eveIDs = fMCTruthMatching->HitToEveID(hit);
 		
@@ -6401,15 +6383,13 @@ void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > co
   trackid = -1;
   purity = -1;
 
-//  art::ServiceHandle<cheat::BackTracker> bt;
-
   std::map<int,double> trkide;
 
   for(size_t h = 0; h < hits.size(); ++h){
 
     art::Ptr<recob::Hit> hit = hits[h];
     std::vector<sim::IDE> ides;
-    //fMCTruthMatching->HitToSimIDEs(hit,ides);
+
     std::vector<sim::TrackIDE> eveIDs = fMCTruthMatching->HitToEveID(hit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){

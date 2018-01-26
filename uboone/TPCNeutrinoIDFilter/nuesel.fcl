@@ -27,7 +27,7 @@ services:
   TFileService: { fileName: "tageff.root" }
   TimeTracker:       {}
   RandomNumberGenerator: {} #ART native random number generator
-  BackTracker:             @local::microboone_backtracker
+  BackTrackerService:             @local::microboone_backtrackerservice
   @table::microboone_reco_mcc8_services
 }
 
