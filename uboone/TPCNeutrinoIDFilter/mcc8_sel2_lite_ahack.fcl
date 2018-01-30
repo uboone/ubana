@@ -5,6 +5,7 @@
 #include "trackfindermodules_microboone.fcl"
 #include "vertexfindermodules.fcl"
 #include "tpcneutrinoidfilter_microboone.fcl"
+#include "calibration_microboone.fcl"
 
 #include "microboone_dlpmtprecuts.fcl"
 #include "triggersim_microboone.fcl"
@@ -115,6 +116,7 @@ physics.producers.NuMuCCSelectionII.NeutrinoIDAlgName:                         "
 physics.producers.NuMuCCSelectionII.NuMuCCSelectionIIAlg.BeamMin : 3.2 
 physics.producers.NuMuCCSelectionII.NuMuCCSelectionIIAlg.BeamMax : 4.8 
 #physics.producers.NuMuCCSelectionII.NuMuCCSelectionIIAlg.PEThresh : 50 #4.9 #5.25 #4.8
+physics.producers.NuMuCCSelectionII.NuMuCCSelectionIIAlg.GainCorrections: @local::microboone_calibrationdedx.CaloAlg.CalAreaConstants
 
 physics.filters.tpcneutrinoidfilter.VertexModuleLabelVec:                    ["pandoraNu"]
 physics.filters.tpcneutrinoidfilter.VtxTrackAssnModuleLabelVec:              ["NuMuCCSelectionII"]

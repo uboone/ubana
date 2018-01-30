@@ -121,6 +121,7 @@ physics.producers.NuMuCCSelectionII.NeutrinoIDAlgName:                         "
 
 physics.producers.NuMuCCSelectionII.NuMuCCSelectionIIAlg.BeamMin : 3.65 #3.2 
 physics.producers.NuMuCCSelectionII.NuMuCCSelectionIIAlg.BeamMax : 5.25 #4.8
+physics.producers.NuMuCCSelectionII.NuMuCCSelectionIIAlg.GainCorrections :  @local::microboone_calibrationdedx.CaloAlg.CalAreaConstants
 
 physics.filters.tpcneutrinoidfilter.VertexModuleLabelVec:                    ["pandoraNu"]
 physics.filters.tpcneutrinoidfilter.VtxTrackAssnModuleLabelVec:              ["NuMuCCSelectionII"]

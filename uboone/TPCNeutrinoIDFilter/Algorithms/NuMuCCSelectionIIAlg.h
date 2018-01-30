@@ -108,7 +108,7 @@ private:
     double                     fDeflection;              ///< MIP Consistency
     double                     fMIPLength;               ///< MIP Consistency
     double                     fMIPdQdx ;                ///< MIP Consistency
-
+    std::vector<double>        fGainCorrections;         ///< Inherited Calibrated Gain Corrections
 
     bool                       fDoHists;                 ///< Fill histograms
     int                        fDebug;                   ///< Print out debug information

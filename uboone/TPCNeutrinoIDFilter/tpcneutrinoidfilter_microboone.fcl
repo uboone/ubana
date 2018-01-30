@@ -118,8 +118,10 @@ microboone_NuMuCCSelectionIIAlg:
     MinTrackLen:          15
  
     IncludeMIPCuts:       true 
+    
     MIPLength:            40.
     MIPdQdx  :            70000.
+    GainCorrections:      [ 0,0,0] #This is to be over-ridden in your job fcl
     Deflection:           8.
     UseBNB:               true
 

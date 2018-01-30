@@ -88,6 +88,7 @@ void NuMuCCSelectionIIAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fDeflection              = pset.get<double>      ("Delection",                              8.);
     fMIPLength               = pset.get<double>      ("MIPLength",                             40.);
     fMIPdQdx                 = pset.get<double>      ("MIPdQdx",                            70000.);
+    fGainCorrections = pset.get<std::vector<double>> ("GainCorrections");
     fUseBNB                  = pset.get<bool>        ("UseBNB",                               true);
 
     fDoHists                 = pset.get<bool>        ("FillHistograms",                      false);
@@ -107,15 +108,15 @@ void NuMuCCSelectionIIAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     return median;
   }
 
-  double NuMuCCSelectionIIAlg::TrunMean(std::vector <double> poop) const{
+  double NuMuCCSelectionIIAlg::TrunMean(std::vector <double> test_vec) const{
 
-    double RMS = TMath::RMS(poop.begin(),poop.end());
-    double median = Median(poop);
+    double RMS = TMath::RMS(test_vec.begin(),test_vec.end());
+    double median = Median(test_vec);
 
     std::vector<double> TLMean;
 
-    for(int i = 0; i < int(poop.size()); i++){
-      if(poop[i] < median+RMS && poop[i] > median-RMS){TLMean.push_back(poop[i]);}
+    for(int i = 0; i < int(test_vec.size()); i++){
+      if(test_vec[i] < median+RMS && test_vec[i] > median-RMS){TLMean.push_back(test_vec[i]);}
     }
 
     return TMath::Mean(TLMean.begin(), TLMean.end());
@@ -625,7 +626,7 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
 
         std::cout<<"Using calibrated mcc8! "<<std::endl ;
 
-        double gain = 1./0.00507669; // 196.97;
+        double gain = 1./(fGainCorrections.at(2)); // 196.97;
 
         if ( fmcal.isValid() ){
           std::vector<const anab::Calorimetry*> calos = fmcal.at(itrk);
@@ -650,7 +651,7 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
 
           double dqdx_i = double(trk->DQdxAtPoint(i,geo::kW)) ;
           
-          if ( fUseBNB )
+          if ( fUseBNB )   ///DocDB 9149
             dqdx.push_back( dqdx_i * 198.);
           else 
             dqdx.push_back( dqdx_i * 243.);
