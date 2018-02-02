@@ -23,6 +23,9 @@
 #include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "uboone/Database/TPCEnergyCalib/TPCEnergyCalibService.h"
+#include "uboone/Database/TPCEnergyCalib/TPCEnergyCalibProvider.h"
+
 
 #include "TH2F.h"
 #include "TH1F.h"
@@ -100,6 +103,10 @@ ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
 void ub::CalibrationdEdX::produce(art::Event & evt)
 {
 
+  //handle to tpc energy calibration provider
+  const lariov::TPCEnergyCalibProvider& energyCalibProvider
+    = art::ServiceHandle<lariov::TPCEnergyCalibService>()->GetProvider();
+
   //create anab::Calorimetry objects and make association with recob::Track
   std::unique_ptr< std::vector<anab::Calorimetry> > calorimetrycol(new std::vector<anab::Calorimetry>);
   std::unique_ptr< art::Assns<recob::Track, anab::Calorimetry> > assn(new art::Assns<recob::Track, anab::Calorimetry>);
@@ -176,8 +183,25 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
         }
 
         for (size_t j = 0; j<vdQdx.size(); ++j){
-          double yzcorrection = GetYZCorrection(vXYZ[j], hCorr_YZ[planeID.Plane]);
-          double xcorrection = GetXCorrection(vXYZ[j], hCorr_X[planeID.Plane]);
+	  float yzcorrection = energyCalibProvider.YZdqdxCorrection(planeID.Plane, vXYZ[j].Y(), vXYZ[j].Z());
+	  float xcorrection  = energyCalibProvider.XdqdxCorrection(planeID.Plane, vXYZ[j].X());
+	  if (!yzcorrection) yzcorrection = 1.0;
+	  if (!xcorrection) xcorrection = 1.0;
+	  
+          /*double alt_yzcorrection = GetYZCorrection(vXYZ[j], hCorr_YZ[planeID.Plane]);
+          double alt_xcorrection = GetXCorrection(vXYZ[j], hCorr_X[planeID.Plane]);
+	  
+	  if (fabs((alt_xcorrection-xcorrection)/alt_xcorrection)>1.0e-5) {
+	    std::cout << "X correction constants do not match: \n"
+	                                            << "  "<<xcorrection<<" vs "<<alt_xcorrection
+						    << "\n  at plane "<<planeID.Plane<<" and coords "<<vXYZ[j].X()<<","<<vXYZ[j].Y()<<","<<vXYZ[j].Z()<<"\n";
+	  }
+	  if (fabs((alt_yzcorrection-yzcorrection)/alt_yzcorrection)>1.0e-5) {
+	    std::cout << "YZ correction constants do not match: \n"
+	                                            << "  "<<yzcorrection<<" vs "<<alt_yzcorrection
+						    << "\n  at plane "<<planeID.Plane<<" and coords "<<vXYZ[j].X()<<","<<vXYZ[j].Y()<<","<<vXYZ[j].Z()<<"\n";
+	  }*/
+	  
           vdQdx[j] = yzcorrection*xcorrection*vdQdx[j];
           //set time to be trgger time so we don't do lifetime correction
           //we will turn off lifetime correction in caloAlg, this is just to be double sure
@@ -245,45 +269,46 @@ double ub::CalibrationdEdX::GetYZCorrection(TVector3& xyz, TH2F *his){
     throw art::Exception(art::errors::Configuration)
       <<"Histogram is empty";
   }
-  int biny = his->GetXaxis()->FindBin(xyz[1]);
+  int biny = his->GetYaxis()->FindBin(xyz[1]);
   if (biny == 0) biny = 1;
-  if (biny == his->GetNbinsX()+1) biny = his->GetNbinsX();
+  if (biny == his->GetNbinsY()+1) biny = his->GetNbinsY();
 
-  int binz = his->GetYaxis()->FindBin(xyz[2]);
+  int binz = his->GetXaxis()->FindBin(xyz[2]);
   if (binz == 0) binz = 1;
-  if (binz == his->GetNbinsY()+1) binz = his->GetNbinsY();
+  if (binz == his->GetNbinsX()+1) binz = his->GetNbinsX();
 
-  double corr = his->GetBinContent(biny, binz);
+  double corr = his->GetBinContent(binz, biny);
 
   if (corr) return corr;
+  else return 1.0;
 
   //looking at neighboring bins
-  for (int i = biny + 1; i <= his->GetNbinsX(); ++i){
-    if (his->GetBinContent(i, binz)){
-      return his->GetBinContent(i, binz);
+  /*for (int i = biny + 1; i <= his->GetNbinsY(); ++i){
+    if (his->GetBinContent(binz, i)){
+      return his->GetBinContent(binz, i);
     }
   }
   
   for (int i = biny - 1; i >= 1; --i){
-    if (his->GetBinContent(i, binz)){
-      return his->GetBinContent(i, binz);
+    if (his->GetBinContent(binz, i)){
+      return his->GetBinContent(binz, i);
     }
   }
   
-  for (int i = binz + 1; i <= his->GetNbinsY(); ++i){
-    if (his->GetBinContent(biny, i)){
-      return his->GetBinContent(biny, i);
+  for (int i = binz + 1; i <= his->GetNbinsX(); ++i){
+    if (his->GetBinContent(i, biny)){
+      return his->GetBinContent(i, biny);
     }
   }
   
   for (int i = binz - 1; i >= 1; --i){
-    if (his->GetBinContent(biny, i)){
-      return his->GetBinContent(biny, i);
+    if (his->GetBinContent(i, biny)){
+      return his->GetBinContent(i, biny);
     }
   }
   
   //no nonzero correction found? just return 1
-  return 1.;
+  return 1.;*/
   
 }
 
