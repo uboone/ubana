@@ -1,0 +1,17 @@
+BEGIN_PROLOG
+
+microboone_ctmdataonana:
+{ 
+ module_type:              "CTMDataONAna"
+ TrackModuleLabel:         "pandoraNu"
+ #TrackModuleLabel:         "ChargedTrackMultiplicity"
+ VertexModuleLabel:        "pandoraNu"
+ OpFlashModuleLabel:       "simpleFlashBeam"  
+ #CosmicTaggerAssocLabel:   "trackkalmanhit"
+ TrkVtxFilterLabels:       "NuMuCCInclusive"
+ #TrkVtxFilterLabels:       "ChargedTrackMultiplicity" 
+ HitsModuleLabel:          "gaushit"
+ #RawDigitModuleLabel:      "daq"
+}
+
+END_PROLOG
