@@ -1,5 +1,7 @@
 #include "services_microboone.fcl"
 #include "ctmmcana.fcl"
+#include "filters.fcl"
+#include "microboone_dlpmtprecuts.fcl"
 
 process_name: CTMMCana
 
@@ -28,6 +30,15 @@ outputs:
 physics:
 {
 
+# filters:
+# {
+#   dlpmtprecuts: @local::microboone_common_op_precut_bnb
+# }
+
+ #define the producer and filter modules for this path, order matters, 
+ #filters reject all following items.  see lines starting physics.producers below
+# filter: [ dlpmtprecuts ]
+
  analyzers:     
  { 
    ctmmcana: @local::microboone_ctmmcana
@@ -39,7 +50,7 @@ physics:
 #		 ]
    analysis:       [ ctmmcana ]
 
- #trigger_paths: [ reco ]
+# trigger_paths: [ filter ] 
 
  end_paths:     [ analysis ] 
 }

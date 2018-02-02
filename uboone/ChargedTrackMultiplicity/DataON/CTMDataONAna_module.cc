@@ -279,9 +279,12 @@
 
     int   _fPH;
     int   _fMCS;
+    int   _fMCS1;
+    int   _fMCS2;
 
     float _fPHratio;    
     float _fMCSratio;
+    float _fMCSratio1;
     float _fMCSdiff;
     
     bool   fDoHists;
@@ -583,20 +586,78 @@
     fDataTreePassLongcolhits->Branch("_frun",&_frun,"_frun/I");
     fDataTreePassLongcolhits->Branch("_fsubrun",&_fsubrun,"_fsubrun/I");
     fDataTreePassLongcolhits->Branch("_fevent",&_fevent,"_fevent/I"); 
-    fDataTreePassLongcolhits->Branch("_fNrecomult",&_fNrecomult,"_fNrecomult/I");
+    fDataTreePassLongcolhits->Branch("_fflashtrackmatch",&_fflashtrackmatch,"_fflashtrackmatch/F");
     fDataTreePassLongcolhits->Branch("_fvrtxx",&_fvrtxx,"_fvrtxx/F");
     fDataTreePassLongcolhits->Branch("_fvrtxy",&_fvrtxy,"_fvrtxy/F");
     fDataTreePassLongcolhits->Branch("_fvrtxz",&_fvrtxz,"_fvrtxz/F");
-    fDataTreePassLongcolhits->Branch("_flongTrackVrtxDis",&_flongTrackVrtxDis,"_flongTrackVrtxDis/F");
-    fDataTreePassLongcolhits->Branch("_fnlongcolhits",&_fnlongcolhits,"_fnlongcolhits/I");
     fDataTreePassLongcolhits->Branch("_flongtrackID",&_flongtrackID,"_flongtrackID/I"); 
     fDataTreePassLongcolhits->Branch("_flongtrackflipped",&_flongtrackflipped,"_flongtrackflipped/I");
     fDataTreePassLongcolhits->Branch("_flongtrackstartx",&_flongtrackstartx,"_flongtrackstartx/F");
-    fDataTreePassLongcolhits->Branch("_flongtrackstarty",&_flongtrackstarty,"_flongtrackstarty/F");  
+    fDataTreePassLongcolhits->Branch("_flongtrackstarty",&_flongtrackstarty,"_flongtrackstarty/F");	
     fDataTreePassLongcolhits->Branch("_flongtrackstartz",&_flongtrackstartz,"_flongtrackstartz/F");
     fDataTreePassLongcolhits->Branch("_flongtrackendx",&_flongtrackendx,"_flongtrackendx/F");
     fDataTreePassLongcolhits->Branch("_flongtrackendy",&_flongtrackendy,"_flongtrackendy/F");
     fDataTreePassLongcolhits->Branch("_flongtrackendz",&_flongtrackendz,"_flongtrackendz/F");
+    fDataTreePassLongcolhits->Branch("_flongTrackVrtxDis",&_flongTrackVrtxDis,"_flongTrackVrtxDis/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackTheta",&_flongtrackTheta,"_flongtrackTheta/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackCosTheta",&_flongtrackCosTheta,"_flongtrackCosTheta/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackSinTheta",&_flongtrackSinTheta,"_flongtrackSinTheta/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackPhi",&_flongtrackPhi,"_flongtrackPhi/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackCosPhi",&_flongtrackCosPhi,"_flongtrackCosPhi/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackSinPhi",&_flongtrackSinPhi,"_flongtrackSinPhi/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackLength",&_flongtrackLength,"_flongtrackLength/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackmcsfwdmom",&_flongtrackmcsfwdmom,"_flongtrackmcsfwdmom/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackmcsfwdll",&_flongtrackmcsfwdll,"_flongtrackmcsfwdll/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackmcsfwderr",&_flongtrackmcsfwderr,"_flongtrackmcsfwderr/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackmcsbwdmom",&_flongtrackmcsbwdmom,"_flongtrackmcsbwdmom/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackmcsbwdll",&_flongtrackmcsbwdll,"_flongtrackmcsbwdll/F");
+    fDataTreePassLongcolhits->Branch("_flongtrackmcsbwderr",&_flongtrackmcsbwderr,"_flongtrackmcsbwderr/F");
+    fDataTreePassLongcolhits->Branch("_fbackward_track",&_fbackward_track,"_fbackward_track/I");
+    fDataTreePassLongcolhits->Branch("_fnlongcolhits",&_fnlongcolhits,"_fnlongcolhits/I");
+    fDataTreePassLongcolhits->Branch("_fbadReg_removed",&_fbadReg_removed,"_fbadReg_removed/I");
+    fDataTreePassLongcolhits->Branch("_fstarty_cut",&_fstarty_cut,"_fstarty_cut/I");
+    fDataTreePassLongcolhits->Branch("_fbrokenTracks",&_fbrokenTracks,"_fbrokenTracks/I");
+    fDataTreePassLongcolhits->Branch("_fNRecoallPart",&_fNRecoallPart,"_fNRecoallPart/I");
+/*    fDataTreePassLongcolhits->Branch("_falltrackVrtxDis",&_falltrackVrtxDis,"_falltrackVrtxDis[_fNRecoallPart]/F");	
+    fDataTreePassLongcolhits->Branch("_falltrackID",&_falltrackID,"_falltrackID/I"); 
+    fDataTreePassLongcolhits->Branch("_falltrackStartx",&_falltrackStartx,"_falltrackStartx[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackStarty",&_falltrackStarty,"_falltrackStarty[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackStartz",&_falltrackStartz,"_falltrackStartz[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackEndx",&_falltrackEndx,"_falltrackEndx[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackEndy",&_falltrackEndy,"_falltrackEndy[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackEndz",&_falltrackEndz,"_falltrackEndz[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackLength",&_falltrackLength,"_falltrackLength[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackTheta",&_falltrackTheta,"_falltrackTheta[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackCosTheta",&_falltrackCosTheta,"_falltrackCosTheta[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackSinTheta",&_falltrackSinTheta,"_falltrackSinTheta[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackPhi",&_falltrackPhi,"_falltrackPhi[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackCosPhi",&_falltrackCosPhi,"_falltrackCosPhi[_fNRecoallPart]/F");
+    fDataTreePassLongcolhits->Branch("_falltrackSinPhi",&_falltrackSinPhi,"_falltrackSinPhi[_fNRecoallPart]/F");
+*/    fDataTreePassLongcolhits->Branch("_fNrecomult",&_fNrecomult,"_fNrecomult/I");
+    fDataTreePassLongcolhits->Branch("_fseltrackVrtxDis",&_fseltrackVrtxDis,"_fseltrackVrtxDis[_fNrecomult]/F");	
+    fDataTreePassLongcolhits->Branch("_fseltrackID",&_fseltrackID,"_fseltrackID/I"); 
+    fDataTreePassLongcolhits->Branch("_fselntrackhits",&_fselntrackhits,"_fselntrackhits[_fNrecomult]/I");
+    fDataTreePassLongcolhits->Branch("_fseltrackStartx",&_fseltrackStartx,"_fseltrackStartx[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackStarty",&_fseltrackStarty,"_fseltrackStarty[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackStartz",&_fseltrackStartz,"_fseltrackStartz[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackEndx",&_fseltrackEndx,"_fseltrackEndx[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackEndy",&_fseltrackEndy,"_fseltrackEndy[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackEndz",&_fseltrackEndz,"_fseltrackEndz[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackLength",&_fseltrackLength,"_fseltrackLength[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackTheta",&_fseltrackTheta,"_fseltrackTheta[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackCosTheta",&_fseltrackCosTheta,"_fseltrackCosTheta[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackSinTheta",&_fseltrackSinTheta,"_fseltrackSinTheta[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackPhi",&_fseltrackPhi,"_fseltrackPhi[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackCosPhi",&_fseltrackCosPhi,"_fseltrackCosPhi[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fseltrackSinPhi",&_fseltrackSinPhi,"_fseltrackSinPhi[_fNrecomult]/F");
+    fDataTreePassLongcolhits->Branch("_fPH",&_fPH,"_fPH/I");
+    fDataTreePassLongcolhits->Branch("_fMCS",&_fMCS,"_fMCS/I");
+    fDataTreePassLongcolhits->Branch("_fMCS1",&_fMCS1,"_fMCS1/I");
+    fDataTreePassLongcolhits->Branch("_fMCS2",&_fMCS2,"_fMCS2/I");
+    fDataTreePassLongcolhits->Branch("_fPHratio",&_fPHratio,"_fPHratio/F");
+    fDataTreePassLongcolhits->Branch("_fMCSratio",&_fMCSratio,"_fMCSratio/F");
+    fDataTreePassLongcolhits->Branch("_fMCSratio1",&_fMCSratio1,"_fMCSratio1/F");
+    fDataTreePassLongcolhits->Branch("_fMCSdiff",&_fMCSdiff,"_fMCSdiff/F");
     
     fDataTreeFinalSel->Branch("_frun",&_frun,"_frun/I");
     fDataTreeFinalSel->Branch("_fsubrun",&_fsubrun,"_fsubrun/I");
@@ -667,8 +728,11 @@
     fDataTreeFinalSel->Branch("_fseltrackSinPhi",&_fseltrackSinPhi,"_fseltrackSinPhi[_fNrecomult]/F");
     fDataTreeFinalSel->Branch("_fPH",&_fPH,"_fPH/I");
     fDataTreeFinalSel->Branch("_fMCS",&_fMCS,"_fMCS/I");
+    fDataTreeFinalSel->Branch("_fMCS1",&_fMCS1,"_fMCS1/I");
+    fDataTreeFinalSel->Branch("_fMCS2",&_fMCS2,"_fMCS2/I");
     fDataTreeFinalSel->Branch("_fPHratio",&_fPHratio,"_fPHratio/F");
     fDataTreeFinalSel->Branch("_fMCSratio",&_fMCSratio,"_fMCSratio/F");
+    fDataTreeFinalSel->Branch("_fMCSratio1",&_fMCSratio1,"_fMCSratio1/F");
     fDataTreeFinalSel->Branch("_fMCSdiff",&_fMCSdiff,"_fMCSdiff/F");
              
    }
@@ -1216,8 +1280,7 @@ double CTMDataONAna::FlashTrackDist(double flash, double start, double end) cons
 	  fDataTreePassLongTrackVrtxDis->Fill();
           if(_fnlongcolhits >= MinLongTrackHits)
 	  {
-	    fDataTreePassLongcolhits->Fill();
-	    
+          // Tree declared towards the end	    
 
     //--------------------------------PH Test----------------------------------------//		
     int PH =-999;			
@@ -1318,7 +1381,7 @@ double CTMDataONAna::FlashTrackDist(double flash, double start, double end) cons
     std::cout<<"PH = "<<PH<<"\n";  
       	
    //------------------------------MCS Test-------------------------------------------//
-/*    int MCS=-999;
+    int MCS=-999;
     int counterup =0;
     int wireup=0, wiresqup=0;
     double wirePtimeup=0, timeup=0;
@@ -1411,19 +1474,29 @@ double CTMDataONAna::FlashTrackDist(double flash, double start, double end) cons
     {
       MCS=0;
     }  
-*/
 
-    int MCS=-999;
-    if(_flongtrackmcsfwdll < _flongtrackmcsbwdll) MCS=1;
-    if(_flongtrackmcsfwdll >= _flongtrackmcsbwdll) MCS=-1;
-    std::cout<<"MCS log Likelihood ratio "<<_flongtrackmcsbwdll/_flongtrackmcsfwdll<<"\n";
+
+    int MCS1=0, MCS2=0;
+//    if(_flongtrackmcsfwdll < _flongtrackmcsbwdll) MCS=1;
+//    if(_flongtrackmcsfwdll >= _flongtrackmcsbwdll) MCS=-1;
+//    std::cout<<"MCS log Likelihood ratio "<<_flongtrackmcsbwdll/_flongtrackmcsfwdll<<"\n";
 
     _fMCSdiff = (_flongtrackmcsbwdll)-(_flongtrackmcsfwdll);
-    _fMCSratio = _flongtrackmcsbwdll/_flongtrackmcsfwdll;
+    _fMCSratio1 = _flongtrackmcsbwdll/_flongtrackmcsfwdll;
   
+    if(_fMCSdiff>0) MCS1=1;
+    if(_fMCSdiff<=0) MCS1=-1;
+
+    if(_fMCSratio1>1) MCS2=1;
+    if(_fMCSratio1<=1) MCS2=-1;
+
     _fMCS = MCS;
+    _fMCS1 = MCS1;
+    _fMCS2 = MCS2;
    
   std::cout<<"MCS = "<<MCS<<"\n"; 
+
+  fDataTreePassLongcolhits->Fill();
   
 ///////////////////////////////////////////////////////////////////////////////
 
