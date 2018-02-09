@@ -314,7 +314,7 @@
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
-#include "uboone/EventWeight/MCEventWeight.h"
+#include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "uboone/RawData/utils/ubdaqSoftwareTriggerData.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
@@ -4598,7 +4598,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 
   art::Handle< std::vector< evwgh::MCEventWeight > > evtWeights;
 
-  if (evt.getByLabel("eventweight",evtWeights)) {
+  if (evt.getByLabel("genieeventweight",evtWeights)) {
     const std::vector< evwgh::MCEventWeight > * evtwgt_vec = evtWeights.product();
 
     evwgh::MCEventWeight evtwgt = evtwgt_vec->at(0); // just for the first neutrino interaction
