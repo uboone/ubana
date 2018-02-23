@@ -314,7 +314,7 @@
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
-#include "uboone/EventWeight/MCEventWeight.h"
+#include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "uboone/RawData/utils/ubdaqSoftwareTriggerData.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
@@ -725,6 +725,10 @@ namespace microboone {
       ShowerData_t<Short_t>  showerID;        ///< Shower ID
       ShowerData_t<Short_t>  shwr_bestplane;  ///< Shower best plane
       ShowerData_t<Float_t>  shwr_length;     ///< Shower length
+      ShowerData_t<Float_t>  shwr_theta;      ///< Shower theta
+      ShowerData_t<Float_t>  shwr_thetaxz;    ///< Shower theta xz projection
+      ShowerData_t<Float_t>  shwr_thetayz;    ///< Shower theta yz projection
+      ShowerData_t<Float_t>  shwr_phi;        ///< Shower phi
       ShowerData_t<Float_t>  shwr_startdcosx; ///< X directional cosine at start of shower
       ShowerData_t<Float_t>  shwr_startdcosy; ///< Y directional cosine at start of shower
       ShowerData_t<Float_t>  shwr_startdcosz; ///< Z directional cosine at start of shower
@@ -2823,6 +2827,10 @@ void microboone::AnalysisTreeDataStruct::ShowerDataStruct::Resize
   showerID.resize(MaxShowers);
   shwr_bestplane.resize(MaxShowers);
   shwr_length.resize(MaxShowers);
+  shwr_theta.resize(MaxShowers);
+  shwr_thetaxz.resize(MaxShowers);
+  shwr_thetayz.resize(MaxShowers);
+  shwr_phi.resize(MaxShowers);
   shwr_startdcosx.resize(MaxShowers);
   shwr_startdcosy.resize(MaxShowers);
   shwr_startdcosz.resize(MaxShowers);
@@ -2845,6 +2853,10 @@ void microboone::AnalysisTreeDataStruct::ShowerDataStruct::Clear() {
   FillWith(showerID,         -9999 );
   FillWith(shwr_bestplane,   -9999 );
   FillWith(shwr_length,     -99999.);
+  FillWith(shwr_theta,      -99999.);
+  FillWith(shwr_thetaxz,    -99999.);
+  FillWith(shwr_thetayz,    -99999.);
+  FillWith(shwr_phi,        -99999.);
   FillWith(shwr_startdcosx, -99999.);
   FillWith(shwr_startdcosy, -99999.);
   FillWith(shwr_startdcosz, -99999.);
@@ -2919,7 +2931,19 @@ void microboone::AnalysisTreeDataStruct::ShowerDataStruct::SetAddresses
   
   BranchName = "shwr_length_" + ShowerLabel;
   CreateBranch(BranchName, shwr_length, BranchName + NShowerIndexStr + "/F");
+ 
+  BranchName = "shwr_theta_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_theta, BranchName + NShowerIndexStr + "/F");
   
+  BranchName = "shwr_thetaxz_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_thetaxz, BranchName + NShowerIndexStr + "/F");
+
+  BranchName = "shwr_thetayz_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_thetayz, BranchName + NShowerIndexStr + "/F");
+  
+  BranchName = "shwr_phi_" + ShowerLabel;
+  CreateBranch(BranchName, shwr_phi, BranchName + NShowerIndexStr + "/F");
+
   BranchName = "shwr_startdcosx_" + ShowerLabel;
   CreateBranch(BranchName, shwr_startdcosx, BranchName + NShowerIndexStr + "/F");
   
@@ -4598,7 +4622,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 
   art::Handle< std::vector< evwgh::MCEventWeight > > evtWeights;
 
-  if (evt.getByLabel("eventweight",evtWeights)) {
+  if (evt.getByLabel("genieeventweight",evtWeights)) {
     const std::vector< evwgh::MCEventWeight > * evtwgt_vec = evtWeights.product();
 
     evwgh::MCEventWeight evtwgt = evtwgt_vec->at(0); // just for the first neutrino interaction
@@ -6303,10 +6327,16 @@ void microboone::AnalysisTree::FillShower(
   showerData.shwr_length[iShower]     = shower.Length();
   
   TVector3 const& dir_start = shower.Direction();
+  double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
+  double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
+  showerData.shwr_theta[iShower] = dir_start.Theta();
+  showerData.shwr_phi[iShower] = dir_start.Phi();
+  showerData.shwr_thetaxz[iShower] = theta_xz;
+  showerData.shwr_thetayz[iShower] = theta_yz;
   showerData.shwr_startdcosx[iShower] = dir_start.X();
   showerData.shwr_startdcosy[iShower] = dir_start.Y();
   showerData.shwr_startdcosz[iShower] = dir_start.Z();
-  
+
   TVector3 const& pos_start = shower.ShowerStart();
   showerData.shwr_startx[iShower]     = pos_start.X();
   showerData.shwr_starty[iShower]     = pos_start.Y();
