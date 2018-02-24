@@ -1,5 +1,6 @@
 #include "services_microboone.fcl"
 #include "cluster_microboone.fcl"
+#include "calibration_microboone.fcl"
 #include "filters.fcl"
 #include "signalservices_microboone.fcl"
 #include "trackfindermodules_microboone.fcl"

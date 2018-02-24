@@ -1,5 +1,6 @@
 #include "services_microboone.fcl"
 #include "cluster_microboone.fcl"
+#include "calibration_microboone.fcl"
 #include "filters.fcl"
 #include "signalservices_microboone.fcl"
 #include "trackfindermodules_microboone.fcl"
@@ -120,10 +121,10 @@ physics.analyzers.reco2d.stream:      "reco2d"
 physics.analyzers.pandoraNu.stream:      "pandoraNu"
 physics.analyzers.pandoraCosmic.stream:      "pandoraCosmic"
 
-physics.analyzers.reco2d.SelectEvents: { SelectEvents : [ reco ] }
-#physics.analyzers.opreco.SelectEvents: { SelectEvents : [ reco ] }
-physics.analyzers.pandoraNu.SelectEvents: { SelectEvents : [ reco ] }
-physics.analyzers.pandoraCosmic.SelectEvents: { SelectEvents : [ reco ] }
+physics.analyzers.reco2d.SelectEvents: [ reco ]
+#physics.analyzers.opreco.SelectEvents: [ reco ]
+physics.analyzers.pandoraNu.SelectEvents: [ reco ]
+physics.analyzers.pandoraCosmic.SelectEvents: [ reco ]
 
 
 physics.analyzers.reco2d.out_filename:      "larlite_reco2d.root"
