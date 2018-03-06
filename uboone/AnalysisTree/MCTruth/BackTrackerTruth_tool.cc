@@ -61,7 +61,7 @@ public:
     void Rebuild(const art::Event& evt) {};
 
     // provide for initialization
-    void reconfigure(fhicl::ParameterSet const & pset) override;
+    void reconfigure(fhicl::ParameterSet const & pset) ;
 
     /**
      *  @brief Get a reference to the ParticleList
