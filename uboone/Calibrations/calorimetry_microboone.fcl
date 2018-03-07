@@ -44,7 +44,7 @@ microboone_calorimetryalgmcc84mc.CalAreaConstants:         [ 0.00518279, 0.00507
 microboone_calorimetryalgmcc84mc.CaloDoLifeTimeCorrection: false
 
 microboone_calorimetryalgmcc84data:                          @local::standard_calorimetryalgdata
-microboone_calorimetryalgmcc84data.CalAreaConstants:         [ 0.00412, 0.00412, 0.00412 ]
+microboone_calorimetryalgmcc84data.CalAreaConstants:         [ 0.00422657, 0.00436579, 0.00411911 ]
 microboone_calorimetryalgmcc84data.CaloDoLifeTimeCorrection: false
 
 microboone_generalcalomc:
