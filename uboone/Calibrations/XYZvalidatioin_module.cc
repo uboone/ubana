@@ -428,7 +428,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 		       }
 		    }
 		     
-		    int origin=pi_serv->TrackIdToMCTruth_P(Track_mu_id)->Origin();
+		    int origin= -1;
 		    const simb::MCParticle* particle=pi_serv->TrackIdToParticle_P(Track_mu_id);
 		    int pdg=-1;
 		    float end_eng=0;
@@ -441,6 +441,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 		    std::string pri("primary");
 		    bool isPrimary=0;
 		    if(particle){
+		       origin=pi_serv->TrackIdToMCTruth_P(Track_mu_id)->Origin();
 		       pdg=particle->PdgCode();
 		       isPrimary=particle->Process()==pri;
 		       end_eng=particle->EndE()*1000;
