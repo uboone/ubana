@@ -39,6 +39,14 @@ microboone_calomc.CaloAlg:            @local::microboone_calorimetryalgmc
 microboone_calomc.CaloAlg.CaloUseModBox: true
 microboone_calomc.UseArea: true
 
+microboone_calorimetryalgmcc84mc:                          @local::standard_calorimetryalgmc
+microboone_calorimetryalgmcc84mc.CalAreaConstants:         [ 0.00518279, 0.00507506, 0.00507669 ]
+microboone_calorimetryalgmcc84mc.CaloDoLifeTimeCorrection: false
+
+microboone_calorimetryalgmcc84data:                          @local::standard_calorimetryalgdata
+microboone_calorimetryalgmcc84data.CalAreaConstants:         [ 0.00422657, 0.00436579, 0.00411911 ]
+microboone_calorimetryalgmcc84data.CaloDoLifeTimeCorrection: false
+
 microboone_generalcalomc:
 {
  module_type:            "GeneralCalorimetry"
