@@ -28,6 +28,7 @@ services:
   TimeTracker:       {}
   RandomNumberGenerator: {} #ART native random number generator
   BackTrackerService:             @local::microboone_backtrackerservice
+  ParticleInventoryService:       @local::standard_particleinventoryservice
   @table::microboone_reco_mcc8_services
 }
 
