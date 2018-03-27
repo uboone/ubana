@@ -26,7 +26,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-  
+#include "art/Utilities/make_tool.h"
+
   // LArSoft Includes
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -1789,17 +1790,8 @@
     fMinTrk2VtxDist          = pset.get<double>      ("MinTrk2VtxDist", 5.);
     fMinTrackLen             = pset.get<double>      ("MinTrackLen", 75.);
 
-  // Get the tool for MC Truth matching
-  const fhicl::ParameterSet& truthParams = pset.get<fhicl::ParameterSet>("MCTruthMatching");
-  
-    if (truthParams.get<std::string>("tool_type") == "AssociationsTruth")
-    {
-        fMCTruthMatching = std::unique_ptr<truth::IMCTruthMatching>(new truth::AssociationsTruth(truthParams));
-    }
-    else
-    {
-        fMCTruthMatching = std::unique_ptr<truth::IMCTruthMatching>(new truth::BackTrackerTruth(truthParams));
-    }
+    // Get the tool for MC Truth matching
+    fMCTruthMatching = art::make_tool<truth::IMCTruthMatching>(pset.get<fhicl::ParameterSet>("MCTruthMatching"));
 
    }
  

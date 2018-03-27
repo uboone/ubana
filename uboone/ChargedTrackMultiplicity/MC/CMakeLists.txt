@@ -3,6 +3,8 @@ art_make(
           MODULE_LIBRARIES larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+			uboone_AnalysisTree_MCTruth_AssociationsTruth_tool
+                        uboone_AnalysisTree_MCTruth_BackTrackerTruth_tool
 			uboone_AnalysisTree_MCTruth_MCTruthBase
 	                lardata_Utilities
 			larevt_Filters
