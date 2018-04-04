@@ -571,7 +571,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 			         pi_trkhitx[stop_pi-1][planenum][iHit]=TrkPos.X();
 		                 pi_trkhity[stop_pi-1][planenum][iHit]=TrkPos.Y();
 		                 pi_trkhitz[stop_pi-1][planenum][iHit]=TrkPos.Z();
-				 pi_trkpitch[stop_mu-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
+				 pi_trkpitch[stop_pi-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
 			     }
 		         }
 			 
@@ -629,7 +629,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 			         k_trkhitx[stop_k-1][planenum][iHit]=TrkPos.X();
 		                 k_trkhity[stop_k-1][planenum][iHit]=TrkPos.Y();
 		                 k_trkhitz[stop_k-1][planenum][iHit]=TrkPos.Z();
-				 k_trkpitch[stop_mu-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
+				 k_trkpitch[stop_k-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
 			     }
 		         }
 			 
@@ -699,7 +699,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 			            p_trkhitx[stop_p-1][planenum][iHit]=TrkPos.X();
 		                    p_trkhity[stop_p-1][planenum][iHit]=TrkPos.Y();
 		                    p_trkhitz[stop_p-1][planenum][iHit]=TrkPos.Z();
-				    p_trkpitch[stop_mu-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
+				    p_trkpitch[stop_p-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
 			        }
 		            }
 			 
