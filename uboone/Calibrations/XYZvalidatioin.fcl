@@ -78,7 +78,7 @@ physics:
 physics.analyzers.XYZvalidatioin.TrackModuleLabel:        "pandoraNu"
 physics.analyzers.XYZvalidatioin.VertexModuleLabel:        "pandoraNu"
 physics.analyzers.XYZvalidatioin.CalorimetryModuleLabel:  "pandoraNucali"
-physics.analyzers.XYZvalidatioin.HitsModuleLabel:  "gaushit"
+physics.analyzers.XYZvalidatioin.HitsModuleLabel:  "pandoraCosmicHitRemoval"
 phusics.analyzers.XYZvalidatioin.LArG4ModuleLabel: "largeant"
 physics.analyzers.XYZvalidatioin.ParticleIDModuleLabel:   "pandoraNucalipid"
 physics.analyzers.XYZvalidatioin.POTModuleLabel:          "generator"
