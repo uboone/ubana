@@ -4335,7 +4335,8 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   // If this is MC then we want to "rebuild"
   // For the BackTracker this call will be a noop (the interface intercepts) since it is a service
   // For the assocaitions version then it builds out the maps
-  fMCTruthMatching->Rebuild(evt);
+  if(isMC)
+    fMCTruthMatching->Rebuild(evt);
 
   // * hits
   art::Handle< std::vector<recob::Hit> > hitListHandle;
