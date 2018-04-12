@@ -58,7 +58,7 @@ microboone_analysistree:
  CalWireROI:               3.0 
  RawDigitThresh:           10 
  CalWireThresh:            10
- MCTruthMatching:          @local::AssociationsTruthTool
+ MCTruthMatching:          @local::BackTrackerTruthTool
 }
 
 END_PROLOG
