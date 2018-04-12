@@ -23,6 +23,7 @@ art_make( BASENAME_ONLY
       larsim_MCCheater_BackTrackerService_service
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 			lardataobj_RecoBase
+			lardataobj_AnalysisBase
 			lardata_RecoObjects larreco_Deprecated  
 			larreco_RecoAlg
                         larreco_Calorimetry
