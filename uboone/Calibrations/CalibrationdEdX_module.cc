@@ -162,7 +162,7 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
           throw art::Exception(art::errors::Configuration)
       <<"planeID is invalid";
         }
-        if (planeID.Plane<0 || planeID.Plane>2){
+        if (planeID.Plane>2){
           throw art::Exception(art::errors::Configuration)
             <<"plane is invalid "<<planeID.Plane;
         }

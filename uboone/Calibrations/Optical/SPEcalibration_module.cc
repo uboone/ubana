@@ -148,9 +148,9 @@ private:
   // overriding these
   // virtual void beginRun(Run const&){}
   // virtual void endRun(Run const&){}
-  virtual void beginSubRun(art::SubRun const&);
-  virtual void endSubRun(art::SubRun const&);
-  virtual void endJob();
+  virtual void beginSubRun(art::SubRun const&) override;
+  virtual void endSubRun(art::SubRun const&) override;
+  virtual void endJob() override;
  
   void SetupBranches();
   void SetupTFile( TFile* );

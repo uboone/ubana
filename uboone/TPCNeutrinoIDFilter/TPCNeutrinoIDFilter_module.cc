@@ -45,7 +45,7 @@ public:
     void endJob();
     
     // Recover information from the start of a run (if processing across runs)
-    void beginRun(const art::Run&);
+    void beginRun(const art::Run&) override;
     
     // Allow for fhicl parameters to possibly change during processing...
     void reconfigure(fhicl::ParameterSet const&);

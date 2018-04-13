@@ -1,5 +1,5 @@
 #ifndef PULSERECOTEMPLATE_CXX
-#define PULSERECOTEMPALTE_CXX
+#define PULSERECOTEMPLATE_CXX
 
 #include "PulseRecoTemplate.h"
 

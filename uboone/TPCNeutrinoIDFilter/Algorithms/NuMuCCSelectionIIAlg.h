@@ -112,9 +112,9 @@ private:
 
     bool                       fDoHists;                 ///< Fill histograms
     int                        fDebug;                   ///< Print out debug information
-    TH1D*                      fNFlashPerEvent;          ///< number of flashes per event
-    TH1D*                      fFlashPE;                 ///< flash photoelectrons
-    TH1D*                      fFlashTime;               ///< flash timing
+    //TH1D*                      fNFlashPerEvent;          ///< number of flashes per event
+    //TH1D*                      fFlashPE;                 ///< flash photoelectrons
+    //TH1D*                      fFlashTime;               ///< flash timing
     
     art::EDProducer*           fMyProducerModule;        ///< The producer module driving us
     
