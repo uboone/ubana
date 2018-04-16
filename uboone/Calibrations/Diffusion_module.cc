@@ -174,10 +174,10 @@ namespace microboone {
     Float_t  cluhit_starttick[kMaxCluster][kNplanes][kMaxClusterHits];
     Float_t  cluhit_endtick[kMaxCluster][kNplanes][kMaxClusterHits];
     Float_t  cluhit_RMS[kMaxCluster][kNplanes][kMaxClusterHits];
-    Float_t  cluhit_nelec[kMaxCluster][kNplanes][kMaxClusterHits];     
-    Float_t  cluhit_energy[kMaxCluster][kNplanes][kMaxClusterHits];    
-    Short_t  cluhit_trkid[kMaxCluster][kNplanes][kMaxClusterHits];     
-    Short_t  cluhit_clusterid[kMaxCluster][kNplanes][kMaxClusterHits]; 
+    //Float_t  cluhit_nelec[kMaxCluster][kNplanes][kMaxClusterHits];     
+    //Float_t  cluhit_energy[kMaxCluster][kNplanes][kMaxClusterHits];    
+    //Short_t  cluhit_trkid[kMaxCluster][kNplanes][kMaxClusterHits];     
+    //Short_t  cluhit_clusterid[kMaxCluster][kNplanes][kMaxClusterHits]; 
 
     //Track information
     //Track plane data

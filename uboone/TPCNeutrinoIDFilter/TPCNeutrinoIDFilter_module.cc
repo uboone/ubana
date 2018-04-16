@@ -39,19 +39,19 @@ public:
     virtual ~TPCNeutrinoIDFilter();
     
     // Called when job begins for definitions of histograms/tuples/etc.
-    void beginJob();
+    void beginJob() override;
     
     // Called when job completes to deal with output of stuff from beginJob
-    void endJob();
+    void endJob() override;
     
     // Recover information from the start of a run (if processing across runs)
-    void beginRun(const art::Run&) override;
+    bool beginRun(art::Run&) override;
     
     // Allow for fhicl parameters to possibly change during processing...
     void reconfigure(fhicl::ParameterSet const&);
     
     // The actual method for filtering the events
-    bool filter(art::Event&);
+    bool filter(art::Event&) override;
 
 private:
 
@@ -91,9 +91,9 @@ void TPCNeutrinoIDFilter::endJob()
     
 }
 
-void TPCNeutrinoIDFilter::beginRun(const art::Run& run)
+bool TPCNeutrinoIDFilter::beginRun(art::Run& run)
 {
-    
+    return true;
 }
 
 void TPCNeutrinoIDFilter::reconfigure(fhicl::ParameterSet const& pset)

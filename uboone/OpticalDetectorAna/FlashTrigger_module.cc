@@ -52,7 +52,7 @@ public:
 
   // Required functions.
   bool filter(art::Event & e) override;
-  void endJob();
+  void endJob() override;
 
 private:
 
