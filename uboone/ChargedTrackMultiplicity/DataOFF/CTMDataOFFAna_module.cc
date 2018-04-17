@@ -117,14 +117,14 @@
   //NuMuccinclusive includes
   //#include "uboone/TPCNeutrinoIDFilter/Algorithms/NuMuCCInclusiveAlg.h"
   #include "uboone/TPCNeutrinoIDFilter/Algorithms/NeutrinoIDAlgBase.h"
-    constexpr int kMaxGpar = 50000;
+    //constexpr int kMaxGpar = 50000;
     constexpr int kMaxRecoallpar = 50000;
     constexpr int kMaxRecoselpar = 50000;
-    constexpr int kMaxtruematchpar = 50000;
-    constexpr int kMaxSeconpar = 500000;
-    constexpr int kMaxtruepar = 900000;
-    constexpr int kMaxtrueInAccppar = 50000;
-    constexpr int kMaxtruelongInAccppar = 50000;
+    //constexpr int kMaxtruematchpar = 50000;
+    //constexpr int kMaxSeconpar = 500000;
+    //constexpr int kMaxtruepar = 900000;
+    //constexpr int kMaxtrueInAccppar = 50000;
+    //constexpr int kMaxtruelongInAccppar = 50000;
   namespace CTMDataOFFAna {  
    
     class CTMDataOFFAna : public art::EDAnalyzer
