@@ -67,10 +67,10 @@ private:
     // Below are cuts to apply, more or less in order
     size_t                     fPlaneToCheck;            ///< The plane to be analyzed
     size_t                     fMinimumHits;             ///< Minimum required hits in cluster
-    float                      fMaximumTick;             ///< Maximum tick for cluster
-    float                      fMinimumTick;             ///< Minimum tick for cluster
-    float                      fMaximumWire;             ///< Maximum allowed wire in cluster
-    float                      fMinimumWire;             ///< Minimum allowed wire in cluster
+    //float                      fMaximumTick;             ///< Maximum tick for cluster
+    //float                      fMinimumTick;             ///< Minimum tick for cluster
+    //float                      fMaximumWire;             ///< Maximum allowed wire in cluster
+    //float                      fMinimumWire;             ///< Minimum allowed wire in cluster
     float                      fMaximumAngle;            ///< Maximum allowed angle of long clusters
     float                      fMaximumLengthCut;        ///< Maximum length of cluster (in wires)
     float                      fMaximumMatchedLengthCut; ///< Maximum length of matched long cluster (in wires)

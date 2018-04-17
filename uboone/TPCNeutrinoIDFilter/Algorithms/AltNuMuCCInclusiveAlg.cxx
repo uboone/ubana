@@ -556,7 +556,7 @@ void AltNuMuCCInclusiveAlg::getBestFlashTrackDist(const std::vector<art::Ptr<rec
         if (dist < localBestDist)
         {
             localBestDist = dist;
-            flashIdx = flashIdx;
+            //flashIdx = flashIdx;
         }
     }
     

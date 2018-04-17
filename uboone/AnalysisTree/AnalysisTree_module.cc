@@ -360,8 +360,8 @@ constexpr int kMaxNDaughtersPerPFP = 100; //maximum number of daughters per PFPa
 constexpr int kMaxNClustersPerPFP  = 100; //maximum number of clusters per PFParticle
 constexpr int kMaxNPFPNeutrinos    = 10;  //maximum number of reconstructed neutrino PFParticles
 
-constexpr int kMaxSysts = 1000;
-constexpr int kMaxWeights = 1000;
+//constexpr int kMaxSysts = 1000;
+//constexpr int kMaxWeights = 1000;
 
 /// total_extent\<T\>::value has the total number of elements of an array
 template <typename T>

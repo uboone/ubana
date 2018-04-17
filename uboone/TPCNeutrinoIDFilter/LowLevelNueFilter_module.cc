@@ -127,7 +127,7 @@ private:
   TH1F* h_DataStat;
   TH1F* h_ophits_per_flash;
   TH1F* h_ophits_per_flash_2pe;
-  TH1F* h_ClusterNegPdgcode;
+  //TH1F* h_ClusterNegPdgcode;
 
   TH1F* h_trueNuE_Energy_FidVol;
   TH1F* h_trueLep_Mom_FidVol;

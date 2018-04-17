@@ -60,7 +60,7 @@ public:
     ~AssociationsTruth();
     
     // provide for initialization
-    void reconfigure(fhicl::ParameterSet const & pset) ;
+    void reconfigure(fhicl::ParameterSet const & pset) override;
     
     /**
      *  @brief This rebuilds the internal maps

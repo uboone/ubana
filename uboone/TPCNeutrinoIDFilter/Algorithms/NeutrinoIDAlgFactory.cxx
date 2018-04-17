@@ -71,7 +71,7 @@ std::unique_ptr< NeutrinoIDAlgBase > NeutrinoIDAlgFactory::MakeNeutrinoIDAlg(fhi
         throw std::runtime_error("ERROR in NeutrinoIDAlgFactory: No registered Neutrino ID with that name.");
     }
     
-    return std::move(ptr);
+    return ptr;
 }
 
 } // namespace neutrinoid

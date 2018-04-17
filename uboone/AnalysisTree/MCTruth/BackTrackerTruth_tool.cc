@@ -58,10 +58,10 @@ public:
      *  @brief This rebuilds the internal maps, is a noop for this module since
      *         the BackTracker is a service and rebuilds its maps at begin run
      */
-    void Rebuild(const art::Event& evt) {};
+    void Rebuild(const art::Event& evt) override {}
 
     // provide for initialization
-    void reconfigure(fhicl::ParameterSet const & pset) ;
+    void reconfigure(fhicl::ParameterSet const & pset) override;
 
     /**
      *  @brief Get a reference to the ParticleList
