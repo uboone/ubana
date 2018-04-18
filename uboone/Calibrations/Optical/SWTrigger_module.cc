@@ -191,8 +191,8 @@ SWTrigger::SWTrigger(fhicl::ParameterSet const & p)
     m_algos.declareAlgo( triggerbit, type, instance_name );
     auto& cfg = m_algos.GetConfig( instance_name );
 
-    sprintf(zinstance_name, instance_name.c_str() );
-    sprintf(ztype_name, type.c_str() );
+    sprintf(zinstance_name, "%s", instance_name.c_str() );
+    sprintf(ztype_name, "%s", type.c_str() );
     
     for ( auto const& key : cfg.ListKeys<bool>() )        cfg.Set( key, cfg_ps.get<bool>(key), true );
     for ( auto const& key : cfg.ListKeys<std::string>() ) cfg.Set( key, cfg_ps.get<std::string>(key), true );

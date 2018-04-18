@@ -14,6 +14,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCFlux.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
@@ -37,6 +38,7 @@
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
+#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -365,6 +367,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
      art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
      art::FindManyP<recob::Hit> fmht(trackListHandle,evt,fTrackModuleLabel);
      art::FindManyP<anab::ParticleID> fmpid(trackListHandle, evt, fParticleIDModuleLabel);
+     art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> fmhitmc(hitListHandle,evt,"crHitRemovalTruthMatch");
   
      run = evt.run();
      subrun = evt.subRun();
@@ -404,9 +407,13 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 	           std::map<int,double> trk_mu_ide;
 	           for(size_t h = 0; h < allKHits.size(); ++h){
 		       art::Ptr<recob::Hit> hit = allKHits[h];
-		       std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
-		       for(size_t e = 0; e < TrackIDs.size(); ++e){
-		           trk_mu_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
+		       auto particles = fmhitmc.at(hit.key());
+		       auto hitmatch = fmhitmc.data(hit.key());
+		       for(size_t e = 0; e<particles.size(); ++e){
+		       	 if (!particles[e]) continue;
+			 if (!pi_serv->TrackIdToMotherParticle_P(particles[e]->TrackId())) continue;
+		       	 size_t trkid = (pi_serv->TrackIdToMotherParticle_P(particles[e]->TrackId()))->TrackId();
+		         trk_mu_ide[trkid] += hitmatch[e]->energy;
 		       }
 	           }
 			 
@@ -421,7 +428,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 		       }
 		    }
 		     
-		    int origin=pi_serv->TrackIdToMCTruth_P(Track_mu_id)->Origin();
+		    int origin= -1;
 		    const simb::MCParticle* particle=pi_serv->TrackIdToParticle_P(Track_mu_id);
 		    int pdg=-1;
 		    float end_eng=0;
@@ -434,6 +441,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 		    std::string pri("primary");
 		    bool isPrimary=0;
 		    if(particle){
+		       origin=pi_serv->TrackIdToMCTruth_P(Track_mu_id)->Origin();
 		       pdg=particle->PdgCode();
 		       isPrimary=particle->Process()==pri;
 		       end_eng=particle->EndE()*1000;
@@ -563,7 +571,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 			         pi_trkhitx[stop_pi-1][planenum][iHit]=TrkPos.X();
 		                 pi_trkhity[stop_pi-1][planenum][iHit]=TrkPos.Y();
 		                 pi_trkhitz[stop_pi-1][planenum][iHit]=TrkPos.Z();
-				 pi_trkpitch[stop_mu-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
+				 pi_trkpitch[stop_pi-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
 			     }
 		         }
 			 
@@ -621,7 +629,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 			         k_trkhitx[stop_k-1][planenum][iHit]=TrkPos.X();
 		                 k_trkhity[stop_k-1][planenum][iHit]=TrkPos.Y();
 		                 k_trkhitz[stop_k-1][planenum][iHit]=TrkPos.Z();
-				 k_trkpitch[stop_mu-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
+				 k_trkpitch[stop_k-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
 			     }
 		         }
 			 
@@ -691,7 +699,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 			            p_trkhitx[stop_p-1][planenum][iHit]=TrkPos.X();
 		                    p_trkhity[stop_p-1][planenum][iHit]=TrkPos.Y();
 		                    p_trkhitz[stop_p-1][planenum][iHit]=TrkPos.Z();
-				    p_trkpitch[stop_mu-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
+				    p_trkpitch[stop_p-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
 			        }
 		            }
 			 

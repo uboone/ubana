@@ -1,3 +1,4 @@
+#include "calorimetry_microboone.fcl"
 
 BEGIN_PROLOG
 
@@ -17,6 +18,18 @@ microboone_noisefilter :
     saveNoiseTree :          0
     saveNoiseTreeWF :        0
     doTransientNoiseFilter : 0
+}
+
+microboone_calibrationdedx :
+{
+    module_type:             CalibrationdEdX
+    TrackModuleLabel:        "pandoraNu"
+    CalorimetryModuleLabel:  "pandoraNucalo"
+    CalibrationFileName:     "calibration_mcc8.4_v1.root"
+    Corr_YZ:                 ["correction_yz_plane0", "correction_yz_plane1", "correction_yz_plane2"]
+    Corr_X:                  ["correction_x_plane0", "correction_x_plane1", "correction_x_plane2"]
+    UseRecoTrackDir:         true
+    CaloAlg:                 @local::microboone_calorimetryalgmcc84mc
 }
 
 END_PROLOG

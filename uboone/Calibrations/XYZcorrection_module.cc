@@ -67,7 +67,7 @@
 #include "stdio.h"
 #include <iterator>
 
-const int kMaxTracks  = 100;
+const int kMaxTracks  = 1000;
 
 using namespace std;
 
@@ -246,7 +246,7 @@ void XYZcorrection::analyze( const art::Event& evt){
          double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
      	 float X = std::abs(pos.X()-end.X());
 	 all_trks++;
-	 xprojectedlen[all_trks-1]=X;
+	 if(all_trks<=kMaxTracks) xprojectedlen[all_trks-1]=X;
 	 if(X>250 && X<270){
 	    cross_trks++;
 	    trackthetaxz[cross_trks-1]=theta_xz;

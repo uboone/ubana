@@ -7,7 +7,7 @@
  *  @authors usher@slac.stanford.edu
  */
 #ifndef NeutrinoIDAlgFactory_h
-#define NeutrinoIDAlgFActory_h
+#define NeutrinoIDAlgFactory_h
 
 // Framework Includes
 #include "fhiclcpp/ParameterSet.h"
