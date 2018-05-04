@@ -66,7 +66,7 @@
 #include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
-#include "uboone/RawData/utils/ubdaqSoftwareTriggerData.h"
+#include "ubooneobj/ubdaqSoftwareTriggerData.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
 #include "lardataobj/AnalysisBase/T0.h"
