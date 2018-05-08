@@ -37,7 +37,6 @@
 //#include "larcore/LArUtilities/TimeService.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
-#include "uboone/TriggerSim/UBTriggerTypes.h"
 
 //Optical Channel Maps
 #include "uboone/Geometry/UBOpChannelTypes.h"
@@ -50,7 +49,7 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include "lardataobj/RawData/DAQHeader.h"
-#include "uboone/TriggerSim/UBTriggerTypes.h"
+#include "ubooneobj/UBTriggerTypes.h"
 #include "ubooneobj/ubdaqSoftwareTriggerData.h"
 
 // Trigger Emulator Code
