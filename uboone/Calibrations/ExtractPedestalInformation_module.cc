@@ -59,7 +59,7 @@ class ExtractPedestalInformation : public art::EDAnalyzer {
 
         // Required functions.
         virtual void beginJob() override;
-        virtual void reconfigure(fhicl::ParameterSet const& parameterSet) override;
+        virtual void reconfigure(fhicl::ParameterSet const& parameterSet);
         virtual void analyze(const art::Event& e) override;
         virtual void endJob() override;
 
