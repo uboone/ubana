@@ -40,7 +40,7 @@
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
-#include "ubooneobj/UBTriggerTypes.h"
+#include "ubooneobj/Trigger/UBTriggerTypes.h"
 
 //Optical Channel Maps
 #include "uboone/Geometry/UBOpChannelTypes.h"

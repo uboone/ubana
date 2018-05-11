@@ -17,7 +17,7 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "ubooneobj/ubdaqSoftwareTriggerData.h"
+#include "ubooneobj/Trigger/ubdaqSoftwareTriggerData.h"
 
 // C++ libraries
 #include <iostream>
@@ -49,8 +49,8 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include "lardataobj/RawData/DAQHeader.h"
-#include "ubooneobj/UBTriggerTypes.h"
-#include "ubooneobj/ubdaqSoftwareTriggerData.h"
+#include "ubooneobj/Trigger/UBTriggerTypes.h"
+#include "ubooneobj/Trigger/ubdaqSoftwareTriggerData.h"
 
 // Trigger Emulator Code
 #include "SWTriggerBase/SWTriggerTypes.h"

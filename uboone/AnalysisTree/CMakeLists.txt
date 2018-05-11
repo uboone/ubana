@@ -15,7 +15,8 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 			               SignalShapingServiceMicroBooNE_service
                            nusimdata_SimulationBase
                            uboone_RawData
-			               ubooneobj
+			               ubooneobj_Trigger
+			               ubooneobj_Optical
                            ${LARRECO_LIB}
                            ${LARDATA_LIB}
                            ${ART_FRAMEWORK_CORE}

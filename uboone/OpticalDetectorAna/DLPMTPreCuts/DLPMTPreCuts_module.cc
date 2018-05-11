@@ -18,7 +18,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "lardataobj/RecoBase/OpHit.h"
-#include "ubooneobj/UbooneOpticalFilter.h"
+#include "ubooneobj/Optical/UbooneOpticalFilter.h"
 
 // from dlpmtprecutalgo in UPS
 #include "LEEPreCutAlgo.h"

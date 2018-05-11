@@ -4,7 +4,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "uboone/Geometry/UBOpReadoutMap.h"
 #include "uboone/Geometry/UBOpChannelTypes.h"
-#include "ubooneobj/ubdaqSoftwareTriggerData.h"
+#include "ubooneobj/Trigger/ubdaqSoftwareTriggerData.h"
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Wire.h"

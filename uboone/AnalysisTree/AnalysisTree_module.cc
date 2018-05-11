@@ -315,11 +315,11 @@
 #include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
-#include "ubooneobj/ubdaqSoftwareTriggerData.h"
+#include "ubooneobj/Trigger/ubdaqSoftwareTriggerData.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
 #include "lardataobj/AnalysisBase/T0.h"
-#include "ubooneobj/UbooneOpticalFilter.h"
+#include "ubooneobj/Optical/UbooneOpticalFilter.h"
 #include "uboone/AnalysisTree/MCTruth/IMCTruthMatching.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
