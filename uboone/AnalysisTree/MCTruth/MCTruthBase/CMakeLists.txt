@@ -8,7 +8,7 @@ art_make( LIB_LIBRARIES lardataobj_RecoBase
                         nusimdata_SimulationBase
                         canvas
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${FHICLCPP}
                         ${CETLIB}
                         cetlib_except
