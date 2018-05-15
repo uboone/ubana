@@ -32,9 +32,9 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/OpDetGeo.h"
 
-#include "uboone/OpticalDetectorAna/OpticalSubEvents/subevent_algo/FlashList.hh"
-#include "uboone/OpticalDetectorAna/OpticalSubEvents/subevent_algo/SubEvent.hh"
-#include "uboone/OpticalDetectorAna/OpticalSubEvents/subevent_algo/SubEventList.hh"
+#include "ubooneobj/Optical/FlashList.hh"
+#include "ubooneobj/Optical/SubEvent.hh"
+#include "ubooneobj/Optical/SubEventList.hh"
 #include "uboone/OpticalDetectorAna/OpticalSubEvents/subevent_algo/SubEventModule.hh"
 #include "uboone/OpticalDetectorAna/OpticalSubEvents/subevent_algo/SubEventModConfig.hh"
 #include "uboone/OpticalDetectorAna/OpticalSubEvents/subevent_algo/WaveformData.hh"

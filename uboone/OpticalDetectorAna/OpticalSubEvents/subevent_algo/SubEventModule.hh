@@ -4,10 +4,10 @@
 #include <vector>
 #include <map>
 #include "SubEventModConfig.hh"
-#include "SubEvent.hh"
-#include "Flash.hh"
-#include "FlashList.hh"
-#include "SubEventList.hh"
+#include "ubooneobj/Optical/SubEvent.hh"
+#include "ubooneobj/Optical/Flash.hh"
+#include "ubooneobj/Optical/FlashList.hh"
+#include "ubooneobj/Optical/SubEventList.hh"
 #include "WaveformData.hh"
 
 namespace subevent {

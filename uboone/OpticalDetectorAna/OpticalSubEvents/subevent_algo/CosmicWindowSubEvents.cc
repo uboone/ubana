@@ -1,9 +1,9 @@
 #include "CosmicWindowSubEvents.hh"
 #include <iostream>
-#include "SubEvent.hh"
-#include "Flash.hh"
-#include "SubEventList.hh"
-#include "FlashList.hh"
+#include "ubooneobj/Optical/SubEvent.hh"
+#include "ubooneobj/Optical/Flash.hh"
+#include "ubooneobj/Optical/SubEventList.hh"
+#include "ubooneobj/Optical/FlashList.hh"
 #include "scintresponse.hh"
 
 namespace subevent {

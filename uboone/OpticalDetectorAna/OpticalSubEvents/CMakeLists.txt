@@ -8,7 +8,9 @@
 art_make( LIBRARY_NAME OpticalSubEvents
 	  SUBDIRS cfdiscriminator_algo subevent_algo	  
 	  EXCLUDE SubEventBuilder_module.cc
-	  LIB_LIBRARIES ${ART_FRAMEWORK_CORE} 
+	  LIB_LIBRARIES
+	       ubooneobj_Optical
+	       ${ART_FRAMEWORK_CORE} 
 	       ${ART_FRAMEWORK_IO_SOURCES}
                ${ART_FRAMEWORK_PRINCIPAL}
                ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -23,7 +25,7 @@ art_make( LIBRARY_NAME OpticalSubEvents
 
 simple_plugin( SubEventBuilder "module"
 	       OpticalSubEvents
-	       uboone_OpticalDetectorAna_OpticalSubEvents_dict
+	       ubooneobj_Optical
 	       lardataobj_RecoBase
 	       larcorealg_Geometry
 	       larcore_Geometry_Geometry_service

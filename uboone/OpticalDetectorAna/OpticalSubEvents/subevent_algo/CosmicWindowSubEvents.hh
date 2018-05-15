@@ -2,7 +2,7 @@
 #define __CosmicWindowSubEvents__
 
 #include "SubEventModConfig.hh"
-#include "SubEventList.hh"
+#include "ubooneobj/Optical/SubEventList.hh"
 
 #include <map>
 #include <vector>
