@@ -15,8 +15,8 @@
 
 // LArSoft includes
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/DetectorInfo/DetectorProperties.h"
-#include "lardata/DetectorInfo/DetectorClocks.h"
+#include "lardataalg/DetectorInfo/DetectorProperties.h"
+#include "lardataalg/DetectorInfo/DetectorClocks.h"
 
 // Root includes
 #include "TH1D.h"
