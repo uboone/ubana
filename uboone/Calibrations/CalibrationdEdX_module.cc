@@ -138,7 +138,7 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
         //start calibrating dQdx
 
         //get original calorimetry information
-        double                Kin_En     = calo->KineticEnergy();
+        //double                Kin_En     = calo->KineticEnergy();
         std::vector<double>   vdEdx      = calo->dEdx();
         std::vector<double>   vdQdx      = calo->dQdx();
         std::vector<double>   vresRange  = calo->ResidualRange();
@@ -182,6 +182,9 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
           }
         }
 
+	// update the kinetic energy
+	double EkinNew = 0.;
+
         for (size_t j = 0; j<vdQdx.size(); ++j){
 	  float yzcorrection = energyCalibProvider.YZdqdxCorrection(planeID.Plane, vXYZ[j].Y(), vXYZ[j].Z());
 	  float xcorrection  = energyCalibProvider.XdqdxCorrection(planeID.Plane, vXYZ[j].X());
@@ -212,9 +215,20 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
             if (rr>Trk_Length) rr = Trk_Length;
             vresRange[j] = rr;
           }
+
+	  //update kinetic energy calculation
+	  if (j>=1) {
+	    if ( (vresRange[j] < 0) || (vresRange[j-1] < 0) ) continue;
+	    EkinNew += fabs(vresRange[j]-vresRange[j-1]) * vdEdx[j];
+	  }
+	  if (j==0){
+	    if ( (vresRange[j] < 0) || (vresRange[j+1] < 0) ) continue;
+	    EkinNew += fabs(vresRange[j]-vresRange[j+1]) * vdEdx[j];
+	  }
+	  
         }
         //save new calorimetry information 
-        calorimetrycol->push_back(anab::Calorimetry(Kin_En,
+        calorimetrycol->push_back(anab::Calorimetry(EkinNew,// Kin_En, // change by David C. to update kinetic energy calculation
                                                     vdEdx,
                                                     vdQdx,
                                                     vresRange,
