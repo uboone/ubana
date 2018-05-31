@@ -11,10 +11,10 @@ microboone_swtrigger_data:
     MinReadoutTicks:  1499
 
     drop_event : true
-    swtrg_algonames : ["EXT_BNBwin","EXT_BNBwin_2017Dec_SWTrigger5PE","EXT_HSN_c0","EXT_NUMIwin","EXT_unbiased","BNB","BNB_2017Dec_SWTrigger5PE","BNB_unbiased","NUMI","NUMI_unbiased","BNB_HSN_c0"]
-    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo"]
+    swtrg_algonames : ["EXT_BNBwin","EXT_BNBwin_2017Dec_SWTrigger5PE","EXT_HSN_c0","EXT_NUMIwin","EXT_NUMIwin_2018May","EXT_unbiased","BNB","BNB_2017Dec_SWTrigger5PE","BNB_unbiased","NUMI","NUMI_2018May","NUMI_unbiased","BNB_HSN_c0"]
+    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo","FEMBeamTriggerAlgo","PrescaleAlgo","FEMBeamTriggerAlgo"]
     swtrg_beam_window_size : 1100
-    swtrg_bits : [0x200,0x200,0x200,0x200,0x200,0x800,0x800,0x800,0x1000,0x1000,0x800]
+    swtrg_bits : [0x200,0x200,0x200,0x200,0x200,0x200,0x800,0x800,0x800,0x1000,0x1000,0x1000,0x800]
     BNB_FEMBeamTriggerAlgo:{
       Discr0deadtime : 6
       Discr0delay : 4
@@ -113,6 +113,25 @@ microboone_swtrigger_data:
       TriggerWindowStart : 300
       Verbosity : 3
     }
+    EXT_NUMIwin_2018May_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 754
+      Discr3WindowStart : 296
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 0.175
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 115
+      TriggerWindowSize : 750
+      TriggerWindowStart : 300
+      Verbosity : 3
+    }
     EXT_unbiased_PrescaleAlgo:{
       PrescaleFactor : 0.02
     }
@@ -131,6 +150,25 @@ microboone_swtrigger_data:
       PrescaleFactor : 1.0
       TriggerThresMult : 1
       TriggerThresPHMAX : 190
+      TriggerWindowSize : 750
+      TriggerWindowStart : 300
+      Verbosity : 3
+    }
+    NUMI_2018May_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 754
+      Discr3WindowStart : 296
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 1.0
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 115
       TriggerWindowSize : 750
       TriggerWindowStart : 300
       Verbosity : 3
@@ -262,10 +300,10 @@ microboone_swtrigger_mc_numi:
     MinReadoutTicks:  1499
     
     drop_event : true
-    swtrg_algonames : ["NUMI"]
-    swtrg_algotype : ["FEMBeamTriggerAlgo"]
+    swtrg_algonames : ["NUMI","NUMI_2018May"]
+    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo"]
     swtrg_beam_window_size : 1100
-    swtrg_bits : [0x1000]
+    swtrg_bits : [0x1000,0x1000]
     NUMI_FEMBeamTriggerAlgo:{
       Discr0deadtime : 6
       Discr0delay : 4
@@ -281,6 +319,25 @@ microboone_swtrigger_mc_numi:
       PrescaleFactor : 1.0
       TriggerThresMult : 1
       TriggerThresPHMAX : 190
+      TriggerWindowSize : 750
+      TriggerWindowStart : 300
+      Verbosity : 3
+    }
+    NUMI_2018May_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 754
+      Discr3WindowStart : 296
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 1.0
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 115
       TriggerWindowSize : 750
       TriggerWindowStart : 300
       Verbosity : 3
@@ -370,10 +427,10 @@ microboone_swtrigger_mc_numi_ext:
     MinReadoutTicks:  1499
     
     drop_event : true 
-    swtrg_algonames : ["EXT_NUMIwin"]
-    swtrg_algotype : ["FEMBeamTriggerAlgo"]
+    swtrg_algonames : ["EXT_NUMIwin","EXT_NUMIwin_2018May"]
+    swtrg_algotype : ["FEMBeamTriggerAlgo","FEMBeamTriggerAlgo"]
     swtrg_beam_window_size : 1100
-    swtrg_bits : [0x200]
+    swtrg_bits : [0x200,0x200]
     EXT_NUMIwin_FEMBeamTriggerAlgo:{
       Discr0deadtime : 6
       Discr0delay : 4
@@ -389,6 +446,25 @@ microboone_swtrigger_mc_numi_ext:
       PrescaleFactor : 0.175
       TriggerThresMult : 1
       TriggerThresPHMAX : 190
+      TriggerWindowSize : 750
+      TriggerWindowStart : 300
+      Verbosity : 3
+    }
+    EXT_NUMIwin_2018May_FEMBeamTriggerAlgo:{
+      Discr0deadtime : 6
+      Discr0delay : 4
+      Discr0precount : 1
+      Discr0threshold : 5
+      Discr3WindowSize : 754
+      Discr3WindowStart : 296
+      Discr3deadtime : 6
+      Discr3delay : 4
+      Discr3threshold : 10
+      Discr3width : 6
+      MinReadoutTicks : 500
+      PrescaleFactor : 0.175
+      TriggerThresMult : 1
+      TriggerThresPHMAX : 115
       TriggerWindowSize : 750
       TriggerWindowStart : 300
       Verbosity : 3
