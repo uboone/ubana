@@ -22,7 +22,7 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            art_Utilities
                            canvas
                            ${MF_MESSAGELOGGER}
-                           ${MF_UTILITIES}
+                           
                            ${FHICLCPP}
                            ${CETLIB}
                            cetlib_except
@@ -52,7 +52,7 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            art_Utilities
                            canvas
                            ${MF_MESSAGELOGGER}
-                           ${MF_UTILITIES}
+                           
                            ${FHICLCPP}
                            ${CETLIB}
                            cetlib_except
