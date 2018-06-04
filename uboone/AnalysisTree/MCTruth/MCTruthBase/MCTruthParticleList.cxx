@@ -20,7 +20,7 @@
 #include "uboone/AnalysisTree/MCTruth/MCTruthBase/MCTruthParticleList.h"
 #include "uboone/AnalysisTree/MCTruth/MCTruthBase/MCTruthEveIdCalculator.h"
 
-#include "cetlib/exception.h"
+#include "cetlib_except/exception.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include <TLorentzVector.h>
