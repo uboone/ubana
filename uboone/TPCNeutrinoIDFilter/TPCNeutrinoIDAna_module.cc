@@ -24,7 +24,7 @@
 #include "art/Framework/Core/FileBlock.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "cetlib/exception.h"
+#include "cetlib_except/exception.h"
 #include "cetlib/cpu_timer.h"
 
 // LArSoft includes
