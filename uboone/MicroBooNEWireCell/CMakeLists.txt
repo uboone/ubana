@@ -2,6 +2,7 @@
 #
 simple_plugin( CellTreeUB "module"
                UBOpReadoutMap_service
+	       ubooneobj_Trigger
                lardata_Utilities_DatabaseUtil_service
                lardataobj_RawData
 	       lardataobj_RecoBase
@@ -19,6 +20,8 @@ simple_plugin( CellTreeUB "module"
                art_Persistency_Common canvas
                art_Persistency_Provenance canvas
                art_Utilities canvas
+	       ${MF_MESSAGELOGGER}
+	       ${ROOT_BASIC_LIB_LIST}
                BASENAME_ONLY
              )
 
