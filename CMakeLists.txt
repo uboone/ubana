@@ -48,6 +48,7 @@ find_ups_product( cetbuildtools v3_10_00 )
 find_ups_boost( v1_53_0 )
 find_ups_product( canvas )
 find_ups_product( ubreco v1_00_00 )
+find_ups_product( ubraw v1_00_00 )
 find_ups_product( larana v1_00_00 )
 find_ups_product( larpandora v1_00_00 )
 
