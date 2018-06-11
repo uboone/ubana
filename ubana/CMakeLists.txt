@@ -1,0 +1,8 @@
+add_subdirectory(AnalysisTree)
+add_subdirectory(Calibrations)
+add_subdirectory(ChargedTrackMultiplicity)
+add_subdirectory(MicroBooNEPandora)
+add_subdirectory(MicroBooNEWireCell)
+add_subdirectory(OpticalDetectorAna)
+add_subdirectory(PatternFilter)
+add_subdirectory(TPCNeutrinoIDFilter)
