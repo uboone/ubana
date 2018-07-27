@@ -167,8 +167,8 @@ bool NuMuCCSelectionIIAlgMCC7::findNeutrinoCandidates(art::Event & evt) const
     for (size_t i = 0; i<tracklist.size(); ++i){
       trackStart.clear();
       trackEnd.clear();
-      memset(larStart, 0, 3);
-      memset(larEnd, 0, 3);
+      memset(&larStart, 0, sizeof(larStart));
+      memset(&larEnd, 0, sizeof(larEnd));
       tracklist[i]->Extent(); //trackStart,trackEnd); 
       tracklist[i]->Direction(larStart,larEnd);
       trkstartx[i]      = trackStart[0];
