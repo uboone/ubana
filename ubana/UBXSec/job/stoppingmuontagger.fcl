@@ -8,9 +8,9 @@ BEGIN_PROLOG
 StoppingMuonTagger: {
   module_type:             "StoppingMuonTagger"
   TPCObjectProducer:       "TPCObjectMaker"
-  PFParticleProducer:      "pandoraNu::UBXSec"
-  ClusterProducer:         "pandoraNu::UBXSec"
-  TrackProducer:           "pandoraNu::UBXSec"
+  PFParticleProducer:      "pandora::UBXSec"
+  ClusterProducer:         "pandora::UBXSec"
+  TrackProducer:           "pandora::UBXSec"
 
   UseMCS:                  true
   MCSDeltaLLCut:           -5

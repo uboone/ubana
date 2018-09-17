@@ -5,8 +5,8 @@ BEGIN_PROLOG
 #
 GeoCosmicTagger: {
   module_type:           "GeoCosmicTagger"
-  TrackProducer:         "pandoraNu::UBXSec"
-  PFParticleProducer:    "pandoraNu::UBXSec"
+  TrackProducer:         "pandora::UBXSec"
+  PFParticleProducer:    "pandora::UBXSec"
   TPCObjectProducer:     "TPCObjectMaker"
 
   TPCXBoundary:          10

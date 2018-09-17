@@ -102,7 +102,7 @@ outputs:
  { 
    module_type: RootOutput
    fileName:    "%ifb_%tc_ubxsec.root"
-   dataTier:    "reconstructed"
+   dataTier:    "reco"
    compressionLevel: 1
    outputCommands: [
             "keep *_*_*_*"]
@@ -128,7 +128,7 @@ services.message.destinations :
   {
      type:      "cout"      #tells the message service to output this destination to cout
      threshold: "WARNING"   #tells the message service that this destination applies to WARNING and higher level messages
-     append:     true       #says to append all messages to the output
+     #append:     true       #says to append all messages to the output
      categories:
      {
        ChannelFilter:

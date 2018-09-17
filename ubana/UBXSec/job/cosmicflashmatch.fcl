@@ -6,7 +6,7 @@ BEGIN_PROLOG
 #
 CosmicFlashMatch: {
   module_type:              "CosmicFlashMatch"
-  PFParticleModule:         "pandoraNu"
+  PFParticleModule:         "pandora"
   DebugMode:                true
   BeamOpFlashProducer:      "simpleFlashBeam"
   CosmicOpFlashProducer:    "simpleFlashCosmic"

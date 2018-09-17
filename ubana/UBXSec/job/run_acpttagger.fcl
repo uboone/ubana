@@ -108,7 +108,7 @@ outputs:
  {
    module_type: RootOutput
    fileName:    "output.root"
-   dataTier:    "reconstructed"
+   dataTier:    "reco"
    compressionLevel: 1
    outputCommands: [ "keep *_*_*_*" ]
 #            "keep *_*_*_*",

@@ -6,11 +6,11 @@ BEGIN_PROLOG
 #
 RecoTrueMatcher: {
   module_type:            "RecoTrueMatcher"
-  PFParticleProducer:     "pandoraNu::UBXSec"
-  HitProducer:            "pandoraCosmicHitRemoval::UBXSec"
+  PFParticleProducer:     "pandora"
+  HitProducer:            "pandoraCosmicHitRemoval"
   GeantModule:            "largeant"
-  SpacePointProducer:     "pandoraNu::UBXSec"
-  MCPHitAssProducer:      "pandoraCosmicHitRemoval::UBXSec" #"crHitRemovalTruthMatch::UBXSec"
+  SpacePointProducer:     "pandora"
+  MCPHitAssProducer:      "crHitRemovalTruthMatch" #"pandoraCosmicHitRemoval::UBXSec"
 
   OverrideRealData:       false
 
