@@ -99,8 +99,8 @@ outputs:
  }
 }
 
-filters.qeeventselectionfilter.SelectionConfig.BeamWindowStartT: 3.2
-filters.qeeventselectionfilter.SelectionConfig.BeamWindowEndT:   4.8
+physics.filters.qeeventselectionfilter.SelectionConfig.BeamWindowStartT: 3.2
+physics.filters.qeeventselectionfilter.SelectionConfig.BeamWindowEndT:   4.8
 
 services.DetectorClocksService.InheritClockConfig:           false
 services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3

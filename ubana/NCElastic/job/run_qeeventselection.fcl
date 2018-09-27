@@ -79,6 +79,10 @@ services.message.destinations :
   }
 }
 
+physics.analyzers.qeeventselection.SelectionConfig.CaloAssocLabel:   "pmtrackrecali"
+physics.analyzers.qeeventselection.SelectionConfig.BeamWindowStartT: 3.7
+physics.analyzers.qeeventselection.SelectionConfig.BeamWindowEndT:   5.3
+physics.analyzers.qeeventselection.SelectionConfig.SaveAllEvents:    true
 
 services.DetectorClocksService.InheritClockConfig:           false
 services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3

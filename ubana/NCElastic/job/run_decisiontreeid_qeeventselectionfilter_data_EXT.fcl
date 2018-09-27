@@ -1,6 +1,7 @@
 #include "services_microboone.fcl"
 #include "time_memory_tracker_microboone.fcl"
 
+#include "calibration_microboone.fcl"
 #include "decisiontreeid.fcl"
 #include "qeeventselectionfilter.fcl"
 
@@ -16,7 +17,7 @@ services:
   RandomNumberGenerator:   {} #ART native random number generator
   message:                 @local::microboone_message_services_prod_debug
   FileCatalogMetadata:     @local::art_file_catalog_mc
-  @table::microboone_services_reco
+                           @table::microboone_services_reco
 }
 
 services.TimeTracker.printSummary: false
@@ -25,6 +26,8 @@ services.TimeTracker.dbOutput: {}
 services.MemoryTracker.printSummaries: []
 services.MemoryTracker.includeMallocInfo: false
 services.MemoryTracker.dbOutput.filename: ""
+
+services.ElectronicsCalibService.ElectronicsCalibProvider.UseDB: false 
 
 #source is now a root file
 source:
@@ -42,6 +45,7 @@ physics:
 
  producers:
  {
+   pmtrackrecali:         @local::microboone_calibrationdedx_data
    pmtrackdecisiontreeid: @local::DecisionTreeID
  }
 
@@ -50,7 +54,7 @@ physics:
    qeeventselectionfilter: @local::QEEventSelectionFilter
  }
 
- reco: [ pmtrackdecisiontreeid, qeeventselectionfilter ]
+ reco: [ pmtrackrecali, pmtrackdecisiontreeid, qeeventselectionfilter ]
 
  #define the output stream, there could be more than one if using filters 
  stream1:  [ out1 ]
@@ -99,8 +103,14 @@ outputs:
  }
 }
 
-filters.qeeventselectionfilter.SelectionConfig.BeamWindowStartT: 3.7
-filters.qeeventselectionfilter.SelectionConfig.BeamWindowEndT:   5.3
+physics.producers.pmtrackrecali.TrackModuleLabel:       "pmtrack"
+physics.producers.pmtrackrecali.CalorimetryModuleLabel: "pmtrackcalo"
+
+physics.producers.pmtrackdecisiontreeid.FeaturesConfig.CaloAssocLabel: "pmtrackrecali"
+
+physics.filters.qeeventselectionfilter.SelectionConfig.CaloAssocLabel:   "pmtrackrecali"
+physics.filters.qeeventselectionfilter.SelectionConfig.BeamWindowStartT: 3.7
+physics.filters.qeeventselectionfilter.SelectionConfig.BeamWindowEndT:   5.3
 
 services.DetectorClocksService.InheritClockConfig:           false
 services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
