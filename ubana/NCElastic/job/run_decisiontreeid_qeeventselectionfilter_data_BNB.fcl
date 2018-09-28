@@ -98,7 +98,7 @@ outputs:
  {
     module_type:  RootOutput
     fileName:     "%ifb_%tc_ncelastic.root"
-    dataTier:     "reco"
+    dataTier:     "reconstructed"
     SelectEvents: [reco]
  }
 }

@@ -86,7 +86,7 @@ outputs:
  {
     module_type: RootOutput
     fileName:    "%ifb_%tc_dtreeid.root"
-    dataTier:    "reco"
+    dataTier:    "reconstructed"
    }
 }
 
