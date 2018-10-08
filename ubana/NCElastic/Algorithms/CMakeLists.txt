@@ -2,9 +2,9 @@
 art_make(BASENAME_ONLY
          LIBRARY_NAME uboonecode_uboone_NCElasticAlgorithms 
          LIB_LIBRARIES 	  		   
-	  	     larcore_Geometry
+	  	     larcorealg_Geometry
 		       larcore_Geometry_Geometry_service
-	         uboone_Geometry
+	         ubcore_Geometry
            UBOpReadoutMap_service
 		       lardataobj_RecoBase
            lardataobj_AnalysisBase
@@ -13,9 +13,9 @@ art_make(BASENAME_ONLY
 			     larpandora_LArPandoraInterface
            larsim_Simulation lardataobj_Simulation 
            nusimdata_SimulationBase
-		       art_Persistency_Common canvas_Persistency_Common
-		       art_Persistency_Provenance canvas_Persistency_Provenance
-		       art_Utilities canvas_Utilities
+		       art_Persistency_Common canvas
+		       art_Persistency_Provenance canvas
+		       art_Utilities canvas
 		       ${UBOONECODE_LIB}
 		       ${LARDATA_LIB}
 		       ${ART_FRAMEWORK_CORE}
@@ -27,14 +27,14 @@ art_make(BASENAME_ONLY
 		       ${MF_MESSAGELOGGER}
 		       ${MF_UTILITIES}
 		       ${FHICLCPP}
-			     ${CETLIB}
+		       cetlib cetlib_except
 		       ${ROOT_GEOM}
 		       ${ROOT_XMLIO}
 		       ${ROOT_GDML}
 		       ${ROOT_BASIC_LIB_LIST}
  
          MODULE_LIBRARIES 	  		   
-	  	     larcore_Geometry
+	  	     larcorealg_Geometry
 		       larcore_Geometry_Geometry_service
 	         uboone_Geometry
            UBOpReadoutMap_service
@@ -45,9 +45,9 @@ art_make(BASENAME_ONLY
 			     larpandora_LArPandoraInterface
            larsim_Simulation lardataobj_Simulation 
            nusimdata_SimulationBase
-		       art_Persistency_Common canvas_Persistency_Common
-		       art_Persistency_Provenance canvas_Persistency_Provenance
-		       art_Utilities canvas_Utilities
+		       art_Persistency_Common canvas
+		       art_Persistency_Provenance canvas
+		       art_Utilities canvas
 		       ${UBOONECODE_LIB}
 		       ${LARDATA_LIB}
 		       ${ART_FRAMEWORK_CORE}
@@ -59,7 +59,7 @@ art_make(BASENAME_ONLY
 		       ${MF_MESSAGELOGGER}
 		       ${MF_UTILITIES}
 		       ${FHICLCPP}
-			     ${CETLIB}
+		       cetlib cetlib_except
 		       ${ROOT_GEOM}
 		       ${ROOT_XMLIO}
 		       ${ROOT_GDML}

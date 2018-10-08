@@ -29,8 +29,8 @@
 #include "TString.h"
 #include "TTree.h"
 
-#include "uboone/XGBoost/xgboost/c_api.h"
-#include "uboone/NCElastic/Algorithms/TrackFeatures.h"
+#include "ubana/XGBoost/xgboost/c_api.h"
+#include "ubana/NCElastic/Algorithms/TrackFeatures.h"
 
 #include <memory>
 #include <cmath>

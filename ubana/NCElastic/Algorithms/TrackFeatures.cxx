@@ -27,7 +27,7 @@
 #include <map>
 #include <cmath>
 
-#include "uboone/NCElastic/Algorithms/TrackFeatures.h"
+#include "ubana/NCElastic/Algorithms/TrackFeatures.h"
 
 namespace dtfeatures {
 

@@ -13,6 +13,7 @@
 #include "../../../dmlc/include/dmlc/io.h"
 #include <vector>
 #include <algorithm>
+#include <functional>
 #include <cstring>
 #include <string>
 #include <utility>

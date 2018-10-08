@@ -26,7 +26,7 @@
 
 #include <iostream>
 
-#include "uboone/NCElastic/Algorithms/LREvtReconstruction.h"
+#include "ubana/NCElastic/Algorithms/LREvtReconstruction.h"
 
 namespace qeselection {
 

@@ -25,7 +25,7 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "uboone/EventWeight/MCEventWeight.h"
+#include "larsim/EventWeight/Base/MCEventWeight.h"
 
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/GTruth.h"
@@ -33,7 +33,7 @@
 #include "TString.h"
 #include "TTree.h"
 
-#include "uboone/NCElastic/Algorithms/LREvtReconstruction.h"
+#include "ubana/NCElastic/Algorithms/LREvtReconstruction.h"
 
 #include <memory>
 #include <cmath>
