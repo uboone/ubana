@@ -3,6 +3,8 @@
 simple_plugin( CellTreeUB "module"
                UBOpReadoutMap_service
 	       ubobj_Trigger
+	       ubobj_MuCS
+	       nusimdata_SimulationBase
                lardata_Utilities_DatabaseUtil_service
                lardataobj_RawData
 	       lardataobj_RecoBase

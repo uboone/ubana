@@ -111,6 +111,7 @@ wcls: {
           configs: ["pgrapher/experiment/uboone/uboone-sim.jsonnet"]
           inputers: ["wclsSimDepoSource"]
           outputers: [
+             "wclsSimChannelSink:postdrift",
              "wclsFrameSaver:simdigits"
           ]
           params: {
