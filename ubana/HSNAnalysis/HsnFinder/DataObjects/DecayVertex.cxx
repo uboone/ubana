@@ -83,7 +83,6 @@ namespace AuxVertex
     SetHypothesisLabels();
     SetMomentumQuantities_ByRange();
     SetMomentumQuantities_ByMCS();
-
   } //  END constructor DecayVertex
 
   // Getters

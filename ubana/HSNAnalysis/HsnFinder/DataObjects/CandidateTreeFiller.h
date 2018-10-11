@@ -137,6 +137,8 @@ namespace AuxEvent
     std::vector<std::vector<float>> calo_prong1ChargeInRadius;
     std::vector<std::vector<float>> calo_prong2ChargeInRadius;
     std::vector<std::vector<float>> calo_caloRatio;
+    // Flash info
+    float flash_flashDistance;
   };
 
 

@@ -8,6 +8,7 @@ HsnFinder::HsnFinder(fhicl::ParameterSet const & pset) :
     fFindPandoraVertexAlg(pset),
     fCalorimetryRadiusAlg(pset),
     fExtractTruthInformationAlg(pset),
+    fFlashMatchingAlg(pset),
     fInstanceName(pset.get<std::string>("InstanceName")),
     fIteration(pset.get<int>("Iteration")),
     fMinTpcBound(pset.get<std::vector<double>>("MinTpcBound")),
@@ -214,6 +215,8 @@ void HsnFinder::beginJob()
   candidateTree->Branch("lengthDiff",&ctf.lengthDiff);
   candidateTree->Branch("lengthRatio",&ctf.lengthRatio);
   candidateTree->Branch("maxStartToNeutrinoDistance",&ctf.maxStartToNeutrinoDistance);
+  // Flash
+  candidateTree->Branch("flash_flashDistance",&ctf.flash_flashDistance);
   // // Calorimetry
   // candidateTree->Branch("calo_totChargeInRadius",&ctf.calo_totChargeInRadius);
   // candidateTree->Branch("calo_prong1ChargeInRadius",&ctf.calo_prong1ChargeInRadius);
@@ -382,7 +385,8 @@ void HsnFinder::analyze(art::Event const & evt)
       // The candidate tree filler is a special class in which we fill all the information we want to know about the current HSN candidate.
       // It is filled multiple times in each event.
       ctf.Initialize(etf,i,ana_decayVertices[i],fCenterCoordinates);
-      // Fill tree
+      fFlashMatchingAlg.AddFlashMatching(evt,ctf,ana_decayVertices[i]);
+      // Fill tree for each candidate
       candidateTree->Fill();
 
       // If requested, do the same for the draw tree

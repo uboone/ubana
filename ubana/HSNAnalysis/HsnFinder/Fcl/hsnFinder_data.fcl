@@ -42,6 +42,7 @@ physics:
       SaveTruthDrawTree:            "false"
       UseTruthDistanceMetric:       "false"
       McTrackLabel:                 "mcreco"
+      FlashLabel:                   "simpleFlashBeam"
       IsHSN:                        "false"
     }
 

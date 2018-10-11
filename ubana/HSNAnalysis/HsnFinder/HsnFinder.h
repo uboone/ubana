@@ -62,6 +62,7 @@
 #include "Algorithms/FindPandoraVertexAlg.h"
 #include "Algorithms/CalorimetryRadiusAlg.h"
 #include "Algorithms/ExtractTruthInformationAlg.h"
+#include "Algorithms/FlashMatchingAlg.h"
 #include "DataObjects/DecayVertex.h"
 #include "DataObjects/EventTreeFiller.h"
 #include "DataObjects/CandidateTreeFiller.h"
@@ -83,6 +84,7 @@ private:
   FindPandoraVertex::FindPandoraVertexAlg fFindPandoraVertexAlg;
   CalorimetryRadius::CalorimetryRadiusAlg fCalorimetryRadiusAlg;
   ExtractTruthInformation::ExtractTruthInformationAlg fExtractTruthInformationAlg;
+  FlashMatching::FlashMatchingAlg fFlashMatchingAlg;
   // Fhiclcpp variables
   std::string fInstanceName;
   int fIteration;
@@ -110,7 +112,6 @@ private:
   TTree *eventTree;
   TTree *candidateTree;
   TTree *drawTree;
-  TTree *physicsTree;
 
   // Declare tree fillers
   AuxEvent::EventTreeFiller etf;

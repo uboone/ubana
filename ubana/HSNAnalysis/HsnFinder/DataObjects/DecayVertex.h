@@ -84,6 +84,7 @@ namespace AuxVertex
     void SetHypothesisLabels();
     void SetMomentumQuantities_ByRange();
     void SetMomentumQuantities_ByMCS();
+    void SetFlashDistance();
 
 
     // Printers
