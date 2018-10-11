@@ -1,5 +1,5 @@
-#ifndef RECOTRUTHDISTANCEALG_H
-#define RECOTRUTHDISTANCEALG_H
+#ifndef EXTRACTTRUTHINFORMATIONALG_H
+#define EXTRACTTRUTHINFORMATIONALG_H
 
 // c++ includes
 #include <iostream>
@@ -43,6 +43,8 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCNeutrino.h"
+#include "lardataobj/MCBase/MCTrack.h"
+#include "lardataobj/MCBase/MCShower.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Vertex.h"
@@ -61,30 +63,39 @@
 // Auxiliary objects includes
 #include "ubana/HSNAnalysis/HsnFinder/DataObjects/DecayVertex.h"
 #include "ubana/HSNAnalysis/HsnFinder/DataObjects/EventTreeFiller.h"
+#include "ubana/HSNAnalysis/HsnFinder/DataObjects/DrawTreeFiller.h"
 
-
-namespace RecoTruthDistance
+namespace ExtractTruthInformation
 {
 
-  class RecoTruthDistanceAlg
+  class ExtractTruthInformationAlg
   {
   public:
-    RecoTruthDistanceAlg(fhicl::ParameterSet const & pset);
-    ~RecoTruthDistanceAlg();
+    ExtractTruthInformationAlg(fhicl::ParameterSet const & pset);
+    ~ExtractTruthInformationAlg();
     void reconfigure(fhicl::ParameterSet const & pset);
 
     // Algorithms
-    void DetermineRecoTruthDistance(
+    void FillEventTreeWithTruth(
             art::Event const & evt,
             AuxEvent::EventTreeFiller & etf,
             std::vector<AuxVertex::DecayVertex> & ana_decayVertices);
+    void FillDrawTreeWithTruth(
+            art::Event const & evt,
+            AuxEvent::DrawTreeFiller & dtf);
+    void XYZtoWireTick(const float* xyz, std::vector<int>& channelLoc, std::vector<float>& tickLoc);
+    bool IsInsideTpc(const float* xyz);
   private:
+    std::vector<double> fMinTpcBound;
+    std::vector<double> fMaxTpcBound;
+    std::string fMcTrackLabel;
     bool fVerbose;
+    bool fIsHSN;
     // microboone services
     const geo::GeometryCore* fGeometry;
     const detinfo::DetectorProperties* fDetectorProperties;
   };
 
-} // END namespace RecoTruthDistance
+} // END namespace ExtractTruthInformation
 
 #endif

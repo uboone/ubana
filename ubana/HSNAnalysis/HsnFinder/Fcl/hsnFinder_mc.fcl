@@ -1,0 +1,60 @@
+#include "services_microboone.fcl"
+
+process_name: hsnfinder
+
+services:
+{
+  TFileService: {fileName: "HsnFinder_hist.root"}
+  TimeTracker:            {}
+  MemoryTracker:          {}
+  RandomNumberGenerator:  {}
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  20
+}
+
+physics:
+{
+	analyzers:
+  {
+    HsnFinder:
+    {
+      module_type:                  "HsnFinder"
+      InstanceName:                 "HsnFinder0"
+      Iteration:                    "0"
+      MinTpcBound:                  [10., -105.53, 10.1]
+      MaxTpcBound:                  [246.35, 107.47, 1026.9]
+      CenterCoordinates:            [126.49,0.97,518.5]
+      PfpLabel:                     "pandoraNu"
+      HitLabel:                     "gaushit"
+      McsLabel:                     "pandoraNuMCSMu"
+      RadiusProfileLimits:          [0,20] # cm
+      RadiusProfileBins:            20
+      ChannelNorm:                  "3.3" # number of channels in cm
+      TickNorm:                     "17.9" # number of ticks in cm
+      VerboseMode:                  "true"
+      SaveDrawTree:                 "true" # Optional. Takes more space.
+      SaveTruthDrawTree:            "true"
+      UseTruthDistanceMetric:       "true"
+      McTrackLabel:                 "mcreco"
+      IsHSN:                        "false"
+    }
+
+    EventFileDatabase:
+    {
+      module_type:          "EventFileDatabase"
+    }
+  }
+  analysis: [ HsnFinder, EventFileDatabase ]
+  end_paths: [analysis]
+}
+
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -400
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400

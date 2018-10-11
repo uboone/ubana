@@ -7,7 +7,7 @@ HsnFinder::HsnFinder(fhicl::ParameterSet const & pset) :
     EDAnalyzer(pset),
     fFindPandoraVertexAlg(pset),
     fCalorimetryRadiusAlg(pset),
-    fRecoTruthDistanceAlg(pset),
+    fExtractTruthInformationAlg(pset),
     fInstanceName(pset.get<std::string>("InstanceName")),
     fIteration(pset.get<int>("Iteration")),
     fMinTpcBound(pset.get<std::vector<double>>("MinTpcBound")),
@@ -22,7 +22,10 @@ HsnFinder::HsnFinder(fhicl::ParameterSet const & pset) :
     fTickNorm(pset.get<double>("TickNorm")),
     fVerbose(pset.get<bool>("VerboseMode")),
     fSaveDrawTree(pset.get<bool>("SaveDrawTree") ),
-    fUseTruthDistanceMetric(pset.get<bool>("UseTruthDistanceMetric"))
+    fSaveTruthDrawTree(pset.get<bool>("SaveTruthDrawTree") ),
+    fUseTruthDistanceMetric(pset.get<bool>("UseTruthDistanceMetric")),
+    fMcTrackLabel(pset.get<std::string>("McTrackLabel")),
+    fIsHSN(pset.get<bool>("IsHSN"))
 {
   // Get geometry and detector services
   fGeometry = lar::providerFrom<geo::Geometry>();
@@ -92,8 +95,12 @@ void HsnFinder::beginJob()
   candidateTree->Branch("hsnID",&ctf.hsnID);
   candidateTree->Branch("nHsnCandidatesInSameEvent",&ctf.nHsnCandidatesInSameEvent);
   // Cheat reco-truth
-  candidateTree->Branch("recoTruthDistance",&ctf.recoTruthDistance);
-  candidateTree->Branch("isClosestToTruth",&ctf.isClosestToTruth);
+  if ( fUseTruthDistanceMetric )
+  {
+    candidateTree->Branch("recoTruthDistance",&ctf.recoTruthDistance);
+    candidateTree->Branch("isClosestToTruth",&ctf.isClosestToTruth);
+    candidateTree->Branch("truthCoordinates",&ctf.truthCoordinates);
+  }
   // Coordinates
   candidateTree->Branch("geo_nuPositionX",&ctf.geo_nuPosX);
   candidateTree->Branch("geo_nuPositionY",&ctf.geo_nuPosY);
@@ -207,17 +214,15 @@ void HsnFinder::beginJob()
   candidateTree->Branch("lengthDiff",&ctf.lengthDiff);
   candidateTree->Branch("lengthRatio",&ctf.lengthRatio);
   candidateTree->Branch("maxStartToNeutrinoDistance",&ctf.maxStartToNeutrinoDistance);
-
-
-  // Calorimetry
-  candidateTree->Branch("calo_totChargeInRadius",&ctf.calo_totChargeInRadius);
-  candidateTree->Branch("calo_prong1ChargeInRadius",&ctf.calo_prong1ChargeInRadius);
-  candidateTree->Branch("calo_prong2ChargeInRadius",&ctf.calo_prong2ChargeInRadius);
-  candidateTree->Branch("calo_caloRatio",&ctf.calo_caloRatio);
-  // Status
-  candidateTree->Branch("status_nuWithMissingAssociatedVertex",&ctf.status_nuWithMissingAssociatedVertex);
-  candidateTree->Branch("status_nuWithMissingAssociatedTrack",&ctf.status_nuWithMissingAssociatedTrack);
-  candidateTree->Branch("status_nuProngWithMissingAssociatedHits",&ctf.status_nuProngWithMissingAssociatedHits);
+  // // Calorimetry
+  // candidateTree->Branch("calo_totChargeInRadius",&ctf.calo_totChargeInRadius);
+  // candidateTree->Branch("calo_prong1ChargeInRadius",&ctf.calo_prong1ChargeInRadius);
+  // candidateTree->Branch("calo_prong2ChargeInRadius",&ctf.calo_prong2ChargeInRadius);
+  // candidateTree->Branch("calo_caloRatio",&ctf.calo_caloRatio);
+  // // Status
+  // candidateTree->Branch("status_nuWithMissingAssociatedVertex",&ctf.status_nuWithMissingAssociatedVertex);
+  // candidateTree->Branch("status_nuWithMissingAssociatedTrack",&ctf.status_nuWithMissingAssociatedTrack);
+  // candidateTree->Branch("status_nuProngWithMissingAssociatedHits",&ctf.status_nuProngWithMissingAssociatedHits);
 
 
   if (fSaveDrawTree)
@@ -264,7 +269,67 @@ void HsnFinder::beginJob()
     drawTree->Branch("tot_hits_p1_tickCoordinates",&dtf.tot_hits_p1_tickCoordinates);
     drawTree->Branch("tot_hits_p2_wireCoordinates",&dtf.tot_hits_p2_wireCoordinates);
     drawTree->Branch("tot_hits_p2_tickCoordinates",&dtf.tot_hits_p2_tickCoordinates);
-
+    if (fSaveTruthDrawTree)
+    {
+      drawTree->Branch("truth_dv_p0_wireCoordinates",&dtf.truth_dv_p0_wireCoordinates);
+      drawTree->Branch("truth_dv_p0_tickCoordinates",&dtf.truth_dv_p0_tickCoordinates);
+      drawTree->Branch("truth_dv_p1_wireCoordinates",&dtf.truth_dv_p1_wireCoordinates);
+      drawTree->Branch("truth_dv_p1_tickCoordinates",&dtf.truth_dv_p1_tickCoordinates);
+      drawTree->Branch("truth_dv_p2_wireCoordinates",&dtf.truth_dv_p2_wireCoordinates);
+      drawTree->Branch("truth_dv_p2_tickCoordinates",&dtf.truth_dv_p2_tickCoordinates);
+      drawTree->Branch("truth_nPrimaryTracks",&dtf.truth_nPrimaryTracks);
+      drawTree->Branch("truth_nSecondaryTracks",&dtf.truth_nSecondaryTracks);
+      drawTree->Branch("truth_primaryTracks_start_p0_wireCoordinates",&dtf.truth_primaryTracks_start_p0_wireCoordinates);
+      drawTree->Branch("truth_primaryTracks_start_p0_tickCoordinates",&dtf.truth_primaryTracks_start_p0_tickCoordinates);
+      drawTree->Branch("truth_primaryTracks_start_p1_wireCoordinates",&dtf.truth_primaryTracks_start_p1_wireCoordinates);
+      drawTree->Branch("truth_primaryTracks_start_p1_tickCoordinates",&dtf.truth_primaryTracks_start_p1_tickCoordinates);
+      drawTree->Branch("truth_primaryTracks_start_p2_wireCoordinates",&dtf.truth_primaryTracks_start_p2_wireCoordinates);
+      drawTree->Branch("truth_primaryTracks_start_p2_tickCoordinates",&dtf.truth_primaryTracks_start_p2_tickCoordinates);
+      drawTree->Branch("truth_primaryTracks_end_p0_wireCoordinates",&dtf.truth_primaryTracks_end_p0_wireCoordinates);
+      drawTree->Branch("truth_primaryTracks_end_p0_tickCoordinates",&dtf.truth_primaryTracks_end_p0_tickCoordinates);
+      drawTree->Branch("truth_primaryTracks_end_p1_wireCoordinates",&dtf.truth_primaryTracks_end_p1_wireCoordinates);
+      drawTree->Branch("truth_primaryTracks_end_p1_tickCoordinates",&dtf.truth_primaryTracks_end_p1_tickCoordinates);
+      drawTree->Branch("truth_primaryTracks_end_p2_wireCoordinates",&dtf.truth_primaryTracks_end_p2_wireCoordinates);
+      drawTree->Branch("truth_primaryTracks_end_p2_tickCoordinates",&dtf.truth_primaryTracks_end_p2_tickCoordinates);
+      drawTree->Branch("truth_secondaryTracks_start_p0_wireCoordinates",&dtf.truth_secondaryTracks_start_p0_wireCoordinates);
+      drawTree->Branch("truth_secondaryTracks_start_p0_tickCoordinates",&dtf.truth_secondaryTracks_start_p0_tickCoordinates);
+      drawTree->Branch("truth_secondaryTracks_start_p1_wireCoordinates",&dtf.truth_secondaryTracks_start_p1_wireCoordinates);
+      drawTree->Branch("truth_secondaryTracks_start_p1_tickCoordinates",&dtf.truth_secondaryTracks_start_p1_tickCoordinates);
+      drawTree->Branch("truth_secondaryTracks_start_p2_wireCoordinates",&dtf.truth_secondaryTracks_start_p2_wireCoordinates);
+      drawTree->Branch("truth_secondaryTracks_start_p2_tickCoordinates",&dtf.truth_secondaryTracks_start_p2_tickCoordinates);
+      drawTree->Branch("truth_secondaryTracks_end_p0_wireCoordinates",&dtf.truth_secondaryTracks_end_p0_wireCoordinates);
+      drawTree->Branch("truth_secondaryTracks_end_p0_tickCoordinates",&dtf.truth_secondaryTracks_end_p0_tickCoordinates);
+      drawTree->Branch("truth_secondaryTracks_end_p1_wireCoordinates",&dtf.truth_secondaryTracks_end_p1_wireCoordinates);
+      drawTree->Branch("truth_secondaryTracks_end_p1_tickCoordinates",&dtf.truth_secondaryTracks_end_p1_tickCoordinates);
+      drawTree->Branch("truth_secondaryTracks_end_p2_wireCoordinates",&dtf.truth_secondaryTracks_end_p2_wireCoordinates);
+      drawTree->Branch("truth_secondaryTracks_end_p2_tickCoordinates",&dtf.truth_secondaryTracks_end_p2_tickCoordinates);
+      drawTree->Branch("truth_nPrimaryShowers",&dtf.truth_nPrimaryShowers);
+      drawTree->Branch("truth_nSecondaryShowers",&dtf.truth_nSecondaryShowers);
+      drawTree->Branch("truth_primaryShowers_start_p0_wireCoordinates",&dtf.truth_primaryShowers_start_p0_wireCoordinates);
+      drawTree->Branch("truth_primaryShowers_start_p0_tickCoordinates",&dtf.truth_primaryShowers_start_p0_tickCoordinates);
+      drawTree->Branch("truth_primaryShowers_start_p1_wireCoordinates",&dtf.truth_primaryShowers_start_p1_wireCoordinates);
+      drawTree->Branch("truth_primaryShowers_start_p1_tickCoordinates",&dtf.truth_primaryShowers_start_p1_tickCoordinates);
+      drawTree->Branch("truth_primaryShowers_start_p2_wireCoordinates",&dtf.truth_primaryShowers_start_p2_wireCoordinates);
+      drawTree->Branch("truth_primaryShowers_start_p2_tickCoordinates",&dtf.truth_primaryShowers_start_p2_tickCoordinates);
+      drawTree->Branch("truth_primaryShowers_end_p0_wireCoordinates",&dtf.truth_primaryShowers_end_p0_wireCoordinates);
+      drawTree->Branch("truth_primaryShowers_end_p0_tickCoordinates",&dtf.truth_primaryShowers_end_p0_tickCoordinates);
+      drawTree->Branch("truth_primaryShowers_end_p1_wireCoordinates",&dtf.truth_primaryShowers_end_p1_wireCoordinates);
+      drawTree->Branch("truth_primaryShowers_end_p1_tickCoordinates",&dtf.truth_primaryShowers_end_p1_tickCoordinates);
+      drawTree->Branch("truth_primaryShowers_end_p2_wireCoordinates",&dtf.truth_primaryShowers_end_p2_wireCoordinates);
+      drawTree->Branch("truth_primaryShowers_end_p2_tickCoordinates",&dtf.truth_primaryShowers_end_p2_tickCoordinates);
+      drawTree->Branch("truth_secondaryShowers_start_p0_wireCoordinates",&dtf.truth_secondaryShowers_start_p0_wireCoordinates);
+      drawTree->Branch("truth_secondaryShowers_start_p0_tickCoordinates",&dtf.truth_secondaryShowers_start_p0_tickCoordinates);
+      drawTree->Branch("truth_secondaryShowers_start_p1_wireCoordinates",&dtf.truth_secondaryShowers_start_p1_wireCoordinates);
+      drawTree->Branch("truth_secondaryShowers_start_p1_tickCoordinates",&dtf.truth_secondaryShowers_start_p1_tickCoordinates);
+      drawTree->Branch("truth_secondaryShowers_start_p2_wireCoordinates",&dtf.truth_secondaryShowers_start_p2_wireCoordinates);
+      drawTree->Branch("truth_secondaryShowers_start_p2_tickCoordinates",&dtf.truth_secondaryShowers_start_p2_tickCoordinates);
+      drawTree->Branch("truth_secondaryShowers_end_p0_wireCoordinates",&dtf.truth_secondaryShowers_end_p0_wireCoordinates);
+      drawTree->Branch("truth_secondaryShowers_end_p0_tickCoordinates",&dtf.truth_secondaryShowers_end_p0_tickCoordinates);
+      drawTree->Branch("truth_secondaryShowers_end_p1_wireCoordinates",&dtf.truth_secondaryShowers_end_p1_wireCoordinates);
+      drawTree->Branch("truth_secondaryShowers_end_p1_tickCoordinates",&dtf.truth_secondaryShowers_end_p1_tickCoordinates);
+      drawTree->Branch("truth_secondaryShowers_end_p2_wireCoordinates",&dtf.truth_secondaryShowers_end_p2_wireCoordinates);
+      drawTree->Branch("truth_secondaryShowers_end_p2_tickCoordinates",&dtf.truth_secondaryShowers_end_p2_tickCoordinates);
+    }
   }
 
 } // END function beginJob
@@ -309,7 +374,7 @@ void HsnFinder::analyze(art::Event const & evt)
     // fCalorimetryRadiusAlg.PerformCalorimetry(evt, etf, ana_decayVertices);
 
     // If want to use reco-truth distance as a metric for finding best HSN candidate, do it here.
-    if ( fUseTruthDistanceMetric ) { fRecoTruthDistanceAlg.DetermineRecoTruthDistance(evt,etf,ana_decayVertices);}
+    if ( fUseTruthDistanceMetric ) { fExtractTruthInformationAlg.FillEventTreeWithTruth(evt,etf,ana_decayVertices);}
 
     // Now loop for each candidate and fill the tree
     for (std::vector<int>::size_type i=0; i!=ana_decayVertices.size(); i++)
@@ -324,6 +389,10 @@ void HsnFinder::analyze(art::Event const & evt)
       if (fSaveDrawTree)
       {
         dtf.Initialize(etf,i,ana_decayVertices[i]);
+        if (fSaveTruthDrawTree)
+        {
+          fExtractTruthInformationAlg.FillDrawTreeWithTruth(evt,dtf);
+        }
         drawTree->Fill();
       }
     } // END FOR loop for each candidate

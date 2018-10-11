@@ -59,6 +59,7 @@ namespace AuxEvent
     // Cheat reco-truth
     float recoTruthDistance;
     bool isClosestToTruth;
+    std::vector<float> truthCoordinates;
     // Coordinates
     float geo_nuPosX, geo_nuPosY, geo_nuPosZ;
     std::vector<float> geo_prongPosX, geo_prongPosY, geo_prongPosZ;

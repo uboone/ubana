@@ -27,10 +27,12 @@ namespace AuxEvent
     if (etf.recoTruthDistances.size() == 0)
     {
       recoTruthDistance = -999;
-      isClosestToTruth = -999;
+      isClosestToTruth = false;
+      truthCoordinates = {-999,-999,-999};
     }
     else
     {
+      truthCoordinates = {etf.truth_vx,etf.truth_vy,etf.truth_vz};
       recoTruthDistance = etf.recoTruthDistances[hsnID];
       isClosestToTruth = etf.isClosestToTruth[hsnID];
     }

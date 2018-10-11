@@ -61,7 +61,7 @@
 // Auxiliary objects includes
 #include "Algorithms/FindPandoraVertexAlg.h"
 #include "Algorithms/CalorimetryRadiusAlg.h"
-#include "Algorithms/RecoTruthDistanceAlg.h"
+#include "Algorithms/ExtractTruthInformationAlg.h"
 #include "DataObjects/DecayVertex.h"
 #include "DataObjects/EventTreeFiller.h"
 #include "DataObjects/CandidateTreeFiller.h"
@@ -82,7 +82,7 @@ private:
   // Algorithms
   FindPandoraVertex::FindPandoraVertexAlg fFindPandoraVertexAlg;
   CalorimetryRadius::CalorimetryRadiusAlg fCalorimetryRadiusAlg;
-  RecoTruthDistance::RecoTruthDistanceAlg fRecoTruthDistanceAlg;
+  ExtractTruthInformation::ExtractTruthInformationAlg fExtractTruthInformationAlg;
   // Fhiclcpp variables
   std::string fInstanceName;
   int fIteration;
@@ -96,8 +96,10 @@ private:
   double fTickNorm;
   bool fVerbose;
   bool fSaveDrawTree;
+  bool fSaveTruthDrawTree;
   bool fUseTruthDistanceMetric;
-  //bool fTruthMatching;
+  std::string fMcTrackLabel;
+  bool fIsHSN;
 
   // Declare services
   geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
@@ -108,7 +110,7 @@ private:
   TTree *eventTree;
   TTree *candidateTree;
   TTree *drawTree;
-  //TTree *physicsTree;
+  TTree *physicsTree;
 
   // Declare tree fillers
   AuxEvent::EventTreeFiller etf;

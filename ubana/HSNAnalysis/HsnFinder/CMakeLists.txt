@@ -69,6 +69,7 @@ art_make( BASENAME_ONLY
 
 add_subdirectory(Algorithms)
 add_subdirectory(DataObjects)
+add_subdirectory(Fcl)
 
 install_headers()
 install_source()

@@ -39,7 +39,10 @@ physics:
       TickNorm:                     "17.9" # number of ticks in cm
       VerboseMode:                  "true"
       SaveDrawTree:                 "true" # Optional. Takes more space.
+      SaveTruthDrawTree:            "false"
       UseTruthDistanceMetric:       "false"
+      McTrackLabel:                 "mcreco"
+      IsHSN:                        "false"
     }
 
     EventFileDatabase:
