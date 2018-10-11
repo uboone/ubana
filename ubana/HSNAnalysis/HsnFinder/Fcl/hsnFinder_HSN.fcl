@@ -22,14 +22,6 @@ physics:
 {
 	analyzers:
   {
-
-    TruthInfo:
-    {
-      module_type:          "ShowKinematicDistributions"
-      mcTruthLabel:              "generator"
-      mcTrackLabel:              "mcreco"
-    }
-
     HsnFinder:
     {
 		 	module_type:                  "HsnFinder"
@@ -60,7 +52,7 @@ physics:
     }
     
   }
-  analysis: [TruthInfo, HsnFinder, EventFileDatabase]
+  analysis: [ HsnFinder, EventFileDatabase]
   end_paths: [analysis]
 }
 
