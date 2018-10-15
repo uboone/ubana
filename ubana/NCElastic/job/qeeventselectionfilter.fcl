@@ -1,0 +1,60 @@
+#include "mctruthmatching_uboone.fcl"
+
+BEGIN_PROLOG
+#
+# Module configuration
+#
+QEEventSelectionFilter: {
+
+ module_type:           "QEEventSelectionFilter"
+
+ # save all events or just selected events
+ MinimumLRScore: 0.9
+
+ # this should be the same for training and predicting!
+ SelectionConfig:
+ {
+    NEndHits:            6
+
+    # values for MCC8 MC and MCC8 DIRT MC
+    BeamWindowStartT: 3.2
+    BeamWindowEndT:   4.8
+    # values for MCC8 MC Corsika In-Time
+    #BeamWindowStartT: 3.65
+    #BeamWindowEndT:   5.25
+    # values for MCC8 MC overlay
+    #BeamWindowStartT: 3.6
+    #BeamWindowEndT:   5.2
+    # values for MCC8 BNBEXT
+    #BeamWindowStartT: 3.7 #3.6
+    #BeamWindowEndT:   5.3 #5.2
+    # values for MCC8 BNB
+    #BeamWindowStartT: 3.3 #3.25
+    #BeamWindowEndT:   4.9 #4.85
+
+    MinFlashPE:          6.5
+
+    MinPLength:          2.5
+    MinPScore:           0.5
+    
+    FiducialXMin:        3.45
+    FiducialXMax:        249.8
+    FiducialYMin:        -100.53
+    FiducialYMax:        102.47
+    FiducialZMin:        5.1
+    FiducialZMax:        1031.9
+
+    MinMuScore:          0.5
+    MinPiScore:          0.5
+
+    LRCoefficients:      [-5.943956,5.388985,0.021189,-0.016710,-0.017510,0.59220,0.001084,0.000989]
+
+    TrackModuleLabel:    "pmtrack"
+    FlashModuleLabel:    "simpleFlashBeamLowPE"
+    DTAssocLabel:        "pmtrackdecisiontreeid"
+    CaloAssocLabel:      "pmtrackcali"
+
+ }
+
+}
+END_PROLOG

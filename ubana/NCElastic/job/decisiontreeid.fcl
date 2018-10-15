@@ -1,0 +1,42 @@
+#include "mctruthmatching_uboone.fcl"
+
+BEGIN_PROLOG
+#
+# Module configuration
+#
+DecisionTreeID: {
+
+ module_type:      "DecisionTreeID"
+ TrackModuleLabel: "pmtrack"
+
+ ModelFile:        "multiclass_pmtrack_mcc87_final.model"
+
+ # this should be the same for training and predicting!
+ FeaturesConfig:
+ {
+    NEndHits:         6
+
+    # values for MCC8 MC and MCC8 DIRT MC
+    BeamWindowStartT: 3.2
+    BeamWindowEndT:   4.8
+    # values for MCC8 MC Corsika In-Time
+    #BeamWindowStartT: 3.65
+    #BeamWindowEndT:   5.25
+    # values for MCC8 MC overlay
+    #BeamWindowStartT: 3.6
+    #BeamWindowEndT:   5.2
+    # values for MCC8 BNBEXT
+    #BeamWindowStartT: 3.7 #3.6
+    #BeamWindowEndT:   5.3 #5.2
+    # values for MCC8 BNB
+    #BeamWindowStartT: 3.3 #3.25
+    #BeamWindowEndT:   4.9 #4.85
+
+    PIDAssocLabel:        "pmtrackcalipid"
+    CaloAssocLabel:       "pmtrackcali"
+    CosmicTagAssocLabel:  "pmtracktag"
+    ContainTagAssocLabel: "pmtrackContTag"
+ }
+
+}
+END_PROLOG
