@@ -44,8 +44,8 @@ celltreeub_mc: {
  SavePMT_wfmSaturation         : false
  SavePMT_reco                  : false
  SavePMT_gain                  : false
- SaveHWTrigger                 : false
- SaveSWTrigger                 : false
+ SaveHWTrigger                 : true
+ SaveSWTrigger                 : true
  SaveBeam                      : false 
  SavePOT                       : false
  SaveMuCSData		       : false
