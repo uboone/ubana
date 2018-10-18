@@ -47,7 +47,7 @@ services.DetectorClocksService.TriggerOffsetTPC:         -0.400e3
 
 microboone_tfile_metadata:
 {
-  JSONFileName:          [ "cellree.root.json" ]
+  JSONFileName:          [ "celltreeDATA.root.json" ]
   GenerateTFileMetadata: [ true ]
   dataTier:		 [ "celltree" ]
   fileFormat:		 [ "root" ]
