@@ -25,8 +25,8 @@ celltreeub_mc: {
  PMT_LG_beamProducer           : "pmtreadout"
  PMT_wfmSaturationLabel        : "saturation"
  PMT_recoLabel                 : "opflash"
- HWTrigger_label               : "daq"
- SWTrigger_label               : "daq"
+ HWTrigger_label               : "triggersim"
+ SWTrigger_label               : "swtrigger"
  Beam_label                    : "beaminfo"
  POT_producer                  : "beamdata"
  POT_bnb1label                 : "bnbETOR875"
@@ -44,8 +44,8 @@ celltreeub_mc: {
  SavePMT_wfmSaturation         : false
  SavePMT_reco                  : false
  SavePMT_gain                  : false
- SaveHWTrigger                 : false
- SaveSWTrigger                 : false
+ SaveHWTrigger                 : true
+ SaveSWTrigger                 : true
  SaveBeam                      : false 
  SavePOT                       : false
  SaveMuCSData		       : false

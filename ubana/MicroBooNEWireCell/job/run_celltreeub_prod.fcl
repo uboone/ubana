@@ -25,7 +25,17 @@ source:
 }
 
 
-outputs:{}
+outputs:
+{
+    out:
+        {
+        module_type: RootOutput
+        fileName:    "%ifb_postwcct.root"
+        dataTier:    "reconstructed"
+        compressionLevel: 1
+        }
+}
+
 
 
 physics:
@@ -36,7 +46,8 @@ physics:
   }
 
   analysis: [ Event ]
-  end_paths: [ analysis ]
+  stream1: [ out ]
+  end_paths: [ analysis, stream1 ]
 }
 
 services.DetectorPropertiesService.NumberTimeSamples:    6400
