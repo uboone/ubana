@@ -1,7 +1,3 @@
-add_subdirectory(ObjectTrees)
-
-add_subdirectory(MCTruth)
-
 art_make( MODULE_LIBRARIES larcorealg_Geometry
 			               larcore_Geometry_Geometry_service
                            larsim_Simulation
@@ -39,6 +35,6 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 			               ${ROOT_BASIC_LIB_LIST}
         )
 
-# install_headers()
+install_headers()
 install_fhicl()
 install_source()
