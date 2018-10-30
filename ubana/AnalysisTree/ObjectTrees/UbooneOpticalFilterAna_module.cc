@@ -61,6 +61,8 @@ private:
   float fPE_beam;
   float fPE_veto;
   float fMaxFrac;
+  float fPE_beam_total;
+  float fPE_veto_total;
 };
 
 
@@ -85,6 +87,8 @@ void ana::UbooneOpticalFilterAna::analyze(art::Event const & e)
   fPE_beam = opfilter_handle->PE_Beam();
   fPE_veto = opfilter_handle->PE_Veto();
   fMaxFrac = opfilter_handle->PMT_MaxFraction();
+  fPE_beam_total = opfilter_handle->PE_Beam_Total();
+  fPE_veto_total = opfilter_handle->PE_Veto_Total();
 
   fAnaTree->Fill();
 
@@ -103,6 +107,8 @@ void ana::UbooneOpticalFilterAna::beginJob()
   fAnaTree->Branch("pe_beam",&fPE_beam,"pe_beam/F");
   fAnaTree->Branch("pe_veto",&fPE_veto,"pe_veto/F");
   fAnaTree->Branch("maxfrac",&fMaxFrac,"maxfrac/F");
+  fAnaTree->Branch("pe_beam_total",&fPE_beam_total,"pe_beam_total/F");
+  fAnaTree->Branch("pe_veto_total",&fPE_veto_total,"pe_veto_total/F");
 }
 
 DEFINE_ART_MODULE(ana::UbooneOpticalFilterAna)

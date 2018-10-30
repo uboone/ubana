@@ -111,7 +111,10 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
 
   if(fStoreOpticalFilterObj)
     {
-      std::unique_ptr<uboone::UbooneOpticalFilter> ubopfilter_obj( new uboone::UbooneOpticalFilter(beamPEinfo[0],vetoPEinfo[0],maxfrac));
+      float total_beam_PE=0; for(auto const& pe : flashbins) total_beam_PE+= pe;
+      float total_veto_PE=0; for(auto const& pe : vetobins) total_veto_PE+= pe;
+      std::unique_ptr<uboone::UbooneOpticalFilter> ubopfilter_obj( new uboone::UbooneOpticalFilter(beamPEinfo[0],vetoPEinfo[0],maxfrac,
+												   total_beam_PE,total_veto_PE));
       e.put(std::move(ubopfilter_obj));
     }
   
