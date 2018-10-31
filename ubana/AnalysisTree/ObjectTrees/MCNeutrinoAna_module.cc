@@ -55,6 +55,7 @@ private:
   TTree* fParticleTree;
 
   unsigned int fRun;
+  unsigned int fSubrun;
   unsigned int fEvent;
   
   //truth info
@@ -120,6 +121,7 @@ private:
 void ana::MCNeutrinoAna::SetupTruthTree()
 {
   fMCTruthTree->Branch("run",&fRun,"run/i");
+  fMCTruthTree->Branch("subrun",&fSubrun,"subrun/i");
   fMCTruthTree->Branch("event",&fEvent,"event/i");
   fMCTruthTree->Branch("truth_index",&fTruthIndex,"truth_index/i");
   fMCTruthTree->Branch("n_particles",&fNParticles,"n_particles/I");
@@ -141,6 +143,7 @@ void ana::MCNeutrinoAna::SetupTruthTree()
 void ana::MCNeutrinoAna::SetupParticleTree()
 {
   fParticleTree->Branch("run",&fRun,"run/i");
+  fParticleTree->Branch("subrun",&fSubrun,"subrun/i");
   fParticleTree->Branch("event",&fEvent,"event/i");
   fParticleTree->Branch("truth_index",&fTruthIndex,"truth_index/i");
   fParticleTree->Branch("p_index",&fParticleIndex,"p_index/i");
@@ -180,6 +183,7 @@ void ana::MCNeutrinoAna::SetupParticleTree()
 void ana::MCNeutrinoAna::FillEventInfo(art::Event const& e)
 {
   fRun = e.run();
+  fSubrun = e.subRun();
   fEvent = e.event();
 }
 
