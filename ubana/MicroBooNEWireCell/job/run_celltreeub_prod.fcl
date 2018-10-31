@@ -13,6 +13,7 @@ services:
   @table::microboone_services
   UBOpReadoutMap: @local::microboone_opreadoutmap
   PMTGainService: @local::microboone_pmtgain_service
+  FileCatalogMetadata:  @local::art_file_catalog_data
 }
 
 
