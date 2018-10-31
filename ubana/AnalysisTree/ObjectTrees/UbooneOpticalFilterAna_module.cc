@@ -107,6 +107,7 @@ void ana::UbooneOpticalFilterAna::beginJob()
   fAnaTree->Branch("pe_beam",&fPE_beam,"pe_beam/F");
   fAnaTree->Branch("pe_veto",&fPE_veto,"pe_veto/F");
   fAnaTree->Branch("maxfrac",&fMaxFrac,"maxfrac/F");
+
   fAnaTree->Branch("pe_beam_total",&fPE_beam_total,"pe_beam_total/F");
   fAnaTree->Branch("pe_veto_total",&fPE_veto_total,"pe_veto_total/F");
 }
