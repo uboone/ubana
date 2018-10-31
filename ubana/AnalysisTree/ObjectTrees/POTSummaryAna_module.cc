@@ -46,7 +46,7 @@ public:
 
   // Selected optional functions.
   void beginJob() override;
-  void beginSubRun(art::SubRun const&) override;
+  void endSubRun(art::SubRun const&) override;
 
 private:
 
@@ -101,7 +101,7 @@ ana::POTSummaryAna::POTSummaryAna(fhicl::ParameterSet const & p)
   fInputTag = p.get<art::InputTag>("InputTag");
 }
 
-void ana::POTSummaryAna::beginSubRun(art::SubRun const& s)
+void ana::POTSummaryAna::endSubRun(art::SubRun const& s)
 {
   FillSubRunInfo(s);
 
