@@ -116,6 +116,9 @@ wcls: {
           ]
           params: {
           }
+	  structs: {
+      	      gain_fudge_factor: 0.72
+      	  }
       }
    }
 
@@ -133,6 +136,9 @@ wcls: {
           ]
           params: {
           }
+	  structs: {
+      	      gain_fudge_factor: 0.72
+      	  }
       }
    }
 
