@@ -119,6 +119,23 @@ wcls: {
       }
    }
 
+   driftsim_overlay : {
+      module_type : WireCellToolkit
+      wcls_main: {
+          tool_type: WCLS
+          apps: ["Pgrapher"]
+          plugins: ["WireCellPgraph", "WireCellGen","WireCellSio", "WireCellLarsoft"]
+          configs: ["pgrapher/experiment/uboone/uboone-sim-overlay.jsonnet"]
+          inputers: ["wclsSimDepoSource"]
+          outputers: [
+             "wclsSimChannelSink:postdrift",
+             "wclsFrameSaver:simdigits"
+          ]
+          params: {
+          }
+      }
+   }
+
    # This rewrites existing raw::RawDigit and recob::Wire
    # collections in order to truncate and scale them.  This is not
    # WCT related but happens to run generic art modules currently
