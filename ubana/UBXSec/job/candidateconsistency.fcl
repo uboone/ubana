@@ -8,8 +8,8 @@ BEGIN_PROLOG
 CandidateConsistency: {
   module_type:           "CandidateConsistency"
   TPCObjectProducer:     "TPCObjectMaker::UBXSec"
-  TrackProducer:         "pandoraNu::UBXSec"
-  ShowerProducer:        "pandoraNu::UBXSec"
+  TrackProducer:         "pandora::UBXSec"
+  ShowerProducer:        "pandora::UBXSec"
 
   Tolerance:               5.
   DqDsThreshold:           70000

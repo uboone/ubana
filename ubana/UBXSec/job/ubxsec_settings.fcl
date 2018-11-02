@@ -10,10 +10,10 @@ BEGIN_PROLOG
 
 UBXSec: {
   module_type:                  "UBXSec"
-  PFParticleProducer:           "pandoraNu::UBXSec"
-  HitProducer:                  "pandoraCosmicHitRemoval::UBXSec" #"crHitRemovalTruthMatch::UBXSec"
+  PFParticleProducer:           "pandora"
+  HitProducer:                  "crHitRemovalTruthMatch::UBXSec" #"pandoraCosmicHitRemoval::UBXSec"
   GeantModule:                  "largeant"
-  SpacePointProducer:           "pandoraNu::UBXSec"
+  SpacePointProducer:           "pandora"
   NeutrinoFlashMatchProducer:   "NeutrinoFlashMatch"
   CosmicFlashMatchProducer:     "CosmicFlashMatch"
   OpFlashBeamProducer:          "simpleFlashBeam"
@@ -21,26 +21,24 @@ UBXSec: {
   TPCObjectProducer:            "TPCObjectMaker"
   POTSummaryProducer:           "generator"
   POTSummaryInstance:           ""
-  ParticleIDProducer:           "pandoraNupid::UBXSec"
+  ParticleIDProducer:           "pandorapid"
   MCGhostProducer:              "RecoTrueMatcher"
   GeoCosmicTaggerProducer:      "pandoraNuGeoCosmicTag"
   CandidateConsistencyProducer: "CandidateConsistency"
-  MCSFitResultMuProducer:       "pandoraNuMCSMu"
+  MCSFitResultMuProducer:       "pandoraMCSMu"
   MCSFitResultPiProducer:       "pandoraNuMCSPi"
-  CalorimetryProducer:          "pandoraNucalo"
+ CalorimetryProducer:          "pandoracalo"
+ #  CalorimetryProducer:          "pandoraCosmiccalo"
   EventWeightProducer:          "eventweight"
   GenieEventWeightPMOneProducer: "genieeventweightpm1::UBXSec"
   GenieEventWeightMultisimProducer: "genieeventweightmultisim::UBXSec"
-  GenieModelsEventWeightMultisimProducer: "geniemodelseventweightmultisim::UBXSec"
   FluxEventWeightMultisimProducer: "fluxeventweightmultisim::UBXSec"
-
-  FileType:                     "not_set"
 
   UseGENIEInfo:                 true
   MinimumHitRequirement:        3
   MinimumDistanceToDeadRegion:  5.
 
-  DoOpDetSwap:                  false
+  DoOpDetSwap:                  true
   OpDetSwapMap:                 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 31, 26, 28, 29, 30, 25, 27]
 
   GeoCosmicScoreCut:            0.6

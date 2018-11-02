@@ -98,7 +98,7 @@
 #include "ubana/UBXSec/Algorithms/FiducialVolume.h"
 #include "ubana/UBXSec/Algorithms/NuMuCCEventSelection.h"
 #include "ubana/UBXSec/Algorithms/TrackQuality.h"
-
+#include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 
 // Root include
@@ -149,7 +149,7 @@ private:
 
   /// Calculates flash position
   void GetFlashLocation(std::vector<double>, double&, double&, double&, double&);
-
+  float GetTrackShowerScore(art::Ptr<recob::PFParticle> pfParticle, const lar_pandora::PFParticlesToMetadata pfParticleToMetadata);
   FindDeadRegions deadRegionsFinder;
   //ubxsec::McPfpMatch mcpfpMatcher;
   ::ubana::FiducialVolume _fiducial_volume;
@@ -189,10 +189,8 @@ private:
   std::string _eventweight_producer;
   std::string _genie_eventweight_pm1_producer;
   std::string _genie_eventweight_multisim_producer;
-  std::string _genie_models_eventweight_multisim_producer;
   std::string _flux_eventweight_multisim_producer;
-  std::string _file_type;
-  bool _debug = true;                   ///< Debug mode
+  bool _debug = false;                   ///< Debug mode
   int _minimumHitRequirement;           ///< Minimum number of hits in at least a plane for a track
   double _minimumDistDeadReg;           ///< Minimum distance the track end points can have to a dead region
   bool _use_genie_info;                 ///< Turn this off if looking at cosmic only files
@@ -298,10 +296,7 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p) {
   _eventweight_producer           = p.get<std::string>("EventWeightProducer");
   _genie_eventweight_pm1_producer = p.get<std::string>("GenieEventWeightPMOneProducer");
   _genie_eventweight_multisim_producer = p.get<std::string>("GenieEventWeightMultisimProducer");
-  _genie_models_eventweight_multisim_producer = p.get<std::string>("GenieModelsEventWeightMultisimProducer");
   _flux_eventweight_multisim_producer = p.get<std::string>("FluxEventWeightMultisimProducer");
-
-  _file_type                      = p.get<std::string>("FileType");
 
   _use_genie_info                 = p.get<bool>("UseGENIEInfo", false);
   _minimumHitRequirement          = p.get<int>("MinimumHitRequirement", 3);
@@ -481,8 +476,6 @@ void UBXSec::produce(art::Event & e) {
   _subrun = ubxsec_event->subrun = e.id().subRun();
   _event = ubxsec_event->event  = e.id().event();
 
-  ubxsec_event->file_type = _file_type; 
-
   _is_data = e.isRealData();
   _is_mc   = !_is_data;
 
@@ -512,6 +505,9 @@ void UBXSec::produce(art::Event & e) {
   _drift_velocity = _detp -> DriftVelocity(efield,temp);
   if (_debug) std::cout << "[UBXSec] Using drift velocity = " << _drift_velocity << " cm/us, with E = " << efield << ", and T = " << temp << std::endl;
 
+ lar_pandora::PFParticleVector pfParticleList;              //vector of PFParticles
+  lar_pandora::LArPandoraHelper::CollectPFParticles(e, _pfp_producer, pfParticleList);
+
   // Collect tracks
   lar_pandora::TrackVector            allPfParticleTracks;
   lar_pandora::PFParticlesToTracks    pfParticleToTrackMap;
@@ -521,9 +517,11 @@ void UBXSec::produce(art::Event & e) {
 
   // Collect showers
   lar_pandora::ShowerVector           _shower_v;
-  lar_pandora::PFParticlesToShowers   _pfp_to_shower_map;;
+  lar_pandora::PFParticlesToShowers   _pfp_to_shower_map;
+  lar_pandora::PFParticleVector _pfp_v;
   lar_pandora::LArPandoraHelper::CollectShowers(e, _pfp_producer, _shower_v, _pfp_to_shower_map);
-
+  lar_pandora::PFParticlesToMetadata pfParticlesToMetadata;
+  lar_pandora::LArPandoraHelper::CollectPFParticleMetadata(e, _pfp_producer, _pfp_v, pfParticlesToMetadata);
   // Collect PFParticles and match Reco Particles to Hits
   //lar_pandora::PFParticleVector  recoParticleVector;
   //lar_pandora::PFParticleVector  recoNeutrinoVector;
@@ -568,15 +566,21 @@ void UBXSec::produce(art::Event & e) {
     std::cout << "[UBXSec] Track handle is not valid or empty." << std::endl;
     //throw std::exception();
   }
-  std::vector<art::Ptr<recob::Track>> track_p_v;
-  art::fill_ptr_vector(track_p_v, track_h);
-  art::FindManyP<recob::OpFlash> opfls_ptr_coll_v(track_h, e, _acpt_producer);
-  art::FindManyP<recob::PFParticle> pfp_from_track(track_h, e, _pfp_producer);
-  art::FindManyP<anab::Calorimetry> calos_from_track(track_h, e, _calorimetry_producer);
 
+  std::vector<art::Ptr<recob::Track>> track_p_v;
+
+  art::fill_ptr_vector(track_p_v, track_h);
+  // std::cout<<"are we good here?"<<endl;
+
+  art::FindManyP<recob::PFParticle> pfp_from_track(track_h, e, _pfp_producer);
+//  art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfp_h,e, _pfp_producer);
+
+   art::FindManyP<anab::Calorimetry> calos_from_track(track_h, e, _calorimetry_producer);
   // Get PFP
   art::Handle<std::vector<recob::PFParticle> > pfp_h;
   e.getByLabel(_pfp_producer,pfp_h);
+  art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfp_h,e, _pfp_producer);
+
   if(!pfp_h.isValid()){
     std::cout << "[UBXSec] PFP product " << _pfp_producer << " not found..." << std::endl;
     //throw std::exception();
@@ -591,24 +595,25 @@ void UBXSec::produce(art::Event & e) {
   ubxsec_event->n_pfp = ubxsec_event->n_pfp_primary = 0;
   for (size_t i = 0; i < pfp_h->size(); i++) {
     ubxsec_event->n_pfp++;
-    if ((*pfp_h)[i].IsPrimary())
+    if ((*pfp_h)[i].IsPrimary()&&abs((*pfp_h)[i].PdgCode()==14))
       ubxsec_event->n_pfp_primary++;
+  
   }
-
-  // Get Giuseppe's Kalman Tracks
-  art::FindManyP<recob::Track> trk_kalman_v(pfp_h, e, "pandoraNuKalmanTrack");
-
-  // Get PID information
-  art::FindManyP<anab::ParticleID> particleids_from_track (track_h, e, _particle_id_producer);
-  if (!particleids_from_track.isValid()) {
+  // ubxsec_event->pfp_trackscore=-1;
+  //ubxsec_event->pfp_chi2_proton=-1;
+  ///
+ // Get PID information
+ /* art::FindManyP<anab::ParticleID> particleids_from_pfp (pfp_h, e, _particle_id_producer);
+  if (!particleids_from_pfp.isValid()) {
     std::cout << "[UBXSec] anab::ParticleID is not valid." << std::endl;
   }
-  std::cout << "[UBXSec] Numeber of particleids_from_track " << particleids_from_track.size() << std::endl;
+  std::cout << "[UBXSec] Numeber of particleids_from_pfp " << particleids_from_pfp.size() << std::endl;
 
   // Fill a std::map Track->ParticleID
-  std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> track_to_pid_map;
-  for (auto track : track_p_v) {
-    std::vector<art::Ptr<anab::ParticleID>> pids = particleids_from_track.at(track.key());
+ 
+  std::map<art::Ptr<recob::PFParticle>, art::Ptr<anab::ParticleID>> pfp_to_pid_map;
+  for (auto pfp : pfp_v) {
+    std::vector<art::Ptr<anab::ParticleID>> pids = particleids_from_pfp.at(pfp.key());
 
     if(pids.size() == 0) 
       continue;
@@ -617,11 +622,62 @@ void UBXSec::produce(art::Event & e) {
       if (!pid->PlaneID().isValid) continue;
       int planenum = pid->PlaneID().Plane;
       if (planenum != 2) continue;
+       ubxsec_event->pfp_chi2_proton.push_back(pid->Chi2Proton());
+      
+      continue;
+    }
+  }*/
+    for (unsigned int i = 0; i < pfp_h->size(); ++i)
+    { 
+      
+       
+      const std::vector< art::Ptr<larpandoraobj::PFParticleMetadata> > &pfParticleMetadataList(pfPartToMetadataAssoc.at(i));
+        if (!pfParticleMetadataList.empty())
+        {
+            const art::Ptr<recob::PFParticle> pParticle(pfp_h, i);
+            for (unsigned int j=0; j<pfParticleMetadataList.size(); ++j)
+            {
+                const art::Ptr<larpandoraobj::PFParticleMetadata> &pfParticleMetadata(pfParticleMetadataList.at(j));
+                const pandora::PropertiesMap &pfParticlePropertiesMap(pfParticleMetadata->GetPropertiesMap());
+                if (!pfParticlePropertiesMap.empty())
+                  
+                for (pandora::PropertiesMap::const_iterator it = pfParticlePropertiesMap.begin(); it != pfParticlePropertiesMap.end(); ++it)
+		  if(it->first=="TrackScore")
+		    {
+		      std::cout << " Found PFParticle " << pParticle->Self() << " with: " << std::endl;
+                    std::cout << "  - " << it->first << " = " << it->second << std::endl;
+		    ubxsec_event->pfp_trackscore.push_back(it->second);
+		    }
+            }
+        }
+    }
+ 
+
+  // Get Giuseppe's Kalman Tracks
+  art::FindManyP<recob::Track> trk_kalman_v(pfp_h, e, "pandoraNuKalmanTrack");
+
+ 
+  ////
+ // Get PID information
+  art::FindManyP<anab::ParticleID> particleids_from_track (track_h, e, _particle_id_producer);
+  if (!particleids_from_track.isValid()) {
+    std::cout << "[UBXSec] anab::ParticleID is not valid." << std::endl;
+  }
+  std::cout << "[UBXSec] Numeber of particleids_from_track " << particleids_from_track.size() << std::endl;
+  // Fill a std::map Track->ParticleID
+  std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> track_to_pid_map;
+  for (auto track : track_p_v) {
+    std::vector<art::Ptr<anab::ParticleID>> pids = particleids_from_track.at(track.key());
+    if(pids.size() == 0) 
+      continue;
+    for (auto pid : pids) {
+      if (!pid->PlaneID().isValid) continue;
+      int planenum = pid->PlaneID().Plane;
+      if (planenum != 2) continue;
       track_to_pid_map[track] = pid;
       continue;
     }
   }
-
   // Get Ghosts
   art::Handle<std::vector<ubana::MCGhost> > ghost_h;
   e.getByLabel(_mc_ghost_producer,ghost_h);
@@ -633,16 +689,23 @@ void UBXSec::produce(art::Event & e) {
   art::FindManyP<simb::MCParticle> mcpar_from_mcghost (ghost_h, e, _mc_ghost_producer); 
 
   // Get MCSFitResult - Muon
-  art::Handle<std::vector<recob::MCSFitResult> > mcsfitresult_mu_h;
-  e.getByLabel(_mcsfitresult_mu_producer,mcsfitresult_mu_h);
-  if(!mcsfitresult_mu_h.isValid()){
-    std::cout << "[UBXSec] MCSFitResult product " << _mcsfitresult_mu_producer << " not found..." << std::endl;
-    //throw std::exception();
-  } 
-  std::vector<art::Ptr<recob::MCSFitResult>> mcsfitresult_mu_v;
-  art::fill_ptr_vector(mcsfitresult_mu_v, mcsfitresult_mu_h);
+   art::Handle<std::vector<recob::MCSFitResult> > mcsfitresult_mu_h;
+   e.getByLabel(_mcsfitresult_mu_producer,mcsfitresult_mu_h);
+   if(!mcsfitresult_mu_h.isValid()){
+     std::cout << "[UBXSec] MCSFitResult product " << _mcsfitresult_mu_producer << " not found..." << std::endl;
+     //throw std::exception();
+   } 
+   std::vector<art::Ptr<recob::MCSFitResult>> mcsfitresult_mu_v;
+   art::fill_ptr_vector(mcsfitresult_mu_v, mcsfitresult_mu_h);
+
+  
+   //art::ValidHandle<std::vector<recob::MCSFitResult> > MCSMu = e.getValidHandle<std::vector<recob::MCSFitResult> >("pandoraMCSMu");
+//for (unsigned int iTrack = 0; iTrack < Tracks->size(); ++iTrack) {
+
+
 
   // Get MCSFitResult - Pi
+ /* 
   art::Handle<std::vector<recob::MCSFitResult> > mcsfitresult_pi_h;
   e.getByLabel(_mcsfitresult_pi_producer,mcsfitresult_pi_h);
   if(!mcsfitresult_pi_h.isValid()){
@@ -651,7 +714,7 @@ void UBXSec::produce(art::Event & e) {
   }
   std::vector<art::Ptr<recob::MCSFitResult>> mcsfitresult_pi_v;
   art::fill_ptr_vector(mcsfitresult_pi_v, mcsfitresult_pi_h);
-
+  */
   /*
   std::cout << "mcsfitresult_mu_v.at(0)->fwdLogLikelihood(): " << mcsfitresult_mu_v.at(0)->fwdLogLikelihood() << std::endl;
   std::cout << "mcsfitresult_mu_v.at(0)->fwdMomentum(): " << mcsfitresult_mu_v.at(0)->fwdMomentum() << std::endl;
@@ -661,7 +724,7 @@ void UBXSec::produce(art::Event & e) {
   std::cout << "mcsfitresult_mu_v.at(0)->bestLogLikelihood(): " << mcsfitresult_mu_v.at(0)->bestLogLikelihood() << std::endl;
   std::cout << "mcsfitresult_mu_v.at(0)->deltaLogLikelihood(): " << mcsfitresult_mu_v.at(0)->deltaLogLikelihood() << std::endl;  
   */
-
+/*
   // Get the BNB Correction Weights
   double bnb_weight = 1.;
   if (_is_mc) {
@@ -746,36 +809,6 @@ void UBXSec::produce(art::Event & e) {
     }
   }
 
-  // GENIE Models reweigthing (systematics - multisim)
-  ubxsec_event->ResetGenieModelsEventWeightVectorsMultisim();
-  if (_is_mc) {
-    art::Handle<std::vector<evwgh::MCEventWeight>> geniemodelseventweight_h;
-    e.getByLabel(_genie_models_eventweight_multisim_producer, geniemodelseventweight_h);
-    if(!geniemodelseventweight_h.isValid()){
-      std::cout << "[UBXSec] MCEventWeight for GENIE Models reweight multisim, product " << _genie_models_eventweight_multisim_producer << " not found..." << std::endl;
-      //throw std::exception();
-    } else {
-      std::vector<art::Ptr<evwgh::MCEventWeight>> geniemodelseventweight_v;
-      art::fill_ptr_vector(geniemodelseventweight_v, geniemodelseventweight_h);
-      if (geniemodelseventweight_v.size() > 0) {
-        art::Ptr<evwgh::MCEventWeight> evt_wgt = geniemodelseventweight_v.at(0); // Just for the first nu interaction
-        std::map<std::string, std::vector<double>> evtwgt_map = evt_wgt->fWeight;
-        int countFunc = 0;
-        // loop over the map and save the name of the function and the vector of weights for each function
-        for(auto it : evtwgt_map) {
-          std::string func_name = it.first;
-          std::vector<double> weight_v = it.second; 
-          //std::vector<float> weight_v_float (weight_v.begin(), weight_v.end());
-          ubxsec_event->evtwgt_genie_models_multisim_funcname.push_back(func_name);
-          ubxsec_event->evtwgt_genie_models_multisim_weight.push_back(weight_v);
-          ubxsec_event->evtwgt_genie_models_multisim_nweight.push_back(weight_v.size());
-          countFunc++;
-        }
-        ubxsec_event->evtwgt_genie_models_multisim_nfunc = countFunc;
-      }
-    }
-  }
-
   // FLUX reweigthing (systematics - multisim)
   ubxsec_event->ResetFluxEventWeightVectorsMultisim();
   if (_is_mc) {
@@ -807,7 +840,7 @@ void UBXSec::produce(art::Event & e) {
   }
 
 
-  
+*/  
   
   // pandoraCosmic PFPs (for cosmic removal studies)
   art::Handle<std::vector<recob::PFParticle>> pfp_cosmic_h;
@@ -873,7 +906,6 @@ void UBXSec::produce(art::Event & e) {
 
     std::cout << "[UBXSec] Flash time: " << ubxsec_event->beamfls_time[n] << ", Old flash position: " << flash.ZCenter() << std::endl;
     std::cout << "[UBXSec] Flash time: " << ubxsec_event->beamfls_time[n] << ", New flash position: " << Zcenter << std::endl;
-    std::cout << "[UBXSec] Flash time: " << ubxsec_event->beamfls_time[n] << ", Flash PEs: " << flash.TotalPE() << std::endl;
   } // flash loop
 
 
@@ -1235,23 +1267,26 @@ void UBXSec::produce(art::Event & e) {
     
 
     // Through-going?
-    ubxsec_event->slc_geocosmictag[slice] = false;
-    std::vector<art::Ptr<anab::CosmicTag>> geo_cosmic_tags = tpcobjToCosmicTagAssns.at(slice);
-    if(geo_cosmic_tags.size() == 0 || geo_cosmic_tags.size() > 1) {
-      std::cout << "[UBXSec] \t More than one Geo Cosmic Tag match per tpcobj ?!" << std::endl;
-    } else {
-      auto ct = geo_cosmic_tags.at(0);
-      if (ct->CosmicScore() > _geo_cosmic_score_cut) {
-        std::cout << "[UBXSec] \t This slice has been tagged as through-going cosmic" << std::endl;
-        ubxsec_event->slc_geocosmictag[slice] = true;
-      }
-    }
+    //    ubxsec_event->slc_geocosmictag[slice] = false;
+    //std::vector<art::Ptr<anab::CosmicTag>> geo_cosmic_tags = tpcobjToCosmicTagAssns.at(slice);
+    //if(geo_cosmic_tags.size() == 0 || geo_cosmic_tags.size() > 1) {
+    // std::cout << "[UBXSec] \t More than one Geo Cosmic Tag match per tpcobj ?!" << std::endl;
+    //} else {
+      //auto ct = geo_cosmic_tags.at(0);
+      //   if (ct->CosmicScore() > _geo_cosmic_score_cut) {
+      //std::cout << "[UBXSec] \t This slice has been tagged as through-going cosmic" << std::endl;
+      // ubxsec_event->slc_geocosmictag[slice] = true;
+      //}
+    //}
     
     // Vertex resolution
     if (ubxsec_event->slc_origin[slice] == ubana::kBeamNeutrino) {
       ubxsec_event->vtx_resolution = sqrt( pow(ubxsec_event->slc_nuvtx_y[slice]-ubxsec_event->tvtx_y[0], 2) + pow(ubxsec_event->slc_nuvtx_z[slice]-ubxsec_event->tvtx_z[0], 2) );
     } 
-
+//test track score
+//double score_t;
+//tpcobj.GetTrackScore(score_t);
+//std::cout<<"test score: "<<score_t<<std::endl;
     // Multiplicity
     int p, t, s;
     tpcobj.GetMultiplicity(p, t, s);
@@ -1333,6 +1368,8 @@ void UBXSec::produce(art::Event & e) {
     }
 
     // ACPT
+    art::FindManyP<recob::OpFlash> opfls_ptr_coll_v(track_h, e, _acpt_producer);
+  
     ubxsec_event->slc_acpt_outoftime[slice] = 0;
     for (unsigned int t = 0; t < track_v_v[slice].size(); t++) {
       if(opfls_ptr_coll_v.at(track_v_v[slice][t].key()).size()>1) {
@@ -1575,49 +1612,76 @@ void UBXSec::produce(art::Event & e) {
 
     std::cout << "[UBXSec] Shower info saved." << std::endl;
     */
-
-
+  
     // Muon Candidate
     _muon_finder.Reset();
     _muon_finder.SetTracks(track_v_v[slice]);
     _muon_finder.SetTrackToPIDMap(track_to_pid_map);
     art::Ptr<recob::Track> candidate_track;
-
+    // cout<<candidate
     bool muon_cand_exists = _muon_finder.GetCandidateTrack(candidate_track);
-
     if (muon_cand_exists) {
-
+      
+      //  art::Ptr<recob::MCSFitResult> mcsMu;
+      //  double trkMom_MuFwd = mcsMu.fwdMomentum();
       bool fully_contained = _fiducial_volume.InFV(candidate_track->Vertex(), candidate_track->End());
-
+  
       ubxsec_event->slc_muoncandidate_exists[slice]    = true;
       ubxsec_event->slc_muoncandidate_contained[slice] = fully_contained;
       ubxsec_event->slc_muoncandidate_length[slice]    = candidate_track->Length();
-      ubxsec_event->slc_muoncandidate_phi[slice]       = candidate_track->Phi(); //UBXSecHelper::GetCorrectedPhi((*candidate_track), tpcobj_nu_vtx); 
-      ubxsec_event->slc_muoncandidate_theta[slice]     = candidate_track->Theta(); //UBXSecHelper::GetCorrectedCosTheta((*candidate_track), tpcobj_nu_vtx);
+      ubxsec_event->slc_muoncandidate_phi[slice]       = UBXSecHelper::GetCorrectedPhi((*candidate_track), tpcobj_nu_vtx); 
+      ubxsec_event->slc_muoncandidate_theta[slice]     = UBXSecHelper::GetCorrectedCosTheta((*candidate_track), tpcobj_nu_vtx);
       ubxsec_event->slc_muoncandidate_mom_range[slice] = _trk_mom_calculator.GetTrackMomentum(candidate_track->Length(), 13);
-      //ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = _trk_mom_calculator.GetMomentumMultiScatterLLHD(candidate_track);
-
+     ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = _trk_mom_calculator.GetMomentumMultiScatterLLHD(candidate_track);
+      //    ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = trkMom_MuFwd;
       // For MCS first check the track direction is rigth
       TVector3 temp(reco_nu_vtx[0], reco_nu_vtx[1], reco_nu_vtx[2]);
       bool track_direction_correct = (candidate_track->Vertex() - temp).Mag() < (candidate_track->End() - temp).Mag();
+      //   std::cout<<"are we good here?q"<<endl;
+
       if (track_direction_correct) {
-        ubxsec_event->slc_muoncandidate_mom_mcs[slice] = mcsfitresult_mu_v.at(candidate_track.key())->fwdMomentum();
-        ubxsec_event->slc_muoncandidate_mcs_ll[slice]  = mcsfitresult_mu_v.at(candidate_track.key())->fwdLogLikelihood();
-        ubxsec_event->slc_muoncandidate_mom_mcs_pi[slice] = mcsfitresult_pi_v.at(candidate_track.key())->fwdMomentum();
-        std::cout << "Muon MCS LL: " << mcsfitresult_mu_v.at(candidate_track.key())->fwdLogLikelihood() << std::endl;
-        std::cout << "Pion MCS LL: " << mcsfitresult_pi_v.at(candidate_track.key())->fwdLogLikelihood() << std::endl;
+	//	std::cout<<"are we good here??"<<endl;
+
+	ubxsec_event->slc_muoncandidate_mom_mcs[slice] = mcsfitresult_mu_v.at(candidate_track.key())->fwdMomentum();
+	//	std::cout<<"!!!MCS mom:"<< mcsfitresult_mu_v.at(candidate_track.key())->fwdMomentum()<<endl;
+       
+//	 ubxsec_event->slc_muoncandidate_mcs_ll[slice]  = mcsfitresult_mu_v.at(candidate_track.key())->fwdLogLikelihood();
+  //ubxsec_event->slc_muoncandidate_mom_mcs_pi[slice] = mcsfitresult_pi_v.at(candidate_track.key())->fwdMomentum();
+	  //std::cout << "Muon MCS LL: " << mcsfitresult_mu_v.at(candidate_track.key())->fwdLogLikelihood() << std::endl;
+
+//	    std::cout << "Pion MCS LL: " << mcsfitresult_pi_v.at(candidate_track.key())->fwdLogLikelihood() << std::endl;
       } else {
-        ubxsec_event->slc_muoncandidate_mom_mcs[slice] = mcsfitresult_mu_v.at(candidate_track.key())->bwdMomentum();
-        ubxsec_event->slc_muoncandidate_mcs_ll[slice]  = mcsfitresult_mu_v.at(candidate_track.key())->bwdLogLikelihood();
-        ubxsec_event->slc_muoncandidate_mom_mcs_pi[slice] = mcsfitresult_pi_v.at(candidate_track.key())->bwdMomentum();
-        std::cout << "Muon MCS LL: " << mcsfitresult_mu_v.at(candidate_track.key())->bwdLogLikelihood() << std::endl;
-        std::cout << "Pion MCS LL: " << mcsfitresult_pi_v.at(candidate_track.key())->bwdLogLikelihood() << std::endl;
+	  ubxsec_event->slc_muoncandidate_mom_mcs[slice] = mcsfitresult_mu_v.at(candidate_track.key())->bwdMomentum();
+	  //	std::cout<<"!!!MCS mom:"<< mcsfitresult_mu_v.at(candidate_track.key())->bwdMomentum()<<endl;
+   
+	//  ubxsec_event->slc_muoncandidate_mcs_ll[slice]  = mcsfitresult_mu_v.at(candidate_track.key())->bwdLogLikelihood();
+//	 ubxsec_event->slc_muoncandidate_mom_mcs_pi[slice] = mcsfitresult_pi_v.at(candidate_track.key())->bwdMomentum();
+	 // std::cout << "Muon MCS LL: " << mcsfitresult_mu_v.at(candidate_track.key())->bwdLogLikelihood() << std::endl;
+	  //	std::cout<<"are we good here?hh"<<endl;
+
+//	 std::cout << "Pion MCS LL: " << mcsfitresult_pi_v.at(candidate_track.key())->bwdLogLikelihood() << std::endl;
       }
       // Also see if the track is recon going downwards (for cosmic studies)
       bool track_going_down = candidate_track->Vertex().Y() > candidate_track->End().Y();
+      // std::cout<<"are we good here?z"<<endl;
 
       // Look at calorimetry for the muon candidate
       std::vector<art::Ptr<anab::Calorimetry>> calos = calos_from_track.at(candidate_track.key());
+  std::cout<<"Calorimetry: "<<std::endl;
+// std::cout<<"Calorimetry: "<<calos.isValid<<std::endl;
+ 	for (auto c : calos) 
+                  {
+                    if (!c) continue;
+                    if (!c->PlaneID().isValid) continue;
+                    int planenum = c->PlaneID().Plane;
+                    if (planenum == 2)
+                      {
+                std::cout<<"good?"<<std::endl;        
+            //            std::cout<< c->dEdx()<<std:endl;
+              //          std::cout<<c->dQdx()<<std:endl;
+                        //track_ResidualRange[i]=c->ResidualRange();
+                      }
+	}
       ubxsec_event->slc_muoncandidate_dqdx_v[slice] = UBXSecHelper::GetDqDxVector(calos);
       ubxsec_event->slc_muoncandidate_dqdx_trunc[slice] = UBXSecHelper::GetDqDxTruncatedMean(calos);
       ubxsec_event->slc_muoncandidate_dqdx_u_trunc[slice] = UBXSecHelper::GetDqDxTruncatedMean(calos, 0);
@@ -1630,6 +1694,7 @@ void UBXSec::produce(art::Event & e) {
       std::cout << "[UBXSec] \t Truncated mean dQ/ds for candidate is (plane 1): " << ubxsec_event->slc_muoncandidate_dqdx_u_trunc[slice] << std::endl;
       std::cout << "[UBXSec] \t Truncated mean dQ/ds for candidate is (plane 2): " << ubxsec_event->slc_muoncandidate_dqdx_v_trunc[slice] << std::endl;
       std::cout << "[UBXSec] \t MIP consistent ? : " << (ubxsec_event->slc_muoncandidate_mip_consistency[slice] ? "YES" : "NO") << std::endl;
+      std::cout<<"are we good here?"<<endl;
 
       // Get the related PFP
       art::Ptr<recob::PFParticle> candidate_pfp = pfp_from_track.at(candidate_track.key()).at(0);
@@ -1681,19 +1746,20 @@ void UBXSec::produce(art::Event & e) {
       }
  
 
-      if (_debug) std::cout << "[UBXSec] \t Muon Candidate Found" << std::endl;
-      if (_debug) std::cout << "[UBXSec] \t \t Length:          " << ubxsec_event->slc_muoncandidate_length[slice] << std::endl;
-      if (_debug) std::cout << "[UBXSec] \t \t Mom by Range:    " << ubxsec_event->slc_muoncandidate_mom_range[slice] << std::endl;
-      if (_debug) std::cout << "[UBXSec] \t \t Mom by MCS:      " << ubxsec_event->slc_muoncandidate_mom_mcs[slice] << std::endl;
-      if (_debug) std::cout << "[UBXSec] \t \t Fully Contained? " << (ubxsec_event->slc_muoncandidate_contained[slice] ? "YES" : "NO") << std::endl;
+      // if (_debug) std::cout << "[UBXSec] \t Muon Candidate Found" << std::endl;
+      // if (_debug) std::cout << "[UBXSec] \t \t Length:          " << ubxsec_event->slc_muoncandidate_length[slice] << std::endl;
+      // if (_debug) std::cout << "[UBXSec] \t \t Mom by Range:    " << ubxsec_event->slc_muoncandidate_mom_range[slice] << std::endl;
+      // if (_debug) std::cout << "[UBXSec] \t \t Mom by MCS:      " << ubxsec_event->slc_muoncandidate_mom_mcs[slice] << std::endl;
+      // if (_debug) std::cout << "[UBXSec] \t \t Fully Contained? " << (ubxsec_event->slc_muoncandidate_contained[slice] ? "YES" : "NO") << std::endl;
 
       // Try look at MCS for stopping muons
-      bool down_track = candidate_track->Vertex().Y() > candidate_track->End().Y();
-      double f_ll = mcsfitresult_mu_v.at(candidate_track.key())->fwdLogLikelihood();
-      double b_ll = mcsfitresult_mu_v.at(candidate_track.key())->bwdLogLikelihood();
-      ubxsec_event->slc_muoncandidate_mcs_delta_ll[slice] = f_ll - b_ll;
-      if (!down_track) ubxsec_event->slc_muoncandidate_mcs_delta_ll[slice] = b_ll - f_ll;
+      // bool down_track = candidate_track->Vertex().Y() > candidate_track->End().Y();
+      // double f_ll = mcsfitresult_mu_v.at(candidate_track.key())->fwdLogLikelihood();
+      // double b_ll = mcsfitresult_mu_v.at(candidate_track.key())->bwdLogLikelihood();
+      // ubxsec_event->slc_muoncandidate_mcs_delta_ll[slice] = f_ll - b_ll;
+      // if (!down_track) ubxsec_event->slc_muoncandidate_mcs_delta_ll[slice] = b_ll - f_ll;
 
+      std::cout<<"are we good here????"<<endl;
 
       //
       // Look at residuals
@@ -1713,6 +1779,7 @@ void UBXSec::produce(art::Event & e) {
           }
         }
       }
+       std::cout<<"are we good here?c"<<endl;
 
       // Collect track points
       for (size_t i = 0; i < candidate_track->NumberTrajectoryPoints(); i++) {
@@ -1729,7 +1796,8 @@ void UBXSec::produce(art::Event & e) {
           continue;
         }
       }
-      
+         std::cout<<"are we good here?hit"<<endl;
+
       if (_debug) std::cout << "[UBXSec] \t \t Hit points: " << hit_v.size() << ", track points: " << track_v.size() << std::endl;
       ubana::TrackQuality _track_quality;
       _track_quality.SetTrackPoints(track_v);
@@ -2032,10 +2100,11 @@ void UBXSec::produce(art::Event & e) {
 
   _event_selection.SetEvent(ubxsec_event);
 
-  int slice_index;
+  size_t slice_index=-999;
+  int slice_index_1=slice_index;
   std::string reason = "no_failure";
   std::map<std::string,bool> failure_map;
-  bool is_selected = _event_selection.IsSelected(slice_index, failure_map);
+  bool is_selected = _event_selection.IsSelected(slice_index_1, failure_map);
   if (_debug) std::cout << "[UBXSec] >>>>>>>>>>>>>>>>>>>>>> Is Selected? " << (is_selected ? "YES" : "NO") << std::endl;
   bool first = true;
   if (_debug) {
@@ -2064,7 +2133,6 @@ void UBXSec::produce(art::Event & e) {
     selection_result.SetSelectionStatus(false);
 
     ubxsec_event->is_selected = false;
-    ubxsec_event->selected_slice = -1;
 
     selectionResultVector->emplace_back(std::move(selection_result));
     //util::CreateAssn(*this, e, *selectionResultVector, tpcobj_v, *assnOutSelectionResultTPCObject);
@@ -2074,14 +2142,13 @@ void UBXSec::produce(art::Event & e) {
     selection_result.SetSelectionStatus(true);
 
     ubxsec_event->is_selected = true;
-    ubxsec_event->selected_slice = slice_index;
 
     // Grab the selected TPCObject
     std::vector<art::Ptr<ubana::TPCObject>> tpcobj_v;
     art::fill_ptr_vector(tpcobj_v, tpcobj_h);
-    art::Ptr<ubana::TPCObject> tpcobj = tpcobj_v.at(slice_index);
+    art::Ptr<ubana::TPCObject> tpcobj = tpcobj_v.at(slice_index_1);
 
-    if (_debug) std::cout << "[UBXSec] >>>>>>>>>>>>>>>>>>>>>> Selected TPCObject with index " << slice_index << std::endl;
+    if (_debug) std::cout << "[UBXSec] >>>>>>>>>>>>>>>>>>>>>> Selected TPCObject with index " << slice_index_1 << std::endl;
  
     // Prepare the tpcobj output
     std::vector<art::Ptr<ubana::TPCObject>>  out_tpcobj_v;
@@ -2092,8 +2159,8 @@ void UBXSec::produce(art::Event & e) {
     util::CreateAssn(*this, e, *selectionResultVector, out_tpcobj_v, *assnOutSelectionResultTPCObject);
 
     // For the TPCNeutrinoID Filter
-    util::CreateAssn(*this, e, muon_candidate_track_per_slice_v.at(slice_index), neutrino_candidate_vertex_per_slice_v.at(slice_index), *vertexTrackAssociations);
-    util::CreateAssn(*this, e, muon_candidate_pfparticle_per_slice_v.at(slice_index), neutrino_candidate_vertex_per_slice_v.at(slice_index), *vertexPFParticleAssociations);
+    util::CreateAssn(*this, e, muon_candidate_track_per_slice_v.at(slice_index_1), neutrino_candidate_vertex_per_slice_v.at(slice_index_1), *vertexTrackAssociations);
+    util::CreateAssn(*this, e, muon_candidate_pfparticle_per_slice_v.at(slice_index_1), neutrino_candidate_vertex_per_slice_v.at(slice_index_1), *vertexPFParticleAssociations);
 
   }
 
@@ -2204,6 +2271,27 @@ void UBXSec::PrintMC(std::vector<art::Ptr<simb::MCTruth>> mclist) {
 
 
 //_______________________________________________________________________________________
+float UBXSec::GetTrackShowerScore(art::Ptr<recob::PFParticle> pfParticle, const lar_pandora::PFParticlesToMetadata pfParticleToMetadata)
+{
+  // Find the PFParticle in the metadata map
+   auto itParticle = pfParticleToMetadata.find(pfParticle);
+  // Check the PFParticle was found
+  if (itParticle == pfParticleToMetadata.end())
+    throw cet::exception("WorkshopTrackShowerHelperComplete") << "PFParticle has no metadata" << std::endl;
+  // There should only be one metadata for each PFParticle
+  if (itParticle->second.size() != 1)
+    throw cet::exception("WorkshopTrackShowerHelperComplete") << "PFParticle has mutiple metadata" << std::endl;
+  // The metadata vector has size one as required, so just take the first element
+  const auto metadata = itParticle->second.front();
+  // Now get the properties map - this is a map from a string (the property name) to a float (the property value)
+  const auto propertiesMap = metadata->GetPropertiesMap();
+  // Look for the track shower ID score
+  const auto itScore = propertiesMap.find("TrackScore");
+  // Check the track score was available
+  if (itScore == propertiesMap.end())
+    throw cet::exception("WorkshopTrackShowerHelperComplete") << "PFParticle has no track score" << std::endl;
+  return itScore->second;
+}
 void UBXSec::GetFlashLocation(std::vector<double> pePerOpDet, 
                               double& Ycenter, 
                               double& Zcenter, 
@@ -2243,5 +2331,6 @@ void UBXSec::GetFlashLocation(std::vector<double> pePerOpDet,
   if ( (sumz2*totalPE - sumz*sumz) > 0. ) 
     Zwidth = std::sqrt(sumz2*totalPE - sumz*sumz)/totalPE;
 }
+
 
 DEFINE_ART_MODULE(UBXSec)
