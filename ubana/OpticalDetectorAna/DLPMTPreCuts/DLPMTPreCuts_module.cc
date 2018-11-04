@@ -58,7 +58,8 @@ private:
   float fPEThreshold;    
   float fPMTMaxFrac;
   bool  fStoreOpticalFilterObj;
-  
+
+  std::set<int> fIgnoreChannelList;
 };
 
 
@@ -80,6 +81,9 @@ dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
   fVetoEndTick   = p.get< int >("VetoEndTick",    190);
   fPMTMaxFrac    = p.get< float > ("PMTMaxFrac",  0.6);
 
+  std::vector<int> tmpvec = p.get< std::vector<int> >("IgnoreChannelList",std::vector<int>());
+  fIgnoreChannelList = std::set<int>(tmpvec.begin(),tmpvec.end());
+
 }
 
 bool dl::DLPMTPreCuts::filter(art::Event & e)
@@ -96,6 +100,11 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
   
   for ( size_t i=0; i<ophit_v.size(); i++ ) {
     auto const& ophit = ophit_v.at(i);
+    
+    if(fIgnoreChannelList.count(ophit.OpChannel())) {
+      continue;
+    }
+
     ophit_peaktime_v[i] = ophit.PeakTime();
     ophit_pe_v[i] = ophit.PE();
     ophit_femch_v[i] = ophit.OpChannel();
@@ -111,7 +120,10 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
 
   if(fStoreOpticalFilterObj)
     {
-      std::unique_ptr<uboone::UbooneOpticalFilter> ubopfilter_obj( new uboone::UbooneOpticalFilter(beamPEinfo[0],vetoPEinfo[0],maxfrac));
+      float total_beam_PE=0; for(auto const& pe : flashbins) total_beam_PE+= pe;
+      float total_veto_PE=0; for(auto const& pe : vetobins) total_veto_PE+= pe;
+      std::unique_ptr<uboone::UbooneOpticalFilter> ubopfilter_obj( new uboone::UbooneOpticalFilter(beamPEinfo[0],vetoPEinfo[0],maxfrac,
+												   total_beam_PE,total_veto_PE));
       e.put(std::move(ubopfilter_obj));
     }
   
