@@ -108,7 +108,7 @@ namespace dtfeatures {
         if(!caloVec.empty())
         {
           
-          std::vector<double> dedx;
+          std::vector<float> dedx;
           totaldedx = 0.;
           trtotaldedx = 0.;
           for(size_t iplane = 0; iplane < caloVec.size(); iplane++)
@@ -129,7 +129,7 @@ namespace dtfeatures {
               totaldedx2 += TMath::Power(de,2);
             }
             averagededx = (float)totaldedx / (float)dedx.size();
-            std::vector<double> dedx_sort = dedx;
+            std::vector<float> dedx_sort = dedx;
             std::sort(dedx_sort.begin(),dedx_sort.end());
 
             double dedxmed = dedx_sort[std::floor(dedx.size()/2.)];

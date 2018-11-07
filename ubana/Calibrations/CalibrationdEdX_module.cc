@@ -146,14 +146,14 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
 
         //get original calorimetry information
         //double                Kin_En     = calo->KineticEnergy();
-        std::vector<double>   vdEdx      = calo->dEdx();
-        std::vector<double>   vdQdx      = calo->dQdx();
-        std::vector<double>   vresRange  = calo->ResidualRange();
-        std::vector<double>   deadwire   = calo->DeadWireResRC();
-        double                Trk_Length = calo->Range();
-        std::vector<double>   fpitch     = calo->TrkPitchVec();
-        std::vector<TVector3> vXYZ       = calo->XYZ();
-        geo::PlaneID          planeID    = calo->PlaneID();
+        std::vector<float>   vdEdx      = calo->dEdx();
+        std::vector<float>   vdQdx      = calo->dQdx();
+        std::vector<float>   vresRange  = calo->ResidualRange();
+        std::vector<float>   deadwire   = calo->DeadWireResRC();
+        float                Trk_Length = calo->Range();
+        std::vector<float>   fpitch     = calo->TrkPitchVec();
+        const auto&          vXYZ       = calo->XYZ();
+        geo::PlaneID         planeID    = calo->PlaneID();
 
         //make sure the vectors are of the same size
         if (vdEdx.size()!=vXYZ.size()||
@@ -177,14 +177,14 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
         if (fUseRecoTrackDir){
           // we want to undo the direction flip done in Calorimetry_module.cc
           // use the reconstructed track end to calculate residual range
-          TVector3 trkstartcalo = vXYZ[0];
-          TVector3 trkendcalo = vXYZ.back();
+          auto trkstartcalo = vXYZ[0];
+          auto trkendcalo = vXYZ.back();
           if (vresRange[0]<vresRange.back()){
             trkstartcalo = vXYZ.back();
             trkendcalo = vXYZ[0];
           }
-          if ((trkstartcalo - tracklist[trkIter]->Vertex()).Mag()+(trkendcalo - tracklist[trkIter]->End()).Mag()>
-              (trkstartcalo - tracklist[trkIter]->End()).Mag()+(trkendcalo - tracklist[trkIter]->Vertex()).Mag()){
+          if ((trkstartcalo - tracklist[trkIter]->Trajectory().Vertex()).R()+(trkendcalo - tracklist[trkIter]->Trajectory().End()).R()>
+              (trkstartcalo - tracklist[trkIter]->Trajectory().End()).R()+(trkendcalo - tracklist[trkIter]->Trajectory().Vertex()).R()){
             flipdir = true;
           }
         }
