@@ -4,6 +4,7 @@ art_make(BASENAME_ONLY
          LIBRARY_NAME uboonecode_uboone_NCElastic 
          LIB_LIBRARIES 	  		   
            uboonecode_uboone_XGBoost
+	         ubcore_Geometry
 	  	     larcorealg_Geometry
 		       larcore_Geometry_Geometry_service
 		       lardataobj_RecoBase
@@ -12,6 +13,9 @@ art_make(BASENAME_ONLY
 			     larreco_RecoAlg
 			     larpandora_LArPandoraInterface
            larsim_Simulation lardataobj_Simulation 
+           ubana_AnalysisTree_MCTruth_AssociationsTruth_tool
+           ubana_AnalysisTree_MCTruth_BackTrackerTruth_tool
+           ubana_AnalysisTree_MCTruth_MCTruthBase
            nusimdata_SimulationBase
 		       art_Persistency_Common canvas
 		       art_Persistency_Provenance canvas
@@ -36,6 +40,7 @@ art_make(BASENAME_ONLY
          MODULE_LIBRARIES 	  		   
            uboonecode_uboone_XGBoost
            uboonecode_uboone_NCElasticAlgorithms
+	         ubcore_Geometry
 	  	     larcorealg_Geometry
 		       larcore_Geometry_Geometry_service
 		       lardataobj_RecoBase
@@ -44,6 +49,9 @@ art_make(BASENAME_ONLY
 			     larreco_RecoAlg
 			     larpandora_LArPandoraInterface
            larsim_Simulation lardataobj_Simulation 
+           ubana_AnalysisTree_MCTruth_AssociationsTruth_tool
+           ubana_AnalysisTree_MCTruth_BackTrackerTruth_tool
+           ubana_AnalysisTree_MCTruth_MCTruthBase
            nusimdata_SimulationBase
 		       art_Persistency_Common canvas
 		       art_Persistency_Provenance canvas
