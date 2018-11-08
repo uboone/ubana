@@ -1,0 +1,11 @@
+
+BEGIN_PROLOG
+
+HitEfficiencyAnalysisTool:
+{
+  tool_type:                  "TrackHitEfficiencyAnalysis"
+  LocalDirName:               "EfficHists"
+  MinAllowedChannelStatus:    3 # All channels greater than or equal to this status level are considered
+}
+
+END_PROLOG
