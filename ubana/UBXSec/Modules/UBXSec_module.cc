@@ -156,7 +156,6 @@ private:
   ::ubana::MuonCandidateFinder _muon_finder;
   ::ubana::NuMuCCEventSelection _event_selection;
   ::pmtana::PECalib _pecalib;
-  ::trkf::TrackMomentumCalculator _trk_mom_calculator;
 
   // Database to understand particle pdg
   const TDatabasePDG* _database_pdg = TDatabasePDG::Instance();
@@ -207,6 +206,8 @@ private:
 
   bool _do_opdet_swap;                  ///< If true swaps reconstructed OpDets according to _opdet_swap_map
   std::vector<int> _opdet_swap_map;     ///< The OpDet swap map for reco flashes
+
+  ::trkf::TrackMomentumCalculator _trk_mom_calculator;
 
   // Constants
   const simb::Origin_t NEUTRINO_ORIGIN = simb::kBeamNeutrino;
@@ -272,7 +273,10 @@ private:
 };
 
 
-UBXSec::UBXSec(fhicl::ParameterSet const & p) {
+UBXSec::UBXSec(fhicl::ParameterSet const & p)
+  : _min_track_len{p.get<double>("MinTrackLength", 0.1)}
+  , _trk_mom_calculator{_min_track_len}
+{
 
   //::art::ServiceHandle<cheat::BackTracker> bt;
   ::art::ServiceHandle<geo::Geometry> geo;
@@ -317,8 +321,6 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p) {
   _geo_cosmic_score_cut           = p.get<double>("GeoCosmicScoreCut", 0.6);
   _tolerance_track_multiplicity   = p.get<double>("ToleranceTrackMultiplicity", 5.);
 
-  _min_track_len                  = p.get<double>("MinTrackLength", 0.1);
-
   _make_ophit_csv                 = p.get<bool>("MakeOpHitCSV", false);
   _make_pida_csv                  = p.get<bool>("MakePIDACSV", false);
 
@@ -338,8 +340,6 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p) {
   _event_selection.Configure(p.get<fhicl::ParameterSet>("NuMuCCSelectionSettings"));
 
   _event_selection.PrintConfig();
-
-  _trk_mom_calculator.SetMinLength(_min_track_len);
 
   _detector_properties = lar::providerFrom<detinfo::DetectorPropertiesService>(); 
   _detector_clocks = lar::providerFrom<detinfo::DetectorClocksService>();
