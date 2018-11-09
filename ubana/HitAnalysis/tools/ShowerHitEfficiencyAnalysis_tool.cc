@@ -15,9 +15,6 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
-#include "lardataobj/RecoBase/Hit.h"
-#include "lardataobj/MCBase/MCShower.h"
-
 #include "TH1.h"
 #include "TH2.h"
 #include "TProfile.h"
@@ -27,13 +24,13 @@
 #include <cmath>
 #include <algorithm>
 
-namespace TrackHitEfficiencyAnalysis
+namespace ShowerHitEfficiencyAnalysis
 {
     ////////////////////////////////////////////////////////////////////////
     //
-    // Class:       TrackHitEfficiencyAnalysis
+    // Class:       ShowerHitEfficiencyAnalysis
     // Module Type: producer
-    // File:        TrackHitEfficiencyAnalysis.cc
+    // File:        ShowerHitEfficiencyAnalysis.cc
     //
     //              The intent of this module is to provide methods for
     //              "analyzing" hits on waveforms
@@ -49,9 +46,9 @@ namespace TrackHitEfficiencyAnalysis
 // The following typedefs will, obviously, be useful
 using HitPtrVec       = std::vector<art::Ptr<recob::Hit>>;
 using ViewHitMap      = std::map<size_t,HitPtrVec>;
-using TrackViewHitMap = std::map<int,ViewHitMap>;
+using ShowerViewHitMap = std::map<int,ViewHitMap>;
 
-class TrackHitEfficiencyAnalysis : virtual public IHitEfficiencyHistogramTool
+class ShowerHitEfficiencyAnalysis : virtual public IHitEfficiencyHistogramTool
 {
 public:
     /**
@@ -59,12 +56,12 @@ public:
      *
      *  @param  pset
      */
-    explicit TrackHitEfficiencyAnalysis(fhicl::ParameterSet const & pset);
+    explicit ShowerHitEfficiencyAnalysis(fhicl::ParameterSet const & pset);
     
     /**
      *  @brief  Destructor
      */
-    ~TrackHitEfficiencyAnalysis();
+    ~ShowerHitEfficiencyAnalysis();
     
     // provide for initialization
     void configure(fhicl::ParameterSet const & pset) override;
@@ -94,10 +91,7 @@ public:
     /**
      *  @brief Interface for filling histograms
      */
-  void fillHistograms(const std::vector<recob::Hit>&, 
-		      const std::vector<simb::MCParticle>&, 
-		      const std::vector<sim::SimChannel>&, 
-		      const std::vector<sim::MCShower>&)  const override;
+  void fillHistograms(const std::vector<recob::Hit>&, const std::vector<simb::MCParticle>&, const std::vector<sim::SimChannel>&, const std::vector<sim::MCShower>&)  const override;
     
 private:
     
@@ -132,7 +126,6 @@ private:
     std::vector<TH1F*>          fHitEfficiencyVec;
     
     // TTree variables
-
     mutable TTree*             fTree;
     
     mutable std::vector<int>   fTPCVec;
@@ -168,7 +161,7 @@ private:
 ///
 /// pset - Fcl parameters.
 ///
-TrackHitEfficiencyAnalysis::TrackHitEfficiencyAnalysis(fhicl::ParameterSet const & pset) : fTree(nullptr)
+ShowerHitEfficiencyAnalysis::ShowerHitEfficiencyAnalysis(fhicl::ParameterSet const & pset) : fTree(nullptr)
 {
     fGeometry           = lar::providerFrom<geo::Geometry>();
     fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -177,12 +170,12 @@ TrackHitEfficiencyAnalysis::TrackHitEfficiencyAnalysis(fhicl::ParameterSet const
     configure(pset);
     
     // Report.
-    mf::LogInfo("TrackHitEfficiencyAnalysis") << "TrackHitEfficiencyAnalysis configured\n";
+    mf::LogInfo("ShowerHitEfficiencyAnalysis") << "ShowerHitEfficiencyAnalysis configured\n";
 }
 
 //----------------------------------------------------------------------------
 /// Destructor.
-TrackHitEfficiencyAnalysis::~TrackHitEfficiencyAnalysis()
+ShowerHitEfficiencyAnalysis::~ShowerHitEfficiencyAnalysis()
 {}
 
 //----------------------------------------------------------------------------
@@ -192,7 +185,7 @@ TrackHitEfficiencyAnalysis::~TrackHitEfficiencyAnalysis()
 ///
 /// pset - Fcl parameter set.
 ///
-void TrackHitEfficiencyAnalysis::configure(fhicl::ParameterSet const & pset)
+void ShowerHitEfficiencyAnalysis::configure(fhicl::ParameterSet const & pset)
 {
     fLocalDirName          = pset.get<std::string>("LocalDirName", std::string("wow"));
     fOffsetVec             = pset.get<std::vector<unsigned short>>("OffsetVec", std::vector<unsigned short>()={0,0,0});
@@ -202,10 +195,8 @@ void TrackHitEfficiencyAnalysis::configure(fhicl::ParameterSet const & pset)
 
 //----------------------------------------------------------------------------
 /// Begin job method.
-void TrackHitEfficiencyAnalysis::initializeHists(art::ServiceHandle<art::TFileService>& tfs, const std::string& dirName)
+void ShowerHitEfficiencyAnalysis::initializeHists(art::ServiceHandle<art::TFileService>& tfs, const std::string& dirName)
 {
-
-  
     // Make a directory for these histograms
     art::TFileDirectory dir = tfs->mkdir(dirName.c_str());
     
@@ -256,7 +247,7 @@ void TrackHitEfficiencyAnalysis::initializeHists(art::ServiceHandle<art::TFileSe
     return;
 }
     
-void TrackHitEfficiencyAnalysis::initializeTuple(TTree* tree)
+void ShowerHitEfficiencyAnalysis::initializeTuple(TTree* tree)
 {
     fTree = tree;
     
@@ -285,7 +276,7 @@ void TrackHitEfficiencyAnalysis::initializeTuple(TTree* tree)
     return;
 }
     
-void TrackHitEfficiencyAnalysis::clear() const
+void ShowerHitEfficiencyAnalysis::clear() const
 {
     fTPCVec.clear();
     fCryoVec.clear();
@@ -310,10 +301,10 @@ void TrackHitEfficiencyAnalysis::clear() const
     return;
 }
     
-void TrackHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& hitVec, 
-						const std::vector<simb::MCParticle>& mcParticleVec,
-						const std::vector<sim::SimChannel>& simChannelVec,
-						const std::vector<sim::MCShower>& mcShowerVec) const
+void ShowerHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& hitVec, 
+						 const std::vector<simb::MCParticle>& mcParticleVec,
+						 const std::vector<sim::SimChannel>& simChannelVec,
+						 const std::vector<sim::MCShower>& mcShowerVec) const
 {
     // Always clear the tuple
     clear();
@@ -329,13 +320,39 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& h
     
     for(const auto& hit : hitVec) channelToHitVec[hit.Channel()].push_back(&hit);
 
+
+    // create a map linking TrackID to MCShower parent ID if this is necessary
+    std::map<unsigned short, unsigned short> TrkIDToParentTrkIdMap;
+    std::map<unsigned short, unsigned short> TrkIDtoMCShrTrkIdMap;
+    for (const auto& mcS : mcShowerVec) {
+      auto daughters = mcS.DaughterTrackID();
+      auto shrid = mcS.TrackID();
+      for (auto const& d : daughters) { TrkIDtoMCShrTrkIdMap[d] = shrid; }
+    }// for all MCShowers
+    for(const auto& mcParticle : mcParticleVec) {
+      // is this mcparticle's trackid in the shower list?
+      auto trkid = mcParticle.TrackId();
+      if (TrkIDtoMCShrTrkIdMap.find( trkid ) == TrkIDtoMCShrTrkIdMap.end() )
+	TrkIDToParentTrkIdMap[trkid] = trkid;
+      else
+	TrkIDToParentTrkIdMap[trkid] = TrkIDtoMCShrTrkIdMap[trkid];
+    }
+
+
     // It is useful to create a mapping between trackID and MCParticle
     using TrackIDToMCParticleMap = std::map<int, const simb::MCParticle*>;
 
     TrackIDToMCParticleMap trackIDToMCParticleMap;
 
-    for(const auto& mcParticle : mcParticleVec) trackIDToMCParticleMap[mcParticle.TrackId()] = &mcParticle;
-    
+    for(const auto& mcParticle : mcParticleVec) {
+      // find parent particle
+      auto mctrkid = mcParticle.TrackId();
+      if (TrkIDtoMCShrTrkIdMap.find( mctrkid ) == TrkIDtoMCShrTrkIdMap.end() )
+	trackIDToMCParticleMap[mctrkid] = &mcParticle;
+      else
+	trackIDToMCParticleMap[ TrkIDtoMCShrTrkIdMap[mctrkid] ] = &mcParticle;
+    }// for all mcparticles
+
     // Now go through the sim channels
     // There are several things going on here... for each channel we have particles (track id's) depositing energy in a range to ticks
     // So... for each channel we want to build a structure that relates particles to tdc ranges and deposited energy (or electrons)
@@ -354,8 +371,12 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& h
         {
 	  for(const auto& ide : tdcide.second) {
 
-	    partToChanToTDCToIDEMap[ide.trackID][simChannel.Channel()][tdcide.first] = ide.numElectrons;
+	    auto mctrkid = ide.trackID;
 
+	    if (TrkIDtoMCShrTrkIdMap.find( mctrkid ) == TrkIDtoMCShrTrkIdMap.end() )
+	      partToChanToTDCToIDEMap[mctrkid][simChannel.Channel()][tdcide.first] = ide.numElectrons;
+	    else
+	      partToChanToTDCToIDEMap[ TrkIDtoMCShrTrkIdMap[mctrkid] ][simChannel.Channel()][tdcide.first] = ide.numElectrons;
 	  }
         }
     }
@@ -371,11 +392,11 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& h
 
         if (trackIDToMCPartItr == trackIDToMCParticleMap.end()) continue;
 
-        int         trackPDGCode = trackIDToMCPartItr->second->PdgCode();
-        std::string processName  = trackIDToMCPartItr->second->Process();
+        //int         trackPDGCode = trackIDToMCPartItr->second->PdgCode();
+        //std::string processName  = trackIDToMCPartItr->second->Process();
 
-        // Looking for primary muons (e.g. CR Tracks)
-        if (fabs(trackPDGCode) != 13 || processName != "primary") continue;
+        // Looking for primary muons (e.g. CR Showers)
+        //if (fabs(trackPDGCode) != 13 || processName != "primary") continue;
 
         for(const auto& chanToTDCToIDEMap : partToChanInfo.second)
         {
@@ -399,11 +420,12 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& h
             for(const auto& ideVal : tdcToIDEMap)
             {
                 totalElectrons += ideVal.second;
+                
                 maxElectrons = std::max(maxElectrons,ideVal.second);
             }
             
             totalElectrons = std::min(totalElectrons, float(99900.));
-
+            
             fTotalElectronsHistVec.at(plane)->Fill(totalElectrons, 1.);
             fMaxElectronsHistVec.at(plane)->Fill(maxElectrons, 1.);
             
@@ -509,7 +531,7 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& h
                     unsigned short hitStopTick  = rejectedHit->PeakTime() + fSigmaVec.at(plane) * rejectedHit->RMS();
 
                     std::cout << "**> TPC: " << rejectedHit->WireID().TPC << ", Plane " << rejectedHit->WireID().Plane << ", wire: " << rejectedHit->WireID().Wire << ", hit start/stop tick: " << hitStartTick << "/" << hitStopTick << ", start/stop ticks: " << startTick << "/" << stopTick << std::endl;
-                    std::cout << "    TPC/Plane/Wire: " << wids[0].TPC << "/" << plane << "/" << wids[0].Wire << ", Track # hits: " << partToChanInfo.second.size() << ", # hits: " << hitIter->second.size() << ", # electrons: " << totalElectrons << ", pulse Height: " << rejectedHit->PeakAmplitude() << ", charge: " << rejectedHit->Integral() << ", " << rejectedHit->SummedADC() << std::endl;
+                    std::cout << "    TPC/Plane/Wire: " << wids[0].TPC << "/" << plane << "/" << wids[0].Wire << ", Shower # hits: " << partToChanInfo.second.size() << ", # hits: " << hitIter->second.size() << ", # electrons: " << totalElectrons << ", pulse Height: " << rejectedHit->PeakAmplitude() << ", charge: " << rejectedHit->Integral() << ", " << rejectedHit->SummedADC() << std::endl;
                 }
                 else
                 {
@@ -560,10 +582,10 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& h
 }
     
 // Useful for normalizing histograms
-void TrackHitEfficiencyAnalysis::endJob(int numEvents)
+void ShowerHitEfficiencyAnalysis::endJob(int numEvents)
 {
     return;
 }
     
-DEFINE_ART_CLASS_TOOL(TrackHitEfficiencyAnalysis)
+DEFINE_ART_CLASS_TOOL(ShowerHitEfficiencyAnalysis)
 }

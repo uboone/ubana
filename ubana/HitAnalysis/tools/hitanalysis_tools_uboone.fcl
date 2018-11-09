@@ -1,11 +1,18 @@
 
 BEGIN_PROLOG
 
-HitEfficiencyAnalysisTool:
+TrackHitEfficiencyAnalysisTool:
 {
   tool_type:                  "TrackHitEfficiencyAnalysis"
   LocalDirName:               "EfficHists"
   MinAllowedChannelStatus:    3 # All channels greater than or equal to this status level are considered
-}
+} 
+
+ShowerHitEfficiencyAnalysisTool:
+{
+  tool_type:                  "ShowerHitEfficiencyAnalysis"
+  LocalDirName:               "EfficHists"
+  MinAllowedChannelStatus:    3 # All channels greater than or equal to this status level are considered
+} 
 
 END_PROLOG

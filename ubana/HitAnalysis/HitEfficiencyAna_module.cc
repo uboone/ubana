@@ -48,6 +48,7 @@
 #include "cetlib_except/exception.h"
 
 #include "nusimdata/SimulationBase/MCParticle.h"
+#include "lardataobj/MCBase/MCShower.h"
 
 #include "ubana/HitAnalysis/tools/IHitEfficiencyHistogramTool.h"
 
@@ -222,14 +223,17 @@ void HitEfficiencyAna::analyze(const art::Event& event)
     
     art::Handle< std::vector<simb::MCParticle>> mcParticleHandle;
     event.getByLabel(fMCParticleProducerLabel, mcParticleHandle);
+
+    art::Handle< std::vector<sim::MCShower>> mcShowerHandle;
+    event.getByLabel("mcreco", mcShowerHandle);
     
     art::Handle< std::vector<sim::SimChannel>> simChannelHandle;
     event.getByLabel(fSimChannelProducerLabel, simChannelHandle);
 
-    if (hitHandle.isValid() && simChannelHandle.isValid() && mcParticleHandle.isValid())
+    if (hitHandle.isValid() && simChannelHandle.isValid() && mcParticleHandle.isValid() && mcShowerHandle.isValid())
     {
         std::cout << "-- Run: " << fRun << ", SubRun: " << fSubRun << ", Event: " << fEvent << " -------" << std::endl;
-        for(auto& hitHistTool : fHitHistogramToolVec) hitHistTool->fillHistograms(*hitHandle, *mcParticleHandle, *simChannelHandle);
+        for(auto& hitHistTool : fHitHistogramToolVec) hitHistTool->fillHistograms(*hitHandle, *mcParticleHandle, *simChannelHandle, *mcShowerHandle);
     }
     
     fTree->Fill();
