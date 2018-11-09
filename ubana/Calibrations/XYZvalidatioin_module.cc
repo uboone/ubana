@@ -386,7 +386,6 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 	       std::vector<art::Ptr<anab::Calorimetry>> calos=fmcal.at(i);
 	       std::vector<art::Ptr<anab::ParticleID>> pids = fmpid.at(i);
 	       const recob::Track& track = *ptrack;
-	       //TVector3 pos, dir_start, dir_end, end;
 	       const auto& pos = track.Vertex();
      	       const auto& dir_start = track.VertexDirection();
      	       const auto& dir_end   = track.EndDirection();

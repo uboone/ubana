@@ -592,8 +592,6 @@ void LifetimeQAQC::analyze( const art::Event& evt ){
       art::Ptr<recob::Track> ptrack(trackListHandle, i);
       const recob::Track& track = *ptrack;    
       
-      //TVector3 pos, dir_start, dir_end, end;  
-      
       double tlen = 0.,mom = 0.;
       int ntraj = 0;	  
       

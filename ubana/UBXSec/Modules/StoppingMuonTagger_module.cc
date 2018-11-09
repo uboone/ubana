@@ -684,9 +684,6 @@ bool StoppingMuonTagger::IsStopMuMCS(art::Ptr<recob::Track> t, double & delta_ll
 
   delta_ll = -9999;
 
-  // TVector3 track_start = t->Vertex();
-  // TVector3 track_end   = t->End();
-
   bool vtx_contained = _fiducial_volume.InFV(t->Vertex<TVector3>());
   bool end_contained = _fiducial_volume.InFV(t->End<TVector3>());
 

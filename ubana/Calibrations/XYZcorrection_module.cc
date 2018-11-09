@@ -295,7 +295,6 @@ void XYZcorrection::analyze( const art::Event& evt){
          art::Ptr<recob::Track> ptrack(trackListHandle, i);
 	 std::vector<art::Ptr<anab::Calorimetry>> calos=fmcal.at(i);
 	 const recob::Track& track = *ptrack;
-	 //TVector3 pos, dir_start, dir_end, end;
 	 const auto& pos = track.Vertex();
      	 const auto& dir_start = track.VertexDirection();
      	 const auto& dir_end   = track.EndDirection();
@@ -407,7 +406,6 @@ void XYZcorrection::analyze( const art::Event& evt){
 	 //art::Ptr<recob::Track> ptrack(trackListHandle,i);
 	 art::Ptr<recob::Track> ptrack = trks[0];
 	 const recob::Track& track = *ptrack;
-	 //TVector3 pos, dir_start, dir_end, end;
 	 const auto& pos = track.Vertex();
      	 const auto& dir_start = track.VertexDirection();
      	 const auto& dir_end   = track.EndDirection();

@@ -587,11 +587,8 @@ void Kplane2::analyze( const art::Event& evt){
 	    for(size_t i=0; i<NTracks;++i){
 	         art::Ptr<recob::Track> ptrack(trackListHandle, i);
 	         const recob::Track& track = *ptrack;
-	         //TVector3 pos, dir_start, dir_end, end;
 		 double mup_tlen = 0;
 		 const auto& pos = track.Vertex();
-     	         //const auto& dir_start = track.VertexDirection();
-     	         //const auto& dir_end   = track.EndDirection();
      	         const auto& end = track.End();
 	         mup_tlen = track.Length();
 		 int plane_2_primu=0;
@@ -622,11 +619,8 @@ void Kplane2::analyze( const art::Event& evt){
 				     if(int(i_1)==prim_mu_index) continue;
 				     art::Ptr<recob::Track> ptrack(trackListHandle, i_1);
 				     const recob::Track& track = *ptrack;
-				     //TVector3 pos, dir_start, dir_end, end;
 				     double k_tlen = 0;
 				     const auto& pos = track.Vertex();
-     	                             //const auto& dir_start = track.VertexDirection();
-     	                             //const auto& dir_end   = track.EndDirection();
      	                             const auto& end = track.End();
 	                             k_tlen = track.Length();
 				     if (k_tlen >=10){
@@ -676,11 +670,8 @@ void Kplane2::analyze( const art::Event& evt){
 							     if(int(i_2)==prim_mu_index || int(i_2)==prim_kaon_index) continue;
 							        art::Ptr<recob::Track> ptrack(trackListHandle, i_2);
 				                                const recob::Track& track = *ptrack;
-				                                //TVector3 pos, dir_start, dir_end, end;
 				                                double mud_tlen = 0;
 				                                const auto& pos = track.Vertex();
-     	                                                        // const auto& dir_start = track.VertexDirection();
-     	                                                        // const auto& dir_end   = track.EndDirection();
      	                                                        const auto& end = track.End();
 	                                                        mud_tlen = track.Length();
 								if (mud_tlen>50 && mud_tlen<60){ // mud_tlen>50 && mud_tlen<60
