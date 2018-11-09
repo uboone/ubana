@@ -461,8 +461,8 @@ void StoppingMuonTagger::produce(art::Event & e) {
     // Now get the point outfv
     //
     art::Ptr<recob::Track> trk = primary_track_v.at(0);
-    bool start_fv = _fiducial_volume.InFV(trk->Vertex());
-    bool end_fv   = _fiducial_volume.InFV(trk->End());
+    bool start_fv = _fiducial_volume.InFV(trk->Vertex<TVector3>());
+    bool end_fv   = _fiducial_volume.InFV(trk->End<TVector3>());
     double point_outfv[3] = {-999, -999, -999};
     if (!start_fv) {point_outfv[0] = trk->Vertex().X(); point_outfv[1] = trk->Vertex().Y(); point_outfv[2] = trk->Vertex().Z();}
     if (!end_fv) {point_outfv[0] = trk->End().X(); point_outfv[1] = trk->End().Y(); point_outfv[2] = trk->End().Z();}
@@ -684,11 +684,11 @@ bool StoppingMuonTagger::IsStopMuMCS(art::Ptr<recob::Track> t, double & delta_ll
 
   delta_ll = -9999;
 
-  TVector3 track_start = t->Vertex();
-  TVector3 track_end   = t->End();
+  // TVector3 track_start = t->Vertex();
+  // TVector3 track_end   = t->End();
 
-  bool vtx_contained = _fiducial_volume.InFV(t->Vertex());
-  bool end_contained = _fiducial_volume.InFV(t->End());
+  bool vtx_contained = _fiducial_volume.InFV(t->Vertex<TVector3>());
+  bool end_contained = _fiducial_volume.InFV(t->End<TVector3>());
 
   // If fully contained, exit
   if (vtx_contained && end_contained) {
@@ -751,8 +751,8 @@ bool StoppingMuonTagger::IsStopMuMCS_bug(art::Ptr<recob::Track> t, double & delt
 
   delta_ll = -9999;
 
-  TVector3 track_start = t->Vertex();
-  TVector3 track_end   = t->End();
+  TVector3 track_start = t->Vertex<TVector3>();
+  TVector3 track_end   = t->End<TVector3>();
 
   // Check it goes donwards
   if (track_end.Y() > track_start.Y())

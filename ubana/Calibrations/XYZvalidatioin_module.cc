@@ -386,11 +386,11 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 	       std::vector<art::Ptr<anab::Calorimetry>> calos=fmcal.at(i);
 	       std::vector<art::Ptr<anab::ParticleID>> pids = fmpid.at(i);
 	       const recob::Track& track = *ptrack;
-	       TVector3 pos, dir_start, dir_end, end;
-	       pos = track.Vertex();
-     	       dir_start = track.VertexDirection();
-     	       dir_end   = track.EndDirection();
-     	       end = track.End();
+	       //TVector3 pos, dir_start, dir_end, end;
+	       const auto& pos = track.Vertex();
+     	       const auto& dir_start = track.VertexDirection();
+     	       const auto& dir_end   = track.EndDirection();
+     	       const auto& end = track.End();
 	       double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
                double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
 			 
