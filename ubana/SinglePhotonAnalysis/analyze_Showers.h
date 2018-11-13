@@ -170,8 +170,35 @@ namespace single_photon
             if(ymin > ymax) std::swap(ymin, ymax);
 
             //Now loop over all flashes (only in beamtime) and find SOMETHING?
-            
+	    //Code property of Gray Yarbrough (all rights reserved)
+	    int optical_flash_in_beamgate_counter=0;
+	    double shortest_distance_to_beamgate=DBL_MAX;
+	    for(size_t i_flash = 0; i_flash < m_reco_numflashes; ++i_flash) {
+	      double const flash_time=m_reco_flash_time[i_flash];
+	      double const zcenter=m_reco_flash_zcenter[i_flash];
+	      double const ycenter=m_reco_flash_ycenter[i_flash];
+	      //if(fverbose) std::cout<<"optical flash time"<< m_reco_flash_time[i_flash] << " (opf.Time()>3.2 && opf.Time<4.8)\n
+	      double dist=DBL_MAX;
+	       if(zcenter < zmin) {
+		 dist = zmin - zcenter;
+		 if(fverbose) std::cout << "\z flash center - zmin dist: " << dist << "\n";
+    }
+	       else if(zcenter > zmax) {
+		 dist = zcenter - zmax;
+		 if(fverbose) std::cout << "\z flash center - zmax dist: " << dist << "\n";
+	       } 
+	       else {
+		 dist = 0;
+		 if(fverbose) std::cout << "\z flash center inside shower\n";
+	       }
+	       if(dist < shortest_dist) shortest_dist = dist;
+  }
+	    if(fverbose) std::cout << "\tshortest_dist: " << shortest_dist << "\n";
+	    //assume setting to nonsense value
+	    if(m_reco_num_flashes_in_beamgate == 0) shortest_dist = -2;
+	    std::cout<<"flash shortist distance: "<< shortest_dist;
 
+	    //end optical flash code
             i_shr++;
         }
 
