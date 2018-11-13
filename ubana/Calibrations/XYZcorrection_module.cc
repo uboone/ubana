@@ -99,9 +99,9 @@ namespace microboone{
     Int_t    year_month_date;
     Int_t    hour_min_sec;
     Int_t    cross_trks;
-    Int_t    hasCalo[3]={0,0,0};
-    Int_t    caloIsValid[3]={0,0,0};
-    Int_t    planenum_exists[3]={0,0,0};
+    Int_t    hasCalo[kMaxTracks][3]={0,0,0};
+    Int_t    caloIsValid[kMaxTracks][3]={0,0,0};
+    Int_t    planenum_exists[kMaxTracks][3]={0,0,0};
     Int_t    planenumber;
     Int_t    all_trks;
     Float_t  xprojectedlen[kMaxTracks];
@@ -117,7 +117,6 @@ namespace microboone{
     Float_t  trkhitx[kMaxTracks][3][3000];
     Float_t  trkhity[kMaxTracks][3][3000];
     Float_t  trkhitz[kMaxTracks][3][3000];
-    //Efield corrected
     Float_t  trkdqdx_efieldcorr[kMaxTracks][3][3000];
     Float_t  trkdedx_efieldcorr[kMaxTracks][3][3000];
     Float_t  trkresrange_efieldcorr[kMaxTracks][3][3000];
@@ -210,9 +209,9 @@ namespace microboone{
     fEventTree->Branch("year_month_date", &year_month_date,"year_month_date/I");
     fEventTree->Branch("hour_min_sec", &hour_min_sec,"hour_min_sec/I");
     fEventTree->Branch("cross_trks",&cross_trks,"cross_trks/I");
-    fEventTree->Branch("hasCalo",&hasCalo,"hasCalo[3]/I");
-    fEventTree->Branch("caloIsValid",&caloIsValid,"caloIsValid[3]/I");
-    fEventTree->Branch("planenum_exists",&planenum_exists,"planenum_exists[3]/I");
+    fEventTree->Branch("hasCalo",&hasCalo,"hasCalo[cross_trks][3]/I");
+    fEventTree->Branch("caloIsValid",&caloIsValid,"caloIsValid[cross_trks][3]/I");
+    fEventTree->Branch("planenum_exists",&planenum_exists,"planenum_exists[cross_trks][3]/I");
     fEventTree->Branch("planenumber",&planenumber,"planenumber/I");
     fEventTree->Branch("all_trks",&all_trks,"all_trks/I");
     fEventTree->Branch("xprojectedlen",xprojectedlen,"xprojectedlen[all_trks]/F");
@@ -228,6 +227,11 @@ namespace microboone{
     fEventTree->Branch("trkhitx",trkhitx,"trkhitx[cross_trks][3][3000]/F");
     fEventTree->Branch("trkhity",trkhity,"trkhity[cross_trks][3][3000]/F");
     fEventTree->Branch("trkhitz",trkhitz,"trkhitz[cross_trks][3][3000]/F");
+    fEventTree->Branch("trkdqdx_efieldcorr",trkdqdx_efieldcorr,"trkdqdx_efieldcorr[cross_trks][3][3000]/F");
+    fEventTree->Branch("trkdedx_efieldcorr",trkdedx_efieldcorr,"trkdedx_efieldcorr[cross_trks][3][3000]/F");
+    fEventTree->Branch("trkresrange_efieldcorr",trkresrange_efieldcorr,"trkresrange_efieldcorr[cross_trks][3][3000]/F");
+    fEventTree->Branch("trkRconstant",trkRconstant,"trkRconstant[cross_trks][3][3000]/F");
+    fEventTree->Branch("trkRcorr",trkRcorr,"trkRcorr[cross_trks][3][3000]/F");
     
     fACTree = tfs->make<TTree>("ACpierce", "Event Tree from AC pierce");
     fACTree->Branch("event", &event,"event/I");
@@ -356,22 +360,21 @@ namespace microboone{
 	 for(size_t ical = 0; ical<calos.size(); ++ical){
 	   
 	   if(!calos[ical]) continue;
-	   hasCalo[ical]++; 
+	   hasCalo[cross_trks-1][ical]++; 
 	   
 	   if(!calos[ical]->PlaneID().isValid) continue;
-	   caloIsValid[ical]++;
+	   caloIsValid[cross_trks-1][ical]++;
            
 	   int planenum = calos[ical]->PlaneID().Plane;
 	   planenumber=planenum;
 	   if(planenum<0||planenum>2) continue;
-	   planenum_exists[ical]++;
+	   planenum_exists[cross_trks-1][ical]++;
 	   if(planenum==2){
 	     const size_t NHits = calos[ical] -> dEdx().size();
 	     for(size_t iHit = 0; iHit < NHits; ++iHit){
 	       const auto& TrkPos = (calos[ical] -> XYZ())[iHit];
 	       if(TrkPos.X()>-180){
 		 if(TrkPos.X()<minx_p2) minx_p2=TrkPos.X();
-                 //std::cout << "TrkPos.X(), minx_p2 = " << TrkPos.X() << ", " << minx_p2 << std::endl; 
 	       }
 	     }
 	   }
@@ -382,7 +385,6 @@ namespace microboone{
 	       const auto& TrkPos = (calos[ical] -> XYZ())[iHit];
 	       if(TrkPos.X()>-180){
 		 if(TrkPos.X()<minx_p1) minx_p1=TrkPos.X();
-                 //std::cout << "TrkPos.X(), minx_p1 = " << TrkPos.X() << ", " << minx_p1 << std::endl; 
 	       }
 	     }
 	   }
@@ -393,7 +395,6 @@ namespace microboone{
 	       const auto& TrkPos = (calos[ical] -> XYZ())[iHit];
 	       if(TrkPos.X()>-180){
 		 if(TrkPos.X()<minx_p0) minx_p0=TrkPos.X();
-                 std::cout << "TrkPos.X(), minx_p0 = " << TrkPos.X() << ", " << minx_p0 << std::endl; 
 	       }
 	     }
 	   }
@@ -420,8 +421,6 @@ namespace microboone{
              // geo::Vector_t sce_poscorr    = SCE->GetCalPosOffsets(geo::Point_t(TrkPos.X()-minx,TrkPos.Y(),TrkPos.Z()));
              // Look at the electric field map correction
              geo::Vector_t vEfieldcorr = SCE->GetCalEfieldOffsets(geo::Point_t(TrkPos.X()-minx, TrkPos.Y(), TrkPos.Z()));
-             //cout << "voxel points x, y, z = " << TrkPos.X()-minx << ", " << TrkPos.Y() << ", " << TrkPos.Z() << endl;
-             //cout << "vEfieldcorr.X(), vEfieldcorr.Y(), vEfieldcorr.Z() = " << vEfieldcorr.X() << ", " << vEfieldcorr.Y() << ", " << vEfieldcorr.Z() << endl; 
 
              //calculate the recombination factor at default Efield
              double dEdx_mip = 2.1;                     // dE/dx in Mev/cm^2  
@@ -438,8 +437,8 @@ namespace microboone{
              double R_const = (log( Alpha + Beta_const*dEdx_mip))/(Beta_const*dEdx_mip);
              //at corrected Efield
              double R_corr = (log( Alpha + Beta_corr*dEdx_mip))/(Beta_corr*dEdx_mip);
-             std::cout << "Efield, Efield_corr = " << E_field << ", " << E_field_corr << std::endl;
-             std::cout << "R_const, R_corr = " << R_const << ", " << R_corr << std::endl;
+             //std::cout << "Efield, Efield_corr = " << E_field << ", " << E_field_corr << std::endl;
+             //std::cout << "R_const, R_corr = " << R_const << ", " << R_corr << std::endl;
              //these are all the branches after taking into account the space charge correction
 	     trkhitx[cross_trks-1][planenum][iHit]=TrkPos.X()-minx;
 	     trkhity[cross_trks-1][planenum][iHit]=TrkPos.Y();
