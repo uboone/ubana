@@ -2,7 +2,11 @@
 #include "analyze_OpFlashes.h"
 #include "analyze_Tracks.h"
 #include "analyze_Showers.h"
+#include "analyze_Template.h"
 
+
+
+#include "reco_truth_matching.h"
 namespace single_photon
 {
 
@@ -163,119 +167,12 @@ namespace single_photon
             m_number_of_vertices++;
         }
 
-        /*
-        //This is a quick check that the Maps work. They Seem to. 
-        for(size_t i=0; i<tracks.size();++i){
-            const art::Ptr<recob::Track> track = tracks[i];
-            const art::Ptr<recob::PFParticle> pfp = trackToNuPFParticleMap[track];
-            std::cout<<"TRACK_TEST: "<<i<<" "<<track->ID()<<" PFPSelf: "<<pfp->Self()<<" PFPPDG: "<<pfp->PdgCode() <<"\n";
+
+        //test of reco_mc
+
+        recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit );
 
 
-            std::vector< art::Ptr<recob::Hit> > trk_hits_ptrs = pfParticleToHitsMap[pfp];
-            std::cout << "\tThere are " << trk_hits_ptrs.size() << " associated hits." << "\n";
-
-            std::unordered_map<int,double> trkide;
-            double maxe=-1, tote=0;
-            simb::MCParticle const* maxp_me = NULL; //pointer for the particle match we will calculate
-
-            //std::vector<art::Ptr<simb::MCParticle>> particle_vec; //will hold all MCparticles that "Share" a recob::Hit
-            //std::vector<art::Ptr<anab::BackTrackerHitMatchingData>> match_vec;//hold matching data, that I dont think I use at the moment
-            std::vector<simb::MCParticle const *> particle_vec;
-            std::vector<anab::BackTrackerHitMatchingData const *> match_vec;
-
-            //loop only over our hits
-            for(size_t i_h=0; i_h<trk_hits_ptrs.size(); ++i_h){
-
-                particle_vec.clear(); match_vec.clear(); //tidy up this loop
-                mcparticles_per_hit.get(trk_hits_ptrs[i_h].key(),particle_vec,match_vec);
-                //mcparticles_per_hit.get(trk_hits_ptrs[i_h].key(),particle_vec,match_vec);
-                //the .key() gives us the index in the original collection
-
-                //std::cout << "\t\tThere are " << particle_vec.size() << " particles matched to hit " << i_h << "\n";
-
-                //loop over MCparticles finding which is the MCparticle with most "energy" matched correctly
-                for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
-                    trkide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy; //store energy per track id
-                    tote += match_vec[i_p]->energy; //calculate total energy deposited
-                    if( trkide[ particle_vec[i_p]->TrackId() ] > maxe ){ //keep track of maximum
-                        maxe = trkide[ particle_vec[i_p]->TrackId() ];
-                        maxp_me = particle_vec[i_p];
-                    }
-                }//end loop over particles per hit
-
-            }
-
-
-            std::cout << "Final Match (from my loop) is " << maxp_me->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
-                << " \n\tpdg=" << maxp_me->PdgCode()
-                << " trkid=" << maxp_me->TrackId()
-                << " ke=" << maxp_me->E()-maxp_me->Mass()
-                << "\n\tstart (x,y,z)=(" << maxp_me->Vx()
-                << "," << maxp_me->Vy()
-                << "," << maxp_me->Vz()
-                << ")\tend (x,y,z)=(" << maxp_me->EndX()
-                << "," << maxp_me->EndY()
-                << "," << maxp_me->EndZ() << ")" << "\n";
-
-
-
-        }
-        for(size_t i=0; i<showers.size();++i){
-            const art::Ptr<recob::Shower> shower = showers[i];
-            const art::Ptr<recob::PFParticle> pfp = showerToNuPFParticleMap[shower];
-            std::cout<<"SHOWER_TEST: "<<i<<" "<<" PFPSelf: "<<pfp->Self()<<" PFPPDG: "<<pfp->PdgCode() <<"\n";
-
-            std::vector< art::Ptr<recob::Hit> > trk_hits_ptrs = pfParticleToHitsMap[pfp];
-            std::cout << "\tThere are " << trk_hits_ptrs.size() << " associated hits." << "\n";
-
-            std::unordered_map<int,double> trkide;
-            double maxe=-1, tote=0;
-            simb::MCParticle const* maxp_me = NULL; //pointer for the particle match we will calculate
-
-            //std::vector<art::Ptr<simb::MCParticle>> particle_vec; //will hold all MCparticles that "Share" a recob::Hit
-            //std::vector<art::Ptr<anab::BackTrackerHitMatchingData>> match_vec;//hold matching data, that I dont think I use at the moment
-            std::vector<simb::MCParticle const *> particle_vec;
-            std::vector<anab::BackTrackerHitMatchingData const *> match_vec;
-
-            //loop only over our hits
-            for(size_t i_h=0; i_h<trk_hits_ptrs.size(); ++i_h){
-
-                particle_vec.clear(); match_vec.clear(); //tidy up this loop
-                mcparticles_per_hit.get(trk_hits_ptrs[i_h].key(),particle_vec,match_vec);
-                //mcparticles_per_hit.get(trk_hits_ptrs[i_h].key(),particle_vec,match_vec);
-                //the .key() gives us the index in the original collection
-
-                //std::cout << "\t\tThere are " << particle_vec.size() << " particles matched to hit " << i_h << "\n";
-
-                //loop over MCparticles finding which is the MCparticle with most "energy" matched correctly
-                for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
-                    trkide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy; //store energy per track id
-                    tote += match_vec[i_p]->energy; //calculate total energy deposited
-                    if( trkide[ particle_vec[i_p]->TrackId() ] > maxe ){ //keep track of maximum
-                        maxe = trkide[ particle_vec[i_p]->TrackId() ];
-                        maxp_me = particle_vec[i_p];
-                    }
-                }//end loop over particles per hit
-
-            }
-
-
-            std::cout << "Final Match (from my loop) is " << maxp_me->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
-                << " \n\tpdg=" << maxp_me->PdgCode()
-                << " trkid=" << maxp_me->TrackId()
-                << " ke=" << maxp_me->E()-maxp_me->Mass()
-                << "\n\tstart (x,y,z)=(" << maxp_me->Vx()
-                << "," << maxp_me->Vy()
-                << "," << maxp_me->Vz()
-                << ")\tend (x,y,z)=(" << maxp_me->EndX()
-                << "," << maxp_me->EndY()
-                << "," << maxp_me->EndZ() << ")" << "\n";
-
-
-
-
-        }
-*/
         if(m_is_verbose){
         std::cout << "SinglePhoton::analyze()\t||\t Consolidated event summary:" << "\n";
         std::cout << "SinglePhoton::analyze()\t||\t - Number of primary cosmic-ray PFParticles   : " << crParticles.size() << "\n";

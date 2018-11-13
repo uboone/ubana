@@ -152,6 +152,13 @@ namespace single_photon
             void CollectCalo(const art::Event &evt,const art::Ptr<recob::Shower> &shower);
 
 
+            //----------------  Templatees ----------------------------
+            void AnalyzeTemplates();
+            void ClearTemplates();
+            void ResizeTemplates(size_t);
+            void CreateTemplateBranches();
+
+
 
             //----------------  Flashes ----------------------------
             void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes);
@@ -180,6 +187,8 @@ namespace single_photon
             double triangle_area(double a1, double a2, double b1, double b2, double c1, double c2);
             int quick_delaunay_fit(int n, double *X, double *Y, int *num_triangles, double * area);
             int delaunay_hit_wrapper(const std::vector<art::Ptr<recob::Hit>>& hits, std::vector<int> & num_hits, std::vector<int>& num_triangles, std::vector<double> & area);
+
+
 
 
 
@@ -221,6 +230,11 @@ namespace single_photon
             double m_vertex_pos_z;
             int m_reco_asso_showers;
 
+            //-------------- Flash related variables -------------
+            int m_reco_num_templates;
+            std::vector<double> m_reco_template;
+            
+            
             //-------------- Flash related variables -------------
             std::vector<double> m_reco_flash_total_pe;
             std::vector<double> m_reco_flash_time;
