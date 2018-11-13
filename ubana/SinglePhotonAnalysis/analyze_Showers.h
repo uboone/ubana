@@ -184,31 +184,6 @@ namespace single_photon
     void SinglePhoton::CollectCalo(const art::Event &evt, const art::Ptr<recob::Shower> &shower)
     {
 
-        art::ValidHandle< std::vector<recob::Shower>> theShowers = evt.getValidHandle<std::vector<recob::Shower>>(m_showerLabel);
-        if (!theShowers.isValid())
-        {
-            mf::LogDebug("LArPandora") << "  Failed to find Shower Information... " << "\n";
-            return;
-        }
-        else
-        {
-            mf::LogDebug("LArPandora") << "  Found: " << theShowers->size() << " Showers " << "\n";
-        }
-        art::FindManyP<anab::Calorimetry> theCaloAssns(theShowers, evt, m_caloLabel);
-
-
-
-        for (unsigned int i = 0; i < theShowers->size(); ++i)
-        {
-            const art::Ptr<recob::Shower> tmp_shower(theShowers, i);
-            const std::vector< art::Ptr<anab::Calorimetry> > calo = theCaloAssns.at(i);
-
-            if(tmp_shower == shower){
-
-                break;
-            }
-        }
-
     }
 
 

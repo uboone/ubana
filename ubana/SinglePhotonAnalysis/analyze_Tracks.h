@@ -100,7 +100,9 @@ namespace single_photon
 
 
 
-    void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap){
+    void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
+              std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap,
+              std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap){
 
 
 
