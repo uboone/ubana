@@ -16,8 +16,8 @@ cs_producerlabels_mcc8_calib_dedxcalib:
 {
 
   # producer label names
-  TrackLabel       : "pandoraNu::McRecoStage2"
-  CalorimetryLabel : "pandoraNucali::McRecoCali"
+  TrackLabel       : "pandora::McRecoStage2"
+  CalorimetryLabel : "pandoracali::McRecoCali"
 
 }
 
@@ -25,8 +25,8 @@ cs_producerlabels_mcc8_calib_dedxcalib_data:
 {
 
   # producer label names
-  TrackLabel       : "pandoraNu::DataRecoStage2"
-  CalorimetryLabel : "pandoraNucali::DataRecoCali"
+  TrackLabel       : "pandora::DataRecoStage2"
+  CalorimetryLabel : "pandoracali::DataRecoCali"
 
 }
 
@@ -34,8 +34,8 @@ cs_producerlabels_mcc8_calib_dedxcalib_data_pmtremap:
 {
 
   # producer label names
-  TrackLabel       : "pandoraNu::DataPMTRemapRecoStage2"
-  CalorimetryLabel : "pandoraNucali::DataPMTRemapRecoStage2"
+  TrackLabel       : "pandora::DataPMTRemapRecoStage2"
+  CalorimetryLabel : "pandoracali::DataPMTRemapRecoStage2"
 
 }
 
@@ -43,7 +43,7 @@ cs_producerlabels_mcc8_uncalib_dedxcalib:
 {
 
   # producer label names
-  TrackLabel       : "pandoraNu::McRecoStage2"
+  TrackLabel       : "pandora::McRecoStage2"
   CalorimetryLabel : "pidcalibration::particleid"
 
 }
@@ -52,7 +52,7 @@ cs_producerlabels_mcc8_uncalib_dedxcalib_data:
 {
 
   # producer label names
-  TrackLabel       : "pandoraNu::DataRecoStage2"
+  TrackLabel       : "pandora::DataRecoStage2"
   CalorimetryLabel : "pidcalibration::particleid"
 
 }
@@ -61,7 +61,7 @@ cs_producerlabels_mcc8_UBXSec_uncalib_dedxcalib:
 {
 
   # producer label names
-  TrackLabel       : "pandoraNu::UBXSec"
+  TrackLabel       : "pandora::UBXSec"
   CalorimetryLabel : "pidcalibration::particleid"
 
 }
@@ -70,7 +70,7 @@ cs_producerlabels_mcc8_UBXSec_uncalib_dedxcalib_data:
 {
 
   # producer label names
-  TrackLabel       : "pandoraNu::UBXSec"
+  TrackLabel       : "pandora::UBXSec"
   CalorimetryLabel : "pidcalibration::particleid"
 
 }
@@ -79,8 +79,8 @@ cs_producerlabels_mcc8_UBXSec_calib_dedxcalib:
 {
 
   # producer label names
-  TrackLabel       : "pandoraNu::UBXSec"
-  CalorimetryLabel : "pandoraNucali::UBXSec"
+  TrackLabel       : "pandora::UBXSec"
+  CalorimetryLabel : "pandoracali::UBXSec"
 
 }
 
@@ -88,8 +88,8 @@ cs_producerlabels_mcc8_UBXSec_calib_dedxcalib_data:
 {
 
   # producer label names
-  TrackLabel       : "pandoraNu::UBXSec"
-  CalorimetryLabel : "pandoraNucali::UBXSec"
+  TrackLabel       : "pandora::UBXSec"
+  CalorimetryLabel : "pandoracali::UBXSec"
 
 }
 

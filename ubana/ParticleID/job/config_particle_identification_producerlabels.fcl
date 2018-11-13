@@ -86,4 +86,36 @@ producerlabels_mcc8_UBXSec_dedxcalib_data:
 
 }
 
+producerlabels_mcc9:
+{
+
+# producer label names
+  TrackLabel       : "pandora"
+  CalorimetryLabel : "pandoracalo"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "gaushit"
+  HitTrackAssn        : "pandora"
+  HitTruthAssn        : "gaushitTruthMatch"
+  CaloTrackAssn       : "pandoracalo"
+
+}
+
+producerlabels_mcc9_track_stuff:
+{
+
+# producer label names
+  TrackLabel       : "myTracks"
+  CalorimetryLabel : "pandoracalo"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "gaushit"
+  HitTrackAssn        : "myTracks"
+  HitTruthAssn        : "gaushitTruthMatch"
+  CaloTrackAssn       : "pandoracalo"
+
+}
+
 END_PROLOG

@@ -232,11 +232,12 @@ ParticleIdValidationPlots::ParticleIdValidationPlots(fhicl::ParameterSet const &
 
   fIsDataPlots = p.get<bool>("IsDataPlotsOnly", "false");
   fIsUBXSecSelected = p.get<bool>("IsUBXSecSelected", "false");
-  fTrackLabel = p_labels.get<std::string>("TrackLabel","pandoraNu::McRecoStage2");
-  fHitLabel = p_labels.get<std::string>("HitLabel","pandoraCosmicHitRemoval::McRecoStage2");
-  fHitTrackAssns = p_labels.get<std::string>("HitTrackAssn","pandoraNu::McRecoStage2");
-  fCaloTrackAssns = p_labels.get<std::string>("CaloTrackAssn", "pandoraNucali::McRecoStage2");
-  fHitTruthAssns = p_labels.get<std::string>("HitTruthAssn","crHitRemovalTruthMatch::McRecoStage2");
+  fTrackLabel = p_labels.get<std::string>("TrackLabel","myTracks::PandoraWorkshopTrackShower");
+  fHitLabel = p_labels.get<std::string>("HitLabel","gaushit::McRecoStage1");
+  //This should just be the neutrino slice........
+  fHitTrackAssns = p_labels.get<std::string>("HitTrackAssn","myTracks::PandoraWorkshopTrackShower");
+  fCaloTrackAssns = p_labels.get<std::string>("CaloTrackAssn", "pandoracalo::McRecoStage2");
+  fHitTruthAssns = p_labels.get<std::string>("HitTruthAssn","gaushitTruthMatch::McRecoStage1");
   fPIDLabel = p_labels.get<std::string>("ParticleIdLabel");
   //fPIDLabelChi2 = p_labels.get<std::string>("ParticleIdChi2Label");
   fNHitsForTrackDirection = p.get<int>("NHitsForTrackDirection");
@@ -275,10 +276,12 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
   /**
    * Get handles to needed information
    */
+  //std::cout << "hello0!" << std::endl;
   art::Handle<std::vector<recob::Track>> trackHandle;
   e.getByLabel(fTrackLabel, trackHandle);
   std::vector<art::Ptr<recob::Track>> trackCollection;
 
+  //std::cout << "hello1!" << std::endl;
   /**
    * Two options for trackCollection, if isUBXSecSelected then
    * only use tracks actually in the selected TPC object,
@@ -402,7 +405,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     bool TrueBragg = false;
     true_PDG = 0;
     simb::MCParticle const* matched_mcparticle = NULL;
-
+  
     if (!fIsDataPlots){
 
       /**
@@ -417,18 +420,22 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       std::unordered_map<int,double> trkide;
       double maxe=-1, tote=0;
       double purity = -999;
-
+  
       std::vector<simb::MCParticle const*> particle_vec;
       std::vector<anab::BackTrackerHitMatchingData const*> match_vec;
-
+   
       std::vector<art::Ptr<recob::Hit>> hits_from_track = hits_from_tracks.at(track->ID());
-
+      
       art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitHandle,e,fHitTruthAssns);
-
+      //std::cout << "LISTEN HERE!" << particles_per_hit.size()<< std::endl;
+      
       for(size_t i_h=0; i_h<hits_from_track.size(); i_h++){
-        particle_vec.clear(); match_vec.clear();
+        //std::cout << "hello*!, 431" << std::endl;
+	particle_vec.clear(); match_vec.clear();
+	//std::cout << "hello*!, 433" << std::endl;
         particles_per_hit.get(hits_from_track[i_h].key(),particle_vec,match_vec);
-
+	//std::cout << "hello*!, 435" << std::endl;
+      
         for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
           trkide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy;
           tote += match_vec[i_p]->energy;
@@ -469,7 +476,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       }
 
     } // end if(!fIsDataPlots)
-
+   
     std::vector<std::vector<double>> Lmip_perhit(3);
 
     art::Ptr< anab:: Calorimetry > calo;
@@ -501,7 +508,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
         Lmip = braggcalc.getLikelihood(dEdx_dummy,rr_dummy,0,1,planenum);
         Lmip_perhit.at(planenum).push_back(Lmip);
       }
-
+      
       /**
        * Get hit charge of first and final 5 hits of track to try and find the
        * direction of the track. If there are fewer than 10 hits then take half
@@ -645,7 +652,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       std::cout << "[ParticleIDValidation] No track-PID association found for trackID " << track->ID() << ". Skipping track." << std::endl;
       continue;
     }
-
+    
     std::vector<anab::sParticleIDAlgScores> AlgScoresVec = trackPID.at(0)->ParticleIDAlgScores();
 
     // Loop through AlgScoresVec and find the variables we want
@@ -798,10 +805,12 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
      * Testing to see whether we can predict the direction of the track from
      * the fwd/bwd likelihood variables
      */
+    //std::cout << "hello2!" << std::endl;
     bool PID_fwd = false;
     double Bragg_smallest = std::min({track_likelihood_fwd_mu.at(2), track_likelihood_fwd_p.at(2), track_likelihood_fwd_pi.at(2), track_likelihood_fwd_k.at(2), track_likelihood_fwd_mip.at(2), track_likelihood_bwd_mu.at(2), track_likelihood_bwd_p.at(2), track_likelihood_bwd_pi.at(2), track_likelihood_bwd_k.at(2)});
     if (Bragg_smallest == track_likelihood_fwd_mu.at(2) || Bragg_smallest == track_likelihood_fwd_p.at(2) || Bragg_smallest == track_likelihood_fwd_pi.at(2) || Bragg_smallest == track_likelihood_fwd_k.at(2) || Bragg_smallest == track_likelihood_fwd_mip.at(2)) PID_fwd = true;
 
+    //std::cout << "hello3!" << std::endl;
     // Histogram time
     if (!fIsDataPlots){
       if (TrueBragg){

@@ -226,6 +226,7 @@ void plotProtons(){
 
   TCanvas *c_short = new TCanvas();
   h_short->Draw("colz");
+  h_short->SetStats(kFALSE);
   c_short->SaveAs("twoTrack_shortTrack_dedxresrg.png");
 
   TCanvas *c_short_likelihood_identified = new TCanvas();
@@ -269,6 +270,7 @@ void plotProtons(){
 
   TCanvas *c_long = new TCanvas();
   h_long->Draw("colz");
+  h_long->SetStats(kFALSE);
   c_long->SaveAs("twoTrack_longTrack_dedxresrg.png");
 
 }
