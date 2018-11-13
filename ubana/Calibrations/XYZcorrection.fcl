@@ -19,6 +19,7 @@ services:
   @table::microboone_services
   message:      @local::standard_info
   FileCatalogMetadata: @local::art_file_catalog_data
+  SpaceCharge:             @local::microboone_spacecharge
 }
 
 microboone_tfile_metadata:
@@ -88,9 +89,22 @@ physics.analyzers.XYZcorrection.CalorimetryModuleLabel:  "pandoraCosmicKalmanTra
 physics.analyzers.XYZcorrection.HitsModuleLabel:  "gaushit"
 
 physics.analyzers.XYZcorrection.SaveTrackInfo: true
+physics.analyzers.XYZcorrection.ModBoxA: 0.930
+physics.analyzers.XYZcorrection.ModBoxB: 0.1836
 
 services.DetectorPropertiesService.NumberTimeSamples:        6400
 services.DetectorPropertiesService.ReadOutWindowSize:        6400
 services.DetectorClocksService.InheritClockConfig:           false
 services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
+
+services.SpaceCharge.EnableCalSpatialSCE: false
+services.SpaceCharge.EnableCalEfieldSCE: false
+services.SpaceCharge.EnableSimSpatialSCE: false
+services.SpaceCharge.EnableSimEfieldSCE: false
+services.SpaceCharge.EnableDataDrivenSpatialSCE: true
+services.SpaceCharge.EnableDataDrivenEfieldSCE: true
+services.SpaceCharge.InputFilename: "dataDriven_MicroBooNE_Emap.root" #This should be changes once a real calibration map exists
+#services.SpaceCharge.CalibrationInputFilename: "/pnfs/uboone/scratch/users/wospakrk/dQdX/dataDriven_MicroBooNE_Emap.root" #This should be changes once a real calibration map exists
+services.SpaceCharge.CalibrationInputFilename: "dataDriven_MicroBooNE_Emap.root" #This should be changes once a real calibration map exists
+
 source.inputCommands:        [ "keep *_*_*_*", "drop *_opfiltercommon__McRecoStage1" ]
