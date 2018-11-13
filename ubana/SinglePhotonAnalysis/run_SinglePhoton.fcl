@@ -1,0 +1,63 @@
+#include "services_microboone.fcl"
+#include "detectorclocks.fcl" 
+#include "detectorproperties.fcl" 
+#include "geometry.fcl" 
+#include "larproperties.fcl" 
+#include "services_microboone_basic.fcl"
+#
+#
+process_name : SinglePhoton      #The process name must NOT contain any underscores
+
+source : {
+ module_type : RootInput
+    maxEvents   : -1
+    }
+
+services :
+{
+#  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
+ TFileService: { fileName: "vertexed_singlephoton.root" }
+ ExptGeoHelperInterface:    @local::standard_geometry_helper
+ Geometry:                  @local::standard_geo
+ LArPropertiesService:      @local::standard_properties
+ DetectorClocksService:     @local::standard_detectorclocks
+ DetectorPropertiesService: @local::standard_detproperties
+}
+
+outputs: {
+#  optionalout: { module_type: RootOutput
+#                fileName: "output_file.root"
+#               fastCloning: false }
+}
+
+physics: {
+ producers : {
+     # ParameterSets for zero or more producer modules
+  }
+ analyzers: {
+     # ParameterSets for zero or more analyzer modules
+  singlephoton: { 
+       module_type:    SinglePhoton
+	   PandoraLabel:   "pandora"
+	   TrackLabel:     "pandora"
+	   ShowerLabel:    "pandora"
+       CaloLabel:      "pandoracali"
+       FlashLabel:     "opflashBeam"
+       POTLabel:       "generator"
+       input_param:    "optional" 
+       }
+  }
+ filters : {
+     # ParameterSets for zero or more filter modules
+  }
+ path0 : [  singlephoton ]
+    end_paths: [ path0 ]
+
+    }
+
+services.DetectorPropertiesService.NumberTimeSamples:        6400
+services.DetectorPropertiesService.ReadOutWindowSize:        6401
+services.DetectorClocksService.InheritClockConfig:           false
+services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
+services.DetectorClocksService.TrigModuleName:               "daq"
+services.DetectorClocksService.InheritClockConfig: false
