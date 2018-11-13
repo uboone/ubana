@@ -309,8 +309,14 @@ namespace single_photon
             std::vector<double> m_reco_shower_delaunay_area_plane1;
             std::vector<double> m_reco_shower_delaunay_area_plane2;
 
-
-
+	    //the calo calculated quantities 
+	    std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
+	    std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
+	    std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
+	    std::vector<std::vector<double>> m_reco_shower_dQdx_plane2;
+	    std::vector<std::vector<double>> m_reco_shower_dEdx_plane0; //dE/dx from the calculated dQ/dx for each hit in shower on plane 	
+	    std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
+	    std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
 
     };
 

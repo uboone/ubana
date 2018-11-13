@@ -30,6 +30,14 @@ namespace single_photon
         m_reco_shower_delaunay_area_plane1.clear();
         m_reco_shower_delaunay_area_plane2.clear();
 
+	m_reco_shower_energy.clear();
+        m_reco_shower_dQdx_plane0.clear();
+        m_reco_shower_dQdx_plane2.clear();
+        m_reco_shower_dQdx_plane2.clear();
+        m_reco_shower_dEdx_plane0.clear();
+        m_reco_shower_dEdx_plane2.clear();
+        m_reco_shower_dEdx_plane2.clear();
+
     }
 
     void SinglePhoton::ResizeShowers(size_t size){
@@ -60,6 +68,14 @@ namespace single_photon
         m_reco_shower_delaunay_area_plane1.resize(size);
         m_reco_shower_delaunay_area_plane2.resize(size);
 
+	m_reco_shower_energy.resize(size);
+	m_reco_shower_dQdx_plane0.resize(size);
+	m_reco_shower_dQdx_plane2.resize(size);
+	m_reco_shower_dQdx_plane2.resize(size);
+	m_reco_shower_dEdx_plane0.resize(size);
+	m_reco_shower_dEdx_plane2.resize(size);
+	m_reco_shower_dEdx_plane2.resize(size);
+
 
     }
 
@@ -89,6 +105,17 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_delaunay_area_plane0",&m_reco_shower_delaunay_area_plane0);
         vertex_tree->Branch("reco_shower_delaunay_area_plane1",&m_reco_shower_delaunay_area_plane1);
         vertex_tree->Branch("reco_shower_delaunay_area_plane2",&m_reco_shower_delaunay_area_plane2);
+
+	//the calorimetry info
+	vertex_tree->Branch("reco_shower_energy",&m_reco_shower_energy);
+	vertex_tree->Branch("reco_shower_dQdx_plane0",&m_reco_shower_dQdx_plane0);
+	vertex_tree->Branch("reco_shower_dQdx_plane1",&m_reco_shower_dQdx_plane1);
+	vertex_tree->Branch("reco_shower_dQdx_plane2",&m_reco_shower_dQdx_plane2);
+	vertex_tree->Branch("reco_shower_dEdx_plane0",&m_reco_shower_dEdx_plane0);
+	vertex_tree->Branch("reco_shower_dEdx_plane1",&m_reco_shower_dEdx_plane1);
+	vertex_tree->Branch("reco_shower_dEdx_plane2",&m_reco_shower_dEdx_plane2);
+	
+
 
     }
 
