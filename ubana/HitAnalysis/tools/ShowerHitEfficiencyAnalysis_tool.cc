@@ -137,6 +137,11 @@ private:
     std::vector<TH1F*>          fHitEfficiencyVec;
     
     // TTree variables
+
+  mutable TTree* _shr_tree;
+  mutable int _nshr;
+  mutable double _shr_e, _shr_q, _shr_e_ide, _shr_q_ide;
+
     mutable TTree*             fTree;
     
     mutable std::vector<int>   fTPCVec;
@@ -145,6 +150,7 @@ private:
     mutable std::vector<int>   fWireVec;
     
     mutable std::vector<float> fTotalElectronsVec;
+    mutable std::vector<float> fTotalEnergyVec;
     mutable std::vector<float> fMaxElectronsVec;
     mutable std::vector<int>   fStartTickVec;
     mutable std::vector<int>   fStopTickVec;
@@ -213,6 +219,14 @@ void ShowerHitEfficiencyAnalysis::configure(fhicl::ParameterSet const & pset)
 /// Begin job method.
 void ShowerHitEfficiencyAnalysis::initializeHists(art::ServiceHandle<art::TFileService>& tfs, const std::string& dirName)
 {
+
+  _shr_tree = tfs->make<TTree>("_shr_tree","shower ttree");
+  _shr_tree->Branch("_nshr",&_nshr,"nshr/I");
+  _shr_tree->Branch("_shr_e",&_shr_e,"shr_e/D");
+  _shr_tree->Branch("_shr_q",&_shr_q,"shr_q/D");
+  _shr_tree->Branch("_shr_e_ide",&_shr_e_ide,"shr_e_ide/D");
+  _shr_tree->Branch("_shr_q_ide",&_shr_q_ide,"shr_q_ide/D");
+
     // Make a directory for these histograms
     art::TFileDirectory dir = tfs->mkdir(dirName.c_str());
     
@@ -273,6 +287,7 @@ void ShowerHitEfficiencyAnalysis::initializeTuple(TTree* tree)
     fTree->Branch("WireVec",           "std::vector<int>",   &fWireVec);
 
     fTree->Branch("TotalElectronsVec", "std::vector<float>", &fTotalElectronsVec);
+    fTree->Branch("TotalEnergyVec",    "std::vector<float>", &fTotalEnergyVec);
     fTree->Branch("MaxElectronsVec",   "std::vector<float>", &fMaxElectronsVec);
     fTree->Branch("StartTick",         "std::vector<int>",   &fStartTickVec);
     fTree->Branch("StopTick",          "std::vector<int>",   &fStopTickVec);
@@ -300,6 +315,7 @@ void ShowerHitEfficiencyAnalysis::clear() const
     fWireVec.clear();
 
     fTotalElectronsVec.clear();
+    fTotalEnergyVec.clear();
     fMaxElectronsVec.clear();
     fStartTickVec.clear();
     fStopTickVec.clear();
@@ -363,7 +379,8 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
       auto shrid = mcS.TrackID();
       for (auto const& d : daughters) { TrkIDtoMCShrTrkIdMap[d] = shrid; }
     }// for all MCShowers
-    for(const auto& mcParticle : *mcParticleHandle) {
+    std::cout << "There are " << shrctr << "MCShowers saved" << std::endl;
+    for(const auto& mcParticle : mcParticleVec) {
       // is this mcparticle's trackid in the shower list?
       auto trkid = mcParticle.TrackId();
       if (TrkIDtoMCShrTrkIdMap.find( trkid ) == TrkIDtoMCShrTrkIdMap.end() )
@@ -372,6 +389,8 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
 	TrkIDToParentTrkIdMap[trkid] = TrkIDtoMCShrTrkIdMap[trkid];
     }
 
+
+    _nshr = shrctr;
 
     // It is useful to create a mapping between trackID and MCParticle
     using TrackIDToMCParticleMap = std::map<int, const simb::MCParticle*>;
@@ -397,6 +416,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
     using PartToChanToTDCToIDEMap = std::map<int, ChanToTDCToIDEMap>;
     
     PartToChanToTDCToIDEMap partToChanToTDCToIDEMap;
+    PartToChanToTDCToIDEMap partToChanToTDCToEnergyMap;
     
     // Build out the above data structure
     for(const auto& simChannel : *simChannelHandle)
@@ -407,13 +427,20 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
 
 	    auto mctrkid = ide.trackID;
 
-	    if (TrkIDtoMCShrTrkIdMap.find( mctrkid ) == TrkIDtoMCShrTrkIdMap.end() )
+	    if (TrkIDtoMCShrTrkIdMap.find( mctrkid ) == TrkIDtoMCShrTrkIdMap.end() ) {
 	      partToChanToTDCToIDEMap[mctrkid][simChannel.Channel()][tdcide.first] = ide.numElectrons;
-	    else
+	      partToChanToTDCToEnergyMap[mctrkid][simChannel.Channel()][tdcide.first] = ide.energy;
+	    }
+	    else {
+	      if ( (TrkIDtoMCShrTrkIdMap[mctrkid] == shrid) && (simChannel.Channel() >= 4800) ) { _shr_q_ide += ide.numElectrons; _shr_e_ide += ide.energy; }
 	      partToChanToTDCToIDEMap[ TrkIDtoMCShrTrkIdMap[mctrkid] ][simChannel.Channel()][tdcide.first] = ide.numElectrons;
+	      partToChanToTDCToEnergyMap[ TrkIDtoMCShrTrkIdMap[mctrkid] ][simChannel.Channel()][tdcide.first] = ide.energy;
+	    }
 	  }
         }
     }
+
+    _shr_tree->Fill();
     
     const lariov::ChannelStatusProvider& chanFilt = art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
 
@@ -440,6 +467,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             ChanToHitVecMap::iterator hitIter     = channelToHitVec.find(chanToTDCToIDEMap.first);
             TDCToIDEMap               tdcToIDEMap = chanToTDCToIDEMap.second;
             float                     totalElectrons(0.);
+            float                     totalEnergy(0.);
             float                     maxElectrons(0.);
             int                       nMatchedHits(0);
             
@@ -451,14 +479,17 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             unsigned int plane = wids[0].Plane;
 //            unsigned int wire  = wids[0].Wire;
 
+	    size_t idectr = 0;
             for(const auto& ideVal : tdcToIDEMap)
             {
                 totalElectrons += ideVal.second;
-                
+                totalEnergy    += partToChanToTDCToEnergyMap[ partToChanInfo.first ][ chanToTDCToIDEMap.first ][ ideVal.first ];
                 maxElectrons = std::max(maxElectrons,ideVal.second);
+		idectr += 1;
             }
             
             totalElectrons = std::min(totalElectrons, float(99900.));
+            totalEnergy    = std::min(totalEnergy,    float(99900.));
             
             fTotalElectronsHistVec.at(plane)->Fill(totalElectrons, 1.);
             fMaxElectronsHistVec.at(plane)->Fill(maxElectrons, 1.);
@@ -487,7 +518,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             unsigned short hitStartTickBest(0);
             unsigned short midHitTickBest(0);
             
-            const recob::Hit* rejectedHit = 0;
+            //const recob::Hit* rejectedHit = 0;
             const recob::Hit* bestHit     = 0;
             
             if (hitIter != channelToHitVec.end())
@@ -506,7 +537,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                     // If hit is out of range then skip, it is not related to this particle
                     if (hitStartTick > stopTick || hitStopTick < startTick)
                     {
-                        if (plane == 1) rejectedHit = hit;
+		      //if (plane == 1) //rejectedHit = hit;
                         continue;
                     }
                     
@@ -559,18 +590,6 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                     
                     nRecobHitVec.at(plane)++;
                 }
-                else if (rejectedHit)
-                {
-                    unsigned short hitStartTick = rejectedHit->PeakTime() - fSigmaVec.at(plane) * rejectedHit->RMS();
-                    unsigned short hitStopTick  = rejectedHit->PeakTime() + fSigmaVec.at(plane) * rejectedHit->RMS();
-
-                    std::cout << "**> TPC: " << rejectedHit->WireID().TPC << ", Plane " << rejectedHit->WireID().Plane << ", wire: " << rejectedHit->WireID().Wire << ", hit start/stop tick: " << hitStartTick << "/" << hitStopTick << ", start/stop ticks: " << startTick << "/" << stopTick << std::endl;
-                    std::cout << "    TPC/Plane/Wire: " << wids[0].TPC << "/" << plane << "/" << wids[0].Wire << ", Shower # hits: " << partToChanInfo.second.size() << ", # hits: " << hitIter->second.size() << ", # electrons: " << totalElectrons << ", pulse Height: " << rejectedHit->PeakAmplitude() << ", charge: " << rejectedHit->Integral() << ", " << rejectedHit->SummedADC() << std::endl;
-                }
-                else
-                {
-                    std::cout << "==> No match, TPC/Plane/Wire: " << "/" << wids[0].TPC << "/" << wids[0].Plane << "/" << wids[0].Wire << ", # electrons: " << totalElectrons << ", startTick: " << startTick << ", stopTick: " << stopTick << std::endl;
-                }
             }
         
             fNMatchedHitVec.at(plane)->Fill(nMatchedHits, 1.);
@@ -584,6 +603,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             fWireVec.push_back(wids[0].Wire);
             
             fTotalElectronsVec.push_back(totalElectrons);
+            fTotalEnergyVec.push_back(totalEnergy);
             fMaxElectronsVec.push_back(maxElectrons);
             fStartTickVec.push_back(startTick);
             fStopTickVec.push_back(stopTick);
