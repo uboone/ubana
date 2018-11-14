@@ -32,6 +32,15 @@ namespace single_photon
 
         m_reco_track_spacepoint_chi.clear();
         m_reco_track_spacepoint_max_dist.clear();
+    
+        m_sim_track_energy.clear();
+        m_sim_track_pdg.clear();
+        m_sim_track_origin.clear();
+        m_sim_track_process.clear();
+        m_sim_track_startx.clear();
+        m_sim_track_starty.clear();
+        m_sim_track_startz.clear();
+
 
     }
 
@@ -62,8 +71,13 @@ namespace single_photon
         m_reco_track_theta_yz.resize(size);
         m_reco_track_phi_yx.resize(size);
 
-
-
+        m_sim_track_energy.resize(size);
+        m_sim_track_pdg.resize(size);
+        m_sim_track_origin.resize(size);
+        m_sim_track_process.resize(size);
+        m_sim_track_startx.resize(size);
+        m_sim_track_starty.resize(size);
+        m_sim_track_startz.resize(size);
 
     }
 
@@ -94,7 +108,17 @@ namespace single_photon
 
         vertex_tree->Branch("reco_track_spacepoint_chi",&m_reco_track_spacepoint_chi);
         vertex_tree->Branch("reco_track_spacepoint_max_dist",&m_reco_track_spacepoint_max_dist);
+
+
+        vertex_tree->Branch("sim_track_energy",&m_sim_track_energy);
+        vertex_tree->Branch("sim_track_pdg",&m_sim_track_pdg);
+        vertex_tree->Branch("sim_track_origin",&m_sim_track_origin);
+        vertex_tree->Branch("sim_track_process",&m_sim_track_process);
+        vertex_tree->Branch("sim_track_startx",&m_sim_track_startx);
+        vertex_tree->Branch("sim_track_starty",&m_sim_track_starty);
+        vertex_tree->Branch("sim_track_startz",&m_sim_track_startz);
     }
+
 
 
 
@@ -209,6 +233,43 @@ namespace single_photon
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Finished.\n";
     }
+
+    void SinglePhoton::RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  
+            std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap, 
+            std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,
+            std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
+
+
+        auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+
+        if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite\n";
+
+        int i_trk = 0;
+        for (TrackVector::const_iterator iter = tracks.begin(), iterEnd = tracks.end(); iter != iterEnd; ++iter)
+        {
+
+            const art::Ptr<recob::Track> track = *iter;
+            const art::Ptr<simb::MCParticle> mcparticle = trackToMCParticleMap[track];
+            const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
+
+            double kx = mcparticle->Position().X();
+            double ky = mcparticle->Position().Y();
+            double kz = mcparticle->Position().Z();
+
+
+            m_sim_track_energy[i_trk] = mcparticle->E();
+            m_sim_track_pdg[i_trk] = mcparticle->PdgCode();
+            m_sim_track_process[i_trk] = mcparticle->Process();
+            m_sim_track_startx[i_trk] = kx+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).X();
+            m_sim_track_startx[i_trk] = ky+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).Y();
+            m_sim_track_startx[i_trk] = kz+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).Z();
+            m_sim_track_origin[i_trk] = mctruth->Origin();
+
+            i_trk++;
+        }
+
+    }
+
 
 
 

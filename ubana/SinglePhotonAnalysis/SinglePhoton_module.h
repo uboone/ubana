@@ -21,6 +21,9 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 
+#include "larevt/SpaceChargeServices/SpaceChargeService.h" 
+
+
 #include "larcoreobj/SummaryData/POTSummary.h"
 
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -172,6 +175,8 @@ namespace single_photon
             void ResizeTracks(size_t);
             void CreateTrackBranches();
 
+            void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap);
+
             TGraph proton_length2energy_tgraph;
             double dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& X0);
 
@@ -197,7 +202,6 @@ namespace single_photon
             double triangle_area(double a1, double a2, double b1, double b2, double c1, double c2);
             int quick_delaunay_fit(int n, double *X, double *Y, int *num_triangles, double * area);
             int delaunay_hit_wrapper(const std::vector<art::Ptr<recob::Hit>>& hits, std::vector<int> & num_hits, std::vector<int>& num_triangles, std::vector<double> & area);
-
 
 
 
@@ -292,6 +296,16 @@ namespace single_photon
 
             std::vector<double> m_reco_track_spacepoint_chi;
             std::vector<double> m_reco_track_spacepoint_max_dist;
+
+            std::vector<double> m_sim_track_energy;
+            std::vector<int> m_sim_track_pdg;
+            std::vector<int> m_sim_track_origin;
+            std::vector<std::string> m_sim_track_process;
+            std::vector<double> m_sim_track_startx;
+            std::vector<double> m_sim_track_starty;
+            std::vector<double> m_sim_track_startz;
+
+
             //------------ Shower related Variables  -------------
 
             std::vector<double>   m_reco_shower_startx;

@@ -104,7 +104,7 @@ namespace single_photon
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite\n";
-            
+
         m_reco_asso_showers=showers.size();
         int i_shr = 0;
         this->ResizeShowers(m_reco_asso_showers);
@@ -124,7 +124,7 @@ namespace single_photon
             TVector3 shr_dir = shower->Direction();
 
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<" which has length: "<<m_length<<"\n";
-          
+
             m_reco_shower_startx[i_shr] = shr_start.X();
             m_reco_shower_starty[i_shr] = shr_start.Y();
             m_reco_shower_startz[i_shr] = shr_start.Z();
@@ -137,7 +137,7 @@ namespace single_photon
             m_reco_shower_openingangle[i_shr] = m_open_angle;
 
             m_reco_shower_conversion_distance[i_shr] = sqrt( pow(shr_start.X()-m_vertex_pos_x,2)+pow(shr_start.Y()-m_vertex_pos_y,2)+ pow(shr_start.Z()-m_vertex_pos_z,2)  );
- 
+
             m_reco_shower_theta_yz[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirz[i_shr]);
             m_reco_shower_phi_yx[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirx[i_shr]);
 
@@ -146,12 +146,12 @@ namespace single_photon
             std::vector<int> t_numhits(3,0);
             std::vector<double> t_area(3,0.0);
             //Right, this basically loops over all hits in all planes and for each plane forms the Delaunay triangilization of it and calculates the 2D area inscribed by the convex hull
-            
+
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Starting Delaunay Triangleization\n";
-          
+
             auto start = std::chrono::high_resolution_clock::now();
             this->delaunay_hit_wrapper(hits, t_numhits, t_num, t_area);
-            
+
             auto finish = std::chrono::high_resolution_clock::now();
             auto microseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start);
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles\n";
@@ -179,9 +179,8 @@ namespace single_photon
             if(ymin > ymax) std::swap(ymin, ymax);
 
             //Now loop over all flashes (only in beamtime) and find SOMETHING?
-            
-            //---------------- Reco-Truth Matching to MCParticles -------------------//
 
+            //---------------- Reco-Truth Matching to MCParticles -------------------//
 
 
 
@@ -189,18 +188,21 @@ namespace single_photon
         }
 
 
-           if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished.\n";
+        if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished.\n";
     }
 
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
- void SinglePhoton::RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  
-         std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, 
-         std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
-         std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
+    void SinglePhoton::RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  
+            std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, 
+            std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
+            std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
+
+        auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+
 
         if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCShowers()\t||\t Begininning recob::Shower Reco-MC suite\n";
-            
+
         int i_shr = 0;
         for (ShowerVector::const_iterator iter = showers.begin(), iterEnd = showers.end(); iter != iterEnd; ++iter)
         {
@@ -209,18 +211,22 @@ namespace single_photon
             const art::Ptr<simb::MCParticle> mcparticle = showerToMCParticleMap[shower];
             const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
 
+            double kx = mcparticle->Position().X();
+            double ky = mcparticle->Position().Y();
+            double kz = mcparticle->Position().Z();
+
             m_sim_shower_energy[i_shr] = mcparticle->E();
             m_sim_shower_pdg[i_shr] = mcparticle->PdgCode();
             m_sim_shower_process[i_shr] = mcparticle->Process();
-            m_sim_shower_startx[i_shr] = mcparticle->Position().X();
-            m_sim_shower_starty[i_shr] = mcparticle->Position().Y();
-            m_sim_shower_startz[i_shr] = mcparticle->Position().Z();
+            m_sim_shower_startx[i_shr] = kx+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).X();
+            m_sim_shower_startx[i_shr] = ky+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).Y();
+            m_sim_shower_startx[i_shr] = kz+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).Z();
             m_sim_shower_origin[i_shr] = mctruth->Origin();
-           
+
             i_shr++;
         }
- 
- }
+
+    }
 
 
     void SinglePhoton::CollectCalo(const art::Event &evt, const art::Ptr<recob::Shower> &shower)

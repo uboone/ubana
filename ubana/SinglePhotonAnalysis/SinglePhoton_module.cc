@@ -38,6 +38,7 @@ namespace single_photon
         m_useModBox = pset.get<bool>("UseModBox",true);
         m_is_verbose = pset.get<bool>("Verbose",true);
 
+
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
@@ -195,6 +196,7 @@ namespace single_photon
 
         this->AnalyzeFlashes(flashVector);
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap);
+        this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
  
         this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap); 
         this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);

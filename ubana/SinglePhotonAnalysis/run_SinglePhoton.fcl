@@ -4,8 +4,8 @@
 #include "geometry.fcl" 
 #include "larproperties.fcl" 
 #include "services_microboone_basic.fcl"
-#
-#
+
+
 process_name : SinglePhoton      #The process name must NOT contain any underscores
 
 source : {
@@ -22,6 +22,7 @@ services :
  LArPropertiesService:      @local::standard_properties
  DetectorClocksService:     @local::standard_detectorclocks
  DetectorPropertiesService: @local::standard_detproperties
+ @table::microboone_services
 }
 
 outputs: {
@@ -54,6 +55,10 @@ physics: {
     end_paths: [ path0 ]
 
     }
+
+services.SpaceCharge.EnableCorrSCE: true
+services.SpaceCharge.EnableSimEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: true
 
 services.DetectorPropertiesService.NumberTimeSamples:        6400
 services.DetectorPropertiesService.ReadOutWindowSize:        6401

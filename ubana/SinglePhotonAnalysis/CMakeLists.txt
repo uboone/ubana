@@ -51,6 +51,7 @@ art_make( BASENAME_ONLY
 			larcoreobj_SummaryData	
 			larsim_MCCheater_BackTrackerService_service
 			larpandora_LArPandoraInterface
+            SignalShapingServiceMicroBooNE_service
 			nusimdata_SimulationBase
 			ubana_LEEPhotonAnalysis
 			${UB_DATA_TYPES}
