@@ -119,7 +119,7 @@ namespace single_photon
 
     }
 
-    void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap){
+    void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap ){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite\n";
             
@@ -133,7 +133,8 @@ namespace single_photon
             const art::Ptr<recob::Shower> shower = *iter;
             const art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap[shower];
             const std::vector<art::Ptr<recob::Hit>> hits =  pfParticleToHitMap[pfp];
-
+	    const std::vector<art::Ptr<recob::Cluster>> clusters = pfParticleToClusterMap[pfp];
+            
             //int m_shrid = shower->ID(); This is an used variable, always -999
             double m_length = shower->Length();
             double m_open_angle = shower->OpenAngle();
@@ -186,8 +187,12 @@ namespace single_photon
             m_reco_shower_num_hits_plane1[i_shr] = t_numhits[1];
             m_reco_shower_num_hits_plane2[i_shr] = t_numhits[2];
 
-           //temporarily hardcoding in the gain
-	    m_reco_shower_energy[i_shr] = CalcEShower(hits, 200);
+	  //-------------- Calorimetry --------------------
+
+    
+	    m_reco_shower_energy[i_shr] = CalcEShower(hits);
+	    m_reco_shower_dQdx_plane0[i_shr] = CalcdQdxShower(shower,clusters, clusterToHitMap, 0 ); 
+
 
             //-------------- Flashes : Was there a flash in the beam_time and if so was it near in Z? --------------------
             double zmin = m_reco_shower_startz[i_shr];
@@ -217,7 +222,8 @@ namespace single_photon
         if (!theShowers.isValid())
         {
             mf::LogDebug("LArPandora") << "  Failed to find Shower Information... " << "\n";
-            return;
+     
+       return;
         }
         else
         {
@@ -240,7 +246,8 @@ namespace single_photon
 
     }
 
-   double SinglePhoton::CalcEShower(std::vector<art::Ptr<recob::Hit>> hits, double gain){    
+
+   double SinglePhoton::CalcEShower(std::vector<art::Ptr<recob::Hit>> hits){    
      double energy[3] = {0., 0., 0.};
    
      //for each hit in the shower
@@ -252,7 +259,7 @@ namespace single_photon
 	if (plane > 2 || plane < 0)	continue;
 
 	//calc the energy of the hit
-	double E = SinglePhoton::QtoEConversion(thishitptr, gain);	
+	double E = SinglePhoton::QtoEConversion(thishitptr);	
 
 	//add the energy to the plane
 	energy[plane] += E;
@@ -272,12 +279,51 @@ namespace single_photon
 
    }
 
-   double SinglePhoton::QtoEConversion(art::Ptr<recob::Hit> thishitptr, double gain){
+   double SinglePhoton::QtoEConversion(art::Ptr<recob::Hit> thishitptr){
 	double Q = thishitptr->Integral();
 	//return the energy value converted to MeV (the factor of 1e-6)
-	return Q* gain* m_work_function *1e-6 /m_recombination_factor;
+	return Q* m_gain* m_work_function *1e-6 /m_recombination_factor;
 
    }
 
+  std::vector<double> SinglePhoton::CalcdQdxShower(const art::Ptr<recob::Shower> shower, const std::vector<art::Ptr<recob::Cluster>> clusters, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane){
+	std::vector<double> dqdx;
+
+	//get the 3D shower direction
+	TVector3 shower_dir(shower->Direction().X(), shower->Direction().Y(),shower->Direction().Z());
+	 
+	//calculate the pitch for this plane
+	double pitch = getPitch(shower_dir, plane);	
+	if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The pitch between the shower and plane "<<plane<<" is "<<pitch<<std::endl;
+	//for all the clusters in the shower
+	//keep only clusters on the plane
+	//calculate the cluster direction
+	//draw a rectangle around the cluster axis 
+	//get all the hits for this cluster
+		//for each hit in the cluster
+		//check if inside the box
+		//if yes
+	return dqdx;
+  }
+
+  double SinglePhoton::getPitch(TVector3 shower_dir, int plane){
+	//geo::TPCGeo const& tpc = geom->TPC(0);
+	
+	//get the wire direction for this plane
+	TVector3 wire_dir =  geom->TPC(0).Plane(plane).FirstWire().Direction();
+	//if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The wire_pitch for plane "<<plane<<" is "<<wire_direction[0]<<", "<<wire_direction[1]<<", "<<wire_direction[2]<<std::endl;	
+	
+	//take the dot product between the wire direction and the shower direction
+	double cos = wire_dir.Dot(shower_dir);
+
+	//want only positive values so take abs, normalize by the lengths of the shower and wire
+	cos = abs(cos)/(wire_dir.Mag() * shower_dir.Mag());	
+
+	//If the cos is 0 shower is perpendicular and therefore get infinite distance 
+	if (cos == 0){ return std::numeric_limits<double>::max(); }
+
+	double wire_spacing = 0.3;
+	return wire_spacing/cos;
+	}
 
 }

@@ -14,10 +14,10 @@ namespace single_photon
     {
         this->reconfigure(pset);
         theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
-
-    }
-
-    // -------------------------------------------------------------------------------------------------------
+	geom = lar::providerFrom<geo::Geometry>();
+    
+   }
+//  -------------------------------------------------------------------------------------------------------
 
     void SinglePhoton::reconfigure(fhicl::ParameterSet const &pset)
     {
@@ -38,7 +38,7 @@ namespace single_photon
         m_is_verbose = pset.get<bool>("Verbose",true);
 	m_work_function = pset.get<double>("work_function");
 	m_recombination_factor =pset.get<double>("recombination_factor");
-
+	m_gain =pset.get<double>("gain");
 
     }
 
@@ -76,6 +76,11 @@ namespace single_photon
         std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
         art::fill_ptr_vector(pfParticleVector,pfParticleHandle);
 
+	//get the cluster handle for the dQ/dx calc
+	art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(m_pandoraLabel);
+	std::vector< art::Ptr<recob::Cluster> > clusterVector;
+	art::fill_ptr_vector(clusterVector,clusterHandle);
+	
         //So a cross check
         if (!pfParticleHandle.isValid())
         {
@@ -115,6 +120,23 @@ namespace single_photon
             pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
         }
 
+	//Get a map between the PFP's and the clusters. Although Mark isn't a fan of clusters, they're imporant for the shower dQ/dx
+	//Also need a map between clusters and hits
+ 	art::FindManyP<recob::Cluster> clusters_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
+	art::FindManyP<recob::Hit> hits_per_cluster(clusterHandle, evt, m_pandoraLabel);
+	std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > pfParticleToClustersMap;
+	std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > clusterToHitsMap;
+	//fill map PFP to Clusters
+	for(size_t i=0; i< nuParticles.size(); ++i){
+		auto pfp = nuParticles[i];
+		pfParticleToClustersMap[pfp] = clusters_per_pfparticle.at(pfp.key());
+	}
+	//fill map Cluster to Hits
+	for(size_t i=0; i< clusterVector.size(); ++i){
+		auto cluster = clusterVector[i];
+		clusterToHitsMap[cluster] = hits_per_cluster.at(cluster.key());
+	}
+		
 
         //OK Here we build two IMPORTANT maps for the analysis, (a) given a PFParticle get a vector of hits..
         //and (b) given a single hit, get the PFParticle it is in (MARK: is it only one? always? RE-MARK: Yes)
@@ -186,7 +208,7 @@ namespace single_photon
         
         this->AnalyzeFlashes(flashVector);
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap);
-        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap); 
+        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap); 
 
         //---------------------- END OF LOOP, fill vertex ---------------------
         vertex_tree->Fill();

@@ -22,6 +22,7 @@ services :
  LArPropertiesService:      @local::standard_properties
  DetectorClocksService:     @local::standard_detectorclocks
  DetectorPropertiesService: @local::standard_detproperties
+ @table::microboone_services
 }
 
 outputs: {
@@ -47,7 +48,9 @@ physics: {
        input_param:    "optional" 
        work_function: 23
        recombination_factor: 0.62
+       gain : 197
        }
+
   }
  filters : {
      # ParameterSets for zero or more filter modules

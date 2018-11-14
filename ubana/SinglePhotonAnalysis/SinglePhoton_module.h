@@ -155,18 +155,35 @@ namespace single_photon
 	   /*
  	    *@brief Calculated the shower energy by looping over all the hits and summing the charge
       	    *@param hits -  an art pointer of all the hits in a shower
- 	    *@param gain - the gain value corresponding to plane and mc/data
+ 	    *
  	    *
  	    * */
-	   double CalcEShower(std::vector<art::Ptr<recob::Hit>> hits, double gain);
+	   double CalcEShower(std::vector<art::Ptr<recob::Hit>> hits);
 
 	    /**
  	    * @brief Calculate the E value in MeV for a given hit
  	    * @param thishit - an individual hit 
- 	    * @param gain - the gain corresponding to plane and data/mc
+ 	    * 
  	    *
  	    * */
-	    double QtoEConversion(art::Ptr<recob::Hit> thishitptr, double gain);
+	    double QtoEConversion(art::Ptr<recob::Hit> thishitptr);
+
+	   /**
+ 	   *
+ 	   *@brief For a single shower, calculates the dQdx for each hit in the clusters in the shower for a single plane
+	   *@param shower - a Pandora shower
+ 	   *@param clusters - all of the clusters in the shower
+ 	   *@param clusterToHitMap - a map between each cluster and all of the hits in the cluster
+	   *@param plane - a single plane
+ 	   * * */
+	    std::vector<double> CalcdQdxShower(const art::Ptr<recob::Shower> shower, const std::vector<art::Ptr<recob::Cluster>> clusters, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane);
+		
+	    /**
+ 	    *@brief Gets the pitch between the 3D reconstructed shower direction and the wires for a given plane
+ 	    *@param shower_dir - the 3D shower direction
+	    *@param plane - a single plane
+	    * */
+	    double getPitch(TVector3 shower_dir, int plane);
 
             //----------------  Templatees ----------------------------
             void AnalyzeTemplates();
@@ -193,7 +210,7 @@ namespace single_photon
 
             //----------------  Showers ----------------------------
 
-            void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle> > & showertopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfparticletohitmap);
+             void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap,std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > & clusterToHitMap );
             void ClearShowers();
             void ResizeShowers(size_t);
             void CreateShowerBranches();
@@ -226,9 +243,10 @@ namespace single_photon
 
 	    double m_work_function;
 	    double m_recombination_factor;
+	    double m_gain;
 
             detinfo::DetectorProperties const* theDetector;//
-
+	    geo::GeometryCore const* geom;
 
 
             TTree* pot_tree;
