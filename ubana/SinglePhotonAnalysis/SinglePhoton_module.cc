@@ -199,12 +199,13 @@ namespace single_photon
         this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap); 
         this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
 
+        // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
+        // MCShower and MCTrack come from energy depositions in GEANT4
         this->AnalyzeMCTruths(mcTruthVector);
 
 
         //---------------------- END OF LOOP, fill vertex ---------------------
         vertex_tree->Fill();
-
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
     }
@@ -292,7 +293,7 @@ namespace single_photon
 
         //------------- Track Related Variables -----------------
         this->ClearShowers();
-
+        this->ClearMCTruths();
 
 
 
