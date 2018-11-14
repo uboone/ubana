@@ -198,9 +198,6 @@ namespace single_photon
             std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
 
-        auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
-
-
         if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCShowers()\t||\t Begininning recob::Shower Reco-MC suite\n";
 
         int i_shr = 0;
@@ -211,16 +208,15 @@ namespace single_photon
             const art::Ptr<simb::MCParticle> mcparticle = showerToMCParticleMap[shower];
             const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
 
-            double kx = mcparticle->Position().X();
-            double ky = mcparticle->Position().Y();
-            double kz = mcparticle->Position().Z();
+            std::vector<double> corrected(3);
+            this->spacecharge_correction(mcparticle, corrected);
 
             m_sim_shower_energy[i_shr] = mcparticle->E();
             m_sim_shower_pdg[i_shr] = mcparticle->PdgCode();
             m_sim_shower_process[i_shr] = mcparticle->Process();
-            m_sim_shower_startx[i_shr] = kx+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).X();
-            m_sim_shower_startx[i_shr] = ky+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).Y();
-            m_sim_shower_startx[i_shr] = kz+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).Z();
+            m_sim_shower_startx[i_shr] = mcparticle->Position().X()+corrected[0];
+            m_sim_shower_starty[i_shr] = mcparticle->Position().Y()+corrected[1];
+            m_sim_shower_startz[i_shr] =mcparticle->Position().Z()+corrected[2];
             m_sim_shower_origin[i_shr] = mctruth->Origin();
 
             i_shr++;

@@ -34,6 +34,7 @@
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #include "larcore/Geometry/Geometry.h"
 
@@ -151,7 +152,6 @@ namespace single_photon
 
             void GetVertex(const lar_pandora::PFParticlesToVertices & particlestoVertices, const art::Ptr<recob::PFParticle> & particle );
 
-            void CollectCalo(const art::Event &evt,const art::Ptr<recob::Track> &track);
             void CollectCalo(const art::Event &evt,const art::Ptr<recob::Shower> &shower);
 
 
@@ -174,7 +174,7 @@ namespace single_photon
             void ClearTracks();
             void ResizeTracks(size_t);
             void CreateTrackBranches();
-
+            void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap);
             void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap);
 
             TGraph proton_length2energy_tgraph;
@@ -204,6 +204,7 @@ namespace single_photon
             int delaunay_hit_wrapper(const std::vector<art::Ptr<recob::Hit>>& hits, std::vector<int> & num_hits, std::vector<int>& num_triangles, std::vector<double> & area);
 
 
+           int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected);
 
 
             std::string m_pandoraLabel;         ///< The label for the pandora producer
@@ -218,15 +219,17 @@ namespace single_photon
             std::string m_potLabel;
             std::string m_generatorLabel;
 
-            bool m_useModBox;
-            bool        m_printOutScores;       ///< Option to investigate the associations to scores for PFParticles
-
             bool m_is_verbose;
 
-            detinfo::DetectorProperties const* theDetector;//
+        double m_track_calo_min_dEdx;
+        double m_track_calo_max_dEdx;
+        double m_track_calo_min_dEdx_hits;
+        double m_track_calo_trunc_fraction;
 
-
-
+            detinfo::DetectorProperties const * theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
+            detinfo::DetectorClocks    const *  detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
+            spacecharge::SpaceCharge const * SCE;
+            
             TTree* pot_tree;
             TTree* vertex_tree;
 
@@ -297,6 +300,16 @@ namespace single_photon
             std::vector<double> m_reco_track_spacepoint_chi;
             std::vector<double> m_reco_track_spacepoint_max_dist;
 
+            std::vector<double> m_reco_track_mean_dEdx;
+        std::vector<double> m_reco_track_mean_dEdx_start_half;
+        std::vector<double> m_reco_track_mean_dEdx_end_half;
+        std::vector<int> m_reco_track_good_calo;
+    std::vector<double> m_reco_track_mean_trunc_dEdx;
+        std::vector<double> m_reco_track_mean_trunc_dEdx_start_half;
+        std::vector<double> m_reco_track_mean_trunc_dEdx_end_half;
+        std::vector<double> m_reco_track_trunc_PIDA;
+
+
             std::vector<double> m_sim_track_energy;
             std::vector<int> m_sim_track_pdg;
             std::vector<int> m_sim_track_origin;
@@ -366,6 +379,13 @@ namespace single_photon
             int   m_mctruth_num_exiting_delta0; 
             int   m_mctruth_num_exiting_deltapm; 
             int   m_mctruth_num_exiting_deltapp; 
+
+
+            std::vector<double> m_mctruth_exiting_pi0_E;
+  std::vector<double>       m_mctruth_exiting_pi0_px;
+ std::vector<double>        m_mctruth_exiting_pi0_py;
+ std::vector<double>        m_mctruth_exiting_pi0_pz;
+
     };
 
     DEFINE_ART_MODULE(SinglePhoton)

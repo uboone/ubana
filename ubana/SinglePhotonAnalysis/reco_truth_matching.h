@@ -58,13 +58,7 @@ namespace single_photon
                 std::cout << "SinglePhoton::recoMC()\t||\t Final Match (from my loop) is " << best_matched_mcparticle->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
                 << " pdg=" << best_matched_mcparticle->PdgCode()
                 << " trkid=" << best_matched_mcparticle->TrackId()
-                << " ke=" << best_matched_mcparticle->E()-best_matched_mcparticle->Mass()
-                << "\nSinglePhoton::recoMC()\t||\t start (x,y,z)=(" << best_matched_mcparticle->Vx()
-                << "," << best_matched_mcparticle->Vy()
-                << "," << best_matched_mcparticle->Vz()
-                << ")\tend (x,y,z)=(" << best_matched_mcparticle->EndX()
-                << "," << best_matched_mcparticle->EndY()
-                << "," << best_matched_mcparticle->EndZ() << ")" << "\n";
+                << " ke=" << best_matched_mcparticle->E()-best_matched_mcparticle->Mass()<< "\n";
 
         }//end vector loop.
     return vec_fraction_matched;

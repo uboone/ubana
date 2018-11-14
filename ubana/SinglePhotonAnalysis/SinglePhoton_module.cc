@@ -14,7 +14,8 @@ namespace single_photon
     {
         this->reconfigure(pset);
         theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
-
+        detClocks   = lar::providerFrom<detinfo::DetectorClocksService>();
+        SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -26,7 +27,6 @@ namespace single_photon
         m_showerLabel = pset.get<std::string>("ShowerLabel");
         m_generatorLabel = pset.get<std::string>("GeneratorLabel","generator");
         m_caloLabel = pset.get<std::string>("CaloLabel");
-        m_printOutScores = pset.get<bool>("PrintOutScores",true);
         m_flashLabel = pset.get<std::string>("FlashLabel");
         m_beamgate_flash_start = pset.get<double>("beamgateStartTime",3.2); //Defaults to MC for now. Probably should change
         m_beamgate_flash_end = pset.get<double>("beamgateEndTime",4.8);
@@ -35,8 +35,12 @@ namespace single_photon
         m_backtrackerLabel = pset.get<std::string>("BackTrackerModule","gaushitTruthMatch");
         m_hitfinderLabel = pset.get<std::string>("HitFinderModule", "gaushit");
         m_hitMCParticleAssnsLabel = pset.get<std::string>("HitMCParticleAssnLabel","gaushitTruthMatch");
-        m_useModBox = pset.get<bool>("UseModBox",true);
         m_is_verbose = pset.get<bool>("Verbose",true);
+
+        m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.01);
+        m_track_calo_max_dEdx = pset.get<double>("Max_dEdx",25);
+        m_track_calo_min_dEdx_hits = pset.get<double>("Min_dEdx_hits",2);
+        m_track_calo_trunc_fraction = pset.get<double>("TruncMeanFraction",20.0);
 
 
     }
@@ -70,6 +74,12 @@ namespace single_photon
         std::vector<art::Ptr<recob::OpFlash>> flashVector;
         art::fill_ptr_vector(flashVector,flashHandle);
 
+        //tracks
+        art::ValidHandle<std::vector<recob::Track>> const & trackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_trackLabel);
+        std::vector<art::Ptr<recob::Track>> trackVector;
+        art::fill_ptr_vector(trackVector,trackHandle);
+
+
         // Collect the PFParticles from the event. This is the core!
         art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
         std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
@@ -97,6 +107,8 @@ namespace single_photon
         std::vector<art::Ptr<recob::Vertex>> vertexVector;
         std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap;
         lar_pandora::LArPandoraHelper::CollectVertices(evt, m_pandoraLabel, vertexVector, pfParticlesToVerticesMap);
+
+        
 
 
         //Once we have actual verticies, lets concentrate on JUST the neutrino PFParticles for now:
@@ -160,6 +172,15 @@ namespace single_photon
         this->CollectTracksAndShowers(nuParticles, pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
 
 
+        //Track Calorimetry
+        art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
+        std::map<art::Ptr<recob::Track>, art::Ptr<anab::Calorimetry> > trackToCalorimetryMap;
+        for(size_t i=0; i< tracks.size(); ++i){
+            trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
+        }
+
+
+
         //**********************************************************************************************/
         //**********************************************************************************************/
 
@@ -195,9 +216,12 @@ namespace single_photon
         }
 
         this->AnalyzeFlashes(flashVector);
+
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap);
+        this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
         this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
- 
+
+
         this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap); 
         this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
 
@@ -380,34 +404,6 @@ namespace single_photon
         }
     }
 
-    //------------------------------------------------------------------------------------------------------------------------------------------
-
-    /*     ---------- Currently commeted out as not in base larpandora
-           void SinglePhoton::PrintOutScores(const art::Event &evt, const PFParticleHandle &pfParticleHandle) const
-           {
-    // Get the associations between PFParticles and larpandoraobj::PFParticleMetadata
-    art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt, m_pandoraLabel);
-
-    for (unsigned int i = 0; i < pfParticleHandle->size(); ++i)
-    {
-    const std::vector< art::Ptr<larpandoraobj::PFParticleMetadata> > &pfParticleMetadataList(pfPartToMetadataAssoc.at(i));
-    if (!pfParticleMetadataList.empty())
-    {
-    const art::Ptr<recob::PFParticle> pParticle(pfParticleHandle, i);
-    for (unsigned int j=0; j<pfParticleMetadataList.size(); ++j)
-    {
-    const art::Ptr<larpandoraobj::PFParticleMetadata> &pfParticleMetadata(pfParticleMetadataList.at(j));
-    const pandora::PropertiesMap &pfParticlePropertiesMap(pfParticleMetadata->GetPropertiesMap());
-    if (!pfParticlePropertiesMap.empty())
-    std::cout << " Found PFParticle " << pParticle->Self() << " with: " << "\n";
-    for (pandora::PropertiesMap::const_iterator it = pfParticlePropertiesMap.begin(); it != pfParticlePropertiesMap.end(); ++it)
-    std::cout << "  - " << it->first << " = " << it->second << "\n";
-    }
-    }
-    }
-    }
-    */
-    //------------------------------------------------------------------------------------------------------------------------------------------
 
     void SinglePhoton::GetFinalStatePFParticleVectors(const PFParticleIdMap &pfParticleMap, const lar_pandora::PFParticlesToVertices &pfParticlesToVerticesMap, PFParticleVector &crParticles, PFParticleVector &nuParticles )
     {
@@ -580,6 +576,28 @@ namespace single_photon
 
         return 0;
     }
+
+
+    int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected){
+    
+            corrected.resize(3);
+            //Space Charge Effect! functionize this soon.
+            double kx = mcparticle->Position().X();
+            double ky = mcparticle->Position().Y();
+            double kz = mcparticle->Position().Z();
+            auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
+            double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
+            double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)-scecorr.X();
+            double yOffset = scecorr.Y();
+            double zOffset = scecorr.Z();
+
+            corrected[0]=xOffset;
+            corrected[1]=yOffset;
+            corrected[2]=zOffset;
+    
+        return 0;
+    }
+
 
 
 } //namespace lar_pandora

@@ -1,6 +1,7 @@
 #include "SinglePhoton_module.h"
 #include "TPrincipal.h"
 #include "TVectorD.h"
+#include "TruncMean.h"
 
 namespace single_photon
 {
@@ -18,7 +19,7 @@ namespace single_photon
         m_reco_track_endx.clear();
         m_reco_track_endy.clear();
         m_reco_track_endz.clear();
-        
+
         m_reco_track_theta_yz.clear();
         m_reco_track_phi_yx.clear();
 
@@ -32,7 +33,16 @@ namespace single_photon
 
         m_reco_track_spacepoint_chi.clear();
         m_reco_track_spacepoint_max_dist.clear();
-    
+
+        m_reco_track_mean_dEdx.clear();
+        m_reco_track_mean_dEdx_start_half.clear();
+        m_reco_track_mean_dEdx_end_half.clear();
+        m_reco_track_good_calo.clear();
+        m_reco_track_mean_trunc_dEdx.clear();
+        m_reco_track_mean_trunc_dEdx_start_half.clear();
+        m_reco_track_mean_trunc_dEdx_end_half.clear();
+        m_reco_track_trunc_PIDA.clear();
+
         m_sim_track_energy.clear();
         m_sim_track_pdg.clear();
         m_sim_track_origin.clear();
@@ -67,9 +77,18 @@ namespace single_photon
 
         m_reco_track_spacepoint_chi.resize(size);
         m_reco_track_spacepoint_max_dist.resize(size);
- 
+
         m_reco_track_theta_yz.resize(size);
         m_reco_track_phi_yx.resize(size);
+
+        m_reco_track_mean_dEdx.resize(size);
+        m_reco_track_mean_dEdx_start_half.resize(size);
+        m_reco_track_mean_dEdx_end_half.resize(size);
+        m_reco_track_good_calo.resize(size);
+        m_reco_track_mean_trunc_dEdx.resize(size);
+        m_reco_track_mean_trunc_dEdx_start_half.resize(size);
+        m_reco_track_mean_trunc_dEdx_end_half.resize(size);
+        m_reco_track_trunc_PIDA.resize(size);
 
         m_sim_track_energy.resize(size);
         m_sim_track_pdg.resize(size);
@@ -106,9 +125,18 @@ namespace single_photon
         vertex_tree->Branch("reco_track_spacepoint_principal2",&m_reco_track_spacepoint_principal2);
 
 
+
         vertex_tree->Branch("reco_track_spacepoint_chi",&m_reco_track_spacepoint_chi);
         vertex_tree->Branch("reco_track_spacepoint_max_dist",&m_reco_track_spacepoint_max_dist);
 
+        vertex_tree->Branch("reco_track_mean_dEdx",&m_reco_track_mean_dEdx);
+        vertex_tree->Branch("reco_track_mean_dEdx_start_half",&m_reco_track_mean_dEdx_end_half);
+        vertex_tree->Branch("reco_track_mean_dEdx_end_half",&m_reco_track_mean_dEdx_start_half);
+        vertex_tree->Branch("reco_track_good_calo",&m_reco_track_good_calo);
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx",&m_reco_track_mean_trunc_dEdx);
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half",&m_reco_track_mean_trunc_dEdx_end_half);
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half",&m_reco_track_mean_trunc_dEdx_start_half);
+        vertex_tree->Branch("reco_track_trunc_PIDA",&m_reco_track_trunc_PIDA);
 
         vertex_tree->Branch("sim_track_energy",&m_sim_track_energy);
         vertex_tree->Branch("sim_track_pdg",&m_sim_track_pdg);
@@ -125,8 +153,8 @@ namespace single_photon
 
 
     void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
-              std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap,
-              std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap){
+            std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap,
+            std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap){
 
 
 
@@ -184,9 +212,9 @@ namespace single_photon
 
             m_reco_track_spacepoint_chi[i_trk] = 0.0;
             //Principal componant analysis of SPACEPOINTS and not trajectory points. Will add a few things here in future.
-            
+
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Beginining PCA analysis of track\n";
-           
+
             TPrincipal* principal = new TPrincipal(3,"ND");
             for(int x = 0; x < m_reco_track_num_spacepoints[i_trk]; x++){
                 std::vector<double> tmp_spacepoints = {trk_spacepoints[x]->XYZ()[0],trk_spacepoints[x]->XYZ()[1] , trk_spacepoints[x]->XYZ()[2]};
@@ -252,17 +280,15 @@ namespace single_photon
             const art::Ptr<simb::MCParticle> mcparticle = trackToMCParticleMap[track];
             const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
 
-            double kx = mcparticle->Position().X();
-            double ky = mcparticle->Position().Y();
-            double kz = mcparticle->Position().Z();
-
+            std::vector<double> corrected(3);
+            this->spacecharge_correction(mcparticle, corrected);
 
             m_sim_track_energy[i_trk] = mcparticle->E();
             m_sim_track_pdg[i_trk] = mcparticle->PdgCode();
             m_sim_track_process[i_trk] = mcparticle->Process();
-            m_sim_track_startx[i_trk] = kx+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).X();
-            m_sim_track_startx[i_trk] = ky+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).Y();
-            m_sim_track_startx[i_trk] = kz+SCE->GetPosOffsets(geo::Point_t(kx,ky,kz)).Z();
+            m_sim_track_startx[i_trk] = mcparticle->Position().X()+corrected[0];
+            m_sim_track_starty[i_trk] =mcparticle->Position().Y()+corrected[1];
+            m_sim_track_startz[i_trk] =mcparticle->Position().Z()+corrected[2];
             m_sim_track_origin[i_trk] = mctruth->Origin();
 
             i_trk++;
@@ -274,38 +300,114 @@ namespace single_photon
 
 
 
-    void SinglePhoton::CollectCalo(const art::Event &evt, const art::Ptr<recob::Track> &track)
+    void SinglePhoton::AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap)
     {
 
         if(m_is_verbose) std::cout<<"SinglePhoton::CollectCalo(recob::Track)\t||\t Starting calo module for recob::Track\n";
 
-        art::ValidHandle< std::vector<recob::Track>> theTracks = evt.getValidHandle<std::vector<recob::Track>>(m_trackLabel);
-        //art::Handle< std::vector<anab::Calorimetry> > theCalo;
-        //evt.getByLabel(label, theCalo);
+        for(size_t i_trk = 0; i_trk<tracks.size(); ++i_trk){
+            const art::Ptr<recob::Track>      track = tracks[i_trk];
+            const art::Ptr<anab::Calorimetry> calo  = trackToCaloMap[track];
 
-        if (!theTracks.isValid())
-        {
-            mf::LogDebug("LArPandora") << "  Failed to find Track Information... " << "\n";
-            return;
-        }
-        else
-        {
-            mf::LogDebug("LArPandora") << "  Found: " << theTracks->size() << " CaloInfo " << "\n";
-        }
+            size_t calo_length = calo->dEdx().size();
 
-        art::FindManyP<anab::Calorimetry> theCaloAssns(theTracks, evt, m_caloLabel);
+            TruncMean tm;
+            std::vector<double> trunc_dEdx;
+            std::vector<double> res_range_good;
+            std::vector<double> dEdx_good;
 
-        int i = track->ID();
-        const std::vector< art::Ptr<anab::Calorimetry> > calo = theCaloAssns.at(i);
+            m_reco_track_good_calo[i_trk] =  0;
+            m_reco_track_mean_dEdx[i_trk] =  0.0;
+            m_reco_track_mean_dEdx_start_half[i_trk] =  0.0;
+            m_reco_track_mean_dEdx_end_half[i_trk] =  0.0;
+            m_reco_track_mean_trunc_dEdx[i_trk] =  0.0;
+            m_reco_track_mean_trunc_dEdx_start_half[i_trk] =  0.0;
+            m_reco_track_mean_trunc_dEdx_end_half[i_trk] =  0.0;
+            m_reco_track_trunc_PIDA[i_trk] =  0.0;
 
-        for (unsigned int j=0; j<calo.size(); ++j)
-        {
-            //std::cout<<"Plane: "<<j<<"\n";
-            for (size_t iTrkHit = 0; iTrkHit < calo[j]->dEdx().size(); ++iTrkHit) {
- //               std::cout<<"\t"<<iTrkHit<<" "<<calo[j]->dEdx()[iTrkHit]<<" "<<calo[j]->ResidualRange()[iTrkHit]<<"\n";
+
+            //First off look over ALL points
+            for (size_t k = 0; k < calo_length; ++k) {
+                double res_range =    calo->ResidualRange()[k];
+                double dEdx =         calo->dEdx()[k];
+
+                m_reco_track_mean_dEdx[i_trk] += dEdx;
+                if(k <= calo_length/2){ 
+                    m_reco_track_mean_dEdx_start_half[i_trk]+=dEdx;
+                }else{
+                    m_reco_track_mean_dEdx_end_half[i_trk]+=dEdx;
+                }
+
+                bool is_sensible = dEdx < m_track_calo_max_dEdx; 
+                bool is_nan =dEdx != dEdx; 
+                bool is_inf = std::isinf(dEdx);
+                bool is_nonzero = dEdx> m_track_calo_min_dEdx;
+
+                if(is_sensible && !is_nan && !is_inf && is_nonzero && k != 0 && k != calo_length-1){
+                    res_range_good.push_back(res_range);
+                    dEdx_good.push_back(dEdx);
+                }
+
+                std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< "\n";
+            }// End of first loop.
+
+            m_reco_track_good_calo[i_trk] = 0;
+            if(res_range_good.size() >= m_track_calo_min_dEdx_hits){
+                m_reco_track_good_calo[i_trk] = res_range_good.size();
+
+                //The radius we truncate over is going to be the max of either 1/frac of a track or 2x the minimum_dx in the res_range
+                double tenth_track = std::max(res_range_good.front(), res_range_good.back())/m_track_calo_trunc_fraction;
+                double min_dx = 999;
+                for(int j = res_range_good.size()-1; j>1; j--){
+                    double dx = fabs(res_range_good[j]-res_range_good[j-1]);
+                    if(dx < min_dx) min_dx = dx;
+                }
+                double rad = std::max( min_dx*2, tenth_track); 
+               
+                //Calculate the residual range
+                tm.setRadius(rad);
+                tm.CalcTruncMeanProfile(res_range_good,dEdx_good, trunc_dEdx);			
+                
+                double pida_sum_trunc=0.0;
+                //Calculate the mean truncated mean dEdx
+                for(size_t k=0; k< trunc_dEdx.size(); k++){
+                    double dEdx = trunc_dEdx[k];
+                    m_reco_track_mean_trunc_dEdx[i_trk] += dEdx;
+                    if(k <= trunc_dEdx.size()/2){ 
+                        m_reco_track_mean_trunc_dEdx_start_half[i_trk]+=dEdx;
+                    }else{
+                        m_reco_track_mean_trunc_dEdx_end_half[i_trk]+=dEdx;
+                    }
+
+
+                    if(trunc_dEdx[k] != trunc_dEdx[k] || std::isinf(trunc_dEdx[k]) || trunc_dEdx[k]<0){
+                        std::cout<<"Truncated dedx is either inf or nan (or negative) @ "<<k<<" "<<trunc_dEdx[k]<<std::endl;
+                        std::cout<<"Vector Length : "<<trunc_dEdx.size()<<std::endl;
+                        std::cout<<"i\t range \t dedx \t trunc dedx"<<std::endl;
+                        //for(int m=0; m<trunc_dEdx.size(); m++){
+                        //    std::cout<<m<<"\t"<<c_resrange.at(m)<<"  "<<c_dEdx.at(m)<<"  "<<trunc_dEdx.at(m)<<std::endl;
+                        //}
+                        std::cout<<"Using Radius: "<<rad<<std::endl;
+                        exit(EXIT_FAILURE);
+                    }
+
+            		pida_sum_trunc += trunc_dEdx[k]/(pow(res_range_good[k],-0.42));
+                }
+
             }
+
+            m_reco_track_mean_dEdx[i_trk]            *=1.0/((double)calo_length);
+            m_reco_track_mean_dEdx_start_half[i_trk] *=2.0/((double)calo_length);
+            m_reco_track_mean_dEdx_end_half[i_trk]   *=2.0/((double)calo_length);
+            m_reco_track_mean_trunc_dEdx[i_trk]            *=1.0/((double)trunc_dEdx.size());
+            m_reco_track_mean_trunc_dEdx_start_half[i_trk] *=2.0/((double)trunc_dEdx.size());
+            m_reco_track_mean_trunc_dEdx_end_half[i_trk]   *=2.0/((double)trunc_dEdx.size());
+            m_reco_track_trunc_PIDA[i_trk]  *=1.0/((double)trunc_dEdx.size());
         }
     }
+
+
+
 
     double SinglePhoton::dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& X0){
         double x1 =X1.at(0);
