@@ -13,22 +13,26 @@ namespace single_photon
         m_reco_shower_dirz.clear();
         m_reco_shower_theta_yz.clear();
         m_reco_shower_phi_yx.clear();
-
         m_reco_shower_conversion_distance.clear();
-
         m_reco_shower_openingangle.clear();
         m_reco_shower_length.clear();
-
         m_reco_shower_delaunay_num_triangles_plane0.clear();
         m_reco_shower_delaunay_num_triangles_plane1.clear();
         m_reco_shower_delaunay_num_triangles_plane2.clear();
         m_reco_shower_num_hits_plane0.clear();
         m_reco_shower_num_hits_plane1.clear();
         m_reco_shower_num_hits_plane2.clear();
-
         m_reco_shower_delaunay_area_plane0.clear();
         m_reco_shower_delaunay_area_plane1.clear();
         m_reco_shower_delaunay_area_plane2.clear();
+
+        m_sim_shower_energy.clear();
+        m_sim_shower_pdg.clear();
+        m_sim_shower_origin.clear();
+        m_sim_shower_process.clear();
+        m_sim_shower_startx.clear();
+        m_sim_shower_starty.clear();
+        m_sim_shower_startz.clear();
 
     }
 
@@ -39,28 +43,29 @@ namespace single_photon
         m_reco_shower_dirx.resize(size);
         m_reco_shower_diry.resize(size);
         m_reco_shower_dirz.resize(size);
-         m_reco_shower_theta_yz.resize(size);
+        m_reco_shower_theta_yz.resize(size);
         m_reco_shower_phi_yx.resize(size);
-
-
         m_reco_shower_conversion_distance.resize(size);
-
         m_reco_shower_openingangle.resize(size);
         m_reco_shower_length.resize(size);
-
         m_reco_shower_delaunay_num_triangles_plane0.resize(size);
         m_reco_shower_delaunay_num_triangles_plane1.resize(size);
         m_reco_shower_delaunay_num_triangles_plane2.resize(size);
         m_reco_shower_num_hits_plane0.resize(size);
         m_reco_shower_num_hits_plane1.resize(size);
         m_reco_shower_num_hits_plane2.resize(size);
-
-
         m_reco_shower_delaunay_area_plane0.resize(size);
         m_reco_shower_delaunay_area_plane1.resize(size);
         m_reco_shower_delaunay_area_plane2.resize(size);
 
 
+        m_sim_shower_energy.resize(size);
+        m_sim_shower_pdg.resize(size);
+        m_sim_shower_origin.resize(size);
+        m_sim_shower_process.resize(size);
+        m_sim_shower_startx.resize(size);
+        m_sim_shower_starty.resize(size);
+        m_sim_shower_startz.resize(size);
     }
 
     void SinglePhoton::CreateShowerBranches(){
@@ -75,21 +80,25 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_startz", &m_reco_shower_startz);
         vertex_tree->Branch("reco_shower_theta_yz",&m_reco_shower_theta_yz);
         vertex_tree->Branch("reco_shower_phi_yx",&m_reco_shower_phi_yx);
-
-
         vertex_tree->Branch("reco_shower_conversion_distance",& m_reco_shower_conversion_distance);
-
         vertex_tree->Branch("reco_shower_delaunay_num_triangles_plane0",&m_reco_shower_delaunay_num_triangles_plane0);
         vertex_tree->Branch("reco_shower_delaunay_num_triangles_plane1",&m_reco_shower_delaunay_num_triangles_plane1);
         vertex_tree->Branch("reco_shower_delaunay_num_triangles_plane2",&m_reco_shower_delaunay_num_triangles_plane2);
         vertex_tree->Branch("reco_shower_num_hits_plane0",&m_reco_shower_num_hits_plane0);
         vertex_tree->Branch("reco_shower_num_hits_plane1",&m_reco_shower_num_hits_plane1);
         vertex_tree->Branch("reco_shower_num_hits_plane2",&m_reco_shower_num_hits_plane2);
-        
         vertex_tree->Branch("reco_shower_delaunay_area_plane0",&m_reco_shower_delaunay_area_plane0);
         vertex_tree->Branch("reco_shower_delaunay_area_plane1",&m_reco_shower_delaunay_area_plane1);
         vertex_tree->Branch("reco_shower_delaunay_area_plane2",&m_reco_shower_delaunay_area_plane2);
 
+
+        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
+        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
+        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
+        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
+        vertex_tree->Branch("sim_shower_startx",&m_sim_shower_startx);
+        vertex_tree->Branch("sim_shower_starty",&m_sim_shower_starty);
+        vertex_tree->Branch("sim_shower_startz",&m_sim_shower_startz);
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap){
@@ -171,6 +180,10 @@ namespace single_photon
 
             //Now loop over all flashes (only in beamtime) and find SOMETHING?
             
+            //---------------- Reco-Truth Matching to MCParticles -------------------//
+
+
+
 
             i_shr++;
         }
@@ -179,7 +192,36 @@ namespace single_photon
            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished.\n";
     }
 
+
     //-----------------------------------------------------------------------------------------------------------------------------------------
+ void SinglePhoton::RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  
+         std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, 
+         std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
+         std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
+
+        if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCShowers()\t||\t Begininning recob::Shower Reco-MC suite\n";
+            
+        int i_shr = 0;
+        for (ShowerVector::const_iterator iter = showers.begin(), iterEnd = showers.end(); iter != iterEnd; ++iter)
+        {
+
+            const art::Ptr<recob::Shower> shower = *iter;
+            const art::Ptr<simb::MCParticle> mcparticle = showerToMCParticleMap[shower];
+            const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
+
+            m_sim_shower_energy[i_shr] = mcparticle->E();
+            m_sim_shower_pdg[i_shr] = mcparticle->PdgCode();
+            m_sim_shower_process[i_shr] = mcparticle->Process();
+            m_sim_shower_startx[i_shr] = mcparticle->Position().X();
+            m_sim_shower_starty[i_shr] = mcparticle->Position().Y();
+            m_sim_shower_startz[i_shr] = mcparticle->Position().Z();
+            m_sim_shower_origin[i_shr] = mctruth->Origin();
+           
+            i_shr++;
+        }
+ 
+ }
+
 
     void SinglePhoton::CollectCalo(const art::Event &evt, const art::Ptr<recob::Shower> &shower)
     {

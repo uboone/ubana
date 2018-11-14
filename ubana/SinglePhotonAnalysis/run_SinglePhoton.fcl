@@ -42,7 +42,7 @@ physics: {
 	   TrackLabel:     "pandora"
 	   ShowerLabel:    "pandora"
        CaloLabel:      "pandoracali"
-       FlashLabel:     "opflashBeam"
+       FlashLabel:     "simpleFlashBeam"
        POTLabel:       "generator"
        input_param:    "optional" 
        }

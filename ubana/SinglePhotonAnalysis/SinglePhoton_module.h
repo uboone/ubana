@@ -69,7 +69,7 @@ namespace single_photon
             typedef art::ValidHandle< std::vector<recob::PFParticle> > PFParticleHandle;
             typedef std::vector< art::Ptr<recob::PFParticle> > PFParticleVector;
             typedef std::vector< art::Ptr<recob::Track> > TrackVector;
-          typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
+            typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
             typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
 
             /**
@@ -182,6 +182,16 @@ namespace single_photon
             void ResizeShowers(size_t);
             void CreateShowerBranches();
 
+            void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap);
+
+            //---------------- MCTruths ----------------------------
+
+            void AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector );
+            void ClearMCTruths();
+            void ResizeMCTruths(size_t);
+            void CreateMCTruthBranches();
+
+
             //------------------ Delaunay triangle tools -----------//
 
             double triangle_area(double a1, double a2, double b1, double b2, double c1, double c2);
@@ -202,6 +212,7 @@ namespace single_photon
             std::string m_hitfinderLabel;
             std::string m_hitMCParticleAssnsLabel;
             std::string m_potLabel;
+            std::string m_generatorLabel;
 
             bool m_useModBox;
             bool        m_printOutScores;       ///< Option to investigate the associations to scores for PFParticles
@@ -233,8 +244,8 @@ namespace single_photon
             //-------------- Flash related variables -------------
             int m_reco_num_templates;
             std::vector<double> m_reco_template;
-            
-            
+
+
             //-------------- Flash related variables -------------
             std::vector<double> m_reco_flash_total_pe;
             std::vector<double> m_reco_flash_time;
@@ -309,9 +320,38 @@ namespace single_photon
             std::vector<double> m_reco_shower_delaunay_area_plane1;
             std::vector<double> m_reco_shower_delaunay_area_plane2;
 
+            std::vector<double> m_sim_shower_energy;
+            std::vector<int> m_sim_shower_pdg;
+            std::vector<int> m_sim_shower_origin;
+            std::vector<std::string> m_sim_shower_process;
+            std::vector<double> m_sim_shower_startx;
+            std::vector<double> m_sim_shower_starty;
+            std::vector<double> m_sim_shower_startz;
 
+            //------------ MCTruth related Variables  -------------
+            int m_mctruth_num;
+            int m_mctruth_origin;
+            double m_mctruth_nu_E;
+            double m_mctruth_lepton_E;
+            int m_mctruth_nu_pdg;
+            int m_mctruth_lepton_pdg;
+            int m_mctruth_mode ;
+            int m_mctruth_interaction_type ;
+            int m_mctruth_ccnc;
+            double m_mctruth_qsqr;
 
+            int m_mctruth_num_daughter_particles;
+            std::vector<int> m_mctruth_daughters_pdg;
+            std::vector<double> m_mctruth_daughters_E;
 
+            int     m_mctruth_num_exiting_photons ;
+            int      m_mctruth_num_exiting_protons ;
+            int    m_mctruth_num_exiting_pi0 ;
+            int   m_mctruth_num_exiting_pipm ;
+            int   m_mctruth_num_exiting_neutrons; 
+            int   m_mctruth_num_exiting_delta0; 
+            int   m_mctruth_num_exiting_deltapm; 
+            int   m_mctruth_num_exiting_deltapp; 
     };
 
     DEFINE_ART_MODULE(SinglePhoton)
