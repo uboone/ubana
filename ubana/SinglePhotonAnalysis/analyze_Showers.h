@@ -186,6 +186,8 @@ namespace single_photon
             m_reco_shower_num_hits_plane1[i_shr] = t_numhits[1];
             m_reco_shower_num_hits_plane2[i_shr] = t_numhits[2];
 
+           //temporarily hardcoding in the gain
+	    m_reco_shower_energy[i_shr] = CalcEShower(hits, 200);
 
             //-------------- Flashes : Was there a flash in the beam_time and if so was it near in Z? --------------------
             double zmin = m_reco_shower_startz[i_shr];
@@ -221,22 +223,61 @@ namespace single_photon
         {
             mf::LogDebug("LArPandora") << "  Found: " << theShowers->size() << " Showers " << "\n";
         }
-        art::FindManyP<anab::Calorimetry> theCaloAssns(theShowers, evt, m_caloLabel);
+       // art::FindManyP<anab::Calorimetry> theCaloAssns(theShowers, evt, m_caloLabel);
 
 
 
         for (unsigned int i = 0; i < theShowers->size(); ++i)
         {
-            const art::Ptr<recob::Shower> tmp_shower(theShowers, i);
-            const std::vector< art::Ptr<anab::Calorimetry> > calo = theCaloAssns.at(i);
+         //   const art::Ptr<recob::Shower> tmp_shower(theShowers, i);
+           // const std::vector< art::Ptr<anab::Calorimetry> > calo = theCaloAssns.at(i);
 
-            if(tmp_shower == shower){
+            //if(tmp_shower == shower){
 
-                break;
-            }
+              //  break;
+           // }
         }
 
     }
+
+   double SinglePhoton::CalcEShower(std::vector<art::Ptr<recob::Hit>> hits, double gain){    
+     double energy[3] = {0., 0., 0.};
+   
+     //for each hit in the shower
+     for (art::Ptr<recob::Hit> thishitptr : hits){
+	//check the plane
+	int plane= thishitptr->View();
+
+	//skip invalid planes     	
+	if (plane > 2 || plane < 0)	continue;
+
+	//calc the energy of the hit
+	double E = SinglePhoton::QtoEConversion(thishitptr, gain);	
+
+	//add the energy to the plane
+	energy[plane] += E;
+    }//for each hit
+    
+    //find the max energy on a single plane
+    double max = energy[0];
+    for (double en: energy){
+	if( en > max){
+		max = en;
+		}
+	}
+    if (m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
+
+    //return the highest energy on any of the planes
+    return max;
+
+   }
+
+   double SinglePhoton::QtoEConversion(art::Ptr<recob::Hit> thishitptr, double gain){
+	double Q = thishitptr->Integral();
+	//return the energy value converted to MeV (the factor of 1e-6)
+	return Q* gain* m_work_function *1e-6 /m_recombination_factor;
+
+   }
 
 
 }

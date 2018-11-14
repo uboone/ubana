@@ -36,6 +36,9 @@ namespace single_photon
         m_hitMCParticleAssnsLabel = pset.get<std::string>("HitMCParticleAssnLabel","gaushitTruthMatch");
         m_useModBox = pset.get<bool>("UseModBox",true);
         m_is_verbose = pset.get<bool>("Verbose",true);
+	m_work_function = pset.get<double>("work_function");
+	m_recombination_factor =pset.get<double>("recombination_factor");
+
 
     }
 

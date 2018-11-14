@@ -152,6 +152,22 @@ namespace single_photon
             void CollectCalo(const art::Event &evt,const art::Ptr<recob::Shower> &shower);
 
 
+	   /*
+ 	    *@brief Calculated the shower energy by looping over all the hits and summing the charge
+      	    *@param hits -  an art pointer of all the hits in a shower
+ 	    *@param gain - the gain value corresponding to plane and mc/data
+ 	    *
+ 	    * */
+	   double CalcEShower(std::vector<art::Ptr<recob::Hit>> hits, double gain);
+
+	    /**
+ 	    * @brief Calculate the E value in MeV for a given hit
+ 	    * @param thishit - an individual hit 
+ 	    * @param gain - the gain corresponding to plane and data/mc
+ 	    *
+ 	    * */
+	    double QtoEConversion(art::Ptr<recob::Hit> thishitptr, double gain);
+
             //----------------  Templatees ----------------------------
             void AnalyzeTemplates();
             void ClearTemplates();
@@ -207,6 +223,9 @@ namespace single_photon
             bool        m_printOutScores;       ///< Option to investigate the associations to scores for PFParticles
 
             bool m_is_verbose;
+
+	    double m_work_function;
+	    double m_recombination_factor;
 
             detinfo::DetectorProperties const* theDetector;//
 

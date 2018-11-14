@@ -45,6 +45,8 @@ physics: {
        FlashLabel:     "opflashBeam"
        POTLabel:       "generator"
        input_param:    "optional" 
+       work_function: 23
+       recombination_factor: 0.62
        }
   }
  filters : {
