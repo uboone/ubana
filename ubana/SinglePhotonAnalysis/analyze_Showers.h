@@ -70,10 +70,10 @@ namespace single_photon
 
 	m_reco_shower_energy.resize(size);
 	m_reco_shower_dQdx_plane0.resize(size);
-	m_reco_shower_dQdx_plane2.resize(size);
+	m_reco_shower_dQdx_plane1.resize(size);
 	m_reco_shower_dQdx_plane2.resize(size);
 	m_reco_shower_dEdx_plane0.resize(size);
-	m_reco_shower_dEdx_plane2.resize(size);
+	m_reco_shower_dEdx_plane1.resize(size);
 	m_reco_shower_dEdx_plane2.resize(size);
 
 
@@ -191,7 +191,12 @@ namespace single_photon
 
     
 	    m_reco_shower_energy[i_shr] = CalcEShower(hits);
+	    if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting dq/dx plane 0"<<std::endl;
 	    m_reco_shower_dQdx_plane0[i_shr] = CalcdQdxShower(shower,clusters, clusterToHitMap, 0 ); 
+	    if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting dq/dx plane 1"<<std::endl;
+	    m_reco_shower_dQdx_plane1[i_shr] = CalcdQdxShower(shower,clusters, clusterToHitMap, 1 ); 
+	    if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting dq/dx plane 2"<<std::endl; 
+	    m_reco_shower_dQdx_plane2[i_shr] = CalcdQdxShower(shower,clusters, clusterToHitMap, 2 ); 
 
 
             //-------------- Flashes : Was there a flash in the beam_time and if so was it near in Z? --------------------
@@ -287,7 +292,7 @@ namespace single_photon
    }
 
   std::vector<double> SinglePhoton::CalcdQdxShower(const art::Ptr<recob::Shower> shower, const std::vector<art::Ptr<recob::Cluster>> clusters, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane){
-	if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The number of clusters in this shower is "<<clusters.size()<<std::endl;
+	//if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The number of clusters in this shower is "<<clusters.size()<<std::endl;
 	std::vector<double> dqdx;
 
 	//get the 3D shower direction
@@ -296,7 +301,7 @@ namespace single_photon
 	 
 	//calculate the pitch for this plane
 	double pitch = getPitch(shower_dir, plane);	
-	if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The pitch between the shower and plane "<<plane<<" is "<<pitch<<std::endl;
+	//if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The pitch between the shower and plane "<<plane<<" is "<<pitch<<std::endl;
 
 	//for all the clusters in the shower
 	for (art::Ptr<recob::Cluster> thiscluster: clusters){
@@ -308,12 +313,12 @@ namespace single_photon
 
 		//get the cluster start and and in CM
 		std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->StartTick(), plane,m_TPC ,m_Cryostat)};
-      		if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t the start position of the cluster is "<<cluster_start[0]<<", "<<cluster_start[1]<<std::endl;
+      		//if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t the start position of the cluster is "<<cluster_start[0]<<", "<<cluster_start[1]<<std::endl;
 		std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->EndTick(), plane,m_TPC ,m_Cryostat) };
 
 		//check that the cluster has non-zero length
 		double length = sqrt(pow(cluster_end[0] - cluster_start[0], 2) + pow(cluster_end[1] - cluster_start[1], 2));
-		if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The cluster length is "<<length<<std::endl;
+		//if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The cluster length is "<<length<<std::endl;
 		if (length <= 0) continue;
 
 		//draw a rectangle around the cluster axis 
@@ -323,21 +328,32 @@ namespace single_photon
 		std::vector<art::Ptr<recob::Hit>> hits =  clusterToHitMap[thiscluster];
 	
 		//for each hit in the cluster
+		std::cout<<"the number of hits in this cluster is "<<hits.size()<<std::endl;
+		int n = 0;
 		for (art::Ptr<recob::Hit> thishit: hits){	
+			std::cout<<"starting hit "<<++n<<std::endl;
 			//get the hit position in cm
 			std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, theDetector->ConvertTicksToX( thishit->PeakTime(), plane,m_TPC ,m_Cryostat)};
-			//std::cout<<"the position of this hit in the cluster is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
+			std::cout<<"the position of this hit in the cluster is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
 
 			//check if inside the box
 			if (insideBox(thishit_pos, rectangle)){
-				//std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
+				std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
 				double q = thishit->Integral() * m_gain;
+				std::cout<<"the q for this hit is "<<q<<std::endl;
 				double this_dqdx = q/pitch; 
 				dqdx.push_back(this_dqdx);
 				std::cout<<"the calculated dq/dx for this hit is "<<this_dqdx<<std::endl;
 			}//if hit falls inside the box
+		//	else{
+		//		std::cout<<"hit not inside box"<<std::endl;
+		//	}
 		}//for each hit inthe cluster
 	}//for each cluster
+	//std::cout<<"the number of dq/dx points on this plane is "<<dqdx.size()<<std::endl;
+	//for (double mydqdx: dqdx){
+	//	std::cout<<"final dqdx for plane "<<plane<<" = "<<mydqdx<<std::endl;
+	//}
 	return dqdx;
   }
 
@@ -388,6 +404,7 @@ namespace single_photon
   }
 
   bool SinglePhoton::insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
+	std::cout<<"checking if inside"<<std::endl;
 	//for a rectangle this is a known value but this is the most general
 	int n_vertices = (int)rectangle.size();
 
@@ -395,11 +412,13 @@ namespace single_photon
 	int i, j = 0;
 	//for each pair of vertices
  	for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
+		//std::cout<<"checking if inside at i, j = "<<i<<", "<<j<<std::endl;
 		//if the hit y coordinate is between the y and x coordinates of two vertices
    		if ( ((rectangle[i][1]> thishit_pos[1]) != (rectangle[j][1]>thishit_pos[1])) 
 				&&(thishit_pos[0] < (rectangle[j][0]-rectangle[i][0]) * (thishit_pos[1]-rectangle[i][1]) / (rectangle[j][1]-rectangle[i][1]) + rectangle[i][0]) ){     			inside = true;
 		}
   	}
+	//std::cout<<"done checking, inside = "<<inside<<std::endl;
  	return inside;
   }
 
