@@ -39,8 +39,10 @@ namespace single_photon
 	m_work_function = pset.get<double>("work_function");
 	m_recombination_factor =pset.get<double>("recombination_factor");
 	m_gain =pset.get<double>("gain");
-
-    }
+	m_wire_spacing = pset.get<double>("wire_spacing");
+   	m_width_dqdx_box = pset.get<double>("width_box");
+    	m_length_dqdx_box = pset.get<double>("length_box");
+     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -48,6 +50,12 @@ namespace single_photon
     {
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
         std::cout<<"SinglePhoton::analyze()\t||\t On entry: "<<m_number_of_events<<std::endl;
+
+        auto const TPC = (*geom).begin_TPC();
+        auto ID = TPC.ID();
+        m_Cryostat = ID.Cryostat;
+        m_TPC = ID.TPC;
+
 
         //******************************Setup*****************Setup**************************************/
         //***********************************************************************************************/

@@ -179,13 +179,31 @@ namespace single_photon
 	    std::vector<double> CalcdQdxShower(const art::Ptr<recob::Shower> shower, const std::vector<art::Ptr<recob::Cluster>> clusters, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane);
 		
 	    /**
- 	    *@brief Gets the pitch between the 3D reconstructed shower direction and the wires for a given plane
+ 	    *@brief Gets the pitch between the 3D reconstructed shower direction and the wires for a given plane (the dx in dQdx)
  	    *@param shower_dir - the 3D shower direction
 	    *@param plane - a single plane
 	    * */
 	    double getPitch(TVector3 shower_dir, int plane);
 
-            //----------------  Templatees ----------------------------
+	    /**
+ 	    *@brief Calculates the four corners of a box of given length and width around a cluster given the start point and axis direction
+	    *@param cluster_start - the start position of a cluster in CM
+	    *@param cluster_axis - calculated from the cluster end minus the cluster start
+	    *@param width - typically ~1cm
+	    *@param length - typically a few cm
+ 	    *
+ 	    * */
+	    std::vector<std::vector<double>> buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length);
+
+	    /**
+ 	    *@brief For a 2d point on a plane in cm and a rectangle, returns true if the point is inside of the rectangle
+ 	    *@param thishit_pos - 2d location of a hit in cm
+	    *@param rectangle - vector of the positions of the four corners of the rectangle
+ 	    *
+	    * */
+ 	    bool insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle);
+ 
+           //----------------  Templatees ----------------------------
             void AnalyzeTemplates();
             void ClearTemplates();
             void ResizeTemplates(size_t);
@@ -244,10 +262,15 @@ namespace single_photon
 	    double m_work_function;
 	    double m_recombination_factor;
 	    double m_gain;
-
+	    double m_wire_spacing;
             detinfo::DetectorProperties const* theDetector;//
 	    geo::GeometryCore const* geom;
 
+	    int m_Cryostat;
+	    int m_TPC;
+
+	    double m_width_dqdx_box;
+	    double m_length_dqdx_box;
 
             TTree* pot_tree;
             TTree* vertex_tree;

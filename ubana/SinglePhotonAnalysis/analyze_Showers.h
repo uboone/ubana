@@ -287,22 +287,57 @@ namespace single_photon
    }
 
   std::vector<double> SinglePhoton::CalcdQdxShower(const art::Ptr<recob::Shower> shower, const std::vector<art::Ptr<recob::Cluster>> clusters, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane){
+	if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The number of clusters in this shower is "<<clusters.size()<<std::endl;
 	std::vector<double> dqdx;
 
 	//get the 3D shower direction
+	//note: in previous versions of the code there was a check to fix cases where the shower direction was inverted - this hasn't been implemented
 	TVector3 shower_dir(shower->Direction().X(), shower->Direction().Y(),shower->Direction().Z());
 	 
 	//calculate the pitch for this plane
 	double pitch = getPitch(shower_dir, plane);	
 	if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The pitch between the shower and plane "<<plane<<" is "<<pitch<<std::endl;
+
 	//for all the clusters in the shower
-	//keep only clusters on the plane
-	//calculate the cluster direction
-	//draw a rectangle around the cluster axis 
-	//get all the hits for this cluster
+	for (art::Ptr<recob::Cluster> thiscluster: clusters){
+		//keep only clusters on the plane
+		if(thiscluster->View() != plane) continue;
+
+		//calculate the cluster direction
+		std::vector<double> cluster_axis = {cos(thiscluster->StartAngle()), sin(thiscluster->StartAngle())};		
+
+		//get the cluster start and and in CM
+		std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->StartTick(), plane,m_TPC ,m_Cryostat)};
+      		if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t the start position of the cluster is "<<cluster_start[0]<<", "<<cluster_start[1]<<std::endl;
+		std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->EndTick(), plane,m_TPC ,m_Cryostat) };
+
+		//check that the cluster has non-zero length
+		double length = sqrt(pow(cluster_end[0] - cluster_start[0], 2) + pow(cluster_end[1] - cluster_start[1], 2));
+		if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The cluster length is "<<length<<std::endl;
+		if (length <= 0) continue;
+
+		//draw a rectangle around the cluster axis 
+	  	std::vector<std::vector<double>> rectangle = buildRectangle(cluster_start, cluster_axis, m_width_dqdx_box, m_length_dqdx_box);	
+
+		//get all the hits for this cluster
+		std::vector<art::Ptr<recob::Hit>> hits =  clusterToHitMap[thiscluster];
+	
 		//for each hit in the cluster
-		//check if inside the box
-		//if yes
+		for (art::Ptr<recob::Hit> thishit: hits){	
+			//get the hit position in cm
+			std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, theDetector->ConvertTicksToX( thishit->PeakTime(), plane,m_TPC ,m_Cryostat)};
+			//std::cout<<"the position of this hit in the cluster is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
+
+			//check if inside the box
+			if (insideBox(thishit_pos, rectangle)){
+				//std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
+				double q = thishit->Integral() * m_gain;
+				double this_dqdx = q/pitch; 
+				dqdx.push_back(this_dqdx);
+				std::cout<<"the calculated dq/dx for this hit is "<<this_dqdx<<std::endl;
+			}//if hit falls inside the box
+		}//for each hit inthe cluster
+	}//for each cluster
 	return dqdx;
   }
 
@@ -310,7 +345,7 @@ namespace single_photon
 	//geo::TPCGeo const& tpc = geom->TPC(0);
 	
 	//get the wire direction for this plane
-	TVector3 wire_dir =  geom->TPC(0).Plane(plane).FirstWire().Direction();
+	TVector3 wire_dir =  geom->TPC(m_TPC).Plane(plane).FirstWire().Direction();
 	//if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The wire_pitch for plane "<<plane<<" is "<<wire_direction[0]<<", "<<wire_direction[1]<<", "<<wire_direction[2]<<std::endl;	
 	
 	//take the dot product between the wire direction and the shower direction
@@ -322,8 +357,50 @@ namespace single_photon
 	//If the cos is 0 shower is perpendicular and therefore get infinite distance 
 	if (cos == 0){ return std::numeric_limits<double>::max(); }
 
-	double wire_spacing = 0.3;
-	return wire_spacing/cos;
-	}
+	//output is always >= the wire spacing
+	return m_wire_spacing/cos;
+  }
+
+
+  std::vector<std::vector<double>> SinglePhoton::buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length){
+	std::vector<std::vector<double>> corners;
+
+	//get the axis perpedicular to the cluster axis
+	double perp_axis[2] = {-cluster_axis[1], cluster_axis[0]};
+	
+	//create a vector for each corner of the rectangle on the plane
+	//c1 = bottom left corner
+	std::vector<double> c1 = {cluster_start[0] + perp_axis[0] * width / 2,  cluster_start[1] + perp_axis[1] * width / 2};
+	//c2 = top left corner
+	std::vector<double> c2 = {c1[0] + cluster_axis[0] * length, c1[1] + cluster_axis[1] * length};
+	//c3 = bottom right corner
+	std::vector<double> c3 = {cluster_start[0] - perp_axis[0] * width / 2, cluster_start[1] - perp_axis[1] * width / 2};
+	//c4 = top right corner
+	std::vector<double> c4 ={c3[0] + cluster_axis[0] * length, c3[1] + cluster_axis[1] * length}; 
+	
+	//save each of the vectors
+	corners.push_back(c1);
+	corners.push_back(c2);
+	corners.push_back(c3);
+	corners.push_back(c4);
+
+	return corners;
+  }
+
+  bool SinglePhoton::insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
+	//for a rectangle this is a known value but this is the most general
+	int n_vertices = (int)rectangle.size();
+
+	bool inside = false;
+	int i, j = 0;
+	//for each pair of vertices
+ 	for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
+		//if the hit y coordinate is between the y and x coordinates of two vertices
+   		if ( ((rectangle[i][1]> thishit_pos[1]) != (rectangle[j][1]>thishit_pos[1])) 
+				&&(thishit_pos[0] < (rectangle[j][0]-rectangle[i][0]) * (thishit_pos[1]-rectangle[i][1]) / (rectangle[j][1]-rectangle[i][1]) + rectangle[i][0]) ){     			inside = true;
+		}
+  	}
+ 	return inside;
+  }
 
 }
