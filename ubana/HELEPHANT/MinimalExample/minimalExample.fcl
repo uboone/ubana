@@ -1,0 +1,38 @@
+#include "services_microboone.fcl"
+
+process_name: minimalExample
+
+services:
+{
+  TFileService: {fileName: "myrootfilewithvariables.root"}
+  TimeTracker:            {}
+  MemoryTracker:          {}
+  RandomNumberGenerator:  {}
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1
+}
+
+physics:
+{
+	analyzers:
+  {
+    TestMinEx:
+    {
+      module_type:          "MinimalExample"
+      message:              "Test message!"
+    }
+  }
+  analysis: [TestMinEx]
+  end_paths: [analysis]
+}
+
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -400
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400

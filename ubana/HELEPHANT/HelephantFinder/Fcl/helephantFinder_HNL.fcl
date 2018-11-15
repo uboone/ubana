@@ -1,0 +1,6 @@
+#include "helephantFinder_base.fcl"
+
+physics.analyzers.HelephantFinder.SaveTruthDrawTree:                             "true"
+physics.analyzers.HelephantFinder.UseTruthDistanceMetric:                        "true"
+physics.analyzers.HelephantFinder.IsHSN:                                         "true"
+physics.analyzers.HelephantFinder.SaveG4Information:            								 "true"
