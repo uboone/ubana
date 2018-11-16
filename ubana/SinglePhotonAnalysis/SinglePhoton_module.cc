@@ -480,7 +480,7 @@ namespace single_photon
         if(m_is_verbose) std::cout<<"SinglePhoton::Getvertex()\t||\t Starting to analyze recob::Vertex\n";
         int n_vert =0;
 
-        std::cout<<"There are "<<pfParticlesToVerticesMap.count(particle)<<" verticies associated with this particle"<<std::endl;
+        //std::cout<<"There are "<<pfParticlesToVerticesMap.count(particle)<<" verticies associated with this particle"<<std::endl;
 
         lar_pandora::PFParticlesToVertices::const_iterator vIter = pfParticlesToVerticesMap.find(particle);
         if (pfParticlesToVerticesMap.end() != vIter)
@@ -496,7 +496,7 @@ namespace single_photon
                 vertex->XYZ(xyz);
 
                 n_vert++;
-                std::cout<<"Vertex!"<<"\t "<<xyz[0]<<" "<<xyz[1]<<" "<<xyz[2]<<"\n";
+                //std::cout<<"Vertex!"<<"\t "<<xyz[0]<<" "<<xyz[1]<<" "<<xyz[2]<<"\n";
 
                 m_vertex_pos_x = xyz[0];
                 m_vertex_pos_y = xyz[1];
