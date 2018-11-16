@@ -48,7 +48,7 @@ physics: {
 	   PandoraLabel:   "pandora"
 	   TrackLabel:     "pandora"
 	   ShowerLabel:    "pandora"
-	   ParticleIDLabel:"particleid"
+	   ParticleIDLabel:"pid"
        CaloLabel:      "pandoracali"
        FlashLabel:     "opflashBeam"
        POTLabel:       "generator"
