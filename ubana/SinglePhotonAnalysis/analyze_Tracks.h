@@ -268,8 +268,6 @@ namespace single_photon
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
 
 
-        auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
-
         if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite\n";
 
         int i_trk = 0;

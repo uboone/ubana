@@ -107,13 +107,6 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_delaunay_area_plane1",&m_reco_shower_delaunay_area_plane1);
         vertex_tree->Branch("reco_shower_delaunay_area_plane2",&m_reco_shower_delaunay_area_plane2);
 
-        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
-        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
-        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
-        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
-        vertex_tree->Branch("sim_shower_startx",&m_sim_shower_startx);
-        vertex_tree->Branch("sim_shower_starty",&m_sim_shower_starty);
-        vertex_tree->Branch("sim_shower_startz",&m_sim_shower_startz);
         //the calorimetry info
         vertex_tree->Branch("reco_shower_energy",&m_reco_shower_energy);
         vertex_tree->Branch("reco_shower_dQdx_plane0",&m_reco_shower_dQdx_plane0);
@@ -123,6 +116,14 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_dEdx_plane1",&m_reco_shower_dEdx_plane1);
         vertex_tree->Branch("reco_shower_dEdx_plane2",&m_reco_shower_dEdx_plane2);
 
+        //Reco Truth Matching stuff
+        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
+        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
+        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
+        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
+        vertex_tree->Branch("sim_shower_startx",&m_sim_shower_startx);
+        vertex_tree->Branch("sim_shower_starty",&m_sim_shower_starty);
+        vertex_tree->Branch("sim_shower_startz",&m_sim_shower_startz);
 
 
     }

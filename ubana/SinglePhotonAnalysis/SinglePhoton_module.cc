@@ -24,39 +24,42 @@ namespace single_photon
 
     void SinglePhoton::reconfigure(fhicl::ParameterSet const &pset)
     {
+        m_is_verbose = pset.get<bool>("Verbose",true);
+
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
         m_showerLabel = pset.get<std::string>("ShowerLabel");
-        m_generatorLabel = pset.get<std::string>("GeneratorLabel","generator");
-        m_mcTrackLabel = pset.get<std::string>("MCTrackLabel","mcreco");
-        m_mcShowerLabel = pset.get<std::string>("MCShowerLabel","mcreco");
         m_caloLabel = pset.get<std::string>("CaloLabel");
         m_flashLabel = pset.get<std::string>("FlashLabel");
+        m_potLabel = pset.get<std::string>("POTLabel");
         m_beamgate_flash_start = pset.get<double>("beamgateStartTime",3.2); //Defaults to MC for now. Probably should change
         m_beamgate_flash_end = pset.get<double>("beamgateEndTime",4.8);
-        m_potLabel = pset.get<std::string>("POTLabel");
-        m_geantModuleLabel = pset.get<std::string>("GeantModule","largeant");
-        m_backtrackerLabel = pset.get<std::string>("BackTrackerModule","gaushitTruthMatch");
         m_hitfinderLabel = pset.get<std::string>("HitFinderModule", "gaushit");
-        m_hitMCParticleAssnsLabel = pset.get<std::string>("HitMCParticleAssnLabel","gaushitTruthMatch");
-        m_is_verbose = pset.get<bool>("Verbose",true);
         m_badChannelLabel = pset.get<std::string>("BadChannelLabel","badmasks");
         m_badChannelProducer = pset.get<std::string>("BadChannelProducer","simnfspl1");
 
+        m_generatorLabel = pset.get<std::string>("GeneratorLabel","generator");
+        m_mcTrackLabel = pset.get<std::string>("MCTrackLabel","mcreco");
+        m_mcShowerLabel = pset.get<std::string>("MCShowerLabel","mcreco");
+        m_geantModuleLabel = pset.get<std::string>("GeantModule","largeant");
+        m_backtrackerLabel = pset.get<std::string>("BackTrackerModule","gaushitTruthMatch");
+        m_hitMCParticleAssnsLabel = pset.get<std::string>("HitMCParticleAssnLabel","gaushitTruthMatch");
+        
 
-
+        //Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.01);
         m_track_calo_max_dEdx = pset.get<double>("Max_dEdx",25);
         m_track_calo_min_dEdx_hits = pset.get<double>("Min_dEdx_hits",2);
         m_track_calo_trunc_fraction = pset.get<double>("TruncMeanFraction",20.0);
 
-	m_work_function = pset.get<double>("work_function");
-	m_recombination_factor =pset.get<double>("recombination_factor");
-	m_gain =pset.get<double>("gain");
-	m_wire_spacing = pset.get<double>("wire_spacing");
-   	m_width_dqdx_box = pset.get<double>("width_box");
-    	m_length_dqdx_box = pset.get<double>("length_box");
-     }
+        //Some shower calorimetry parameters
+        m_work_function = pset.get<double>("work_function");
+        m_recombination_factor =pset.get<double>("recombination_factor");
+        m_gain =pset.get<double>("gain");
+        m_wire_spacing = pset.get<double>("wire_spacing");
+        m_width_dqdx_box = pset.get<double>("width_box");
+        m_length_dqdx_box = pset.get<double>("length_box");
+    }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,6 +73,7 @@ namespace single_photon
         m_Cryostat = ID.Cryostat;
         m_TPC = ID.TPC;
 
+        this->ClearVertex();
 
         //******************************Setup*****************Setup**************************************/
         //***********************************************************************************************/
@@ -109,11 +113,11 @@ namespace single_photon
         std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
         art::fill_ptr_vector(pfParticleVector,pfParticleHandle);
 
-	//get the cluster handle for the dQ/dx calc
-	art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(m_pandoraLabel);
-	std::vector< art::Ptr<recob::Cluster> > clusterVector;
-	art::fill_ptr_vector(clusterVector,clusterHandle);
-	
+        //get the cluster handle for the dQ/dx calc
+        art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(m_pandoraLabel);
+        std::vector< art::Ptr<recob::Cluster> > clusterVector;
+        art::fill_ptr_vector(clusterVector,clusterHandle);
+
         //So a cross check
         if (!pfParticleHandle.isValid())
         {
@@ -132,12 +136,21 @@ namespace single_photon
         this->GetPFParticleIdMap(pfParticleHandle, pfParticleMap);
 
 
+        //std::vector<art::Ptr<recob::Vertex>> vertexVector;
+        //std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap;
+        //lar_pandora::LArPandoraHelper::CollectVertices(evt, m_pandoraLabel, vertexVector, pfParticlesToVerticesMap);
+
         //And some verticies. I am pretty bad at consistency here, lets just abandon helper soon.        
+        art::ValidHandle<std::vector<recob::Vertex>> const & vertexHandle = evt.getValidHandle<std::vector<recob::Vertex>>(m_pandoraLabel);
         std::vector<art::Ptr<recob::Vertex>> vertexVector;
+        art::fill_ptr_vector(vertexVector,vertexHandle);
+       
+        art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, evt, m_trackLabel);
         std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap;
-        lar_pandora::LArPandoraHelper::CollectVertices(evt, m_pandoraLabel, vertexVector, pfParticlesToVerticesMap);
-
-
+        for(size_t i=0; i< pfParticleVector.size(); ++i){
+            auto pfp = pfParticleVector[i];
+            pfParticlesToVerticesMap[pfp] =vertices_per_pfparticle.at(pfp.key());
+        }
 
 
         //Once we have actual verticies, lets concentrate on JUST the neutrino PFParticles for now:
@@ -160,23 +173,23 @@ namespace single_photon
             pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
         }
 
-	//Get a map between the PFP's and the clusters. Although Mark isn't a fan of clusters, they're imporant for the shower dQ/dx
-	//Also need a map between clusters and hits
- 	art::FindManyP<recob::Cluster> clusters_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
-	art::FindManyP<recob::Hit> hits_per_cluster(clusterHandle, evt, m_pandoraLabel);
-	std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > pfParticleToClustersMap;
-	std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > clusterToHitsMap;
-	//fill map PFP to Clusters
-	for(size_t i=0; i< nuParticles.size(); ++i){
-		auto pfp = nuParticles[i];
-		pfParticleToClustersMap[pfp] = clusters_per_pfparticle.at(pfp.key());
-	}
-	//fill map Cluster to Hits
-	for(size_t i=0; i< clusterVector.size(); ++i){
-		auto cluster = clusterVector[i];
-		clusterToHitsMap[cluster] = hits_per_cluster.at(cluster.key());
-	}
-		
+        //Get a map between the PFP's and the clusters. Although Mark isn't a fan of clusters, they're imporant for the shower dQ/dx
+        //Also need a map between clusters and hits
+        art::FindManyP<recob::Cluster> clusters_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
+        art::FindManyP<recob::Hit> hits_per_cluster(clusterHandle, evt, m_pandoraLabel);
+        std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > pfParticleToClustersMap;
+        std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > clusterToHitsMap;
+        //fill map PFP to Clusters
+        for(size_t i=0; i< nuParticles.size(); ++i){
+            auto pfp = nuParticles[i];
+            pfParticleToClustersMap[pfp] = clusters_per_pfparticle.at(pfp.key());
+        }
+        //fill map Cluster to Hits
+        for(size_t i=0; i< clusterVector.size(); ++i){
+            auto cluster = clusterVector[i];
+            clusterToHitsMap[cluster] = hits_per_cluster.at(cluster.key());
+        }
+
 
         //OK Here we build two IMPORTANT maps for the analysis, (a) given a PFParticle get a vector of hits..
         //and (b) given a single hit, get the PFParticle it is in (MARK: is it only one? always? RE-MARK: Yes)
@@ -243,7 +256,6 @@ namespace single_photon
         //Some event based properties
 
         m_number_of_events++;
-        this->ClearVertex();
 
         m_run_number = evt.run();
         m_event_number = evt.id().event();
@@ -353,9 +365,10 @@ namespace single_photon
         vertex_tree->Branch("event_number", &m_event_number, "event_number/I");
 
         // --------------------- Vertex Related variables ------------
-        vertex_tree->Branch("reco_nuvertx", &m_vertex_pos_x, "reco_nuvertx/D");
-        vertex_tree->Branch("reco_nuverty", &m_vertex_pos_y, "reco_nuverty/D");
-        vertex_tree->Branch("reco_nuvertz", &m_vertex_pos_z, "reco_nuvertz/D");
+        vertex_tree->Branch("reco_vertex_size", &m_reco_vertex_size);
+        vertex_tree->Branch("reco_vertex_x", &m_vertex_pos_x);
+        vertex_tree->Branch("reco_vertex_y", &m_vertex_pos_y);
+        vertex_tree->Branch("reco_vertex_z", &m_vertex_pos_z);
 
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
@@ -410,6 +423,7 @@ namespace single_photon
 
 
         //------------ Vertex related Variables -------------
+        m_reco_vertex_size = 0;
         m_vertex_pos_x=0;
         m_vertex_pos_y=0;
         m_vertex_pos_z=0;
@@ -466,6 +480,8 @@ namespace single_photon
         if(m_is_verbose) std::cout<<"SinglePhoton::Getvertex()\t||\t Starting to analyze recob::Vertex\n";
         int n_vert =0;
 
+        std::cout<<"There are "<<pfParticlesToVerticesMap.count(particle)<<" verticies associated with this particle"<<std::endl;
+
         lar_pandora::PFParticlesToVertices::const_iterator vIter = pfParticlesToVerticesMap.find(particle);
         if (pfParticlesToVerticesMap.end() != vIter)
         {
@@ -480,13 +496,15 @@ namespace single_photon
                 vertex->XYZ(xyz);
 
                 n_vert++;
-                //std::cout<<"Vertex!"<<"\n";
-                //std::cout<<"\t "<<xyz[0]<<" "<<xyz[1]<<" "<<xyz[2]<<"\n";
+                std::cout<<"Vertex!"<<"\t "<<xyz[0]<<" "<<xyz[1]<<" "<<xyz[2]<<"\n";
 
                 m_vertex_pos_x = xyz[0];
                 m_vertex_pos_y = xyz[1];
                 m_vertex_pos_z = xyz[2];
 
+            }else{
+                std::cout << " Error: vertexVector associated with this particle is empty " << "\n";
+                exit(0);
 
             }
         }
@@ -511,10 +529,14 @@ namespace single_photon
     void SinglePhoton::GetFinalStatePFParticleVectors(const PFParticleIdMap &pfParticleMap, const lar_pandora::PFParticlesToVertices &pfParticlesToVerticesMap, PFParticleVector &crParticles, PFParticleVector &nuParticles )
     {
 
+        int found = 0;
+        int primaries = 0;
+        int full = 0;
         for (PFParticleIdMap::const_iterator it = pfParticleMap.begin(); it != pfParticleMap.end(); ++it)
         {
             const art::Ptr<recob::PFParticle> pParticle(it->second);
 
+            full++;
             // Only look for primary particles
             if (!pParticle->IsPrimary()) continue;
 
@@ -523,10 +545,11 @@ namespace single_photon
             const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
 
 
+            primaries++;
             // If it is, lets get the vertex position
             if(isNeutrino){
+                found++;
                 this->GetVertex(pfParticlesToVerticesMap, pParticle );
-
             }
 
             // All non-neutrino primary particles are reconstructed under the cosmic hypothesis
@@ -552,6 +575,8 @@ namespace single_photon
                 nuParticles.push_back(pfParticleMap.at(daughterId));
             }
         }
+        std::cout<<"SinglePhoton::GetFinalStatePFParticleVectors()\t||\t Found "<<primaries<<" primary PFParticles (out of "<<full<<") of which: "<<found<<" were neutrinos."<<std::endl;
+        m_reco_vertex_size = found;
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
