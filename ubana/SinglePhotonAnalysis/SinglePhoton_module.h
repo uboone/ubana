@@ -300,6 +300,17 @@ namespace single_photon
             std::vector<int> m_reco_shower_delaunay_num_triangles_plane1;
             std::vector<int> m_reco_shower_delaunay_num_triangles_plane2;
 
+	    //shower flash matching
+
+	    std::vector<double> m_reco_shower_flash_shortest_distz;
+	    std::vector<double> m_reco_shower_flash_shortest_disty;
+	    std::vector<double> m_reco_shower_flash_shortest_distyz;
+	    
+	    std::vector<int> m_reco_shower_flash_shortest_index_z;
+	    std::vector<int> m_reco_shower_flash_shortest_index_y;
+	    std::vector<int> m_reco_shower_flash_shortest_index_yz;
+	    
+	    //end flash matching
             std::vector<int> m_reco_shower_num_hits_plane0;
             std::vector<int> m_reco_shower_num_hits_plane1;
             std::vector<int> m_reco_shower_num_hits_plane2;
