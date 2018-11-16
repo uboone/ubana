@@ -307,7 +307,7 @@ namespace single_photon
     }
 
     double SinglePhoton::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr){
-        double Q = thishitptr->Integral();
+        double Q = thishitptr->Integral()*m_gain;
         //return the energy value converted to MeV (the factor of 1e-6)
         return QtoEConversion(Q);
 
@@ -316,7 +316,7 @@ namespace single_photon
     double SinglePhoton::QtoEConversion(double Q){
         //return the energy value converted to MeV (the factor of 1e-6)
         //std::cout<<"computing the E value"<<std::endl;
-        double E = Q* m_gain* m_work_function *1e-6 /m_recombination_factor;
+        double E = Q* m_work_function *1e-6 /m_recombination_factor;
         //std::cout<<"returning E = "<<E<<std::endl;
         return E;
 
