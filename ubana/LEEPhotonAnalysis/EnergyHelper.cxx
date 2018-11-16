@@ -198,8 +198,8 @@ namespace lee {
 
 			double currentresrange = 0;
 
-			ans.first = calos[ical]->ResidualRange();
-			ans.second = calos[ical]->dEdx();
+			ans.first = recob::tracking::convertVec<double,float>(calos[ical]->ResidualRange());
+			ans.second = recob::tracking::convertVec<double,float>(calos[ical]->dEdx());
 
 
 			for (size_t iTrkHit = 0; iTrkHit < (size_t)maxTrkHits; ++iTrkHit) {
