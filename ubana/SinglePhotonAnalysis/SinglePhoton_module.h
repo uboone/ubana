@@ -20,15 +20,16 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
+#include "lardataobj/MCBase/MCTrack.h"
+#include "lardataobj/MCBase/MCShower.h"
+
 
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
-
 
 #include "larcoreobj/SummaryData/POTSummary.h"
 
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
-
 #include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
@@ -58,6 +59,7 @@
 #include <chrono>
 
 #include <iostream>
+#include <fstream>
 #include <string>
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -205,7 +207,10 @@ namespace single_photon
 
 
            int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected);
-
+           
+           //databased http://dbdata0vm.fnal.gov:8186/uboonecon_prod/app/data?f=channelstatus_data&t=357812824
+           std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
+           std::map<int,bool> bad_channel_map_fixed_mcc9;
 
             std::string m_pandoraLabel;         ///< The label for the pandora producer
             std::string m_trackLabel;           ///< The label for the track producer from PFParticles
@@ -218,7 +223,10 @@ namespace single_photon
             std::string m_hitMCParticleAssnsLabel;
             std::string m_potLabel;
             std::string m_generatorLabel;
-
+            std::string m_badChannelLabel;
+            std::string m_badChannelProducer;
+            std::string m_mcTrackLabel;
+            std::string m_mcShowerLabel;
             bool m_is_verbose;
 
         double m_track_calo_min_dEdx;
@@ -229,7 +237,8 @@ namespace single_photon
             detinfo::DetectorProperties const * theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
             detinfo::DetectorClocks    const *  detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
             spacecharge::SpaceCharge const * SCE;
-            
+            geo::GeometryCore const * geom;
+
             TTree* pot_tree;
             TTree* vertex_tree;
 

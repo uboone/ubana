@@ -348,7 +348,7 @@ namespace single_photon
                     dEdx_good.push_back(dEdx);
                 }
 
-                std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< "\n";
+            //    std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< "\n";
             }// End of first loop.
 
             m_reco_track_good_calo[i_trk] = 0;

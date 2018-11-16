@@ -7,6 +7,8 @@
 
 
 #include "reco_truth_matching.h"
+#include "bad_channel_matching.h"
+
 namespace single_photon
 {
 
@@ -16,6 +18,8 @@ namespace single_photon
         theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
         detClocks   = lar::providerFrom<detinfo::DetectorClocksService>();
         SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+        geom = lar::providerFrom<geo::Geometry>();
+
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -26,6 +30,8 @@ namespace single_photon
         m_trackLabel = pset.get<std::string>("TrackLabel");
         m_showerLabel = pset.get<std::string>("ShowerLabel");
         m_generatorLabel = pset.get<std::string>("GeneratorLabel","generator");
+        m_mcTrackLabel = pset.get<std::string>("MCTrackLabel","mcreco");
+        m_mcShowerLabel = pset.get<std::string>("MCShowerLabel","mcreco");
         m_caloLabel = pset.get<std::string>("CaloLabel");
         m_flashLabel = pset.get<std::string>("FlashLabel");
         m_beamgate_flash_start = pset.get<double>("beamgateStartTime",3.2); //Defaults to MC for now. Probably should change
@@ -36,12 +42,15 @@ namespace single_photon
         m_hitfinderLabel = pset.get<std::string>("HitFinderModule", "gaushit");
         m_hitMCParticleAssnsLabel = pset.get<std::string>("HitMCParticleAssnLabel","gaushitTruthMatch");
         m_is_verbose = pset.get<bool>("Verbose",true);
+        m_badChannelLabel = pset.get<std::string>("BadChannelLabel","badmasks");
+        m_badChannelProducer = pset.get<std::string>("BadChannelProducer","simnfspl1");
+
+
 
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.01);
         m_track_calo_max_dEdx = pset.get<double>("Max_dEdx",25);
         m_track_calo_min_dEdx_hits = pset.get<double>("Min_dEdx_hits",2);
         m_track_calo_trunc_fraction = pset.get<double>("TruncMeanFraction",20.0);
-
 
     }
 
@@ -79,6 +88,11 @@ namespace single_photon
         std::vector<art::Ptr<recob::Track>> trackVector;
         art::fill_ptr_vector(trackVector,trackHandle);
 
+        //BadChannels
+        art::Handle<std::vector<int> > badChannelHandle;
+        evt.getByLabel(m_badChannelProducer, m_badChannelLabel, badChannelHandle);
+        std::vector<int> badChannelVector = *(badChannelHandle);
+
 
         // Collect the PFParticles from the event. This is the core!
         art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
@@ -108,7 +122,7 @@ namespace single_photon
         std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap;
         lar_pandora::LArPandoraHelper::CollectVertices(evt, m_pandoraLabel, vertexVector, pfParticlesToVerticesMap);
 
-        
+
 
 
         //Once we have actual verticies, lets concentrate on JUST the neutrino PFParticles for now:
@@ -161,6 +175,16 @@ namespace single_photon
         //All of this will then come together to form Two things:
 
 
+
+        art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
+        art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
+        std::vector<art::Ptr<sim::MCTrack>> mcTrackVector;
+        std::vector<art::Ptr<sim::MCShower>> mcShowerVector;
+        art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
+        art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
+
+
+
         // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino
         //At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.
         //tracks is a vector of recob::Tracks and same for showers.
@@ -198,13 +222,40 @@ namespace single_photon
 
 
         //tests of reco_mc
-        //Create two maps to store the information
+        //Create a vectors and two maps to store the information
+        std::vector<art::Ptr<simb::MCParticle>> mcParticleVector;
         std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > trackToMCParticleMap;
         std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > showerToMCParticleMap;
         //Perform the (Templated for the recob::Objects)
-        
-        recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit);
-        recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit);
+        recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
+        recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
+
+        //and now get the simb::MCparticle to both MCtrack and MCshower maps (just for the MCparticles matched ok).
+        std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCTrack> > MCParticleToMCTrackMap;
+        std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCShower> > MCParticleToMCShowerMap;
+
+        std::cout<<"WAAH: track"<<std::endl;
+        perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
+        std::cout<<"WAAH: Shower"<<std::endl;
+        perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
+
+
+        for(auto & track: tracks){
+            auto mp = trackToMCParticleMap[track];
+            //            auto mct = MCParticleToMCTrackMap[mp];
+            //           auto mcs = MCParticleToMCTrackMap[mp];
+            std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
+        }
+        for(auto & shower: showers){
+            auto mp = showerToMCParticleMap[shower];
+            //            auto mct = MCParticleToMCShowerMap[mp];
+            //           auto mcs = MCParticleToMCShowerMap[mp];
+            std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
+        }
+
+
+        badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
+
 
 
         if(m_is_verbose){
@@ -289,9 +340,29 @@ namespace single_photon
         // --------------------- Shower Related variables ------------
         this->CreateShowerBranches();
 
-    
+
         // ---------------------- MCTruth Related Variables ----------
         this->CreateMCTruthBranches();
+
+        std::string bad_channel_file = "/pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt";
+        std::ifstream bc_file(bad_channel_file);
+
+        if (bc_file.is_open())
+        {
+            std::string line;
+            while ( getline (bc_file,line) )
+            {
+                std::vector<int> res;
+                std::istringstream iss(line);
+                for(std::string s; iss >> s; )
+                    res.push_back( std::stof(s));
+
+                std::pair<int,int> t(res[0],res[1]);
+                bad_channel_list_fixed_mcc9.push_back(t);
+            }
+            bc_file.close();
+        }
+
 
     }
 
@@ -579,22 +650,22 @@ namespace single_photon
 
 
     int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected){
-    
-            corrected.resize(3);
-            //Space Charge Effect! functionize this soon.
-            double kx = mcparticle->Position().X();
-            double ky = mcparticle->Position().Y();
-            double kz = mcparticle->Position().Z();
-            auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
-            double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
-            double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)-scecorr.X();
-            double yOffset = scecorr.Y();
-            double zOffset = scecorr.Z();
 
-            corrected[0]=xOffset;
-            corrected[1]=yOffset;
-            corrected[2]=zOffset;
-    
+        corrected.resize(3);
+        //Space Charge Effect! functionize this soon.
+        double kx = mcparticle->Position().X();
+        double ky = mcparticle->Position().Y();
+        double kz = mcparticle->Position().Z();
+        auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
+        double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
+        double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)-scecorr.X();
+        double yOffset = scecorr.Y();
+        double zOffset = scecorr.Z();
+
+        corrected[0]=xOffset;
+        corrected[1]=yOffset;
+        corrected[2]=zOffset;
+
         return 0;
     }
 
