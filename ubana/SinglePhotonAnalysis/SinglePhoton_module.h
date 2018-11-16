@@ -316,7 +316,7 @@ namespace single_photon
             std::vector<double> m_reco_shower_delaunay_area_plane2;
 
             // PID-related variables
-            std::vector<double> m_reco_track_pid_bragg_likelihood;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_plane2;
 
 
 
