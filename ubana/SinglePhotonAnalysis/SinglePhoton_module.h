@@ -166,7 +166,22 @@ namespace single_photon
  	    * 
  	    *
  	    * */
-	    double QtoEConversion(art::Ptr<recob::Hit> thishitptr);
+	    double QtoEConversionHit(art::Ptr<recob::Hit> thishitptr);
+
+	    /**
+ 	    * @brief Calculate the E value in MeV from a given Q value
+ 	    * @param q - the charge value
+ 	    * 
+ 	    * */
+	    double QtoEConversion(double q);
+
+
+	    /**
+ 	    *@brief Takes a vector of dQ/dx values and converts to dE/dx
+ 	    *@param dqdx - vector of dqdx points
+ 	    *
+ 	    * */
+	    std::vector<double> CalcdEdxFromdQdx(std::vector<double> dqdx);
 
 	   /**
  	   *

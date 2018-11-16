@@ -35,7 +35,7 @@ namespace single_photon
         m_reco_shower_dQdx_plane2.clear();
         m_reco_shower_dQdx_plane2.clear();
         m_reco_shower_dEdx_plane0.clear();
-        m_reco_shower_dEdx_plane2.clear();
+        m_reco_shower_dEdx_plane1.clear();
         m_reco_shower_dEdx_plane2.clear();
 
     }
@@ -198,6 +198,13 @@ namespace single_photon
 	    if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting dq/dx plane 2"<<std::endl; 
 	    m_reco_shower_dQdx_plane2[i_shr] = CalcdQdxShower(shower,clusters, clusterToHitMap, 2 ); 
 
+	    if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting de/dx plane 0"<<std::endl;
+	    m_reco_shower_dEdx_plane0[i_shr] = CalcdEdxFromdQdx(m_reco_shower_dQdx_plane0[i_shr]);
+	    if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting de/dx plane 1"<<std::endl;
+	    m_reco_shower_dEdx_plane1[i_shr] = CalcdEdxFromdQdx(m_reco_shower_dQdx_plane1[i_shr]);
+	    if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting de/dx plane 2"<<std::endl;
+	    m_reco_shower_dEdx_plane2[i_shr] = CalcdEdxFromdQdx(m_reco_shower_dQdx_plane2[i_shr]);
+
 
             //-------------- Flashes : Was there a flash in the beam_time and if so was it near in Z? --------------------
             double zmin = m_reco_shower_startz[i_shr];
@@ -264,7 +271,7 @@ namespace single_photon
 	if (plane > 2 || plane < 0)	continue;
 
 	//calc the energy of the hit
-	double E = SinglePhoton::QtoEConversion(thishitptr);	
+	double E = QtoEConversionHit(thishitptr);	
 
 	//add the energy to the plane
 	energy[plane] += E;
@@ -284,12 +291,34 @@ namespace single_photon
 
    }
 
-   double SinglePhoton::QtoEConversion(art::Ptr<recob::Hit> thishitptr){
+   double SinglePhoton::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr){
 	double Q = thishitptr->Integral();
 	//return the energy value converted to MeV (the factor of 1e-6)
-	return Q* m_gain* m_work_function *1e-6 /m_recombination_factor;
+	return QtoEConversion(Q);
 
    }
+
+  double SinglePhoton::QtoEConversion(double Q){
+	//return the energy value converted to MeV (the factor of 1e-6)
+	//std::cout<<"computing the E value"<<std::endl;
+	double E = Q* m_gain* m_work_function *1e-6 /m_recombination_factor;
+	//std::cout<<"returning E = "<<E<<std::endl;
+	return E;
+
+   }
+
+
+   std::vector<double> SinglePhoton::CalcdEdxFromdQdx(std::vector<double> dqdx){
+	int n = dqdx.size();
+	std::vector<double> dedx;
+	for (int i = 0; i < n; i++){
+		//std::cout<<"The dQ/dx is "<<dqdx[i]<<std::endl;
+		dedx.push_back(QtoEConversion(dqdx[i]));
+		std::cout<<"The dE/dx is "<<dedx[i]<<std::endl;
+	}
+	return dedx;
+   }
+
 
   std::vector<double> SinglePhoton::CalcdQdxShower(const art::Ptr<recob::Shower> shower, const std::vector<art::Ptr<recob::Cluster>> clusters, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane){
 	//if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The number of clusters in this shower is "<<clusters.size()<<std::endl;
@@ -328,22 +357,22 @@ namespace single_photon
 		std::vector<art::Ptr<recob::Hit>> hits =  clusterToHitMap[thiscluster];
 	
 		//for each hit in the cluster
-		std::cout<<"the number of hits in this cluster is "<<hits.size()<<std::endl;
-		int n = 0;
+		//std::cout<<"the number of hits in this cluster is "<<hits.size()<<std::endl;
+		//int n = 0;
 		for (art::Ptr<recob::Hit> thishit: hits){	
-			std::cout<<"starting hit "<<++n<<std::endl;
+		//	std::cout<<"starting hit "<<++n<<std::endl;
 			//get the hit position in cm
 			std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, theDetector->ConvertTicksToX( thishit->PeakTime(), plane,m_TPC ,m_Cryostat)};
-			std::cout<<"the position of this hit in the cluster is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
+			//std::cout<<"the position of this hit in the cluster is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
 
 			//check if inside the box
 			if (insideBox(thishit_pos, rectangle)){
-				std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
+			//	std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
 				double q = thishit->Integral() * m_gain;
-				std::cout<<"the q for this hit is "<<q<<std::endl;
+			//	std::cout<<"the q for this hit is "<<q<<std::endl;
 				double this_dqdx = q/pitch; 
 				dqdx.push_back(this_dqdx);
-				std::cout<<"the calculated dq/dx for this hit is "<<this_dqdx<<std::endl;
+			//	std::cout<<"the calculated dq/dx for this hit is "<<this_dqdx<<std::endl;
 			}//if hit falls inside the box
 		//	else{
 		//		std::cout<<"hit not inside box"<<std::endl;
@@ -404,7 +433,7 @@ namespace single_photon
   }
 
   bool SinglePhoton::insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
-	std::cout<<"checking if inside"<<std::endl;
+//	std::cout<<"checking if inside"<<std::endl;
 	//for a rectangle this is a known value but this is the most general
 	int n_vertices = (int)rectangle.size();
 
