@@ -46,7 +46,14 @@ physics: {
        FlashLabel:     "simpleFlashBeam"
        POTLabel:       "generator"
        input_param:    "optional" 
-       }
+       work_function: 23
+       recombination_factor: 0.62
+       gain : 197
+       wire_spacing : 0.3 
+       width_box : 1.
+       length_box : 4.
+      }
+
   }
  filters : {
      # ParameterSets for zero or more filter modules

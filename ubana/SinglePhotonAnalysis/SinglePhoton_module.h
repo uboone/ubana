@@ -157,6 +157,72 @@ namespace single_photon
             void CollectCalo(const art::Event &evt,const art::Ptr<recob::Shower> &shower);
 
 
+            /*
+             *@brief Calculated the shower energy by looping over all the hits and summing the charge
+             *@param hits -  an art pointer of all the hits in a shower
+             *
+             *
+             * */
+            double CalcEShower(std::vector<art::Ptr<recob::Hit>> hits);
+
+            /**
+             * @brief Calculate the E value in MeV for a given hit
+             * @param thishit - an individual hit 
+             * 
+             *
+             * */
+            double QtoEConversionHit(art::Ptr<recob::Hit> thishitptr);
+
+            /**
+             * @brief Calculate the E value in MeV from a given Q value
+             * @param q - the charge value
+             * 
+             * */
+            double QtoEConversion(double q);
+
+
+            /**
+             *@brief Takes a vector of dQ/dx values and converts to dE/dx
+             *@param dqdx - vector of dqdx points
+             *
+             * */
+            std::vector<double> CalcdEdxFromdQdx(std::vector<double> dqdx);
+
+            /**
+             *
+             *@brief For a single shower, calculates the dQdx for each hit in the clusters in the shower for a single plane
+             *@param shower - a Pandora shower
+             *@param clusters - all of the clusters in the shower
+             *@param clusterToHitMap - a map between each cluster and all of the hits in the cluster
+             *@param plane - a single plane
+             * * */
+            std::vector<double> CalcdQdxShower(const art::Ptr<recob::Shower> shower, const std::vector<art::Ptr<recob::Cluster>> clusters, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane);
+
+            /**
+             *@brief Gets the pitch between the 3D reconstructed shower direction and the wires for a given plane (the dx in dQdx)
+             *@param shower_dir - the 3D shower direction
+             *@param plane - a single plane
+             * */
+            double getPitch(TVector3 shower_dir, int plane);
+
+            /**
+             *@brief Calculates the four corners of a box of given length and width around a cluster given the start point and axis direction
+             *@param cluster_start - the start position of a cluster in CM
+             *@param cluster_axis - calculated from the cluster end minus the cluster start
+             *@param width - typically ~1cm
+             *@param length - typically a few cm
+             *
+             * */
+            std::vector<std::vector<double>> buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length);
+
+            /**
+             *@brief For a 2d point on a plane in cm and a rectangle, returns true if the point is inside of the rectangle
+             *@param thishit_pos - 2d location of a hit in cm
+             *@param rectangle - vector of the positions of the four corners of the rectangle
+             *
+             * */
+            bool insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle);
+
             //----------------  Templatees ----------------------------
             void AnalyzeTemplates();
             void ClearTemplates();
@@ -184,7 +250,7 @@ namespace single_photon
 
             //----------------  Showers ----------------------------
 
-            void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle> > & showertopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfparticletohitmap);
+            void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap,std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > & clusterToHitMap );
             void ClearShowers();
             void ResizeShowers(size_t);
             void CreateShowerBranches();
@@ -206,11 +272,11 @@ namespace single_photon
             int delaunay_hit_wrapper(const std::vector<art::Ptr<recob::Hit>>& hits, std::vector<int> & num_hits, std::vector<int>& num_triangles, std::vector<double> & area);
 
 
-           int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected);
-           
-           //databased http://dbdata0vm.fnal.gov:8186/uboonecon_prod/app/data?f=channelstatus_data&t=357812824
-           std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
-           std::map<int,bool> bad_channel_map_fixed_mcc9;
+            int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected);
+
+            //databased http://dbdata0vm.fnal.gov:8186/uboonecon_prod/app/data?f=channelstatus_data&t=357812824
+            std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
+            std::map<int,bool> bad_channel_map_fixed_mcc9;
 
             std::string m_pandoraLabel;         ///< The label for the pandora producer
             std::string m_trackLabel;           ///< The label for the track producer from PFParticles
@@ -229,15 +295,25 @@ namespace single_photon
             std::string m_mcShowerLabel;
             bool m_is_verbose;
 
-        double m_track_calo_min_dEdx;
-        double m_track_calo_max_dEdx;
-        double m_track_calo_min_dEdx_hits;
-        double m_track_calo_trunc_fraction;
+            double m_track_calo_min_dEdx;
+            double m_track_calo_max_dEdx;
+            double m_track_calo_min_dEdx_hits;
+            double m_track_calo_trunc_fraction;
 
             detinfo::DetectorProperties const * theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
             detinfo::DetectorClocks    const *  detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
             spacecharge::SpaceCharge const * SCE;
             geo::GeometryCore const * geom;
+            double m_work_function;
+            double m_recombination_factor;
+            double m_gain;
+            double m_wire_spacing;
+
+            int m_Cryostat;
+            int m_TPC;
+
+            double m_width_dqdx_box;
+            double m_length_dqdx_box;
 
             TTree* pot_tree;
             TTree* vertex_tree;
@@ -310,13 +386,13 @@ namespace single_photon
             std::vector<double> m_reco_track_spacepoint_max_dist;
 
             std::vector<double> m_reco_track_mean_dEdx;
-        std::vector<double> m_reco_track_mean_dEdx_start_half;
-        std::vector<double> m_reco_track_mean_dEdx_end_half;
-        std::vector<int> m_reco_track_good_calo;
-    std::vector<double> m_reco_track_mean_trunc_dEdx;
-        std::vector<double> m_reco_track_mean_trunc_dEdx_start_half;
-        std::vector<double> m_reco_track_mean_trunc_dEdx_end_half;
-        std::vector<double> m_reco_track_trunc_PIDA;
+            std::vector<double> m_reco_track_mean_dEdx_start_half;
+            std::vector<double> m_reco_track_mean_dEdx_end_half;
+            std::vector<int> m_reco_track_good_calo;
+            std::vector<double> m_reco_track_mean_trunc_dEdx;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half;
+            std::vector<double> m_reco_track_trunc_PIDA;
 
 
             std::vector<double> m_sim_track_energy;
@@ -391,9 +467,17 @@ namespace single_photon
 
 
             std::vector<double> m_mctruth_exiting_pi0_E;
-  std::vector<double>       m_mctruth_exiting_pi0_px;
- std::vector<double>        m_mctruth_exiting_pi0_py;
- std::vector<double>        m_mctruth_exiting_pi0_pz;
+            std::vector<double>       m_mctruth_exiting_pi0_px;
+            std::vector<double>        m_mctruth_exiting_pi0_py;
+            std::vector<double>        m_mctruth_exiting_pi0_pz;
+            //the calo calculated quantities 
+            std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
+            std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
+            std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
+            std::vector<std::vector<double>> m_reco_shower_dQdx_plane2;
+            std::vector<std::vector<double>> m_reco_shower_dEdx_plane0; //dE/dx from the calculated dQ/dx for each hit in shower on plane 	
+            std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
+            std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
 
     };
 
