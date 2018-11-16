@@ -4,6 +4,9 @@
 #include "geometry.fcl" 
 #include "larproperties.fcl" 
 #include "services_microboone_basic.fcl"
+#include "config_particle_identification.fcl"
+#include "config_particle_identification_fiducialvolume.fcl"
+#include "config_particle_identification_braggalgo.fcl"
 #
 #
 process_name : SinglePhoton      #The process name must NOT contain any underscores
@@ -33,6 +36,10 @@ outputs: {
 physics: {
  producers : {
      # ParameterSets for zero or more producer modules
+     #pidcalibration: @local::microboone_calibrationdedx
+     #dedxcalibration: @local::simulation_calibration
+     #pid: @local::particleidconfig
+
   }
  analyzers: {
      # ParameterSets for zero or more analyzer modules
@@ -41,6 +48,7 @@ physics: {
 	   PandoraLabel:   "pandora"
 	   TrackLabel:     "pandora"
 	   ShowerLabel:    "pandora"
+	   ParticleIDLabel:"particleid"
        CaloLabel:      "pandoracali"
        FlashLabel:     "opflashBeam"
        POTLabel:       "generator"

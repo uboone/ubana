@@ -33,6 +33,8 @@ namespace single_photon
         m_reco_track_spacepoint_chi.clear();
         m_reco_track_spacepoint_max_dist.clear();
 
+        m_reco_track_pid_bragg_likelihood.clear();
+
     }
 
     void SinglePhoton::ResizeTracks(size_t size){
@@ -62,8 +64,7 @@ namespace single_photon
         m_reco_track_theta_yz.resize(size);
         m_reco_track_phi_yx.resize(size);
 
-
-
+        m_reco_track_pid_bragg_likelihood.resize(size);
 
     }
 
@@ -94,6 +95,8 @@ namespace single_photon
 
         vertex_tree->Branch("reco_track_spacepoint_chi",&m_reco_track_spacepoint_chi);
         vertex_tree->Branch("reco_track_spacepoint_max_dist",&m_reco_track_spacepoint_max_dist);
+
+        vertex_tree->Branch("reco_track_pid_bragg_likelihood",&m_reco_track_pid_bragg_likelihood);
     }
 
 
@@ -136,7 +139,7 @@ namespace single_photon
             m_reco_track_num_spacepoints[i_trk] = (int)trk_spacepoints.size();
 
 
-            m_reco_track_startx[i_trk] = track->Start().X();   
+            m_reco_track_startx[i_trk]= track->Start().X();   
             m_reco_track_starty[i_trk]= track->Start().Y();   
             m_reco_track_startz[i_trk]= track->Start().Z();   
 
@@ -242,6 +245,26 @@ namespace single_photon
  //               std::cout<<"\t"<<iTrkHit<<" "<<calo[j]->dEdx()[iTrkHit]<<" "<<calo[j]->ResidualRange()[iTrkHit]<<"\n";
             }
         }
+    }
+
+    void SinglePhoton::CollectPID( std::vector<art::Ptr<recob::Track>> & tracks,
+                                std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap){
+            
+                for(size_t i_trk=0; i_trk<tracks.size(); ++i_trk){
+                        art::Ptr<recob::Track> track = tracks[i_trk];
+                        art::Ptr<anab::ParticleID> pid = trackToPIDMap[track];
+
+                        ///akdhsjd
+
+
+
+                    //m_reco_track_pidsljbfshj[i_trk] = ksdhfs;
+    
+                }
+
+
+
+            return;
     }
 
     double SinglePhoton::dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& X0){

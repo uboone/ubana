@@ -37,6 +37,7 @@ namespace single_photon
         m_useModBox = pset.get<bool>("UseModBox",true);
         m_is_verbose = pset.get<bool>("Verbose",true);
 
+        m_pidLabel = pset.get<std::string>("ParticleIDLabel","particleid");
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
@@ -79,6 +80,11 @@ namespace single_photon
             mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
             return;
         }
+        //tracks
+        art::ValidHandle<std::vector<recob::Track>> const & trackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_trackLabel);
+        std::vector<art::Ptr<recob::Track>> trackVector;
+        art::fill_ptr_vector(trackVector,trackHandle);
+
 
         //This is another pandora helper. I don't like PFParticle ID lookups but I guess lets keep for now;
         // Produce a map of the PFParticle IDs for fast navigation through the hierarchy
@@ -150,6 +156,19 @@ namespace single_photon
         std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap; 
         std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap; 
         this->CollectTracksAndShowers(nuParticles, pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
+
+
+        //Build an association
+        //loop over all tracks
+        //fill a map
+        //
+        art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
+        std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
+        for(size_t i=0; i< tracks.size(); ++i){
+            art::Ptr<recob::Track> track = tracks[i];
+            trackToPIDMap[track] = pid_per_track.at(track.key());
+        }
+        this->CollectPID(tracks, trackToPIDMap);
 
 
         //**********************************************************************************************/

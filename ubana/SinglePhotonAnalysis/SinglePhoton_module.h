@@ -20,6 +20,7 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
 
 #include "larcoreobj/SummaryData/POTSummary.h"
 
@@ -43,6 +44,9 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
+
+// Helper function for PID stuff
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -69,7 +73,7 @@ namespace single_photon
             typedef art::ValidHandle< std::vector<recob::PFParticle> > PFParticleHandle;
             typedef std::vector< art::Ptr<recob::PFParticle> > PFParticleVector;
             typedef std::vector< art::Ptr<recob::Track> > TrackVector;
-          typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
+            typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
             typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
 
             /**
@@ -171,7 +175,8 @@ namespace single_photon
             void ClearTracks();
             void ResizeTracks(size_t);
             void CreateTrackBranches();
-
+            void CollectPID(std::vector<art::Ptr<recob::Track>> & tracks,std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap);
+ 
             TGraph proton_length2energy_tgraph;
             double dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& X0);
 
@@ -202,6 +207,7 @@ namespace single_photon
             std::string m_hitfinderLabel;
             std::string m_hitMCParticleAssnsLabel;
             std::string m_potLabel;
+            std::string m_pidLabel;            ///< For PID stuff
 
             bool m_useModBox;
             bool        m_printOutScores;       ///< Option to investigate the associations to scores for PFParticles
@@ -309,6 +315,8 @@ namespace single_photon
             std::vector<double> m_reco_shower_delaunay_area_plane1;
             std::vector<double> m_reco_shower_delaunay_area_plane2;
 
+            // PID-related variables
+            std::vector<double> m_reco_track_pid_bragg_likelihood;
 
 
 
