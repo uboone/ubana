@@ -173,12 +173,23 @@ wcls: {
           apps: ["Pgrapher"]
           plugins: ["WireCellPgraph", "WireCellGen","WireCellSio", "WireCellLarsoft"]
           configs: ["pgrapher/experiment/uboone/uboone-sim-overlay.jsonnet"]
-          inputers: ["wclsSimDepoSource"]
+          inputers: ["wclsSimDepoSource"
+       		// only if miscfg is "dynamic" add "wclsChannelSelectorDB"
+                 , "wclsChannelSelectorDB"
+		]
           outputers: [
              "wclsSimChannelSink:postdrift",
              "wclsFrameSaver:simdigits"
           ]
           params: {
+      		//from database
+                //only if a data event is consumed,
+                //otherwise timestamp cannot be identified to search db
+                miscfg: "dynamic"
+ 
+                //static misconfigured channel list
+                //must not add "wclsChannelSelectorDB" in inputers
+                //miscfg: "static"
           }
 	  structs: {
       	      gain_fudge_factor: 0.826

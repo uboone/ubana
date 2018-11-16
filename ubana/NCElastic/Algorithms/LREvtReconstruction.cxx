@@ -201,7 +201,7 @@ namespace qeselection {
         if(!caloVec.empty())
         {
           // get collection plane
-          std::vector<double> dedx;
+          std::vector<float> dedx;
           for(size_t iplane=0; iplane < caloVec.size();iplane++)
           {
             if(caloVec.at(iplane)->PlaneID().Plane == 2)

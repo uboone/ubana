@@ -1127,7 +1127,7 @@ std::vector<double> UBXSecHelper::GetDqDxVector(std::vector<art::Ptr<anab::Calor
     int planenum = c->PlaneID().Plane;
     if (planenum != plane_no) continue;
    
-    return c->dQdx(); 
+    return recob::tracking::convertVec<double,float>(c->dQdx());
   }
 
   return temp;
@@ -1142,7 +1142,7 @@ double UBXSecHelper::GetDqDxTruncatedMean(std::vector<art::Ptr<anab::Calorimetry
     int planenum = c->PlaneID().Plane;
     if (planenum != plane_no) continue;
    
-    std::vector<double> dqdx_v = c->dQdx(); 
+    std::vector<double> dqdx_v = recob::tracking::convertVec<double,float>(c->dQdx());
 
     return GetDqDxTruncatedMean(dqdx_v);
   }
