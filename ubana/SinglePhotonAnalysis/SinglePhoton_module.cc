@@ -242,15 +242,15 @@ namespace single_photon
                 trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
         }
 
+        art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
+        std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
+
         if(m_use_PID_algorithms){
             // Build a map to get PID from PFParticles, then call PID collection function
-            art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
-            std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
-            for(size_t i=0; i< tracks.size(); ++i){
+                     for(size_t i=0; i< tracks.size(); ++i){
                 art::Ptr<recob::Track> track = tracks[i];
                 trackToPIDMap[track] = pid_per_track.at(track.key());
             }
-            this->CollectPID(tracks, trackToPIDMap);
         }
 
         //**********************************************************************************************/
@@ -318,6 +318,7 @@ namespace single_photon
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
         this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
+        if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
 
 
         this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap); 
