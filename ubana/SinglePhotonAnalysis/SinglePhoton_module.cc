@@ -126,9 +126,11 @@ namespace single_photon
         }
 
 
+        //Get the MCtruth handles and vectors
         art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle  = evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
         std::vector<art::Ptr<simb::MCTruth>> mcTruthVector;
         art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
+
 
         //This is another pandora helper. I don't like PFParticle ID lookups but I guess lets keep for now;
         // Produce a map of the PFParticle IDs for fast navigation through the hierarchy
@@ -136,15 +138,10 @@ namespace single_photon
         this->GetPFParticleIdMap(pfParticleHandle, pfParticleMap);
 
 
-        //std::vector<art::Ptr<recob::Vertex>> vertexVector;
-        //std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap;
-        //lar_pandora::LArPandoraHelper::CollectVertices(evt, m_pandoraLabel, vertexVector, pfParticlesToVerticesMap);
-
-        //And some verticies. I am pretty bad at consistency here, lets just abandon helper soon.        
+        //And some verticies.        
         art::ValidHandle<std::vector<recob::Vertex>> const & vertexHandle = evt.getValidHandle<std::vector<recob::Vertex>>(m_pandoraLabel);
         std::vector<art::Ptr<recob::Vertex>> vertexVector;
         art::fill_ptr_vector(vertexVector,vertexHandle);
-       
         art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, evt, m_trackLabel);
         std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap;
         for(size_t i=0; i< pfParticleVector.size(); ++i){
@@ -168,8 +165,7 @@ namespace single_photon
         art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, m_trackLabel);
         std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>> > pfParticleToSpacePointsMap;
         for(size_t i=0; i< nuParticles.size(); ++i){
-            //const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
-            auto pfp = nuParticles[i];
+            const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
             pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
         }
 
@@ -197,8 +193,6 @@ namespace single_photon
         std::map<art::Ptr<recob::Hit>, art::Ptr<recob::PFParticle>>                hitToPFParticleMap;
         //Using a pandora helper here, but to be honest we should probably just build using normal associations so keep independant if pssoble
         lar_pandora::LArPandoraHelper::BuildPFParticleHitMaps(evt, m_pandoraLabel, pfParticleToHitsMap, hitToPFParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
-
-
 
 
         //------------------------------------ OK, RECO - TRUTH matching stuff-----------------------------------
@@ -247,7 +241,6 @@ namespace single_photon
         for(size_t i=0; i< tracks.size(); ++i){
             trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
         }
-
 
 
         //**********************************************************************************************/
