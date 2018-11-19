@@ -225,7 +225,6 @@ namespace single_photon
         art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
 
 
-
         // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino
         //At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.
         //tracks is a vector of recob::Tracks and same for showers.
@@ -236,18 +235,15 @@ namespace single_photon
         std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap; 
         this->CollectTracksAndShowers(nuParticles, pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
 
-
         //Track Calorimetry
         art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
         std::map<art::Ptr<recob::Track>, art::Ptr<anab::Calorimetry> > trackToCalorimetryMap;
         for(size_t i=0; i< tracks.size(); ++i){
-            trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
+                trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
         }
 
-        //Build an association
-        //loop over all tracks
-        //fill a map
         if(m_use_PID_algorithms){
+            // Build a map to get PID from PFParticles, then call PID collection function
             art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
             std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
             for(size_t i=0; i< tracks.size(); ++i){
