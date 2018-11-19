@@ -25,6 +25,7 @@ namespace single_photon
     void SinglePhoton::reconfigure(fhicl::ParameterSet const &pset)
     {
         m_is_verbose = pset.get<bool>("Verbose",true);
+        m_use_PID_algorithms = pset.get<bool>("usePID",false);
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
@@ -44,7 +45,7 @@ namespace single_photon
         m_geantModuleLabel = pset.get<std::string>("GeantModule","largeant");
         m_backtrackerLabel = pset.get<std::string>("BackTrackerModule","gaushitTruthMatch");
         m_hitMCParticleAssnsLabel = pset.get<std::string>("HitMCParticleAssnLabel","gaushitTruthMatch");
-        
+
 
         //Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.01);
@@ -125,11 +126,6 @@ namespace single_photon
             mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
             return;
         }
-        //tracks
-        art::ValidHandle<std::vector<recob::Track>> const & trackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_trackLabel);
-        std::vector<art::Ptr<recob::Track>> trackVector;
-        art::fill_ptr_vector(trackVector,trackHandle);
-
 
 
         //Get the MCtruth handles and vectors
@@ -247,19 +243,19 @@ namespace single_photon
         for(size_t i=0; i< tracks.size(); ++i){
             trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
         }
-        
+
         //Build an association
         //loop over all tracks
         //fill a map
-        //
-        art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
-        std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
-        for(size_t i=0; i< tracks.size(); ++i){
-            art::Ptr<recob::Track> track = tracks[i];
-            trackToPIDMap[track] = pid_per_track.at(track.key());
+        if(m_use_PID_algorithms){
+            art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
+            std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
+            for(size_t i=0; i< tracks.size(); ++i){
+                art::Ptr<recob::Track> track = tracks[i];
+                trackToPIDMap[track] = pid_per_track.at(track.key());
+            }
+            this->CollectPID(tracks, trackToPIDMap);
         }
-        this->CollectPID(tracks, trackToPIDMap);
-
 
         //**********************************************************************************************/
         //**********************************************************************************************/

@@ -18,15 +18,15 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/OpFlash.h"
-#include "lardataobj/AnalysisBase/Calorimetry.h"
-#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/MCBase/MCShower.h"
+#include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
 
 
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
 
-#include "lardataobj/AnalysisBase/ParticleID.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -299,7 +299,7 @@ namespace single_photon
             std::string m_mcTrackLabel;
             std::string m_mcShowerLabel;
             std::string m_pidLabel;            ///< For PID stuff
-
+            bool m_use_PID_algorithms;
             bool m_is_verbose;
 
             double m_track_calo_min_dEdx;
