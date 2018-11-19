@@ -7,6 +7,9 @@ namespace single_photon
         m_mctruth_origin = -99;
         m_mctruth_mode = -99;
         m_mctruth_interaction_type = -99;
+        m_mctruth_nu_vertex_x = -9999;
+        m_mctruth_nu_vertex_y = -9999;
+        m_mctruth_nu_vertex_z = -9999;
         m_mctruth_ccnc = -99;
         m_mctruth_qsqr = -99;
         m_mctruth_nu_E = -99;
@@ -43,6 +46,13 @@ namespace single_photon
         vertex_tree->Branch("mctruth_origin",&m_mctruth_origin);
         vertex_tree->Branch("mctruth_nu_pdg",&m_mctruth_nu_pdg);
         vertex_tree->Branch("mctruth_nu_E",&m_mctruth_nu_E);
+
+        vertex_tree->Branch("mctruth_nu_vertex_x",&m_mctruth_nu_vertex_x);
+        vertex_tree->Branch("mctruth_nu_vertex_y",&m_mctruth_nu_vertex_y);
+        vertex_tree->Branch("mctruth_nu_vertex_z",&m_mctruth_nu_vertex_z);
+
+   
+
         vertex_tree->Branch("mctruth_lepton_pdg",&m_mctruth_lepton_pdg);
         vertex_tree->Branch("mctruth_lepton_E",&m_mctruth_lepton_E);
         vertex_tree->Branch("mctruth_mode",&m_mctruth_mode);
@@ -91,6 +101,14 @@ namespace single_photon
             m_mctruth_lepton_pdg = truth->GetNeutrino().Lepton().PdgCode();
             m_mctruth_lepton_E = truth->GetNeutrino().Lepton().E();
             
+            std::vector<double> corrected(3);
+            this->spacecharge_correction( truth->GetNeutrino().Lepton(),corrected);
+
+            m_mctruth_nu_vertex_x = truth->GetNeutrino().Lepton().Position().X()+corrected[0];
+            m_mctruth_nu_vertex_y = truth->GetNeutrino().Lepton().Position().Y()+corrected[1];
+            m_mctruth_nu_vertex_z = truth->GetNeutrino().Lepton().Position().Z()+corrected[2];
+
+
             m_mctruth_num_daughter_particles = truth->NParticles();
             this->ResizeMCTruths(m_mctruth_num_daughter_particles);
 

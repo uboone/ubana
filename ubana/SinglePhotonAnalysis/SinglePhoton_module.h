@@ -286,6 +286,7 @@ namespace single_photon
 
 
             int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected);
+            int spacecharge_correction(const simb::MCParticle & mcparticle, std::vector<double> & corrected);
 
             //databased http://dbdata0vm.fnal.gov:8186/uboonecon_prod/app/data?f=channelstatus_data&t=357812824
             std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
@@ -471,6 +472,9 @@ namespace single_photon
             int m_mctruth_num;
             int m_mctruth_origin;
             double m_mctruth_nu_E;
+            double m_mctruth_nu_vertex_x;
+            double m_mctruth_nu_vertex_y;
+            double m_mctruth_nu_vertex_z;
             double m_mctruth_lepton_E;
             int m_mctruth_nu_pdg;
             int m_mctruth_lepton_pdg;

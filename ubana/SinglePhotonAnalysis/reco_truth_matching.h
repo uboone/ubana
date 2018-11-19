@@ -43,7 +43,7 @@ namespace single_photon
 
                     //loop over MCparticles finding which is the MCparticle with most "energy" matched correctly
                     for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
-                        objide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy; //store energy per track id
+                        objide[ particle_vec[i_p]->TrackId()] += match_vec[i_p]->energy; //store energy per track id
                         tote += match_vec[i_p]->energy; //calculate total energy deposited
                         if( objide[ particle_vec[i_p]->TrackId() ] > maxe ){ //keep track of maximum
                             maxe = objide[ particle_vec[i_p]->TrackId() ];
@@ -115,9 +115,7 @@ namespace single_photon
                     std::cout<<"Well hot saussage.. more than 1 mother or ancestor. Actually thats very reasonable hehe."<<num_mother_id_matches<<" "<<num_ancestor_id_matches<<std::endl;
                 }
 
-
                 //What if multiple mothers matches?! no idea.
-
 
                     
             }//MCParticleLoop
