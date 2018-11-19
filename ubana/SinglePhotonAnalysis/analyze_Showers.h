@@ -273,9 +273,6 @@ namespace single_photon
             double ymax = zmin + m_reco_shower_diry[i_shr]*m_reco_shower_length[i_shr];
             if(ymin > ymax) std::swap(ymin, ymax);
 
-            //---------------- Reco-Truth Matching to MCParticles -------------------//
-
-
             //Code property of Gray Yarbrough (all rights reserved)
             //int optical_flash_in_beamgate_counter=0;
             double shortest_dist_to_flash_z=DBL_MAX;
@@ -285,28 +282,25 @@ namespace single_photon
             int shortest_dist_to_flash_index_z=-999;
             int shortest_dist_to_flash_index_y=-999;
             int shortest_dist_to_flash_index_yz=-999;
+
             if(m_is_verbose) std::cout<<" number of flashes: "<< m_reco_num_flashes<< "\n";
             for(int i_flash = 0; i_flash < m_reco_num_flashes; ++i_flash) {
-                //double const flash_time=m_reco_flash_time[i_flash];
+                
                 double const zcenter=m_reco_flash_zcenter[i_flash];
                 if(m_is_verbose) std::cout<< "flash z center:" <<m_reco_flash_zcenter[i_flash]<< "\n";
                 double const ycenter=m_reco_flash_ycenter[i_flash];
                 if(m_is_verbose) std::cout<< "flash y center:" <<m_reco_flash_ycenter[i_flash]<< "\n";
-                //if((m_is_verbose) std::cout<<"optical flash time"<< m_reco_flash_time[i_flash] << " (opf.Time()>3.2 && opf.Time<4.8)\n
 
                 //z plane
                 double dist_z=DBL_MAX;
                 if(zcenter < zmin) {
                     dist_z = zmin - zcenter;
-                    if(m_is_verbose) std::cout << "z plane flash center - zmin dist: " << dist_z << "\n";
                 }
                 else if(zcenter > zmax) {
                     dist_z = zcenter - zmax;
-                    if(m_is_verbose) std::cout << " z plane flash center - zmax dist: " << dist_z << "\n";
                 }
                 else {
                     dist_z = 0;
-                    if(m_is_verbose) std::cout << "z plane flash center inside shower\n";
                 }	    
                 if(dist_z < shortest_dist_to_flash_z){
                     shortest_dist_to_flash_z = dist_z;
@@ -319,20 +313,18 @@ namespace single_photon
                 double dist_y=DBL_MAX;
                 if(ycenter < ymin) {
                     dist_y = ymin - ycenter;
-                    if(m_is_verbose) std::cout << "y plane flash center - zmin dist: " << dist_y << "\n";
                 }
                 else if(ycenter > ymax) {
                     dist_y = ycenter - ymax;
-                    if(m_is_verbose) std::cout << " y plane flash center - zmax dist: " << dist_y << "\n";
                 }
                 else {
                     dist_y= 0;
-                    if(m_is_verbose) std::cout << "y plane flash center inside shower\n";
                 }	    
                 if(dist_y < shortest_dist_to_flash_y){
                     shortest_dist_to_flash_y = dist_y;
                     shortest_dist_to_flash_index_y=i_flash;
                 }
+
                 double dist_yz=DBL_MAX;
                 dist_yz=std::sqrt(dist_y*dist_y+dist_z*dist_z);
                 if(dist_yz<shortest_dist_to_flash_yz){

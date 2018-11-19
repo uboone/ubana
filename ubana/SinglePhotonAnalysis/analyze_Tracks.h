@@ -52,6 +52,8 @@ namespace single_photon
         m_sim_track_startz.clear();
 
         m_reco_track_pid_bragg_likelihood_plane2.clear();
+        m_reco_track_pid_pida_plane2.clear();
+        m_reco_track_pid_chi_plane2.clear();
 
     }
 
@@ -99,6 +101,8 @@ namespace single_photon
         m_sim_track_starty.resize(size);
         m_sim_track_startz.resize(size);
         m_reco_track_pid_bragg_likelihood_plane2.resize(size);
+        m_reco_track_pid_pida_plane2.resize(size);
+        m_reco_track_pid_chi_plane2.resize(size);
 
     }
 
@@ -140,6 +144,12 @@ namespace single_photon
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half",&m_reco_track_mean_trunc_dEdx_start_half);
         vertex_tree->Branch("reco_track_trunc_PIDA",&m_reco_track_trunc_PIDA);
 
+        vertex_tree->Branch("reco_track_pid_bragg_likelihood_plane2",&m_reco_track_pid_bragg_likelihood_plane2);
+        vertex_tree->Branch("reco_track_pid_pida_plane2",&m_reco_track_pid_pida_plane2);
+        vertex_tree->Branch("reco_track_pid_chi_plane2",&m_reco_track_pid_chi_plane2);
+
+
+
         vertex_tree->Branch("sim_track_energy",&m_sim_track_energy);
         vertex_tree->Branch("sim_track_pdg",&m_sim_track_pdg);
         vertex_tree->Branch("sim_track_origin",&m_sim_track_origin);
@@ -147,7 +157,6 @@ namespace single_photon
         vertex_tree->Branch("sim_track_startx",&m_sim_track_startx);
         vertex_tree->Branch("sim_track_starty",&m_sim_track_starty);
         vertex_tree->Branch("sim_track_startz",&m_sim_track_startz);
-        vertex_tree->Branch("reco_track_pid_bragg_likelihood_plane2",&m_reco_track_pid_bragg_likelihood_plane2);
     }
 
 
@@ -394,7 +403,7 @@ namespace single_photon
 
             		pida_sum_trunc += trunc_dEdx[k]/(pow(res_range_good[k],-0.42));
                 }
-
+                m_reco_track_trunc_PIDA[i_trk] = pida_sum_trunc;           
             }
 
             m_reco_track_mean_dEdx[i_trk]            *=1.0/((double)calo_length);
@@ -425,6 +434,8 @@ namespace single_photon
                 // But first, prepare garbage values, just in case
                 std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
                 double pidScore_BL_plane2 = -999;
+                double pidScore_PIDA_plane2 = -999;
+                double pidScore_Chi_plane2 = -999;
 
                 int planeid = 2;
                 for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++) {
@@ -436,18 +447,24 @@ namespace single_photon
                                   << planeid << " (using plane 2 calorimetry only)" << std::endl;
                         continue;
                     }
-                    if (AlgScore.fAlgName == "BraggPeakLLH"){
-                        if (anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood) {
-                                 //&& anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward)
-                            if (TMath::Abs(AlgScore.fAssumedPdg) == 13) {
+                    if (AlgScore.fAlgName == "BraggPeakLLH" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 13){
                                 pidScore_BL_plane2 = AlgScore.fValue;
-                            }
-                        }
                     }
-                //m_reco_track_pid_bragg_likelihood_plane2.push_back(pidScore_BL_plane2);
+                   if (AlgScore.fAlgName == "Chi2" && anab::kVariableType(AlgScore.fVariableType) == anab::kGOF && TMath::Abs(AlgScore.fAssumedPdg) == 13){
+                                pidScore_Chi_plane2 = AlgScore.fValue;
+                    }
+                   if (AlgScore.fAlgName == "PIDA_mean" && anab::kVariableType(AlgScore.fVariableType) == anab::kPIDA && TMath::Abs(AlgScore.fAssumedPdg) == 13){
+                                pidScore_PIDA_plane2 = AlgScore.fValue;
+                    }
+
+
+
                 }
             std::cout << "Setting pid score " << pidScore_BL_plane2 << std::endl;
             m_reco_track_pid_bragg_likelihood_plane2[i_trk] = pidScore_BL_plane2;
+            m_reco_track_pid_pida_plane2[i_trk] = pidScore_PIDA_plane2;
+            m_reco_track_pid_chi_plane2[i_trk] = pidScore_Chi_plane2;
+
         }
         return;
     }

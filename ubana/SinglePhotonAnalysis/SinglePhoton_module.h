@@ -228,11 +228,11 @@ namespace single_photon
             bool insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle);
 
             /***
-			 *@brief returns the value at the median position in a vector of doubles, returns nan for vector of size <= 0
-			 *@param thisvector - vector of doubles
-			 *
-			 * */
-			double getMedian(std::vector<double> thisvector);
+             *@brief returns the value at the median position in a vector of doubles, returns nan for vector of size <= 0
+             *@param thisvector - vector of doubles
+             *
+             * */
+            double getMedian(std::vector<double> thisvector);
 
 
             //----------------  Templatees ----------------------------
@@ -439,17 +439,17 @@ namespace single_photon
             std::vector<int> m_reco_shower_delaunay_num_triangles_plane1;
             std::vector<int> m_reco_shower_delaunay_num_triangles_plane2;
 
-	    //shower flash matching
+            //shower flash matching
 
-	    std::vector<double> m_reco_shower_flash_shortest_distz;
-	    std::vector<double> m_reco_shower_flash_shortest_disty;
-	    std::vector<double> m_reco_shower_flash_shortest_distyz;
-	    
-	    std::vector<int> m_reco_shower_flash_shortest_index_z;
-	    std::vector<int> m_reco_shower_flash_shortest_index_y;
-	    std::vector<int> m_reco_shower_flash_shortest_index_yz;
-	    
-	    //end flash matching
+            std::vector<double> m_reco_shower_flash_shortest_distz;
+            std::vector<double> m_reco_shower_flash_shortest_disty;
+            std::vector<double> m_reco_shower_flash_shortest_distyz;
+
+            std::vector<int> m_reco_shower_flash_shortest_index_z;
+            std::vector<int> m_reco_shower_flash_shortest_index_y;
+            std::vector<int> m_reco_shower_flash_shortest_index_yz;
+
+            //end flash matching
             std::vector<int> m_reco_shower_num_hits_plane0;
             std::vector<int> m_reco_shower_num_hits_plane1;
             std::vector<int> m_reco_shower_num_hits_plane2;
@@ -499,22 +499,24 @@ namespace single_photon
             std::vector<double>        m_mctruth_exiting_pi0_pz;
 
             //the calo calculated quantities 
-			std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
-			std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
-			std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
-			std::vector<std::vector<double>> m_reco_shower_dQdx_plane2;
-			std::vector<std::vector<double>> m_reco_shower_dEdx_plane0; //dE/dx from the calculated dQ/dx for each hit in shower on plane 	
-			std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
-			std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
+            std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
+            std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
+            std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
+            std::vector<std::vector<double>> m_reco_shower_dQdx_plane2;
+            std::vector<std::vector<double>> m_reco_shower_dEdx_plane0; //dE/dx from the calculated dQ/dx for each hit in shower on plane 	
+            std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
+            std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
 
-			std::vector<double> m_reco_shower_dEdx_plane0_median;
-			std::vector<double> m_reco_shower_dEdx_plane1_median;
-			std::vector<double> m_reco_shower_dEdx_plane2_median;
-            
-            
-            
+            std::vector<double> m_reco_shower_dEdx_plane0_median;
+            std::vector<double> m_reco_shower_dEdx_plane1_median;
+            std::vector<double> m_reco_shower_dEdx_plane2_median;
+
+
+
             // PID-related variables
             std::vector<double> m_reco_track_pid_bragg_likelihood_plane2;
+            std::vector<double> m_reco_track_pid_pida_plane2;
+            std::vector<double> m_reco_track_pid_chi_plane2;
 
 
 
