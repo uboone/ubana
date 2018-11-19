@@ -43,4 +43,46 @@ microboone_common_op_precut_ext: {
 
 }
 
+microboone_common_op_precut_numi_mc: {
+  module_type: "DLPMTPreCuts"
+
+  OpHitProducer: "ophit"
+  BinTickWidth: 6
+  WinStartTick: 300. 
+  WinEndTick: 938.
+  PEThreshold: 20.0
+  VetoStartTick: 170.
+  VetoEndTick: 300.
+  PMTMaxFrac: 2.0 #disable this
+
+}
+
+microboone_common_op_precut_numi: {
+  module_type: "DLPMTPreCuts"
+
+  OpHitProducer: "ophit"
+  BinTickWidth: 6
+  WinStartTick:	364.
+  WinEndTick: 1002.
+  PEThreshold: 20.0
+  VetoStartTick: 234.
+  VetoEndTick: 364.
+  PMTMaxFrac: 2.0 #disable this
+
+}
+
+microboone_common_op_precut_numi_ext: {
+  module_type: "DLPMTPreCuts"
+
+  OpHitProducer: "ophit"
+  BinTickWidth: 6
+  WinStartTick: 387.
+  WinEndTick: 1025.
+  PEThreshold: 20.0
+  VetoStartTick: 257. 
+  VetoEndTick: 387.
+  PMTMaxFrac: 2.0 #disable this
+
+}
+
 END_PROLOG
