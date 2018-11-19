@@ -157,11 +157,7 @@ namespace single_photon
         std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap; 
         this->CollectTracksAndShowers(nuParticles, pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
 
-
-        //Build an association
-        //loop over all tracks
-        //fill a map
-        //
+        // Build a map to get PID from PFParticles, then call PID collection function
         art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
         std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
         for(size_t i=0; i< tracks.size(); ++i){
