@@ -51,6 +51,7 @@ namespace single_photon
         m_sim_track_starty.clear();
         m_sim_track_startz.clear();
 
+        m_reco_track_pid_bragg_likelihood_plane2.clear();
 
     }
 
@@ -97,6 +98,7 @@ namespace single_photon
         m_sim_track_startx.resize(size);
         m_sim_track_starty.resize(size);
         m_sim_track_startz.resize(size);
+        m_reco_track_pid_bragg_likelihood_plane2.resize(size);
 
     }
 
@@ -145,6 +147,7 @@ namespace single_photon
         vertex_tree->Branch("sim_track_startx",&m_sim_track_startx);
         vertex_tree->Branch("sim_track_starty",&m_sim_track_starty);
         vertex_tree->Branch("sim_track_startz",&m_sim_track_startz);
+        vertex_tree->Branch("reco_track_pid_bragg_likelihood_plane2",&m_reco_track_pid_bragg_likelihood_plane2);
     }
 
 
@@ -190,7 +193,7 @@ namespace single_photon
             m_reco_track_num_spacepoints[i_trk] = (int)trk_spacepoints.size();
 
 
-            m_reco_track_startx[i_trk] = track->Start().X();   
+            m_reco_track_startx[i_trk]= track->Start().X();   
             m_reco_track_starty[i_trk]= track->Start().Y();   
             m_reco_track_startz[i_trk]= track->Start().Z();   
 
@@ -406,6 +409,54 @@ namespace single_photon
 
 
 
+    void SinglePhoton::CollectPID( std::vector<art::Ptr<recob::Track>> & tracks,
+                                std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap){
+            
+        for(size_t i_trk=0; i_trk<tracks.size(); ++i_trk){
+                art::Ptr<recob::Track> track = tracks[i_trk];
+                art::Ptr<anab::ParticleID> pid = trackToPIDMap[track];
+                if (!pid) {
+                    std::cout << "[analyze_Tracks] bad PID object" << std::endl;
+                    continue;
+                }
+
+                // For each PID object, create vector of PID scores for each algorithm
+                // Loop over this and get scores for algorithm of choice
+                // But first, prepare garbage values, just in case
+                std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
+                double pidScore_BL_plane2 = -999;
+
+                for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++) {
+                    anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+                    //int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
+                    ///////////******// HARD-CODING ALERT PLZ FIX LATER K THX BYE //////////////////*******
+                    int planeid = 2;
+                    if (planeid != 2){
+                        std::cout << "[ParticleIDValidation] Not using information for plane " 
+                                  << planeid << " (using plane 2 calorimetry only)" << std::endl;
+                        continue;
+                    }
+                    if (AlgScore.fAlgName == "BraggPeakLLH"){
+                        if (anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood) {
+                                 //&& anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward){
+                            if (TMath::Abs(AlgScore.fAssumedPdg) == 13) {
+                                pidScore_BL_plane2 = AlgScore.fValue;
+                            }
+                        }
+                    }
+                }
+
+
+                m_reco_track_pid_bragg_likelihood_plane2.push_back(pidScore_BL_plane2);
+
+
+
+                ///akdhsjd
+
+            //m_reco_track_pidsljbfshj[i_trk] = ksdhfs;
+        }
+        return;
+    }
 
     double SinglePhoton::dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& X0){
         double x1 =X1.at(0);

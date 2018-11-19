@@ -26,6 +26,7 @@
 
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
 
+#include "lardataobj/AnalysisBase/ParticleID.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -48,6 +49,9 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
+
+// Helper function for PID stuff
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -245,6 +249,7 @@ namespace single_photon
             void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap);
             void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap);
 
+            void CollectPID(std::vector<art::Ptr<recob::Track>> & tracks,std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap);
             TGraph proton_length2energy_tgraph;
             double dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& X0);
 
@@ -293,6 +298,8 @@ namespace single_photon
             std::string m_badChannelProducer;
             std::string m_mcTrackLabel;
             std::string m_mcShowerLabel;
+            std::string m_pidLabel;            ///< For PID stuff
+
             bool m_is_verbose;
 
             double m_track_calo_min_dEdx;
@@ -490,6 +497,10 @@ namespace single_photon
             std::vector<std::vector<double>> m_reco_shower_dEdx_plane0; //dE/dx from the calculated dQ/dx for each hit in shower on plane 	
             std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
             std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
+            // PID-related variables
+            std::vector<double> m_reco_track_pid_bragg_likelihood_plane2;
+
+
 
     };
 

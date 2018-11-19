@@ -59,6 +59,7 @@ namespace single_photon
         m_wire_spacing = pset.get<double>("wire_spacing");
         m_width_dqdx_box = pset.get<double>("width_box");
         m_length_dqdx_box = pset.get<double>("length_box");
+        m_pidLabel = pset.get<std::string>("ParticleIDLabel","particleid");
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
@@ -124,6 +125,11 @@ namespace single_photon
             mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
             return;
         }
+        //tracks
+        art::ValidHandle<std::vector<recob::Track>> const & trackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_trackLabel);
+        std::vector<art::Ptr<recob::Track>> trackVector;
+        art::fill_ptr_vector(trackVector,trackHandle);
+
 
 
         //Get the MCtruth handles and vectors
@@ -241,6 +247,18 @@ namespace single_photon
         for(size_t i=0; i< tracks.size(); ++i){
             trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
         }
+        
+        //Build an association
+        //loop over all tracks
+        //fill a map
+        //
+        art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
+        std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
+        for(size_t i=0; i< tracks.size(); ++i){
+            art::Ptr<recob::Track> track = tracks[i];
+            trackToPIDMap[track] = pid_per_track.at(track.key());
+        }
+        this->CollectPID(tracks, trackToPIDMap);
 
 
         //**********************************************************************************************/
