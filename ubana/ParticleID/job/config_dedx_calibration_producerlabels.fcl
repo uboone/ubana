@@ -1,0 +1,105 @@
+#
+# configuration fcl file for simculation calibration
+#
+# naming convention here is
+# cs_producerlabels_< 1 >_< 2 >_simcalib< 3 >
+# < 1 > - which MCC version is this for? If running only over UBXSec tagged tracks then use
+#         mcc8_UBXSec, for instance
+# < 2 > - does the file contain calibrated data products? if not then we apply
+#         the calibration ourselves, and it has the label pidcalibration::particleid
+# < 3 > - if this is for data then use '_data', else nothing
+#
+
+BEGIN_PROLOG
+
+cs_producerlabels_mcc8_calib_dedxcalib:
+{
+
+  # producer label names
+  TrackLabel       : "pandora::McRecoStage2"
+  CalorimetryLabel : "pandoracali::McRecoCali"
+
+}
+
+cs_producerlabels_mcc8_calib_dedxcalib_data:
+{
+
+  # producer label names
+  TrackLabel       : "pandora::DataRecoStage2"
+  CalorimetryLabel : "pandoracali::DataRecoCali"
+
+}
+
+cs_producerlabels_mcc8_calib_dedxcalib_data_pmtremap:
+{
+
+  # producer label names
+  TrackLabel       : "pandora::DataPMTRemapRecoStage2"
+  CalorimetryLabel : "pandoracali::DataPMTRemapRecoStage2"
+
+}
+
+cs_producerlabels_mcc8_uncalib_dedxcalib:
+{
+
+  # producer label names
+  TrackLabel       : "pandora::McRecoStage2"
+  CalorimetryLabel : "pidcalibration::particleid"
+
+}
+
+cs_producerlabels_mcc8_uncalib_dedxcalib_data:
+{
+
+  # producer label names
+  TrackLabel       : "pandora::DataRecoStage2"
+  CalorimetryLabel : "pidcalibration::particleid"
+
+}
+
+cs_producerlabels_mcc8_UBXSec_uncalib_dedxcalib:
+{
+
+  # producer label names
+  TrackLabel       : "pandora::UBXSec"
+  CalorimetryLabel : "pidcalibration::particleid"
+
+}
+
+cs_producerlabels_mcc8_UBXSec_uncalib_dedxcalib_data:
+{
+
+  # producer label names
+  TrackLabel       : "pandora::UBXSec"
+  CalorimetryLabel : "pidcalibration::particleid"
+
+}
+
+cs_producerlabels_mcc8_UBXSec_calib_dedxcalib:
+{
+
+  # producer label names
+  TrackLabel       : "pandora::UBXSec"
+  CalorimetryLabel : "pandoracali::UBXSec"
+
+}
+
+cs_producerlabels_mcc8_UBXSec_calib_dedxcalib_data:
+{
+
+  # producer label names
+  TrackLabel       : "pandora::UBXSec"
+  CalorimetryLabel : "pandoracali::UBXSec"
+
+}
+
+cs_producerlabels_mcc9_calib_dedxcalib:
+{
+  # producer label names
+  TrackLabel       : "pandora"
+  CalorimetryLabel : "pandoracalo"
+  PFParticleLabel :  "pandora"
+
+}
+
+END_PROLOG

@@ -279,19 +279,13 @@ namespace single_photon
                                  //&& anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward){
                             if (TMath::Abs(AlgScore.fAssumedPdg) == 13) {
                                 pidScore_BL_plane2 = AlgScore.fValue;
+                                std::cout << "Setting pid score " << pidScore_BL_plane2 << std::endl;
                             }
                         }
                     }
+                m_reco_track_pid_bragg_likelihood_plane2.push_back(pidScore_BL_plane2);
                 }
 
-
-                m_reco_track_pid_bragg_likelihood_plane2.push_back(pidScore_BL_plane2);
-
-
-
-                ///akdhsjd
-
-            //m_reco_track_pidsljbfshj[i_trk] = ksdhfs;
         }
         return;
     }
