@@ -227,6 +227,14 @@ namespace single_photon
              * */
             bool insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle);
 
+            /***
+			 *@brief returns the value at the median position in a vector of doubles, returns nan for vector of size <= 0
+			 *@param thisvector - vector of doubles
+			 *
+			 * */
+			double getMedian(std::vector<double> thisvector);
+
+
             //----------------  Templatees ----------------------------
             void AnalyzeTemplates();
             void ClearTemplates();
@@ -489,14 +497,22 @@ namespace single_photon
             std::vector<double>       m_mctruth_exiting_pi0_px;
             std::vector<double>        m_mctruth_exiting_pi0_py;
             std::vector<double>        m_mctruth_exiting_pi0_pz;
+
             //the calo calculated quantities 
-            std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
-            std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
-            std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
-            std::vector<std::vector<double>> m_reco_shower_dQdx_plane2;
-            std::vector<std::vector<double>> m_reco_shower_dEdx_plane0; //dE/dx from the calculated dQ/dx for each hit in shower on plane 	
-            std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
-            std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
+			std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
+			std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
+			std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
+			std::vector<std::vector<double>> m_reco_shower_dQdx_plane2;
+			std::vector<std::vector<double>> m_reco_shower_dEdx_plane0; //dE/dx from the calculated dQ/dx for each hit in shower on plane 	
+			std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
+			std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
+
+			std::vector<double> m_reco_shower_dEdx_plane0_median;
+			std::vector<double> m_reco_shower_dEdx_plane1_median;
+			std::vector<double> m_reco_shower_dEdx_plane2_median;
+            
+            
+            
             // PID-related variables
             std::vector<double> m_reco_track_pid_bragg_likelihood_plane2;
 

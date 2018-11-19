@@ -3,6 +3,7 @@
 
 namespace single_photon
 {
+
     void SinglePhoton::ClearShowers(){
         m_reco_asso_showers=0;
         m_reco_shower_startx.clear();
@@ -25,14 +26,14 @@ namespace single_photon
         m_reco_shower_delaunay_area_plane0.clear();
         m_reco_shower_delaunay_area_plane1.clear();
         m_reco_shower_delaunay_area_plane2.clear();
-	//track shower matching
-	m_reco_shower_flash_shortest_distz.clear();
-	m_reco_shower_flash_shortest_disty.clear();
-	m_reco_shower_flash_shortest_distyz.clear();
- 
-	m_reco_shower_flash_shortest_index_z.clear();
-	m_reco_shower_flash_shortest_index_y.clear();
-	m_reco_shower_flash_shortest_index_yz.clear();
+
+        m_reco_shower_flash_shortest_distz.clear();
+        m_reco_shower_flash_shortest_disty.clear();
+        m_reco_shower_flash_shortest_distyz.clear();
+
+        m_reco_shower_flash_shortest_index_z.clear();
+        m_reco_shower_flash_shortest_index_y.clear();
+        m_reco_shower_flash_shortest_index_yz.clear();
 
         m_sim_shower_energy.clear();
         m_sim_shower_pdg.clear();
@@ -49,6 +50,19 @@ namespace single_photon
         m_reco_shower_dEdx_plane0.clear();
         m_reco_shower_dEdx_plane1.clear();
         m_reco_shower_dEdx_plane2.clear();
+        m_reco_shower_dEdx_plane0_median.clear();
+        m_reco_shower_dEdx_plane1_median.clear();
+        m_reco_shower_dEdx_plane2_median.clear();
+
+        m_reco_shower_flash_shortest_distz.resize(size);
+        m_reco_shower_flash_shortest_disty.resize(size);
+        m_reco_shower_flash_shortest_distyz.resize(size);
+
+        m_reco_shower_flash_shortest_index_z.resize(size);
+        m_reco_shower_flash_shortest_index_y.resize(size);
+        m_reco_shower_flash_shortest_index_yz.resize(size);
+
+
 
     }
 
@@ -74,15 +88,6 @@ namespace single_photon
         m_reco_shower_delaunay_area_plane1.resize(size);
         m_reco_shower_delaunay_area_plane2.resize(size);
 
-        m_reco_shower_flash_shortest_distz.resize(size);
-	m_reco_shower_flash_shortest_disty.resize(size);
-	m_reco_shower_flash_shortest_distyz.resize(size);
- 
-	m_reco_shower_flash_shortest_index_z.resize(size);
-	m_reco_shower_flash_shortest_index_y.resize(size);
-	m_reco_shower_flash_shortest_index_yz.resize(size);
-
-
         m_reco_shower_energy.resize(size);
         m_reco_shower_dQdx_plane0.resize(size);
         m_reco_shower_dQdx_plane1.resize(size);
@@ -90,6 +95,10 @@ namespace single_photon
         m_reco_shower_dEdx_plane0.resize(size);
         m_reco_shower_dEdx_plane1.resize(size);
         m_reco_shower_dEdx_plane2.resize(size);
+        m_reco_shower_dEdx_plane0_median.resize(size);
+        m_reco_shower_dEdx_plane1_median.resize(size);
+        m_reco_shower_dEdx_plane2_median.resize(size);
+
 
         m_sim_shower_energy.resize(size);
         m_sim_shower_pdg.resize(size);
@@ -122,15 +131,14 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_delaunay_area_plane0",&m_reco_shower_delaunay_area_plane0);
         vertex_tree->Branch("reco_shower_delaunay_area_plane1",&m_reco_shower_delaunay_area_plane1);
         vertex_tree->Branch("reco_shower_delaunay_area_plane2",&m_reco_shower_delaunay_area_plane2);
-	vertex_tree->Branch("reco_shower_flash_shortest_distz",&m_reco_shower_flash_shortest_distz);
-	vertex_tree->Branch("reco_shower_flash_shortest_disty",&m_reco_shower_flash_shortest_disty);
-	vertex_tree->Branch("reco_shower_flash_shortest_distyz",&m_reco_shower_flash_shortest_disty);
-	vertex_tree->Branch("reco_shower_flash_shortest_index_z", &m_reco_shower_flash_shortest_index_z);
-	vertex_tree->Branch("reco_shower_flash_shortest_index_y", &m_reco_shower_flash_shortest_index_y);
-	vertex_tree->Branch("reco_shower_flash_shortest_index_yz", &m_reco_shower_flash_shortest_index_yz);
-	
-	
 
+        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
+        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
+        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
+        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
+        vertex_tree->Branch("sim_shower_startx",&m_sim_shower_startx);
+        vertex_tree->Branch("sim_shower_starty",&m_sim_shower_starty);
+        vertex_tree->Branch("sim_shower_startz",&m_sim_shower_startz);
         //the calorimetry info
         vertex_tree->Branch("reco_shower_energy",&m_reco_shower_energy);
         vertex_tree->Branch("reco_shower_dQdx_plane0",&m_reco_shower_dQdx_plane0);
@@ -139,15 +147,18 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_dEdx_plane0",&m_reco_shower_dEdx_plane0);
         vertex_tree->Branch("reco_shower_dEdx_plane1",&m_reco_shower_dEdx_plane1);
         vertex_tree->Branch("reco_shower_dEdx_plane2",&m_reco_shower_dEdx_plane2);
+        vertex_tree->Branch("reco_shower_dEdx_plane0_median",&m_reco_shower_dEdx_plane0_median);
+        vertex_tree->Branch("reco_shower_dEdx_plane1_median",&m_reco_shower_dEdx_plane1_median);
+        vertex_tree->Branch("reco_shower_dEdx_plane2_median",&m_reco_shower_dEdx_plane2_median);
 
-        //Reco Truth Matching stuff
-        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
-        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
-        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
-        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
-        vertex_tree->Branch("sim_shower_startx",&m_sim_shower_startx);
-        vertex_tree->Branch("sim_shower_starty",&m_sim_shower_starty);
-        vertex_tree->Branch("sim_shower_startz",&m_sim_shower_startz);
+        vertex_tree->Branch("reco_shower_flash_shortest_distz",&m_reco_shower_flash_shortest_distz);
+        vertex_tree->Branch("reco_shower_flash_shortest_disty",&m_reco_shower_flash_shortest_disty);
+        vertex_tree->Branch("reco_shower_flash_shortest_distyz",&m_reco_shower_flash_shortest_disty);
+        vertex_tree->Branch("reco_shower_flash_shortest_index_z", &m_reco_shower_flash_shortest_index_z);
+        vertex_tree->Branch("reco_shower_flash_shortest_index_y", &m_reco_shower_flash_shortest_index_y);
+        vertex_tree->Branch("reco_shower_flash_shortest_index_yz", &m_reco_shower_flash_shortest_index_yz);
+
+
 
 
     }
@@ -238,116 +249,115 @@ namespace single_photon
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting de/dx plane 2"<<std::endl;
             m_reco_shower_dEdx_plane2[i_shr] = CalcdEdxFromdQdx(m_reco_shower_dQdx_plane2[i_shr]);
 
+            m_reco_shower_dEdx_plane0_median[i_shr] = getMedian(m_reco_shower_dEdx_plane0[i_shr]);
+            m_reco_shower_dEdx_plane1_median[i_shr] = getMedian(m_reco_shower_dEdx_plane1[i_shr]);
+            m_reco_shower_dEdx_plane2_median[i_shr] = getMedian(m_reco_shower_dEdx_plane2[i_shr]);
+
+
 
             //-------------- Flashes : Was there a flash in the beam_time and if so was it near in Z? --------------------
             double zmin = m_reco_shower_startz[i_shr];
-	    if(m_is_verbose) std::cout << "shower start z_plane: " <<zmin << "\n";
             double zmax = zmin + m_reco_shower_dirz[i_shr]*m_reco_shower_length[i_shr];
-	    if(m_is_verbose) std::cout << "shower end z_plane: " <<zmax << "\n";
             if(zmin > zmax) std::swap(zmin, zmax);
 
             double ymin = m_reco_shower_starty[i_shr];
-	    if(m_is_verbose) std::cout << "shower start y_plane: " <<ymin << "\n";
             double ymax = zmin + m_reco_shower_diry[i_shr]*m_reco_shower_length[i_shr];
-	    if(m_is_verbose) std::cout << "shower end y_plane: " <<ymax << "\n";
             if(ymin > ymax) std::swap(ymin, ymax);
-
 
             //---------------- Reco-Truth Matching to MCParticles -------------------//
 
 
-            //Now loop over all flashes (only in beamtime) and find SOMETHING?
+            //Code property of Gray Yarbrough (all rights reserved)
+            //int optical_flash_in_beamgate_counter=0;
+            double shortest_dist_to_flash_z=DBL_MAX;
+            double shortest_dist_to_flash_y=DBL_MAX;
+            double shortest_dist_to_flash_yz=DBL_MAX;
+            //-999 my nonsenese int can change
+            int shortest_dist_to_flash_index_z=-999;
+            int shortest_dist_to_flash_index_y=-999;
+            int shortest_dist_to_flash_index_yz=-999;
+            if(m_is_verbose) std::cout<<" number of flashes: "<< m_reco_num_flashes<< "\n";
+            for(int i_flash = 0; i_flash < m_reco_num_flashes; ++i_flash) {
+                //double const flash_time=m_reco_flash_time[i_flash];
+                double const zcenter=m_reco_flash_zcenter[i_flash];
+                if(m_is_verbose) std::cout<< "flash z center:" <<m_reco_flash_zcenter[i_flash]<< "\n";
+                double const ycenter=m_reco_flash_ycenter[i_flash];
+                if(m_is_verbose) std::cout<< "flash y center:" <<m_reco_flash_ycenter[i_flash]<< "\n";
+                //if((m_is_verbose) std::cout<<"optical flash time"<< m_reco_flash_time[i_flash] << " (opf.Time()>3.2 && opf.Time<4.8)\n
 
-	    //Code property of Gray Yarbrough (all rights reserved)
-	    //int optical_flash_in_beamgate_counter=0;
-	    double shortest_dist_to_flash_z=DBL_MAX;
-	    double shortest_dist_to_flash_y=DBL_MAX;
-	    double shortest_dist_to_flash_yz=DBL_MAX;
-	    //-999 my nonsenese int can change
-	    int shortest_dist_to_flash_index_z=-999;
-	    int shortest_dist_to_flash_index_y=-999;
-	    int shortest_dist_to_flash_index_yz=-999;
-	    if(m_is_verbose) std::cout<<" number of flashes: "<< m_reco_num_flashes<< "\n";
-	    for(int i_flash = 0; i_flash < m_reco_num_flashes; ++i_flash) {
-	      //double const flash_time=m_reco_flash_time[i_flash];
-	      double const zcenter=m_reco_flash_zcenter[i_flash];
-	      if(m_is_verbose) std::cout<< "flash z center:" <<m_reco_flash_zcenter[i_flash]<< "\n";
-	      double const ycenter=m_reco_flash_ycenter[i_flash];
-	      if(m_is_verbose) std::cout<< "flash y center:" <<m_reco_flash_ycenter[i_flash]<< "\n";
-	      //if((m_is_verbose) std::cout<<"optical flash time"<< m_reco_flash_time[i_flash] << " (opf.Time()>3.2 && opf.Time<4.8)\n
+                //z plane
+                double dist_z=DBL_MAX;
+                if(zcenter < zmin) {
+                    dist_z = zmin - zcenter;
+                    if(m_is_verbose) std::cout << "z plane flash center - zmin dist: " << dist_z << "\n";
+                }
+                else if(zcenter > zmax) {
+                    dist_z = zcenter - zmax;
+                    if(m_is_verbose) std::cout << " z plane flash center - zmax dist: " << dist_z << "\n";
+                }
+                else {
+                    dist_z = 0;
+                    if(m_is_verbose) std::cout << "z plane flash center inside shower\n";
+                }	    
+                if(dist_z < shortest_dist_to_flash_z){
+                    shortest_dist_to_flash_z = dist_z;
+                    shortest_dist_to_flash_index_z=i_flash;
+                }
 
-	      //z plane
-	      double dist_z=DBL_MAX;
-	       if(zcenter < zmin) {
-		 dist_z = zmin - zcenter;
-		 if(m_is_verbose) std::cout << "z plane flash center - zmin dist: " << dist_z << "\n";
-	       }
-	       else if(zcenter > zmax) {
-		 dist_z = zcenter - zmax;
-		 if(m_is_verbose) std::cout << " z plane flash center - zmax dist: " << dist_z << "\n";
-	       }
-	       else {
-		 dist_z = 0;
-		 if(m_is_verbose) std::cout << "z plane flash center inside shower\n";
-	       }	    
-	       if(dist_z < shortest_dist_to_flash_z){
-		 shortest_dist_to_flash_z = dist_z;
-		 shortest_dist_to_flash_index_z=i_flash;
-	       }
-	      
-	   
-	    //y plane
 
-	       double dist_y=DBL_MAX;
-	       if(ycenter < ymin) {
-		 dist_y = ymin - ycenter;
-		 if(m_is_verbose) std::cout << "y plane flash center - zmin dist: " << dist_y << "\n";
-	       }
-	       else if(ycenter > ymax) {
-		 dist_y = ycenter - ymax;
-		 if(m_is_verbose) std::cout << " y plane flash center - zmax dist: " << dist_y << "\n";
-	       }
-	       else {
-		 dist_y= 0;
-		 if(m_is_verbose) std::cout << "y plane flash center inside shower\n";
-	       }	    
-	       if(dist_y < shortest_dist_to_flash_y){
-		 shortest_dist_to_flash_y = dist_y;
-		 shortest_dist_to_flash_index_y=i_flash;
-	       }
-	       double dist_yz=DBL_MAX;
-	       dist_yz=std::sqrt(dist_y*dist_y+dist_z*dist_z);
-	       if(dist_yz<shortest_dist_to_flash_yz){
-		 shortest_dist_to_flash_yz = dist_yz;
-		 shortest_dist_to_flash_index_yz=i_flash;
-	       }
-	       
-	    }
+                //y plane
 
-	    
-	    //assume setting to nonsense value
-	    if(m_reco_num_flashes_in_beamgate == 0) shortest_dist_to_flash_z = -2;
-	    m_reco_shower_flash_shortest_distz[i_shr]=shortest_dist_to_flash_z;
-	    if(m_is_verbose) std::cout << "the shortest distance in z plane between a flash and the shower: " << shortest_dist_to_flash_z << "\n";
-	    m_reco_shower_flash_shortest_index_z[i_shr]=shortest_dist_to_flash_index_z;
-	    if(m_is_verbose) std::cout << "the index closest flash to shower z_plane: " << shortest_dist_to_flash_index_z << "\n";
-	     
-	    if(m_reco_num_flashes_in_beamgate == 0) shortest_dist_to_flash_y = -2;
-	    m_reco_shower_flash_shortest_disty[i_shr]=shortest_dist_to_flash_y;
-	    if(m_is_verbose) std::cout <<"the shortest distance in y plane between a flash and the shower: " << shortest_dist_to_flash_y << "\n";
-	    m_reco_shower_flash_shortest_index_y[i_shr]=shortest_dist_to_flash_index_y;
-	    if(m_is_verbose) std::cout << "the index closest flash to shower y_plane: " << shortest_dist_to_flash_index_y << "\n";
+                double dist_y=DBL_MAX;
+                if(ycenter < ymin) {
+                    dist_y = ymin - ycenter;
+                    if(m_is_verbose) std::cout << "y plane flash center - zmin dist: " << dist_y << "\n";
+                }
+                else if(ycenter > ymax) {
+                    dist_y = ycenter - ymax;
+                    if(m_is_verbose) std::cout << " y plane flash center - zmax dist: " << dist_y << "\n";
+                }
+                else {
+                    dist_y= 0;
+                    if(m_is_verbose) std::cout << "y plane flash center inside shower\n";
+                }	    
+                if(dist_y < shortest_dist_to_flash_y){
+                    shortest_dist_to_flash_y = dist_y;
+                    shortest_dist_to_flash_index_y=i_flash;
+                }
+                double dist_yz=DBL_MAX;
+                dist_yz=std::sqrt(dist_y*dist_y+dist_z*dist_z);
+                if(dist_yz<shortest_dist_to_flash_yz){
+                    shortest_dist_to_flash_yz = dist_yz;
+                    shortest_dist_to_flash_index_yz=i_flash;
+                }
 
-	    if(m_reco_num_flashes_in_beamgate == 0) shortest_dist_to_flash_yz = -2;
-	    m_reco_shower_flash_shortest_distyz[i_shr]=shortest_dist_to_flash_yz;
-	    if(m_is_verbose) std::cout <<"the shortest distance in yz between a flash and the shower: " << shortest_dist_to_flash_yz << "\n";
-	    m_reco_shower_flash_shortest_index_yz[i_shr]=shortest_dist_to_flash_index_yz;
-	    if(m_is_verbose) std::cout << "the index closest flash to shower yz: " << shortest_dist_to_flash_index_yz << "\n";
+            }
 
-	
-	    //end optical flash code
+
+            //assume setting to nonsense value
+            if(m_reco_num_flashes_in_beamgate == 0) shortest_dist_to_flash_z = -2;
+            m_reco_shower_flash_shortest_distz[i_shr]=shortest_dist_to_flash_z;
+            if(m_is_verbose) std::cout << "the shortest distance in z plane between a flash and the shower: " << shortest_dist_to_flash_z << "\n";
+            m_reco_shower_flash_shortest_index_z[i_shr]=shortest_dist_to_flash_index_z;
+            if(m_is_verbose) std::cout << "the index closest flash to shower z_plane: " << shortest_dist_to_flash_index_z << "\n";
+
+            if(m_reco_num_flashes_in_beamgate == 0) shortest_dist_to_flash_y = -2;
+            m_reco_shower_flash_shortest_disty[i_shr]=shortest_dist_to_flash_y;
+            if(m_is_verbose) std::cout <<"the shortest distance in y plane between a flash and the shower: " << shortest_dist_to_flash_y << "\n";
+            m_reco_shower_flash_shortest_index_y[i_shr]=shortest_dist_to_flash_index_y;
+            if(m_is_verbose) std::cout << "the index closest flash to shower y_plane: " << shortest_dist_to_flash_index_y << "\n";
+
+            if(m_reco_num_flashes_in_beamgate == 0) shortest_dist_to_flash_yz = -2;
+            m_reco_shower_flash_shortest_distyz[i_shr]=shortest_dist_to_flash_yz;
+            if(m_is_verbose) std::cout <<"the shortest distance in yz between a flash and the shower: " << shortest_dist_to_flash_yz << "\n";
+            m_reco_shower_flash_shortest_index_yz[i_shr]=shortest_dist_to_flash_index_yz;
+            if(m_is_verbose) std::cout << "the index closest flash to shower yz: " << shortest_dist_to_flash_index_yz << "\n";
+
+
+            //end optical flash code
+
             i_shr++;
-	}
+        }
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished.\n";
@@ -424,7 +434,7 @@ namespace single_photon
     }
 
     double SinglePhoton::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr){
-        double Q = thishitptr->Integral();
+        double Q = thishitptr->Integral()*m_gain;
         //return the energy value converted to MeV (the factor of 1e-6)
         return QtoEConversion(Q);
 
@@ -433,7 +443,7 @@ namespace single_photon
     double SinglePhoton::QtoEConversion(double Q){
         //return the energy value converted to MeV (the factor of 1e-6)
         //std::cout<<"computing the E value"<<std::endl;
-        double E = Q* m_gain* m_work_function *1e-6 /m_recombination_factor;
+        double E = Q* m_work_function *1e-6 /m_recombination_factor;
         //std::cout<<"returning E = "<<E<<std::endl;
         return E;
 
@@ -581,6 +591,24 @@ namespace single_photon
         }
         //std::cout<<"done checking, inside = "<<inside<<std::endl;
         return inside;
+    }
+
+    double SinglePhoton::getMedian(std::vector<double> thisvector){
+        //here the size corresponds to the max index
+        int size = thisvector.size() - 1;
+        //if no entries, return nonsense value
+        if (size <= 0) return NAN;
+
+        //find index of median location
+        int ind;
+        if (size%2 == 0) ind = size/2;
+        else ind = size/2 + 1;
+        std::cout<<"the median index in vector with size "<<size+1<<" and  max index "<<size<<" is "<<ind<<std::endl;
+
+        double median = thisvector[ind];
+        std::cout<<"returning median value "<< median<<std::endl;
+        //return the value at median index
+        return median;		
     }
 
 }
