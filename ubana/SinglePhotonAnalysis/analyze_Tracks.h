@@ -264,11 +264,11 @@ namespace single_photon
                 std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
                 double pidScore_BL_plane2 = -999;
 
+                int planeid = 2;
                 for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++) {
                     anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
                     //int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
                     ///////////******// HARD-CODING ALERT PLZ FIX LATER K THX BYE //////////////////*******
-                    int planeid = 2;
                     if (planeid != 2){
                         std::cout << "[ParticleIDValidation] Not using information for plane " 
                                   << planeid << " (using plane 2 calorimetry only)" << std::endl;
@@ -279,12 +279,12 @@ namespace single_photon
                                  //&& anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward)
                             if (TMath::Abs(AlgScore.fAssumedPdg) == 13) {
                                 pidScore_BL_plane2 = AlgScore.fValue;
-                                std::cout << "Setting pid score " << pidScore_BL_plane2 << std::endl;
                             }
                         }
                     }
                 //m_reco_track_pid_bragg_likelihood_plane2.push_back(pidScore_BL_plane2);
                 }
+            std::cout << "Setting pid score " << pidScore_BL_plane2 << std::endl;
             m_reco_track_pid_bragg_likelihood_plane2[i_trk] = pidScore_BL_plane2;
         }
         return;
