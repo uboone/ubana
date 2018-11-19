@@ -2,11 +2,12 @@ BEGIN_PROLOG
 
 OpDetWaveformAna:
 {
-  module_type:  "OpDetWaveformAna"
-  InputModule:  []
-  AnaHit:       []
-  AnaWaveform:  []
-  SaveWaveform: []
+  module_type:  "UBBasicOpticalAna"
+  InputModule:    []
+  AnaHit:         []
+  AnaWaveform:    []
+  SaveWaveform:   []
+  SaveEvWaveform: []
 }
 
 END_PROLOG
