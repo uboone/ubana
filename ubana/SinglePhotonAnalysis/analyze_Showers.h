@@ -54,14 +54,14 @@ namespace single_photon
         m_reco_shower_dEdx_plane1_median.clear();
         m_reco_shower_dEdx_plane2_median.clear();
 
-        m_reco_shower_flash_shortest_distz.resize(size);
-        m_reco_shower_flash_shortest_disty.resize(size);
-        m_reco_shower_flash_shortest_distyz.resize(size);
 
-        m_reco_shower_flash_shortest_index_z.resize(size);
-        m_reco_shower_flash_shortest_index_y.resize(size);
-        m_reco_shower_flash_shortest_index_yz.resize(size);
+        m_reco_shower_flash_shortest_distz.clear();
+        m_reco_shower_flash_shortest_disty.clear();
+        m_reco_shower_flash_shortest_distyz.clear();
 
+        m_reco_shower_flash_shortest_index_z.clear();
+        m_reco_shower_flash_shortest_index_y.clear();
+        m_reco_shower_flash_shortest_index_yz.clear();
 
 
     }
@@ -98,6 +98,15 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_median.resize(size);
         m_reco_shower_dEdx_plane1_median.resize(size);
         m_reco_shower_dEdx_plane2_median.resize(size);
+
+        m_reco_shower_flash_shortest_distz.resize(size);
+        m_reco_shower_flash_shortest_disty.resize(size);
+        m_reco_shower_flash_shortest_distyz.resize(size);
+
+        m_reco_shower_flash_shortest_index_z.resize(size);
+        m_reco_shower_flash_shortest_index_y.resize(size);
+        m_reco_shower_flash_shortest_index_yz.resize(size);
+
 
 
         m_sim_shower_energy.resize(size);
