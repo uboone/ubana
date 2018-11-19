@@ -49,6 +49,7 @@ private:
   std::vector< bool             > _do_hitana_v;
   std::vector< bool             > _do_wfana_v;
   std::vector< bool             > _store_wf_v;
+  std::vector< bool             > _store_ev_wf_v;
   std::vector< ::pmtana::OpDetWaveformAna > _ana_v;
   // Declare member data here.
 
@@ -60,13 +61,15 @@ UBBasicOpticalAna::UBBasicOpticalAna(fhicl::ParameterSet const & p)
   EDAnalyzer(p)  // ,
  // More initializers here.
 {
-  _module_v    = p.get< std::vector< std::string > > ( "InputModule"  );
-  _do_hitana_v = p.get< std::vector< bool        > > ( "AnaHit"       );
-  _do_wfana_v  = p.get< std::vector< bool        > > ( "AnaWaveform"  );
-  _store_wf_v  = p.get< std::vector< bool        > > ( "SaveWaveform" );
-  assert( _module_v.size () == _do_hitana_v.size () );
-  assert( _module_v.size () == _do_wfana_v.size  () );
-  assert( _module_v.size () == _store_wf_v.size  () );
+  _module_v       = p.get< std::vector< std::string > > ( "InputModule"    );
+  _do_hitana_v    = p.get< std::vector< bool        > > ( "AnaHit"         );
+  _do_wfana_v     = p.get< std::vector< bool        > > ( "AnaWaveform"    );
+  _store_wf_v     = p.get< std::vector< bool        > > ( "SaveWaveform"   );
+  _store_ev_wf_v  = p.get< std::vector< bool        > > ( "SaveEvWaveform" );
+  assert( _module_v.size () == _do_hitana_v.size ()    );
+  assert( _module_v.size () == _do_wfana_v.size  ()    );
+  assert( _module_v.size () == _store_wf_v.size  ()    );
+  assert( _module_v.size () == _store_ev_wf_v.size  () );
 
   for(auto const& name : _module_v)
     _ana_v.emplace_back( name );
@@ -79,9 +82,10 @@ void UBBasicOpticalAna::beginJob()
   for(size_t i=0; i<_ana_v.size(); ++i) {
    
     
-    if( _do_hitana_v [i] ) _ana_v[i].AnaHit       ( fs->make<TTree> ( Form( "hitana_%s_tree", _module_v[i].c_str() ), "" ) );
-    if( _do_wfana_v  [i] ) _ana_v[i].AnaWaveform  ( fs->make<TTree> ( Form( "hitwf_%s_tree",  _module_v[i].c_str() ), "" ) );
-    if( _store_wf_v  [i] ) _ana_v[i].SaveWaveform ( fs->make<TTree> ( Form( "wf_%s_tree",     _module_v[i].c_str() ), "" ) );
+    if( _do_hitana_v [i]  ) _ana_v[i].AnaHit         ( fs->make<TTree> ( "hitana_tree", "" ) );
+    if( _do_wfana_v  [i]  ) _ana_v[i].AnaWaveform    ( fs->make<TTree> ( "hitwf_tree", "" ) );
+    if( _store_wf_v  [i]  ) _ana_v[i].SaveWaveform   ( fs->make<TTree> ( "wf_tree", "" ) );
+    if( _store_ev_wf_v[i] ) _ana_v[i].SaveEvWaveform ( fs->make<TTree> ( "ev_wf_tree", "" ) );
 
   }    
 }
@@ -99,6 +103,9 @@ void UBBasicOpticalAna::analyze(art::Event const & e)
     e.getByLabel( _module_v[i], wf_handle );
 
     if(!wf_handle.isValid()) continue;
+
+    if (_store_ev_wf_v[i] == true) 
+      _ana_v[i].AnaEventWaveform(*wf_handle);
 
     for(auto const& wf : *wf_handle) {
       if(!wf.size()) continue;
