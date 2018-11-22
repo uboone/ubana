@@ -248,9 +248,9 @@ const std::vector<std::vector<art::Ptr<recob::Hit>>> MCTruthAssociations::TrackI
 // the particle list is assumed to have adopted the appropriate EveIdCalculator prior to
 // having been passed to this method. It is likely that the EmEveIdCalculator is
 // the one you always want to use
-std::vector<sim::TrackIDE> MCTruthAssociations::HitToEveID(const art::Ptr<recob::Hit>& hit) const
+std::vector<sim::TrackIDE> MCTruthAssociations::HitToEveID(const recob::Hit* hit) const
 {
-    std::vector<sim::TrackIDE> trackIDEVec = this->HitToTrackID(hit.get());
+    std::vector<sim::TrackIDE> trackIDEVec = this->HitToTrackID(hit);
     
     // Need the particle list, want the "biggest" one to make sure we have all the particles
     const MCTruthParticleList& particleList = getParticleList();
@@ -260,13 +260,24 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToEveID(const art::Ptr<recob:
     
     for(const auto& trackID : trackIDEVec)
     {
-        int            eveTrackID  = particleList.EveId(trackID.trackID);
-        sim::TrackIDE& eveTrackIDE = idToTrackIDEMap[eveTrackID];
+        int eveTrackID  = particleList.EveId(trackID.trackID);
         
-        eveTrackIDE.trackID       = eveTrackID;
-        eveTrackIDE.energyFrac   += trackID.energyFrac;
-        eveTrackIDE.energy       += trackID.energy;
-        eveTrackIDE.numElectrons += trackID.numElectrons;
+        std::unordered_map<int, sim::TrackIDE>::iterator eveElemItr = idToTrackIDEMap.find(eveTrackID);
+        
+        // If this id is already in the map we are incrementing values...
+        if (eveElemItr != idToTrackIDEMap.end())
+        {
+            eveElemItr->second.energyFrac   += trackID.energyFrac;
+            eveElemItr->second.energy       += trackID.energy;
+            eveElemItr->second.numElectrons += trackID.numElectrons;
+        }
+        // Otherwise we are adding for the first time
+        else
+        {
+            // First insertion, initialize to the values in the current trackID, then make sure we have eve track id
+            idToTrackIDEMap[eveTrackID]         = trackID;
+            idToTrackIDEMap[eveTrackID].trackID = eveTrackID;
+        }
     }
     
     // Now create an output container and move info to it
@@ -510,7 +521,7 @@ std::set<int> MCTruthAssociations::GetSetOfEveIDs(const std::vector< art::Ptr<re
     
     for(const auto& hit : hitVec)
     {
-        const std::vector<sim::TrackIDE> ideVec = HitToEveID(hit);
+        const std::vector<sim::TrackIDE> ideVec = HitToEveID(hit.get());
         
         // loop over the ides and extract the track ids
         for(const auto& trackIDE : ideVec) eveIDs.insert(trackIDE.trackID);
@@ -568,11 +579,6 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
     int n = part.NumberTrajectoryPoints();
     bool first = true;
     
-    // The following for debugging purposes
-    int findTrackID(-1);
-    
-    if (part.TrackId() == findTrackID) std::cout << ">>> length, mcpart: " << part << std::endl;
-    
     // Loop over the complete collection of trajectory points
     for(int i = 0; i < n; ++i)
     {
@@ -592,9 +598,6 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
             
             TVector3 activePos = posVec - tpcGeo.GetActiveVolumeCenter();
             
-            if (part.TrackId() == findTrackID)
-                std::cout << "   --> traj point: " << i << ", pos: " << posVec.X() << "/" << posVec.Y() << "/" << posVec.Z() << ", active pos: " << activePos.X() << "/" << activePos.Y() << "/" << activePos.Z() << std::endl;
-            
             if (std::fabs(activePos.X()) > tpcGeo.ActiveHalfWidth() || std::fabs(activePos.Y()) > tpcGeo.ActiveHalfHeight() || std::fabs(activePos.Z()) > 0.5 * tpcGeo.ActiveLength()) continue;
             
             posInTPC = TVector3(activePos.X() + tpcGeo.ActiveHalfWidth(), activePos.Y(), activePos.Z());
@@ -608,9 +611,6 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
         //    readout window for this simulation
         pos[0] += dx;
         double ticks = fDetectorProperties->ConvertXToTicks(posInTPC.X(), 0, tpc, cstat);
-        
-        if (part.TrackId() == findTrackID)
-            std::cout << "   ==> tpc: " << tpc << ", cstat: " << cstat << ", ticks: " << ticks << std::endl;
 
         // Currently it appears that the detector properties are not getting initialized properly and the returned
         // number of ticks is garbage so we need to skip this for now. Will be important when we get CR's
@@ -630,17 +630,6 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
             disp = pos;
             end = pos;
             endmom = part.Momentum(i).Vect();
-        }
-        
-        if (part.TrackId() == findTrackID)
-        {
-            try
-            {
-                std::cout << ">>> Track #" << findTrackID << ", pos: " << posVec.X() << ", " << posVec.Y() << ", " << posVec.Z() << ", ticks: " << ticks << ", nearest Y wire: ";
-                geo::WireID wireID = fGeometry->NearestWireID(pos, 2);
-                std::cout << wireID << std::endl;
-            }
-            catch(...) {}
         }
     }
     
