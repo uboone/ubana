@@ -56,8 +56,10 @@ namespace single_photon
         //Some shower calorimetry parameters
         m_work_function = pset.get<double>("work_function");
         m_recombination_factor =pset.get<double>("recombination_factor");
-        m_gain =pset.get<double>("gain");
-        m_wire_spacing = pset.get<double>("wire_spacing");
+        //m_gain =pset.get<double>("gain");
+        m_gain_mc =pset.get<std::vector<double>>("gain_mc");
+	m_gain_data =pset.get<std::vector<double>>("gain_data");
+	m_wire_spacing = pset.get<double>("wire_spacing");
         m_width_dqdx_box = pset.get<double>("width_box");
         m_length_dqdx_box = pset.get<double>("length_box");
         m_pidLabel = pset.get<std::string>("ParticleIDLabel","particleid");

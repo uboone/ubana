@@ -429,7 +429,7 @@ namespace single_photon
             if (plane > 2 || plane < 0)	continue;
 
             //calc the energy of the hit
-            double E = QtoEConversionHit(thishitptr);	
+            double E = QtoEConversionHit(thishitptr, plane);	
 
             //add the energy to the plane
             energy[plane] += E;
@@ -449,8 +449,8 @@ namespace single_photon
 
     }
 
-    double SinglePhoton::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr){
-        double Q = thishitptr->Integral()*m_gain;
+    double SinglePhoton::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr, int plane){
+        double Q = thishitptr->Integral()*m_gain_mc[plane];
         //return the energy value converted to MeV (the factor of 1e-6)
         return QtoEConversion(Q);
 
@@ -526,7 +526,8 @@ namespace single_photon
                 //check if inside the box
                 if (insideBox(thishit_pos, rectangle)){
                     //	std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
-                    double q = thishit->Integral() * m_gain;
+                    double q = QtoEConversionHit(thishit, plane); 
+		    //double q = thishit->Integral() * m_gain;
                     //	std::cout<<"the q for this hit is "<<q<<std::endl;
                     double this_dqdx = q/pitch; 
                     dqdx.push_back(this_dqdx);

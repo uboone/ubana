@@ -176,7 +176,7 @@ namespace single_photon
              * 
              *
              * */
-            double QtoEConversionHit(art::Ptr<recob::Hit> thishitptr);
+            double QtoEConversionHit(art::Ptr<recob::Hit> thishitptr, int plane);
 
             /**
              * @brief Calculate the E value in MeV from a given Q value
@@ -323,7 +323,9 @@ namespace single_photon
             geo::GeometryCore const * geom;
             double m_work_function;
             double m_recombination_factor;
-            double m_gain;
+            //double m_gain;
+	    std::vector<double> m_gain_mc; 
+            std::vector<double> m_gain_data; 
             double m_wire_spacing;
 
             int m_Cryostat;
