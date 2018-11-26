@@ -490,6 +490,10 @@ namespace single_photon
 			std::vector<double> m_reco_shower_dEdx_plane0_median;
 			std::vector<double> m_reco_shower_dEdx_plane1_median;
 			std::vector<double> m_reco_shower_dEdx_plane2_median;
+
+			std::vector<int> m_reco_shower_dEdx_plane0_nhits;
+          		std::vector<int> m_reco_shower_dEdx_plane1_nhits;
+               		std::vector<int>  m_reco_shower_dEdx_plane2_nhits;
 	};
 
 	DEFINE_ART_MODULE(SinglePhoton)

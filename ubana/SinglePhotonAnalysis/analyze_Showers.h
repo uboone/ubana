@@ -45,7 +45,9 @@ namespace single_photon
 		m_reco_shower_dEdx_plane1_median.clear();
 		m_reco_shower_dEdx_plane2_median.clear();
 
-
+		m_reco_shower_dEdx_plane0_nhits.clear();
+		m_reco_shower_dEdx_plane1_nhits.clear();
+		m_reco_shower_dEdx_plane2_nhits.clear();	
 	}
 
 	void SinglePhoton::ResizeShowers(size_t size){
@@ -81,7 +83,9 @@ namespace single_photon
 		m_reco_shower_dEdx_plane1_median.resize(size);
 		m_reco_shower_dEdx_plane2_median.resize(size);
 
-
+ 		m_reco_shower_dEdx_plane0_nhits.resize(size);
+                m_reco_shower_dEdx_plane1_nhits.resize(size);
+                m_reco_shower_dEdx_plane2_nhits.resize(size);
 
 
 		m_sim_shower_energy.resize(size);
@@ -135,8 +139,9 @@ namespace single_photon
 		vertex_tree->Branch("reco_shower_dEdx_plane1_median",&m_reco_shower_dEdx_plane1_median);
 		vertex_tree->Branch("reco_shower_dEdx_plane2_median",&m_reco_shower_dEdx_plane2_median);
 
-
-
+		vertex_tree->Branch("reco_shower_dEdx_plane0_nhits",&m_reco_shower_dEdx_plane0_nhits);
+		vertex_tree->Branch("reco_shower_dEdx_plane1_nhits",&m_reco_shower_dEdx_plane1_nhits);
+		vertex_tree->Branch("reco_shower_dEdx_plane2_nhits",&m_reco_shower_dEdx_plane2_nhits);
 
 	}
 
@@ -229,6 +234,10 @@ namespace single_photon
 			m_reco_shower_dEdx_plane0_median[i_shr] = getMedian(m_reco_shower_dEdx_plane0[i_shr]);
 			m_reco_shower_dEdx_plane1_median[i_shr] = getMedian(m_reco_shower_dEdx_plane1[i_shr]);
 			m_reco_shower_dEdx_plane2_median[i_shr] = getMedian(m_reco_shower_dEdx_plane2[i_shr]);
+
+			m_reco_shower_dEdx_plane0_nhits[i_shr] = m_reco_shower_dEdx_plane0[i_shr].size();
+			m_reco_shower_dEdx_plane1_nhits[i_shr] = m_reco_shower_dEdx_plane1[i_shr].size();
+			m_reco_shower_dEdx_plane2_nhits[i_shr] = m_reco_shower_dEdx_plane2[i_shr].size();
 
 			//-------------- Flashes : Was there a flash in the beam_time and if so was it near in Z? --------------------
 			double zmin = m_reco_shower_startz[i_shr];
