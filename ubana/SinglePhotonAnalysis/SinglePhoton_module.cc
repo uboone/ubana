@@ -128,11 +128,6 @@ namespace single_photon
         }
 
 
-        //Get the MCtruth handles and vectors
-        art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle  = evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
-        std::vector<art::Ptr<simb::MCTruth>> mcTruthVector;
-        art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
-
 
         //This is another pandora helper. I don't like PFParticle ID lookups but I guess lets keep for now;
         // Produce a map of the PFParticle IDs for fast navigation through the hierarchy
@@ -197,32 +192,6 @@ namespace single_photon
         lar_pandora::LArPandoraHelper::BuildPFParticleHitMaps(evt, m_pandoraLabel, pfParticleToHitsMap, hitToPFParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
 
 
-        //------------------------------------ OK, RECO - TRUTH matching stuff-----------------------------------
-        //-------------------------------------------------------------------------------------------------------
-        //Then build a map from MCparticles to Hits and vice versa
-        std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  mcParticleToHitsMap;
-        std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  hitToMCParticleMap;
-        lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
-        //This is basically just doing a FindMany..
-        art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
-
-
-        //Apparrently a MCParticle doesn't know its origin (thanks Andy!)
-        //I would also like a map from MCparticle to MCtruth and then I will be done.  and Vice Versa
-        //Note which map is which!       //First  is one-to-many.         //Second is one-to-one
-        std::map< art::Ptr<simb::MCTruth>,    std::vector<art::Ptr<simb::MCParticle>>>  MCTruthToMCParticlesMap;
-        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>                  MCParticleToMCTruthMap;
-        lar_pandora::LArPandoraHelper::CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap);
-        //All of this will then come together to form Two things:
-
-
-
-        art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
-        art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
-        std::vector<art::Ptr<sim::MCTrack>> mcTrackVector;
-        std::vector<art::Ptr<sim::MCShower>> mcShowerVector;
-        art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
-        art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
 
 
         // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino
@@ -245,10 +214,10 @@ namespace single_photon
             return;
         }
         for(size_t i=0; i< tracks.size(); ++i){
-                if(calo_per_track.at(tracks[i].key()).size() ==0){
-                    std::cerr<<"Track Calorimetry Breaking!  the vector of calo_per_track is of length 0 at this track."<<std::endl;
-                }
-                trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
+            if(calo_per_track.at(tracks[i].key()).size() ==0){
+                std::cerr<<"Track Calorimetry Breaking!  the vector of calo_per_track is of length 0 at this track."<<std::endl;
+            }
+            trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
         }
 
         art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
@@ -256,11 +225,62 @@ namespace single_photon
 
         if(m_use_PID_algorithms){
             // Build a map to get PID from PFParticles, then call PID collection function
-                     for(size_t i=0; i< tracks.size(); ++i){
+            for(size_t i=0; i< tracks.size(); ++i){
                 art::Ptr<recob::Track> track = tracks[i];
                 trackToPIDMap[track] = pid_per_track.at(track.key());
             }
         }
+        
+        
+        //**********************************************************************************************/
+        //**********************************************************************************************/
+        //---------------------------------- MC TRUTH Data Only---------------------------
+        //**********************************************************************************************/
+        //**********************************************************************************************/
+
+        //Get the MCtruth handles and vectors
+        std::vector<art::Ptr<simb::MCTruth>> mcTruthVector;
+
+        //Then build a map from MCparticles to Hits and vice versa
+        std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  mcParticleToHitsMap;
+        std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  hitToMCParticleMap;
+
+        //Apparrently a MCParticle doesn't know its origin (thanks Andy!)
+        //I would also like a map from MCparticle to MCtruth and then I will be done.  and Vice Versa
+        //Note which map is which!       //First  is one-to-many.         //Second is one-to-one
+        std::map< art::Ptr<simb::MCTruth>,    std::vector<art::Ptr<simb::MCParticle>>>  MCTruthToMCParticlesMap;
+        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>                  MCParticleToMCTruthMap;
+
+        std::vector<art::Ptr<sim::MCTrack>> mcTrackVector;
+        std::vector<art::Ptr<sim::MCShower>> mcShowerVector;
+
+        std::vector<art::Ptr<simb::MCParticle>> mcParticleVector;
+        std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > trackToMCParticleMap;
+        std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > showerToMCParticleMap;
+
+
+        std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCTrack> > MCParticleToMCTrackMap;
+        std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCShower> > MCParticleToMCShowerMap;
+
+
+        if(!m_is_data){
+            art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle= evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
+            art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
+
+            lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
+            lar_pandora::LArPandoraHelper::CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap);
+
+            art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
+            art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
+            art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
+            art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
+
+            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
+            recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
+            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
+
+        }
+
 
         //**********************************************************************************************/
         //**********************************************************************************************/
@@ -277,38 +297,25 @@ namespace single_photon
         }
 
 
-        //tests of reco_mc
-        //Create a vectors and two maps to store the information
-        std::vector<art::Ptr<simb::MCParticle>> mcParticleVector;
-        std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > trackToMCParticleMap;
-        std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > showerToMCParticleMap;
-        //Perform the (Templated for the recob::Objects)
-        recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
-        recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
-
         //and now get the simb::MCparticle to both MCtrack and MCshower maps (just for the MCparticles matched ok).
-        std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCTrack> > MCParticleToMCTrackMap;
-        std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCShower> > MCParticleToMCShowerMap;
+        if(!m_is_data){
+            perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
+            perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
 
-        std::cout<<"WAAH: track"<<std::endl;
-        perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
-        std::cout<<"WAAH: Shower"<<std::endl;
-        perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
+            for(auto & track: tracks){
+                auto mp = trackToMCParticleMap[track];
+                //            auto mct = MCParticleToMCTrackMap[mp];
+                //           auto mcs = MCParticleToMCTrackMap[mp];
+                std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
+            }
+            for(auto & shower: showers){
+                auto mp = showerToMCParticleMap[shower];
+                //            auto mct = MCParticleToMCShowerMap[mp];
+                //           auto mcs = MCParticleToMCShowerMap[mp];
+                std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
+            }
 
-
-        for(auto & track: tracks){
-            auto mp = trackToMCParticleMap[track];
-            //            auto mct = MCParticleToMCTrackMap[mp];
-            //           auto mcs = MCParticleToMCTrackMap[mp];
-            std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
         }
-        for(auto & shower: showers){
-            auto mp = showerToMCParticleMap[shower];
-            //            auto mct = MCParticleToMCShowerMap[mp];
-            //           auto mcs = MCParticleToMCShowerMap[mp];
-            std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
-        }
-
 
         badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
 
@@ -326,16 +333,16 @@ namespace single_photon
         std::cout<<"start track"<<std::endl;
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
-        this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
+        if(!m_is_data) this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
         if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
 
 
         this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap); 
-        this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
+        if(!m_is_data) this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
 
         // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
         // MCShower and MCTrack come from energy depositions in GEANT4
-        this->AnalyzeMCTruths(mcTruthVector);
+        if(!m_is_data) this->AnalyzeMCTruths(mcTruthVector);
 
 
         //---------------------- END OF LOOP, fill vertex ---------------------
@@ -570,9 +577,9 @@ namespace single_photon
             if(isNeutrino){
                 found++;
                 this->GetVertex(pfParticlesToVerticesMap, pParticle );
-            m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-            m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-            m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
 
 
             }
