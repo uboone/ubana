@@ -284,16 +284,13 @@ namespace single_photon
 
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
-            
-            if(!m_is_overlayed){
+            this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
 
-                lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
-           
+            if(true){
+
                 recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
                 recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
 
-
-                
                 perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
                 perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
 
@@ -804,6 +801,45 @@ namespace single_photon
             truthToParticles[truth].push_back(particle);
             particlesToTruth[particle] = truth;
         }
+    }
+
+    void SinglePhoton::CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector)
+    {
+        //    if (evt.isRealData())
+        //      throw cet::exception("LArPandora") << " PandoraCollector::CollectSimChannels --- Trying to access MC truth from real data ";
+
+        art::Handle< std::vector<sim::SimChannel> > theSimChannels;
+        evt.getByLabel(label, theSimChannels);
+
+        if (!theSimChannels.isValid())
+        {
+            mf::LogDebug("LArPandora") << "  Failed to find sim channels... " << std::endl;
+            return;
+        }
+        else
+        {
+            mf::LogDebug("LArPandora") << "  Found: " << theSimChannels->size() << " SimChannels " << std::endl;
+        }
+
+        for (unsigned int i = 0; i < theSimChannels->size(); ++i)
+        {
+            const art::Ptr<sim::SimChannel> channel(theSimChannels, i);
+            simChannelVector.push_back(channel);
+        }
+    }
+
+
+    void SinglePhoton::BuildMCParticleHitMaps(const art::Event &evt, const std::string &label, const std::vector<art::Ptr<recob::Hit>> &hitVector,   std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  &particlesToHits,         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  &hitsToParticles, const lar_pandora::LArPandoraHelper::DaughterMode daughterMode)
+    {
+        std::vector< art::Ptr<sim::SimChannel> >   simChannelVector;
+        std::map< art::Ptr<simb::MCTruth>,     std::vector<art::Ptr<simb::MCParticle>>  >    truthToParticles;
+        std::map< art::Ptr<simb::MCParticle>,  art::Ptr<simb::MCTruth> > particlesToTruth;
+        std::map< art::Ptr<recob::Hit>,    std::vector< sim::TrackIDE >    >               hitsToTrackIDEs;
+
+        this->CollectSimChannels(evt, label, simChannelVector);
+        this->CollectMCParticles(evt, label, truthToParticles, particlesToTruth);
+        lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitVector, simChannelVector, hitsToTrackIDEs);
+        lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitsToTrackIDEs, truthToParticles, particlesToHits, hitsToParticles, daughterMode);
     }
 
 

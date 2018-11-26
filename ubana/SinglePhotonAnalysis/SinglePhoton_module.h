@@ -24,6 +24,7 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
+#include "lardataobj/Simulation/SimChannel.h"
 
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
 
@@ -284,7 +285,11 @@ namespace single_photon
             void ResizeMCTruths(size_t);
             void CreateMCTruthBranches();
 
+            //These three are shameless steals from LArPandorHelper But overlays dont work so this is a direct clone. We will filter out later.
+            void CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector);
             void CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth);
+            void BuildMCParticleHitMaps(const art::Event &evt, const std::string &label, const std::vector<art::Ptr<recob::Hit>> &hitVector,   std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  &particlesToHits,         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  &hitsToParticles, const lar_pandora::LArPandoraHelper::DaughterMode daughterMode);
+
 
 
             //------------------ Delaunay triangle tools -----------//
