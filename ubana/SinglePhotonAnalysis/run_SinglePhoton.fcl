@@ -53,6 +53,7 @@ physics: {
        FlashLabel:     "simpleFlashBeam"
        POTLabel:       "generator"
        input_param:    "optional" 
+
        usePID:         "false" 
        work_function: 23
        recombination_factor: 0.62
