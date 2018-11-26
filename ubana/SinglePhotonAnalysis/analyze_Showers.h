@@ -449,10 +449,24 @@ namespace single_photon
 
     }
 
+    double SinglePhoton::GetQHit(art::Ptr<recob::Hit> thishitptr, int plane){
+	double gain;
+	//choose gain based on whether data/mc and by plane
+	if (m_is_data == false){
+		gain = m_gain_mc[plane] ;
+		//if (m_is_verbose) std::cout<<"the gain for mc on plane "<<plane<<" is "<<gain<<std::endl;
+	} else{
+		gain = m_gain_data[plane] ;
+		//if (m_is_verbose) std::cout<<"the gain for data on plane "<<plane<<" is "<<gain<<std::endl;
+	
+	}
+
+        double Q = thishitptr->Integral()*gain;
+        return Q;
+   }
+
     double SinglePhoton::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr, int plane){
-        double Q = thishitptr->Integral()*m_gain_mc[plane];
-        //return the energy value converted to MeV (the factor of 1e-6)
-        return QtoEConversion(Q);
+        return QtoEConversion(GetQHit(thishitptr, plane));
 
     }
 
@@ -460,7 +474,8 @@ namespace single_photon
         //return the energy value converted to MeV (the factor of 1e-6)
         //std::cout<<"computing the E value"<<std::endl;
         double E = Q* m_work_function *1e-6 /m_recombination_factor;
-        //std::cout<<"returning E = "<<E<<std::endl;
+       // double E = Q* m_work_function /m_recombination_factor;  
+     //std::cout<<"returning E = "<<E<<std::endl;
         return E;
 
     }
@@ -526,12 +541,14 @@ namespace single_photon
                 //check if inside the box
                 if (insideBox(thishit_pos, rectangle)){
                     //	std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
-                    double q = QtoEConversionHit(thishit, plane); 
+                    double q = GetQHit(thishit, plane); 
+		    //double q_other = thishit->Integral() * 200;
+       		    //std::cout<<"q/q_other = "<<q<<"/"<<q_other<<std::endl;             
 		    //double q = thishit->Integral() * m_gain;
                     //	std::cout<<"the q for this hit is "<<q<<std::endl;
                     double this_dqdx = q/pitch; 
                     dqdx.push_back(this_dqdx);
-                    //	std::cout<<"the calculated dq/dx for this hit is "<<this_dqdx<<std::endl;
+                   // std::cout<<"the calculated dq/dx for this hit is "<<this_dqdx<<std::endl;
                 }//if hit falls inside the box
                 //	else{
                 //		std::cout<<"hit not inside box"<<std::endl;

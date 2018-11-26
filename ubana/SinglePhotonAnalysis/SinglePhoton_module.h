@@ -171,6 +171,13 @@ namespace single_photon
             double CalcEShower(std::vector<art::Ptr<recob::Hit>> hits);
 
             /**
+			 *@brief Takes a hit and multiplies the charge by the gain
+			 *@param thishitptr art pointer to a hit
+			 *@param plane the plane the hit is on
+			 **/
+			double GetQHit(art::Ptr<recob::Hit> thishitptr, int plane);
+
+            /**
              * @brief Calculate the E value in MeV for a given hit
              * @param thishit - an individual hit 
              * 
@@ -522,35 +529,35 @@ namespace single_photon
             std::vector<double>        m_mctruth_exiting_pi0_py;
             std::vector<double>        m_mctruth_exiting_pi0_pz;
 
-            //the calo calculated quantities 
-            std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
-            std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
-            std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
-            std::vector<std::vector<double>> m_reco_shower_dQdx_plane2;
-            std::vector<std::vector<double>> m_reco_shower_dEdx_plane0; //dE/dx from the calculated dQ/dx for each hit in shower on plane 	
-            std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
-            std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
+			//the calo calculated quantities 
+			std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
+			std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
+			std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
+			std::vector<std::vector<double>> m_reco_shower_dQdx_plane2;
+			std::vector<std::vector<double>> m_reco_shower_dEdx_plane0; //dE/dx from the calculated dQ/dx for each hit in shower on plane 	
+			std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
+			std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
 
-            std::vector<double> m_reco_shower_dEdx_plane0_median;
-            std::vector<double> m_reco_shower_dEdx_plane1_median;
-            std::vector<double> m_reco_shower_dEdx_plane2_median;
+			std::vector<double> m_reco_shower_dEdx_plane0_median;
+			std::vector<double> m_reco_shower_dEdx_plane1_median;
+			std::vector<double> m_reco_shower_dEdx_plane2_median;
 
-            std::vector<double> m_reco_shower_dEdx_plane0_nhits;
-            std::vector<double> m_reco_shower_dEdx_plane1_nhits;
-            std::vector<double> m_reco_shower_dEdx_plane2_nhits;
-
-
-
-            // PID-related variables
-            std::vector<double> m_reco_track_pid_bragg_likelihood_plane2;
-            std::vector<double> m_reco_track_pid_pida_plane2;
-            std::vector<double> m_reco_track_pid_chi_plane2;
+			std::vector<double> m_reco_shower_dEdx_plane0_nhits;
+			std::vector<double> m_reco_shower_dEdx_plane1_nhits;
+			std::vector<double> m_reco_shower_dEdx_plane2_nhits;
 
 
 
-    };
+			// PID-related variables
+			std::vector<double> m_reco_track_pid_bragg_likelihood_plane2;
+			std::vector<double> m_reco_track_pid_pida_plane2;
+			std::vector<double> m_reco_track_pid_chi_plane2;
 
-    DEFINE_ART_MODULE(SinglePhoton)
+
+
+	};
+
+	DEFINE_ART_MODULE(SinglePhoton)
 
 } // namespace lar_pandora
 #endif
