@@ -311,6 +311,7 @@ namespace single_photon
             bool m_use_PID_algorithms;
             bool m_is_verbose;
             bool m_is_data;
+            bool m_is_overlayed;
 
             double m_track_calo_min_dEdx;
             double m_track_calo_max_dEdx;
