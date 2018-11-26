@@ -136,7 +136,7 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
 //                std::cout<<(calos[j] -> dQdx())[iHit]<<" "<<(calos[j]->TrkPitchVec())[iHit]<<std::endl;
 //              }
               if (iHit<NHits-1){
-                hitdis->Fill((calos[j]->XYZ()[iHit]-calos[j]->XYZ()[iHit+1]).Mag());
+                hitdis->Fill((calos[j]->XYZ()[iHit]-calos[j]->XYZ()[iHit+1]).R());
               }
             }
           }//track not overlaping with wire
