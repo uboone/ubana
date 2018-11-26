@@ -48,6 +48,10 @@ namespace single_photon
 		m_reco_shower_dEdx_plane0_nhits.clear();
 		m_reco_shower_dEdx_plane1_nhits.clear();
 		m_reco_shower_dEdx_plane2_nhits.clear();	
+
+        m_reco_shower_start_to_nearest_dead_wire_plane0.clear();
+        m_reco_shower_start_to_nearest_dead_wire_plane1.clear();
+        m_reco_shower_start_to_nearest_dead_wire_plane2.clear();
 	}
 
 	void SinglePhoton::ResizeShowers(size_t size){
@@ -86,6 +90,10 @@ namespace single_photon
  		m_reco_shower_dEdx_plane0_nhits.resize(size);
                 m_reco_shower_dEdx_plane1_nhits.resize(size);
                 m_reco_shower_dEdx_plane2_nhits.resize(size);
+
+        m_reco_shower_start_to_nearest_dead_wire_plane0.resize(size);
+        m_reco_shower_start_to_nearest_dead_wire_plane1.resize(size);
+        m_reco_shower_start_to_nearest_dead_wire_plane2.resize(size);
 
 
 		m_sim_shower_energy.resize(size);
@@ -143,11 +151,15 @@ namespace single_photon
 		vertex_tree->Branch("reco_shower_dEdx_plane1_nhits",&m_reco_shower_dEdx_plane1_nhits);
 		vertex_tree->Branch("reco_shower_dEdx_plane2_nhits",&m_reco_shower_dEdx_plane2_nhits);
 
+        vertex_tree->Branch("reco_shower_start_to_nearest_dead_wire_plane0",&m_reco_shower_start_to_nearest_dead_wire_plane0);
+        vertex_tree->Branch("reco_shower_start_to_nearest_dead_wire_plane1",&m_reco_shower_start_to_nearest_dead_wire_plane1);
+        vertex_tree->Branch("reco_shower_start_to_nearest_dead_wire_plane2",&m_reco_shower_start_to_nearest_dead_wire_plane2);
+
 	}
 
 	void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap ){
 
-		if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite\n";
+		if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite"<<std::endl;;
 
 		m_reco_asso_showers=showers.size();
 		int i_shr = 0;
@@ -168,7 +180,7 @@ namespace single_photon
 			TVector3 shr_start = shower->ShowerStart();
 			TVector3 shr_dir = shower->Direction();
 
-			if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<" which has length: "<<m_length<<"\n";
+			if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<" which has length: "<<m_length<<""<<std::endl;;
 
 			m_reco_shower_startx[i_shr] = shr_start.X();
 			m_reco_shower_starty[i_shr] = shr_start.Y();
@@ -186,23 +198,23 @@ namespace single_photon
             m_reco_shower_theta_yz[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirz[i_shr]);
             m_reco_shower_phi_yx[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirx[i_shr]);
 
-            m_reco_shower_start_to_nearest_dead_wire_plane0[i_shr] = distanceToNearestDeadWire(0, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom,bad_channel_list_fixed_mcc9);
-            m_reco_shower_start_to_nearest_dead_wire_plane1[i_shr] = distanceToNearestDeadWire(1, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom,bad_channel_list_fixed_mcc9);
-            m_reco_shower_start_to_nearest_dead_wire_plane2[i_shr] = distanceToNearestDeadWire(2, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom,bad_channel_list_fixed_mcc9);
+            m_reco_shower_start_to_nearest_dead_wire_plane0[i_shr] = distanceToNearestDeadWire(0, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
+            m_reco_shower_start_to_nearest_dead_wire_plane1[i_shr] = distanceToNearestDeadWire(1, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
+            m_reco_shower_start_to_nearest_dead_wire_plane2[i_shr] = distanceToNearestDeadWire(2, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
 
             std::vector<int> t_num(3,0);
             std::vector<int> t_numhits(3,0);
             std::vector<double> t_area(3,0.0);
-            //Right, this basically loops over all hits in all planes and for each plane forms the Delaunay triangilization of it and calculates the 2D area inscribed by the convex hull
 
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Starting Delaunay Triangleization\n";
+            //Right, this basically loops over all hits in all planes and for each plane forms the Delaunay triangilization of it and calculates the 2D area inscribed by the convex hull
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Starting Delaunay Triangleization"<<std::endl;;
 
             auto start = std::chrono::high_resolution_clock::now();
             this->delaunay_hit_wrapper(hits, t_numhits, t_num, t_area);
 
             auto finish = std::chrono::high_resolution_clock::now();
             auto microseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start);
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles\n";
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles"<<std::endl;;
 
             m_reco_shower_delaunay_num_triangles_plane0[i_shr] = t_num[0];
             m_reco_shower_delaunay_num_triangles_plane1[i_shr] = t_num[1];
@@ -262,13 +274,13 @@ namespace single_photon
             int shortest_dist_to_flash_index_y=-999;
             int shortest_dist_to_flash_index_yz=-999;
 
-            if(m_is_verbose) std::cout<<" number of flashes: "<< m_reco_num_flashes<< "\n";
+            if(m_is_verbose) std::cout<<" number of flashes: "<< m_reco_num_flashes<< ""<<std::endl;;
             for(int i_flash = 0; i_flash < m_reco_num_flashes; ++i_flash) {
                 
                 double const zcenter=m_reco_flash_zcenter[i_flash];
-                if(m_is_verbose) std::cout<< "flash z center:" <<m_reco_flash_zcenter[i_flash]<< "\n";
+                if(m_is_verbose) std::cout<< "flash z center:" <<m_reco_flash_zcenter[i_flash]<< ""<<std::endl;;
                 double const ycenter=m_reco_flash_ycenter[i_flash];
-                if(m_is_verbose) std::cout<< "flash y center:" <<m_reco_flash_ycenter[i_flash]<< "\n";
+                if(m_is_verbose) std::cout<< "flash y center:" <<m_reco_flash_ycenter[i_flash]<< ""<<std::endl;;
 
                 //z plane
                 double dist_z=DBL_MAX;
@@ -317,21 +329,21 @@ namespace single_photon
             //assume setting to nonsense value
             if(m_reco_num_flashes_in_beamgate == 0) shortest_dist_to_flash_z = -2;
             m_reco_shower_flash_shortest_distz[i_shr]=shortest_dist_to_flash_z;
-            if(m_is_verbose) std::cout << "the shortest distance in z plane between a flash and the shower: " << shortest_dist_to_flash_z << "\n";
+            if(m_is_verbose) std::cout << "the shortest distance in z plane between a flash and the shower: " << shortest_dist_to_flash_z << ""<<std::endl;;
             m_reco_shower_flash_shortest_index_z[i_shr]=shortest_dist_to_flash_index_z;
-            if(m_is_verbose) std::cout << "the index closest flash to shower z_plane: " << shortest_dist_to_flash_index_z << "\n";
+            if(m_is_verbose) std::cout << "the index closest flash to shower z_plane: " << shortest_dist_to_flash_index_z << ""<<std::endl;;
 
             if(m_reco_num_flashes_in_beamgate == 0) shortest_dist_to_flash_y = -2;
             m_reco_shower_flash_shortest_disty[i_shr]=shortest_dist_to_flash_y;
-            if(m_is_verbose) std::cout <<"the shortest distance in y plane between a flash and the shower: " << shortest_dist_to_flash_y << "\n";
+            if(m_is_verbose) std::cout <<"the shortest distance in y plane between a flash and the shower: " << shortest_dist_to_flash_y << ""<<std::endl;;
             m_reco_shower_flash_shortest_index_y[i_shr]=shortest_dist_to_flash_index_y;
-            if(m_is_verbose) std::cout << "the index closest flash to shower y_plane: " << shortest_dist_to_flash_index_y << "\n";
+            if(m_is_verbose) std::cout << "the index closest flash to shower y_plane: " << shortest_dist_to_flash_index_y << ""<<std::endl;;
 
             if(m_reco_num_flashes_in_beamgate == 0) shortest_dist_to_flash_yz = -2;
             m_reco_shower_flash_shortest_distyz[i_shr]=shortest_dist_to_flash_yz;
-            if(m_is_verbose) std::cout <<"the shortest distance in yz between a flash and the shower: " << shortest_dist_to_flash_yz << "\n";
+            if(m_is_verbose) std::cout <<"the shortest distance in yz between a flash and the shower: " << shortest_dist_to_flash_yz << ""<<std::endl;;
             m_reco_shower_flash_shortest_index_yz[i_shr]=shortest_dist_to_flash_index_yz;
-            if(m_is_verbose) std::cout << "the index closest flash to shower yz: " << shortest_dist_to_flash_index_yz << "\n";
+            if(m_is_verbose) std::cout << "the index closest flash to shower yz: " << shortest_dist_to_flash_index_yz << ""<<std::endl;;
 
 
             //end optical flash code
@@ -340,7 +352,7 @@ namespace single_photon
         }
 
 
-        if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished.\n";
+        if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished."<<std::endl;;
     }
 
 
@@ -350,7 +362,7 @@ namespace single_photon
             std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
 
-        if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCShowers()\t||\t Begininning recob::Shower Reco-MC suite\n";
+        if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCShowers()\t||\t Begininning recob::Shower Reco-MC suite"<<std::endl;;
 
         int i_shr = 0;
         for (ShowerVector::const_iterator iter = showers.begin(), iterEnd = showers.end(); iter != iterEnd; ++iter)

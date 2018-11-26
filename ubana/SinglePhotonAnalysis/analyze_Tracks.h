@@ -180,8 +180,7 @@ m_reco_track_end_to_nearest_dead_wire_plane0.clear();
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap){
 
 
-
-        if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Starting recob::Track analysis\n";
+        if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Starting recob::Track analysis"<<std::endl;;
 
         m_reco_asso_tracks = tracks.size();
         int i_trk=0;
@@ -208,7 +207,7 @@ m_reco_track_end_to_nearest_dead_wire_plane0.clear();
             double m_length = track->Length();
             auto m_trk_dir = track->Direction();
 
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t On Track: "<<i_trk<<" with TrackID: "<<m_trkid<<" and length: "<<m_length<<"\n";
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t On Track: "<<i_trk<<" with TrackID: "<<m_trkid<<" and length: "<<m_length<<""<<std::endl;;
 
             m_reco_track_num_spacepoints[i_trk] = (int)trk_spacepoints.size();
 
@@ -236,7 +235,7 @@ m_reco_track_end_to_nearest_dead_wire_plane0.clear();
             m_reco_track_spacepoint_chi[i_trk] = 0.0;
             //Principal componant analysis of SPACEPOINTS and not trajectory points. Will add a few things here in future.
 
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Beginining PCA analysis of track\n";
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Beginining PCA analysis of track"<<std::endl;;
 
             TPrincipal* principal = new TPrincipal(3,"ND");
             for(int x = 0; x < m_reco_track_num_spacepoints[i_trk]; x++){
@@ -258,7 +257,7 @@ m_reco_track_end_to_nearest_dead_wire_plane0.clear();
 
             delete principal;
 
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Completed PCA analysis of track. Primary componant: "<<m_reco_track_spacepoint_principal0.back()<<"\n";
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Completed PCA analysis of track. Primary componant: "<<m_reco_track_spacepoint_principal0.back()<<""<<std::endl;;
 
             //range based energy calculation assuming
             m_reco_track_proton_kinetic_energy[i_trk] = proton_length2energy_tgraph.Eval(m_length)/1000.0; 
@@ -287,7 +286,7 @@ m_reco_track_end_to_nearest_dead_wire_plane0.clear();
         }
 
 
-        if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Finished.\n";
+        if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Finished."<<std::endl;;
     }
 
     void SinglePhoton::RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  
@@ -296,7 +295,7 @@ m_reco_track_end_to_nearest_dead_wire_plane0.clear();
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
 
 
-        if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite\n";
+        if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite"<<std::endl;;
 
         int i_trk = 0;
         for (TrackVector::const_iterator iter = tracks.begin(), iterEnd = tracks.end(); iter != iterEnd; ++iter)
@@ -329,7 +328,7 @@ m_reco_track_end_to_nearest_dead_wire_plane0.clear();
     void SinglePhoton::AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap)
     {
 
-        if(m_is_verbose) std::cout<<"SinglePhoton::CollectCalo(recob::Track)\t||\t Starting calo module for recob::Track\n";
+        if(m_is_verbose) std::cout<<"SinglePhoton::CollectCalo(recob::Track)\t||\t Starting calo module for recob::Track"<<std::endl;;
 
         for(size_t i_trk = 0; i_trk<tracks.size(); ++i_trk){
             const art::Ptr<recob::Track>      track = tracks[i_trk];
@@ -374,7 +373,7 @@ m_reco_track_end_to_nearest_dead_wire_plane0.clear();
                     dEdx_good.push_back(dEdx);
                 }
 
-            //    std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< "\n";
+            //    std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< ""<<std::endl;;
             }// End of first loop.
 
             m_reco_track_good_calo[i_trk] = 0;

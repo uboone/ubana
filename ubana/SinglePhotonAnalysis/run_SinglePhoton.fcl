@@ -46,13 +46,14 @@ physics: {
   singlephoton: { 
        module_type:    SinglePhoton
 	   PandoraLabel:   "pandora"
-	   TrackLabel:     "pandora"
+	   TrackLabel:     "pandoraTrack"
 	   ShowerLabel:    "pandora"
 	   ParticleIDLabel:"pid"
-       CaloLabel:      "pandoracali"
+       CaloLabel:      "pandoraTrackcalo"
        FlashLabel:     "simpleFlashBeam"
        POTLabel:       "generator"
        input_param:    "optional" 
+       usePID:         "false" 
        work_function: 23
        recombination_factor: 0.62
        gain : 197
