@@ -273,19 +273,24 @@ namespace single_photon
             art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle= evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
             art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
 
+            //Get the MCParticles (move to do this ourselves later)
+            this->CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap);
+
+            //OK lets get all set up with sim::MCTrack and sim::MCShower .
+            art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
+            art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
+            art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
+            art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
+
+            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
+
+            recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
+            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
+
+
             if(!m_is_overlayed){
+
                 lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
-                lar_pandora::LArPandoraHelper::CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap);
-
-                art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
-                art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
-                art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
-                art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
-
-                art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
-                recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
-                recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
-
                 perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
                 perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
 
@@ -297,6 +302,7 @@ namespace single_photon
                     auto mp = showerToMCParticleMap[shower];
                     std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
                 }
+
 
             }
         }
@@ -766,6 +772,37 @@ namespace single_photon
         corrected[2]=zOffset;
         return 0;
     }
+
+    void SinglePhoton::CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth)
+    {
+
+        //    if (evt.isRealData())
+        //      throw cet::exception("LArPandora") << " PandoraCollector::CollectMCParticles --- Trying to access MC truth from real data ";
+
+        art::Handle< std::vector< simb::MCParticle>  > theParticles;
+        evt.getByLabel(label, theParticles);
+
+        if (!theParticles.isValid())
+        {
+            mf::LogDebug("LArPandora") << "  Failed to find MC particles... " << std::endl;
+            return;
+        }
+        else
+        {
+            mf::LogDebug("LArPandora") << "  Found: " << theParticles->size() << " MC particles " << std::endl;
+        }
+
+        art::FindOneP<simb::MCTruth> theTruthAssns(theParticles, evt, label);
+
+        for (unsigned int i = 0, iEnd = theParticles->size(); i < iEnd; ++i)
+        {
+            const art::Ptr<simb::MCParticle> particle(theParticles, i);
+            const art::Ptr<simb::MCTruth> truth(theTruthAssns.at(i));
+            truthToParticles[truth].push_back(particle);
+            particlesToTruth[particle] = truth;
+        }
+    }
+
 
 
 

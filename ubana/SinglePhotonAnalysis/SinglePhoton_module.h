@@ -277,6 +277,8 @@ namespace single_photon
             void ResizeMCTruths(size_t);
             void CreateMCTruthBranches();
 
+            void CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth);
+
 
             //------------------ Delaunay triangle tools -----------//
 
