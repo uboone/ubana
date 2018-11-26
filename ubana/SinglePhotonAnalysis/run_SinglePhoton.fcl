@@ -46,7 +46,7 @@ physics: {
   singlephoton: { 
        module_type:    SinglePhoton
 	   PandoraLabel:   "pandora"
-	   TrackLabel:     "pandoraTrack"
+	   TrackLabel:     "pandora"
 	   ShowerLabel:    "pandora"
 	   ParticleIDLabel:"pid"
        CaloLabel:      "pandoraTrackcalo"

@@ -223,6 +223,8 @@ namespace single_photon
             trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
         }
 
+
+
         art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
         std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
 
@@ -261,7 +263,7 @@ namespace single_photon
         std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > trackToMCParticleMap;
         std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > showerToMCParticleMap;
 
-
+        //Given a simb::MCParticle we would like a map to either a sim::MCTrack or sim::MCShower
         std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCTrack> > MCParticleToMCTrackMap;
         std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCShower> > MCParticleToMCShowerMap;
 
@@ -299,10 +301,8 @@ namespace single_photon
             }
         }
 
-
         //**********************************************************************************************/
         //**********************************************************************************************/
-
         //Some event based properties
 
         m_number_of_events++;
