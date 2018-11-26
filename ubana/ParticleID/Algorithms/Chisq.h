@@ -15,7 +15,7 @@ namespace particleid{
 
     public:
       
-      std::vector<double> getChisq( art::Ptr< anab::Calorimetry > caloObj, fhicl::ParameterSet const &p);
+      std::vector<float> getChisq( art::Ptr< anab::Calorimetry > caloObj, fhicl::ParameterSet const &p);
 
   };
 

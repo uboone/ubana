@@ -18,11 +18,11 @@ namespace kde{
 
       static Double_t gausKernelFunction(Double_t *x, Double_t *p);
 
-      double getLocalDensity(std::vector<TF1*> kernels, int testpoint, double pilotBandwith);
+      float getLocalDensity(std::vector<TF1*> kernels, int testpoint, float pilotBandwith);
 
-      TF1* getKernel(double normalisation, double kernelMean, double bandwith, std::string kernelType);
+      TF1* getKernel(float normalisation, float kernelMean, float bandwith, std::string kernelType);
 
-      double getKernelDensityMpv(std::vector<double> pidaVals);
+      float getKernelDensityMpv(std::vector<float> pidaVals);
 
   };
 

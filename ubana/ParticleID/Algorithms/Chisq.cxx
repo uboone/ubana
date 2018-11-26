@@ -6,9 +6,9 @@
 
 namespace particleid{
 
-  std::vector<double> Chisquare::getChisq( art::Ptr< anab::Calorimetry > caloObj, fhicl::ParameterSet const &p){
+  std::vector<float> Chisquare::getChisq( art::Ptr< anab::Calorimetry > caloObj, fhicl::ParameterSet const &p){
 
-    std::vector<double> ChisqValues;
+    std::vector<float> ChisqValues;
 
     //pid::Chi2PIDAlg fChiAlg;
     pid::Chi2PIDAlg fChiAlg(p);

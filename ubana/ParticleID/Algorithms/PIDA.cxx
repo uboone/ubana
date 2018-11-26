@@ -6,12 +6,12 @@
 
 namespace particleid{
 
-  double PIDA::getPida(std::vector<double> dEdx, std::vector<double> resRange, std::string method){
+  float PIDA::getPida(std::vector<float> dEdx, std::vector<float> resRange, std::string method){
 
     kde::KernelDensityEstimator kde;
-    double pida = -1.0;
+    float pida = -1.0;
 
-    std::vector<double> pidaValues;
+    std::vector<float> pidaValues;
     if (resRange.size() == 0 || resRange.size() == 1) return -1;
     for (size_t i = 1; i < resRange.size()-1; i++){
       // Don't take resRange values higher than 30cm

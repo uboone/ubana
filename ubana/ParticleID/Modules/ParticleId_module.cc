@@ -50,7 +50,7 @@
 #include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 // Other stuff to select neutrino slices
-#include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "Pandora/PdgTable.h"
 
@@ -80,7 +80,7 @@ class UBPID::ParticleId : public art::EDProducer {
     // Required functions.
     void produce(art::Event & e) override;
 
-    std::vector<double> fv;
+    std::vector<float> fv;
 
   private:
 
@@ -88,8 +88,8 @@ class UBPID::ParticleId : public art::EDProducer {
     std::string fTrackLabel;
     std::string fCaloLabel;
     std::string fPFParticleLabel;
-    double fCutDistance;
-    double fCutFraction;
+    float fCutDistance;
+    float fCutFraction;
     bool fIsSimSmear;
 
     // fidvol related
@@ -137,8 +137,8 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
   fTrackLabel = p_labels.get< std::string > ("TrackLabel");
   fCaloLabel = p_labels.get< std::string > ("CalorimetryLabel");
   fPFParticleLabel = p_labels.get< std::string > ("PFParticleLabel");
-  fCutDistance  = p.get< double > ("DaughterFinderCutDistance");
-  fCutFraction  = p.get< double > ("DaughterFinderCutFraction");
+  fCutDistance  = p.get< float > ("DaughterFinderCutDistance");
+  fCutFraction  = p.get< float > ("DaughterFinderCutFraction");
 
   fv = fid.setFiducialVolume(fv, p_fv);
   fid.printFiducialVolume(fv);
@@ -348,10 +348,10 @@ void UBPID::ParticleId::produce(art::Event & e)
         continue;
       }
 
-      std::vector<double> dEdx = calo->dEdx();
-      std::vector<double> dQdx = calo->dQdx();
-      std::vector<double> resRange = calo->ResidualRange();
-      std::vector<double> trkpitchvec = calo->TrkPitchVec();
+      std::vector<float> dEdx = calo->dEdx();
+      std::vector<float> dQdx = calo->dQdx();
+      std::vector<float> resRange = calo->ResidualRange();
+      std::vector<float> trkpitchvec = calo->TrkPitchVec();
 
       /**
        * Initially wanted to only perform particle ID on tracks which Bragged,
@@ -385,14 +385,14 @@ void UBPID::ParticleId::produce(art::Event & e)
        * widths measured from data and simulation to estimate the likelihood for
        * each hit in a track to have come from each particle species.
        */
-       double shift_fwd_mu = -999.;
-       double shift_fwd_p  = -999.;
-       double shift_fwd_pi = -999.;
-       double shift_fwd_k  = -999.;
-       double shift_bwd_mu = -999.;
-       double shift_bwd_p  = -999.;
-       double shift_bwd_pi = -999.;
-       double shift_bwd_k  = -999.;
+       float shift_fwd_mu = -999.;
+       float shift_fwd_p  = -999.;
+       float shift_fwd_pi = -999.;
+       float shift_fwd_k  = -999.;
+       float shift_bwd_mu = -999.;
+       float shift_bwd_p  = -999.;
+       float shift_bwd_pi = -999.;
+       float shift_bwd_k  = -999.;
 
       Bragg_fwd_mu.at(planenum).fAlgName      = "BraggPeakLLH";
       Bragg_fwd_p.at(planenum).fAlgName       = "BraggPeakLLH";
@@ -523,7 +523,7 @@ void UBPID::ParticleId::produce(art::Event & e)
       /**
        * Algorithm 2: Chi2
        */
-      std::vector<double> chisqValues = chisq.getChisq(calo, p_holder);
+      std::vector<float> chisqValues = chisq.getChisq(calo, p_holder);
 
       Chi2_mu.at(planenum).fAlgName = "Chi2";
       Chi2_mu.at(planenum).fVariableType = anab::kGOF;
@@ -608,10 +608,10 @@ void UBPID::ParticleId::produce(art::Event & e)
       dEdxtruncmean.at(planenum).fTrackDir = anab::kForward;
       if (dEdx.size()>0)
       {
-        // Convert dEdx vector from double to a float. This is a bad hack because the truncated mean algorithm expects a float as input but dEdx is stored as a vector of doubles
+        // Convert dEdx vector from float to a float. This is a bad hack because the truncated mean algorithm expects a float as input but dEdx is stored as a vector of floats
         std::vector<float> dEdx_float(dEdx.begin(),dEdx.end());
         // Now calculate truncated mean
-        dEdxtruncmean.at(planenum).fValue = (double)trm.CalcIterativeTruncMean(dEdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
+        dEdxtruncmean.at(planenum).fValue = (float)trm.CalcIterativeTruncMean(dEdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
       }
       dEdxtruncmean.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
 
@@ -619,10 +619,10 @@ void UBPID::ParticleId::produce(art::Event & e)
       dQdxtruncmean.at(planenum).fVariableType = anab::kdQdxtruncmean;
       if (dQdx.size()>0)
       {
-        // Convert dQdx vector from double to a float. This is a bad hack because the truncated mean algorithm expects a float as input but dQdx is stored as a vector of doubles
+        // Convert dQdx vector from float to a float. This is a bad hack because the truncated mean algorithm expects a float as input but dQdx is stored as a vector of floats
         std::vector<float> dQdx_float(dQdx.begin(),dQdx.end());
         // Now calculate truncated mean
-        dQdxtruncmean.at(planenum).fValue = (double)trm.CalcIterativeTruncMean(dQdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
+        dQdxtruncmean.at(planenum).fValue = (float)trm.CalcIterativeTruncMean(dQdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
       }
       dQdxtruncmean.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
 
@@ -637,7 +637,7 @@ void UBPID::ParticleId::produce(art::Event & e)
        * does this, but due to a bug it currently does not use the calibrated
        * dEdx)
        */
-      double depE = 0;
+      float depE = 0;
       for (size_t i_hit=0; i_hit < dEdx.size(); i_hit++){
         depE += dEdx.at(i_hit)*trkpitchvec.at(i_hit);
       }
@@ -670,8 +670,8 @@ void UBPID::ParticleId::produce(art::Event & e)
      * TrackMomentumCalculator returns GeV, multiply by 1000 to get MeV
      */
     trkf::TrackMomentumCalculator trkm;
-    double track_rangeP_mu = trkm.GetTrackMomentum(track->Length(),13)*1000.;
-    double track_rangeP_p = trkm.GetTrackMomentum(track->Length(),2212)*1000.;
+    float track_rangeP_mu = trkm.GetTrackMomentum(track->Length(),13)*1000.;
+    float track_rangeP_p = trkm.GetTrackMomentum(track->Length(),2212)*1000.;
 
     /**
      * Now convert P->E

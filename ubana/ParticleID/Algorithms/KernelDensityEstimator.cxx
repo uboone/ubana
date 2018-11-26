@@ -30,35 +30,35 @@ namespace kde{
 
   }
 
-  double KernelDensityEstimator::getLocalDensity(std::vector<TF1*> kernels, int testpoint, double pilotBandwith){
+  float KernelDensityEstimator::getLocalDensity(std::vector<TF1*> kernels, int testpoint, float pilotBandwith){
 
     TF1* testKernel = kernels.at(testpoint);
 
-    double W = 0;
+    float W = 0;
     for (size_t i = 0; i < kernels.size(); i++){
       W += testKernel->Eval(kernels.at(i)->GetParameter(1));
     }
 
-    double P = W/(kernels.size()*pilotBandwith);
+    float P = W/(kernels.size()*pilotBandwith);
 
     return P;
 
 
   }
 
-  TF1* KernelDensityEstimator::getKernel(double kernelNormalisation, double kernelMean, double kernelBandwith, std::string kernelType){
+  TF1* KernelDensityEstimator::getKernel(float kernelNormalisation, float kernelMean, float kernelBandwith, std::string kernelType){
 
     TF1* kernel;
 
     if (kernelType == "epo"){
       kernel = new TF1("kernel", kde::KernelDensityEstimator::epoKernelFunction, -100, 100, 3);
-      kernel->SetParameters(kernelNormalisation, kernelMean, kernelBandwith);
+      kernel->SetParameters((double)kernelNormalisation,(double)kernelMean,(double)kernelBandwith);
     }
     else {
       //kernel = new TF1("kernel", kde::KernelDensityEstimator::gausKernelFunction, -100, 100, 3);
       //kernel = new TF1("kernel", "[0] * (1./(std::sqrt(2*3.1415*std::pow([2],2))))*std::exp(-std::pow((x-[1]),2)/(2*std::pow([2],2)))", -100, 100);
       kernel = new TF1("kernel", "gaus", -100, 100);
-      kernel->SetParameters(kernelNormalisation, kernelMean, kernelBandwith);
+      kernel->SetParameters((double)kernelNormalisation,(double)kernelMean,(double)kernelBandwith);
     }
 
     return kernel;
@@ -66,19 +66,19 @@ namespace kde{
 
   }
 
-  double KernelDensityEstimator::getKernelDensityMpv(std::vector<double> pidaVals){
+  float KernelDensityEstimator::getKernelDensityMpv(std::vector<float> pidaVals){
 
     // to be fhiclised
     std::string kernelType = "gaus";
     bool doAdaptiveKde = true;
-    double pilotBandwith = 1.0; // for gaussian kernel
+    float pilotBandwith = 1.0; // for gaussian kernel
 
     kde::KernelDensityEstimator kde;
 
     TF1* kernel;
     std::vector<TF1*> kernels;
-    double kernelNormalisation = 1.0;
-    double kernelMean = -1;
+    float kernelNormalisation = 1.0;
+    float kernelMean = -1;
 
     // KDE is built up of many gaussians.
     // Easiest way to do this is to append the formulas
@@ -107,7 +107,7 @@ namespace kde{
 
       //std::cout << "[KDE]  Using adaptive baseline." << std::endl;
 
-      double adaptiveBandwith = -1;
+      float adaptiveBandwith = -1;
 
       for (size_t i = 0; i < kernels.size(); i++){
 
@@ -116,11 +116,11 @@ namespace kde{
         if (kernelType == "epo") adaptiveBandwith = pilotBandwith*0.025/(std::sqrt(kernels.size())*std::log((kde.getLocalDensity(kernels, i, pilotBandwith)+1)));
         else adaptiveBandwith = pilotBandwith*2.5/(std::sqrt(kernels.size())*std::log((kde.getLocalDensity(kernels, i, pilotBandwith)+1)));
 
-        double kernelMean = kernel->GetParameter(1);
+        float kernelMean = kernel->GetParameter(1);
 
         kernel = (TF1*)getKernel(kernelNormalisation, kernelMean, adaptiveBandwith, kernelType);
 
-        double kernelIntegral = kernel->Integral(-100, 100);
+        float kernelIntegral = kernel->Integral(-100, 100);
 
         if (!std::isnormal(kernelIntegral)){
           return -1;
@@ -144,7 +144,7 @@ namespace kde{
     const char* kdeFormulaChar = kdeFormula.c_str();
     TF1* kernelDensityEstimation = new TF1("kernelDensityEstimation", kdeFormulaChar, -100, 100);
 
-    double kdeMpv = kernelDensityEstimation->GetMaximumX();
+    float kdeMpv = kernelDensityEstimation->GetMaximumX();
 
     return kdeMpv;
   }

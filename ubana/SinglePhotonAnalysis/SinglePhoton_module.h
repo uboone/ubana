@@ -10,6 +10,7 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -24,14 +25,12 @@
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 
-
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
 
 #include "larcoreobj/SummaryData/POTSummary.h"
 
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
