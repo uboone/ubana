@@ -49,7 +49,7 @@ physics: {
 	   TrackLabel:     "pandora"
 	   ShowerLabel:    "pandora"
 	   ParticleIDLabel:"pid"
-       CaloLabel:      "pandoraTrackcalo"
+       CaloLabel:      "pandoracalo"
        FlashLabel:     "simpleFlashBeam"
        POTLabel:       "generator"
        input_param:    "optional" 
