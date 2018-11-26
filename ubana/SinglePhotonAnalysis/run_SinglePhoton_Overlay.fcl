@@ -1,0 +1,6 @@
+#include "run_SinglePhoton.fcl"
+
+physics.analyzers.singlephoton.isData: "true"
+physics.analyzers.singlephoton.POTLabel: "beamdata"
+physics.analyzers.singlephoton.BadChannelProducer: "nfspl1"
+
