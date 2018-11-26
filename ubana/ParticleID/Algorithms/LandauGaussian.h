@@ -22,24 +22,24 @@ inline Double_t landauGaussian(Double_t *x, Double_t *par){
    //maximum is identical to the MP parameter.
 
       // Numeric constants
-      Double_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
-      Double_t mpshift  = -0.22278298;       // Landau maximum location
+      Float_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
+      Float_t mpshift  = -0.22278298;       // Landau maximum location
 
       // Control constants
-      // Double_t np = 100.0;      // number of convolution steps
-      // Double_t sc =   100.0;      // convolution extends to +-sc Gaussian sigmas
-      Double_t np = 1000.0;
-      Double_t sc = par[1]/par[3];
+      // Float_t np = 100.0;      // number of convolution steps
+      // Float_t sc =   100.0;      // convolution extends to +-sc Gaussian sigmas
+      Float_t np = 1000.0;
+      Float_t sc = par[1]/par[3];
 
 
       // Variables
-      Double_t xx;
-      Double_t mpc;
-      Double_t fland;
-      Double_t sum = 0.0;
-      Double_t xlow,xupp;
-      Double_t step;
-      Double_t i;
+      Float_t xx;
+      Float_t mpc;
+      Float_t fland;
+      Float_t sum = 0.0;
+      Float_t xlow,xupp;
+      Float_t step;
+      Float_t i;
 
       // MP shift correction
       mpc = par[1] - mpshift * par[0];
@@ -53,18 +53,18 @@ inline Double_t landauGaussian(Double_t *x, Double_t *par){
       // Convolution integral of Landau and Gaussian by sum
       for(i=1.0; i<=np/2; i++) {
          xx = xlow + (i-.5) * step;
-         Double_t fland_tmp = TMath::Landau(xx,mpc,par[0]) / par[0];
-         fland = std::max(fland_tmp,std::numeric_limits<double>::min());
+         Float_t fland_tmp = TMath::Landau(xx,mpc,par[0]) / par[0];
+         fland = std::max(fland_tmp,std::numeric_limits<float>::min());
          sum += fland * TMath::Gaus(x[0],xx,par[3]);
 
          xx = xupp - (i-.5) * step;
          fland_tmp = TMath::Landau(xx,mpc,par[0]) / par[0];
-         fland = std::max(fland_tmp,std::numeric_limits<double>::min());
+         fland = std::max(fland_tmp,std::numeric_limits<float>::min());
          sum += fland * TMath::Gaus(x[0],xx,par[3]);
       }
 
-      double returner = par[2] * step * sum * invsq2pi / par[3];
-      return std::max(returner, std::numeric_limits<double>::min());
+      float returner = par[2] * step * sum * invsq2pi / par[3];
+      return std::max(returner, std::numeric_limits<float>::min());
 }
 
 #endif

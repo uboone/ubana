@@ -25,27 +25,27 @@ namespace particleid{
 
   void Bragg_Likelihood_Estimator::configure(fhicl::ParameterSet const &p){
 
-    gausWidth_p   = p.get<std::vector<double>>("dEdxGausWidthP"  );
-    gausWidth_mu  = p.get<std::vector<double>>("dEdxGausWidthMu" );
-    gausWidth_pi  = p.get<std::vector<double>>("dEdxGausWidthPi" );
-    gausWidth_k   = p.get<std::vector<double>>("dEdxGausWidthK"  );
-    gausWidth_mip = p.get<std::vector<double>>("dEdxGausWidthMIP");
-    landauWidth_p   = p.get<std::vector<double>>("dEdxLandauWidthP"  );
-    landauWidth_mu  = p.get<std::vector<double>>("dEdxLandauWidthMu" );
-    landauWidth_pi  = p.get<std::vector<double>>("dEdxLandauWidthPi" );
-    landauWidth_k   = p.get<std::vector<double>>("dEdxLandauWidthK"  );
-    landauWidth_mip = p.get<std::vector<double>>("dEdxLandauWidthMIP");
+    gausWidth_p   = p.get<std::vector<float>>("dEdxGausWidthP"  );
+    gausWidth_mu  = p.get<std::vector<float>>("dEdxGausWidthMu" );
+    gausWidth_pi  = p.get<std::vector<float>>("dEdxGausWidthPi" );
+    gausWidth_k   = p.get<std::vector<float>>("dEdxGausWidthK"  );
+    gausWidth_mip = p.get<std::vector<float>>("dEdxGausWidthMIP");
+    landauWidth_p   = p.get<std::vector<float>>("dEdxLandauWidthP"  );
+    landauWidth_mu  = p.get<std::vector<float>>("dEdxLandauWidthMu" );
+    landauWidth_pi  = p.get<std::vector<float>>("dEdxLandauWidthPi" );
+    landauWidth_k   = p.get<std::vector<float>>("dEdxLandauWidthK"  );
+    landauWidth_mip = p.get<std::vector<float>>("dEdxLandauWidthMIP");
 
-    offset_p       = p.get<double>("PeakOffsetP"  , 0);
-    offset_mu      = p.get<double>("PeakOffsetMu" , 0);
-    offset_pi      = p.get<double>("PeakOffsetPi" , 0);
-    offset_k       = p.get<double>("PeakOffsetK"  , 0);
-    offset_mip     = p.get<double>("PeakOffsetMIP", 0);
+    offset_p       = p.get<float>("PeakOffsetP"  , 0);
+    offset_mu      = p.get<float>("PeakOffsetMu" , 0);
+    offset_pi      = p.get<float>("PeakOffsetPi" , 0);
+    offset_k       = p.get<float>("PeakOffsetK"  , 0);
+    offset_mip     = p.get<float>("PeakOffsetMIP", 0);
 
     nHitsToDrop    = p.get<int>("NHitsToDrop", 1);
-    endPointFloatShort    = p.get<double>("EndPointFloatShort", -1.0);
-    endPointFloatLong     = p.get<double>("EndPointFloatLong" , 1.0);
-    endPointFloatStepSize = p.get<double>("EndPointFloatStepSize", 0.05);
+    endPointFloatShort    = p.get<float>("EndPointFloatShort", -1.0);
+    endPointFloatLong     = p.get<float>("EndPointFloatLong" , 1.0);
+    endPointFloatStepSize = p.get<float>("EndPointFloatStepSize", 0.05);
 
     checkRange = p.get<bool>("CheckRange", true);
   }
@@ -78,13 +78,13 @@ namespace particleid{
   }
 
   // Here is a dummy method for the case where you don't want to save the shift. It just calls the second method below but with a dummy variable for "shift"
-  double Bragg_Likelihood_Estimator::getLikelihood(std::vector<double> dEdx, std::vector<double> resRange, int particlehypothesis, bool forward, int planenum)
+  float Bragg_Likelihood_Estimator::getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum)
   {
-    double dummy;
+    float dummy;
     return Bragg_Likelihood_Estimator::getLikelihood( dEdx, resRange, particlehypothesis, forward, planenum, dummy);
   }
 
-  double Bragg_Likelihood_Estimator::getLikelihood(std::vector<double> dEdx, std::vector<double> resRange, int particlehypothesis, bool forward, int planenum, double &shift)
+  float Bragg_Likelihood_Estimator::getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum, float &shift)
   {
 
     /**
@@ -96,9 +96,9 @@ namespace particleid{
 
     Theory_dEdx_resrange theory;
     TGraph *theorypred;
-    double gausWidth;
-    double landauWidth;
-    double offset;
+    float gausWidth;
+    float landauWidth;
+    float offset;
     int absph = TMath::Abs(particlehypothesis);
 
     switch(absph){
@@ -145,12 +145,12 @@ namespace particleid{
      * n.b we want this to be the landau not the landau-gaussian
      */
 
-    langaus->SetParameters(landauWidth, 10, 1, gausWidth);
+    langaus->SetParameters((double)landauWidth, 10, 1,(double)gausWidth);
     TF1 *landau = new TF1("landau", "TMath::Landau(x, [0], [1], [2])", 0, 100);
-    landau->SetParameters(10, landauWidth, 0);
-    double landau_mean = landau->Mean(0, 100);
-    double landau_mpv  = landau->GetMaximumX();
-    double landau_mean_mpv_offset = landau_mean - landau_mpv;
+    landau->SetParameters(10, (double)landauWidth, 0);
+    float landau_mean = landau->Mean(0, 100);
+    float landau_mpv  = landau->GetMaximumX();
+    float landau_mean_mpv_offset = landau_mean - landau_mpv;
 
     /**
      * Now loop through hits (entries in dEdx and resRange vectors), compare to
@@ -159,14 +159,14 @@ namespace particleid{
      * can account for end point resolution
      */
 
-    double likelihoodNdf = 0;
+    float likelihoodNdf = 0;
     int n_hits_used_total = 0;
-    double rr_shift_final = 0.;
+    float rr_shift_final = 0.;
 
-    for (double rr_shift = endPointFloatShort; rr_shift < endPointFloatLong; rr_shift = rr_shift+endPointFloatStepSize){
+    for (float rr_shift = endPointFloatShort; rr_shift < endPointFloatLong; rr_shift = rr_shift+endPointFloatStepSize){
 
       // Make likelihoodikelihood
-      double likelihood = 0.;
+      float likelihood = 0.;
       int n_hits_used = 0;
 
       for (size_t i_hit=0; i_hit < resRange.size(); i_hit++){
@@ -187,8 +187,8 @@ namespace particleid{
           }
         }
 
-        double resrg_i = resRange.at(rr_index)+rr_shift;
-        double dEdx_i  = dEdx.at(i_hit);
+        float resrg_i = resRange.at(rr_index)+rr_shift;
+        float dEdx_i  = dEdx.at(i_hit);
 
         /**
          * Theory values are only defined up to 30 cm residual Range so we
@@ -202,7 +202,7 @@ namespace particleid{
         langaus->SetParameters(landauWidth,theorypred->Eval(resrg_i,0,"S")-landau_mean_mpv_offset+offset,1, gausWidth);
 
         // Evaluate likelihood
-        double likelihood_i = 0.;
+        float likelihood_i = 0.;
         if (langaus->Eval(dEdx_i) == 0){
           continue;
         }

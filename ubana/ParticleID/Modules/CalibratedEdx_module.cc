@@ -36,7 +36,7 @@
 #include "lardataobj/RecoBase/PFParticle.h"
 
 // Other stuff to select neutrino slices
-#include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "Pandora/PdgTable.h"
 
@@ -73,15 +73,15 @@ class UBPID::CalibratedEdx : public art::EDProducer {
     bool fIsSimSmear;
     bool fIsSetSeed;
     int fRandomSeed;
-    std::vector<double> fSimGausSmearWidth;
+    std::vector<float> fSimGausSmearWidth;
 
     bool fIsDataNewRecomb;
-    double fBoxrecomb_betap;
-    double fBoxrecomb_alpha;
-    double fBoxrecomb_rho;
-    double fBoxrecomb_wion;
-    double fBoxrecomb_efield;
-    double fBoxrecomb_ADCtoe;
+    float fBoxrecomb_betap;
+    float fBoxrecomb_alpha;
+    float fBoxrecomb_rho;
+    float fBoxrecomb_wion;
+    float fBoxrecomb_efield;
+    float fBoxrecomb_ADCtoe;
 
 };
 
@@ -97,16 +97,16 @@ UBPID::CalibratedEdx::CalibratedEdx(fhicl::ParameterSet const & p)
   fTrackLabel = p_labels.get< std::string > ("TrackLabel");
   fPFParticleLabel = p_labels.get<std::string>("PFParticleLabel");
   fIsSimSmear = p.get< bool > ("IsSimulationSmearing");
-  fSimGausSmearWidth = p.get< std::vector<double> > ("SimulationGausSmearWidth");
+  fSimGausSmearWidth = p.get< std::vector<float> > ("SimulationGausSmearWidth");
   fIsSetSeed = p.get< bool > ("IsSetSeed");
   fRandomSeed = p.get< int > ("RandomSeed");
   fIsDataNewRecomb = p.get<bool> ("IsDataNewRecombination");
-  fBoxrecomb_betap = p.get<double> ("NewRecombinationBoxBeta",0.183592);
-  fBoxrecomb_alpha = p.get<double>("NewRecombinationBoxAlpha",0.921969);
-  fBoxrecomb_rho = p.get<double>("NewRecombinationBoxRho",1.383);
-  fBoxrecomb_wion = p.get<double>("NewRecombinationBoxWion",23.6e-6);
-  fBoxrecomb_efield = p.get<double>("NewRecombinationBoxEfield",0.273);
-  fBoxrecomb_ADCtoe = p.get<double>("ConversionFactordQdxADCtoe",243.);
+  fBoxrecomb_betap = p.get<float> ("NewRecombinationBoxBeta",0.183592);
+  fBoxrecomb_alpha = p.get<float>("NewRecombinationBoxAlpha",0.921969);
+  fBoxrecomb_rho = p.get<float>("NewRecombinationBoxRho",1.383);
+  fBoxrecomb_wion = p.get<float>("NewRecombinationBoxWion",23.6e-6);
+  fBoxrecomb_efield = p.get<float>("NewRecombinationBoxEfield",0.273);
+  fBoxrecomb_ADCtoe = p.get<float>("ConversionFactordQdxADCtoe",243.);
 
   produces< std::vector<anab::Calorimetry> >();
   produces< art::Assns< recob::Track, anab::Calorimetry> >();
@@ -305,8 +305,8 @@ void UBPID::CalibratedEdx::produce(art::Event & e)
       planenum = c->PlaneID().Plane;
       calo = c;
 
-      std::vector<double> dEdx = calo->dEdx();
-      std::vector<double> dQdx = calo->dQdx();
+      std::vector<float> dEdx = calo->dEdx();
+      std::vector<float> dQdx = calo->dQdx();
 
       if (!calo || planenum < 0 || planenum > 2){
         std::cout << "[CalibratedEdx] Calorimetry on plane " << planenum << " is unavailable. Not smearing or applying new recombination." << std::endl;
@@ -323,7 +323,7 @@ void UBPID::CalibratedEdx::produce(art::Event & e)
 
           for (size_t i = 0; i < dEdx.size(); i++){
 
-            double simulationSmear = r.Gaus(1., fSimGausSmearWidth.at(planenum));
+            float simulationSmear = r.Gaus(1., fSimGausSmearWidth.at(planenum));
             dEdx.at(i) = dEdx.at(i) * simulationSmear;
 
           }
@@ -339,9 +339,9 @@ void UBPID::CalibratedEdx::produce(art::Event & e)
 
           for (size_t i = 0; i < dQdx.size(); i++){
 
-            double dqdx_e = dQdx.at(i) * fBoxrecomb_ADCtoe;
+            float dqdx_e = dQdx.at(i) * fBoxrecomb_ADCtoe;
 
-            double dEdx_newrecomb = (exp(dqdx_e*(fBoxrecomb_betap/(fBoxrecomb_rho*fBoxrecomb_efield))*fBoxrecomb_wion)-fBoxrecomb_alpha)/(fBoxrecomb_betap/(fBoxrecomb_rho*fBoxrecomb_efield));
+            float dEdx_newrecomb = (exp(dqdx_e*(fBoxrecomb_betap/(fBoxrecomb_rho*fBoxrecomb_efield))*fBoxrecomb_wion)-fBoxrecomb_alpha)/(fBoxrecomb_betap/(fBoxrecomb_rho*fBoxrecomb_efield));
 
             dEdx.at(i) = dEdx_newrecomb;
 

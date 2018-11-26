@@ -41,29 +41,29 @@ namespace particleid{
   public:
     void configure(fhicl::ParameterSet const &p);
     void printConfiguration();
-    double getLikelihood(std::vector<double> dEdx, std::vector<double> resRange, int particlehypothesis, bool forward, int planenum);
-    double getLikelihood(std::vector<double> dEdx, std::vector<double> resRange, int particlehypothesis, bool forward, int planenum, double &shift);
+    float getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum);
+    float getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum, float &shift);
 
   //private:
-    std::vector<double> gausWidth_mu;
-    std::vector<double> gausWidth_pi;
-    std::vector<double> gausWidth_k;
-    std::vector<double> gausWidth_p;
-    std::vector<double> gausWidth_mip;
-    std::vector<double> landauWidth_mu;
-    std::vector<double> landauWidth_pi;
-    std::vector<double> landauWidth_k;
-    std::vector<double> landauWidth_p;
-    std::vector<double> landauWidth_mip;
-    double offset_p;
-    double offset_mu;
-    double offset_pi;
-    double offset_k;
-    double offset_mip;
+    std::vector<float> gausWidth_mu;
+    std::vector<float> gausWidth_pi;
+    std::vector<float> gausWidth_k;
+    std::vector<float> gausWidth_p;
+    std::vector<float> gausWidth_mip;
+    std::vector<float> landauWidth_mu;
+    std::vector<float> landauWidth_pi;
+    std::vector<float> landauWidth_k;
+    std::vector<float> landauWidth_p;
+    std::vector<float> landauWidth_mip;
+    float offset_p;
+    float offset_mu;
+    float offset_pi;
+    float offset_k;
+    float offset_mip;
     int nHitsToDrop;
-    double endPointFloatShort;
-    double endPointFloatLong;
-    double endPointFloatStepSize;
+    float endPointFloatShort;
+    float endPointFloatLong;
+    float endPointFloatStepSize;
 
     bool checkRange;
   };

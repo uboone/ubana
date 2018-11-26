@@ -10,6 +10,7 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -24,14 +25,12 @@
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 
-
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
 
 #include "larcoreobj/SummaryData/POTSummary.h"
 
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -530,6 +529,10 @@ namespace single_photon
             std::vector<double> m_reco_shower_dEdx_plane0_median;
             std::vector<double> m_reco_shower_dEdx_plane1_median;
             std::vector<double> m_reco_shower_dEdx_plane2_median;
+
+            std::vector<double> m_reco_shower_dEdx_plane0_nhits;
+            std::vector<double> m_reco_shower_dEdx_plane1_nhits;
+            std::vector<double> m_reco_shower_dEdx_plane2_nhits;
 
 
 
