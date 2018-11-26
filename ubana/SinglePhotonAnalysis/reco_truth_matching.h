@@ -113,6 +113,8 @@ namespace single_photon
                     //mcParticleToMCObjectMap[particle] = mcObjectVector[ancestor_id_matches.front()];
                 }else if(num_ancestor_id_matches >1 || num_mother_id_matches >1){
                     std::cout<<"Well hot saussage.. more than 1 mother or ancestor. Actually thats very reasonable hehe."<<num_mother_id_matches<<" "<<num_ancestor_id_matches<<std::endl;
+                }else if(num_id_matches == 0 && num_ancestor_id_matches == 0 && num_mother_id_matches ==0){
+                    std::cout<<"NO matches for trackid, mother trackid or ancestor trackid. Hmm"<<num_mother_id_matches<<" "<<num_ancestor_id_matches<<std::endl;
                 }
 
                 //What if multiple mothers matches?! no idea.

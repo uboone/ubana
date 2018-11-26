@@ -7,7 +7,6 @@
 
 
 #include "reco_truth_matching.h"
-#include "bad_channel_matching.h"
 
 namespace single_photon
 {
@@ -26,6 +25,7 @@ namespace single_photon
     {
         m_is_verbose = pset.get<bool>("Verbose",true);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
+        m_is_data = pset.get<bool>("isData",false);
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
@@ -373,6 +373,9 @@ namespace single_photon
         vertex_tree->Branch("reco_vertex_x", &m_vertex_pos_x);
         vertex_tree->Branch("reco_vertex_y", &m_vertex_pos_y);
         vertex_tree->Branch("reco_vertex_z", &m_vertex_pos_z);
+        vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane0",&m_reco_vertex_to_nearest_dead_wire_plane0);
+        vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane1",&m_reco_vertex_to_nearest_dead_wire_plane1);
+        vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
 
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
@@ -431,6 +434,10 @@ namespace single_photon
         m_vertex_pos_x=0;
         m_vertex_pos_y=0;
         m_vertex_pos_z=0;
+        m_reco_vertex_to_nearest_dead_wire_plane0=99999;
+        m_reco_vertex_to_nearest_dead_wire_plane1=99999;
+        m_reco_vertex_to_nearest_dead_wire_plane2=99999;
+
 
         //------------- Flash related Variables ------------------
         this->ClearFlashes();
@@ -554,6 +561,11 @@ namespace single_photon
             if(isNeutrino){
                 found++;
                 this->GetVertex(pfParticlesToVerticesMap, pParticle );
+            m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+            m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+            m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+
+
             }
 
             // All non-neutrino primary particles are reconstructed under the cosmic hypothesis

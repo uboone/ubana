@@ -54,6 +54,10 @@ namespace single_photon
         m_reco_shower_dEdx_plane1_median.clear();
         m_reco_shower_dEdx_plane2_median.clear();
 
+        m_reco_track_end_to_nearest_dead_wire_plane0.clear();
+        m_reco_track_end_to_nearest_dead_wire_plane1.clear();
+        m_reco_track_end_to_nearest_dead_wire_plane2.clear();
+
 
         m_reco_shower_flash_shortest_distz.clear();
         m_reco_shower_flash_shortest_disty.clear();
@@ -108,6 +112,10 @@ namespace single_photon
         m_reco_shower_flash_shortest_index_yz.resize(size);
 
 
+        m_reco_shower_start_to_nearest_dead_wire_plane0.resize(size);
+        m_reco_shower_start_to_nearest_dead_wire_plane1.resize(size);
+        m_reco_shower_start_to_nearest_dead_wire_plane2.resize(size);
+
 
         m_sim_shower_energy.resize(size);
         m_sim_shower_pdg.resize(size);
@@ -159,6 +167,10 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_dEdx_plane0_median",&m_reco_shower_dEdx_plane0_median);
         vertex_tree->Branch("reco_shower_dEdx_plane1_median",&m_reco_shower_dEdx_plane1_median);
         vertex_tree->Branch("reco_shower_dEdx_plane2_median",&m_reco_shower_dEdx_plane2_median);
+
+        vertex_tree->Branch("reco_shower_start_to_nearest_dead_wire_plane0",&m_reco_shower_start_to_nearest_dead_wire_plane0);
+        vertex_tree->Branch("reco_shower_start_to_nearest_dead_wire_plane1",&m_reco_shower_start_to_nearest_dead_wire_plane1);
+        vertex_tree->Branch("reco_shower_start_to_nearest_dead_wire_plane2",&m_reco_shower_start_to_nearest_dead_wire_plane2);
 
         vertex_tree->Branch("reco_shower_flash_shortest_distz",&m_reco_shower_flash_shortest_distz);
         vertex_tree->Branch("reco_shower_flash_shortest_disty",&m_reco_shower_flash_shortest_disty);
@@ -213,6 +225,9 @@ namespace single_photon
             m_reco_shower_theta_yz[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirz[i_shr]);
             m_reco_shower_phi_yx[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirx[i_shr]);
 
+            m_reco_shower_start_to_nearest_dead_wire_plane0[i_shr] = distanceToNearestDeadWire(0, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom,bad_channel_list_fixed_mcc9);
+            m_reco_shower_start_to_nearest_dead_wire_plane1[i_shr] = distanceToNearestDeadWire(1, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom,bad_channel_list_fixed_mcc9);
+            m_reco_shower_start_to_nearest_dead_wire_plane2[i_shr] = distanceToNearestDeadWire(2, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom,bad_channel_list_fixed_mcc9);
 
             std::vector<int> t_num(3,0);
             std::vector<int> t_numhits(3,0);

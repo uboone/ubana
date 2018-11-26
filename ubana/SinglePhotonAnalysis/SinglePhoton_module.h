@@ -66,6 +66,8 @@
 #include <fstream>
 #include <string>
 
+
+#include "bad_channel_matching.h"
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace single_photon
@@ -259,7 +261,6 @@ namespace single_photon
 
             void CollectPID(std::vector<art::Ptr<recob::Track>> & tracks,std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap);
             TGraph proton_length2energy_tgraph;
-            double dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& X0);
 
             //----------------  Showers ----------------------------
 
@@ -310,6 +311,7 @@ namespace single_photon
             std::string m_pidLabel;            ///< For PID stuff
             bool m_use_PID_algorithms;
             bool m_is_verbose;
+            bool m_is_data;
 
             double m_track_calo_min_dEdx;
             double m_track_calo_max_dEdx;
@@ -349,6 +351,11 @@ namespace single_photon
             double m_vertex_pos_y;
             double m_vertex_pos_z;
             int m_reco_asso_showers;
+
+            double m_reco_vertex_to_nearest_dead_wire_plane0;
+            double m_reco_vertex_to_nearest_dead_wire_plane1;
+            double m_reco_vertex_to_nearest_dead_wire_plane2;
+
 
             //-------------- Flash related variables -------------
             int m_reco_num_templates;
@@ -412,6 +419,10 @@ namespace single_photon
             std::vector<double> m_reco_track_trunc_PIDA;
 
 
+            std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane0;
+            std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane1;
+            std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane2;
+
             std::vector<double> m_sim_track_energy;
             std::vector<int> m_sim_track_pdg;
             std::vector<int> m_sim_track_origin;
@@ -439,6 +450,11 @@ namespace single_photon
             std::vector<int> m_reco_shower_delaunay_num_triangles_plane0;
             std::vector<int> m_reco_shower_delaunay_num_triangles_plane1;
             std::vector<int> m_reco_shower_delaunay_num_triangles_plane2;
+
+            std::vector<double> m_reco_shower_start_to_nearest_dead_wire_plane0;
+            std::vector<double> m_reco_shower_start_to_nearest_dead_wire_plane1;
+            std::vector<double> m_reco_shower_start_to_nearest_dead_wire_plane2;
+
 
             //shower flash matching
 

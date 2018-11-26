@@ -3,6 +3,7 @@
 #include "TVectorD.h"
 #include "TruncMean.h"
 
+
 namespace single_photon
 {
 
@@ -54,6 +55,9 @@ namespace single_photon
         m_reco_track_pid_bragg_likelihood_plane2.clear();
         m_reco_track_pid_pida_plane2.clear();
         m_reco_track_pid_chi_plane2.clear();
+m_reco_track_end_to_nearest_dead_wire_plane0.clear();
+        m_reco_track_end_to_nearest_dead_wire_plane1.clear();
+        m_reco_track_end_to_nearest_dead_wire_plane2.clear();
 
     }
 
@@ -100,10 +104,15 @@ namespace single_photon
         m_sim_track_startx.resize(size);
         m_sim_track_starty.resize(size);
         m_sim_track_startz.resize(size);
+        
         m_reco_track_pid_bragg_likelihood_plane2.resize(size);
         m_reco_track_pid_pida_plane2.resize(size);
         m_reco_track_pid_chi_plane2.resize(size);
 
+
+        m_reco_track_end_to_nearest_dead_wire_plane0.resize(size);
+        m_reco_track_end_to_nearest_dead_wire_plane1.resize(size);
+        m_reco_track_end_to_nearest_dead_wire_plane2.resize(size);
     }
 
     void SinglePhoton::CreateTrackBranches(){
@@ -148,7 +157,9 @@ namespace single_photon
         vertex_tree->Branch("reco_track_pid_pida_plane2",&m_reco_track_pid_pida_plane2);
         vertex_tree->Branch("reco_track_pid_chi_plane2",&m_reco_track_pid_chi_plane2);
 
-
+        vertex_tree->Branch("reco_track_end_to_nearest_dead_wire_plane0",&m_reco_track_end_to_nearest_dead_wire_plane0);
+        vertex_tree->Branch("reco_track_end_to_nearest_dead_wire_plane1",&m_reco_track_end_to_nearest_dead_wire_plane1);
+        vertex_tree->Branch("reco_track_end_to_nearest_dead_wire_plane2",&m_reco_track_end_to_nearest_dead_wire_plane2);
 
         vertex_tree->Branch("sim_track_energy",&m_sim_track_energy);
         vertex_tree->Branch("sim_track_pdg",&m_sim_track_pdg);
@@ -232,7 +243,7 @@ namespace single_photon
                 std::vector<double> tmp_spacepoints = {trk_spacepoints[x]->XYZ()[0],trk_spacepoints[x]->XYZ()[1] , trk_spacepoints[x]->XYZ()[2]};
                 principal->AddRow(&tmp_spacepoints[0]);
 
-                double dist = this->dist_line_point(tmp_trk_start,tmp_trk_end,tmp_spacepoints);
+                double dist = dist_line_point(tmp_trk_start,tmp_trk_end,tmp_spacepoints);
                 if(dist> max_dist_from_line) max_dist_from_line = dist;
                 m_reco_track_spacepoint_chi[i_trk] += dist*dist;
             }
@@ -252,6 +263,11 @@ namespace single_photon
             //range based energy calculation assuming
             m_reco_track_proton_kinetic_energy[i_trk] = proton_length2energy_tgraph.Eval(m_length)/1000.0; 
             if(m_length == 0.0) m_reco_track_proton_kinetic_energy[i_trk]=0.0;
+
+            // Dead Wire Approximity
+            m_reco_track_end_to_nearest_dead_wire_plane0[i_trk] = distanceToNearestDeadWire(0, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
+            m_reco_track_end_to_nearest_dead_wire_plane1[i_trk] = distanceToNearestDeadWire(1, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
+            m_reco_track_end_to_nearest_dead_wire_plane2[i_trk] = distanceToNearestDeadWire(2, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
 
 
             //A loop over the trajectory points
@@ -469,35 +485,6 @@ namespace single_photon
         return;
     }
 
-    double SinglePhoton::dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& X0){
-        double x1 =X1.at(0);
-        double y1 =X1.at(1);
-        double z1 =X1.at(2);
-
-        double x2 =X2.at(0);
-        double y2 =X2.at(1);
-        double z2 =X2.at(2);
-
-        double x0 =X0.at(0);
-        double y0 =X0.at(1);
-        double z0 =X0.at(2);
-
-        double x10 = x1-x0;
-        double y10 = y1-y0;
-        double z10 = z1-z0;
-
-        double x21 = x2-x1;
-        double y21 = y2-y1;
-        double z21 = z2-z1;
-
-        double t = -(x10*x21+y10*y21+z10*z21)/fabs(x21*x21+y21*y21+z21*z21 );
-
-        double d2 = pow(x1-x0,2)+pow(y1-y0,2)+pow(z1-z0,2)+2*t*((x2-x1)*(x1-x0)+(y2-y1)*(y1-y0)+(z2-z1)*(z1-z0))+t*t*( pow(x2-x1,2)+pow(y2-y1,2)+pow(z2-z1,2));
-
-
-        return sqrt(d2);
-
-    }
-
+    
 
 }

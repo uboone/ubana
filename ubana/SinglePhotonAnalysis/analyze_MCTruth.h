@@ -51,8 +51,6 @@ namespace single_photon
         vertex_tree->Branch("mctruth_nu_vertex_y",&m_mctruth_nu_vertex_y);
         vertex_tree->Branch("mctruth_nu_vertex_z",&m_mctruth_nu_vertex_z);
 
-   
-
         vertex_tree->Branch("mctruth_lepton_pdg",&m_mctruth_lepton_pdg);
         vertex_tree->Branch("mctruth_lepton_E",&m_mctruth_lepton_E);
         vertex_tree->Branch("mctruth_mode",&m_mctruth_mode);
