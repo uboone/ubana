@@ -144,7 +144,7 @@ namespace single_photon
         art::ValidHandle<std::vector<recob::Vertex>> const & vertexHandle = evt.getValidHandle<std::vector<recob::Vertex>>(m_pandoraLabel);
         std::vector<art::Ptr<recob::Vertex>> vertexVector;
         art::fill_ptr_vector(vertexVector,vertexHandle);
-        art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, evt, m_trackLabel);
+        art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
         std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap;
         for(size_t i=0; i< pfParticleVector.size(); ++i){
             auto pfp = pfParticleVector[i];
@@ -164,7 +164,7 @@ namespace single_photon
 
         //Look, here is a map that I just forced myself rather than build using helpers. Not that different is it. But for somereason I only use PFParticles.. huh,
         //Spacepoint associaitions
-        art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, m_trackLabel);
+        art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
         std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>> > pfParticleToSpacePointsMap;
         for(size_t i=0; i< nuParticles.size(); ++i){
             const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
@@ -238,7 +238,16 @@ namespace single_photon
         //Track Calorimetry
         art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
         std::map<art::Ptr<recob::Track>, art::Ptr<anab::Calorimetry> > trackToCalorimetryMap;
+        //So a cross check
+        if (!calo_per_track.isValid())
+        {
+            mf::LogDebug("SinglePhoton") << "  Failed to get Assns between recob::Track and anab::Calorimetry.\n";
+            return;
+        }
         for(size_t i=0; i< tracks.size(); ++i){
+                if(calo_per_track.at(tracks[i].key()).size() ==0){
+                    std::cerr<<"Track Calorimetry Breaking!  the vector of calo_per_track is of length 0 at this track."<<std::endl;
+                }
                 trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
         }
 
@@ -314,7 +323,7 @@ namespace single_photon
         }
 
         this->AnalyzeFlashes(flashVector);
-
+        std::cout<<"start track"<<std::endl;
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
         this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
