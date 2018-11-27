@@ -32,13 +32,21 @@ namespace single_photon
                 std::vector<art::Ptr<simb::MCParticle>> particle_vec;
                 std::vector<anab::BackTrackerHitMatchingData const *> match_vec;
 
+                bool found_a_match = false;
+                int n_associated_mcparticle_hits = 0;
+
+                std::cout<<"REC: This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
+
                 //loop only over our hits
                 for(size_t i_h=0; i_h < obj_hits_ptrs.size(); ++i_h){
 
                     particle_vec.clear(); match_vec.clear(); //tidy up this loop
+
                     mcparticles_per_hit.get(obj_hits_ptrs[i_h].key(), particle_vec, match_vec);
                     //mcparticles_per_hit.get(obj_hits_ptrs[i_h].key(),particle_vec,match_vec);
                     //the .key() gives us the index in the original collection
+                    //std::cout<<"REC: hit "<<i_h<<" has "<<particle_vec.size()<<" MCparticles assocaied: "<<std::endl;
+                    if(particle_vec.size()>0) n_associated_mcparticle_hits++;
 
 
                     //loop over MCparticles finding which is the MCparticle with most "energy" matched correctly
@@ -48,19 +56,35 @@ namespace single_photon
                         if( objide[ particle_vec[i_p]->TrackId() ] > maxe ){ //keep track of maximum
                             maxe = objide[ particle_vec[i_p]->TrackId() ];
                             best_matched_mcparticle = particle_vec[i_p];
+                            found_a_match = true;
                         }
                     }//end loop over particles per hit
                 }
+                if(n_associated_mcparticle_hits == 0){
+                    //This will only occur if the whole recob::PFParticle is associated with an overlay object
 
-                objectToMCParticleMap[object] = best_matched_mcparticle;
-                mcParticleVector.push_back(best_matched_mcparticle);
+                }
+
+
+                if(found_a_match){
+                    mcParticleVector.push_back(best_matched_mcparticle);
+                    objectToMCParticleMap[object] = mcParticleVector.back();
+                }else{
+                   // mcParticleVector.push_back(0);
+                }
                 vec_fraction_matched.push_back(maxe/tote);
 
 
-                std::cout << "SinglePhoton::recoMC()\t||\t Final Match (from my loop) is " << best_matched_mcparticle->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
-                    << " pdg=" << best_matched_mcparticle->PdgCode()
-                    << " trkid=" << best_matched_mcparticle->TrackId()
-                    << " ke=" << best_matched_mcparticle->E()-best_matched_mcparticle->Mass()<< "\n";
+
+                if(!found_a_match){
+                    std::cout << "SinglePhoton::recoMC()\t||\t NO MATCH NO MATCH (from my loop)  "<<std::endl;
+                    std::cout<<" count "<<objectToMCParticleMap.count(object)<<std::endl;
+                }else{
+                    std::cout << "SinglePhoton::recoMC()\t||\t Final Match (from my loop) is " << best_matched_mcparticle->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
+                        << " pdg=" << best_matched_mcparticle->PdgCode()
+                        << " trkid=" << best_matched_mcparticle->TrackId()
+                        << " ke=" << best_matched_mcparticle->E()-best_matched_mcparticle->Mass()<< "\n";
+                }
 
             }//end vector loop.
             return vec_fraction_matched;
@@ -98,7 +122,7 @@ namespace single_photon
                 int num_id_matches=id_matches.size();
                 int num_mother_id_matches=mother_id_matches.size();
                 int num_ancestor_id_matches=ancestor_id_matches.size();
-   
+
                 //So im not sure how this works but something like this
                 if(num_id_matches > 1){
                     std::cout<<"Well hot saussage.. more than 1 id match "<<num_id_matches<<std::endl;
@@ -119,7 +143,7 @@ namespace single_photon
 
                 //What if multiple mothers matches?! no idea.
 
-                    
+
             }//MCParticleLoop
 
             return;

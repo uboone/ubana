@@ -27,6 +27,7 @@ namespace single_photon
         m_reco_shower_delaunay_area_plane2.clear();
 
         m_sim_shower_energy.clear();
+        m_sim_shower_matched.clear();
         m_sim_shower_pdg.clear();
         m_sim_shower_origin.clear();
         m_sim_shower_process.clear();
@@ -113,6 +114,7 @@ namespace single_photon
         m_reco_shower_flash_shortest_distyz.resize(size);
         m_reco_shower_flash_shortest_index_yz.resize(size);
 
+        m_sim_shower_matched.resize(size);
         m_sim_shower_energy.resize(size);
         m_sim_shower_pdg.resize(size);
         m_sim_shower_origin.resize(size);
@@ -145,6 +147,7 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_delaunay_area_plane1",&m_reco_shower_delaunay_area_plane1);
         vertex_tree->Branch("reco_shower_delaunay_area_plane2",&m_reco_shower_delaunay_area_plane2);
 
+        vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
         vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
         vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
         vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
@@ -392,20 +395,25 @@ namespace single_photon
         for (ShowerVector::const_iterator iter = showers.begin(), iterEnd = showers.end(); iter != iterEnd; ++iter)
         {
             const art::Ptr<recob::Shower> shower = *iter;
-            const art::Ptr<simb::MCParticle> mcparticle = showerToMCParticleMap[shower];
-            const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
+            m_sim_shower_matched[i_shr] = 0;
+            if(showerToMCParticleMap.count(shower) > 0){
 
-            std::vector<double> corrected(3);
-            this->spacecharge_correction(mcparticle, corrected);
 
-            m_sim_shower_energy[i_shr] = mcparticle->E();
-            m_sim_shower_pdg[i_shr] = mcparticle->PdgCode();
-            m_sim_shower_process[i_shr] = mcparticle->Process();
-            m_sim_shower_startx[i_shr] = mcparticle->Position().X()+corrected[0];
-            m_sim_shower_starty[i_shr] = mcparticle->Position().Y()+corrected[1];
-            m_sim_shower_startz[i_shr] =mcparticle->Position().Z()+corrected[2];
-            m_sim_shower_origin[i_shr] = mctruth->Origin();
 
+                const art::Ptr<simb::MCParticle> mcparticle = showerToMCParticleMap[shower];
+                const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
+
+                std::vector<double> corrected(3);
+                this->spacecharge_correction(mcparticle, corrected);
+                m_sim_shower_matched[i_shr] = 1;
+                m_sim_shower_energy[i_shr] = mcparticle->E();
+                m_sim_shower_pdg[i_shr] = mcparticle->PdgCode();
+                m_sim_shower_process[i_shr] = mcparticle->Process();
+                m_sim_shower_startx[i_shr] = mcparticle->Position().X()+corrected[0];
+                m_sim_shower_starty[i_shr] = mcparticle->Position().Y()+corrected[1];
+                m_sim_shower_startz[i_shr] =mcparticle->Position().Z()+corrected[2];
+                m_sim_shower_origin[i_shr] = mctruth->Origin();
+            }
             i_shr++;
         }
 
@@ -450,20 +458,20 @@ namespace single_photon
     }
 
     double SinglePhoton::GetQHit(art::Ptr<recob::Hit> thishitptr, int plane){
-	double gain;
-	//choose gain based on whether data/mc and by plane
-	if (m_is_data == false){
-		gain = m_gain_mc[plane] ;
-		//if (m_is_verbose) std::cout<<"the gain for mc on plane "<<plane<<" is "<<gain<<std::endl;
-	} else{
-		gain = m_gain_data[plane] ;
-		//if (m_is_verbose) std::cout<<"the gain for data on plane "<<plane<<" is "<<gain<<std::endl;
-	
-	}
+        double gain;
+        //choose gain based on whether data/mc and by plane
+        if (m_is_data == false){
+            gain = m_gain_mc[plane] ;
+            //if (m_is_verbose) std::cout<<"the gain for mc on plane "<<plane<<" is "<<gain<<std::endl;
+        } else{
+            gain = m_gain_data[plane] ;
+            //if (m_is_verbose) std::cout<<"the gain for data on plane "<<plane<<" is "<<gain<<std::endl;
+
+        }
 
         double Q = thishitptr->Integral()*gain;
         return Q;
-   }
+    }
 
     double SinglePhoton::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr, int plane){
         return QtoEConversion(GetQHit(thishitptr, plane));
@@ -474,8 +482,8 @@ namespace single_photon
         //return the energy value converted to MeV (the factor of 1e-6)
         //std::cout<<"computing the E value"<<std::endl;
         double E = Q* m_work_function *1e-6 /m_recombination_factor;
-       // double E = Q* m_work_function /m_recombination_factor;  
-     //std::cout<<"returning E = "<<E<<std::endl;
+        // double E = Q* m_work_function /m_recombination_factor;  
+        //std::cout<<"returning E = "<<E<<std::endl;
         return E;
 
     }
@@ -542,13 +550,13 @@ namespace single_photon
                 if (insideBox(thishit_pos, rectangle)){
                     //	std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
                     double q = GetQHit(thishit, plane); 
-		    //double q_other = thishit->Integral() * 200;
-       		    //std::cout<<"q/q_other = "<<q<<"/"<<q_other<<std::endl;             
-		    //double q = thishit->Integral() * m_gain;
+                    //double q_other = thishit->Integral() * 200;
+                    //std::cout<<"q/q_other = "<<q<<"/"<<q_other<<std::endl;             
+                    //double q = thishit->Integral() * m_gain;
                     //	std::cout<<"the q for this hit is "<<q<<std::endl;
                     double this_dqdx = q/pitch; 
                     dqdx.push_back(this_dqdx);
-                   // std::cout<<"the calculated dq/dx for this hit is "<<this_dqdx<<std::endl;
+                    // std::cout<<"the calculated dq/dx for this hit is "<<this_dqdx<<std::endl;
                 }//if hit falls inside the box
                 //	else{
                 //		std::cout<<"hit not inside box"<<std::endl;

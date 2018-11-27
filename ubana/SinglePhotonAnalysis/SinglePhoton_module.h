@@ -439,6 +439,7 @@ namespace single_photon
             std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane1;
             std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane2;
 
+            std::vector<int> m_sim_track_matched;
             std::vector<double> m_sim_track_energy;
             std::vector<int> m_sim_track_pdg;
             std::vector<int> m_sim_track_origin;
@@ -492,6 +493,7 @@ namespace single_photon
             std::vector<double> m_reco_shower_delaunay_area_plane1;
             std::vector<double> m_reco_shower_delaunay_area_plane2;
 
+            std::vector<int> m_sim_shower_matched;
             std::vector<double> m_sim_shower_energy;
             std::vector<int> m_sim_shower_pdg;
             std::vector<int> m_sim_shower_origin;

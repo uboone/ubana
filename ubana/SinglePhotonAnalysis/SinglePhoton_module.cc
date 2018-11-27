@@ -286,25 +286,31 @@ namespace single_photon
 
             this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
 
-            if(true){
+            recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
+            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
 
-                recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
-                recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
-
-                perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
-                perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
-
-                for(auto & track: tracks){
-                    auto mp = trackToMCParticleMap[track];
-                    std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
-                }
-                for(auto & shower: showers){
-                    auto mp = showerToMCParticleMap[shower];
-                    std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
-                }
-
-
+            for(auto & track: tracks){
+                std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
             }
+
+            perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
+            perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
+
+            for(auto & track: tracks){
+                std::cout<<"Reallyside: "<<trackToMCParticleMap.count(track)<<std::endl;
+                auto mp = trackToMCParticleMap[track];
+                std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
+            }
+            //for(auto & shower: showers){
+            //    auto mp = showerToMCParticleMap[shower];
+            //    std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
+            //}
+
+            for(auto & track: tracks){
+                std::cout<<"BINside: "<<trackToMCParticleMap.count(track)<<std::endl;
+            }
+
+
         }
 
         //**********************************************************************************************/
@@ -324,6 +330,10 @@ namespace single_photon
         //and now get the simb::MCparticle to both MCtrack and MCshower maps (just for the MCparticles matched ok).
 
 
+        for(auto & track: tracks){
+            std::cout<<"Carside: "<<trackToMCParticleMap.count(track)<<std::endl;
+        }
+
         badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
 
 
@@ -336,16 +346,25 @@ namespace single_photon
             std::cout << "SinglePhoton::analyze()\t||\t    ... of which are showers-like : " << showers.size() << "\n";
         }
 
+        for(auto & track: tracks){
+            std::cout<<"Pinside: "<<trackToMCParticleMap.count(track)<<std::endl;
+        }
+
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
-        if(!m_is_data && !m_is_overlayed) this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
+
+        for(auto & track: tracks){
+            std::cout<<"Outside: "<<trackToMCParticleMap.count(track)<<std::endl;
+        }
+
+        if(!m_is_data) this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
         if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
 
 
         this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap); 
-        if(!m_is_data && !m_is_overlayed) this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
+        if(!m_is_data) this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
 
         // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
         // MCShower and MCTrack come from energy depositions in GEANT4
