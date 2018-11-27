@@ -280,7 +280,7 @@ namespace single_photon
 
             //---------------- MCTruths ----------------------------
 
-            void AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector );
+            void AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector,  std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector );
             void ClearMCTruths();
             void ResizeMCTruths(size_t);
             void CreateMCTruthBranches();
@@ -441,6 +441,8 @@ namespace single_photon
 
             std::vector<int> m_sim_track_matched;
             std::vector<double> m_sim_track_energy;
+            std::vector<double> m_sim_track_mass;
+            std::vector<double> m_sim_track_kinetic_energy;
             std::vector<int> m_sim_track_pdg;
             std::vector<int> m_sim_track_origin;
             std::vector<std::string> m_sim_track_process;
@@ -495,6 +497,8 @@ namespace single_photon
 
             std::vector<int> m_sim_shower_matched;
             std::vector<double> m_sim_shower_energy;
+            std::vector<double> m_sim_shower_kinetic_energy;
+            std::vector<double> m_sim_shower_mass;
             std::vector<int> m_sim_shower_pdg;
             std::vector<int> m_sim_shower_origin;
             std::vector<std::string> m_sim_shower_process;
@@ -530,9 +534,14 @@ namespace single_photon
             int   m_mctruth_num_exiting_deltapm; 
             int   m_mctruth_num_exiting_deltapp; 
 
+            std::vector<int> m_mctruth_exiting_photon_mother_trackID;
+            std::vector<int> m_mctruth_exiting_photon_mother_pdg;
+            std::vector<int> m_mctruth_exiting_proton_mother_trackID;
+            std::vector<int> m_mctruth_exiting_proton_mother_pdg;
 
-            std::vector<double> m_mctruth_exiting_pi0_E;
-            std::vector<double>       m_mctruth_exiting_pi0_px;
+
+            std::vector<double>        m_mctruth_exiting_pi0_E;
+            std::vector<double>        m_mctruth_exiting_pi0_px;
             std::vector<double>        m_mctruth_exiting_pi0_py;
             std::vector<double>        m_mctruth_exiting_pi0_pz;
 

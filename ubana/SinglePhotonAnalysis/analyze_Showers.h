@@ -28,6 +28,8 @@ namespace single_photon
 
         m_sim_shower_energy.clear();
         m_sim_shower_matched.clear();
+        m_sim_shower_kinetic_energy.clear();
+        m_sim_shower_mass.clear();
         m_sim_shower_pdg.clear();
         m_sim_shower_origin.clear();
         m_sim_shower_process.clear();
@@ -116,6 +118,8 @@ namespace single_photon
 
         m_sim_shower_matched.resize(size);
         m_sim_shower_energy.resize(size);
+        m_sim_shower_kinetic_energy.resize(size);
+        m_sim_shower_mass.resize(size);
         m_sim_shower_pdg.resize(size);
         m_sim_shower_origin.resize(size);
         m_sim_shower_process.resize(size);
@@ -149,6 +153,8 @@ namespace single_photon
 
         vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
         vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
+        vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
+        vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
         vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
         vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
         vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
@@ -407,6 +413,8 @@ namespace single_photon
                 this->spacecharge_correction(mcparticle, corrected);
                 m_sim_shower_matched[i_shr] = 1;
                 m_sim_shower_energy[i_shr] = mcparticle->E();
+                m_sim_shower_mass[i_shr] = mcparticle->Mass();
+                m_sim_shower_kinetic_energy[i_shr] = mcparticle->E()-mcparticle->Mass();
                 m_sim_shower_pdg[i_shr] = mcparticle->PdgCode();
                 m_sim_shower_process[i_shr] = mcparticle->Process();
                 m_sim_shower_startx[i_shr] = mcparticle->Position().X()+corrected[0];

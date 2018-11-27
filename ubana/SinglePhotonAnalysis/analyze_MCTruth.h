@@ -32,6 +32,12 @@ namespace single_photon
         m_mctruth_exiting_pi0_px.clear();
         m_mctruth_exiting_pi0_py.clear();
         m_mctruth_exiting_pi0_pz.clear();
+
+        m_mctruth_exiting_photon_mother_trackID.clear();
+        m_mctruth_exiting_photon_mother_pdg.clear();
+       m_mctruth_exiting_proton_mother_trackID.clear();
+        m_mctruth_exiting_proton_mother_pdg.clear();
+
     }
 
     void SinglePhoton::ResizeMCTruths(size_t size){
@@ -62,6 +68,7 @@ namespace single_photon
         vertex_tree->Branch("mctruth_daughters_pdg",&m_mctruth_daughters_pdg);
         vertex_tree->Branch("mctruth_daughters_E",&m_mctruth_daughters_E);
 
+
         vertex_tree->Branch("mctruth_num_exiting_protons",&m_mctruth_num_exiting_protons);
         vertex_tree->Branch("mctruth_num_exiting_photons",&m_mctruth_num_exiting_photons);
         vertex_tree->Branch("mctruth_num_exiting_neutrons",&m_mctruth_num_exiting_neutrons);
@@ -71,13 +78,20 @@ namespace single_photon
         vertex_tree->Branch("mctruth_num_exiting_deltapm",&m_mctruth_num_exiting_deltapm);
         vertex_tree->Branch("mctruth_num_exiting_deltapp",&m_mctruth_num_exiting_deltapp);
 
+        vertex_tree->Branch("mctruth_exiting_photon_mother_trackID",&m_mctruth_exiting_photon_mother_trackID);
+        vertex_tree->Branch("mctruth_exiting_photon_mother_pdg",&m_mctruth_exiting_photon_mother_pdg);
+
+        vertex_tree->Branch("mctruth_exiting_proton_mother_trackID",&m_mctruth_exiting_proton_mother_trackID);
+        vertex_tree->Branch("mctruth_exiting_proton_mother_pdg",&m_mctruth_exiting_proton_mother_pdg);
+
+
         vertex_tree->Branch("mctruth_exiting_pi0_E",&m_mctruth_exiting_pi0_E);
         vertex_tree->Branch("mctruth_exiting_pi0_px",&m_mctruth_exiting_pi0_px);
         vertex_tree->Branch("mctruth_exiting_pi0_py",&m_mctruth_exiting_pi0_py);
         vertex_tree->Branch("mctruth_exiting_pi0_pz",&m_mctruth_exiting_pi0_pz);
     }
 
-    void SinglePhoton::AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector ){
+    void SinglePhoton::AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector , std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector){
         m_mctruth_num = mcTruthVector.size();
         this->ResizeMCTruths(m_mctruth_num);
     
@@ -118,6 +132,7 @@ namespace single_photon
                     switch(m_mctruth_daughters_pdg[j]){
                         case(22):
                                 m_mctruth_num_exiting_photons++;
+                                m_mctruth_exiting_photon_mother_trackID.push_back(par.Mother());
                                 break;
                         case(111):
                                 m_mctruth_exiting_pi0_E.push_back(par.E());
@@ -132,6 +147,7 @@ namespace single_photon
                                 break;
                         case(2212): 
                                 m_mctruth_num_exiting_protons++;
+                                m_mctruth_exiting_proton_mother_trackID.push_back(par.Mother());
                                 break;
                         case(2112): 
                                 m_mctruth_num_exiting_neutrons++;
@@ -152,7 +168,35 @@ namespace single_photon
             }
 
         }
+   
+        m_mctruth_exiting_photon_mother_pdg.resize(m_mctruth_num_exiting_photons,-99999);
+        m_mctruth_exiting_proton_mother_pdg.resize(m_mctruth_num_exiting_protons,-99999);
     
+
+        //Now loop over ALL  MCparticles in order to see which ones were photons and protons!
+        std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t  We have "<<m_mctruth_num_exiting_photons<<" photons and "<<m_mctruth_num_exiting_protons<<" protons."<<std::endl;
+
+
+        for(auto & mcp: mcParticleVector){
+            
+            for(int p =0; p < m_mctruth_num_exiting_photons; ++p){
+                if( mcp->TrackId() == m_mctruth_exiting_photon_mother_trackID[p]){
+                      m_mctruth_exiting_photon_mother_pdg[p] = mcp->PdgCode(); 
+                      std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t -- photon with parent "<<m_mctruth_exiting_photon_mother_pdg[p]<<"."<<std::endl;
+                }
+            }
+
+            for(int p =0; p < m_mctruth_num_exiting_protons; ++p){
+                if( mcp->TrackId() == m_mctruth_exiting_proton_mother_trackID[p]){
+                      m_mctruth_exiting_proton_mother_pdg[p] = mcp->PdgCode(); 
+                      std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t -- proton with parent "<<m_mctruth_exiting_proton_mother_pdg[p]<<"."<<std::endl;
+                }
+            }
+
+        }
+
+
+
         if(m_is_verbose){
             std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t This is a CCNC: "<<m_mctruth_ccnc<<" event with a nu_pdg: "<<m_mctruth_nu_pdg<<" and "<<m_mctruth_num_daughter_particles<<" exiting particles."<<std::endl;
             std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t With  "<<m_mctruth_num_exiting_pi0<<" Pi0, "<<m_mctruth_num_exiting_pipm<<" Pi+/-, "<<m_mctruth_num_exiting_protons<<" Protons, "<<m_mctruth_num_exiting_neutrons<<" neutrons and "<<m_mctruth_num_exiting_delta0<<" delta0, "<<m_mctruth_num_exiting_deltapm<<" deltapm, "<<m_mctruth_num_exiting_deltapp<<" Deltas++"<<std::endl;

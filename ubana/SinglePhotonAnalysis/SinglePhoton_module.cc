@@ -245,6 +245,7 @@ namespace single_photon
 
         //Get the MCtruth handles and vectors
         std::vector<art::Ptr<simb::MCTruth>> mcTruthVector;
+        std::vector<art::Ptr<simb::MCParticle>> mcParticleVector;
 
         //Then build a map from MCparticles to Hits and vice versa
         std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  mcParticleToHitsMap;
@@ -259,7 +260,7 @@ namespace single_photon
         std::vector<art::Ptr<sim::MCTrack>> mcTrackVector;
         std::vector<art::Ptr<sim::MCShower>> mcShowerVector;
 
-        std::vector<art::Ptr<simb::MCParticle>> mcParticleVector;
+        std::vector<art::Ptr<simb::MCParticle>> matchedMCParticleVector;
         std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > trackToMCParticleMap;
         std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > showerToMCParticleMap;
 
@@ -324,6 +325,9 @@ namespace single_photon
             art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle= evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
             art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
 
+            art::ValidHandle<std::vector<simb::MCParticle>> const & mcParticleHandle= evt.getValidHandle<std::vector<simb::MCParticle>>(m_geantModuleLabel);
+            art::fill_ptr_vector(mcParticleVector,mcParticleHandle);
+
             //Get the MCParticles (move to do this ourselves later)
             this->CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap);
 
@@ -337,15 +341,15 @@ namespace single_photon
 
             this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
 
-            recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
-            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
+            recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector);
+            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector );
 
             for(auto & track: tracks){
                 std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
             }
 
-            perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
-            perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
+            perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
+            perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
             
             //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
 
@@ -367,7 +371,7 @@ namespace single_photon
 
             this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
             this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
-            this->AnalyzeMCTruths(mcTruthVector);
+            this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
 
         }
 
@@ -476,12 +480,12 @@ namespace single_photon
 
         //------------ Vertex related Variables -------------
         m_reco_vertex_size = 0;
-        m_vertex_pos_x=0;
-        m_vertex_pos_y=0;
-        m_vertex_pos_z=0;
-        m_reco_vertex_to_nearest_dead_wire_plane0=99999;
-        m_reco_vertex_to_nearest_dead_wire_plane1=99999;
-        m_reco_vertex_to_nearest_dead_wire_plane2=99999;
+        m_vertex_pos_x=-99999;
+        m_vertex_pos_y=-99999;
+        m_vertex_pos_z=-99999;
+        m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
+        m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
+        m_reco_vertex_to_nearest_dead_wire_plane2=-99999;
 
 
         //------------- Flash related Variables ------------------
@@ -553,6 +557,11 @@ namespace single_photon
                 m_vertex_pos_y = xyz[1];
                 m_vertex_pos_z = xyz[2];
 
+                m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+
+
             }else{
                 std::cout << " Error: vertexVector associated with this particle is empty " << "\n";
                 exit(0);
@@ -601,11 +610,7 @@ namespace single_photon
             if(isNeutrino){
                 found++;
                 this->GetVertex(pfParticlesToVerticesMap, pParticle );
-                m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-                m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-                m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-
-
+               
             }
 
             // All non-neutrino primary particles are reconstructed under the cosmic hypothesis

@@ -46,6 +46,8 @@ namespace single_photon
 
         m_sim_track_matched.clear();
         m_sim_track_energy.clear();
+        m_sim_track_kinetic_energy.clear();
+        m_sim_track_mass.clear();
         m_sim_track_pdg.clear();
         m_sim_track_origin.clear();
         m_sim_track_process.clear();
@@ -100,6 +102,8 @@ namespace single_photon
 
         m_sim_track_matched.resize(size);
         m_sim_track_energy.resize(size);
+        m_sim_track_mass.resize(size);
+        m_sim_track_kinetic_energy.resize(size);
         m_sim_track_pdg.resize(size);
         m_sim_track_origin.resize(size);
         m_sim_track_process.resize(size);
@@ -165,6 +169,8 @@ namespace single_photon
 
         vertex_tree->Branch("sim_track_matched",&m_sim_track_matched);
         vertex_tree->Branch("sim_track_energy",&m_sim_track_energy);
+        vertex_tree->Branch("sim_track_kinetic_energy",&m_sim_track_kinetic_energy);
+        vertex_tree->Branch("sim_track_mass",&m_sim_track_mass);
         vertex_tree->Branch("sim_track_pdg",&m_sim_track_pdg);
         vertex_tree->Branch("sim_track_origin",&m_sim_track_origin);
         vertex_tree->Branch("sim_track_process",&m_sim_track_process);
@@ -316,15 +322,14 @@ namespace single_photon
                 const art::Ptr<simb::MCParticle> mcparticle = trackToMCParticleMap[track];
                 std::cout<<"count2: "<<MCParticleToMCTruthMap.count(mcparticle)<<std::endl;
                 const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
-                std::cout<<"count3"<<std::endl;
 
                 std::vector<double> corrected(3);
                 this->spacecharge_correction(mcparticle, corrected);
-                std::cout<<"count4"<<std::endl;
 
                 m_sim_track_matched[i_trk] = 1;
                 m_sim_track_energy[i_trk] = mcparticle->E();
-                std::cout<<"count5"<<std::endl;
+                m_sim_track_mass[i_trk] = mcparticle->Mass();
+                m_sim_track_kinetic_energy[i_trk] = m_sim_track_energy[i_trk]-m_sim_track_mass[i_trk];
                 m_sim_track_pdg[i_trk] = mcparticle->PdgCode();
                 m_sim_track_process[i_trk] = mcparticle->Process();
                 m_sim_track_startx[i_trk] = mcparticle->Position().X()+corrected[0];
