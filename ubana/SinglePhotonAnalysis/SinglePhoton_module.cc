@@ -347,12 +347,12 @@ namespace single_photon
             perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
             perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
             
-            //OK a really wierd bug in which by accessing the map here in line 304, everything breaks.. but commenting it out is OK
+            //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
 
 
             for(auto & track: tracks){
                 std::cout<<"Reallyside: "<<trackToMCParticleMap.count(track)<<std::endl;
-                 //const art::Ptr<simb::MCParticle> mp = trackToMCParticleMap[track];
+                //const art::Ptr<simb::MCParticle> mp = trackToMCParticleMap[track];
                 //std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
             }
             //for(auto & shower: showers){
