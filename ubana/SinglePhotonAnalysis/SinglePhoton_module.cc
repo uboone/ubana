@@ -785,8 +785,6 @@ namespace single_photon
     }
 
 
-    double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + theDetector->GetXTicksOffset(0, 0, 0) - theDetector->TriggerOffset();
-    _true_vx_sce = _true_vx - sce_service->GetPosOffsets(_true_vx, _true_vy, _true_vz)[0] + theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0);
 
     int SinglePhoton::spacecharge_correction(const simb::MCParticle & mcparticle, std::vector<double> & corrected){
         corrected.resize(3);
