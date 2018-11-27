@@ -268,51 +268,6 @@ namespace single_photon
         std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCShower> > MCParticleToMCShowerMap;
 
 
-        if(!m_is_data){
-
-            art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle= evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
-            art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
-
-            //Get the MCParticles (move to do this ourselves later)
-            this->CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap);
-
-            //OK lets get all set up with sim::MCTrack and sim::MCShower .
-            art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
-            art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
-            art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
-            art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
-
-            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
-
-            this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
-
-            recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
-            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
-
-            for(auto & track: tracks){
-                std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
-            }
-
-            perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
-            perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
-
-            for(auto & track: tracks){
-                std::cout<<"Reallyside: "<<trackToMCParticleMap.count(track)<<std::endl;
-                auto mp = trackToMCParticleMap[track];
-                std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
-            }
-            //for(auto & shower: showers){
-            //    auto mp = showerToMCParticleMap[shower];
-            //    std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
-            //}
-
-            for(auto & track: tracks){
-                std::cout<<"BINside: "<<trackToMCParticleMap.count(track)<<std::endl;
-            }
-
-
-        }
-
         //**********************************************************************************************/
         //**********************************************************************************************/
         //Some event based properties
@@ -359,16 +314,64 @@ namespace single_photon
             std::cout<<"Outside: "<<trackToMCParticleMap.count(track)<<std::endl;
         }
 
-        if(!m_is_data) this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
         if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
-
-
         this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap); 
-        if(!m_is_data) this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
 
         // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
         // MCShower and MCTrack come from energy depositions in GEANT4
-        if(!m_is_data) this->AnalyzeMCTruths(mcTruthVector);
+        if(!m_is_data){
+
+            art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle= evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
+            art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
+
+            //Get the MCParticles (move to do this ourselves later)
+            this->CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap);
+
+            //OK lets get all set up with sim::MCTrack and sim::MCShower .
+            art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
+            art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
+            art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
+            art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
+
+            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
+
+            this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
+
+            recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector);
+            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, mcParticleVector );
+
+            for(auto & track: tracks){
+                std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
+            }
+
+            perfectRecoMatching<art::Ptr<sim::MCTrack>>(mcParticleVector, mcTrackVector, MCParticleToMCTrackMap);
+            perfectRecoMatching<art::Ptr<sim::MCShower>>(mcParticleVector, mcShowerVector, MCParticleToMCShowerMap);
+            
+            //OK a really wierd bug in which by accessing the map here in line 304, everything breaks.. but commenting it out is OK
+
+
+            for(auto & track: tracks){
+                std::cout<<"Reallyside: "<<trackToMCParticleMap.count(track)<<std::endl;
+                 //const art::Ptr<simb::MCParticle> mp = trackToMCParticleMap[track];
+                //std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
+            }
+            //for(auto & shower: showers){
+            //    auto mp = showerToMCParticleMap[shower];
+            //    std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
+            //}
+
+            for(auto & track: tracks){
+                std::cout<<"BINside: "<<trackToMCParticleMap.count(track)<<std::endl;
+            }
+
+
+            this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
+            this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
+            this->AnalyzeMCTruths(mcTruthVector);
+
+        }
+
+
 
 
         //---------------------- END OF LOOP, fill vertex ---------------------
