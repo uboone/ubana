@@ -781,6 +781,7 @@ namespace single_photon
         corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //ask davide C aboiut this if your lost. https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
+        //std::cout<<"OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
         return 0;
     }
 
@@ -800,6 +801,7 @@ namespace single_photon
         corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6;
         corrected[1]=yOffset;
         corrected[2]=zOffset;
+        //std::cout<<"OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
         return 0;
     }
 
