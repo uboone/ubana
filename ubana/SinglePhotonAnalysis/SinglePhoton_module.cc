@@ -775,10 +775,10 @@ namespace single_photon
         double kz = mcparticle->Vz();
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
         double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
-        double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)-scecorr.X();
+        double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)+scecorr.X();
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
-        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //ask davide C about this if your lost.
+        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //ask davide C aboiut this if your lost. https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
         return 0;
@@ -794,7 +794,7 @@ namespace single_photon
         double kz = mcparticle.Vz();
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
         double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle.T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
-        double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)-scecorr.X();
+        double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)+scecorr.X();
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
         corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6;
