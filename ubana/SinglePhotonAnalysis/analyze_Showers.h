@@ -417,9 +417,9 @@ namespace single_photon
                 m_sim_shower_kinetic_energy[i_shr] = mcparticle->E()-mcparticle->Mass();
                 m_sim_shower_pdg[i_shr] = mcparticle->PdgCode();
                 m_sim_shower_process[i_shr] = mcparticle->Process();
-                m_sim_shower_startx[i_shr] = mcparticle->Position().X()+corrected[0];
-                m_sim_shower_starty[i_shr] = mcparticle->Position().Y()+corrected[1];
-                m_sim_shower_startz[i_shr] =mcparticle->Position().Z()+corrected[2];
+                m_sim_shower_startx[i_shr] = corrected[0];
+                m_sim_shower_starty[i_shr] = corrected[1];
+                m_sim_shower_startz[i_shr] =corrected[2];
                 m_sim_shower_origin[i_shr] = mctruth->Origin();
             }
             i_shr++;

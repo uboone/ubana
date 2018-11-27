@@ -534,8 +534,10 @@ namespace single_photon
             int   m_mctruth_num_exiting_deltapm; 
             int   m_mctruth_num_exiting_deltapp; 
 
+            std::vector<int> m_mctruth_exiting_photon_trackID;
             std::vector<int> m_mctruth_exiting_photon_mother_trackID;
             std::vector<int> m_mctruth_exiting_photon_mother_pdg;
+            std::vector<int> m_mctruth_exiting_proton_trackID;
             std::vector<int> m_mctruth_exiting_proton_mother_trackID;
             std::vector<int> m_mctruth_exiting_proton_mother_pdg;
 

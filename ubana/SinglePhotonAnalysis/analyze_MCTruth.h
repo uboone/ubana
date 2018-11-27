@@ -34,8 +34,10 @@ namespace single_photon
         m_mctruth_exiting_pi0_pz.clear();
 
         m_mctruth_exiting_photon_mother_trackID.clear();
+        m_mctruth_exiting_photon_trackID.clear();
         m_mctruth_exiting_photon_mother_pdg.clear();
        m_mctruth_exiting_proton_mother_trackID.clear();
+       m_mctruth_exiting_proton_trackID.clear();
         m_mctruth_exiting_proton_mother_pdg.clear();
 
     }
@@ -78,9 +80,11 @@ namespace single_photon
         vertex_tree->Branch("mctruth_num_exiting_deltapm",&m_mctruth_num_exiting_deltapm);
         vertex_tree->Branch("mctruth_num_exiting_deltapp",&m_mctruth_num_exiting_deltapp);
 
+        vertex_tree->Branch("mctruth_exiting_photon_trackID",&m_mctruth_exiting_photon_trackID);
         vertex_tree->Branch("mctruth_exiting_photon_mother_trackID",&m_mctruth_exiting_photon_mother_trackID);
         vertex_tree->Branch("mctruth_exiting_photon_mother_pdg",&m_mctruth_exiting_photon_mother_pdg);
 
+        vertex_tree->Branch("mctruth_exiting_proton_trackID",&m_mctruth_exiting_proton_trackID);
         vertex_tree->Branch("mctruth_exiting_proton_mother_trackID",&m_mctruth_exiting_proton_mother_trackID);
         vertex_tree->Branch("mctruth_exiting_proton_mother_pdg",&m_mctruth_exiting_proton_mother_pdg);
 
@@ -116,9 +120,9 @@ namespace single_photon
             std::vector<double> corrected(3);
             this->spacecharge_correction( truth->GetNeutrino().Lepton(),corrected);
 
-            m_mctruth_nu_vertex_x = truth->GetNeutrino().Lepton().Position().X()+corrected[0];
-            m_mctruth_nu_vertex_y = truth->GetNeutrino().Lepton().Position().Y()+corrected[1];
-            m_mctruth_nu_vertex_z = truth->GetNeutrino().Lepton().Position().Z()+corrected[2];
+            m_mctruth_nu_vertex_x = corrected[0];
+            m_mctruth_nu_vertex_y = corrected[1];
+            m_mctruth_nu_vertex_z = corrected[2];
 
 
             m_mctruth_num_daughter_particles = truth->NParticles();
@@ -133,6 +137,7 @@ namespace single_photon
                         case(22):
                                 m_mctruth_num_exiting_photons++;
                                 m_mctruth_exiting_photon_mother_trackID.push_back(par.Mother());
+                                m_mctruth_exiting_photon_trackID.push_back(par.TrackId());
                                 break;
                         case(111):
                                 m_mctruth_exiting_pi0_E.push_back(par.E());
@@ -148,6 +153,7 @@ namespace single_photon
                         case(2212): 
                                 m_mctruth_num_exiting_protons++;
                                 m_mctruth_exiting_proton_mother_trackID.push_back(par.Mother());
+                                m_mctruth_exiting_proton_trackID.push_back(par.TrackId());
                                 break;
                         case(2112): 
                                 m_mctruth_num_exiting_neutrons++;
@@ -182,14 +188,14 @@ namespace single_photon
             for(int p =0; p < m_mctruth_num_exiting_photons; ++p){
                 if( mcp->TrackId() == m_mctruth_exiting_photon_mother_trackID[p]){
                       m_mctruth_exiting_photon_mother_pdg[p] = mcp->PdgCode(); 
-                      std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t -- photon with parent "<<m_mctruth_exiting_photon_mother_pdg[p]<<"."<<std::endl;
+                      std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t -- gamma ("<<m_mctruth_exiting_photon_trackID[p]<<") with parent "<<m_mctruth_exiting_photon_mother_pdg[p]<<" ID: "<<m_mctruth_exiting_photon_mother_trackID[p]<<std::endl;
                 }
             }
 
             for(int p =0; p < m_mctruth_num_exiting_protons; ++p){
                 if( mcp->TrackId() == m_mctruth_exiting_proton_mother_trackID[p]){
                       m_mctruth_exiting_proton_mother_pdg[p] = mcp->PdgCode(); 
-                      std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t -- proton with parent "<<m_mctruth_exiting_proton_mother_pdg[p]<<"."<<std::endl;
+                      std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t -- proton ("<<m_mctruth_exiting_proton_trackID[p]<<") with parent "<<m_mctruth_exiting_proton_mother_pdg[p]<<" ID: "<<m_mctruth_exiting_proton_mother_trackID[p]<<std::endl;
                 }
             }
 

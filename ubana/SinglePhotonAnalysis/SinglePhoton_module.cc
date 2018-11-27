@@ -770,31 +770,36 @@ namespace single_photon
     int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected){
         corrected.resize(3);
         //Space Charge Effect! functionize this soon.
-        double kx = mcparticle->Position().X();
-        double ky = mcparticle->Position().Y();
-        double kz = mcparticle->Position().Z();
+        double kx = mcparticle->Vx();
+        double ky = mcparticle->Vy();
+        double kz = mcparticle->Vz();
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
         double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
         double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)-scecorr.X();
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
-        corrected[0]=xOffset;
-        corrected[1]=yOffset;
-        corrected[2]=zOffset;
+        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //ask davide C about this if your lost.
+        corrected[1]=ky+yOffset;
+        corrected[2]=kz+zOffset;
         return 0;
     }
+
+
+    double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + theDetector->GetXTicksOffset(0, 0, 0) - theDetector->TriggerOffset();
+    _true_vx_sce = _true_vx - sce_service->GetPosOffsets(_true_vx, _true_vy, _true_vz)[0] + theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0);
+
     int SinglePhoton::spacecharge_correction(const simb::MCParticle & mcparticle, std::vector<double> & corrected){
         corrected.resize(3);
         //Space Charge Effect! functionize this soon.
-        double kx = mcparticle.Position().X();
-        double ky = mcparticle.Position().Y();
-        double kz = mcparticle.Position().Z();
+        double kx = mcparticle.Vx();
+        double ky = mcparticle.Vy();
+        double kz = mcparticle.Vz();
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
         double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle.T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
         double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)-scecorr.X();
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
-        corrected[0]=xOffset;
+        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6;
         corrected[1]=yOffset;
         corrected[2]=zOffset;
         return 0;

@@ -332,9 +332,9 @@ namespace single_photon
                 m_sim_track_kinetic_energy[i_trk] = m_sim_track_energy[i_trk]-m_sim_track_mass[i_trk];
                 m_sim_track_pdg[i_trk] = mcparticle->PdgCode();
                 m_sim_track_process[i_trk] = mcparticle->Process();
-                m_sim_track_startx[i_trk] = mcparticle->Position().X()+corrected[0];
-                m_sim_track_starty[i_trk] =mcparticle->Position().Y()+corrected[1];
-                m_sim_track_startz[i_trk] =mcparticle->Position().Z()+corrected[2];
+                m_sim_track_startx[i_trk] = corrected[0];
+                m_sim_track_starty[i_trk] = corrected[1];
+                m_sim_track_startz[i_trk] = corrected[2];
                 m_sim_track_origin[i_trk] = mctruth->Origin();
             }
             i_trk++;
