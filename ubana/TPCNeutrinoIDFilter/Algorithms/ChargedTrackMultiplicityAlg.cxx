@@ -197,12 +197,7 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
                 art::Ptr<recob::Vertex> vertex(vertexVecHandle, vertexIdx);
                 
                 // Get the position of the vertex
-                // Ultimately we really want the vertex position in a TVector3 object...
-                double vertexXYZ[3];
-                
-                vertex->XYZ(vertexXYZ);
-                
-                TVector3 vertexPos(vertexXYZ[0],vertexXYZ[1],vertexXYZ[2]);
+                auto vertexPos = vertex->position();
             	   
                 if(inFV(vertexPos.X(),vertexPos.Y(),vertexPos.Z()))
                 {
@@ -214,25 +209,25 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
                         art::Ptr<recob::Track> track(trackVecHandle,trackIdx);
                         
                         // so we need to get the track direction sorted out.
-                        TVector3 trackPos = track->Vertex();
-                        TVector3 trackEnd = track->End();
+                        auto trackPos = track->Vertex();
+                        auto trackEnd = track->End();
                         
                         // Take the closer end---------------------------------
-                        double trackToVertexDist = (trackPos - vertexPos).Mag();
+                        double trackToVertexDist = (trackPos - vertexPos).R();
                         
-                        if ((trackEnd - vertexPos).Mag() < trackToVertexDist)
+                        if ((trackEnd - vertexPos).R() < trackToVertexDist)
                         {
                             trackPos          = track->End();
                             trackEnd          = track->Vertex();
-                            trackToVertexDist = (trackPos - vertexPos).Mag();
+                            trackToVertexDist = (trackPos - vertexPos).R();
                         }
                         
                         //--------------------------------------------------------------------------
                         if(trackToVertexDist<fMinTrk2VtxDist)
                         {
-                            if((trackEnd-trackPos).Mag()>TrackCandLength)
+                            if((trackEnd-trackPos).R()>TrackCandLength)
                             {
-                                TrackCandLength = (trackEnd-trackPos).Mag();
+                                TrackCandLength = (trackEnd-trackPos).R();
                                 TrackCandidate=trackIdx;
                                 VertexCandidate=vertexIdx;
                                 trackstartzcandidate=trackPos.z();

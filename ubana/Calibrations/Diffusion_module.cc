@@ -834,10 +834,10 @@ void microboone::Diffusion::analyze(const art::Event& evt)
      else {   //use the normal methods for other kinds of tracks
         ntraj = track.NumberTrajectoryPoints();
         if (ntraj > 0) {
-     	  pos	   = track.Vertex();
-     	  dir_start = track.VertexDirection();
-     	  dir_end   = track.EndDirection();
-     	  end	   = track.End();
+     	  pos	   = track.Vertex<TVector3>();
+     	  dir_start = track.VertexDirection<TVector3>();
+     	  dir_end   = track.EndDirection<TVector3>();
+     	  end	   = track.End<TVector3>();
 
      	  tlen	     = length(track);
      	  if(track.NumberTrajectoryPoints() > 0)
@@ -1087,17 +1087,7 @@ void microboone::Diffusion::HitsPurity(std::vector< art::Ptr<recob::Hit> > const
 // Length of reconstructed track, trajectory by trajectory.
 double microboone::Diffusion::length(const recob::Track& track)
 {
-  double result = 0.;
-  TVector3 disp = track.LocationAtPoint(0);
-  int n = track.NumberTrajectoryPoints();
-
-  for(int i = 1; i < n; ++i) {
-    const TVector3& pos = track.LocationAtPoint(i);
-    disp -= pos;
-    result += disp.Mag();
-    disp = pos;
-  }
-  return result;
+  return track.Length();
 }
 
 // Length of MC particle, tracjectory by tracjectory.

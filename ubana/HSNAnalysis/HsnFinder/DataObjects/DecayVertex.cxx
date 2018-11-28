@@ -64,9 +64,9 @@ namespace AuxVertex
     fProngStartX = {(float) fProngTrack[0]->Start().X(), (float) fProngTrack[1]->Start().X()};
     fProngStartY = {(float) fProngTrack[0]->Start().Y(), (float) fProngTrack[1]->Start().Y()};
     fProngStartZ = {(float) fProngTrack[0]->Start().Z(), (float) fProngTrack[1]->Start().Z()};
-    fProngEndX = {(float) fProngTrack[0]->End()[0], (float) fProngTrack[1]->End()[0]};
-    fProngEndY = {(float) fProngTrack[0]->End()[1], (float) fProngTrack[1]->End()[1]};
-    fProngEndZ = {(float) fProngTrack[0]->End()[2], (float) fProngTrack[1]->End()[2]};
+    fProngEndX = {(float) fProngTrack[0]->End().X(), (float) fProngTrack[1]->End().X()};
+    fProngEndY = {(float) fProngTrack[0]->End().Y(), (float) fProngTrack[1]->End().Y()};
+    fProngEndZ = {(float) fProngTrack[0]->End().Z(), (float) fProngTrack[1]->End().Z()};
 
     // Calculate length, theta, phi and number of hits
     fProngLength = {(float) fProngTrack[0]->Length(), (float) fProngTrack[1]->Length()};

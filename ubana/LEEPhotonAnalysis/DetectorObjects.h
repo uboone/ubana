@@ -43,7 +43,7 @@ struct Track : public DetectorObject {
   Track(size_t const id, size_t const original_index, int const reco_type, recob::Track const & t) :
     DetectorObject(id, original_index, reco_type) {
     for(size_t i = 0; i < t.NumberTrajectoryPoints(); ++i)
-      ftrajectory.push_back(t.LocationAtPoint(i)); 
+      ftrajectory.push_back(t.LocationAtPoint<TVector3>(i));
   }
   
 };
