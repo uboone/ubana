@@ -40,7 +40,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "lardata/Utilities/AssociationUtil.h"
-
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -90,9 +90,9 @@ public:
    *  @param pfParticleList the list of PFP
    *  @param particle the neutrino PFP, input
    *  @param pfp_v output, a vector of PFP (the TPC object) */
-  void CollectPFP(lar_pandora::PFParticleVector pfParticleList, art::Ptr<recob::PFParticle> particle, lar_pandora::PFParticleVector &pfp_v);
-
-  /**
+  void CollectPFP(lar_pandora::PFParticlesToMetadata pfParticleToMetadata,lar_pandora::PFParticleVector pfParticleList, art::Ptr<recob::PFParticle> particle, lar_pandora::PFParticleVector &pfp_v, std::vector<double> &score_v);
+  float GetTrackShowerScore(const art::Ptr<recob::PFParticle> pfParticle, lar_pandora::PFParticlesToMetadata pfParticleToMetadata);
+ /**
    *  @brief Gets all the tracks and PFP for a single Pandora slice
    *
    *  @param pfParticleToTrackMap map from PFP to tracks
@@ -101,7 +101,8 @@ public:
    *  @param track_v output, a vector of tracks (the TPC object)   
    *  @param shower_v output, a vector of showers (the TPC object) */
   void CollectTracksAndShowers(lar_pandora::PFParticlesToTracks pfParticleToTrackMap, lar_pandora::PFParticlesToShowers pfParticleToShowerMap, lar_pandora::PFParticleVector pfp_v, lar_pandora::TrackVector &track_v, lar_pandora::ShowerVector &shower_v);
-
+  //void CollectTracksAndShowers( lar_pandora::PFParticlesToMetadata pfParticleToMetadata, lar_pandora::PFParticlesToTracks pfParticleToTrackMap, lar_pandora::PFParticlesToShowers pfParticleToShowerMap, lar_pandora::PFParticleVector pfp_v, lar_pandora::TrackVector &track_v, lar_pandora::ShowerVector &shower_v);
+ 
   /**
    *  @brief Gets the pfp, track and shower multiplicity for a neutrino PFP
    *
@@ -111,7 +112,7 @@ public:
    *  @param p output, multiplicity in number of PFPs
    *  @param t output, multiplicity in number of tracks
    *  @param s output, multiplicity in number of showers */
-  void GetMultiplicity(lar_pandora::PFParticleVector pfParticleList, lar_pandora::PFParticleVector pfp_v, art::Ptr<recob::PFParticle> particle, int & p, int & t, int & s);
+  void GetMultiplicity(lar_pandora::PFParticlesToMetadata pfParticleToMetadata, lar_pandora::PFParticleVector pfParticleList, lar_pandora::PFParticleVector pfp_v, art::Ptr<recob::PFParticle> particle, int & p, int & t, int & s);
 
   /**
    *  @brief Constructs TPC objects using Pandora PFP slices
@@ -127,7 +128,7 @@ public:
    *  @param p_v output, multiplicity in number of PFPs
    *  @param t_v output, multiplicity in number of tracks
    *  @param s_v output, multiplicity in number of showers */
-  void GetTPCObjects(lar_pandora::PFParticleVector pfParticleList, lar_pandora::PFParticlesToTracks pfParticleToTrackMap, lar_pandora::PFParticlesToShowers pfParticleToShowerMap, lar_pandora::PFParticlesToVertices  pfParticleToVertexMap, std::vector<lar_pandora::PFParticleVector> & pfp_v_v, std::vector<lar_pandora::TrackVector> & track_v_v, std::vector<lar_pandora::ShowerVector> & shower_v_v, std::vector<int> & p_v, std::vector<int> & t_v, std::vector<int> & s_v);
+  void GetTPCObjects(lar_pandora::PFParticlesToMetadata pfParticleToMetadata, lar_pandora::PFParticleVector pfParticleList, lar_pandora::PFParticlesToTracks pfParticleToTrackMap, lar_pandora::PFParticlesToShowers pfParticleToShowerMap, lar_pandora::PFParticlesToVertices  pfParticleToVertexMap, std::vector<lar_pandora::PFParticleVector> & pfp_v_v, std::vector<lar_pandora::TrackVector> & track_v_v, std::vector<lar_pandora::ShowerVector> & shower_v_v, std::vector<int> & p_v, std::vector<int> & t_v, std::vector<int> & s_v, std::vector<double> &score_v);
 
 
   /**
@@ -230,13 +231,17 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
   lar_pandora::ShowerVector           allPfParticleShowers;
   lar_pandora::PFParticlesToShowers   pfParticleToShowerMap;
   lar_pandora::LArPandoraHelper::CollectShowers(e, _showerLabel, allPfParticleShowers, pfParticleToShowerMap);
+  lar_pandora::MetadataVector         allPfParticlesMetadata;
+  lar_pandora::PFParticlesToMetadata   pfParticleToMetadata;
+  lar_pandora::LArPandoraHelper::CollectPFParticleMetadata(e, _pfp_producer, pfParticleList, pfParticleToMetadata);
+
 
   std::vector<lar_pandora::TrackVector     > track_v_v;
   std::vector<lar_pandora::ShowerVector    > shower_v_v;
   std::vector<lar_pandora::PFParticleVector> pfp_v_v;
   std::vector<int> p_v, t_v, s_v;
-
-  this->GetTPCObjects(pfParticleList, pfParticleToTrackMap, pfParticleToShowerMap, pfParticleToVertexMap, pfp_v_v, track_v_v, shower_v_v, p_v, t_v, s_v);
+  std::vector<double> score_v;
+  this->GetTPCObjects(pfParticleToMetadata, pfParticleList, pfParticleToTrackMap, pfParticleToShowerMap, pfParticleToVertexMap, pfp_v_v, track_v_v, shower_v_v, p_v, t_v, s_v, score_v);
 
 
   // Do the MCParticle to PFParticle matching
@@ -373,7 +378,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
 
     // Set Multiplicity
     obj.SetMultiplicity(p_v[i], t_v[i], s_v[i]);
-
+    //   obj.SetTrackScore(score_v[i]);
     tpcObjectVector->emplace_back(obj);
     util::CreateAssn(*this, e, *tpcObjectVector, track_v_v[i],  *assnOutTPCObjectTrack);
     util::CreateAssn(*this, e, *tpcObjectVector, shower_v_v[i], *assnOutTPCObjectShower);
@@ -419,14 +424,14 @@ art::Ptr<recob::PFParticle> ubana::TPCObjectMaker::GetNuPFP(lar_pandora::PFParti
 
 
 //___________________________________________________________________________________________________
-void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticleVector pfParticleList,
+void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticlesToMetadata pfParticleToMetadata,lar_pandora::PFParticleVector pfParticleList,
                                           lar_pandora::PFParticlesToTracks pfParticleToTrackMap,
                                           lar_pandora::PFParticlesToShowers pfParticleToShowerMap, 
                                           lar_pandora::PFParticlesToVertices  pfParticleToVertexMap,
                                           std::vector<lar_pandora::PFParticleVector> & pfp_v_v,
                                           std::vector<lar_pandora::TrackVector> & track_v_v,
                                           std::vector<lar_pandora::ShowerVector> & shower_v_v,
-                                          std::vector<int> & p_v, std::vector<int> & t_v, std::vector<int> & s_v) {
+                                          std::vector<int> & p_v, std::vector<int> & t_v, std::vector<int> & s_v, std::vector<double> & score_v) {
 
   track_v_v.clear();
   shower_v_v.clear();
@@ -434,7 +439,7 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticleVector pfPartic
   p_v.clear();
   t_v.clear();
   s_v.clear();
-
+  score_v.clear();
 
   if (_debug) std::cout << "[TPCObjectMaker] Getting TPC Objects..." << std::endl;
 
@@ -443,7 +448,7 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticleVector pfPartic
 
     bool is_main_pfp = lar_pandora::LArPandoraHelper::IsNeutrino(particle);
     if (_pandora_cosmic_mode) is_main_pfp = particle->IsPrimary();
-
+    if (abs(particle->PdgCode())!=14) continue;
     if(is_main_pfp) {
       if (_debug) std::cout << "[TPCObjectMaker] \t >>> Creating TPC Object " << track_v_v.size() << " <<<"<< std::endl;
 
@@ -458,7 +463,7 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticleVector pfPartic
       if (_debug) std::cout << "[TPCObjectMaker] \t Before filtering..." << std::endl;
 
       // Collect PFPs for this TPC object
-      this->CollectPFP(pfParticleList, particle, pfp_v);
+      this->CollectPFP(pfParticleToMetadata,pfParticleList, particle, pfp_v,score_v);
 
       // Collect Tracks and Showers for this TPC object
       this->CollectTracksAndShowers(pfParticleToTrackMap, pfParticleToShowerMap, pfp_v, // input
@@ -478,7 +483,7 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticleVector pfPartic
       }
 
       // Calculate multiplicity for this TPC object
-      this->GetMultiplicity(pfParticleList, pfp_v, particle, p, t, s);
+      this->GetMultiplicity(pfParticleToMetadata,pfParticleList, pfp_v, particle, p, t, s);
 
 
 
@@ -509,35 +514,66 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticleVector pfPartic
       p_v.emplace_back(p);
       t_v.emplace_back(t);
       s_v.emplace_back(s);
-
+ 
+	
     } // end if neutrino
   } // end pfp loop
 }
 
 
 //______________________________________________________________________________________________________________________________________
-void ubana::TPCObjectMaker::CollectPFP(lar_pandora::PFParticleVector pfParticleList,
+void ubana::TPCObjectMaker::CollectPFP(lar_pandora::PFParticlesToMetadata pfParticleToMetadata, lar_pandora::PFParticleVector pfParticleList,
                                        art::Ptr<recob::PFParticle> particle,
-                                       lar_pandora::PFParticleVector &pfp_v) {
+                                       lar_pandora::PFParticleVector &pfp_v, std::vector<double> & score_v) {
 
   pfp_v.emplace_back(particle);
-
+ 
   // And their daughters
   const std::vector<size_t> &daughterIDs = particle->Daughters();
   if(daughterIDs.size() == 0) return;
   else {
     for (unsigned int m = 0; m < daughterIDs.size(); ++m) {
       const art::Ptr<recob::PFParticle> daughter = pfParticleList.at(daughterIDs.at(m));
-      // Recursive call
-      this->CollectPFP(pfParticleList, daughter, pfp_v);
-    }
-  }
+      if(daughter->IsPrimary()) continue;
+      if(abs(particle->PdgCode())!=14) continue;
+      std::cout<<"Lu check mother: "<<particle->PdgCode()<<std::endl;
+	// Recursive call
+      const float trackScore = GetTrackShowerScore(daughter, pfParticleToMetadata);
+      std::cout<<"trackScore: "<<trackScore<<std::endl;
+      score_v.push_back(trackScore);
+      this->CollectPFP(pfParticleToMetadata,pfParticleList, daughter, pfp_v,score_v);
 
+      
+    }
+    
+  }
+}
+//________________________________________________________________________________________________________________________________________
+float  ubana::TPCObjectMaker::GetTrackShowerScore(const art::Ptr<recob::PFParticle> pfParticle, const lar_pandora::PFParticlesToMetadata pfParticleToMetadata)
+{
+    // Find the PFParticle in the metadata map
+    const auto itParticle = pfParticleToMetadata.find(pfParticle);
+    // Check the PFParticle was found
+    if (itParticle == pfParticleToMetadata.end())
+        throw cet::exception("WorkshopTrackShowerHelperComplete") << "PFParticle has no metadata" << std::endl;
+    // There should only be one metadata for each PFParticle
+    if (itParticle->second.size() != 1)
+        throw cet::exception("WorkshopTrackShowerHelperComplete") << "PFParticle has mutiple metadata" << std::endl;
+    // The metadata vector has size one as required, so just take the first element
+    const auto metadata = itParticle->second.front();
+    // Now get the properties map - this is a map from a string (the property name) to a float (the property value)
+    const auto propertiesMap = metadata->GetPropertiesMap();
+    // Look for the track shower ID score
+    const auto itScore = propertiesMap.find("TrackScore");
+    // Check the track score was available
+    if (itScore == propertiesMap.end())
+        throw cet::exception("WorkshopTrackShowerHelperComplete") << "PFParticle has no track score" << std::endl;
+    return itScore->second;
 }
 
-
 //______________________________________________________________________________________________________________________________________
-void ubana::TPCObjectMaker::CollectTracksAndShowers(lar_pandora::PFParticlesToTracks pfParticleToTrackMap,
+void ubana::TPCObjectMaker::CollectTracksAndShowers(
+                                                    lar_pandora::PFParticlesToTracks pfParticleToTrackMap,
                                                     lar_pandora::PFParticlesToShowers pfParticleToShowerMap,
                                                     lar_pandora::PFParticleVector pfp_v,
                                                     lar_pandora::TrackVector &track_v,
@@ -546,11 +582,12 @@ void ubana::TPCObjectMaker::CollectTracksAndShowers(lar_pandora::PFParticlesToTr
   // Cleaning
   track_v.clear();
   shower_v.clear();
-
-  // Loop over the PFPs
+   // Loop over the PFPs
+   
   for (auto pfp : pfp_v) {
 
     if (_debug) std::cout << "[TPCObjectMaker] \t PFP " << pfp->Self() << " which " << (pfp->IsPrimary() ? "is" : "is not") << " a primary" << std::endl;
+
 
     auto iter1 = pfParticleToTrackMap.find(pfp);
     if (iter1 != pfParticleToTrackMap.end()) {
@@ -576,7 +613,7 @@ void ubana::TPCObjectMaker::CollectTracksAndShowers(lar_pandora::PFParticlesToTr
 
 
 //______________________________________________________________________________________________________________________________________
-void ubana::TPCObjectMaker::GetMultiplicity(lar_pandora::PFParticleVector pfParticleList, 
+void ubana::TPCObjectMaker::GetMultiplicity(lar_pandora::PFParticlesToMetadata pfParticleToMetadata, lar_pandora::PFParticleVector pfParticleList, 
                                             lar_pandora::PFParticleVector pfp_v,
                                             art::Ptr<recob::PFParticle> particle,
                                             int & p,
@@ -606,7 +643,8 @@ void ubana::TPCObjectMaker::GetMultiplicity(lar_pandora::PFParticleVector pfPart
 
   // Reset
   p = t = s = 0;
-
+  //  lar_pandora::PFParticlesToMetadata pfParticleToMetadata;
+       
   const std::vector<size_t> &daughterIDs = particle->Daughters();
   if(daughterIDs.size() == 0) {
     if (_debug) std::cout << "[TPCObjectMaker] No daughters for this neutrino PFP." << std::endl;
@@ -617,10 +655,12 @@ void ubana::TPCObjectMaker::GetMultiplicity(lar_pandora::PFParticleVector pfPart
 
       const art::Ptr<recob::PFParticle> daughter = pfParticleList.at(daughterIDs.at(m));
 
-      bool found_in_tpcobj = false;
+
+       bool found_in_tpcobj = false;
       for (auto pfp : pfp_v) {
         if (daughter == pfp)
           found_in_tpcobj = true;
+
       }
       if (!found_in_tpcobj) continue;
 
