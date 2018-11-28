@@ -591,7 +591,8 @@ namespace single_photon
 
             }else{
                 std::cout << " Error: vertexVector associated with this particle is empty " << "\n";
-                exit(0);
+                std::cerr << " Error: vertexVector associated with this particle is empty " << "\n";
+                //exit(0);
 
             }
         }
