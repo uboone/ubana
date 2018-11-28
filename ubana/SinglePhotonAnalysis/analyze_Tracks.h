@@ -434,7 +434,8 @@ namespace single_photon
                         //    std::cout<<m<<"\t"<<c_resrange.at(m)<<"  "<<c_dEdx.at(m)<<"  "<<trunc_dEdx.at(m)<<std::endl;
                         //}
                         std::cout<<"Using Radius: "<<rad<<std::endl;
-                        exit(EXIT_FAILURE);
+                        //exit(EXIT_FAILURE);
+                        m_reco_track_good_calo[i_trk] = 0; 
                     }
 
                     pida_sum_trunc += trunc_dEdx[k]/(pow(res_range_good[k],-0.42));
