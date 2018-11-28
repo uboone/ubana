@@ -7,3 +7,5 @@ physics.analyzers.singlephoton.POTLabel: "beamdata"
 physics.analyzers.singlephoton.beamgateStartTime: 3.5
 physics.analyzers.singlephoton.beamgateEndTime: 5.3
 
+#This is needed in order to help with wierd offset (4049.969 us)   
+services.DetectorClocksService.TrigModuleName:               "triggersim"

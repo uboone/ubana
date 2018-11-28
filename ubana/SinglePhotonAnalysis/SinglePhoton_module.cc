@@ -441,8 +441,19 @@ namespace single_photon
         // --------------------- Track Related variables ------------
         this->CreateTrackBranches();
 
+        std::string gpvm_location ="/pnfs/uboone/resilient/users/markross/tars/";
+
+
         //Get the info for length->energy conversion from PSTAR database.
-        TFile *fileconv = new TFile("/pnfs/uboone/resilient/users/markross/tars/proton_conversion.root", "read");
+        TFile *fileconv;
+        struct stat buffer;   
+        
+        if(stat("proton_conversion.root", &buffer) == 0){
+            fileconv = new TFile("proton_conversion.root", "read");
+        }else{
+            fileconv = new TFile((gpvm_location+"proton_conversion.root").c_str(), "read");
+        }
+
         proton_length2energy_tgraph = *(TGraph*)fileconv->Get("Graph");
         proton_length2energy_tgraph.GetMean();
         fileconv->Close();
@@ -454,7 +465,14 @@ namespace single_photon
         // ---------------------- MCTruth Related Variables ----------
         this->CreateMCTruthBranches();
 
-        std::string bad_channel_file = "/pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt";
+        //std::string bad_channel_file = "/pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt";
+      
+        std::string bad_channel_file = "MCC9_channel_list.txt";
+        
+        if(stat(bad_channel_file.c_str(), &buffer) != 0){
+            bad_channel_file = gpvm_location+bad_channel_file;
+        }
+
         std::ifstream bc_file(bad_channel_file);
 
         if (bc_file.is_open())

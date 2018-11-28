@@ -79,7 +79,7 @@ services.SpaceCharge.EnableSimEfieldSCE: true
 services.SpaceCharge.EnableSimSpatialSCE: true
 
 services.DetectorPropertiesService.NumberTimeSamples:        6400
-services.DetectorPropertiesService.ReadOutWindowSize:        6401
+services.DetectorPropertiesService.ReadOutWindowSize:        6400
 services.DetectorClocksService.InheritClockConfig:           false
 services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
 services.DetectorClocksService.TrigModuleName:               "daq"

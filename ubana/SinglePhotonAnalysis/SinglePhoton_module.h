@@ -66,6 +66,7 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <sys/stat.h>
 
 #include "bad_channel_matching.h"
 //------------------------------------------------------------------------------------------------------------------------------------------
