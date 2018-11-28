@@ -65,7 +65,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-
+#include <map>
 
 #include "bad_channel_matching.h"
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -284,6 +284,9 @@ namespace single_photon
             void ClearMCTruths();
             void ResizeMCTruths(size_t);
             void CreateMCTruthBranches();
+
+            std::map<int,std::string> is_delta_map;
+
 
             //These three are shameless steals from LArPandorHelper But overlays dont work so this is a direct clone. We will filter out later.
             void CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector);
@@ -534,14 +537,15 @@ namespace single_photon
             int   m_mctruth_num_exiting_deltapm; 
             int   m_mctruth_num_exiting_deltapp; 
 
+            int m_mctruth_is_delta_radiative;
             std::vector<int> m_mctruth_exiting_delta0_num_daughters;
 
             std::vector<int> m_mctruth_exiting_photon_trackID;
             std::vector<int> m_mctruth_exiting_photon_mother_trackID;
-            std::vector<int> m_mctruth_exiting_photon_mother_pdg;
+            std::vector<int> m_mctruth_exiting_photon_from_delta_decay;
             std::vector<int> m_mctruth_exiting_proton_trackID;
             std::vector<int> m_mctruth_exiting_proton_mother_trackID;
-            std::vector<int> m_mctruth_exiting_proton_mother_pdg;
+            std::vector<int> m_mctruth_exiting_proton_from_delta_decay;
 
 
             std::vector<double>        m_mctruth_exiting_pi0_E;

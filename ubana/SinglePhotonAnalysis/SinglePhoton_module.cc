@@ -64,6 +64,14 @@ namespace single_photon
         m_width_dqdx_box = pset.get<double>("width_box");
         m_length_dqdx_box = pset.get<double>("length_box");
         m_pidLabel = pset.get<std::string>("ParticleIDLabel","particleid");
+
+
+        std::vector<std::string> delta_names = {"Delta++","Delta+","Delta-","Delta0"};
+        std::vector<int> delta_pdg_list = {2224,2214,1114,2114};
+        for(size_t i=0; i< delta_pdg_list.size(); ++i){
+            is_delta_map[delta_pdg_list[i]] = delta_names[i];
+            is_delta_map[-delta_pdg_list[i]] ="Anti-"+delta_names[i];
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
@@ -332,11 +340,12 @@ namespace single_photon
             this->CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap);
 
             //OK lets get all set up with sim::MCTrack and sim::MCShower .
+/*
             art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
             art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
             art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
             art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
-
+*/
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
             this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
@@ -348,9 +357,9 @@ namespace single_photon
                 std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
             }
 
-            perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
-            perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
-            
+          //  perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
+          //  perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
+
             //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
 
 
@@ -610,7 +619,7 @@ namespace single_photon
             if(isNeutrino){
                 found++;
                 this->GetVertex(pfParticlesToVerticesMap, pParticle );
-               
+
             }
 
             // All non-neutrino primary particles are reconstructed under the cosmic hypothesis
@@ -769,21 +778,34 @@ namespace single_photon
 
     int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected){
         corrected.resize(3);
-        //Space Charge Effect! functionize this soon.
+        
         double kx = mcparticle->Vx();
         double ky = mcparticle->Vy();
         double kz = mcparticle->Vz();
+        
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
         double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
+        
         double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)+scecorr.X();
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
-        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //ask davide C aboiut this if your lost. https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials
+        
+        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
-        //std::cout<<"OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+
+        std::cout<<"OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        std::cout<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        std::cout<<mcparticle->T()<<" "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<" "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
     }
+
+
+
+
+
+
+
 
 
 
@@ -799,10 +821,13 @@ namespace single_photon
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
         corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6;
-        corrected[1]=yOffset;
-        corrected[2]=zOffset;
-        //std::cout<<"OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        corrected[1]=ky+yOffset;
+        corrected[2]=kz+zOffset;
+        std::cout<<"OFFVERT: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        std::cout<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        std::cout<<mcparticle.T()<<" "<<detClocks->TPCG4Time2Tick(mcparticle.T())<<" "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
+
     }
 
     void SinglePhoton::CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth)
@@ -878,4 +903,4 @@ namespace single_photon
 
 
 
-} //namespace lar_pandora
+} //namespace
