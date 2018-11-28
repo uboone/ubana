@@ -1720,6 +1720,7 @@ namespace microboone {
     bool fSavePFParticleInfo; ///whether to extract and save PFParticle information
     bool fSaveSWTriggerInfo; ///whether to extract and save software trigger information
     bool fSaveOpticalFilterInfo; ///whether to extract and save optical filter information
+    bool fIsOverlay; //whether we are looking at the overlay sample instead of regular MC/data
 
     std::vector<std::string> fCosmicTaggerAssocLabel;
     std::vector<std::string> fContainmentTaggerAssocLabel;
@@ -4137,6 +4138,7 @@ microboone::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fSavePFParticleInfo	    (pset.get< bool >("SavePFParticleInfo", false)),
   fSaveSWTriggerInfo        (pset.get< bool >("SaveSWTriggerInfo", false)),
   fSaveOpticalFilterInfo    (pset.get< bool >("SaveOpticalFilterInfo", false)),
+  fIsOverlay                (pset.get< bool >("IsOverlay", false)),
   fCosmicTaggerAssocLabel  (pset.get<std::vector< std::string > >("CosmicTaggerAssocLabel") ),
   fContainmentTaggerAssocLabel  (pset.get<std::vector< std::string > >("ContainmentTaggerAssocLabel") ),
   fFlashMatchAssocLabel (pset.get<std::vector< std::string > >("FlashMatchAssocLabel") ),
@@ -4328,6 +4330,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 
   // collect the sizes which might me needed to resize the tree data structure:
   bool isMC = !evt.isRealData();
+  if (fIsOverlay) isMC = true;
     
   // If this is MC then we want to "rebuild"
   // For the BackTracker this call will be a noop (the interface intercepts) since it is a service
@@ -5907,7 +5910,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       }// end (fSaveGenieInfo)  
 
       //Extract MC Shower information and fill the Shower branches
-      if (fSaveMCShowerInfo){
+      if (fSaveMCShowerInfo && mcshowerh.isValid()){
 	fData->no_mcshowers = nMCShowers;       
 	size_t shwr = 0;
 	for(std::vector<sim::MCShower>::const_iterator imcshwr = mcshowerh->begin();    
@@ -5965,7 +5968,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       }//End if (fSaveMCShowerInfo){  
     
       //Extract MC Track information and fill the Shower branches
-      if (fSaveMCTrackInfo){
+      if (fSaveMCTrackInfo && mctrackh.isValid()){
 	fData->no_mctracks = nMCTracks;       
 	size_t trk = 0;
 	for(std::vector<sim::MCTrack>::const_iterator imctrk = mctrackh->begin();imctrk != mctrackh->end(); ++imctrk) {
