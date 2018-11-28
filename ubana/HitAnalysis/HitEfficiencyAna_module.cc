@@ -101,11 +101,6 @@ public:
 
 private:
 
-    // The parameters we'll read from the .fcl file.
-    art::InputTag fHitProducerLabel;
-    art::InputTag fMCParticleProducerLabel;
-    art::InputTag fSimChannelProducerLabel;
-
     // The variables that will go into the n-tuple.
     int fEvent;
     int fRun;
@@ -194,10 +189,6 @@ void HitEfficiencyAna::reconfigure(fhicl::ParameterSet const& p)
 {
     // Read parameters from the .fcl file. The names in the arguments
     // to p.get<TYPE> must match names in the .fcl file.
-    fHitProducerLabel        = p.get< std::string >("HitModuleLabel",  "gauss");
-    fMCParticleProducerLabel = p.get< std::string >("MCParticleLabel", "largeant");
-    fSimChannelProducerLabel = p.get< std::string >("SimChannelLabel", "largeant");
-    
     // Implement the tools for handling the responses
     const std::vector<fhicl::ParameterSet>& hitHistogramToolVec = p.get<std::vector<fhicl::ParameterSet>>("HitEfficiencyHistogramToolList");
     
@@ -218,23 +209,7 @@ void HitEfficiencyAna::analyze(const art::Event& event)
     fNumEvents++;
     
     // Make a pass through all hits to make contrasting plots
-    art::Handle< std::vector<recob::Hit> > hitHandle;
-    event.getByLabel(fHitProducerLabel, hitHandle);
-    
-    art::Handle< std::vector<simb::MCParticle>> mcParticleHandle;
-    event.getByLabel(fMCParticleProducerLabel, mcParticleHandle);
-
-    art::Handle< std::vector<sim::MCShower>> mcShowerHandle;
-    event.getByLabel("mcreco", mcShowerHandle);
-    
-    art::Handle< std::vector<sim::SimChannel>> simChannelHandle;
-    event.getByLabel(fSimChannelProducerLabel, simChannelHandle);
-
-    if (hitHandle.isValid() && simChannelHandle.isValid() && mcParticleHandle.isValid() && mcShowerHandle.isValid())
-    {
-        std::cout << "-- Run: " << fRun << ", SubRun: " << fSubRun << ", Event: " << fEvent << " -------" << std::endl;
-        for(auto& hitHistTool : fHitHistogramToolVec) hitHistTool->fillHistograms(*hitHandle, *mcParticleHandle, *simChannelHandle, *mcShowerHandle);
-    }
+    for(auto& hitHistTool : fHitHistogramToolVec) hitHistTool->fillHistograms(event);
     
     fTree->Fill();
 
