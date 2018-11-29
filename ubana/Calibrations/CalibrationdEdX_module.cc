@@ -27,6 +27,8 @@
 #include "ubevt/Database/TPCEnergyCalib/TPCEnergyCalibProvider.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
 
+#include "larevt/SpaceCharge/SpaceCharge.h"
+#include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
 #include "TH2F.h"
 #include "TH1F.h"
@@ -113,6 +115,9 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
   //handle to tpc energy calibration provider
   const lariov::TPCEnergyCalibProvider& energyCalibProvider
     = art::ServiceHandle<lariov::TPCEnergyCalibService>()->GetProvider();
+    
+  //Spacecharge services provider 
+  auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
 
   //create anab::Calorimetry objects and make association with recob::Track
   std::unique_ptr< std::vector<anab::Calorimetry> > calorimetrycol(new std::vector<anab::Calorimetry>);
@@ -223,7 +228,14 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
           double dQdx_e = caloAlg.ElectronsFromADCArea(vdQdx[j], planeID.Plane);
           double rho = detprop->Density();            // LAr density in g/cm^3
           double Wion = 1000./util::kGeVToElectrons;  // 23.6 eV = 1e, Wion in MeV/e
-          double E_field = detprop->Efield();        // Electric Field in the drift region in KV/cm
+          double E_field_nominal = detprop->Efield();        // Electric Field in the drift region in KV/cm
+          
+          //correct Efield for SCE
+          geo::Vector_t E_field_offsets = {0.,0.,0.};
+          if(sce->EnableCalEfieldSCE()) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()});
+          TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
+          double E_field = E_field_vector.Mag();
+          
           double Beta = fModBoxB / (rho * E_field);
           double Alpha = fModBoxA;
           vdEdx[j] = (exp(Beta * Wion * dQdx_e ) - Alpha) / Beta;
