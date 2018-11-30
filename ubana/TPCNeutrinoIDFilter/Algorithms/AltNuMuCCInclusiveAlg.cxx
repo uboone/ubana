@@ -389,18 +389,18 @@ bool AltNuMuCCInclusiveAlg::findNeutrinoCandidates(art::Event & event) const
                     nVerticesContained++;
                     
                     // so we need to get the track direction sorted out.
-                    TVector3 trackPos = track->Vertex();
-                    TVector3 trackEnd = track->End();
-                    TVector3 trackDir = track->VertexDirection();
+                    TVector3 trackPos = track->Vertex<TVector3>();
+                    TVector3 trackEnd = track->End<TVector3>();
+                    TVector3 trackDir = track->VertexDirection<TVector3>();
                     
                     // Take the closer end---------------------------------
                     double trackToVertexDist = (trackPos - primaryVertex).Mag();
                     
                     if ((trackEnd - primaryVertex).Mag() < trackToVertexDist)
                     {
-                        trackPos          = track->End();
-                        trackEnd          = track->Vertex();
-                        trackDir          = -track->EndDirection();
+                        trackPos          = track->End<TVector3>();
+                        trackEnd          = track->Vertex<TVector3>();
+                        trackDir          = -track->EndDirection<TVector3>();
                         trackToVertexDist = (trackPos - primaryVertex).Mag();
                     }
                     
@@ -466,20 +466,20 @@ bool AltNuMuCCInclusiveAlg::findNeutrinoCandidates(art::Event & event) const
 double AltNuMuCCInclusiveAlg::projectedLength(const recob::Track* track) const
 {
     double   result(0.);
-    TVector3 lastPoint(track->LocationAtPoint(0));
-    TVector3 lastDir(track->DirectionAtPoint(0));
+    TVector3 lastPoint(track->LocationAtPoint<TVector3>(0));
+    TVector3 lastDir(track->DirectionAtPoint<TVector3>(0));
     int      n(track->NumberTrajectoryPoints());
     
     for(int i = 1; i < n; ++i)
     {
-        const TVector3& newPoint = track->LocationAtPoint(i);
+        const TVector3& newPoint = track->LocationAtPoint<TVector3>(i);
         
         TVector3 lastToNewPoint = newPoint - lastPoint;
         double   arcLenToDoca   = lastDir.Dot(lastToNewPoint);
         
         result    += arcLenToDoca;
         lastPoint  = lastPoint + arcLenToDoca * lastDir;
-        lastDir    = track->DirectionAtPoint(i);
+        lastDir    = track->DirectionAtPoint<TVector3>(i);
     }
     
     return result;

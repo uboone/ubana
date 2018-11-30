@@ -826,7 +826,7 @@ bool UBXSecHelper::GetLongestShowerFromTPCObj(lar_pandora::ShowerVector shower_v
 //_________________________________________________________________________________
 bool UBXSecHelper::TracksAreContained(std::vector<recob::Track> tracks){
 
-  TVector3 point;
+  recob::Track::Point_t point;
   double point_a[3];
 
   for (auto trk : tracks) {
@@ -855,7 +855,7 @@ bool UBXSecHelper::TracksAreContained(std::vector<recob::Track> tracks){
 //_________________________________________________________________________________
 bool UBXSecHelper::TrackIsContained(recob::Track track){
 
-  TVector3 point;
+  recob::Track::Point_t point;
   double point_a[3];
 
   point = track.Vertex();
@@ -900,8 +900,8 @@ double UBXSecHelper::GetPhi(double px, double py, double pz) {
 //_________________________________________________________________________________
 double UBXSecHelper::GetCorrectedPhi(recob::Track t, recob::Vertex tpcobj_nu_vtx) {
 
-  TVector3 pt1 = t.Vertex();
-  TVector3 pt2 = t.End();
+  TVector3 pt1 = t.Vertex<TVector3>();
+  TVector3 pt2 = t.End<TVector3>();
 
   double nu_vtx[3];
   tpcobj_nu_vtx.XYZ(nu_vtx);
@@ -949,8 +949,8 @@ double UBXSecHelper::GetPhi(TVector3 dir) {
 //_________________________________________________________________________________
 double UBXSecHelper::GetCorrectedCosTheta(recob::Track t, recob::Vertex tpcobj_nu_vtx) {
 
-  TVector3 pt1 = t.Vertex();
-  TVector3 pt2 = t.End();
+  TVector3 pt1 = t.Vertex<TVector3>();
+  TVector3 pt2 = t.End<TVector3>();
 
   double nu_vtx[3];
   tpcobj_nu_vtx.XYZ(nu_vtx);

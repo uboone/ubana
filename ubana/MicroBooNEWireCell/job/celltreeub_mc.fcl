@@ -34,6 +34,8 @@ celltreeub_mc: {
  POT_numilabel                 : "numiETORTGT"
  MuCS_dataLabel		       : "MuCSMerger"
  MuCS_recoDataLabel	       : "MuCSReco"
+ SimChannel_producer	       : "largeant" #"driftWC"
+ SimChannel_label	       : "" #"simpleSC"
  SaveTPC_raw                   : false # short type  
  SaveTPC_noiseFiltered         : false # float converted to short through scale & shift
  SaveTPC_deconWiener           : true  # default
@@ -43,14 +45,16 @@ celltreeub_mc: {
  SavePMT_raw                   : true  # default
  SavePMT_wfmSaturation         : false
  SavePMT_reco                  : false
- SavePMT_gain                  : false
- SaveHWTrigger                 : true
- SaveSWTrigger                 : true
+ SavePMT_gainData              : false
+ SavePMT_gainMC                : true  # default
+ SaveHWTrigger                 : true  # default
+ SaveSWTrigger                 : true  # default
  SaveBeam                      : false 
  SavePOT                       : false
  SaveMuCSData		       : false
  SaveMuCSRecoData	       : false
- SaveMC			       : true   # default
+ SaveMCParticle 	       : true   # default
+ SaveSimChannel		       : false 
  UseLGBeamForHGCosmic          : true   # default
  FlashMultPEThreshold          : 5
  DeconRebin                    : 4	
