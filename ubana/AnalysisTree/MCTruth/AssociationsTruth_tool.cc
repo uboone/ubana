@@ -97,8 +97,9 @@ public:
     
     // method to return the EveIDs of particles contributing ionization
     // electrons to the identified hit
+    std::vector<sim::TrackIDE> HitToEveID(recob::Hit           const& hit) const override;
     std::vector<sim::TrackIDE> HitToEveID(art::Ptr<recob::Hit> const& hit) const override;
-    
+
     // method to return the XYZ position of the weighted average energy deposition for a given hit
     std::vector<double>  HitToXYZ(art::Ptr<recob::Hit> const& hit) const override;
     
@@ -300,11 +301,16 @@ const std::vector<std::vector<art::Ptr<recob::Hit>>> AssociationsTruth::TrackIDs
 // plist is assumed to have adopted the appropriate EveIdCalculator prior to
 // having been passed to this method. It is likely that the EmEveIdCalculator is
 // the one you always want to use
-std::vector<sim::TrackIDE> AssociationsTruth::HitToEveID(art::Ptr<recob::Hit> const& hit) const
+std::vector<sim::TrackIDE> AssociationsTruth::HitToEveID(recob::Hit const& hit) const
 {
-    return fMCTruthAssociations.HitToEveID(hit);
+    return fMCTruthAssociations.HitToEveID(&hit);
 }
     
+std::vector<sim::TrackIDE> AssociationsTruth::HitToEveID(art::Ptr<recob::Hit> const& hit) const
+{
+    return this->HitToEveID(*hit);
+}
+
 //----------------------------------------------------------------------
 std::set<int> AssociationsTruth::GetSetOfEveIDs() const
 {
