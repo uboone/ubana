@@ -1,0 +1,55 @@
+#include "services_microboone.fcl"
+#include "database_microboone.fcl"
+#include "celltreeub_overlay.fcl"
+
+process_name: CellTreeUB
+
+services:
+{
+  TFileService: { fileName: "celltreeOVERLAY.root" }
+  #TimeTracker:   {}
+  RandomNumberGenerator: {}
+  message:      @local::standard_info
+  @table::microboone_services
+  UBOpReadoutMap: @local::microboone_opreadoutmap
+  PMTGainService: @local::microboone_pmtgain_service
+  FileCatalogMetadata:  @local::art_file_catalog_data
+}
+
+
+source:
+{
+  module_type: RootInput
+  fileNames:  [ "gen.root" ]
+  firstEvent : 1
+  maxEvents:  -1
+}
+
+
+outputs:{}
+
+
+physics:
+{
+  analyzers:
+  {
+    Event : @local::celltreeub_overlay
+  }
+
+  analysis: [ Event ]
+  end_paths: [ analysis ]
+}
+
+services.DetectorPropertiesService.NumberTimeSamples:    6400
+services.DetectorClocksService.InheritClockConfig:       false
+services.DetectorClocksService.TriggerOffsetTPC:         -0.400e3
+
+#services.PMTGainService.PmtGainProvider.UseDB: false
+
+microboone_tfile_metadata:
+{
+  JSONFileName:          [ "celltreeOVERLAY.root.json" ]
+  GenerateTFileMetadata: [ true ]
+  dataTier:		 [ "celltree" ]
+  fileFormat:		 [ "root" ]
+}
