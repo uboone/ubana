@@ -81,7 +81,7 @@ public:
 
     // method to return the EveIDs of particles contributing ionization
     // electrons to the identified hit
-    std::vector<sim::TrackIDE> HitToEveID(art::Ptr<recob::Hit> const& hit) const;
+    std::vector<sim::TrackIDE> HitToEveID(recob::Hit const* hit) const;
 
     // method to return the XYZ position of the weighted average energy deposition for a given hit
     std::vector<double>  HitToXYZ(art::Ptr<recob::Hit> const& hit) const;
