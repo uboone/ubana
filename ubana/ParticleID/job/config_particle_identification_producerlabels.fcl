@@ -1,0 +1,137 @@
+#
+# configuration fcl file for particleId fcl parameters
+#
+# naming convention is procuerlabels_< 1 >_dedxcalib< 2 >
+# < 1 > - which MCC version is this for? If running only over UBXSec tagged tracks then use
+#         mcc8_UBXSec, for instance
+# < 2 > - if this is for data then use '_data', else nothing
+#
+
+BEGIN_PROLOG
+
+producerlabels_mcc8_dedxcalib:
+{
+
+  # producer label names
+  TrackLabel       : "pandoraNu::McRecoStage2"
+  CalorimetryLabel : "dedxcalibration::particleid"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "pandoraCosmicHitRemoval::McRecoStage2"
+  HitTrackAssn        : "pandoraNu::McRecoStage2"
+  HitTruthAssn        : "crHitRemovalTruthMatch::McRecoStage2"
+  CaloTrackAssn       : "pandoraNucali::McRecoCali"
+
+}
+
+producerlabels_mcc8_dedxcalib_data:
+{
+
+  # producer label names
+  TrackLabel       : "pandoraNu::DataRecoStage2"
+  CalorimetryLabel : "dedxcalibration::particleid"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "pandoraCosmicHitRemoval::DataRecoStage2"
+  HitTrackAssn        : "pandoraNu::DataRecoStage2"
+  CaloTrackAssn       : "pandoraNucali::DataRecoCali"
+
+}
+
+producerlabels_mcc8_dedxcalib_data_pmtremap:
+{
+
+  # producer label names
+  TrackLabel       : "pandoraNu::DataPMTRemapRecoStage2"
+  CalorimetryLabel : "dedxcalibration::particleid"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "pandoraCosmicHitRemoval::DataPMTRemapRecoStage2"
+  HitTrackAssn        : "pandoraNu::DataPMTRemapRecoStage2"
+  CaloTrackAssn       : "pandoraNucali::DataPMTRemapRecoStage2"
+
+}
+
+producerlabels_mcc8_UBXSec_dedxcalib:
+{
+
+# producer label names
+  TrackLabel       : "pandoraNu::UBXSec"
+  CalorimetryLabel : "dedxcalibration::particleid"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "pandoraCosmicHitRemoval::UBXSec"
+  HitTrackAssn        : "pandoraNu::UBXSec"
+  HitTruthAssn        : "pandoraCosmicHitRemoval::UBXSec"
+  CaloTrackAssn       : "dedxcalibration::particleid"
+
+}
+
+producerlabels_mcc8_UBXSec_dedxcalib_data:
+{
+
+# producer label names
+  TrackLabel       : "pandoraNu::UBXSec"
+  CalorimetryLabel : "dedxcalibration::particleid"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "pandoraCosmicHitRemoval::UBXSec"
+  HitTrackAssn        : "pandoraNu::UBXSec"
+  CaloTrackAssn       : "dedxcalibration::particleid"
+
+}
+
+producerlabels_mcc9:
+{
+
+# producer label names
+  TrackLabel       : "pandoraTrack:McRecoStage2"
+  CalorimetryLabel : "pandoraTrackcalo:McRecoStage2"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "gaushit"
+  HitTrackAssn        : "pandoraTrack:McRecoStage2"
+  HitTruthAssn        : "gaushitTruthMatch"
+  CaloTrackAssn       : "pandoraTrackcalo:McRecoStage2"
+
+}
+
+producerlabels_mcc9_data:
+{
+
+# producer label names
+  TrackLabel       : "pandoraTrack"
+  CalorimetryLabel : "pandoraTrackcalo"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "gaushit"
+  HitTrackAssn        : "pandoraTrack"
+  #HitTruthAssn        : "gaushitTruthMatch"
+  CaloTrackAssn       : "pandoraTrackcalo"
+
+}
+
+producerlabels_mcc9_track_stuff:
+{
+
+# producer label names
+  TrackLabel       : "myTracks"
+  CalorimetryLabel : "pandoracalo"
+
+  # validator labels
+  ParticleIdLabel     : "pid::particleid"
+  HitLabel            : "gaushit"
+  HitTrackAssn        : "myTracks"
+  HitTruthAssn        : "gaushitTruthMatch"
+  CaloTrackAssn       : "pandoracalo"
+
+}
+
+END_PROLOG
