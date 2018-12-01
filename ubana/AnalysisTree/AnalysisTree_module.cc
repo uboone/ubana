@@ -4930,7 +4930,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   if (fSaveRawWaveFormInfo){
     art::Handle< std::vector<raw::RawDigit> > rawdigit;
        if (! evt.getByLabel(fDigitModuleLabel, rawdigit)) {
-           cout << "WARNING: no label " << fDigitModuleLabel << endl;
+           std::cout << "WARNING: no label " << fDigitModuleLabel << std::endl;
            return;
        }
        std::vector< art::Ptr<raw::RawDigit> >  wires;
@@ -4978,7 +4978,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   if (fSaveCalibWaveFormInfo){
      art::Handle< std::vector<recob::Wire> > wires_handle;
     if (! evt.getByLabel(fCalDataModuleLabel, wires_handle)) {
-        cout << "WARNING: no label " << fCalDataModuleLabel << endl;
+        std::cout << "WARNING: no label " << fCalDataModuleLabel << std::endl;
         return;
     }
     
@@ -5252,8 +5252,8 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       }
     
       //call the track momentum algorithm that gives you momentum based on track range
-      trkf::TrackMomentumCalculator trkm;
-      trkm.SetMinLength(50); //change the minimal track length requirement to 50 cm
+      // - change the minimal track length requirement to 50 cm
+      trkf::TrackMomentumCalculator trkm{50};
 
       for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
       

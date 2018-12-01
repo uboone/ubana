@@ -15,7 +15,9 @@ particleidconfig:
   module_type: "ParticleId"
 
   # producer labels for PID + validation
-  ProducerLabels: @local::producerlabels_mcc8_dedxcalib
+
+  ProducerLabels: @local::producerlabels_mcc9
+
 
   # bragg algorithm fcl parameters
   BraggAlgo: @local::braggalgo_mcc8_dedxcalib

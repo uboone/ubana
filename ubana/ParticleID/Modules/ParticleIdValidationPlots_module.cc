@@ -169,15 +169,16 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     double track_rangeE_mu;
     double track_rangeE_p;
     bool track_dQdxtruncmeanvslength_isMuon;
-    std::vector<double> track_dEdx_perhit_u;
-    std::vector<double> track_dEdx_perhit_v;
-    std::vector<double> track_dEdx_perhit_y;
-    std::vector<double> track_resrange_perhit_u;
-    std::vector<double> track_resrange_perhit_v;
-    std::vector<double> track_resrange_perhit_y;
-    std::vector<std::vector<double>> track_Lmip_perhit;
-    std::vector<std::vector<double>> dEdx;
-    std::vector<std::vector<double>> resRange;
+    std::vector<float> track_dEdx_perhit_u;
+    std::vector<float> track_dEdx_perhit_v;
+    std::vector<float> track_dEdx_perhit_y;
+    std::vector<float> track_resrange_perhit_u;
+    std::vector<float> track_resrange_perhit_v;
+    std::vector<float> track_resrange_perhit_y;
+    std::vector<std::vector<float>> track_Lmip_perhit;
+    std::vector<std::vector<float>> dEdx;
+    std::vector<std::vector<float>> resRange;
+
 
 
     /** Histograms for all tracks, i.e. can be used by data */
@@ -477,7 +478,8 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
 
     } // end if(!fIsDataPlots)
    
-    std::vector<std::vector<double>> Lmip_perhit(3);
+    std::vector<std::vector<float>> Lmip_perhit(3);
+
 
     art::Ptr< anab:: Calorimetry > calo;
     int planenum = -1;
@@ -498,8 +500,10 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       // Get MIP likelihood per hit (and store in a vector)
       // Loop through hits (entries in dEdx and resrange vector)
       // For each hit, make a new dEdx vector for that hit only and use it to get the likelihood for that hit. That way we can average the likelihoods over the number of hits we care about later.
-      std::vector<double> dEdx_dummy = {0.};
-      std::vector<double> rr_dummy = {0.};
+
+      std::vector<float> dEdx_dummy = {0.};
+      std::vector<float> rr_dummy = {0.};
+
       for (size_t i_hit=0; i_hit < dEdx.at(planenum).size(); i_hit++){
         double Lmip = -9999.;
         dEdx_dummy.at(0) = dEdx.at(planenum).at(i_hit);
@@ -733,9 +737,12 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
        */
        // dQdx needs to be multiplied by a constant factor to convert from ADC to e/cm
        // Multiply MC by 198 and data by 243
-       double dQdxcalibval = 198.;
+
+      //FOR MCC9 TAG1 DATA IS NOW 242 on plane 2 and Tag2 MC is 178 on plane 2
+       double dQdxcalibval = 178.;
+
        if (isData){
-         dQdxcalibval = 243.;
+         dQdxcalibval = 242.;
        }
 
       if (AlgScore.fAlgName == "TruncatedMean"){

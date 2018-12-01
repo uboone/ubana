@@ -2292,11 +2292,11 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
      }        
 
       ////////////////Loop over all GENIE particles only////////////////////////////	
-      vector <int> genieparID;
-      vector <int> genieparpdg;
-      vector <int> genieparStatusCode;
-      vector <float> genieparCosTheta;
-      vector <float> genieparStartz;
+      std::vector <int> genieparID;
+      std::vector <int> genieparpdg;
+      std::vector <int> genieparStatusCode;
+      std::vector <float> genieparCosTheta;
+      std::vector <float> genieparStartz;
       _fNGTrueallmult= 0 ; // in case we have cosmic event
       if (MCtruth->NeutrinoSet())
       {  	  
@@ -2345,7 +2345,7 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
 	 }//particle loop
        }//MCtruth->NeutrinoSet()       	  
       //-----------------Reconstructed, truth macthing, secondary multiplicty---------------------------//
-      vector<int> parID;
+      std::vector<int> parID;
       int brkntrkcount=0;
       int recomult=0;
       _fNRecoallPart = TrackVector.size();
@@ -2526,10 +2526,10 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
       {
         for (unsigned bc2=bc1+1; bc2<parID.size(); bc2++)
         {
-	  //std::cout<<"track ids "<<parID.at(bc1)<<" "<<parID.at(bc2)<<endl;
+	  //std::cout<<"track ids "<<parID.at(bc1)<<" "<<parID.at(bc2)<<std::endl;
 	  if(parID.at(bc1)==parID.at(bc2)) 
 	  {
-	    std::cout<<"broken track loop "<<parID.at(bc1)<<" "<<parID.at(bc2)<<endl;
+	    std::cout<<"broken track loop "<<parID.at(bc1)<<" "<<parID.at(bc2)<<std::endl;
 	    brkntrkcount++;
 	  }
 	}
