@@ -1,0 +1,79 @@
+#include "services_microboone.fcl"
+
+process_name: HelephantFinder
+
+services:
+{
+  TFileService: {fileName: "helephant_hist.root"}
+  TimeTracker:            {}
+  MemoryTracker:          {}
+  RandomNumberGenerator:  {}
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  20
+}
+
+physics:
+{
+	analyzers:
+  {
+    HelephantFinder:
+    {
+      ### META INFORMATION (some is obsolete) ###
+		 	module_type:                  "HelephantFinder"
+      InstanceName:                 "HelephantFinder0"
+      Iteration:                    "0"
+      RadiusProfileLimits:          [0,20] # cm
+      RadiusProfileBins:            20
+      ChannelNorm:                  "3.3" # number of channels in cm
+      TickNorm:                     "17.9" # number of ticks in cm
+      VerboseMode:                  "false"
+
+      ### GEOMETRY SETTINGS ###
+      MinTpcBound:                  [10., -105.53, 10.1]
+      MaxTpcBound:                  [246.35, 107.47, 1026.9]
+      CenterCoordinates:            [126.49,0.97,518.5]
+    
+      ### DATA PRODUCT LABELS SETTINGS ###
+      PfpLabel:                     "pandoraNu"
+      HitLabel:                     "gaushit"
+      McsLabel:                     "pandoraNuMCSMu"
+      McTrackLabel:                 "mcreco"
+      FlashLabel:                   "simpleFlashBeam"
+      CalorimetryLabel:             "pandoraNucalo"
+      CalibratedLabel:              "pandoraNucali"
+
+      ### SETTINGS FOR ADDITIONAL TREE INFORMATION ###
+      SaveDrawTree:                 "true"
+      SaveTruthDrawTree:            "false"
+      SaveTriggerInformation:       "true"
+      SaveG4Information:            "false"
+      SavedEdXInformation:          "true"
+
+      ### DATA TYPE DEPENDENT SETTINGS (different for data/mc/mchsn) ###
+      UseTruthDistanceMetric:       "false"
+      IsHSN:                        "false"
+
+      ### ADDITIONAL (FINER TUNING)
+      SaveAlsoUncalibrateddEdXInformation:    "true"
+    }
+
+    EventFileDatabase:
+    {
+      module_type:          "EventFileDatabase"
+    }
+    
+  }
+  analysis: [ HelephantFinder, EventFileDatabase]
+  end_paths: [analysis]
+}
+
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -400
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400
