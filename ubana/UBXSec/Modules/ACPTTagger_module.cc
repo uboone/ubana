@@ -1094,14 +1094,14 @@ void ACPTTagger::SortTrackPoints(const recob::Track& track, std::vector<TVector3
   // if points are ordered correctly                                                                                                                                       
   if (start.Y() > end.Y()){
     for (size_t i=0; i < N; i++)
-      sorted_points.push_back( track.LocationAtPoint(i) );
+      sorted_points.push_back( track.LocationAtPoint<TVector3>(i) );
   }
 
   // otherwise flip order                                                                                                                                                 
   else {
     if (_debug) std::cout << "[ACPTTagger] \t\t These two points will be flipped" << std::endl;
     for (size_t i=0; i < N; i++)
-      sorted_points.push_back( track.LocationAtPoint( N - i - 1) );
+      sorted_points.push_back( track.LocationAtPoint<TVector3>( N - i - 1) );
   }
 }
 

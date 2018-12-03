@@ -1,7 +1,7 @@
 // default denotes which options to be marked as true for nominal WCLS production
 
 BEGIN_PROLOG
-celltreeub: {
+celltreeub_overlay: {
  module_type : "CellTreeUB"
  TPC_rawProducer               : "daq" # or nfspl1 (for thru nf)
  TPC_rawLabel                  : "" # or raw (for thru nf)
@@ -21,8 +21,8 @@ celltreeub: {
  PMT_LG_beamLabel              : "OpdetBeamLowGain"
  PMT_HG_cosmicProducer         : "pmtreadout"
  PMT_LG_cosmicProducer         : "pmtreadout"
- PMT_HG_beamProducer           : "pmtreadout"
- PMT_LG_beamProducer           : "pmtreadout"
+ PMT_HG_beamProducer           : "mixer"
+ PMT_LG_beamProducer           : "mixer"
  PMT_wfmSaturationLabel        : "saturation"
  PMT_recoLabel                 : "opflash"
  HWTrigger_label               : "daq"
@@ -53,7 +53,7 @@ celltreeub: {
  SavePOT                       : false
  SaveMuCSData		       : false
  SaveMuCSRecoData	       : false
- SaveMCParticle 	       : false
+ SaveMCParticle 	       : true  # default
  SaveSimChannel		       : false
  UseLGBeamForHGCosmic          : true  # default
  FlashMultPEThreshold          : 5

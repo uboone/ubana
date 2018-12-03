@@ -60,8 +60,8 @@ namespace ubxsec {
 
     // Loop over tracks 
     for (size_t t = 0; t < _track_v.size(); t++) {
-      start = _track_v[t]->Vertex();
-      end   = _track_v[t]->End();
+      start = _track_v[t]->Vertex<TVector3>();
+      end   = _track_v[t]->End<TVector3>();
       
       dist = GetDistance(xyz, start);
       if (dist < _max_distance){
@@ -85,8 +85,8 @@ namespace ubxsec {
     if (keep_track.size() < 2) return -9999;
 
     // Calculate angle between two longest tracks
-    TVector3 dir1 = keep_track.at(0).VertexDirection();
-    TVector3 dir2 = keep_track.at(1).VertexDirection();
+    TVector3 dir1 = keep_track.at(0).VertexDirection<TVector3>();
+    TVector3 dir2 = keep_track.at(1).VertexDirection<TVector3>();
 
     return dir1.Angle(dir2);
   }
