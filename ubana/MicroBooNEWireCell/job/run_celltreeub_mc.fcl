@@ -6,13 +6,14 @@ process_name: CellTreeUB
 
 services:
 {
-  TFileService: { fileName: "test.root" }
+  TFileService: { fileName: "celltreeMC.root" }
   #TimeTracker:   {}
   RandomNumberGenerator: {}
   message:      @local::standard_info
   @table::microboone_services
   UBOpReadoutMap: @local::microboone_opreadoutmap
   PMTGainService: @local::microboone_pmtgain_service
+  FileCatalogMetadata:  @local::art_file_catalog_mc
 }
 
 
@@ -39,8 +40,16 @@ physics:
   end_paths: [ analysis ]
 }
 
-services.DetectorPropertiesService.NumberTimeSamples:            6400
-services.DetectorClocksService.InheritClockConfig:                  false
-services.DetectorClocksService.TriggerOffsetTPC:                    -0.400e3
+services.DetectorPropertiesService.NumberTimeSamples:   6400
+services.DetectorClocksService.InheritClockConfig:      false
+services.DetectorClocksService.TriggerOffsetTPC:        -0.400e3
 
 #services.PMTGainService.PmtGainProvider.UseDB: false
+
+microboone_tfile_metadata:
+{
+  JSONFileName:	         [ "celltreeMC.root.json" ]
+  GenerateTFileMetadata: [ true		       ]
+  dataTier:              [ "celltree" ]
+  fileFormat:            [ "root" ]
+}

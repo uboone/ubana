@@ -280,9 +280,9 @@ void MuCSTrackFinder::produce(art::Event & e)
     mucs_geotrj.resize(track_ptr->NumberTrajectoryPoints(),::geoalgo::Vector(0.,0.,0.));
     for (size_t pt_idx=0; pt_idx < track_ptr->NumberTrajectoryPoints(); ++pt_idx) {
       auto const& pt = track_ptr->LocationAtPoint(pt_idx);
-      mucs_geotrj[pt_idx][0] = pt[0];
-      mucs_geotrj[pt_idx][1] = pt[1];
-      mucs_geotrj[pt_idx][2] = pt[2];
+      mucs_geotrj[pt_idx][0] = pt.X();
+      mucs_geotrj[pt_idx][1] = pt.Y();
+      mucs_geotrj[pt_idx][2] = pt.Z();
     }
     auto qcluster = ((flashana::LightPath*)(_mgr.GetCustomAlgo("LightPath")))->FlashHypothesis(mucs_geotrj);
     _mgr.Emplace(std::move(qcluster));
@@ -317,8 +317,8 @@ void MuCSTrackFinder::produce(art::Event & e)
     
     // The tagged track
     const art::Ptr<recob::Track> track_ptr(track_h,match.tpc_id);
-    const TVector3 & start = track_ptr->Vertex();
-    const TVector3 & end   = track_ptr->End();
+    const auto & start = track_ptr->Vertex();
+    const auto & end   = track_ptr->End();
 
     _mucs_track_startx = start.X();
     _mucs_track_starty = start.Y();

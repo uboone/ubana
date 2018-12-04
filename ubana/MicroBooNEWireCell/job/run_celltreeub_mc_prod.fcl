@@ -1,0 +1,68 @@
+#include "services_microboone.fcl"
+#include "database_microboone.fcl"
+#include "celltreeub_mc.fcl"
+
+process_name: CellTreeUB
+
+services:
+{
+  TFileService: { fileName: "celltreeMC.root" }
+  #TimeTracker:   {}
+  RandomNumberGenerator: {}
+  message:      @local::standard_info
+  @table::microboone_services
+  UBOpReadoutMap: @local::microboone_opreadoutmap
+  PMTGainService: @local::microboone_pmtgain_service
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+}
+
+
+source:
+{
+  module_type: RootInput
+  fileNames:  [ "gen.root" ]
+  firstEvent : 1
+  maxEvents:  -1
+}
+
+
+#output the artroot file
+outputs:
+{
+    out:
+        {
+        module_type: RootOutput
+        fileName:    "%ifb_postwcct.root"
+        dataTier:    "reconstructed"
+        compressionLevel: 1
+        }
+}
+
+
+
+physics:
+{
+  analyzers:
+  {
+    Event : @local::celltreeub_mc
+  }
+
+  analysis: [ Event ]
+  stream1: [ out ]
+  end_paths: [ analysis, stream1 ]
+
+}
+
+services.DetectorPropertiesService.NumberTimeSamples:   6400
+services.DetectorClocksService.InheritClockConfig:      false
+services.DetectorClocksService.TriggerOffsetTPC:        -0.400e3
+
+#services.PMTGainService.PmtGainProvider.UseDB: false
+
+microboone_tfile_metadata:
+{
+  JSONFileName:	         [ "celltreeMC.root.json" ]
+  GenerateTFileMetadata: [ true		       ]
+  dataTier:              [ "celltree" ]
+  fileFormat:            [ "root" ]
+}

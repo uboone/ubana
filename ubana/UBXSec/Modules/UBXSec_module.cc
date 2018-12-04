@@ -156,7 +156,6 @@ private:
   ::ubana::MuonCandidateFinder _muon_finder;
   ::ubana::NuMuCCEventSelection _event_selection;
   ::pmtana::PECalib _pecalib;
-  ::trkf::TrackMomentumCalculator _trk_mom_calculator;
 
   // Database to understand particle pdg
   const TDatabasePDG* _database_pdg = TDatabasePDG::Instance();
@@ -207,6 +206,8 @@ private:
 
   bool _do_opdet_swap;                  ///< If true swaps reconstructed OpDets according to _opdet_swap_map
   std::vector<int> _opdet_swap_map;     ///< The OpDet swap map for reco flashes
+
+  ::trkf::TrackMomentumCalculator _trk_mom_calculator;
 
   // Constants
   const simb::Origin_t NEUTRINO_ORIGIN = simb::kBeamNeutrino;
@@ -272,7 +273,10 @@ private:
 };
 
 
-UBXSec::UBXSec(fhicl::ParameterSet const & p) {
+UBXSec::UBXSec(fhicl::ParameterSet const & p)
+  : _min_track_len{p.get<double>("MinTrackLength", 0.1)}
+  , _trk_mom_calculator{_min_track_len}
+{
 
   //::art::ServiceHandle<cheat::BackTracker> bt;
   ::art::ServiceHandle<geo::Geometry> geo;
@@ -317,8 +321,6 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p) {
   _geo_cosmic_score_cut           = p.get<double>("GeoCosmicScoreCut", 0.6);
   _tolerance_track_multiplicity   = p.get<double>("ToleranceTrackMultiplicity", 5.);
 
-  _min_track_len                  = p.get<double>("MinTrackLength", 0.1);
-
   _make_ophit_csv                 = p.get<bool>("MakeOpHitCSV", false);
   _make_pida_csv                  = p.get<bool>("MakePIDACSV", false);
 
@@ -338,8 +340,6 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p) {
   _event_selection.Configure(p.get<fhicl::ParameterSet>("NuMuCCSelectionSettings"));
 
   _event_selection.PrintConfig();
-
-  _trk_mom_calculator.SetMinLength(_min_track_len);
 
   _detector_properties = lar::providerFrom<detinfo::DetectorPropertiesService>(); 
   _detector_clocks = lar::providerFrom<detinfo::DetectorClocksService>();
@@ -1587,7 +1587,7 @@ void UBXSec::produce(art::Event & e) {
 
     if (muon_cand_exists) {
 
-      bool fully_contained = _fiducial_volume.InFV(candidate_track->Vertex(), candidate_track->End());
+      bool fully_contained = _fiducial_volume.InFV(candidate_track->Vertex<TVector3>(), candidate_track->End<TVector3>());
 
       ubxsec_event->slc_muoncandidate_exists[slice]    = true;
       ubxsec_event->slc_muoncandidate_contained[slice] = fully_contained;
@@ -1599,7 +1599,7 @@ void UBXSec::produce(art::Event & e) {
 
       // For MCS first check the track direction is rigth
       TVector3 temp(reco_nu_vtx[0], reco_nu_vtx[1], reco_nu_vtx[2]);
-      bool track_direction_correct = (candidate_track->Vertex() - temp).Mag() < (candidate_track->End() - temp).Mag();
+      bool track_direction_correct = (candidate_track->Vertex<TVector3>() - temp).Mag() < (candidate_track->End<TVector3>() - temp).Mag();
       if (track_direction_correct) {
         ubxsec_event->slc_muoncandidate_mom_mcs[slice] = mcsfitresult_mu_v.at(candidate_track.key())->fwdMomentum();
         ubxsec_event->slc_muoncandidate_mcs_ll[slice]  = mcsfitresult_mu_v.at(candidate_track.key())->fwdLogLikelihood();
@@ -1718,7 +1718,7 @@ void UBXSec::produce(art::Event & e) {
       for (size_t i = 0; i < candidate_track->NumberTrajectoryPoints(); i++) {
         try {
           if (candidate_track->HasValidPoint(i)) {
-            TVector3 trk_pt = candidate_track->LocationAtPoint(i);
+            TVector3 trk_pt = candidate_track->LocationAtPoint<TVector3>(i);
             double wire = geo->NearestWire(trk_pt, 2);
             double time = _detector_properties->ConvertXToTicks(trk_pt.X(), geo::PlaneID(0,0,2));
             TVector3 p (wire, time, 0.);
@@ -1786,7 +1786,7 @@ void UBXSec::produce(art::Event & e) {
       std::vector<TVector3> dir_v;
       for (size_t p = 0; p < candidate_track->NumberTrajectoryPoints(); p++) {
         if (!candidate_track->HasValidPoint(p)) continue;
-        dir_v.push_back(candidate_track->DirectionAtPoint(p));
+        dir_v.push_back(candidate_track->DirectionAtPoint<TVector3>(p));
       }
       std::vector<double> angle_v;
       for (size_t p = 0; p < dir_v.size()-1; p++) {

@@ -1,3 +1,5 @@
+add_subdirectory(ObjectTrees)
+
 add_subdirectory(MCTruth)
 
 art_make( MODULE_LIBRARIES larcorealg_Geometry

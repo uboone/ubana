@@ -88,8 +88,8 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
   art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
 
   for (size_t i = 0; i<tracklist.size(); ++i){
-    TVector3 trkstart = tracklist[i]->Vertex();
-    TVector3 trkend = tracklist[i]->End();
+    const auto& trkstart = tracklist[i]->Vertex();
+    const auto& trkend = tracklist[i]->End();
     double X = std::abs(trkstart.X()-trkend.X());
     if (X>250 && X<270){
       if (fmcal.isValid()){
@@ -99,12 +99,12 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
           if (!calos[j]->PlaneID().isValid) continue;
           int planenum = calos[j]->PlaneID().Plane;
           if (planenum<0||planenum>2) continue;
-          TVector3 dir_start = tracklist[i]->VertexDirection();
+          const auto& dir_start = tracklist[i]->VertexDirection();
           const geo::WireGeo& wire = geom->TPC().Plane(planenum).MiddleWire();
           double wirestart[3], wireend[3];
           wire.GetStart(wirestart);
           wire.GetEnd(wireend);
-          double cosangle = (dir_start[1]*(wirestart[1]-wireend[1])+dir_start[2]*(wirestart[2]-wireend[2]))/sqrt((pow(dir_start[1],2)+pow(dir_start[2],2))*(pow(wirestart[1]-wireend[1],2)+pow(wirestart[2]-wireend[2],2)));
+          double cosangle = (dir_start.Y()*(wirestart[1]-wireend[1])+dir_start.Z()*(wirestart[2]-wireend[2]))/sqrt((pow(dir_start.Y(),2)+pow(dir_start.Z(),2))*(pow(wirestart[1]-wireend[1],2)+pow(wirestart[2]-wireend[2],2)));
           if (std::abs(cosangle)<0.5){
             double minx = 1e10;
             const size_t NHits = calos[j] -> dEdx().size();
@@ -136,7 +136,7 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
 //                std::cout<<(calos[j] -> dQdx())[iHit]<<" "<<(calos[j]->TrkPitchVec())[iHit]<<std::endl;
 //              }
               if (iHit<NHits-1){
-                hitdis->Fill((calos[j]->XYZ()[iHit]-calos[j]->XYZ()[iHit+1]).Mag());
+                hitdis->Fill((calos[j]->XYZ()[iHit]-calos[j]->XYZ()[iHit+1]).R());
               }
             }
           }//track not overlaping with wire

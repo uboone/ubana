@@ -1,6 +1,50 @@
 BEGIN_PROLOG
 
 wcls: {
+   nfbadchannel : {
+      module_type : WireCellToolkit
+      wcls_main: {
+         tool_type: WCLS
+         apps: ["Pgrapher"]
+
+         // Libraries in which to look for WCT components
+         plugins: ["WireCellGen", "WireCellSigProc", "WireCellSio", "WireCellPgraph", "WireCellLarsoft"]
+
+         // The tool marshals the art::Event to these visitors before
+         inputers: ["wclsRawFrameSource", "wclsMultiChannelNoiseDB"]
+         // or after the WCT app is run.
+         outputers: ["wclsFrameSaver:nfsaver"]
+
+         // This is relative to the wire-cell-cfg directory.  If the
+         // "uboone/nfspl1/" part is split out by itself, just make
+         // sure to still have around the top level cfg/*.jsonnet files.
+         configs: ["pgrapher/experiment/uboone/wcls-nf-badchannel.jsonnet"]
+
+         // Allow setting of select WCT parameters as
+         //   key <--> scalar
+         // value pairs.  Acceptable keys depend on how the Jsonnet
+         // files given in "configs" are written.  The Jsonnet will
+         // access the key via a call to the std.extVar(key) function.
+         // An entry is equivalent to one "-V" option to wire-cell CLI.
+         params : {
+           raw_input_label: "daq"
+	   reality: "data"
+           epoch: "dynamic"
+         }
+
+         // Allow setting of select WCT parameters as
+         //   key <--> structure
+         // value pairs.  The structure is in the form of Jsonnet text.
+         // Acceptable keys depend on how the
+         // Jsonnet files given in "configs" are written.  The Jsonnet
+         // will access the key via a call to the std.extVar(key)
+         // function.  
+         // An entry is equivalent to one "-C" option to wire-cell CLI.
+         structs: {
+         }
+      }
+   }
+
    nfspl1 : {
       module_type : WireCellToolkit
       wcls_main: {
@@ -14,7 +58,7 @@ wcls: {
          inputers: ["wclsRawFrameSource", "wclsMultiChannelNoiseDB"]
          // or after the WCT app is run.
          //outputers: ["wclsFrameSaver:nfsaver", "wclsFrameSaver:thsaver", "wclsFrameSaver:spsaver"]
-         outputers: ["wclsFrameSaver:nfsaver", "wclsFrameSaver:spsaver"]
+         outputers: ["wclsFrameSaver:nfsaver", "wclsFrameSaver:spsaver", "wclsFrameSaver:spthresholds"]
 
          // This is relative to the wire-cell-cfg directory.  If the
          // "uboone/nfspl1/" part is split out by itself, just make
@@ -64,7 +108,7 @@ wcls: {
          // The tool marshals the art::Event to these visitors before
          inputers: ["wclsRawFrameSource"]
          // or after the WCT app is run.
-         outputers: ["wclsFrameSaver:nfsaver", "wclsFrameSaver:spsaver"]
+         outputers: ["wclsFrameSaver:nfsaver", "wclsFrameSaver:spsaver", "wclsFrameSaver:spthresholds"]
 
          // This is relative to the wire-cell-cfg directory.  If the
          // "uboone/nfspl1/" part is split out by itself, just make
@@ -111,10 +155,47 @@ wcls: {
           configs: ["pgrapher/experiment/uboone/uboone-sim.jsonnet"]
           inputers: ["wclsSimDepoSource"]
           outputers: [
+             "wclsSimChannelSink:postdrift",
              "wclsFrameSaver:simdigits"
           ]
           params: {
           }
+	  structs: {
+      	      gain_fudge_factor: 0.826
+	      sys_resp: false
+      	  }
+      }
+   }
+
+   driftsim_overlay : {
+      module_type : WireCellToolkit
+      wcls_main: {
+          tool_type: WCLS
+          apps: ["Pgrapher"]
+          plugins: ["WireCellPgraph", "WireCellGen","WireCellSio", "WireCellLarsoft"]
+          configs: ["pgrapher/experiment/uboone/uboone-sim-overlay.jsonnet"]
+          inputers: ["wclsSimDepoSource"
+       		// only if miscfg is "dynamic" add "wclsChannelSelectorDB"
+                 , "wclsChannelSelectorDB"
+		]
+          outputers: [
+             "wclsSimChannelSink:postdrift",
+             "wclsFrameSaver:simdigits"
+          ]
+          params: {
+      		//from database
+                //only if a data event is consumed,
+                //otherwise timestamp cannot be identified to search db
+                miscfg: "dynamic"
+ 
+                //static misconfigured channel list
+                //must not add "wclsChannelSelectorDB" in inputers
+                //miscfg: "static"
+          }
+	  structs: {
+      	      gain_fudge_factor: 0.826
+	      sys_resp: false
+      	  }
       }
    }
 

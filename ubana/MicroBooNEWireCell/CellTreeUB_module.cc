@@ -1,16 +1,22 @@
 #ifndef CELLTREEUB_MODULE
 #define CELLTREEUB_MODULE
 
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCNeutrino.h"
 #include "larcore/Geometry/Geometry.h"
 #include "ubcore/Geometry/UBOpReadoutMap.h"
 #include "ubcore/Geometry/UBOpChannelTypes.h"
 #include "ubobj/Trigger/ubdaqSoftwareTriggerData.h"
+#include "ubobj/MuCS/MuCSData.h"
+#include "ubobj/MuCS/MuCSRecoData.h"
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardataobj/RecoBase/OpHit.h"
 #include "lardataobj/RecoBase/OpFlash.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "larevt/CalibrationDBI/Interface/PmtGainService.h"
 #include "larevt/CalibrationDBI/Interface/PmtGainProvider.h"
 #include "lardataobj/RawData/TriggerData.h"
@@ -37,11 +43,15 @@
 #include "TH1F.h"
 #include "TH1I.h"
 #include "TH1S.h"
+#include "TLorentzVector.h"
+#include "TObjArray.h"
 
 #include <map>
 #include <vector>
 #include <fstream>
 #include <iostream>
+
+#define MAX_TRACKS 30000
 
 using namespace std;
 
@@ -59,6 +69,7 @@ namespace wc{
     void reconfigure(fhicl::ParameterSet const& pset);
     void initOutput();
     void reset();
+    void InitProcessMap();
     void processTPC_raw(const art::Event& evt);
     void processTPC_noiseFiltered(const art::Event& evt);
     void processTPC_deconWiener(const art::Event& evt);
@@ -68,11 +79,16 @@ namespace wc{
     void processPMT_raw(const art::Event& evt);
     void processPMT_wfmSaturation(const art::Event& evt);
     void processPMT_reco(const art::Event& evt);
-    void processPMT_gain(const art::Event& evt);
+    void processPMT_gainData(const art::Event& evt);
+    void processPMT_gainMC(const art::Event& evt);
     void processHWTrigger(const art::Event& evt);
     void processSWTrigger(const art::Event& evt);
     void processBeam(const art::Event& evt);
     void processPOT(const art::SubRun& subrun);
+    void processMuCS_data(const art::Event& evt);
+    void processMuCS_recoData(const art::Event& evt);
+    void processMCParticle(const art::Event& evt);
+    void processSimChannel(const art::Event& evt);
   private:
     // --- fhicl parameters ---
     std::string fTPC_rawLabel;
@@ -104,6 +120,10 @@ namespace wc{
     std::string fPOT_bnb2label;
     std::string fPOT_numilabel;
     std::string fPOT_producer;
+    std::string fMuCS_dataLabel;
+    std::string fMuCS_recoDataLabel;
+    std::string fSimChannel_label;
+    std::string fSimChannel_producer;
     bool _use_LG_beam_for_HG_cosmic;
     bool fSaveTPC_raw;
     bool fSaveTPC_noiseFiltered;
@@ -114,16 +134,23 @@ namespace wc{
     bool fSavePMT_raw;
     bool fSavePMT_wfmSaturation;
     bool fSavePMT_reco;
-    bool fSavePMT_gain;
+    bool fSavePMT_gainData;
+    bool fSavePMT_gainMC;
     bool fSaveHWTrigger;
     bool fSaveSWTrigger;
     bool fSaveBeam;
     bool fSavePOT;
+    bool fSaveMuCSData;
+    bool fSaveMuCSRecoData;
+    bool fSaveMCParticle;
+    bool fSaveSimChannel;
     int deconRebin;
     float flashMultPEThreshold;
     bool saveVYshorted;
     short scaleRawdigit;
     short shiftRawdigit;
+    std::string mcOption;
+    bool fSaveMCTrackPoints;
 
     TTree *fEventTree;
     int fEvent;
@@ -221,12 +248,68 @@ namespace wc{
     int fgoodspills_bnbETOR875;
     int fgoodspills_numiETORTGT;
     int fgoodspills_bnbETOR860;
+    // --- MuCS data ---
+    float ft0;
+    // --- MuCS reco data ---
+    float ftheta_xy;
+    float ftheta_xy_rms;
+    float fx;
+    float fx_rms;
+    float ftheta_yz;
+    float ftheta_yz_rms;
+    float fz;
+    float fz_rms;
+    float fy;
+    float ftheta;
+    float fphi;
+    int fxmatches;
+    int fzmatches;
+    // --- MC ---
+    std::map<std::string, int> processMap;
+    std::map<int, int> savedMCTrackIdMap; // key: id, value: pdg
+    int mc_Ntrack;
+    int mc_id[MAX_TRACKS];
+    int mc_pdg[MAX_TRACKS];
+    int mc_process[MAX_TRACKS];
+    int mc_mother[MAX_TRACKS];
+    float mc_startXYZT[MAX_TRACKS][4];
+    float mc_endXYZT[MAX_TRACKS][4];
+    float mc_startMomentum[MAX_TRACKS][4];
+    float mc_endMomentum[MAX_TRACKS][4];
+    std::vector<std::vector<int> > mc_daughters;
+    TObjArray *fMC_trackPosition;
+    int mc_isnu;
+    int mc_nGeniePrimaries;
+    int mc_nu_pdg;
+    int mc_nu_ccnc;
+    int mc_nu_mode;
+    int mc_nu_intType;
+    int mc_nu_target;
+    int mc_hitnuc;
+    int mc_hitquark;
+    double mc_nu_Q2;
+    double mc_nu_W;
+    double mc_nu_X;
+    double mc_nu_Y;
+    double mc_nu_Pt;
+    double mc_nu_Theta;
+    float mc_nu_pos[4];
+    float mc_nu_mom[4];
+    // --- SimChannel ---
+    std::vector<float> sc_x;
+    std::vector<float> sc_y;
+    std::vector<float> sc_z;
+    std::vector<float> sc_q;
+    std::vector<unsigned int> sc_tdc;
+    float sc_drift_speed=1.098; // mm/us
+
   }; // class CellTreeUB
 
   CellTreeUB::CellTreeUB(fhicl::ParameterSet const& pset)
     : EDAnalyzer(pset),
       fEventTree(nullptr){
     reconfigure(pset);
+    InitProcessMap();
     initOutput();
   }
 
@@ -263,6 +346,10 @@ namespace wc{
     fPOT_bnb2label = pset.get<std::string>("POT_bnb2label");
     fPOT_numilabel = pset.get<std::string>("POT_numilabel");
     fPOT_producer = pset.get<std::string>("POT_producer");
+    fMuCS_dataLabel = pset.get<std::string>("MuCS_dataLabel");
+    fMuCS_recoDataLabel = pset.get<std::string>("MuCS_recoDataLabel");
+    fSimChannel_label = pset.get<std::string>("SimChannel_label");
+    fSimChannel_producer = pset.get<std::string>("SimChannel_producer");
     fSaveTPC_raw = pset.get<bool>("SaveTPC_raw");
     fSaveTPC_noiseFiltered = pset.get<bool>("SaveTPC_noiseFiltered");
     fSaveTPC_deconWiener = pset.get<bool>("SaveTPC_deconWiener");
@@ -272,17 +359,24 @@ namespace wc{
     fSavePMT_raw = pset.get<bool>("SavePMT_raw");
     fSavePMT_wfmSaturation = pset.get<bool>("SavePMT_wfmSaturation");
     fSavePMT_reco = pset.get<bool>("SavePMT_reco");
-    fSavePMT_gain = pset.get<bool>("SavePMT_gain");
+    fSavePMT_gainData = pset.get<bool>("SavePMT_gainData");
+    fSavePMT_gainMC = pset.get<bool>("SavePMT_gainMC");
     fSaveHWTrigger = pset.get<bool>("SaveHWTrigger");
     fSaveSWTrigger = pset.get<bool>("SaveSWTrigger");
     fSaveBeam = pset.get<bool>("SaveBeam");
     fSavePOT = pset.get<bool>("SavePOT");
+    fSaveMuCSData = pset.get<bool>("SaveMuCSData");
+    fSaveMuCSRecoData = pset.get<bool>("SaveMuCSRecoData");
+    fSaveMCParticle = pset.get<bool>("SaveMCParticle");
+    fSaveSimChannel = pset.get<bool>("SaveSimChannel");
     _use_LG_beam_for_HG_cosmic = pset.get<bool>("UseLGBeamForHGCosmic");
     flashMultPEThreshold = pset.get<float>("FlashMultPEThreshold");
     deconRebin = pset.get<int>("DeconRebin");
     saveVYshorted = pset.get<bool>("SaveVYshorted");
     scaleRawdigit = pset.get<short>("ScaleRawdigit");
     shiftRawdigit = pset.get<short>("ShiftRawdigit");
+    mcOption = pset.get<std::string>("mcOption");
+    fSaveMCTrackPoints = pset.get<bool>("SaveMCTrackPoints");
   }
 
   void CellTreeUB::initOutput(){
@@ -363,7 +457,11 @@ namespace wc{
       fPEperOpDet = new TClonesArray("TH1F");
       fEventTree->Branch("pe_opdet", &fPEperOpDet, 256000, 0);
     }
-    if(fSavePMT_gain){
+    if(fSavePMT_gainData){
+      fEventTree->Branch("op_gain", &fOp_gain);
+      fEventTree->Branch("op_gainerror", &fOp_gainerror);
+    }
+    if(fSavePMT_gainMC){
       fEventTree->Branch("op_gain", &fOp_gain);
       fEventTree->Branch("op_gainerror", &fOp_gainerror);
     }
@@ -379,7 +477,7 @@ namespace wc{
       fEventTree->Branch("PHMAX", &fPHMAX);
       fEventTree->Branch("multiplicity", &fmultiplicity);
       fEventTree->Branch("triggerTick", &ftriggerTick);
-      fEventTree->Branch("triggerTime", &ftriggerTime);
+      fEventTree->Branch("swtriggerTime", &ftriggerTime);
       fEventTree->Branch("prescale_weight", &fprescale_weight);
     }
     if(fSaveBeam){
@@ -406,6 +504,64 @@ namespace wc{
       fEventTree->Branch("goodspills_bnbETOR875", &fgoodspills_bnbETOR875);
       fEventTree->Branch("goodspills_numiETORTGT", &fgoodspills_numiETORTGT);
       fEventTree->Branch("goodspills_bnbETOR860", &fgoodspills_bnbETOR860);
+    }
+    if(fSaveMuCSData){
+      fEventTree->Branch("t0",&ft0);
+    }
+    if(fSaveMuCSRecoData){
+      fEventTree->Branch("theta_xy",&ftheta_xy);
+      fEventTree->Branch("theta_xy_rms",&ftheta_xy_rms);
+      fEventTree->Branch("x",&fx);
+      fEventTree->Branch("x_rms",&fx_rms);
+      fEventTree->Branch("theta_yz",&ftheta_yz);
+      fEventTree->Branch("theta_yz_rms",&ftheta_yz_rms);
+      fEventTree->Branch("z",&fz);
+      fEventTree->Branch("z_rms",&fz_rms);
+      fEventTree->Branch("y",&fy);
+      fEventTree->Branch("theta",&ftheta);
+      fEventTree->Branch("phi",&fphi);
+      fEventTree->Branch("xmatches",&fxmatches);
+      fEventTree->Branch("zmatches",&fzmatches);
+    }
+    if(fSaveMCParticle){
+      fEventTree->Branch("mc_Ntrack", &mc_Ntrack);
+      fEventTree->Branch("mc_id", &mc_id, "mc_id[mc_Ntrack]/I");      
+      fEventTree->Branch("mc_pdg", &mc_pdg, "mc_pdg[mc_Ntrack]/I");      
+      fEventTree->Branch("mc_process", &mc_process, "mc_process[mc_Ntrack]/I");
+      fEventTree->Branch("mc_mother", &mc_mother, "mc_mother[mc_Ntrack]/I");  
+      fEventTree->Branch("mc_daughters", &mc_daughters);   
+      fEventTree->Branch("mc_startXYZT", &mc_startXYZT, "mc_startXYZT[mc_Ntrack][4]/F");      
+      fEventTree->Branch("mc_endXYZT", &mc_endXYZT, "mc_endXYZT[mc_Ntrack][4]/F");      
+      fEventTree->Branch("mc_startMomentum", &mc_startMomentum, "mc_startMomentum[mc_Ntrack][4]/F");      
+      fEventTree->Branch("mc_endMomentum", &mc_endMomentum, "mc_endMomentum[mc_Ntrack][4]/F");      
+      fMC_trackPosition = new TObjArray();
+      fMC_trackPosition->SetOwner(kTRUE);
+      fEventTree->Branch("mc_trackPosition", &fMC_trackPosition);      
+      fEventTree->Branch("mc_isnu", &mc_isnu);      
+      fEventTree->Branch("mc_nGeniePrimaries", &mc_nGeniePrimaries);      
+      fEventTree->Branch("mc_nu_pdg", &mc_nu_pdg);      
+      fEventTree->Branch("mc_nu_ccnc", &mc_nu_ccnc);      
+      fEventTree->Branch("mc_nu_mode", &mc_nu_mode);      
+      fEventTree->Branch("mc_nu_intType", &mc_nu_intType);      
+      fEventTree->Branch("mc_nu_target", &mc_nu_target);      
+      fEventTree->Branch("mc_hitnuc", &mc_hitnuc);      
+      fEventTree->Branch("mc_hitquark", &mc_hitquark);      
+      fEventTree->Branch("mc_nu_Q2", &mc_nu_Q2);      
+      fEventTree->Branch("mc_nu_W", &mc_nu_W);      
+      fEventTree->Branch("mc_nu_X", &mc_nu_X);      
+      fEventTree->Branch("mc_nu_Y", &mc_nu_Y);      
+      fEventTree->Branch("mc_nu_Pt", &mc_nu_Pt);      
+      fEventTree->Branch("mc_nu_Theta", &mc_nu_Theta);      
+      fEventTree->Branch("mc_nu_pos", &mc_nu_pos, "mc_nu_pos[4]/F");      
+      fEventTree->Branch("mc_nu_mom", &mc_nu_mom, "mc_nu_mom[4]/F");      
+    }
+    if(fSaveSimChannel){
+      fEventTree->Branch("sc_x",&sc_x);
+      fEventTree->Branch("sc_y",&sc_y);
+      fEventTree->Branch("sc_z",&sc_z);
+      fEventTree->Branch("sc_q",&sc_q);
+      fEventTree->Branch("sc_tdc",&sc_tdc);
+      fEventTree->Branch("sc_drift_speed",&sc_drift_speed);
     }
   }
 
@@ -444,10 +600,15 @@ namespace wc{
     if(fSavePMT_raw) processPMT_raw(evt);
     if(fSavePMT_wfmSaturation) processPMT_wfmSaturation(evt);
     if(fSavePMT_reco) processPMT_reco(evt);
-    if(fSavePMT_gain) processPMT_gain(evt);
+    if(fSavePMT_gainData) processPMT_gainData(evt);
+    if(fSavePMT_gainMC) processPMT_gainMC(evt);
     if(fSaveHWTrigger) processHWTrigger(evt);
     if(fSaveSWTrigger) processSWTrigger(evt);
     if(fSaveBeam) processBeam(evt);
+    if(fSaveMuCSData) processMuCS_data(evt);
+    if(fSaveMuCSRecoData) processMuCS_recoData(evt);
+    if(fSaveMCParticle) processMCParticle(evt);
+    if(fSaveSimChannel) processSimChannel(evt);
     fEventTree->Fill();
   }
 
@@ -505,7 +666,11 @@ namespace wc{
       of_multiplicity.clear();
       fPEperOpDet->Delete();
     }
-    if(fSavePMT_gain){
+    if(fSavePMT_gainData){
+      fOp_gain.clear();
+      fOp_gainerror.clear();
+    }
+    if(fSavePMT_gainMC){
       fOp_gain.clear();
       fOp_gainerror.clear();
     }
@@ -518,6 +683,75 @@ namespace wc{
       ftriggerTime.clear();
       fprescale_weight.clear();
     }
+    if(fSaveMCParticle){
+      mc_Ntrack = 0;
+      for(int i=0; i<MAX_TRACKS; i++){
+	mc_id[i] = 0;
+	mc_pdg[i] = 0;
+	mc_mother[i] = 0;
+	for(int j=0; j<4; j++){
+	  mc_startXYZT[i][j] = 0;
+	  mc_endXYZT[i][j] = 0;
+	  mc_startMomentum[i][j] = 0;
+	  mc_endMomentum[i][j] = 0;
+	}
+      }
+      mc_daughters.clear();
+      savedMCTrackIdMap.clear();
+      fMC_trackPosition->Delete();
+      mc_isnu = 0;
+      mc_nGeniePrimaries = -1;
+      mc_nu_pdg = -1;
+      mc_nu_ccnc = -1;
+      mc_nu_mode = -1;
+      mc_nu_intType = -1;
+      mc_nu_target = -1;
+      mc_hitnuc = -1;
+      mc_hitquark = -1;
+      mc_nu_Q2 = -1;
+      mc_nu_W = -1;
+      mc_nu_X = -1;
+      mc_nu_Y = -1;
+      mc_nu_Pt = -1;
+      mc_nu_Theta = -1;
+      for(int i=0; i<4; i++){
+	mc_nu_pos[i] = 0;
+	mc_nu_mom[i] = 0;
+      }
+    }
+    if(fSaveSimChannel){
+      sc_x.clear();
+      sc_y.clear();
+      sc_z.clear();
+      sc_tdc.clear();
+    }
+  }
+
+  void CellTreeUB::InitProcessMap(){
+    processMap["unknown"]                   = 0;
+    processMap["primary"]                   = 1;
+    processMap["compt"]                     = 2;
+    processMap["phot"]                      = 3;
+    processMap["annihil"]                   = 4;
+    processMap["eIoni"]                     = 5;
+    processMap["eBrem"]                     = 6;
+    processMap["conv"]                      = 7;
+    processMap["muIoni"]                    = 8;
+    processMap["muMinusCaptureAtRest"]      = 9;
+    processMap["NeutronInelastic"]          = 10;
+    processMap["nCapture"]                  = 11;
+    processMap["hadElastic"]                = 12;
+    processMap["Decay"]                     = 13;
+    processMap["CoulombScat"]               = 14;
+    processMap["muPairProd"]                = 15;
+    processMap["muBrems"]                   = 16;
+    processMap["muPairProd"]                = 17;
+    processMap["PhotonInelastic"]           = 18;
+    processMap["hIoni"]                     = 19;
+    processMap["ProtonInelastic"]           = 20;
+    processMap["PionPlusInelastic"]         = 21;
+    processMap["CHIPSNuclearCaptureAtRest"] = 22;
+    processMap["PionMinusInelastic"]        = 23;
   }
 
   void CellTreeUB::processTPC_raw(const art::Event& evt){
@@ -539,7 +773,7 @@ namespace wc{
       std::vector<short> uncompressed(nSamples);
       raw::Uncompress(rd->ADCs(), uncompressed, rd->Compression());
       TH1S *h = new((*fTPCraw_wf)[i]) TH1S("","",9600,0,9600);
-      for(int j=0; j<=nSamples; j++){ h->SetBinContent(j,uncompressed[j-1]); }
+      for(int j=1; j<=nSamples; j++){ h->SetBinContent(j,uncompressed[j-1]); }
       i++;
     } 
   }
@@ -589,7 +823,6 @@ namespace wc{
       fTPCdeconWiener_channelId.push_back(w->Channel());
       std::vector<float> wf = w->Signal();
       int nbin = (int)wf.size()/deconRebin;
-     // TH1I *h = new((*fTPCdeconWiener_wf)[i]) TH1I("","",nbin,0,nbin);
       TH1F *h = new((*fTPCdeconWiener_wf)[i]) TH1F("","",nbin,0,nbin);
       int ctr = 0, binCtr = 1;
       float content = 0;
@@ -623,7 +856,6 @@ namespace wc{
       fTPCdeconGaussian_channelId.push_back(w->Channel());
       std::vector<float> wf = w->Signal();
       int nbin = (int)wf.size()/deconRebin;
-      //TH1I *h = new((*fTPCdeconGaussian_wf)[i]) TH1I("","",nbin,0,nbin);
       TH1F *h = new((*fTPCdeconGaussian_wf)[i]) TH1F("","",nbin,0,nbin);
       int ctr = 0, binCtr = 1;
       float content = 0;
@@ -681,7 +913,7 @@ namespace wc{
 	fOp_cosmic_hg_timestamp.push_back(op.TimeStamp());
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_cosmic_hg_wf)[i]) TH1S("","",nbins,0,nbins);
-	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
+	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
 	i++;
       }
     }
@@ -699,7 +931,7 @@ namespace wc{
 	fOp_beam_hg_timestamp.push_back(op.TimeStamp());
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_beam_hg_wf)[i]) TH1S("","",nbins,0,nbins);
-	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
+	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
 	i++;
       }
     }
@@ -719,7 +951,7 @@ namespace wc{
 	fOp_cosmic_lg_timestamp.push_back(op.TimeStamp());
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_cosmic_lg_wf)[i]) TH1S("","",nbins,0,nbins);
-	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
+	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
 	i++;
       }
     }
@@ -737,7 +969,7 @@ namespace wc{
 	fOp_beam_lg_timestamp.push_back(op.TimeStamp());
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_beam_lg_wf)[i]) TH1S("","",nbins,0,nbins);
-	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
+	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
 	i++;
       }
     }
@@ -825,13 +1057,23 @@ namespace wc{
     }
   }
 
-  void CellTreeUB::processPMT_gain(const art::Event& evt){
+  void CellTreeUB::processPMT_gainData(const art::Event& evt){
     art::ServiceHandle<geo::Geometry> geo;
     const lariov::PmtGainProvider& gain_provider = art::ServiceHandle<lariov::PmtGainService>()->GetProvider();
     for(unsigned int a = 0; a != geo->NOpDets(); ++a){
       if(geo->IsValidOpChannel(a)){
 	fOp_gain.push_back(gain_provider.Gain(a));
 	fOp_gainerror.push_back(gain_provider.GainErr(a));
+      }
+    }
+  }
+
+  void CellTreeUB::processPMT_gainMC(const art::Event& evt){
+    art::ServiceHandle<geo::Geometry> geo;
+    for(unsigned int a = 0; a != geo->NOpDets(); ++a){
+      if(geo->IsValidOpChannel(a)){
+	fOp_gain.push_back(120.0);
+	fOp_gainerror.push_back(0.05);
       }
     }
   }
@@ -936,6 +1178,146 @@ namespace wc{
     ftotgoodpot_numiETORTGT = p3.totgoodpot;
     ftotspills_numiETORTGT = p3.totspills;
     fgoodspills_numiETORTGT = p3.goodspills;
+  }
+
+  void CellTreeUB::processMuCS_data(const art::Event& evt){
+    art::Handle<std::vector<MuCS::MuCSData> > mdata;
+    if(!evt.getByLabel(fMuCS_dataLabel, mdata)){
+      cout << "WARNING: no MuCS::MuCSData label "<<fMuCS_dataLabel<<endl;
+      return;
+    }
+    std::vector<art::Ptr<MuCS::MuCSData> > data_v;
+    art::fill_ptr_vector(data_v, mdata);
+    for(auto const& d : data_v){ ft0 = d->T0(); }
+  }
+
+  void CellTreeUB::processMuCS_recoData(const art::Event& evt){
+    art::Handle<std::vector<MuCS::MuCSRecoData> > mreco;
+    if(!evt.getByLabel(fMuCS_recoDataLabel, mreco)){
+      cout<<"WARNING: no MuCS::MuCSRecoData label "<<fMuCS_recoDataLabel<<endl;
+      return;
+    }
+    std::vector<art::Ptr<MuCS::MuCSRecoData> > reco_v;
+    art::fill_ptr_vector(reco_v, mreco);
+    for(auto const& r : reco_v){
+      ftheta_xy = r->theta_xy();
+      ftheta_xy_rms = r->theta_xy_rms();
+      fx = r->x();
+      fx_rms = r->x_rms();
+      ftheta_yz = r->theta_yz();
+      ftheta_yz_rms = r->theta_yz_rms();
+      fz = r->z();
+      fz_rms = r->z_rms();
+      fy = r->y();
+      ftheta = r->theta();
+      fphi = r->phi();
+      fxmatches = r->xmatches();
+      fzmatches = r->zmatches();
+    }
+  }
+
+  void CellTreeUB::processMCParticle(const art::Event& evt){
+    art::Handle<std::vector<simb::MCParticle> > particleHandle;
+    if(!evt.getByLabel("largeant", particleHandle)) return;
+    std::vector<art::Ptr<simb::MCParticle> > particles;
+    art::fill_ptr_vector(particles, particleHandle);
+    art::FindOneP<simb::MCTruth> fo(particleHandle, evt, "largeant");
+
+    int i=0; // track index in saved MCParticles
+    int i_all=0; //track index in all MCParticles
+    for(auto const& particle : particles){
+      art::Ptr<simb::MCTruth> mctruth = fo.at(i_all);
+      i_all++;
+      if(mcOption == "nuOnly"){
+	if( !(mctruth->Origin() == 1 && particle->Mother()==0) ){ continue; }
+      }
+
+      mc_process[i] = processMap[particle->Process()];
+      mc_id[i] = particle->TrackId();
+      mc_pdg[i] = particle->PdgCode();
+      mc_mother[i] = particle->Mother();
+      savedMCTrackIdMap[mc_id[i]] = mc_pdg[i];
+
+      int Ndaughters = particle->NumberDaughters();
+      vector<int> daughters;
+      for(int i=0; i<Ndaughters; i++){ daughters.push_back(particle->Daughter(i)); }
+      mc_daughters.push_back(daughters);
+
+      size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
+      int last = numberTrajectoryPoints - 1;
+      const TLorentzVector& positionStart = particle->Position(0);
+      const TLorentzVector& positionEnd = particle->Position(last);
+      const TLorentzVector& momentumStart = particle->Momentum(0);
+      const TLorentzVector& momentumEnd = particle->Momentum(last);
+      positionStart.GetXYZT(mc_startXYZT[i]);
+      positionEnd.GetXYZT(mc_endXYZT[i]);
+      momentumStart.GetXYZT(mc_startMomentum[i]);
+      momentumEnd.GetXYZT(mc_endMomentum[i]);
+
+      if(fSaveMCTrackPoints){
+	TClonesArray *Lposition = new TClonesArray("TLorentzVector",numberTrajectoryPoints);
+	for(unsigned int j=0; j<numberTrajectoryPoints; j++){
+	  new ((*Lposition)[j]) TLorentzVector(particle->Position(j));
+	}
+	fMC_trackPosition->Add(Lposition);
+      }
+      i++;
+      if(i==MAX_TRACKS){ break; }
+    }
+    mc_Ntrack = i;
+
+    art::Handle<std::vector<simb::MCTruth> > mctruthListHandle;
+    evt.getByLabel("generator",mctruthListHandle);
+    std::vector<art::Ptr<simb::MCTruth> > mclist;
+    art::fill_ptr_vector(mclist, mctruthListHandle);
+    art::Ptr<simb::MCTruth> mctruth;
+
+    if(mclist.size()>0){
+      mctruth = mclist.at(0);
+      if(mctruth->NeutrinoSet()){
+	simb::MCNeutrino nu = mctruth->GetNeutrino();
+	mc_isnu = 1;
+	mc_nGeniePrimaries = mctruth->NParticles();
+	mc_nu_pdg = nu.Nu().PdgCode();
+	mc_nu_ccnc = nu.CCNC();
+	mc_nu_mode = nu.Mode();
+	mc_nu_intType = nu.InteractionType();
+	mc_nu_target = nu.Target();
+	mc_hitnuc = nu.HitNuc();
+	mc_hitquark = nu.HitQuark();
+	mc_nu_Q2 = nu.QSqr();
+	mc_nu_W = nu.W();
+	mc_nu_X = nu.X();
+	mc_nu_Y = nu.Y();
+	mc_nu_Pt = nu.Pt();
+	mc_nu_Theta = nu.Theta();
+
+	const TLorentzVector& position = nu.Nu().Position(0);
+	const TLorentzVector& momentum = nu.Nu().Momentum(0);
+	position.GetXYZT(mc_nu_pos);
+	momentum.GetXYZT(mc_nu_mom);
+      }
+    }
+  }
+
+  void CellTreeUB::processSimChannel(const art::Event& evt){
+    art::InputTag scTag(fSimChannel_producer,fSimChannel_label);
+    auto const& scHandle = evt.getValidHandle<std::vector<sim::SimChannel>>(scTag);
+    auto const& sc_vec(*scHandle);
+    for(size_t i=0; i<sc_vec.size(); i++){
+      sim::SimChannel sc = sc_vec[i];
+      auto const timeSlices = sc.TDCIDEMap();
+      for(auto timeSlice : timeSlices){
+	auto const& energyDeposits = timeSlice.second;
+	for(auto energyDeposit : energyDeposits){
+	  sc_x.push_back(energyDeposit.x);
+	  sc_y.push_back(energyDeposit.y);
+	  sc_z.push_back(energyDeposit.z);
+	  sc_q.push_back(energyDeposit.numElectrons);
+	  sc_tdc.push_back(timeSlice.first);
+	}
+      }
+    }
   }
 
   DEFINE_ART_MODULE(CellTreeUB)

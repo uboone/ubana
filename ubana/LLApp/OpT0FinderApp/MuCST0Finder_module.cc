@@ -308,8 +308,8 @@ void MuCST0Finder::produce(art::Event & e)
 
   const art::Ptr<recob::Track> mucs_track_ptr = ptr_coll_v.at(0).at(0);
 
-  ::geoalgo::Vector mucs_track_start(mucs_track_ptr->LocationAtPoint(0));
-  ::geoalgo::Vector mucs_track_end(mucs_track_ptr->LocationAtPoint(mucs_track_ptr->NumberTrajectoryPoints()-1));
+  ::geoalgo::Vector mucs_track_start(mucs_track_ptr->LocationAtPoint<TVector3>(0));
+  ::geoalgo::Vector mucs_track_end(mucs_track_ptr->LocationAtPoint<TVector3>(mucs_track_ptr->NumberTrajectoryPoints()-1));
   ::geoalgo::AABox fidvol(10, (-1.)*(geo->DetHalfHeight())+10., 10.,
 			  geo->DetHalfWidth()*2-10., geo->DetHalfHeight()-10., geo->DetLength() -10.);
   if(fidvol.Contain(mucs_track_start) || fidvol.Contain(mucs_track_end)) {
@@ -325,7 +325,7 @@ void MuCST0Finder::produce(art::Event & e)
   ::geoalgo::Trajectory mucs_geotrj;
   mucs_geotrj.reserve(mucs_track_ptr->NumberTrajectoryPoints() - 1);
   for (size_t i = 0; i < mucs_track_ptr->NumberTrajectoryPoints(); ++i) {
-    ::geoalgo::Vector pt(mucs_track_ptr->LocationAtPoint(i));
+    ::geoalgo::Vector pt(mucs_track_ptr->LocationAtPoint<TVector3>(i));
     mucs_geotrj.emplace_back(std::move(pt));
   }
 
@@ -353,9 +353,9 @@ void MuCST0Finder::produce(art::Event & e)
     mucs_geotrj.resize(track_ptr->NumberTrajectoryPoints(),::geoalgo::Vector(0.,0.,0.));
     for (size_t pt_idx=0; pt_idx < track_ptr->NumberTrajectoryPoints(); ++pt_idx) {
       auto const& pt = track_ptr->LocationAtPoint(pt_idx);
-      mucs_geotrj[pt_idx][0] = pt[0];
-      mucs_geotrj[pt_idx][1] = pt[1];
-      mucs_geotrj[pt_idx][2] = pt[2];
+      mucs_geotrj[pt_idx][0] = pt.X();
+      mucs_geotrj[pt_idx][1] = pt.Y();
+      mucs_geotrj[pt_idx][2] = pt.Z();
     }
     auto qcluster = ((flashana::LightPath*)(_mgr.GetCustomAlgo("LightPath")))->FlashHypothesis(mucs_geotrj);
     _mgr.Emplace(std::move(qcluster));
