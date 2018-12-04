@@ -6,15 +6,15 @@ BEGIN_PROLOG
 #
 CosmicTaggerAna: {
   module_type:            "CosmicTaggerAna"
-  PFParticleProducer:     "pandoraCosmic"
+  PFParticleProducer:     "pandora"
   HitProducer:            "gaushit"
   GeantModule:            "largeant"
-  SpacePointProducer:     "pandoraCosmic"
+  SpacePointProducer:     "pandora"
   CosmicFlashTagProducer: "pandoraCosmicFlashTag"
   CosmicGeoTagProducer:   "pandoraCosmicTrackPFPart"
   CosmicACPTTagProducer:  "pandoraCosmicACPTTagger"
   CosmicStopMuTagProducer:"pandoraCosmicStoppingMu"
-  MCGhostProducer:        "RecoTrueMatcherCosmic"
+  MCGhostProducer:        "RecoTrueMatcher"
   CosmicFlashTagScoreCut: 0.99
   CosmicGeoTagScoreCut:   0.6
   CosmicACPTTagScoreCut:  0.99 

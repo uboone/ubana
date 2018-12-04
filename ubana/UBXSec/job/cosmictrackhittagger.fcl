@@ -5,8 +5,8 @@ BEGIN_PROLOG
 #
 CosmicTrackHitTagger: {
   module_type:           "CosmicTrackHitTagger"
-  PFParticleProducer:    "pandoraCosmic"
-  TrackProducer:         "pandoraCosmic"
+  PFParticleProducer:    "pandora"
+  TrackProducer:         "pandora"
   HitProducer:           "gaushit"
 
   DebugMode:             true

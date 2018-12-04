@@ -6,12 +6,12 @@ BEGIN_PROLOG
 #
 ACPTTagger: {
   module_type:           "ACPTTagger"
-  FlashProducer:         "simpleFlashCosmic"
-  OpHitProducer:         "ophitCosmic"
-  PFPartProducer:        "pandoraCosmic"
-  TrackProducer:         "pandoraCosmic"
-  SpacePointProducer:    "pandoraCosmic"
-  ClusterProducer:       "pandoraCosmic"
+  FlashProducer:         "simpleFlashBeam"
+  OpHitProducer:         "ophitBeam"
+  PFPartProducer:        "pandora"
+  TrackProducer:         "pandora"
+  SpacePointProducer:    "pandora"
+  ClusterProducer:       "pandora"
   SWTriggerProducer:     "swtrigger"
 
   UseTracks:             false

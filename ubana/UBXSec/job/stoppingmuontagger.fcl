@@ -8,9 +8,9 @@ BEGIN_PROLOG
 StoppingMuonTagger: {
   module_type:             "StoppingMuonTagger"
   TPCObjectProducer:       "TPCObjectMaker"
-  PFParticleProducer:      "pandoraNu::UBXSec"
-  ClusterProducer:         "pandoraNu::UBXSec"
-  TrackProducer:           "pandoraNu::UBXSec"
+  PFParticleProducer:      "pandora"
+  ClusterProducer:         "pandora"
+  TrackProducer:           "pandora"
 
   UseMCS:                  true
   MCSDeltaLLCut:           -5
@@ -60,10 +60,10 @@ StoppingMuonTagger: {
 }
 
 microboone_cosmicstoppingmutagger: @local::StoppingMuonTagger
-microboone_cosmicstoppingmutagger.TPCObjectProducer:  "pandoraCosmicTPCObj" 
-microboone_cosmicstoppingmutagger.PFParticleProducer: "pandoraCosmic"
-microboone_cosmicstoppingmutagger.ClusterProducer:    "pandoraCosmic"
-microboone_cosmicstoppingmutagger.TrackProducer:      "pandoraCosmic"
+microboone_cosmicstoppingmutagger.TPCObjectProducer:  "TPCObjectMaker" 
+microboone_cosmicstoppingmutagger.PFParticleProducer: "pandora"
+microboone_cosmicstoppingmutagger.ClusterProducer:    "pandora"
+microboone_cosmicstoppingmutagger.TrackProducer:      "pandora"
 
 microboone_cosmicstoppingmutagger_mc: @local::microboone_cosmicstoppingmutagger
 
