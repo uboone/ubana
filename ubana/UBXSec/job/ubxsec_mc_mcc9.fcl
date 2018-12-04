@@ -47,10 +47,10 @@ BEGIN_PROLOG
 ubxsec_mc_reco:
 {
 
-  #pandoraCosmicTPCObj:            @local::TPCObjectMakerCosmic
-  #RecoTrueMatcherCosmic:          @local::microboone_recotruematcher_pandoracosmic
+#  pandoraCosmicTPCObj:            @local::TPCObjectMakerCosmic
+ # RecoTrueMatcherCosmic:          @local::microboone_recotruematcher_pandoracosmic
 
-#  pandoraCosmicTrackPFPart:       @local::microboone_cosmicpfparticletagger
+ #pandoraCosmicTrackPFPart:       @local::microboone_cosmicpfparticletagger
  # pandoraCosmicFlashTag:          @local::microboone_cosmicpfpflashtagger
  # pandoraCosmicACPTTagger:        @local::microboone_acpttagger_mc
  # pandoraCosmicStoppingMu:        @local::microboone_cosmicstoppingmutagger_mc
@@ -58,17 +58,17 @@ ubxsec_mc_reco:
 
   #crHitRemovalTruthMatch:         @local::standard_mcparticlehitmatching
 
-  #pandora:                      @local::microboone_pandora
+ #pandora:                      @local::microboone_pandora
   #pandoraNuAll:                   @local::microboone_pandora
 
-  #pandoraNuGeoCosmicTag:          @local::GeoCosmicTagger
+ #pandoraNuGeoCosmicTag:          @local::GeoCosmicTagger
 
-  #pandoraNucalo:                  @local::microboone_calomc
-  #pandoraNupid:                   @local::microboone_chi2pid
-  #pandoraNucali:                  @local::microboone_calibrationdedx
+ # pandoracalo:                  @local::microboone_calomc
+  #pandorapid:                   @local::microboone_chi2pid
+  #pandoracali:                  @local::microboone_calibrationdedx
   #pandoraNucalipid:               @local::microboone_chi2pid
 
-  #pandoraNuMCSMu:                 @local::mcsfitproducer
+ # pandoraMCSMu:                 @local::mcsfitproducer
   #pandoraNuMCSPi:                 @local::mcsfitproducer
 }
 
@@ -77,14 +77,19 @@ ubxsec_mc_flashmatch:
    RecoTrueMatcher:                @local::microboone_recotruematcher_pandoranu
 
    TPCObjectMaker:                 @local::TPCObjectMaker
- 
- #  pandoraNuGeoCosmicTag:          @local::GeoCosmicTagger
+  pandoraCosmicTrackPFPart:       @local::microboone_cosmicpfparticletagger
+  pandoraCosmicFlashTag:          @local::microboone_cosmicpfpflashtagger
+  pandoraCosmicACPTTagger:        @local::microboone_acpttagger_mc
+  pandoraCosmicStoppingMu:        @local::microboone_cosmicstoppingmutagger_mc
+  pandoraCosmicHitRemoval:        @local::microboone_crhitremoval
+
+   pandoraNuGeoCosmicTag:          @local::GeoCosmicTagger
 
   pandoraNuStoppingMuonTag:       @local::StoppingMuonTagger
 
    NeutrinoMCFlash:                @local::NeutrinoMCFlash
    NeutrinoFlashMatch:             @local::NeutrinoFlashMatch
-   #CosmicFlashMatch:               @local::CosmicFlashMatch
+   CosmicFlashMatch:               @local::CosmicFlashMatch
 
    CandidateConsistency:           @local::CandidateConsistency_mc
 
@@ -110,14 +115,14 @@ ubxsec_mc_ana:
 
 
 ubxsec_mc_producers: [ 
-			#pandoraCosmicTPCObj,
-                       #RecoTrueMatcherCosmic,
-                      # pandoraCosmicTrackPFPart,
-                       #pandoraCosmicFlashTag,
+#			pandoraCosmicTPCObj,
+#                       RecoTrueMatcherCosmic,
+ #                     pandoraCosmicTrackPFPart,
+  #                     pandoraCosmicFlashTag,
                       # pandoraCosmicACPTTagger,
-                      # pandoraCosmicStoppingMu,
-                      # pandoraCosmicHitRemoval,
-                      # crHitRemovalTruthMatch,
+ #                     pandoraCosmicStoppingMu,
+  #                     pandoraCosmicHitRemoval,
+   #                    crHitRemovalTruthMatch,
 #                       pandora,
                        #pandoraNuAll,
                        #pandoraNucalo,
@@ -128,9 +133,14 @@ ubxsec_mc_producers: [
                        #pandoraNuMCSPi,
                        RecoTrueMatcher, 
                        TPCObjectMaker,
- #                      pandoraNuGeoCosmicTag,
-                       pandoraNuStoppingMuonTag,
-                       NeutrinoMCFlash, 
+                       #pandoraNuGeoCosmicTag,
+                       #pandoraNuStoppingMuonTag,
+ 			#pandoraCosmicTrackPFPart,
+                       #pandoraCosmicFlashTag,
+                      # pandoraCosmicACPTTagger,
+ #                                                                   pandoraCosmicHitRemoval,
+                      #                                                                     crHitRemovalTruthMatch, 
+                      NeutrinoMCFlash, 
                        NeutrinoFlashMatch,
                        CandidateConsistency,
                        #genieeventweightpm1,
@@ -142,37 +152,38 @@ ubxsec_mc_producers: [
 ubxsec_mc_filters: [ tpcneutrinoidfilternumuccinc 
                    ]
 
-ubxsec_mc_analyzers: [ ProtonID 
-                       #CosmicTaggerAna 
+ubxsec_mc_analyzers: [ ProtonID
+#, 
+#                       CosmicTaggerAna 
                      ]
 
 
 
 
 # Set reco properties
-#ubxsec_mc_reco.pandoraCosmicTrackPFPart.PFParticleModuleLabel:   "pandoraCosmic"
-#ubxsec_mc_reco.pandoraCosmicTrackPFPart.TrackModuleLabel:        "pandoraCosmic"
-#ubxsec_mc_reco.pandoraCosmicTrackPFPart.EndTickPadding:          75
-#ubxsec_mc_reco.pandoraCosmicTrackPFPart.TPCXBoundary:            10
-#ubxsec_mc_reco.pandoraCosmicTrackPFPart.TPCYBoundary:            30
-#ubxsec_mc_reco.pandoraCosmicTrackPFPart.TPCZBoundary:            20
-#ubxsec_mc_reco.pandoraCosmicTrackPFPart.Debug:                   false
+#ubxsec_mc_flashmatch.pandoraCosmicTrackPFPart.PFParticleModuleLabel:   "pandora"
+#ubxsec_mc_flashmatch.pandoraCosmicTrackPFPart.TrackModuleLabel:        "pandora"
+#ubxsec_mc_flashmatch.pandoraCosmicTrackPFPart.EndTickPadding:          75
+#ubxsec_mc_flashmatch.pandoraCosmicTrackPFPart.TPCXBoundary:            10
+#ubxsec_mc_flashmatch.pandoraCosmicTrackPFPart.TPCYBoundary:            30
+#ubxsec_mc_flashmatch.pandoraCosmicTrackPFPart.TPCZBoundary:            20
+#ubxsec_mc_flashmatch.pandoraCosmicTrackPFPart.Debug:                   false
 
-#ubxsec_mc_reco.pandoraCosmicFlashTag.DebugMode:                  false
+#ubxsec_mc_flashmatch.pandoraCosmicFlashTag.DebugMode:                  false
 
-#ubxsec_mc_reco.pandoraCosmicHitRemoval.CosmicProducerLabels:     ["pandoraCosmicTrackPFPart::UBXSec", "pandoraCosmicFlashTag::UBXSec", "pandoraCosmicACPTTagger::UBXSec", "pandoraCosmicStoppingMu::UBXSec" ]
-#ubxsec_mc_reco.pandoraCosmicHitRemoval.TrackProducerLabels:      ["pandoraCosmic",                    "pandoraCosmic",                 "pandoraCosmic",                   "pandoraCosmic"                   ]
-#ubxsec_mc_reco.pandoraCosmicHitRemoval.AssnProducerLabels:       ["pandoraCosmic",                    "pandoraCosmic",                 "pandoraCosmic",                   "pandoraCosmic"                   ]
-#ubxsec_mc_reco.pandoraCosmicHitRemoval.CosmicTagThresholds:      [0.6,                                0.99,                            0.99,                              0.99                              ]
-#ubxsec_mc_reco.pandoraCosmicHitRemoval.PFParticleProducerLabel:  "pandoraCosmic"
-#ubxsec_mc_reco.pandoraCosmicHitRemoval.EndTickPadding:           75
-#ubxsec_mc_reco.pandoraCosmicHitRemoval.CopyHitMCParticleAssns:   true
-#ubxsec_mc_reco.pandoraCosmicHitRemoval.HitMCParticleAssnLabel:   "gaushitTruthMatch"
+#ubxsec_mc_flashmatch.pandoraCosmicHitRemoval.CosmicProducerLabels:     ["pandoraCosmicTrackPFPart", "pandoraCosmicFlashTag", "pandoraCosmicACPTTagger", "pandoraCosmicStoppingMu" ]
+#ubxsec_mc_flashmatch.pandoraCosmicHitRemoval.TrackProducerLabels:      ["pandora","pandora", "pandora","pandora"                   ]
+#ubxsec_mc_flashmatch.pandoraCosmicHitRemoval.AssnProducerLabels:       ["pandora", "pandora",   "pandora",  "pandora"     ]
+#ubxsec_mc_flashmatch.pandoraCosmicHitRemoval.CosmicTagThresholds:      [0.6,                                0.99,                            0.99,                              0.99                              ]
+#ubxsec_mc_flashmatch.pandoraCosmicHitRemoval.PFParticleProducerLabel:  "pandora"
+#ubxsec_mc_flashmatch.pandoraCosmicHitRemoval.EndTickPadding:           75
+#ubxsec_mc_flashmatch.pandoraCosmicHitRemoval.CopyHitMCParticleAssns:   true
+#ubxsec_mc_flashmatch.pandoraCosmicHitRemoval.HitMCParticleAssnLabel:   "gaushitTruthMatch"
 
-#ubxsec_mc_reco.crHitRemovalTruthMatch.OverrideRealData:                          true
-#ubxsec_mc_reco.crHitRemovalTruthMatch.HitParticleAssociations:                   @local::IndirectHitParticleAssnsTool
-#ubxsec_mc_reco.crHitRemovalTruthMatch.HitParticleAssociations.HitPartAssnsLabel: "gaushitTruthMatch"
-#ubxsec_mc_reco.crHitRemovalTruthMatch.HitParticleAssociations.HitModuleLabel:    "pandoraCosmicHitRemoval::UBXSec"
+#ubxsec_mc_flashmatch.crHitRemovalTruthMatch.OverrideRealData:                          true
+#ubxsec_mc_flashmatch.crHitRemovalTruthMatch.HitParticleAssociations:                   @local::IndirectHitParticleAssnsTool
+#ubxsec_mc_flashmatch.crHitRemovalTruthMatch.HitParticleAssociations.HitPartAssnsLabel: "gaushitTruthMatch"
+#ubxsec_mc_flashmatch.crHitRemovalTruthMatch.HitParticleAssociations.HitModuleLabel:    "pandoraCosmicHitRemoval::UBXSec"
 
 #ubxsec_mc_reco.pandora.GeantModuleLabel:                       "largeant"
 #ubxsec_mc_reco.pandora.HitFinderModuleLabel:                   "pandoraCosmicHitRemoval::UBXSec"
@@ -185,8 +196,8 @@ ubxsec_mc_analyzers: [ ProtonID
 #ubxsec_mc_reco.pandoraNuAll.HitFinderModuleLabel:                "gaushit"
 #ubxsec_mc_reco.pandoraNuAll.ConfigFile:                          "PandoraSettings_MicroBooNE_Neutrino.xml"
 
-#ubxsec_mc_reco.pandoraNucalo.TrackModuleLabel:                   "pandora::UBXSec"
-#ubxsec_mc_reco.pandoraNucalo.SpacePointModuleLabel:              "pandora::UBXSec"
+#ubxsec_mc_reco.pandoracalo.TrackModuleLabel:                   "pandora::UBXSec"
+#ubxsec_mc_reco.pandoracalo.SpacePointModuleLabel:              "pandora::UBXSec"
 #ubxsec_mc_reco.pandoraNucalo.Flip_dQdx:                          false
 #ubxsec_mc_reco.pandoraNucalo.FlipTrack_dQdx:                     false
 
@@ -200,7 +211,7 @@ ubxsec_mc_analyzers: [ ProtonID
 #ubxsec_mc_reco.pandoraNucalipid.TrackModuleLabel:                "pandora::UBXSec"
 #ubxsec_mc_reco.pandoraNucalipid.Chi2PIDAlg.UseMedian:            true
 
-#ubxsec_mc_reco.pandoraNuMCSMu.inputs.inputLabel:                 "pandora::UBXSec"
+#ubxsec_mc_reco.pandoraMCSMu.inputs.inputLabel:                 "pandora::UBXSec"
 
 #ubxsec_mc_reco.pandoraNuMCSPi.inputs.inputLabel:                 "pandora::UBXSec"
 #ubxsec_mc_reco.pandoraNuMCSPi.fitter.pIdHypothesis:              211

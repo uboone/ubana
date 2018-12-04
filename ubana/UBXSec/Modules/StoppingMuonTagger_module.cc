@@ -170,10 +170,10 @@ StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p)
   std::cout << "[StoppingMuonTagger] FV: " << std::endl;
   _fiducial_volume.PrintConfig();
 
-  _tpcobject_producer = p.get<std::string>("TPCObjectProducer",  "TPCObjectMaker::UBXSec");
-  _pfp_producer       = p.get<std::string>("PFParticleProducer", "pandoraNu::UBXSec");
-  _cluster_producer   = p.get<std::string>("ClusterProducer",    "pandoraNu::UBXSec");
-  _track_producer     = p.get<std::string>("TrackProducer",      "pandoraNu::UBXSec");
+  _tpcobject_producer = p.get<std::string>("TPCObjectProducer",  "TPCObjectMakerCosmic::UBXSec");
+  _pfp_producer       = p.get<std::string>("PFParticleProducer", "pandora::UBXSec");
+  _cluster_producer   = p.get<std::string>("ClusterProducer",    "pandora::UBXSec");
+  _track_producer     = p.get<std::string>("TrackProducer",      "pandora::UBXSec");
  
   _use_mcs            = p.get<bool>("UseMCS", false);
   _mcs_delta_ll_cut   = p.get<double>("MCSDeltaLLCut", -5.);

@@ -9,10 +9,10 @@ TPCObjectMaker: {
   TrackProducer:              "pandora"
   ShowerProducer:             "pandora"
   VertexProducer:             "pandora"
-  HitProducer:                "pandoraCosmicHitRemoval"
+  HitProducer:                "gaushit"
   GeantModule:                "largeant"
   SpacePointProducer:         "pandora"
-  MCPHitAssProducer:          "crHitRemovalTruthMatch"
+  MCPHitAssProducer:          "gaushitTruthMatch"
   UsePremadeMCPHitAss:        true
   FilterObjects:              true
   PandorCosmicMode:           false
@@ -20,21 +20,21 @@ TPCObjectMaker: {
 }
 
 
-#TPCObjectMakerCosmic: {
-#  module_type:                "TPCObjectMaker"
-#  PFParticleProducer:         "pandoraCosmic"
-#  TrackProducer:              "pandoraCosmic"
-#  ShowerProducer:             "pandoraCosmic"
-#  VertexProducer:             "pandoraCosmic"
-#  HitProducer:                "gaushit"
-#  GeantModule:                "largeant"
-#  SpacePointProducer:         "pandoraCosmic"
-#  MCPHitAssProducer:          "gaushitTruthMatch"
-#  UsePremadeMCPHitAss:        true
-#  FilterObjects:              false
-#  PandorCosmicMode:           true
-#  Debug:                      false
-#}
+TPCObjectMakerCosmic: {
+  module_type:                "TPCObjectMaker"
+  PFParticleProducer:         "pandora"
+  TrackProducer:              "pandora"
+  ShowerProducer:             "pandora"
+  VertexProducer:             "pandora"
+  HitProducer:                "gaushit"
+  GeantModule:                "largeant"
+  SpacePointProducer:         "pandora"
+  MCPHitAssProducer:          "gaushitTruthMatch"
+  UsePremadeMCPHitAss:        true
+  FilterObjects:              false
+  PandorCosmicMode:           true
+  Debug:                      false
+}
 
 
 END_PROLOG

@@ -5,13 +5,13 @@ BEGIN_PROLOG
 BackTrackerTruthTool:
 {
   tool_type:          "BackTrackerTruth"
-  TrackProducerLabel: "pandoraNu"
+  TrackProducerLabel: "pandora"
 }
 
 AssociationsTruthTool:
 {
   tool_type:           "AssociationsTruth"
-  AssnsProducerLabels: ["gaushitTruthMatch", "crHitRemovalTruthMatch", "trajclusterTruthMatch"]
+  AssnsProducerLabels: ["gaushitTruthMatch", "trajclusterTruthMatch"]
   G4ProducerLabel:     "largeant"
   MCTruthAssociations: @local::MCTruthAssociations
 }

@@ -11,7 +11,7 @@ QEEventSelection: {
  GetMCTruth:            false
 
  # save all events or just selected events
- SaveAllEvents:  true
+ SaveAllEvents:  false
  MinimumLRScore: 0.9
 
  # write track features to a csv file 

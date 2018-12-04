@@ -18,7 +18,7 @@ process_name : UBXSec      #The process name must NOT contain any underscores
 
 services:
 {
-  scheduler:               { defaultExceptions: true }    # Make all uncaught exceptions fatal.
+  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
   # Load the service that manages root files for histograms.
   TFileService:            { fileName: "output.root" }
   TimeTracker:             @local::microboone_time_tracker
@@ -74,7 +74,7 @@ physics:
 
  producers:
  {
-#   @table::ubxsec_data_reco
+   @table::ubxsec_data_reco
    @table::ubxsec_data_flashmatch
  }
 
@@ -99,7 +99,7 @@ outputs:
  { 
    module_type: RootOutput
    fileName:    "%ifb_%tc_ubxsec.root"
-   dataTier:    "reco"
+   dataTier:    "reconstructed"
    compressionLevel: 1
    outputCommands: [
             "keep *_*_*_*"]
@@ -125,7 +125,7 @@ services.message.destinations :
   {
      type:      "cout"      #tells the message service to output this destination to cout
      threshold: "WARNING"   #tells the message service that this destination applies to WARNING and higher level messages
-     #append:     true       #says to append all messages to the output
+     append:     true       #says to append all messages to the output
      categories:
      {
        ChannelFilter:
