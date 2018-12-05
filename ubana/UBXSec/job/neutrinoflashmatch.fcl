@@ -6,8 +6,8 @@ BEGIN_PROLOG
 #
 NeutrinoFlashMatch: {
   module_type:              "NeutrinoFlashMatch"
-  PFParticleModule:         "pandora::UBXSec"
-  TrackModule:              "pandora::UBXSec"
+  PFParticleModule:         "pandora"
+  TrackModule:              "pandora"
   TPCObjectModule:          "TPCObjectMaker"
   NeutrinoMCFlashModule:    "NeutrinoMCFlash"
   DebugMode:                false

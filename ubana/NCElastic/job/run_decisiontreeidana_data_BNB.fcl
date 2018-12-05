@@ -1,6 +1,5 @@
 #include "services_microboone.fcl"
 #include "time_memory_tracker_microboone.fcl"
-#include "tpcobjectmaker.fcl"
 #include "decisiontreeidana.fcl"
 
 process_name: decisiontreeidana
@@ -9,7 +8,7 @@ services:
 {
   scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
   # Load the service that manages root files for histograms.
-  TFileService:            { fileName: "decisiontreeidana.root" }
+  TFileService:            { fileName: "decisiontreeidana_data_bnbon.root" }
   TimeTracker:             @local::microboone_time_tracker
   MemoryTracker:           @local::microboone_memory_tracker
   RandomNumberGenerator:   {} #ART native random number generator
@@ -41,14 +40,14 @@ physics:
 
  producers:
  {
-TPCObjectMaker: @local::TPCObjectMaker 
+#TPCObjectMaker: @local::TPCObjectMaker 
 }
 
  analyzers:
  {
     decisiontreeidana: @local::DecisionTreeIDAna
  }
- reco:[TPCObjectMaker]
+ #reco:[TPCObjectMaker]
  ana: [ decisiontreeidana ]
 
  #end_paths is a keyword and contains the paths that do not modify the art::Event, 
@@ -80,6 +79,7 @@ services.message.destinations :
   }
 }
 
-
+physics.analyzers.decisiontreeidana.FeaturesConfig.BeamWindowStartT: 3.3
+physics.analyzers.decisiontreeidana.FeaturesConfig.BeamWindowStartT: 4.9
 services.DetectorClocksService.InheritClockConfig:           false
 services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3

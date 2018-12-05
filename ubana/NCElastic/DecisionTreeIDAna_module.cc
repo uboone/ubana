@@ -18,7 +18,7 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
-
+#include "larcoreobj/SummaryData/POTSummary.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/OpFlash.h"
@@ -26,7 +26,7 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "ubobj/UBXSec/TPCObject.h"
+//#include "ubobj/UBXSec/TPCObject.h"
 #include "TString.h"
 #include "TTree.h"
 
@@ -59,7 +59,7 @@ public:
   // Required functions.
   void beginJob() override;
   void analyze(art::Event const & e) override;
-
+  void endSubRun(const art::SubRun &sr);
 private:
 
   // Pointer to the feature algorithm
@@ -74,27 +74,37 @@ private:
   std::string _geniegenmodulelabel;
   std::string _hitassoclabel;
   std::string _tpcobject_producer;
-
+  std::string _potsum_producer;
+  std::string _potsum_instance;
   std::string _fcsvname;
   bool        _writecsv;
-
+  
   fhicl::ParameterSet _truthparams;
-
+  
   TTree* _tree1;
   int _run, _subrun, _event, _trackid;
-  float _nhits,_length,_startx,_starty,_startz,_endx,_endy,_endz;
+  int _nhits;
+  float _length,_startx,_starty,_startz,_endx,_endy,_endz;
   float _theta,_phi,_distlenratio;
   float _startdedx,_dedxratio;
   float _trtotaldedx,_traveragededx;
   float _cosmicscore,_coscontscore;
   float _predict_p,_predict_mu,_predict_pi,_predict_em,_predict_cos;
-  float _mc_ccnc,_mc_mode,_mc_hitnuc,_mc_q2,_mc_nux,_mc_nuy,_mc_nuz;
+  int   _mc_ccnc,_mc_mode,_mc_hitnuc;
+  float _mc_q2,_mc_nux,_mc_nuy,_mc_nuz;
   float _mc_enu;
-  float _mcpdg,_mcprimary,_mcorigin;
+  int   _mcpdg,_mcprimary,_mcorigin;
   float _mclength,_mcstartx,_mcstarty,_mcstartz;
   float _mcendx,_mcendy,_mcendz,_mctheta,_mcphi,_mckinetic;
 
   std::ofstream fout;
+
+  bool _debug = true;   
+  bool _is_data, _is_mc;
+  TTree* _sr_tree;
+  int _sr_run, _sr_subrun;
+  double _sr_begintime, _sr_endtime;
+  double _sr_pot;
 
   const anab::CosmicTagID_t TAGID_P  = anab::CosmicTagID_t::kGeometry_YY;
   const anab::CosmicTagID_t TAGID_MU = anab::CosmicTagID_t::kGeometry_YZ;
@@ -118,7 +128,9 @@ DecisionTreeIDAna::DecisionTreeIDAna(fhicl::ParameterSet const & p)
   _fcsvname         = p.get<std::string>("CSVFileOut","test.csv");
   _writecsv         = p.get<bool>("WriteCSV", false);
   _truthparams      = p.get<fhicl::ParameterSet>("MCTruthMatching");
-  _tpcobject_producer             = p.get<std::string>("TPCObjectProducer");   
+  //_tpcobject_producer             = p.get<std::string>("TPCObjectProducer");   
+  _potsum_producer                = p.get<std::string>("POTSummaryProducer");
+  _potsum_instance                = p.get<std::string>("POTSummaryInstance");
   fTrackFeatures.Configure(p.get<fhicl::ParameterSet>("FeaturesConfig"));
 
   art::ServiceHandle<art::TFileService> tfs;
@@ -171,6 +183,14 @@ DecisionTreeIDAna::DecisionTreeIDAna(fhicl::ParameterSet const & p)
   _tree1->Branch("mcphi",&_mcphi,"mcphi/F");
   _tree1->Branch("mckinetic",&_mckinetic,"mckinetic/F");
 
+  _sr_tree = tfs->make<TTree>("pottree","");
+  _sr_tree->Branch("run",                &_sr_run,                "run/I");
+  _sr_tree->Branch("subrun",             &_sr_subrun,             "subrun/I");
+  _sr_tree->Branch("begintime",          &_sr_begintime,          "begintime/D");
+  _sr_tree->Branch("endtime",            &_sr_endtime,            "endtime/D");
+  _sr_tree->Branch("pot",                &_sr_pot,                "pot/D");
+
+
 }
 
 void DecisionTreeIDAna::analyze(art::Event const & e)
@@ -179,10 +199,11 @@ void DecisionTreeIDAna::analyze(art::Event const & e)
   _run    = e.id().run();
   _subrun = e.id().subRun();
   _event  = e.id().event();
-
+  _is_data = e.isRealData();
+  _is_mc   = !_is_data;
   // open csv for writing 
   if(_writecsv) fout.open(_fcsvname.c_str(),std::ofstream::out | std::ofstream::app);
-
+  
   // recover handle for tracks that we want to analyze
   art::Handle< std::vector<recob::Track> > trackVecHandle;
   e.getByLabel(_trackmodulelabel, trackVecHandle);
@@ -194,7 +215,7 @@ void DecisionTreeIDAna::analyze(art::Event const & e)
 
   art::Handle< std::vector<simb::GTruth> > gTruthHandle;
   std::vector<art::Ptr<simb::GTruth > > glist;
-  if(_getmctruth)
+  if(_getmctruth&&_is_mc)
   {
     if (e.getByLabel(_geniegenmodulelabel,mctruthListHandle))
     {
@@ -217,12 +238,12 @@ void DecisionTreeIDAna::analyze(art::Event const & e)
     std::unique_ptr<truth::IMCTruthMatching> bt;
 
 bt= art::make_tool<truth::IMCTruthMatching>( _truthparams);
-    if(_getmcparticle)
+    if(_getmcparticle&&_is_mc)
     {
   //    bt = std::unique_ptr<truth::IMCTruthMatching>(new truth::AssociationsTruth(_truthparams));
       bt->Rebuild(e);
     }
-
+/*
     art::Handle<std::vector<ubana::TPCObject>> tpcobj_h;
     e.getByLabel(_tpcobject_producer, tpcobj_h);
     if (!tpcobj_h.isValid()) {
@@ -230,7 +251,7 @@ bt= art::make_tool<truth::IMCTruthMatching>( _truthparams);
     }
     else 
       std::cout << "[NCE TPCObject] Found ubana::TPCObject." << std::endl;
-    
+  */  
     // Loop over input tracks
     for(size_t trkIdx = 0; trkIdx < trackVecHandle->size(); trkIdx++)
     {
@@ -269,7 +290,7 @@ bt= art::make_tool<truth::IMCTruthMatching>( _truthparams);
         _startx = trk->End().X();
         _endx = trk->Vertex().X();
       }
-      if(_getmctruth)
+      if(_getmctruth&&_is_mc)
       {
         if(!mclist.empty())
         {
@@ -287,7 +308,7 @@ bt= art::make_tool<truth::IMCTruthMatching>( _truthparams);
           }
         }
       }
-      if(_getmcparticle & hitAssns.isValid())
+      if(_getmcparticle&& _is_mc && hitAssns.isValid())
       {
         art::Ptr<recob::Track> trk(trackVecHandle,trkIdx);
         std::vector<art::Ptr<recob::Hit>> hitVec = hitAssns.at(trk.key());
@@ -347,7 +368,7 @@ bt= art::make_tool<truth::IMCTruthMatching>( _truthparams);
                                        << _predict_pi << ","
                                        << _predict_em << ","
                                        << _predict_cos;
-        if(_getmctruth)
+        if(_getmctruth&&_is_mc)
         {
           fout << "," << _mc_ccnc << "," 
                       << _mc_mode << "," 
@@ -358,7 +379,7 @@ bt= art::make_tool<truth::IMCTruthMatching>( _truthparams);
                       << _mc_nuz << "," 
                       << _mc_enu;
         }
-        if(_getmcparticle)
+        if(_getmcparticle&&_is_mc)
         {
           fout << "," << _mcpdg << ","
                       << _mcprimary << ","
@@ -419,11 +440,11 @@ void DecisionTreeIDAna::beginJob()
     {
       fout << ",predict_p,predict_mu,predict_pi,predict_em,predict_cos";
     }
-    if(_getmctruth)
+    if(_getmctruth&&_is_mc)
     {
       fout << ",mc_ccnc,mc_mode,mc_hitnuc,mc_q2,mc_nux,mc_nuy,mc_nuz,mc_enu";
     }
-    if(_getmcparticle)
+    if(_getmcparticle&&_is_mc)
     {
       fout << ",mcpdg,mcprimary,mcorigin,"
               "mclength,mcstartx,mcstarty,mcstartz,"
@@ -433,4 +454,45 @@ void DecisionTreeIDAna::beginJob()
     fout.close();
   }
 }
+
+void DecisionTreeIDAna::endSubRun(const art::SubRun& sr) {
+
+  if (_debug) std::cout << "[UBXSec::endSubRun] Starts" << std::endl;
+
+  _sr_run       = sr.run();
+  _sr_subrun    = sr.subRun();
+  _sr_begintime = sr.beginTime().value();
+  _sr_endtime   = sr.endTime().value();
+
+  art::Handle<sumdata::POTSummary> potsum_h;
+
+  // MC
+  if (_is_mc) {
+    if (_debug) std::cout << "[NCE::endSubRun] Getting POT for MC" << std::endl;
+    if(sr.getByLabel(_potsum_producer, potsum_h)) {
+      if (_debug) std::cout << "[NCE::endSubRun] POT are valid" << std::endl;
+      _sr_pot = potsum_h->totpot/1.0e16;
+    }
+    else
+      _sr_pot = 0.;
+  }
+
+  // Data - Use Zarko's script instead
+  if (_is_data) {
+    if (_debug) std::cout << "[NCE::endSubRun] Getting POT for DATA, producer " << _potsum_producer << ", instance " << _potsum_instance << std::endl;
+    if (sr.getByLabel(_potsum_producer, _potsum_instance, potsum_h)){
+      if (_debug) std::cout << "[NCE::endSubRun] POT are valid" << std::endl;
+      _sr_pot = potsum_h->totpot;
+    }
+    else
+      _sr_pot = 0;
+  }
+  if (_debug) std::cout <<"pot:  "<<_sr_pot << std::endl;
+  _sr_tree->Fill();
+
+  if (_debug) std::cout << "[NCE::endSubRun] Ends" << std::endl;
+}
+
+
+
 DEFINE_ART_MODULE(DecisionTreeIDAna)

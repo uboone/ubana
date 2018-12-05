@@ -16,7 +16,8 @@ DecisionTreeIDAna: {
  # (only works after prediction has run)
  GetDTPrediction: false
  DTAssocLabel:    "pandoradecisiontreeid"
-
+POTSummaryProducer:           "generator"
+  POTSummaryInstance:           ""
  # write track features to a csv file 
  WriteCSV:   true
  CSVFileOut: "trackfeatures.csv"
