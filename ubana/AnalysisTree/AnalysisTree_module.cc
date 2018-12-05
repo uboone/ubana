@@ -4883,7 +4883,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
             }
        } 
       
-        if (!evt.isRealData()&&!isCosmics)
+        if (isMC&&!isCosmics)
         {
             std::vector<sim::TrackIDE> trackIDEVec = fMCTruthMatching->HitToTrackID(hitlist[i]);
             fData -> hit_nelec[i] = 0;
@@ -5568,7 +5568,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	  for (size_t ipl = 0; ipl < 3; ++ipl){
 	    double maxe = 0;
 	    HitsPurity(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
-	    //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<trkidtruth[iTracker][iTrk][ipl]<<"\t"<<trkpurtruth[iTracker][iTrk][ipl]<<"\t"<<maxe;
+	    //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<TrackerData.trkidtruth[iTrk][ipl]<<"\t"<<TrackerData.trkpurtruth[iTrk][ipl]<<"\t"<<maxe;
 	    if (TrackerData.trkidtruth[iTrk][ipl]>0){
 	      const art::Ptr<simb::MCTruth> mc = fMCTruthMatching->TrackIDToMCTruth(TrackerData.trkidtruth[iTrk][ipl]);
 	      TrackerData.trkorigin[iTrk][ipl] = mc->Origin();
@@ -5584,6 +5584,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 
 	  double maxe = 0;
 	  HitsPurity(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
+	  //std::cout<<"\n"<<fTrackModuleLabel[iTracker]<<"\t"<<iTrk<<"\t"<<"\t"<<TrackerData.trkg4id[iTrk]<<"\t"<<maxe<<std::endl;
 	  if (TrackerData.trkg4id[iTrk]>0){
 	    const art::Ptr<simb::MCTruth> mc = fMCTruthMatching->TrackIDToMCTruth(TrackerData.trkg4id[iTrk]);
 	    TrackerData.trkorig[iTrk] = mc->Origin();
@@ -6454,6 +6455,7 @@ void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > co
   if (tote>0){
     purity = maxe/tote;
   }
+  //std::cout << "tote = " << tote << ", maxe = " << maxe << ", purity = " << purity << ", trackid =" << trackid <<  std::endl;
 }
 
 // Calculate distance to boundary.
