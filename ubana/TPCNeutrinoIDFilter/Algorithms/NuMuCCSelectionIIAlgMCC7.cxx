@@ -160,19 +160,13 @@ bool NuMuCCSelectionIIAlgMCC7::findNeutrinoCandidates(art::Event & evt) const
     std::vector<double> trkenddcosy(tracklist.size());
     std::vector<double> trkenddcosz(tracklist.size());
     std::vector<double> trklen(tracklist.size());
-    double larStart[3];
-    double larEnd[3];
-    std::vector<double> trackStart;
-    std::vector<double> trackEnd;
+    TVector3 larStart;
+    TVector3 larEnd;
+    TVector3 trackStart;
+    TVector3 trackEnd;
     for (size_t i = 0; i<tracklist.size(); ++i){
-      trackStart.clear();
-      trackEnd.clear();
-      for(int j=0; j<3; ++j) {
-	larStart[j] = 0.;
-	larEnd[j] = 0.;
-      }
-      tracklist[i]->Extent(); //trackStart,trackEnd); 
-      tracklist[i]->Direction(larStart,larEnd);
+      std::tie(trackStart,trackEnd) = tracklist[i]->Extent<TVector3>();
+      std::tie(larStart,larEnd) = tracklist[i]->Direction<TVector3>();
       trkstartx[i]      = trackStart[0];
       trkstarty[i]      = trackStart[1];
       trkstartz[i]      = trackStart[2];

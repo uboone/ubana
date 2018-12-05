@@ -923,8 +923,8 @@ double CTMDataONAna::FlashTrackDist(double flash, double start, double end) cons
                         art::Ptr<recob::Track> track(trackVecHandle,trackIdx);
                         
                         // so we need to get the track direction sorted out.
-                        trackPos = track->Vertex();
-                        trackEnd = track->End();
+                        trackPos = track->Vertex<TVector3>();
+                        trackEnd = track->End<TVector3>();
 			trackTheta = track->Theta();
                         
                         // Take the closer end---------------------------------
@@ -933,8 +933,8 @@ double CTMDataONAna::FlashTrackDist(double flash, double start, double end) cons
                         
                         if ((trackEnd - vertexPos).Mag() < trackToVertexDist)
                         {
-                            trackPos          = track->End();
-                            trackEnd          = track->Vertex();
+                            trackPos          = track->End<TVector3>();
+                            trackEnd          = track->Vertex<TVector3>();
 			    trackTheta        = -(track->Theta());
 
                             trackToVertexDist = (trackPos - vertexPos).Mag();
@@ -1144,15 +1144,15 @@ double CTMDataONAna::FlashTrackDist(double flash, double start, double end) cons
       for (size_t it=0; it < TrackVector.size(); it++)
       {
         auto track = TrackVector.at(it);
-	TVector3 trackStart = track.Vertex();
-        TVector3 trackEnd = track.End();
+	TVector3 trackStart = track.Vertex<TVector3>();
+        TVector3 trackEnd = track.End<TVector3>();
         _falltrackID[nrecopart] = track.ID();
-	_falltrackStartx[nrecopart] = track.Vertex()(0);
-	_falltrackStarty[nrecopart] = track.Vertex()(1);
-	_falltrackStartz[nrecopart] = track.Vertex()(2);
-	_falltrackEndx[nrecopart] = track.End()(0);
-	_falltrackEndy[nrecopart] = track.End()(1);
-	_falltrackEndz[nrecopart] = track.End()(2);
+	_falltrackStartx[nrecopart] = track.Vertex().X();
+	_falltrackStarty[nrecopart] = track.Vertex().Y();
+	_falltrackStartz[nrecopart] = track.Vertex().Z();
+	_falltrackEndx[nrecopart] = track.End().X();
+	_falltrackEndy[nrecopart] = track.End().Y();
+	_falltrackEndz[nrecopart] = track.End().Z();
 	_falltrackLength[nrecopart] = track.Length();
 	_falltrackTheta[nrecopart] = track.Theta();
 	_falltrackCosTheta[nrecopart] = cos(track.Theta());
@@ -1192,12 +1192,12 @@ double CTMDataONAna::FlashTrackDist(double flash, double start, double end) cons
 	  _fselntrackhits[nselrecopart] = ntrackhits;
 	  _fseltrackVrtxDis[nselrecopart]=_falltrackVrtxDis[nrecopart];
           _fseltrackID[nselrecopart] = track.ID();
-	  _fseltrackStartx[nselrecopart] = track.Vertex()(0);
-	  _fseltrackStarty[nselrecopart] = track.Vertex()(1);
-	  _fseltrackStartz[nselrecopart] = track.Vertex()(2);
-	  _fseltrackEndx[nselrecopart] = track.End()(0);
-	  _fseltrackEndy[nselrecopart] = track.End()(1);
-	  _fseltrackEndz[nselrecopart] = track.End()(2);
+	  _fseltrackStartx[nselrecopart] = track.Vertex().X();
+	  _fseltrackStarty[nselrecopart] = track.Vertex().Y();
+	  _fseltrackStartz[nselrecopart] = track.Vertex().Z();
+	  _fseltrackEndx[nselrecopart] = track.End().X();
+	  _fseltrackEndy[nselrecopart] = track.End().Y();
+	  _fseltrackEndz[nselrecopart] = track.End().Z();
 	  _fseltrackLength[nselrecopart] = track.Length();
 	  _fseltrackTheta[nselrecopart] = track.Theta();
 	  _fseltrackCosTheta[nselrecopart] = cos(track.Theta());

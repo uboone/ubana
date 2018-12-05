@@ -5362,10 +5362,10 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
         else {   //use the normal methods for other kinds of tracks
           ntraj = track.NumberTrajectoryPoints();
           if (ntraj > 0) {
-            pos       = track.Vertex();
-            dir_start = track.VertexDirection();
-            dir_end   = track.EndDirection();
-            end       = track.End();
+            pos       = track.Vertex<TVector3>();
+            dir_start = track.VertexDirection<TVector3>();
+            dir_end   = track.EndDirection<TVector3>();
+            end       = track.End<TVector3>();
 
             tlen        = track.Length(); //length(track);
             if(track.NumberTrajectoryPoints() > 0)
@@ -6478,17 +6478,7 @@ double microboone::AnalysisTree::bdist(const TVector3& pos)
 // Length of reconstructed track, trajectory by trajectory.
 double microboone::AnalysisTree::length(const recob::Track& track)
 {
-  double result = 0.;
-  TVector3 disp = track.LocationAtPoint(0);
-  int n = track.NumberTrajectoryPoints();
-
-  for(int i = 1; i < n; ++i) {
-    const TVector3& pos = track.LocationAtPoint(i);
-    disp -= pos;
-    result += disp.Mag();
-    disp = pos;
-  }
-  return result;
+  return track.Length();
 }
 
 

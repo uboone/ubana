@@ -4,8 +4,12 @@ BEGIN_PROLOG
 TrackHitEfficiencyAnalysisTool:
 {
   tool_type:                  "TrackHitEfficiencyAnalysis"
+  WireModuleLabel:            "butcher"
+  HitModuleLabeld:            "gaushit"
+  MCParticleLabel:            "largeant"
+  SimChannelLabel:            "driftWC::simpleSC"
   LocalDirName:               "EfficHists"
-  MinAllowedChannelStatus:    3 # All channels greater than or equal to this status level are considered
+  MinAllowedChannelStatus:    4 # All channels greater than or equal to this status level are considered
 } 
 
 ShowerHitEfficiencyAnalysisTool:

@@ -224,8 +224,8 @@ void  TPCNeutrinoIDAna::analyze(const art::Event& event)
                     //Loop over tracks
                     for(const auto& track : trackVec)
                     {
-                        const TVector3& trackStart = track->Vertex();
-                        const TVector3& trackEnd   = track->End();
+                        const auto& trackStart = track->Vertex();
+                        const auto& trackEnd   = track->End();
                         
                         // Geometry routines want to see an array...
                         double trackStartPos[] = {trackStart.X(),trackStart.Y(),trackStart.Z()};

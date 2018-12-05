@@ -111,11 +111,8 @@ namespace crossingmufilter{
     for(size_t i=0; i<NTracks;++i){
       art::Ptr<recob::Track> ptrack(trackListHandle, i);
       const recob::Track& track = *ptrack;
-      TVector3 pos, dir_start, dir_end, end;
-      pos = track.Vertex();
-      dir_start = track.VertexDirection();
-      dir_end   = track.EndDirection();
-      end = track.End();
+      auto& pos = track.Vertex();
+      auto& end = track.End();
       float X = std::abs(pos.X()-end.X());
       if(X>fXmin && X<fXmax){
         std::cout << "I found a crossing track!" << std::endl;

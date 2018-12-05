@@ -61,20 +61,20 @@ namespace ubxsec {
 
     // Loop over tracks 
     for (size_t t = 0; t < _track_v.size(); t++) {
-      start = _track_v[t]->Vertex();
-      end   = _track_v[t]->End();
+      start = _track_v[t]->Vertex<TVector3>();
+      end   = _track_v[t]->End<TVector3>();
       
       dist = GetDistance(xyz, start);
       if (dist < _max_distance){
         keep_track.emplace_back(*(_track_v[t]));
-        track_dir.emplace_back(_track_v[t]->VertexDirection());
+        track_dir.emplace_back(_track_v[t]->VertexDirection<TVector3>());
         continue;
       }
 
       dist = GetDistance(xyz, end);
       if (dist < _max_distance){
         keep_track.emplace_back(*(_track_v[t]));
-        track_dir.emplace_back(-(_track_v[t]->EndDirection()));
+        track_dir.emplace_back(-(_track_v[t]->EndDirection<TVector3>()));
       }  
     }
 
