@@ -170,10 +170,10 @@ StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p)
   std::cout << "[StoppingMuonTagger] FV: " << std::endl;
   _fiducial_volume.PrintConfig();
 
-  _tpcobject_producer = p.get<std::string>("TPCObjectProducer",  "TPCObjectMakerCosmic::UBXSec");
-  _pfp_producer       = p.get<std::string>("PFParticleProducer", "pandora::UBXSec");
-  _cluster_producer   = p.get<std::string>("ClusterProducer",    "pandora::UBXSec");
-  _track_producer     = p.get<std::string>("TrackProducer",      "pandora::UBXSec");
+  _tpcobject_producer = p.get<std::string>("TPCObjectProducer",  "TPCObjectMaker");
+  _pfp_producer       = p.get<std::string>("PFParticleProducer", "pandora");
+  _cluster_producer   = p.get<std::string>("ClusterProducer",    "pandora");
+  _track_producer     = p.get<std::string>("TrackProducer",      "pandora");
  
   _use_mcs            = p.get<bool>("UseMCS", false);
   _mcs_delta_ll_cut   = p.get<double>("MCSDeltaLLCut", -5.);
@@ -182,7 +182,7 @@ StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p)
 
   _coplanar_cut       = p.get<double>("CoplanarCut",   5.);
 
-  _debug = p.get<bool>("DebugMode", false);
+  _debug = p.get<bool>("DebugMode", true);
   _create_tree = p.get<bool>("CreateTree", true);
 
   fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>(); 

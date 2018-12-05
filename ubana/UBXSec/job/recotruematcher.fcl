@@ -15,8 +15,8 @@ RecoTrueMatcher: {
   OverrideRealData:       false
 
   UsePremadeMCPHitAss:    true
-  DebugMode:              true 
-  Verbose:                true
+  DebugMode:              false 
+  Verbose:                false
 
   FiducialVolumeSettings: @local::UBXSecFiducialVolumeSettings 
 }
