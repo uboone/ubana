@@ -628,7 +628,6 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             float          hitSnippetLenBest(0.);
             unsigned short hitStopTickBest(0);
             unsigned short hitStartTickBest(0);
-            unsigned short midHitTickBest(0);
             
             // Start by recovering the Wire associated to this channel
             ChanToWireMap::const_iterator wireItr = channelToWireMap.find(chanToTDCToIDEMap.first);
@@ -698,7 +697,6 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                             bestHit          = hit;
                             hitStartTickBest = hitStartTick;
                             hitStopTickBest  = hitStopTick;
-                            midHitTickBest   = midHitTick;
                         }
                         
                         // Find a match?
