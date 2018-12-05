@@ -679,7 +679,6 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                         {
                             unsigned short hitStartTick = hit->PeakTime() - fSigmaVec[plane] * hit->RMS();
                             unsigned short hitStopTick  = hit->PeakTime() + fSigmaVec[plane] * hit->RMS();
-                            unsigned short midHitTick   = (hitStopTick + hitStartTick) / 2;
                         
                             // If hit is out of range then skip, it is not related to this particle
                             if (hitStartTick > stopTick || hitStopTick < startTick)
