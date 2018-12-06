@@ -324,6 +324,8 @@
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 #include <cstddef> // std::ptrdiff_t
 #include <cstring> // std::memcpy()
@@ -5806,12 +5808,20 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
     }// end fSaveCryInfo   
     //save neutrino interaction information
     fData->mcevts_truth = mclist.size();
-    auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>(); 
+    // Get space charge correction
+    auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+    // Get time offset for x space charge correction
+    auto const& detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const& detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
     if (fData->mcevts_truth > 0){//at least one mc record
       if (fSaveGenieInfo){
 	int neutrino_i = 0;
 	for(unsigned int iList = 0; (iList < mclist.size()) && (neutrino_i < kMaxTruth) ; ++iList){
 	  if (mclist[iList]->NeutrinoSet()){
+	    // Get time offset for space charge correction
+	    double g4Ticks = detClocks->TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+	    double xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
+	    
 	    fData->nuPDG_truth[neutrino_i]  = mclist[iList]->GetNeutrino().Nu().PdgCode();
 	    fData->ccnc_truth[neutrino_i]   = mclist[iList]->GetNeutrino().CCNC();
 	    fData->mode_truth[neutrino_i]   = mclist[iList]->GetNeutrino().Mode();
@@ -5824,7 +5834,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx();
 	    fData->nuvtxy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vy();
 	    fData->nuvtxz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vz();
-	    fData->sp_charge_corrected_nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx() - SCE->GetPosOffsets(geo::Point_t(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())).X();
+	    fData->sp_charge_corrected_nuvtxx_truth[neutrino_i] = (mclist[iList]->GetNeutrino().Nu().Vx() - SCE->GetPosOffsets(geo::Point_t(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())).X() + xtimeoffset)*(1.114/1.098) + 0.6;
 	    fData->sp_charge_corrected_nuvtxy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vy() + SCE->GetPosOffsets(geo::Point_t(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())).Y();
 	    fData->sp_charge_corrected_nuvtxz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vz() + SCE->GetPosOffsets(geo::Point_t(mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz())).Z();
 	    
@@ -6045,6 +6055,10 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	std::vector<int> gpdg;
 	std::vector<int> gmother;
 	auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>(); 
+	// Get time offset for x space charge correction
+	auto const& detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
+	auto const& detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
+	    
         for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart){
           const simb::MCParticle* pPart = (itPart++)->second;
           if (!pPart) {
@@ -6061,6 +6075,14 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
           if (iPart < fData->GetMaxGEANTparticles()) {
 	    if (pPart->E()<fG4minE&&(!isPrimary)) continue;
 	    if (isPrimary) ++primary;
+	    
+	    art::Ptr<simb::MCTruth> const& mc_truth = fMCTruthMatching->ParticleToMCTruth(pPart);
+	    // Get time offset for space charge correction
+	    double xtimeoffset = 0;
+	    if (mc_truth){
+	      double g4Ticks = detClocks->TPCG4Time2Tick(mc_truth->GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+	      xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
+	    }
 	    
 	    TLorentzVector mcstart, mcend, mcstartdrifted, mcenddrifted;
 	    unsigned int pstarti, pendi, pstartdriftedi, penddriftedi; //mcparticle indices for starts and ends in tpc or drifted volumes
@@ -6087,14 +6109,14 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->StartPointx[geant_particle]=pPart->Vx();
 	    fData->StartPointy[geant_particle]=pPart->Vy();
 	    fData->StartPointz[geant_particle]=pPart->Vz();
-	    fData->sp_charge_corrected_StartPointx[geant_particle] = pPart->Vx() - SCE->GetPosOffsets(geo::Point_t(pPart->Vx(),pPart->Vy(),pPart->Vz())).X(); 
+	    fData->sp_charge_corrected_StartPointx[geant_particle] = (pPart->Vx() - SCE->GetPosOffsets(geo::Point_t(pPart->Vx(),pPart->Vy(),pPart->Vz())).X() + xtimeoffset)*(1.114/1.098) + 0.6; 
 	    fData->sp_charge_corrected_StartPointy[geant_particle] = pPart->Vy() + SCE->GetPosOffsets(geo::Point_t(pPart->Vx(),pPart->Vy(),pPart->Vz())).Y(); 
 	    fData->sp_charge_corrected_StartPointz[geant_particle] = pPart->Vz() + SCE->GetPosOffsets(geo::Point_t(pPart->Vx(),pPart->Vy(),pPart->Vz())).Z(); 
 	    fData->StartT[geant_particle] = pPart->T();
 	    fData->EndPointx[geant_particle]=pPart->EndPosition()[0];
 	    fData->EndPointy[geant_particle]=pPart->EndPosition()[1];
 	    fData->EndPointz[geant_particle]=pPart->EndPosition()[2];
-	    fData->sp_charge_corrected_EndPointx[geant_particle] = pPart->EndPosition()[0] - SCE->GetPosOffsets(geo::Point_t(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])).X(); 
+	    fData->sp_charge_corrected_EndPointx[geant_particle] = (pPart->EndPosition()[0] - SCE->GetPosOffsets(geo::Point_t(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])).X() + xtimeoffset)*(1.114/1.098) + 0.6; 
 	    fData->sp_charge_corrected_EndPointy[geant_particle] = pPart->EndPosition()[1] + SCE->GetPosOffsets(geo::Point_t(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])).Y(); 
 	    fData->sp_charge_corrected_EndPointz[geant_particle] = pPart->EndPosition()[2] + SCE->GetPosOffsets(geo::Point_t(pPart->EndPosition()[0],pPart->EndPosition()[1],pPart->EndPosition()[2])).Z(); 
 	    fData->EndT[geant_particle] = pPart->EndT();
@@ -6107,7 +6129,6 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    fData->NumberDaughters[geant_particle]=pPart->NumberDaughters();
 	    fData->inTPCActive[geant_particle] = int(isActive);
 	    fData->inTPCDrifted[geant_particle] = int(isDrifted);
-	    art::Ptr<simb::MCTruth> const& mc_truth = fMCTruthMatching->ParticleToMCTruth(pPart);
 	    if (mc_truth){
 	      fData->origin[geant_particle] = mc_truth->Origin();
 	      fData->MCTruthIndex[geant_particle] = mc_truth.key();
@@ -6116,7 +6137,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->StartPointx_tpcAV[geant_particle] = mcstart.X();
 	      fData->StartPointy_tpcAV[geant_particle] = mcstart.Y();
 	      fData->StartPointz_tpcAV[geant_particle] = mcstart.Z();
-	      fData->sp_charge_corrected_StartPointx_tpcAV[geant_particle] = mcstart.X() - SCE->GetPosOffsets(geo::Point_t(mcstart.X(),mcstart.Y(),mcstart.Z())).X(); 
+	      fData->sp_charge_corrected_StartPointx_tpcAV[geant_particle] = (mcstart.X() - SCE->GetPosOffsets(geo::Point_t(mcstart.X(),mcstart.Y(),mcstart.Z())).X() + xtimeoffset)*(1.114/1.098) + 0.6; 
 	      fData->sp_charge_corrected_StartPointy_tpcAV[geant_particle] = mcstart.Y() + SCE->GetPosOffsets(geo::Point_t(mcstart.X(),mcstart.Y(),mcstart.Z())).Y(); 
 	      fData->sp_charge_corrected_StartPointz_tpcAV[geant_particle] = mcstart.Z() + SCE->GetPosOffsets(geo::Point_t(mcstart.X(),mcstart.Y(),mcstart.Z())).Z(); 
 	      fData->StartT_tpcAV[geant_particle] = mcstart.T();
@@ -6128,7 +6149,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->EndPointx_tpcAV[geant_particle] = mcend.X();
 	      fData->EndPointy_tpcAV[geant_particle] = mcend.Y();
 	      fData->EndPointz_tpcAV[geant_particle] = mcend.Z();
-	      fData->sp_charge_corrected_EndPointx_tpcAV[geant_particle] = mcend.X() - SCE->GetPosOffsets(geo::Point_t(mcend.X(),mcend.Y(),mcend.Z())).X(); 
+	      fData->sp_charge_corrected_EndPointx_tpcAV[geant_particle] = (mcend.X() - SCE->GetPosOffsets(geo::Point_t(mcend.X(),mcend.Y(),mcend.Z())).X() + xtimeoffset)*(1.114/1.098) + 0.6; 
 	      fData->sp_charge_corrected_EndPointy_tpcAV[geant_particle] = mcend.Y() + SCE->GetPosOffsets(geo::Point_t(mcend.X(),mcend.Y(),mcend.Z())).Y(); 
 	      fData->sp_charge_corrected_EndPointz_tpcAV[geant_particle] = mcend.Z() + SCE->GetPosOffsets(geo::Point_t(mcend.X(),mcend.Y(),mcend.Z())).Z(); 
 	      fData->EndT_tpcAV[geant_particle] = mcend.T();
@@ -6142,7 +6163,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->StartPointx_drifted[geant_particle] = mcstartdrifted.X();
 	      fData->StartPointy_drifted[geant_particle] = mcstartdrifted.Y();
 	      fData->StartPointz_drifted[geant_particle] = mcstartdrifted.Z();
-	      fData->sp_charge_corrected_StartPointx_drifted[geant_particle] = mcstartdrifted.X() - SCE->GetPosOffsets(geo::Point_t(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())).X();
+	      fData->sp_charge_corrected_StartPointx_drifted[geant_particle] = (mcstartdrifted.X() - SCE->GetPosOffsets(geo::Point_t(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())).X() + xtimeoffset)*(1.114/1.098) + 0.6;
 	      fData->sp_charge_corrected_StartPointy_drifted[geant_particle] = mcstartdrifted.Y() + SCE->GetPosOffsets(geo::Point_t(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())).Y();
 	      fData->sp_charge_corrected_StartPointz_drifted[geant_particle] = mcstartdrifted.Z() + SCE->GetPosOffsets(geo::Point_t(mcstartdrifted.X(),mcstartdrifted.Y(),mcstartdrifted.Z())).Z();
 	      fData->StartT_drifted[geant_particle] = mcstartdrifted.T();
@@ -6154,7 +6175,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      fData->EndPointx_drifted[geant_particle] = mcenddrifted.X();
 	      fData->EndPointy_drifted[geant_particle] = mcenddrifted.Y();
 	      fData->EndPointz_drifted[geant_particle] = mcenddrifted.Z();
-	      fData->sp_charge_corrected_EndPointx_drifted[geant_particle] = mcenddrifted.X() - SCE->GetPosOffsets(geo::Point_t(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())).X();
+	      fData->sp_charge_corrected_EndPointx_drifted[geant_particle] = (mcenddrifted.X() - SCE->GetPosOffsets(geo::Point_t(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())).X() + xtimeoffset)*(1.114/1.098) + 0.6;
 	      fData->sp_charge_corrected_EndPointy_drifted[geant_particle] = mcenddrifted.Y() + SCE->GetPosOffsets(geo::Point_t(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())).Y();
 	      fData->sp_charge_corrected_EndPointz_drifted[geant_particle] = mcenddrifted.Z() + SCE->GetPosOffsets(geo::Point_t(mcenddrifted.X(),mcenddrifted.Y(),mcenddrifted.Z())).Z();
 	      fData->EndT_drifted[geant_particle] = mcenddrifted.T();
