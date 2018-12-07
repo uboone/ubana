@@ -1817,23 +1817,22 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
     // cout<<candidate
     bool muon_cand_exists = _muon_finder.GetCandidateTrack(candidate_track);
     if (muon_cand_exists) {
-      
-      //  art::Ptr<recob::MCSFitResult> mcsMu;
-      //  double trkMom_MuFwd = mcsMu.fwdMomentum();
-      bool fully_contained = _fiducial_volume.InFV(candidate_track->Vertex(), candidate_track->End());
-  
+
+
+      bool fully_contained = _fiducial_volume.InFV(candidate_track->Vertex<TVector3>(), candidate_track->End<TVector3>());
+
       ubxsec_event->slc_muoncandidate_exists[slice]    = true;
       ubxsec_event->slc_muoncandidate_contained[slice] = fully_contained;
       ubxsec_event->slc_muoncandidate_length[slice]    = candidate_track->Length();
       ubxsec_event->slc_muoncandidate_phi[slice]       = UBXSecHelper::GetCorrectedPhi((*candidate_track), tpcobj_nu_vtx); 
       ubxsec_event->slc_muoncandidate_theta[slice]     = UBXSecHelper::GetCorrectedCosTheta((*candidate_track), tpcobj_nu_vtx);
       ubxsec_event->slc_muoncandidate_mom_range[slice] = _trk_mom_calculator.GetTrackMomentum(candidate_track->Length(), 13);
-     ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = _trk_mom_calculator.GetMomentumMultiScatterLLHD(candidate_track);
+      ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = _trk_mom_calculator.GetMomentumMultiScatterLLHD(candidate_track);
       //    ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = trkMom_MuFwd;
       // For MCS first check the track direction is rigth
       TVector3 temp(reco_nu_vtx[0], reco_nu_vtx[1], reco_nu_vtx[2]);
-      bool track_direction_correct = (candidate_track->Vertex() - temp).Mag() < (candidate_track->End() - temp).Mag();
-      //   std::cout<<"are we good here?q"<<endl;
+
+      bool track_direction_correct = (candidate_track->Vertex<TVector3>() - temp).Mag() < (candidate_track->End<TVector3>() - temp).Mag();
 
       if (track_direction_correct) {
 	//	std::cout<<"are we good here??"<<endl;
@@ -1981,7 +1980,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       for (size_t i = 0; i < candidate_track->NumberTrajectoryPoints(); i++) {
         try {
           if (candidate_track->HasValidPoint(i)) {
-            TVector3 trk_pt = candidate_track->LocationAtPoint(i);
+            TVector3 trk_pt = candidate_track->LocationAtPoint<TVector3>(i);
             double wire = geo->NearestWire(trk_pt, 2);
             double time = _detector_properties->ConvertXToTicks(trk_pt.X(), geo::PlaneID(0,0,2));
             TVector3 p (wire, time, 0.);
@@ -2050,7 +2049,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       std::vector<TVector3> dir_v;
       for (size_t p = 0; p < candidate_track->NumberTrajectoryPoints(); p++) {
         if (!candidate_track->HasValidPoint(p)) continue;
-        dir_v.push_back(candidate_track->DirectionAtPoint(p));
+        dir_v.push_back(candidate_track->DirectionAtPoint<TVector3>(p));
       }
       std::vector<double> angle_v;
       for (size_t p = 0; p < dir_v.size()-1; p++) {

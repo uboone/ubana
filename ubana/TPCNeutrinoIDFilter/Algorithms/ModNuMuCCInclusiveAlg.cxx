@@ -157,9 +157,7 @@ for (const auto& opFlash : flashlist)
                 // Reset track at vertex count
                 unsigned int TrackCountAtVertex = 0;
 
-                vertex->XYZ(vertexXYZ);
-
-                TVector3 vertexPos(vertexXYZ[0],vertexXYZ[1],vertexXYZ[2]);
+                auto vertexPos = vertex->position();
 
 
                 // For each vertex we loop over all tracks looking for matching pairs
@@ -170,23 +168,23 @@ for (const auto& opFlash : flashlist)
                     art::Ptr<recob::Track> track(trackVecHandle,trackIdx);
 
                     // so we need to get the track direction sorted out.
-                    TVector3 trackPos = track->Vertex();
-                    TVector3 trackEnd = track->End();
+                    auto trackPos = track->Vertex();
+                    auto trackEnd = track->End();
 
                     // Take the closer end---------------------------------
-                    double trackToVertexDist = (trackPos - vertexPos).Mag();
+                    double trackToVertexDist = (trackPos - vertexPos).R();
 
-                    if ((trackEnd - vertexPos).Mag() < trackToVertexDist)
+                    if ((trackEnd - vertexPos).R() < trackToVertexDist)
                     {
                         trackPos          = track->End();
                         trackEnd          = track->Vertex();
-                        trackToVertexDist = (trackPos - vertexPos).Mag();
+                        trackToVertexDist = (trackPos - vertexPos).R();
                     }
 
                     //--------------------------------------------------------------------------
                     if (trackToVertexDist<fMinTrk2VtxDist)
                     {
-                        if ((trackEnd-trackPos).Mag()>TrackCandLength)
+                        if ((trackEnd-trackPos).R()>TrackCandLength)
                         {
                             // If we are looking at the first track which fulfills the distance to vertex cut
                             if (!TrackCountAtVertex)

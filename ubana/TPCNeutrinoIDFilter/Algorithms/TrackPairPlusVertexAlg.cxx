@@ -116,12 +116,7 @@ bool TrackPairPlusVertexAlg::findNeutrinoCandidates(art::Event & event) const
             art::Ptr<recob::Vertex> vertex(vertexVecHandle, vertexIdx);
             
             // Get the position of the vertex
-            // Ultimately we really want the vertex position in a TVector3 object...
-            double vertexXYZ[3];
-            
-            vertex->XYZ(vertexXYZ);
-            
-            TVector3 vertexPos(vertexXYZ[0],vertexXYZ[1],vertexXYZ[2]);
+            auto vertexPos = vertex->position();
             
             // For each vertex we loop over all tracks looking for matching pairs
             // The outer loop here, then is over one less than all tracks
@@ -146,17 +141,17 @@ bool TrackPairPlusVertexAlg::findNeutrinoCandidates(art::Event & event) const
                 
                 // Currently we have the problem that tracks can be fit in the "wrong" direction
                 // so we need to get the track direction sorted out.
-                TVector3 track1Pos = track1->Vertex();
-                TVector3 track1End = track1->End();
+                auto track1Pos = track1->Vertex();
+                auto track1End = track1->End();
                 
                 // Take the closer end
-                double track1ToVertexDist = (track1Pos - vertexPos).Mag();
+                double track1ToVertexDist = (track1Pos - vertexPos).R();
                 
-                if ((track1End - vertexPos).Mag() < track1ToVertexDist)
+                if ((track1End - vertexPos).R() < track1ToVertexDist)
                 {
                     track1Pos          = track1->End();
                     track1End          = track1->Vertex();
-                    track1ToVertexDist = (track1Pos - vertexPos).Mag();
+                    track1ToVertexDist = (track1Pos - vertexPos).R();
                 }
                 
                 // Is there a cut at this point?
@@ -181,24 +176,24 @@ bool TrackPairPlusVertexAlg::findNeutrinoCandidates(art::Event & event) const
                     }
                     
                     // Same dance for closest position
-                    TVector3 track2Pos = track2->Vertex();
-                    TVector3 track2End = track2->End();
+                    auto track2Pos = track2->Vertex();
+                    auto track2End = track2->End();
                     
                     // Take the closer end
-                    double track2ToVertexDist = (track2Pos - vertexPos).Mag();
+                    double track2ToVertexDist = (track2Pos - vertexPos).R();
                     
-                    if ((track2End - vertexPos).Mag() < track2ToVertexDist)
+                    if ((track2End - vertexPos).R() < track2ToVertexDist)
                     {
                         track2Pos          = track2->End();
                         track2End          = track2->Vertex();
-                        track2ToVertexDist = (track2Pos - vertexPos).Mag();
+                        track2ToVertexDist = (track2Pos - vertexPos).R();
                     }
                     
                     // Which distance is larger?
                     double maxDist = std::max(track1ToVertexDist,track2ToVertexDist);
                     
                     // Now also get the distance between the start of the two tracks
-                    double track1ToTrack2Dist = (track1Pos - track2Pos).Mag();
+                    double track1ToTrack2Dist = (track1Pos - track2Pos).R();
                     
                     // is it larger?
                     maxDist = std::max(maxDist,track1ToTrack2Dist);
@@ -209,8 +204,8 @@ bool TrackPairPlusVertexAlg::findNeutrinoCandidates(art::Event & event) const
                     // Is this the best?
                     if (maxDist < bestDistance)
                     {
-                        double length1 = (track1End - track1Pos).Mag();
-                        double length2 = (track2End - track2Pos).Mag();
+                        double length1 = (track1End - track1Pos).R();
+                        double length2 = (track2End - track2Pos).R();
                         double cos = 0;
 
                         if(length1 > 10 && length1 > length2) {
