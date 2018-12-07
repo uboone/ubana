@@ -51,7 +51,7 @@ physics:
                   HitModuleLabel:                 "gaushit"
                   MCParticleLabel:                "largeant"
                   SimChannelLabel:                "largeant"
-                  HitEfficiencyHistogramToolList: [ @local::TrackHitEfficiencyAnalysisTool ]
+                  HitEfficiencyHistogramToolList: [ @local::ShowerHitEfficiencyAnalysisTool ]
              }
 
            }
@@ -75,6 +75,6 @@ physics:
 
 # define the list of LArSoft modules to run through the simulate path
 physics.analyzers.TrackHitEfficiency.MCParticleLabel:   "largeant"
-#physics.analyzers.TrackHitEfficiency.SimChannelLabel:   "driftWC:simpleSC"
+physics.analyzers.TrackHitEfficiency.SimChannelLabel:   "largeant" #"driftWC:simpleSC"
 physics.analyzers.TrackHitEfficiency.SigmaVec:   [2,2,2]
 #physics.analyzers.TrackHitEfficiency.MinAllowedChannelStatus: 0
