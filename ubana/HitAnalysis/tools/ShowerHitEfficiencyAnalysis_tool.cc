@@ -356,22 +356,12 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
 
 
     // create a map linking TrackID to MCShower parent ID if this is necessary
-    std::map<unsigned short, unsigned short> TrkIDToParentTrkIdMap;
     std::map<unsigned short, unsigned short> TrkIDtoMCShrTrkIdMap;
     for (const auto& mcS : *mcShowerHandle) {
       auto daughters = mcS.DaughterTrackID();
       auto shrid = mcS.TrackID();
       for (auto const& d : daughters) { TrkIDtoMCShrTrkIdMap[d] = shrid; }
     }// for all MCShowers
-    for(const auto& mcParticle : *mcParticleHandle) {
-      // is this mcparticle's trackid in the shower list?
-      auto trkid = mcParticle.TrackId();
-      if (TrkIDtoMCShrTrkIdMap.find( trkid ) == TrkIDtoMCShrTrkIdMap.end() )
-	TrkIDToParentTrkIdMap[trkid] = trkid;
-      else
-	TrkIDToParentTrkIdMap[trkid] = TrkIDtoMCShrTrkIdMap[trkid];
-    }
-
 
     // It is useful to create a mapping between trackID and MCParticle
     using TrackIDToMCParticleMap = std::map<int, const simb::MCParticle*>;
