@@ -6,11 +6,11 @@ BEGIN_PROLOG
 #
 RecoTrueMatcher: {
   module_type:            "RecoTrueMatcher"
-  PFParticleProducer:     "pandoraNu::UBXSec"
-  HitProducer:            "pandoraCosmicHitRemoval::UBXSec"
+  PFParticleProducer:     "pandora"
+  HitProducer:            "gaushit"
   GeantModule:            "largeant"
-  SpacePointProducer:     "pandoraNu::UBXSec"
-  MCPHitAssProducer:      "pandoraCosmicHitRemoval::UBXSec" #"crHitRemovalTruthMatch::UBXSec"
+  SpacePointProducer:     "pandora"
+  MCPHitAssProducer:      "gaushitTruthMatch" #"crHitRemovalTruthMatch::UBXSec"
 
   OverrideRealData:       false
 
@@ -24,10 +24,10 @@ RecoTrueMatcher: {
 microboone_recotruematcher_pandoranu: @local::RecoTrueMatcher
 
 microboone_recotruematcher_pandoracosmic: @local::RecoTrueMatcher
-microboone_recotruematcher_pandoracosmic.PFParticleProducer: "pandoraCosmic"
+microboone_recotruematcher_pandoracosmic.PFParticleProducer: "pandora"
 microboone_recotruematcher_pandoracosmic.HitProducer:        "gaushit"
 microboone_recotruematcher_pandoracosmic.GeantModule:        "largeant"
-microboone_recotruematcher_pandoracosmic.SpacePointProducer: "pandoraCosmic"
+microboone_recotruematcher_pandoracosmic.SpacePointProducer: "pandora"
 microboone_recotruematcher_pandoracosmic.MCPHitAssProducer:  "gaushitTruthMatch"
 
 END_PROLOG

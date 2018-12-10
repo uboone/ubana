@@ -113,7 +113,7 @@ RecoTrueMatcher::RecoTrueMatcher(fhicl::ParameterSet const & p) {
   _hitfinderLabel                 = p.get<std::string>("HitProducer");
   _geantModuleLabel               = p.get<std::string>("GeantModule");
   _spacepointLabel                = p.get<std::string>("SpacePointProducer");
-  _mcpHitAssLabel                 = p.get<std::string>("MCPHitAssProducer", "pandoraCosmicHitRemoval");
+  _mcpHitAssLabel                 = p.get<std::string>("MCPHitAssProducer", "gaushitTruthMatch");
 
   _use_premade_ass                = p.get<bool>("UsePremadeMCPHitAss");
 

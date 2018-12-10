@@ -1,0 +1,41 @@
+<!-- Project details -->
+<!DOCTYPE project [
+<!ENTITY name "PIDanalyser_extdatatwotr_v3">
+<!ENTITY user "kduffy">
+]>
+
+<project name="&name;">
+
+  <!-- Group -->
+  <group>uboone</group>
+
+  <!-- Project size (numevents is an upper limit) -->
+  <numevents>50</numevents>
+  <numjobs>50</numjobs> <!-- 4000 -->
+  <maxfilesperjob>1</maxfilesperjob>
+
+  <!-- Where to look for fcl files (in addition to $FHICL_FILE_PATH) -->
+  <fcldir>/pnfs/uboone/persistent/users/kduffy/PID/fcl/</fcldir>
+
+  <!-- Batch OS -->
+  <os>SL6</os>
+
+  <!-- Larsoft information -->
+  <larsoft>
+    <local>/pnfs/uboone/resilient/users/kduffy/tars/twotrfilter_marcoselv3.1.1.tar</local>
+  </larsoft>
+
+  <!-- Stages -->
+  <stage name = "analyze">
+    <maxfilesperjob>1</maxfilesperjob>
+    <schema>root</schema>
+    <inputlist>/pnfs/uboone/scratch/users/kduffy/mintwotrackfilter_mcc85_EXTdata_v3/v06_26_01_11_v3.1.1/filter/files.list</inputlist>
+    <fcl>run_particle_identification_analyzer_notlibos.fcl</fcl>
+    <outdir>/pnfs/uboone/scratch/users/kduffy/PID/&name;/out/</outdir>
+    <logdir>/pnfs/uboone/scratch/users/kduffy/PID/&name;/out/</logdir>
+    <workdir>/pnfs/uboone/resilient/users/kduffy/PID/&name;/work/</workdir>
+    <bookdir>/uboone/data/users/kduffy/&name;/book</bookdir>
+    <memory>8000</memory>
+    <jobsub>--disk=70GB</jobsub>
+  </stage>
+</project>

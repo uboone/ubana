@@ -346,9 +346,10 @@ void CosmicTaggerAna::analyze(art::Event const & e)
   // Flash
   // *******************
 
-  lar_pandora::PFParticleVector pfpFlashTagged;
+  //lar_pandora::PFParticleVector pfpFlashTagged;
   std::vector<int> tagid_v;
-  this->GetTaggedPFP(e, _cosmic_flash_tag_producer, _cosmic_flash_tag_score_cut, pfpFlashTagged,  tagid_v);
+/*  
+this->GetTaggedPFP(e, _cosmic_flash_tag_producer, _cosmic_flash_tag_score_cut, pfpFlashTagged,  tagid_v);
   if (_debug) std::cout << pfpFlashTagged.size() << " PFP have been flash tagged." << std::endl;
   _n_pfp_flash_tagged = pfpFlashTagged.size();
 
@@ -371,7 +372,7 @@ void CosmicTaggerAna::analyze(art::Event const & e)
     }
   }
 
-
+*/
 
 
   // ****
@@ -402,8 +403,8 @@ void CosmicTaggerAna::analyze(art::Event const & e)
     }
   }
 
-  _geo_flash_incommon = this->PFPInCommon(pfpFlashTagged, pfpGeoTagged);
-  if (_debug) std::cout << _geo_flash_incommon << " PFP are in common between geo and flash tagger" << std::endl;
+//  _geo_flash_incommon = this->PFPInCommon(pfpFlashTagged, pfpGeoTagged);
+ // if (_debug) std::cout << _geo_flash_incommon << " PFP are in common between geo and flash tagger" << std::endl;
 
 
 
@@ -436,8 +437,8 @@ void CosmicTaggerAna::analyze(art::Event const & e)
     }
   }
 
-  _acpt_flash_incommon = this->PFPInCommon(pfpFlashTagged, pfpACPTTagged);
-  if (_debug) std::cout << _acpt_flash_incommon << " PFP are in common between acpt and flash tagger" << std::endl;
+ // _acpt_flash_incommon = this->PFPInCommon(pfpFlashTagged, pfpACPTTagged);
+  //if (_debug) std::cout << _acpt_flash_incommon << " PFP are in common between acpt and flash tagger" << std::endl;
 
   _acpt_geo_incommon = this->PFPInCommon(pfpGeoTagged, pfpACPTTagged);
   if (_debug) std::cout << _acpt_geo_incommon << " PFP are in common between acpt and geo tagger" << std::endl;

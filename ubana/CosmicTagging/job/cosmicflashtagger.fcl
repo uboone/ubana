@@ -6,7 +6,7 @@ BEGIN_PROLOG
 #
 CosmicFlashTagger: {
 module_type:           "CosmicFlashTagger"
-PFPTrackAssProducer:   "pandoraCosmic"
+PFPTrackAssProducer:   "pandora"
 BeamOpFlashProducer:   "simpleFlashBeam"
 CosmicOpFlashProducer: "simpleFlashCosmic"  # not used
 TriggerProducer:       "daq"

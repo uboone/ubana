@@ -6,10 +6,10 @@ BEGIN_PROLOG
 #
 CosmicFlashMatch: {
   module_type:              "CosmicFlashMatch"
-  PFParticleModule:         "pandoraNu"
+  PFParticleModule:         "pandora"
   DebugMode:                true
   BeamOpFlashProducer:      "simpleFlashBeam"
-  CosmicOpFlashProducer:    "simpleFlashCosmic"
+  CosmicOpFlashProducer:    "simpleFlashBeam"
   FlashVetoTimeStart:       -1000000
   FlashVetoTimeEnd:         1000000
 

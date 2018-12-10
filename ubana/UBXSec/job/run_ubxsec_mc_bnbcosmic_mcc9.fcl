@@ -1,0 +1,33 @@
+#include "ubxsec_mc_common_mcc9.fcl"
+
+process_name: UBXSec
+
+services.TFileService.fileName: "ubxsec_output_mc_bnbcosmic.root"
+
+physics.reco:          [ @sequence::ubxsec_mc_producers , @sequence::ubxsec_mc_filters ]
+physics.trigger_paths: [ reco ]
+physics.ana:           [ @sequence::ubxsec_mc_analyzers ]
+physics.stream1:       [ out1 ]
+physics.end_paths:     [ ana, stream1 ]
+
+outputs.out1.fileName: "%ifb_%tc_ubxsec.root"
+outputs.out1.dataTier: "reconstructed"
+outputs.out1.SelectEvents: [ reco ]
+
+source.inputCommands: ["keep *_*_*_*"]
+
+
+
+beam_start: 3.10 #3.20
+beam_end:   4.90 #4.80
+
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: @local::beam_start
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   @local::beam_end
+
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: @local::beam_start 
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   @local::beam_end
+
+physics.producers.UBXSec.BeamSpillStart:                 @local::beam_start
+physics.producers.UBXSec.BeamSpillEnd:                   @local::beam_end
+
+physics.producers.UBXSec.FileType: "bnbcosmic"
