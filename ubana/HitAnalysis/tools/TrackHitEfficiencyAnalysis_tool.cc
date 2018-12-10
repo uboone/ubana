@@ -118,8 +118,9 @@ private:
     art::InputTag               fMCParticleProducerLabel;
     art::InputTag               fSimChannelProducerLabel;
     art::InputTag               fBadChannelProducerLabel;
+    bool                        fUseBadChannelDB;
     std::string                 fLocalDirName;           ///< Fraction for truncated mean
-    std::vector<unsigned short> fOffsetVec;              ///< Allow offsets for each plane
+    std::vector<int>            fOffsetVec;              ///< Allow offsets for each plane
     std::vector<float>          fSigmaVec;               ///< Window size for matching to SimChannels
     int                         fMinAllowedChanStatus;   ///< Don't consider channels with lower status
 
@@ -232,8 +233,9 @@ void TrackHitEfficiencyAnalysis::configure(fhicl::ParameterSet const & pset)
     fMCParticleProducerLabel = pset.get< art::InputTag             >("MCParticleLabel", "largeant");
     fSimChannelProducerLabel = pset.get< art::InputTag             >("SimChannelLabel", "largeant");
     fBadChannelProducerLabel = pset.get< art::InputTag             >("BadChannelLabel", "simnfspl1:badchannels");
+    fUseBadChannelDB         = pset.get< bool                      >("UseBadChannelDB", true);
     fLocalDirName            = pset.get<std::string                >("LocalDirName", std::string("wow"));
-    fOffsetVec               = pset.get<std::vector<unsigned short>>("OffsetVec", std::vector<unsigned short>()={0,0,0});
+    fOffsetVec               = pset.get<std::vector<int>           >("OffsetVec", std::vector<int>()={0,0,0});
     fSigmaVec                = pset.get<std::vector<float>         >("SigmaVec", std::vector<float>()={1.,1.,1.});
     fMinAllowedChanStatus    = pset.get< int                       >("MinAllowedChannelStatus");
 }
@@ -293,8 +295,8 @@ void TrackHitEfficiencyAnalysis::initializeHists(art::ServiceHandle<art::TFileSe
         fNSimChannelHitsVec.at(plane)    = dir.make<TH1F>(("NSimChan"    + std::to_string(plane)).c_str(), ";# hits",                100,    0.,  1200.);
         fNRecobHitVec.at(plane)          = dir.make<TH1F>(("NRecobHit"   + std::to_string(plane)).c_str(), ";# hits",                100,    0.,  1200.);
         fHitEfficiencyVec.at(plane)      = dir.make<TH1F>(("PlnEffic"    + std::to_string(plane)).c_str(), ";# hits",                101,    0.,  1.01);
-        fSimDivHitChgVec.at(plane)       = dir.make<TH1F>(("SimDivHit"   + std::to_string(plane)).c_str(), ";# e / SummedADC",       200,    0.,  200.);
-        fSimDivHitChg1Vec.at(plane)      = dir.make<TH1F>(("SimDivHit1"  + std::to_string(plane)).c_str(), ";# e / Integral",        200,    0.,  200.);
+        fSimDivHitChgVec.at(plane)       = dir.make<TH1F>(("SimDivHit"   + std::to_string(plane)).c_str(), ";# e / SummedADC",       200,    0.,  400.);
+        fSimDivHitChg1Vec.at(plane)      = dir.make<TH1F>(("SimDivHit1"  + std::to_string(plane)).c_str(), ";# e / Integral",        200,    0.,  400.);
 
         fHitVsSimChgVec.at(plane)        = dir.make<TH2F>(("HitVSimQ"  + std::to_string(plane)).c_str(), "# e vs Hit SumADC;SumADC;# e",     50, 0.,   1000., 50, 0., 100000.);
         fHitVsSimIntVec.at(plane)        = dir.make<TH2F>(("HitVSimI"  + std::to_string(plane)).c_str(), "# e vs Hit Integral;Integral;# e", 50, 0.,   1000., 50, 0., 100000.);
@@ -471,15 +473,14 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
     {
         for(const auto& tdcide : simChannel.TDCIDEMap())
         {
-            //for(const auto& ide : tdcide.second) partToChanToTDCToIDEMap[ide.trackID][simChannel.Channel()][tdcide.first] = ide.numElectrons;
             for(const auto& ide : tdcide.second) partToChanToTDCToIDEMap[ide.trackID][simChannel.Channel()][tdcide.first] = ide;
         }
     }
     
-//    const lariov::ChannelStatusProvider& chanFilt = art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    const lariov::ChannelStatusProvider& chanFilt = art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
 
-    std::vector<int> nSimChannelHitVec = {0,0,0};
-    std::vector<int> nRecobHitVec      = {0,0,0};
+    std::vector<int>   nSimChannelHitVec = {0,0,0};
+    std::vector<int>   nRecobHitVec      = {0,0,0};
 
     for(const auto& partToChanInfo : partToChanToTDCToIDEMap)
     {
@@ -493,6 +494,7 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
         // Looking for primary muons (e.g. CR Tracks)
         if (fabs(trackPDGCode) != 13 || processName != "primary") continue;
         
+        // Recover particle position and angle information
         Eigen::Vector3f partStartPos(trackIDToMCPartItr->second->Vx(),trackIDToMCPartItr->second->Vy(),trackIDToMCPartItr->second->Vz());
         Eigen::Vector3f partStartDir(trackIDToMCPartItr->second->Px(),trackIDToMCPartItr->second->Py(),trackIDToMCPartItr->second->Pz());
         
@@ -502,6 +504,8 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
         
         partStartDirVecXZ.normalize();
 
+        // Assuming the SimChannels contain position information (currently not true for WC produced SimChannels)
+        // then we want to keep a running position
         std::vector<Eigen::Vector3f> lastPositionVec = {partStartPos,partStartPos,partStartPos};
 
         for(const auto& chanToTDCToIDEMap : partToChanInfo.second)
@@ -510,33 +514,36 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             // Here we query the input list from the wirecell processing
             std::vector<int>::const_iterator badItr = std::find(badChannelHandle->begin(),badChannelHandle->end(),chanToTDCToIDEMap.first);
             
-            if (badItr != badChannelHandle->end()) continue;
-//            {
-//                ChanToRawDigitMap::const_iterator rawDigitItr = chanToRawDigitMap.find(chanToTDCToIDEMap.first);
-//
-//                if (rawDigitItr != chanToRawDigitMap.end())
-//                {
-//                    float nSig(3.);
-//                    float mean(0.);
-//                    float rmsFull(0.);
-//                    float rmsTrunc(0.);
-//                    int   nTrunc(0);
-//
-//                    getTruncatedMeanRMS(rawDigitItr->second->ADCs(), nSig, mean, rmsFull, rmsTrunc, nTrunc);
-//
-//                    std::cout << "--> Rejecting channel: " << chanToTDCToIDEMap.first << " from bad channel list, rms: " << rmsFull << std::endl;
-//                }
-//
-//                continue;
-//            }
-            
-            // This is the "correct" way to check and remove bad channels...
-            //if( chanFilt.Status(chanToTDCToIDEMap.first) < fMinAllowedChanStatus)
-            //{
+            if (fUseBadChannelDB)
+            {
+                // This is the "correct" way to check and remove bad channels...
+                if( chanFilt.Status(chanToTDCToIDEMap.first) < fMinAllowedChanStatus)
+                {
                 //std::vector<geo::WireID> wids = fGeometry->ChannelToWire(chanToTDCToIDEMap.first);
                 //std::cout << "*** skipping bad channel with status: " << chanFilt.Status(chanToTDCToIDEMap.first) << " for channel: " << chanToTDCToIDEMap.first << ", plane: " << wids[0].Plane << ", wire: " << wids[0].Wire << std::endl;
-            //    continue;
-            //}
+                    continue;
+                }
+            }
+            
+            if (badItr != badChannelHandle->end()) continue;
+            //            {
+            //                ChanToRawDigitMap::const_iterator rawDigitItr = chanToRawDigitMap.find(chanToTDCToIDEMap.first);
+            //
+            //                if (rawDigitItr != chanToRawDigitMap.end())
+            //                {
+            //                    float nSig(3.);
+            //                    float mean(0.);
+            //                    float rmsFull(0.);
+            //                    float rmsTrunc(0.);
+            //                    int   nTrunc(0);
+            //
+            //                    getTruncatedMeanRMS(rawDigitItr->second->ADCs(), nSig, mean, rmsFull, rmsTrunc, nTrunc);
+            //
+            //                    std::cout << "--> Rejecting channel: " << chanToTDCToIDEMap.first << " from bad channel list, rms: " << rmsFull << std::endl;
+            //                }
+            //
+            //                continue;
+            //            }
             
             TDCToIDEMap    tdcToIDEMap = chanToTDCToIDEMap.second;
             float          totalElectrons(0.);
@@ -621,7 +628,6 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             float          hitSnippetLenBest(0.);
             unsigned short hitStopTickBest(0);
             unsigned short hitStartTickBest(0);
-            unsigned short midHitTickBest(0);
             
             // Start by recovering the Wire associated to this channel
             ChanToWireMap::const_iterator wireItr = channelToWireMap.find(chanToTDCToIDEMap.first);
@@ -651,6 +657,7 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                 }
                 
                 // Check that we have found the wire range
+                // Note that if we have not matched an ROI then we can't have a hit either so skip search for that...
                 if (wireRangePtr)
                 {
                     const recob::Hit* rejectedHit = 0;
@@ -672,7 +679,6 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                         {
                             unsigned short hitStartTick = hit->PeakTime() - fSigmaVec[plane] * hit->RMS();
                             unsigned short hitStopTick  = hit->PeakTime() + fSigmaVec[plane] * hit->RMS();
-                            unsigned short midHitTick   = (hitStopTick + hitStartTick) / 2;
                         
                             // If hit is out of range then skip, it is not related to this particle
                             if (hitStartTick > stopTick || hitStopTick < startTick)
@@ -690,7 +696,6 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                             bestHit          = hit;
                             hitStartTickBest = hitStartTick;
                             hitStopTickBest  = hitStopTick;
-                            midHitTickBest   = midHitTick;
                         }
                         
                         // Find a match?
@@ -738,7 +743,7 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                             fHitElectronsVec[plane]->Fill(nElectronsTotalBest, 1.);
                             fHitNumTDCVec[plane]->Fill(std::min(float(hitStopTickBest - hitStartTickBest),float(99.5)), 1.);
                             fSnippetLenVec[plane]->Fill(std::min(hitSnippetLenBest, float(99.5)), 1.);
-                            fDeltaMidTDCVec[plane]->Fill(midHitTickBest - maxETick, 1.);
+                            fDeltaMidTDCVec[plane]->Fill(hitPeakTimeBest - maxETick, 1.);
                         
                             nRecobHitVec[plane]++;
                         }
@@ -760,6 +765,9 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
 
             fWireEfficVec.at(plane)->Fill(totalElectrons, std::min(nMatchedWires,1), 1.);
             fWireEfficPHVec.at(plane)->Fill(maxElectrons, std::min(nMatchedWires,1), 1.);
+            
+            if (nMatchedWires < 1 && totalElectrons > 12000.)
+                mf::LogDebug("TrackHitEfficiencyAnalysis") << "**>> ROI inefficiency, channel: " << chanToTDCToIDEMap.first << " (plane: " << plane << ", wire: " << wids[0].Wire << ") with #e-: " << totalElectrons << ", h: " << maxElectrons << ", track angle: " << partDirVec[0] << ", " << partDirVec[1] << ", " << partDirVec[2] << std::endl;
 
             float matchHit   = std::min(nMatchedHits,1);
             float snippetLen = std::min(float(stopTick - startTick),float(99.5));
