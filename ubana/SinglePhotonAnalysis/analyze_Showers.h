@@ -503,7 +503,7 @@ namespace single_photon
         for (int i = 0; i < n; i++){
             //std::cout<<"The dQ/dx is "<<dqdx[i]<<std::endl;
             dedx.push_back(QtoEConversion(dqdx[i]));
-            std::cout<<"The dE/dx is "<<dedx[i]<<std::endl;
+            //std::cout<<"The dE/dx is "<<dedx[i]<<std::endl;
         }
         return dedx;
     }
@@ -527,17 +527,42 @@ namespace single_photon
             if(thiscluster->View() != plane) continue;
 
             //calculate the cluster direction
-            std::vector<double> cluster_axis = {cos(thiscluster->StartAngle()), sin(thiscluster->StartAngle())};		
-
+            //std::vector<double> cluster_axis = {cos(thiscluster->StartAngle()), sin(thiscluster->StartAngle())};		
+            
             //get the cluster start and and in CM
-            std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->StartTick(), plane,m_TPC ,m_Cryostat)};
-            //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t the start position of the cluster is "<<cluster_start[0]<<", "<<cluster_start[1]<<std::endl;
-            std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->EndTick(), plane,m_TPC ,m_Cryostat) };
+            std::cout<<"for plane/tpc/cryo:"<<plane<<"/"<<m_TPC<<"/"<<m_Cryostat<<", fXTicksOffset: "<<theDetector->GetXTicksOffset(plane, m_TPC, m_Cryostat)<<" fXTicksCoefficient: "<<theDetector->GetXTicksCoefficient(m_TPC, m_Cryostat)<<std::endl;
+
+            //double fromTickToNs = 4.8 / theDetector->ReadOutWindowSize() * 1e6;
+            //double drift = theDetector->DriftVelocity() * 1e-3;
+
+           // std::cout<<"fromTickToNs: "<<fromTickToNs<<" , drift: "<<drift<<std::endl;
+
+            //double converted = theDetector->ConvertTicksToX( thiscluster->StartTick(), plane,m_TPC ,m_Cryostat);
+            //double check = thiscluster->StartTick() - (theDetector->GetXTicksOffset(plane, m_TPC, m_Cryostat) * theDetector->GetXTicksCoefficient(m_TPC, m_Cryostat));
+            //double legacy = thiscluster->StartTick()* fromTickToNs * drift ;
+
+            //std::cout<<"converted/check/legacy = "<<converted<<"/"<<check<<"/"<<legacy<<std::endl;
+
+             //" fDriftDirection: "<<theDetector->GetDriftDirection.at(m_Cryostat).at(m_TPC)<<std::endl;
+            std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,(thiscluster->StartTick() - theDetector->TriggerOffset())* _time2cm};
+            //std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->StartTick(), plane,m_TPC ,m_Cryostat)};
+            //std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,thiscluster->StartTick()  * fromTickToNs * drift };
+                  //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t the start position of the cluster is "<<cluster_start[0]<<", "<<cluster_start[1]<<std::endl;
+            std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,(thiscluster->EndTick() - theDetector->TriggerOffset())* _time2cm };
+            // std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->EndTick(), plane,m_TPC ,m_Cryostat) };
+            //std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,thiscluster->EndTick()* fromTickToNs * drift};
+            //std::cout<<"the end position of the cluster is "<<cluster_end[0]<<", "<<cluster_end[1]<<std::endl;
 
             //check that the cluster has non-zero length
             double length = sqrt(pow(cluster_end[0] - cluster_start[0], 2) + pow(cluster_end[1] - cluster_start[1], 2));
             //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The cluster length is "<<length<<std::endl;
-            if (length <= 0) continue;
+            if (length <= 0){ 
+                std::cout<<"skipping cluster on plane "<<plane<<", length = "<<length<<std::endl;
+                continue;
+            }
+        
+            std::vector<double> cluster_axis = {1,0};
+
 
             //draw a rectangle around the cluster axis 
             std::vector<std::vector<double>> rectangle = buildRectangle(cluster_start, cluster_axis, m_width_dqdx_box, m_length_dqdx_box);	
@@ -545,17 +570,25 @@ namespace single_photon
             //get all the hits for this cluster
             std::vector<art::Ptr<recob::Hit>> hits =  clusterToHitMap[thiscluster];
 
-            //for each hit in the cluster
+                        //for each hit in the cluster
             //std::cout<<"the number of hits in this cluster is "<<hits.size()<<std::endl;
             //int n = 0;
             for (art::Ptr<recob::Hit> thishit: hits){	
                 //	std::cout<<"starting hit "<<++n<<std::endl;
                 //get the hit position in cm
-                std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, theDetector->ConvertTicksToX( thishit->PeakTime(), plane,m_TPC ,m_Cryostat)};
+                std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, (thishit->PeakTime() - theDetector->TriggerOffset())* _time2cm};
+                // std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, theDetector->ConvertTicksToX( thishit->PeakTime(), plane,m_TPC ,m_Cryostat)};
+                //std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, thishit->PeakTime() * fromTickToNs * drift };
                 //std::cout<<"the position of this hit in the cluster is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
 
                 //check if inside the box
-                if (insideBox(thishit_pos, rectangle)){
+                bool v2 = isInsidev2(thishit_pos, rectangle);
+                //bool v1 = insideBox(thishit_pos, rectangle);
+                if (v2){
+                   // if(v2 != v1){
+                   // std::cout<<"isInsidev2/insideBox = "<<v2<<"/"<<v1<<std::endl;
+                    //}
+                //if (insideBox(thishit_pos, rectangle)){
                     //	std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
                     double q = GetQHit(thishit, plane); 
                     //double q_other = thishit->Integral() * 200;
@@ -582,9 +615,19 @@ namespace single_photon
         //geo::TPCGeo const& tpc = geom->TPC(0);
 
         //get the wire direction for this plane
-        TVector3 wire_dir =  geom->TPC(m_TPC).Plane(plane).FirstWire().Direction();
+        //TVector3 wire_dir =  geom->TPC(m_TPC).Plane(plane).FirstWire().Direction();
+        //TVector3 this_wire_dir =  geom->TPC(m_TPC).Plane(plane).FirstWire().Direction();
+        //std::cout<<"the wire direction from geom on plane "<<plane<<" is "<<this_wire_dir.X()<<", "<<this_wire_dir.Y()<<", "<<this_wire_dir.Z()<<std::endl;
         //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The wire_pitch for plane "<<plane<<" is "<<wire_direction[0]<<", "<<wire_direction[1]<<", "<<wire_direction[2]<<std::endl;	
-
+        TVector3 wire_dir;
+        if (plane == 0){
+            wire_dir = {0., -sqrt(3) / 2., 1 / 2.};
+        } else if (plane == 1){
+            wire_dir = {0., sqrt(3) / 2., 1 / 2.};
+        } else if (plane == 2) {
+        wire_dir = {0., 0., 1.};
+        }
+       
         //take the dot product between the wire direction and the shower direction
         double cos = wire_dir.Dot(shower_dir);
 
@@ -618,9 +661,11 @@ namespace single_photon
         //save each of the vectors
         corners.push_back(c1);
         corners.push_back(c2);
-        corners.push_back(c3);
         corners.push_back(c4);
-
+        corners.push_back(c3);
+        //corners.push_back(c4);
+       // std::cout<<"the cluster start is "<<cluster_start[0]<<", "<<cluster_start[1]<<" the cluster axis is "<<cluster_axis[0]<<", "<<cluster_axis[1]<<std::endl;
+       // std::cout<<"the corners are bottom left/top left/top right/bottom right: ("<<c1[0]<<", "<<c1[1]<<")/("<<c2[0]<<", "<<c2[1]<<")/("<<c3[0]<<", "<<c3[1]<<")/("<<c4[0]<<", "<<c4[1]<<")"<<std::endl;
         return corners;
     }
 
@@ -628,7 +673,6 @@ namespace single_photon
         //	std::cout<<"checking if inside"<<std::endl;
         //for a rectangle this is a known value but this is the most general
         int n_vertices = (int)rectangle.size();
-
         bool inside = false;
         int i, j = 0;
         //for each pair of vertices
@@ -636,13 +680,56 @@ namespace single_photon
             //std::cout<<"checking if inside at i, j = "<<i<<", "<<j<<std::endl;
             //if the hit y coordinate is between the y and x coordinates of two vertices
             if ( ((rectangle[i][1]> thishit_pos[1]) != (rectangle[j][1]>thishit_pos[1])) 
-                    &&(thishit_pos[0] < (rectangle[j][0]-rectangle[i][0]) * (thishit_pos[1]-rectangle[i][1]) / (rectangle[j][1]-rectangle[i][1]) + rectangle[i][0]) ){     			inside = true;
+                    &&(thishit_pos[0] < (rectangle[j][0]-rectangle[i][0]) * (thishit_pos[1]-rectangle[i][1]) / (rectangle[j][1]-rectangle[i][1]) + rectangle[i][0]) ){   
+                    if (inside == false){    
+                        inside = true;
+                    } else{
+                        inside = false;
+                    }
             }
+            //std::cout<<"currently the status is "<<inside<<std::endl;
         }
         //std::cout<<"done checking, inside = "<<inside<<std::endl;
+        //std::cout<<"checking hit at position "<<thishit_pos[0]<<", "<<thishit_pos[1]<<" inside = "<<inside<<". true/false = "<<true<<"/"<<false<<std::endl;
+       
         return inside;
     }
 
+    //determines if a point is inside the rectangle by summing the areas of the four triangles made by 
+    //if the point is inside, the sum of the triangles should exactly equal the area of the rectangle
+    //also returns true if the point is on the boundary
+    bool SinglePhoton::isInsidev2(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
+        int n_vertices = (int)rectangle.size();
+        //bool inside = false;
+        int i, j = 0;
+        double areas = 0;
+        //std::vector<double> areas;
+
+        //for each pair of vertices
+        for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
+            //std::cout<<"vertices number "<<i<<", "<<j<<std::endl;
+            //calculate the area of a triangle with the point and two vertices
+            double this_area = areaTriangle(rectangle[i][0], rectangle[i][1], rectangle[j][0], rectangle[j][1], thishit_pos[0], thishit_pos[1]);
+            //std::cout<<"area of this triangle = "<<this_area<<std::endl;   
+            areas += this_area;
+           // areas.push_back(this_area)
+        }        
+        //calc area of the rectangle
+        double area_rectangle = m_width_dqdx_box* m_length_dqdx_box;
+
+        //check the sum of areas match
+        //std::cout<<"the sum of the areas is "<<areas<<std::endl;
+        if (abs(areas - area_rectangle) <= 0.001 ){
+            return true;
+        }
+        return false;
+    }
+
+    //area of a triangle given three vertices
+    double SinglePhoton::areaTriangle(double x1, double y1, double x2, double y2, double x3, double y3){
+        double num = x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2);
+        return abs(num)/2;
+    }
 
     double SinglePhoton::getMedian(std::vector<double> thisvector){
         //here the size corresponds to the max index
@@ -654,10 +741,10 @@ namespace single_photon
         int ind;
         if (size%2 == 0) ind = size/2;
         else ind = size/2 + 1;
-        std::cout<<"the median index in vector with size "<<size+1<<" and  max index "<<size<<" is "<<ind<<std::endl;
+        //std::cout<<"the median index in vector with size "<<size+1<<" and  max index "<<size<<" is "<<ind<<std::endl;
 
         double median = thisvector[ind];
-        std::cout<<"returning median value "<< median<<std::endl;
+        //std::cout<<"returning median value "<< median<<std::endl;
         //return the value at median index
         return median;		
     }

@@ -237,6 +237,16 @@ namespace single_photon
              * */
             bool insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle);
 
+            /**
+             *
+             *@brief For a 2d point on a plane in cm and a rectangle, returns true if ponint is inside or on the boundary
+             *uses triangle area check
+             *
+             * */
+            bool isInsidev2(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle);
+
+            double areaTriangle(double x1, double y1, double x2, double y2, double x3, double y3);
+
             /***
              *@brief returns the value at the median position in a vector of doubles, returns nan for vector of size <= 0
              *@param thisvector - vector of doubles
@@ -571,7 +581,7 @@ namespace single_photon
             std::vector<double> m_reco_shower_dEdx_plane1_nhits;
             std::vector<double> m_reco_shower_dEdx_plane2_nhits;
 
-
+            double _time2cm;//value modeled from David's shower code
 
             // PID-related variables
             std::vector<double> m_reco_track_pid_bragg_likelihood_plane2;
