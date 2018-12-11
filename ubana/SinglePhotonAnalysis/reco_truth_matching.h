@@ -1,5 +1,5 @@
 #include "SinglePhoton_module.h"
-
+#include <climits>
 
 namespace single_photon
 {
@@ -147,5 +147,62 @@ namespace single_photon
             }//MCParticleLoop
 
             return;
+        }
+
+
+        void testbed( std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector, const art::Event &evt){
+
+                  std::map<int,art::Ptr<simb::MCParticle> > crap_map;
+            for(size_t j=0;j< mcParticleVector.size();j++){
+                 const art::Ptr<simb::MCParticle> mcp = mcParticleVector[j];
+                 //std::cout<<"PARG: "<<j<<" trackid: "<<mcp->TrackId()<<" key: "<<mcp.key()<<std::endl;
+                 crap_map[mcp->TrackId()] = mcParticleVector[mcp.key()];
+            }
+                art::ValidHandle<std::vector<simb::MCParticle>> const & mcParticleHandle= evt.getValidHandle<std::vector<simb::MCParticle>>("largeant");
+                art::FindManyP<simb::MCTruth,sim::GeneratedParticleInfo> genieMCTruthHandle(mcParticleHandle, evt, "largeant");
+
+                std::vector<art::Ptr<simb::MCTruth>> GenieMCTruth;
+                std::vector<sim::GeneratedParticleInfo const *> geninfo;
+
+
+
+                for(size_t i=0; i< mcParticleVector.size();i++){
+           
+
+                art::Ptr<simb::MCParticle> nth_mother = mcParticleVector[i];
+                 
+                //if(nth_mother->PdgCode() != 22 && nth_mother->PdgCode() != 11) continue;
+
+                std::cout<<"----------------------------------------------------------"<<std::endl;
+                std::cout<<"SinglePhoton::testbed()\t||\t On Particle (trackid: "<<nth_mother->TrackId()<<") pdg: "<<nth_mother->PdgCode()<<", status_code "<<nth_mother->StatusCode()<<"  MotherTrackID: "<<nth_mother->Mother()<<std::endl;
+
+                int n_generation = 1;
+
+                while(nth_mother->Mother() != 0){
+
+                    nth_mother = crap_map[nth_mother->Mother()]; 
+                    std::cout<<"SinglePhoton::testbed()\t||\t -- and "<<n_generation<<"-mother trackid "<<nth_mother->TrackId()<<" is a pdg: "<<nth_mother->PdgCode()<<" and status_code "<<nth_mother->StatusCode()<<std::endl;
+                    n_generation++;
+                }
+
+
+
+                    GenieMCTruth.clear(); geninfo.clear(); //tidy up this loop
+                    genieMCTruthHandle.get(mcParticleVector[i].key(),GenieMCTruth,geninfo);
+                
+                    std::cout<<"SinglePhoton::testbed()\t||\t "<<" GenieMCTruth.size() "<<GenieMCTruth.size()<<" geninfo.size() "<<geninfo.size()<<std::endl;
+                    for(size_t k=0; k< GenieMCTruth.size(); k++){
+                        std::cout<<"SinglePhoton::testbed()\t||\t -- "<<k<<": has "<<GenieMCTruth[k]->NParticles()<<" particlesand geninfo_index: "<<geninfo[k]->generatedParticleIndex()<<std::endl;
+                        if((int)geninfo[k]->generatedParticleIndex() > GenieMCTruth[k]->NParticles() || geninfo[k]->generatedParticleIndex()==ULONG_MAX){
+                            std::cout<<"SinglePhoton::testbed()\t||\t -- Thats way wrong.."<<std::endl;
+                        }else{
+                          const simb::MCParticle mp = GenieMCTruth[k]->GetParticle(geninfo[k]->generatedParticleIndex());
+                          std::cout<<"SinglePhoton::testbed()\t||\t -- is a pdg: "<<mp.PdgCode()<<"  with statuscode:"<<mp.StatusCode()<<std::endl;
+                        }
+                        //std::cout<<"SinglePhoton::testbed()\t||\t "<<" "<<GenieMCTruth[0]->NParticles()<<" "<<geninfo[0]->generatedParticleIndex()<<std::endl;
+                    }
+
+            
+                }//particleloop
         }
 }//namespace end

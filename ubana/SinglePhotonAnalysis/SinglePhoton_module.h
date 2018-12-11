@@ -25,6 +25,7 @@
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardataobj/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/GeneratedParticleInfo.h"
 
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
 
@@ -32,6 +33,7 @@
 
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/simb.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -210,8 +212,11 @@ namespace single_photon
              *@param clusterToHitMap - a map between each cluster and all of the hits in the cluster
              *@param plane - a single plane
              * * */
-            std::vector<double> CalcdQdxShower(const art::Ptr<recob::Shower> shower, const std::vector<art::Ptr<recob::Cluster>> clusters, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane);
 
+          std::vector<double> CalcdQdxShower(
+            const art::Ptr<recob::Shower>& shower,
+            const std::vector<art::Ptr<recob::Cluster>> & clusters, 
+            std::map<art::Ptr<recob::Cluster>,    std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane);
             /**
              *@brief Gets the pitch between the 3D reconstructed shower direction and the wires for a given plane (the dx in dQdx)
              *@param shower_dir - the 3D shower direction

@@ -393,7 +393,8 @@ namespace single_photon
     void SinglePhoton::RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  
             std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, 
             std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
-            std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
+            std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap
+            ){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCShowers()\t||\t Begininning recob::Shower Reco-MC suite"<<std::endl;;
 
@@ -421,6 +422,31 @@ namespace single_photon
                 m_sim_shower_starty[i_shr] = corrected[1];
                 m_sim_shower_startz[i_shr] =corrected[2];
                 m_sim_shower_origin[i_shr] = mctruth->Origin();
+
+
+                //OK is this photon matched to a delta?
+
+                /*
+                std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t -- gamma ("<<mcparticle->TrackId()<<"| pdg: "<<mcparticle->PdgCode()<<") of status_code "<<mcparticle->StatusCode()<<std::endl;
+
+                art::Ptr<simb::MCParticle> nth_mother = crap_map[mcparticle->Mother()];
+                std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t ---- with mother "<<nth_mother->PdgCode()<<" ("<<nth_mother->TrackId()<<") status_code "<<nth_mother->StatusCode()<<std::endl;
+                int n_generation = 2;
+
+                while(nth_mother->StatusCode() != 0){
+
+                    nth_mother = crap_map[nth_mother->Mother()]; 
+                    std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t ---- and "<<n_generation<<"-mother "<<nth_mother->PdgCode()<<" ("<<nth_mother->TrackId()<<") and status_code "<<nth_mother->StatusCode()<<std::endl;
+                    if( is_delta_map.count(nth_mother->PdgCode())>0 && nth_mother->StatusCode()==3){
+                        std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t ------ Defintely From a Delta Decay! : "<<is_delta_map[nth_mother->PdgCode()]<<std::endl;
+                        
+                    }
+                    n_generation++;
+                }
+                */
+
+
+
             }
             i_shr++;
         }
@@ -499,17 +525,20 @@ namespace single_photon
 
     std::vector<double> SinglePhoton::CalcdEdxFromdQdx(std::vector<double> dqdx){
         int n = dqdx.size();
-        std::vector<double> dedx;
+        std::vector<double> dedx(n,0.0);
         for (int i = 0; i < n; i++){
             //std::cout<<"The dQ/dx is "<<dqdx[i]<<std::endl;
-            dedx.push_back(QtoEConversion(dqdx[i]));
+            dedx[i]=QtoEConversion(dqdx[i]);
             std::cout<<"The dE/dx is "<<dedx[i]<<std::endl;
         }
         return dedx;
     }
 
 
-    std::vector<double> SinglePhoton::CalcdQdxShower(const art::Ptr<recob::Shower> shower, const std::vector<art::Ptr<recob::Cluster>> clusters, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane){
+    std::vector<double> SinglePhoton::CalcdQdxShower(
+            const art::Ptr<recob::Shower>& shower,
+            const std::vector<art::Ptr<recob::Cluster>> & clusters, 
+            std::map<art::Ptr<recob::Cluster>,    std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane){
         //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The number of clusters in this shower is "<<clusters.size()<<std::endl;
         std::vector<double> dqdx;
 
@@ -522,16 +551,18 @@ namespace single_photon
         //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The pitch between the shower and plane "<<plane<<" is "<<pitch<<std::endl;
 
         //for all the clusters in the shower
-        for (art::Ptr<recob::Cluster> thiscluster: clusters){
+        for (const art::Ptr<recob::Cluster> &thiscluster: clusters){
             //keep only clusters on the plane
             if(thiscluster->View() != plane) continue;
 
             //calculate the cluster direction
             std::vector<double> cluster_axis = {cos(thiscluster->StartAngle()), sin(thiscluster->StartAngle())};		
 
-            //get the cluster start and and in CM
+            //get the cluster start and and in cm
             std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->StartTick(), plane,m_TPC ,m_Cryostat)};
-            //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t the start position of the cluster is "<<cluster_start[0]<<", "<<cluster_start[1]<<std::endl;
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t TIMECHECK:"<<cluster_start.back()<<" "<<4.8/theDetector->ReadOutWindowSize()*1e6*theDetector->DriftVelocity()*1e-3*thiscluster->StartTick()<<std::endl;
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t TIMECHECK2: Offset "<<theDetector->GetXTicksOffset(plane,m_TPC,m_Cryostat)<<"  coeff*dir "<<theDetector->GetXTicksCoefficient(m_TPC,m_Cryostat)<<" coeff "<<theDetector->GetXTicksCoefficient()<<std::endl;
+
             std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->EndTick(), plane,m_TPC ,m_Cryostat) };
 
             //check that the cluster has non-zero length
@@ -548,7 +579,7 @@ namespace single_photon
             //for each hit in the cluster
             //std::cout<<"the number of hits in this cluster is "<<hits.size()<<std::endl;
             //int n = 0;
-            for (art::Ptr<recob::Hit> thishit: hits){	
+            for (art::Ptr<recob::Hit> &thishit: hits){	
                 //	std::cout<<"starting hit "<<++n<<std::endl;
                 //get the hit position in cm
                 std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, theDetector->ConvertTicksToX( thishit->PeakTime(), plane,m_TPC ,m_Cryostat)};

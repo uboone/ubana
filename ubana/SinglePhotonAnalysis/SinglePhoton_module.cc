@@ -51,7 +51,7 @@ namespace single_photon
         //Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.01);
         m_track_calo_max_dEdx = pset.get<double>("Max_dEdx",25);
-        m_track_calo_min_dEdx_hits = pset.get<double>("Min_dEdx_hits",2);
+        m_track_calo_min_dEdx_hits = pset.get<double>("Min_dEdx_hits",5); //might be good?
         m_track_calo_trunc_fraction = pset.get<double>("TruncMeanFraction",20.0);
 
         //Some shower calorimetry parameters
@@ -336,6 +336,17 @@ namespace single_photon
             art::ValidHandle<std::vector<simb::MCParticle>> const & mcParticleHandle= evt.getValidHandle<std::vector<simb::MCParticle>>(m_geantModuleLabel);
             art::fill_ptr_vector(mcParticleVector,mcParticleHandle);
 
+
+            //testbed(mcParticleVector,evt);
+
+      /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
+            for(size_t j=0;j< mcParticleVector.size();j++){
+                 const art::Ptr<simb::MCParticle> mcp = mcParticleVector[j];
+                 std::cout<<"PARG: "<<j<<" trackid: "<<mcp->TrackId()<<" key: "<<mcp.key()<<std::endl;
+                 crap_map[mcp->TrackId()] = mcParticleVector[mcp.key()];
+            }
+*/
+
             //Get the MCParticles (move to do this ourselves later)
             this->CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap);
 
@@ -376,6 +387,9 @@ namespace single_photon
             for(auto & track: tracks){
                 std::cout<<"BINside: "<<trackToMCParticleMap.count(track)<<std::endl;
             }
+
+            
+            
 
 
             this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
@@ -666,6 +680,10 @@ namespace single_photon
         }
         std::cout<<"SinglePhoton::GetFinalStatePFParticleVectors()\t||\t Found "<<primaries<<" primary PFParticles (out of "<<full<<") of which: "<<found<<" were neutrinos."<<std::endl;
         m_reco_vertex_size = found;
+
+
+
+
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
@@ -813,9 +831,9 @@ namespace single_photon
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
 
-        std::cout<<"OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
-        std::cout<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
-        std::cout<<mcparticle->T()<<" "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<" "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
+        std::cout<<"TRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        std::cout<<"TRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        std::cout<<"TRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
     }
 
@@ -842,9 +860,11 @@ namespace single_photon
         corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6;
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
-        std::cout<<"OFFVERT: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
-        std::cout<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
-        std::cout<<mcparticle.T()<<" "<<detClocks->TPCG4Time2Tick(mcparticle.T())<<" "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
+        
+        
+        std::cout<<"TRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        std::cout<<"TRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        std::cout<<"TRIGGER_OFF: mcp->T(): "<<mcparticle.T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle.T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
 
     }
