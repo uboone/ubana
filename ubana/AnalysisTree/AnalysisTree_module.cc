@@ -6080,7 +6080,10 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    // Get time offset for space charge correction
 	    double xtimeoffset = 0;
 	    if (mc_truth){
-	      double g4Ticks = detClocks->TPCG4Time2Tick(mc_truth->GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+	      double g4Ticks = detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+	      if (mc_truth->NeutrinoSet()){
+		g4Ticks += detClocks->TPCG4Time2Tick(mc_truth->GetNeutrino().Nu().T());
+	      }
 	      xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
 	    }
 	    
