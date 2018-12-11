@@ -90,8 +90,10 @@ producerlabels_mcc9:
 {
 
 # producer label names
+
   TrackLabel       : "pandoraTrack:McRecoStage2"
   CalorimetryLabel : "pandoraTrackcalo:McRecoStage2"
+
 
   # validator labels
   ParticleIdLabel     : "pid::particleid"
@@ -115,6 +117,7 @@ producerlabels_mcc9_data:
   HitTrackAssn        : "pandoraTrack"
   #HitTruthAssn        : "gaushitTruthMatch"
   CaloTrackAssn       : "pandoraTrackcalo"
+>>>>>>> temp
 
 }
 

@@ -79,12 +79,15 @@ namespace particleid{
 
   // Here is a dummy method for the case where you don't want to save the shift. It just calls the second method below but with a dummy variable for "shift"
   double Bragg_Likelihood_Estimator::getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum)
+
   {
     double dummy;
     return Bragg_Likelihood_Estimator::getLikelihood( dEdx, resRange, particlehypothesis, forward, planenum, dummy);
   }
 
+
   double Bragg_Likelihood_Estimator::getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum, double &shift)
+
   {
 
     /**

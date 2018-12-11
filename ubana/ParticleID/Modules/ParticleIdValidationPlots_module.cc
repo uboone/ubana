@@ -180,6 +180,7 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     std::vector<std::vector<float>> resRange;
 
 
+
     /** Histograms for all tracks, i.e. can be used by data */
     TH2F *All_chargeEndOverStart_sm0_5_dEdxrr;
     TH2F *All_chargeEndOverStart_gr2_dEdxrr;
@@ -479,6 +480,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
    
     std::vector<std::vector<float>> Lmip_perhit(3);
 
+
     art::Ptr< anab:: Calorimetry > calo;
     int planenum = -1;
     int hitsToUse = 0;
@@ -498,8 +500,10 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       // Get MIP likelihood per hit (and store in a vector)
       // Loop through hits (entries in dEdx and resrange vector)
       // For each hit, make a new dEdx vector for that hit only and use it to get the likelihood for that hit. That way we can average the likelihoods over the number of hits we care about later.
+
       std::vector<float> dEdx_dummy = {0.};
       std::vector<float> rr_dummy = {0.};
+
       for (size_t i_hit=0; i_hit < dEdx.at(planenum).size(); i_hit++){
         double Lmip = -9999.;
         dEdx_dummy.at(0) = dEdx.at(planenum).at(i_hit);
@@ -733,9 +737,12 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
        */
        // dQdx needs to be multiplied by a constant factor to convert from ADC to e/cm
        // Multiply MC by 198 and data by 243
-       double dQdxcalibval = 198.;
+
+      //FOR MCC9 TAG1 DATA IS NOW 242 on plane 2 and Tag2 MC is 178 on plane 2
+       double dQdxcalibval = 178.;
+
        if (isData){
-         dQdxcalibval = 243.;
+         dQdxcalibval = 242.;
        }
 
       if (AlgScore.fAlgName == "TruncatedMean"){
