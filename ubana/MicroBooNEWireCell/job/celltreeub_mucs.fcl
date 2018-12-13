@@ -1,19 +1,19 @@
 // default denotes which options to be marked as true for nominal WCLS production
 
 BEGIN_PROLOG
-celltreeub_mc: {
+celltreeub_mucs: {
  module_type : "CellTreeUB"
- TPC_rawProducer               : "daq" # or simnfspl1 (for thru nf)
+ TPC_rawProducer               : "daq" # or nfspl1 (for thru nf)
  TPC_rawLabel                  : "" # or raw (for thru nf)
- TPC_noiseFilteredProducer     : "nfsp"
- TPC_noiseFilteredLabel        : "raw"
- TPC_deconWienerProducer       : "simnfspl1"
- TPC_deconGaussianProducer     : "simnfspl1"
+ TPC_noiseFilteredProducer     : "nfsp" # archived for shorted V-Y V channels
+ TPC_noiseFilteredLabel        : "raw" # archived for shorted V-Y V channels
+ TPC_deconWienerProducer       : "nfspl1"
+ TPC_deconGaussianProducer     : "nfspl1"
  TPC_deconWienerLabel          : "wiener"
  TPC_deconGaussianLabel        : "gauss"
- TPC_badChannelListProducer    : "simnfspl1"
+ TPC_badChannelListProducer    : "nfspl1"
  TPC_badChannelListLabel       : "badmasks"
- TPC_channelThresholdProducer  : "simnfspl1"
+ TPC_channelThresholdProducer  : "nfspl1"
  TPC_channelThresholdLabel     : "threshold"
  PMT_HG_cosmicLabel            : "OpdetCosmicHighGain"
  PMT_LG_cosmicLabel            : "OpdetCosmicLowGain"
@@ -25,8 +25,8 @@ celltreeub_mc: {
  PMT_LG_beamProducer           : "pmtreadout"
  PMT_wfmSaturationLabel        : "saturation"
  PMT_recoLabel                 : "opflash"
- HWTrigger_label               : "triggersim"
- SWTrigger_label               : "swtrigger"
+ HWTrigger_label               : "daq"
+ SWTrigger_label               : "daq"
  Beam_label                    : "beaminfo"
  POT_producer                  : "beamdata"
  POT_bnb1label                 : "bnbETOR875"
@@ -36,7 +36,7 @@ celltreeub_mc: {
  MuCS_recoDataLabel	       : "MuCSReco"
  SimChannel_producer	       : "driftWC"
  SimChannel_label	       : "simpleSC"
- SaveTPC_raw                   : false # short type  
+ SaveTPC_raw                   : false # short type
  SaveTPC_noiseFiltered         : false # float converted to short through scale & shift
  SaveTPC_deconWiener           : true  # default
  SaveTPC_deconGaussian         : true  # default
@@ -45,20 +45,20 @@ celltreeub_mc: {
  SavePMT_raw                   : true  # default
  SavePMT_wfmSaturation         : false
  SavePMT_reco                  : false
- SavePMT_gainData              : false
- SavePMT_gainMC                : true  # default
+ SavePMT_gainData              : true  # default
+ SavePMT_gainMC                : false
  SaveHWTrigger                 : true  # default
  SaveSWTrigger                 : true  # default
  SaveBeam                      : false 
  SavePOT                       : false
- SaveMuCSData		       : false
- SaveMuCSRecoData	       : false
- SaveMCParticle 	       : true   # default
- SaveSimChannel		       : false 
- UseLGBeamForHGCosmic          : true   # default
+ SaveMuCSData		       : true  # default
+ SaveMuCSRecoData	       : true  # default
+ SaveMCParticle 	       : false
+ SaveSimChannel		       : false
+ UseLGBeamForHGCosmic          : true  # default
  FlashMultPEThreshold          : 5
  DeconRebin                    : 4	
- SaveVYshorted		       : true  
+ SaveVYshorted		       : true
  ScaleRawdigit		       : 10 
  ShiftRawdigit		       : 14000
  mcOption		       : "all"
