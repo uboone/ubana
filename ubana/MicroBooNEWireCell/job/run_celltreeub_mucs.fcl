@@ -1,12 +1,12 @@
 #include "services_microboone.fcl"
 #include "database_microboone.fcl"
-#include "celltreeub.fcl"
+#include "celltreeub_mucs.fcl"
 
 process_name: CellTreeUB
 
 services:
 {
-  TFileService: { fileName: "celltreeDATA.root" }
+  TFileService: { fileName: "celltreeMUCSDATA.root" }
   #TimeTracker:   {}
   RandomNumberGenerator: {}
   message:      @local::standard_info
@@ -26,29 +26,18 @@ source:
 }
 
 
-outputs:
-{
-    out:
-        {
-        module_type: RootOutput
-        fileName:    "%ifb_postwcct.root"
-        dataTier:    "reconstructed"
-        compressionLevel: 1
-        }
-}
-
+outputs:{}
 
 
 physics:
 {
   analyzers:
   {
-    Event : @local::celltreeub
+    Event : @local::celltreeub_mucs
   }
 
   analysis: [ Event ]
-  stream1: [ out ]
-  end_paths: [ analysis, stream1 ]
+  end_paths: [ analysis ]
 }
 
 services.DetectorPropertiesService.NumberTimeSamples:    6400
@@ -61,7 +50,7 @@ services.PMTGainService.PmtGainProvider.DatabaseRetrievalAlg.DBTag: "v1r0"
 
 microboone_tfile_metadata:
 {
-  JSONFileName:          [ "celltreeDATA.root.json" ]
+  JSONFileName:          [ "celltreeMUCSDATA.root.json" ]
   GenerateTFileMetadata: [ true ]
   dataTier:		 [ "celltree" ]
   fileFormat:		 [ "root" ]
