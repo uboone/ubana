@@ -738,12 +738,40 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
        // dQdx needs to be multiplied by a constant factor to convert from ADC to e/cm
        // Multiply MC by 198 and data by 243
 
-      //FOR MCC9 TAG1 DATA IS NOW 242 on plane 2 and Tag2 MC is 178 on plane 2
-       double dQdxcalibval = 178.;
+      //FOR MCC9: TAG1 DATA AND  TAG2 MC. I HAVE ADDED LOOPS FOR ALL THE DIFFERENT PLANES!
+      
+      double dQdxcalibval = 0;
+      
+      if(planeid == 0)
+	{
+	   dQdxcalibval = 245.;
 
-       if (isData){
-         dQdxcalibval = 242.;
-       }
+	  if (isData){
+	    dQdxcalibval = 232.;
+  	 
+	  }
+	}
+
+      if(planeid ==1)
+	{
+	   dQdxcalibval = 252.;
+
+	  if (isData){
+	    dQdxcalibval = 249.;
+  	 
+	  }
+	}
+
+      if(planeid ==2)
+	{
+	    dQdxcalibval = 245.;
+
+	  if (isData){
+	    dQdxcalibval = 235.;
+  	 
+	  }
+	}
+ 
 
       if (AlgScore.fAlgName == "TruncatedMean"){
         if (anab::kVariableType(AlgScore.fVariableType) == anab::kdEdxtruncmean) track_dEdx.at(planeid) = AlgScore.fValue;

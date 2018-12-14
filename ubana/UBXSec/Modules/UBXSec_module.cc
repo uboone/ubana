@@ -1135,6 +1135,7 @@ lar_pandora::PFParticleVector pfpACPTTagged;
       double truth_nu_vtx[3] = {mclist[iList]->GetNeutrino().Nu().Vx(),
                                 mclist[iList]->GetNeutrino().Nu().Vy(),
                                 mclist[iList]->GetNeutrino().Nu().Vz()};
+
       if (_fiducial_volume.InFV(truth_nu_vtx)) {
         ubxsec_event->fv = 1;
       }
@@ -1153,14 +1154,19 @@ lar_pandora::PFParticleVector pfpACPTTagged;
                        + _detector_properties->GetXTicksOffset(0,0,0) 
                        - _detector_properties->TriggerOffset();
 
+
       // The following offsets to be summed to the original true vertex
+      ///I changed this line to follow what is shown in the MCC9 tutorials page. There used to be a subtraction for the x coordiante which is no longer the case: used to read - sce_corr.at(0)
+      
       double xOffset = _detector_properties->ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.X();
+      double xOffset_mcc9 = _detector_properties->ConvertTicksToX(g4Ticks, 0, 0, 0);
       double yOffset = sce_corr.Y();
       double zOffset = sce_corr.Z();
 
       ubxsec_event->sce_corr_x = xOffset;
       ubxsec_event->sce_corr_y = yOffset;
       ubxsec_event->sce_corr_z = zOffset;
+      ubxsec_event->time_corr_mcc9_x = xOffset_mcc9;
 
       if (_fiducial_volume.InFV(mclist[iList]->GetNeutrino().Nu().Vx() + xOffset, 
                                 mclist[iList]->GetNeutrino().Nu().Vy() + yOffset, 
@@ -1435,6 +1441,8 @@ lar_pandora::PFParticleVector pfpACPTTagged;
 
     // X position correction (time offset)
     double reco_nu_vtx[3];
+    //double true_nu_vtx[3];
+    
     UBXSecHelper::GetTimeCorrectedPoint(reco_nu_vtx_raw, reco_nu_vtx, ubxsec_event->candidate_flash_time, _drift_velocity);
 
     // Space Charge correction
@@ -1442,6 +1450,9 @@ lar_pandora::PFParticleVector pfpACPTTagged;
     geo::Vector_t sce_corr = SCE->GetPosOffsets(geo::Point_t(reco_nu_vtx[0],
 							     reco_nu_vtx[1],
 							     reco_nu_vtx[2]));
+    //Added this additional line here from the MCC9 tutorials page
+    double xsceoffset= sce_corr.X();
+
     std::cout << "[UBXSec] \t SCE correction in x, y, z = " << sce_corr.X() 
 	                                            << ", " << sce_corr.Y() 
 	                                            << ", " << sce_corr.Z() << std::endl;
@@ -1454,6 +1465,9 @@ lar_pandora::PFParticleVector pfpACPTTagged;
     ubxsec_event->slc_nuvtx_y[slice] = reco_nu_vtx[1];
     ubxsec_event->slc_nuvtx_z[slice] = reco_nu_vtx[2];
     ubxsec_event->slc_nuvtx_fv[slice] = (_fiducial_volume.InFV(reco_nu_vtx) ? 1 : 0);
+
+    ubxsec_event->sce_corr_x_reco_mcc9 = xsceoffset;
+
     std::cout << "[UBXSec] \t Reco vertex is " << ubxsec_event->slc_nuvtx_x[slice] << ", " << ubxsec_event->slc_nuvtx_y[slice] << ", " << ubxsec_event->slc_nuvtx_z[slice] << std::endl; 
     std::cout << "[UBXSec] \t Reco vertex is " << (ubxsec_event->slc_nuvtx_fv[slice]==1 ? "in" : "ouside") << " the FV." << std::endl;
 
@@ -1526,6 +1540,7 @@ lar_pandora::PFParticleVector pfpACPTTagged;
 
       std::cout << "[UBXSec] \t FM score:       " << ubxsec_event->slc_flsmatch_score[slice] << std::endl;
       std::cout << "[UBXSec] \t qllx - tpcx is: " << ubxsec_event->slc_flsmatch_qllx[slice] - ubxsec_event->slc_flsmatch_tpcx[slice] << std::endl;
+      
     }
 
     // Hits
