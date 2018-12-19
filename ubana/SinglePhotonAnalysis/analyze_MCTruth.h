@@ -67,7 +67,7 @@ namespace single_photon
         vertex_tree->Branch("mctruth_lepton_E",&m_mctruth_lepton_E);
         vertex_tree->Branch("mctruth_mode",&m_mctruth_mode);
         vertex_tree->Branch("mctruth_qsqr",&m_mctruth_qsqr);
-        vertex_tree->Branch("mctruth_ccnc",&m_mctruth_ccnc);
+        vertex_tree->Branch("mctruth_cc_or_nc",&m_mctruth_ccnc);
         vertex_tree->Branch("mctruth_interaction_type",&m_mctruth_interaction_type);
 
         vertex_tree->Branch("mctruth_num_daughter_particles",&m_mctruth_num_daughter_particles);

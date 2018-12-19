@@ -47,6 +47,18 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_median.clear();
         m_reco_shower_dEdx_plane1_median.clear();
         m_reco_shower_dEdx_plane2_median.clear();
+        m_reco_shower_dEdx_plane0_mean.clear();
+        m_reco_shower_dEdx_plane1_mean.clear();
+        m_reco_shower_dEdx_plane2_mean.clear();	
+        m_reco_shower_dEdx_plane0_max.clear();
+        m_reco_shower_dEdx_plane1_max.clear();
+        m_reco_shower_dEdx_plane2_max.clear();	
+        m_reco_shower_dEdx_plane0_min.clear();
+        m_reco_shower_dEdx_plane1_min.clear();
+        m_reco_shower_dEdx_plane2_min.clear();	
+
+
+
 
         m_reco_shower_dEdx_plane0_nhits.clear();
         m_reco_shower_dEdx_plane1_nhits.clear();
@@ -99,6 +111,18 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_median.resize(size);
         m_reco_shower_dEdx_plane1_median.resize(size);
         m_reco_shower_dEdx_plane2_median.resize(size);
+        m_reco_shower_dEdx_plane0_min.resize(size);
+        m_reco_shower_dEdx_plane1_min.resize(size);
+        m_reco_shower_dEdx_plane2_min.resize(size);
+        m_reco_shower_dEdx_plane0_max.resize(size);
+        m_reco_shower_dEdx_plane1_max.resize(size);
+        m_reco_shower_dEdx_plane2_max.resize(size);
+        m_reco_shower_dEdx_plane0_mean.resize(size);
+        m_reco_shower_dEdx_plane1_mean.resize(size);
+        m_reco_shower_dEdx_plane2_mean.resize(size);
+
+
+
 
         m_reco_shower_dEdx_plane0_nhits.resize(size);
         m_reco_shower_dEdx_plane1_nhits.resize(size);
@@ -150,17 +174,6 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_delaunay_area_plane0",&m_reco_shower_delaunay_area_plane0);
         vertex_tree->Branch("reco_shower_delaunay_area_plane1",&m_reco_shower_delaunay_area_plane1);
         vertex_tree->Branch("reco_shower_delaunay_area_plane2",&m_reco_shower_delaunay_area_plane2);
-
-        vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
-        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
-        vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
-        vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
-        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
-        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
-        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
-        vertex_tree->Branch("sim_shower_startx",&m_sim_shower_startx);
-        vertex_tree->Branch("sim_shower_starty",&m_sim_shower_starty);
-        vertex_tree->Branch("sim_shower_startz",&m_sim_shower_startz);
         //the calorimetry info
         vertex_tree->Branch("reco_shower_energy",&m_reco_shower_energy);
         vertex_tree->Branch("reco_shower_dQdx_plane0",&m_reco_shower_dQdx_plane0);
@@ -172,7 +185,15 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_dEdx_plane0_median",&m_reco_shower_dEdx_plane0_median);
         vertex_tree->Branch("reco_shower_dEdx_plane1_median",&m_reco_shower_dEdx_plane1_median);
         vertex_tree->Branch("reco_shower_dEdx_plane2_median",&m_reco_shower_dEdx_plane2_median);
-
+        vertex_tree->Branch("reco_shower_dEdx_plane0_mean",&m_reco_shower_dEdx_plane0_mean);
+        vertex_tree->Branch("reco_shower_dEdx_plane1_mean",&m_reco_shower_dEdx_plane1_mean);
+        vertex_tree->Branch("reco_shower_dEdx_plane2_mean",&m_reco_shower_dEdx_plane2_mean);
+        vertex_tree->Branch("reco_shower_dEdx_plane0_max",&m_reco_shower_dEdx_plane0_max);
+        vertex_tree->Branch("reco_shower_dEdx_plane1_max",&m_reco_shower_dEdx_plane1_max);
+        vertex_tree->Branch("reco_shower_dEdx_plane2_max",&m_reco_shower_dEdx_plane2_max);
+        vertex_tree->Branch("reco_shower_dEdx_plane0_min",&m_reco_shower_dEdx_plane0_min);
+        vertex_tree->Branch("reco_shower_dEdx_plane1_min",&m_reco_shower_dEdx_plane1_min);
+        vertex_tree->Branch("reco_shower_dEdx_plane2_min",&m_reco_shower_dEdx_plane2_min);
         vertex_tree->Branch("reco_shower_dEdx_plane0_nhits",&m_reco_shower_dEdx_plane0_nhits);
         vertex_tree->Branch("reco_shower_dEdx_plane1_nhits",&m_reco_shower_dEdx_plane1_nhits);
         vertex_tree->Branch("reco_shower_dEdx_plane2_nhits",&m_reco_shower_dEdx_plane2_nhits);
@@ -187,6 +208,17 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_flash_shortest_index_z",&m_reco_shower_flash_shortest_index_z);
         vertex_tree->Branch("reco_shower_flash_shortest_index_y",&m_reco_shower_flash_shortest_index_y);
         vertex_tree->Branch("reco_shower_flash_shortest_index_yz",&m_reco_shower_flash_shortest_index_yz);
+
+        vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
+        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
+        vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
+        vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
+        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
+        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
+        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
+        vertex_tree->Branch("sim_shower_startx",&m_sim_shower_startx);
+        vertex_tree->Branch("sim_shower_starty",&m_sim_shower_starty);
+        vertex_tree->Branch("sim_shower_startz",&m_sim_shower_startz);
 
     }
 
@@ -282,6 +314,58 @@ namespace single_photon
             m_reco_shower_dEdx_plane0_median[i_shr] = getMedian(m_reco_shower_dEdx_plane0[i_shr]);
             m_reco_shower_dEdx_plane1_median[i_shr] = getMedian(m_reco_shower_dEdx_plane1[i_shr]);
             m_reco_shower_dEdx_plane2_median[i_shr] = getMedian(m_reco_shower_dEdx_plane2[i_shr]);
+   
+            std::cout<<"PAR: "<<m_reco_shower_dEdx_plane0[i_shr].size()<<" "<<m_reco_shower_dEdx_plane1[i_shr].size()<<" "<<m_reco_shower_dEdx_plane2[i_shr].size()<<std::endl;
+
+            m_reco_shower_dEdx_plane0_mean[i_shr] = std::accumulate(m_reco_shower_dEdx_plane0[i_shr].begin(), m_reco_shower_dEdx_plane0[i_shr].end(), 0.0)/((double)m_reco_shower_dEdx_plane0[i_shr].size()); 
+            m_reco_shower_dEdx_plane1_mean[i_shr] = std::accumulate(m_reco_shower_dEdx_plane1[i_shr].begin(), m_reco_shower_dEdx_plane1[i_shr].end(), 0.0)/((double)m_reco_shower_dEdx_plane1[i_shr].size()); 
+            m_reco_shower_dEdx_plane2_mean[i_shr] = std::accumulate(m_reco_shower_dEdx_plane2[i_shr].begin(), m_reco_shower_dEdx_plane2[i_shr].end(), 0.0)/((double)m_reco_shower_dEdx_plane2[i_shr].size()); 
+
+            auto maxp0 = std::max_element(m_reco_shower_dEdx_plane0[i_shr].begin(), m_reco_shower_dEdx_plane0[i_shr].end());
+            auto maxp1 = std::max_element(m_reco_shower_dEdx_plane1[i_shr].begin(), m_reco_shower_dEdx_plane1[i_shr].end());
+            auto maxp2 = std::max_element(m_reco_shower_dEdx_plane2[i_shr].begin(), m_reco_shower_dEdx_plane2[i_shr].end());
+            auto minp0 = std::min_element(m_reco_shower_dEdx_plane0[i_shr].begin(), m_reco_shower_dEdx_plane0[i_shr].end());
+            auto minp1 = std::min_element(m_reco_shower_dEdx_plane1[i_shr].begin(), m_reco_shower_dEdx_plane1[i_shr].end());
+            auto minp2 = std::min_element(m_reco_shower_dEdx_plane2[i_shr].begin(), m_reco_shower_dEdx_plane2[i_shr].end());
+
+
+            if(maxp0 == m_reco_shower_dEdx_plane0[i_shr].end()){
+                m_reco_shower_dEdx_plane0_max[i_shr] = -999; 
+            }else{
+                m_reco_shower_dEdx_plane0_max[i_shr] = *maxp0; 
+            }
+
+            if(maxp1 == m_reco_shower_dEdx_plane1[i_shr].end()){
+                m_reco_shower_dEdx_plane1_max[i_shr] = -999; 
+            }else{
+                m_reco_shower_dEdx_plane1_max[i_shr] = *maxp1; 
+            }
+
+            if(maxp2 == m_reco_shower_dEdx_plane2[i_shr].end()){
+                m_reco_shower_dEdx_plane2_max[i_shr] = -999; 
+            }else{
+                m_reco_shower_dEdx_plane2_max[i_shr] = *maxp2; 
+            }
+
+
+            if(minp0 == m_reco_shower_dEdx_plane0[i_shr].end()){
+                m_reco_shower_dEdx_plane0_min[i_shr] = -999; 
+            }else{
+                m_reco_shower_dEdx_plane0_min[i_shr] = *minp0; 
+            }
+
+            if(minp1 == m_reco_shower_dEdx_plane1[i_shr].end()){
+                m_reco_shower_dEdx_plane1_min[i_shr] = -999; 
+            }else{
+                m_reco_shower_dEdx_plane1_min[i_shr] = *minp1; 
+            }
+
+            if(minp2 == m_reco_shower_dEdx_plane2[i_shr].end()){
+                m_reco_shower_dEdx_plane2_min[i_shr] = -999; 
+            }else{
+                m_reco_shower_dEdx_plane2_min[i_shr] = *minp2; 
+            }
+
 
             m_reco_shower_dEdx_plane0_nhits[i_shr] = m_reco_shower_dEdx_plane0[i_shr].size();
             m_reco_shower_dEdx_plane1_nhits[i_shr] = m_reco_shower_dEdx_plane1[i_shr].size();
@@ -528,7 +612,7 @@ namespace single_photon
         std::vector<double> dedx(n,0.0);
         for (int i = 0; i < n; i++){
             //std::cout<<"The dQ/dx is "<<dqdx[i]<<std::endl;
-            dedx.push_back(QtoEConversion(dqdx[i]));
+            dedx[i] = QtoEConversion(dqdx[i]);
             //std::cout<<"The dE/dx is "<<dedx[i]<<std::endl;
         }
         return dedx;

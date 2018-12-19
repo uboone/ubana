@@ -67,6 +67,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <numeric>
+#include <algorithm>
 #include <map>
 #include <sys/stat.h>
 
@@ -342,6 +344,7 @@ namespace single_photon
             std::string m_mcShowerLabel;
             std::string m_pidLabel;            ///< For PID stuff
             bool m_use_PID_algorithms;
+            bool m_use_delaunay;
             bool m_is_verbose;
             bool m_is_data;
             bool m_is_overlayed;
@@ -378,6 +381,7 @@ namespace single_photon
 
             //------------ Event Related Variables -------------
             int m_run_number;
+            int m_subrun_number;
             int m_event_number;
 
             //------------ Vertex Related variables -------------
@@ -578,10 +582,18 @@ namespace single_photon
             std::vector<std::vector<double>> m_reco_shower_dEdx_plane1;
             std::vector<std::vector<double>> m_reco_shower_dEdx_plane2;
 
+            std::vector<double> m_reco_shower_dEdx_plane0_mean;
+            std::vector<double> m_reco_shower_dEdx_plane1_mean;
+            std::vector<double> m_reco_shower_dEdx_plane2_mean;
+            std::vector<double> m_reco_shower_dEdx_plane0_max;
+            std::vector<double> m_reco_shower_dEdx_plane1_max;
+            std::vector<double> m_reco_shower_dEdx_plane2_max;
+            std::vector<double> m_reco_shower_dEdx_plane0_min;
+            std::vector<double> m_reco_shower_dEdx_plane1_min;
+            std::vector<double> m_reco_shower_dEdx_plane2_min;
             std::vector<double> m_reco_shower_dEdx_plane0_median;
             std::vector<double> m_reco_shower_dEdx_plane1_median;
             std::vector<double> m_reco_shower_dEdx_plane2_median;
-
             std::vector<double> m_reco_shower_dEdx_plane0_nhits;
             std::vector<double> m_reco_shower_dEdx_plane1_nhits;
             std::vector<double> m_reco_shower_dEdx_plane2_nhits;

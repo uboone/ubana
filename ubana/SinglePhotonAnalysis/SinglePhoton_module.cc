@@ -25,6 +25,7 @@ namespace single_photon
     {
         m_is_verbose = pset.get<bool>("Verbose",true);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
+        m_use_delaunay = pset.get<bool>("useDelaunay",false);
         m_is_data = pset.get<bool>("isData",false);
         m_is_overlayed = pset.get<bool>("isOverlayed",false);
 
@@ -286,6 +287,7 @@ namespace single_photon
         m_number_of_events++;
 
         m_run_number = evt.run();
+        m_subrun_number = evt.subRun();
         m_event_number = evt.id().event();
 
         if(vertexVector.size()>0){
@@ -440,6 +442,7 @@ namespace single_photon
 
         // --------------------- Event Related variables ------------
         vertex_tree->Branch("run_number", &m_run_number, "run_number/I");
+        vertex_tree->Branch("subrun_number", &m_subrun_number, "subrun_number/I");
         vertex_tree->Branch("event_number", &m_event_number, "event_number/I");
 
         // --------------------- Vertex Related variables ------------
@@ -517,8 +520,9 @@ namespace single_photon
     void SinglePhoton::ClearVertex(){
 
         //------------ Event related Variables -------------
-        m_event_number = 0;
-        m_run_number = 0;
+        m_event_number = -99;
+        m_subrun_number = -99;
+        m_run_number = -99;
 
 
         //------------ Vertex related Variables -------------
@@ -799,10 +803,11 @@ namespace single_photon
                     break;
             }
         }
-       // if(n_0>0) this->quick_delaunay_fit(n_0, &C0[0]  , &T0[0]  , &num_triangles[0],&area[0]);
-       // if(n_1>0) this->quick_delaunay_fit(n_1, &C1[0]  , &T1[0]  , &num_triangles[1],&area[1]);
-       // if(n_2>0) this->quick_delaunay_fit(n_2, &C2[0]  , &T2[0]  , &num_triangles[2],&area[2]);
-
+        if(m_use_delaunay){
+        if(n_0>0) this->quick_delaunay_fit(n_0, &C0[0]  , &T0[0]  , &num_triangles[0],&area[0]);
+        if(n_1>0) this->quick_delaunay_fit(n_1, &C1[0]  , &T1[0]  , &num_triangles[1],&area[1]);
+        if(n_2>0) this->quick_delaunay_fit(n_2, &C2[0]  , &T2[0]  , &num_triangles[2],&area[2]);
+        }
         num_hits[0] = n_0;
         num_hits[1] = n_1;
         num_hits[2] = n_2;
