@@ -9,6 +9,10 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            larsim_MCCheater_BackTrackerService_service
                            larsim_MCCheater_ParticleInventoryService_service
                            lardataobj_RawData
+			   lardataobj_RecoBase
+			   lardataobj_MCBase
+			   lardataobj_Simulation	
+			   nusimdata_SimulationBase
                            larevt_CalibrationDBI_Providers
                            nutools_RandomUtils_NuRandomService_service
                            ${ART_FRAMEWORK_CORE}
