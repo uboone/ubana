@@ -59,11 +59,13 @@ private:
   TTree* _tree;
   int    _nmcshr; // number of mcshowers in the event
   double _xtimeoffset;
-  double _xsceoffset, _ysceoffset, _zsceoffset;
+  double _xsceoffset_start, _ysceoffset_start, _zsceoffset_start;
+  double _xsceoffset_edep, _ysceoffset_edep, _zsceoffset_edep;
   double _mcpart_x_start, _mcpart_y_start, _mcpart_z_start, _mcpart_e_start;
-  double _mcpart_x_edep, _mcpart_y_edep, _mcpart_z_edep, _mcpart_e_edep;
+  double _mcpart_x_edep, _mcpart_y_edep, _mcpart_z_edep, _mcpart_e_edep, _mcpart_q_edep;
   double _mcshr_x_start, _mcshr_y_start, _mcshr_z_start, _mcshr_e_start;
   double _mcshr_x_edep, _mcshr_y_edep, _mcshr_z_edep, _mcshr_e_edep;
+  double _mcshr_q0_edep, _mcshr_q1_edep, _mcshr_q2_edep;
 
 };
 
@@ -76,21 +78,32 @@ MCRecoCheck::MCRecoCheck(fhicl::ParameterSet const& p)
   _tree = tfs->make<TTree>("_tree","tree");
   _tree->Branch("_nmcshr",&_nmcshr,"nmcshr/I");
   _tree->Branch("_xtimeoffset",&_xtimeoffset,"xtimeoffset/D");
-  _tree->Branch("_xsceoffset",&_xsceoffset,"xsceoffset/D");
-  _tree->Branch("_ysceoffset",&_ysceoffset,"ysceoffset/D");
-  _tree->Branch("_zsceoffset",&_zsceoffset,"zsceoffset/D");
+  _tree->Branch("_xsceoffset_start",&_xsceoffset_start,"xsceoffset_start/D");
+  _tree->Branch("_ysceoffset_start",&_ysceoffset_start,"ysceoffset_start/D");
+  _tree->Branch("_zsceoffset_start",&_zsceoffset_start,"zsceoffset_start/D");
+  _tree->Branch("_xsceoffset_edep",&_xsceoffset_edep,"xsceoffset_edep/D");
+  _tree->Branch("_ysceoffset_edep",&_ysceoffset_edep,"ysceoffset_edep/D");
+  _tree->Branch("_zsceoffset_edep",&_zsceoffset_edep,"zsceoffset_edep/D");
   _tree->Branch("_mcpart_x_start",&_mcpart_x_start,"mcpart_x_start/D");
   _tree->Branch("_mcpart_y_start",&_mcpart_y_start,"mcpart_y_start/D");
   _tree->Branch("_mcpart_z_start",&_mcpart_z_start,"mcpart_z_start/D");
+  _tree->Branch("_mcpart_e_start",&_mcpart_e_start,"mcpart_e_start/D");
   _tree->Branch("_mcpart_x_edep",&_mcpart_x_edep,"mcpart_x_edep/D");
   _tree->Branch("_mcpart_y_edep",&_mcpart_y_edep,"mcpart_y_edep/D");
   _tree->Branch("_mcpart_z_edep",&_mcpart_z_edep,"mcpart_z_edep/D");
+  _tree->Branch("_mcpart_e_edep",&_mcpart_e_edep,"mcpart_e_edep/D");
+  _tree->Branch("_mcpart_q_edep",&_mcpart_q_edep,"mcpart_q_edep/D");
   _tree->Branch("_mcshr_x_start",&_mcshr_x_start,"mcshr_x_start/D");
   _tree->Branch("_mcshr_y_start",&_mcshr_y_start,"mcshr_y_start/D");
   _tree->Branch("_mcshr_z_start",&_mcshr_z_start,"mcshr_z_start/D");
+  _tree->Branch("_mcshr_e_start",&_mcshr_e_start,"mcshr_e_start/D");
   _tree->Branch("_mcshr_x_edep",&_mcshr_x_edep,"mcshr_x_edep/D");
   _tree->Branch("_mcshr_y_edep",&_mcshr_y_edep,"mcshr_y_edep/D");
   _tree->Branch("_mcshr_z_edep",&_mcshr_z_edep,"mcshr_z_edep/D");
+  _tree->Branch("_mcshr_e_edep",&_mcshr_e_edep,"mcshr_e_edep/D");
+  _tree->Branch("_mcshr_q0_edep",&_mcshr_q0_edep,"mcshr_q0_edep/D");
+  _tree->Branch("_mcshr_q1_edep",&_mcshr_q1_edep,"mcshr_q1_edep/D");
+  _tree->Branch("_mcshr_q2_edep",&_mcshr_q2_edep,"mcshr_q2_edep/D");
 
 }
 
@@ -111,9 +124,14 @@ void MCRecoCheck::analyze(art::Event const& e)
   _mcshr_x_start = mcshower.Start().X();
   _mcshr_y_start = mcshower.Start().Y();
   _mcshr_z_start = mcshower.Start().Z();
+  _mcshr_e_start = mcshower.Start().E();
   _mcshr_x_edep  = mcshower.DetProfile().X();
   _mcshr_y_edep  = mcshower.DetProfile().Y();
   _mcshr_z_edep  = mcshower.DetProfile().Z();
+  _mcshr_e_edep  = mcshower.DetProfile().E();
+  _mcshr_q0_edep  = mcshower.Charge(0);
+  _mcshr_q1_edep  = mcshower.Charge(1);
+  _mcshr_q2_edep  = mcshower.Charge(2);
 
   // load mcparticles
   auto const& mcpart_h = e.getValidHandle<std::vector<simb::MCParticle> > ("largeant");
@@ -148,17 +166,19 @@ void MCRecoCheck::analyze(art::Event const& e)
   _mcpart_x_start = showerpart.Position(0).X();
   _mcpart_y_start = showerpart.Position(0).Y();
   _mcpart_z_start = showerpart.Position(0).Z();
+  _mcpart_e_start = showerpart.Momentum(0).E() * 1000.;
   std::cout << "vtx @ [" << _mcpart_x_start << ", " << _mcpart_y_start << ", " << _mcpart_z_start << " ]" << std::endl;
   _xtimeoffset = detProperties->ConvertTicksToX(g4Ticks, 0, 0, 0);
   
   
   // SCE corrections
   auto const *SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
-  auto offset = SCE->GetPosOffsets(geo::Point_t(_mcpart_x_start,_mcpart_y_start,_mcpart_z_start));
-  std::cout << "offset : " << offset.X() << ", " << offset.Y() << ", " << offset.Z() << std::endl;
-  _xsceoffset = offset.X();
-  _ysceoffset = offset.Y();
-  _zsceoffset = offset.Z();
+  auto offset_start = SCE->GetPosOffsets(geo::Point_t(_mcpart_x_start,_mcpart_y_start,_mcpart_z_start));
+  std::cout << "offset_start : " << offset_start.X() << ", " << offset_start.Y() << ", " << offset_start.Z() << std::endl;
+  _xsceoffset_start = offset_start.X();
+  _ysceoffset_start = offset_start.Y();
+  _zsceoffset_start = offset_start.Z();
+
 
   _mcpart_x_edep = -999;
   _mcpart_y_edep = -999;
@@ -193,6 +213,35 @@ void MCRecoCheck::analyze(art::Event const& e)
       
     }//for MCP that matches MCS
   }//for each MCP in event
+
+  // load SimChannel
+  auto const& simch_h = e.getValidHandle<std::vector<sim::SimChannel> >("largeant"); //("driftWC:simpleSC");
+  
+  // integrate simchannel energy deposits to be able to validate mcshower.DetProfile().E()
+  _mcpart_e_edep = 0;
+  _mcpart_q_edep = 0;
+  for (unsigned int s = 0; s < simch_h->size(); s++) {
+    auto simch = simch_h->at(s);
+    const auto &sch_map(simch.TDCIDEMap());
+      // in MicroBooNE the collection plane starts at channel 4800
+      if (simch.Channel() < 4800) continue;
+      // Loop over ticks
+      for(auto tdc_iter = sch_map.begin(); tdc_iter!=sch_map.end(); ++tdc_iter) {
+        // for c2: hit_time is unused
+	//unsigned short hit_time = (*tdc_iter).first;
+	// Loop over IDEs
+	for(auto const &ide : (*tdc_iter).second) {
+	  _mcpart_e_edep += ide.energy;
+	  _mcpart_q_edep += ide.numElectrons;
+	}// for all IDEs in SimChannel
+      }// for all TDCs
+  }// for all simchannels  
+
+  auto offset_edep = SCE->GetPosOffsets(geo::Point_t(_mcpart_x_edep,_mcpart_y_edep,_mcpart_z_edep));
+  std::cout << "offset_edep : " << offset_edep.X() << ", " << offset_edep.Y() << ", " << offset_edep.Z() << std::endl;
+  _xsceoffset_edep = offset_edep.X();
+  _ysceoffset_edep = offset_edep.Y();
+  _zsceoffset_edep = offset_edep.Z();
   
   _tree->Fill();
 
