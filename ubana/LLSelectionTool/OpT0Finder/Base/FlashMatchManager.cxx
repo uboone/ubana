@@ -12,6 +12,10 @@
 #include "FlashHypothesisFactory.h"
 #include "FlashProhibitFactory.h"
 #include "CustomAlgoFactory.h"
+
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/Geometry/Geometry.h"
+
 namespace flashana {
 
   FlashMatchManager::FlashMatchManager(const std::string name)
@@ -107,13 +111,6 @@ namespace flashana {
     auto const pmt_y_pos = pmt_pos_cfg.get<std::vector<double> >("Y");
     auto const pmt_z_pos = pmt_pos_cfg.get<std::vector<double> >("Z");
 
-    auto const& detector_boundary_cfg = detector_cfg.get<flashana::Config_t>("ActiveVolume");
-    auto const det_xrange = detector_boundary_cfg.get<std::vector<double> >("X");
-    auto const det_yrange = detector_boundary_cfg.get<std::vector<double> >("Y");
-    auto const det_zrange = detector_boundary_cfg.get<std::vector<double> >("Z");
-
-    auto const drift_velocity = detector_cfg.get<double>("DriftVelocity");
-
     auto const flash_filter_name = mgr_cfg.get<std::string>("FlashFilterAlgo","");
     auto const tpc_filter_name   = mgr_cfg.get<std::string>("TPCFilterAlgo","");
     auto const prohibit_name     = mgr_cfg.get<std::string>("ProhibitAlgo","");
@@ -122,6 +119,14 @@ namespace flashana {
     std::vector<std::string> custom_algo_v;
     custom_algo_v = mgr_cfg.get<std::vector<std::string> >("CustomAlgo",custom_algo_v);
 
+    const detinfo::DetectorProperties *_detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    double const drift_velocity =  _detprop->DriftVelocity();
+    
+    art::ServiceHandle<geo::Geometry> const geo;    
+    std::vector<double> const det_xrange = {0., 2.0 * geo->DetHalfWidth()};
+    std::vector<double> const det_yrange = {-1 * geo->DetHalfHeight(), geo->DetHalfHeight()};
+    std::vector<double> const det_zrange = {0., geo->DetLength()};
+    
     if(!flash_filter_name.empty()) _alg_flash_filter     = FlashFilterFactory::get().create(flash_filter_name,flash_filter_name);
     if(!tpc_filter_name.empty()  ) _alg_tpc_filter       = TPCFilterFactory::get().create(tpc_filter_name,tpc_filter_name);
     if(!prohibit_name.empty()    ) _alg_match_prohibit   = FlashProhibitFactory::get().create(prohibit_name,prohibit_name);
