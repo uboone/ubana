@@ -42,6 +42,8 @@ namespace dEdXInformation
     tracks.push_back(dv.GetProngTrack(0));
     tracks.push_back(dv.GetProngTrack(1));
     art::FindManyP<anab::Calorimetry> caliTrackAss(tracks,evt,fCalibratedLabel);
+
+    // Retrieve calorimetric information for each dv track
     for(int trackID=0; trackID!=int(tracks.size()); trackID++)
     {
       // art::Ptr<recob::Track> track = tracks[i];
@@ -53,6 +55,8 @@ namespace dEdXInformation
         if ((planeID < 0) || (planeID > 2)) continue;
         ctf.cali_prongCaloPlane[trackID][planeID] = planeID;
         ctf.cali_prongIsTrackFlipped[trackID][planeID] = IsTrackFlipped(cali);
+        ctf.cali_kinEnergy[trackID][planeID] = cali->KineticEnergy();
+        ctf.cali_range[trackID][planeID] = cali->Range();
       }
 
     } //  END loop for each dv track

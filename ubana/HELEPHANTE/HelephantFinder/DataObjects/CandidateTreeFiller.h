@@ -154,10 +154,10 @@ namespace AuxEvent
     std::string g4_pi_declaredScatteredEndProcess, g4_mu_declaredScatteredEndProcess;
     std::string g4_pi_endProcess, g4_mu_endProcess;
     // Calo info
-    // std::vector<std::vector<bool>> calo_prongIsTrackFlipped = {{false,false,false},{false,false,false}};
-    std::vector<std::vector<bool>> cali_prongIsTrackFlipped = {{false,false,false},{false,false,false}};
     std::vector<std::vector<int>> cali_prongCaloPlane = {{-1,-1,-1},{-1,-1,-1}};
-
+    std::vector<std::vector<bool>> cali_prongIsTrackFlipped = {{false,false,false},{false,false,false}};
+    std::vector<std::vector<float>> cali_kinEnergy = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<float>> cali_range = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
   };
 
 

@@ -162,7 +162,6 @@ namespace FindPandoraVertex
           {
             if (fVerbose) printf("| | |_Neutrino has correct number of vertex and tracks associated to PFP.\n");
             std::vector<art::Ptr<recob::Track>> thisNu_tracks = {t1Track, t2Track};
-
             // Make sure also we have the necessary hits associated to tracks
             art::FindManyP<recob::Hit> tha(thisNu_tracks,evt,pfpTag);
             std::vector<art::Ptr<recob::Hit>> t1Hits, t2Hits;
@@ -171,16 +170,13 @@ namespace FindPandoraVertex
             bool rightNumHits = (t1Hits.size()>1 && t2Hits.size()>1);
             std::cout << "| |_Track 1: There are " << t1Hits.size() << " associated hits." << std::endl;
             std::cout << "| |_Track 2: There are " << t2Hits.size() << " associated hits." << std::endl;
-
             if (!rightNumHits) etf.status_nuProngWithMissingAssociatedHits += 1;
             else
             {
               if (fVerbose) printf("| | |_Neutrino has correct number of hits vectors associated to tracks.\n");
-
               // For each track, find in the mcsHandle the MCS fit result with the same index (they don't have associations unfortunately but they should be paired by same index, so you can retrieve them this way).
               art::Ptr<recob::MCSFitResult> t1Mcs(mcsHandle,t1Track.key());
               art::Ptr<recob::MCSFitResult> t2Mcs(mcsHandle,t2Track.key());
-
               // Time to dump all associations in the neutrino vertex
               AuxVertex::DecayVertex nuV(nuVertex,t1Vertex,t2Vertex,t1Track,t2Track,t1Hits,t2Hits,t1Mcs,t2Mcs);
               nuV.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,fGeometry,fDetectorProperties);

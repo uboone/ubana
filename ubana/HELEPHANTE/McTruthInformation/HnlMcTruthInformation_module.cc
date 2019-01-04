@@ -352,8 +352,6 @@ void HnlMcTruthInformation::analyze(art::Event const & evt)
     art::Ptr<simb::MCParticle> mcp(mcParticleHandle,i);
     if(mcp->Process() == std::string("primary"))
     {
-      printf("-------- LOOOOK HERE!!!!\n");
-      printf("PDG CODE %i\n", mcp->PdgCode());
       if((mcp->PdgCode() == 13) || (mcp->PdgCode() == -13))
       {
         trackID_mu = mcp->TrackId();

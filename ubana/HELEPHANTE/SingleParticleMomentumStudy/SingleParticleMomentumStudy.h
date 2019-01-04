@@ -47,6 +47,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCNeutrino.h"
+#include "lardataobj/RecoBase/TrackTrajectory.h"
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -64,6 +65,8 @@
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
+#include "lardataobj/AnalysisBase/Calorimetry.h"
+
 
 
 // Analyzer class
@@ -90,23 +93,34 @@ public:
         art::Ptr<recob::Track> const & reco_candidate);
   float MCTrackLength(art::Ptr<sim::MCTrack> const & mct);
   float TrackLength(art::Ptr<recob::Track> const & recot);
+  bool IsTrackFlipped(art::Ptr<anab::Calorimetry> const & calo);
 
 private:
   // Declare trees and tree variables
   art::ServiceHandle< art::TFileService > tfs;
   TTree *tDataTree;
+  bool fDetailed_dEdX;
   int run, subrun, event;
-  int truth_nTracks, reco_nTracks;
-  std::string endProcess, declaredEndProcess;
+  int truth_pdgCode, truth_nTracks, reco_nTracks;
+  std::string declaredEndProcess;
+  std::vector<std::string> daughterProcess;
+  std::vector<int> daughterPdg;
+  std::vector<float> daughterEnergy;
   std::vector<float> truth_start, truth_end, reco_start, reco_end;
   float truth_length, reco_length;
   float truth_momentum;
   float rangeTruth_pion_momentum, rangeTruth_muon_momentum;
-  float range_pion_momentum, range_muon_momentum;
+  float range_pion_momentum, range_muon_momentum, range_pion_momentum2, range_proton_momentum2;
   float mcs_momentum_best, mcs_momentum_forward;
   float mcs_momentum_mu1, mcs_momentum_mu2, mcs_momentum_mu3, mcs_momentum_mu4;
   float mcs_momentum_pi1, mcs_momentum_pi2, mcs_momentum_pi3, mcs_momentum_pi4;
-
+  std::vector<int> cali_caloPlane = {-1,-1,-1};
+  std::vector<bool> cali_isTrackFlipped = {false,false,false};
+  std::vector<float> cali_kinEnergy = {-999.,-999.,-999.};
+  std::vector<float> cali_range = {-999.,-999.,-999.};
+  std::vector<std::vector<float>> cali_dEdX = {{},{},{}};
+  std::vector<std::vector<float>> cali_dQdX = {{},{},{}};
+  std::vector<std::vector<float>> cali_resRange = {{},{},{}};
 }; // End class SingleParticleMomentumStudy
 
 #endif // END def SingleParticleMomentumStudy header

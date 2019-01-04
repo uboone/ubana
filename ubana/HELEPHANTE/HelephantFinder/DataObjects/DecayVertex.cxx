@@ -242,17 +242,20 @@ namespace AuxVertex
 
     // Assign momentum using TrackMomentumCalculator for the two hypotheses
     trkf::TrackMomentumCalculator tmc;
-    // First assume both are muons, for both hypotheses (13 and 2212 are the only arguments accepted by GetTrackMomentum method)
-    fProngMomMag_ByRange_h1 = {(float) tmc.GetTrackMomentum(fProngLength[0],13), (float) tmc.GetTrackMomentum(fProngLength[1],13)};
-    fProngMomMag_ByRange_h2 = {(float) tmc.GetTrackMomentum(fProngLength[0],13), (float) tmc.GetTrackMomentum(fProngLength[1],13)};
-    // Then scale the pion candidate momentum by mass ratio.
-    float e1, e2, muonMass = 0.10566;
+    // Scale both the range and then the momentum obtained according to the mass of the particle involved. For muon the ratio becomes 1. in both cases, and you get back the normal muon range momentum.
+    float e1, e2, weighted_length, momentum_weight;
+    float muon_mass = 0.10566;
+    fProngMomMag_ByRange_h1 = {-999999, -999999};
+    fProngMomMag_ByRange_h2 = {-999999, -999999};
     for(int i=0; i<2; i++)
     {
-      fProngMomMag_ByRange_h1[i] = fProngMomMag_ByRange_h1[i]*fProngMass_h1[i]/muonMass;
-      fProngMomMag_ByRange_h2[i] = fProngMomMag_ByRange_h2[i]*fProngMass_h2[i]/muonMass;
+      weighted_length = fProngLength[i] * (muon_mass/fProngMass_h1[i]);
+      momentum_weight = fProngMass_h1[i]/muon_mass;
+      fProngMomMag_ByRange_h1[i] = tmc.GetTrackMomentum(weighted_length,13.) * momentum_weight;
+      weighted_length = fProngLength[i] * (muon_mass/fProngMass_h2[i]);
+      momentum_weight = fProngMass_h2[i]/muon_mass;
+      fProngMomMag_ByRange_h2[i] = tmc.GetTrackMomentum(weighted_length,13.) * momentum_weight;
     }
-
     // Prong momentum components
     fProngMom_ByRange_h1_X = {(float) fProngDirX[0]*fProngMomMag_ByRange_h1[0], (float) fProngDirX[1]*fProngMomMag_ByRange_h1[1]};
     fProngMom_ByRange_h1_Y = {(float) fProngDirY[0]*fProngMomMag_ByRange_h1[0], (float) fProngDirY[1]*fProngMomMag_ByRange_h1[1]};
@@ -260,7 +263,6 @@ namespace AuxVertex
     fProngMom_ByRange_h2_X = {(float) fProngDirX[0]*fProngMomMag_ByRange_h2[0], (float) fProngDirX[1]*fProngMomMag_ByRange_h2[1]};
     fProngMom_ByRange_h2_Y = {(float) fProngDirY[0]*fProngMomMag_ByRange_h2[0], (float) fProngDirY[1]*fProngMomMag_ByRange_h2[1]};
     fProngMom_ByRange_h2_Z = {(float) fProngDirZ[0]*fProngMomMag_ByRange_h2[0], (float) fProngDirZ[1]*fProngMomMag_ByRange_h2[1]};
-
     // Prong energy
     e1 = sqrt(pow(fProngMass_h1[0],2.) + pow(fProngMomMag_ByRange_h1[0],2.));
     e2 = sqrt(pow(fProngMass_h1[1],2.) + pow(fProngMomMag_ByRange_h1[1],2.));

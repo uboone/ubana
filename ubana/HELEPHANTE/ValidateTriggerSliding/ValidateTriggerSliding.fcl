@@ -1,10 +1,10 @@
 #include "services_microboone.fcl"
 
-process_name: singleParticleMomentumStudy
+process_name: ValidateTriggerSliding
 
 services:
 {
-  TFileService: {fileName: "singleParticleMomentumStudy_hist.root"}
+  TFileService:           {fileName: "triggerSliding.root"}
   TimeTracker:            {}
   MemoryTracker:          {}
   RandomNumberGenerator:  {}
@@ -24,14 +24,14 @@ physics:
   {
     AnaTree:
     {
-      module_type:          "SingleParticleMomentumStudy"
-      detailed_dEdX:        false
+      module_type:          "ValidateTriggerSliding"
     }
   }
   analysis: [AnaTree]
   end_paths: [analysis]
 }
 
+# Needed just not to crash
 services.DetectorClocksService.InheritClockConfig: false
 services.DetectorClocksService.TriggerOffsetTPC: -400
 services.DetectorPropertiesService.NumberTimeSamples: 6400

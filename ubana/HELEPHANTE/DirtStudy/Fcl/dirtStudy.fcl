@@ -1,10 +1,10 @@
 #include "services_microboone.fcl"
 
-process_name: singleParticleMomentumStudy
+process_name: DirtStudy
 
 services:
 {
-  TFileService: {fileName: "singleParticleMomentumStudy_hist.root"}
+  TFileService: {fileName: "DirtStudy_hist.root"}
   TimeTracker:            {}
   MemoryTracker:          {}
   RandomNumberGenerator:  {}
@@ -24,8 +24,9 @@ physics:
   {
     AnaTree:
     {
-      module_type:          "SingleParticleMomentumStudy"
-      detailed_dEdX:        false
+      module_type:                "DirtStudy"
+      PartEnergyThreshold:        0.
+      PhotEnergyThreshold:        0.
     }
   }
   analysis: [AnaTree]
