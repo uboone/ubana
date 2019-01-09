@@ -31,6 +31,7 @@ namespace single_photon
         m_sim_shower_kinetic_energy.clear();
         m_sim_shower_mass.clear();
         m_sim_shower_pdg.clear();
+        m_sim_shower_parent_pdg.clear();
         m_sim_shower_origin.clear();
         m_sim_shower_process.clear();
         m_sim_shower_startx.clear();
@@ -145,6 +146,7 @@ namespace single_photon
         m_sim_shower_kinetic_energy.resize(size);
         m_sim_shower_mass.resize(size);
         m_sim_shower_pdg.resize(size);
+        m_sim_shower_parent_pdg.resize(size);
         m_sim_shower_origin.resize(size);
         m_sim_shower_process.resize(size);
         m_sim_shower_startx.resize(size);
@@ -214,6 +216,7 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
         vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
         vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
+        vertex_tree->Branch("sim_shower_parent_pdg",&m_sim_shower_parent_pdg);
         vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
         vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
         vertex_tree->Branch("sim_shower_startx",&m_sim_shower_startx);
@@ -477,7 +480,8 @@ namespace single_photon
     void SinglePhoton::RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  
             std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, 
             std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
-            std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap
+            std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
+            std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector
             ){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCShowers()\t||\t Begininning recob::Shower Reco-MC suite"<<std::endl;;
@@ -505,8 +509,14 @@ namespace single_photon
                 m_sim_shower_startx[i_shr] = corrected[0];
                 m_sim_shower_starty[i_shr] = corrected[1];
                 m_sim_shower_startz[i_shr] =corrected[2];
+                
                 m_sim_shower_origin[i_shr] = mctruth->Origin();
-
+                //so this might be broken still due to mcparticle. must chcek
+                if(mcparticle->Mother()>=(int)mcParticleVector.size()){
+                    m_sim_shower_parent_pdg[i_shr] = -999;
+                }else{
+                    m_sim_shower_parent_pdg[i_shr] = mcParticleVector[mcparticle->Mother()]->PdgCode();
+                }
 
                 //OK is this photon matched to a delta?
 

@@ -50,6 +50,7 @@ namespace single_photon
         m_sim_track_mass.clear();
         m_sim_track_pdg.clear();
         m_sim_track_origin.clear();
+        m_sim_track_parent_pdg.clear();
         m_sim_track_process.clear();
         m_sim_track_startx.clear();
         m_sim_track_starty.clear();
@@ -105,6 +106,7 @@ namespace single_photon
         m_sim_track_mass.resize(size);
         m_sim_track_kinetic_energy.resize(size);
         m_sim_track_pdg.resize(size);
+        m_sim_track_parent_pdg.resize(size);
         m_sim_track_origin.resize(size);
         m_sim_track_process.resize(size);
         m_sim_track_startx.resize(size);
@@ -172,6 +174,7 @@ namespace single_photon
         vertex_tree->Branch("sim_track_kinetic_energy",&m_sim_track_kinetic_energy);
         vertex_tree->Branch("sim_track_mass",&m_sim_track_mass);
         vertex_tree->Branch("sim_track_pdg",&m_sim_track_pdg);
+        vertex_tree->Branch("sim_track_parent_pdg",&m_sim_track_parent_pdg);
         vertex_tree->Branch("sim_track_origin",&m_sim_track_origin);
         vertex_tree->Branch("sim_track_process",&m_sim_track_process);
         vertex_tree->Branch("sim_track_startx",&m_sim_track_startx);
@@ -301,7 +304,9 @@ namespace single_photon
     void SinglePhoton::RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap, 
             std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,
-            std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap){
+            std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
+            std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector
+){
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite"<<std::endl;;
@@ -336,6 +341,13 @@ namespace single_photon
                 m_sim_track_starty[i_trk] = corrected[1];
                 m_sim_track_startz[i_trk] = corrected[2];
                 m_sim_track_origin[i_trk] = mctruth->Origin();
+                if(mcparticle->Mother()>=(int)mcParticleVector.size()){
+                    m_sim_track_parent_pdg[i_trk] = -999;
+                }else{
+                    m_sim_track_parent_pdg[i_trk] = mcParticleVector[mcparticle->Mother()]->PdgCode();
+                }
+
+             
             }
             i_trk++;
         }

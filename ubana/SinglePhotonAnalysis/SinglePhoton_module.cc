@@ -396,8 +396,8 @@ namespace single_photon
             
 
 
-            this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap);
-            this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap);
+            this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
+            this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
             this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
 
         }
@@ -554,7 +554,9 @@ namespace single_photon
 
         if(m_potLabel != ""){
             if(m_potLabel == "generator"){
-                m_pot_count += sr.getValidHandle<sumdata::POTSummary>(m_potLabel)->totgoodpot;
+                double this_pot =  sr.getValidHandle<sumdata::POTSummary>(m_potLabel)->totgoodpot;
+                m_pot_count += this_pot;
+                std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<std::endl;
             }else{
                 art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR875;
                 if (sr.getByLabel("beamdata","bnbETOR875",potSummaryHandlebnbETOR875)){

@@ -282,7 +282,7 @@ namespace single_photon
             void ResizeTracks(size_t);
             void CreateTrackBranches();
             void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap);
-            void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap);
+            void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
 
             void CollectPID(std::vector<art::Ptr<recob::Track>> & tracks,std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap);
             TGraph proton_length2energy_tgraph;
@@ -294,7 +294,8 @@ namespace single_photon
             void ResizeShowers(size_t);
             void CreateShowerBranches();
 
-            void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap);
+            void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
+                    std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
 
             //---------------- MCTruths ----------------------------
 
@@ -467,6 +468,7 @@ namespace single_photon
             std::vector<double> m_sim_track_mass;
             std::vector<double> m_sim_track_kinetic_energy;
             std::vector<int> m_sim_track_pdg;
+            std::vector<int> m_sim_track_parent_pdg;
             std::vector<int> m_sim_track_origin;
             std::vector<std::string> m_sim_track_process;
             std::vector<double> m_sim_track_startx;
@@ -523,6 +525,7 @@ namespace single_photon
             std::vector<double> m_sim_shower_kinetic_energy;
             std::vector<double> m_sim_shower_mass;
             std::vector<int> m_sim_shower_pdg;
+            std::vector<int> m_sim_shower_parent_pdg;
             std::vector<int> m_sim_shower_origin;
             std::vector<std::string> m_sim_shower_process;
             std::vector<double> m_sim_shower_startx;
