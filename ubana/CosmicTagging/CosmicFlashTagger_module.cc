@@ -355,9 +355,9 @@ flashana::QCluster_t CosmicFlashTagger::GetQCluster(std::vector<art::Ptr<recob::
 
     for (size_t pt_idx=0; pt_idx < trk_ptr->NumberTrajectoryPoints(); ++pt_idx) {
       auto const& pt = trk_ptr->LocationAtPoint(pt_idx);
-      track_geotrj[pt_idx][0] = pt[0] - Xoffset;
-      track_geotrj[pt_idx][1] = pt[1];
-      track_geotrj[pt_idx][2] = pt[2];
+      track_geotrj[pt_idx][0] = pt.X() - Xoffset;
+      track_geotrj[pt_idx][1] = pt.Y();
+      track_geotrj[pt_idx][2] = pt.Z();
     }
 
     auto qcluster = ((flashana::LightPath*)(_mgr.GetCustomAlgo("LightPath")))->FlashHypothesis(track_geotrj);

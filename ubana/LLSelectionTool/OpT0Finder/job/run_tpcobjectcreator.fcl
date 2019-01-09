@@ -61,8 +61,8 @@ physics: {
   #path2 : [  comma separated list of module labels of analyzer or output modules  ]
   #path3 : [  comma separated list of module labels of analyzer or output modules  ]
 
-  #here, just a shorthand: could have done ana: [ myana ] then end_paths: [ ana ]
-  end_paths: [ path0 ]
+  #here, just a shorthand: could have done ana: [ myana ] then trigger_paths: [ ana ]
+  trigger_paths: [ path0 ]
 
 }
 services.DetectorClocksService.InheritClockConfig:                                   false

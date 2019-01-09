@@ -1915,7 +1915,7 @@ void FillTreeVariables::FillVertexTree(art::Event const & e,
     if(detos.GetRecoType(n) == detos.ftrack_reco_type) {
       ++reco_asso_tracks;
       recob::Track const & t = ev_t->at(original_index);
-      track_length = geoalgo::Point_t(t.Vertex()).Dist(t.End());
+      track_length = geoalgo::Point_t(t.Vertex<TVector3>()).Dist(t.End<TVector3>());
 			
       if(fverbose) std::cout << "\t\tTRK: reco_asso_tracks: " <<reco_asso_tracks<<" track_length: "<<track_length<<" longest: "<<longest_asso_track_length<<std::endl;
       if(track_length > longest_asso_track_length) {

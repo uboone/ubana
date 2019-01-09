@@ -18,7 +18,7 @@
 /// energies are in GeV.
 
 #include "ubana/AnalysisTree/MCTruth/MCTruthBase/MCTruthParticleList.h"
-#include "ubana/AnalysisTree/MCTruth/MCTruthBase/MCTruthEveIdCalculator.h"
+#include "ubana/AnalysisTree/MCTruth/MCTruthBase/MCTruthEmEveIdCalculator.h"
 
 #include "cetlib_except/exception.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -313,6 +313,8 @@ void MCTruthParticleList::clear()
     m_MCTruthParticleList.clear();
     m_archive.clear();
     m_primaries.clear();
+    
+    if (m_eveIdCalculator.get() != NULL ) m_eveIdCalculator->Init(this);
 }
 
 //----------------------------------------------------------------------------
@@ -373,7 +375,7 @@ int MCTruthParticleList::EveId( const int trackID ) const
     // If the eve ID calculator has never been initialized, use the
     // default method.
     if ( m_eveIdCalculator.get() == 0 ){
-        AdoptEveIdCalculator( new MCTruthEveIdCalculator );
+        AdoptEveIdCalculator( new MCTruthEmEveIdCalculator );
     }
 
     // If the eve ID calculator has changed, or we're looking at a

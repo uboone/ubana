@@ -271,14 +271,14 @@ void CandidateConsistency::produce(art::Event & e)
     // 1) Tracks
     for (auto t : tracks) {
 
-      if ( (t->Vertex() - vtx_xyz).Mag() < _tolerance ) {
+      if ( (t->Vertex<TVector3>() - vtx_xyz).Mag() < _tolerance ) {
         selected_tracks.push_back(t);
-        selected_tracks_vertex.push_back(t->Vertex());
+        selected_tracks_vertex.push_back(t->Vertex<TVector3>());
       }
 
-      if ( (t->End() - vtx_xyz).Mag() < _tolerance ) {
+      if ( (t->End<TVector3>() - vtx_xyz).Mag() < _tolerance ) {
         selected_tracks.push_back(t);
-        selected_tracks_vertex.push_back(t->End());
+        selected_tracks_vertex.push_back(t->End<TVector3>());
       }
 
 
@@ -640,13 +640,13 @@ bool CandidateConsistency::IsCathodeCrossing(art::Ptr<recob::Track> trk_ptr, dou
   // if points are ordered correctly                                                                                                                                       
   if (start.Y() > end.Y()){
     for (size_t i=0; i < N; i++)
-      sorted_trk.push_back( trk_ptr->LocationAtPoint(i) );
+      sorted_trk.push_back( trk_ptr->LocationAtPoint<TVector3>(i) );
   }
   
   // otherwise flip order                                                                                                                                                 
   else {
     for (size_t i=0; i < N; i++)
-      sorted_trk.push_back( trk_ptr->LocationAtPoint( N - i - 1) );
+      sorted_trk.push_back( trk_ptr->LocationAtPoint<TVector3>( N - i - 1) );
   }
 
   // Case 1: track exits bottom
@@ -686,9 +686,9 @@ std::vector<double> CandidateConsistency::GetFlashHypo(art::Ptr<recob::Track> tr
 
   for (size_t pt_idx=0; pt_idx < trk_ptr->NumberTrajectoryPoints(); ++pt_idx) {
     auto const& pt = trk_ptr->LocationAtPoint(pt_idx);
-    track_geotrj[pt_idx][0] = pt[0] + x_offset;
-    track_geotrj[pt_idx][1] = pt[1];
-    track_geotrj[pt_idx][2] = pt[2];
+    track_geotrj[pt_idx][0] = pt.X() + x_offset;
+    track_geotrj[pt_idx][1] = pt.Y();
+    track_geotrj[pt_idx][2] = pt.Z();
   }        
 
   flashana::QCluster_t qcluster = ((flashana::LightPath*)(_mgr.GetCustomAlgo("LightPath")))->FlashHypothesis(track_geotrj);

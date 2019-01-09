@@ -1,7 +1,7 @@
 // default denotes which options to be marked as true for nominal WCLS production
 
 BEGIN_PROLOG
-celltreeub: {
+celltreeub_mucs: {
  module_type : "CellTreeUB"
  TPC_rawProducer               : "daq" # or nfspl1 (for thru nf)
  TPC_rawLabel                  : "" # or raw (for thru nf)
@@ -51,8 +51,8 @@ celltreeub: {
  SaveSWTrigger                 : true  # default
  SaveBeam                      : false 
  SavePOT                       : false
- SaveMuCSData		       : false
- SaveMuCSRecoData	       : false
+ SaveMuCSData		       : true  # default
+ SaveMuCSRecoData	       : true  # default
  SaveMCParticle 	       : false
  SaveSimChannel		       : false
  UseLGBeamForHGCosmic          : true  # default
