@@ -1,19 +1,19 @@
 #include "services_microboone.fcl"
 #include "database_microboone.fcl"
-#include "celltreeub.fcl"
+#include "celltreeub_mc_mucs.fcl"
 
 process_name: CellTreeUB
 
 services:
 {
-  TFileService: { fileName: "celltreeDATA.root" }
+  TFileService: { fileName: "celltreeMUCSMC.root" }
   #TimeTracker:   {}
   RandomNumberGenerator: {}
   message:      @local::standard_info
   @table::microboone_services
   UBOpReadoutMap: @local::microboone_opreadoutmap
   PMTGainService: @local::microboone_pmtgain_service
-  FileCatalogMetadata:  @local::art_file_catalog_data
+  FileCatalogMetadata:  @local::art_file_catalog_mc
 }
 
 
@@ -26,6 +26,7 @@ source:
 }
 
 
+#output the artroot file
 outputs:
 {
     out:
@@ -43,26 +44,25 @@ physics:
 {
   analyzers:
   {
-    Event : @local::celltreeub
+    Event : @local::celltreeub_mc_mucs
   }
 
   analysis: [ Event ]
   stream1: [ out ]
   end_paths: [ analysis, stream1 ]
+
 }
 
-services.DetectorPropertiesService.NumberTimeSamples:    6400
-services.DetectorClocksService.InheritClockConfig:       false
-services.DetectorClocksService.TriggerOffsetTPC:         -0.400e3
+services.DetectorPropertiesService.NumberTimeSamples:   6400
+services.DetectorClocksService.InheritClockConfig:      false
+services.DetectorClocksService.TriggerOffsetTPC:        -0.400e3
 
-services.PMTGainService.PmtGainProvider.UseDB: true
-services.PMTGainService.PmtGainProvider.DatabaseRetrievalAlg.DBUrl: "http://dbdata0vm.fnal.gov:8086/uboonecon_dev/app/"
-services.PMTGainService.PmtGainProvider.DatabaseRetrievalAlg.DBTag: "v1r0"
+#services.PMTGainService.PmtGainProvider.UseDB: false
 
 microboone_tfile_metadata:
 {
-  JSONFileName:          [ "celltreeDATA.root.json" ]
-  GenerateTFileMetadata: [ true ]
-  dataTier:		 [ "celltree" ]
-  fileFormat:		 [ "root" ]
+  JSONFileName:	         [ "celltreeMUCSMC.root.json" ]
+  GenerateTFileMetadata: [ true		       ]
+  dataTier:              [ "celltree" ]
+  fileFormat:            [ "root" ]
 }

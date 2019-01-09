@@ -36,7 +36,6 @@ physics:
     }
   }
   production: [ProduceMCGhost]
-  end_paths: [production]
 }
 
 #we need these services to properly get the hits!
