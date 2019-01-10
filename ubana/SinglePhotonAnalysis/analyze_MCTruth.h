@@ -178,6 +178,7 @@ namespace single_photon
                          if(par.StatusCode()==14 && is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
                             m_mctruth_delta_photon_energy = par.E();
                             tmp_n_photons_from_delta ++;
+                            m_mctruth_is_delta_radiative++;
                          }
                         }
                         break;
@@ -297,7 +298,6 @@ namespace single_photon
                     if( is_delta_map.count(nth_mother.PdgCode())>0 && nth_mother.StatusCode()==3){
                         std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t ------ Defintely From a Delta Decay! : "<<is_delta_map[nth_mother.PdgCode()]<<std::endl;
                         m_mctruth_exiting_photon_from_delta_decay[p] = 1;
-                        m_mctruth_is_delta_radiative++;
                     }
                     n_generation++;
                 }
