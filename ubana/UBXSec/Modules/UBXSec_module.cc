@@ -196,7 +196,7 @@ int PFPInCommon(lar_pandora::PFParticleVector first, lar_pandora::PFParticleVect
   std::string _geocosmictag_producer;
   std::string _candidateconsistency_producer;
   std::string _mcsfitresult_mu_producer;
-  std::string _mcsfitresult_pi_producer;
+  //std::string _mcsfitresult_pi_producer;
   std::string _calorimetry_producer;
   std::string _eventweight_producer;
   std::string _genie_eventweight_pm1_producer;
@@ -308,7 +308,7 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p) {
   _geocosmictag_producer          = p.get<std::string>("GeoCosmicTaggerProducer");
   _candidateconsistency_producer  = p.get<std::string>("CandidateConsistencyProducer");
   _mcsfitresult_mu_producer       = p.get<std::string>("MCSFitResultMuProducer");
-  _mcsfitresult_pi_producer       = p.get<std::string>("MCSFitResultPiProducer");
+  //_mcsfitresult_pi_producer       = p.get<std::string>("MCSFitResultPiProducer");
   _calorimetry_producer           = p.get<std::string>("CalorimetryProducer");
   _eventweight_producer           = p.get<std::string>("EventWeightProducer");
   _genie_eventweight_pm1_producer = p.get<std::string>("GenieEventWeightPMOneProducer");

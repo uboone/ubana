@@ -85,7 +85,7 @@ ubxsec_data_flashmatch:
    RecoTrueMatcher:               @local::microboone_recotruematcher_pandoranu
 
    TPCObjectMaker:                @local::TPCObjectMaker
-  pandoraCosmicTrackPFPart:       @local::microboone_cosmicpfparticletagger
+  #pandoraCosmicPFPart:       @local::microboone_cosmicpfparticletagger
   pandoraCosmicFlashTag:          @local::microboone_cosmicpfpflashtagger
   pandoraCosmicACPTTagger:        @local::microboone_acpttagger_data
   pandoraCosmicStoppingMu:        @local::microboone_cosmicstoppingmutagger_data 
@@ -129,7 +129,7 @@ ubxsec_data_producers: [ #simpleFlashBeam,
               #           pandoraNuMCSPi,
                          RecoTrueMatcher,
                          TPCObjectMaker,
-			 pandoraCosmicTrackPFPart,
+			 #pandoraCosmicPFPart,
                        pandoraCosmicFlashTag,	
                       pandoraCosmicACPTTagger,
                      pandoraCosmicStoppingMu,
