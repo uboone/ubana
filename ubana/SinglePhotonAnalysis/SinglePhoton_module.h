@@ -561,14 +561,20 @@ namespace single_photon
             int   m_mctruth_num_exiting_deltapp; 
 
             int m_mctruth_is_delta_radiative;
+            int m_mctruth_delta_radiative_1g1p_or_1g1n;
+            double m_mctruth_delta_photon_energy;
+            double m_mctruth_delta_proton_energy;
+            double m_mctruth_delta_neutron_energy;
             std::vector<int> m_mctruth_exiting_delta0_num_daughters;
 
             std::vector<int> m_mctruth_exiting_photon_trackID;
             std::vector<int> m_mctruth_exiting_photon_mother_trackID;
             std::vector<int> m_mctruth_exiting_photon_from_delta_decay;
+            std::vector<int> m_mctruth_exiting_photon_energy;
             std::vector<int> m_mctruth_exiting_proton_trackID;
             std::vector<int> m_mctruth_exiting_proton_mother_trackID;
             std::vector<int> m_mctruth_exiting_proton_from_delta_decay;
+            std::vector<int> m_mctruth_exiting_proton_energy;
 
 
             std::vector<double>        m_mctruth_exiting_pi0_E;
