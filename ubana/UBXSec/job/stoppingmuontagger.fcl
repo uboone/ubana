@@ -27,7 +27,7 @@ StoppingMuonTagger: {
   AlgorithmConfiguration:  {
     WireToCmConstant:        0.3
     TimeToCmConstant:        0.0557
-    GainCalib:               198 #Update for MCC 9?
+    GainCalib:               245 #May need updating
     SliderWindow:            10
     MaxAllowedHitDistance:   6
     SlopeThreshold:          0.25
@@ -68,7 +68,7 @@ microboone_cosmicstoppingmutagger.TrackProducer:      "pandora"
 microboone_cosmicstoppingmutagger_mc: @local::microboone_cosmicstoppingmutagger
 
 microboone_cosmicstoppingmutagger_data: @local::microboone_cosmicstoppingmutagger
-microboone_cosmicstoppingmutagger_data.AlgorithmConfiguration.GainCalib: 243
+microboone_cosmicstoppingmutagger_data.AlgorithmConfiguration.GainCalib: 235 #May need updating
 microboone_cosmicstoppingmutagger_data.CosmicTagManager: @local::cosmictag_config_data
 
 END_PROLOG
