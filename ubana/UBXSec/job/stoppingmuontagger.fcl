@@ -17,7 +17,7 @@ StoppingMuonTagger: {
   MCSUpwardsOnly:          false
   UseMCSBuggedVersion:     true
 
-  DebugMode:               false
+  DebugMode:               true
   CreateTree:              true
 
   CoplanarCut:             6.
@@ -27,7 +27,7 @@ StoppingMuonTagger: {
   AlgorithmConfiguration:  {
     WireToCmConstant:        0.3
     TimeToCmConstant:        0.0557
-    GainCalib:               198
+    GainCalib:               198 #Update for MCC 9?
     SliderWindow:            10
     MaxAllowedHitDistance:   6
     SlopeThreshold:          0.25
@@ -35,7 +35,7 @@ StoppingMuonTagger: {
     PrePostWindow:           10
     PercDiffCut:             35 #50
     LocalLinerityThreshold:  0.9
-    MinMuonHits:             20           
+    MinMuonHits:             20
     MaxMuonHits:             2000
     MinMichelHits:           2
     MaxMichelHits:           70
@@ -56,11 +56,11 @@ StoppingMuonTagger: {
     angResol: 3.0
   }
 
-  FiducialVolumeSettings:  @local::UBXSecFiducialVolumeCosmicSettings  
+  FiducialVolumeSettings:  @local::UBXSecFiducialVolumeCosmicSettings
 }
 
 microboone_cosmicstoppingmutagger: @local::StoppingMuonTagger
-microboone_cosmicstoppingmutagger.TPCObjectProducer:  "TPCObjectMaker" 
+microboone_cosmicstoppingmutagger.TPCObjectProducer:  "TPCObjectMaker"
 microboone_cosmicstoppingmutagger.PFParticleProducer: "pandora"
 microboone_cosmicstoppingmutagger.ClusterProducer:    "pandora"
 microboone_cosmicstoppingmutagger.TrackProducer:      "pandora"
