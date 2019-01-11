@@ -84,8 +84,8 @@ ubxsec_mc_flashmatch:
   pandoraCosmicFlashTag:          @local::microboone_cosmicpfpflashtagger
   pandoraCosmicACPTTagger:        @local::microboone_acpttagger_mc
   #pandoraCosmicStoppingMu:        @local::microboone_cosmicstoppingmutagger_mc
- pandoraCosmicStoppingMu:        @local::StoppingMuonTagger
-   
+ pandoraStoppingMu:        @local::StoppingMuonTagger
+
 pandoraCosmicHitRemoval:        @local::microboone_crhitremoval
 
    pandoraNuGeoCosmicTag:          @local::GeoCosmicTagger
@@ -106,20 +106,20 @@ pandoraCosmicHitRemoval:        @local::microboone_crhitremoval
 
 }
 
-ubxsec_mc_filter: 
+ubxsec_mc_filter:
 {
-   tpcneutrinoidfilternumuccinc:  @local::microboone_tpcneutrinoidfilter   
+   tpcneutrinoidfilternumuccinc:  @local::microboone_tpcneutrinoidfilter
 }
 
 ubxsec_mc_ana:
 {
    SimpleAna:                      { module_type: SimpleAna }
    ProtonID:                         {module_type: ProtonID}
-   #CosmicTaggerAna :               @local::CosmicTaggerAna 
+   #CosmicTaggerAna :               @local::CosmicTaggerAna
 }
 
 
-ubxsec_mc_producers: [ 
+ubxsec_mc_producers: [
 #			pandoraCosmicTPCObj,
 #                       RecoTrueMatcherCosmic,
  #                     pandoraCosmicTrackPFPart,
@@ -136,29 +136,29 @@ ubxsec_mc_producers: [
                        #pandoraNucalipid,
                        #pandoraNuMCSMu,
                        #pandoraNuMCSPi,
-                       RecoTrueMatcher, 
+                       RecoTrueMatcher,
                        TPCObjectMaker,
                      #  pandoraNuGeoCosmicTag,
                       # pandoraNuStoppingMuonTag,
- 			pandoraCosmicTrackPFPart,
+ 			                 pandoraCosmicTrackPFPart,
                        pandoraCosmicFlashTag,
-                      pandoraCosmicACPTTagger,
-                     pandoraCosmicStoppingMu,	
-                      NeutrinoMCFlash, 
+                       pandoraCosmicACPTTagger,
+                       pandoraStoppingMu,
+                       NeutrinoMCFlash,
                        NeutrinoFlashMatch,
                        CandidateConsistency,
                        #genieeventweightpm1,
                        #genieeventweightmultisim,
                        #fluxeventweightmultisim,
                        UBXSec
-                       ] 
+                       ]
 
-ubxsec_mc_filters: [ tpcneutrinoidfilternumuccinc 
+ubxsec_mc_filters: [ tpcneutrinoidfilternumuccinc
                    ]
 
 ubxsec_mc_analyzers: [ ProtonID
-#, 
- #                     CosmicTaggerAna 
+#,
+ #                     CosmicTaggerAna
                      ]
 
 
@@ -236,5 +236,3 @@ ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicClusterAssns:   ""
 
 
 END_PROLOG
-
-
