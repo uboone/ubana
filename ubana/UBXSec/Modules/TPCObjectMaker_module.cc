@@ -13,7 +13,7 @@
  * \ingroup UBXSec
  *
  * \brief Art producer module that creates TPCObjects
- * 
+ *
  *
  * \author Marco Del Tutto <marco.deltutto@physics.ox.ac.uk>
  *
@@ -98,11 +98,11 @@ public:
    *  @param pfParticleToTrackMap map from PFP to tracks
    *  @param pfParticleToShowerMap map from PFP to showers
    *  @param pfp_v input, a vector of PFP (the TPC object)
-   *  @param track_v output, a vector of tracks (the TPC object)   
+   *  @param track_v output, a vector of tracks (the TPC object)
    *  @param shower_v output, a vector of showers (the TPC object) */
   void CollectTracksAndShowers(lar_pandora::PFParticlesToTracks pfParticleToTrackMap, lar_pandora::PFParticlesToShowers pfParticleToShowerMap, lar_pandora::PFParticleVector pfp_v, lar_pandora::TrackVector &track_v, lar_pandora::ShowerVector &shower_v);
   //void CollectTracksAndShowers( lar_pandora::PFParticlesToMetadata pfParticleToMetadata, lar_pandora::PFParticlesToTracks pfParticleToTrackMap, lar_pandora::PFParticlesToShowers pfParticleToShowerMap, lar_pandora::PFParticleVector pfp_v, lar_pandora::TrackVector &track_v, lar_pandora::ShowerVector &shower_v);
- 
+
   /**
    *  @brief Gets the pfp, track and shower multiplicity for a neutrino PFP
    *
@@ -123,8 +123,8 @@ public:
    *  @param pfParticleToVertexMap map from PFP to vertices
    *  @param _pfp_producer the PFP producer module
    *  @param pfp_v_v output, a vector of vector of PFP (a vector of TPC objects)
-   *  @param track_v_v output, a vector of vector of tracks (a vector of TPC objects)   
-   *  @param shower_v_v output, a vector of vector of showers (a vector of TPC objects) 
+   *  @param track_v_v output, a vector of vector of tracks (a vector of TPC objects)
+   *  @param shower_v_v output, a vector of vector of showers (a vector of TPC objects)
    *  @param p_v output, multiplicity in number of PFPs
    *  @param t_v output, multiplicity in number of tracks
    *  @param s_v output, multiplicity in number of showers */
@@ -162,7 +162,7 @@ private:
 
 ubana::TPCObjectMaker::TPCObjectMaker(fhicl::ParameterSet const & p)
 {
-  _pfp_producer        = p.get<std::string>("PFParticleProducer"); 
+  _pfp_producer        = p.get<std::string>("PFParticleProducer");
   _vertexLabel         = p.get<std::string>("VertexProducer");
   _trackLabel          = p.get<std::string>("TrackProducer");
   _showerLabel         = p.get<std::string>("ShowerProducer");
@@ -173,7 +173,7 @@ ubana::TPCObjectMaker::TPCObjectMaker(fhicl::ParameterSet const & p)
 
   _use_premade_ass     = p.get<bool>       ("UsePremadeMCPHitAss");
   _do_filter           = p.get<bool>       ("FilterObjects");
-  _pandora_cosmic_mode = p.get<bool>       ("PandoraCosmicMode", "false"); 
+  _pandora_cosmic_mode = p.get<bool>       ("PandoraCosmicMode", "false");
   _debug               = p.get<bool>       ("Debug");
 
   if (_do_filter) _tpcobj_filter = new ubana::TPCObjectFilter();
@@ -188,10 +188,10 @@ ubana::TPCObjectMaker::TPCObjectMaker(fhicl::ParameterSet const & p)
 void ubana::TPCObjectMaker::produce(art::Event & e){
 
   if (_debug) std::cout << "[TPCObjectMaker] Starts" << std::endl;
- 
+
   _is_mc = !e.isRealData();
 
-  if (_is_mc && _use_premade_ass) 
+  if (_is_mc && _use_premade_ass)
     mcpfpMatcher.Configure(e, _pfp_producer, _spacepointLabel, _hitfinderLabel, _geantModuleLabel, _mcpHitAssLabel, lar_pandora::LArPandoraHelper::kAddDaughters);
   else if (_is_mc)
     mcpfpMatcher.Configure(e, _pfp_producer, _spacepointLabel, _hitfinderLabel, _geantModuleLabel);
@@ -219,7 +219,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
 
   // Use LArPandoraHelper functions to collect Pandora information
   lar_pandora::PFParticleVector pfParticleList;              //vector of PFParticles
-  lar_pandora::LArPandoraHelper::CollectPFParticles(e, _pfp_producer, pfParticleList);
+  //lar_pandora::LArPandoraHelper::CollectPFParticles(e, _pfp_producer, pfParticleList);
 
   // Collect vertices, tracks and shower
   lar_pandora::VertexVector           allPfParticleVertices;
@@ -234,7 +234,6 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
   lar_pandora::MetadataVector         allPfParticlesMetadata;
   lar_pandora::PFParticlesToMetadata   pfParticleToMetadata;
   lar_pandora::LArPandoraHelper::CollectPFParticleMetadata(e, _pfp_producer, pfParticleList, pfParticleToMetadata);
-
 
   std::vector<lar_pandora::TrackVector     > track_v_v;
   std::vector<lar_pandora::ShowerVector    > shower_v_v;
@@ -253,7 +252,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
 
 
 
-  // Loop over true particle and find the pfp with cosmic and neutrino origin 
+  // Loop over true particle and find the pfp with cosmic and neutrino origin
 
   std::vector<art::Ptr<recob::PFParticle>> neutrinoOriginPFP;
   std::vector<art::Ptr<recob::PFParticle>> cosmicOriginPFP;
@@ -273,8 +272,8 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
   for (lar_pandora::PFParticlesToMCParticles::const_iterator iter1 = matched_pfp_to_mcp_maps.begin(), iterEnd1 = matched_pfp_to_mcp_maps.end();
       iter1 != iterEnd1; ++iter1) {
 
-    art::Ptr<recob::PFParticle> pf_par = iter1->first;    // The PFParticle 
-    art::Ptr<simb::MCParticle>  mc_par = iter1->second;   // The matched MCParticle 
+    art::Ptr<recob::PFParticle> pf_par = iter1->first;    // The PFParticle
+    art::Ptr<simb::MCParticle>  mc_par = iter1->second;   // The matched MCParticle
 
     const art::Ptr<simb::MCTruth> mc_truth = UBXSecHelper::TrackIDToMCTruth(e, "largeant", mc_par->TrackId()); //bt->TrackIDToMCTruth(mc_par->TrackId());
 
@@ -288,14 +287,14 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
       if (_debug) std::cout << "[TPCObjectMaker] PFP " << pf_par->Self() << " has cosmic origin" << std::endl;
       cosmicOriginPFP.emplace_back(pf_par);
 
-      // Check if this is a stopping muon in the TPC 
+      // Check if this is a stopping muon in the TPC
       ::geoalgo::Vector mcpar_end(mc_par->EndX(), mc_par->EndY(), mc_par->EndZ());
 
       ::geoalgo::AABox tpc_vol(0., (-1.)*(geo->DetHalfHeight()), 0.,
                                geo->DetHalfWidth()*2., geo->DetHalfHeight(), geo->DetLength());
 
       if((mc_par->PdgCode() == 13 || mc_par->PdgCode() == -13) && tpc_vol.Contain(mcpar_end)) {
-        cosmicStoppingOriginPFP.emplace_back(pf_par); 
+        cosmicStoppingOriginPFP.emplace_back(pf_par);
       }
 
     }
@@ -310,7 +309,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
 
       ::geoalgo::AABox tpc_vol(0., (-1.)*(geo->DetHalfHeight()), 0.,
                                geo->DetHalfWidth()*2., geo->DetHalfHeight(), geo->DetLength());
-            
+
       if((mc_par->PdgCode() == 13 || mc_par->PdgCode() == -13) && tpc_vol.Contain(mcpar_end)) {
         neutrinoStoppingOriginPFP.emplace_back(pf_par);
       }
@@ -319,7 +318,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
       if(_is_nc) {
         if (mc_par->PdgCode() == 2212)
           protonNCOriginPFP.emplace_back(pf_par);
-        if (mc_par->PdgCode() == 211 || mc_par->PdgCode() == -211) 
+        if (mc_par->PdgCode() == 211 || mc_par->PdgCode() == -211)
           pionNCOriginPFP.emplace_back(pf_par);
       }
     }
@@ -360,7 +359,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
     // Set origin
     ::ubana::TPCObjectOrigin origin = ubana::kUnknown;
     if (_is_mc)
-      origin = UBXSecHelper::GetSliceOrigin(neutrinoOriginPFP, cosmicOriginPFP, pfp_v_v[i]); 
+      origin = UBXSecHelper::GetSliceOrigin(neutrinoOriginPFP, cosmicOriginPFP, pfp_v_v[i]);
     obj.SetOrigin(origin);
 
     // Set origin extra
@@ -389,7 +388,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
 
 
   // Put TPCObjects into the Event
-  e.put(std::move(tpcObjectVector)); 
+  e.put(std::move(tpcObjectVector));
   e.put(std::move(assnOutTPCObjectTrack));
   e.put(std::move(assnOutTPCObjectShower));
   e.put(std::move(assnOutTPCObjectPFP));
@@ -426,7 +425,7 @@ art::Ptr<recob::PFParticle> ubana::TPCObjectMaker::GetNuPFP(lar_pandora::PFParti
 //___________________________________________________________________________________________________
 void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticlesToMetadata pfParticleToMetadata,lar_pandora::PFParticleVector pfParticleList,
                                           lar_pandora::PFParticlesToTracks pfParticleToTrackMap,
-                                          lar_pandora::PFParticlesToShowers pfParticleToShowerMap, 
+                                          lar_pandora::PFParticlesToShowers pfParticleToShowerMap,
                                           lar_pandora::PFParticlesToVertices  pfParticleToVertexMap,
                                           std::vector<lar_pandora::PFParticleVector> & pfp_v_v,
                                           std::vector<lar_pandora::TrackVector> & track_v_v,
@@ -445,6 +444,7 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticlesToMetadata pfP
 
   for (unsigned int n = 0; n < pfParticleList.size(); ++n) {
     const art::Ptr<recob::PFParticle> particle = pfParticleList.at(n);
+    // std::cout << n << "/" << pfParticleList.size() << ": PFP " << particle->Self() << std::endl;
 
     bool is_main_pfp = lar_pandora::LArPandoraHelper::IsNeutrino(particle);
     if (_pandora_cosmic_mode) is_main_pfp = particle->IsPrimary();
@@ -514,8 +514,8 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticlesToMetadata pfP
       p_v.emplace_back(p);
       t_v.emplace_back(t);
       s_v.emplace_back(s);
- 
-	
+
+
     } // end if neutrino
   } // end pfp loop
 }
@@ -527,7 +527,7 @@ void ubana::TPCObjectMaker::CollectPFP(lar_pandora::PFParticlesToMetadata pfPart
                                        lar_pandora::PFParticleVector &pfp_v, std::vector<double> & score_v) {
 
   pfp_v.emplace_back(particle);
- 
+
   // And their daughters
   const std::vector<size_t> &daughterIDs = particle->Daughters();
   if(daughterIDs.size() == 0) return;
@@ -543,9 +543,9 @@ void ubana::TPCObjectMaker::CollectPFP(lar_pandora::PFParticlesToMetadata pfPart
       score_v.push_back(trackScore);
       this->CollectPFP(pfParticleToMetadata,pfParticleList, daughter, pfp_v,score_v);
 
-      
+
     }
-    
+
   }
 }
 //________________________________________________________________________________________________________________________________________
@@ -583,7 +583,7 @@ void ubana::TPCObjectMaker::CollectTracksAndShowers(
   track_v.clear();
   shower_v.clear();
    // Loop over the PFPs
-   
+
   for (auto pfp : pfp_v) {
 
     if (_debug) std::cout << "[TPCObjectMaker] \t PFP " << pfp->Self() << " which " << (pfp->IsPrimary() ? "is" : "is not") << " a primary" << std::endl;
@@ -613,7 +613,7 @@ void ubana::TPCObjectMaker::CollectTracksAndShowers(
 
 
 //______________________________________________________________________________________________________________________________________
-void ubana::TPCObjectMaker::GetMultiplicity(lar_pandora::PFParticlesToMetadata pfParticleToMetadata, lar_pandora::PFParticleVector pfParticleList, 
+void ubana::TPCObjectMaker::GetMultiplicity(lar_pandora::PFParticlesToMetadata pfParticleToMetadata, lar_pandora::PFParticleVector pfParticleList,
                                             lar_pandora::PFParticleVector pfp_v,
                                             art::Ptr<recob::PFParticle> particle,
                                             int & p,
@@ -644,7 +644,7 @@ void ubana::TPCObjectMaker::GetMultiplicity(lar_pandora::PFParticlesToMetadata p
   // Reset
   p = t = s = 0;
   //  lar_pandora::PFParticlesToMetadata pfParticleToMetadata;
-       
+
   const std::vector<size_t> &daughterIDs = particle->Daughters();
   if(daughterIDs.size() == 0) {
     if (_debug) std::cout << "[TPCObjectMaker] No daughters for this neutrino PFP." << std::endl;
