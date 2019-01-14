@@ -24,7 +24,7 @@ UBXSec: {
   CosmicFlashTagProducer: "pandoraCosmicFlashTag"
   CosmicGeoTagProducer:   "pandoraCosmicPFPart"
   CosmicACPTTagProducer:  "pandoraCosmicACPTTagger"
-  CosmicStopMuTagProducer:"pandoraCosmicStoppingMu"
+  CosmicStopMuTagProducer:"pandoraStoppingMu"
   ParticleIDProducer:           "pandorapid"
   MCGhostProducer:              "RecoTrueMatcher"
   GeoCosmicTaggerProducer:      "pandoraGeoCosmicTag"

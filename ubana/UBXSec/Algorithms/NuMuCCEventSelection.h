@@ -2,7 +2,7 @@
  * \file NuMuCCEventSelection.h
  *
  * \ingroup UBXSec
- * 
+ *
  * \brief Class def header for a class NuMuCCEventSelection
  *
  * @author Marco Del Tutto
@@ -24,7 +24,7 @@
 #include "ubobj/UBXSec/UBXSecEvent.h"
 
 namespace ubana{
-  
+
   /**
    \class NuMuCCEventSelection
    User defined class NuMuCCEventSelection ... these comments are used to generate
@@ -32,9 +32,9 @@ namespace ubana{
  */
 
   class NuMuCCEventSelection {
-    
+
   public:
-    
+
     /// Default constructor
     NuMuCCEventSelection();
 
@@ -75,6 +75,7 @@ namespace ubana{
     // double _residuals_mean_down_cut;
     // double _residuals_mean_up_cut;
     double _perc_used_hits_in_cluster_cut;
+    bool   _use_stopmu_slice_cut;
 
     double _pe_cut;
     double _beamSpillStarts;
@@ -83,5 +84,4 @@ namespace ubana{
 }
 
 #endif
-/** @} */ // end of doxygen group 
-
+/** @} */ // end of doxygen group
