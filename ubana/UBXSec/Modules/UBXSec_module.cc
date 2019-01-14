@@ -203,7 +203,7 @@ int PFPInCommon(lar_pandora::PFParticleVector first, lar_pandora::PFParticleVect
   std::string _genie_eventweight_multisim_producer;
   std::string _flux_eventweight_multisim_producer;
   bool _debug = false;                   ///< Debug mode
-  bool _debug_cr = true;                   ///< Debug mode
+  bool _debug_cr = false;                   ///< Debug mode
 
   int _minimumHitRequirement;           ///< Minimum number of hits in at least a plane for a track
   double _minimumDistDeadReg;           ///< Minimum distance the track end points can have to a dead region
@@ -634,9 +634,10 @@ void UBXSec::produce(art::Event & e) {
   }
   art::FindManyP<ubana::MCGhost>   mcghost_from_pfp   (pfp_h,   e, _mc_ghost_producer);
   art::FindManyP<simb::MCParticle> mcpar_from_mcghost (ghost_h, e, _mc_ghost_producer); 
-  int _ccnc, _pdg, _fv;
-  double _nu_e;
+  //int _ccnc, _pdg, _fv;
+  //double _nu_e;
   /*********** Lu adding cosmic rejection flags ***********/
+  /*
   for (auto p : pfp_v) 
     {
       
@@ -685,6 +686,8 @@ void UBXSec::produce(art::Event & e) {
 
       }
     }
+
+    
  // *******************
   // Flash
   // *******************
@@ -798,7 +801,7 @@ lar_pandora::PFParticleVector pfpACPTTagged;
 
 
 
-
+*/
 
 
   /*********** End of Lu adding cosmic rejection flags ***********/
@@ -1158,7 +1161,8 @@ lar_pandora::PFParticleVector pfpACPTTagged;
       // The following offsets to be summed to the original true vertex
       ///I changed this line to follow what is shown in the MCC9 tutorials page. There used to be a subtraction for the x coordiante which is no longer the case: used to read - sce_corr.at(0)
       
-      double xOffset = _detector_properties->ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.X();
+      double xOffset_mcc8 = _detector_properties->ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.X(); //(this was for mcc8)
+      double xOffset = sce_corr.X();
       double xOffset_mcc9 = _detector_properties->ConvertTicksToX(g4Ticks, 0, 0, 0);
       double yOffset = sce_corr.Y();
       double zOffset = sce_corr.Z();
@@ -1166,7 +1170,8 @@ lar_pandora::PFParticleVector pfpACPTTagged;
       ubxsec_event->sce_corr_x = xOffset;
       ubxsec_event->sce_corr_y = yOffset;
       ubxsec_event->sce_corr_z = zOffset;
-      ubxsec_event->time_corr_mcc9_x = xOffset_mcc9;
+      ubxsec_event->time_mcc9_x = xOffset_mcc9;
+      ubxsec_event->timeminussce_mcc8_x = xOffset_mcc8;
 
       if (_fiducial_volume.InFV(mclist[iList]->GetNeutrino().Nu().Vx() + xOffset, 
                                 mclist[iList]->GetNeutrino().Nu().Vy() + yOffset, 
@@ -1450,9 +1455,7 @@ lar_pandora::PFParticleVector pfpACPTTagged;
     geo::Vector_t sce_corr = SCE->GetPosOffsets(geo::Point_t(reco_nu_vtx[0],
 							     reco_nu_vtx[1],
 							     reco_nu_vtx[2]));
-    //Added this additional line here from the MCC9 tutorials page
-    double xsceoffset= sce_corr.X();
-
+    
     std::cout << "[UBXSec] \t SCE correction in x, y, z = " << sce_corr.X() 
 	                                            << ", " << sce_corr.Y() 
 	                                            << ", " << sce_corr.Z() << std::endl;
@@ -1465,8 +1468,6 @@ lar_pandora::PFParticleVector pfpACPTTagged;
     ubxsec_event->slc_nuvtx_y[slice] = reco_nu_vtx[1];
     ubxsec_event->slc_nuvtx_z[slice] = reco_nu_vtx[2];
     ubxsec_event->slc_nuvtx_fv[slice] = (_fiducial_volume.InFV(reco_nu_vtx) ? 1 : 0);
-
-    ubxsec_event->sce_corr_x_reco_mcc9 = xsceoffset;
 
     std::cout << "[UBXSec] \t Reco vertex is " << ubxsec_event->slc_nuvtx_x[slice] << ", " << ubxsec_event->slc_nuvtx_y[slice] << ", " << ubxsec_event->slc_nuvtx_z[slice] << std::endl; 
     std::cout << "[UBXSec] \t Reco vertex is " << (ubxsec_event->slc_nuvtx_fv[slice]==1 ? "in" : "ouside") << " the FV." << std::endl;

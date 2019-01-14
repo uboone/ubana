@@ -89,7 +89,7 @@ ubxsec_data_flashmatch:
   pandoraCosmicFlashTag:          @local::microboone_cosmicpfpflashtagger
   pandoraCosmicACPTTagger:        @local::microboone_acpttagger_data
   pandoraCosmicStoppingMu:        @local::microboone_cosmicstoppingmutagger_data 
-   pandoraNuGeoCosmicTag:         @local::GeoCosmicTagger
+   #pandoraNuGeoCosmicTag:         @local::GeoCosmicTagger
 
    #pandoraNuStoppingMuonTag:      @local::StoppingMuonTagger
 

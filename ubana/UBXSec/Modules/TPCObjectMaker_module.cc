@@ -157,6 +157,7 @@ private:
   bool _do_filter;
   bool _pandora_cosmic_mode;
   bool _debug;
+  bool _happy_dayz = false;
 };
 
 
@@ -188,6 +189,7 @@ ubana::TPCObjectMaker::TPCObjectMaker(fhicl::ParameterSet const & p)
 void ubana::TPCObjectMaker::produce(art::Event & e){
 
   if (_debug) std::cout << "[TPCObjectMaker] Starts" << std::endl;
+  if (_happy_dayz) std::cout << "[TPCObjectMaker] Starts" << std::endl;
  
   _is_mc = !e.isRealData();
 
@@ -196,12 +198,16 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
   else if (_is_mc)
     mcpfpMatcher.Configure(e, _pfp_producer, _spacepointLabel, _hitfinderLabel, _geantModuleLabel);
 
+  if (_happy_dayz) std::cout << "[TPCObjectMaker] Made it a few more lines" << std::endl;
+
   // Instantiate the output
   std::unique_ptr< std::vector< ubana::TPCObject > >                tpcObjectVector        (new std::vector<ubana::TPCObject>);
   std::unique_ptr< art::Assns<ubana::TPCObject, recob::Track>>      assnOutTPCObjectTrack  (new art::Assns<ubana::TPCObject, recob::Track>      );
   std::unique_ptr< art::Assns<ubana::TPCObject, recob::Shower>>     assnOutTPCObjectShower (new art::Assns<ubana::TPCObject, recob::Shower>     );
   std::unique_ptr< art::Assns<ubana::TPCObject, recob::PFParticle>> assnOutTPCObjectPFP    (new art::Assns<ubana::TPCObject, recob::PFParticle> );
   std::unique_ptr< art::Assns<ubana::TPCObject, recob::Vertex>>     assnOutTPCObjectVertex (new art::Assns<ubana::TPCObject, recob::Vertex> );
+
+  if (_happy_dayz) std::cout << "[TPCObjectMaker] still going!" << std::endl;
 
   // Get the needed services
   //::art::ServiceHandle<cheat::BackTracker> bt;
@@ -241,18 +247,19 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
   std::vector<lar_pandora::PFParticleVector> pfp_v_v;
   std::vector<int> p_v, t_v, s_v;
   std::vector<double> score_v;
+  
+  if (_happy_dayz) std::cout << "[TPCObjectMaker] we are just so happy!!" << std::endl;
   this->GetTPCObjects(pfParticleToMetadata, pfParticleList, pfParticleToTrackMap, pfParticleToShowerMap, pfParticleToVertexMap, pfp_v_v, track_v_v, shower_v_v, p_v, t_v, s_v, score_v);
-
+  if (_happy_dayz) std::cout << "[TPCObjectMaker] we are just so happy2!!" << std::endl;
 
   // Do the MCParticle to PFParticle matching
 
   lar_pandora::PFParticlesToMCParticles matched_pfp_to_mcp_maps;    // This is a map: MCParticle to matched PFParticle
+  if (_happy_dayz) std::cout << "[TPCObjectMaker] we are just so happy3!!" << std::endl;
   if (_is_mc) {
     mcpfpMatcher.GetRecoToTrueMatches(matched_pfp_to_mcp_maps);
   }
-
-
-
+if (_happy_dayz) std::cout << "[TPCObjectMaker] we are just so happy4!!" << std::endl;
   // Loop over true particle and find the pfp with cosmic and neutrino origin 
 
   std::vector<art::Ptr<recob::PFParticle>> neutrinoOriginPFP;
@@ -286,6 +293,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
     // Cosmic origin
     if (mc_truth->Origin() == COSMIC_ORIGIN) {
       if (_debug) std::cout << "[TPCObjectMaker] PFP " << pf_par->Self() << " has cosmic origin" << std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] PFP " << pf_par->Self() << " has cosmic origin" << std::endl;
       cosmicOriginPFP.emplace_back(pf_par);
 
       // Check if this is a stopping muon in the TPC 
@@ -303,6 +311,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
     // Neutrino origin
     if (mc_truth->Origin() == NEUTRINO_ORIGIN) {
       if (_debug) std::cout << "[TPCObjectMaker] PFP " << pf_par->Self() << " has neutrino origin" << std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] PFP " << pf_par->Self() << " has neutrino origin" << std::endl;
       neutrinoOriginPFP.emplace_back(pf_par);
 
       // Check if this is a stopping muon in the TPC
@@ -397,6 +406,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
 
 
   if (_debug) std::cout << "[TPCObjectMaker] Ends" << std::endl;
+  if (_happy_dayz) std::cout << "[TPCObjectMaker] Ends" << std::endl;
 }
 
 
@@ -442,6 +452,7 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticlesToMetadata pfP
   score_v.clear();
 
   if (_debug) std::cout << "[TPCObjectMaker] Getting TPC Objects..." << std::endl;
+  if (_happy_dayz) std::cout << "[TPCObjectMaker] Getting TPC Objects" << std::endl;
 
   for (unsigned int n = 0; n < pfParticleList.size(); ++n) {
     const art::Ptr<recob::PFParticle> particle = pfParticleList.at(n);
@@ -450,17 +461,17 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticlesToMetadata pfP
     if (_pandora_cosmic_mode) is_main_pfp = particle->IsPrimary();
     if (abs(particle->PdgCode())!=14) continue;
     if(is_main_pfp) {
-      if (_debug) std::cout << "[TPCObjectMaker] \t >>> Creating TPC Object " << track_v_v.size() << " <<<"<< std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] \t >>> Creating TPC Object " << track_v_v.size() << " <<<"<< std::endl;
 
-      if (_debug) std::cout << "[TPCObjectMaker] \t PFP " << particle->Self() << " is the " << (_pandora_cosmic_mode ? "primary" : "neutrino") << " PFP." << std::endl;
-      if (_debug) std::cout << "[TPCObjectMaker] \t The main PFP " << (particle->IsPrimary() ? "is" : "is not") << " a primary" << std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] \t PFP " << particle->Self() << " is the " << (_pandora_cosmic_mode ? "primary" : "neutrino") << " PFP." << std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] \t The main PFP " << (particle->IsPrimary() ? "is" : "is not") << " a primary" << std::endl;
 
       lar_pandora::TrackVector track_v;
       lar_pandora::ShowerVector shower_v;
       lar_pandora::PFParticleVector pfp_v;
       int p, t, s;
 
-      if (_debug) std::cout << "[TPCObjectMaker] \t Before filtering..." << std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] \t Before filtering..." << std::endl;
 
       // Collect PFPs for this TPC object
       this->CollectPFP(pfParticleToMetadata,pfParticleList, particle, pfp_v,score_v);
@@ -470,7 +481,7 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticlesToMetadata pfP
                                     track_v, shower_v);                                 // output
 
       // If filtering is on, filter the PFP for this TPC object
-      if (_debug) std::cout << "[TPCObjectMaker] \t After filtering..." << std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] \t After filtering..." << std::endl;
       lar_pandora::PFParticleVector filtered_pfp_v;
       if(_tpcobj_filter && _do_filter) {
 
@@ -487,19 +498,19 @@ void ubana::TPCObjectMaker::GetTPCObjects(lar_pandora::PFParticlesToMetadata pfP
 
 
 
-      if (_debug) std::cout << "[TPCObjectMaker] \t Number of pfp for this TPC object: "    << pfp_v.size()   << std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] \t Number of pfp for this TPC object: "    << pfp_v.size()   << std::endl;
       for (auto pfp : pfp_v) {
-        if (_debug) std::cout << "[TPCObjectMaker] \t \t PFP " << pfp->Self() << " with pdg " << pfp->PdgCode();
+        if (_happy_dayz) std::cout << "[TPCObjectMaker] \t \t PFP " << pfp->Self() << " with pdg " << pfp->PdgCode();
         auto it = pfParticleToVertexMap.find(pfp);
         if (it == pfParticleToVertexMap.end()) {
-           if (_debug) std::cout << " and vertex [vertex not available for this PFP]" << std::endl;
+           if (_happy_dayz) std::cout << " and vertex [vertex not available for this PFP]" << std::endl;
         } else {
           double xyz[3];
           (it->second)[0]->XYZ(xyz);
-          if (_debug) std::cout << " and vertex " << xyz[0] << " " << xyz[1] << " " << xyz[2] << std::endl;
+          if (_happy_dayz) std::cout << " and vertex " << xyz[0] << " " << xyz[1] << " " << xyz[2] << std::endl;
         }
       }
-      if (_debug) {
+      if (_happy_dayz) {
         std::cout << "[TPCObjectMaker] \t Number of tracks for this TPC object:  " << track_v.size()  << std::endl;
         std::cout << "[TPCObjectMaker] \t Number of showers for this TPC object: " << shower_v.size() << std::endl;
         std::cout << "[TPCObjectMaker] \t Multiplicity (PFP) for this TPC object:    " << p << std::endl;
@@ -586,13 +597,13 @@ void ubana::TPCObjectMaker::CollectTracksAndShowers(
    
   for (auto pfp : pfp_v) {
 
-    if (_debug) std::cout << "[TPCObjectMaker] \t PFP " << pfp->Self() << " which " << (pfp->IsPrimary() ? "is" : "is not") << " a primary" << std::endl;
+    if (_happy_dayz) std::cout << "[TPCObjectMaker] \t PFP " << pfp->Self() << " which " << (pfp->IsPrimary() ? "is" : "is not") << " a primary" << std::endl;
 
 
     auto iter1 = pfParticleToTrackMap.find(pfp);
     if (iter1 != pfParticleToTrackMap.end()) {
       lar_pandora::TrackVector tracks = iter1->second;
-      if (_debug) std::cout << "[TPCObjectMaker] \t PFP " << pfp->Self() << " has " << tracks.size() << " tracks ass." << std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] \t PFP " << pfp->Self() << " has " << tracks.size() << " tracks ass." << std::endl;
       for (unsigned int trk = 0; trk < tracks.size(); trk++) {
         track_v.emplace_back(tracks[trk]);
       }
@@ -601,7 +612,7 @@ void ubana::TPCObjectMaker::CollectTracksAndShowers(
     auto iter2 = pfParticleToShowerMap.find(pfp);
     if (iter2 != pfParticleToShowerMap.end()) {
       lar_pandora::ShowerVector showers = iter2->second;
-      if (_debug) std::cout << "[TPCObjectMaker] \t PFP " << pfp->Self() << " has " << showers.size() << " showers ass." << std::endl;
+      if (_happy_dayz) std::cout << "[TPCObjectMaker] \t PFP " << pfp->Self() << " has " << showers.size() << " showers ass." << std::endl;
       for (unsigned int s = 0; s < showers.size(); s++) {
         shower_v.emplace_back(showers[s]);
       }
@@ -647,7 +658,7 @@ void ubana::TPCObjectMaker::GetMultiplicity(lar_pandora::PFParticlesToMetadata p
        
   const std::vector<size_t> &daughterIDs = particle->Daughters();
   if(daughterIDs.size() == 0) {
-    if (_debug) std::cout << "[TPCObjectMaker] No daughters for this neutrino PFP." << std::endl;
+    if (_happy_dayz) std::cout << "[TPCObjectMaker] No daughters for this neutrino PFP." << std::endl;
     return;
   }
   else {

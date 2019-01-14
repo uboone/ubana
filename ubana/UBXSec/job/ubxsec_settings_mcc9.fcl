@@ -22,7 +22,7 @@ UBXSec: {
   POTSummaryProducer:           "generator"
   POTSummaryInstance:           ""
   CosmicFlashTagProducer: "pandoraCosmicFlashTag"
-  #CosmicGeoTagProducer:   "pandoraCosmicPFPart"
+  CosmicGeoTagProducer:   "pandoraCosmicPFPart"
   CosmicACPTTagProducer:  "pandoraCosmicACPTTagger"
   CosmicStopMuTagProducer:"pandoraCosmicStoppingMu"
   ParticleIDProducer:           "pandorapid"
