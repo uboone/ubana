@@ -327,6 +327,8 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
+
 #include <cstddef> // std::ptrdiff_t
 #include <cstring> // std::memcpy()
 #include <vector>
@@ -5482,24 +5484,72 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	art::FindMany<anab::ParticleID> fmpid(trackListHandle[iTracker], evt, fParticleIDModuleLabel[iTracker]);
 	if(fmpid.isValid()) {
 	  std::vector<const anab::ParticleID*> pids = fmpid.at(iTrk);
-	  //if(pids.size() > 1) {
-          //mf::LogError("AnalysisTree:limits")
-	  //<< "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
-	  //<< " has " << pids.size() 
-	  //<< " set of ParticleID variables. Only one stored in the tree";
-	  //}
-	  for (size_t ipid = 0; ipid < pids.size(); ++ipid){
-	    if (!pids[ipid]->PlaneID().isValid) continue;
-	    int planenum = pids[ipid]->PlaneID().Plane;
-	    if (planenum<0||planenum>2) continue;
-	    TrackerData.trkpidpdg[iTrk][planenum] = pids[ipid]->Pdg();
-	    TrackerData.trkpidchi[iTrk][planenum] = pids[ipid]->MinChi2();
-	    TrackerData.trkpidchipr[iTrk][planenum] = pids[ipid]->Chi2Proton();
-	    TrackerData.trkpidchika[iTrk][planenum] = pids[ipid]->Chi2Kaon();
-	    TrackerData.trkpidchipi[iTrk][planenum] = pids[ipid]->Chi2Pion();
-	    TrackerData.trkpidchimu[iTrk][planenum] = pids[ipid]->Chi2Muon();
-	    TrackerData.trkpidpida[iTrk][planenum] = pids[ipid]->PIDA();
+	  if(pids.size() > 1) {
+	    mf::LogError("AnalysisTree:limits")
+	      << "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
+	      << " has " << pids.size() 
+	      << " set of ParticleID variables. Only one stored in the tree";
 	  }
+	  if (pids.size() == 0){
+	    mf::LogError("AnalysisTree::limits")
+	      << "No track-PID association found for " << fTrackModuleLabel[iTracker]
+	      << " track " << iTrk << ". Not saving particleID information."; 
+	  }
+	  else{ // if track-PID assn exists
+	    std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[0]->ParticleIDAlgScores();
+	    // Set dummy values
+	    double pidpdg[3] = {-1,-1,-1};
+	    double pidchi[3] = {99999.,99999.,99999.};
+
+	    // Loop though AlgScoresVec and find the variables we want
+	    for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+	      anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+	      int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
+	      if (planenum<0 || planenum>2) continue;
+
+	      if (AlgScore.fAlgName == "Chi2"){
+		if (TMath::Abs(AlgScore.fAssumedPdg) == 13){ // chi2mu
+		  TrackerData.trkpidchimu[iTrk][planenum] = AlgScore.fValue;
+		  if (AlgScore.fValue<pidchi[planenum]){
+		    pidchi[planenum] = AlgScore.fValue;
+		    pidpdg[planenum] = TMath::Abs(AlgScore.fAssumedPdg);
+		  }
+		}
+		else if (TMath::Abs(AlgScore.fAssumedPdg) == 2212){ // chi2pr
+		  TrackerData.trkpidchipr[iTrk][planenum] = AlgScore.fValue;
+		  if (AlgScore.fValue<pidchi[planenum]){
+		    pidchi[planenum] = AlgScore.fValue;
+		    pidpdg[planenum] = TMath::Abs(AlgScore.fAssumedPdg);
+		  }
+		}
+		else if (TMath::Abs(AlgScore.fAssumedPdg) == 211){ // chi2pi
+		  TrackerData.trkpidchipi[iTrk][planenum] = AlgScore.fValue;
+		  if (AlgScore.fValue<pidchi[planenum]){
+		    pidchi[planenum] = AlgScore.fValue;
+		    pidpdg[planenum] = TMath::Abs(AlgScore.fAssumedPdg);
+		  }
+		}
+		else if (TMath::Abs(AlgScore.fAssumedPdg) == 321){ // chi2ka
+		  TrackerData.trkpidchika[iTrk][planenum] = AlgScore.fValue;
+		  if (AlgScore.fValue<pidchi[planenum]){
+		    pidchi[planenum] = AlgScore.fValue;
+		    pidpdg[planenum] = TMath::Abs(AlgScore.fAssumedPdg);
+		  }
+		}
+	      
+	      }
+	      else if (AlgScore.fVariableType==anab::kPIDA){
+		TrackerData.trkpidpida[iTrk][planenum] = AlgScore.fValue;
+	      }
+	      
+	    } // end loop though AlgScoresVec
+
+	    // Finally, set min chi2
+	    for (size_t planenum=0; planenum<3; planenum++){
+	      TrackerData.trkpidchi[iTrk][planenum] = pidchi[planenum];
+	      TrackerData.trkpidpdg[iTrk][planenum] = pidpdg[planenum];
+	    }
+	  } // end if track-PID assn exists
 	} // fmpid.isValid()
 	
 	art::FindMany<anab::Calorimetry> fmcal(trackListHandle[iTracker], evt, fCalorimetryModuleLabel[iTracker]);
