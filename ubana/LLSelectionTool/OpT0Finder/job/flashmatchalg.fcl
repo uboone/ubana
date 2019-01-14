@@ -23,7 +23,7 @@ FlashMatchManager: {
 QLLMatch: {
   RecordHistory: false
   NormalizeHypothesis: false
-  QLLMode: 1 # 0 for Chi2, 1 for LLHD
+  QLLMode: 0 # 0 for Chi2, 1 for LLHD
   PEPenaltyThreshold: [6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6]
   PEPenaltyValue: [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]
   #PEPenaltyThreshold: [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]

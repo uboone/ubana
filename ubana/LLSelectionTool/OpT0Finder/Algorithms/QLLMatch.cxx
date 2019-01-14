@@ -57,10 +57,10 @@ namespace flashana {
 
     auto res1 = PESpectrumMatch(pt_v,flash,true);
     auto res2 = PESpectrumMatch(pt_v,flash,false);
-    /*
+
     std::cout << "Using   mid-x-init: " << res1.tpc_point.x << " [cm] @ " << res1.score << std::endl;
     std::cout << "Without mid-x-init: " << res2.tpc_point.x << " [cm] @ " << res2.score << std::endl;
-    */
+
 
     auto res = (res1.score > res2.score ? res1 : res2);
 
@@ -287,6 +287,9 @@ namespace flashana {
     
     _current_chi2 /= nvalid_pmt;
     _current_llhd /= (nvalid_pmt +1);
+
+    std::cout << "_current_chi2 : " << _current_chi2 << std::endl;
+    std::cout << "_current_llhd : " << _current_llhd << std::endl;
     
     return (_mode == kChi2 ? _current_chi2 : _current_llhd);
   }
@@ -303,6 +306,8 @@ namespace flashana {
     auto const &hypothesis = __qll_global__->ChargeHypothesis(*Xval);
     auto const &measurement = __qll_global__->Measurement();
     Fval = __qll_global__->QLL(hypothesis, measurement);
+
+    std::cout << "Fval : " << Fval << " Xval[0] : " << Xval[0] << std::endl;
     
     __qll_global__->Record(Xval[0]);
     
