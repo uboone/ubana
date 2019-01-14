@@ -219,7 +219,6 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
 
   // Use LArPandoraHelper functions to collect Pandora information
   lar_pandora::PFParticleVector pfParticleList;              //vector of PFParticles
-  //lar_pandora::LArPandoraHelper::CollectPFParticles(e, _pfp_producer, pfParticleList);
 
   // Collect vertices, tracks and shower
   lar_pandora::VertexVector           allPfParticleVertices;
