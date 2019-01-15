@@ -15,7 +15,7 @@ TPCObjectMaker: {
   MCPHitAssProducer:          "gaushitTruthMatch"
   UsePremadeMCPHitAss:        true
   FilterObjects:              true
-  PandorCosmicMode:           false
+  PandoraCosmicMode:          false
   Debug:                      false
 }
 

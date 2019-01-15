@@ -15,6 +15,7 @@ outputs.out1.dataTier: "reconstructed"
 outputs.out1.SelectEvents: [ reco ]
 
 source.inputCommands: ["keep *_*_*_*"]
+source.fileNames: [ "/pnfs/uboone/mc/uboone/reconstructed/prod_v07_11_00_01/prodgenie_bnb_nu_cosmics/slim/prodgenie_bnb_nu_cosmic_uboone_20181124T014722_gen_20181124T021936_g4_20181124T072055_detsim_20181124T082053_reco1_postwcct_postdlmc_20181124T113400_r_f972f6bf-b379-44dd-8def-a2bb0b2fd085.root" ] #input file from samweb def prodgenie_bnb_nu_cosmics_mcc9.0_nov_fullmc_reco2_slim for local testing
 
 
 

@@ -13,7 +13,7 @@
  * \ingroup UBXSec
  *
  * \brief Art producer module that tags stopping muons
- * 
+ *
  *
  * \author Marco Del Tutto <marco.deltutto@physics.ox.ac.uk>
  *
@@ -134,7 +134,7 @@ private:
   std::string _cluster_producer;
   std::string _track_producer;
 
-  double _coplanar_cut = 5.; ///< If a track start X and end X difference is below this value, is consiered to be coplanar to a collection plane wire 
+  double _coplanar_cut = 5.; ///< If a track start X and end X difference is below this value, is consiered to be coplanar to a collection plane wire
 
   bool _use_mcs; ///< If true, uses mcs fit to reject cosmics
   double _mcs_delta_ll_cut = -5.; ///< Cut on MCS delta loglikelihood (used if _use_mcs is true)
@@ -156,7 +156,7 @@ private:
 };
 
 
-StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p) 
+StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p)
   : _mcs_fitter(p.get< fhicl::ParameterSet >("MCSFitter")) {
 
 
@@ -174,7 +174,7 @@ StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p)
   _pfp_producer       = p.get<std::string>("PFParticleProducer", "pandora");
   _cluster_producer   = p.get<std::string>("ClusterProducer",    "pandora");
   _track_producer     = p.get<std::string>("TrackProducer",      "pandora");
- 
+
   _use_mcs            = p.get<bool>("UseMCS", false);
   _mcs_delta_ll_cut   = p.get<double>("MCSDeltaLLCut", -5.);
   _mcs_upwards_only   = p.get<bool>("MCSUpwardsOnly", false);
@@ -185,7 +185,20 @@ StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p)
   _debug = p.get<bool>("DebugMode", true);
   _create_tree = p.get<bool>("CreateTree", true);
 
-  fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>(); 
+  if (_debug) std::cout << "[StoppingMuonTagger] Configured with settings: " << std::endl
+    << " --- TPCObjectProducer =  " << _tpcobject_producer << std::endl
+    << " --- PFParticleProducer =  " << _pfp_producer << std::endl
+    << " --- ClusterProducer =  " << _cluster_producer << std::endl
+    << " --- TrackProducer =  " << _track_producer << std::endl
+    << " --- UseMCS =  " << _use_mcs << " ** NOTE MCS IS COMMENTED OUT SO THIS IS NOT USED **" << std::endl
+    << " --- UseMCSBuggedVersion =  " << _use_mcs_bugged_version << " ** NOTE MCS IS COMMENTED OUT SO THIS IS NOT USED **" << std::endl
+    << " --- MCSDeltaLLCut =  " << _mcs_delta_ll_cut << " ** NOTE MCS IS COMMENTED OUT SO THIS IS NOT USED **" << std::endl
+    << " --- MCSUpwardsOnly =  " << _mcs_upwards_only << " ** NOTE MCS IS COMMENTED OUT SO THIS IS NOT USED **" << std::endl
+    << " --- CoplanarCut =  " << _coplanar_cut << std::endl
+    << " --- DebugMode =  " << _debug << std::endl
+    << " --- CreateTree =  " << _create_tree << std::endl;
+
+  fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
   art::ServiceHandle<art::TFileService> fs;
   _h_nstopmu = fs->make<TH1D>("h_nstopmu", ";Stopping Muons Per Event;", 10, 0, 10);
@@ -205,8 +218,7 @@ StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p)
   }
 
   produces< std::vector<anab::CosmicTag>>();
-  produces< art::Assns<anab::CosmicTag,   recob::Track>>();
-  produces< art::Assns<recob::PFParticle, anab::CosmicTag>>();
+  produces< art::Assns<ubana::TPCObject, anab::CosmicTag>>();
 
 }
 
@@ -214,7 +226,7 @@ StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p)
 
 void StoppingMuonTagger::produce(art::Event & e) {
 
-  if (_debug) std::cout <<"[StoppingMuonTagger] Starts." << std::endl;
+  if (_debug) std::cout <<"[StoppingMuonTagger] Starts: run " << e.id().run() << ", subRun " << e.id().subRun() << ", event " << e.id().event() << std::endl;
 
   if(_create_tree) {
     _run = e.id().run();
@@ -224,8 +236,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
 
   // Instantiate the output
   std::unique_ptr<std::vector<anab::CosmicTag>> cosmicTagVector (new std::vector<anab::CosmicTag>);
-  std::unique_ptr<art::Assns<anab::CosmicTag, recob::Track>> assnOutCosmicTagTrack(new art::Assns<anab::CosmicTag, recob::Track>);
-  std::unique_ptr<art::Assns<recob::PFParticle, anab::CosmicTag>> assnOutCosmicTagPFParticle(new art::Assns<recob::PFParticle, anab::CosmicTag>);
+  std::unique_ptr<art::Assns<ubana::TPCObject, anab::CosmicTag>> assnOutCosmicTagTPCObj(new art::Assns<ubana::TPCObject, anab::CosmicTag>);
 
 
   // Get TPCObjects from the Event
@@ -264,6 +275,8 @@ void StoppingMuonTagger::produce(art::Event & e) {
 
   int n_stopmu = 0;
 
+  if (_debug) std::cout << "[StoppingMuonTagger] Looping over " << tpcobj_v.size() << " TPCObjects in event" << std::endl;
+
   for (size_t i = 0; i < tpcobj_v.size(); i++) {
 
     if (_debug) std::cout << "[StoppingMuonTagger] >>>>> TPCObject " << i << std::endl;
@@ -274,15 +287,18 @@ void StoppingMuonTagger::produce(art::Event & e) {
     std::vector<art::Ptr<recob::PFParticle>> pfps    = tpcobjToPFPAssns.at(tpcobj.key());
     std::vector<art::Ptr<recob::Shower>>     showers = tpcobjToShowerAssns.at(tpcobj.key());
 
-    if (_debug) std::cout << "[StoppingMuonTagger] Origin is " << tpcobj->GetOrigin() << std::endl;
-    if (_debug) std::cout << "[StoppingMuonTagger] Origin extra is " << tpcobj->GetOriginExtra() << std::endl;
+    if (_debug) std::cout << "[StoppingMuonTagger] >>>>> Associated to " << pfps.size() << " PFPs: " << tracks.size() << " tracks, " << showers.size() << " showers." << std::endl;
+
+    if (_debug) std::cout << "[StoppingMuonTagger] Origin is " << ubana::TPCObjectOriginToString(tpcobj->GetOrigin()) << std::endl;
+    if (_debug) std::cout << "[StoppingMuonTagger] Origin extra is " << ubana::TPCObjectOriginExtraToString(tpcobj->GetOriginExtra()) << std::endl;
+
 
     bool ignore_this = false;
 
     if (!e.isRealData()) {
 
-      if (tpcobj->GetOrigin() != ubana::TPCObjectOrigin::kCosmicRay &&
-          tpcobj->GetOriginExtra() != ubana::TPCObjectOriginExtra::kStoppingMuon) {
+      if (tpcobj->GetOrigin() == ubana::TPCObjectOrigin::kCosmicRay &&
+          tpcobj->GetOriginExtra() == ubana::TPCObjectOriginExtra::kStoppingMuon) {
 
         if (_debug) std::cout << "[StoppingMuonTagger] Found TPCObject representing a stopping cosmic muon." << std::endl;
         n_stopmu++;
@@ -302,35 +318,25 @@ void StoppingMuonTagger::produce(art::Event & e) {
 
       }
 
-    }
-
-    if (_debug) { 
-      std::cout <<"[StoppingMuonTagger]\t Number of tracks for this TPCObject:  " << tracks.size()  << std::endl;
-      std::cout <<"[StoppingMuonTagger]\t Number of showers for this TPCObject: " << showers.size() << std::endl;
-      std::cout <<"[StoppingMuonTagger]\t Number of PFPs for this TPCObject:    " << pfps.size()    << std::endl;
-   }
+    } // end if (!e.isRealData())
 
 
-    // Get all the SpacePoints from the PFPs (this will be used to look for 
+    // Get all the SpacePoints from the PFPs (this will be used to look for
     // the highest point in the TPCObject). Also get all the clusters for this
     // TPCObject, and use the clusters to go to the hits. Collect all
     // these hits in a vector.
-    // When we look at the primary pfp (a cosmic by fiat in pandoraCosmic), 
-    // get the track and then check that is not coplanar with wires in the 
+    // When we look at the primary pfp (a cosmic by fiat in pandoraCosmic),
+    // get the track and then check that is not coplanar with wires in the
     // collection plane.
-  
-    // These two are needed to make the associations later
-    art::Ptr<recob::PFParticle> primary_pfp;
-    std::vector<art::Ptr<recob::Track>> primary_track_v;
 
     std::vector<art::Ptr<recob::SpacePoint>> sp_v;
     sp_v.clear();
 
-    std::vector<art::Ptr<recob::Hit>> hit_v; 
+    std::vector<art::Ptr<recob::Hit>> hit_v;
     hit_v.clear();
 
     if (pfps.size() == 0) {
-      ignore_this = true;    
+      ignore_this = true;
       continue;
     }
 
@@ -338,7 +344,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
 
     for (auto p : pfps) {
       auto iter = pfps_to_spacepoints.find(p);
-      if (iter == pfps_to_spacepoints.end()) { 
+      if (iter == pfps_to_spacepoints.end()) {
         continue;
       }
       sp_v.reserve(sp_v.size() + iter->second.size());
@@ -346,7 +352,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
 
       // Find clusters first ...
       auto iter2 = pfps_to_clusters.find(p);
-      if (iter2 == pfps_to_clusters.end()) { 
+      if (iter2 == pfps_to_clusters.end()) {
         continue;
       }
 
@@ -355,14 +361,15 @@ void StoppingMuonTagger::produce(art::Event & e) {
         auto iter3 = clusters_to_hits.find(c);
         if (iter3 == clusters_to_hits.end()) {
           std::cout << "[StoppingMuonTagger] Cluster in TPCObject not found by pandora !?" << std::endl;
-          throw std::exception(); 
+          throw std::exception();
         }
 
         hit_v.reserve(hit_v.size() + iter3->second.size());
         hit_v.insert(hit_v.end(), iter3->second.begin(), iter3->second.end());
-      } 
+      }
 
-      if (p->IsPrimary() && !lar_pandora::LArPandoraHelper::IsNeutrino(p)) {
+      if (!lar_pandora::LArPandoraHelper::IsNeutrino(p)) {
+        if (_debug) std::cout << "[StoppingMuonTagger] Found PFP that isn't a neutrino" << std::endl;
 
         auto iter4 = pfps_to_tracks.find(p);
         if (iter4 == pfps_to_tracks.end()) {
@@ -372,38 +379,39 @@ void StoppingMuonTagger::produce(art::Event & e) {
           continue;
         }
 
-        primary_pfp = p;
-        primary_track_v = iter4->second;
 
-        if (primary_track_v.size() == 0) { 
-          ignore_this = true;
-          continue; 
-        } else {
-          double deltax = primary_track_v.at(0)->Vertex().Z() - primary_track_v.at(0)->End().Z();
-          if (_debug) std::cout << "[StoppingMuonTagger] Delta x is " << deltax << std::endl;
-          collection_coplanar = std::abs(primary_track_v.at(0)->Vertex().Z() - primary_track_v.at(0)->End().Z()) 
-                                < _coplanar_cut;
-        }
+
+        std::vector<art::Ptr<recob::Track>> track_v = iter4->second;
+
+        if (_debug) std::cout << "[StoppingMuonTagger] Found " << track_v.size() << " tracks associated with this PFP" << std::endl;
+
       }
-    }
+      else{
+        if (_debug) std::cout << "[StoppingMuonTagger] PFP is a neutrino" << std::endl;
+      }
+    } // end loop over PFPs (p)
 
     if (hit_v.size() == 0) {
+      if (_debug) std::cout << "hit_v.size() = 0" << std::endl;
       continue;
     }
 
-    if (ignore_this || !primary_pfp) {
+    if (ignore_this) {
+      if (_debug) std::cout << "Ignoring track because ignore_this = " << ignore_this << std::endl;
       continue;
     }
-
-    if (_debug) std::cout << "[StoppingMuonTagger] Primary PFP is " << primary_pfp->Self() << std::endl;
 
     //
     // First exclude spacepoints outside the tpc
     //
     std::vector<art::Ptr<recob::SpacePoint>> temp;
-    ::geoalgo::AABox tpcvol(0., (-1.)*geo->DetHalfHeight(), 
-                            0., geo->DetHalfWidth()*2, 
+    ::geoalgo::AABox tpcvol(0., (-1.)*geo->DetHalfHeight(),
+                            0., geo->DetHalfWidth()*2,
                             geo->DetHalfHeight(), geo->DetLength());
+
+    // Get minimum and maximum z position to work out if the slice is coplanar
+    double minz = 9999;
+    double maxz = -9999;
 
     for (auto s : sp_v) {
       const double *xyz = s->XYZ();
@@ -411,8 +419,20 @@ void StoppingMuonTagger::produce(art::Event & e) {
       if (tpcvol.Contain(point)) {
         temp.push_back(s);
       }
+
+      if (xyz[2] < minz) minz = xyz[2];
+      if (xyz[2] > maxz) maxz = xyz[2];
     }
     sp_v = temp;
+
+    // Work out if the slice is coplanar
+    if (minz == 9999 || maxz == -9999) collection_coplanar=false;
+    else{
+      double deltaz = maxz - minz;
+      collection_coplanar = std::abs(deltaz) < _coplanar_cut;
+      if (_debug) std::cout << "[StoppingMuonTagger] Delta z is " << deltaz << ", so collection_coplanar is " << collection_coplanar << std::endl;
+    }
+
 
     //
     // Now get the highest point
@@ -437,8 +457,8 @@ void StoppingMuonTagger::produce(art::Event & e) {
     // Creating an approximate start hit on plane 2
     int highest_w = geo->NearestWire(highest_point, 2) ;//* geo->WirePitch(geo::PlaneID(0,0,2));
     double highest_t = fDetectorProperties->ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,2))/4.;//highest_point[0];
-    if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << geo->NearestWire(highest_point, 2) 
-                       << ", time: " << fDetectorProperties->ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,2)) 
+    if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << geo->NearestWire(highest_point, 2)
+                       << ", time: " << fDetectorProperties->ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,2))
                        << std::endl;
     cosmictag::SimpleHit start_highest;
     start_highest.time = highest_t;
@@ -448,54 +468,23 @@ void StoppingMuonTagger::produce(art::Event & e) {
     // Creating an approximate start hit on plane 1 (used if collection coplanar)
     highest_w = geo->NearestWire(highest_point, 1) ;
     highest_t = fDetectorProperties->ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,1))/4.;
-    if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << geo->NearestWire(highest_point, 1) 
-                       << ", time: " << fDetectorProperties->ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,1)) 
+    if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << geo->NearestWire(highest_point, 1)
+                       << ", time: " << fDetectorProperties->ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,1))
                        << std::endl;
     cosmictag::SimpleHit start_highest_plane1;
     start_highest_plane1.time = highest_t;
     start_highest_plane1.wire = highest_w;
     start_highest_plane1.plane = 1;
 
-
-    //
-    // Now get the point outfv
-    //
-    art::Ptr<recob::Track> trk = primary_track_v.at(0);
-    bool start_fv = _fiducial_volume.InFV(trk->Vertex<TVector3>());
-    bool end_fv   = _fiducial_volume.InFV(trk->End<TVector3>());
-    double point_outfv[3] = {-999, -999, -999};
-    if (!start_fv) {point_outfv[0] = trk->Vertex().X(); point_outfv[1] = trk->Vertex().Y(); point_outfv[2] = trk->Vertex().Z();}
-    if (!end_fv) {point_outfv[0] = trk->End().X(); point_outfv[1] = trk->End().Y(); point_outfv[2] = trk->End().Z();}
-    this->ContainPoint(point_outfv);
-    int outfv_w = geo->NearestWire(point_outfv, 2);
-    double outfv_t = fDetectorProperties->ConvertXToTicks(point_outfv[0], geo::PlaneID(0,0,2))/4.;
-    if (_debug) std::cout << "[StoppingMuonTagger] OutFV point: wire: " << geo->NearestWire(point_outfv, 2) 
-                       << ", time: " << fDetectorProperties->ConvertXToTicks(point_outfv[0], geo::PlaneID(0,0,2)) 
-                       << std::endl;
-    // Creating an approximate start hit
-    cosmictag::SimpleHit start_outfv;
-    start_outfv.time = outfv_t;
-    start_outfv.wire = outfv_w;
-    start_outfv.plane = 2;
-
-    /*
-    bool use_outfv_point = false;
-     
-    TVector3 pt_1 (highest_point[0], highest_point[1], highest_point[2]);
-    TVector3 pt_2 (point_outfv[0], point_outfv[1], point_outfv[2]);
-    if ((pt_1-pt_2).Mag() > 5 && point_outfv[0] != -999)
-      use_outfv_point = true;
-    */
-
     if (_debug) std::cout << "[StoppingMuonTagger] Now create simple hit vector, size " << hit_v.size() << std::endl;
 
-    
+
     //std::cout << "Wire inclination for plane 1 (should give 60 degrees): " << geo->WireAngleToVertical(geo::View_t::kV) - 0.5*::util::pi<>()<< std::endl;
     //std::cout << "Wire pitch for plane 1 (should give 3mm): " << geo->WirePitch(geo::PlaneID(0,0,1)) << std::endl;
 
     //
     // Create SimpleHit vector with hits in collection plane only
-    // 
+    //
     std::vector<cosmictag::SimpleHit> simple_hit_v;
     std::vector<cosmictag::SimpleHit> simple_hit_v_plane1;
     for (auto h : hit_v) {
@@ -510,7 +499,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
       sh.integral = h->Integral();
 
       sh.time = h->PeakTime() / 4;
-      sh.wire = h->WireID().Wire; 
+      sh.wire = h->WireID().Wire;
 
       if (h->View() == 2) {
         simple_hit_v.emplace_back(sh);
@@ -535,7 +524,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
     _ct_manager.Reset();
 
     // Emplacing simple hits to the manager
-    // Generally use plane 2, but use plane 1 
+    // Generally use plane 2, but use plane 1
     // if trak is collection coplanar
     cosmictag::SimpleCluster sc(simple_hit_v);
     if (collection_coplanar) {
@@ -552,11 +541,6 @@ void StoppingMuonTagger::produce(art::Event & e) {
       if (_debug) std::cout << "[StoppingMuonTagger] Collection coplanar, setting start hit from plane 1" << std::endl;
       _ct_manager.SetStartHit(std::move(start_highest_plane1));
     }
-
-    //if (collection_coplanar) {
-      //if (_debug) std::cout << "[StoppingMuonTagger] This object is collection coplanar" << std::endl;
-      //_ct_manager.CollectionCoplanar(true);
-    //}
 
     // Running the cluster analyser
     bool passed = _ct_manager.Run();
@@ -587,12 +571,6 @@ void StoppingMuonTagger::produce(art::Event & e) {
       ct_result_bragg = ((cosmictag::StopMuBragg*)(_ct_manager.GetCustomAlgo("StopMuBragg")))->IsStopMuBragg(processed_cluster) && !vtx_in_fv;
       if(_debug) std::cout << "[StoppingMuonTagger] Is stopping muon (bragg)? " << (ct_result_bragg ? "YES" : "NO") << std::endl;
 
-
-      // CosmicSimpleMIP
-      //((cosmictag::CosmicSimpleMIP*)(_ct_manager.GetCustomAlgo("CosmicSimpleMIP")))->PrintConfig();
-      //ct_result_simplemip = ((cosmictag::CosmicSimpleMIP*)(_ct_manager.GetCustomAlgo("CosmicSimpleMIP")))->IsCosmicSimpleMIP(processed_cluster);
-      //if(_debug) std::cout << "[StoppingMuonTagger] Is simple MIP? " << (ct_result_simplemip ? "YES" : "NO") << std::endl;
-
     }
 
     if (ct_result_michel || ct_result_bragg /*|| ct_result_simplemip*/)
@@ -603,22 +581,23 @@ void StoppingMuonTagger::produce(art::Event & e) {
 
     //
     // Also try with the MCS fitter
-    //
+    // Commented out for now because this works track-by-track and right now we want to tag the entire slice
 
-    bool result_mcs = false;
+    /*bool result_mcs = false;
     double delta_ll;
-    if (primary_track_v.size() != 0) { 
-      if (_use_mcs_bugged_version) result_mcs = this->IsStopMuMCS_bug(primary_track_v.at(0), delta_ll);
-      else result_mcs = this->IsStopMuMCS(primary_track_v.at(0), delta_ll);
+    if (track_v.size() != 0) {
+      if (_use_mcs_bugged_version) result_mcs = this->IsStopMuMCS_bug(track_v.at(0), delta_ll);
+      else result_mcs = this->IsStopMuMCS(track_v.at(0), delta_ll);
     }
 
     if (_debug) std::cout << "[StoppingMuonTagger] MCS thinks " << (result_mcs ? "is" : "is not") << " a stopping muon." << std::endl;
-    
+*/
+
     if(_create_tree) {
       _origin = tpcobj->GetOrigin();
       _origin_extra = tpcobj->GetOriginExtra();
-      _delta_ll = delta_ll;
-      _length = primary_track_v.at(0)->Length();
+      // _delta_ll = delta_ll;
+      //_length = track_v.at(0)->Length();
 
       _fv = false;
 
@@ -636,7 +615,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
           double truth_nu_vtx[3] = {mclist[iList]->GetNeutrino().Nu().Vx(),
                                     mclist[iList]->GetNeutrino().Nu().Vy(),
                                     mclist[iList]->GetNeutrino().Nu().Vz()};
-          if (_fiducial_volume.InFV(truth_nu_vtx)) 
+          if (_fiducial_volume.InFV(truth_nu_vtx))
             _fv = true;
         }
       }
@@ -645,7 +624,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
     }
 
 
-    if (result_mcs && _use_mcs) is_cosmic = true;
+    //if (result_mcs && _use_mcs) is_cosmic = true;
 
 
 
@@ -658,23 +637,23 @@ void StoppingMuonTagger::produce(art::Event & e) {
     anab::CosmicTagID_t tag_id = anab::CosmicTagID_t::kNotTagged;
     if (is_cosmic) {
       cosmicScore = 1.;
-      if (result_mcs && _use_mcs) cosmicScore = 1.77;
+      // if (result_mcs && _use_mcs) cosmicScore = 1.77;
       tag_id = anab::CosmicTagID_t::kGeometry_Y; // ... don't have a proper id for these
     }
     if (_debug) std::cout << "[StoppingMuonTagger] Cosmic Score is " << cosmicScore << std::endl;
-    cosmicTagVector->emplace_back(endPt1, endPt2, cosmicScore, tag_id); 
-    util::CreateAssn(*this, e, *cosmicTagVector, primary_track_v, *assnOutCosmicTagTrack);
-    util::CreateAssn(*this, e, *cosmicTagVector, primary_pfp, *assnOutCosmicTagPFParticle);
-    
+
+    cosmicTagVector->emplace_back(endPt1, endPt2, cosmicScore, tag_id);
+    util::CreateAssn(*this, e, *cosmicTagVector, tpcobj, *assnOutCosmicTagTPCObj);
+
   } // TPCObject loop
 
   _h_nstopmu->Fill(n_stopmu);
 
+  if (_debug) std::cout << "[StoppingMuonTagger] Putting cosmicTagVector and assn to TPCObject in event" << std::endl;
   e.put(std::move(cosmicTagVector));
-  e.put(std::move(assnOutCosmicTagTrack));
-  e.put(std::move(assnOutCosmicTagPFParticle));
+  e.put(std::move(assnOutCosmicTagTPCObj));
 
-  if (_debug) std::cout <<"[StoppingMuonTagger] Ends." << std::endl;
+  if (_debug) std::cout <<"[StoppingMuonTagger] Ends: run " << e.id().run() << ", subRun " << e.id().subRun() << ", event " << e.id().event() << std::endl;
 
 }
 
@@ -719,7 +698,7 @@ bool StoppingMuonTagger::IsStopMuMCS(art::Ptr<recob::Track> t, double & delta_ll
   _result = _mcs_fitter.fitMcs(*t);
 
   double fwd_ll = _result.fwdLogLikelihood();
-  double bwd_ll = _result.bwdLogLikelihood(); 
+  double bwd_ll = _result.bwdLogLikelihood();
 
   if (_debug) std::cout <<"[StoppingMuonTagger] FWD " << fwd_ll << ", BWD " << bwd_ll << std::endl;
 
@@ -769,7 +748,7 @@ bool StoppingMuonTagger::IsStopMuMCS_bug(art::Ptr<recob::Track> t, double & delt
   _result = _mcs_fitter.fitMcs(*t);
 
   double fwd_ll = _result.fwdLogLikelihood();
-  double bwd_ll = _result.bwdLogLikelihood(); 
+  double bwd_ll = _result.bwdLogLikelihood();
 
   if (_debug) std::cout <<"[StoppingMuonTagger] FWD " << fwd_ll << ", BWD " << bwd_ll << std::endl;
 
@@ -809,7 +788,7 @@ void StoppingMuonTagger::ContainPoint(double * point) {
   if (y > geo->DetHalfWidth() - e)
     point[1] = geo->DetHalfWidth() - e;
 
-  if (z < 0. + e) 
+  if (z < 0. + e)
     point[2] = 0.+ e;
   if (z > geo->DetLength() - e)
     point[2] = geo->DetLength() - e;

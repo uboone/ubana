@@ -29,6 +29,7 @@ namespace ubana {
     // _residuals_mean_down_cut           = pset.get< double > ( "ResidualsMeanCutDown" );
     // _residuals_mean_up_cut             = pset.get< double > ( "ResidualsMeanCutUp" );
     _perc_used_hits_in_cluster_cut     = pset.get< double > ( "PercUsedHitsCut" );
+    _use_stopmu_slice_cut              = pset.get<bool>("UseStopMuSliceCut");
 
     _verbose                           = pset.get< bool > ( "Verbose" );
 
@@ -55,6 +56,7 @@ namespace ubana {
     std::cout << "---   _pe_cut                            = " << _pe_cut << std::endl;
     std::cout << "---   _beamSpillStarts                   = " << _beamSpillStarts << std::endl;
     std::cout << "---   _beamSpillEnds                     = " << _beamSpillEnds << std::endl;
+    std::cout << "---   _use_stopmu_slice_cut              = " << _use_stopmu_slice_cut << std::endl;
     std::cout << "---   _verbose                           = " << _verbose << std::endl;
   }
 
@@ -66,7 +68,7 @@ namespace ubana {
   }
 
   bool NuMuCCEventSelection::IsSelected(int & slice_index, std::map<std::string,bool> & failure_map) {
-   
+
     if (_verbose) std::cout << "[NuMuCCEventSelection] Starts. " << std::endl;
 
     if (!_configured || !_event_is_set) {
@@ -77,7 +79,7 @@ namespace ubana {
     slice_index = -1;
     std::string reason = "no_failure";
 
-    // ************ 
+    // ************
     // Flashes
     // ************
 
@@ -101,6 +103,7 @@ namespace ubana {
       failure_map["ntrack"] = false;
       failure_map["track_quality"] = false;
       failure_map["vertex_quality"] = false;
+      failure_map["stopmu_tag"] = false;
 
       if (_verbose) std::cout << "[NuMuCCEventSelection] Selection FAILED. No beam disc flashes." << std::endl;
       return false;
@@ -109,22 +112,22 @@ namespace ubana {
       failure_map["beam_disc_flashes"] = true;
     }
 
-    int flashInBeamSpill = -1;    
+    int flashInBeamSpill = -1;
     double old_pe = -1;
 
     for (int fls = 0; fls < _ubxsec_event->nbeamfls; fls ++){
 
-      if (_ubxsec_event->beamfls_time.at(fls) > _beamSpillStarts 
+      if (_ubxsec_event->beamfls_time.at(fls) > _beamSpillStarts
           && _ubxsec_event->beamfls_time.at(fls) < _beamSpillEnds
           && _ubxsec_event->beamfls_pe.at(fls) >= _pe_cut) {
-        
+
         if (_ubxsec_event->beamfls_pe.at(fls) > old_pe) {
           flashInBeamSpill = fls;
           old_pe = _ubxsec_event->beamfls_pe.at(fls);
-        }    
+        }
       }
     }
-    
+
     if (flashInBeamSpill == -1) {
       reason = "no_beam_spill_flash";
       failure_map["beam_spill_flash"] = false;
@@ -144,6 +147,7 @@ namespace ubana {
       failure_map["ntrack"] = false;
       failure_map["track_quality"] = false;
       failure_map["vertex_quality"] = false;
+      failure_map["stopmu_tag"] = false;
 
       if (_verbose) std::cout << "[NuMuCCEventSelection] Selection FAILED. No beam spill flash object." << std::endl;
       return false;
@@ -151,21 +155,21 @@ namespace ubana {
     } else {
       failure_map["beam_spill_flash"] = true;
     }
-    
+
     // *******************************
     // Find slice with maximum score
     // *******************************
     double score_max = -1;
     int scl_ll_max = -1;
     for (int slc = 0; slc < _ubxsec_event->nslices; slc ++){
-      
+
       if(_ubxsec_event->slc_flsmatch_score.at(slc) > score_max){
         scl_ll_max = slc;
         score_max = _ubxsec_event->slc_flsmatch_score.at(slc);
       }
 
     }
-    
+
     if (scl_ll_max == -1) {
       reason = "fail_flash_match";
       failure_map["flash_match"] = false;
@@ -184,6 +188,7 @@ namespace ubana {
       failure_map["ntrack"] = false;
       failure_map["track_quality"] = false;
       failure_map["vertex_quality"] = false;
+      failure_map["stopmu_tag"] = false;
 
       if (_verbose) std::cout << "[NuMuCCEventSelection] Selection FAILED. No flash-matched object." << std::endl;
       return false;
@@ -191,7 +196,7 @@ namespace ubana {
     } else {
       failure_map["flash_match"] = true;
     }
-    
+
     if (score_max <= _flsmatch_score_cut || std::isinf(score_max)) {
       reason = "fail_flash_match_score";
       failure_map["flash_match_score"] = false;
@@ -229,14 +234,25 @@ namespace ubana {
       failure_map["flash_match_deltaz_down"] = true;
     }
 
-    // Vertex Check   
+
+    // Stopping muon tagger
+    if (_use_stopmu_slice_cut){
+      if (_ubxsec_event->slc_stopmu_tagged.at(scl_ll_max)){
+        reason = "fail_stopmu_tag";
+        failure_map["stopmu_tag"] = false;
+      } else {
+        failure_map["stopmu_tag"] = true;
+      }
+    }
+
+    // Vertex Check
     //if(_ubxsec_event->slc_vtxcheck_angle.at(scl_ll_max) > _vtxcheck_angle_cut_up) {
     //  reason = "fail_vertex_check_up";
     //  failure_map["vertex_check_up"] = false;
     //} else {
     //  failure_map["vertex_check_up"] = true;
     //}
-    //if(_ubxsec_event->slc_vtxcheck_angle.at(scl_ll_max) < _vtxcheck_angle_cut_down 
+    //if(_ubxsec_event->slc_vtxcheck_angle.at(scl_ll_max) < _vtxcheck_angle_cut_down
     //   && _ubxsec_event->slc_vtxcheck_angle.at(scl_ll_max) != -9999) {
     //  reason = "fail_vertex_check_down";
     //  failure_map["vertex_check_down"] = false;
@@ -259,7 +275,7 @@ namespace ubana {
     //} else {
     //  failure_map["track_quality"] = true;
     //}
-    
+
     // Vertex Quality
     //if(!_ubxsec_event->slc_passed_min_vertex_quality.at(scl_ll_max)) {
     //  reason = "fail_vertex_quality";
@@ -269,8 +285,8 @@ namespace ubana {
     //}
 
     // MCS-Length Quality Cut
-    if(_ubxsec_event->slc_muoncandidate_contained.at(scl_ll_max) 
-      && (_ubxsec_event->slc_muoncandidate_mom_mcs.at(scl_ll_max) 
+    if(_ubxsec_event->slc_muoncandidate_contained.at(scl_ll_max)
+      && (_ubxsec_event->slc_muoncandidate_mom_mcs.at(scl_ll_max)
         - _ubxsec_event->slc_muoncandidate_mom_range.at(scl_ll_max) > _mcs_length_cut)) {
       reason = "fail_mcs_length_quality";
       failure_map["mcs_length_quality"] = false;
@@ -287,9 +303,9 @@ namespace ubana {
     }
 
     // FV
-    bool in_fv = _ubxsec_event->slc_nuvtx_fv.at(scl_ll_max) == 1
-                 /*&& (_ubxsec_event->slc_nuvtx_z.at(scl_ll_max) < 675 
-                     || _ubxsec_event->slc_nuvtx_z.at(scl_ll_max) > 775)*/;
+    bool in_fv = (_ubxsec_event->slc_nuvtx_fv.at(scl_ll_max) == 1);
+                 //&& (_ubxsec_event->slc_nuvtx_z.at(scl_ll_max) < 675
+                  //   || _ubxsec_event->slc_nuvtx_z.at(scl_ll_max) > 775);
     if(!in_fv) {
       reason = "fail_fiducial_volume";
       failure_map["fiducial_volume"] = false;
@@ -328,9 +344,9 @@ namespace ubana {
     // Percental of used hits in cluster Cut
     if (_ubxsec_event->slc_muoncandidate_perc_used_hits_in_cluster.at(scl_ll_max) < _perc_used_hits_in_cluster_cut) {
       reason = "fail_perc_used_hits_in_cluster";
-      failure_map["perc_used_hits_in_cluster"] = false; 
+      failure_map["perc_used_hits_in_cluster"] = false;
     } else {
-      failure_map["perc_used_hits_in_cluster"] = true; 
+      failure_map["perc_used_hits_in_cluster"] = true;
     }
 
 
