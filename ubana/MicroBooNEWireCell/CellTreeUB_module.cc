@@ -16,6 +16,7 @@
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardataobj/RecoBase/OpHit.h"
 #include "lardataobj/RecoBase/OpFlash.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "larevt/CalibrationDBI/Interface/PmtGainService.h"
 #include "larevt/CalibrationDBI/Interface/PmtGainProvider.h"
 #include "lardataobj/RawData/TriggerData.h"
@@ -78,14 +79,16 @@ namespace wc{
     void processPMT_raw(const art::Event& evt);
     void processPMT_wfmSaturation(const art::Event& evt);
     void processPMT_reco(const art::Event& evt);
-    void processPMT_gain(const art::Event& evt);
+    void processPMT_gainData(const art::Event& evt);
+    void processPMT_gainMC(const art::Event& evt);
     void processHWTrigger(const art::Event& evt);
     void processSWTrigger(const art::Event& evt);
     void processBeam(const art::Event& evt);
     void processPOT(const art::SubRun& subrun);
     void processMuCS_data(const art::Event& evt);
     void processMuCS_recoData(const art::Event& evt);
-    void processMC(const art::Event& evt);
+    void processMCParticle(const art::Event& evt);
+    void processSimChannel(const art::Event& evt);
   private:
     // --- fhicl parameters ---
     std::string fTPC_rawLabel;
@@ -119,6 +122,8 @@ namespace wc{
     std::string fPOT_producer;
     std::string fMuCS_dataLabel;
     std::string fMuCS_recoDataLabel;
+    std::string fSimChannel_label;
+    std::string fSimChannel_producer;
     bool _use_LG_beam_for_HG_cosmic;
     bool fSaveTPC_raw;
     bool fSaveTPC_noiseFiltered;
@@ -129,14 +134,16 @@ namespace wc{
     bool fSavePMT_raw;
     bool fSavePMT_wfmSaturation;
     bool fSavePMT_reco;
-    bool fSavePMT_gain;
+    bool fSavePMT_gainData;
+    bool fSavePMT_gainMC;
     bool fSaveHWTrigger;
     bool fSaveSWTrigger;
     bool fSaveBeam;
     bool fSavePOT;
     bool fSaveMuCSData;
     bool fSaveMuCSRecoData;
-    bool fSaveMC;
+    bool fSaveMCParticle;
+    bool fSaveSimChannel;
     int deconRebin;
     float flashMultPEThreshold;
     bool saveVYshorted;
@@ -288,6 +295,13 @@ namespace wc{
     double mc_nu_Theta;
     float mc_nu_pos[4];
     float mc_nu_mom[4];
+    // --- SimChannel ---
+    std::vector<float> sc_x;
+    std::vector<float> sc_y;
+    std::vector<float> sc_z;
+    std::vector<float> sc_q;
+    std::vector<unsigned int> sc_tdc;
+    float sc_drift_speed=1.098; // mm/us
 
   }; // class CellTreeUB
 
@@ -334,6 +348,8 @@ namespace wc{
     fPOT_producer = pset.get<std::string>("POT_producer");
     fMuCS_dataLabel = pset.get<std::string>("MuCS_dataLabel");
     fMuCS_recoDataLabel = pset.get<std::string>("MuCS_recoDataLabel");
+    fSimChannel_label = pset.get<std::string>("SimChannel_label");
+    fSimChannel_producer = pset.get<std::string>("SimChannel_producer");
     fSaveTPC_raw = pset.get<bool>("SaveTPC_raw");
     fSaveTPC_noiseFiltered = pset.get<bool>("SaveTPC_noiseFiltered");
     fSaveTPC_deconWiener = pset.get<bool>("SaveTPC_deconWiener");
@@ -343,14 +359,16 @@ namespace wc{
     fSavePMT_raw = pset.get<bool>("SavePMT_raw");
     fSavePMT_wfmSaturation = pset.get<bool>("SavePMT_wfmSaturation");
     fSavePMT_reco = pset.get<bool>("SavePMT_reco");
-    fSavePMT_gain = pset.get<bool>("SavePMT_gain");
+    fSavePMT_gainData = pset.get<bool>("SavePMT_gainData");
+    fSavePMT_gainMC = pset.get<bool>("SavePMT_gainMC");
     fSaveHWTrigger = pset.get<bool>("SaveHWTrigger");
     fSaveSWTrigger = pset.get<bool>("SaveSWTrigger");
     fSaveBeam = pset.get<bool>("SaveBeam");
     fSavePOT = pset.get<bool>("SavePOT");
     fSaveMuCSData = pset.get<bool>("SaveMuCSData");
     fSaveMuCSRecoData = pset.get<bool>("SaveMuCSRecoData");
-    fSaveMC = pset.get<bool>("SaveMC");
+    fSaveMCParticle = pset.get<bool>("SaveMCParticle");
+    fSaveSimChannel = pset.get<bool>("SaveSimChannel");
     _use_LG_beam_for_HG_cosmic = pset.get<bool>("UseLGBeamForHGCosmic");
     flashMultPEThreshold = pset.get<float>("FlashMultPEThreshold");
     deconRebin = pset.get<int>("DeconRebin");
@@ -439,7 +457,11 @@ namespace wc{
       fPEperOpDet = new TClonesArray("TH1F");
       fEventTree->Branch("pe_opdet", &fPEperOpDet, 256000, 0);
     }
-    if(fSavePMT_gain){
+    if(fSavePMT_gainData){
+      fEventTree->Branch("op_gain", &fOp_gain);
+      fEventTree->Branch("op_gainerror", &fOp_gainerror);
+    }
+    if(fSavePMT_gainMC){
       fEventTree->Branch("op_gain", &fOp_gain);
       fEventTree->Branch("op_gainerror", &fOp_gainerror);
     }
@@ -455,7 +477,7 @@ namespace wc{
       fEventTree->Branch("PHMAX", &fPHMAX);
       fEventTree->Branch("multiplicity", &fmultiplicity);
       fEventTree->Branch("triggerTick", &ftriggerTick);
-      fEventTree->Branch("triggerTime", &ftriggerTime);
+      fEventTree->Branch("swtriggerTime", &ftriggerTime);
       fEventTree->Branch("prescale_weight", &fprescale_weight);
     }
     if(fSaveBeam){
@@ -501,7 +523,7 @@ namespace wc{
       fEventTree->Branch("xmatches",&fxmatches);
       fEventTree->Branch("zmatches",&fzmatches);
     }
-    if(fSaveMC){
+    if(fSaveMCParticle){
       fEventTree->Branch("mc_Ntrack", &mc_Ntrack);
       fEventTree->Branch("mc_id", &mc_id, "mc_id[mc_Ntrack]/I");      
       fEventTree->Branch("mc_pdg", &mc_pdg, "mc_pdg[mc_Ntrack]/I");      
@@ -532,6 +554,14 @@ namespace wc{
       fEventTree->Branch("mc_nu_Theta", &mc_nu_Theta);      
       fEventTree->Branch("mc_nu_pos", &mc_nu_pos, "mc_nu_pos[4]/F");      
       fEventTree->Branch("mc_nu_mom", &mc_nu_mom, "mc_nu_mom[4]/F");      
+    }
+    if(fSaveSimChannel){
+      fEventTree->Branch("sc_x",&sc_x);
+      fEventTree->Branch("sc_y",&sc_y);
+      fEventTree->Branch("sc_z",&sc_z);
+      fEventTree->Branch("sc_q",&sc_q);
+      fEventTree->Branch("sc_tdc",&sc_tdc);
+      fEventTree->Branch("sc_drift_speed",&sc_drift_speed);
     }
   }
 
@@ -570,13 +600,15 @@ namespace wc{
     if(fSavePMT_raw) processPMT_raw(evt);
     if(fSavePMT_wfmSaturation) processPMT_wfmSaturation(evt);
     if(fSavePMT_reco) processPMT_reco(evt);
-    if(fSavePMT_gain) processPMT_gain(evt);
+    if(fSavePMT_gainData) processPMT_gainData(evt);
+    if(fSavePMT_gainMC) processPMT_gainMC(evt);
     if(fSaveHWTrigger) processHWTrigger(evt);
     if(fSaveSWTrigger) processSWTrigger(evt);
     if(fSaveBeam) processBeam(evt);
     if(fSaveMuCSData) processMuCS_data(evt);
     if(fSaveMuCSRecoData) processMuCS_recoData(evt);
-    if(fSaveMC) processMC(evt);
+    if(fSaveMCParticle) processMCParticle(evt);
+    if(fSaveSimChannel) processSimChannel(evt);
     fEventTree->Fill();
   }
 
@@ -634,7 +666,11 @@ namespace wc{
       of_multiplicity.clear();
       fPEperOpDet->Delete();
     }
-    if(fSavePMT_gain){
+    if(fSavePMT_gainData){
+      fOp_gain.clear();
+      fOp_gainerror.clear();
+    }
+    if(fSavePMT_gainMC){
       fOp_gain.clear();
       fOp_gainerror.clear();
     }
@@ -647,7 +683,7 @@ namespace wc{
       ftriggerTime.clear();
       fprescale_weight.clear();
     }
-    if(fSaveMC){
+    if(fSaveMCParticle){
       mc_Ntrack = 0;
       for(int i=0; i<MAX_TRACKS; i++){
 	mc_id[i] = 0;
@@ -682,6 +718,12 @@ namespace wc{
 	mc_nu_pos[i] = 0;
 	mc_nu_mom[i] = 0;
       }
+    }
+    if(fSaveSimChannel){
+      sc_x.clear();
+      sc_y.clear();
+      sc_z.clear();
+      sc_tdc.clear();
     }
   }
 
@@ -781,7 +823,6 @@ namespace wc{
       fTPCdeconWiener_channelId.push_back(w->Channel());
       std::vector<float> wf = w->Signal();
       int nbin = (int)wf.size()/deconRebin;
-     // TH1I *h = new((*fTPCdeconWiener_wf)[i]) TH1I("","",nbin,0,nbin);
       TH1F *h = new((*fTPCdeconWiener_wf)[i]) TH1F("","",nbin,0,nbin);
       int ctr = 0, binCtr = 1;
       float content = 0;
@@ -815,7 +856,6 @@ namespace wc{
       fTPCdeconGaussian_channelId.push_back(w->Channel());
       std::vector<float> wf = w->Signal();
       int nbin = (int)wf.size()/deconRebin;
-      //TH1I *h = new((*fTPCdeconGaussian_wf)[i]) TH1I("","",nbin,0,nbin);
       TH1F *h = new((*fTPCdeconGaussian_wf)[i]) TH1F("","",nbin,0,nbin);
       int ctr = 0, binCtr = 1;
       float content = 0;
@@ -873,7 +913,7 @@ namespace wc{
 	fOp_cosmic_hg_timestamp.push_back(op.TimeStamp());
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_cosmic_hg_wf)[i]) TH1S("","",nbins,0,nbins);
-	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
+	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
 	i++;
       }
     }
@@ -891,7 +931,7 @@ namespace wc{
 	fOp_beam_hg_timestamp.push_back(op.TimeStamp());
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_beam_hg_wf)[i]) TH1S("","",nbins,0,nbins);
-	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
+	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
 	i++;
       }
     }
@@ -911,7 +951,7 @@ namespace wc{
 	fOp_cosmic_lg_timestamp.push_back(op.TimeStamp());
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_cosmic_lg_wf)[i]) TH1S("","",nbins,0,nbins);
-	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
+	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
 	i++;
       }
     }
@@ -929,7 +969,7 @@ namespace wc{
 	fOp_beam_lg_timestamp.push_back(op.TimeStamp());
 	int nbins = (int)op.size();
 	TH1S *h = new ((*fOp_beam_lg_wf)[i]) TH1S("","",nbins,0,nbins);
-	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j]);}
+	for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
 	i++;
       }
     }
@@ -1017,13 +1057,23 @@ namespace wc{
     }
   }
 
-  void CellTreeUB::processPMT_gain(const art::Event& evt){
+  void CellTreeUB::processPMT_gainData(const art::Event& evt){
     art::ServiceHandle<geo::Geometry> geo;
     const lariov::PmtGainProvider& gain_provider = art::ServiceHandle<lariov::PmtGainService>()->GetProvider();
     for(unsigned int a = 0; a != geo->NOpDets(); ++a){
       if(geo->IsValidOpChannel(a)){
 	fOp_gain.push_back(gain_provider.Gain(a));
 	fOp_gainerror.push_back(gain_provider.GainErr(a));
+      }
+    }
+  }
+
+  void CellTreeUB::processPMT_gainMC(const art::Event& evt){
+    art::ServiceHandle<geo::Geometry> geo;
+    for(unsigned int a = 0; a != geo->NOpDets(); ++a){
+      if(geo->IsValidOpChannel(a)){
+	fOp_gain.push_back(120.0);
+	fOp_gainerror.push_back(0.05);
       }
     }
   }
@@ -1166,7 +1216,7 @@ namespace wc{
     }
   }
 
-  void CellTreeUB::processMC(const art::Event& evt){
+  void CellTreeUB::processMCParticle(const art::Event& evt){
     art::Handle<std::vector<simb::MCParticle> > particleHandle;
     if(!evt.getByLabel("largeant", particleHandle)) return;
     std::vector<art::Ptr<simb::MCParticle> > particles;
@@ -1246,6 +1296,26 @@ namespace wc{
 	const TLorentzVector& momentum = nu.Nu().Momentum(0);
 	position.GetXYZT(mc_nu_pos);
 	momentum.GetXYZT(mc_nu_mom);
+      }
+    }
+  }
+
+  void CellTreeUB::processSimChannel(const art::Event& evt){
+    art::InputTag scTag(fSimChannel_producer,fSimChannel_label);
+    auto const& scHandle = evt.getValidHandle<std::vector<sim::SimChannel>>(scTag);
+    auto const& sc_vec(*scHandle);
+    for(size_t i=0; i<sc_vec.size(); i++){
+      sim::SimChannel sc = sc_vec[i];
+      auto const timeSlices = sc.TDCIDEMap();
+      for(auto timeSlice : timeSlices){
+	auto const& energyDeposits = timeSlice.second;
+	for(auto energyDeposit : energyDeposits){
+	  sc_x.push_back(energyDeposit.x);
+	  sc_y.push_back(energyDeposit.y);
+	  sc_z.push_back(energyDeposit.z);
+	  sc_q.push_back(energyDeposit.numElectrons);
+	  sc_tdc.push_back(timeSlice.first);
+	}
       }
     }
   }

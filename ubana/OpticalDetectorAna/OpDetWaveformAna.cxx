@@ -13,6 +13,7 @@ namespace pmtana {
     , _hitana_tree (nullptr)
     , _wfana_tree  (nullptr)
     , _wf_tree     (nullptr)
+    , _ev_wf_tree  (nullptr)
   {
     ClearEvent();
     ClearWaveform();
@@ -46,25 +47,6 @@ namespace pmtana {
     _ch = ch;
     _t_wrt_trigger = time_wrt_trigger;
 
-    //_preco_mgr.RecoPulse(wf);
-
-    /*
-    for(size_t i = 0; i<_preco_alg.GetNPulse(); ++i) {
-      auto const& p = _preco_alg.GetPulse(i);
-      
-      _tstart = time_wrt_trigger + p.t_start * _period;
-      _tpeak  = time_wrt_trigger + p.t_max   * _period;
-      _tend   = time_wrt_trigger + p.t_end   * _period;
-
-      _q   = p.area;
-      _amp = p.peak;
-
-      _ped_mean = p.ped_mean;
-      _ped_rms  = p.ped_sigma;
-
-      if(_hitana_tree) _hitana_tree->Fill();
-    }
-    */
     if( _wfana_tree || _wf_tree ) {
       for(auto const& adc : wf) {
 	if(adc > _max_adc) _max_adc = adc;
@@ -80,6 +62,38 @@ namespace pmtana {
     if( _wf_tree     ) _wf_tree->Fill();
 
   }
+
+  void OpDetWaveformAna::AnaEventWaveform  ( const std::vector<raw::OpDetWaveform>& ev_wf_v)
+  {
+
+    if( !_ev_wf_tree ) return;
+    ClearWaveform();
+    
+    for (size_t i=0; i < ev_wf_v.size(); i++) {
+
+      auto const wf = ev_wf_v[i];
+
+      auto ch = wf.ChannelNumber();
+
+      if (ch >= 32) continue;
+
+      
+      for (size_t n=0; n < wf.size(); n++){
+	auto adc = wf[n];
+	if(adc > _max_adc_v[ch]) _max_adc_v[ch] = adc;
+	if(adc < _min_adc_v[ch]) _min_adc_v[ch] = adc;
+	if (n < 1500){
+	  _wf_v[ch][n] = ev_wf_v[i][n];
+	  _wfsum[n] += wf[n];
+	}
+      }// for all channels
+
+    }// for all waveforms      
+    
+    if( _ev_wf_tree ) _ev_wf_tree->Fill();
+    
+    return;
+  }
   
   void OpDetWaveformAna::ClearEvent()
   {
@@ -92,13 +106,19 @@ namespace pmtana {
     _wf_size = 0;
 
     _ped_mean = _ped_rms = -1;
+    _ped_mean_v = std::vector<float>(32,-1);
+    _ped_rms_v  = std::vector<float>(32,-1);
     _tstart = _tpeak = _tend = -1;
     _t_wrt_trigger = 0;
     _q = _amp = -1;
     _max_adc = 0;
+    _max_adc_v = std::vector<unsigned short>(32,0);
     _min_adc = std::numeric_limits<unsigned short>::max();
+    _min_adc_v =  std::vector<unsigned short>(32,std::numeric_limits<unsigned short>::max());
     _wf_size = 0;
     _wf.clear();
+    _wfsum = std::vector<int>(1500,0);
+    //_wf_v = std::vector<std::vector<short>>(32,std::vector<short>());
   }
 
   void OpDetWaveformAna::AnaHit       ( TTree* ptr )
@@ -169,7 +189,62 @@ namespace pmtana {
     _wf_tree->Branch( "min_adc",  &_min_adc,  "min_adc/s"  );
     _wf_tree->Branch( "wf", "std::vector<short>", &_wf  );
   }
+  void OpDetWaveformAna::SaveEvWaveform ( TTree* ptr )
+  {
+    if(!ptr) {
+      std::cerr << "<<" << __FUNCTION__ << ">>" << " Invalid ptr!" << std::endl;
+      throw std::exception();
+    }
+    if(ptr->GetEntries()) {
+      std::cerr << "<<" << __FUNCTION__ << ">>" << " Non-initialized TTree!" << std::endl;
+      throw std::exception();
+    }
 
+    _wf_v = std::vector< std::vector<short> >(32,std::vector<short>(1500,0));
+
+    _ev_wf_tree = ptr;
+    _ev_wf_tree->Branch( "run",      &_run,      "run/i"      );
+    _ev_wf_tree->Branch( "subrun",   &_subrun,   "subrun/i"   );
+    _ev_wf_tree->Branch( "event",    &_event,    "event/i"    );
+    _ev_wf_tree->Branch( "ped_mean_v", &_ped_mean_v, "ped_mean_v/F" );
+    _ev_wf_tree->Branch( "ped_rms_v",  &_ped_rms_v,  "ped_rms_v/F"  );
+    _ev_wf_tree->Branch( "max_adc_v",  &_max_adc_v,  "max_adc_v/s"  );
+    _ev_wf_tree->Branch( "min_adc_v",  &_min_adc_v,  "min_adc_v/s"  );
+    _ev_wf_tree->Branch( "wfsum", "std::vector<int>", &_wfsum  );
+    _ev_wf_tree->Branch( "wf_00", "std::vector<short>", &(_wf_v[0])  );
+    _ev_wf_tree->Branch( "wf_01", "std::vector<short>", &(_wf_v[1])  );
+    _ev_wf_tree->Branch( "wf_02", "std::vector<short>", &(_wf_v[2])  );
+    _ev_wf_tree->Branch( "wf_03", "std::vector<short>", &(_wf_v[3])  );
+    _ev_wf_tree->Branch( "wf_04", "std::vector<short>", &(_wf_v[4])  );
+    _ev_wf_tree->Branch( "wf_05", "std::vector<short>", &(_wf_v[5])  );
+    _ev_wf_tree->Branch( "wf_06", "std::vector<short>", &(_wf_v[6])  );
+    _ev_wf_tree->Branch( "wf_07", "std::vector<short>", &(_wf_v[7])  );
+    _ev_wf_tree->Branch( "wf_08", "std::vector<short>", &(_wf_v[8])  );
+    _ev_wf_tree->Branch( "wf_09", "std::vector<short>", &(_wf_v[9])  );
+    _ev_wf_tree->Branch( "wf_10", "std::vector<short>", &(_wf_v[10])  );
+    _ev_wf_tree->Branch( "wf_11", "std::vector<short>", &(_wf_v[11])  );
+    _ev_wf_tree->Branch( "wf_12", "std::vector<short>", &(_wf_v[12])  );
+    _ev_wf_tree->Branch( "wf_13", "std::vector<short>", &(_wf_v[13])  );
+    _ev_wf_tree->Branch( "wf_14", "std::vector<short>", &(_wf_v[14])  );
+    _ev_wf_tree->Branch( "wf_15", "std::vector<short>", &(_wf_v[15])  );
+    _ev_wf_tree->Branch( "wf_16", "std::vector<short>", &(_wf_v[16])  );
+    _ev_wf_tree->Branch( "wf_17", "std::vector<short>", &(_wf_v[17])  );
+    _ev_wf_tree->Branch( "wf_18", "std::vector<short>", &(_wf_v[18])  );
+    _ev_wf_tree->Branch( "wf_19", "std::vector<short>", &(_wf_v[19])  );
+    _ev_wf_tree->Branch( "wf_20", "std::vector<short>", &(_wf_v[20])  );
+    _ev_wf_tree->Branch( "wf_21", "std::vector<short>", &(_wf_v[21])  );
+    _ev_wf_tree->Branch( "wf_22", "std::vector<short>", &(_wf_v[22])  );
+    _ev_wf_tree->Branch( "wf_23", "std::vector<short>", &(_wf_v[23])  );
+    _ev_wf_tree->Branch( "wf_24", "std::vector<short>", &(_wf_v[24])  );
+    _ev_wf_tree->Branch( "wf_25", "std::vector<short>", &(_wf_v[25])  );
+    _ev_wf_tree->Branch( "wf_26", "std::vector<short>", &(_wf_v[26])  );
+    _ev_wf_tree->Branch( "wf_27", "std::vector<short>", &(_wf_v[27])  );
+    _ev_wf_tree->Branch( "wf_28", "std::vector<short>", &(_wf_v[28])  );
+    _ev_wf_tree->Branch( "wf_29", "std::vector<short>", &(_wf_v[29])  );
+    _ev_wf_tree->Branch( "wf_30", "std::vector<short>", &(_wf_v[30])  );
+    _ev_wf_tree->Branch( "wf_31", "std::vector<short>", &(_wf_v[31])  );
+  }
 }
+
 
 #endif

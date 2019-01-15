@@ -162,6 +162,7 @@ wcls: {
           }
 	  structs: {
       	      gain_fudge_factor: 0.826
+	      sys_resp: false
       	  }
       }
    }
@@ -193,6 +194,7 @@ wcls: {
           }
 	  structs: {
       	      gain_fudge_factor: 0.826
+	      sys_resp: false
       	  }
       }
    }
