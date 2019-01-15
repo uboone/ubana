@@ -574,10 +574,11 @@ float  ubana::TPCObjectMaker::GetTrackShowerScore(const art::Ptr<recob::PFPartic
     const auto metadata = itParticle->second.front();
     // Now get the properties map - this is a map from a string (the property name) to a float (the property value)
     const auto propertiesMap = metadata->GetPropertiesMap();
+    const auto itScoreCosmic = propertiesMap.find("IsClearCosmic");
     // Look for the track shower ID score
     const auto itScore = propertiesMap.find("TrackScore");
     // Check the track score was available
-    if (itScore == propertiesMap.end())
+    if (itScore == propertiesMap.end()&&itScoreCosmic == propertiesMap.end())
         throw cet::exception("WorkshopTrackShowerHelperComplete") << "PFParticle has no track score" << std::endl;
     return itScore->second;
 }

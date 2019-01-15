@@ -1,0 +1,82 @@
+#include "pandoramodules_microboone.fcl"
+#include "external_event_building.fcl"
+
+BEGIN_PROLOG
+
+pandoraAllOutcomesTrack:       @local::microboone_pandoraTrackCreation
+pandoraAllOutcomesShower:      @local::microboone_pandoraShowerCreation
+pandoraFlashEventBuilding:     @local::pandora_flash_event_building
+
+END_PROLOG
+
+############################################################################################################################################
+
+#include "services_microboone.fcl"
+#include "time_memory_tracker_microboone.fcl"
+#include "reco_uboone_mcc9_8.fcl"
+services:
+{
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+
+  scheduler:               {defaultExceptions: false}
+  TFileService:            {fileName: "flashID_tree.root"}
+  TimeTracker:             @local::microboone_time_tracker
+  MemoryTracker:           @local::microboone_memory_tracker
+  message:                 @local::microboone_message_services_prod_debug
+  FileCatalogMetadata:     @local::art_file_catalog_mc
+  SpaceCharge:             @local::microboone_spacecharge
+}
+
+process_name: NumuCCAnalyser
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1
+  saveMemoryObjectThreshold: 0
+}
+
+physics:
+{
+
+ producers:
+ {
+    pandoraAllOutcomesTrack:   @local::pandoraAllOutcomesTrack
+    pandoraAllOutcomesShower:  @local::pandoraAllOutcomesShower
+    pandoraFlashEventBuilding: @local::pandoraFlashEventBuilding
+ }
+ 
+
+ prod: [ pandoraAllOutcomesTrack, pandoraAllOutcomesShower, pandoraFlashEventBuilding ]
+
+ stream1:   [ out1 ]
+ trigger_paths: [ prod ]
+ end_paths: [ stream1 ]
+
+}
+
+# Configuration
+services.SpaceCharge.EnableCorrSCE:       true
+services.SpaceCharge.EnableSimEfieldSCE:  true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.DetectorPropertiesService.NumberTimeSamples:        6400
+services.DetectorPropertiesService.ReadOutWindowSize:        6400
+services.DetectorClocksService.InheritClockConfig:           false
+services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
+services.DetectorClocksService.TrigModuleName:               "daq"
+physics.producers.pandoraAllOutcomesTrack.PFParticleLabel:  "pandoraPatRec:allOutcomes"
+physics.producers.pandoraAllOutcomesShower.PFParticleLabel: "pandoraPatRec:allOutcomes"
+physics.producers.pandoraFlashEventBuilding.ShouldUseTestBeamMode: false
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName: "%ifb_%tc_flashmatching.root"
+   dataTier: "reconstructed"
+   compressionLevel: 1
+   saveMemoryObjectThreshold: 0
+ }
+}

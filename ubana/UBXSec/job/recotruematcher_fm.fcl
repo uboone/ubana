@@ -1,0 +1,33 @@
+#include "fiducial_volume_settings.fcl"
+
+BEGIN_PROLOG
+#
+# Module configuration
+#
+RecoTrueMatcher: {
+  module_type:            "RecoTrueMatcher"
+  PFParticleProducer:     "pandora"
+  HitProducer:            "gaushit"
+  GeantModule:            "largeant"
+  SpacePointProducer:     "pandora"
+  MCPHitAssProducer:      "gaushitTruthMatch" #"crHitRemovalTruthMatch::UBXSec"
+
+  OverrideRealData:       false
+
+  UsePremadeMCPHitAss:    true
+  DebugMode:              false 
+  Verbose:                false
+
+  FiducialVolumeSettings: @local::UBXSecFiducialVolumeSettings 
+}
+
+microboone_recotruematcher_pandoranu: @local::RecoTrueMatcher
+
+microboone_recotruematcher_pandoracosmic: @local::RecoTrueMatcher
+microboone_recotruematcher_pandoracosmic.PFParticleProducer: "pandoraFlashEventBuilding"
+microboone_recotruematcher_pandoracosmic.HitProducer:        "gaushit"
+microboone_recotruematcher_pandoracosmic.GeantModule:        "largeant"
+microboone_recotruematcher_pandoracosmic.SpacePointProducer: "pandora"
+microboone_recotruematcher_pandoracosmic.MCPHitAssProducer:  "gaushitTruthMatch"
+
+END_PROLOG

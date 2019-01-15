@@ -1,0 +1,20 @@
+
+BEGIN_PROLOG
+#
+# Module configuration
+#
+GeoCosmicTagger: {
+  module_type:           "GeoCosmicTagger"
+  TrackProducer:         "pandoraFlashEventBuilding"
+  PFParticleProducer:    "pandoraFlashEventBuilding"
+  TPCObjectProducer:     "TPCObjectMaker"
+
+  TPCXBoundary:          10
+  TPCYBoundary:          20
+  TPCZBoundary:          10
+
+  DebugMode:             false
+}
+
+
+END_PROLOG
