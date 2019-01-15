@@ -571,6 +571,7 @@ void UBXSec::produce(art::Event & e) {
   art::FindManyP<recob::Vertex>     tpcobjToVertexAssns(tpcobj_h, e, _tpcobject_producer);
   art::FindManyP<anab::CosmicTag>   tpcobjToCosmicTagAssns(tpcobj_h, e, _geocosmictag_producer);
   art::FindManyP<anab::CosmicTag>   tpcobjToConsistency(tpcobj_h, e, _candidateconsistency_producer);
+  art::FindManyP<anab::CosmicTag>   tpcobjToStopMu(tpcobj_h, e, _cosmic_stopmu_tag_producer);
 
   // ACPT
   //art::Handle<std::vector<anab::T0> > t0_h;
@@ -769,42 +770,12 @@ lar_pandora::PFParticleVector pfpACPTTagged;
       }
     }
   }
-
-  // ****
-  // StopMu
-  // ****
-
-  // Leaving here for now but should consider moving to near Candidate Consistency section (around line 1502) because this is copied mostly from there -- KD
-
-
-  ubxsec_event->ResizeVectors(tpcobj_h->size()); // don't need this if the code gets moved to further (it's called later anway)
-
-std::cout << "getting cosmic tag for stopmu" << std::endl;
-  art::FindManyP<anab::CosmicTag>   tpcobjToStopMu(tpcobj_h, e, _cosmic_stopmu_tag_producer);
-std::cout << "tpcobjToStopMu.size() = " << tpcobjToStopMu.size() << std::endl;
-  for (size_t slice = 0; slice < tpcobj_h->size(); slice++) {
-    std::cout << slice << std::endl;
-    ubxsec_event->slc_stopmu_tagged[slice]=false;
-    std::cout << "Getting assn" << std::endl;
-    std::vector<art::Ptr<anab::CosmicTag>> stopmu_tags = tpcobjToStopMu.at(slice);
-    std::cout << "done" << std::endl;
-    if (stopmu_tags.size()==0 || stopmu_tags.size()>1){
-      std::cout << "[UBXSec] \t More than one or less than zero Stopping Muon Tag match per tpcobj ?!" << std::endl;
-    }
-    else{
-      auto smt = stopmu_tags.at(0);
-      if (smt->CosmicType() == anab::CosmicTagID_t::kGeometry_Y){
-        if (_debug) std::cout << "[UBXSec] \t This slice has been tagged as a stopping cosmic muon. Type " << smt->CosmicType() << ", score: " << smt->CosmicScore() << std::endl;
-
-        ubxsec_event->slc_stopmu_tagged[slice] = true;
-      }
-    }
-  }
-
-
-
-
 */
+
+
+
+
+
 
 
   /*********** End of Lu adding cosmic rejection flags ***********/
@@ -1434,6 +1405,21 @@ std::cout << "tpcobjToStopMu.size() = " << tpcobjToStopMu.size() << std::endl;
 
     // Containment
     ubxsec_event->slc_iscontained[slice] = UBXSecHelper::TracksAreContained(tpcobj.GetTracks());
+
+    // Cosmic tagging: stopping mu
+    ubxsec_event->slc_stopmu_tagged[slice]=false;
+    std::vector<art::Ptr<anab::CosmicTag>> stopmu_tags = tpcobjToStopMu.at(slice);
+    if (stopmu_tags.size()==0 || stopmu_tags.size()>1){
+      std::cout << "[UBXSec] \t More than one or less than zero Stopping Muon Tag match per tpcobj ?!" << std::endl;
+    }
+    else{
+      auto smt = stopmu_tags.at(0);
+      if (smt->CosmicType() == anab::CosmicTagID_t::kGeometry_Y){
+        if (_debug) std::cout << "[UBXSec] \t This slice has been tagged as a stopping cosmic muon. Type " << smt->CosmicType() << ", score: " << smt->CosmicScore() << std::endl;
+
+        ubxsec_event->slc_stopmu_tagged[slice] = true;
+      }
+    }
 
     // Reco vertex
     double reco_nu_vtx_raw[3];

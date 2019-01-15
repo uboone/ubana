@@ -142,7 +142,7 @@ ubxsec_mc_producers: [
  			  #pandoraCosmicPFPart,
                        pandoraCosmicFlashTag,
                       #pandoraCosmicACPTTagger,
-                     #pandoraStoppingMu,
+                      pandoraStoppingMu,
                       NeutrinoMCFlash,
                        NeutrinoFlashMatch,
                        CandidateConsistency,
