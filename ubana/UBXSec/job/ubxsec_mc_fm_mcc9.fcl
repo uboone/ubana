@@ -82,7 +82,7 @@ ubxsec_mc_flashmatch:
   pandoraCosmicFlashTag:          @local::microboone_cosmicpfpflashtagger
   pandoraCosmicACPTTagger:        @local::microboone_acpttagger_mc
   #pandoraCosmicStoppingMu:        @local::microboone_cosmicstoppingmutagger_mc
- pandoraCosmicStoppingMu:        @local::StoppingMuonTagger
+ pandoraStoppingMu:        @local::StoppingMuonTagger
 
 pandoraCosmicHitRemoval:        @local::microboone_crhitremoval
 
