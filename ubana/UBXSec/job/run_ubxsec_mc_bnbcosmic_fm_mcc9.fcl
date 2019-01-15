@@ -15,7 +15,7 @@ outputs.out1.dataTier: "reconstructed"
 outputs.out1.SelectEvents: [ reco ]
 
 source.inputCommands: ["keep *_*_*_*"]
-source.fileNames: [ "/pnfs/uboone/mc/uboone/reconstructed/prod_v07_11_00_01/prodgenie_bnb_nu_cosmics/slim/prodgenie_bnb_nu_cosmic_uboone_20181124T014722_gen_20181124T021936_g4_20181124T072055_detsim_20181124T082053_reco1_postwcct_postdlmc_20181124T113400_r_f972f6bf-b379-44dd-8def-a2bb0b2fd085.root" ] #input file from samweb def prodgenie_bnb_nu_cosmics_mcc9.0_nov_fullmc_reco2_slim for local testing
+source.fileNames: [ "/pnfs/uboone/scratch/users/renlu23/Jan_10th/CCInclusive_MCC9/fullmc/14833048_2171/prodgenie_bnb_nu_cosmic_uboone_20181119T205815_gen_20181119T211959_g4_20181120T005119_detsim_20181120T014712_reco1_postwcct_postdlmc_20181120T040015_r_8959efc8-2dc8-4d17-be5f-e0dfcf9f2b19.root" ] #input file from Andy Smith and Wouter for local testing
 
 
 
@@ -25,7 +25,7 @@ beam_end:   4.90 #4.80
 physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: @local::beam_start
 physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   @local::beam_end
 
-physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: @local::beam_start 
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: @local::beam_start
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   @local::beam_end
 
 physics.producers.UBXSec.BeamSpillStart:                 @local::beam_start
