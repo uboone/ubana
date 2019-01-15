@@ -219,7 +219,7 @@ ubxsec_mc_analyzers: [ ProtonID
 #ubxsec_mc_reco.pandoraNuMCSPi.fitter.pIdHypothesis:              211
 
 # Set FlashMatching properties
-ubxsec_mc_flashmatch.NeutrinoFlashMatch.TrackModule:             "pandora::UBXSec"
+ubxsec_mc_flashmatch.NeutrinoFlashMatch.TrackModule:             "pandoraFlashEventBuilding"
 
 # Set Reweighting properties
 #ubxsec_mc_flashmatch.genieeventweightpm1.weight_functions: [ genie_qema, genie_ncelAxial, genie_ncelEta, genie_qevec, genie_ccresAxial, genie_ccresVector, genie_ncresAxial, genie_ncresVector, genie_cohMA, genie_cohR0, genie_NonResRvp1pi, genie_NonResRvbarp1pi, genie_NonResRvp2pi, genie_NonResRvbarp2pi, genie_ResDecayGamma, genie_ResDecayEta,  genie_ResDecayTheta, genie_NC, genie_DISAth, genie_DISBth, genie_DISCv1u, genie_DISCv2u, genie_AGKYxF, genie_AGKYpT, genie_FormZone, genie_FermiGasModelKf, genie_FermiGasModelSf, genie_IntraNukeNmfp, genie_IntraNukeNcex, genie_IntraNukeNel, genie_IntraNukeNinel, genie_IntraNukeNabs, genie_IntraNukeNpi, genie_IntraNukePImfp, genie_IntraNukePIcex, genie_IntraNukePIel, genie_IntraNukePIinel, genie_IntraNukePIabs, genie_IntraNukePIpi ]
@@ -227,8 +227,8 @@ ubxsec_mc_flashmatch.NeutrinoFlashMatch.TrackModule:             "pandora::UBXSe
 
 
 # Set Filter properties
-ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandora::UBXSec" ]
-ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "UBXSec::UBXSec" ]
+ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandoraFlashEventBuilding" ]
+ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "pandoraFlashEventBuilding" ]
 ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicProducerLabel:  ""
 ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicClusterAssns:   ""
 
