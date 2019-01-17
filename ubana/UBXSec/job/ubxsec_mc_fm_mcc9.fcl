@@ -4,18 +4,14 @@
 #include "opticaldetectormodules_microboone.fcl"
 #include "correct_saturation.fcl"
 #include "calibration_microboone.fcl"
-
 #include "genie_eventweight_microboone_ubxsec.fcl"
 #include "flux_eventweight_microboone_ubxsec.fcl"
-
 #include "tpcobjectmaker_fm_mcc9.fcl"
 #include "neutrinomcflash.fcl"
 #include "neutrinoflashmatch_fm.fcl"
 #include "cosmicflashmatch.fcl"
-
 #include "calorimetry_microboone.fcl"
 #include "particleid_microboone.fcl"
-
 #include "pandoramodules_microboone.fcl"
 #include "hitfindermodules_microboone.fcl"
 #include "cosmicremovalmodules.fcl"
@@ -26,16 +22,11 @@
 #include "geocosmictagger_fm.fcl"
 #include "stoppingmuontagger_fm.fcl"
 #include "candidateconsistency.fcl"
-
 #include "mcsfitproducer.fcl"
-
 #include "fiducial_volume_settings.fcl"
 #include "numucc_eventselection_settings.fcl"
-
 #include "ubxsec_settings_fm_mcc9.fcl"
-
 #include "tpcneutrinoidfilter_microboone.fcl"
-
 #include "mctrutht0matching.fcl"
 #include "ubflashfinder.fcl"
 
@@ -75,7 +66,10 @@ ubxsec_mc_reco:
 
 ubxsec_mc_flashmatch:
 {
-   RecoTrueMatcher:                @local::microboone_recotruematcher_pandoranu
+pandoraFlashEventBuildingcalo:   @local::microboone_calomc 
+pandoraFlashEventBuildingpid:   @local::microboone_chi2pid
+
+  RecoTrueMatcher:                @local::microboone_recotruematcher_pandoranu
 
    TPCObjectMaker:                 @local::TPCObjectMaker
   pandoraCosmicTrackPFPart:       @local::microboone_cosmicpfparticletagger
@@ -117,7 +111,7 @@ ubxsec_mc_ana:
 }
 
 
-ubxsec_mc_producers: [
+ubxsec_mc_producers: [ #pandoraFlashEventBuildingcalo,
 #			pandoraCosmicTPCObj,
 #                       RecoTrueMatcherCosmic,
  #                     pandoraCosmicTrackPFPart,
@@ -128,8 +122,8 @@ ubxsec_mc_producers: [
    #                    crHitRemovalTruthMatch,
 #                       pandora,
                        #pandoraNuAll,
-                       #pandoraNucalo,
-                       #pandoraNupid,
+                       pandoraFlashEventBuildingcalo,
+                       pandoraFlashEventBuildingpid,
                        #pandoraNucali,
                        #pandoraNucalipid,
                        #pandoraNuMCSMu,
@@ -198,13 +192,13 @@ ubxsec_mc_analyzers: [ ProtonID
 #ubxsec_mc_reco.pandoraNuAll.HitFinderModuleLabel:                "gaushit"
 #ubxsec_mc_reco.pandoraNuAll.ConfigFile:                          "PandoraSettings_MicroBooNE_Neutrino.xml"
 
-#ubxsec_mc_reco.pandoracalo.TrackModuleLabel:                   "pandora::UBXSec"
-#ubxsec_mc_reco.pandoracalo.SpacePointModuleLabel:              "pandora::UBXSec"
+ubxsec_mc_flashmatch.pandoraFlashEventBuildingcalo.TrackModuleLabel:                   "pandoraFlashEventBuilding"
+ubxsec_mc_flashmatch.pandoraFlashEventBuildingcalo.SpacePointModuleLabel:              "pandoraFlashEventBuilding"
 #ubxsec_mc_reco.pandoraNucalo.Flip_dQdx:                          false
 #ubxsec_mc_reco.pandoraNucalo.FlipTrack_dQdx:                     false
 
-#ubxsec_mc_reco.pandoraNupid.CalorimetryModuleLabel:              "pandoraNucalo::UBXSec"
-#ubxsec_mc_reco.pandoraNupid.TrackModuleLabel:                    "pandora::UBXSec"
+ubxsec_mc_flashmatch.pandoraFlashEventBuildingpid.CalorimetryModuleLabel:              "pandoraFlashEventBuildingcalo"
+ubxsec_mc_flashmatch.pandoraFlashEventBuildingpid.TrackModuleLabel:                    "pandoraFlashEventBuilding"
 
 #ubxsec_mc_reco.pandoraNucali.TrackModuleLabel:                   "pandora::UBXSec"
 #ubxsec_mc_reco.pandoraNucali.CalorimetryModuleLabel:             "pandoraNucalo::UBXSec"
@@ -231,6 +225,5 @@ ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "
 ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "pandoraFlashEventBuilding" ]
 ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicProducerLabel:  ""
 ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicClusterAssns:   ""
-
 
 END_PROLOG

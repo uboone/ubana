@@ -18,7 +18,6 @@ services:
 {
   @table::microboone_services_reco
   @table::microboone_simulation_services
-
   scheduler:               {defaultExceptions: false}
   TFileService:            {fileName: "flashID_tree.root"}
   TimeTracker:             @local::microboone_time_tracker
@@ -44,7 +43,7 @@ physics:
  {
     pandoraAllOutcomesTrack:   @local::pandoraAllOutcomesTrack
     pandoraAllOutcomesShower:  @local::pandoraAllOutcomesShower
-    pandoraFlashEventBuilding: @local::pandoraFlashEventBuilding
+    pandoraFlashEventBuilding: @local::pandoraFlashEventBuilding 
  }
  
 

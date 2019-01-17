@@ -82,6 +82,9 @@ ubxsec_data_reco:
 
 ubxsec_data_flashmatch:
 {
+pandoraFlashEventBuildingcalo:   @local::microboone_calomc
+pandoraFlashEventBuildingpid:   @local::microboone_chi2pid
+
    RecoTrueMatcher:               @local::microboone_recotruematcher_pandoranu
 
    TPCObjectMaker:                @local::TPCObjectMaker
@@ -127,6 +130,8 @@ ubxsec_data_producers: [ #simpleFlashBeam,
             #             pandoraNucalipid,
              #            pandoraNuMCSMu,
               #           pandoraNuMCSPi,
+                       pandoraFlashEventBuildingcalo,
+                       pandoraFlashEventBuildingpid,
                          RecoTrueMatcher,
                          TPCObjectMaker,
 			 #pandoraCosmicPFPart,
@@ -195,6 +200,11 @@ ubxsec_data_analyzers: [ #CosmicTaggerAna
 
 #ubxsec_data_reco.pandoraNuMCSPi.inputs.inputLabel:                 "pandoraNu::UBXSec"
 #ubxsec_data_reco.pandoraNuMCSPi.fitter.pIdHypothesis:              211
+
+ubxsec_data_flashmatch.pandoraFlashEventBuildingcalo.TrackModuleLabel:                   "pandoraFlashEventBuilding"
+ubxsec_data_flashmatch.pandoraFlashEventBuildingcalo.SpacePointModuleLabel:              "pandoraFlashEventBuilding"
+ubxsec_data_flashmatch.pandoraFlashEventBuildingpid.CalorimetryModuleLabel:              "pandoraFlashEventBuildingcalo"
+ubxsec_data_flashmatch.pandoraFlashEventBuildingpid.TrackModuleLabel:                    "pandoraFlashEventBuilding"
 
 # Set FlashMatching properties
 ubxsec_data_flashmatch.NeutrinoFlashMatch.TrackModule:             "pandoraFlashEventBuilding"
