@@ -99,6 +99,23 @@ namespace single_photon
                 std::map<art::Ptr<simb::MCParticle>,T>& mcParticleToMCObjectMap
                 ){
 
+
+            for(size_t io=0; io<mcObjectVector.size(); ++io){
+
+                    const T object = mcObjectVector[io];
+                    int object_trackID =object->TrackID(); 
+                    int object_mother_trackID =object->MotherTrackID(); 
+                    int object_ancestor_trackID =object->AncestorTrackID();
+                    const std::vector< unsigned int > object_daughters_trackID = object->DaughterTrackID();
+                    std::cout<<"KRANK: "<<io<<" "<<object_trackID<<" "<<object_mother_trackID<<" "<<object_ancestor_trackID<<std::endl;
+                    std::cout<<"KRANK: "<<object_daughters_trackID.size()<<std::endl;
+                }
+
+
+
+
+            return;
+
             for(size_t ip=0; ip<mcParticleVector.size(); ++ip){
                 const art::Ptr<simb::MCParticle> particle = mcParticleVector[ip];
                 int particle_trackID = particle->TrackId();

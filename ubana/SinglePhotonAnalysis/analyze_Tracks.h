@@ -27,6 +27,7 @@ namespace single_photon
         m_reco_track_num_trajpoints.clear();
         m_reco_track_num_spacepoints.clear();
         m_reco_track_proton_kinetic_energy.clear();
+        m_reco_track_ordered_energy_index.clear();
 
         m_reco_track_spacepoint_principal0.clear();
         m_reco_track_spacepoint_principal1.clear();
@@ -80,6 +81,7 @@ namespace single_photon
         m_reco_track_num_trajpoints.resize(size);
         m_reco_track_num_spacepoints.resize(size);
         m_reco_track_proton_kinetic_energy.resize(size);
+        m_reco_track_ordered_energy_index.resize(size);
 
 
         m_reco_track_spacepoint_principal0.resize(size);
@@ -142,6 +144,7 @@ namespace single_photon
         vertex_tree->Branch("reco_track_num_trajpoints", &m_reco_track_num_trajpoints);
         vertex_tree->Branch("reco_track_num_spacepoints", &m_reco_track_num_spacepoints);
         vertex_tree->Branch("reco_track_proton_kinetic_energy", &m_reco_track_proton_kinetic_energy);
+        vertex_tree->Branch("reco_track_ordered_energy_index", &m_reco_track_ordered_energy_index);
 
         vertex_tree->Branch("reco_track_spacepoint_principal0",&m_reco_track_spacepoint_principal0);
         vertex_tree->Branch("reco_track_spacepoint_principal1",&m_reco_track_spacepoint_principal1);
@@ -296,6 +299,9 @@ namespace single_photon
             i_trk++;
 
         }
+
+        //Lets sort and order the showers
+        m_reco_track_ordered_energy_index = sort_indexes(m_reco_track_proton_kinetic_energy);
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Finished."<<std::endl;;

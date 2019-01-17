@@ -38,6 +38,7 @@ namespace single_photon
         m_sim_shower_starty.clear();
         m_sim_shower_startz.clear();
 
+        m_reco_shower_ordered_energy_index.clear();
         m_reco_shower_energy.clear();
         m_reco_shower_dQdx_plane0.clear();
         m_reco_shower_dQdx_plane2.clear();
@@ -57,9 +58,6 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_min.clear();
         m_reco_shower_dEdx_plane1_min.clear();
         m_reco_shower_dEdx_plane2_min.clear();	
-
-
-
 
         m_reco_shower_dEdx_plane0_nhits.clear();
         m_reco_shower_dEdx_plane1_nhits.clear();
@@ -103,6 +101,7 @@ namespace single_photon
         m_reco_shower_delaunay_area_plane2.resize(size);
 
         m_reco_shower_energy.resize(size);
+        m_reco_shower_ordered_energy_index.resize(size);
         m_reco_shower_dQdx_plane0.resize(size);
         m_reco_shower_dQdx_plane1.resize(size);
         m_reco_shower_dQdx_plane2.resize(size);
@@ -178,6 +177,7 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_delaunay_area_plane2",&m_reco_shower_delaunay_area_plane2);
         //the calorimetry info
         vertex_tree->Branch("reco_shower_energy",&m_reco_shower_energy);
+        vertex_tree->Branch("reco_shower_ordered_energy_index",&m_reco_shower_ordered_energy_index);
         vertex_tree->Branch("reco_shower_dQdx_plane0",&m_reco_shower_dQdx_plane0);
         vertex_tree->Branch("reco_shower_dQdx_plane1",&m_reco_shower_dQdx_plane1);
         vertex_tree->Branch("reco_shower_dQdx_plane2",&m_reco_shower_dQdx_plane2);
@@ -470,6 +470,13 @@ namespace single_photon
 
             i_shr++;
         }
+
+
+        //Lets sort and order the showers
+        m_reco_shower_ordered_energy_index = sort_indexes(m_reco_shower_energy);
+
+
+
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished."<<std::endl;;
