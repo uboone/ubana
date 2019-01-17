@@ -160,7 +160,7 @@ namespace calibration {
   
   //-------------------------------------------------------------------
   void NoiseFilter::produce(art::Event & evt){
-    LOG_INFO ("NoiseFilter Module") << "Processing Run " << fRun << ", Subrun " << fSubrun << ", Event " << fEvent;
+    MF_LOG_INFO ("NoiseFilter Module") << "Processing Run " << fRun << ", Subrun " << fSubrun << ", Event " << fEvent;
 
     auto const* fGeometry = lar::providerFrom<geo::Geometry>();
   //  auto const* fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
