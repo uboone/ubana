@@ -79,15 +79,13 @@ namespace single_photon
 {
 
     template <typename T>
-        vector<size_t> sort_indexes(const vector<T> &v) {
+        std::vector<size_t> sort_indexes(const std::vector<T> &v) {
 
-            initialize original index locations
-                vector<size_t> idx(v.size());
-            iota(idx.begin(), idx.end(), 0);
+            std::vector<size_t> idx(v.size());
+            std::iota(idx.begin(), idx.end(), 0);
 
             // sort indexes based on comparing values in v
-            sort(idx.begin(), idx.end(),
-                    [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+            std::sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {return v[i1] > v[i2];});
 
             return idx;
         }
@@ -458,7 +456,7 @@ namespace single_photon
             std::vector<int> m_reco_track_num_trajpoints;
             std::vector<int> m_reco_track_num_spacepoints;
             std::vector<double> m_reco_track_proton_kinetic_energy;
-            std::vector<int>  m_reco_track_ordered_energy_index;
+            std::vector<size_t>  m_reco_track_ordered_energy_index;
             std::vector<double> m_reco_track_spacepoint_principal0;
             std::vector<double> m_reco_track_spacepoint_principal1;
             std::vector<double> m_reco_track_spacepoint_principal2;
@@ -601,7 +599,7 @@ namespace single_photon
 
             //the calo calculated quantities 
             std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
-            std::vector<int>  m_reco_shower_ordered_energy_index;
+            std::vector<size_t>  m_reco_shower_ordered_energy_index;
             std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
             std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
             std::vector<std::vector<double>> m_reco_shower_dQdx_plane2;
