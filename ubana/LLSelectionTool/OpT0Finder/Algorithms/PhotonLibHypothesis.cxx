@@ -33,6 +33,8 @@ namespace flashana {
 					 Flash_t &flash) const
   {
     art::ServiceHandle<phot::PhotonVisibilityService> vis;
+    art::ServiceHandle<geo::Geometry> geo;
+
     static double xyz[3] = {0.};
 
     size_t n_pmt = BaseAlgorithm::NOpDets();//n_pmt returns 0 now, needs to be fixed
@@ -40,6 +42,8 @@ namespace flashana {
     for ( auto& v : flash.pe_v ) v = 0;
     
     for ( size_t ipmt = 0; ipmt < n_pmt; ++ipmt) {
+
+      auto opdet = geo->OpDetFromOpChannel(ipmt);
 
       for ( size_t ipt = 0; ipt < trk.size(); ++ipt) {
 	
@@ -51,9 +55,11 @@ namespace flashana {
         xyz[0] = pt.x;
 	xyz[1] = pt.y;
 	xyz[2] = pt.z;
-	q *= vis->GetVisibility(xyz, ipmt) * _global_qe / _qe_v[ipmt];
+	double v = vis->GetVisibility(xyz, opdet) * _global_qe / _qe_v[ipmt];
+	//double v = vis->GetVisibility(xyz, ipmt) * _global_qe / _qe_v[ipmt];
+	q *= v;
         flash.pe_v[ipmt] += q;
-	//std::cout << "PMT : " << ipmt << " [x,y,z] -> [q] : [" << pt.x << ", " << pt.y << ", " << pt.z << "] -> [" << q << std::endl;
+	//std::cout << "PMT : " << ipmt << " [x,y,z] -> [q] : [ " << pt.x << ", " << pt.y << ", " << pt.z << " ] -> [ " << q << " ] and vis [ " << v << " ]" << std::endl;
 	
       }
     }

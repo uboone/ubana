@@ -154,6 +154,13 @@ namespace flashana {
 	if(H < _penalty_threshold_v[pmt_index]) continue;
 	O = _penalty_value_v[pmt_index];
       }
+
+      // David C -> ignore PMTs where observation is below threshold
+      // if ypothesis is also below threshold
+      if ( (O < _penalty_threshold_v[pmt_index]) && (H < _penalty_threshold_v[pmt_index]*1.5) ) continue;
+      if ( (O < _penalty_threshold_v[pmt_index]) && (H > _penalty_threshold_v[pmt_index]*1.5) ) {
+	O = _penalty_value_v[pmt_index];
+      }
       
       nvalid_pmt += 1;
 
