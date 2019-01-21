@@ -236,7 +236,7 @@ void T0TrackCalib::analyze(art::Event const & e)
     ::geoalgo::Trajectory geotrj;
     geotrj.reserve(track_ptr->NumberTrajectoryPoints() - 1);
     for (size_t i = 0; i < track_ptr->NumberTrajectoryPoints(); ++i) {
-      ::geoalgo::Vector pt(track_ptr->LocationAtPoint(i));
+      ::geoalgo::Vector pt(track_ptr->LocationAtPoint<TVector3>(i));
       geotrj.emplace_back(std::move(pt));
     }
     auto qcluster = ((flashana::LightPath*)(_mgr.GetCustomAlgo("LightPath")))->FlashHypothesis(geotrj);

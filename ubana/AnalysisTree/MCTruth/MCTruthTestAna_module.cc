@@ -112,17 +112,18 @@ private:
     std::unique_ptr<truth::IMCTruthMatching> fMCTruthMatching;
     
     // Some histograms to keep a check on things
-    TH1D*                                    fNumIDEHist;
-    TH1D*                                    fDeltaIDEHist;
-    TH1D*                                    fNegEnergyHist;
-    TH1D*                                    fNegNElecHist;
-    TH1D*                                    fIDEMisMatchHist;
-    TH1D*                                    fBTEfficiencyHist;
-    TH1D*                                    fAssocEfficiencyHist;
-    TH2D*                                    fEfficiencyCompHist;
-    TH1D*                                    fBTPurityHist;
-    TH1D*                                    fAssocPurityHist;
-    TH2D*                                    fPurityCompHist;
+    TH1F*                                    fNumIDEHist;
+    TH1F*                                    fDeltaIDEHist;
+    TH1F*                                    fNegEnergyHist;
+    TH1F*                                    fNegNElecHist;
+    TH1F*                                    fIDEMisMatchHist;
+    TH1F*                                    fBTEfficiencyHist;
+    TH1F*                                    fAssocEfficiencyHist;
+    TH2F*                                    fEfficiencyCompHist;
+    TH1F*                                    fBTPurityHist;
+    TH1F*                                    fAssocPurityHist;
+    TH2F*                                    fPurityCompHist;
+    TH1F*                                    fDeltaEveIDEHist;
 
     // Other variables that will be shared between different methods.
     const geo::GeometryCore*                 fGeometry;       // pointer to Geometry service
@@ -165,17 +166,18 @@ void MCTruthTestAna::beginJob()
     // Define the histograms. Putting semi-colons around the title
     // causes it to be displayed as the x-axis label if the histogram
     // is drawn.
-    fNumIDEHist          = tfs->make<TH1D>("NumIDEs",      ";# ides",                   20,   0.,  20.);
-    fDeltaIDEHist        = tfs->make<TH1D>("DeltaIDE",     ";delta",                    20, -10.,  10.);
-    fNegEnergyHist       = tfs->make<TH1D>("NegEnergy",    ";energy",                  500,   0.,  10.);
-    fNegNElecHist        = tfs->make<TH1D>("NegNumElec",   ";# electrons",             200,   0., 100.);
-    fIDEMisMatchHist     = tfs->make<TH1D>("IDEMisMatch",  ";# mismatches",             20,  10.,  10.);
-    fBTEfficiencyHist    = tfs->make<TH1D>("BTEfficiency", ";efficiency",              102,   0.,   1.02);
-    fAssocEfficiencyHist = tfs->make<TH1D>("AssocEffic",   ";efficiency",              102,   0.,   1.02);
-    fEfficiencyCompHist  = tfs->make<TH2D>("Efficiency",   ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
-    fBTPurityHist        = tfs->make<TH1D>("BTPurity",     ";Purity",                  102,   0.,   1.02);
-    fAssocPurityHist     = tfs->make<TH1D>("AssocPurity",  ";Purity",                  102,   0.,   1.02);
-    fPurityCompHist      = tfs->make<TH2D>("Purity",       ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
+    fNumIDEHist          = tfs->make<TH1F>("NumIDEs",      ";# ides",                   20,   0.,  20.);
+    fDeltaIDEHist        = tfs->make<TH1F>("DeltaIDE",     ";delta",                    20, -10.,  10.);
+    fNegEnergyHist       = tfs->make<TH1F>("NegEnergy",    ";energy",                  500,   0.,  10.);
+    fNegNElecHist        = tfs->make<TH1F>("NegNumElec",   ";# electrons",             200,   0., 100.);
+    fIDEMisMatchHist     = tfs->make<TH1F>("IDEMisMatch",  ";# mismatches",             10,   0.,  10.);
+    fBTEfficiencyHist    = tfs->make<TH1F>("BTEfficiency", ";efficiency",              102,   0.,   1.02);
+    fAssocEfficiencyHist = tfs->make<TH1F>("AssocEffic",   ";efficiency",              102,   0.,   1.02);
+    fEfficiencyCompHist  = tfs->make<TH2F>("Efficiency",   ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
+    fBTPurityHist        = tfs->make<TH1F>("BTPurity",     ";Purity",                  102,   0.,   1.02);
+    fAssocPurityHist     = tfs->make<TH1F>("AssocPurity",  ";Purity",                  102,   0.,   1.02);
+    fPurityCompHist      = tfs->make<TH2F>("Purity",       ";BackTrack;Associations",   52,   0.,   1.04, 52, 0., 1.04);
+    fDeltaEveIDEHist     = tfs->make<TH1F>("DeltaEveIDE",  ";delta",                    20, -10.,  10.);
 
 }
 
@@ -263,11 +265,64 @@ void MCTruthTestAna::analyze(const art::Event& event)
             {
                 std::vector<sim::TrackIDE>::const_iterator trackIDItr = std::find_if(trackIDEVec.begin(),trackIDEVec.end(),[btTrkID](const auto& id){return btTrkID.trackID == id.trackID && btTrkID.energy == id.energy && btTrkID.numElectrons == id.numElectrons;});
                 
-                if (trackIDItr == trackIDEVec.end()) nIDEMisMatches++;
+                if (trackIDItr == trackIDEVec.end())
+                {
+                    // Try searching again but this time with the abs(trackID)
+                    trackIDItr = std::find_if(trackIDEVec.begin(),trackIDEVec.end(),[btTrkID](const auto& id){return std::abs(btTrkID.trackID) == std::abs(id.trackID) && std::abs(btTrkID.energy - id.energy) < 2.*std::numeric_limits<float>::round_error() && std::abs(btTrkID.numElectrons - id.numElectrons) < 2.*std::numeric_limits<float>::round_error();});
+                    
+                    if(trackIDItr == trackIDEVec.end())
+                    {
+                        // For debugging, check what the problem is
+                        std::cout << "***> BT/Ass IDE mismatch, BT id: " << btTrkID.trackID << ", Ene/#e: " << btTrkID.energy << "/" << btTrkID.numElectrons << std::endl;
+                        
+                        for(const auto& id : trackIDEVec)
+                            std::cout << "     -- Association id: " << id.trackID << " Ene/#e: " << id.energy << "/" << id.numElectrons << std::endl;
+                        
+                        nIDEMisMatches++;
+                    }
+                }
             }
             
             fIDEMisMatchHist->Fill(nIDEMisMatches, 1.);
             nTotalMisMatches += nIDEMisMatches;
+            
+            // Now check the eve ID's...
+            std::vector<sim::TrackIDE> eveIDEVec   = fMCTruthMatching->HitToEveID(hit);
+            std::vector<sim::TrackIDE> btEveIDEVec = backTracker->HitToEveTrackIDEs(hit);
+            
+            // Look for match in returned sizes...
+            int deltaEveIDs = int(btEveIDEVec.size()) - int(eveIDEVec.size());
+            
+            fDeltaEveIDEHist->Fill(deltaEveIDs,1.);
+            
+            if (deltaEveIDs == 0)
+            {
+                for(const auto& btIDE : btEveIDEVec)
+                {
+                    std::vector<sim::TrackIDE>::const_iterator trackIDItr = std::find_if(eveIDEVec.begin(),eveIDEVec.end(),[btIDE](const auto& id){return std::abs(btIDE.trackID) == std::abs(id.trackID) && std::abs(btIDE.energy - id.energy) < 2.*std::numeric_limits<float>::round_error();}); //  && btIDE.numElectrons == id.numElectrons;}); Note that the BackTracker does not currently fill the number of electrons
+                    
+                    if (trackIDItr == eveIDEVec.end())
+                    {
+                        std::cout << "===> Eve id mismatch, hit channel: " << hit.Channel() << ", id: " << btIDE.trackID << ", Ene/#e: " << btIDE.energy << "/" << btIDE.numElectrons << std::endl;
+                        for(const auto& id : eveIDEVec)
+                            std::cout << "     -- Association id: " << id.trackID << " Ene/#e: " << id.energy << "/" << id.numElectrons << std::endl;
+                    }
+                }
+            }
+            else
+            {
+                // Dump both for now
+                std::cout << "--------------------------  Eve ID MISMATCH -----------------------------" << std::endl;
+                for(const auto& ide : eveIDEVec)
+                {
+                    std::cout << "---> Associtions eve id: " << ide.trackID << ", ene/#e: " << ide.energy << "/" << ide.numElectrons << std::endl;
+                }
+                for(const auto& ide : btEveIDEVec)
+                {
+                    std::cout << "+++> Backtracker eve id: " << ide.trackID << ", ene/#e: " << ide.energy << "/" << ide.numElectrons << std::endl;
+                }
+                std::cout << "=========================================================================" << std::endl;
+            }
         }
         
         mf::LogInfo("MCTruthTestAna") << "==> Found " << nTotalMisMatches << " between BackTracker and Associations, BT reported " << nNegTrackIDs << " negative track ids \n";

@@ -93,8 +93,9 @@ public:
     
     // method to return the EveIDs of particles contributing ionization
     // electrons to the identified hit
+    std::vector<sim::TrackIDE> HitToEveID(recob::Hit           const& hit) const override;
     std::vector<sim::TrackIDE> HitToEveID(art::Ptr<recob::Hit> const& hit) const override;
-    
+
     // method to return the XYZ position of the weighted average energy deposition for a given hit
     std::vector<double>  HitToXYZ(art::Ptr<recob::Hit> const& hit) const override;
     
@@ -269,12 +270,17 @@ const std::vector<std::vector<art::Ptr<recob::Hit>>> BackTrackerTruth::TrackIDsT
 // plist is assumed to have adopted the appropriate EveIdCalculator prior to
 // having been passed to this method. It is likely that the EmEveIdCalculator is
 // the one you always want to use
-std::vector<sim::TrackIDE> BackTrackerTruth::HitToEveID(art::Ptr<recob::Hit> const& hit) const
+std::vector<sim::TrackIDE> BackTrackerTruth::HitToEveID(recob::Hit const& hit) const
 {
     art::ServiceHandle<cheat::BackTrackerService> backTracker;
     return backTracker->HitToEveTrackIDEs(hit);
 }
     
+std::vector<sim::TrackIDE> BackTrackerTruth::HitToEveID(art::Ptr<recob::Hit> const& hit) const
+{
+    return this->HitToEveID(*hit);
+}
+
 //----------------------------------------------------------------------
 std::set<int> BackTrackerTruth::GetSetOfEveIDs() const
 {

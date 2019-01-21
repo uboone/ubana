@@ -15,6 +15,12 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
+#include "lardataobj/RecoBase/Wire.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/MCBase/MCShower.h"
+#include "lardataobj/Simulation/SimChannel.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+
 #include "TH1.h"
 #include "TH2.h"
 #include "TProfile.h"
@@ -91,7 +97,7 @@ public:
     /**
      *  @brief Interface for filling histograms
      */
-  void fillHistograms(const std::vector<recob::Hit>&, const std::vector<simb::MCParticle>&, const std::vector<sim::SimChannel>&, const std::vector<sim::MCShower>&)  const override;
+  void fillHistograms(const art::Event&)  const override;
     
 private:
     
@@ -99,6 +105,11 @@ private:
     void clear() const;
     
     // Fcl parameters.
+    art::InputTag               fWireProducerLabel;
+    art::InputTag               fHitProducerLabel;
+    art::InputTag               fMCParticleProducerLabel;
+    art::InputTag               fSimChannelProducerLabel;
+    art::InputTag               fMCShowerProducerLabel;
     std::string                 fLocalDirName;           ///< Fraction for truncated mean
     std::vector<unsigned short> fOffsetVec;              ///< Allow offsets for each plane
     std::vector<float>          fSigmaVec;               ///< Window size for matching to SimChannels
@@ -187,10 +198,15 @@ ShowerHitEfficiencyAnalysis::~ShowerHitEfficiencyAnalysis()
 ///
 void ShowerHitEfficiencyAnalysis::configure(fhicl::ParameterSet const & pset)
 {
-    fLocalDirName          = pset.get<std::string>("LocalDirName", std::string("wow"));
-    fOffsetVec             = pset.get<std::vector<unsigned short>>("OffsetVec", std::vector<unsigned short>()={0,0,0});
-    fSigmaVec              = pset.get<std::vector<float>>("SigmaVec", std::vector<float>()={1.,1.,1.});
-    fMinAllowedChanStatus  = pset.get< int >("MinAllowedChannelStatus");
+    fWireProducerLabel       = pset.get< std::string               >("WireModuleLabel", "decon1droi");
+    fHitProducerLabel        = pset.get< std::string               >("HitModuleLabel",  "gauss");
+    fMCParticleProducerLabel = pset.get< std::string               >("MCParticleLabel", "largeant");
+    fSimChannelProducerLabel = pset.get< std::string               >("SimChannelLabel", "largeant");
+    fMCShowerProducerLabel   = pset.get< std::string               >("MCShowerLabel",   "MCReco");
+    fLocalDirName            = pset.get<std::string>("LocalDirName", std::string("wow"));
+    fOffsetVec               = pset.get<std::vector<unsigned short>>("OffsetVec", std::vector<unsigned short>()={0,0,0});
+    fSigmaVec                = pset.get<std::vector<float>>("SigmaVec", std::vector<float>()={1.,1.,1.});
+    fMinAllowedChanStatus    = pset.get< int >("MinAllowedChannelStatus");
 }
 
 //----------------------------------------------------------------------------
@@ -301,50 +317,58 @@ void ShowerHitEfficiencyAnalysis::clear() const
     return;
 }
     
-void ShowerHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& hitVec, 
-						 const std::vector<simb::MCParticle>& mcParticleVec,
-						 const std::vector<sim::SimChannel>& simChannelVec,
-						 const std::vector<sim::MCShower>& mcShowerVec) const
+void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
 {
     // Always clear the tuple
     clear();
     
-    // If there is no sim channel informaton then exit
-    if (simChannelVec.empty()) return;
+    art::Handle< std::vector<sim::SimChannel>> simChannelHandle;
+    event.getByLabel(fSimChannelProducerLabel, simChannelHandle);
     
-    // what needs to be done?
+    // If there is no sim channel informaton then exit
+    if (!simChannelHandle.isValid() || simChannelHandle->empty()) return;
+    
+    art::Handle< std::vector<recob::Wire> > wireHandle;
+    event.getByLabel(fWireProducerLabel, wireHandle);
+    
+    art::Handle< std::vector<recob::Hit> > hitHandle;
+    event.getByLabel(fHitProducerLabel, hitHandle);
+    
+    art::Handle< std::vector<simb::MCParticle>> mcParticleHandle;
+    event.getByLabel(fMCParticleProducerLabel, mcParticleHandle);
+    
+    art::Handle< std::vector<sim::MCShower>> mcShowerHandle;
+    event.getByLabel(fMCShowerProducerLabel, mcShowerHandle);
+    
+    if (!wireHandle.isValid() || !hitHandle.isValid() || !mcParticleHandle.isValid() || !mcShowerHandle.isValid()) return;
+    
+    // Find the associations between wire data and hits
+    // What we want to be able to do is look up hits that have been associated to Wire data
+    // So we ask for the list of hits, given a handle to the Wire data and remember that the
+    // associations are made in the hit finder
+    //art::FindManyP<recob::Hit> wireHitAssns(wireHandle,event,fHitProducerLabel);    // what needs to be done?
     // First we should map out all hits by channel so we can easily look up from sim channels
     // Then go through the sim channels and match hits
     using ChanToHitVecMap = std::map<raw::ChannelID_t,std::vector<const recob::Hit*>>;
     ChanToHitVecMap channelToHitVec;
     
-    for(const auto& hit : hitVec) channelToHitVec[hit.Channel()].push_back(&hit);
+    for(const auto& hit : *hitHandle) channelToHitVec[hit.Channel()].push_back(&hit);
 
 
     // create a map linking TrackID to MCShower parent ID if this is necessary
-    std::map<unsigned short, unsigned short> TrkIDToParentTrkIdMap;
     std::map<unsigned short, unsigned short> TrkIDtoMCShrTrkIdMap;
-    for (const auto& mcS : mcShowerVec) {
+    for (const auto& mcS : *mcShowerHandle) {
       auto daughters = mcS.DaughterTrackID();
       auto shrid = mcS.TrackID();
       for (auto const& d : daughters) { TrkIDtoMCShrTrkIdMap[d] = shrid; }
     }// for all MCShowers
-    for(const auto& mcParticle : mcParticleVec) {
-      // is this mcparticle's trackid in the shower list?
-      auto trkid = mcParticle.TrackId();
-      if (TrkIDtoMCShrTrkIdMap.find( trkid ) == TrkIDtoMCShrTrkIdMap.end() )
-	TrkIDToParentTrkIdMap[trkid] = trkid;
-      else
-	TrkIDToParentTrkIdMap[trkid] = TrkIDtoMCShrTrkIdMap[trkid];
-    }
-
 
     // It is useful to create a mapping between trackID and MCParticle
     using TrackIDToMCParticleMap = std::map<int, const simb::MCParticle*>;
 
     TrackIDToMCParticleMap trackIDToMCParticleMap;
 
-    for(const auto& mcParticle : mcParticleVec) {
+    for(const auto& mcParticle : *mcParticleHandle) {
       // find parent particle
       auto mctrkid = mcParticle.TrackId();
       if (TrkIDtoMCShrTrkIdMap.find( mctrkid ) == TrkIDtoMCShrTrkIdMap.end() )
@@ -365,7 +389,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const std::vector<recob::Hit>& 
     PartToChanToTDCToIDEMap partToChanToTDCToIDEMap;
     
     // Build out the above data structure
-    for(const auto& simChannel : simChannelVec)
+    for(const auto& simChannel : *simChannelHandle)
     {
         for(const auto& tdcide : simChannel.TDCIDEMap())
         {

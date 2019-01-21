@@ -70,8 +70,8 @@ namespace ubana {
       auto iter1 = pfp_to_tracks.find(pfp);
       if (iter1 != pfp_to_tracks.end()) {
         if (_debug) std::cout << "[TPCObjectFilter] \t Found track for this pfp" << std::endl;
-        tp.pt1 = (*iter1).second[0]->Vertex();
-        tp.pt2 = (*iter1).second[0]->End(); 
+        tp.pt1 = (*iter1).second[0]->Vertex<TVector3>();
+        tp.pt2 = (*iter1).second[0]->End<TVector3>(); 
         if (_debug) std::cout << "[TPCObjectFilter] \t tp.pt1 = " << tp.pt1.X() << " " << tp.pt1.Y() << " " << tp.pt1.Z() << ", tp.pt2 = " << tp.pt2.X() << " " << tp.pt2.Y() << " " << tp.pt2.Z() << std::endl;
         tp.good = true;
       }
