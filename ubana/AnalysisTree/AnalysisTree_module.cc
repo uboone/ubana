@@ -5484,27 +5484,30 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	art::FindMany<anab::ParticleID> fmpid(trackListHandle[iTracker], evt, fParticleIDModuleLabel[iTracker]);
 	if(fmpid.isValid()) {
 	  std::vector<const anab::ParticleID*> pids = fmpid.at(iTrk);
-	  if(pids.size() > 1) {
-	    mf::LogError("AnalysisTree:limits")
-	      << "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
-	      << " has " << pids.size() 
-	      << " set of ParticleID variables. Only one stored in the tree";
-	  }
 	  if (pids.size() == 0){
-	    mf::LogError("AnalysisTree::limits")
+	    mf::LogError("AnalysisTree:limits")
 	      << "No track-PID association found for " << fTrackModuleLabel[iTracker]
 	      << " track " << iTrk << ". Not saving particleID information."; 
 	  }
-	  else{ // if track-PID assn exists
-	    std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[0]->ParticleIDAlgScores();
-	    // Set dummy values
-	    double pidpdg[3] = {-1,-1,-1};
-	    double pidchi[3] = {99999.,99999.,99999.};
+	  // Set dummy values
+	  double pidpdg[3] = {-1,-1,-1};
+	  double pidchi[3] = {99999.,99999.,99999.};
+	  for (size_t ipid=0; ipid<pids.size(); ipid++){ 
+	    std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[ipid]->ParticleIDAlgScores();
 
 	    // Loop though AlgScoresVec and find the variables we want
 	    for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 	      anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-	      int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
+
+	      /* std::cout << "\n ParticleIDAlg " << AlgScore.fAlgName
+			<< "\n -- Variable type: " << AlgScore.fVariableType
+			<< "\n -- Track direction: " << AlgScore.fTrackDir
+			<< "\n -- Assuming PDG: " << AlgScore.fAssumedPdg
+			<< "\n -- Number of degrees of freedom: " << AlgScore.fNdf
+			<< "\n -- Value: " << AlgScore.fValue
+			<< "\n -- Using planeMask: " << UBPID::uB_getSinglePlane(AlgScore.fPlaneMask) << std::endl;*/
+	      
+	      int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 	      if (planenum<0 || planenum>2) continue;
 
 	      if (AlgScore.fAlgName == "Chi2"){
@@ -5543,13 +5546,13 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	      }
 	      
 	    } // end loop though AlgScoresVec
+	  } // end loop over pid[ipid]
 
-	    // Finally, set min chi2
-	    for (size_t planenum=0; planenum<3; planenum++){
-	      TrackerData.trkpidchi[iTrk][planenum] = pidchi[planenum];
-	      TrackerData.trkpidpdg[iTrk][planenum] = pidpdg[planenum];
-	    }
-	  } // end if track-PID assn exists
+	  // Finally, set min chi2
+	  for (size_t planenum=0; planenum<3; planenum++){
+	    TrackerData.trkpidchi[iTrk][planenum] = pidchi[planenum];
+	    TrackerData.trkpidpdg[iTrk][planenum] = pidpdg[planenum];
+	  }
 	} // fmpid.isValid()
 	
 	art::FindMany<anab::Calorimetry> fmcal(trackListHandle[iTracker], evt, fCalorimetryModuleLabel[iTracker]);

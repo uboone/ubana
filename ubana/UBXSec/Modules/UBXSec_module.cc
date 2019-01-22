@@ -616,11 +616,19 @@ void UBXSec::produce(art::Event & e) {
       continue;
 
     for (auto pid : pids) {
-      track_to_pid_map[track] = pid;
-      continue;
+      // Check that pid object contains plane-2 PIDA (because that's all we care about)
+      std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
+      for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+	anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+	int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+	if (AlgScore.fVariableType==anab::kPIDA && planenum==2){
+	  track_to_pid_map[track] = pid;
+	  continue;
+	}
+      }
     }
   }
-
+  
   // Get Ghosts
   art::Handle<std::vector<ubana::MCGhost> > ghost_h;
   e.getByLabel(_mc_ghost_producer,ghost_h);
@@ -1888,7 +1896,7 @@ void UBXSec::produce(art::Event & e) {
 	double tmppida=-9999;
 	for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 	  anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-	  int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
+	  int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 	  if (planenum<0 || planenum>2) continue;
 	  if (AlgScore.fVariableType==anab::kPIDA){
 	    std::cout << "[UBXSec] \t\t ParticleID PIDA is " << AlgScore.fValue << ", plane is " << planenum << std::endl;
