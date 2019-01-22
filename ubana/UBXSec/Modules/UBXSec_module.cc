@@ -613,14 +613,19 @@ void UBXSec::produce(art::Event & e) {
       continue;
 
     for (auto pid : pids) {
-      if (!pid->PlaneID().isValid) continue;
-      int planenum = pid->PlaneID().Plane;
-      if (planenum != 2) continue;
-      track_to_pid_map[track] = pid;
-      continue;
+      // Check that pid object contains plane-2 PIDA (because that's all we care about)
+      std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
+      for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+	anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+	int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+	if (AlgScore.fVariableType==anab::kPIDA && planenum==2){
+	  track_to_pid_map[track] = pid;
+	  continue;
+	}
+      }
     }
   }
-
+  
   // Get Ghosts
   art::Handle<std::vector<ubana::MCGhost> > ghost_h;
   e.getByLabel(_mc_ghost_producer,ghost_h);
@@ -1878,29 +1883,41 @@ void UBXSec::produce(art::Event & e) {
         if(pids.size() > 1) {
           std::cout << "[UBXSec] \t\t ParticleID vector is bigger than 1. Only one saved." << std::endl;
         }
-        for (auto pid : pids) {
-          if (!pid->PlaneID().isValid) continue;
-          int planenum = pid->PlaneID().Plane;
-          if (planenum < 0 || planenum > 2) continue;
-          std::cout << "[UBXSec] \t\t ParticleID PIDA is " << pid->PIDA() << ", plane is " << planenum << std::endl;
-          if (/*_is_signal && (ubxsec_event->slc_origin[slice] == 0 || ubxsec_event->slc_origin[slice] == 2) &&*/ planenum == 2) {
-            if (pdg == 13) {
-              _h_pida_muon->Fill(pid->PIDA());
-              _h_pida_len_muon->Fill(pid->PIDA(), track->Length());
-              if( pid->PIDA() > 0 && pid->PIDA() < 50. && _make_pida_csv) _csvfile << pid->PIDA() << "," << track->Length() << "," << "1" << std::endl;
-            } else if (pdg == 2212) {
-              _h_pida_proton->Fill(pid->PIDA());
-              _h_pida_len_proton->Fill(pid->PIDA(), track->Length());
-              if( pid->PIDA() > 0 && pid->PIDA() < 50. && _make_pida_csv) _csvfile << pid->PIDA() << "," << track->Length() << "," << "0" << std::endl;
-            } else if (pdg == 211) {
-              _h_pida_pion->Fill(pid->PIDA());
-              _h_pida_len_pion->Fill(pid->PIDA(), track->Length());
-            } else if (pdg == 321) {
-              _h_pida_kaon->Fill(pid->PIDA());
-              _h_pida_len_kaon->Fill(pid->PIDA(), track->Length());
-            }
-          }
-        }
+			   
+	std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[0]->ParticleIDAlgScores();
+			   
+	// Loop though AlgScoresVec and find the variables we want
+	double tmppida=-9999;
+	for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+	  anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+	  int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+	  if (planenum<0 || planenum>2) continue;
+	  if (AlgScore.fVariableType==anab::kPIDA){
+	    std::cout << "[UBXSec] \t\t ParticleID PIDA is " << AlgScore.fValue << ", plane is " << planenum << std::endl;
+	    if (/*_is_signal && (ubxsec_event->slc_origin[slice] == 0 || ubxsec_event->slc_origin[slice] == 2) &&*/ planenum == 2) {
+	      tmppida=AlgScore.fValue;
+	    }
+	  }
+	}
+
+	// Don't fill things if PIDA was not found
+	if (tmppida==-9999) continue;
+
+	if (pdg == 13) {
+	  _h_pida_muon->Fill(tmppida);
+	  _h_pida_len_muon->Fill(tmppida, track->Length());
+	  if( tmppida > 0 && tmppida < 50. && _make_pida_csv) _csvfile << tmppida << "," << track->Length() << "," << "1" << std::endl;
+	} else if (pdg == 2212) {
+	  _h_pida_proton->Fill(tmppida);
+	  _h_pida_len_proton->Fill(tmppida, track->Length());
+	  if( tmppida > 0 && tmppida < 50. && _make_pida_csv) _csvfile << tmppida << "," << track->Length() << "," << "0" << std::endl;
+	} else if (pdg == 211) {
+	  _h_pida_pion->Fill(tmppida);
+	  _h_pida_len_pion->Fill(tmppida, track->Length());
+	} else if (pdg == 321) {
+	  _h_pida_kaon->Fill(tmppida);
+	  _h_pida_len_kaon->Fill(tmppida, track->Length());
+	}
       }
     }
  

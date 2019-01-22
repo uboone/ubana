@@ -508,13 +508,26 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 		         }
 			   
 		         if(fmpid.isValid()){
-			    for(size_t ipid = 0; ipid < pids.size(); ++ipid){
-			        if(!pids[ipid]->PlaneID().isValid) continue;
-     	                        int planenum = pids[ipid]->PlaneID().Plane;
-     	                        if(planenum<0||planenum>2) continue;
-				mu_def_pida[stop_mu-1][planenum]=float(pids[ipid]->PIDA());
-			    }
-			 }
+			   if (pids.size() == 0){
+			     std::cout << "No track-PID association found for stopping muon " << stop_mu-1 << ". Not saving particleID information." << std::endl;
+			     continue;
+			   }
+
+			   
+			   for (size_t ipid=0; ipid<pids.size(); ipid++){ 
+			     std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[ipid]->ParticleIDAlgScores();
+			   
+			     // Loop though AlgScoresVec and find the variables we want
+			     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+			       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+			       int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+			       if (planenum<0 || planenum>2) continue;
+			       if (AlgScore.fVariableType==anab::kPIDA){
+				 mu_def_pida[stop_mu-1][planenum]=float(AlgScore.fValue);
+			       }
+			     }
+			   }
+			 } // if fmpid.isValid()
 		       } // stopping muons...
 		     
 		       ////////////////////////// Stopping Pions ///////////////////////////
@@ -573,15 +586,28 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 				 pi_trkpitch[stop_pi-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
 			     }
 		         }
-			 
-			 if(fmpid.isValid()){
-			    for(size_t ipid = 0; ipid < pids.size(); ++ipid){
-			        if(!pids[ipid]->PlaneID().isValid) continue;
-     	                        int planenum = pids[ipid]->PlaneID().Plane;
-     	                        if(planenum<0||planenum>2) continue;
-				pi_def_pida[stop_pi-1][planenum]=float(pids[ipid]->PIDA());
-			    }
-			 }
+			  
+		         if(fmpid.isValid()){
+			   if (pids.size() == 0){
+			     std::cout << "No track-PID association found for stopping muon " << stop_mu-1 << ". Not saving particleID information." << std::endl;
+			     continue;
+			   }
+
+			   
+			   for (size_t ipid=0; ipid<pids.size(); ipid++){ 
+			     std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[ipid]->ParticleIDAlgScores();
+			   
+			     // Loop though AlgScoresVec and find the variables we want
+			     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+			       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+			       int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+			       if (planenum<0 || planenum>2) continue;
+			       if (AlgScore.fVariableType==anab::kPIDA){
+				 pi_def_pida[stop_pi-1][planenum]=float(AlgScore.fValue);
+			       }
+			     }
+			   }
+			 } // if fmpid.isValid()
 		      
 		       } // decay pion
 		      } // stopping pions.....
@@ -631,15 +657,28 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 				 k_trkpitch[stop_k-1][planenum][iHit]=(calos[ical] -> TrkPitchVec())[iHit];
 			     }
 		         }
-			 
-			 if(fmpid.isValid()){
-			    for(size_t ipid = 0; ipid < pids.size(); ++ipid){
-			        if(!pids[ipid]->PlaneID().isValid) continue;
-     	                        int planenum = pids[ipid]->PlaneID().Plane;
-     	                        if(planenum<0||planenum>2) continue;
-				k_def_pida[stop_k-1][planenum]=float(pids[ipid]->PIDA());
-			    }
-			 }
+			   
+		         if(fmpid.isValid()){
+			   if (pids.size() == 0){
+			     std::cout << "No track-PID association found for stopping muon " << stop_mu-1 << ". Not saving particleID information." << std::endl;
+			     continue;
+			   }
+
+			   
+			   for (size_t ipid=0; ipid<pids.size(); ipid++){ 
+			     std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[ipid]->ParticleIDAlgScores();
+			   
+			     // Loop though AlgScoresVec and find the variables we want
+			     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+			       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+			       int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+			       if (planenum<0 || planenum>2) continue;
+			       if (AlgScore.fVariableType==anab::kPIDA){
+				 k_def_pida[stop_k-1][planenum]=float(AlgScore.fValue);
+			       }
+			     }
+			   }
+			 } // if fmpid.isValid()
 		      } // stopping kaons.....
 		     
 		     //////////////////////////////////// Stopping Protons ///////////////////////////////////////
@@ -703,14 +742,27 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 		            }
 			 
 			    if(fmpid.isValid()){
-			       for(size_t ipid = 0; ipid < pids.size(); ++ipid){
-			           if(!pids[ipid]->PlaneID().isValid) continue;
-     	                           int planenum = pids[ipid]->PlaneID().Plane;
-     	                           if(planenum<0||planenum>2) continue;
-			           p_def_pida[stop_p-1][planenum]=float(pids[ipid]->PIDA());
-			       }
-			   }
-		      
+			      if (pids.size() == 0){
+				std::cout << "No track-PID association found for stopping muon " << stop_mu-1 << ". Not saving particleID information." << std::endl;
+				continue;
+			      }
+
+			   
+			      for (size_t ipid=0; ipid<pids.size(); ipid++){ 
+				std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[ipid]->ParticleIDAlgScores();
+			   
+				// Loop though AlgScoresVec and find the variables we want
+				for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+				  anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+				  int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+				  if (planenum<0 || planenum>2) continue;
+				  if (AlgScore.fVariableType==anab::kPIDA){
+				    p_def_pida[stop_p-1][planenum]=float(AlgScore.fValue);
+				  }
+				}
+			      }
+			    } // if fmpid.isValid()
+			    
 		         } // number of daughters are zero
 		      } // stopping protons
 		    
