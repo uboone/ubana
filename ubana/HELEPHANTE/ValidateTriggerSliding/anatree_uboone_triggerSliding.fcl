@@ -1,0 +1,13 @@
+#include "anatree_uboone.fcl"
+ 
+physics.analyzers.TriggerSliding:
+    {
+      module_type:          "ValidateTriggerSliding"
+    }
+physics.ana: [ analysistree, TriggerSliding]
+
+physics.analyzers.analysistree.SWTriggerModuleLabel: "daq"
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -400
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400
