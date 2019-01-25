@@ -57,6 +57,7 @@ physics:
 
       ### DATA TYPE DEPENDENT SETTINGS (different for data/mc/mchsn) ###
       UseTruthDistanceMetric:       "false"
+      IsData:                       "false"
       IsHSN:                        "false"
 
       ### ADDITIONAL (FINER TUNING)

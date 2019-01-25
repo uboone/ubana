@@ -43,7 +43,18 @@ void ValidateTriggerSliding::ExtractTriggerInformation(art::Event const & evt)
     std::string("swtrigger3"),
     std::string("swtrigger4"),
     std::string("swtrigger5"),
-    std::string("swtrigger6")
+    std::string("swtrigger6"),
+    std::string("swtrigger7"),
+    std::string("swtrigger8"),
+    std::string("swtrigger9"),
+    std::string("swtrigger10"),
+    std::string("swtrigger11"),
+    std::string("swtrigger12"),
+    std::string("swtrigger13"),
+    std::string("swtrigger14"),
+    std::string("swtrigger15"),
+    std::string("swtrigger16"),
+    std::string("swtrigger17")
   };
 
   for (int i=0; i!=int(triggerLabel.size()); i++)

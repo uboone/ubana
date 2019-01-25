@@ -172,12 +172,10 @@ namespace AuxEvent
     flash_flashDistance = -999;
     flash_flashPE = -999;
     // Trigger info
-    trigger_passedBNB = false;
-    trigger_passedBNB5PE = false;
-    trigger_passedEXT = false;
-    trigger_passedEXT5PE = false;
-    trigger_passedHSN = false;
-    trigger_passedHSNEXT = false;
+    trigger_triggerName.clear();
+    trigger_triggerAlgoPass.clear();
+    trigger_triggerPrescalePass.clear();
+    trigger_triggerPass.clear();
     // G4 info
     g4_pi_pdg = -999;
     g4_mu_pdg = -999;

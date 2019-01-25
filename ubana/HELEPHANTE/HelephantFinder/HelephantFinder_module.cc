@@ -240,12 +240,10 @@ void HelephantFinder::beginJob()
   // Trigger
   if (fSaveTriggerInformation)
   {
-    candidateTree->Branch("trigger_passedBNB",&ctf.trigger_passedBNB);
-    candidateTree->Branch("trigger_passedBNB5PE",&ctf.trigger_passedBNB5PE);
-    candidateTree->Branch("trigger_passedEXT",&ctf.trigger_passedEXT);
-    candidateTree->Branch("trigger_passedEXT5PE",&ctf.trigger_passedEXT5PE);
-    candidateTree->Branch("trigger_passedHSN",&ctf.trigger_passedHSN);
-    candidateTree->Branch("trigger_passedHSNEXT",&ctf.trigger_passedHSNEXT);
+    candidateTree->Branch("trigger_triggerName",&ctf.trigger_triggerName);
+    candidateTree->Branch("trigger_triggerAlgoPass",&ctf.trigger_triggerAlgoPass);
+    candidateTree->Branch("trigger_triggerPrescalePass",&ctf.trigger_triggerPrescalePass);
+    candidateTree->Branch("trigger_triggerPass",&ctf.trigger_triggerPass);
   }
   // G4 Information
   if (fSaveG4Information)
@@ -441,7 +439,7 @@ void HelephantFinder::analyze(art::Event const & evt)
       if (fSaveG4Information) fG4InformationAlg.AddG4Information(evt,ctf,currentVertex);
 
       // If requested, save information regarding dEdX for the current vertex
-      if (fSavedEdXInformation) fdEdXInformationAlg.AdddEdXInformation(evt,ctf,currentVertex);
+      // if (fSavedEdXInformation) fdEdXInformationAlg.AdddEdXInformation(evt,ctf,currentVertex);
 
       // If requested, save information for the custom event display
       if (fSaveDrawTree)
@@ -453,7 +451,6 @@ void HelephantFinder::analyze(art::Event const & evt)
         if (fSaveTruthDrawTree) fExtractTruthInformationAlg.FillDrawTreeWithTruth(evt,dtf);
         drawTree->Fill();
       }
-      
       // Fill candidate-level tree for each candidate
       candidateTree->Fill();
     } // END FOR loop for each candidate

@@ -1,5 +1,7 @@
 #include "helephantFinder_base.fcl"
 
+physics.analyzers.HelephantFinder.IsData:                                        "true"
+physics.analyzers.HelephantFinder.IsHSN:                                         "false"
+
 physics.analyzers.HelephantFinder.SaveTruthDrawTree:                             "false"
 physics.analyzers.HelephantFinder.UseTruthDistanceMetric:                        "false"
-physics.analyzers.HelephantFinder.IsHSN:                                         "false"

@@ -16,7 +16,9 @@ namespace TriggerInformation
   TriggerInformationAlg::~TriggerInformationAlg()
   {}
   void TriggerInformationAlg::reconfigure(fhicl::ParameterSet const & pset)
-  {}
+  {
+    fIsData = pset.get<bool>("IsData");
+  }
 
   // Add trigger information to tree
   void TriggerInformationAlg::AddTriggerInformation(
@@ -27,46 +29,25 @@ namespace TriggerInformation
     bool pass_algo, pass_prescale, pass;
 
     // Prepare trigger information
-    std::string triggerLabel("swtrigger");
+    std::string triggerLabel;
+    if (fIsData) {triggerLabel = std::string("daq");}
+    else {triggerLabel = std::string("swtrigger");}
     art::InputTag triggerTag {triggerLabel};
     const auto& triggerHandle = evt.getValidHandle< raw::ubdaqSoftwareTriggerData >(triggerTag);
     
-    // Check trigger
-    std::string bnbTrigName("BNB_FEMBeamTriggerAlgo");
-    pass_algo = triggerHandle->passedAlgo(bnbTrigName);
-    pass_prescale = triggerHandle->passedPrescaleAlgo(bnbTrigName);
-    pass = pass_algo && pass_prescale;
-    ctf.trigger_passedBNB = pass;
-
-    std::string bnb5PETrigName("BNB_2017Dec_SwTrigger5PE_FEMBeamTriggerAlgo");
-    pass_algo = triggerHandle->passedAlgo(bnb5PETrigName);
-    pass_prescale = triggerHandle->passedPrescaleAlgo(bnb5PETrigName);
-    pass = pass_algo && pass_prescale;
-    ctf.trigger_passedBNB5PE = pass;
-
-    std::string extTrigName("EXT_BNBwin_FEMBeamTriggerAlgo");
-    pass_algo = triggerHandle->passedAlgo(extTrigName);
-    pass_prescale = triggerHandle->passedPrescaleAlgo(extTrigName);
-    pass = pass_algo && pass_prescale;
-    ctf.trigger_passedEXT = pass;
-
-    std::string ext5PETrigName("EXT_BNBwin_2017Dec_SwTrigger5PE_FEMBeamTriggerAlgo");
-    pass_algo = triggerHandle->passedAlgo(ext5PETrigName);
-    pass_prescale = triggerHandle->passedPrescaleAlgo(ext5PETrigName);
-    pass = pass_algo && pass_prescale;
-    ctf.trigger_passedEXT5PE = pass;
-
-    std::string hsnTrigName("BNB_HSN_c0_FEMBeamTriggerAlgo");
-    pass_algo = triggerHandle->passedAlgo(hsnTrigName);
-    pass_prescale = triggerHandle->passedPrescaleAlgo(hsnTrigName);
-    pass = pass_algo && pass_prescale;
-    ctf.trigger_passedHSN = pass;
-
-    std::string hsnExtTrigName("EXT_HSN_c0_FEMBeamTriggerAlgo");
-    pass_algo = triggerHandle->passedAlgo(hsnExtTrigName);
-    pass_prescale = triggerHandle->passedPrescaleAlgo(hsnExtTrigName);
-    pass = pass_algo && pass_prescale;
-    ctf.trigger_passedHSNEXT = pass;
+    std::vector<std::string> triggerName = triggerHandle->getListOfAlgorithms();
+    for (int j=0; j!=triggerHandle->getNumberOfAlgorithms(); j++)
+    {
+      // Check trigger
+      pass_algo = triggerHandle->passedAlgo(triggerName[j]);
+      pass_prescale = triggerHandle->passedPrescaleAlgo(triggerName[j]);
+      pass = pass_algo && pass_prescale;
+      // Assign values
+      ctf.trigger_triggerName.push_back(triggerLabel+std::string("_")+triggerName[j]);
+      ctf.trigger_triggerAlgoPass.push_back(pass_algo);
+      ctf.trigger_triggerPrescalePass.push_back(pass_prescale);
+      ctf.trigger_triggerPass.push_back(pass);
+    }
   } //  END function AddTriggerInformation
 
 } // END namespace TriggerInformation

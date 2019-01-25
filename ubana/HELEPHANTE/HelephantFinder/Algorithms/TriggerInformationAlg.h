@@ -83,6 +83,7 @@ namespace TriggerInformation
             art::Event const & evt,
             AuxEvent::CandidateTreeFiller & ctf);
   private:
+    bool fIsData;
   }; // END class TriggerInformationAlg
 } // END namespace TriggerInformation
 

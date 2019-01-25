@@ -140,7 +140,8 @@ namespace AuxEvent
     // Flash info
     float flash_flashDistance, flash_flashPE;
     // Trigger info
-    bool trigger_passedBNB, trigger_passedBNB5PE, trigger_passedEXT, trigger_passedEXT5PE, trigger_passedHSN, trigger_passedHSNEXT;
+    std::vector<std::string> trigger_triggerName;
+    std::vector<bool> trigger_triggerAlgoPass, trigger_triggerPrescalePass, trigger_triggerPass;
     // G4 info
     int g4_pi_pdg, g4_mu_pdg;
     float g4_pi_mom, g4_mu_mom;
