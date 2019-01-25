@@ -174,6 +174,9 @@ private:
 
     mutable std::vector<int>   fNMatchedWires;
     mutable std::vector<int>   fNMatchedHits;
+
+    mutable std::vector<int>   fWireStartTickVec;
+    mutable std::vector<int>   fWireStopTickVec;
     
     mutable std::vector<float> fHitPeakTimeVec;
     mutable std::vector<float> fHitPeakAmpVec;
@@ -337,6 +340,9 @@ void TrackHitEfficiencyAnalysis::initializeTuple(TTree* tree)
 
     fTree->Branch("NMatchedWires",     "std::vector<int>",   &fNMatchedWires);
     fTree->Branch("NMatchedHits",      "std::vector<int>",   &fNMatchedHits);
+
+    fTree->Branch("WireStartTicks",    "std::vector<int>",   &fWireStartTickVec);
+    fTree->Branch("WireStopTicks",     "std::vector<int>",   &fWireStopTickVec);
     
     fTree->Branch("HitPeakTimeVec",    "std::vector<float>", &fHitPeakTimeVec);
     fTree->Branch("HitPeakAmpVec",     "std::vector<float>", &fHitPeakAmpVec);
@@ -374,6 +380,9 @@ void TrackHitEfficiencyAnalysis::clear() const
     
     fNMatchedWires.clear();
     fNMatchedHits.clear();
+
+    fWireStartTickVec.clear();
+    fWireStopTickVec.clear();
 
     fHitPeakTimeVec.clear();
     fHitPeakAmpVec.clear();
@@ -614,6 +623,8 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             fSimNumTDCVec[plane]->Fill(stopTick - startTick, 1.);
     
             // Set up to extract the "best" parameters in the event of more than one hit for this pulse train
+            int            wireStartTick(0);
+            int            wireStopTick(0);
             float          nElectronsTotalBest(0.);
             float          hitSummedADCBest(0.);
             float          hitIntegralBest(0.);
@@ -652,7 +663,10 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                     // If no overlap then go to next
                     if (roiFirstBinTick > stopTick || roiLastBinTick < startTick) continue;
                     
-                    wireRangePtr = &range;
+                    wireRangePtr  = &range;
+                    wireStartTick = roiFirstBinTick;
+                    wireStopTick  = roiLastBinTick;
+
                     break;
                 }
                 
@@ -798,6 +812,9 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
 
             fNMatchedWires.push_back(nMatchedWires);
             fNMatchedHits.push_back(nMatchedHits);
+
+            fWireStartTickVec.push_back(wireStartTick);
+            fWireStopTickVec.push_back(wireStopTick);
 
             fHitPeakTimeVec.push_back(hitPeakTimeBest);
             fHitPeakAmpVec.push_back(hitPeakAmpBest);
