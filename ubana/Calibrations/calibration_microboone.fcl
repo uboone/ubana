@@ -23,9 +23,9 @@ microboone_noisefilter :
 microboone_calibrationdedx :
 {
     module_type:             CalibrationdEdX
-    TrackModuleLabel:        "pandoraNu"
-    CalorimetryModuleLabel:  "pandoraNucalo"
-    CalibrationFileName:     "calibration_mcc8.4_v1.root"
+    TrackModuleLabel:        "pandoraTrack"
+    CalorimetryModuleLabel:  "pandoraTrackcalo"
+    CalibrationFileName:     "calibration_mcc9_mc_v1_efieldcorr.root"
     Corr_YZ:                 ["correction_yz_plane0", "correction_yz_plane1", "correction_yz_plane2"]
     Corr_X:                  ["correction_x_plane0", "correction_x_plane1", "correction_x_plane2"]
     UseRecoTrackDir:         true
@@ -38,8 +38,6 @@ microboone_calibrationdedx :
 
 microboone_calibrationdedx_data :        @local::microboone_calibrationdedx
 microboone_calibrationdedx_data.CaloAlg: @local::microboone_calorimetryalgmcc84data
-#retuned modified box model by Raquel for data
-microboone_calibrationdedx_data.ModBoxA: 0.9220
-microboone_calibrationdedx_data.ModBoxB: 0.1836
+microboone_calibrationdedx_data.CalibrationFileName: "calibration_mcc9_v1_efieldcorr.root"
 
 END_PROLOG
