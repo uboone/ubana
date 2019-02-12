@@ -1,4 +1,4 @@
-#include "ubxsec_data_common_fm_mcc9.fcl"
+#include "ubxsec_overlay_common_fm_mcc9.fcl"
 
 
 process_name: UBXSec
@@ -27,9 +27,11 @@ physics.producers.UBXSec.BeamSpillEnd:                   5.20
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.60
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   5.20
 
-physics.producers.UBXSec.UseGENIEInfo:                   false
+physics.producers.UBXSec.UseGENIEInfo:                   true
 
 physics.producers.pandoraCosmicFlashTag.DoOpDetSwap: false
 physics.producers.NeutrinoFlashMatch.DoOpDetSwap:    false  
 physics.producers.UBXSec.DoOpDetSwap:                false
+physics.producers.RecoTrueMatcher.Overlay:           true
+physics.producers.RecoTrueMatcher.DebugMode:           true
 

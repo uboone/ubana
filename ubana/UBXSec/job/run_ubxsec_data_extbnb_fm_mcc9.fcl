@@ -31,5 +31,5 @@ physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: @local::beam_s
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   @local::beam_end
 
 physics.producers.UBXSec.UseGENIEInfo:                   false
-
+physics.producers.RecoTrueMatcher.Overlay:           false
 physics.producers.UBXSec.FileType: "extbnb"

@@ -66,6 +66,7 @@ namespace ubana {
                              std::string _hitfinder_producer, 
                              std::string _geant_producer) {
 
+
     // Collect hits
     lar_pandora::HitVector hitVector;
     lar_pandora::LArPandoraHelper::CollectHits(e, _hitfinder_producer, hitVector);
@@ -86,7 +87,8 @@ namespace ubana {
                                                           lar_pandora::LArPandoraHelper::kAddDaughters,
                                                           true); // Use clusters to go from pfp to hits
 
-    if (_verbose) {
+   
+    if (_debug) {
       std::cout << "[McPfpMatch] RecoNeutrinos: " << recoNeutrinoVector.size() << std::endl;
       std::cout << "[McPfpMatch] RecoParticles: " << recoParticleVector.size() << std::endl;
     }
@@ -98,7 +100,7 @@ namespace ubana {
     lar_pandora::MCParticlesToHits    trueParticlesToHits;
     lar_pandora::HitsToMCParticles    hit_to_mcps_map;
 
-    if (!_is_data) {
+    if (!_is_data&&!_is_overlay) {
       lar_pandora::LArPandoraHelper::CollectMCParticles(e, _geant_producer, trueParticleVector);
       lar_pandora::LArPandoraHelper::CollectMCParticles(e, _geant_producer, truthToParticles, particlesToTruth);
       lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(e, 
@@ -109,7 +111,7 @@ namespace ubana {
                                                             lar_pandora::LArPandoraHelper::kAddDaughters); // Consider daughters as independent mcps
     }
 
-    if (_verbose) {
+    if (_debug) {
       std::cout << "[McPfpMatch] TrueParticles: " << particlesToTruth.size() << std::endl;
       std::cout << "[McPfpMatch] TrueEvents: " << truthToParticles.size() << std::endl;
     }  
@@ -152,7 +154,7 @@ namespace ubana {
 
     _is_data = e.isRealData();
 
-    if (_override_real_data) {
+    if (_override_real_data||_is_overlay) {
       _is_data = false;
     }
 
@@ -195,14 +197,14 @@ namespace ubana {
     lar_pandora::MCParticlesToMCTruth particlesToTruth;
     lar_pandora::MCParticlesToHits    trueParticlesToHits;
     lar_pandora::HitsToMCParticles    hit_to_mcps_map;
-
-    if (!_is_data) {
+ //std::cout<<"[Lu test overlay truth matching] before everything "<<std::endl;
+    if ((!_is_data)||_is_overlay) {
       lar_pandora::LArPandoraHelper::CollectMCParticles(e, _geant_producer, trueParticleVector);
       lar_pandora::LArPandoraHelper::CollectMCParticles(e, _geant_producer, truthToParticles, particlesToTruth);
 
       // Construct a Particle Map (trackID to MCParticle)
       lar_pandora::MCParticleMap particleMap;
-
+ //std::cout<<"[Lu test overlay truth matching] before before loop hit "<<std::endl;
       for (lar_pandora::MCTruthToMCParticles::const_iterator iter1 = truthToParticles.begin(), iterEnd1 = truthToParticles.end(); iter1 != iterEnd1; ++iter1)
       {
           const lar_pandora::MCParticleVector &particleVector = iter1->second;
@@ -217,15 +219,17 @@ namespace ubana {
 
       std::vector<art::Ptr<simb::MCParticle>> mcp_v;
       std::vector<anab::BackTrackerHitMatchingData const*> match_v;
-
-      for (auto hit : hitVector) {
+      //if(_is_overlay&&mcp_v.isNull()) return;	
+   //   std::cout<<"[Lu test overlay truth matching] before the hit loop "<<std::endl;   
+   for (auto hit : hitVector) {
 
         mcp_v.clear(); match_v.clear();
         mcps_from_hit.get(hit.key(), mcp_v, match_v);
 
         double max_energy = -1;
         int best_match_id = -1;
-
+ //std::cout<<"[Lu test overlay truth matching] best_match_id=-1 "<<std::endl;
+ 
         for (size_t m = 0; m < match_v.size(); m++) {
           double this_energy = match_v[m]->energy;
           if (this_energy > max_energy) {
@@ -233,12 +237,13 @@ namespace ubana {
             max_energy = this_energy;
           }
         }
-        
+  //std::cout<<"[Lu test overlay truth matching] best_match_id? "<<best_match_id<<std::endl;      
         if (best_match_id > -1) {
 
           try {
 
             const art::Ptr<simb::MCParticle> thisParticle = mcp_v.at(best_match_id);
+            if(_is_overlay&& thisParticle.isNull()) continue;
             const art::Ptr<simb::MCParticle> primaryParticle(lar_pandora::LArPandoraHelper::GetFinalStateMCParticle(particleMap, thisParticle));
             const art::Ptr<simb::MCParticle> selectedParticle((lar_pandora::LArPandoraHelper::kAddDaughters == daughterMode) ? primaryParticle : thisParticle);
 
@@ -265,8 +270,9 @@ namespace ubana {
     _hit_to_mcps_map = hit_to_mcps_map;
     _pfp_to_hits_map = pfp_to_hits_map;
 
-    if (_debug) std::cout << "hit_to_mcps_map size " << hit_to_mcps_map.size() << std::endl;
-
+    if (_debug) std::cout << "[Lu test overlay truth matching] hit_to_mcps_map size " << hit_to_mcps_map.size() << std::endl;
+   // std::cout<<"[Lu test overlay truth matching] overlay? "<<_is_data<<std::endl;
+ //std::cout<<"[Lu test overlay truth matching] overlay? "<<_is_overlay<<std::endl;
     _configured = true;
   }
 
@@ -278,7 +284,7 @@ namespace ubana {
       std::cout << "Call to " << __PRETTY_FUNCTION__ << " whitout having done configuration. Abort." << std::endl;
       throw std::exception();
     }
-      
+   //  std::cout<<"[Lu test overlay truth matching]"<<std::endl; 
     // Loop over the reco particles
     for (auto iter1 : _pfp_to_hits_map) {
 
@@ -294,14 +300,16 @@ namespace ubana {
   
       lar_pandora::MCParticlesToHits truthContributionMap;
   
-      // Loop over all the hits associated to this reco particle
+   // Loop over all the hits associated to this reco particle
       for (auto hit : hitVector) {
-  
+
         // Find the MCParticle that share this same hit (if any)
         auto iter3 = _hit_to_mcps_map.find(hit);
         if (_hit_to_mcps_map.end() == iter3)
-          continue;
-  
+ 	{
+//	 std::cout<<"[Lu test overlay truth matching] No MCParticle found"<<std::endl;
+         continue;
+        }
         // If exists, get the MCParticle
         const art::Ptr<simb::MCParticle> trueParticle = iter3->second;
 

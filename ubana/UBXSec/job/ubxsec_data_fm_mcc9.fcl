@@ -135,8 +135,8 @@ ubxsec_data_producers: [ #simpleFlashBeam,
                          RecoTrueMatcher,
                          TPCObjectMaker,
 			 #pandoraCosmicPFPart,
-                       pandoraCosmicFlashTag,	
-                      pandoraCosmicACPTTagger,
+#                       pandoraCosmicFlashTag,	
+ #                     pandoraCosmicACPTTagger,
                      pandoraStoppingMu,
                #          pandoraNuGeoCosmicTag,
                          #pandoraNuStoppingMuonTag,
@@ -216,7 +216,7 @@ ubxsec_data_reco.UBXSec.POTSummaryInstance:                         "bnbETOR860"
 
 # Set Filter properties
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandoraFlashEventBuilding" ]
-ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "pandoraFlashEventBuilding" ]
+ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "UBXSec" ]
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicProducerLabel:  ""
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicClusterAssns:   ""
 

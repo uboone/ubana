@@ -97,6 +97,84 @@ namespace ubana {
 
   }
 
+  std::pair<double, double> TrackQuality::GetTruncatedResiduals() 
+  {
+
+    if (!_track_is_set || !_hits_are_set){
+      std::cerr << "[TrackQuality] The Track or the hits were not set. Exiting now." << std::endl;
+      throw std::exception();
+    }
+
+    std::vector<double> residuals;
+    std::vector<double> angles;
+
+    std::vector<bool> used_track_pts;
+    used_track_pts.resize(_track_v.size());
+    for (size_t i = 0; i < used_track_pts.size(); i++) used_track_pts.at(i) = false;
+
+    //
+    // Loop over hit points
+    //
+      for (size_t i = 0; i < _hit_v.size(); i++) {
+        TVector3 hit = _hit_v.at(i);
+
+        if (_debug) std::cout << "[TrackQuality]This is hit " << hit.X() << ", " << hit.Y() << std::endl;
+
+      //
+      // Loop over track points and find the closest one
+      //
+        double min_distance = 1e9;
+        int min_sign = 1;
+        int min_track_index = -1;
+
+        for (size_t j = 0; j < _track_v.size(); j++) {
+
+          TVector3 track_pt = _track_v.at(j);
+
+          double distance = (hit - track_pt).Mag();
+          double sign = (hit.Y() < track_pt.Y() ? 1 : -1);
+
+          if (distance < min_distance) {
+            min_distance = distance;
+            min_sign = sign;
+            min_track_index = j;
+          }
+
+      } // track loop
+
+      if (_debug) std::cout << "[TrackQuality]\t matched to track " << _track_v.at(min_track_index).X() << ", " << _track_v.at(min_track_index).Y() << std::endl;
+
+      double angle = -9999;
+      if (min_track_index > 1 && min_track_index < (int)_track_v.size()-2) {
+        TVector3 one = _track_v.at(min_track_index+2) - _track_v.at(min_track_index-2);
+        TVector3 two = hit - _track_v.at(min_track_index);
+        angle = one.Angle(two);
+      } 
+
+      if (min_track_index != -1 && min_track_index != 0 && min_track_index != (int)_track_v.size()-1) {
+        residuals.emplace_back(min_distance * min_sign);
+        angles.emplace_back(angle);
+
+        used_track_pts.at(min_track_index) = true;
+      }
+    }
+
+    for (size_t i = 0; i < residuals.size(); i++) {
+      auto r = residuals.at(i);
+      auto a = angles.at(i);
+     if (_debug) std::cout << "[TrackQuality] Residual at " << i <<": " << r << ", angle " << a << std::endl;
+    } 
+
+    //for (size_t i = 0; i < used_track_pts.size(); i++) {
+      //std::cout << "Track point " << i << " is " << (used_track_pts.at(i) ? "shadowed" : "not shadowed") << std::endl; 
+    //}
+
+
+
+    return std::make_pair(this->truncatedmean(residuals), this->truncatedstdev(residuals));
+
+  }
+  //
   std::pair<double, double> TrackQuality::GetResiduals() 
   {
 
@@ -162,7 +240,7 @@ namespace ubana {
     for (size_t i = 0; i < residuals.size(); i++) {
       auto r = residuals.at(i);
       auto a = angles.at(i);
-      if (_debug) std::cout << "[TrackQuality] Residual at " << i <<": " << r << ", angle " << a << std::endl;
+     if (_debug) std::cout << "[TrackQuality] Residual at " << i <<": " << r << ", angle " << a << std::endl;
     } 
 
     //for (size_t i = 0; i < used_track_pts.size(); i++) {
@@ -189,10 +267,79 @@ namespace ubana {
   }
 
 
+ double TrackQuality::truncatedmean(const std::vector<double>& data)
+  {
+    if(data.size() == 0) std::cout << __PRETTY_FUNCTION__ << "You have me nill to mean" << std::endl;
 
-  double TrackQuality::stdev(const std::vector<double>& data)
+    double result = -9999.;
+    double med=median(data);
+    double std = stdev(data);
+    std::vector<double> data_trimmed;
+    data_trimmed.clear();
+    for(const auto d : data)
+      {
+	if(d>med-std && d < med + std)
+	  {
+	    data_trimmed.emplace_back(d);
+	  }
+      } 
+    result=mean(data_trimmed);
+
+    return result;
+  }
+
+
+ double TrackQuality::median(const std::vector<double>& data)
+  {
+    if(data.size() == 0) std::cout << __PRETTY_FUNCTION__ << "You have me nill to median" << std::endl;
+
+    double median = -9999.0;
+   size_t size=data.size();
+    std::vector<double> data_t;
+   for(const auto d : data)
+      {
+	
+	    data_t.emplace_back(d);
+	  
+      }
+
+    std::sort(data_t.begin(), data_t.end());
+  if (size % 2 == 0){
+    median = (data[size/2 - 1] + data[size/2]) / 2;
+  }
+  else{
+    median = data[size/2];
+  }
+
+  return median;
+  }
+
+  double TrackQuality::truncatedstdev(const std::vector<double>& data)
   {
     if(data.size() == 0) std::cout << __PRETTY_FUNCTION__ << "You have me nill to stdev" << std::endl;
+    double med=median(data);
+    double std = stdev(data);
+    std::vector<double> data_trimmed;
+    data_trimmed.clear();
+    for(const auto &d : data)
+      {
+	if(d>med-std && d < med + std)
+	  {
+	    data_trimmed.emplace_back(d);
+	  }
+      } 
+
+    double result = 0.0;
+    auto    avg   = truncatedmean(data);
+    for(const auto& d: data_trimmed)
+      result += (d - avg)*(d - avg);
+    
+    return std::sqrt(result/((double)data_trimmed.size()));
+  }
+
+ double TrackQuality::stdev(const std::vector<double>& data)
+  {
+    if(data.size() == 0) std::cout << __PRETTY_FUNCTION__ << "You have me nill to truncated stdev" << std::endl;
 
     double result = 0.0;
     auto    avg   = mean(data);

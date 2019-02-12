@@ -26,8 +26,9 @@ physics.producers.UBXSec.BeamSpillEnd:                   5.20
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.60
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   5.20
 
-physics.producers.UBXSec.UseGENIEInfo:                   false
-
+physics.producers.UBXSec.UseGENIEInfo:                   true
+physics.producers.RecoTrueMatcher.Overlay:           true
+physics.producers.RecoTrueMatcher.DebugMode:           true
 physics.producers.pandoraCosmicFlashTag.DoOpDetSwap: false
 physics.producers.NeutrinoFlashMatch.DoOpDetSwap:    false  
 physics.producers.UBXSec.DoOpDetSwap:                false

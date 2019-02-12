@@ -61,17 +61,18 @@ namespace ubana{
 
     bool _verbose;
 
-    double _deltax_cut_down;
-    double _deltax_cut_up;
-    double _deltaz_cut_down;
-    double _deltaz_cut_up;
-    double _flsmatch_score_cut;
+  //  double _deltax_cut_down;
+//
+   //double _deltax_cut_up;
+   //double _deltaz_cut_down;
+   //double _deltaz_cut_up;
+   // double _flsmatch_score_cut;
     double _vtxcheck_angle_cut_down;
     double _vtxcheck_angle_cut_up;
     double _mcs_length_cut;
     double _ntrack_cut;
-    double _residuals_std_down_cut;
-    double _residuals_std_up_cut;
+    //double _residuals_std_down_cut;
+    //double _residuals_std_up_cut;
     // double _residuals_mean_down_cut;
     // double _residuals_mean_up_cut;
     double _perc_used_hits_in_cluster_cut;

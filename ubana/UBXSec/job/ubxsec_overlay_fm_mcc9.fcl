@@ -3,9 +3,9 @@
 #include "T0RecoAnodeCathodePiercing.fcl"
 #include "calibration_microboone.fcl"
 
-#include "tpcobjectmaker_mcc9.fcl"
+#include "tpcobjectmaker_fm_mcc9.fcl"
 #include "neutrinomcflash.fcl"
-#include "neutrinoflashmatch.fcl"
+#include "neutrinoflashmatch_fm.fcl"
 #include "cosmicflashmatch.fcl"
 
 #include "calorimetry_microboone.fcl"
@@ -15,11 +15,11 @@
 #include "hitfindermodules_microboone.fcl"
 #include "cosmicremovalmodules.fcl"
 #include "cosmicflashtagger.fcl"
-#include "acpttagger.fcl"
-#include "recotruematcher.fcl"
+#include "acpttagger_fm.fcl"
+#include "recotruematcher_fm_overlay.fcl"
 #include "cosmictaggerana.fcl"
-#include "geocosmictagger.fcl"
-#include "stoppingmuontagger.fcl"
+#include "geocosmictagger_fm.fcl"
+#include "stoppingmuontagger_fm.fcl"
 #include "candidateconsistency.fcl"
 
 #include "opticaldetectormodules_microboone.fcl"
@@ -31,7 +31,7 @@
 #include "fiducial_volume_settings.fcl"
 #include "numucc_eventselection_settings.fcl"
 
-#include "ubxsec_settings_mcc9.fcl"
+#include "ubxsec_settings_fm_mcc9.fcl"
 
 #include "tpcneutrinoidfilter_microboone.fcl"
 
@@ -82,13 +82,16 @@ ubxsec_data_reco:
 
 ubxsec_data_flashmatch:
 {
+pandoraFlashEventBuildingcalo:   @local::microboone_calomc
+pandoraFlashEventBuildingpid:   @local::microboone_chi2pid
+
    RecoTrueMatcher:               @local::microboone_recotruematcher_pandoranu
 
    TPCObjectMaker:                @local::TPCObjectMaker
   #pandoraCosmicPFPart:       @local::microboone_cosmicpfparticletagger
   pandoraCosmicFlashTag:          @local::microboone_cosmicpfpflashtagger
   pandoraCosmicACPTTagger:        @local::microboone_acpttagger_data
-  pandoraStoppingMu:        @local::StoppingMuonTagger 
+  pandoraStoppingMu:        @local::StoppingMuonTagger
    #pandoraNuGeoCosmicTag:         @local::GeoCosmicTagger
 
    #pandoraNuStoppingMuonTag:      @local::StoppingMuonTagger
@@ -127,11 +130,13 @@ ubxsec_data_producers: [ #simpleFlashBeam,
             #             pandoraNucalipid,
              #            pandoraNuMCSMu,
               #           pandoraNuMCSPi,
+                       pandoraFlashEventBuildingcalo,
+                       pandoraFlashEventBuildingpid,
                          RecoTrueMatcher,
                          TPCObjectMaker,
 			 #pandoraCosmicPFPart,
-                       pandoraCosmicFlashTag,	
-                      pandoraCosmicACPTTagger,
+                      pandoraCosmicFlashTag,	
+                     pandoraCosmicACPTTagger,
                      pandoraStoppingMu,
                #          pandoraNuGeoCosmicTag,
                          #pandoraNuStoppingMuonTag,
@@ -196,17 +201,22 @@ ubxsec_data_analyzers: [ #CosmicTaggerAna
 #ubxsec_data_reco.pandoraNuMCSPi.inputs.inputLabel:                 "pandoraNu::UBXSec"
 #ubxsec_data_reco.pandoraNuMCSPi.fitter.pIdHypothesis:              211
 
+ubxsec_data_flashmatch.pandoraFlashEventBuildingcalo.TrackModuleLabel:                   "pandoraFlashEventBuilding"
+ubxsec_data_flashmatch.pandoraFlashEventBuildingcalo.SpacePointModuleLabel:              "pandoraFlashEventBuilding"
+ubxsec_data_flashmatch.pandoraFlashEventBuildingpid.CalorimetryModuleLabel:              "pandoraFlashEventBuildingcalo"
+ubxsec_data_flashmatch.pandoraFlashEventBuildingpid.TrackModuleLabel:                    "pandoraFlashEventBuilding"
+ubxsec_data_flashmatch.RecoTrueMatcher.Ovelay:                 true
 # Set FlashMatching properties
-ubxsec_data_flashmatch.NeutrinoFlashMatch.TrackModule:             "pandora"
+ubxsec_data_flashmatch.NeutrinoFlashMatch.TrackModule:             "pandoraFlashEventBuilding"
 
 # Set UBXSec properties
-ubxsec_data_reco.UBXSec.UseGENIEInfo:                               false
-ubxsec_data_reco.UBXSec.POTSummaryProducer:                         "beamdata"
-ubxsec_data_reco.UBXSec.POTSummaryInstance:                         "bnbETOR860"
+ubxsec_data_reco.UBXSec.UseGENIEInfo:                               true
+ubxsec_data_reco.UBXSec.POTSummaryProducer:                         "generator"
+
 
 # Set Filter properties
-ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandoraNu::UBXSec" ]
-ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "UBXSec::UBXSec" ]
+ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandoraFlashEventBuilding" ]
+ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "UBXSec" ]
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicProducerLabel:  ""
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicClusterAssns:   ""
 

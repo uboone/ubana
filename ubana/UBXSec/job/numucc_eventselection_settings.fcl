@@ -3,11 +3,11 @@ BEGIN_PROLOG
 NuMuCCSelectionSettings: {
 
   # Flash Matching Cuts
-  DeltaXCutDown:         -100
-  DeltaXCutUp:           50
-  DeltaZCutDown:         -75
-  DeltaZCutUp:           75
-  FlsMatchScoreCut:      3e-4
+#  DeltaXCutDown:         -100
+#  DeltaXCutUp:           50
+#  DeltaZCutDown:         -75
+#  DeltaZCutUp:           75
+#  FlsMatchScoreCut:      3e-4
 
   # Quality Cuts
   VtxCheckAngleCutDown:  0
@@ -16,10 +16,10 @@ NuMuCCSelectionSettings: {
   NTrackCut:             1
 
   # Anti-NuE Cuts
-  ResidualsStdCutDown:   0
-  ResidualsStdCutUp:     2.5
-  ResidualsMeanCutDown:  -0.7
-  ResidualsMeanCutUp:    0.7
+ # ResidualsStdCutDown:   0
+ # ResidualsStdCutUp:     2.5
+ # ResidualsMeanCutDown:  -0.7
+ # ResidualsMeanCutUp:    0.7
   PercUsedHitsCut:       0.7
 
   # Flash Cuts

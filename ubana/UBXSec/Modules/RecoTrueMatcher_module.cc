@@ -98,7 +98,7 @@ private:
   bool _debug = false;
   bool _verbose;
   bool _use_premade_ass;
-
+  bool _is_overlay;
   bool _override_real_data; ///< Use this when running on overlay
 
   void PrintInfo(lar_pandora::PFParticlesToMCParticles matched_pfp_to_mcp_map);
@@ -118,8 +118,9 @@ RecoTrueMatcher::RecoTrueMatcher(fhicl::ParameterSet const & p) {
   _use_premade_ass                = p.get<bool>("UsePremadeMCPHitAss");
 
   _override_real_data             = p.get<bool>("OverrideRealData", false);
+ _is_overlay             = p.get<bool>("Overlay");
 
-  //_debug                          = p.get<bool>("DebugMode");
+  _debug                          = p.get<bool>("DebugMode");
   _verbose                        = p.get<bool>("Verbose");
 
   _fiducial_volume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
@@ -151,8 +152,8 @@ void RecoTrueMatcher::produce(art::Event & e)
     _is_data = false;
     _mcpfpMatcher.OverrideRealData(true);
   }
-
-  if (_is_data) {
+std::cout<<"Lu overlay?"<<_is_overlay<<std::endl;
+  if (_is_data&&!_is_overlay) {
     std::cout << "[RecoTrueMatcher] Running on a real data file. No MC-PFP matching will be attempted." << std::endl;
     e.put(std::move(mcGhostVector));
     e.put(std::move(assnOutGhostMCP));

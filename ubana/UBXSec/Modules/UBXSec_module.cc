@@ -190,7 +190,7 @@ int PFPInCommon(lar_pandora::PFParticleVector first, lar_pandora::PFParticleVect
   //std::string _acpt_producer;
   std::string _tpcobject_producer;
   std::string _potsum_producer;
-  std::string _potsum_instance;
+  //std::string _potsum_instance;
   std::string _particle_id_producer;
   std::string _mc_ghost_producer;
   std::string _geocosmictag_producer;
@@ -302,7 +302,7 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p) {
   //_acpt_producer                  = p.get<std::string>("ACPTProducer");
   _tpcobject_producer             = p.get<std::string>("TPCObjectProducer");
   _potsum_producer                = p.get<std::string>("POTSummaryProducer");
-  _potsum_instance                = p.get<std::string>("POTSummaryInstance");
+//  _potsum_instance                = p.get<std::string>("POTSummaryInstance");
   _particle_id_producer           = p.get<std::string>("ParticleIDProducer");
   _mc_ghost_producer              = p.get<std::string>("MCGhostProducer");
   _geocosmictag_producer          = p.get<std::string>("GeoCosmicTaggerProducer");
@@ -1078,7 +1078,7 @@ lar_pandora::PFParticleVector pfpACPTTagged;
     std::cout << "[UBXSec] Flash time: " << ubxsec_event->beamfls_time[n] << ", New flash position: " << Zcenter << std::endl;
   } // flash loop
 
-
+std::cout<<"[Lu check truth in UBXsec] use genie? "<<_use_genie_info<<endl;
   // Check if truth nu is in FV
   // Collecting GENIE particles
   if(_use_genie_info) {
@@ -1089,8 +1089,9 @@ lar_pandora::PFParticleVector pfpACPTTagged;
 
     // int iList = 0; // 1 nu int per spill
 
-    if (_debug) this->PrintMC(mclist);
-
+   // if (_debug)
+   this->PrintMC(mclist);
+//this->PrintMC(mclist);
     ubxsec_event->fv = 0;
     ubxsec_event->fv_sce = 0;
 
@@ -1101,7 +1102,7 @@ lar_pandora::PFParticleVector pfpACPTTagged;
     ubxsec_event->true_muon_mom = -9999.;
 
     ubxsec_event->ResizeGenieTruthVectors(mclist.size());
-
+std::cout<<"[Lu check truth in UBXsec] mclist size "<<mclist.size()<<endl;
     for (size_t iList = 0; iList < mclist.size(); iList++) {
 
       if (mclist.at(iList)->Origin() != NEUTRINO_ORIGIN) {
@@ -1121,7 +1122,11 @@ lar_pandora::PFParticleVector pfpACPTTagged;
       ubxsec_event->tvtx_x.at(iList) = mclist[iList]->GetNeutrino().Nu().Vx();
       ubxsec_event->tvtx_y.at(iList) = mclist[iList]->GetNeutrino().Nu().Vy();
       ubxsec_event->tvtx_z.at(iList) = mclist[iList]->GetNeutrino().Nu().Vz();
-
+std::cout<<"[Lu check truth in UBXsec] "<<_use_genie_info<<endl;
+std::cout<<"[Lu check truth in UBXsec] x: "<<ubxsec_event->tvtx_x.at(iList)<<endl;
+std::cout<<"[Lu check truth in UBXsec] y: "<<ubxsec_event->tvtx_y.at(iList)<<endl;
+std::cout<<"[Lu check truth in UBXsec] z: "<<ubxsec_event->tvtx_z.at(iList)<<endl;
+std::cout<<"[Lu check truth in UBXsec] fv: "<<ubxsec_event->fv<<endl;
       // Look at the space charge correction
       geo::Vector_t sce_corr = _SCE->GetPosOffsets(geo::Point_t(mclist[iList]->GetNeutrino().Nu().Vx(),
 								mclist[iList]->GetNeutrino().Nu().Vy(),
@@ -1868,8 +1873,8 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
 
       // Look at calorimetry for the muon candidate
       std::vector<art::Ptr<anab::Calorimetry>> calos = calos_from_track.at(candidate_track.key());
-  std::cout<<"Calorimetry: "<<std::endl;
-// std::cout<<"Calorimetry: "<<calos.isValid<<std::endl;
+  //std::cout<<"Lu Calorimetry: "<<std::endl;
+  // std::cout<<"Lu Calorimetry valid? "<<calos.isValid<<std::endl;
  	for (auto c : calos)
                   {
                     if (!c) continue;
@@ -1877,9 +1882,9 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
                     int planenum = c->PlaneID().Plane;
                     if (planenum == 2)
                       {
-                std::cout<<"good?"<<std::endl;
-            //            std::cout<< c->dEdx()<<std:endl;
-              //          std::cout<<c->dQdx()<<std:endl;
+ //               std::cout<<"Lu Calorimetry good?"<<std::endl;
+		//	std::cout<< c->dEdx()<<std::endl;
+		//	std::cout<<c->dQdx()<<std::endl;
                         //track_ResidualRange[i]=c->ResidualRange();
                       }
 	}
@@ -1960,7 +1965,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       // ubxsec_event->slc_muoncandidate_mcs_delta_ll[slice] = f_ll - b_ll;
       // if (!down_track) ubxsec_event->slc_muoncandidate_mcs_delta_ll[slice] = b_ll - f_ll;
 
-      std::cout<<"are we good here????"<<endl;
+ //     std::cout<<"are we good here????"<<endl;
 
       //
       // Look at residuals
@@ -2004,7 +2009,9 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       _track_quality.SetTrackPoints(track_v);
       _track_quality.SetHitCollection(hit_v);
       std::pair<double, double> residual_mean_std = _track_quality.GetResiduals();
-      if (_debug) std::cout << "[UBXSec] \t \t Residuals, mean " << residual_mean_std.first << ", std " << residual_mean_std.second << std::endl;
+        std::pair<double, double> residual_truncated_mean_std = _track_quality.GetTruncatedResiduals();
+    std::cout << "[Lu UBXSec] \t \t Residuals, mean " << residual_mean_std.first << ", std " << residual_mean_std.second << std::endl;
+       std::cout << "[Lu UBXSec] \t \t Truncated Residuals, mean " << residual_truncated_mean_std.first << ", std " << residual_truncated_mean_std.second << std::endl;
       std::pair<double,int> dist_wire_pair = _track_quality.GetTrackGap();
 
       int start_wire = dist_wire_pair.second;
@@ -2073,6 +2080,8 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
 
       ubxsec_event->slc_muoncandidate_residuals_mean[slice] = residual_mean_std.first;
       ubxsec_event->slc_muoncandidate_residuals_std[slice] = residual_mean_std.second;
+       ubxsec_event->slc_muoncandidate_residuals_truncatedmean[slice] = residual_truncated_mean_std.first;
+      ubxsec_event->slc_muoncandidate_residuals_truncatedstd[slice] = residual_truncated_mean_std.second;
       ubxsec_event->slc_muoncandidate_wiregap[slice] = end_wire-start_wire;
       ubxsec_event->slc_muoncandidate_wiregap_dead[slice] = n_dead_wires;
       ubxsec_event->slc_muoncandidate_linearity[slice] = r;
@@ -2404,8 +2413,8 @@ void UBXSec::endSubRun(art::SubRun& sr) {
 
   // Data - Use Zarko's script instead
   if (_is_data) {
-    if (_debug) std::cout << "[UBXSec::endSubRun] Getting POT for DATA, producer " << _potsum_producer << ", instance " << _potsum_instance << std::endl;
-    if (sr.getByLabel(_potsum_producer, _potsum_instance, potsum_h)){
+ //   if (_debug) std::cout << "[UBXSec::endSubRun] Getting POT for DATA, producer " << _potsum_producer << ", instance " << _potsum_instance << std::endl;
+    if (sr.getByLabel(_potsum_producer,  potsum_h)){
       if (_debug) std::cout << "[UBXSec::endSubRun] POT are valid" << std::endl;
       _sr_pot = potsum_h->totpot;
     }

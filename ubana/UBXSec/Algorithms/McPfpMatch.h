@@ -86,7 +86,8 @@ namespace ubana {
      *  @param option It true, considers the event as MC always
      */
     void OverrideRealData(bool option) {_override_real_data = option;};
-  
+  void Overlay(bool option) {_is_overlay = option;};
+ 
 
   protected:
 
@@ -99,7 +100,7 @@ namespace ubana {
 
     bool _debug      = false;
     bool _verbose    = false;
-
+    bool _is_overlay = false;
     bool _is_data    = false; ///< If true, we are running over a real data file.
     bool _override_real_data = false;
 

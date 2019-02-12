@@ -56,6 +56,7 @@ namespace ubana{
 
     /// Returns the residuals value (mean, std)
     std::pair<double, double> GetResiduals();
+    std::pair<double, double> GetTruncatedResiduals();
 
     ///
     std::pair<double,int> GetTrackGap(); 
@@ -67,8 +68,12 @@ namespace ubana{
   protected:
 
     double mean(const std::vector<double>& data);
-    double stdev(const std::vector<double>& data);
-    double cov (const std::vector<double>& data1, const std::vector<double>& data2);
+    double median(const std::vector<double>& data);
+     double truncatedmean(const std::vector<double>& data);
+     double stdev(const std::vector<double>& data);
+     double truncatedstdev(const std::vector<double>& data);
+  
+   double cov (const std::vector<double>& data1, const std::vector<double>& data2);
 
     std::vector<TVector3> _track_v; ///< The track
     std::vector<TVector3> _hit_v;   ///< The hits
