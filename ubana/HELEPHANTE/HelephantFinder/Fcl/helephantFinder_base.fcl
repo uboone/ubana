@@ -32,7 +32,7 @@ physics:
       RadiusProfileBins:            20
       ChannelNorm:                  "3.3" # number of channels in cm
       TickNorm:                     "17.9" # number of ticks in cm
-      VerboseMode:                  "false"
+      VerboseMode:                  "true"
 
       ### GEOMETRY SETTINGS ###
       MinTpcBound:                  [10., -105.53, 10.1]
@@ -68,9 +68,15 @@ physics:
     {
       module_type:          "EventFileDatabase"
     }
+    PotCount:
+    {
+      module_type:          "GetPotCount"
+      verbose:              true
+      isOverlayData:        false
+    }
     
   }
-  analysis: [ HelephantFinder, EventFileDatabase]
+  analysis: [ HelephantFinder, EventFileDatabase, PotCount]
   end_paths: [analysis]
 }
 

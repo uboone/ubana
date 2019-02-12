@@ -90,7 +90,7 @@ namespace AuxEvent
     float range_totDir_h2_X, range_totDir_h2_Y, range_totDir_h2_Z;
     // MCS variables
     std::vector<int> mcs_prongPdgCodeHypothesis;
-    std::vector<bool>  mcs_prongIsBestFwd;
+    std::vector<int>  mcs_prongIsBestFwd;
     // Prong Momentum (By MCS, forward)
     std::vector<float> mcs_prongMomMag_fwd_h1, mcs_prongEnergy_fwd_h1;
     std::vector<float> mcs_prongMom_fwd_h1_X, mcs_prongMom_fwd_h1_Y, mcs_prongMom_fwd_h1_Z;
@@ -141,7 +141,7 @@ namespace AuxEvent
     float flash_flashDistance, flash_flashPE;
     // Trigger info
     std::vector<std::string> trigger_triggerName;
-    std::vector<bool> trigger_triggerAlgoPass, trigger_triggerPrescalePass, trigger_triggerPass;
+    std::vector<int> trigger_triggerAlgoPass, trigger_triggerPrescalePass, trigger_triggerPass;
     // G4 info
     int g4_pi_pdg, g4_mu_pdg;
     float g4_pi_mom, g4_mu_mom;
@@ -154,11 +154,24 @@ namespace AuxEvent
     std::string g4_pi_declaredEndProcess, g4_mu_declaredEndProcess;
     std::string g4_pi_declaredScatteredEndProcess, g4_mu_declaredScatteredEndProcess;
     std::string g4_pi_endProcess, g4_mu_endProcess;
-    // Calo info
+    // Calo/cali info
+    std::vector<std::vector<int>> calo_prongCaloPlane = {{-1,-1,-1},{-1,-1,-1}};
+    std::vector<std::vector<int>> calo_prongIsTrackFlipped = {{0,0,0},{0,0,0}};
+    std::vector<std::vector<int>> calo_prongEnoughHits = {{0,0,0},{0,0,0}};
+    std::vector<std::vector<float>> calo_prongKinEnergy = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<float>> calo_prongRange = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<float>> calo_prongTruncMean = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<float>> calo_prongdqdxMeanStart = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<float>> calo_prongdqdxMeanEnd = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+
     std::vector<std::vector<int>> cali_prongCaloPlane = {{-1,-1,-1},{-1,-1,-1}};
-    std::vector<std::vector<bool>> cali_prongIsTrackFlipped = {{false,false,false},{false,false,false}};
-    std::vector<std::vector<float>> cali_kinEnergy = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
-    std::vector<std::vector<float>> cali_range = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<int>> cali_prongIsTrackFlipped = {{0,0,0},{0,0,0}};
+    std::vector<std::vector<int>> cali_prongEnoughHits = {{0,0,0},{0,0,0}};
+    std::vector<std::vector<float>> cali_prongKinEnergy = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<float>> cali_prongRange = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<float>> cali_prongTruncMean = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<float>> cali_prongdqdxMeanStart = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
+    std::vector<std::vector<float>> cali_prongdqdxMeanEnd = {{-999.,-999.,-999.},{-999.,-999.,-999.}};
   };
 
 

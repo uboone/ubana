@@ -48,7 +48,7 @@
 #include "ubana/HELEPHANTE/HelephantFinder/DataObjects/EventTreeFiller.h"
 #include "ubana/HELEPHANTE/HelephantFinder/DataObjects/DrawTreeFiller.h"
 #include "ubana/HELEPHANTE/HelephantFinder/DataObjects/CandidateTreeFiller.h"
-
+#include "ubana/HELEPHANTE/HelephantFinder/Algorithms/UtilsHNLAlg.h"
 
 namespace dEdXInformation
 {
@@ -65,9 +65,12 @@ namespace dEdXInformation
             art::Event const & evt,
             AuxEvent::CandidateTreeFiller & ctf,
             AuxVertex::DecayVertex const & dv);
-    bool IsTrackFlipped(art::Ptr<anab::Calorimetry> const & calo);
+    float Start_dqdx(art::Ptr<anab::Calorimetry> const & calo);
+    float End_dqdx(art::Ptr<anab::Calorimetry> const & calo);
+    bool IsTrackFlipped(float const & start_dqdx, float const & end_dqdx);
   private:
   // Data product labels settings
+  UtilsHNL::UtilsHNLAlg utilsHNLAlg;
   std::string fCalorimetryLabel, fCalibratedLabel;
   bool fSaveAlsoUncalibrateddEdXInformation;
   };

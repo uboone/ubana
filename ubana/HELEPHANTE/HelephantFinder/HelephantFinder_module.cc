@@ -274,6 +274,24 @@ void HelephantFinder::beginJob()
   if (fSavedEdXInformation)
   {
     candidateTree->Branch("cali_prongCaloPlane",&ctf.cali_prongCaloPlane);
+    candidateTree->Branch("cali_prongKinEnergy",&ctf.cali_prongKinEnergy);
+    candidateTree->Branch("cali_prongRange",&ctf.cali_prongRange);
+    candidateTree->Branch("cali_prongTruncMean",&ctf.cali_prongTruncMean);
+    candidateTree->Branch("cali_prongIsTrackFlipped",&ctf.cali_prongIsTrackFlipped);
+    candidateTree->Branch("cali_prongEnoughHits",&ctf.cali_prongEnoughHits);
+    candidateTree->Branch("cali_prongdqdxMeanStart",&ctf.cali_prongdqdxMeanStart);
+    candidateTree->Branch("cali_prongdqdxMeanEnd",&ctf.cali_prongdqdxMeanEnd);
+    if (fSaveAlsoUncalibrateddEdXInformation)
+    {
+      candidateTree->Branch("calo_prongCaloPlane",&ctf.calo_prongCaloPlane);
+      candidateTree->Branch("calo_prongKinEnergy",&ctf.calo_prongKinEnergy);
+      candidateTree->Branch("calo_prongRange",&ctf.calo_prongRange);
+      candidateTree->Branch("calo_prongTruncMean",&ctf.calo_prongTruncMean);
+      candidateTree->Branch("calo_prongIsTrackFlipped",&ctf.calo_prongIsTrackFlipped);
+      candidateTree->Branch("calo_prongEnoughHits",&ctf.calo_prongEnoughHits);
+      candidateTree->Branch("calo_prongdqdxMeanStart",&ctf.calo_prongdqdxMeanStart);
+      candidateTree->Branch("calo_prongdqdxMeanEnd",&ctf.calo_prongdqdxMeanEnd);
+    }
   }
 
   // Separate tree for custom event display
@@ -418,7 +436,6 @@ void HelephantFinder::analyze(art::Event const & evt)
     // Before we start dealing with each candidate one by one, we need to consider information at the event level (which might contain multiple candidates).
     // Run the reco-truth distance metric here, at the event level. Why? The next algorithm picks up the best candidate based on the shortest reco-truth distance metric. Since it needs to compare candidates with each other this needs to be done at the event level (the for loop below is for each individual candidates, which doesn't know anything about the other candidates).
     if ( fUseTruthDistanceMetric ) { fExtractTruthInformationAlg.FillEventTreeWithTruth(evt,etf,ana_decayVertices);}
-
     // Finally, let's loop for each candidate and run analysis algorithms on them.
     for (std::vector<int>::size_type i=0; i!=ana_decayVertices.size(); i++)
     {
@@ -439,7 +456,7 @@ void HelephantFinder::analyze(art::Event const & evt)
       if (fSaveG4Information) fG4InformationAlg.AddG4Information(evt,ctf,currentVertex);
 
       // If requested, save information regarding dEdX for the current vertex
-      // if (fSavedEdXInformation) fdEdXInformationAlg.AdddEdXInformation(evt,ctf,currentVertex);
+      if (fSavedEdXInformation) fdEdXInformationAlg.AdddEdXInformation(evt,ctf,currentVertex);
 
       // If requested, save information for the custom event display
       if (fSaveDrawTree)
