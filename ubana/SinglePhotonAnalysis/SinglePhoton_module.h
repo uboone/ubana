@@ -457,6 +457,8 @@ namespace single_photon
             std::vector<double> m_reco_track_mean_trunc_dEdx_start_half;
             std::vector<double> m_reco_track_mean_trunc_dEdx_end_half;
             std::vector<double> m_reco_track_trunc_PIDA;
+            std::vector<std::vector<double>> m_reco_track_resrange;
+            std::vector<std::vector<double>> m_reco_track_dEdx;
 
 
             std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane0;

@@ -15,44 +15,64 @@ namespace single_photon
 
             std::vector<double> vec_fraction_matched;
 
+            //for each recob::track/shower in the event
             for(size_t i=0; i<objectVector.size();++i){
                 auto object = objectVector[i];
-                const art::Ptr<recob::PFParticle> pfp = objectToPFParticleMap[object];
 
+                //get the associated reco PFP
+                const art::Ptr<recob::PFParticle> pfp = objectToPFParticleMap[object];
+            
+                //putting in the PFP pdg code as a check
+                int pdg = pfp->PdgCode();
+
+                //and get the hits associated to the reco PFP
                 std::vector< art::Ptr<recob::Hit> > obj_hits_ptrs = pfParticleToHitsMap[pfp];
 
-                std::unordered_map<int,double> objide;
-                double maxe=-1, tote=0;
-                //simb::MCParticle const * best_matched_mcparticle = NULL; //pointer for the particle match we will calculate
-                art::Ptr<simb::MCParticle> best_matched_mcparticle; //pointer for the particle match we will calculate
+                std::unordered_map<int,double> objide; //map between the MCParticle track ID and the backtracker energy
+
+                //energy for an MCParticle that comprises the most energy when sum over associated hits in PFP
+                //total energy of the reco PFP taken from the sum of the hits associated to an MCParticle
+                 double maxe=-1, tote=0;                
+                 
+                 //simb::MCParticle const * best_matched_mcparticle = NULL; //pointer for the particle match we will calculate
+                art::Ptr<simb::MCParticle> best_matched_mcparticle; //pointer for the MCParticle match we will calculate
 
                 //    std::vector<simb::MCParticle const *> particle_vec;
                 //    std::vector<anab::BackTrackerHitMatchingData const *> match_vec;
 
-                std::vector<art::Ptr<simb::MCParticle>> particle_vec;
-                std::vector<anab::BackTrackerHitMatchingData const *> match_vec;
+                std::vector<art::Ptr<simb::MCParticle>> particle_vec; //vector of all MCParticles associated with a given hit in the reco PFP
+                std::vector<anab::BackTrackerHitMatchingData const *> match_vec; //vector of some backtracker thing
 
                 bool found_a_match = false;
                 int n_associated_mcparticle_hits = 0;
 
                 std::cout<<"REC: This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
 
-                //loop only over our hits
+                //loop only over hits associated to this reco PFP
                 for(size_t i_h=0; i_h < obj_hits_ptrs.size(); ++i_h){
 
-                    particle_vec.clear(); match_vec.clear(); //tidy up this loop
+                    particle_vec.clear(); match_vec.clear(); //only store per hit
 
+                    //for the hit, fill the backtracker info 
                     mcparticles_per_hit.get(obj_hits_ptrs[i_h].key(), particle_vec, match_vec);
+
                     //mcparticles_per_hit.get(obj_hits_ptrs[i_h].key(),particle_vec,match_vec);
                     //the .key() gives us the index in the original collection
                     //std::cout<<"REC: hit "<<i_h<<" has "<<particle_vec.size()<<" MCparticles assocaied: "<<std::endl;
+
+                    //if there is an MCParticle associated to this hit
                     if(particle_vec.size()>0) n_associated_mcparticle_hits++;
 
-
                     //loop over MCparticles finding which is the MCparticle with most "energy" matched correctly
+                    //for each MCParticle associated with this hit
                     for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
+                        //add the energy of the back tracked hit for this MCParticle to the track id for the MCParticle in the map
                         objide[ particle_vec[i_p]->TrackId()] += match_vec[i_p]->energy; //store energy per track id
+ 
+                        //add the energy of the back tracked hit to the total energy for the PFP
                         tote += match_vec[i_p]->energy; //calculate total energy deposited
+
+                        //want the MCParticle with the max total energy summed from the back tracker hit energy from hits in PFP
                         if( objide[ particle_vec[i_p]->TrackId() ] > maxe ){ //keep track of maximum
                             maxe = objide[ particle_vec[i_p]->TrackId() ];
                             best_matched_mcparticle = particle_vec[i_p];
@@ -63,8 +83,9 @@ namespace single_photon
                 if(n_associated_mcparticle_hits == 0){
                     //This will only occur if the whole recob::PFParticle is associated with an overlay object
 
-                }
+                }//for each recob::track/shower in the event
 
+                std::cout << "SinglePhoton::recoMC()\t||\t the number of MCParticles associated with this PFP is "<<objide.size()<<std::endl;       
 
                 if(found_a_match){
                     mcParticleVector.push_back(best_matched_mcparticle);
@@ -73,14 +94,16 @@ namespace single_photon
                    // mcParticleVector.push_back(0);
                 }
                 vec_fraction_matched.push_back(maxe/tote);
-
+               // if(m_is_verbose){
+               //     std::cout << "SinglePhoton::recoMC()\t||\t the fracrion matched is "<<maxe/tote<<std::endl;
+               // }
 
 
                 if(!found_a_match){
-                    std::cout << "SinglePhoton::recoMC()\t||\t NO MATCH NO MATCH (from my loop)  "<<std::endl;
+                    std::cout << "SinglePhoton::recoMC()\t||\t NO MATCH NO MATCH (from my loop) for PFP with pdg  "<<pdg<<std::endl;
                     std::cout<<" count "<<objectToMCParticleMap.count(object)<<std::endl;
                 }else{
-                    std::cout << "SinglePhoton::recoMC()\t||\t Final Match (from my loop) is " << best_matched_mcparticle->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
+                    std::cout << "SinglePhoton::recoMC()\t||\t Final Match (from my loop) for PFP with pdg "<<pdg<<" is " << best_matched_mcparticle->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
                         << " pdg=" << best_matched_mcparticle->PdgCode()
                         << " trkid=" << best_matched_mcparticle->TrackId()
                         << " ke=" << best_matched_mcparticle->E()-best_matched_mcparticle->Mass()<< "\n";
