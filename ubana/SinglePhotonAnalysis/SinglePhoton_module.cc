@@ -364,9 +364,14 @@ namespace single_photon
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
             this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
-
+            
+            std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::track"<<std::endl;
             recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector);
-            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector );
+
+             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
+            //recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector );
+            showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap);
+
 
             for(auto & track: tracks){
                 std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
@@ -906,6 +911,8 @@ namespace single_photon
             truthToParticles[truth].push_back(particle);
             particlesToTruth[particle] = truth;
         }
+
+        std::cout<<"SinglePhoton::CollectMCParticles() \t||\t the number of MCParticles in the event is "<<theParticles->size()<<std::endl;
     }
 
     void SinglePhoton::CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector)
