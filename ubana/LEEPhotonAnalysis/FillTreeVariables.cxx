@@ -847,6 +847,20 @@ void FillTreeVariables::ResetVertex() {
 
 }
 
+//Eventweight
+//std::map<std::string, std::vector<double>> fmcweight;
+void FillTreeVariables::FillEventWeights(art::Event const & e){
+  art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw =
+    e.getValidHandle<std::vector<evwgh::MCEventWeight>>("eventweight");
+
+  std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
+  if(ev_evw->size() > 1) {
+    std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
+	      << "WARNING: eventweight has more than one entry\n";
+  }
+  fmcweight=weight_map;
+ 
+}
 
 void FillTreeVariables::FillWeights(art::Event const & e) {
 
@@ -2072,6 +2086,8 @@ void FillTreeVariables::Fill(art::Event const & e,
     art::ValidHandle<std::vector<sim::MCShower>> const & ev_mcs = e.getValidHandle<std::vector<sim::MCShower>>("mcreco");
 
     FillWeights(e);
+    //EventWeight
+    FillEventWeights(e);
 
     if(ev_mct->front().GetNeutrino().Nu().Mother() == -1) FillTruth(e, delta_rad_mct_index);
 

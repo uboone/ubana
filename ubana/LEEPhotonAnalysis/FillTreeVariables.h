@@ -244,6 +244,9 @@ class FillTreeVariables {
   int pass_all_cuts;
 
   std::map<std::string, std::vector<double *>> weight_branch_map; 
+  //EventWeight
+  std::map<std::string, std::vector<double>> fmcweight;
+
 
   double fweight_genie_ncelaxial_p1sigma;
   double fweight_genie_ncelaxial_m1sigma;
@@ -331,6 +334,7 @@ class FillTreeVariables {
   void ResetEvent();
   void ResetVertex();
   void FillWeights(art::Event const & e);
+  void FillEventWeights(art::Event const & e);
 
 public:
 
