@@ -1,0 +1,25 @@
+#
+# configuration fcl file for particleId fcl parameters
+#
+
+BEGIN_PROLOG
+
+braggalgo:
+{
+  NHitsToDrop: 1
+
+  # Mis-reco means track end point needs to be allowed to float.
+  # Define the amount we allow the end point of the track to float by:
+  #   - EndPointFloatShort    : how much shorter do we allow the track to be?
+  #   - EndPointFloatLong     : how much longer do we allow the track to be?
+  #   - EndPointFloatStepSize : step size beteween two variables
+
+  EndPointFloatShort    : -2.0
+  EndPointFloatLong     : 2.0
+  EndPointFloatStepSize : 0.05
+
+  # File that contains the likelihood maps
+  LikelihoodMapsFile: "/cvmfs/uboone.osgstorage.org/stash/ParticleID_LLH_Maps/v0_0_1/BraggLikelihoodMaps_mcc8_20190215.root"
+}
+
+END_PROLOG
