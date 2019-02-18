@@ -131,9 +131,10 @@ namespace single_photon
             std::map<int, art::Ptr<simb::MCParticle>> mother_MCP_map;
             //art::Ptr<simb::MCParticle> this_mcp;
             int this_mcp_id = -1;
-            bool isValid = true;
-           // int this_mcp_mother_id = -1;
+            //bool isValid = true;
+            int last_mcp_id = -1;
             for(auto mcp:asso_mcparticles_vec){
+                //isValid = true;
                 //if (asso_mcparticles_vec.size() < 20){
                 std::cout<<"looking at an MCP with pdg code "<<mcp->PdgCode()<<" and status code "<<mcp->StatusCode()<<std::endl;
                 //std::cout<<"the mother of this MCP is track id "<<mcp->Mother()<<" and there are "<<mcp->NumberDaughters()<<" daughters"<<std::endl;
@@ -141,6 +142,7 @@ namespace single_photon
                 //if this particle has a mother (track id != -1), keep going up
                 //if no mother, store the mother
                 this_mcp_id = mcp->TrackId();
+                last_mcp_id = this_mcp_id;
                 //this_mcp_mother_id = mcp->Mother();
                 while(this_mcp_id >= 0 ){
                 //while ((MCParticleToTrackIdMap[this_mcp_id]->Mother()) > 0){
@@ -150,12 +152,14 @@ namespace single_photon
                    
                     if (this_mcp.isNull()){
                         std::cout<<"null pointer at id "<<this_mcp_id<<std::endl;
-                        isValid = false;
+                        //isValid = false;
+                        this_mcp_id = last_mcp_id;
                         break;
                     }
                    
                     std::cout<<"going up the tree at an MCP with track id  "<<this_mcp_id<<", pdg code "<<this_mcp->PdgCode()<<", and status code "<<this_mcp->StatusCode()<<std::endl;
 
+                    last_mcp_id = this_mcp_id;
                     this_mcp_id =  this_mcp->Mother();
                     
 
@@ -171,7 +175,7 @@ namespace single_photon
 
                 std::cout<<"reached the end of the loop with track ID "<<this_mcp_id<<std::endl;
 
-                if (this_mcp_id >= 0 && isValid==true){
+                if (this_mcp_id >= 0){
                     std::cout<<"storing the mother mother particle with track id "<<this_mcp_id<<" and pdg code "<<MCParticleToTrackIdMap[this_mcp_id]->PdgCode()<<" and status code "<<MCParticleToTrackIdMap[this_mcp_id]->StatusCode()<<std::endl;
                     mother_MCP_map[this_mcp_id] = MCParticleToTrackIdMap[this_mcp_id];
                 } else{
