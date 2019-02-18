@@ -12,7 +12,9 @@ namespace single_photon
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> >& pfParticleToHitsMap,
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
             std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
-            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap){
+            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap ){
+
 
         std::vector<double> vec_fraction_matched;
 
@@ -32,10 +34,10 @@ namespace single_photon
                 if (parentIterator == pfParticleIdMap.end()){
                     std::cout<<"error: no parent but not primary"<<std::endl;
                 }
-                        
+
                 const int parentPDG = parentIterator->second->PdgCode();
                 std::cout<<"the parent pdg code is "<<parentPDG<<std::endl;
-                
+
                 auto daughers_vec = pfp->Daughters();
                 std::cout<<"the number of daugter particles is "<<daughers_vec.size() <<std::endl;
 
@@ -48,7 +50,7 @@ namespace single_photon
                         std::cout<<"the daughter pdg code is "<<daughters->PdgCode()<<std::endl;
                     }
                 }               
-  
+
                 //const int parentPDG = parentIterator->second->PdgCode();
                 //std::cout<<"the parent pdg code is "<<parentPDG<<std::endl;
             }
@@ -76,6 +78,8 @@ namespace single_photon
 
             bool found_a_match = false;
             int n_associated_mcparticle_hits = 0;
+            std::vector<art::Ptr<simb::MCParticle>> asso_mcparticles_vec;
+
 
             std::cout<<"REC: This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
 
@@ -100,6 +104,11 @@ namespace single_photon
                     //add the energy of the back tracked hit for this MCParticle to the track id for the MCParticle in the map
                     objide[ particle_vec[i_p]->TrackId()] += match_vec[i_p]->energy; //store energy per track id
 
+                    //if the id isn't already in the map, store it in the vector of all associated MCParticles
+                    if(std::find(asso_mcparticles_vec.begin(), asso_mcparticles_vec.end(),  particle_vec[i_p]) == asso_mcparticles_vec.end()){
+                        asso_mcparticles_vec.push_back(particle_vec[i_p]);
+                    }
+
                     //add the energy of the back tracked hit to the total energy for the PFP
                     tote += match_vec[i_p]->energy; //calculate total energy deposited
 
@@ -117,6 +126,65 @@ namespace single_photon
             }//for each recob::track/shower in the event
 
             std::cout << "SinglePhoton::recoMC()\t||\t the number of MCParticles associated with this PFP is "<<objide.size()<<std::endl;       
+            std::cout<<"SinglePhoton::recoMC()\t||\t the stored number of assocaited MCParticles is "<<asso_mcparticles_vec.size()<<std::endl;
+
+            std::map<int, art::Ptr<simb::MCParticle>> mother_MCP_map;
+            //art::Ptr<simb::MCParticle> this_mcp;
+            int this_mcp_id = -1;
+            bool isValid = true;
+           // int this_mcp_mother_id = -1;
+            for(auto mcp:asso_mcparticles_vec){
+                //if (asso_mcparticles_vec.size() < 20){
+                std::cout<<"looking at an MCP with pdg code "<<mcp->PdgCode()<<" and status code "<<mcp->StatusCode()<<std::endl;
+                //std::cout<<"the mother of this MCP is track id "<<mcp->Mother()<<" and there are "<<mcp->NumberDaughters()<<" daughters"<<std::endl;
+                //art::Ptr<simb::MCParticle> this_mother;
+                //if this particle has a mother (track id != -1), keep going up
+                //if no mother, store the mother
+                this_mcp_id = mcp->TrackId();
+                //this_mcp_mother_id = mcp->Mother();
+                while(this_mcp_id >= 0 ){
+                //while ((MCParticleToTrackIdMap[this_mcp_id]->Mother()) > 0){
+                    //move up the chain to the mother
+                    art::Ptr<simb::MCParticle> this_mcp = MCParticleToTrackIdMap[this_mcp_id];
+                    std::cout<<"going up the tree got mother particle"<<std::endl;
+                   
+                    if (this_mcp.isNull()){
+                        std::cout<<"null pointer at id "<<this_mcp_id<<std::endl;
+                        isValid = false;
+                        break;
+                    }
+                   
+                    std::cout<<"going up the tree at an MCP with track id  "<<this_mcp_id<<", pdg code "<<this_mcp->PdgCode()<<", and status code "<<this_mcp->StatusCode()<<std::endl;
+
+                    this_mcp_id =  this_mcp->Mother();
+                    
+
+                    std::cout<<"-------------------"<<std::endl;
+
+                    //this_mcp_id =  MCParticleToTrackIdMap[this_mcp_id]->Mother();
+                    //std::cout<<"going up the tree at an MCP with track id  "<<this_mcp_id<<", pdg code "<<this_mcp->PdgCode()<<", and status code "<<this_mcp->StatusCode()<<std::endl;
+
+                    //if( this_mcp_id == 88){
+                    //    std::cout<<"the mother id for particle with id 88 = "<< MCParticleToTrackIdMap[this_mcp_id]->Mother()<<std::endl;
+                    //} 
+                }
+
+                std::cout<<"reached the end of the loop with track ID "<<this_mcp_id<<std::endl;
+
+                if (this_mcp_id >= 0 && isValid==true){
+                    std::cout<<"storing the mother mother particle with track id "<<this_mcp_id<<" and pdg code "<<MCParticleToTrackIdMap[this_mcp_id]->PdgCode()<<" and status code "<<MCParticleToTrackIdMap[this_mcp_id]->StatusCode()<<std::endl;
+                    mother_MCP_map[this_mcp_id] = MCParticleToTrackIdMap[this_mcp_id];
+                } else{
+                    std::cout<<"error, the mother mother id was "<<this_mcp_id <<std::endl;
+                }
+            }//for each MCParticle that's associated to a the recob::Shower
+
+            //}
+
+            std::cout<<"SinglePhoton::recoMC()\t||\t the number of source mother particles is "<<mother_MCP_map.size()<<std::endl;
+
+            //for (auto )   
+
 
             if(found_a_match){
                 mcParticleVector.push_back(best_matched_mcparticle);
