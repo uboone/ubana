@@ -1,0 +1,60 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Backup files
+*~
+
+# Things in galleryMacro that we don't want to commit
+galleryMacro/*/*.root
+galleryMacro/*/*.txt
+galleryMacro/*/*list
+galleryMacro/*/*.pdf
+galleryMacro/*.pdf
+galleryMacro/*.png
+galleryMacro/galleryLikelihoodPerTrack/outputplots*
+
+# Directory for anything else we don't want to commit
+ignore/*
+
+# No root files at all.
+*.root
+*.png
+*.pdf
+*.list*
+
+# Annoying vim things
+*.nfs*
+
+
+# specific things to ignore
+Scripts/*.txt
