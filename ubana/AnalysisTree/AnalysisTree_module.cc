@@ -5472,13 +5472,13 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 	      anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
 
-	      /* std::cout << "\n ParticleIDAlg " << AlgScore.fAlgName
+	      /*std::cout << "\n ParticleIDAlg " << AlgScore.fAlgName
 			<< "\n -- Variable type: " << AlgScore.fVariableType
 			<< "\n -- Track direction: " << AlgScore.fTrackDir
 			<< "\n -- Assuming PDG: " << AlgScore.fAssumedPdg
 			<< "\n -- Number of degrees of freedom: " << AlgScore.fNdf
 			<< "\n -- Value: " << AlgScore.fValue
-			<< "\n -- Using planeMask: " << UBPID::uB_getSinglePlane(AlgScore.fPlaneMask) << std::endl;*/
+			<< "\n -- Using planeMask: " << AlgScore.fPlaneMask << " (plane " << UBPID::uB_getSinglePlane(AlgScore.fPlaneMask) << ")" << std::endl;*/
 	      
 	      int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 	      if (planenum<0 || planenum>2) continue;

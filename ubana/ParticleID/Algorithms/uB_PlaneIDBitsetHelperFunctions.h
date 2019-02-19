@@ -14,9 +14,9 @@ namespace UBPID{
       std::cout << "[uB_PlaneIDBitsetHelper] Cannot return a single MicroBooNE plane for bitset " << planeid << ". Returning -1 (invalid planeID)." << std::endl;
       return -1;
     }
-    else if (planeid.test(0)) return 0;
-    else if (planeid.test(1)) return 1;
     else if (planeid.test(2)) return 2;
+    else if (planeid.test(1)) return 1;
+    else if (planeid.test(0)) return 0;
 
     // Default: invalid return
     return -1;
@@ -27,9 +27,8 @@ namespace UBPID{
     std::bitset<8> bs;
     if (planeid<0 || planeid>2){
       std::cout << "[uB_PlaneIDBitsetHelper] Cannot return a bitset for MicroBooNE planeid " << planeid << ". Returning invalid planeID." << std::endl;
-      return bs;
     }
-    else bs.set(planeid);
+    else bs.set(planeid); 
 
     // Default: invalid return
     return bs;
