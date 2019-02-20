@@ -17,8 +17,8 @@ art_make( BASENAME_ONLY
                    HitCosmicTag_Algorithms
                    ubana_BasicTool_GeoAlgo
                    uboone_UBFlashFinder
-		   ubana_SelectionTool_OpT0FinderBase
-		   ubana_SelectionTool_OpT0FinderAlgorithms
+		   ubreco_SelectionTool_OpT0FinderBase
+		   ubreco_SelectionTool_OpT0FinderAlgorithms
 	  	   larcorealg_Geometry
 		   larcore_Geometry_Geometry_service
                    ubraw_RawData
@@ -76,8 +76,8 @@ art_make( BASENAME_ONLY
                    #                   larpandora_LArPandoraContent
 
 		   ubana_BasicTool_GeoAlgo
-		   ubana_SelectionTool_OpT0FinderBase
-		   ubana_SelectionTool_OpT0FinderAlgorithms
+		   ubreco_SelectionTool_OpT0FinderBase
+		   ubreco_SelectionTool_OpT0FinderAlgorithms
                    uboone_UBFlashFinder
 
                    ubraw_RawData
