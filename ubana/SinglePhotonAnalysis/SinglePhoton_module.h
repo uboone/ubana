@@ -585,11 +585,11 @@ namespace single_photon
             std::vector<int> m_mctruth_exiting_photon_trackID;
             std::vector<int> m_mctruth_exiting_photon_mother_trackID;
             std::vector<int> m_mctruth_exiting_photon_from_delta_decay;
-            std::vector<int> m_mctruth_exiting_photon_energy;
+            std::vector<double> m_mctruth_exiting_photon_energy;
             std::vector<int> m_mctruth_exiting_proton_trackID;
             std::vector<int> m_mctruth_exiting_proton_mother_trackID;
             std::vector<int> m_mctruth_exiting_proton_from_delta_decay;
-            std::vector<int> m_mctruth_exiting_proton_energy;
+            std::vector<double> m_mctruth_exiting_proton_energy;
 
 
             std::vector<double>        m_mctruth_exiting_pi0_E;

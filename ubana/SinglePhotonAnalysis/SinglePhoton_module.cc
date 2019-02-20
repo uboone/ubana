@@ -356,10 +356,10 @@ namespace single_photon
 
             //OK lets get all set up with sim::MCTrack and sim::MCShower .
 
-            art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
-            art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
-            art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
-            art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
+         //   art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
+           // art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
+          //  art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
+          //  art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
 
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
@@ -373,7 +373,7 @@ namespace single_photon
             }
 
           //  perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
-            perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
+           // perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
 
             //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
 
