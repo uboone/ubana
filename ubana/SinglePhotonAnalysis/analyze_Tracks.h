@@ -44,7 +44,9 @@ namespace single_photon
         m_reco_track_mean_trunc_dEdx_start_half.clear();
         m_reco_track_mean_trunc_dEdx_end_half.clear();
         m_reco_track_trunc_PIDA.clear();
-
+        m_reco_track_resrange.clear();
+        m_reco_track_dEdx.clear();
+        
         m_sim_track_matched.clear();
         m_sim_track_energy.clear();
         m_sim_track_kinetic_energy.clear();
@@ -102,6 +104,8 @@ namespace single_photon
         m_reco_track_mean_trunc_dEdx_start_half.resize(size);
         m_reco_track_mean_trunc_dEdx_end_half.resize(size);
         m_reco_track_trunc_PIDA.resize(size);
+        m_reco_track_resrange.resize(size);
+        m_reco_track_dEdx.resize(size);
 
         m_sim_track_matched.resize(size);
         m_sim_track_energy.resize(size);
@@ -163,6 +167,8 @@ namespace single_photon
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half",&m_reco_track_mean_trunc_dEdx_end_half);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half",&m_reco_track_mean_trunc_dEdx_start_half);
         vertex_tree->Branch("reco_track_trunc_PIDA",&m_reco_track_trunc_PIDA);
+        vertex_tree->Branch("reco_track_resrange",&m_reco_track_resrange);
+
 
         vertex_tree->Branch("reco_track_pid_bragg_likelihood_plane2",&m_reco_track_pid_bragg_likelihood_plane2);
         vertex_tree->Branch("reco_track_pid_pida_plane2",&m_reco_track_pid_pida_plane2);
@@ -388,6 +394,8 @@ namespace single_photon
             m_reco_track_mean_trunc_dEdx_start_half[i_trk] =  0.0;
             m_reco_track_mean_trunc_dEdx_end_half[i_trk] =  0.0;
             m_reco_track_trunc_PIDA[i_trk] =  0.0;
+           // m_reco_track_resrange[i_trk] =  0.0;
+
 
 
             //First off look over ALL points
@@ -459,6 +467,10 @@ namespace single_photon
                     pida_sum_trunc += trunc_dEdx[k]/(pow(res_range_good[k],-0.42));
                 }
                 m_reco_track_trunc_PIDA[i_trk] = pida_sum_trunc;           
+                m_reco_track_resrange[i_trk] = res_range_good;
+                m_reco_track_dEdx[i_trk] = trunc_dEdx;
+                
+                //std::cout<<"the residual range at the start is "<<res_range_good[0]<<std::endl;
             }
 
             m_reco_track_mean_dEdx[i_trk]            *=1.0/((double)calo_length);
@@ -468,6 +480,8 @@ namespace single_photon
             m_reco_track_mean_trunc_dEdx_start_half[i_trk] *=2.0/((double)trunc_dEdx.size());
             m_reco_track_mean_trunc_dEdx_end_half[i_trk]   *=2.0/((double)trunc_dEdx.size());
             m_reco_track_trunc_PIDA[i_trk]  *=1.0/((double)trunc_dEdx.size());
+            //m_reco_track_resrange[i_trk] *=1.0/((double)res_range_good.size());
+           
         }
     }
 
