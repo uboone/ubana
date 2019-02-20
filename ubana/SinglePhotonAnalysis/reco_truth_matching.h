@@ -277,32 +277,39 @@ namespace single_photon
              */
 
 
-            std::vector<int> count_vec; //stores the number of MCP's in the chain from each mother which match to the reco shower
-
+            std::vector<int> count_vec(mother_contributing_MCP.size()); //stores the number of MCP's in the chain from each mother which match to the reco shower
+            std::vector<double> energy_contributing_MCP(mother_contributing_MCP.size()); //the total energy of all the MCP's in the chain from the mother which contribute to the shower
             //for each MCP from the chain of mother mother particle and daughters, check how much it overlaps with the MCP's that contribute to the shower
-            for (std::vector<int> mcp_vec: mother_contributing_MCP){
+            for (unsigned int i = 0; i< mother_contributing_MCP.size(); i++){
+                std::vector<int> mcp_vec =  mother_contributing_MCP[i];
                 int count = 0;      
                 for (int track_id:mcp_vec){
                     //check if it's in the map of MCP's in the reco shower
                     auto iter = objide.find(track_id);
                     if (iter != objide.end()){
                         count++;//count the number of MCP
-                       
+
                         //add the energy to the total for this chain
-                        
+                         energy_contributing_MCP[i] += objide[track_id];
                     }//if the MCP contributes to the shower
 
                 }//for each MCP in the chain from this mother
-                count_vec.push_back(count);
+                count_vec[i] = count;
             }//for each mother/source MCP
 
 
             //check the total number of contributing MCP
-            std::cout<<"SinglePhoton::recoMC()\t||\t the number of MCP associated with the first mother mother particle that also deposit hits in the recob::shower is "<<count_vec[0]<<std::endl;  
+            std::cout<<"SinglePhoton::recoMC()\t||\t the number of MCP associated with the first mother mother particle that also deposit hits in the recob::shower is "<<count_vec[0]<<" and the summed energy is "<<energy_contributing_MCP[0]<<std::endl;  
 
             /*
              *
              *TODO: put in logic to pick the best match if there are multiple candiate MCP chains
+             *
+             */
+
+            /*
+             *
+             *TODO: Fill in truth information for the selected MCP's that match the reco shower
              *
              */
 
@@ -316,12 +323,6 @@ namespace single_photon
             // if(m_is_verbose){
             //     std::cout << "SinglePhoton::recoMC()\t||\t the fracrion matched is "<<maxe/tote<<std::endl;
             // }
-
-            /*
-             *
-             *TODO: Fill in truth information for the selected MCP's that match the reco shower
-             *
-             */
 
             if(!found_a_match){
                 std::cout << "SinglePhoton::recoMC()\t||\t NO MATCH NO MATCH (from my loop) for PFP with pdg  "<<pdg<<std::endl;
