@@ -25,36 +25,36 @@ namespace single_photon
             //get the associated reco PFP
             const art::Ptr<recob::PFParticle> pfp = objectToPFParticleMap[object];
 
-           //this was some checks on the PFP side
+            //this was some checks on the PFP side
             /*
             //check to see where the PFP is in the chain
             // If the particle is primary, it doesn't have a parent
             if (pfp->IsPrimary()){std::cout<<"this is the primary particle"<<std::endl;}
             //else get the parent
             else{
-                const auto parentIterator = pfParticleIdMap.find(pfp->Parent());
-                if (parentIterator == pfParticleIdMap.end()){
-                    std::cout<<"error: no parent but not primary"<<std::endl;
-                }
+            const auto parentIterator = pfParticleIdMap.find(pfp->Parent());
+            if (parentIterator == pfParticleIdMap.end()){
+            std::cout<<"error: no parent but not primary"<<std::endl;
+            }
 
-                const int parentPDG = parentIterator->second->PdgCode();
-                std::cout<<"the parent pdg code is "<<parentPDG<<std::endl;
+            const int parentPDG = parentIterator->second->PdgCode();
+            std::cout<<"the parent pdg code is "<<parentPDG<<std::endl;
 
-                auto daughers_vec = pfp->Daughters();
-                //std::cout<<"the number of daugter particles is "<<daughers_vec.size() <<std::endl;
+            auto daughers_vec = pfp->Daughters();
+            //std::cout<<"the number of daugter particles is "<<daughers_vec.size() <<std::endl;
 
-                for (auto const daughterpfp: daughers_vec){
-                    const auto daughterIterator = pfParticleIdMap.find(daughterpfp);
-                    if (daughterIterator == pfParticleIdMap.end()){
-                 //       std::cout<<"error: didn't find that daughter"<<std::endl;
-                    } else {
-                        art::Ptr<recob::PFParticle> daughters = daughterIterator->second;
-                 //       std::cout<<"the daughter pdg code is "<<daughters->PdgCode()<<std::endl;
-                    }
-                }               
+            for (auto const daughterpfp: daughers_vec){
+            const auto daughterIterator = pfParticleIdMap.find(daughterpfp);
+            if (daughterIterator == pfParticleIdMap.end()){
+            //       std::cout<<"error: didn't find that daughter"<<std::endl;
+            } else {
+            art::Ptr<recob::PFParticle> daughters = daughterIterator->second;
+            //       std::cout<<"the daughter pdg code is "<<daughters->PdgCode()<<std::endl;
+            }
+            }               
 
-                //const int parentPDG = parentIterator->second->PdgCode();
-                //std::cout<<"the parent pdg code is "<<parentPDG<<std::endl;
+            //const int parentPDG = parentIterator->second->PdgCode();
+            //std::cout<<"the parent pdg code is "<<parentPDG<<std::endl;
             }
             */
 
@@ -170,7 +170,7 @@ namespace single_photon
 
                     //check if it's a valid MCP
                     if (this_mcp.isNull()){
-                       // std::cout<<"null pointer at id "<<this_mcp_id<<std::endl;
+                        // std::cout<<"null pointer at id "<<this_mcp_id<<std::endl;
                         this_mcp_id = last_mcp_id; //if invalid, move back a level to the previous MCP in parent tree and break the loop
                         break;
                     }
@@ -188,7 +188,7 @@ namespace single_photon
                 //if the MCP at the top of the interaction chain has a valid track id store this in the mother map
                 if (this_mcp_id >= 0){
                     //std::cout<<"storing the mother mother particle with track id "<<this_mcp_id<<" and pdg code "<<MCParticleToTrackIdMap[this_mcp_id]->PdgCode()<<" and status code "<<MCParticleToTrackIdMap[this_mcp_id]->StatusCode()<<std::endl;
-                   
+
                     mother_MCP_map[this_mcp_id] = MCParticleToTrackIdMap[this_mcp_id];//putting it in a map allows for multiple contributing MCP's in the reco shower to have the same mother MCP
                 } else{
                     std::cout<<"error, the mother mother id was "<<this_mcp_id <<std::endl;
@@ -216,7 +216,7 @@ namespace single_photon
                 int numDaughters = -1;//the number of daughters for the current generation
                 std::vector<int> current_ids; //the track id's for the current generation
                 std::vector<int> next_ids;//the track id's for the next generation (daughters of current generatiob)
-               
+
                 //std::cout<<"starting from mother particle at head of chain with pdg code "<<particle->PdgCode()<<" and track id "<<pair.first<<std::endl;
 
                 numDaughters = particle->NumberDaughters();//start with the number of daughters for the mother mother particle
@@ -276,22 +276,29 @@ namespace single_photon
              *
              */
 
-            int count = 0;
-            //for each MCP that contributes energy, check if it comes from the mother mother particle and daughters
-            for (auto pair:objide){
-                //art::Ptr<simb::MCParticle> ;
-                int id = pair.first;
-                //check if it's in the larger MCP list and if yes add the energy
-                if (std::find(all_contributing_MCP.begin(), all_contributing_MCP.end(), id) != all_contributing_MCP.end()){
-                    count++;
-                }
 
-            }
+            std::vector<int> count_vec; //stores the number of MCP's in the chain from each mother which match to the reco shower
+
+            //for each MCP from the chain of mother mother particle and daughters, check how much it overlaps with the MCP's that contribute to the shower
+            for (std::vector<int> mcp_vec: mother_contributing_MCP){
+                int count = 0;      
+                for (int track_id:mcp_vec){
+                    //check if it's in the map of MCP's in the reco shower
+                    auto iter = objide.find(track_id);
+                    if (iter != objide.end()){
+                        count++;//count the number of MCP
+                       
+                        //add the energy to the total for this chain
+                        
+                    }//if the MCP contributes to the shower
+
+                }//for each MCP in the chain from this mother
+                count_vec.push_back(count);
+            }//for each mother/source MCP
+
 
             //check the total number of contributing MCP
-            std::cout<<"SinglePhoton::recoMC()\t||\t the number of MCP associated with the mother mother particle that also deposit hits in the recob::shower is "<<count<<std::endl;
-
-            //for (auto )   
+            std::cout<<"SinglePhoton::recoMC()\t||\t the number of MCP associated with the first mother mother particle that also deposit hits in the recob::shower is "<<count_vec[0]<<std::endl;  
 
             /*
              *
@@ -310,6 +317,11 @@ namespace single_photon
             //     std::cout << "SinglePhoton::recoMC()\t||\t the fracrion matched is "<<maxe/tote<<std::endl;
             // }
 
+            /*
+             *
+             *TODO: Fill in truth information for the selected MCP's that match the reco shower
+             *
+             */
 
             if(!found_a_match){
                 std::cout << "SinglePhoton::recoMC()\t||\t NO MATCH NO MATCH (from my loop) for PFP with pdg  "<<pdg<<std::endl;
