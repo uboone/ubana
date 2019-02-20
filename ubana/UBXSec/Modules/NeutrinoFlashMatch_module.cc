@@ -160,7 +160,7 @@ NeutrinoFlashMatch::NeutrinoFlashMatch(fhicl::ParameterSet const & p)
   _track_producer          = p.get<std::string>("TrackModule",           "pandoraNu");
   _tpcobject_producer      = p.get<std::string>("TPCObjectModule",       "");
   _nuMcFlash_producer      = p.get<std::string>("NeutrinoMCFlashModule", "NeutrinoMCFlash");
-  _debug                   = p.get<bool>       ("DebugMode",             true);
+  _debug                   = p.get<bool>       ("DebugMode",             false);
   _opflash_producer_beam   = p.get<std::string>("BeamOpFlashProducer",   "simpleFlashBeam");
   _flash_trange_start      = p.get<double>     ("FlashVetoTimeStart",    3);
   _flash_trange_end        = p.get<double>     ("FlashVetoTimeEnd",      5);

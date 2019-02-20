@@ -171,7 +171,7 @@ CandidateConsistency::CandidateConsistency(fhicl::ParameterSet const & p)
   _dqds_average_cut          = p.get<double>("DqDsAverageThreshold", 90000);
   _good_ch_status            = p.get<double>("GoodChannelStatus", 4);
 
-  _debug                     = p.get<bool>("DebugMode", true);
+  _debug                     = p.get<bool>("DebugMode", false);
 
   _ct_manager.Configure(p.get<cosmictag::Config_t>("CosmicTagManager"));
 

@@ -1900,7 +1900,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       std::cout << "[UBXSec] \t Truncated mean dQ/ds for candidate is (plane 1): " << ubxsec_event->slc_muoncandidate_dqdx_u_trunc[slice] << std::endl;
       std::cout << "[UBXSec] \t Truncated mean dQ/ds for candidate is (plane 2): " << ubxsec_event->slc_muoncandidate_dqdx_v_trunc[slice] << std::endl;
       std::cout << "[UBXSec] \t MIP consistent ? : " << (ubxsec_event->slc_muoncandidate_mip_consistency[slice] ? "YES" : "NO") << std::endl;
-      std::cout<<"are we good here?"<<endl;
+      //std::cout<<"are we good here?"<<endl;
 
       // Get the related PFP
       art::Ptr<recob::PFParticle> candidate_pfp = pfp_from_track.at(candidate_track.key()).at(0);
@@ -1985,7 +1985,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
           }
         }
       }
-       std::cout<<"are we good here?c"<<endl;
+      //std::cout<<"are we good here?c"<<endl;
 
       // Collect track points
       for (size_t i = 0; i < candidate_track->NumberTrajectoryPoints(); i++) {
@@ -2002,7 +2002,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
           continue;
         }
       }
-         std::cout<<"are we good here?hit"<<endl;
+      //std::cout<<"are we good here?hit"<<endl;
 
       if (_debug) std::cout << "[UBXSec] \t \t Hit points: " << hit_v.size() << ", track points: " << track_v.size() << std::endl;
       ubana::TrackQuality _track_quality;

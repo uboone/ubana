@@ -84,7 +84,7 @@ NeutrinoMCFlash::NeutrinoMCFlash(fhicl::ParameterSet const & p)
   _mctruth_label = p.get<std::string>("MCTruthProduct", "generator");
   _trigger_label = p.get<std::string>("TriggerProduct", "triggersim");
   _simphot_label = p.get<std::string>("SimPhotProduct", "largeant");    
-  _debug         = p.get<bool>       ("DebugMode",      true);
+  _debug         = p.get<bool>       ("DebugMode",      false);
 
   produces< std::vector<recob::OpFlash> >();
 }

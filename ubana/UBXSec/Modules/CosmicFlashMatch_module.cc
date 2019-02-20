@@ -104,7 +104,7 @@ private:
 CosmicFlashMatch::CosmicFlashMatch(fhicl::ParameterSet const & p)
 {
   _particleLabel           = p.get<std::string>("PFParticleModule",      "pandoraNu");
-  _debug                   = p.get<bool>       ("DebugMode",             true);
+  _debug                   = p.get<bool>       ("DebugMode",             false);
   _opflash_producer_beam   = p.get<std::string>("BeamOpFlashProducer",   "simpleFlashBeam");
   _opflash_producer_cosmic = p.get<std::string>("CosmicOpFlashProducer", "simpleFlashCosmic");
   _flash_trange_start      = p.get<double>     ("FlashVetoTimeStart",    -1000000);

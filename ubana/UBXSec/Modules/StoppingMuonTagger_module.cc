@@ -182,7 +182,7 @@ StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p)
 
   _coplanar_cut       = p.get<double>("CoplanarCut",   5.);
 
-  _debug = p.get<bool>("DebugMode", true);
+  _debug = p.get<bool>("DebugMode", false);
   _create_tree = p.get<bool>("CreateTree", true);
 
   if (_debug) std::cout << "[StoppingMuonTagger] Configured with settings: " << std::endl

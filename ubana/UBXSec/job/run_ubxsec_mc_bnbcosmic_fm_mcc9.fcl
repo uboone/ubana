@@ -30,5 +30,6 @@ physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   @local::beam_e
 
 physics.producers.UBXSec.BeamSpillStart:                 @local::beam_start
 physics.producers.UBXSec.BeamSpillEnd:                   @local::beam_end
+physics.producers.RecoTrueMatcher.Overlay:           false
 
 physics.producers.UBXSec.FileType: "bnbcosmic"

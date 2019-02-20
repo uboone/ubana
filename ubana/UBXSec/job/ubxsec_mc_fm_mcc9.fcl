@@ -66,6 +66,7 @@ ubxsec_mc_reco:
 
 ubxsec_mc_flashmatch:
 {
+pandoraFlashEventBuildingTrack:	@local::microboone_pandoraTrackCreation
 pandoraFlashEventBuildingcalo:   @local::microboone_calomc 
 pandoraFlashEventBuildingpid:   @local::microboone_chi2pid
 
@@ -122,6 +123,7 @@ ubxsec_mc_producers: [ #pandoraFlashEventBuildingcalo,
    #                    crHitRemovalTruthMatch,
 #                       pandora,
                        #pandoraNuAll,
+		       pandoraFlashEventBuildingTrack,
                        pandoraFlashEventBuildingcalo,
                        pandoraFlashEventBuildingpid,
                        #pandoraNucali,
@@ -191,6 +193,8 @@ ubxsec_mc_analyzers: [ ProtonID
 #ubxsec_mc_reco.pandoraNuAll.GeantModuleLabel:                    "largeant"
 #ubxsec_mc_reco.pandoraNuAll.HitFinderModuleLabel:                "gaushit"
 #ubxsec_mc_reco.pandoraNuAll.ConfigFile:                          "PandoraSettings_MicroBooNE_Neutrino.xml"
+
+ubxsec_mc_flashmatch.pandoraFlashEventBuildingTrack.PFParticleLabel:                   "pandoraFlashEventBuilding::NuMuCCAnalyser"
 
 ubxsec_mc_flashmatch.pandoraFlashEventBuildingcalo.TrackModuleLabel:                   "pandoraFlashEventBuilding"
 ubxsec_mc_flashmatch.pandoraFlashEventBuildingcalo.SpacePointModuleLabel:              "pandoraFlashEventBuilding"

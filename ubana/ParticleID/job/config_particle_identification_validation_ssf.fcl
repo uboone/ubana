@@ -20,7 +20,7 @@ particleidvalidconfig:
 
   IsDataPlotsOnly: false
 
-  IsUBXSecSelected: false
+  IsUBXSecSelected: true
 
   # bragg algorithm fcl parameters
   BraggAlgo: @local::braggalgo_mcc8_dedxcalib

@@ -186,7 +186,7 @@ ubana::TPCObjectMaker::TPCObjectMaker(fhicl::ParameterSet const & p)
 }
 
 void ubana::TPCObjectMaker::produce(art::Event & e){
-_debug=true;
+_debug=false;
   if (_debug) std::cout << "[TPCObjectMaker] Starts" << std::endl;
   _is_mc = !e.isRealData();
 

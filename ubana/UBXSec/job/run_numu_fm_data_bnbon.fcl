@@ -1,7 +1,7 @@
 #include "run_numu_fm.fcl"
 
 physics.producers.pandoraFlashEventBuilding.GeneratorLabel: "generator"
-physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowStartTime: 3.2
-physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowEndTime:   5.0
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowStartTime: 3.3
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowEndTime:   4.9
 physics.producers.pandoraFlashEventBuilding.SliceIdTool.HasMCNeutrino:       false 
 

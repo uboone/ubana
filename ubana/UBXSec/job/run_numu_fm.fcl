@@ -1,11 +1,13 @@
 #include "pandoramodules_microboone.fcl"
 #include "external_event_building.fcl"
+#include "calorimetry_microboone.fcl"
 
 BEGIN_PROLOG
 
 pandoraAllOutcomesTrack:       @local::microboone_pandoraTrackCreation
 pandoraAllOutcomesShower:      @local::microboone_pandoraShowerCreation
 pandoraFlashEventBuilding:     @local::pandora_flash_event_building
+pandoraTrackCaloBuilder:       @local::microboone_calodata
 
 END_PROLOG
 
@@ -44,10 +46,11 @@ physics:
     pandoraAllOutcomesTrack:   @local::pandoraAllOutcomesTrack
     pandoraAllOutcomesShower:  @local::pandoraAllOutcomesShower
     pandoraFlashEventBuilding: @local::pandoraFlashEventBuilding 
+    pandoraTrackCaloBuilder:   @local::pandoraTrackCaloBuilder
  }
  
 
- prod: [ pandoraAllOutcomesTrack, pandoraAllOutcomesShower, pandoraFlashEventBuilding ]
+ prod: [ pandoraAllOutcomesTrack, pandoraAllOutcomesShower, pandoraFlashEventBuilding, pandoraTrackCaloBuilder ]
 
  stream1:   [ out1 ]
  trigger_paths: [ prod ]
@@ -66,6 +69,8 @@ services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
 services.DetectorClocksService.TrigModuleName:               "daq"
 physics.producers.pandoraAllOutcomesTrack.PFParticleLabel:  "pandoraPatRec:allOutcomes"
 physics.producers.pandoraAllOutcomesShower.PFParticleLabel: "pandoraPatRec:allOutcomes"
+physics.producers.pandoraTrackCaloBuilder.TrackModuleLabel: "pandoraFlashEventBuilding"
+physics.producers.pandoraTrackCaloBuilder.SpacePointModuleLabel: "pandoraFlashEventBuilding"
 physics.producers.pandoraFlashEventBuilding.ShouldUseTestBeamMode: false
 
 outputs:
@@ -73,7 +78,7 @@ outputs:
  out1:
  {
    module_type: RootOutput
-   fileName: "%ifb_%tc_flashmatching.root"
+   fileName: "%tc_flashmatching.root"
    dataTier: "reconstructed"
    compressionLevel: 1
    saveMemoryObjectThreshold: 0
