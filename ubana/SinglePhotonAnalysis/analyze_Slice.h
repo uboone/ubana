@@ -16,7 +16,7 @@ namespace single_photon
         vertex_tree->Branch("reco_slice",&m_reco_slice);
     }
 
-    void SinglePhoton::AnalyzeSlices(){
+    void SinglePhoton::AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap){
         m_reco_num_slices = 1;
         this->ResizeSlices(m_reco_num_slices);
 

@@ -327,6 +327,14 @@ namespace single_photon
             void BuildMCParticleHitMaps(const art::Event &evt, const std::string &label, const std::vector<art::Ptr<recob::Hit>> &hitVector,   std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  &particlesToHits,         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  &hitsToParticles, const lar_pandora::LArPandoraHelper::DaughterMode daughterMode, std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap);
 
 
+            //-------------- Slices/Pandora Metadata ---------------//
+            void  ClearSlices();
+            void  ResizeSlices(size_t size); 
+            void CreateSliceBranches();
+            void AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap);
+
+            int  m_reco_num_slices;
+            std::vector<int> m_reco_slice;
 
             //------------------ Delaunay triangle tools -----------//
 

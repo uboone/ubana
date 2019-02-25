@@ -4,6 +4,7 @@
 #include "analyze_Showers.h"
 #include "analyze_Template.h"
 #include "analyze_MCTruth.h"
+#include "analyze_Slice.h"
 
 
 #include "reco_truth_matching.h"
@@ -175,18 +176,18 @@ namespace single_photon
         //Spacepoint associaitions
         art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
         std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>> > pfParticleToSpacePointsMap;
-        for(size_t i=0; i< nuParticles.size(); ++i){
+        /*for(size_t i=0; i< nuParticles.size(); ++i){
             const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
             pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
-        }
+        }*/
 
         //add the associaton between PFP and metadata, this is important to look at the slices and scores
         art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  m_pandoraLabel);
         std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap;
-         for(size_t i=0; i< nuParticles.size(); ++i){
+        /* for(size_t i=0; i< nuParticles.size(); ++i){
             const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
             pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
-         }
+         }*/
 
         //Get a map between the PFP's and the clusters. Although Mark isn't a fan of clusters, they're imporant for the shower dQ/dx
         //Also need a map between clusters and hits
@@ -198,6 +199,8 @@ namespace single_photon
         for(size_t i=0; i< nuParticles.size(); ++i){
             auto pfp = nuParticles[i];
             pfParticleToClustersMap[pfp] = clusters_per_pfparticle.at(pfp.key());
+            pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
+            pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
         }
         //fill map Cluster to Hits
         for(size_t i=0; i< clusterVector.size(); ++i){
@@ -380,6 +383,10 @@ namespace single_photon
             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
             recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector );
             //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+
+            //looking at metadata
+            std::cout<<"SinglePhoton\t||\t Analyze Metadata"<<std::endl;
+            this->AnalyzeSlices( pfParticleToMetadataMap);
 
 
             for(auto & track: tracks){
