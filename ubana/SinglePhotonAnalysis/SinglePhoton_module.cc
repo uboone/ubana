@@ -39,7 +39,7 @@ namespace single_photon
         m_beamgate_flash_end = pset.get<double>("beamgateEndTime",4.8);
         m_hitfinderLabel = pset.get<std::string>("HitFinderModule", "gaushit");
         m_badChannelLabel = pset.get<std::string>("BadChannelLabel","badmasks");
-        m_badChannelProducer = pset.get<std::string>("BadChannelProducer","simnfspl1");
+        m_badChannelProducer = pset.get<std::string>("BadChannelProducer","nfspl1");
 
         m_generatorLabel = pset.get<std::string>("GeneratorLabel","generator");
         m_mcTrackLabel = pset.get<std::string>("MCTrackLabel","mcreco");
@@ -179,6 +179,14 @@ namespace single_photon
             const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
             pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
         }
+
+        //add the associaton between PFP and metadata, this is important to look at the slices and scores
+        art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  m_pandoraLabel);
+        std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap;
+         for(size_t i=0; i< nuParticles.size(); ++i){
+            const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
+            pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
+         }
 
         //Get a map between the PFP's and the clusters. Although Mark isn't a fan of clusters, they're imporant for the shower dQ/dx
         //Also need a map between clusters and hits
@@ -369,9 +377,9 @@ namespace single_photon
             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::track"<<std::endl;
             recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector);
 
-             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
-            //recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector );
-            showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+            std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
+            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector );
+            //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
 
 
             for(auto & track: tracks){

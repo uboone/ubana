@@ -313,6 +313,7 @@ namespace single_photon
              *
              */
 
+            //this stuff here is all legacy
             if(found_a_match){
                 mcParticleVector.push_back(best_matched_mcparticle);
                 objectToMCParticleMap[object] = mcParticleVector.back();
