@@ -331,7 +331,7 @@ namespace single_photon
             void  ClearSlices();
             void  ResizeSlices(size_t size); 
             void CreateSliceBranches();
-            void AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap);
+            void AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap, std::vector<art::Ptr<recob::PFParticle>>  &pfParticleVector);
 
             int  m_reco_num_slices;
             std::vector<int> m_reco_slice;

@@ -40,7 +40,9 @@ namespace single_photon
         m_beamgate_flash_end = pset.get<double>("beamgateEndTime",4.8);
         m_hitfinderLabel = pset.get<std::string>("HitFinderModule", "gaushit");
         m_badChannelLabel = pset.get<std::string>("BadChannelLabel","badmasks");
-        m_badChannelProducer = pset.get<std::string>("BadChannelProducer","nfspl1");
+        // m_badChannelProducer = pset.get<std::string>("BadChannelProducer","nfspl1");
+        m_badChannelProducer = pset.get<std::string>("BadChannelProducer","simnfspl1");
+
 
         m_generatorLabel = pset.get<std::string>("GeneratorLabel","generator");
         m_mcTrackLabel = pset.get<std::string>("MCTrackLabel","mcreco");
@@ -88,7 +90,7 @@ namespace single_photon
         m_Cryostat = ID.Cryostat;
         m_TPC = ID.TPC;
 
-         _time2cm = theDetector->SamplingRate() / 1000.0 * theDetector->DriftVelocity( theDetector->Efield(), theDetector->Temperature() );//found in ProtoShowerPandora_tool.cc
+        _time2cm = theDetector->SamplingRate() / 1000.0 * theDetector->DriftVelocity( theDetector->Efield(), theDetector->Temperature() );//found in ProtoShowerPandora_tool.cc
 
         this->ClearVertex();
 
@@ -176,18 +178,18 @@ namespace single_photon
         //Spacepoint associaitions
         art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
         std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>> > pfParticleToSpacePointsMap;
-        /*for(size_t i=0; i< nuParticles.size(); ++i){
+        for(size_t i=0; i< nuParticles.size(); ++i){
             const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
             pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
-        }*/
+        }
 
         //add the associaton between PFP and metadata, this is important to look at the slices and scores
         art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  m_pandoraLabel);
         std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap;
-        /* for(size_t i=0; i< nuParticles.size(); ++i){
-            const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
+        for(size_t i=0; i< pfParticleVector.size(); ++i){
+            const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
             pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
-         }*/
+        }
 
         //Get a map between the PFP's and the clusters. Although Mark isn't a fan of clusters, they're imporant for the shower dQ/dx
         //Also need a map between clusters and hits
@@ -199,8 +201,8 @@ namespace single_photon
         for(size_t i=0; i< nuParticles.size(); ++i){
             auto pfp = nuParticles[i];
             pfParticleToClustersMap[pfp] = clusters_per_pfparticle.at(pfp.key());
-            pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
-            pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
+            // pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
+            // pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
         }
         //fill map Cluster to Hits
         for(size_t i=0; i< clusterVector.size(); ++i){
@@ -355,13 +357,13 @@ namespace single_photon
 
             //testbed(mcParticleVector,evt);
 
-      /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
-            for(size_t j=0;j< mcParticleVector.size();j++){
-                 const art::Ptr<simb::MCParticle> mcp = mcParticleVector[j];
-                 std::cout<<"PARG: "<<j<<" trackid: "<<mcp->TrackId()<<" key: "<<mcp.key()<<std::endl;
-                 crap_map[mcp->TrackId()] = mcParticleVector[mcp.key()];
-            }
-*/
+            /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
+                    for(size_t j=0;j< mcParticleVector.size();j++){
+                    const art::Ptr<simb::MCParticle> mcp = mcParticleVector[j];
+                    std::cout<<"PARG: "<<j<<" trackid: "<<mcp->TrackId()<<" key: "<<mcp.key()<<std::endl;
+                    crap_map[mcp->TrackId()] = mcParticleVector[mcp.key()];
+                    }
+                    */
 
             //Get the MCParticles (move to do this ourselves later)
             this->CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap, MCParticleToTrackIdMap);
@@ -376,7 +378,7 @@ namespace single_photon
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
             this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters,  MCParticleToTrackIdMap);
-            
+
             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::track"<<std::endl;
             recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector);
 
@@ -386,14 +388,14 @@ namespace single_photon
 
             //looking at metadata
             std::cout<<"SinglePhoton\t||\t Analyze Metadata"<<std::endl;
-            this->AnalyzeSlices( pfParticleToMetadataMap);
+            this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleVector);
 
 
             for(auto & track: tracks){
                 std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
             }
 
-          //  perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
+            //  perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
             perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
 
             //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
@@ -413,8 +415,8 @@ namespace single_photon
                 std::cout<<"BINside: "<<trackToMCParticleMap.count(track)<<std::endl;
             }
 
-            
-            
+
+
 
 
             this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
@@ -487,7 +489,7 @@ namespace single_photon
         //Get the info for length->energy conversion from PSTAR database.
         TFile *fileconv;
         struct stat buffer;   
-        
+
         if(stat("proton_conversion.root", &buffer) == 0){
             fileconv = new TFile("proton_conversion.root", "read");
         }else{
@@ -506,9 +508,9 @@ namespace single_photon
         this->CreateMCTruthBranches();
 
         //std::string bad_channel_file = "/pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt";
-      
+
         std::string bad_channel_file = "MCC9_channel_list.txt";
-        
+
         if(stat(bad_channel_file.c_str(), &buffer) != 0){
             bad_channel_file = gpvm_location+bad_channel_file;
         }
@@ -827,9 +829,9 @@ namespace single_photon
             }
         }
         if(m_use_delaunay){
-        if(n_0>0) this->quick_delaunay_fit(n_0, &C0[0]  , &T0[0]  , &num_triangles[0],&area[0]);
-        if(n_1>0) this->quick_delaunay_fit(n_1, &C1[0]  , &T1[0]  , &num_triangles[1],&area[1]);
-        if(n_2>0) this->quick_delaunay_fit(n_2, &C2[0]  , &T2[0]  , &num_triangles[2],&area[2]);
+            if(n_0>0) this->quick_delaunay_fit(n_0, &C0[0]  , &T0[0]  , &num_triangles[0],&area[0]);
+            if(n_1>0) this->quick_delaunay_fit(n_1, &C1[0]  , &T1[0]  , &num_triangles[1],&area[1]);
+            if(n_2>0) this->quick_delaunay_fit(n_2, &C2[0]  , &T2[0]  , &num_triangles[2],&area[2]);
         }
         num_hits[0] = n_0;
         num_hits[1] = n_1;
@@ -845,18 +847,18 @@ namespace single_photon
 
     int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected){
         corrected.resize(3);
-        
+
         double kx = mcparticle->Vx();
         double ky = mcparticle->Vy();
         double kz = mcparticle->Vz();
-        
+
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
         double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
-        
+
         double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)+scecorr.X();
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
-        
+
         corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
@@ -890,8 +892,8 @@ namespace single_photon
         corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6;
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
-        
-        
+
+
         std::cout<<"TRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
         std::cout<<"TRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
         std::cout<<"TRIGGER_OFF: mcp->T(): "<<mcparticle.T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle.T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
