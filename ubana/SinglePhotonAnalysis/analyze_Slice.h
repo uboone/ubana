@@ -3,24 +3,24 @@
 namespace single_photon
 {
     void SinglePhoton::ClearSlices(){
-        m_reco_num_slices = 0;
-        m_reco_slice.clear();
+        m_reco_slice_num = 0;
+        m_reco_slice_nuscore.clear();
     }
 
     void SinglePhoton::ResizeSlices(size_t size){
-        m_reco_slice.resize(size);
+        m_reco_slice_nuscore.resize(size);
     }
 
 
     void SinglePhoton::CreateSliceBranches(){
-        vertex_tree->Branch("reco_slice",&m_reco_slice);
+        vertex_tree->Branch("reco_slice_nuscore",&m_reco_slice_nuscore);
+        vertex_tree->Branch("reco_slice_num",&m_reco_slice_num);
     }
 
     void SinglePhoton::AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap, std::vector<art::Ptr<recob::PFParticle>>  &pfParticleVector ){
-        m_reco_num_slices = 1;
-        this->ResizeSlices(m_reco_num_slices);
+        std::vector<double> nuscore_slices;
 
-        m_reco_slice[0]=99;
+
 
         /*
          * Grabbed this info from Giuseppe:
@@ -52,12 +52,19 @@ namespace single_photon
                     std::cout<<"the number of items in the metadata properties map is "<<propertiesmap.size()<<std::endl;
                     for (auto it:propertiesmap ){
                         std::cout << "  - " << it.first << " = " << it.second << std::endl;
+                        if (it.first == "NuScore"){
+                            nuscore_slices.push_back(it.second);
+                        }
                     }
                 }
 
             }
 
         }
+
+        m_reco_slice_num = nuscore_slices.size();
+        this->ResizeSlices(m_reco_slice_num); 
+        m_reco_slice_nuscore = nuscore_slices;
 
     }
 }

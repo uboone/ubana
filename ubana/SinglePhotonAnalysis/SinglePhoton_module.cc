@@ -504,6 +504,9 @@ namespace single_photon
         this->CreateShowerBranches();
 
 
+        //Metadata Branches
+        this->CreateSliceBranches();
+
         // ---------------------- MCTruth Related Variables ----------
         this->CreateMCTruthBranches();
 
@@ -567,7 +570,9 @@ namespace single_photon
         //------------- Track Related Variables -----------------
         this->ClearShowers();
         this->ClearMCTruths();
-
+        
+        //MetaData Related Varibles
+        this->ClearSlices();
 
 
     }
