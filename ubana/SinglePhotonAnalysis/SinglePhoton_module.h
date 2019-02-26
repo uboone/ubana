@@ -311,6 +311,18 @@ namespace single_photon
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
                     std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
 
+            std::vector<double> showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
+            std::map<art::Ptr<recob::Shower>,art::Ptr<simb::MCParticle>>& objectToMCParticleMap,
+            std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& objectToPFParticleMap,
+            std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> >& pfParticleToHitsMap,
+            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
+            std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
+            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap );
+
+
+
+
             //---------------- MCTruths ----------------------------
 
             void AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector,  std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector );
@@ -337,6 +349,7 @@ namespace single_photon
 
             int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected);
             int spacecharge_correction(const simb::MCParticle & mcparticle, std::vector<double> & corrected);
+            int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected, std::vector<double> & input);
 
             //databased http://dbdata0vm.fnal.gov:8186/uboonecon_prod/app/data?f=channelstatus_data&t=357812824
             std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
@@ -542,12 +555,26 @@ namespace single_photon
             std::vector<double> m_sim_shower_kinetic_energy;
             std::vector<double> m_sim_shower_mass;
             std::vector<int> m_sim_shower_pdg;
+            std::vector<int> m_sim_shower_trackID;
             std::vector<int> m_sim_shower_parent_pdg;
+            std::vector<int> m_sim_shower_parent_trackID;
             std::vector<int> m_sim_shower_origin;
             std::vector<std::string> m_sim_shower_process;
-            std::vector<double> m_sim_shower_startx;
-            std::vector<double> m_sim_shower_starty;
-            std::vector<double> m_sim_shower_startz;
+            std::vector<std::string> m_sim_shower_end_process;
+            std::vector<double> m_sim_shower_start_x;
+            std::vector<double> m_sim_shower_start_y;
+            std::vector<double> m_sim_shower_start_z;
+            std::vector<double> m_sim_shower_vertex_x;
+            std::vector<double> m_sim_shower_vertex_y;
+            std::vector<double> m_sim_shower_vertex_z;
+
+            std::vector<int> m_sim_shower_is_true_shower;
+            std::vector<int> m_sim_shower_best_matched_plane;
+            std::vector<double> m_sim_shower_matched_energy_fraction_plane0;
+            std::vector<double> m_sim_shower_matched_energy_fraction_plane1;
+            std::vector<double> m_sim_shower_matched_energy_fraction_plane2;
+            std::vector<double> m_sim_shower_overlay_fraction;
+
 
             //------------ MCTruth related Variables  -------------
             int m_mctruth_num;

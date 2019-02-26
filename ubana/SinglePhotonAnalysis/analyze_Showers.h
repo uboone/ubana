@@ -1,5 +1,5 @@
 #include "SinglePhoton_module.h"
-
+#include "reco_truth_matching.h"
 
 namespace single_photon
 {
@@ -31,12 +31,25 @@ namespace single_photon
         m_sim_shower_kinetic_energy.clear();
         m_sim_shower_mass.clear();
         m_sim_shower_pdg.clear();
+        m_sim_shower_trackID.clear();
         m_sim_shower_parent_pdg.clear();
+        m_sim_shower_parent_trackID.clear();
         m_sim_shower_origin.clear();
         m_sim_shower_process.clear();
-        m_sim_shower_startx.clear();
-        m_sim_shower_starty.clear();
-        m_sim_shower_startz.clear();
+        m_sim_shower_end_process.clear();
+        m_sim_shower_start_x.clear();
+        m_sim_shower_start_y.clear();
+        m_sim_shower_start_z.clear();
+        m_sim_shower_vertex_x.clear();
+        m_sim_shower_vertex_y.clear();
+        m_sim_shower_vertex_z.clear();
+        m_sim_shower_is_true_shower.clear();
+        m_sim_shower_best_matched_plane.clear();
+        m_sim_shower_matched_energy_fraction_plane0.clear();
+        m_sim_shower_matched_energy_fraction_plane1.clear();
+        m_sim_shower_matched_energy_fraction_plane2.clear();
+        m_sim_shower_overlay_fraction.clear();
+
 
         m_reco_shower_ordered_energy_index.clear();
         m_reco_shower_energy.clear();
@@ -140,17 +153,31 @@ namespace single_photon
         m_reco_shower_flash_shortest_distyz.resize(size);
         m_reco_shower_flash_shortest_index_yz.resize(size);
 
-        m_sim_shower_matched.resize(size);
         m_sim_shower_energy.resize(size);
+        m_sim_shower_matched.resize(size);
         m_sim_shower_kinetic_energy.resize(size);
         m_sim_shower_mass.resize(size);
         m_sim_shower_pdg.resize(size);
+        m_sim_shower_trackID.resize(size);
         m_sim_shower_parent_pdg.resize(size);
+        m_sim_shower_parent_trackID.resize(size);
         m_sim_shower_origin.resize(size);
         m_sim_shower_process.resize(size);
-        m_sim_shower_startx.resize(size);
-        m_sim_shower_starty.resize(size);
-        m_sim_shower_startz.resize(size);
+        m_sim_shower_end_process.resize(size);
+        m_sim_shower_start_x.resize(size);
+        m_sim_shower_start_y.resize(size);
+        m_sim_shower_start_z.resize(size);
+        m_sim_shower_vertex_x.resize(size);
+        m_sim_shower_vertex_y.resize(size);
+        m_sim_shower_vertex_z.resize(size);
+        m_sim_shower_is_true_shower.resize(size);
+        m_sim_shower_best_matched_plane.resize(size);
+        m_sim_shower_matched_energy_fraction_plane0.resize(size);
+        m_sim_shower_matched_energy_fraction_plane1.resize(size);
+        m_sim_shower_matched_energy_fraction_plane2.resize(size);
+        m_sim_shower_overlay_fraction.resize(size);
+
+
     }
 
     void SinglePhoton::CreateShowerBranches(){
@@ -216,12 +243,25 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
         vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
         vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
+        vertex_tree->Branch("sim_shower_trackID",&m_sim_shower_trackID);
         vertex_tree->Branch("sim_shower_parent_pdg",&m_sim_shower_parent_pdg);
+        vertex_tree->Branch("sim_shower_parent_trackID",&m_sim_shower_parent_trackID);
         vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
         vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
-        vertex_tree->Branch("sim_shower_startx",&m_sim_shower_startx);
-        vertex_tree->Branch("sim_shower_starty",&m_sim_shower_starty);
-        vertex_tree->Branch("sim_shower_startz",&m_sim_shower_startz);
+        vertex_tree->Branch("sim_shower_end_process",&m_sim_shower_end_process);
+        vertex_tree->Branch("sim_shower_start_x",&m_sim_shower_start_x);
+        vertex_tree->Branch("sim_shower_start_y",&m_sim_shower_start_y);
+        vertex_tree->Branch("sim_shower_start_z",&m_sim_shower_start_z);
+        vertex_tree->Branch("sim_shower_vertex_x",&m_sim_shower_vertex_x);
+        vertex_tree->Branch("sim_shower_vertex_y",&m_sim_shower_vertex_y);
+        vertex_tree->Branch("sim_shower_vertex_z",&m_sim_shower_vertex_z);
+
+        vertex_tree->Branch("sim_shower_is_true_shower",&m_sim_shower_is_true_shower);
+        vertex_tree->Branch("sim_shower_best_matched_plane",&m_sim_shower_best_matched_plane);
+        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane0",&m_sim_shower_matched_energy_fraction_plane0);
+        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane1",&m_sim_shower_matched_energy_fraction_plane1);
+        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane2",&m_sim_shower_matched_energy_fraction_plane2);
+        vertex_tree->Branch("sim_shower_overlay_fraction",&m_sim_shower_overlay_fraction);
 
     }
 
@@ -490,6 +530,8 @@ namespace single_photon
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
             std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector
             ){
+        //OBSOLETE OBSOLETE
+
 
         if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCShowers()\t||\t Begininning recob::Shower Reco-MC suite"<<std::endl;;
 
@@ -513,9 +555,9 @@ namespace single_photon
                 m_sim_shower_kinetic_energy[i_shr] = mcparticle->E()-mcparticle->Mass();
                 m_sim_shower_pdg[i_shr] = mcparticle->PdgCode();
                 m_sim_shower_process[i_shr] = mcparticle->Process();
-                m_sim_shower_startx[i_shr] = corrected[0];
-                m_sim_shower_starty[i_shr] = corrected[1];
-                m_sim_shower_startz[i_shr] =corrected[2];
+                m_sim_shower_start_x[i_shr] = corrected[0];
+                m_sim_shower_start_y[i_shr] = corrected[1];
+                m_sim_shower_start_z[i_shr] =corrected[2];
                 
                 m_sim_shower_origin[i_shr] = mctruth->Origin();
                 //so this might be broken still due to mcparticle. must chcek
