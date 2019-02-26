@@ -333,8 +333,8 @@ namespace single_photon
             void CreateSliceBranches();
             void AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap, std::vector<art::Ptr<recob::PFParticle>>  &pfParticleVector);
 
-            int  m_reco_slice_num;
-            std::vector<double> m_reco_slice_nuscore;
+            int  m_reco_slice_num; //total number of slices in the event
+            std::vector<double> m_reco_slice_nuscore; //vector of the neutrino score for each slice in an event
 
             //------------------ Delaunay triangle tools -----------//
 
