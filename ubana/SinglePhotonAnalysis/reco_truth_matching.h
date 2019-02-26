@@ -181,6 +181,9 @@ namespace single_photon
                m_sim_shower_start_x[i] = -9999;
                m_sim_shower_start_y[i] = -9999;
                m_sim_shower_start_z[i] = -9999;
+               m_sim_shower_px[i] = -9999;
+               m_sim_shower_py[i] = -9999;
+               m_sim_shower_pz[i] = -9999;
                    
                m_sim_shower_is_true_shower[i] = -999;
                m_sim_shower_best_matched_plane[i] = -999;
@@ -387,6 +390,10 @@ namespace single_photon
            m_sim_shower_start_x[i] = corrected_start[0];
            m_sim_shower_start_y[i] = corrected_start[1];
            m_sim_shower_start_z[i] =corrected_start[2];
+            
+           m_sim_shower_px[i] = match->Px();
+           m_sim_shower_py[i] = match->Py();
+           m_sim_shower_pz[i] = match->Pz();
                
            m_sim_shower_best_matched_plane[i] = best_mother_index;
            m_sim_shower_matched_energy_fraction_plane0[i] = marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][0]/total_energy_on_plane[0];

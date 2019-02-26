@@ -49,6 +49,9 @@ namespace single_photon
         m_sim_shower_matched_energy_fraction_plane1.clear();
         m_sim_shower_matched_energy_fraction_plane2.clear();
         m_sim_shower_overlay_fraction.clear();
+m_sim_shower_px.clear();
+        m_sim_shower_py.clear();
+        m_sim_shower_pz.clear();
 
 
         m_reco_shower_ordered_energy_index.clear();
@@ -176,6 +179,9 @@ namespace single_photon
         m_sim_shower_matched_energy_fraction_plane1.resize(size);
         m_sim_shower_matched_energy_fraction_plane2.resize(size);
         m_sim_shower_overlay_fraction.resize(size);
+        m_sim_shower_px.resize(size);
+        m_sim_shower_py.resize(size);
+        m_sim_shower_pz.resize(size);
 
 
     }
@@ -255,6 +261,9 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_vertex_x",&m_sim_shower_vertex_x);
         vertex_tree->Branch("sim_shower_vertex_y",&m_sim_shower_vertex_y);
         vertex_tree->Branch("sim_shower_vertex_z",&m_sim_shower_vertex_z);
+        vertex_tree->Branch("sim_shower_px",&m_sim_shower_px);
+        vertex_tree->Branch("sim_shower_py",&m_sim_shower_py);
+        vertex_tree->Branch("sim_shower_pz",&m_sim_shower_pz);
 
         vertex_tree->Branch("sim_shower_is_true_shower",&m_sim_shower_is_true_shower);
         vertex_tree->Branch("sim_shower_best_matched_plane",&m_sim_shower_best_matched_plane);

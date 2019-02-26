@@ -568,6 +568,11 @@ namespace single_photon
             std::vector<double> m_sim_shower_vertex_y;
             std::vector<double> m_sim_shower_vertex_z;
 
+            std::vector<double> m_sim_shower_px;
+            std::vector<double> m_sim_shower_py;
+            std::vector<double> m_sim_shower_pz;
+
+
             std::vector<int> m_sim_shower_is_true_shower;
             std::vector<int> m_sim_shower_best_matched_plane;
             std::vector<double> m_sim_shower_matched_energy_fraction_plane0;
