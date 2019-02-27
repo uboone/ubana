@@ -78,11 +78,11 @@ namespace single_photon
                             //primary_pfps.push_back(pfp);
                             //pfParticleToNuScoreMap[pfp] = it.second;
 
-                        
-                     }
-                         if (it.first == "IsClearCosmic"){
-                             clear_cosmic = 1;
-                         }
+
+                        }
+                        if (it.first == "IsClearCosmic"){
+                            clear_cosmic = 1;
+                        }
                     }//for each item in properties map
 
                     //if there is a neutrino score it's the primary PFP, so save the score+slice info
@@ -128,7 +128,7 @@ namespace single_photon
                 //std::cout<<"parent of start particle is "<<parent_pfp->Self()<<"/"<<parent_pfp->PdgCode()<<std::endl;   
                 //if not primary, iterate up parent chain
                 while(!parent_pfp->IsPrimary()){
-                  //  std::cout<<"not primary - track id/pdg code "<<parent_pfp->Self()<<"/"<<parent_pfp->PdgCode()<<std::endl; 
+                    //  std::cout<<"not primary - track id/pdg code "<<parent_pfp->Self()<<"/"<<parent_pfp->PdgCode()<<std::endl; 
                     //std::cout<<"iterating, current particle has index "<<parent_pfp->Self()<<std::endl;
                     parent_pfp = pfParticleMap[this_pfp->Parent()];
                     this_pfp = parent_pfp;
@@ -178,24 +178,47 @@ namespace single_photon
             std::cout<<"BIG ERROR, UNACCOUNTED FOR PFP's, (clearCosmicPFP.size() +  allPFPSliceIdVec.size())!= pfParticleMap.size())"<<std::endl;
         }
 
-        
+
         /*for(auto item: allPFPSliceIdVec){
-            std::cout<<"the pfp with id "<<item.first->Self()<<" is associated to slice "<<item.second<<std::endl;
-        }*/
+          std::cout<<"the pfp with id "<<item.first->Self()<<" is associated to slice "<<item.second<<std::endl;
+          }*/
     }
 
-    /*
+
     //here we put in some reco truth matching thing where given an true interaction, find the corresponding reco objects
     //then for the given recob::shower/track(s), match it back to the primary pfp for slice
-    //can do slice score, completeness, etc. as function of shower energy, conversion length, etc. 
-    void SinglePhoton::GetSliceMatchInteraction(std::map<art::Ptr<recob::PFParticle>, double > & pfParticleToNuScoreMap, std::vector<art::Ptr<recob::Shower>>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap){
-    //for the moment just doing a test with a single shower, will expand to more particles
-    //for each shower, get the corresponding PFP
-    //look up the PFP chain to get the primary
-    //store all the primaries
+    //can do slice score, completeness, etc. as function of shower energy, conversion lengt
+    int SinglePhoton::GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec){
+        //for the shower, get the associated PFP 
+        art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap[this_shower];
 
+        int slice = -1;
+        //for the pfp, get the slice
+        for(auto pair: allPFPSliceIdVec){
+            if(pair.first == pfp){
+                slice =  pair.second;
+            }
+        }
 
+        //return the slice or -1 if there isn't an associated slice - this means clear cosmic
+        return slice;
     }
-    */
+
+    int SinglePhoton::GetTrackSlice(art::Ptr<recob::Track>& this_track, std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>& trackToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec){
+        //for the track, get the associated PFP 
+        art::Ptr<recob::PFParticle> pfp = trackToPFParticleMap[this_track];
+
+        int slice = -1;
+        //for the pfp, get the slice
+        for(auto pair: allPFPSliceIdVec){
+            if(pair.first == pfp){
+                slice =  pair.second;
+            }
+        }
+
+        //return the slice or -1 if there isn't an associated slice - this means clear cosmic
+        return slice;
+    }
+
 
     }

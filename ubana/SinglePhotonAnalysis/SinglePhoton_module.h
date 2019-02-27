@@ -344,6 +344,9 @@ namespace single_photon
             void  ResizeSlices(size_t size); 
             void CreateSliceBranches();
             void AnalyzeSlices( std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,  PFParticleIdMap &pfParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
+            int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
+            int GetTrackSlice(art::Ptr<recob::Track>& this_track, std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>& trackToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
+
 
             int  m_reco_slice_num; //total number of slices in the event
             std::vector<double> m_reco_slice_nuscore; //vector of the neutrino score for each slice in an event

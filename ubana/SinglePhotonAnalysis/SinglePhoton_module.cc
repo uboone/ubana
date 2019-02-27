@@ -378,6 +378,9 @@ namespace single_photon
             std::cout<<"SinglePhoton\t||\t Analyze Metadata"<<std::endl;
             this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec);
             std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
+            if (showers.size()>0){
+                std::cout<<"the shower at 0 is in slice "<<this->GetShowerSlice(showers[0], showerToNuPFParticleMap, allPFPSliceIdVec)<<std::endl;
+            }
 
             for(auto & track: tracks){
                 std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
