@@ -172,11 +172,17 @@ wcls: {
       wcls_main: {
           tool_type: WCLS
           apps: ["Pgrapher"]
-          plugins: ["WireCellPgraph", "WireCellGen","WireCellSio", "WireCellLarsoft"]
+          plugins: ["WireCellPgraph", "WireCellGen","WireCellSio", "WireCellLarsoft", "WireCellubsim"]
           configs: ["pgrapher/experiment/uboone/uboone-sim-overlay.jsonnet"]
           inputers: ["wclsSimDepoSource"
        		// only if miscfg is "dynamic" add "wclsChannelSelectorDB"
                  , "wclsChannelSelectorDB"
+		// for YZ correction 
+		 , "wclsReweightedDepoTransform:depotran0"
+		 , "wclsReweightedDepoTransform:depotran1"
+		 , "wclsReweightedDepoTransform:depotran2"
+		// for "daily" lifetime
+		 , "wclsUbDrifter"
 		]
           outputers: [
              "wclsSimChannelSink:postdrift",
@@ -194,7 +200,13 @@ wcls: {
           }
 	  structs: {
       	      gain_fudge_factor: 0.826
+	
+	      // variation of field response
 	      sys_resp: false
+
+	      // MC YZ correction
+	      YZCorrfilenameMC: '"YZCorr.root"'
+	      YZCorrhistnames: '["hCorr0","hCorr1","hCorr2"]' // plane U, V, Y
       	  }
       }
    }

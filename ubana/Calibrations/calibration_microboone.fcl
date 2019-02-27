@@ -33,6 +33,7 @@ microboone_calibrationdedx :
     #default modified box model parameters for MC
     ModBoxA:                 0.930 
     ModBoxB:                 0.212
+    CorrectSCE:              false
 }
 
 microboone_calibrationdedx_data :        @local::microboone_calibrationdedx
