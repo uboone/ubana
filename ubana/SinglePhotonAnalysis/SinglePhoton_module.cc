@@ -7,8 +7,6 @@
 #include "analyze_Slice.h"
 
 
-#include "reco_truth_matching.h"
-
 namespace single_photon
 {
 
@@ -311,14 +309,7 @@ namespace single_photon
 
         //and now get the simb::MCparticle to both MCtrack and MCshower maps (just for the MCparticles matched ok).
 
-
-        for(auto & track: tracks){
-            std::cout<<"Carside: "<<trackToMCParticleMap.count(track)<<std::endl;
-        }
-
         badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
-
-
 
         if(m_is_verbose){
             std::cout << "SinglePhoton::analyze()\t||\t Consolidated event summary:" << "\n";
@@ -328,18 +319,12 @@ namespace single_photon
             std::cout << "SinglePhoton::analyze()\t||\t    ... of which are showers-like : " << showers.size() << "\n";
         }
 
-        for(auto & track: tracks){
-            std::cout<<"Pinside: "<<trackToMCParticleMap.count(track)<<std::endl;
-        }
 
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
 
-        for(auto & track: tracks){
-            std::cout<<"Outside: "<<trackToMCParticleMap.count(track)<<std::endl;
-        }
 
         if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
         this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap); 
@@ -370,10 +355,10 @@ namespace single_photon
 
             //OK lets get all set up with sim::MCTrack and sim::MCShower .
 
-            art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
-            art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
-            art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
-            art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
+         //   art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
+           // art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
+          //  art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
+          //  art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
 
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
@@ -381,10 +366,11 @@ namespace single_photon
 
             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::track"<<std::endl;
             recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector);
+             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
+            this->showerRecoMCmatching(showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
 
-            std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
-            recoMCmatching<art::Ptr<recob::Shower>>( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector );
-            //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+
+           //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
 
             //looking at metadata
             std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
@@ -392,14 +378,12 @@ namespace single_photon
             this->AnalyzeSlices( pfParticleToNuScoreMap, pfParticleToMetadataMap, pfParticleVector);
             std::cout<<"There are "<< pfParticleToNuScoreMap.size()<<" slices stored in the map"<<std::endl;
 
-
             for(auto & track: tracks){
                 std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
             }
 
-            //  perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
-            perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
-
+         //  perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
+           // perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
             //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
 
 
@@ -422,7 +406,8 @@ namespace single_photon
 
 
             this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
-            this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
+            //Obsolete function
+            //this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
             this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
 
         }
@@ -850,6 +835,32 @@ namespace single_photon
 
         return 0;
     }
+
+    int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected, std::vector<double> & input){
+        corrected.resize(3);
+        
+        double kx = input[0];
+        double ky = input[1];
+        double kz = input[2];
+        
+        auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
+        double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
+        
+        double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)+scecorr.X();
+        double yOffset = scecorr.Y();
+        double zOffset = scecorr.Z();
+        
+        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
+        corrected[1]=ky+yOffset;
+        corrected[2]=kz+zOffset;
+
+        std::cout<<"TRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        std::cout<<"TRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        std::cout<<"TRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
+        return 0;
+    }
+
+
 
 
     int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected){
