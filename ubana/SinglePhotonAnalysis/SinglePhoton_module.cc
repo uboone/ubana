@@ -387,8 +387,10 @@ namespace single_photon
             //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
 
             //looking at metadata
+            std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
             std::cout<<"SinglePhoton\t||\t Analyze Metadata"<<std::endl;
-            this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleVector);
+            this->AnalyzeSlices( pfParticleToNuScoreMap, pfParticleToMetadataMap, pfParticleVector);
+            std::cout<<"There are "<< pfParticleToNuScoreMap.size()<<" slices stored in the map"<<std::endl;
 
 
             for(auto & track: tracks){
