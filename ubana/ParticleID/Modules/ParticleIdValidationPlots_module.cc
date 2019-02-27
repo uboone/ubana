@@ -660,7 +660,7 @@ particle_vec.clear(); match_vec.clear();
     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 
       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-      int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
+      int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 
       if (planeid < 0 || planeid > 2){
         std::cout << "[ParticleIDValidation] No information for planeid " << planeid << std::endl;

@@ -14,8 +14,8 @@ art_make( BASENAME_ONLY
   LIB_LIBRARIES
   ubana_BasicTool_GeoAlgo
   uboone_UBFlashFinder
-  ubana_SelectionTool_OpT0FinderBase
-  ubana_SelectionTool_OpT0FinderAlgorithms
+  ubreco_SelectionTool_OpT0FinderBase
+  ubreco_SelectionTool_OpT0FinderAlgorithms
   larana_ParticleIdentification
 
   larcorealg_Geometry
@@ -24,7 +24,6 @@ art_make( BASENAME_ONLY
   SignalShapingServiceMicroBooNE_service
   larevt_CalibrationDBI_IOVData
   larevt_CalibrationDBI_Providers
-  larsim_MCCheater_BackTracker
   larsim_Simulation
   lardataobj_RawData
   lardataobj_RecoBase
@@ -43,10 +42,8 @@ art_make( BASENAME_ONLY
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-  #art_Persistency_Common canvas_Persistency_Common
-  #art_Persistency_Provenance canvas_Persistency_Provenance
-  #art_Utilities canvas_Utilities
   art_Persistency_Common canvas
+  art_Persistency_Provenance canvas
   art_Utilities canvas
   ${ART_PERSISTENCY_COMMON}
   ${ART_PERSISTENCY_PROVENANCE}
@@ -55,6 +52,7 @@ art_make( BASENAME_ONLY
   ${MF_UTILITIES}
   ${FHICLCPP}
   ${CETLIB}
+  cetlib cetlib_except
   ${ROOT_GEOM}
   ${ROOT_XMLIO}
   ${ROOT_GDML}
@@ -62,14 +60,14 @@ art_make( BASENAME_ONLY
 
   MODULE_LIBRARIES
   ubana_ubana_ParticleID_Algorithms
-  larsim_MCCheater_BackTracker
+  larsim_MCCheater_BackTracker_service
   larpandora_LArPandoraInterface
   #                   larpandora_LArPandoraContent
 
-  ubcore_LLBasicTool_GeoAlgo
-  ubreco_UBFlashFinder
-  ubana_LLSelectionTool_OpT0Finder_Base
-  ubana_LLSelectionTool_OpT0Finder_Algorithms
+  ubana_BasicTool_GeoAlgo
+  uboone_UBFlashFinder
+  ubreco_SelectionTool_OpT0FinderBase
+  ubreco_SelectionTool_OpT0FinderAlgorithms
 
   ubraw_RawData
   SignalShapingServiceMicroBooNE_service
