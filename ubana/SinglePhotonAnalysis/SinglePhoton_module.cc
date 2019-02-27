@@ -373,10 +373,11 @@ namespace single_photon
            //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
 
             //looking at metadata
-            std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
+            //std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
+            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
             std::cout<<"SinglePhoton\t||\t Analyze Metadata"<<std::endl;
-            this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap);
-            std::cout<<"There are "<< pfParticleToNuScoreMap.size()<<" slices stored in the map"<<std::endl;
+            this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec);
+            std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
 
             for(auto & track: tracks){
                 std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;

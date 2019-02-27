@@ -20,7 +20,7 @@ namespace single_photon
     //called once per event to get all the slice info
     //fills a map between the neutrino score for the slice and the primary reco PFP
     //loops over all PFP's to find the primary and then associate to a slice
-    void SinglePhoton::AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,  PFParticleIdMap &pfParticleMap){
+    void SinglePhoton::AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,  PFParticleIdMap &pfParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec){
         std::vector<std::pair<art::Ptr<recob::PFParticle>, int>> primarySliceIdVec; //maps a primary PFP to a slice index
         std::map<int, double> sliceIdToNuScoreMap; //maps a slice index to the associated neutrino score
         std::vector<art::Ptr<recob::PFParticle>> clearCosmicPFP;
@@ -106,7 +106,7 @@ namespace single_photon
 
         //now we have all the primary pfp's and the corresponding slices+scores
         //the next step is to look at all the pfp's in the event, find the primary, and then store the slice ind
-        std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+        //std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
 
         //for all pfp's in the event
         //std::cout<<"looking at all PFP's"<<std::endl;
@@ -177,6 +177,11 @@ namespace single_photon
         if ((clearCosmicPFP.size() +  allPFPSliceIdVec.size())!= pfParticleMap.size()){
             std::cout<<"BIG ERROR, UNACCOUNTED FOR PFP's, (clearCosmicPFP.size() +  allPFPSliceIdVec.size())!= pfParticleMap.size())"<<std::endl;
         }
+
+        
+        /*for(auto item: allPFPSliceIdVec){
+            std::cout<<"the pfp with id "<<item.first->Self()<<" is associated to slice "<<item.second<<std::endl;
+        }*/
     }
 
     /*
