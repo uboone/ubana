@@ -375,7 +375,7 @@ namespace single_photon
             //looking at metadata
             std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
             std::cout<<"SinglePhoton\t||\t Analyze Metadata"<<std::endl;
-            this->AnalyzeSlices( pfParticleToNuScoreMap, pfParticleToMetadataMap, pfParticleVector);
+            this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap);
             std::cout<<"There are "<< pfParticleToNuScoreMap.size()<<" slices stored in the map"<<std::endl;
 
             for(auto & track: tracks){
