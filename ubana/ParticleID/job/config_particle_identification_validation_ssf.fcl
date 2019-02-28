@@ -1,5 +1,6 @@
 #include "config_particle_identification_fiducialvolume.fcl"
 #include "config_particle_identification_producerlabels.fcl"
+#include "config_particle_identification_braggalgo.fcl"
 
 #
 # configuration fcl file for particleId fcl parameters
