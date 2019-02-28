@@ -439,14 +439,13 @@ void UBPID::ParticleId::produce(art::Event & e)
       PIDAval_median.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
       AlgScoresVec.push_back(PIDAval_median.at(planenum));
 
-      // median
-      PIDAval_kde.at(planenum).fAlgName = "PIDA_kde";
+      // kde
+      /*PIDAval_kde.at(planenum).fAlgName = "PIDA_kde";
       PIDAval_kde.at(planenum).fVariableType = anab::kPIDA;
       PIDAval_kde.at(planenum).fTrackDir = anab::kForward;
       PIDAval_kde.at(planenum).fValue = pida.getPida(dEdx, resRange, "kde");
       PIDAval_kde.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      AlgScoresVec.push_back(PIDAval_kde.at(planenum));
-
+      AlgScoresVec.push_back(PIDAval_kde.at(planenum));*/
       /**
        * Algorithm 4: Truncated mean dE/dx versus track length
        * Makes use of the "Truncated Mean" algorithm developed by D. Caratelli
