@@ -95,7 +95,8 @@ class UBPID::ParticleId : public art::EDProducer {
     // For truncated mean
     TruncMean trm;
 
-    fhicl::ParameterSet p_holder;
+    // For Chi2
+    pid::Chi2PIDAlg *fChiAlg;
 };
 
 
@@ -116,7 +117,7 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
   fhicl::ParameterSet const p_bragg  = p.get<fhicl::ParameterSet>("BraggAlgo");
   fhicl::ParameterSet const p_chi2pidalg = p.get<fhicl::ParameterSet>("Chi2PIDAlg");
 
-  p_holder = p_chi2pidalg;
+  fChiAlg = new pid::Chi2PIDAlg(p_chi2pidalg);
 
   // fcl parameters
   fTrackLabel = p_labels.get< std::string > ("TrackLabel");
@@ -404,10 +405,9 @@ void UBPID::ParticleId::produce(art::Event & e)
       /**
        * Algorithm 2: Chi2 (T. Yang)
        */
-      pid::Chi2PIDAlg fChiAlg(p_holder);
       std::vector<art::Ptr<anab::Calorimetry>> calo_tmp;
       calo_tmp.push_back(calo);
-      anab::ParticleID particleIdObj_tmp = fChiAlg.DoParticleID(calo_tmp);
+      anab::ParticleID particleIdObj_tmp = fChiAlg->DoParticleID(calo_tmp);
       std::vector<anab::sParticleIDAlgScores> algscores_tmp = particleIdObj_tmp.ParticleIDAlgScores();
 
       for (size_t i_tmp=0; i_tmp<algscores_tmp.size(); i_tmp++){
