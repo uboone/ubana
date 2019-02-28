@@ -178,7 +178,7 @@ void UBPID::ParticleId::produce(art::Event & e)
       continue;
     }
 
-    std::vector< art::Ptr<anab::Calorimetry> > caloFromTrack = caloFromTracks.at(track->ID());
+    std::vector< art::Ptr<anab::Calorimetry> > caloFromTrack = caloFromTracks.at(track.key());
 
     std::vector<anab::sParticleIDAlgScores> AlgScoresVec;
 
