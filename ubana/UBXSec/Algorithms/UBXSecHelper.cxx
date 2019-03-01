@@ -896,7 +896,6 @@ double UBXSecHelper::GetPhi(double px, double py, double pz) {
 
 }
 
-
 //_________________________________________________________________________________
 double UBXSecHelper::GetCorrectedPhi(recob::Track t, recob::Vertex tpcobj_nu_vtx) {
 
@@ -989,6 +988,60 @@ double UBXSecHelper::GetCosTheta(TVector3 dir) {
 
 }
 
+//_________________________________________________________________________________
+double UBXSecHelper::GetCorrectedCosThetaXZ(recob::Track t, recob::Vertex tpcobj_nu_vtx) {
+
+  TVector3 pt1 = t.Vertex<TVector3>();
+  TVector3 pt2 = t.End<TVector3>();
+
+  double nu_vtx[3];
+  tpcobj_nu_vtx.XYZ(nu_vtx);
+  TVector3 nu(nu_vtx[0], nu_vtx[1], nu_vtx[2]);
+
+  bool reverse = false;
+
+  if ( (pt1-nu).Mag() > (pt2-nu).Mag() )
+    reverse = true;
+
+  TVector3 dir = pt2 - pt1;
+  if (reverse) dir = pt1 - pt2;
+
+  return GetCosThetaXZ(dir);
+}
+
+//_________________________________________________________________________________
+double UBXSecHelper::GetCosThetaXZ(TVector3 dir) {
+
+  return std::atan2(dir[0],dir[2]);
+
+}
+//_________________________________________________________________________________
+double UBXSecHelper::GetCorrectedCosThetaYZ(recob::Track t, recob::Vertex tpcobj_nu_vtx) {
+
+  TVector3 pt1 = t.Vertex<TVector3>();
+  TVector3 pt2 = t.End<TVector3>();
+
+  double nu_vtx[3];
+  tpcobj_nu_vtx.XYZ(nu_vtx);
+  TVector3 nu(nu_vtx[0], nu_vtx[1], nu_vtx[2]);
+
+  bool reverse = false;
+
+  if ( (pt1-nu).Mag() > (pt2-nu).Mag() )
+    reverse = true;
+
+  TVector3 dir = pt2 - pt1;
+  if (reverse) dir = pt1 - pt2;
+
+  return GetCosThetaYZ(dir);
+}
+
+//_________________________________________________________________________________
+double UBXSecHelper::GetCosThetaYZ(TVector3 dir) {
+
+  return std::atan2(dir[1],dir[2]);
+
+}
 
 //_________________________________________________________________________________
 bool UBXSecHelper::PointIsCloseToDeadRegion(double *reco_nu_vtx, int plane_no){
@@ -1116,7 +1169,7 @@ void UBXSecHelper::GetTimeCorrectedPoint(double * point_raw, double * point_corr
   point_corrected[2] = point_raw[2];
 
 }
-
+//___________________________________________________________________________________
 std::vector<double> UBXSecHelper::GetDqDxVector(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no) {
 
   std::vector<double> temp;
@@ -1131,6 +1184,42 @@ std::vector<double> UBXSecHelper::GetDqDxVector(std::vector<art::Ptr<anab::Calor
   }
 
   return temp;
+}
+
+//_________________________________________________________________________________________________-
+std::vector<double> UBXSecHelper::GetResRange(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no) {
+
+  std::vector<double> result;
+
+  for (auto c : calos) {
+    if (!c) continue;
+    if (!c->PlaneID().isValid) continue;
+    int planenum = c->PlaneID().Plane;
+    if (planenum != plane_no) continue;
+
+    return recob::tracking::convertVec<double,float>(c->ResidualRange());
+
+  }
+  return result;
+
+}
+
+//_________________________________________________________________________________________________-
+std::vector<double> UBXSecHelper::GetdEdx(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no) {
+
+  std::vector<double> result;
+
+  for (auto c : calos) {
+    if (!c) continue;
+    if (!c->PlaneID().isValid) continue;
+    int planenum = c->PlaneID().Plane;
+    if (planenum != plane_no) continue;
+
+    return recob::tracking::convertVec<double,float>(c->dEdx());
+
+  }
+  return result;
+
 }
 
 //_________________________________________________________________________________
