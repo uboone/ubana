@@ -10,7 +10,7 @@ set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpa
 link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
 
 art_make( BASENAME_ONLY
-  LIBRARY_NAME     ubana_ubana_ParticleID_Algorithms
+  LIBRARY_NAME     ubana_ParticleID_Algorithms
   LIB_LIBRARIES
   ubana_BasicTool_GeoAlgo
   uboone_UBFlashFinder
@@ -59,7 +59,7 @@ art_make( BASENAME_ONLY
   ${ROOT_BASIC_LIB_LIST}
 
   MODULE_LIBRARIES
-  ubana_ubana_ParticleID_Algorithms
+  ubana_ParticleID_Algorithms
   larsim_MCCheater_BackTracker_service
   larpandora_LArPandoraInterface
   #                   larpandora_LArPandoraContent
