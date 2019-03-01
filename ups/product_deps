@@ -2,7 +2,7 @@
 
 # The *parent* line must the first non-commented line and defines this product and version
 # The version must be of the form vxx_yy_zz (e.g. v01_02_03)
-parent ubana v08_00_00_06
+parent ubana v08_00_00_07
 
 defaultqual e17
 
@@ -30,7 +30,7 @@ table_fragment_end
 # Add the dependent product and version
 
 product                 version
-ubreco                  v08_00_00_06
+ubreco                  v08_00_00_07
 ubraw                   v08_00_00_06
 larana                  v08_01_00_03
 larpandora              v08_03_00_03
