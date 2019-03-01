@@ -65,6 +65,7 @@ namespace single_photon
         m_wire_spacing = pset.get<double>("wire_spacing");
         m_width_dqdx_box = pset.get<double>("width_box");
         m_length_dqdx_box = pset.get<double>("length_box");
+        m_truthmatching_signaldef = pset.get<std::string>("truthmatching_signaldef");
         m_pidLabel = pset.get<std::string>("ParticleIDLabel","particleid");
 
 
@@ -272,6 +273,7 @@ namespace single_photon
         //Then build a map from MCparticles to Hits and vice versa
         std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  mcParticleToHitsMap;
         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  hitToMCParticleMap;
+ 
 
         //Apparrently a MCParticle doesn't know its origin (thanks Andy!)
         //I would also like a map from MCparticle to MCtruth and then I will be done.  and Vice Versa
@@ -322,7 +324,7 @@ namespace single_photon
 
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
-        this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap);
+        this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
 
 
@@ -374,7 +376,7 @@ namespace single_photon
 
             //looking at metadata
             //std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
-            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+            /*std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
             std::cout<<"SinglePhoton\t||\t Analyze Metadata"<<std::endl;
             this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec);
             std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
@@ -382,9 +384,11 @@ namespace single_photon
                 std::cout<<"the shower at 0 is in slice "<<this->GetShowerSlice(showers[0], showerToNuPFParticleMap, allPFPSliceIdVec)<<std::endl;
             }
 
+            this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap);
+
             for(auto & track: tracks){
                 std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
-            }
+            }*/
 
          //  perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
            // perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
@@ -408,11 +412,24 @@ namespace single_photon
 
 
 
+           this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector, MCParticleToTrackIdMap);
+            
 
-            this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
-            //Obsolete function
+           //Obsolete function
             //this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
             this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
+            
+            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+            std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
+            this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec);
+            std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
+            if (showers.size()>0){
+                std::cout<<"the shower at 0 is in slice "<<this->GetShowerSlice(showers[0], showerToNuPFParticleMap, allPFPSliceIdVec)<<std::endl;
+            }
+
+            this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap);
+
+
 
         }
 
@@ -993,6 +1010,8 @@ namespace single_photon
         this->CollectMCParticles(evt, label, truthToParticles, particlesToTruth, MCParticleToTrackIdMap);
         lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitVector, simChannelVector, hitsToTrackIDEs);
         lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitsToTrackIDEs, truthToParticles, particlesToHits, hitsToParticles, daughterMode);
+
+        
     }
 
 

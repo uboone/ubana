@@ -58,6 +58,7 @@ namespace single_photon
         m_sim_track_startx.clear();
         m_sim_track_starty.clear();
         m_sim_track_startz.clear();
+        m_sim_track_trackID.clear();
 
         m_reco_track_pid_bragg_likelihood_plane2.clear();
         m_reco_track_pid_pida_plane2.clear();
@@ -118,6 +119,7 @@ namespace single_photon
         m_sim_track_startx.resize(size);
         m_sim_track_starty.resize(size);
         m_sim_track_startz.resize(size);
+        m_sim_track_trackID.resize(size);
 
         m_reco_track_pid_bragg_likelihood_plane2.resize(size);
         m_reco_track_pid_pida_plane2.resize(size);
@@ -198,7 +200,8 @@ namespace single_photon
 
     void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap,
-            std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap){
+            std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap, 
+            std::map<int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap){
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Starting recob::Track analysis"<<std::endl;;
@@ -317,8 +320,8 @@ namespace single_photon
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap, 
             std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
-            std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector
-){
+            std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector,  
+            std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap){
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite"<<std::endl;;
@@ -343,6 +346,7 @@ namespace single_photon
                 std::vector<double> corrected(3);
                 this->spacecharge_correction(mcparticle, corrected);
 
+                
                 m_sim_track_matched[i_trk] = 1;
                 m_sim_track_energy[i_trk] = mcparticle->E();
                 m_sim_track_mass[i_trk] = mcparticle->Mass();
@@ -353,12 +357,23 @@ namespace single_photon
                 m_sim_track_starty[i_trk] = corrected[1];
                 m_sim_track_startz[i_trk] = corrected[2];
                 m_sim_track_origin[i_trk] = mctruth->Origin();
-                if(mcparticle->Mother()>=(int)mcParticleVector.size()){
-                    m_sim_track_parent_pdg[i_trk] = -999;
-                }else{
-                    m_sim_track_parent_pdg[i_trk] = mcParticleVector[mcparticle->Mother()]->PdgCode();
-                }
+                m_sim_track_trackID[i_trk] = mcparticle->TrackId();
+               // if(mcparticle->TrackId() != 0){
+                               // }
+               //std::cout<<"looking for mother with track id "<<mcparticle->Mother()<<std::endl;
 
+               if(mcparticle->Mother()>=(int)mcParticleVector.size()){
+                //if (MCParticleToTrackIdMap[mcparticle->Mother()].isNull()){   
+                     m_sim_track_parent_pdg[i_trk] = -1;
+                }else{
+                   m_sim_track_parent_pdg[i_trk] = mcParticleVector[mcparticle->Mother()]->PdgCode();
+                   // m_sim_track_parent_pdg[i_trk] = MCParticleToTrackIdMap[mcparticle->Mother()]->PdgCode();
+                }
+               //std::cout<<"the sim track id is "<<m_sim_track_trackID[i_trk]<<" and the pdg is "<<  m_sim_track_pdg[i_trk]<<" with parent pdg  "<<  m_sim_track_parent_pdg[i_trk]<<std::endl;
+               //if( m_sim_track_parent_pdg[i_trk] != -999){
+               //    std::cout <<" and the parent track id "<<  mcparticle->Mother() <<std::endl;
+              // }
+ 
              
             }
             i_trk++;

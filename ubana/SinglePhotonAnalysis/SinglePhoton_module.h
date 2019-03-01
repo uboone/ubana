@@ -291,12 +291,12 @@ namespace single_photon
             void CreateFlashBranches();
 
             //----------------  Tracks ----------------------------
-            void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap );
+            void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap);
             void ClearTracks();
             void ResizeTracks(size_t);
             void CreateTrackBranches();
             void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap);
-            void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
+            void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap);
 
             void CollectPID(std::vector<art::Ptr<recob::Track>> & tracks,std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap);
             TGraph proton_length2energy_tgraph;
@@ -346,10 +346,13 @@ namespace single_photon
             void AnalyzeSlices( std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,  PFParticleIdMap &pfParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
             int GetTrackSlice(art::Ptr<recob::Track>& this_track, std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>& trackToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
+            void FindSignalSlice(std::string signal_def, std::map< int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap);
 
 
             int  m_reco_slice_num; //total number of slices in the event
             std::vector<double> m_reco_slice_nuscore; //vector of the neutrino score for each slice in an event
+            int m_sim_shower_num_matched_signal; //the number of sim showers matched an MCP in the signal def
+            int m_sim_track_num_matched_signal; //the number of sim showers matched an MCP in the signal def
             //std::map<art::Ptr<recob::PFParticle>, double > & pfParticleToNuScoreMap;//is filled during analyze slices
 
             //------------------ Delaunay triangle tools -----------//
@@ -516,6 +519,7 @@ namespace single_photon
             std::vector<double> m_sim_track_startx;
             std::vector<double> m_sim_track_starty;
             std::vector<double> m_sim_track_startz;
+            std::vector<int> m_sim_track_trackID;
 
 
             //------------ Shower related Variables  -------------
@@ -642,6 +646,8 @@ namespace single_photon
             std::vector<double>        m_mctruth_exiting_pi0_px;
             std::vector<double>        m_mctruth_exiting_pi0_py;
             std::vector<double>        m_mctruth_exiting_pi0_pz;
+
+            std::string  m_truthmatching_signaldef;
 
             //the calo calculated quantities 
             std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
