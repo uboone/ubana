@@ -196,12 +196,12 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     TH2F *TrueBragg_chargeEndOverStart_gr2_dEdxrr;
     TH2F *TrueBragg_chargeEndOverStart_0_5to2_dEdxrr;
 
-  //TH2F *TrueBragg_correctdirection;
-  //TH2F *TrueBragg_incorrectdirection;
+    TH2F *TrueBragg_correctdirection;
+    TH2F *TrueBragg_incorrectdirection;
   //TH1F *TrueBragg_PIDdir;
 
-    TH2F *TrueBragg_correctdirection_PIDdir;
-    TH2F *TrueBragg_incorrectdirection_PIDdir;
+  //TH2F *TrueBragg_correctdirection_PIDdir;
+  //TH2F *TrueBragg_incorrectdirection_PIDdir;
 
     /** All tracks which are matched to an MCParticle */
     TH1F *All_chargeEndOverStart_directionCorrect;
