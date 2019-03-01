@@ -205,7 +205,7 @@ wcls: {
 	      sys_resp: false
 
 	      // MC YZ correction
-	      YZCorrfilenameMC: '"YZCorr.root"'
+	      YZCorrfilenameMC: '"MC_YZCorr_mcc9_v1_efieldcorr.root"'
 	      YZCorrhistnames: '["hCorr0","hCorr1","hCorr2"]' // plane U, V, Y
       	  }
       }
