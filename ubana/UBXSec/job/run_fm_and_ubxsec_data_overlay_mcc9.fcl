@@ -1,0 +1,47 @@
+#include "external_event_building.fcl"
+#include "calorimetry_microboone.fcl"
+#include "pandoramodules_microboone.fcl"
+#include "reco_uboone_mcc9_8.fcl"
+#include "ubxsec_overlay_common_fm_mcc9.fcl"
+
+############################################################################################################################################
+
+process_name: UBXSec
+
+services.TFileService.fileName: "ubxsec_output_data_overlay.root"
+
+physics.reco:          [ pandoraAllOutcomesTrack, pandoraAllOutcomesShower, pandoraFlashEventBuilding, pandoraTrackCaloBuilder, @sequence::ubxsec_data_producers , @sequence::ubxsec_data_filters ]
+physics.trigger_paths: [ reco ]
+physics.ana:           [ @sequence::ubxsec_data_analyzers ]
+physics.stream1:       [ out1 ]
+physics.end_paths:     [ ana, stream1 ]
+
+outputs.out1.fileName: "%ifb_%tc_ubxsec.root"
+outputs.out1.dataTier: "reconstructed"
+outputs.out1.SelectEvents: [ reco ]
+
+source.inputCommands: ["keep *_*_*_*"]
+
+
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: 3.60
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   5.20
+
+physics.producers.UBXSec.BeamSpillStart:                 3.60
+physics.producers.UBXSec.BeamSpillEnd:                   5.20
+
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.60
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   5.20
+
+physics.producers.UBXSec.UseGENIEInfo:                   true
+
+physics.producers.pandoraCosmicFlashTag.DoOpDetSwap: false
+physics.producers.NeutrinoFlashMatch.DoOpDetSwap:    false  
+physics.producers.UBXSec.DoOpDetSwap:                false
+physics.producers.RecoTrueMatcher.Overlay:           true
+physics.producers.RecoTrueMatcher.DebugMode:           true
+
+physics.producers.pandoraFlashEventBuilding.GeneratorLabel: "generator"
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowStartTime: 3.6 
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowEndTime:   5.2 
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.HasMCNeutrino:       true 
+
