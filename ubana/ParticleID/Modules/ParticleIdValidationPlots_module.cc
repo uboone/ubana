@@ -57,10 +57,10 @@
 #include "TTree.h"
 
 // Algorithms
-#include "ubana/ubana/ParticleID/Algorithms/FiducialVolume.h"
-#include "ubana/ubana/ParticleID/Algorithms/dQdxSeparatorMarco.h"
-#include "ubana/ubana/ParticleID/Algorithms/Bragg_Likelihood_Estimator.h"
-#include "ubana/ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
+#include "ubana/ParticleID/Algorithms/FiducialVolume.h"
+#include "ubana/ParticleID/Algorithms/dQdxSeparatorMarco.h"
+#include "ubana/ParticleID/Algorithms/Bragg_Likelihood_Estimator.h"
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 // cpp
 #include <vector>
