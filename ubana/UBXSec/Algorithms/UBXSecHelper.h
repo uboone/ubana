@@ -260,7 +260,8 @@ class UBXSecHelper {
    *  @param track the recob::Track 
    *  @param tpcobj_nu_vtx the recob::Vertex neutrino vertex */
   static double GetCorrectedCosTheta(recob::Track t, recob::Vertex tpcobj_nu_vtx);
-
+  static double GetCorrectedCosThetaXZ(recob::Track t, recob::Vertex tpcobj_nu_vtx);
+  static double GetCorrectedCosThetaYZ(recob::Track t, recob::Vertex tpcobj_nu_vtx);
   /**
    *  @brief Returns the value of the phi angle
    *
@@ -272,6 +273,8 @@ class UBXSecHelper {
    *
    *  @param dir the direction */
   static double GetCosTheta(TVector3 dir);
+  static double GetCosThetaXZ(TVector3 dir);
+  static double GetCosThetaYZ(TVector3 dir);
 
   /**
    *  @brief Returns true if the point passed is close to a dead region
@@ -305,6 +308,10 @@ class UBXSecHelper {
   static std::vector<double> GetDqDxVector(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no = 2);
 
   static double GetDqDxTruncatedMean(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no = 2);
+
+  static std::vector<double> GetResRange(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no = 2);
+
+  static std::vector<double> GetdEdx(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no = 2);
 
   static double GetDqDxTruncatedMean(std::vector<double> dqdx_v);
 

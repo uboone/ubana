@@ -1078,7 +1078,7 @@ lar_pandora::PFParticleVector pfpACPTTagged;
     std::cout << "[UBXSec] Flash time: " << ubxsec_event->beamfls_time[n] << ", New flash position: " << Zcenter << std::endl;
   } // flash loop
 
-std::cout<<"[Lu check truth in UBXsec] use genie? "<<_use_genie_info<<endl;
+  //std::cout<<"[Lu check truth in UBXsec] use genie? "<<_use_genie_info<<endl;
   // Check if truth nu is in FV
   // Collecting GENIE particles
   if(_use_genie_info) {
@@ -1102,7 +1102,7 @@ std::cout<<"[Lu check truth in UBXsec] use genie? "<<_use_genie_info<<endl;
     ubxsec_event->true_muon_mom = -9999.;
 
     ubxsec_event->ResizeGenieTruthVectors(mclist.size());
-std::cout<<"[Lu check truth in UBXsec] mclist size "<<mclist.size()<<endl;
+    //std::cout<<"[Lu check truth in UBXsec] mclist size "<<mclist.size()<<endl;
     for (size_t iList = 0; iList < mclist.size(); iList++) {
 
       if (mclist.at(iList)->Origin() != NEUTRINO_ORIGIN) {
@@ -1122,11 +1122,11 @@ std::cout<<"[Lu check truth in UBXsec] mclist size "<<mclist.size()<<endl;
       ubxsec_event->tvtx_x.at(iList) = mclist[iList]->GetNeutrino().Nu().Vx();
       ubxsec_event->tvtx_y.at(iList) = mclist[iList]->GetNeutrino().Nu().Vy();
       ubxsec_event->tvtx_z.at(iList) = mclist[iList]->GetNeutrino().Nu().Vz();
-std::cout<<"[Lu check truth in UBXsec] "<<_use_genie_info<<endl;
-std::cout<<"[Lu check truth in UBXsec] x: "<<ubxsec_event->tvtx_x.at(iList)<<endl;
-std::cout<<"[Lu check truth in UBXsec] y: "<<ubxsec_event->tvtx_y.at(iList)<<endl;
-std::cout<<"[Lu check truth in UBXsec] z: "<<ubxsec_event->tvtx_z.at(iList)<<endl;
-std::cout<<"[Lu check truth in UBXsec] fv: "<<ubxsec_event->fv<<endl;
+      //std::cout<<"[Lu check truth in UBXsec] "<<_use_genie_info<<endl;
+      //std::cout<<"[Lu check truth in UBXsec] x: "<<ubxsec_event->tvtx_x.at(iList)<<endl;
+      //std::cout<<"[Lu check truth in UBXsec] y: "<<ubxsec_event->tvtx_y.at(iList)<<endl;
+      //std::cout<<"[Lu check truth in UBXsec] z: "<<ubxsec_event->tvtx_z.at(iList)<<endl;
+      //std::cout<<"[Lu check truth in UBXsec] fv: "<<ubxsec_event->fv<<endl;
       // Look at the space charge correction
       geo::Vector_t sce_corr = _SCE->GetPosOffsets(geo::Point_t(mclist[iList]->GetNeutrino().Nu().Vx(),
 								mclist[iList]->GetNeutrino().Nu().Vy(),
@@ -1837,7 +1837,10 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       ubxsec_event->slc_muoncandidate_length[slice]    = candidate_track->Length();
       ubxsec_event->slc_muoncandidate_phi[slice]       = UBXSecHelper::GetCorrectedPhi((*candidate_track), tpcobj_nu_vtx);
       ubxsec_event->slc_muoncandidate_theta[slice]     = UBXSecHelper::GetCorrectedCosTheta((*candidate_track), tpcobj_nu_vtx);
-      ubxsec_event->slc_muoncandidate_mom_range[slice] = _trk_mom_calculator.GetTrackMomentum(candidate_track->Length(), 13);
+      ubxsec_event->slc_muoncandidate_theta_xz[slice] = UBXSecHelper::GetCorrectedCosThetaXZ((*candidate_track), tpcobj_nu_vtx);
+      ubxsec_event->slc_muoncandidate_theta_yz[slice] = UBXSecHelper::GetCorrectedCosThetaYZ((*candidate_track), tpcobj_nu_vtx);
+      
+     ubxsec_event->slc_muoncandidate_mom_range[slice] = _trk_mom_calculator.GetTrackMomentum(candidate_track->Length(), 13);
      ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = _trk_mom_calculator.GetMomentumMultiScatterLLHD(candidate_track);
       //    ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = trkMom_MuFwd;
       // For MCS first check the track direction is rigth
@@ -1867,6 +1870,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
 
 //	 std::cout << "Pion MCS LL: " << mcsfitresult_pi_v.at(candidate_track.key())->bwdLogLikelihood() << std::endl;
       }
+
       // Also see if the track is recon going downwards (for cosmic studies)
       bool track_going_down = candidate_track->Vertex().Y() > candidate_track->End().Y();
       // std::cout<<"are we good here?z"<<endl;
@@ -1888,10 +1892,18 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
                         //track_ResidualRange[i]=c->ResidualRange();
                       }
 	}
+
       ubxsec_event->slc_muoncandidate_dqdx_v[slice] = UBXSecHelper::GetDqDxVector(calos);
       ubxsec_event->slc_muoncandidate_dqdx_trunc[slice] = UBXSecHelper::GetDqDxTruncatedMean(calos);
       ubxsec_event->slc_muoncandidate_dqdx_u_trunc[slice] = UBXSecHelper::GetDqDxTruncatedMean(calos, 0);
       ubxsec_event->slc_muoncandidate_dqdx_v_trunc[slice] = UBXSecHelper::GetDqDxTruncatedMean(calos, 1);
+      ubxsec_event->slc_muoncandidate_res_range_y[slice] = UBXSecHelper::GetResRange(calos,2);
+      ubxsec_event->slc_muoncandidate_res_range_u[slice] = UBXSecHelper::GetResRange(calos, 0);
+      ubxsec_event->slc_muoncandidate_res_range_v[slice] = UBXSecHelper::GetResRange(calos, 1);
+      ubxsec_event->slc_muoncandidate_dEdx_y[slice] = UBXSecHelper::GetResRange(calos,2);
+      ubxsec_event->slc_muoncandidate_dEdx_u[slice] = UBXSecHelper::GetResRange(calos, 0);
+      ubxsec_event->slc_muoncandidate_dEdx_v[slice] = UBXSecHelper::GetResRange(calos, 1);
+
       ubxsec_event->slc_muoncandidate_mip_consistency[slice] = _muon_finder.MIPConsistency(ubxsec_event->slc_muoncandidate_dqdx_trunc[slice],
                                                                                            ubxsec_event->slc_muoncandidate_length[slice]);
       ubxsec_event->slc_muoncandidate_mip_consistency2[slice] = _muon_finder.SVMPredict(ubxsec_event->slc_muoncandidate_dqdx_trunc[slice],
@@ -2010,8 +2022,8 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       _track_quality.SetHitCollection(hit_v);
       std::pair<double, double> residual_mean_std = _track_quality.GetResiduals();
         std::pair<double, double> residual_truncated_mean_std = _track_quality.GetTruncatedResiduals();
-    std::cout << "[Lu UBXSec] \t \t Residuals, mean " << residual_mean_std.first << ", std " << residual_mean_std.second << std::endl;
-       std::cout << "[Lu UBXSec] \t \t Truncated Residuals, mean " << residual_truncated_mean_std.first << ", std " << residual_truncated_mean_std.second << std::endl;
+	//std::cout << "[Lu UBXSec] \t \t Residuals, mean " << residual_mean_std.first << ", std " << residual_mean_std.second << std::endl;
+	//std::cout << "[Lu UBXSec] \t \t Truncated Residuals, mean " << residual_truncated_mean_std.first << ", std " << residual_truncated_mean_std.second << std::endl;
       std::pair<double,int> dist_wire_pair = _track_quality.GetTrackGap();
 
       int start_wire = dist_wire_pair.second;
@@ -2088,10 +2100,6 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       ubxsec_event->slc_muoncandidate_perc_used_hits_in_cluster[slice] = ratio;
       ubxsec_event->slc_muoncandidate_maxscatteringangle[slice] = max_angle;
 
-
-
-
-
       muon_candidate_track_per_slice_v.at(slice) = candidate_track;
       muon_candidate_pfparticle_per_slice_v.at(slice) = candidate_pfp;
 
@@ -2102,6 +2110,8 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       ubxsec_event->slc_muoncandidate_length[slice]    = -9999;
       ubxsec_event->slc_muoncandidate_phi[slice]       = -9999;
       ubxsec_event->slc_muoncandidate_theta[slice]     = -9999;
+      ubxsec_event->slc_muoncandidate_theta_xz[slice] = -9999;
+      ubxsec_event->slc_muoncandidate_theta_yz[slice] = -9999;
       ubxsec_event->slc_muoncandidate_mom_range[slice] = -9999;
       ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = -9999;
 
