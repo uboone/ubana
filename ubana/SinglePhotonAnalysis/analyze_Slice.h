@@ -229,17 +229,20 @@ namespace single_photon
     //for a given signal def, finds the MCParticles in event
     //loops over association between reco tracks/showers to get associated slice(s)
     //can also look at things like shower energy, conversion length, etc.
-    void SinglePhoton::FindSignalSlice(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap){
+    void SinglePhoton::FindSignalSlice(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,
+            std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap, 
+            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, 
+            std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap){
         // std::vector<recob::Shower> shower_from_truth; //stores the recob::Showers which are matched to the signal MCP's
         // std::vector<recob::Track> track_from_truth; //stores the recob::Tracks matched to the signal MCP's
 
         //std::vector<simb::MCParticle>;
 
         std::vector<double> matched_sim_shower_overlay_fraction;
-        std::vector<int> matched_sim_shower_matched;
+        //std::vector<int> matched_sim_shower_matched;
         std::vector<art::Ptr<simb::MCParticle>> matched_sim_shower_MCP;
         //std::vector<double> matched_sim_track_overlay_fraction;
-        std::vector<int> matched_sim_track_matched;
+        //std::vector<int> matched_sim_track_matched;
         std::vector<art::Ptr<simb::MCParticle>> matched_sim_track_MCP;
 
 
@@ -264,12 +267,15 @@ namespace single_photon
                         art::Ptr<simb::MCParticle> mcp = MCParticleToTrackIDMap[id];
                         // std::cout<<"found sim photon shower with track ID "<<id<<std::endl;
                         if (std::find(matched_sim_shower_MCP.begin(),matched_sim_shower_MCP.end(),mcp) ==  matched_sim_shower_MCP.end()){
-                            matched_sim_shower_MCP.push_back(mcp);
+                            //if this shower is matched to a recob:shower
+                            if (m_sim_shower_matched[j] > 0){
+                                //matched_sim_shower_matched.push_back(m_sim_shower_matched[j]);
+                                matched_sim_shower_MCP.push_back(mcp);
 
-                            //save the overlay fraction and whether it's matched
-                            matched_sim_shower_overlay_fraction.push_back(m_sim_shower_overlay_fraction[j]);
-                            matched_sim_shower_matched.push_back(m_sim_shower_matched[j]);
-                            //std::cout<<"saving sim photon shower with track ID "<<id<<std::endl;
+                                //save the overlay fraction and whether it's matched
+                                matched_sim_shower_overlay_fraction.push_back(m_sim_shower_overlay_fraction[j]);
+                                //std::cout<<"saving sim photon shower with track ID "<<id<<std::endl;
+                            }
                         } //if the particle isn't already stored
 
                     }//if it's a photon from the neutrino interaction
@@ -292,31 +298,74 @@ namespace single_photon
                         int id = m_sim_track_trackID[k];
                         art::Ptr<simb::MCParticle> mcp = MCParticleToTrackIDMap[id];
 
-                        if(std::find(matched_sim_track_MCP.begin(),matched_sim_track_MCP.end(),mcp) ==  matched_sim_track_MCP.end()){
-                            matched_sim_track_MCP.push_back(mcp);
+                        if (m_sim_track_matched[k] > 0){
+                            if(std::find(matched_sim_track_MCP.begin(),matched_sim_track_MCP.end(),mcp) ==  matched_sim_track_MCP.end()){
 
-                            //  std::cout<<"found a candiate proton track"<<std::endl;
-                            //save the overlay fraction and whether it's matched
-                            //matched_sim_track_overlay_fraction.push_back(m_sim_track_overlay_fraction[j]);
-                            matched_sim_track_matched.push_back(m_sim_track_matched[k]);
+                                matched_sim_track_MCP.push_back(mcp);
 
-                            std::cout<<"found sim proton track with track ID "<<id<<std::endl;
-                        }
-                    }
-                }
+                                //  std::cout<<"found a candiate proton track"<<std::endl;
+                                //save the overlay fraction and whether it's matched
+                                //matched_sim_track_overlay_fraction.push_back(m_sim_track_overlay_fraction[j]);
+                                std::cout<<"found sim proton track with track ID "<<id<<std::endl;
+                            }//if not already stored
+                            //else{
+                            //    std::cout<<"not matched to recob track"<<std::endl;
+                            //}
+
+                        }//if matched
+                    }//if proton from neutrino interaction
+                }//for all sim tracks
                 m_sim_track_num_matched_signal = matched_sim_track_MCP.size();
 
                 std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of sim tracks-MCP matches associated to the true ncdelta is "<<matched_sim_track_MCP.size()<<std::endl;
-
-
-
-
                 //check if either 1g1p or 1g0p topology
-            }
+                //if it's a true 1g1p event
+                if (m_mctruth_delta_radiative_1g1p_or_1g1n == 0){
+                    if ( m_sim_track_num_matched_signal == 1 && m_sim_shower_num_matched_signal ==1){
+                        std::cout<<"there is one shower one track for 1g1p"<<std::endl;
+                    }else if (m_sim_track_num_matched_signal == 1 && m_sim_shower_num_matched_signal == 0){
+                        std::cout<<"error, true 1g1p but no shower, 1 track"<<std::endl;
+                    } else if (m_sim_track_num_matched_signal == 0 && m_sim_shower_num_matched_signal == 1){
+                        std::cout<<"true 1g1p with 1 shower, no track (looks like 1g0p)"<<std::endl;
+                    } else {
+                        std::cout<<"true 1g1p but neither track nor shower were reconstructed"<<std::endl;
+                    }            
+                }
 
-        }
+            }//for nc delta signal
+        }//for signal def
 
+        std::cout<< showerToMCParticleMap.size()<<std::endl;
 
+        /*
+        //for each MCP, associated to a reco track/shower, get the corresponding PFP and slice
+         for(art::Ptr<simb::MCParticle> mcp: matched_sim_shower_MCP){
+            //get the recob shower
+            // art::Ptr<recob::Shower> this_shr = showerToMCParticleMap[mcp];
+             //auto this_shr = showerToMCParticleMap[mcp];
+            
+             art::Ptr<recob::Shower> this_shr;
+             //get the pfp
+             //art::Ptr<recob::PFParticle> this_pfp;
+             auto iter = find(showerToMCParticleMap.begin(), showerToMCParticleMap.end(), mcp);
+             if (iter != showerToMCParticleMap.end()){
+               // this_shr = iter;
+                 std::cout<<iter<<std::endl;
+             }
+
+          
+             art::Ptr<recob::PFParticle> this_pfp = showerToPFParticleMap[this_shr];
+
+            //get the slice
+             for(auto pair :allPFPSliceIdVec){
+                art::Ptr<recob::PFParticle> pfp = pair.first;
+                if (this_pfp == pfp){
+                    std::cout<<"found MCP in slice "<<pair.second <<std::endl;
+                }
+             }
+            
+         } 
+        */ 
 
         //if there is a match, store vectors of the showers/tracks and get info like shower energy, conversion distance
         //if there's a partial match then some of the simb things were not reconstructed given the purity/completeness requirements?
@@ -334,7 +383,7 @@ namespace single_photon
         //incorrect = remaining good simb particles in different slices
 
 
-    }
+    }//findslice
 
 
 
