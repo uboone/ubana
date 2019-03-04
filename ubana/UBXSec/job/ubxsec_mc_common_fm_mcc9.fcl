@@ -14,6 +14,11 @@
 #include "calibration_microboone.fcl"
 #include "tpcneutrinoidfilter_microboone.fcl"
 
+#include "pandoramodules_microboone.fcl"
+#include "external_event_building.fcl"
+#include "calorimetry_microboone.fcl"
+#include "reco_uboone_mcc9_8.fcl"
+
 #include "ubxsec_mc_fm_mcc9.fcl"
 
 process_name : UBXSec      #The process name must NOT contain any underscores
@@ -77,6 +82,11 @@ physics:
    @table::ubxsec_mc_flashmatch
    NuMuCCSelectionII: @local::microboone_tpcNeutrinoID  #CCPi0 Selection 
    Calorimetry: @local::microboone_calibrationdedx
+   pandoraAllOutcomesTrack:       @local::microboone_pandoraTrackCreation
+   pandoraAllOutcomesShower:      @local::microboone_pandoraShowerCreation
+   pandoraFlashEventBuilding:     @local::pandora_flash_event_building
+   pandoraTrackCaloBuilder:       @local::microboone_calodata
+
    #@table::ubxsec_acpt
  }
 
@@ -94,6 +104,11 @@ physics:
  #reco sequence and trigger_paths to be defined elsewhere
 }
 
+physics.producers.pandoraAllOutcomesTrack.PFParticleLabel:  "pandoraPatRec:allOutcomes"
+physics.producers.pandoraAllOutcomesShower.PFParticleLabel: "pandoraPatRec:allOutcomes"
+physics.producers.pandoraTrackCaloBuilder.TrackModuleLabel: "pandoraFlashEventBuilding"
+physics.producers.pandoraTrackCaloBuilder.SpacePointModuleLabel: "pandoraFlashEventBuilding"
+physics.producers.pandoraFlashEventBuilding.ShouldUseTestBeamMode: false
 
 
 outputs:

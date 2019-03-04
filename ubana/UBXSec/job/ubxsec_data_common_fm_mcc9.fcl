@@ -12,6 +12,12 @@
 #include "time_memory_tracker_microboone.fcl"
 #include "photpropservices_microboone.fcl"
 
+#include "pandoramodules_microboone.fcl"
+#include "external_event_building.fcl"
+#include "calorimetry_microboone.fcl"
+#include "reco_uboone_mcc9_8.fcl"
+
+
 #include "ubxsec_data_fm_mcc9.fcl"
 
 process_name : UBXSec      #The process name must NOT contain any underscores
@@ -28,7 +34,7 @@ services:
   FileCatalogMetadata:     @local::art_file_catalog_data
   @table::microboone_simulation_services
   @table::microboone_reco_data_services 
-  #@table::microboone_services_reco
+  @table::microboone_services_reco
   #BackTrackerService:     @local::microboone_backtrackerservice
   SpaceCharge:             @local::microboone_spacecharge
   @table::microboone_reco_data_services
@@ -76,6 +82,11 @@ physics:
  {
    @table::ubxsec_data_reco
    @table::ubxsec_data_flashmatch
+   pandoraAllOutcomesTrack:       @local::microboone_pandoraTrackCreation
+   pandoraAllOutcomesShower:      @local::microboone_pandoraShowerCreation
+   pandoraFlashEventBuilding:     @local::pandora_flash_event_building
+   pandoraTrackCaloBuilder:       @local::microboone_calodata
+
  }
 
  filters:
@@ -90,6 +101,12 @@ physics:
 
  #reco sequence and trigger_paths to be defined elsewhere
 }
+
+physics.producers.pandoraAllOutcomesTrack.PFParticleLabel:  "pandoraPatRec:allOutcomes"
+physics.producers.pandoraAllOutcomesShower.PFParticleLabel: "pandoraPatRec:allOutcomes"
+physics.producers.pandoraTrackCaloBuilder.TrackModuleLabel: "pandoraFlashEventBuilding"
+physics.producers.pandoraTrackCaloBuilder.SpacePointModuleLabel: "pandoraFlashEventBuilding"
+physics.producers.pandoraFlashEventBuilding.ShouldUseTestBeamMode: false
 
 
 
