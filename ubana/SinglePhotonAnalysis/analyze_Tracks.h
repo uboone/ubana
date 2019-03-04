@@ -359,6 +359,7 @@ namespace single_photon
                     m_sim_track_parent_pdg[i_trk] = mcParticleVector[mcparticle->Mother()]->PdgCode();
                 }
 
+                std::cout<<"MRK: parent pdg: "<<m_sim_track_parent_pdg[i_trk]<<"  pdg: "<<m_sim_track_pdg[i_trk]<<std::endl;
              
             }
             i_trk++;
