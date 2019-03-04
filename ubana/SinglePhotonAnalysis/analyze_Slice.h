@@ -7,11 +7,27 @@ namespace single_photon
         m_reco_slice_nuscore.clear();
         m_sim_shower_num_matched_signal = -999;
         m_sim_track_num_matched_signal = -999;
+        m_sim_shower_matched_slice.clear();
+        m_sim_track_matched_slice.clear();
+        m_sim_shower_matched_energy.clear();
+        m_sim_track_matched_energy.clear();
+        m_sim_shower_matched_conversion.clear();
     }
 
+    //resizes the branches that are filled for every slice int the event
     void SinglePhoton::ResizeSlices(size_t size){
         m_reco_slice_nuscore.resize(size);
     }
+
+    //resize the branches that are filled for matched track and shower objects
+    void SinglePhoton::ResizeMatchedSlices(size_t size_shower ,size_t size_track){
+        m_sim_shower_matched_slice.resize(size_shower);
+        m_sim_track_matched_slice.resize( size_track);
+        m_sim_shower_matched_energy.resize(size_shower);
+        m_sim_track_matched_energy.resize( size_track);
+        m_sim_shower_matched_conversion.resize(size_shower);
+    }
+
 
 
     void SinglePhoton::CreateSliceBranches(){
@@ -19,7 +35,11 @@ namespace single_photon
         vertex_tree->Branch("reco_slice_num",&m_reco_slice_num);
         vertex_tree->Branch("sim_shower_num_matched_signal",& m_sim_shower_num_matched_signal);
         vertex_tree->Branch("sim_track_num_matched_signal",& m_sim_track_num_matched_signal);
-
+        vertex_tree->Branch("sim_shower_matched_slice", & m_sim_shower_matched_slice);
+        vertex_tree->Branch("sim_track_matched_slice", & m_sim_track_matched_slice);
+        vertex_tree->Branch("sim_shower_matched_energy",& m_sim_shower_matched_energy);
+        vertex_tree->Branch("sim_track_matched_energy",& m_sim_track_matched_energy);
+        vertex_tree->Branch("sim_shower_matched_conversion",&  m_sim_shower_matched_conversion); 
 
     }
 
@@ -335,7 +355,7 @@ namespace single_photon
                         std::cout<<"true 1g1p but neither track nor shower were reconstructed"<<std::endl;
                     }            
                 } else{
-                     if ( m_sim_track_num_matched_signal == 1 && m_sim_shower_num_matched_signal ==1){
+                    if ( m_sim_track_num_matched_signal == 1 && m_sim_shower_num_matched_signal ==1){
                         std::cout<<"there is one shower one track for 1g0p"<<std::endl;
                     }else if (m_sim_track_num_matched_signal == 1 && m_sim_shower_num_matched_signal == 0){
                         std::cout<<"error, true 1g0p but no shower, 1 track"<<std::endl;
@@ -375,7 +395,7 @@ namespace single_photon
                     }
                 }
             } else{
-                    std::cout<<"no corresponding slice found for recob shower - MCP at track id "<<mcp->TrackId()<<std::endl;
+                std::cout<<"no corresponding slice found for recob shower - MCP at track id "<<mcp->TrackId()<<std::endl;
             }
         } 
 
@@ -401,7 +421,7 @@ namespace single_photon
                     }
                 }
             } else{
-                    std::cout<<"no corresponding slice found for recob track - MCP at track id "<<mcp->TrackId()<<std::endl;
+                std::cout<<"no corresponding slice found for recob track - MCP at track id "<<mcp->TrackId()<<std::endl;
             }
         } 
         //if there is a match, store vectors of the showers/tracks and get info like shower energy, conversion distance

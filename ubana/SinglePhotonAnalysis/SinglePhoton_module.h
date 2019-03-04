@@ -312,13 +312,13 @@ namespace single_photon
                     std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
 
             std::vector<double> showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
-            std::map<art::Ptr<recob::Shower>,art::Ptr<simb::MCParticle>>& objectToMCParticleMap,
-            std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& objectToPFParticleMap,
-            std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> >& pfParticleToHitsMap,
-            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
-            std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
-            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap );
+                    std::map<art::Ptr<recob::Shower>,art::Ptr<simb::MCParticle>>& objectToMCParticleMap,
+                    std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& objectToPFParticleMap,
+                    std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> >& pfParticleToHitsMap,
+                    art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
+                    std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
+                    std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+                    std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap );
 
 
 
@@ -342,17 +342,26 @@ namespace single_photon
             //-------------- Slices/Pandora Metadata ---------------//
             void  ClearSlices();
             void  ResizeSlices(size_t size); 
+            void  ResizeMatchedSlices(size_t size_shower ,size_t size_track); 
             void CreateSliceBranches();
             void AnalyzeSlices( std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,  PFParticleIdMap &pfParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
+
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
+
             int GetTrackSlice(art::Ptr<recob::Track>& this_track, std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>& trackToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
             //can also look at things like shower energy, conversion length, etc.
+
             void FindSignalSlice(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap,  std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap, std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle> > & trackToNuPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap);
-            
+
             int  m_reco_slice_num; //total number of slices in the event
             std::vector<double> m_reco_slice_nuscore; //vector of the neutrino score for each slice in an event
             int m_sim_shower_num_matched_signal; //the number of sim showers matched an MCP in the signal def
             int m_sim_track_num_matched_signal; //the number of sim showers matched an MCP in the signal def
+            std::vector<int> m_sim_shower_matched_slice; //the slice id for each matched shower
+            std::vector<int> m_sim_track_matched_slice; //the slice id for each matched track
+            std::vector<double> m_sim_shower_matched_energy; //the energy for each matched shower
+            std::vector<double> m_sim_track_matched_energy; //the energy for each matched track
+            std::vector<double> m_sim_shower_matched_conversion; //the conversion distance for each matched shower
             //std::map<art::Ptr<recob::PFParticle>, double > & pfParticleToNuScoreMap;//is filled during analyze slices
 
             //------------------ Delaunay triangle tools -----------//
