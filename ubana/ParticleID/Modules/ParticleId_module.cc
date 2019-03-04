@@ -104,7 +104,6 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
 {
 
   /*std::cout << "[ParticleID] Note: A plane ID of -1 is expected when a track has no calorimetry" << std::endl;
->>>>>>> UBOONE_SUITE_v08_00_00_07
   std::cout << "                   objects in a plane. Because reconstruction demands hits in two" << std::endl;
   std::cout << "                   planes, this should happen a maximum of one time per track." << std::endl;
   std::cout << "                   If more than one plane has an ID of -1 for a single track," << std::endl;
@@ -228,7 +227,6 @@ void UBPID::ParticleId::produce(art::Event & e)
         std::cout << "[ParticleID] Calorimetry on plane " << planenum << " is unavailable. Skipping." << std::endl;
         continue;
       }
-
 
       std::vector<float> dEdx = calo->dEdx();
       std::vector<float> dQdx = calo->dQdx();
@@ -470,26 +468,17 @@ void UBPID::ParticleId::produce(art::Event & e)
         dEdxtruncmean.at(planenum).fValue = (double)trm.CalcIterativeTruncMean(dEdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
       }
       dEdxtruncmean.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
->>>>>>> UBOONE_SUITE_v08_00_00_07
 
       dQdxtruncmean.at(planenum).fAlgName = "TruncatedMean";
       dQdxtruncmean.at(planenum).fVariableType = anab::kdQdxtruncmean;
       if (dQdx.size()>0)
       {
-        // Convert dQdx vector from float to a float. This is a bad hack because the truncated mean algorithm expects a float as input but dQdx is stored as a vector of floats
-        std::vector<float> dQdx_float(dQdx.begin(),dQdx.end());
-        // Now calculate truncated mean
-        dQdxtruncmean.at(planenum).fValue = (float)trm.CalcIterativeTruncMean(dQdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
-      }
-      dQdxtruncmean.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-=======
         // Convert dQdx vector from double to a float. This is a bad hack because the truncated mean algorithm expects a float as input but dQdx is stored as a vector of doubles
         std::vector<float> dQdx_float(dQdx.begin(),dQdx.end());
         // Now calculate truncated mean
         dQdxtruncmean.at(planenum).fValue = (double)trm.CalcIterativeTruncMean(dQdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
       }
       dQdxtruncmean.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
->>>>>>> UBOONE_SUITE_v08_00_00_07
 
       AlgScoresVec.push_back(dEdxtruncmean.at(planenum));
       AlgScoresVec.push_back(dQdxtruncmean.at(planenum));
