@@ -313,6 +313,18 @@ namespace single_photon
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
                     std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
 
+            std::vector<double> showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
+            std::map<art::Ptr<recob::Shower>,art::Ptr<simb::MCParticle>>& objectToMCParticleMap,
+            std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& objectToPFParticleMap,
+            std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> >& pfParticleToHitsMap,
+            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
+            std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
+            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap );
+
+
+
+
             //---------------- MCTruths ----------------------------
 
             void AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector,  std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector );
@@ -330,8 +342,8 @@ namespace single_photon
 
             //These three are shameless steals from LArPandorHelper But overlays dont work so this is a direct clone. We will filter out later.
             void CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector);
-            void CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth);
-            void BuildMCParticleHitMaps(const art::Event &evt, const std::string &label, const std::vector<art::Ptr<recob::Hit>> &hitVector,   std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  &particlesToHits,         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  &hitsToParticles, const lar_pandora::LArPandoraHelper::DaughterMode daughterMode);
+            void CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth, std::map< int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIdMap);
+            void BuildMCParticleHitMaps(const art::Event &evt, const std::string &label, const std::vector<art::Ptr<recob::Hit>> &hitVector,   std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  &particlesToHits,         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  &hitsToParticles, const lar_pandora::LArPandoraHelper::DaughterMode daughterMode, std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap);
 
 
 
@@ -344,7 +356,9 @@ namespace single_photon
 
             int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected);
             int spacecharge_correction(const simb::MCParticle & mcparticle, std::vector<double> & corrected);
-	    
+
+            int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected, std::vector<double> & input);
+
             //databased http://dbdata0vm.fnal.gov:8186/uboonecon_prod/app/data?f=channelstatus_data&t=357812824
             std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
             std::map<int,bool> bad_channel_map_fixed_mcc9;
@@ -574,6 +588,8 @@ namespace single_photon
             std::vector<double> m_reco_track_mean_trunc_dEdx_start_half;
             std::vector<double> m_reco_track_mean_trunc_dEdx_end_half;
             std::vector<double> m_reco_track_trunc_PIDA;
+            std::vector<std::vector<double>> m_reco_track_resrange;
+            std::vector<std::vector<double>> m_reco_track_dEdx;
 
 
             std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane0;
@@ -642,12 +658,31 @@ namespace single_photon
             std::vector<double> m_sim_shower_kinetic_energy;
             std::vector<double> m_sim_shower_mass;
             std::vector<int> m_sim_shower_pdg;
+            std::vector<int> m_sim_shower_trackID;
             std::vector<int> m_sim_shower_parent_pdg;
+            std::vector<int> m_sim_shower_parent_trackID;
             std::vector<int> m_sim_shower_origin;
             std::vector<std::string> m_sim_shower_process;
-            std::vector<double> m_sim_shower_startx;
-            std::vector<double> m_sim_shower_starty;
-            std::vector<double> m_sim_shower_startz;
+            std::vector<std::string> m_sim_shower_end_process;
+            std::vector<double> m_sim_shower_start_x;
+            std::vector<double> m_sim_shower_start_y;
+            std::vector<double> m_sim_shower_start_z;
+            std::vector<double> m_sim_shower_vertex_x;
+            std::vector<double> m_sim_shower_vertex_y;
+            std::vector<double> m_sim_shower_vertex_z;
+
+            std::vector<double> m_sim_shower_px;
+            std::vector<double> m_sim_shower_py;
+            std::vector<double> m_sim_shower_pz;
+
+
+            std::vector<int> m_sim_shower_is_true_shower;
+            std::vector<int> m_sim_shower_best_matched_plane;
+            std::vector<double> m_sim_shower_matched_energy_fraction_plane0;
+            std::vector<double> m_sim_shower_matched_energy_fraction_plane1;
+            std::vector<double> m_sim_shower_matched_energy_fraction_plane2;
+            std::vector<double> m_sim_shower_overlay_fraction;
+
 
             //------------ MCTruth related Variables  -------------
             int m_mctruth_num;
@@ -687,11 +722,11 @@ namespace single_photon
             std::vector<int> m_mctruth_exiting_photon_trackID;
             std::vector<int> m_mctruth_exiting_photon_mother_trackID;
             std::vector<int> m_mctruth_exiting_photon_from_delta_decay;
-            std::vector<int> m_mctruth_exiting_photon_energy;
+            std::vector<double> m_mctruth_exiting_photon_energy;
             std::vector<int> m_mctruth_exiting_proton_trackID;
             std::vector<int> m_mctruth_exiting_proton_mother_trackID;
             std::vector<int> m_mctruth_exiting_proton_from_delta_decay;
-            std::vector<int> m_mctruth_exiting_proton_energy;
+            std::vector<double> m_mctruth_exiting_proton_energy;
 
 
             std::vector<double>        m_mctruth_exiting_pi0_E;

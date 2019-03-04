@@ -7,6 +7,7 @@
 #include "config_particle_identification.fcl"
 #include "config_particle_identification_fiducialvolume.fcl"
 #include "config_particle_identification_braggalgo.fcl"
+#include "shrreco3d.fcl"
 
 process_name : SinglePhoton      #The process name must NOT contain any underscores
 
@@ -39,7 +40,7 @@ physics: {
      #pidcalibration: @local::microboone_calibrationdedx
      #dedxcalibration: @local::simulation_calibration
      #pid: @local::particleidconfig
-
+     #showerreco3dpandora : @local::ShrReco3DPandora
   }
  analyzers: {
      # ParameterSets for zero or more analyzer modules
@@ -48,6 +49,7 @@ physics: {
 	   PandoraLabel:   "pandora"
 	   TrackLabel:     "pandora"
 	   ShowerLabel:    "pandora"
+       #ShowerLabel: "showerreco3dpandora"
 	   ParticleIDLabel:"pid"
        CaloLabel:      "pandoracalo"
        FlashLabel:     "simpleFlashBeam"
@@ -73,6 +75,9 @@ physics: {
     end_paths: [ path0 ]
 
     }
+#physics.producers.showerreco3dpandora.BacktrackTag: "gaushitTruthMatch"
+#physics.producers.showerreco3dpandora.ADCtoE: [240,240,240] # e-/ADC
+#physics.producers.showerreco3dpandora.NeutrinoEvent: true
 
 services.SpaceCharge.EnableCorrSCE: true
 services.SpaceCharge.EnableSimEfieldSCE: true
