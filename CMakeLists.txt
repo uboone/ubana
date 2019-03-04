@@ -56,12 +56,16 @@ find_ups_product( ubraw v1_00_00 )
 find_ups_product( ubsim v1_00_00 )
 find_ups_product( larana v1_00_00 )
 find_ups_product( larpandora v1_00_00 )
+find_ups_product( larsim v1_00_00 )
+find_ups_product( larreco v1_00_00 )
 find_ups_product( art v1_00_00 )
 find_ups_product( swtrigger v1_00_00 )
 find_ups_product( larcore )
 find_ups_product( nutools )
 find_ups_product( eigen )
 find_ups_product( lardata )
+find_ups_product( ubevt )
+
 
 # macros for dictionary and simple_plugin
 include(ArtDictionary)

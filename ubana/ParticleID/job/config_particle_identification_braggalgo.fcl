@@ -4,30 +4,8 @@
 
 BEGIN_PROLOG
 
-braggalgo_mcc8:
+braggalgo:
 {
-
-  # dEdx widths, per plane
-  dEdxLandauWidthP  : [ 0.23, 0.19, 0.13 ]
-  dEdxLandauWidthMu : [ 0.10, 0.12, 0.09 ]
-  dEdxLandauWidthPi : [ 0.10, 0.12, 0.09 ]
-  dEdxLandauWidthK  : [ 0.10, 0.12, 0.09 ]
-  dEdxLandauWidthMIP: [ 0.10, 0.12, 0.09 ]
-  dEdxGausWidthP    : [ 0.32, 0.32, 0.25 ]
-  dEdxGausWidthMu   : [ 0.09, 0.19, 0.09 ]
-  dEdxGausWidthPi   : [ 0.09, 0.19, 0.09 ]
-  dEdxGausWidthK    : [ 0.09, 0.19, 0.09 ]
-  dEdxGausWidthMIP  : [ 0.09, 0.19, 0.09 ]
-
-  # offsets:
-  #   - negative shifts the peak of the landaugaussian left
-  #   - positive shifts the peak of the landaugaussian right
-  PeakOffsetP : 0
-  PeakOffsetMu: 0
-  PeakOffsetPi: 0
-  PeakOffsetK : 0
-  PeakOffset  : 0
-
   NHitsToDrop: 1
 
   # Mis-reco means track end point needs to be allowed to float.
@@ -40,82 +18,8 @@ braggalgo_mcc8:
   EndPointFloatLong     : 2.0
   EndPointFloatStepSize : 0.05
 
-}
-
-braggalgo_mcc8_dedxcalib:
-{
-
-  # dEdx widths, per plane
-  dEdxLandauWidthP  : [ 0.23, 0.19, 0.13 ]
-  dEdxLandauWidthMu : [ 0.10, 0.12, 0.09 ]
-  dEdxLandauWidthPi : [ 0.10, 0.12, 0.09 ]
-  dEdxLandauWidthK  : [ 0.10, 0.12, 0.09 ]
-  dEdxLandauWidthMIP: [ 0.10, 0.12, 0.09 ]
-  dEdxGausWidthP    : [ 0.45, 0.60, 0.31 ]
-  dEdxGausWidthMu   : [ 0.33, 0.53, 0.20 ]
-  dEdxGausWidthPi   : [ 0.33, 0.53, 0.20 ]
-  dEdxGausWidthK    : [ 0.33, 0.53, 0.20 ]
-  dEdxGausWidthMIP  : [ 0.33, 0.53, 0.20 ]
-
-
-  # offsets:
-  #   - negative shifts the peak of the landaugaussian left
-  #   - positive shifts the peak of the landaugaussian right
-  PeakOffsetP : 0
-  PeakOffsetMu: 0
-  PeakOffsetPi: 0
-  PeakOffsetK : 0
-  PeakOffset  : 0
-
-  NHitsToDrop: 1
-
-  # Mis-reco means track end point needs to be allowed to float.
-  # Define the amount we allow the end point of the track to float by:
-  #   - EndPointFloatShort    : how much shorter do we allow the track to be?
-  #   - EndPointFloatLong     : how much longer do we allow the track to be?
-  #   - EndPointFloatStepSize : step size beteween two variables
-
-  EndPointFloatShort    : -2.0
-  EndPointFloatLong     : 2.0
-  EndPointFloatStepSize : 0.05
-
-}
-
-braggalgo_mcc8_data:
-{
-
-  # dEdx widths, per plane
-  dEdxLandauWidthP  : [ 0.23, 0.19, 0.13 ]
-  dEdxLandauWidthMu : [ 0.10, 0.12, 0.09 ]
-  dEdxLandauWidthPi : [ 0.10, 0.12, 0.09 ]
-  dEdxLandauWidthK  : [ 0.10, 0.12, 0.09 ]
-  dEdxLandauWidthMIP: [ 0.10, 0.12, 0.09 ]
-  dEdxGausWidthP    : [ 0.45, 0.60, 0.31 ]
-  dEdxGausWidthMu   : [ 0.33, 0.53, 0.20 ]
-  dEdxGausWidthPi   : [ 0.33, 0.53, 0.20 ]
-  dEdxGausWidthK    : [ 0.33, 0.53, 0.20 ]
-  dEdxGausWidthMIP  : [ 0.33, 0.53, 0.20 ]
-
-  # offsets:
-  #   - negative shifts the peak of the landaugaussian left
-  #   - positive shifts the peak of the landaugaussian right
-  PeakOffsetP : 0
-  PeakOffsetMu: 0
-  PeakOffsetPi: 0
-  PeakOffsetK : 0
-  PeakOffset  : 0
-
-  NHitsToDrop: 1
-
-  # Mis-reco means track end point needs to be allowed to float.
-  # Define the amount we allow the end point of the track to float by:
-  #   - EndPointFloatShort    : how much shorter do we allow the track to be?
-  #   - EndPointFloatLong     : how much longer do we allow the track to be?
-  #   - EndPointFloatStepSize : step size beteween two variables
-
-  EndPointFloatShort    : -2.0
-  EndPointFloatLong     : 2.0
-  EndPointFloatStepSize : 0.05
+  # File that contains the likelihood maps
+  LikelihoodMapsFile: "/cvmfs/uboone.osgstorage.org/stash/ParticleID_LLH_Maps/v0_0_1/BraggLikelihoodMaps_mcc8_20190215.root"
 
 }
 

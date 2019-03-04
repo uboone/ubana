@@ -1,0 +1,78 @@
+#include "services_microboone.fcl"
+#include "messageservice.fcl"
+#include "time_memory_tracker_microboone.fcl"
+#include "config_particle_identification.fcl"
+#include "config_particle_identification_validation_ssf.fcl"
+#include "calibration_microboone.fcl"
+#include "caldata_microboone.fcl"
+#include "particleid_microboone.fcl"
+
+#
+# fcl file produces pandoraNucali calibrated objects and runs the particleid
+# on them, then performs validation.
+#
+# intended to be used on CC-inclusive filtered events
+#
+
+process_name: particleid
+
+services:
+{
+
+  TFileService:  {fileName: "particleIdMeta.root"}
+  TimeTracker:    @local::microboone_time_tracker
+  MemoryTracker:  @local::microboone_memory_tracker
+                  @table::microboone_simulation_services
+  TPCEnergyCalib: @local::microboone_tpcenergycalib_service
+		  
+		  
+} # services
+
+source:
+{
+
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*", "drop sumdata::RunData_*_*_*"] # , "drop *_*_*_UBXSec" ]
+  fileNames : [ "xroot://fndca1.fnal.gov/pnfs/fnal.gov/usr/uboone/persistent/users/kduffy/mintwotrackfilter_mcc87MC_v3/mcc8.7_mc_marcosel_twotracks_file1.root" ]
+
+}
+
+physics:
+{
+    producers:    
+    {
+
+      pid: @local::particleidconfig
+
+    }
+
+    analyzers:
+    {
+       pidvalid: @local::particleidvalidconfig
+    }
+
+    stream1: [ out1 ]
+    analysis: [ pid ]
+    validation: [ pidvalid ]
+    trigger_paths: [ analysis ]
+    end_paths: [ validation, stream1 ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_pids.root"
+    dataTier: "pid"
+  }
+}
+
+#physics.producers.pidcalibration.TrackModuleLabel:       "pandora"
+#physics.producers.pidcalibration.CalorimetryModuleLabel: "pandoracalo"
+
+
+physics.producers.pid.ProducerLabels: @local::producerlabels_mcc9
+physics.analyzers.pidvalid.ProducerLabels: @local::producerlabels_mcc9
+
+services.DetectorClocksService.InheritClockConfig: false

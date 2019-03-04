@@ -57,10 +57,10 @@
 #include "TTree.h"
 
 // Algorithms
-#include "ubana/ubana/ParticleID/Algorithms/FiducialVolume.h"
-#include "ubana/ubana/ParticleID/Algorithms/dQdxSeparatorMarco.h"
-#include "ubana/ubana/ParticleID/Algorithms/Bragg_Likelihood_Estimator.h"
-#include "ubana/ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
+#include "ubana/ParticleID/Algorithms/FiducialVolume.h"
+#include "ubana/ParticleID/Algorithms/dQdxSeparatorMarco.h"
+#include "ubana/ParticleID/Algorithms/Bragg_Likelihood_Estimator.h"
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 // cpp
 #include <vector>
@@ -198,10 +198,10 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
 
     TH2F *TrueBragg_correctdirection;
     TH2F *TrueBragg_incorrectdirection;
-    TH1F *TrueBragg_PIDdir;
+  //TH1F *TrueBragg_PIDdir;
 
-    TH2F *TrueBragg_correctdirection_PIDdir;
-    TH2F *TrueBragg_incorrectdirection_PIDdir;
+  //TH2F *TrueBragg_correctdirection_PIDdir;
+  //TH2F *TrueBragg_incorrectdirection_PIDdir;
 
     /** All tracks which are matched to an MCParticle */
     TH1F *All_chargeEndOverStart_directionCorrect;
@@ -353,9 +353,9 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
    */
   TVector3 true_start;
   TVector3 true_end;
-
   for (auto& track : trackPtrVector){
-    //std::cout << "found track" << std::endl;
+    std::cout << "found track" << std::endl;
+
 
     /** reset default values */
     dEdx.resize(3);
@@ -406,49 +406,49 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     bool TrueBragg = false;
     true_PDG = 0;
     simb::MCParticle const* matched_mcparticle = NULL;
-  
-    if (!fIsDataPlots){
 
-      /**
-       * Get true PDG from associations.
-       * We do this by using hit <-> MCParticle associations, looping over the
-       * hits and finding the MCParticle which contributed the most charge
-       * to each hit.
-       *
-       * .key() is used to get the index in the original collection
-       */
+    /**
+     * Get true PDG from associations.
+     * We do this by using hit <-> MCParticle associations, looping over the
+     * hits and finding the MCParticle which contributed the most charge
+     * to each hit.
+     *
+     * .key() is used to get the index in the original collection
+     */
 
-      std::unordered_map<int,double> trkide;
-      double maxe=-1, tote=0;
-      double purity = -999;
-  
-      std::vector<simb::MCParticle const*> particle_vec;
-      std::vector<anab::BackTrackerHitMatchingData const*> match_vec;
-   
-      std::vector<art::Ptr<recob::Hit>> hits_from_track = hits_from_tracks.at(track->ID());
-      
-      art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitHandle,e,fHitTruthAssns);
-      //std::cout << "LISTEN HERE!" << particles_per_hit.size()<< std::endl;
-      
-      for(size_t i_h=0; i_h<hits_from_track.size(); i_h++){
-        //std::cout << "hello*!, 431" << std::endl;
-	particle_vec.clear(); match_vec.clear();
-	//std::cout << "hello*!, 433" << std::endl;
-        particles_per_hit.get(hits_from_track[i_h].key(),particle_vec,match_vec);
-	//std::cout << "hello*!, 435" << std::endl;
-      
-        for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
-          trkide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy;
-          tote += match_vec[i_p]->energy;
-          if( trkide[ particle_vec[i_p]->TrackId() ] > maxe ){
-            maxe = trkide[ particle_vec[i_p]->TrackId() ];
-            matched_mcparticle = particle_vec[i_p];
-          }
-        }//end loop over particles per hit
+    std::unordered_map<int,double> trkide;
+    double maxe=-1, tote=0;
+    double purity = -999;
 
-        purity = maxe/tote;
+    std::vector<simb::MCParticle const*> particle_vec;
+    std::vector<anab::BackTrackerHitMatchingData const*> match_vec;
 
-      }
+    std::vector<art::Ptr<recob::Hit>> hits_from_track = hits_from_tracks.at(track->ID());
+
+    art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitHandle,e,fHitTruthAssns);
+    //std::cout << "LISTEN HERE!" << particles_per_hit.size()<< std::endl;
+
+    for(size_t i_h=0; i_h<hits_from_track.size(); i_h++){
+      //std::cout << "hello*!, 431" << std::endl;
+particle_vec.clear(); match_vec.clear();
+//std::cout << "hello*!, 433" << std::endl;
+      particles_per_hit.get(hits_from_track[i_h].key(),particle_vec,match_vec);
+//std::cout << "hello*!, 435" << std::endl;
+
+      for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
+        trkide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy;
+        tote += match_vec[i_p]->energy;
+        if( trkide[ particle_vec[i_p]->TrackId() ] > maxe ){
+          maxe = trkide[ particle_vec[i_p]->TrackId() ];
+          matched_mcparticle = particle_vec[i_p];
+        }
+      }//end loop over particles per hit
+
+      purity = maxe/tote;
+
+    }
+
+    if (matched_mcparticle!=NULL){
 
       true_purity = purity;
       true_PDG = matched_mcparticle->PdgCode();
@@ -476,8 +476,8 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
         TrueBragg = true;
       }
 
-    } // end if(!fIsDataPlots)
-   
+    }
+
     std::vector<std::vector<float>> Lmip_perhit(3);
 
 
@@ -512,7 +512,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
         Lmip = braggcalc.getLikelihood(dEdx_dummy,rr_dummy,0,1,planenum);
         Lmip_perhit.at(planenum).push_back(Lmip);
       }
-      
+
       /**
        * Get hit charge of first and final 5 hits of track to try and find the
        * direction of the track. If there are fewer than 10 hits then take half
@@ -656,14 +656,15 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       std::cout << "[ParticleIDValidation] No track-PID association found for trackID " << track->ID() << ". Skipping track." << std::endl;
       continue;
     }
-    
+
     std::vector<anab::sParticleIDAlgScores> AlgScoresVec = trackPID.at(0)->ParticleIDAlgScores();
 
     // Loop through AlgScoresVec and find the variables we want
     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 
       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-      int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
+      int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+
 
       if (planeid < 0 || planeid > 2){
         std::cout << "[ParticleIDValidation] No information for planeid " << planeid << std::endl;
@@ -739,16 +740,15 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
        // Multiply MC by 198 and data by 243
 
       //FOR MCC9: TAG1 DATA AND  TAG2 MC. I HAVE ADDED LOOPS FOR ALL THE DIFFERENT PLANES!
-      
+
       double dQdxcalibval = 0;
-      
+
       if(planeid == 0)
 	{
 	   dQdxcalibval = 245.;
 
 	  if (isData){
 	    dQdxcalibval = 232.;
-  	 
 	  }
 	}
 
@@ -758,7 +758,6 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
 
 	  if (isData){
 	    dQdxcalibval = 249.;
-  	 
 	  }
 	}
 
@@ -768,10 +767,10 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
 
 	  if (isData){
 	    dQdxcalibval = 235.;
-  	 
+
 	  }
 	}
- 
+
 
       if (AlgScore.fAlgName == "TruncatedMean"){
         if (anab::kVariableType(AlgScore.fVariableType) == anab::kdEdxtruncmean) track_dEdx.at(planeid) = AlgScore.fValue;
