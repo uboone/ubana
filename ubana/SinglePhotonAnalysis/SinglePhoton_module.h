@@ -356,14 +356,14 @@ namespace single_photon
 
             int  m_reco_slice_num; //total number of slices in the event
             std::vector<double> m_reco_slice_nuscore; //vector of the neutrino score for each slice in an event
-            int m_sim_shower_num_matched_signal; //the number of sim showers matched an MCP in the signal def
-            int m_sim_track_num_matched_signal; //the number of sim showers matched an MCP in the signal def
-            std::vector<int> m_sim_shower_matched_slice; //the slice id for each matched shower
-            std::vector<int> m_sim_track_matched_slice; //the slice id for each matched track
-            std::vector<double> m_sim_shower_matched_energy; //the energy for each matched shower
-            std::vector<double> m_sim_track_matched_energy; //the energy for each matched track
-            std::vector<double> m_sim_shower_matched_conversion; //the conversion distance for each matched shower
-            std::vector<double> m_sim_shower_matched_overlay_frac; //fraction of overlay hits for each matched shower
+            int m_reco_slice_shower_num_matched_signal; //the number of sim showers matched an MCP in the signal def
+            int m_reco_slice_track_num_matched_signal; //the number of sim showers matched an MCP in the signal def
+            std::vector<int> m_reco_slice_shower_matched_sliceId; //the slice id for each matched shower
+            std::vector<int> m_reco_slice_track_matched_sliceId; //the slice id for each matched track
+            std::vector<double> m_reco_slice_shower_matched_energy; //the energy for each matched shower
+            std::vector<double> m_reco_slice_track_matched_energy; //the energy for each matched track
+            std::vector<double> m_reco_slice_shower_matched_conversion; //the conversion distance for each matched shower
+            std::vector<double> m_reco_slice_shower_matched_overlay_frac; //fraction of overlay hits for each matched shower
             //std::map<art::Ptr<recob::PFParticle>, double > & pfParticleToNuScoreMap;//is filled during analyze slices
 
             //------------------ Delaunay triangle tools -----------//
