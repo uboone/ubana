@@ -466,6 +466,7 @@ void plotdEdxLengthComparison(){
     h_dEdx_length_pion->Draw("same");
     h_dEdx_length_kaon->Draw("same");
     h_dEdx_length_other->Draw("same");
+    h_dEdx_length_proton->SetStats(kFALSE);
 
     c1->SaveAs("truncateddedxlength_2d.png");
 
@@ -564,11 +565,20 @@ void plotdEdxLengthComparison(){
     hsTot->Add(h_muID_trueother);
 
     h_muID_data_onbeam->GetYaxis()->SetRangeUser(0, std::max(hs->GetMaximum(),h_muID_data_onbeam->GetMaximum())*1.1);
+<<<<<<< HEAD
     h_muID_data_onbeam->Draw("pE0");
     hs->Draw("histsame");
     h_muID_data_onbeam->SetMarkerStyle(20);
     h_muID_data_onbeam->SetMarkerSize(0.6);
     h_muID_data_onbeam->Draw("psameE0");
+=======
+    //h_muID_data_onbeam->Draw("pE0");
+    hs->Draw("histsame");
+    h_muID_data_onbeam->SetMarkerStyle(20);
+    h_muID_data_onbeam->SetMarkerSize(0.6);
+    h_muID_data_onbeam->SetMarkerColor(kWhite);
+    //h_muID_data_onbeam->Draw("psameE0");
+>>>>>>> UBOONE_SUITE_v08_00_00_07
 
     std::cout << h_muID_data_onbeam->Integral() << " " << hs->GetHistogram()->Integral() << std::endl;
 
@@ -634,11 +644,20 @@ void plotdEdxLengthComparison(){
     hs2Tot->Add(h_pID_trueother);
 
     h_pID_data_onbeam->GetYaxis()->SetRangeUser(0, std::max(hs2->GetMaximum(),h_pID_data_onbeam->GetMaximum())*1.1);
+<<<<<<< HEAD
     h_pID_data_onbeam->Draw("pe0");
     hs2->Draw("histsame");
     h_pID_data_onbeam->SetMarkerStyle(20);
     h_pID_data_onbeam->SetMarkerSize(0.6);
     h_pID_data_onbeam->Draw("psameE0");
+=======
+    //h_pID_data_onbeam->Draw("pe0");
+    hs2->Draw("histsame");
+    h_pID_data_onbeam->SetMarkerStyle(20);
+    h_pID_data_onbeam->SetMarkerSize(0.6);
+    h_pID_data_onbeam->SetMarkerColor(kWhite);
+    //h_pID_data_onbeam->Draw("psameE0");
+>>>>>>> UBOONE_SUITE_v08_00_00_07
 
     std::cout << "number of protons: " << h_muID_truep->Integral() + h_pID_truep->Integral() << std::endl;
     std::cout << "proton Efficiency: " << h_pID_truep->Integral() / (h_muID_truep->Integral() + h_pID_truep->Integral()) << std::endl;
@@ -707,11 +726,20 @@ void plotdEdxLengthComparison(){
     hs3Tot->Add(h_trueother);
 
     h_data_onbeam->GetYaxis()->SetRangeUser(0, std::max(hs3->GetMaximum(),h_data_onbeam->GetMaximum())*1.1);
+<<<<<<< HEAD
     h_data_onbeam->Draw("pe0");
     hs3->Draw("histsame");
     h_data_onbeam->SetMarkerStyle(20);
     h_data_onbeam->SetMarkerSize(0.6);
     h_data_onbeam->Draw("psamee0");
+=======
+    //h_data_onbeam->Draw("pe0");
+    hs3->Draw("hist");
+    h_data_onbeam->SetMarkerStyle(20);
+    h_data_onbeam->SetMarkerSize(0.6);
+    h_data_onbeam->SetMarkerColor(kWhite);
+    //h_data_onbeam->Draw("psamee0");
+>>>>>>> UBOONE_SUITE_v08_00_00_07
 
     std::pair<double,double> chi2 = GetChi2(h_data_onbeam, hs3Tot);
 

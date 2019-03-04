@@ -35,24 +35,18 @@
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/RecoBase/Track.h"
-#include "lardataobj/RecoBase/PFParticle.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larana/TruncatedMean/Algorithm/TruncMean.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
+#include "larana/ParticleIdentification/Chi2PIDAlg.h"
 
 // local includes
 #include "ubana/ParticleID/Algorithms/GetDaughterTracksShowers.h"
 #include "ubana/ParticleID/Algorithms/FiducialVolume.h"
 #include "ubana/ParticleID/Algorithms/PIDA.h"
-#include "ubana/ParticleID/Algorithms/Chisq.h"
 #include "ubana/ParticleID/Algorithms/Bragg_Likelihood_Estimator.h"
 #include "ubana/ParticleID/Algorithms/LandauGaussian.h"
 #include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
-
-// Other stuff to select neutrino slices
-#include "lardataobj/RecoBase/PFParticleMetadata.h"
-#include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
-#include "Pandora/PdgTable.h"
 
 // root includes
 #include "TVector3.h"
@@ -75,28 +69,22 @@ class UBPID::ParticleId : public art::EDProducer {
     ParticleId & operator = (ParticleId const &) = delete;
     ParticleId & operator = (ParticleId &&) = delete;
 
-    typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
-
     // Required functions.
     void produce(art::Event & e) override;
 
-    std::vector<float> fv;
+    std::vector<double> fv;
 
   private:
 
     // fcl
     std::string fTrackLabel;
     std::string fCaloLabel;
-    std::string fPFParticleLabel;
-    float fCutDistance;
-    float fCutFraction;
+    double fCutDistance;
+    double fCutFraction;
     bool fIsSimSmear;
 
     // fidvol related
     fidvol::fiducialVolume fid;
-
-    // for Chisq
-    particleid::Chisquare chisq;
 
     // for PIDA
     particleid::PIDA pida;
@@ -107,64 +95,59 @@ class UBPID::ParticleId : public art::EDProducer {
     // For truncated mean
     TruncMean trm;
 
-    //other
-    bool isData;
-
-    fhicl::ParameterSet p_holder;
+    // For Chi2
+    pid::Chi2PIDAlg *fChiAlg;
 };
 
 
 UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
 {
 
-  std::cout << "[ParticleID] Note: A plane ID of -1 is expected when a track has no calorimetry" << std::endl;
+  /*std::cout << "[ParticleID] Note: A plane ID of -1 is expected when a track has no calorimetry" << std::endl;
+>>>>>>> UBOONE_SUITE_v08_00_00_07
   std::cout << "                   objects in a plane. Because reconstruction demands hits in two" << std::endl;
   std::cout << "                   planes, this should happen a maximum of one time per track." << std::endl;
   std::cout << "                   If more than one plane has an ID of -1 for a single track," << std::endl;
   std::cout << "                   contact the authors." << std::endl;
   std::cout << "[ParticleID] Note: Note that each PID variable is provided on a per-plane basis," << std::endl;
   std::cout << "                   however we currently do not recommend using induction plane" << std::endl;
-  std::cout << "                   Particle ID or calorimetry. Proceed with caution." << std::endl;
+  std::cout << "                   Particle ID or calorimetry. Proceed with caution." << std::endl;*/
 
   fhicl::ParameterSet const p_fv     = p.get<fhicl::ParameterSet>("FiducialVolume");
   fhicl::ParameterSet const p_labels = p.get<fhicl::ParameterSet>("ProducerLabels");
   fhicl::ParameterSet const p_bragg  = p.get<fhicl::ParameterSet>("BraggAlgo");
   fhicl::ParameterSet const p_chi2pidalg = p.get<fhicl::ParameterSet>("Chi2PIDAlg");
 
-  p_holder = p_chi2pidalg;
+  fChiAlg = new pid::Chi2PIDAlg(p_chi2pidalg);
 
   // fcl parameters
   fTrackLabel = p_labels.get< std::string > ("TrackLabel");
   fCaloLabel = p_labels.get< std::string > ("CalorimetryLabel");
-  fPFParticleLabel = p_labels.get< std::string > ("PFParticleLabel");
-  fCutDistance  = p.get< float > ("DaughterFinderCutDistance");
-  fCutFraction  = p.get< float > ("DaughterFinderCutFraction");
+  fCutDistance  = p.get< double > ("DaughterFinderCutDistance");
+  fCutFraction  = p.get< double > ("DaughterFinderCutFraction");
 
   fv = fid.setFiducialVolume(fv, p_fv);
   fid.printFiducialVolume(fv);
   braggcalc.configure(p_bragg);
-  braggcalc.printConfiguration();
+  //braggcalc.printConfiguration();
 
-  // this module produces an anab::ParticleID object and
+  // this module produces a anab::ParticleID object and
   // an association to the track which produced it
   produces< std::vector<anab::ParticleID> >();
   produces< art::Assns< recob::Track, anab::ParticleID> >();
 
-  std::cout << "[ParticleID] >> Track Label: " << fTrackLabel << std::endl;
+  /*  std::cout << "[ParticleID] >> Track Label: " << fTrackLabel << std::endl;
   std::cout << "[ParticleID] >> Calorimetry Label: " << fCaloLabel << std::endl;
-  std::cout << "[ParticleID] >> PFParticle Label: " << fPFParticleLabel << std::endl;
   std::cout << "[ParticleID] >> Cut Distance : " << fCutDistance << std::endl;
-  std::cout << "[ParticleID] >> Cut Fraction : " << fCutFraction << std::endl;
+  std::cout << "[ParticleID] >> Cut Fraction : " << fCutFraction << std::endl;*/
 
 }
 
 void UBPID::ParticleId::produce(art::Event & e)
 {
 
-  bool isData = e.isRealData();
-
-  if (!isData) std::cout << "[ParticleID] Running simulated data." << std::endl;
-  else std::cout << "[ParticleID] Running physics data." << std::endl;
+  //if (!e.isRealData()) std::cout << "[ParticleID] Running simulated data." << std::endl;
+  //else std::cout << "[ParticleID] Running physics data." << std::endl;
 
   // produce collection of particleID objects
   std::unique_ptr< std::vector<anab::ParticleID> > particleIDCollection( new std::vector<anab::ParticleID> );
@@ -187,104 +170,7 @@ void UBPID::ParticleId::produce(art::Event & e)
   // this seems to help with seg faults, but it's a little unclear why
   particleIDCollection->reserve(trackCollection.size());
 
-  ////// Determine if track is in neutrino slice /////////
-  // COPIED FROM MY VERSION OF CALIBRATION, STREAMLINE LATER
-  // First, get PFParticle handle
-  art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = e.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleLabel);
-  std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
-  art::fill_ptr_vector(pfParticleVector, pfParticleHandle);
-
-  if (!pfParticleHandle.isValid() ) {
-      std::cout << "Bad PFParticle handle" << std::endl;
-      return;
-  }
-
-  // Create PFParicle map
-  PFParticleIdMap pfParticleMap;
-
-  for (unsigned int i = 0; i < pfParticleHandle->size(); ++i) {
-    const art::Ptr<recob::PFParticle> pParticle(pfParticleHandle, i);
-    if (!pfParticleMap.insert(PFParticleIdMap::value_type(pParticle->Self(), pParticle)).second) {
-        std::cout << "Coudln't get PFParticleIdMap" << std::endl;
-        return;
-    }   
-  }
-
-  // Separate PFParticles into cosmic and neutrino-induced
-  std::vector< art::Ptr<recob::PFParticle> > crParticles;
-  std::vector< art::Ptr<recob::PFParticle> > nuParticles;
-
-  for (PFParticleIdMap::const_iterator it = pfParticleMap.begin(); it != pfParticleMap.end(); ++it) {
-        const art::Ptr<recob::PFParticle> pParticle(it->second);
-
-        // Only look for primary particles
-        if (!pParticle->IsPrimary()) continue;
-
-        // Check if this particle is identified as the neutrino
-        const int pdg(pParticle->PdgCode());
-        const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
-
-        // All non-neutrino primary particles are reconstructed under the cosmic hypothesis
-        if (!isNeutrino)
-        {
-            crParticles.push_back(pParticle);
-            continue;
-        }
-
-        // ATTN. We are filling nuParticles under the assumption that there is only one reconstructed neutrino identified per event.
-        //       If this is not the case please handle accordingly
-        if (!nuParticles.empty())
-        {
-            //throw cet::exception("SinglePhoton") << "  This event contains multiple reconstructed neutrinos!";
-            std::cerr << "Exception" << std::endl;
-        }
-
-        // Add the daughters of the neutrino PFParticle to the nuPFParticles vector
-        for (const size_t daughterId : pParticle->Daughters())
-        {
-            if (pfParticleMap.find(daughterId) == pfParticleMap.end())
-                //throw cet::exception("SinglePhoton") << "  Invalid PFParticle collection!";
-                std::cerr << "Exception" << std::endl;
-
-            nuParticles.push_back(pfParticleMap.at(daughterId));
-        }
-    }
-
-    std::cout << "NuParticles: " << nuParticles.size() << std::endl;
-    std::cout << "CrParticles: " << crParticles.size() << std::endl;
-
-    // Get PFP <-> Track associations
-    art::FindOneP< recob::PFParticle > pfParticlePerTrack(trackHandle, e, fPFParticleLabel);
-    art::FindOneP< recob::Track > trackPerPFParticle(pfParticleHandle, e, fTrackLabel);
-    std::map< art::Ptr<recob::Track>, art::Ptr<recob::PFParticle> > trackToPFParticleMap;
-    std::map< art::Ptr<recob::PFParticle>, art::Ptr<recob::Track> > pfParticleToTrackMap;
-
-    // Fill track -> pfparticle map
-    for (size_t i = 0; i < trackCollection.size(); i++) {
-        art::Ptr<recob::Track> thisTrack = trackCollection.at(i);
-        trackToPFParticleMap[thisTrack] = pfParticlePerTrack.at(thisTrack.key());
-    }
-
-    // Fill pfparticle -> track map
-    for (size_t i = 0; i < pfParticleVector.size(); i++) {
-        art::Ptr<recob::PFParticle> thisPFP = pfParticleVector.at(i);
-        pfParticleToTrackMap[thisPFP] = trackPerPFParticle.at(thisPFP.key());
-    }
-
-    // Find neutrino tracks in neutrino slice
-    std::vector< art::Ptr<recob::Track> > nuTrackCollection;
-    for (art::Ptr<recob::Track> track : trackCollection) {
-        art::Ptr<recob::PFParticle> pfp = trackToPFParticleMap[track];
-        for (art::Ptr<recob::PFParticle> &p : nuParticles ) {
-            if (pfp == p) {
-                std::cout << "Found pfp in nu slice" << std::endl;
-                nuTrackCollection.push_back(pfParticleToTrackMap[p]);
-            }
-        }
-    }
-
-  //for (auto& track : trackCollection){
-  for (auto& track : nuTrackCollection){
+  for (auto& track : trackCollection){
 
     // Skip tracks/events with no valid calorimetry object associated to it.
     // In practice this should be 0 tracks (0 hits = 0 tracks), but this is
@@ -294,7 +180,7 @@ void UBPID::ParticleId::produce(art::Event & e)
       continue;
     }
 
-    std::vector< art::Ptr<anab::Calorimetry> > caloFromTrack = caloFromTracks.at(track->ID());
+    std::vector< art::Ptr<anab::Calorimetry> > caloFromTrack = caloFromTracks.at(track.key());
 
     std::vector<anab::sParticleIDAlgScores> AlgScoresVec;
 
@@ -319,11 +205,6 @@ void UBPID::ParticleId::produce(art::Event & e)
     std::vector<anab::sParticleIDAlgScores> Bragg_bwd_pi_shift    = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()} ;
     std::vector<anab::sParticleIDAlgScores> Bragg_bwd_k_shift     = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()} ;
 
-    std::vector<anab::sParticleIDAlgScores> Chi2_mu         = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()};
-    std::vector<anab::sParticleIDAlgScores> Chi2_p         = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()};
-    std::vector<anab::sParticleIDAlgScores> Chi2_pi         = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()};
-    std::vector<anab::sParticleIDAlgScores> Chi2_k         = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()};
-
     std::vector<anab::sParticleIDAlgScores> PIDAval_mean   = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()} ;
     std::vector<anab::sParticleIDAlgScores> PIDAval_median = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()} ;
     std::vector<anab::sParticleIDAlgScores> PIDAval_kde    = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()} ;
@@ -347,6 +228,7 @@ void UBPID::ParticleId::produce(art::Event & e)
         std::cout << "[ParticleID] Calorimetry on plane " << planenum << " is unavailable. Skipping." << std::endl;
         continue;
       }
+
 
       std::vector<float> dEdx = calo->dEdx();
       std::vector<float> dQdx = calo->dQdx();
@@ -385,14 +267,14 @@ void UBPID::ParticleId::produce(art::Event & e)
        * widths measured from data and simulation to estimate the likelihood for
        * each hit in a track to have come from each particle species.
        */
-       float shift_fwd_mu = -999.;
-       float shift_fwd_p  = -999.;
-       float shift_fwd_pi = -999.;
-       float shift_fwd_k  = -999.;
-       float shift_bwd_mu = -999.;
-       float shift_bwd_p  = -999.;
-       float shift_bwd_pi = -999.;
-       float shift_bwd_k  = -999.;
+       double shift_fwd_mu = -999.;
+       double shift_fwd_p  = -999.;
+       double shift_fwd_pi = -999.;
+       double shift_fwd_k  = -999.;
+       double shift_bwd_mu = -999.;
+       double shift_bwd_p  = -999.;
+       double shift_bwd_pi = -999.;
+       double shift_bwd_k  = -999.;
 
       Bragg_fwd_mu.at(planenum).fAlgName      = "BraggPeakLLH";
       Bragg_fwd_p.at(planenum).fAlgName       = "BraggPeakLLH";
@@ -434,14 +316,14 @@ void UBPID::ParticleId::produce(art::Event & e)
       Bragg_bwd_p.at(planenum).fValue         = braggcalc.getLikelihood(dEdx, resRange, Bragg_bwd_p.at(planenum).fAssumedPdg,  false, planenum, shift_bwd_p);
       Bragg_bwd_pi.at(planenum).fValue        = braggcalc.getLikelihood(dEdx, resRange, Bragg_bwd_pi.at(planenum).fAssumedPdg, false, planenum, shift_bwd_pi);
       Bragg_bwd_k.at(planenum).fValue         = braggcalc.getLikelihood(dEdx, resRange, Bragg_bwd_k.at(planenum).fAssumedPdg,  false, planenum, shift_bwd_k);
-      Bragg_fwd_mu.at(planenum).fPlaneID      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_fwd_p.at(planenum).fPlaneID       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_fwd_pi.at(planenum).fPlaneID      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_fwd_k.at(planenum).fPlaneID       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_bwd_mu.at(planenum).fPlaneID      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_bwd_p.at(planenum).fPlaneID       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_bwd_pi.at(planenum).fPlaneID      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_bwd_k.at(planenum).fPlaneID       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_fwd_mu.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_fwd_p.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_fwd_pi.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_fwd_k.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_bwd_mu.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_bwd_p.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_bwd_pi.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_bwd_k.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
       // Special case: MIP-like probability. fAssumedPdg == 0 tells the Bragg
       // algorithm to use the "No-Bragg" theory case
       noBragg_fwd_MIP.at(planenum).fAlgName = "BraggPeakLLH";
@@ -449,7 +331,7 @@ void UBPID::ParticleId::produce(art::Event & e)
       noBragg_fwd_MIP.at(planenum).fTrackDir = anab::kForward;
       noBragg_fwd_MIP.at(planenum).fAssumedPdg = 0;
       noBragg_fwd_MIP.at(planenum).fValue = braggcalc.getLikelihood(dEdx, resRange, noBragg_fwd_MIP.at(planenum).fAssumedPdg, true, planenum);
-      noBragg_fwd_MIP.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      noBragg_fwd_MIP.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
 
       AlgScoresVec.push_back(Bragg_fwd_mu.at(planenum));
       AlgScoresVec.push_back(Bragg_fwd_p.at(planenum));
@@ -502,14 +384,14 @@ void UBPID::ParticleId::produce(art::Event & e)
       Bragg_bwd_p_shift.at(planenum).fValue         = shift_bwd_p;
       Bragg_bwd_pi_shift.at(planenum).fValue        = shift_bwd_pi;
       Bragg_bwd_k_shift.at(planenum).fValue         = shift_bwd_k;
-      Bragg_fwd_mu_shift.at(planenum).fPlaneID      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_fwd_p_shift.at(planenum).fPlaneID       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_fwd_pi_shift.at(planenum).fPlaneID      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_fwd_k_shift.at(planenum).fPlaneID       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_bwd_mu_shift.at(planenum).fPlaneID      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_bwd_p_shift.at(planenum).fPlaneID       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_bwd_pi_shift.at(planenum).fPlaneID      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      Bragg_bwd_k_shift.at(planenum).fPlaneID       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_fwd_mu_shift.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_fwd_p_shift.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_fwd_pi_shift.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_fwd_k_shift.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_bwd_mu_shift.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_bwd_p_shift.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_bwd_pi_shift.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      Bragg_bwd_k_shift.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
 
       AlgScoresVec.push_back(Bragg_fwd_mu_shift.at(planenum));
       AlgScoresVec.push_back(Bragg_fwd_p_shift.at(planenum));
@@ -521,42 +403,17 @@ void UBPID::ParticleId::produce(art::Event & e)
       AlgScoresVec.push_back(Bragg_bwd_k_shift.at(planenum));
 
       /**
-       * Algorithm 2: Chi2
+       * Algorithm 2: Chi2 (T. Yang)
        */
-      std::vector<float> chisqValues = chisq.getChisq(calo, p_holder);
+      std::vector<art::Ptr<anab::Calorimetry>> calo_tmp;
+      calo_tmp.push_back(calo);
+      anab::ParticleID particleIdObj_tmp = fChiAlg->DoParticleID(calo_tmp);
+      std::vector<anab::sParticleIDAlgScores> algscores_tmp = particleIdObj_tmp.ParticleIDAlgScores();
 
-      Chi2_mu.at(planenum).fAlgName = "Chi2";
-      Chi2_mu.at(planenum).fVariableType = anab::kGOF;
-      Chi2_mu.at(planenum).fAssumedPdg = 13;
-      Chi2_mu.at(planenum).fTrackDir = anab::kForward;
-      Chi2_mu.at(planenum).fValue = chisqValues.at(0);
-      Chi2_mu.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      for (size_t i_tmp=0; i_tmp<algscores_tmp.size(); i_tmp++){
+	AlgScoresVec.push_back(algscores_tmp.at(i_tmp));
+      }
 
-      Chi2_p.at(planenum).fAlgName = "Chi2";
-      Chi2_p.at(planenum).fVariableType = anab::kGOF;
-      Chi2_p.at(planenum).fAssumedPdg = 2212;
-      Chi2_p.at(planenum).fTrackDir = anab::kForward;
-      Chi2_p.at(planenum).fValue = chisqValues.at(1);
-      Chi2_p.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-
-      Chi2_pi.at(planenum).fAlgName = "Chi2";
-      Chi2_pi.at(planenum).fVariableType = anab::kGOF;
-      Chi2_pi.at(planenum).fAssumedPdg = 211;
-      Chi2_pi.at(planenum).fTrackDir = anab::kForward;
-      Chi2_pi.at(planenum).fValue = chisqValues.at(2);
-      Chi2_pi.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-
-      Chi2_k.at(planenum).fAlgName = "Chi2";
-      Chi2_k.at(planenum).fVariableType = anab::kGOF;
-      Chi2_k.at(planenum).fAssumedPdg = 321;
-      Chi2_k.at(planenum).fTrackDir = anab::kForward;
-      Chi2_k.at(planenum).fValue = chisqValues.at(3);
-      Chi2_k.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-
-      AlgScoresVec.push_back(Chi2_mu.at(planenum));
-      AlgScoresVec.push_back(Chi2_p.at(planenum));
-      AlgScoresVec.push_back(Chi2_pi.at(planenum));
-      AlgScoresVec.push_back(Chi2_k.at(planenum));
 
       /**
        * Algorithm 3: PIDA
@@ -571,7 +428,7 @@ void UBPID::ParticleId::produce(art::Event & e)
       PIDAval_mean.at(planenum).fVariableType = anab::kPIDA;
       PIDAval_mean.at(planenum).fTrackDir = anab::kForward;
       PIDAval_mean.at(planenum).fValue = pida.getPida(dEdx, resRange, "mean");
-      PIDAval_mean.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      PIDAval_mean.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
       AlgScoresVec.push_back(PIDAval_mean.at(planenum));
 
       // median
@@ -579,17 +436,16 @@ void UBPID::ParticleId::produce(art::Event & e)
       PIDAval_median.at(planenum).fVariableType = anab::kPIDA;
       PIDAval_median.at(planenum).fTrackDir = anab::kForward;
       PIDAval_median.at(planenum).fValue = pida.getPida(dEdx, resRange, "median");
-      PIDAval_median.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      PIDAval_median.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
       AlgScoresVec.push_back(PIDAval_median.at(planenum));
 
-      // median
-      PIDAval_kde.at(planenum).fAlgName = "PIDA_kde";
+      // kde
+      /*PIDAval_kde.at(planenum).fAlgName = "PIDA_kde";
       PIDAval_kde.at(planenum).fVariableType = anab::kPIDA;
       PIDAval_kde.at(planenum).fTrackDir = anab::kForward;
       PIDAval_kde.at(planenum).fValue = pida.getPida(dEdx, resRange, "kde");
-      PIDAval_kde.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-      AlgScoresVec.push_back(PIDAval_kde.at(planenum));
-
+      PIDAval_kde.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      AlgScoresVec.push_back(PIDAval_kde.at(planenum));*/
       /**
        * Algorithm 4: Truncated mean dE/dx versus track length
        * Makes use of the "Truncated Mean" algorithm developed by D. Caratelli
@@ -608,12 +464,13 @@ void UBPID::ParticleId::produce(art::Event & e)
       dEdxtruncmean.at(planenum).fTrackDir = anab::kForward;
       if (dEdx.size()>0)
       {
-        // Convert dEdx vector from float to a float. This is a bad hack because the truncated mean algorithm expects a float as input but dEdx is stored as a vector of floats
+        // Convert dEdx vector from double to a float. This is a bad hack because the truncated mean algorithm expects a float as input but dEdx is stored as a vector of doubles
         std::vector<float> dEdx_float(dEdx.begin(),dEdx.end());
         // Now calculate truncated mean
-        dEdxtruncmean.at(planenum).fValue = (float)trm.CalcIterativeTruncMean(dEdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
+        dEdxtruncmean.at(planenum).fValue = (double)trm.CalcIterativeTruncMean(dEdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
       }
-      dEdxtruncmean.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      dEdxtruncmean.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+>>>>>>> UBOONE_SUITE_v08_00_00_07
 
       dQdxtruncmean.at(planenum).fAlgName = "TruncatedMean";
       dQdxtruncmean.at(planenum).fVariableType = anab::kdQdxtruncmean;
@@ -625,6 +482,14 @@ void UBPID::ParticleId::produce(art::Event & e)
         dQdxtruncmean.at(planenum).fValue = (float)trm.CalcIterativeTruncMean(dQdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
       }
       dQdxtruncmean.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+=======
+        // Convert dQdx vector from double to a float. This is a bad hack because the truncated mean algorithm expects a float as input but dQdx is stored as a vector of doubles
+        std::vector<float> dQdx_float(dQdx.begin(),dQdx.end());
+        // Now calculate truncated mean
+        dQdxtruncmean.at(planenum).fValue = (double)trm.CalcIterativeTruncMean(dQdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
+      }
+      dQdxtruncmean.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+>>>>>>> UBOONE_SUITE_v08_00_00_07
 
       AlgScoresVec.push_back(dEdxtruncmean.at(planenum));
       AlgScoresVec.push_back(dQdxtruncmean.at(planenum));
@@ -637,7 +502,7 @@ void UBPID::ParticleId::produce(art::Event & e)
        * does this, but due to a bug it currently does not use the calibrated
        * dEdx)
        */
-      float depE = 0;
+      double depE = 0;
       for (size_t i_hit=0; i_hit < dEdx.size(); i_hit++){
         depE += dEdx.at(i_hit)*trkpitchvec.at(i_hit);
       }
@@ -646,7 +511,7 @@ void UBPID::ParticleId::produce(art::Event & e)
       trk_depE.at(planenum).fVariableType = anab::kEdeposited;
       trk_depE.at(planenum).fTrackDir = anab::kNoDirection;
       trk_depE.at(planenum).fValue = depE;
-      trk_depE.at(planenum).fPlaneID = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
+      trk_depE.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
 
       AlgScoresVec.push_back(trk_depE.at(planenum));
 
@@ -659,7 +524,7 @@ void UBPID::ParticleId::produce(art::Event & e)
     trklen.fAlgName = "TruncatedMean";
     trklen.fVariableType = anab::kTrackLength;
     trklen.fTrackDir = anab::kNoDirection;
-    trklen.fPlaneID = UBPID::uB_SinglePlaneGetBitset(2); // dummy
+    trklen.fPlaneMask = UBPID::uB_SinglePlaneGetBitset(2); // dummy
     trklen.fValue = track->Length();
     AlgScoresVec.push_back(trklen);
 
@@ -670,8 +535,8 @@ void UBPID::ParticleId::produce(art::Event & e)
      * TrackMomentumCalculator returns GeV, multiply by 1000 to get MeV
      */
     trkf::TrackMomentumCalculator trkm;
-    float track_rangeP_mu = trkm.GetTrackMomentum(track->Length(),13)*1000.;
-    float track_rangeP_p = trkm.GetTrackMomentum(track->Length(),2212)*1000.;
+    double track_rangeP_mu = trkm.GetTrackMomentum(track->Length(),13)*1000.;
+    double track_rangeP_p = trkm.GetTrackMomentum(track->Length(),2212)*1000.;
 
     /**
      * Now convert P->E
@@ -689,12 +554,12 @@ void UBPID::ParticleId::produce(art::Event & e)
     trk_rangeE_mu.fVariableType = anab::kEbyRange;
     trk_rangeE_mu.fTrackDir = anab::kNoDirection;
     trk_rangeE_mu.fAssumedPdg = 13;
-    trk_rangeE_mu.fPlaneID = UBPID::uB_SinglePlaneGetBitset(2); // dummy
+    trk_rangeE_mu.fPlaneMask = UBPID::uB_SinglePlaneGetBitset(2); // dummy
     trk_rangeE_p.fAlgName = "DepEvsRangeE";
     trk_rangeE_p.fVariableType = anab::kEbyRange;
     trk_rangeE_p.fTrackDir = anab::kNoDirection;
     trk_rangeE_p.fAssumedPdg = 2212;
-    trk_rangeE_mu.fPlaneID = UBPID::uB_SinglePlaneGetBitset(2); // dummy
+    trk_rangeE_mu.fPlaneMask = UBPID::uB_SinglePlaneGetBitset(2); // dummy
     trk_rangeE_mu.fValue = TMath::Sqrt((track_rangeP_mu*track_rangeP_mu)+(105.7*105.7)) - 105.7;
     trk_rangeE_p.fValue = TMath::Sqrt((track_rangeP_p*track_rangeP_p)+(938.272*938.272)) - 938.272;
     AlgScoresVec.push_back(trk_rangeE_mu);

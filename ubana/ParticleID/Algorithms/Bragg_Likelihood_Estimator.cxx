@@ -24,113 +24,83 @@
 namespace particleid{
 
   void Bragg_Likelihood_Estimator::configure(fhicl::ParameterSet const &p){
-
-    gausWidth_p   = p.get<std::vector<float>>("dEdxGausWidthP"  );
-    gausWidth_mu  = p.get<std::vector<float>>("dEdxGausWidthMu" );
-    gausWidth_pi  = p.get<std::vector<float>>("dEdxGausWidthPi" );
-    gausWidth_k   = p.get<std::vector<float>>("dEdxGausWidthK"  );
-    gausWidth_mip = p.get<std::vector<float>>("dEdxGausWidthMIP");
-    landauWidth_p   = p.get<std::vector<float>>("dEdxLandauWidthP"  );
-    landauWidth_mu  = p.get<std::vector<float>>("dEdxLandauWidthMu" );
-    landauWidth_pi  = p.get<std::vector<float>>("dEdxLandauWidthPi" );
-    landauWidth_k   = p.get<std::vector<float>>("dEdxLandauWidthK"  );
-    landauWidth_mip = p.get<std::vector<float>>("dEdxLandauWidthMIP");
-
-    offset_p       = p.get<float>("PeakOffsetP"  , 0);
-    offset_mu      = p.get<float>("PeakOffsetMu" , 0);
-    offset_pi      = p.get<float>("PeakOffsetPi" , 0);
-    offset_k       = p.get<float>("PeakOffsetK"  , 0);
-    offset_mip     = p.get<float>("PeakOffsetMIP", 0);
-
     nHitsToDrop    = p.get<int>("NHitsToDrop", 1);
-    endPointFloatShort    = p.get<float>("EndPointFloatShort", -1.0);
-    endPointFloatLong     = p.get<float>("EndPointFloatLong" , 1.0);
-    endPointFloatStepSize = p.get<float>("EndPointFloatStepSize", 0.05);
+    endPointFloatShort    = p.get<double>("EndPointFloatShort", -1.0);
+    endPointFloatLong     = p.get<double>("EndPointFloatLong" , 1.0);
+    endPointFloatStepSize = p.get<double>("EndPointFloatStepSize", 0.05);
 
     checkRange = p.get<bool>("CheckRange", true);
+
+    LikelihoodMapsFileName = p.get<std::string>("LikelihoodMapsFile");
+    LikelihoodMapsFile = new TFile(LikelihoodMapsFileName.c_str(),"read");
+    // first index mu=0, pi=1, k=2, p=3, mip=4
+    // second index plane number
+    h_lmap[0][0] = (TH2F*)LikelihoodMapsFile->Get("h_mu_bragglikelihoodmap_plane0");
+    h_lmap[1][0] = (TH2F*)LikelihoodMapsFile->Get("h_pi_bragglikelihoodmap_plane0");
+    h_lmap[2][0] = (TH2F*)LikelihoodMapsFile->Get("h_k_bragglikelihoodmap_plane0");
+    h_lmap[3][0] = (TH2F*)LikelihoodMapsFile->Get("h_p_bragglikelihoodmap_plane0");
+    h_lmap[4][0] = (TH2F*)LikelihoodMapsFile->Get("h_mip_bragglikelihoodmap_plane0");
+    h_lmap[0][1] = (TH2F*)LikelihoodMapsFile->Get("h_mu_bragglikelihoodmap_plane1");
+    h_lmap[1][1] = (TH2F*)LikelihoodMapsFile->Get("h_pi_bragglikelihoodmap_plane1");
+    h_lmap[2][1] = (TH2F*)LikelihoodMapsFile->Get("h_k_bragglikelihoodmap_plane1");
+    h_lmap[3][1] = (TH2F*)LikelihoodMapsFile->Get("h_p_bragglikelihoodmap_plane1");
+    h_lmap[4][1] = (TH2F*)LikelihoodMapsFile->Get("h_mip_bragglikelihoodmap_plane1");
+    h_lmap[0][2] = (TH2F*)LikelihoodMapsFile->Get("h_mu_bragglikelihoodmap_plane2");
+    h_lmap[1][2] = (TH2F*)LikelihoodMapsFile->Get("h_pi_bragglikelihoodmap_plane2");
+    h_lmap[2][2] = (TH2F*)LikelihoodMapsFile->Get("h_k_bragglikelihoodmap_plane2");
+    h_lmap[3][2] = (TH2F*)LikelihoodMapsFile->Get("h_p_bragglikelihoodmap_plane2");
+    h_lmap[4][2] = (TH2F*)LikelihoodMapsFile->Get("h_mip_bragglikelihoodmap_plane2");
   }
 
   void Bragg_Likelihood_Estimator::printConfiguration(){
 
     std::cout << "[ParticleID::Bragg_Likelihood_Estimator] PRINTING CONFIGURATION: " << std::endl;
-    for (int i = 0; i < 3; i++){
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " Proton dE/dx gaus width : " << gausWidth_p.at(i)  << std::endl;
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " Muon dE/dx gaus width   : " << gausWidth_mu.at(i) << std::endl;
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " Pion dE/dx gaus width   : " << gausWidth_pi.at(i) << std::endl;
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " Kaon dE/dx gaus width   : " << gausWidth_k.at(i)  << std::endl;
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " Kaon dE/dx gaus width   : " << gausWidth_mip.at(i)  << std::endl;
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " Proton dE/dx landau width : " << landauWidth_p.at(i)  << std::endl;
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " Muon dE/dx landau width   : " << landauWidth_mu.at(i) << std::endl;
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " Pion dE/dx landau width   : " << landauWidth_pi.at(i) << std::endl;
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " Kaon dE/dx landau width   : " << landauWidth_k.at(i)  << std::endl;
-      std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Plane " << i << " MIP dE/dx landau width    : " << landauWidth_mip.at(i) << std::endl;
-    }
-    std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Proton MPV Offset : " << offset_p   << std::endl;
-    std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Muon MPV Offset   : " << offset_mu  << std::endl;
-    std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Pion MPV Offset   : " << offset_pi  << std::endl;
-    std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Kaon MPV Offset   : " << offset_k   << std::endl;
-    std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> MIP MPV Offset    : " << offset_mip << std::endl;
     std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Number of Hits to Drop : " << nHitsToDrop << std::endl;
     std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> End-point float long   : " << endPointFloatLong  << std::endl;
     std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> End-point float short  : " << endPointFloatShort  << std::endl;
     std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> End-point step size    : " << endPointFloatStepSize  << std::endl;
+    std::cout << "[ParticleID::Bragg_Likelihood_Estimator] >> Reading likelihood maps from    : " << LikelihoodMapsFileName  << std::endl;
 
   }
 
   // Here is a dummy method for the case where you don't want to save the shift. It just calls the second method below but with a dummy variable for "shift"
-  float Bragg_Likelihood_Estimator::getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum)
+  double Bragg_Likelihood_Estimator::getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum)
+
   {
-    float dummy;
+    double dummy;
     return Bragg_Likelihood_Estimator::getLikelihood( dEdx, resRange, particlehypothesis, forward, planenum, dummy);
   }
 
-  float Bragg_Likelihood_Estimator::getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum, float &shift)
+
+  double Bragg_Likelihood_Estimator::getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum, double &shift)
+
   {
 
     /**
-     * Get theoretical prediction for given particle hypothesis
-     * (This gives the MPV of a Landau distribution)
-     * This is only available for muon, proton, kaon, and pion
+     * Get likelihood map histogram for given particle hypothesis
+     * This is only available for muon, proton, kaon, pion, and MIP
      * Return an error if user tries to request a different particle type
      */
 
-    Theory_dEdx_resrange theory;
-    TGraph *theorypred;
-    float gausWidth;
-    float landauWidth;
-    float offset;
+
     int absph = TMath::Abs(particlehypothesis);
+    int i_particle; // mu=0, pi=1, k=2, p=3, mip=4
 
     switch(absph){
       case 13: // muon
-        theorypred = theory.g_ThdEdxRR_Muon;
-        gausWidth = gausWidth_mu.at(planenum);
-        landauWidth = landauWidth_mu.at(planenum);
-        offset = offset_mu;
-        break;
-      case 2212: // proton
-        theorypred = theory.g_ThdEdxRR_Proton;
-        gausWidth = gausWidth_p.at(planenum);
-        landauWidth = landauWidth_p.at(planenum);
-        offset = offset_p;
+        i_particle = 0;
         break;
       case 211: // pion
-        theorypred = theory.g_ThdEdxRR_Pion;
-        gausWidth = gausWidth_pi.at(planenum);
-        landauWidth = landauWidth_pi.at(planenum);
-        offset = offset_pi;
+        i_particle = 1;
         break;
       case 321: // kaon
-        theorypred = theory.g_ThdEdxRR_Kaon;
-        gausWidth = gausWidth_k.at(planenum);
-        landauWidth = landauWidth_k.at(planenum);
-        offset = offset_k;
+        i_particle = 2;
+        break;
+      case 2212: // proton
+        i_particle = 3;
         break;
       case 0: // special case: fit to MIP region of muon prediction with no Bragg peak
-        theorypred = theory.g_ThdEdxRR_MuonNoBragg;
-        gausWidth = gausWidth_mip.at(planenum);
-        landauWidth = landauWidth_mip.at(planenum);
-        offset = offset_mip;
+        i_particle = 4;
         break;
       default:
         std::cout << "[ParticleID::Bragg_Likelihood_Estimator] ERROR: cannot calculate theoretical prediction for given particle hypothesis: " << particlehypothesis << ". Theoretical predictions are only available for charged muons (+/-13), pions (+/-211), kaons (+/-321), protons (2212), and non-Bragg MIP region (0)" << std::endl;
@@ -138,35 +108,20 @@ namespace particleid{
         throw;
     } // switch
 
-    TF1 *langaus = new TF1("langaus", landauGaussian, 0, 100, 4);
 
     /**
-     * create landau of correct width, and calculate offset between MPV and mean
-     * n.b we want this to be the landau not the landau-gaussian
-     */
-
-    langaus->SetParameters((double)landauWidth, 10, 1,(double)gausWidth);
-    TF1 *landau = new TF1("landau", "TMath::Landau(x, [0], [1], [2])", 0, 100);
-    landau->SetParameters(10, (double)landauWidth, 0);
-    float landau_mean = landau->Mean(0, 100);
-    float landau_mpv  = landau->GetMaximumX();
-    float landau_mean_mpv_offset = landau_mean - landau_mpv;
-
-    /**
-     * Now loop through hits (entries in dEdx and resRange vectors), compare to
-     * theoretical prediction, and calculate likelihood
+     * Now loop through hits (entries in dEdx and resRange vectors), and get likelihood
      * rr_shift allows us to shift the residual range so that we
      * can account for end point resolution
      */
 
-    float likelihoodNdf = 0;
+    double likelihoodNdf = 0;
     int n_hits_used_total = 0;
-    float rr_shift_final = 0.;
+    double rr_shift_final = 0.;
 
-    for (float rr_shift = endPointFloatShort; rr_shift < endPointFloatLong; rr_shift = rr_shift+endPointFloatStepSize){
+    for (double rr_shift = endPointFloatShort; rr_shift < endPointFloatLong; rr_shift = rr_shift+endPointFloatStepSize){
 
-      // Make likelihoodikelihood
-      float likelihood = 0.;
+      double likelihood = 0.;
       int n_hits_used = 0;
 
       for (size_t i_hit=0; i_hit < resRange.size(); i_hit++){
@@ -187,8 +142,8 @@ namespace particleid{
           }
         }
 
-        float resrg_i = resRange.at(rr_index)+rr_shift;
-        float dEdx_i  = dEdx.at(i_hit);
+        double resrg_i = resRange.at(rr_index)+rr_shift;
+        double dEdx_i  = dEdx.at(i_hit);
 
         /**
          * Theory values are only defined up to 30 cm residual Range so we
@@ -197,17 +152,13 @@ namespace particleid{
          */
         if (checkRange && (resrg_i > 30.0 || resrg_i < 0.0)) continue;
 
-
-        // Set theoretical Landau distribution for given residual range
-        langaus->SetParameters(landauWidth,theorypred->Eval(resrg_i,0,"S")-landau_mean_mpv_offset+offset,1, gausWidth);
-
         // Evaluate likelihood
-        float likelihood_i = 0.;
-        if (langaus->Eval(dEdx_i) == 0){
+        int bin = h_lmap[i_particle][planenum]->FindBin(resrg_i,dEdx_i);
+        double likelihood_i = h_lmap[i_particle][planenum]->GetBinContent(bin);
+        if (likelihood_i == 0){
           continue;
         }
         else{
-          likelihood_i = langaus->Eval(dEdx_i);
           n_hits_used++;
         }
 

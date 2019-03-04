@@ -3,20 +3,20 @@
 
 inline bool isWellReconstructed(recob::Track track, simb::MCParticle mcp){
 
-  float tsy = track.Start().Y();
-  float tey = track.End().Y();
-  float tsz = track.Start().Z();
-  float tez = track.End().Z();
+  double tsy = track.Start().Y();
+  double tey = track.End().Y();
+  double tsz = track.Start().Z();
+  double tez = track.End().Z();
 
-  float msy = mcp.Vy();
-  float mey = mcp.EndY();
-  float msz = mcp.Vz();
-  float mez = mcp.EndZ();
+  double msy = mcp.Vy();
+  double mey = mcp.EndY();
+  double msz = mcp.Vz();
+  double mez = mcp.EndZ();
 
-  float twoDStartRes = std::sqrt(std::pow(msy-tsy,2)+std::pow(msz-tsz,2));
-  float twoDStartResFlip = std::sqrt(std::pow(msy-tey,2)+std::pow(msz-tez,2));
-  float twoDEndRes = std::sqrt(std::pow(mey-tey,2)+std::pow(mez-tez,2));
-  float twoDEndResFlip = std::sqrt(std::pow(mey-tsy,2)+std::pow(mez-tsz,2));
+  double twoDStartRes = std::sqrt(std::pow(msy-tsy,2)+std::pow(msz-tsz,2));
+  double twoDStartResFlip = std::sqrt(std::pow(msy-tey,2)+std::pow(msz-tez,2));
+  double twoDEndRes = std::sqrt(std::pow(mey-tey,2)+std::pow(mez-tez,2));
+  double twoDEndResFlip = std::sqrt(std::pow(mey-tsy,2)+std::pow(mez-tsz,2));
 
   if ((twoDStartRes < 2.0 && twoDEndRes < 2.0) || 
       (twoDStartResFlip < 2.0 && twoDEndResFlip < 2.0)){

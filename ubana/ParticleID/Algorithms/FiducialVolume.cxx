@@ -2,14 +2,14 @@
 
 namespace fidvol{
 
-  std::vector<float> fiducialVolume::setFiducialVolume(std::vector<float> fv, fhicl::ParameterSet const & p){
+  std::vector<double> fiducialVolume::setFiducialVolume(std::vector<double> fv, fhicl::ParameterSet const & p){
 
-    float xl = p.get< float > ("X_LOW", 10);
-    float xh = p.get< float > ("X_HIGH", 10);
-    float yl = p.get< float > ("Y_LOW", 10);
-    float yh = p.get< float > ("Y_HIGH", 10);
-    float zl = p.get< float > ("Z_LOW", 10);
-    float zh = p.get< float > ("Z_HIGH", 10);
+    double xl = p.get< double > ("X_LOW", 10);
+    double xh = p.get< double > ("X_HIGH", 10);
+    double yl = p.get< double > ("Y_LOW", 10);
+    double yh = p.get< double > ("Y_HIGH", 10);
+    double zl = p.get< double > ("Z_LOW", 10);
+    double zh = p.get< double > ("Z_HIGH", 10);
 
     fv.push_back(xl);
     fv.push_back(xh);
@@ -22,7 +22,7 @@ namespace fidvol{
 
   }
 
-  void fiducialVolume::printFiducialVolume(std::vector<float> fv){
+  void fiducialVolume::printFiducialVolume(std::vector<double> fv){
 
     std::cout << "----- PRINTING FIDUCIAL VOLUME INFORMATION -----" << std::endl;
     std::cout << "X_LOW: " << fv.at(0) << std::endl;
@@ -35,13 +35,13 @@ namespace fidvol{
 
   }
 
-  bool fiducialVolume::isInFiducialVolume(TVector3 vec, std::vector<float> fv){
+  bool fiducialVolume::isInFiducialVolume(TVector3 vec, std::vector<double> fv){
 
-    float x = vec.X();
-    float y = vec.Y();
-    float z = vec.Z();
+    double x = vec.X();
+    double y = vec.Y();
+    double z = vec.Z();
 
-    std::vector<float> tpcd = fiducialVolume::getTpcDimensions();
+    std::vector<double> tpcd = fiducialVolume::getTpcDimensions();
 
     if (x > (tpcd.at(0)+fv.at(0)) && x < (tpcd.at(1)-fv.at(1)) && 
         y > (tpcd.at(2)+fv.at(2)) && y < (tpcd.at(3)-fv.at(3)) && 
@@ -52,15 +52,15 @@ namespace fidvol{
 
   }
 
-  std::vector<float> fiducialVolume::getTpcDimensions(){
+  std::vector<double> fiducialVolume::getTpcDimensions(){
 
-    std::vector<float> tpcd;
-    float tpc_xl = 0.0;
-    float tpc_xh = 256.0;
-    float tpc_yl = -116.5;
-    float tpc_yh = 116.5;
-    float tpc_zl = 0.0;
-    float tpc_zh = 1036.0;
+    std::vector<double> tpcd;
+    double tpc_xl = 0.0;
+    double tpc_xh = 256.0;
+    double tpc_yl = -116.5;
+    double tpc_yh = 116.5;
+    double tpc_zl = 0.0;
+    double tpc_zh = 1036.0;
 
     tpcd.push_back(tpc_xl);
     tpcd.push_back(tpc_xh);

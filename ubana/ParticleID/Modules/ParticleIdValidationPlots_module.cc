@@ -57,10 +57,10 @@
 #include "TTree.h"
 
 // Algorithms
-#include "ubana/ubana/ParticleID/Algorithms/FiducialVolume.h"
-#include "ubana/ubana/ParticleID/Algorithms/dQdxSeparatorMarco.h"
-#include "ubana/ubana/ParticleID/Algorithms/Bragg_Likelihood_Estimator.h"
-#include "ubana/ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
+#include "ubana/ParticleID/Algorithms/FiducialVolume.h"
+#include "ubana/ParticleID/Algorithms/dQdxSeparatorMarco.h"
+#include "ubana/ParticleID/Algorithms/Bragg_Likelihood_Estimator.h"
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 // cpp
 #include <vector>
@@ -92,7 +92,7 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     art::ServiceHandle<art::TFileService> tfs;
     fidvol::fiducialVolume fid;
 
-    std::vector<float> fv;
+    std::vector<double> fv;
 
     bool fIsDataPlots;
     bool fIsUBXSecSelected;
@@ -109,7 +109,7 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
 
     /** Setup root trees  */
     TTree *potTree;
-    float sr_pot = 0;
+    double sr_pot = 0;
     int sr_run = 0;
     int sr_sub_run = 0;
 
@@ -119,55 +119,55 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     int sub_run = -999;
     int event = -999;
     int true_PDG = -999;
-    float true_purity = -999;
-    float true_start_momentum = -999;
-    float true_start_x = -999;
-    float true_start_y = -999;
-    float true_start_z = -999;
-    float true_end_momentum = -999;
-    float true_end_x = -999;
-    float true_end_y = -999;
-    float true_end_z = -999;
+    double true_purity = -999;
+    double true_start_momentum = -999;
+    double true_start_x = -999;
+    double true_start_y = -999;
+    double true_start_z = -999;
+    double true_end_momentum = -999;
+    double true_end_x = -999;
+    double true_end_y = -999;
+    double true_end_z = -999;
     int track_id = -999;
-    float track_start_x;
-    float track_start_y;
-    float track_start_z;
-    float track_end_x;
-    float track_end_y;
-    float track_end_z;
-    std::vector<float> track_likelihood_fwd_mu;
-    std::vector<float> track_likelihood_fwd_p;
-    std::vector<float> track_likelihood_fwd_pi;
-    std::vector<float> track_likelihood_fwd_k;
-    std::vector<float> track_likelihood_fwd_mip;
-    std::vector<float> track_likelihood_bwd_mu;
-    std::vector<float> track_likelihood_bwd_p;
-    std::vector<float> track_likelihood_bwd_pi;
-    std::vector<float> track_likelihood_bwd_k;
-    std::vector<float> track_likelihood_shift_fwd_mu;
-    std::vector<float> track_likelihood_shift_fwd_p;
-    std::vector<float> track_likelihood_shift_fwd_pi;
-    std::vector<float> track_likelihood_shift_fwd_k;
-    std::vector<float> track_likelihood_shift_bwd_mu;
-    std::vector<float> track_likelihood_shift_bwd_p;
-    std::vector<float> track_likelihood_shift_bwd_pi;
-    std::vector<float> track_likelihood_shift_bwd_k;
-    std::vector<float> track_PIDA_mean;
-    std::vector<float> track_PIDA_median;
-    std::vector<float> track_PIDA_kde;
-    std::vector<float> track_dEdx;
-    std::vector<float> track_dQdx;
-    std::vector<float> track_depE;
-    std::vector<float> track_nhits;
-    std::vector<float> track_Chi2Proton;
-    std::vector<float> track_Chi2Kaon;
-    std::vector<float> track_Chi2Pion;
-    std::vector<float> track_Chi2Muon;
-    float track_length;
-    float track_theta;
-    float track_phi;
-    float track_rangeE_mu;
-    float track_rangeE_p;
+    double track_start_x;
+    double track_start_y;
+    double track_start_z;
+    double track_end_x;
+    double track_end_y;
+    double track_end_z;
+    std::vector<double> track_likelihood_fwd_mu;
+    std::vector<double> track_likelihood_fwd_p;
+    std::vector<double> track_likelihood_fwd_pi;
+    std::vector<double> track_likelihood_fwd_k;
+    std::vector<double> track_likelihood_fwd_mip;
+    std::vector<double> track_likelihood_bwd_mu;
+    std::vector<double> track_likelihood_bwd_p;
+    std::vector<double> track_likelihood_bwd_pi;
+    std::vector<double> track_likelihood_bwd_k;
+    std::vector<double> track_likelihood_shift_fwd_mu;
+    std::vector<double> track_likelihood_shift_fwd_p;
+    std::vector<double> track_likelihood_shift_fwd_pi;
+    std::vector<double> track_likelihood_shift_fwd_k;
+    std::vector<double> track_likelihood_shift_bwd_mu;
+    std::vector<double> track_likelihood_shift_bwd_p;
+    std::vector<double> track_likelihood_shift_bwd_pi;
+    std::vector<double> track_likelihood_shift_bwd_k;
+    std::vector<double> track_PIDA_mean;
+    std::vector<double> track_PIDA_median;
+    std::vector<double> track_PIDA_kde;
+    std::vector<double> track_dEdx;
+    std::vector<double> track_dQdx;
+    std::vector<double> track_depE;
+    std::vector<double> track_nhits;
+    std::vector<double> track_Chi2Proton;
+    std::vector<double> track_Chi2Kaon;
+    std::vector<double> track_Chi2Pion;
+    std::vector<double> track_Chi2Muon;
+    double track_length;
+    double track_theta;
+    double track_phi;
+    double track_rangeE_mu;
+    double track_rangeE_p;
     bool track_dQdxtruncmeanvslength_isMuon;
     std::vector<float> track_dEdx_perhit_u;
     std::vector<float> track_dEdx_perhit_v;
@@ -178,6 +178,7 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     std::vector<std::vector<float>> track_Lmip_perhit;
     std::vector<std::vector<float>> dEdx;
     std::vector<std::vector<float>> resRange;
+
 
 
     /** Histograms for all tracks, i.e. can be used by data */
@@ -197,10 +198,10 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
 
     TH2F *TrueBragg_correctdirection;
     TH2F *TrueBragg_incorrectdirection;
-    TH1F *TrueBragg_PIDdir;
+  //TH1F *TrueBragg_PIDdir;
 
-    TH2F *TrueBragg_correctdirection_PIDdir;
-    TH2F *TrueBragg_incorrectdirection_PIDdir;
+  //TH2F *TrueBragg_correctdirection_PIDdir;
+  //TH2F *TrueBragg_incorrectdirection_PIDdir;
 
     /** All tracks which are matched to an MCParticle */
     TH1F *All_chargeEndOverStart_directionCorrect;
@@ -232,10 +233,10 @@ ParticleIdValidationPlots::ParticleIdValidationPlots(fhicl::ParameterSet const &
 
   fIsDataPlots = p.get<bool>("IsDataPlotsOnly", "false");
   fIsUBXSecSelected = p.get<bool>("IsUBXSecSelected", "false");
-  fTrackLabel = p_labels.get<std::string>("TrackLabel","pandora::McRecoStage2");
+  fTrackLabel = p_labels.get<std::string>("TrackLabel","myTracks::PandoraWorkshopTrackShower");
   fHitLabel = p_labels.get<std::string>("HitLabel","gaushit::McRecoStage1");
   //This should just be the neutrino slice........
-  fHitTrackAssns = p_labels.get<std::string>("HitTrackAssn","pandora::McRecoStage2");
+  fHitTrackAssns = p_labels.get<std::string>("HitTrackAssn","myTracks::PandoraWorkshopTrackShower");
   fCaloTrackAssns = p_labels.get<std::string>("CaloTrackAssn", "pandoracalo::McRecoStage2");
   fHitTruthAssns = p_labels.get<std::string>("HitTruthAssn","gaushitTruthMatch::McRecoStage1");
   fPIDLabel = p_labels.get<std::string>("ParticleIdLabel");
@@ -352,9 +353,8 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
    */
   TVector3 true_start;
   TVector3 true_end;
-
   for (auto& track : trackPtrVector){
-    //std::cout << "found track" << std::endl;
+    std::cout << "found track" << std::endl;
 
     /** reset default values */
     dEdx.resize(3);
@@ -405,50 +405,49 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     bool TrueBragg = false;
     true_PDG = 0;
     simb::MCParticle const* matched_mcparticle = NULL;
-  
-    if (!fIsDataPlots){
 
-      /**
-       * Get true PDG from associations.
-       * We do this by using hit <-> MCParticle associations, looping over the
-       * hits and finding the MCParticle which contributed the most charge
-       * to each hit.
-       *
-       * .key() is used to get the index in the original collection
-       */
+    /**
+     * Get true PDG from associations.
+     * We do this by using hit <-> MCParticle associations, looping over the
+     * hits and finding the MCParticle which contributed the most charge
+     * to each hit.
+     *
+     * .key() is used to get the index in the original collection
+     */
 
-      std::unordered_map<int,float> trkide;
-      float maxe=-1, tote=0;
-      float purity = -999;
-  
-      std::vector<simb::MCParticle const*> particle_vec;
-      std::vector<anab::BackTrackerHitMatchingData const*> match_vec;
-   
-      std::vector<art::Ptr<recob::Hit>> hits_from_track = hits_from_tracks.at(track->ID());
-      
-      art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitHandle,e,fHitTruthAssns);
-      //std::cout << "LISTEN HERE!" << particles_per_hit.size()<< std::endl;
-      
-      for(size_t i_h=0; i_h<hits_from_track.size(); i_h++){
-        //std::cout << "hello*!, 431" << std::endl;
-	particle_vec.clear(); match_vec.clear();
-	//std::cout << "hello*!, 433" << std::endl;
-        particles_per_hit.get(hits_from_track[i_h].key(),particle_vec,match_vec);
-	//std::cout << "hello*!, 435" << std::endl;
-      
-        for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
-          trkide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy;
-          tote += match_vec[i_p]->energy;
-          if( trkide[ particle_vec[i_p]->TrackId() ] > maxe ){
-            maxe = trkide[ particle_vec[i_p]->TrackId() ];
-            matched_mcparticle = particle_vec[i_p];
-          }
-        }//end loop over particles per hit
+    std::unordered_map<int,double> trkide;
+    double maxe=-1, tote=0;
+    double purity = -999;
 
-        purity = maxe/tote;
+    std::vector<simb::MCParticle const*> particle_vec;
+    std::vector<anab::BackTrackerHitMatchingData const*> match_vec;
 
-      }
+    std::vector<art::Ptr<recob::Hit>> hits_from_track = hits_from_tracks.at(track->ID());
 
+    art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitHandle,e,fHitTruthAssns);
+    //std::cout << "LISTEN HERE!" << particles_per_hit.size()<< std::endl;
+
+    for(size_t i_h=0; i_h<hits_from_track.size(); i_h++){
+      //std::cout << "hello*!, 431" << std::endl;
+particle_vec.clear(); match_vec.clear();
+//std::cout << "hello*!, 433" << std::endl;
+      particles_per_hit.get(hits_from_track[i_h].key(),particle_vec,match_vec);
+//std::cout << "hello*!, 435" << std::endl;
+
+      for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
+        trkide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy;
+        tote += match_vec[i_p]->energy;
+        if( trkide[ particle_vec[i_p]->TrackId() ] > maxe ){
+          maxe = trkide[ particle_vec[i_p]->TrackId() ];
+          matched_mcparticle = particle_vec[i_p];
+        }
+      }//end loop over particles per hit
+
+      purity = maxe/tote;
+
+    }
+
+    if (matched_mcparticle!=NULL){
       true_purity = purity;
       true_PDG = matched_mcparticle->PdgCode();
       true_start_momentum = matched_mcparticle->P();
@@ -474,10 +473,10 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
           && fid.isInFiducialVolume(true_end, fv)){
         TrueBragg = true;
       }
+    }
 
-    } // end if(!fIsDataPlots)
-   
     std::vector<std::vector<float>> Lmip_perhit(3);
+
 
     art::Ptr< anab:: Calorimetry > calo;
     int planenum = -1;
@@ -498,36 +497,37 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       // Get MIP likelihood per hit (and store in a vector)
       // Loop through hits (entries in dEdx and resrange vector)
       // For each hit, make a new dEdx vector for that hit only and use it to get the likelihood for that hit. That way we can average the likelihoods over the number of hits we care about later.
+
       std::vector<float> dEdx_dummy = {0.};
       std::vector<float> rr_dummy = {0.};
+
       for (size_t i_hit=0; i_hit < dEdx.at(planenum).size(); i_hit++){
-        float Lmip = -9999.;
+        double Lmip = -9999.;
         dEdx_dummy.at(0) = dEdx.at(planenum).at(i_hit);
         rr_dummy.at(0) = resRange.at(planenum).at(i_hit);
 
         Lmip = braggcalc.getLikelihood(dEdx_dummy,rr_dummy,0,1,planenum);
         Lmip_perhit.at(planenum).push_back(Lmip);
       }
-      
       /**
        * Get hit charge of first and final 5 hits of track to try and find the
        * direction of the track. If there are fewer than 10 hits then take half
        * of the total hits.
        */
 
-      float nhits = resRange.at(planenum).size();
+      double nhits = resRange.at(planenum).size();
       // find how many hits to use
       if (nhits >= 2*fNHitsForTrackDirection)
         hitsToUse = fNHitsForTrackDirection;
       else{
-        hitsToUse = std::floor((float)nhits/2.0);
+        hitsToUse = std::floor((double)nhits/2.0);
       }
 
       track_nhits.at(planenum) = nhits;
 
     }
-    float averagedEdxTrackStart=0;
-    float averagedEdxTrackEnd=0;
+    double averagedEdxTrackStart=0;
+    double averagedEdxTrackEnd=0;
 
     // loop dEdx and take average of first n hits and last n hits
 
@@ -545,7 +545,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       averagedEdxTrackStart = averagedEdxTrackStart/hitsToUse;
       averagedEdxTrackEnd   = averagedEdxTrackEnd/hitsToUse;
 
-      float dEdxStartEndRatio = averagedEdxTrackEnd/averagedEdxTrackStart;
+      double dEdxStartEndRatio = averagedEdxTrackEnd/averagedEdxTrackStart;
 
       /**
        * Now check the reconstructed direction we found and compare it against
@@ -643,23 +643,22 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       continue;
     }
 
-    float trklen = -999;
-    float rangeE_mu = -999;
-    float rangeE_p = -999;
+    double trklen = -999;
+    double rangeE_mu = -999;
+    double rangeE_p = -999;
 
     std::vector<art::Ptr<anab::ParticleID>> trackPID = trackPIDAssn.at(track->ID());
     if (trackPID.size() == 0){
       std::cout << "[ParticleIDValidation] No track-PID association found for trackID " << track->ID() << ". Skipping track." << std::endl;
       continue;
     }
-    
     std::vector<anab::sParticleIDAlgScores> AlgScoresVec = trackPID.at(0)->ParticleIDAlgScores();
 
     // Loop through AlgScoresVec and find the variables we want
     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 
       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-      int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
+      int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 
       if (planeid < 0 || planeid > 2){
         std::cout << "[ParticleIDValidation] No information for planeid " << planeid << std::endl;
@@ -733,10 +732,41 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
        */
        // dQdx needs to be multiplied by a constant factor to convert from ADC to e/cm
        // Multiply MC by 198 and data by 243
-       float dQdxcalibval = 198.;
-       if (isData){
-         dQdxcalibval = 243.;
-       }
+
+      //FOR MCC9: TAG1 DATA AND  TAG2 MC. I HAVE ADDED LOOPS FOR ALL THE DIFFERENT PLANES!
+
+      double dQdxcalibval = 0;
+
+      if(planeid == 0)
+	{
+	   dQdxcalibval = 245.;
+
+	  if (isData){
+	    dQdxcalibval = 232.;
+
+	  }
+	}
+
+      if(planeid ==1)
+	{
+	   dQdxcalibval = 252.;
+
+	  if (isData){
+	    dQdxcalibval = 249.;
+
+	  }
+	}
+
+      if(planeid ==2)
+	{
+	    dQdxcalibval = 245.;
+
+	  if (isData){
+	    dQdxcalibval = 235.;
+
+	  }
+	}
+
 
       if (AlgScore.fAlgName == "TruncatedMean"){
         if (anab::kVariableType(AlgScore.fVariableType) == anab::kdEdxtruncmean) track_dEdx.at(planeid) = AlgScore.fValue;
@@ -774,7 +804,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       }
       else{
         // Now evaluate Marco's cut
-        float dqdx_cut = _dqdx_cutvals.at(l);
+        double dqdx_cut = _dqdx_cutvals.at(l);
 
         std::cout << "dqdx_cut = " << dqdx_cut << std::endl;
 
@@ -807,7 +837,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
      */
     //std::cout << "hello2!" << std::endl;
     bool PID_fwd = false;
-    float Bragg_smallest = std::min({track_likelihood_fwd_mu.at(2), track_likelihood_fwd_p.at(2), track_likelihood_fwd_pi.at(2), track_likelihood_fwd_k.at(2), track_likelihood_fwd_mip.at(2), track_likelihood_bwd_mu.at(2), track_likelihood_bwd_p.at(2), track_likelihood_bwd_pi.at(2), track_likelihood_bwd_k.at(2)});
+    double Bragg_smallest = std::min({track_likelihood_fwd_mu.at(2), track_likelihood_fwd_p.at(2), track_likelihood_fwd_pi.at(2), track_likelihood_fwd_k.at(2), track_likelihood_fwd_mip.at(2), track_likelihood_bwd_mu.at(2), track_likelihood_bwd_p.at(2), track_likelihood_bwd_pi.at(2), track_likelihood_bwd_k.at(2)});
     if (Bragg_smallest == track_likelihood_fwd_mu.at(2) || Bragg_smallest == track_likelihood_fwd_p.at(2) || Bragg_smallest == track_likelihood_fwd_pi.at(2) || Bragg_smallest == track_likelihood_fwd_k.at(2) || Bragg_smallest == track_likelihood_fwd_mip.at(2)) PID_fwd = true;
 
     //std::cout << "hello3!" << std::endl;

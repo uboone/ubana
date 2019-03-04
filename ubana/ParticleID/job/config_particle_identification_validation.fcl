@@ -1,5 +1,6 @@
 #include "config_particle_identification_fiducialvolume.fcl"
 #include "config_particle_identification_producerlabels.fcl"
+#include "config_particle_identification_braggalgo.fcl"
 
 #
 # configuration fcl file for particleId fcl parameters
@@ -23,7 +24,11 @@ particleidvalidconfig:
   IsUBXSecSelected: true
 
   # bragg algorithm fcl parameters
+<<<<<<< HEAD
   BraggAlgo: @local::braggalgo_mcc8_dedxcalib
+=======
+  BraggAlgo: @local::braggalgo
+>>>>>>> UBOONE_SUITE_v08_00_00_07
 }
 
 END_PROLOG

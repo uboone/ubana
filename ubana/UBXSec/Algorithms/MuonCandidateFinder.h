@@ -23,6 +23,7 @@
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "ubobj/UBXSec/TPCObject.h"
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 namespace ubana{
   
