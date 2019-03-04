@@ -344,6 +344,7 @@ namespace single_photon
             void  ResizeSlices(size_t size); 
             void  ResizeMatchedSlices(size_t size_shower ,size_t size_track); 
             void CreateSliceBranches();
+            void CreateMatchedSliceBranches();
             void AnalyzeSlices( std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,  PFParticleIdMap &pfParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
 
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
@@ -362,6 +363,7 @@ namespace single_photon
             std::vector<double> m_sim_shower_matched_energy; //the energy for each matched shower
             std::vector<double> m_sim_track_matched_energy; //the energy for each matched track
             std::vector<double> m_sim_shower_matched_conversion; //the conversion distance for each matched shower
+            std::vector<double> m_sim_shower_matched_overlay_frac; //fraction of overlay hits for each matched shower
             //std::map<art::Ptr<recob::PFParticle>, double > & pfParticleToNuScoreMap;//is filled during analyze slices
 
             //------------------ Delaunay triangle tools -----------//

@@ -514,6 +514,8 @@ namespace single_photon
 
         //Metadata Branches
         this->CreateSliceBranches();
+        this->CreateMatchedSliceBranches();
+
 
         // ---------------------- MCTruth Related Variables ----------
         this->CreateMCTruthBranches();
