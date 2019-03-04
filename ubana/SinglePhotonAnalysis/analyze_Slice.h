@@ -335,37 +335,36 @@ namespace single_photon
             }//for nc delta signal
         }//for signal def
 
-        std::cout<< showerToMCParticleMap.size()<<std::endl;
+        //std::cout<< showerToMCParticleMap.size()<<std::endl;
 
-        /*
+
         //for each MCP, associated to a reco track/shower, get the corresponding PFP and slice
-         for(art::Ptr<simb::MCParticle> mcp: matched_sim_shower_MCP){
+        for(art::Ptr<simb::MCParticle> mcp: matched_sim_shower_MCP){
             //get the recob shower
-            // art::Ptr<recob::Shower> this_shr = showerToMCParticleMap[mcp];
-             //auto this_shr = showerToMCParticleMap[mcp];
-            
-             art::Ptr<recob::Shower> this_shr;
-             //get the pfp
-             //art::Ptr<recob::PFParticle> this_pfp;
-             auto iter = find(showerToMCParticleMap.begin(), showerToMCParticleMap.end(), mcp);
-             if (iter != showerToMCParticleMap.end()){
-               // this_shr = iter;
-                 std::cout<<iter<<std::endl;
-             }
-
-          
-             art::Ptr<recob::PFParticle> this_pfp = showerToPFParticleMap[this_shr];
+            art::Ptr<recob::Shower> this_shr;
+            for(auto pair: showerToMCParticleMap){
+                if (pair.second == mcp){
+                    this_shr = pair.first;    
+                }
+            }
+            art::Ptr<recob::PFParticle> this_pfp;
+            if(!this_shr.isNull()){
+                this_pfp = showerToPFParticleMap[this_shr];
+            }
 
             //get the slice
-             for(auto pair :allPFPSliceIdVec){
-                art::Ptr<recob::PFParticle> pfp = pair.first;
-                if (this_pfp == pfp){
-                    std::cout<<"found MCP in slice "<<pair.second <<std::endl;
+            if(!this_pfp.isNull()){
+                for(auto pair :allPFPSliceIdVec){
+                    art::Ptr<recob::PFParticle> pfp = pair.first;
+                    if (this_pfp == pfp){
+                        std::cout<<"found recob shower - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
+                    }
                 }
-             }
-            
-         } 
-        */ 
+            } else{
+                    std::cout<<"no corresponding slice found for recob shower - MCP at track id "<<mcp->TrackId()<<std::endl;
+            }
+        } 
+
 
         //if there is a match, store vectors of the showers/tracks and get info like shower energy, conversion distance
         //if there's a partial match then some of the simb things were not reconstructed given the purity/completeness requirements?
