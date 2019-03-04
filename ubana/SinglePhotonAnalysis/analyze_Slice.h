@@ -96,7 +96,7 @@ namespace single_photon
                         primarySliceIdVec.push_back(std::pair(pfp, temp_ind));
                         //primaryToSliceIdMap[pfp] = temp_ind;
                         sliceIdToNuScoreMap[temp_ind] = temp_score;
-                        std::cout<<"this primary PFP at index "<<pfp->Self()<<std::endl;
+                        std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t found primary PFP at index "<<pfp->Self()<<std::endl;
 
                     }
                     if( clear_cosmic> 0){
@@ -232,7 +232,9 @@ namespace single_photon
     void SinglePhoton::FindSignalSlice(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,
             std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap, 
             std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, 
-            std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap){
+            std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
+            std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle> > & trackToNuPFParticleMap,
+            std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap){
         // std::vector<recob::Shower> shower_from_truth; //stores the recob::Showers which are matched to the signal MCP's
         // std::vector<recob::Track> track_from_truth; //stores the recob::Tracks matched to the signal MCP's
 
@@ -291,7 +293,7 @@ namespace single_photon
                     int parent= m_sim_track_parent_pdg[k];
                     int pdg =  m_sim_track_pdg[k];
 
-                    std::cout<<k<<"for this track at trackID "<<  m_sim_track_trackID[k]<< " and pdg "<<pdg <<" the parent is "<<parent<<std::endl;
+                    std::cout<<"for this track at trackID "<<  m_sim_track_trackID[k]<< " and pdg "<<pdg <<" the parent is "<<parent<<std::endl;
                     //if this sim track is a photon and it's primary (parent pdg is -1)
                     if((parent == -1 ||parent == 12 || parent ==14 ) && pdg == 2212){
                         //use map from track ID to get MCP
@@ -319,8 +321,10 @@ namespace single_photon
 
                 std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of sim tracks-MCP matches associated to the true ncdelta is "<<matched_sim_track_MCP.size()<<std::endl;
                 //check if either 1g1p or 1g0p topology
+                std::cout<<"Status - ";
                 //if it's a true 1g1p event
                 if (m_mctruth_delta_radiative_1g1p_or_1g1n == 0){
+                    //std::cout<<"Status - ";
                     if ( m_sim_track_num_matched_signal == 1 && m_sim_shower_num_matched_signal ==1){
                         std::cout<<"there is one shower one track for 1g1p"<<std::endl;
                     }else if (m_sim_track_num_matched_signal == 1 && m_sim_shower_num_matched_signal == 0){
@@ -330,6 +334,16 @@ namespace single_photon
                     } else {
                         std::cout<<"true 1g1p but neither track nor shower were reconstructed"<<std::endl;
                     }            
+                } else{
+                     if ( m_sim_track_num_matched_signal == 1 && m_sim_shower_num_matched_signal ==1){
+                        std::cout<<"there is one shower one track for 1g0p"<<std::endl;
+                    }else if (m_sim_track_num_matched_signal == 1 && m_sim_shower_num_matched_signal == 0){
+                        std::cout<<"error, true 1g0p but no shower, 1 track"<<std::endl;
+                    } else if (m_sim_track_num_matched_signal == 0 && m_sim_shower_num_matched_signal == 1){
+                        std::cout<<"correct, true 1g0p with 1 shower, no track"<<std::endl;
+                    } else {
+                        std::cout<<"true 1g0p but neither track nor shower were reconstructed"<<std::endl;
+                    } 
                 }
 
             }//for nc delta signal
@@ -365,7 +379,31 @@ namespace single_photon
             }
         } 
 
+        for(art::Ptr<simb::MCParticle> mcp: matched_sim_track_MCP){
+            //get the recob track
+            art::Ptr<recob::Track> this_trk;
+            for(auto pair: trackToMCParticleMap){
+                if (pair.second == mcp){
+                    this_trk = pair.first;    
+                }
+            }
+            art::Ptr<recob::PFParticle> this_pfp;
+            if(!this_trk.isNull()){
+                this_pfp = trackToNuPFParticleMap[this_trk];
+            }
 
+            //get the slice
+            if(!this_pfp.isNull()){
+                for(auto pair :allPFPSliceIdVec){
+                    art::Ptr<recob::PFParticle> pfp = pair.first;
+                    if (this_pfp == pfp){
+                        std::cout<<"found recob track - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
+                    }
+                }
+            } else{
+                    std::cout<<"no corresponding slice found for recob track - MCP at track id "<<mcp->TrackId()<<std::endl;
+            }
+        } 
         //if there is a match, store vectors of the showers/tracks and get info like shower energy, conversion distance
         //if there's a partial match then some of the simb things were not reconstructed given the purity/completeness requirements?
         //if there's no match then ??
