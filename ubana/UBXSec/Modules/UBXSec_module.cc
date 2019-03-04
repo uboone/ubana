@@ -865,7 +865,6 @@ lar_pandora::PFParticleVector pfpACPTTagged;
       }
     }
   }
-  //<<<<<<< HEAD
    // Get MCSFitResult - Muon
    art::Handle<std::vector<recob::MCSFitResult> > mcsfitresult_mu_h;
    e.getByLabel(_mcsfitresult_mu_producer,mcsfitresult_mu_h);
@@ -880,18 +879,6 @@ lar_pandora::PFParticleVector pfpACPTTagged;
    //art::ValidHandle<std::vector<recob::MCSFitResult> > MCSMu = e.getValidHandle<std::vector<recob::MCSFitResult> >("pandoraMCSMu");
 //for (unsigned int iTrack = 0; iTrack < Tracks->size(); ++iTrack) {
 
-//=======
-  
-  // Get Ghosts
-  art::Handle<std::vector<ubana::MCGhost> > ghost_h;
-  e.getByLabel(_mc_ghost_producer,ghost_h);
-  if(!ghost_h.isValid()){
-    std::cout << "[UBXSec] MCGhost product " << _mc_ghost_producer << " not found..." << std::endl;
-    //throw std::exception();
-  }
-  art::FindManyP<ubana::MCGhost>   mcghost_from_pfp   (pfp_h,   e, _mc_ghost_producer);
-  art::FindManyP<simb::MCParticle> mcpar_from_mcghost (ghost_h, e, _mc_ghost_producer); 
-  //>>>>>>> tags/v08_00_00_07
 
 
   // Get MCSFitResult - Pi
