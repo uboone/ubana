@@ -38,7 +38,7 @@ public:
       	        art::EventPrincipal* &outE);
 
   void endJob();
-
+ 
 private:
   art::SourceHelper   fSourceHelper;
   art::SubRunID       fCurrentSubRunID;

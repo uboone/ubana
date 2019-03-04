@@ -60,7 +60,7 @@ namespace single_photon
 
     }
 
-
+    //add into vertex tree?
     void SinglePhoton::CreateMCTruthBranches(){
         vertex_tree->Branch("mctruth_num",&m_mctruth_num);
         vertex_tree->Branch("mctruth_origin",&m_mctruth_origin);
@@ -124,6 +124,7 @@ namespace single_photon
             std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t WARNING There is more than 1 MCTruth neutrino interaction. Just running over the first simb::MCTruth."<<std::endl;
         }
 
+	//one mctruth per event.  contains list of all particles 
         for(int i=0; i<std::min(1,m_mctruth_num); i++){
             const art::Ptr<simb::MCTruth> truth = mcTruthVector[i];
 
@@ -145,7 +146,7 @@ namespace single_photon
             m_mctruth_nu_vertex_z = corrected[2];
 
 
-            m_mctruth_num_daughter_particles = truth->NParticles();
+            m_mctruth_num_daughter_particles = truth->NParticles(); //MCTruth_NParticles
             this->ResizeMCTruths(m_mctruth_num_daughter_particles);
 
 

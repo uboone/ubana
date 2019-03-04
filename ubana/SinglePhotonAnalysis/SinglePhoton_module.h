@@ -34,6 +34,8 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/simb.h"
+#include "nusimdata/SimulationBase/MCFlux.h"
+#include  "nusimdata/SimulationBase/GTruth.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -320,6 +322,11 @@ namespace single_photon
 
             std::map<int,std::string> is_delta_map;
 
+           //---------------- EventWeight ----------------------------
+
+            void AnalyzeEventWeight(art::Event const & e );
+            void ClearEventWeightBranches();
+	    void CreateEventWeightBranches();
 
             //These three are shameless steals from LArPandorHelper But overlays dont work so this is a direct clone. We will filter out later.
             void CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector);
@@ -337,7 +344,7 @@ namespace single_photon
 
             int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected);
             int spacecharge_correction(const simb::MCParticle & mcparticle, std::vector<double> & corrected);
-
+	    
             //databased http://dbdata0vm.fnal.gov:8186/uboonecon_prod/app/data?f=channelstatus_data&t=357812824
             std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
             std::map<int,bool> bad_channel_map_fixed_mcc9;
@@ -388,6 +395,7 @@ namespace single_photon
 
             TTree* pot_tree;
             TTree* vertex_tree;
+	    TTree* eventweight_tree;
 
             //------------ POT related variables --------------
             int m_number_of_events;
@@ -398,7 +406,7 @@ namespace single_photon
             int m_run_number;
             int m_subrun_number;
             int m_event_number;
-
+	   
             //------------ Vertex Related variables -------------
             int m_reco_vertex_size;
             double m_vertex_pos_x;
@@ -410,7 +418,101 @@ namespace single_photon
             double m_reco_vertex_to_nearest_dead_wire_plane1;
             double m_reco_vertex_to_nearest_dead_wire_plane2;
 
+	    //added eventweight
+	    //-------------- EventWeight related variables -------------
+	    static const int k_max_mc_particles=100;
 
+	    int m_run_number_eventweight;
+            int m_subrun_number_eventweight;
+            int m_event_number_eventweight;
+	    
+	    double m_mcflux_nu_pos_x;
+	    double m_mcflux_nu_pos_y;
+	    double m_mcflux_nu_pos_z;
+	    double m_mcflux_nu_mom_x;
+	    double m_mcflux_nu_mom_y;
+	    double m_mcflux_nu_mom_z;
+	    double m_mcflux_nu_mom_E;
+	    int m_mcflux_ntype;
+	    int m_mcflux_ptype;
+	    double m_mcflux_nimpwt;
+	    double m_mcflux_dk2gen;
+	    double m_mcflux_nenergyn;
+	    double m_mcflux_tpx;
+	    double m_mcflux_tpy;
+	    double m_mcflux_tpz;
+	    double m_mcflux_vx;
+	    double m_mcflux_vy;
+	    double m_mcflux_vz;
+	    int m_mcflux_tptype;
+	    int m_mctruth_nparticles;
+	    int m_mctruth_particles_track_Id[k_max_mc_particles];
+	    int m_mctruth_particles_pdg_code[k_max_mc_particles];
+	    int m_mctruth_particles_mother[k_max_mc_particles];
+	    int m_mctruth_particles_status_code[k_max_mc_particles];
+	    int m_mctruth_particles_num_daughters[k_max_mc_particles]; //other similar variables
+	    int m_mctruth_particles_daughters[100][100];
+	    double m_mctruth_particles_Gvx[k_max_mc_particles];
+	    double m_mctruth_particles_Gvy[k_max_mc_particles];
+	    double m_mctruth_particles_Gvz[k_max_mc_particles];
+	    double m_mctruth_particles_Gvt[k_max_mc_particles];
+	    double m_mctruth_particles_px0[k_max_mc_particles];
+	    double m_mctruth_particles_py0[k_max_mc_particles];
+	    double m_mctruth_particles_pz0[k_max_mc_particles];
+	    double m_mctruth_particles_e0[k_max_mc_particles];
+	    int m_mctruth_particles_rescatter[k_max_mc_particles];
+	    double m_mctruth_particles_polx[k_max_mc_particles];
+	    double m_mctruth_particles_poly[k_max_mc_particles];
+	    double m_mctruth_particles_polz[k_max_mc_particles];
+	    int m_mctruth_neutrino_ccnc;
+	    int m_mctruth_neutrino_mode;
+	    int m_mctruth_neutrino_interaction_type;
+	    int m_mctruth_neutrino_target;
+	    int m_mctruth_neutrino_nucleon;
+	    int m_mctruth_neutrino_quark;
+	    double m_mctruth_neutrino_w;
+	    double m_mctruth_neutrino_x;
+	    double m_mctruth_neutrino_y;
+	    double m_mctruth_neutrino_qsqr;
+	    bool m_gtruth_is_sea_quark;
+	    int m_gtruth_tgt_pdg;
+	    double m_gtruth_weight;
+	    double m_gtruth_probability;
+	    double m_gtruth_xsec;
+	    double m_gtruth_diff_xsec;
+	    double m_gtruth_vertex_x;
+	    double m_gtruth_vertex_y;
+	    double m_gtruth_vertex_z;
+	    double m_gtruth_vertex_T;
+	    int m_gtruth_gscatter;
+	    int m_gtruth_gint;
+	    int m_gtruth_res_num;
+	    int m_gtruth_num_piplus;
+	    int m_gtruth_num_pi0;
+	    int m_gtruth_num_piminus;
+	    int m_gtruth_num_proton;
+	    int m_gtruth_num_neutron;
+	    bool m_gtruth_is_charm;
+	    double m_gtruth_gx;
+	    double m_gtruth_gy;
+	    double m_gtruth_gt;
+	    double m_gtruth_gw;
+	    double m_gtruth_gQ2;
+	    double m_gtruth_gq2;
+	    int m_gtruth_probe_pdg;
+	    double m_gtruth_probe_p4_x;
+	    double m_gtruth_probe_p4_y;
+	    double m_gtruth_probe_p4_z;
+	    double m_gtruth_probe_p4_E;
+	    double m_gtruth_hit_nuc_p4_x;
+	    double m_gtruth_hit_nuc_p4_y;
+	    double m_gtruth_hit_nuc_p4_z;
+	    double m_gtruth_hit_nuc_p4_E;
+	    double m_gtruth_fs_had_syst_p4_x;
+	    double m_gtruth_fs_had_syst_p4_y;
+	    double m_gtruth_fs_had_syst_p4_z;
+	    double m_gtruth_fs_had_syst_p4_E;
+	    
             //-------------- Flash related variables -------------
             int m_reco_num_templates;
             std::vector<double> m_reco_template;
