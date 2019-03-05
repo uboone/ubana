@@ -32,7 +32,7 @@ physics.producers.UBXSec.BeamSpillEnd:                   5.25
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.65
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   5.25
 
-#physics.producers.UBXSec.UseGENIEInfo:                   false # Andy isn't sure if this should be true or false
+physics.producers.UBXSec.UseGENIEInfo:                   false # Andy isn't sure if this should be true or false
 
 physics.producers.RecoTrueMatcher.Overlay:           false
 physics.producers.UBXSec.FileType: "extbnb"

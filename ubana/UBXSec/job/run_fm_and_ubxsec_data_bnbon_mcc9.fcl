@@ -40,5 +40,5 @@ physics.producers.UBXSec.FileType: "bnbon"
 physics.producers.pandoraFlashEventBuilding.GeneratorLabel: "generator"
 physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowStartTime: 3.30
 physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowEndTime:   4.90 
-physics.producers.pandoraFlashEventBuilding.SliceIdTool.HasMCNeutrino:       true 
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.HasMCNeutrino:       false 
 
