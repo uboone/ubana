@@ -199,7 +199,7 @@ namespace single_photon
         m_reco_slice_num = nuscore_slices.size();//the number of slices also corresponds to the number of neutrino scores
 
         //currently this is junk, just a placeholder
-        std::cout<<"saving the info for "<<m_reco_slice_num<<" slices"<<std::endl;
+        //std::cout<<"saving the info for "<<m_reco_slice_num<<" slices"<<std::endl;
         this->ResizeSlices(m_reco_slice_num); 
         m_reco_slice_nuscore = nuscore_slices;
 
@@ -336,7 +336,7 @@ namespace single_photon
                                 //  std::cout<<"found a candiate proton track"<<std::endl;
                                 //save the overlay fraction and whether it's matched
                                 //matched_reco_slice_track_overlay_fraction.push_back(m_reco_slice_track_overlay_fraction[j]);
-                                std::cout<<"found sim proton track with track ID "<<id<<std::endl;
+                                //std::cout<<"found sim proton track with track ID "<<id<<std::endl;
                             }//if not already stored
                             //else{
                             //    std::cout<<"not matched to recob track"<<std::endl;
