@@ -23,14 +23,14 @@ outputs.out1.SelectEvents: [ reco ]
 source.inputCommands: ["keep *_*_*_*"]
 
 
-physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: 3.60
-physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   5.20
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: 3.30
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   4.90
 
-physics.producers.UBXSec.BeamSpillStart:                 3.60
-physics.producers.UBXSec.BeamSpillEnd:                   5.20
+physics.producers.UBXSec.BeamSpillStart:                 3.30
+physics.producers.UBXSec.BeamSpillEnd:                   4.90
 
-physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.60
-physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   5.20
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.30
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   4.90
 
 physics.producers.UBXSec.UseGENIEInfo:                   false
 
@@ -38,7 +38,7 @@ physics.producers.RecoTrueMatcher.Overlay:           false
 physics.producers.UBXSec.FileType: "bnbon"
 
 physics.producers.pandoraFlashEventBuilding.GeneratorLabel: "generator"
-physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowStartTime: 3.6 
-physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowEndTime:   5.2 
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowStartTime: 3.30
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowEndTime:   4.90 
 physics.producers.pandoraFlashEventBuilding.SliceIdTool.HasMCNeutrino:       true 
 
