@@ -107,7 +107,7 @@ ubxsec_mc_filter:
 ubxsec_mc_ana:
 {
    SimpleAna:                      { module_type: SimpleAna }
-   ProtonID:                         {module_type: ProtonID}
+   #ProtonID:                         {module_type: ProtonID}
    #CosmicTaggerAna :               @local::CosmicTaggerAna
 }
 
@@ -150,7 +150,7 @@ ubxsec_mc_producers: [ #pandoraFlashEventBuildingcalo,
 ubxsec_mc_filters: [ tpcneutrinoidfilternumuccinc
                    ]
 
-ubxsec_mc_analyzers: [ ProtonID
+ubxsec_mc_analyzers: [ #ProtonID
 #,
  #                     CosmicTaggerAna
                      ]
