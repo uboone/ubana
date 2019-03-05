@@ -20,7 +20,6 @@ braggalgo:
 
   # File that contains the likelihood maps
   LikelihoodMapsFile: "/cvmfs/uboone.osgstorage.org/stash/ParticleID_LLH_Maps/v0_0_1/BraggLikelihoodMaps_mcc8_20190215.root"
-
 }
 
 END_PROLOG

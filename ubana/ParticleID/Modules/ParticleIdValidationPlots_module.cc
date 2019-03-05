@@ -356,7 +356,6 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
   for (auto& track : trackPtrVector){
     std::cout << "found track" << std::endl;
 
-
     /** reset default values */
     dEdx.resize(3);
     resRange.resize(3);
@@ -449,7 +448,6 @@ particle_vec.clear(); match_vec.clear();
     }
 
     if (matched_mcparticle!=NULL){
-
       true_purity = purity;
       true_PDG = matched_mcparticle->PdgCode();
       true_start_momentum = matched_mcparticle->P();
@@ -475,7 +473,6 @@ particle_vec.clear(); match_vec.clear();
           && fid.isInFiducialVolume(true_end, fv)){
         TrueBragg = true;
       }
-
     }
 
     std::vector<std::vector<float>> Lmip_perhit(3);
@@ -665,7 +662,6 @@ particle_vec.clear(); match_vec.clear();
       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
       int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 
-
       if (planeid < 0 || planeid > 2){
         std::cout << "[ParticleIDValidation] No information for planeid " << planeid << std::endl;
         continue;
@@ -749,6 +745,7 @@ particle_vec.clear(); match_vec.clear();
 
 	  if (isData){
 	    dQdxcalibval = 232.;
+
 	  }
 	}
 
@@ -758,6 +755,7 @@ particle_vec.clear(); match_vec.clear();
 
 	  if (isData){
 	    dQdxcalibval = 249.;
+
 	  }
 	}
 

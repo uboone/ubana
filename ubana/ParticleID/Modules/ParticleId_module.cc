@@ -40,7 +40,6 @@
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "larana/ParticleIdentification/Chi2PIDAlg.h"
 
-
 // local includes
 #include "ubana/ParticleID/Algorithms/GetDaughterTracksShowers.h"
 #include "ubana/ParticleID/Algorithms/FiducialVolume.h"
@@ -98,7 +97,6 @@ class UBPID::ParticleId : public art::EDProducer {
 
     // For Chi2
     pid::Chi2PIDAlg *fChiAlg;
-
 };
 
 
@@ -106,7 +104,6 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
 {
 
   /*std::cout << "[ParticleID] Note: A plane ID of -1 is expected when a track has no calorimetry" << std::endl;
->>>>>>> tags/v08_00_00_07
   std::cout << "                   objects in a plane. Because reconstruction demands hits in two" << std::endl;
   std::cout << "                   planes, this should happen a maximum of one time per track." << std::endl;
   std::cout << "                   If more than one plane has an ID of -1 for a single track," << std::endl;
@@ -133,7 +130,6 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
   braggcalc.configure(p_bragg);
   //braggcalc.printConfiguration();
 
-
   // this module produces a anab::ParticleID object and
   // an association to the track which produced it
   produces< std::vector<anab::ParticleID> >();
@@ -143,7 +139,6 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
   std::cout << "[ParticleID] >> Calorimetry Label: " << fCaloLabel << std::endl;
   std::cout << "[ParticleID] >> Cut Distance : " << fCutDistance << std::endl;
   std::cout << "[ParticleID] >> Cut Fraction : " << fCutFraction << std::endl;*/
-
 
 }
 
@@ -321,7 +316,6 @@ void UBPID::ParticleId::produce(art::Event & e)
       Bragg_bwd_p.at(planenum).fValue         = braggcalc.getLikelihood(dEdx, resRange, Bragg_bwd_p.at(planenum).fAssumedPdg,  false, planenum, shift_bwd_p);
       Bragg_bwd_pi.at(planenum).fValue        = braggcalc.getLikelihood(dEdx, resRange, Bragg_bwd_pi.at(planenum).fAssumedPdg, false, planenum, shift_bwd_pi);
       Bragg_bwd_k.at(planenum).fValue         = braggcalc.getLikelihood(dEdx, resRange, Bragg_bwd_k.at(planenum).fAssumedPdg,  false, planenum, shift_bwd_k);
-
       Bragg_fwd_mu.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
       Bragg_fwd_p.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
       Bragg_fwd_pi.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
@@ -330,7 +324,6 @@ void UBPID::ParticleId::produce(art::Event & e)
       Bragg_bwd_p.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
       Bragg_bwd_pi.at(planenum).fPlaneMask      = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
       Bragg_bwd_k.at(planenum).fPlaneMask       = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-
       // Special case: MIP-like probability. fAssumedPdg == 0 tells the Bragg
       // algorithm to use the "No-Bragg" theory case
       noBragg_fwd_MIP.at(planenum).fAlgName = "BraggPeakLLH";
@@ -339,7 +332,6 @@ void UBPID::ParticleId::produce(art::Event & e)
       noBragg_fwd_MIP.at(planenum).fAssumedPdg = 0;
       noBragg_fwd_MIP.at(planenum).fValue = braggcalc.getLikelihood(dEdx, resRange, noBragg_fwd_MIP.at(planenum).fAssumedPdg, true, planenum);
       noBragg_fwd_MIP.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-
 
       AlgScoresVec.push_back(Bragg_fwd_mu.at(planenum));
       AlgScoresVec.push_back(Bragg_fwd_p.at(planenum));
@@ -423,7 +415,6 @@ void UBPID::ParticleId::produce(art::Event & e)
       }
 
 
-
       /**
        * Algorithm 3: PIDA
        * This makes use of Bruce home-brewed PIDA calculation, which can be
@@ -455,7 +446,6 @@ void UBPID::ParticleId::produce(art::Event & e)
       PIDAval_kde.at(planenum).fValue = pida.getPida(dEdx, resRange, "kde");
       PIDAval_kde.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
       AlgScoresVec.push_back(PIDAval_kde.at(planenum));*/
-
       /**
        * Algorithm 4: Truncated mean dE/dx versus track length
        * Makes use of the "Truncated Mean" algorithm developed by D. Caratelli
@@ -481,7 +471,6 @@ void UBPID::ParticleId::produce(art::Event & e)
       }
       dEdxtruncmean.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
 
-
       dQdxtruncmean.at(planenum).fAlgName = "TruncatedMean";
       dQdxtruncmean.at(planenum).fVariableType = anab::kdQdxtruncmean;
       if (dQdx.size()>0)
@@ -491,9 +480,7 @@ void UBPID::ParticleId::produce(art::Event & e)
         // Now calculate truncated mean
         dQdxtruncmean.at(planenum).fValue = (double)trm.CalcIterativeTruncMean(dQdx_float, nmin, nmax, currentiteration, lmin, convergencelimit, nsigma);
       }
-
       dQdxtruncmean.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-
 
       AlgScoresVec.push_back(dEdxtruncmean.at(planenum));
       AlgScoresVec.push_back(dQdxtruncmean.at(planenum));
@@ -516,7 +503,6 @@ void UBPID::ParticleId::produce(art::Event & e)
       trk_depE.at(planenum).fTrackDir = anab::kNoDirection;
       trk_depE.at(planenum).fValue = depE;
       trk_depE.at(planenum).fPlaneMask = UBPID::uB_SinglePlaneGetBitset(c->PlaneID().Plane);
-
 
       AlgScoresVec.push_back(trk_depE.at(planenum));
 

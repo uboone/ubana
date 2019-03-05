@@ -69,7 +69,6 @@ art_make( BASENAME_ONLY
   ubreco_SelectionTool_OpT0FinderBase
   ubreco_SelectionTool_OpT0FinderAlgorithms
 
-
   ubraw_RawData
   SignalShapingServiceMicroBooNE_service
   larevt_CalibrationDBI_IOVData

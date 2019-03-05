@@ -25,7 +25,6 @@ particleidvalidconfig:
 
   # bragg algorithm fcl parameters
   BraggAlgo: @local::braggalgo
-
 }
 
 END_PROLOG

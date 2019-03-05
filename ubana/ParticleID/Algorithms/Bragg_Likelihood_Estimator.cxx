@@ -24,7 +24,6 @@
 namespace particleid{
 
   void Bragg_Likelihood_Estimator::configure(fhicl::ParameterSet const &p){
-
     nHitsToDrop    = p.get<int>("NHitsToDrop", 1);
     endPointFloatShort    = p.get<double>("EndPointFloatShort", -1.0);
     endPointFloatLong     = p.get<double>("EndPointFloatLong" , 1.0);
@@ -51,7 +50,6 @@ namespace particleid{
     h_lmap[2][2] = (TH2F*)LikelihoodMapsFile->Get("h_k_bragglikelihoodmap_plane2");
     h_lmap[3][2] = (TH2F*)LikelihoodMapsFile->Get("h_p_bragglikelihoodmap_plane2");
     h_lmap[4][2] = (TH2F*)LikelihoodMapsFile->Get("h_mip_bragglikelihoodmap_plane2");
-
   }
 
   void Bragg_Likelihood_Estimator::printConfiguration(){
@@ -109,6 +107,7 @@ namespace particleid{
         std::cout << "[ParticleID::Bragg_Likelihood_Estimator] Exiting." << std::endl;
         throw;
     } // switch
+
 
     /**
      * Now loop through hits (entries in dEdx and resRange vectors), and get likelihood

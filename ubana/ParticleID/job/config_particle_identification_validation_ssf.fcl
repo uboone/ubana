@@ -21,11 +21,10 @@ particleidvalidconfig:
 
   IsDataPlotsOnly: false
 
-  IsUBXSecSelected: true
+  IsUBXSecSelected: false
 
   # bragg algorithm fcl parameters
   BraggAlgo: @local::braggalgo
-
 }
 
 END_PROLOG
