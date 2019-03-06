@@ -183,15 +183,20 @@ namespace single_photon
                         }
                         break;
                     case(111):
-                        m_mctruth_exiting_pi0_E.push_back(par.E());
-                        m_mctruth_exiting_pi0_px.push_back(par.Px());
-                        m_mctruth_exiting_pi0_py.push_back(par.Py());
-                        m_mctruth_exiting_pi0_pz.push_back(par.Pz());
-                        m_mctruth_num_exiting_pi0++;
+                        // Make sure the pi0 actually exits the nucleus
+                        if (par.StatusCode() == 1) {
+                            m_mctruth_exiting_pi0_E.push_back(par.E());
+                            m_mctruth_exiting_pi0_px.push_back(par.Px());
+                            m_mctruth_exiting_pi0_py.push_back(par.Py());
+                            m_mctruth_exiting_pi0_pz.push_back(par.Pz());
+                            m_mctruth_num_exiting_pi0++;
+                    }
                         break;
                     case(211):
                     case(-211):
-                        m_mctruth_num_exiting_pipm++;
+                        if (par.StatusCode() == 1) {
+                            m_mctruth_num_exiting_pipm++;
+                        }
                         break;
                     case(2212):
                         {
