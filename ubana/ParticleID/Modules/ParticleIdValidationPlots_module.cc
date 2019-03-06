@@ -41,15 +41,17 @@
 // LArSoft
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
+#include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
 
 // UBXSec
 #include "ubobj/UBXSec/SelectionResult.h"
-#include "ubobj/UBXSec/TPCObject.h"
 
 // ROOT
 #include "TH1F.h"
@@ -96,13 +98,14 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
 
     bool fIsDataPlots;
     bool fIsUBXSecSelected;
+    bool fIsNuSliceOnly;
     std::string fTrackLabel;
     std::string fHitLabel;
     std::string fHitTrackAssns;
     std::string fCaloTrackAssns;
     std::string fHitTruthAssns;
     std::string fPIDLabel;
-    //std::string fPIDLabelChi2;
+    std::string fUBXSecLabel;
     int fNHitsForTrackDirection;
 
     bool isData;
@@ -135,6 +138,7 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     double track_end_x;
     double track_end_y;
     double track_end_z;
+    double track_shower_score;
     std::vector<double> track_likelihood_fwd_mu;
     std::vector<double> track_likelihood_fwd_p;
     std::vector<double> track_likelihood_fwd_pi;
@@ -233,6 +237,7 @@ ParticleIdValidationPlots::ParticleIdValidationPlots(fhicl::ParameterSet const &
 
   fIsDataPlots = p.get<bool>("IsDataPlotsOnly", "false");
   fIsUBXSecSelected = p.get<bool>("IsUBXSecSelected", "false");
+  fIsNuSliceOnly = p.get<bool>("UseNuSliceOnly","false");
   fTrackLabel = p_labels.get<std::string>("TrackLabel","myTracks::PandoraWorkshopTrackShower");
   fHitLabel = p_labels.get<std::string>("HitLabel","gaushit::McRecoStage1");
   //This should just be the neutrino slice........
@@ -240,7 +245,7 @@ ParticleIdValidationPlots::ParticleIdValidationPlots(fhicl::ParameterSet const &
   fCaloTrackAssns = p_labels.get<std::string>("CaloTrackAssn", "pandoracalo::McRecoStage2");
   fHitTruthAssns = p_labels.get<std::string>("HitTruthAssn","gaushitTruthMatch::McRecoStage1");
   fPIDLabel = p_labels.get<std::string>("ParticleIdLabel");
-  //fPIDLabelChi2 = p_labels.get<std::string>("ParticleIdChi2Label");
+  fUBXSecLabel = p_labels.get<std::string>("UBXSecSelectionResultLabel","");
   fNHitsForTrackDirection = p.get<int>("NHitsForTrackDirection");
 
   fv = fid.setFiducialVolume(fv, p_fv);
@@ -252,13 +257,14 @@ ParticleIdValidationPlots::ParticleIdValidationPlots(fhicl::ParameterSet const &
   braggcalc.printConfiguration();
 
   std::cout << "[ParticleIdValidation] >> Use only UBXSec TPCObj-tracks? " << fIsUBXSecSelected << std::endl;
+  std::cout << "[ParticleIdValidation] >> Use only Nu-slice tracks? " << fIsNuSliceOnly << std::endl;
   std::cout << "[ParticleIDValidation] >> Track label: " << fTrackLabel << std::endl;
   std::cout << "[ParticleIDValidation] >> Hit label: " << fHitLabel << std::endl;
   std::cout << "[ParticleIDValidation] >> Hit-track assns: " << fHitTrackAssns << std::endl;
   std::cout << "[ParticleIDValidation] >> Hit-truth assns: " << fHitTruthAssns << std::endl;
   std::cout << "[ParticleIDValidation] >> Calo-track assns: " << fCaloTrackAssns << std::endl;
   std::cout << "[ParticleIDValidation] >> ParticleID label: " << fPIDLabel << std::endl;
-  //std::cout << "[ParticleIDValidation] >> ParticleID Chi2 label: " << fPIDLabelChi2 << std::endl;
+  std::cout << "[ParticleIDValidation] >> UBXSec Selection Result label: " << fUBXSecLabel << std::endl;
   std::cout << "[ParticleIDValidation] >> NHits for track direction: " << fNHitsForTrackDirection << std::endl;
 
 }
@@ -277,68 +283,65 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
   /**
    * Get handles to needed information
    */
-  //std::cout << "hello0!" << std::endl;
-  art::Handle<std::vector<recob::Track>> trackHandle;
-  e.getByLabel(fTrackLabel, trackHandle);
-  std::vector<art::Ptr<recob::Track>> trackCollection;
-
-  //std::cout << "hello1!" << std::endl;
   /**
    * Two options for trackCollection, if isUBXSecSelected then
    * only use tracks actually in the selected TPC object,
    * if not then use all tracks which pass the cosmic filter
    */
-
-  // first fill ptr vector
+  art::Handle<std::vector<recob::Track>> trackHandle;
+  e.getByLabel(fTrackLabel, trackHandle);
+  std::vector<art::Ptr<recob::Track>> trackCollection;
   art::fill_ptr_vector(trackCollection, trackHandle);
   std::vector<art::Ptr<recob::Track>> trackPtrVector;
+
+  // PFPs
+  art::Handle<std::vector<recob::PFParticle> > pfp_h;
+  e.getByLabel(fTrackLabel,pfp_h);
+  art::FindManyP<recob::PFParticle> pfps_from_tracks(trackHandle, e, fTrackLabel);
+  lar_pandora::PFParticleVector pfparticleVector;
+  lar_pandora::LArPandoraHelper::CollectPFParticles(e,fTrackLabel,pfparticleVector);
+  lar_pandora::PFParticleMap pfparticleMap;
+  lar_pandora::LArPandoraHelper::BuildPFParticleMap(pfparticleVector,pfparticleMap);
+  art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfp_h,e,fTrackLabel);
+  // lar_pandora::PFParticlesToMetadata pfParticlesToMetadata;
+  // lar_pandora::LArPandoraHelper::CollectPFParticleMetadata(e,fTrackLabel,pfparticleVector,pfParticlesToMetadata);
 
   if (fIsUBXSecSelected == true){
 
     art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;
-    e.getByLabel("UBXSec", selectionHandle);
-
-    art::FindManyP<ubana::TPCObject> selectedTPCObjects(selectionHandle, e, "UBXSec");
-    art::Ptr<ubana::TPCObject> selectedTPCObject;
-
-    if (selectedTPCObjects.at(0).size() == 1){
-
-      selectedTPCObject = selectedTPCObjects.at(0).at(0);
-
-      const std::vector<recob::Track>& selectedTracks = selectedTPCObject->GetTracks();
-
-      for (size_t i = 0; i < selectedTracks.size(); i++){
-
-        recob::Track selectedTrack = selectedTracks.at(i);
-        int selectedTrackId = selectedTrack.ID();
-
-        // loop all tracks in the collection and find this track, then add the
-        // pointer to that track to the trackPtrVector
-
-        for (auto& track : trackCollection){
-
-          int testTrackId = track->ID();
-
-          std::cout << "[ParticleIDValidation] Checking track " << testTrackId << std::endl;
-
-          if (testTrackId == selectedTrackId){
-
-            std::cout << "[ParticleIDValidation] Found track ID match with ID " << testTrackId << std::endl;
-            trackPtrVector.push_back(track);
-
-          }
-
-        }
-
-      }
-
+    e.getByLabel(fUBXSecLabel, selectionHandle);
+    if(!selectionHandle.isValid()){
+      mf::LogError(__PRETTY_FUNCTION__) << "[ParticleIDValidation] SelectionResult product not found." << std::endl;
+      throw std::exception();
     }
+    std::vector<art::Ptr<ubana::SelectionResult>> selection_v;
+    art::fill_ptr_vector(selection_v, selectionHandle);
 
+    bool PassesUBXSecSelec = selection_v.at(0)->GetSelectionStatus();
+    if (!PassesUBXSecSelec){
+      return;
+    }
+  }
+
+  if (fIsNuSliceOnly==true){
+    for (auto& track : trackCollection){
+      std::vector<art::Ptr<recob::PFParticle>> pfps = pfps_from_tracks.at(track.key());
+      if (pfps.size()!=1){
+        std::cout << "[ParticleIDValidation] Error: " << pfps.size() << " PFPs matched to one track. Skipping track." << std::endl;
+        continue;
+      }
+      art::Ptr<recob::PFParticle> pfp = pfps.at(0);
+
+      int nupdg = lar_pandora::LArPandoraHelper::GetParentNeutrino(pfparticleMap,pfp);
+      std::cout << "[ParticleIDValidation] Found PFP with parent neutrino PDG code " << nupdg << std::endl;
+
+      if (TMath::Abs(nupdg) == 12 || TMath::Abs(nupdg) == 14 || TMath::Abs(nupdg) == 16){
+        trackPtrVector.push_back(track);
+      }
+    }
   }
   else {
-    // if fIsUBXSecSelected == false, then we just want all tracks
-    // and so the trackPtrVector is just the trackCollection from
-    // earlier
+    // if fIsNuSliceOnly == false, then we just want all tracks
     trackPtrVector = trackCollection;
   }
 
@@ -402,6 +405,33 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     track_end_y = track->End().Y();
     track_end_z = track->End().Z();
 
+    // Get track/shower score from PFP metadata
+    std::vector<art::Ptr<recob::PFParticle>> pfps = pfps_from_tracks.at(track.key());
+    if (pfps.size()!=1){
+      std::cout << "[ParticleIDValidation] Error: " << pfps.size() << " PFPs matched to one track. Skipping track." << std::endl;
+      continue;
+    }
+    art::Ptr<recob::PFParticle> pfp = pfps.at(0);
+
+    const std::vector< art::Ptr<larpandoraobj::PFParticleMetadata> > &pfParticleMetadataList(pfPartToMetadataAssoc.at(pfp.key()));
+    if (!pfParticleMetadataList.empty())
+    {
+      for (unsigned int j=0; j<pfParticleMetadataList.size(); ++j)
+      {
+        const art::Ptr<larpandoraobj::PFParticleMetadata> &pfParticleMetadata(pfParticleMetadataList.at(j));
+        const larpandoraobj::PFParticleMetadata::PropertiesMap &pfParticlePropertiesMap(pfParticleMetadata->GetPropertiesMap());
+        if (!pfParticlePropertiesMap.empty()){
+          for (larpandoraobj::PFParticleMetadata::PropertiesMap::const_iterator it = pfParticlePropertiesMap.begin(); it != pfParticlePropertiesMap.end(); ++it){
+            if(it->first=="TrackScore"){
+              std::cout << "[ParticleIDValidation] Found PFParticle " << pfp->Self() << " with: " << std::endl;
+              std::cout << "  - " << it->first << " = " << it->second << std::endl;
+              track_shower_score = it->second;
+            }
+          }
+        }
+      }
+    }
+
     bool TrueBragg = false;
     true_PDG = 0;
     simb::MCParticle const* matched_mcparticle = NULL;
@@ -425,26 +455,27 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     std::vector<art::Ptr<recob::Hit>> hits_from_track = hits_from_tracks.at(track->ID());
 
     art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitHandle,e,fHitTruthAssns);
-    //std::cout << "LISTEN HERE!" << particles_per_hit.size()<< std::endl;
 
-    for(size_t i_h=0; i_h<hits_from_track.size(); i_h++){
-      //std::cout << "hello*!, 431" << std::endl;
-particle_vec.clear(); match_vec.clear();
-//std::cout << "hello*!, 433" << std::endl;
-      particles_per_hit.get(hits_from_track[i_h].key(),particle_vec,match_vec);
-//std::cout << "hello*!, 435" << std::endl;
+    if (particles_per_hit.isValid()){
+      for(size_t i_h=0; i_h<hits_from_track.size(); i_h++){
+        //std::cout << "hello*!, 431" << std::endl;
+  particle_vec.clear(); match_vec.clear();
+  //std::cout << "hello*!, 433" << std::endl;
+        particles_per_hit.get(hits_from_track[i_h].key(),particle_vec,match_vec);
+  //std::cout << "hello*!, 435" << std::endl;
 
-      for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
-        trkide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy;
-        tote += match_vec[i_p]->energy;
-        if( trkide[ particle_vec[i_p]->TrackId() ] > maxe ){
-          maxe = trkide[ particle_vec[i_p]->TrackId() ];
-          matched_mcparticle = particle_vec[i_p];
-        }
-      }//end loop over particles per hit
+        for(size_t i_p=0; i_p<particle_vec.size(); ++i_p){
+          trkide[ particle_vec[i_p]->TrackId() ] += match_vec[i_p]->energy;
+          tote += match_vec[i_p]->energy;
+          if( trkide[ particle_vec[i_p]->TrackId() ] > maxe ){
+            maxe = trkide[ particle_vec[i_p]->TrackId() ];
+            matched_mcparticle = particle_vec[i_p];
+          }
+        }//end loop over particles per hit
 
-      purity = maxe/tote;
+        purity = maxe/tote;
 
+      }
     }
 
     if (matched_mcparticle!=NULL){
@@ -976,6 +1007,7 @@ void ParticleIdValidationPlots::beginJob(){
   pidTree->Branch( "track_end_x"              , &track_end_x         ) ;
   pidTree->Branch( "track_end_y"              , &track_end_y         ) ;
   pidTree->Branch( "track_end_z"              , &track_end_z         ) ;
+  pidTree->Branch( "track_shower_score"       , &track_shower_score  ) ;
   pidTree->Branch( "track_likelihood_fwd_mu"  , &track_likelihood_fwd_mu    ) ;
   pidTree->Branch( "track_likelihood_fwd_p"   , &track_likelihood_fwd_p     ) ;
   pidTree->Branch( "track_likelihood_fwd_pi"  , &track_likelihood_fwd_pi    ) ;
