@@ -9,6 +9,73 @@
 
 BEGIN_PROLOG
 
+producerlabels_mcc9_calo:
+{
+# producer label names
+
+  TrackLabel       : "pandora"
+  CalorimetryLabel : "pandoracalo"
+
+  # validator labels
+  ParticleIdLabel     : "pandorapid"
+  HitLabel            : "gaushit"
+  HitTrackAssn        : "pandora"
+  HitTruthAssn        : "gaushitTruthMatch"
+  CaloTrackAssn       : "pandoracalo"
+  UBXSecSelectionResultLabel: "UBXSec"
+}
+
+producerlabels_mcc9_caloSCE:
+{
+# producer label names
+
+  TrackLabel       : "pandora"
+  CalorimetryLabel : "pandoracaloSCE"
+
+
+  # validator labels
+  ParticleIdLabel     : "pandorapidSCE"
+  HitLabel            : "gaushit"
+  HitTrackAssn        : "pandora"
+  HitTruthAssn        : "gaushitTruthMatch"
+  CaloTrackAssn       : "pandoracaloSCE"
+  UBXSecSelectionResultLabel: "UBXSec"
+}
+
+producerlabels_mcc9_cali:
+{
+# producer label names
+
+  TrackLabel       : "pandora"
+  CalorimetryLabel : "pandoracali"
+
+
+  # validator labels
+  ParticleIdLabel     : "pandoracalipid"
+  HitLabel            : "gaushit"
+  HitTrackAssn        : "pandora"
+  HitTruthAssn        : "gaushitTruthMatch"
+  CaloTrackAssn       : "pandoracali"
+  UBXSecSelectionResultLabel: "UBXSec"
+}
+
+producerlabels_mcc9_caliSCE:
+{
+# producer label names
+
+  TrackLabel       : "pandora"
+  CalorimetryLabel : "pandoracaliSCE"
+
+
+  # validator labels
+  ParticleIdLabel     : "pandoracalipidSCE"
+  HitLabel            : "gaushit"
+  HitTrackAssn        : "pandora"
+  HitTruthAssn        : "gaushitTruthMatch"
+  CaloTrackAssn       : "pandoracaliSCE"
+  UBXSecSelectionResultLabel: "UBXSec"
+}
+
 producerlabels_mcc8_dedxcalib:
 {
 
@@ -83,57 +150,6 @@ producerlabels_mcc8_UBXSec_dedxcalib_data:
   HitLabel            : "pandoraCosmicHitRemoval::UBXSec"
   HitTrackAssn        : "pandoraNu::UBXSec"
   CaloTrackAssn       : "dedxcalibration::particleid"
-
-}
-
-producerlabels_mcc9:
-{
-
-# producer label names
-
-  TrackLabel       : "pandoraTrack"
-  CalorimetryLabel : "pandoraTrackcalo"
-
-
-  # validator labels
-  ParticleIdLabel     : "pid::particleid"
-  HitLabel            : "gaushit"
-  HitTrackAssn        : "pandoraTrack"
-  HitTruthAssn        : "gaushitTruthMatch"
-  CaloTrackAssn       : "pandoraTrackcalo"
-
-}
-
-producerlabels_mcc9_data:
-{
-
-# producer label names
-  TrackLabel       : "pandoraTrack"
-  CalorimetryLabel : "pandoraTrackcalo"
-
-  # validator labels
-  ParticleIdLabel     : "pid::particleid"
-  HitLabel            : "gaushit"
-  HitTrackAssn        : "pandoraTrack"
-  #HitTruthAssn        : "gaushitTruthMatch"
-  CaloTrackAssn       : "pandoraTrackcalo"
-
-
-}
-
-producerlabels_mcc9_track_stuff:
-{
-
-# producer label names
-  TrackLabel       : "myTracks"
-  CalorimetryLabel : "pandoracalo"
-
-  # validator labels
-  ParticleIdLabel     : "pid::particleid"
-  HitLabel            : "gaushit"
-  HitTrackAssn        : "myTracks"
-  HitTruthAssn        : "gaushitTruthMatch"
-  CaloTrackAssn       : "pandoracalo"
 
 }
 

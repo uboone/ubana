@@ -1,0 +1,57 @@
+#include "services_microboone.fcl"
+#include "messageservice.fcl"
+#include "time_memory_tracker_microboone.fcl"
+#include "config_particle_identification_validation.fcl"
+#include "calibration_microboone.fcl"
+#include "caldata_microboone.fcl"
+#include "particleid_microboone.fcl"
+
+
+#
+# fcl file produces pandoraNucali calibrated objects and runs the particleid
+# on them, then performs validation.
+#
+# intended to be used on CC-inclusive filtered events
+#
+
+process_name: particleid
+
+services:
+{
+
+  TFileService:  {fileName: "particleIdMeta.root"}
+  TimeTracker:    @local::microboone_time_tracker
+  MemoryTracker:  @local::microboone_memory_tracker
+                  @table::microboone_simulation_services
+  TPCEnergyCalib: @local::microboone_tpcenergycalib_service
+} # services
+
+source:
+{
+
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*", "drop sumdata::RunData_*_*_*"]
+  fileNames : [ "/pnfs/uboone/scratch/users/renlu23/Mar/Mar5/bnb/16756232_5192/PhysicsRun-2016_2_26_17_46_48-0005169-00059_20160304T134750_bnb_20160305T165448_merged_20181106T064235_optfilter_20181221T173625_reco1_postwcct_postdl_58df05e9-5aed-4d77-a6f5-9eee909581da.root" ]
+
+}
+
+physics:
+{
+    analyzers:
+    {
+      pidvalidcalo: @local::particleidvalidconfig
+      pidvalidcaloSCE: @local::particleidvalidconfig
+      pidvalidcali: @local::particleidvalidconfig
+      pidvalidcaliSCE: @local::particleidvalidconfig
+    }
+
+    validation: [ pidvalidcalo, pidvalidcaloSCE, pidvalidcali, pidvalidcaliSCE ]
+    end_paths: [ validation ]
+}
+
+physics.analyzers.pidvalidcalo.ProducerLabels: @local::producerlabels_mcc9_calo
+physics.analyzers.pidvalidcaloSCE.ProducerLabels: @local::producerlabels_mcc9_caloSCE
+physics.analyzers.pidvalidcali.ProducerLabels: @local::producerlabels_mcc9_cali
+physics.analyzers.pidvalidcaliSCE.ProducerLabels: @local::producerlabels_mcc9_caliSCE
+
+services.DetectorClocksService.InheritClockConfig: false
