@@ -313,6 +313,8 @@ class UBXSecHelper {
 
   static std::vector<double> GetdEdx(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no = 2);
 
+  static std::vector<double> GetdQdx(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no = 2);
+
   static double GetDqDxTruncatedMean(std::vector<double> dqdx_v);
 
   static double GetMean(std::vector<double>);

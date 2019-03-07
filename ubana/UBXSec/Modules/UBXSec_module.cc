@@ -1900,7 +1900,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
                       }
 	}
 
-      ubxsec_event->slc_muoncandidate_dqdx_v[slice] = UBXSecHelper::GetDqDxVector(calos);
+      ubxsec_event->slc_muoncandidate_dqdx_vector[slice] = UBXSecHelper::GetDqDxVector(calos);
       ubxsec_event->slc_muoncandidate_dqdx_trunc[slice] = UBXSecHelper::GetDqDxTruncatedMean(calos);
       ubxsec_event->slc_muoncandidate_dqdx_u_trunc[slice] = UBXSecHelper::GetDqDxTruncatedMean(calos, 0);
       ubxsec_event->slc_muoncandidate_dqdx_v_trunc[slice] = UBXSecHelper::GetDqDxTruncatedMean(calos, 1);
@@ -1910,6 +1910,9 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       ubxsec_event->slc_muoncandidate_dEdx_y[slice] = UBXSecHelper::GetdEdx(calos,2);
       ubxsec_event->slc_muoncandidate_dEdx_u[slice] = UBXSecHelper::GetdEdx(calos, 0);
       ubxsec_event->slc_muoncandidate_dEdx_v[slice] = UBXSecHelper::GetdEdx(calos, 1);
+      ubxsec_event->slc_muoncandidate_dQdx_y[slice] = UBXSecHelper::GetdEdx(calos,2);
+      ubxsec_event->slc_muoncandidate_dQdx_u[slice] = UBXSecHelper::GetdEdx(calos, 0);
+      ubxsec_event->slc_muoncandidate_dQdx_v[slice] = UBXSecHelper::GetdEdx(calos, 1);
 
       ubxsec_event->slc_muoncandidate_mip_consistency[slice] = _muon_finder.MIPConsistency(ubxsec_event->slc_muoncandidate_dqdx_trunc[slice],
                                                                                            ubxsec_event->slc_muoncandidate_length[slice]);
