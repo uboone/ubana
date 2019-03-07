@@ -155,8 +155,9 @@ namespace ubana {
     // *******************************
     //   double score_max = -1;
     int scl_ll_max = -1;
-    if (_ubxsec_event->nslices==1)
-      scl_ll_max=0;
+    for (int i_slc=0; i_slc<_ubxsec_event->nslices; i_slc++){
+      if (_ubxsec_event->slc_is_nu.at(i_slc) == true) scl_ll_max = i_slc;
+    }
 
     if (scl_ll_max == -1) {
       reason = "fail_flash_match";
@@ -187,7 +188,7 @@ namespace ubana {
 
 
 
-   
+
 
 
     // Stopping muon tagger

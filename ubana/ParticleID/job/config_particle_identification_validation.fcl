@@ -23,6 +23,8 @@ particleidvalidconfig:
 
   IsUBXSecSelected: true
 
+  UseNuSliceOnly: true
+
   # bragg algorithm fcl parameters
   BraggAlgo: @local::braggalgo
 }

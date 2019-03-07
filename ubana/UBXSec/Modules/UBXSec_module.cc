@@ -857,6 +857,7 @@ lar_pandora::PFParticleVector pfpACPTTagged;
       std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
       for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 	anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+  // std::cout << AlgScore.fPlaneMask << std::endl;
 	int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 	if (AlgScore.fVariableType==anab::kPIDA && planenum==2){
 	  track_to_pid_map[track] = pid;
@@ -1520,30 +1521,20 @@ lar_pandora::PFParticleVector pfpACPTTagged;
       ubxsec_event->slc_consistency_score[slice] = ct->CosmicScore();
     }
 
-    // Neutrino Flash match
-    ubxsec_event->slc_flsmatch_score[slice] = -9999;
-    std::vector<art::Ptr<ubana::FlashMatch>> pfpToFlashMatch_v = tpcobjToFlashMatchAssns.at(slice);
-    if (pfpToFlashMatch_v.size() > 1) {
-      std::cout << "[UBXSec] \t More than one flash match per nu pfp ?!" << std::endl;
-      continue;
-    } else if (pfpToFlashMatch_v.size() == 0){
-      std::cout << "[UBXSec] \t No Flash-Match for this TPCObject" << std::endl;
-    } else {
-      ubxsec_event->slc_flsmatch_score[slice]       = pfpToFlashMatch_v[0]->GetScore();
-      ubxsec_event->slc_flsmatch_qllx[slice]        = pfpToFlashMatch_v[0]->GetEstimatedX();
-      ubxsec_event->slc_flsmatch_tpcx[slice]        = pfpToFlashMatch_v[0]->GetTPCX();
-      ubxsec_event->slc_flsmatch_t0[slice]          = pfpToFlashMatch_v[0]->GetT0();
-      ubxsec_event->slc_flsmatch_hypoz[slice]       = UBXSecHelper::GetFlashZCenter(pfpToFlashMatch_v[0]->GetHypoFlashSpec());
-      ubxsec_event->slc_flsmatch_xfixed_chi2[slice] = pfpToFlashMatch_v[0]->GetXFixedChi2();
-      ubxsec_event->slc_flsmatch_xfixed_ll[slice]   = pfpToFlashMatch_v[0]->GetXFixedLl();
-      ubxsec_event->slc_flshypo_xfixed_spec[slice]  = pfpToFlashMatch_v[0]->GetXFixedHypoFlashSpec();
-      ubxsec_event->slc_flshypo_spec[slice]         = pfpToFlashMatch_v[0]->GetHypoFlashSpec();
-      //for (auto v : _slc_flshypo_spec[slice]) std::cout << "Hypo PE: " << v << std::endl;
-
-      std::cout << "[UBXSec] \t FM score:       " << ubxsec_event->slc_flsmatch_score[slice] << std::endl;
-      std::cout << "[UBXSec] \t qllx - tpcx is: " << ubxsec_event->slc_flsmatch_qllx[slice] - ubxsec_event->slc_flsmatch_tpcx[slice] << std::endl;
-
+    // Neutrino Flash match: is this slice selected by the external flash matching as the neutrino slice?
+    // Get PFPs from TPCObject
+    auto pfps_from_tpcobj = tpcobjToPFPAssns.at(slice);
+    // Get primary PFP (as in: the one that has no parent). Check PDG value of primary PFP. If this is the neutrino slice, it will have a neutrino PDG code (12, 14, or 16). If not, it will have a muon PDG code
+    bool isnuslc = false;
+    for (auto pfp : pfps_from_tpcobj){
+      if (pfp->IsPrimary()){
+        if (TMath::Abs(pfp->PdgCode())==12 || TMath::Abs(pfp->PdgCode()==14) || TMath::Abs(pfp->PdgCode()==16)){
+          isnuslc = true;
+          break;
+        }
+      }
     }
+    ubxsec_event->slc_is_nu[slice] = isnuslc;
 
     // Hits
     int nhits_u, nhits_v, nhits_w;
@@ -1846,7 +1837,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       ubxsec_event->slc_muoncandidate_theta[slice]     = UBXSecHelper::GetCorrectedCosTheta((*candidate_track), tpcobj_nu_vtx);
       ubxsec_event->slc_muoncandidate_theta_xz[slice] = UBXSecHelper::GetCorrectedCosThetaXZ((*candidate_track), tpcobj_nu_vtx);
       ubxsec_event->slc_muoncandidate_theta_yz[slice] = UBXSecHelper::GetCorrectedCosThetaYZ((*candidate_track), tpcobj_nu_vtx);
-      
+
      ubxsec_event->slc_muoncandidate_mom_range[slice] = _trk_mom_calculator.GetTrackMomentum(candidate_track->Length(), 13);
      ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = _trk_mom_calculator.GetMomentumMultiScatterLLHD(candidate_track);
       //    ubxsec_event->slc_muoncandidate_mom_mcs[slice]   = trkMom_MuFwd;
@@ -2128,8 +2119,6 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
     }
 
     // Particle ID
-    auto pfps_from_tpcobj = tpcobjToPFPAssns.at(slice);
-
     for (auto pfp : pfps_from_tpcobj){
 
       std::cout << "[UBXSec] \t This is PFP " << pfp->Self()  << std::endl;
@@ -2180,9 +2169,9 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
         if(pids.size() > 1) {
           std::cout << "[UBXSec] \t\t ParticleID vector is bigger than 1. Only one saved." << std::endl;
         }
-			   
+
 	std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[0]->ParticleIDAlgScores();
-			   
+
 	// Loop though AlgScoresVec and find the variables we want
 	double tmppida=-9999;
 	for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
@@ -2370,7 +2359,6 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
   // *********************
   // Save Event Selection Output in the Event
   // *********************
-
   if (!is_selected) {
 
     selection_result.SetSelectionStatus(false);
