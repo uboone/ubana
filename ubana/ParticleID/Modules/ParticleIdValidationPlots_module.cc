@@ -973,8 +973,9 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     // Finally, fill the tree
     std::cout << "[ParticleIDValidation] Filling tree. " << std::endl;
     pidTree->Fill();
-
+    std::cout << "[ParticleIDValidation] Filled tree" << std::endl;
   } // Loop over tracks
+
 
 
 }
