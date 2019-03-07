@@ -1,0 +1,32 @@
+#include "config_particle_identification_validation.fcl"
+#include "ubxsec_mc_common_mcc9.fcl"
+#include "config_particle_identification_validation_formcc9production.fcl"
+
+############################################################################################################################################
+
+process_name: UBXSec
+
+services.TFileService.fileName: "ubxsec_output_mc_bnbcosmic_fm.root"
+
+physics.reco:          [ @sequence::ubxsec_mc_producers , @sequence::ubxsec_mc_filters ]
+physics.trigger_paths: [ reco ]
+physics.ana:           [ @sequence::ubxsec_mc_analyzers, @sequence::pidvalid_mcc9 ]
+physics.stream1:       [ out1 ]
+physics.end_paths:     [ ana, stream1 ]
+
+outputs.out1.fileName: "%ifb_%tc_ubxsec.root"
+outputs.out1.dataTier: "reconstructed"
+outputs.out1.SelectEvents: [ reco ]
+
+source.inputCommands: ["keep *_*_*_*"]
+
+physics.producers.UBXSec.BeamSpillStart:                 3.20
+physics.producers.UBXSec.BeamSpillEnd:                   4.80
+
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.20
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   4.80
+
+physics.producers.UBXSec.UseGENIEInfo:                   true  # Andy doesn't know if this should be true or false
+
+physics.producers.RecoTrueMatcher.Overlay:           false
+physics.producers.UBXSec.FileType: "mc_bnbcosmic"
