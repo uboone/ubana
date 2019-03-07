@@ -392,7 +392,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     track_depE.resize(3,-999.);
     track_nhits.resize(3,-999);
 
-    std::vector< art::Ptr<anab::Calorimetry> > caloFromTrack = calo_from_tracks.at(track->ID());
+    std::vector< art::Ptr<anab::Calorimetry> > caloFromTrack = calo_from_tracks.at(track.key());
 
     track_id = track->ID();
     track_length = track->Length();
@@ -423,8 +423,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
         if (!pfParticlePropertiesMap.empty()){
           for (larpandoraobj::PFParticleMetadata::PropertiesMap::const_iterator it = pfParticlePropertiesMap.begin(); it != pfParticlePropertiesMap.end(); ++it){
             if(it->first=="TrackScore"){
-              std::cout << "[ParticleIDValidation] Found PFParticle " << pfp->Self() << " with: " << std::endl;
-              std::cout << "  - " << it->first << " = " << it->second << std::endl;
+              std::cout << "[ParticleIDValidation] Found PFParticle " << pfp->Self() << " with: " << it->first << " = " << it->second << std::endl;
               track_shower_score = it->second;
             }
           }
@@ -452,10 +451,10 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     std::vector<simb::MCParticle const*> particle_vec;
     std::vector<anab::BackTrackerHitMatchingData const*> match_vec;
 
-    std::vector<art::Ptr<recob::Hit>> hits_from_track = hits_from_tracks.at(track->ID());
+    std::vector<art::Ptr<recob::Hit>> hits_from_track = hits_from_tracks.at(track.key());
 
     art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitHandle,e,fHitTruthAssns);
-
+std::cout << "hi" << std::endl;
     if (particles_per_hit.isValid()){
       for(size_t i_h=0; i_h<hits_from_track.size(); i_h++){
         //std::cout << "hello*!, 431" << std::endl;
@@ -679,9 +678,9 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     double rangeE_mu = -999;
     double rangeE_p = -999;
 
-    std::vector<art::Ptr<anab::ParticleID>> trackPID = trackPIDAssn.at(track->ID());
+    std::vector<art::Ptr<anab::ParticleID>> trackPID = trackPIDAssn.at(track.key());
     if (trackPID.size() == 0){
-      std::cout << "[ParticleIDValidation] No track-PID association found for trackID " << track->ID() << ". Skipping track." << std::endl;
+      std::cout << "[ParticleIDValidation] No track-PID association found for track " << track.key() << ". Skipping track." << std::endl;
       continue;
     }
 
