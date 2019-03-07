@@ -156,6 +156,7 @@ namespace single_photon
 
 
             for(int j=0; j< m_mctruth_num_daughter_particles; j++){
+
                 const simb::MCParticle par = truth->GetParticle(j);
                 m_mctruth_daughters_pdg[j] = par.PdgCode();
                 m_mctruth_daughters_E[j] = par.E();
@@ -183,12 +184,17 @@ namespace single_photon
                         }
                         break;
                     case(111):
+                        {
                         m_mctruth_exiting_pi0_E.push_back(par.E());
                         m_mctruth_exiting_pi0_px.push_back(par.Px());
                         m_mctruth_exiting_pi0_py.push_back(par.Py());
                         m_mctruth_exiting_pi0_pz.push_back(par.Pz());
                         m_mctruth_num_exiting_pi0++;
+
+
+
                         break;
+                        }
                     case(211):
                     case(-211):
                         m_mctruth_num_exiting_pipm++;
