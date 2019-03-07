@@ -857,6 +857,7 @@ lar_pandora::PFParticleVector pfpACPTTagged;
       std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
       for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 	anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+  // std::cout << AlgScore.fPlaneMask << std::endl;
 	int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 	if (AlgScore.fVariableType==anab::kPIDA && planenum==2){
 	  track_to_pid_map[track] = pid;
@@ -2355,7 +2356,6 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
   // *********************
   // Save Event Selection Output in the Event
   // *********************
-
   if (!is_selected) {
 
     selection_result.SetSelectionStatus(false);
