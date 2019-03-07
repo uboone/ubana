@@ -357,7 +357,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
   TVector3 true_start;
   TVector3 true_end;
   for (auto& track : trackPtrVector){
-    std::cout << "found track" << std::endl;
+    // std::cout << "found track" << std::endl;
 
     /** reset default values */
     dEdx.resize(3);
@@ -691,6 +691,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 
       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+      // std::cout << AlgScore.fPlaneMask << std::endl;
       int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 
       if (planeid < 0 || planeid > 2){
