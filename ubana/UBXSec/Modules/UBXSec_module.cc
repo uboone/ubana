@@ -89,7 +89,7 @@
 #include "ubobj/Trigger/ubdaqSoftwareTriggerData.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/MCBase/MCDataHolder.h"
-#include "lardataobj/MCBase/MCHitCollection.h"
+//#include "lardataobj/MCBase/MCHitCollection.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
 // Algorithms include
