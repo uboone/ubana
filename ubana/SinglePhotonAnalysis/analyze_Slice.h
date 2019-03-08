@@ -52,13 +52,23 @@ namespace single_photon
     //called once per event to get all the slice info
     //fills a map between the neutrino score for the slice and the primary reco PFP
     //loops over all PFP's to find the primary and then associate to a slice
-    void SinglePhoton::AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,  PFParticleIdMap &pfParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec){
+    void SinglePhoton::AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,
+            PFParticleIdMap &pfParticleMap,
+            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> primaryPFPSliceIdVec,
+            std::map<int, double> sliceIdToNuScoreMap,
+            std::map<art::Ptr<recob::PFParticle>,bool> PFPToClearCosmicMap,
+            std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap){
+        
+        
         std::vector<std::pair<art::Ptr<recob::PFParticle>, int>> primarySliceIdVec; //maps a primary PFP to a slice index
-        std::map<int, double> sliceIdToNuScoreMap; //maps a slice index to the associated neutrino score
+       // std::map<int, double> sliceIdToNuScoreMap; //maps a slice index to the associated neutrino score
         std::vector<art::Ptr<recob::PFParticle>> clearCosmicPFP;
+        std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+
 
         std::vector<double> nuscore_slices; //this is a temporary vector to store neutrino score per slice for this event
         //std::vector<art::Ptr<recob::PFParticle>> primary_pfps; //store the primary PFP for each slice
+       // sliceIdToPFPMap.clear(); //clear between events
 
         /*
          * Grabbed this info from Giuseppe:
@@ -138,10 +148,12 @@ namespace single_photon
 
         //now we have all the primary pfp's and the corresponding slices+scores
         //the next step is to look at all the pfp's in the event, find the primary, and then store the slice ind
-        //std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+       // std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
 
         //for all pfp's in the event
         //std::cout<<"looking at all PFP's"<<std::endl;
+         //std::map<int, std::vector<art::Ptr<recob::PFParticle>>> sliceIdToPFPMap;
+
         //for (unsigned int i = 0; i< pfParticleVector.size(); i++){
         for(auto item: pfParticleMap){
             art::Ptr<recob::PFParticle> start_pfp = item.second;
@@ -190,7 +202,12 @@ namespace single_photon
                 // allPFPSliceIdVec[i] = std::pair(start_pfp,slice_id);
                 allPFPSliceIdVec.push_back(std::pair(start_pfp,slice_id));
             }
-        }//for all pfp's in the event 
+           // sliceIdToPFPMap[slice_id].push_back(start_pfp);
+        }//for all pfp's in the event
+
+       //for (auto pair: sliceIdToPFPMap){
+       //     std::cout<<"in slice ID "<<pair.first<<" there are "<<pair.second.size()<<" PFP's"<<std::endl;
+       //} 
 
 
         /*
