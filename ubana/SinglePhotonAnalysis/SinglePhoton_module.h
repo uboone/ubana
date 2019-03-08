@@ -636,6 +636,8 @@ namespace single_photon
             int   m_mctruth_num_exiting_deltapm; 
             int   m_mctruth_num_exiting_deltapp; 
 
+
+
             int m_mctruth_is_delta_radiative;
             int m_mctruth_delta_radiative_1g1p_or_1g1n;
             double m_mctruth_delta_photon_energy;
@@ -657,6 +659,9 @@ namespace single_photon
             std::vector<double>        m_mctruth_exiting_pi0_px;
             std::vector<double>        m_mctruth_exiting_pi0_py;
             std::vector<double>        m_mctruth_exiting_pi0_pz;
+
+            double m_mctruth_pi0_leading_photon_energy;
+            double m_mctruth_pi0_subleading_photon_energy;
 
             std::string  m_truthmatching_signaldef;
 

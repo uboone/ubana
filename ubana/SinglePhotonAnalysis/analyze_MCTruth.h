@@ -40,6 +40,9 @@ namespace single_photon
         m_mctruth_exiting_pi0_py.clear();
         m_mctruth_exiting_pi0_pz.clear();
 
+        m_mctruth_pi0_leading_photon_energy = -9999;
+        m_mctruth_pi0_subleading_photon_energy = -9999;
+
         m_mctruth_exiting_delta0_num_daughters.clear();
 
         m_mctruth_exiting_photon_mother_trackID.clear();
@@ -109,6 +112,9 @@ namespace single_photon
         vertex_tree->Branch("mctruth_exiting_proton_from_delta_decay",&m_mctruth_exiting_proton_from_delta_decay);
         vertex_tree->Branch("mctruth_exiting_proton_energy",&m_mctruth_exiting_proton_energy);
 
+        vertex_tree->Branch("mctruth_pi0_leading_photon_energy",&m_mctruth_pi0_leading_photon_energy);
+        vertex_tree->Branch("mctruth_pi0_subleading_photon_energy",&m_mctruth_pi0_subleading_photon_energy);
+        
         vertex_tree->Branch("mctruth_exiting_pi0_E",&m_mctruth_exiting_pi0_E);
         vertex_tree->Branch("mctruth_exiting_pi0_px",&m_mctruth_exiting_pi0_px);
         vertex_tree->Branch("mctruth_exiting_pi0_py",&m_mctruth_exiting_pi0_py);
@@ -185,19 +191,21 @@ namespace single_photon
                         break;
                     case(111):
                         {
-                        m_mctruth_exiting_pi0_E.push_back(par.E());
-                        m_mctruth_exiting_pi0_px.push_back(par.Px());
-                        m_mctruth_exiting_pi0_py.push_back(par.Py());
-                        m_mctruth_exiting_pi0_pz.push_back(par.Pz());
-                        m_mctruth_num_exiting_pi0++;
-
-
-
+                        // Make sure the pi0 actually exits the nucleus
+                        if (par.StatusCode() == 1) {
+                            m_mctruth_exiting_pi0_E.push_back(par.E());
+                            m_mctruth_exiting_pi0_px.push_back(par.Px());
+                            m_mctruth_exiting_pi0_py.push_back(par.Py());
+                            m_mctruth_exiting_pi0_pz.push_back(par.Pz());
+                            m_mctruth_num_exiting_pi0++;
+                    }
                         break;
                         }
                     case(211):
                     case(-211):
-                        m_mctruth_num_exiting_pipm++;
+                        if (par.StatusCode() == 1) {
+                            m_mctruth_num_exiting_pipm++;
+                        }
                         break;
                     case(2212):
                         {
@@ -224,6 +232,7 @@ namespace single_photon
                         }
                     case(2112):
                         {
+
                         m_mctruth_num_exiting_neutrons++;
                         std::cout<<"SingleProton::AnalyzeMCTruths()\t||\t Neutron "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and neutron energy "<<par.E()<<std::endl;
 
@@ -234,22 +243,25 @@ namespace single_photon
                             tmp_n_neutrons_from_delta ++;
                          }
                         }
+                        
                         break;
                     case(-2224):
                     case(2224):
-                        m_mctruth_num_exiting_deltapp++;
+                        if(par.StatusCode() == 1){  m_mctruth_num_exiting_deltapp++; }
                         break;
                     case(-2214):
                     case(2214):
                     case(-1114):
                     case(1114):
-                        m_mctruth_num_exiting_deltapm++;
+                        if(par.StatusCode() == 1){ m_mctruth_num_exiting_deltapm++; }
                         break;
                     case(-2114):
                     case(2114):
+                        if(par.StatusCode() == 1){ 
                         m_mctruth_num_exiting_delta0++;
                         m_mctruth_exiting_delta0_num_daughters.push_back(par.NumberDaughters());
                         std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Delta0 "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with "<<m_mctruth_exiting_delta0_num_daughters.back()<<" daughters. StatusCode "<<par.StatusCode()<<std::endl;
+                        }
                         break;
                     default:
                         break;
@@ -341,8 +353,47 @@ namespace single_photon
                 std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t With  "<<m_mctruth_num_exiting_pi0<<" Pi0, "<<m_mctruth_num_exiting_pipm<<" Pi+/-, "<<m_mctruth_num_exiting_protons<<" Protons, "<<m_mctruth_num_exiting_neutrons<<" neutrons and "<<m_mctruth_num_exiting_delta0<<" delta0, "<<m_mctruth_num_exiting_deltapm<<" deltapm, "<<m_mctruth_num_exiting_deltapp<<" Deltas++"<<std::endl;
             }
 
+        }// end of MCtruth loo
+
+        //make a stupid temp map
+        std::map<size_t,size_t> mymap;
+        for(size_t k = 0; k < mcParticleVector.size(); k++){
+            const art::Ptr<simb::MCParticle> mcp = mcParticleVector[k];
+            mymap[mcp->TrackId()]       = k;
         }
-    }
+
+
+        //Just some VERY hacky pi^0 photon stuff
+        int npi0check = 0;
+        for(size_t k = 0; k < mcParticleVector.size(); k++){
+            const art::Ptr<simb::MCParticle> mcp = mcParticleVector[k];
+
+            if(false)std::cout<<k<<" Mother:"<< mcp->Mother()<<" pdgcode: "<<mcp->PdgCode()<<" trkid: "<<mcp->TrackId()<<" statuscode: "<<mcp->StatusCode()<<std::endl;
+           
+
+            if(mcp->PdgCode() == 111 && mcp->Mother() == 0 && mcp->NumberDaughters()==2 ){
+                    npi0check++;
+                    const art::Ptr<simb::MCParticle> dau1 = mcParticleVector[mymap[mcp->Daughter(0)]];
+                    const art::Ptr<simb::MCParticle> dau2 = mcParticleVector[mymap[mcp->Daughter(1)]];
+                    
+                    if(false)  std::cout<<"On Dau1: "<<" Mother:"<< dau1->Mother()<<" pdgcode: "<<dau1->PdgCode()<<" trkid: "<<dau1->TrackId()<<" statuscode: "<<dau1->StatusCode()<<std::endl;
+                    if(false)  std::cout<<"On Dau2: "<<" Mother:"<< dau2->Mother()<<" pdgcode: "<<dau2->PdgCode()<<" trkid: "<<dau2->TrackId()<<" statuscode: "<<dau2->StatusCode()<<std::endl;
+            
+                    double e1 = dau1->E();
+                    double e2 = dau2->E();
+                    if(e2<e1){
+                        m_mctruth_pi0_leading_photon_energy = e1;
+                        m_mctruth_pi0_subleading_photon_energy = e2;
+                    }else{
+                        m_mctruth_pi0_leading_photon_energy = e2;
+                        m_mctruth_pi0_subleading_photon_energy = e1;
+                    }
+
+            }
+        }
+        if(npi0check>1)std::cout<"WARNING WARNING!!!! there are "<<ncpi0check<<" Pi0's in this event in geant4 that come from the nucleas"<<std::endl;
+
+    }//end of analyze this
 
 
 }

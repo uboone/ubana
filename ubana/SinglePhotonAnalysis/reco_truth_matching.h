@@ -567,6 +567,7 @@ namespace single_photon
 
                 bool found_a_match = false;
                 int n_associated_mcparticle_hits = 0;
+                int n_not_associated_hits = 0;
 
                 std::cout<<"REC: This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
 
@@ -583,7 +584,12 @@ namespace single_photon
                     //std::cout<<"REC: hit "<<i_h<<" has "<<particle_vec.size()<<" MCparticles assocaied: "<<std::endl;
 
                     //if there is an MCParticle associated to this hit
-                    if(particle_vec.size()>0) n_associated_mcparticle_hits++;
+
+                //if there is an MCParticle associated to this hit
+                if(particle_vec.size()>0) n_associated_mcparticle_hits++;
+
+                if(particle_vec.size()==0) n_not_associated_hits++;
+
 
                     //loop over MCparticles finding which is the MCparticle with most "energy" matched correctly
                     //for each MCParticle associated with this hit
@@ -602,8 +608,13 @@ namespace single_photon
                         }
                     }//end loop over particles per hit
                 }
+
+
+                double fraction_num_hits_overlay = (double)n_not_associated_hits/(double)obj_hits_ptrs.size();
+
                 if(n_associated_mcparticle_hits == 0){
                     //This will only occur if the whole recob::PFParticle is associated with an overlay object
+                    std::cout<<fraction_num_hits_overlay<<std::endl;
 
                 }//for each recob::track/shower in the event
 
