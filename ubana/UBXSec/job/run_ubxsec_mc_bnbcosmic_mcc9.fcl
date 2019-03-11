@@ -19,8 +19,8 @@ source.fileNames: [ "/pnfs/uboone/mc/uboone/reconstructed/prod_v07_11_00_01/prod
 
 
 
-beam_start: 3.10 #3.20
-beam_end:   4.90 #4.80
+beam_start: 3.20
+beam_end:   4.80
 
 physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: @local::beam_start
 physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   @local::beam_end
