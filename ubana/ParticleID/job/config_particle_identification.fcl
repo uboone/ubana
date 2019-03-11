@@ -16,7 +16,7 @@ particleidconfig:
 
   # producer labels for PID + validation
 
-  ProducerLabels: @local::producerlabels_mcc9
+  ProducerLabels: @local::producerlabels_mcc9_calo
 
 
   # bragg algorithm fcl parameters

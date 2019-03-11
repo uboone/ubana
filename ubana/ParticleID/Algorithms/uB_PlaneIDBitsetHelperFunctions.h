@@ -10,13 +10,13 @@ namespace UBPID{
   /// Returns planeID from bitset, if exactly 1 plane is set in the bitset.
   /// Plane 2 = collection (y) plane, Plane 1 = induction (v) plane, Plane 0 = induction (u) plane
   inline int uB_getSinglePlane(std::bitset<8> planeid){
-    if (planeid.none() || planeid.count() > 1 || (planeid.count()==1 && !(planeid.test(0) || planeid.test(1) || planeid.test(2)))){
+    if (planeid.none() || planeid.count() > 1 || (planeid.count()==1 && !(planeid.test(7) || planeid.test(6) || planeid.test(5) || planeid.test(0) || planeid.test(1) || planeid.test(2)))){
       std::cout << "[uB_PlaneIDBitsetHelper] Cannot return a single MicroBooNE plane for bitset " << planeid << ". Returning -1 (invalid planeID)." << std::endl;
       return -1;
     }
-    else if (planeid.test(0)) return 2;
-    else if (planeid.test(1)) return 1;
-    else if (planeid.test(2)) return 0;
+    else if (planeid.test(7) || planeid.test(0)) return 2;
+    else if (planeid.test(6) || planeid.test(1)) return 1;
+    else if (planeid.test(5) || planeid.test(2)) return 0;
 
     // Default: invalid return
     return -1;

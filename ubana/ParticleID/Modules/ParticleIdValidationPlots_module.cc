@@ -333,7 +333,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
       art::Ptr<recob::PFParticle> pfp = pfps.at(0);
 
       int nupdg = lar_pandora::LArPandoraHelper::GetParentNeutrino(pfparticleMap,pfp);
-      std::cout << "[ParticleIDValidation] Found PFP with parent neutrino PDG code " << nupdg << std::endl;
+      // std::cout << "[ParticleIDValidation] Found PFP with parent neutrino PDG code " << nupdg << std::endl;
 
       if (TMath::Abs(nupdg) == 12 || TMath::Abs(nupdg) == 14 || TMath::Abs(nupdg) == 16){
         trackPtrVector.push_back(track);
@@ -454,7 +454,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     std::vector<art::Ptr<recob::Hit>> hits_from_track = hits_from_tracks.at(track.key());
 
     art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitHandle,e,fHitTruthAssns);
-std::cout << "hi" << std::endl;
+
     if (particles_per_hit.isValid()){
       for(size_t i_h=0; i_h<hits_from_track.size(); i_h++){
         //std::cout << "hello*!, 431" << std::endl;
@@ -690,7 +690,7 @@ std::cout << "hi" << std::endl;
     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 
       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-      // std::cout << AlgScore.fPlaneMask << std::endl;
+      std::cout << AlgScore.fAlgName << ": " << AlgScore.fPlaneMask << std::endl;
       int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
 
       if (planeid < 0 || planeid > 2){
