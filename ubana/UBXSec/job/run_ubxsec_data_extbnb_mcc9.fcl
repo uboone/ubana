@@ -18,8 +18,8 @@ outputs.out1.SelectEvents: [ reco ]
 
 
 
-beam_start: 3.60 #3.65
-beam_end:   5.40 #5.25
+beam_start: 3.65
+beam_end:   5.25
 
 physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: @local::beam_start
 physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   @local::beam_end
