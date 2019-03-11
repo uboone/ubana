@@ -1222,6 +1222,24 @@ std::vector<double> UBXSecHelper::GetdEdx(std::vector<art::Ptr<anab::Calorimetry
 
 }
 
+//_________________________________________________________________________________________________-
+std::vector<double> UBXSecHelper::GetdQdx(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no) {
+
+  std::vector<double> result;
+
+  for (auto c : calos) {
+    if (!c) continue;
+    if (!c->PlaneID().isValid) continue;
+    int planenum = c->PlaneID().Plane;
+    if (planenum != plane_no) continue;
+
+    return recob::tracking::convertVec<double,float>(c->dQdx());
+
+  }
+  return result;
+
+}
+
 //_________________________________________________________________________________
 double UBXSecHelper::GetDqDxTruncatedMean(std::vector<art::Ptr<anab::Calorimetry>> calos, int plane_no) {
 
