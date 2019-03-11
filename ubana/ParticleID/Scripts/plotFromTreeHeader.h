@@ -1,4 +1,4 @@
-#include "../../../../larana/larana/TruncatedMean/Algorithm/TruncMean.cxx"
+// #include "../../../../larana/larana/TruncatedMean/Algorithm/TruncMean.cxx"
 
 struct treevars{
   // These are the variables that are filled directly from the tree
@@ -43,6 +43,24 @@ struct treevars{
   double track_theta = -9999;
   double track_phi = -9999;
   double track_theta_x = -9999;
+  double true_purity = -9999;
+  double true_start_momentum = -9999;
+  double true_start_x = -9999;
+  double true_start_y = -9999;
+  double true_start_z = -9999;
+  double true_end_momentum = -9999;
+  double true_end_x = -9999;
+  double true_end_y = -9999;
+  double true_end_z = -9999;
+  double track_id = -9999;
+  double track_start_x = -9999;
+  double track_start_y = -9999;
+  double track_start_z = -9999;
+  double track_end_x = -9999;
+  double track_end_y = -9999;
+  double track_end_z = -9999;
+  double track_shower_score = -9999;
+  double track_nhits = -9999;
 
   // Make the chi2 variables std::vector<doubles> so we can handle them in the same way as the other variables
   // This is just a cheat - we only have chi2 variables for collection plane right now, so set other values to 0 by hand. Fix this in the future!
@@ -120,6 +138,24 @@ void settreevars(TTree *intree, treevars *varstoset){
   intree->SetBranchAddress("track_resrange_perhit_y", &(varstoset->track_resrange_perhit_y));
   intree->SetBranchAddress("track_theta", &(varstoset->track_theta));
   intree->SetBranchAddress("track_phi", &(varstoset->track_phi));
+  intree->SetBranchAddress("true_purity", &(varstoset->true_purity));
+  intree->SetBranchAddress("true_start_momentum", &(varstoset->true_start_momentum));
+  intree->SetBranchAddress("true_start_x", &(varstoset->true_start_x));
+  intree->SetBranchAddress("true_start_y", &(varstoset->true_start_y));
+  intree->SetBranchAddress("true_start_z", &(varstoset->true_start_z));
+  intree->SetBranchAddress("true_end_momentum", &(varstoset->true_end_momentum));
+  intree->SetBranchAddress("true_end_x", &(varstoset->true_end_x));
+  intree->SetBranchAddress("true_end_y", &(varstoset->true_end_y));
+  intree->SetBranchAddress("true_end_z", &(varstoset->true_end_z));
+  intree->SetBranchAddress("track_id", &(varstoset->track_id));
+  intree->SetBranchAddress("track_start_x", &(varstoset->track_start_x));
+  intree->SetBranchAddress("track_start_y", &(varstoset->track_start_y));
+  intree->SetBranchAddress("track_start_z", &(varstoset->track_start_z));
+  intree->SetBranchAddress("track_end_x", &(varstoset->track_end_x));
+  intree->SetBranchAddress("track_end_y", &(varstoset->track_end_y));
+  intree->SetBranchAddress("track_end_z", &(varstoset->track_end_z));
+  intree->SetBranchAddress("track_shower_score", &(varstoset->track_shower_score));
+  intree->SetBranchAddress("track_nhits", &(varstoset->track_nhits));
 
 
   intree->GetEntry(0);
@@ -326,8 +362,8 @@ void CalcPIDvars(treevars *vars, bool isScale){
     vars->track_lnLmip_atstart->at(i_pl) = TMath::Log(Lmip_start_mean);
     // dEdx_start_mean /= (double)nhits_start;
     // vars->track_dEdx_mean_atstart->at(i_pl) = dEdx_start_mean;
-    TruncMean trm;
-    if (dEdx_float.size()>0) vars->track_dEdx_mean_atstart->at(i_pl) = (double)trm.CalcIterativeTruncMean(dEdx_float, 1, 1, 0, 1, 0.1, 1.0);
+    // TruncMean trm;
+    // if (dEdx_float.size()>0) vars->track_dEdx_mean_atstart->at(i_pl) = (double)trm.CalcIterativeTruncMean(dEdx_float, 1, 1, 0, 1, 0.1, 1.0);
   }
 
   // Theta_x: angle w.r.t. x axis (drift direction), between 0 and 90 degrees
@@ -449,6 +485,9 @@ void Fill2DHist(hist2D *hists, double valuex, double valuey, double valuez, int 
 }
 
 void DrawMC(hist1D *hists, double POTScaling, double yrange){
+  gStyle->SetTitleX(0.1f);
+  gStyle->SetTitleW(0.8f);
+  
   if (POTScaling == 0.){ // area normalise
     POTScaling = 1./hists->h_all->Integral();
     hists->h_all->GetYaxis()->SetTitle("No. tracks (area normalised)");
