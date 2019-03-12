@@ -46,7 +46,7 @@ namespace single_photon
         m_reco_track_trunc_PIDA.clear();
         m_reco_track_resrange.clear();
         m_reco_track_dEdx.clear();
-        
+
         m_sim_track_matched.clear();
         m_sim_track_energy.clear();
         m_sim_track_kinetic_energy.clear();
@@ -66,6 +66,10 @@ namespace single_photon
         m_reco_track_end_to_nearest_dead_wire_plane0.clear();
         m_reco_track_end_to_nearest_dead_wire_plane1.clear();
         m_reco_track_end_to_nearest_dead_wire_plane2.clear();
+
+        m_reco_track_sliceId.clear();
+        m_reco_track_nuscore.clear();
+        m_reco_track_isclearcosmic.clear();
 
     }
 
@@ -129,6 +133,10 @@ namespace single_photon
         m_reco_track_end_to_nearest_dead_wire_plane0.resize(size);
         m_reco_track_end_to_nearest_dead_wire_plane1.resize(size);
         m_reco_track_end_to_nearest_dead_wire_plane2.resize(size);
+
+        m_reco_track_sliceId.resize(size);
+        m_reco_track_nuscore.resize(size);
+        m_reco_track_isclearcosmic.resize(size);
     }
 
     void SinglePhoton::CreateTrackBranches(){
@@ -180,6 +188,11 @@ namespace single_photon
         vertex_tree->Branch("reco_track_end_to_nearest_dead_wire_plane1",&m_reco_track_end_to_nearest_dead_wire_plane1);
         vertex_tree->Branch("reco_track_end_to_nearest_dead_wire_plane2",&m_reco_track_end_to_nearest_dead_wire_plane2);
 
+        vertex_tree->Branch("reco_track_sliceId",& m_reco_track_sliceId);
+        vertex_tree->Branch("reco_track_nuscore",& m_reco_track_nuscore);
+        vertex_tree->Branch("reco_track_isclearcosmic",& m_reco_track_isclearcosmic);
+
+
         vertex_tree->Branch("sim_track_matched",&m_sim_track_matched);
         vertex_tree->Branch("sim_track_energy",&m_sim_track_energy);
         vertex_tree->Branch("sim_track_kinetic_energy",&m_sim_track_kinetic_energy);
@@ -201,7 +214,10 @@ namespace single_photon
     void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap,
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap, 
-            std::map<int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap){
+            std::map<int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap,
+            std::map<int, double> &sliceIdToNuScoreMap,
+            std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
+            std::map<art::Ptr<recob::PFParticle>, int> &PFPToSliceIdMap){
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Starting recob::Track analysis"<<std::endl;;
@@ -292,6 +308,11 @@ namespace single_photon
             m_reco_track_end_to_nearest_dead_wire_plane1[i_trk] = distanceToNearestDeadWire(1, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
             m_reco_track_end_to_nearest_dead_wire_plane2[i_trk] = distanceToNearestDeadWire(2, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
 
+            m_reco_track_sliceId[i_trk] = PFPToSliceIdMap[pfp];
+            m_reco_track_nuscore[i_trk] = sliceIdToNuScoreMap[ m_reco_track_sliceId[i_trk]] ;
+            m_reco_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp];
+
+
 
             //A loop over the trajectory points
             size_t const traj_size = track->CountValidPoints();
@@ -332,13 +353,13 @@ namespace single_photon
 
         {
 
-         //   const art::Ptr<recob::Track> track = *iter;
+            //   const art::Ptr<recob::Track> track = *iter;
             const art::Ptr<recob::Track> track = tracks[k];
             m_sim_track_matched[i_trk] = 0;
             std::cout<<"INSIDE : "<<trackToMCParticleMap.count(track)<<std::endl;
-                
+
             if(trackToMCParticleMap.count(track)>0){
-                
+
                 const art::Ptr<simb::MCParticle> mcparticle = trackToMCParticleMap[track];
                 std::cout<<"count2: "<<MCParticleToMCTruthMap.count(mcparticle)<<std::endl;
                 const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
@@ -346,7 +367,7 @@ namespace single_photon
                 std::vector<double> corrected(3);
                 this->spacecharge_correction(mcparticle, corrected);
 
-                
+
                 m_sim_track_matched[i_trk] = 1;
                 m_sim_track_energy[i_trk] = mcparticle->E();
                 m_sim_track_mass[i_trk] = mcparticle->Mass();
@@ -358,202 +379,202 @@ namespace single_photon
                 m_sim_track_startz[i_trk] = corrected[2];
                 m_sim_track_origin[i_trk] = mctruth->Origin();
                 m_sim_track_trackID[i_trk] = mcparticle->TrackId();
-               // if(mcparticle->TrackId() != 0){
-                               // }
-               //std::cout<<"looking for mother with track id "<<mcparticle->Mother()<<std::endl;
+                // if(mcparticle->TrackId() != 0){
+                // }
+                //std::cout<<"looking for mother with track id "<<mcparticle->Mother()<<std::endl;
 
-               if(mcparticle->Mother()>=(int)mcParticleVector.size()){
-                //if (MCParticleToTrackIdMap[mcparticle->Mother()].isNull()){   
-                     m_sim_track_parent_pdg[i_trk] = -1;
+                if(mcparticle->Mother()>=(int)mcParticleVector.size()){
+                    //if (MCParticleToTrackIdMap[mcparticle->Mother()].isNull()){   
+                    m_sim_track_parent_pdg[i_trk] = -1;
                 }else{
-                   m_sim_track_parent_pdg[i_trk] = mcParticleVector[mcparticle->Mother()]->PdgCode();
-                   // m_sim_track_parent_pdg[i_trk] = MCParticleToTrackIdMap[mcparticle->Mother()]->PdgCode();
+                    m_sim_track_parent_pdg[i_trk] = mcParticleVector[mcparticle->Mother()]->PdgCode();
+                    // m_sim_track_parent_pdg[i_trk] = MCParticleToTrackIdMap[mcparticle->Mother()]->PdgCode();
                 }
 
-               //std::cout<<"the sim track id is "<<m_sim_track_trackID[i_trk]<<" and the pdg is "<<  m_sim_track_pdg[i_trk]<<" with parent pdg  "<<  m_sim_track_parent_pdg[i_trk]<<std::endl;
-               //if( m_sim_track_parent_pdg[i_trk] != -999){
-               //    std::cout <<" and the parent track id "<<  mcparticle->Mother() <<std::endl;
-              // }
- 
-             
+                //std::cout<<"the sim track id is "<<m_sim_track_trackID[i_trk]<<" and the pdg is "<<  m_sim_track_pdg[i_trk]<<" with parent pdg  "<<  m_sim_track_parent_pdg[i_trk]<<std::endl;
+                //if( m_sim_track_parent_pdg[i_trk] != -999){
+                //    std::cout <<" and the parent track id "<<  mcparticle->Mother() <<std::endl;
+                // }
+
+
+                }
+                i_trk++;
             }
-            i_trk++;
+
         }
 
-    }
 
 
 
 
+        void SinglePhoton::AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap)
+        {
 
-    void SinglePhoton::AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap)
-    {
+            if(m_is_verbose) std::cout<<"SinglePhoton::CollectCalo(recob::Track)\t||\t Starting calo module for recob::Track"<<std::endl;;
 
-        if(m_is_verbose) std::cout<<"SinglePhoton::CollectCalo(recob::Track)\t||\t Starting calo module for recob::Track"<<std::endl;;
+            for(size_t i_trk = 0; i_trk<tracks.size(); ++i_trk){
+                const art::Ptr<recob::Track>      track = tracks[i_trk];
+                const art::Ptr<anab::Calorimetry> calo  = trackToCaloMap[track];
 
-        for(size_t i_trk = 0; i_trk<tracks.size(); ++i_trk){
-            const art::Ptr<recob::Track>      track = tracks[i_trk];
-            const art::Ptr<anab::Calorimetry> calo  = trackToCaloMap[track];
+                size_t calo_length = calo->dEdx().size();
 
-            size_t calo_length = calo->dEdx().size();
+                TruncMean tm;
+                std::vector<double> trunc_dEdx;
+                std::vector<double> res_range_good;
+                std::vector<double> dEdx_good;
 
-            TruncMean tm;
-            std::vector<double> trunc_dEdx;
-            std::vector<double> res_range_good;
-            std::vector<double> dEdx_good;
-
-            m_reco_track_good_calo[i_trk] =  0;
-            m_reco_track_mean_dEdx[i_trk] =  0.0;
-            m_reco_track_mean_dEdx_start_half[i_trk] =  0.0;
-            m_reco_track_mean_dEdx_end_half[i_trk] =  0.0;
-            m_reco_track_mean_trunc_dEdx[i_trk] =  0.0;
-            m_reco_track_mean_trunc_dEdx_start_half[i_trk] =  0.0;
-            m_reco_track_mean_trunc_dEdx_end_half[i_trk] =  0.0;
-            m_reco_track_trunc_PIDA[i_trk] =  0.0;
-           // m_reco_track_resrange[i_trk] =  0.0;
-
+                m_reco_track_good_calo[i_trk] =  0;
+                m_reco_track_mean_dEdx[i_trk] =  0.0;
+                m_reco_track_mean_dEdx_start_half[i_trk] =  0.0;
+                m_reco_track_mean_dEdx_end_half[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_start_half[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_end_half[i_trk] =  0.0;
+                m_reco_track_trunc_PIDA[i_trk] =  0.0;
+                // m_reco_track_resrange[i_trk] =  0.0;
 
 
-            //First off look over ALL points
-            for (size_t k = 0; k < calo_length; ++k) {
-                double res_range =    calo->ResidualRange()[k];
-                double dEdx =         calo->dEdx()[k];
 
-                m_reco_track_mean_dEdx[i_trk] += dEdx;
-                if(k <= calo_length/2){ 
-                    m_reco_track_mean_dEdx_start_half[i_trk]+=dEdx;
-                }else{
-                    m_reco_track_mean_dEdx_end_half[i_trk]+=dEdx;
-                }
+                //First off look over ALL points
+                for (size_t k = 0; k < calo_length; ++k) {
+                    double res_range =    calo->ResidualRange()[k];
+                    double dEdx =         calo->dEdx()[k];
 
-                bool is_sensible = dEdx < m_track_calo_max_dEdx; 
-                bool is_nan =dEdx != dEdx; 
-                bool is_inf = std::isinf(dEdx);
-                bool is_nonzero = dEdx> m_track_calo_min_dEdx;
-
-                if(is_sensible && !is_nan && !is_inf && is_nonzero && k != 0 && k != calo_length-1){
-                    res_range_good.push_back(res_range);
-                    dEdx_good.push_back(dEdx);
-                }
-
-                //    std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< ""<<std::endl;;
-            }// End of first loop.
-
-            m_reco_track_good_calo[i_trk] = 0;
-            if(res_range_good.size() >= m_track_calo_min_dEdx_hits){
-                m_reco_track_good_calo[i_trk] = res_range_good.size();
-
-                //The radius we truncate over is going to be the max of either 1/frac of a track or 2x the minimum_dx in the res_range
-                double tenth_track = std::max(res_range_good.front(), res_range_good.back())/m_track_calo_trunc_fraction;
-                double min_dx = 999;
-                for(int j = res_range_good.size()-1; j>1; j--){
-                    double dx = fabs(res_range_good[j]-res_range_good[j-1]);
-                    if(dx < min_dx) min_dx = dx;
-                }
-                double rad = std::max( min_dx*2, tenth_track); 
-
-                //Calculate the residual range
-                tm.setRadius(rad);
-                tm.CalcTruncMeanProfile(res_range_good,dEdx_good, trunc_dEdx);			
-
-                double pida_sum_trunc=0.0;
-                //Calculate the mean truncated mean dEdx
-                for(size_t k=0; k< trunc_dEdx.size(); k++){
-                    double dEdx = trunc_dEdx[k];
-                    m_reco_track_mean_trunc_dEdx[i_trk] += dEdx;
-                    if(k <= trunc_dEdx.size()/2){ 
-                        m_reco_track_mean_trunc_dEdx_start_half[i_trk]+=dEdx;
+                    m_reco_track_mean_dEdx[i_trk] += dEdx;
+                    if(k <= calo_length/2){ 
+                        m_reco_track_mean_dEdx_start_half[i_trk]+=dEdx;
                     }else{
-                        m_reco_track_mean_trunc_dEdx_end_half[i_trk]+=dEdx;
+                        m_reco_track_mean_dEdx_end_half[i_trk]+=dEdx;
                     }
 
+                    bool is_sensible = dEdx < m_track_calo_max_dEdx; 
+                    bool is_nan =dEdx != dEdx; 
+                    bool is_inf = std::isinf(dEdx);
+                    bool is_nonzero = dEdx> m_track_calo_min_dEdx;
 
-                    if(trunc_dEdx[k] != trunc_dEdx[k] || std::isinf(trunc_dEdx[k]) || trunc_dEdx[k]<0){
-                        std::cout<<"Truncated dedx is either inf or nan (or negative) @ "<<k<<" "<<trunc_dEdx[k]<<std::endl;
-                        std::cout<<"Vector Length : "<<trunc_dEdx.size()<<std::endl;
-                        std::cout<<"i\t range \t dedx \t trunc dedx"<<std::endl;
-                        //for(int m=0; m<trunc_dEdx.size(); m++){
-                        //    std::cout<<m<<"\t"<<c_resrange.at(m)<<"  "<<c_dEdx.at(m)<<"  "<<trunc_dEdx.at(m)<<std::endl;
-                        //}
-                        std::cout<<"Using Radius: "<<rad<<std::endl;
-                        //exit(EXIT_FAILURE);
-                        m_reco_track_good_calo[i_trk] = 0; 
+                    if(is_sensible && !is_nan && !is_inf && is_nonzero && k != 0 && k != calo_length-1){
+                        res_range_good.push_back(res_range);
+                        dEdx_good.push_back(dEdx);
                     }
 
-                    pida_sum_trunc += trunc_dEdx[k]/(pow(res_range_good[k],-0.42));
+                    //    std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< ""<<std::endl;;
+                }// End of first loop.
+
+                m_reco_track_good_calo[i_trk] = 0;
+                if(res_range_good.size() >= m_track_calo_min_dEdx_hits){
+                    m_reco_track_good_calo[i_trk] = res_range_good.size();
+
+                    //The radius we truncate over is going to be the max of either 1/frac of a track or 2x the minimum_dx in the res_range
+                    double tenth_track = std::max(res_range_good.front(), res_range_good.back())/m_track_calo_trunc_fraction;
+                    double min_dx = 999;
+                    for(int j = res_range_good.size()-1; j>1; j--){
+                        double dx = fabs(res_range_good[j]-res_range_good[j-1]);
+                        if(dx < min_dx) min_dx = dx;
+                    }
+                    double rad = std::max( min_dx*2, tenth_track); 
+
+                    //Calculate the residual range
+                    tm.setRadius(rad);
+                    tm.CalcTruncMeanProfile(res_range_good,dEdx_good, trunc_dEdx);			
+
+                    double pida_sum_trunc=0.0;
+                    //Calculate the mean truncated mean dEdx
+                    for(size_t k=0; k< trunc_dEdx.size(); k++){
+                        double dEdx = trunc_dEdx[k];
+                        m_reco_track_mean_trunc_dEdx[i_trk] += dEdx;
+                        if(k <= trunc_dEdx.size()/2){ 
+                            m_reco_track_mean_trunc_dEdx_start_half[i_trk]+=dEdx;
+                        }else{
+                            m_reco_track_mean_trunc_dEdx_end_half[i_trk]+=dEdx;
+                        }
+
+
+                        if(trunc_dEdx[k] != trunc_dEdx[k] || std::isinf(trunc_dEdx[k]) || trunc_dEdx[k]<0){
+                            std::cout<<"Truncated dedx is either inf or nan (or negative) @ "<<k<<" "<<trunc_dEdx[k]<<std::endl;
+                            std::cout<<"Vector Length : "<<trunc_dEdx.size()<<std::endl;
+                            std::cout<<"i\t range \t dedx \t trunc dedx"<<std::endl;
+                            //for(int m=0; m<trunc_dEdx.size(); m++){
+                            //    std::cout<<m<<"\t"<<c_resrange.at(m)<<"  "<<c_dEdx.at(m)<<"  "<<trunc_dEdx.at(m)<<std::endl;
+                            //}
+                            std::cout<<"Using Radius: "<<rad<<std::endl;
+                            //exit(EXIT_FAILURE);
+                            m_reco_track_good_calo[i_trk] = 0; 
+                        }
+
+                        pida_sum_trunc += trunc_dEdx[k]/(pow(res_range_good[k],-0.42));
+                    }
+                    m_reco_track_trunc_PIDA[i_trk] = pida_sum_trunc;           
+                    m_reco_track_resrange[i_trk] = res_range_good;
+                    m_reco_track_dEdx[i_trk] = trunc_dEdx;
+
+                    //std::cout<<"the residual range at the start is "<<res_range_good[0]<<std::endl;
                 }
-                m_reco_track_trunc_PIDA[i_trk] = pida_sum_trunc;           
-                m_reco_track_resrange[i_trk] = res_range_good;
-                m_reco_track_dEdx[i_trk] = trunc_dEdx;
-                
-                //std::cout<<"the residual range at the start is "<<res_range_good[0]<<std::endl;
-            }
 
-            m_reco_track_mean_dEdx[i_trk]            *=1.0/((double)calo_length);
-            m_reco_track_mean_dEdx_start_half[i_trk] *=2.0/((double)calo_length);
-            m_reco_track_mean_dEdx_end_half[i_trk]   *=2.0/((double)calo_length);
-            m_reco_track_mean_trunc_dEdx[i_trk]            *=1.0/((double)trunc_dEdx.size());
-            m_reco_track_mean_trunc_dEdx_start_half[i_trk] *=2.0/((double)trunc_dEdx.size());
-            m_reco_track_mean_trunc_dEdx_end_half[i_trk]   *=2.0/((double)trunc_dEdx.size());
-            m_reco_track_trunc_PIDA[i_trk]  *=1.0/((double)trunc_dEdx.size());
-            //m_reco_track_resrange[i_trk] *=1.0/((double)res_range_good.size());
-           
+                m_reco_track_mean_dEdx[i_trk]            *=1.0/((double)calo_length);
+                m_reco_track_mean_dEdx_start_half[i_trk] *=2.0/((double)calo_length);
+                m_reco_track_mean_dEdx_end_half[i_trk]   *=2.0/((double)calo_length);
+                m_reco_track_mean_trunc_dEdx[i_trk]            *=1.0/((double)trunc_dEdx.size());
+                m_reco_track_mean_trunc_dEdx_start_half[i_trk] *=2.0/((double)trunc_dEdx.size());
+                m_reco_track_mean_trunc_dEdx_end_half[i_trk]   *=2.0/((double)trunc_dEdx.size());
+                m_reco_track_trunc_PIDA[i_trk]  *=1.0/((double)trunc_dEdx.size());
+                //m_reco_track_resrange[i_trk] *=1.0/((double)res_range_good.size());
+
+            }
         }
-    }
 
 
 
-    void SinglePhoton::CollectPID( std::vector<art::Ptr<recob::Track>> & tracks,
-            std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap){
+        void SinglePhoton::CollectPID( std::vector<art::Ptr<recob::Track>> & tracks,
+                std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap){
 
-        for(size_t i_trk=0; i_trk<tracks.size(); ++i_trk){
-            art::Ptr<recob::Track> track = tracks[i_trk];
-            art::Ptr<anab::ParticleID> pid = trackToPIDMap[track];
-            if (!pid) {
-                std::cout << "[analyze_Tracks] bad PID object" << std::endl;
-                continue;
-            }
-
-            // For each PID object, create vector of PID scores for each algorithm
-            // Loop over this and get scores for algorithm of choice
-            // But first, prepare garbage values, just in case
-            std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
-            double pidScore_BL_plane2 = -999;
-            double pidScore_PIDA_plane2 = -999;
-            double pidScore_Chi_plane2 = -999;
-
-            int planeid = 2;
-            for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++) {
-                anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-                //int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
-                ///////////******// HARD-CODING ALERT PLZ FIX LATER K THX BYE //////////////////*******
-                if (planeid != 2){
-                    std::cout << "[ParticleIDValidation] Not using information for plane " 
-                        << planeid << " (using plane 2 calorimetry only)" << std::endl;
+            for(size_t i_trk=0; i_trk<tracks.size(); ++i_trk){
+                art::Ptr<recob::Track> track = tracks[i_trk];
+                art::Ptr<anab::ParticleID> pid = trackToPIDMap[track];
+                if (!pid) {
+                    std::cout << "[analyze_Tracks] bad PID object" << std::endl;
                     continue;
                 }
-                if (AlgScore.fAlgName == "BraggPeakLLH" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 13){
-                    pidScore_BL_plane2 = AlgScore.fValue;
-                }
-                if (AlgScore.fAlgName == "Chi2" && anab::kVariableType(AlgScore.fVariableType) == anab::kGOF && TMath::Abs(AlgScore.fAssumedPdg) == 13){
-                    pidScore_Chi_plane2 = AlgScore.fValue;
-                }
-                if (AlgScore.fAlgName == "PIDA_mean" && anab::kVariableType(AlgScore.fVariableType) == anab::kPIDA && TMath::Abs(AlgScore.fAssumedPdg) == 13){
-                    pidScore_PIDA_plane2 = AlgScore.fValue;
-                }
+
+                // For each PID object, create vector of PID scores for each algorithm
+                // Loop over this and get scores for algorithm of choice
+                // But first, prepare garbage values, just in case
+                std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
+                double pidScore_BL_plane2 = -999;
+                double pidScore_PIDA_plane2 = -999;
+                double pidScore_Chi_plane2 = -999;
+
+                int planeid = 2;
+                for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++) {
+                    anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+                    //int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
+                    ///////////******// HARD-CODING ALERT PLZ FIX LATER K THX BYE //////////////////*******
+                    if (planeid != 2){
+                        std::cout << "[ParticleIDValidation] Not using information for plane " 
+                            << planeid << " (using plane 2 calorimetry only)" << std::endl;
+                        continue;
+                    }
+                    if (AlgScore.fAlgName == "BraggPeakLLH" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 13){
+                        pidScore_BL_plane2 = AlgScore.fValue;
+                    }
+                    if (AlgScore.fAlgName == "Chi2" && anab::kVariableType(AlgScore.fVariableType) == anab::kGOF && TMath::Abs(AlgScore.fAssumedPdg) == 13){
+                        pidScore_Chi_plane2 = AlgScore.fValue;
+                    }
+                    if (AlgScore.fAlgName == "PIDA_mean" && anab::kVariableType(AlgScore.fVariableType) == anab::kPIDA && TMath::Abs(AlgScore.fAssumedPdg) == 13){
+                        pidScore_PIDA_plane2 = AlgScore.fValue;
+                    }
 
 
+
+                }
+                std::cout << "Setting pid score " << pidScore_BL_plane2 << std::endl;
+                m_reco_track_pid_bragg_likelihood_plane2[i_trk] = pidScore_BL_plane2;
+                m_reco_track_pid_pida_plane2[i_trk] = pidScore_PIDA_plane2;
+                m_reco_track_pid_chi_plane2[i_trk] = pidScore_Chi_plane2;
 
             }
-            std::cout << "Setting pid score " << pidScore_BL_plane2 << std::endl;
-            m_reco_track_pid_bragg_likelihood_plane2[i_trk] = pidScore_BL_plane2;
-            m_reco_track_pid_pida_plane2[i_trk] = pidScore_PIDA_plane2;
-            m_reco_track_pid_chi_plane2[i_trk] = pidScore_Chi_plane2;
-
+            return;
         }
-        return;
+
+
+
     }
-
-
-
-}

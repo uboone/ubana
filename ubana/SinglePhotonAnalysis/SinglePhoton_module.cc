@@ -336,7 +336,7 @@ namespace single_photon
 
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
-        this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap);
+        this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
 
 

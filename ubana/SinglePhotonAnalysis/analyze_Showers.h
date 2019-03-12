@@ -289,9 +289,9 @@ namespace single_photon
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
-            std::map<int, double> sliceIdToNuScoreMap,
-            std::map<art::Ptr<recob::PFParticle>,bool> PFPToClearCosmicMap,
-            std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap){
+            std::map<int, double>& sliceIdToNuScoreMap,
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite"<<std::endl;;
 
