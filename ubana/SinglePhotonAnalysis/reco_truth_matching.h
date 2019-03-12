@@ -13,7 +13,10 @@ namespace single_photon
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
             std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
             std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap ){
+            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap ,
+            std::map<int, double>& sliceIdToNuScoreMap,
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
 
 
         std::vector<double> vec_fraction_matched;
@@ -192,6 +195,9 @@ namespace single_photon
                 m_sim_shower_matched_energy_fraction_plane2[i] = -999;
 
                 m_sim_shower_overlay_fraction[i] = fraction_num_hits_overlay;
+                m_sim_shower_sliceId[i] = -999;
+                m_sim_shower_nuscore[i] = -999;
+                m_sim_shower_isclearcosmic[i] = -999;
 
                 continue;
             }//
@@ -406,6 +412,11 @@ namespace single_photon
             objectToMCParticleMap[object] = mcParticleVector.back();
 
 
+            m_sim_shower_sliceId[i] = PFPToSliceIdMap[pfp];
+            m_sim_shower_nuscore[i] = sliceIdToNuScoreMap[ m_sim_shower_sliceId[i]] ;
+            m_sim_shower_isclearcosmic[i] = PFPToClearCosmicMap[pfp];
+
+
             //OLD OLD OLD
 
             /*
@@ -525,7 +536,7 @@ namespace single_photon
         }//end vector loop.
 
         return {0};
-    }
+    }//end showerRecoMCmatching
 
 
     //Typenamed for recob::Track and recob::Shower

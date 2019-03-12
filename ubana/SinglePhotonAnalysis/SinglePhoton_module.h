@@ -324,7 +324,10 @@ namespace single_photon
                     art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
                     std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
                     std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-                    std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap );
+                    std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap,
+                    std::map<int, double> & sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap);
 
 
 
@@ -631,6 +634,10 @@ namespace single_photon
             std::vector<double> m_sim_shower_matched_energy_fraction_plane1;
             std::vector<double> m_sim_shower_matched_energy_fraction_plane2;
             std::vector<double> m_sim_shower_overlay_fraction;
+
+            std::vector<int> m_sim_shower_sliceId; //the slice id for the slice continaing the sim shower matched to reco
+            std::vector<double> m_sim_shower_nuscore; //the neutrino score of the slice containing the sim shower matched to reco
+            std::vector<bool> m_sim_shower_isclearcosmic;//true if sim shower matched to reco is in a clear cosmic slice
 
 
             //------------ MCTruth related Variables  -------------

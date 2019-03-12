@@ -52,6 +52,9 @@ namespace single_photon
         m_sim_shower_px.clear();
         m_sim_shower_py.clear();
         m_sim_shower_pz.clear();
+        m_sim_shower_sliceId.clear();
+        m_sim_shower_nuscore.clear();
+        m_sim_shower_isclearcosmic.clear();
 
 
         m_reco_shower_ordered_energy_index.clear();
@@ -192,6 +195,10 @@ namespace single_photon
         m_sim_shower_px.resize(size);
         m_sim_shower_py.resize(size);
         m_sim_shower_pz.resize(size);
+        m_sim_shower_sliceId.resize(size);
+        m_sim_shower_nuscore.resize(size);
+        m_sim_shower_isclearcosmic.resize(size);
+
 
 
     }
@@ -285,7 +292,10 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_matched_energy_fraction_plane1",&m_sim_shower_matched_energy_fraction_plane1);
         vertex_tree->Branch("sim_shower_matched_energy_fraction_plane2",&m_sim_shower_matched_energy_fraction_plane2);
         vertex_tree->Branch("sim_shower_overlay_fraction",&m_sim_shower_overlay_fraction);
-
+        vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
+        vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
+        vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
+        
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
