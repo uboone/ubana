@@ -71,6 +71,11 @@ namespace single_photon
         m_reco_track_nuscore.clear();
         m_reco_track_isclearcosmic.clear();
 
+        m_sim_track_sliceId.clear();
+        m_sim_track_nuscore.clear();
+        m_sim_track_isclearcosmic.clear();
+
+
     }
 
     void SinglePhoton::ResizeTracks(size_t size){
@@ -137,6 +142,10 @@ namespace single_photon
         m_reco_track_sliceId.resize(size);
         m_reco_track_nuscore.resize(size);
         m_reco_track_isclearcosmic.resize(size);
+
+        m_sim_track_sliceId.resize(size);
+        m_sim_track_nuscore.resize(size);
+        m_sim_track_isclearcosmic.resize(size);
     }
 
     void SinglePhoton::CreateTrackBranches(){
@@ -204,6 +213,12 @@ namespace single_photon
         vertex_tree->Branch("sim_track_startx",&m_sim_track_startx);
         vertex_tree->Branch("sim_track_starty",&m_sim_track_starty);
         vertex_tree->Branch("sim_track_startz",&m_sim_track_startz);
+
+        vertex_tree->Branch("sim_track_sliceId",& m_sim_track_sliceId);
+        vertex_tree->Branch("sim_track_nuscore",& m_sim_track_nuscore);
+        vertex_tree->Branch("sim_track_isclearcosmic",& m_sim_track_isclearcosmic);
+
+
     }
 
 
@@ -342,7 +357,11 @@ namespace single_photon
             std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
             std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector,  
-            std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap){
+            std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap, 
+            std::map<int, double>& sliceIdToNuScoreMap,
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap
+            ){
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite"<<std::endl;;
@@ -363,6 +382,7 @@ namespace single_photon
                 const art::Ptr<simb::MCParticle> mcparticle = trackToMCParticleMap[track];
                 std::cout<<"count2: "<<MCParticleToMCTruthMap.count(mcparticle)<<std::endl;
                 const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
+                const art::Ptr<recob::PFParticle> pfp = trackToPFParticleMap[track];
 
                 std::vector<double> corrected(3);
                 this->spacecharge_correction(mcparticle, corrected);
@@ -379,6 +399,12 @@ namespace single_photon
                 m_sim_track_startz[i_trk] = corrected[2];
                 m_sim_track_origin[i_trk] = mctruth->Origin();
                 m_sim_track_trackID[i_trk] = mcparticle->TrackId();
+
+
+                m_sim_track_sliceId[i_trk] = PFPToSliceIdMap[pfp];
+                m_sim_track_nuscore[i_trk] = sliceIdToNuScoreMap[ m_sim_track_sliceId[i_trk]] ;
+                m_sim_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp]; 
+
                 // if(mcparticle->TrackId() != 0){
                 // }
                 //std::cout<<"looking for mother with track id "<<mcparticle->Mother()<<std::endl;

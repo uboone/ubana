@@ -299,7 +299,10 @@ namespace single_photon
             void ResizeTracks(size_t);
             void CreateTrackBranches();
             void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap);
-            void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap);
+            void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap, 
+                    std::map<int, double>& sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap);
 
             void CollectPID(std::vector<art::Ptr<recob::Track>> & tracks,std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap);
             TGraph proton_length2energy_tgraph;
@@ -554,6 +557,11 @@ namespace single_photon
             std::vector<double> m_sim_track_starty;
             std::vector<double> m_sim_track_startz;
             std::vector<int> m_sim_track_trackID;
+
+            std::vector<int> m_sim_track_sliceId; //the slice id for the slice continaing the sim track
+            std::vector<double> m_sim_track_nuscore; //the neutrino score of the slice containing the sim track
+            std::vector<bool> m_sim_track_isclearcosmic;//true if sim track is in a clear cosmic slice
+
 
 
             //------------ Shower related Variables  -------------
