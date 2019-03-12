@@ -54,10 +54,10 @@ namespace single_photon
     //loops over all PFP's to find the primary and then associate to a slice
     void SinglePhoton::AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,
             PFParticleIdMap &pfParticleMap,
-            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> primaryPFPSliceIdVec,
-            std::map<int, double> sliceIdToNuScoreMap,
-            std::map<art::Ptr<recob::PFParticle>,bool> PFPToClearCosmicMap,
-            std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap){
+            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> &primaryPFPSliceIdVec,
+            std::map<int, double> &sliceIdToNuScoreMap,
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
 
 
         //std::vector<std::pair<art::Ptr<recob::PFParticle>, int>> primaryPFPSliceIdVec; //maps a primary PFP to a slice index

@@ -354,10 +354,10 @@ namespace single_photon
             void CreateMatchedSliceBranches();
             void AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,
                     PFParticleIdMap &pfParticleMap,
-                    std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> primaryPFPSliceIdVec,   
-                    std::map<int, double> sliceIdToNuScoreMap,
-                    std::map<art::Ptr<recob::PFParticle>,bool> PFPToClearCosmicMap,   
-                    std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap);
+                    std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & primaryPFPSliceIdVec,   
+                    std::map<int, double> & sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,   
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap);
 
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
 
