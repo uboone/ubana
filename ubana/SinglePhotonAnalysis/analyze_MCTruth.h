@@ -391,7 +391,8 @@ namespace single_photon
 
             }
         }
-        if(npi0check>1)std::cout<"WARNING WARNING!!!! there are "<<npi0check<<" Pi0's in this event in geant4 that come from the nucleas"<<std::endl;
+
+        if(npi0check>1) std::cout<<"WARNING WARNING!!!! there are "<<npi0check<<" Pi0's in this event in geant4 that come from the nucleas"<<std::endl;
 
     }//end of analyze this
 
