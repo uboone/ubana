@@ -356,7 +356,7 @@ namespace single_photon
                     int parent= m_sim_track_parent_pdg[k];
                     int pdg =  m_sim_track_pdg[k];
 
-                    std::cout<<"for this track at trackID "<<m_sim_track_trackID[k]<< " and pdg "<<pdg <<" the parent is "<<parent<<std::endl;
+                    //std::cout<<"for this track at trackID "<<m_sim_track_trackID[k]<< " and pdg "<<pdg <<" the parent is "<<parent<<std::endl;
                     //if this sim track is a photon and it's primary (parent pdg is -1)
                     if((parent == -1 ||parent == 12 || parent ==14 ) && pdg == 2212){
                         //use map from track ID to get MCP

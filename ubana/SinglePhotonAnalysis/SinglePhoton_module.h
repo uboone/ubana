@@ -175,7 +175,7 @@ namespace single_photon
              *  @param  tracks a vector to hold the associated tracks
              *  @param  showers a vector to hold the associated showers
              */
-            void CollectTracksAndShowers(const PFParticleVector &particles, const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap );
+            void CollectTracksAndShowers(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap,  const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap );
 
             void GetVertex(const lar_pandora::PFParticlesToVertices & particlestoVertices, const art::Ptr<recob::PFParticle> & particle );
 
@@ -303,7 +303,10 @@ namespace single_photon
 
             //----------------  Showers ----------------------------
 
-            void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap,std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > & clusterToHitMap );
+            void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap,std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > & clusterToHitMap,
+                    std::map<int, double> sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool> PFPToClearCosmicMap,
+                    std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap );
             void ClearShowers();
             void ResizeShowers(size_t);
             void CreateShowerBranches();
@@ -350,11 +353,11 @@ namespace single_photon
             void CreateSliceBranches();
             void CreateMatchedSliceBranches();
             void AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,
-                     PFParticleIdMap &pfParticleMap,
-                     std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> primaryPFPSliceIdVec,   
-                     std::map<int, double> sliceIdToNuScoreMap,
-                     std::map<art::Ptr<recob::PFParticle>,bool> PFPToClearCosmicMap,   
-                     std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap);
+                    PFParticleIdMap &pfParticleMap,
+                    std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> primaryPFPSliceIdVec,   
+                    std::map<int, double> sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool> PFPToClearCosmicMap,   
+                    std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap);
 
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
 
@@ -585,6 +588,11 @@ namespace single_photon
             std::vector<double> m_reco_shower_delaunay_area_plane0;
             std::vector<double> m_reco_shower_delaunay_area_plane1;
             std::vector<double> m_reco_shower_delaunay_area_plane2;
+
+            std::vector<int> m_reco_shower_sliceId; //the slice id for the slice continaing the reco shower
+            std::vector<double> m_reco_shower_nuscore; //the neutrino score of the slice containing the reco shower
+            std::vector<bool> m_reco_shower_isclearcosmic;//true if reco shower is in a clear cosmic slice
+
 
             std::vector<int> m_sim_shower_matched;
             std::vector<double> m_sim_shower_energy;
