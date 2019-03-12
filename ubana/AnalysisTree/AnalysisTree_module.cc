@@ -327,6 +327,8 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
+
 #include <cstddef> // std::ptrdiff_t
 #include <cstring> // std::memcpy()
 #include <vector>
@@ -1543,16 +1545,16 @@ namespace microboone {
 	TBranch* pBranch = pTree->GetBranch(name.c_str());
 	if (!pBranch) {
 	  pTree->Branch(name.c_str(), address, leaflist.c_str() /*, bufsize */);
-	  LOG_DEBUG("AnalysisTreeStructure")
+	  MF_LOG_DEBUG("AnalysisTreeStructure")
 	    << "Creating branch '" << name << " with leaf '" << leaflist << "'";
 	}
 	else if (pBranch->GetAddress() != address) {
 	  pBranch->SetAddress(address);
-	  LOG_DEBUG("AnalysisTreeStructure")
+	  MF_LOG_DEBUG("AnalysisTreeStructure")
 	    << "Reassigning address to branch '" << name << "'";
 	}
 	else {
-	  LOG_DEBUG("AnalysisTreeStructure")
+	  MF_LOG_DEBUG("AnalysisTreeStructure")
 	    << "Branch '" << name << "' is fine";
 	}
       } // operator()
@@ -1579,7 +1581,7 @@ namespace microboone {
 	  // ROOT needs a TClass definition for T in order to create a branch,
 	  // se we are sure that at this point the TClass exists;
 	  // well, except for when it does not.
-	  LOG_DEBUG("AnalysisTreeStructure")
+	  MF_LOG_DEBUG("AnalysisTreeStructure")
 	    << "Creating object branch '" << name
 	    << "' with "
 	    << (TClass::GetClass(typeid(T))? TClass::GetClass(typeid(T))->ClassName(): "some")
@@ -1594,11 +1596,11 @@ namespace microboone {
             // member. Here we check that the address of the object in fObject
             // is the same as the address of our current data type
             pBranch->SetObject(&data);
-            LOG_DEBUG("AnalysisTreeStructure")
+            MF_LOG_DEBUG("AnalysisTreeStructure")
               << "Reassigning object to branch '" << name << "'";
           }
 	else {
-	  LOG_DEBUG("AnalysisTreeStructure")
+	  MF_LOG_DEBUG("AnalysisTreeStructure")
 	    << "Branch '" << name << "' is fine";
 	}
       } // operator()
@@ -4449,7 +4451,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       // to know the number of particles in AV would require
       // looking at all of them; so we waste some memory here
     } // if have MC truth
-    LOG_DEBUG("AnalysisTree") << "Expected "
+    MF_LOG_DEBUG("AnalysisTree") << "Expected "
 			      << nGEANTparticles << " GEANT particles, "
 			      << nGeniePrimaries << " GENIE particles";
   } // if MC
@@ -5482,23 +5484,74 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	art::FindMany<anab::ParticleID> fmpid(trackListHandle[iTracker], evt, fParticleIDModuleLabel[iTracker]);
 	if(fmpid.isValid()) {
 	  std::vector<const anab::ParticleID*> pids = fmpid.at(iTrk);
-	  //if(pids.size() > 1) {
-          //mf::LogError("AnalysisTree:limits")
-	  //<< "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
-	  //<< " has " << pids.size() 
-	  //<< " set of ParticleID variables. Only one stored in the tree";
-	  //}
-	  for (size_t ipid = 0; ipid < pids.size(); ++ipid){
-	    if (!pids[ipid]->PlaneID().isValid) continue;
-	    int planenum = pids[ipid]->PlaneID().Plane;
-	    if (planenum<0||planenum>2) continue;
-	    TrackerData.trkpidpdg[iTrk][planenum] = pids[ipid]->Pdg();
-	    TrackerData.trkpidchi[iTrk][planenum] = pids[ipid]->MinChi2();
-	    TrackerData.trkpidchipr[iTrk][planenum] = pids[ipid]->Chi2Proton();
-	    TrackerData.trkpidchika[iTrk][planenum] = pids[ipid]->Chi2Kaon();
-	    TrackerData.trkpidchipi[iTrk][planenum] = pids[ipid]->Chi2Pion();
-	    TrackerData.trkpidchimu[iTrk][planenum] = pids[ipid]->Chi2Muon();
-	    TrackerData.trkpidpida[iTrk][planenum] = pids[ipid]->PIDA();
+	  if (pids.size() == 0){
+	    mf::LogError("AnalysisTree:limits")
+	      << "No track-PID association found for " << fTrackModuleLabel[iTracker]
+	      << " track " << iTrk << ". Not saving particleID information."; 
+	  }
+	  // Set dummy values
+	  double pidpdg[3] = {-1,-1,-1};
+	  double pidchi[3] = {99999.,99999.,99999.};
+	  for (size_t ipid=0; ipid<pids.size(); ipid++){ 
+	    std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[ipid]->ParticleIDAlgScores();
+
+	    // Loop though AlgScoresVec and find the variables we want
+	    for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+	      anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+
+	      /*std::cout << "\n ParticleIDAlg " << AlgScore.fAlgName
+			<< "\n -- Variable type: " << AlgScore.fVariableType
+			<< "\n -- Track direction: " << AlgScore.fTrackDir
+			<< "\n -- Assuming PDG: " << AlgScore.fAssumedPdg
+			<< "\n -- Number of degrees of freedom: " << AlgScore.fNdf
+			<< "\n -- Value: " << AlgScore.fValue
+			<< "\n -- Using planeMask: " << AlgScore.fPlaneMask << " (plane " << UBPID::uB_getSinglePlane(AlgScore.fPlaneMask) << ")" << std::endl;*/
+	      
+	      int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+	      if (planenum<0 || planenum>2) continue;
+
+	      if (AlgScore.fAlgName == "Chi2"){
+		if (TMath::Abs(AlgScore.fAssumedPdg) == 13){ // chi2mu
+		  TrackerData.trkpidchimu[iTrk][planenum] = AlgScore.fValue;
+		  if (AlgScore.fValue<pidchi[planenum]){
+		    pidchi[planenum] = AlgScore.fValue;
+		    pidpdg[planenum] = TMath::Abs(AlgScore.fAssumedPdg);
+		  }
+		}
+		else if (TMath::Abs(AlgScore.fAssumedPdg) == 2212){ // chi2pr
+		  TrackerData.trkpidchipr[iTrk][planenum] = AlgScore.fValue;
+		  if (AlgScore.fValue<pidchi[planenum]){
+		    pidchi[planenum] = AlgScore.fValue;
+		    pidpdg[planenum] = TMath::Abs(AlgScore.fAssumedPdg);
+		  }
+		}
+		else if (TMath::Abs(AlgScore.fAssumedPdg) == 211){ // chi2pi
+		  TrackerData.trkpidchipi[iTrk][planenum] = AlgScore.fValue;
+		  if (AlgScore.fValue<pidchi[planenum]){
+		    pidchi[planenum] = AlgScore.fValue;
+		    pidpdg[planenum] = TMath::Abs(AlgScore.fAssumedPdg);
+		  }
+		}
+		else if (TMath::Abs(AlgScore.fAssumedPdg) == 321){ // chi2ka
+		  TrackerData.trkpidchika[iTrk][planenum] = AlgScore.fValue;
+		  if (AlgScore.fValue<pidchi[planenum]){
+		    pidchi[planenum] = AlgScore.fValue;
+		    pidpdg[planenum] = TMath::Abs(AlgScore.fAssumedPdg);
+		  }
+		}
+	      
+	      }
+	      else if (AlgScore.fVariableType==anab::kPIDA){
+		TrackerData.trkpidpida[iTrk][planenum] = AlgScore.fValue;
+	      }
+	      
+	    } // end loop though AlgScoresVec
+	  } // end loop over pid[ipid]
+
+	  // Finally, set min chi2
+	  for (size_t planenum=0; planenum<3; planenum++){
+	    TrackerData.trkpidchi[iTrk][planenum] = pidchi[planenum];
+	    TrackerData.trkpidpdg[iTrk][planenum] = pidpdg[planenum];
 	  }
 	} // fmpid.isValid()
 	
@@ -6264,7 +6317,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	fData->no_primaries = primary;
 	fData->geant_list_size = geant_particle;
 	fData->processname.resize(geant_particle);
-	LOG_DEBUG("AnalysisTree") 
+	MF_LOG_DEBUG("AnalysisTree") 
 	  << "Counted "
 	  << fData->geant_list_size << " GEANT particles ("
 	  << fData->geant_list_size_in_tpcAV << " in AV), "
@@ -6309,7 +6362,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   fTree->Fill();
   
   if (mf::isDebugEnabled()) {
-    // use mf::LogDebug instead of LOG_DEBUG because we reuse it in many lines;
+    // use mf::LogDebug instead of MF_LOG_DEBUG because we reuse it in many lines;
     // thus, we protect this part of the code with the line above
     mf::LogDebug logStream("AnalysisTreeStructure");
     logStream
@@ -6346,7 +6399,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   // if we don't use a permanent buffer (which can be huge),
   // delete the current buffer, and we'll create a new one on the next event
   if (!fUseBuffer) {
-    LOG_DEBUG("AnalysisTreeStructure") << "Freeing the tree data structure";
+    MF_LOG_DEBUG("AnalysisTreeStructure") << "Freeing the tree data structure";
     DestroyData();
   }
 } // microboone::AnalysisTree::analyze()

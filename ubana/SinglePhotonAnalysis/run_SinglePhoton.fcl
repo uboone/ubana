@@ -65,6 +65,7 @@ physics: {
        wire_spacing : 0.3 
        width_box : 1.
        length_box : 4.
+       truthmatching_signaldef : "ncdelta"
       }
 
   }

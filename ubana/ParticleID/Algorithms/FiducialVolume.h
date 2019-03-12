@@ -10,13 +10,13 @@ namespace fidvol{
 
     public:
       
-      std::vector<float> setFiducialVolume(std::vector<float> fv, fhicl::ParameterSet const & p);
+      std::vector<double> setFiducialVolume(std::vector<double> fv, fhicl::ParameterSet const & p);
 
-      void printFiducialVolume(std::vector<float> fv);
+      void printFiducialVolume(std::vector<double> fv);
 
-      bool isInFiducialVolume(TVector3 xyz, std::vector<float> fv);
+      bool isInFiducialVolume(TVector3 xyz, std::vector<double> fv);
 
-      std::vector<float> getTpcDimensions();
+      std::vector<double> getTpcDimensions();
 
   };
 

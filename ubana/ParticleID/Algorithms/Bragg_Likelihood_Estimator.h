@@ -21,11 +21,14 @@
 // cpp
 #include <vector>
 #include <iostream>
+#include <string>
 
 // ROOT
 #include "TMath.h"
 #include "TGraph.h"
 #include "TF1.h"
+#include "TFile.h"
+#include "TH2F.h"
 
 // art
 #include "fhiclcpp/ParameterSet.h"
@@ -41,31 +44,24 @@ namespace particleid{
   public:
     void configure(fhicl::ParameterSet const &p);
     void printConfiguration();
-    float getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum);
-    float getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum, float &shift);
+
+    double getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum);
+    double getLikelihood(std::vector<float> dEdx, std::vector<float> resRange, int particlehypothesis, bool forward, int planenum, double &shift);
+
 
   //private:
-    std::vector<float> gausWidth_mu;
-    std::vector<float> gausWidth_pi;
-    std::vector<float> gausWidth_k;
-    std::vector<float> gausWidth_p;
-    std::vector<float> gausWidth_mip;
-    std::vector<float> landauWidth_mu;
-    std::vector<float> landauWidth_pi;
-    std::vector<float> landauWidth_k;
-    std::vector<float> landauWidth_p;
-    std::vector<float> landauWidth_mip;
-    float offset_p;
-    float offset_mu;
-    float offset_pi;
-    float offset_k;
-    float offset_mip;
     int nHitsToDrop;
-    float endPointFloatShort;
-    float endPointFloatLong;
-    float endPointFloatStepSize;
+    double endPointFloatShort;
+    double endPointFloatLong;
+    double endPointFloatStepSize;
 
     bool checkRange;
+
+    std::string LikelihoodMapsFileName;
+    TFile *LikelihoodMapsFile;
+    TH2F *h_lmap[5][3];
+    // first index mu=0, pi=1, k=2, p=3, mip=4
+    // second index plane number
   };
 
 }

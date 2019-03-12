@@ -11,7 +11,9 @@ namespace particleid{
 
     public:
       
-      float getPida(std::vector<float> dEdx, std::vector<float> resRange, std::string method);
+
+      double getPida(std::vector<float> dEdx, std::vector<float> resRange, std::string method);
+
 
   };
 

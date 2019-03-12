@@ -616,7 +616,7 @@ namespace calibration {
     if (evttime > _timeMax) { _timeMax = evttime; }
 
     
-    LOG_INFO ("CalibrationTPC")
+    MF_LOG_INFO ("CalibrationTPC")
       << "Processing Run " << frunNum
       << ", Subrun " << fsubRunNum 
       << ", Event " << evt.event();
