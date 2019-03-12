@@ -58,17 +58,17 @@ namespace single_photon
             std::map<int, double> sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool> PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap){
-        
-        
-        std::vector<std::pair<art::Ptr<recob::PFParticle>, int>> primarySliceIdVec; //maps a primary PFP to a slice index
-       // std::map<int, double> sliceIdToNuScoreMap; //maps a slice index to the associated neutrino score
+
+
+        //std::vector<std::pair<art::Ptr<recob::PFParticle>, int>> primaryPFPSliceIdVec; //maps a primary PFP to a slice index
+        // std::map<int, double> sliceIdToNuScoreMap; //maps a slice index to the associated neutrino score
         std::vector<art::Ptr<recob::PFParticle>> clearCosmicPFP;
         std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
 
 
         std::vector<double> nuscore_slices; //this is a temporary vector to store neutrino score per slice for this event
         //std::vector<art::Ptr<recob::PFParticle>> primary_pfps; //store the primary PFP for each slice
-       // sliceIdToPFPMap.clear(); //clear between events
+        // sliceIdToPFPMap.clear(); //clear between events
 
         /*
          * Grabbed this info from Giuseppe:
@@ -129,7 +129,7 @@ namespace single_photon
 
                     //if there is a neutrino score it's the primary PFP, so save the score+slice info
                     if(temp_score != -1.0){
-                        primarySliceIdVec.push_back(std::pair(pfp, temp_ind));
+                        primaryPFPSliceIdVec.push_back(std::pair(pfp, temp_ind));
                         //primaryToSliceIdMap[pfp] = temp_ind;
                         sliceIdToNuScoreMap[temp_ind] = temp_score;
                         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t found primary PFP at index "<<pfp->Self()<<std::endl;
@@ -138,6 +138,10 @@ namespace single_photon
                     if( clear_cosmic> 0){
                         //std::cout<<"clear cosmic with PFP id "<<pfp->Self()<<std::endl;
                         clearCosmicPFP.push_back(pfp);
+                        PFPToClearCosmicMap[pfp] = true;
+                    }else{
+                        PFPToClearCosmicMap[pfp] = false;
+
                     }
 
                 }//for each PFP/metadata
@@ -148,18 +152,18 @@ namespace single_photon
 
         //now we have all the primary pfp's and the corresponding slices+scores
         //the next step is to look at all the pfp's in the event, find the primary, and then store the slice ind
-       // std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+        // std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
 
         //for all pfp's in the event
         //std::cout<<"looking at all PFP's"<<std::endl;
-         //std::map<int, std::vector<art::Ptr<recob::PFParticle>>> sliceIdToPFPMap;
+        //std::map<int, std::vector<art::Ptr<recob::PFParticle>>> sliceIdToPFPMap;
 
         //for (unsigned int i = 0; i< pfParticleVector.size(); i++){
         for(auto item: pfParticleMap){
             art::Ptr<recob::PFParticle> start_pfp = item.second;
-            //skipping pfp's that are clear cosmics
-            auto iter = find(clearCosmicPFP.begin(), clearCosmicPFP.end(), start_pfp);
-            if(iter != clearCosmicPFP.end()) continue;
+            //no longer skipping pfp's that are clear cosmics
+            //auto iter = find(clearCosmicPFP.begin(), clearCosmicPFP.end(), start_pfp);
+            //if(iter != clearCosmicPFP.end()) continue;
 
             //std::cout<<"START: looking for match for pfp - track id/pdg code "<<start_pfp->Self()<<"/"<<start_pfp->PdgCode()<<std::endl; 
 
@@ -187,10 +191,10 @@ namespace single_photon
             int slice_id = -1;//initialize to invalid
 
             //for each primary pfp
-            for(unsigned int j = 0; j <primarySliceIdVec.size(); j++){
+            for(unsigned int j = 0; j <primaryPFPSliceIdVec.size(); j++){
                 //if the parent primary matches to a primary in the list, save the slice id
-                if (parent_pfp == primarySliceIdVec[j].first){
-                    slice_id = primarySliceIdVec[j].second;
+                if (parent_pfp == primaryPFPSliceIdVec[j].first){
+                    slice_id = primaryPFPSliceIdVec[j].second;
                     break;
                 }
             }//for all primary PFP's in event
@@ -201,13 +205,16 @@ namespace single_photon
             } else {
                 // allPFPSliceIdVec[i] = std::pair(start_pfp,slice_id);
                 allPFPSliceIdVec.push_back(std::pair(start_pfp,slice_id));
+                // PFPToSliceIdMap[start_pfp] = slice_id; 
             }
-           // sliceIdToPFPMap[slice_id].push_back(start_pfp);
+            PFPToSliceIdMap[start_pfp] = slice_id; 
+
+            // sliceIdToPFPMap[slice_id].push_back(start_pfp);
         }//for all pfp's in the event
 
-       //for (auto pair: sliceIdToPFPMap){
-       //     std::cout<<"in slice ID "<<pair.first<<" there are "<<pair.second.size()<<" PFP's"<<std::endl;
-       //} 
+        //for (auto pair: sliceIdToPFPMap){
+        //     std::cout<<"in slice ID "<<pair.first<<" there are "<<pair.second.size()<<" PFP's"<<std::endl;
+        //} 
 
 
         /*
@@ -221,17 +228,28 @@ namespace single_photon
         m_reco_slice_nuscore = nuscore_slices;
 
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of clear cosmic PFP's in the event is "<<clearCosmicPFP.size()<<std::endl;
-        std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of items in the primary to slice vector is "<<primarySliceIdVec.size()<<" and in the slice to score map is "<<sliceIdToNuScoreMap.size()<<std::endl;
+        std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of items in the primary to slice vector is "<<primaryPFPSliceIdVec.size()<<" and in the slice to score map is "<<sliceIdToNuScoreMap.size()<<std::endl;
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of PFP's matched to a slice is "<< allPFPSliceIdVec.size()<<"/"<< pfParticleMap.size()<<std::endl;
         if ((clearCosmicPFP.size() +  allPFPSliceIdVec.size())!= pfParticleMap.size()){
             std::cout<<"BIG ERROR, UNACCOUNTED FOR PFP's, (clearCosmicPFP.size() +  allPFPSliceIdVec.size())!= pfParticleMap.size())"<<std::endl;
         }
 
+        if (PFPToSliceIdMap.size() != pfParticleMap.size()){
+            std::cout<<"BIG ERROR, PFPToSliceIdMap.size() != pfParticleMap.size(): "<<std::endl;
+            std::cout<<PFPToSliceIdMap.size()<<"/"<<pfParticleMap.size()<<std::endl;
+        }
+
+        if (PFPToClearCosmicMap.size() != pfParticleToMetadataMap.size()){
+            std::cout<<"BIG ERROR, PFPToClearCosmicMap.size() != pfParticleToMetadataMap.size(): "<<std::endl;
+            std::cout<<PFPToClearCosmicMap.size()<<"/"<<pfParticleToMetadataMap.size()<<std::endl;
+
+        } 
+
         //std::vector<std::vector<int>> pfp_pdg_slice; 
         //for(auto item: allPFPSliceIdVec){
-          //std::cout<<"the pfp with id "<<item.first->Self()<<" is associated to slice "<<item.second<<std::endl;
-          //      pfp_pdg_slice[item.second].push_back(item.first->PdgCode());
-         // }
+        //std::cout<<"the pfp with id "<<item.first->Self()<<" is associated to slice "<<item.second<<std::endl;
+        //      pfp_pdg_slice[item.second].push_back(item.first->PdgCode());
+        // }
     }
 
 
