@@ -438,6 +438,8 @@ namespace single_photon
             int m_subrun_number;
             int m_event_number;
 
+            int m_test_matched_hits;
+
             //------------ Vertex Related variables -------------
             int m_reco_vertex_size;
             double m_vertex_pos_x;

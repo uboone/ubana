@@ -342,6 +342,10 @@ namespace single_photon
             art::fill_ptr_vector(mcParticleVector,mcParticleHandle);
 
 
+
+
+
+
             //testbed(mcParticleVector,evt);
 
             /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
@@ -363,6 +367,31 @@ namespace single_photon
           //  art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
 
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
+
+
+            //mcc9 march miniretreat fix
+            std::vector<art::Ptr<simb::MCParticle>> particle_vec; //vector of all MCParticles associated with a given hit in the reco PFP
+            std::vector<anab::BackTrackerHitMatchingData const *> match_vec; //vector of some backtracker thing
+
+            m_test_matched_hits = 0;
+
+            for(size_t j=0; j<hitVector.size();j++){
+                const art::Ptr<recob::Hit> hit = hitVector[j];
+            
+                    particle_vec.clear(); match_vec.clear(); //only store per hit
+
+                    mcparticles_per_hit.get(hit.key(), particle_vec, match_vec);
+                    
+                    if(particle_vec.size() > 0){
+                        m_test_matched_hits++;
+                    }
+
+            }
+            std::cout<<"TEST: matched "<<m_test_matched_hits<<std::endl;
+
+            //end
+
+
 
             this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters,  MCParticleToTrackIdMap);
 
@@ -476,6 +505,8 @@ namespace single_photon
         vertex_tree->Branch("subrun_number", &m_subrun_number, "subrun_number/I");
         vertex_tree->Branch("event_number", &m_event_number, "event_number/I");
 
+
+        vertex_tree->Branch("test_matched_hits", &m_test_matched_hits, "test_matched_hits/I");
         // --------------------- Vertex Related variables ------------
         vertex_tree->Branch("reco_vertex_size", &m_reco_vertex_size);
         vertex_tree->Branch("reco_vertex_x", &m_vertex_pos_x);
@@ -559,7 +590,7 @@ namespace single_photon
         m_event_number = -99;
         m_subrun_number = -99;
         m_run_number = -99;
-
+        m_test_matched_hits = 0;
 
         //------------ Vertex related Variables -------------
         m_reco_vertex_size = 0;
