@@ -26,17 +26,18 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/GTruth.h"
 
-#include "uboone/TreeReader/TreeReader.h"
+#include "ubana/ubana/TreeReader/TreeReader.h"
 #include "GSimpleInterface.h"
 #include "NTupleInterface.h"
-#include "cetlib/exception.h"
+#include "cetlib_except/exception.h"
 
 namespace uboone {
 
 TreeReader::TreeReader(fhicl::ParameterSet const& ps, 
                        art::ProductRegistryHelper &helper,
-                       art::SourceHelper const &pm)
-    : fSourceHelper(pm), fCurrentSubRunID() {
+                       art::SourceHelper const &pm
+		       )
+  : fSourceHelper(&pm), fCurrentSubRunID() {
   // General parameters
   fEventCounter = 0; 
   fEntry = ps.get<uint32_t>("skipEvents", 0);
@@ -177,11 +178,11 @@ bool TreeReader::readNext(art::RunPrincipal* const&,
 
   art::SubRunID newID(rn, 0);
   if (fCurrentSubRunID.runID() != newID.runID()) {
-    outR = fSourceHelper.makeRunPrincipal(rn, tstamp);
+    outR = fSourceHelper->makeRunPrincipal(rn, tstamp);
   }
 
   if (fCurrentSubRunID != newID) {
-    outSR = fSourceHelper.makeSubRunPrincipal(rn,0,tstamp);
+    outSR = fSourceHelper->makeSubRunPrincipal(rn,0,tstamp);
     std::unique_ptr<sumdata::POTSummary> pot(new sumdata::POTSummary);    
     pot->totpot = fPOT;
     pot->totgoodpot = fPOT;
@@ -194,7 +195,7 @@ bool TreeReader::readNext(art::RunPrincipal* const&,
     fCurrentSubRunID = newID;
   }
 
-  outE = fSourceHelper.makeEventPrincipal(
+  outE = fSourceHelper->makeEventPrincipal(
     fCurrentSubRunID.run(), fCurrentSubRunID.subRun(), fEventCounter, tstamp);
 
   // Put products in the event.

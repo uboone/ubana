@@ -1,6 +1,7 @@
 #include "services_microboone.fcl"
-#include "eventweight_treereader.fcl"
+#include "microboone_eventweight_service.fcl"
 #include "seedservice_microboone.fcl"
+#include "eventweight_treereader.fcl"
 
 process_name: TreeReader
 
@@ -9,6 +10,7 @@ services: {
   NuRandomService: @local::microboone_seedservice
   TimeTracker: {}
   FileCatalogMetadata: @local::art_file_catalog_mc
+  UBEventWeight: @local::microboone_eventweight_service
 }
 
 source: {
@@ -17,7 +19,7 @@ source: {
   skipEvents: 0
   maxEvents: -1
   inputType: "ntuple"
-  treeName: "testmod/tree"
+  treeName: "singlephoton/eventweight_tree"
   dataProductName: "TreeReader"
   branches: {
     run: "run"

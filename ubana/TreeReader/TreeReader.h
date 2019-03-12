@@ -22,8 +22,8 @@ class TreeReader {
 public:
   /** Constructor for an InputSource. */
   TreeReader(fhicl::ParameterSet const &pset,
-             art::ProductRegistryHelper &helper,
-             art::SourceHelper const &pm);
+             art::ProductRegistryHelper &helper, art::SourceHelper const &pm
+	     );
   
   /** Required by FileReaderSource. */
   void closeCurrentFile();
@@ -40,7 +40,7 @@ public:
   void endJob();
  
 private:
-  art::SourceHelper   fSourceHelper;
+  const art::SourceHelper*   fSourceHelper;
   art::SubRunID       fCurrentSubRunID;
 
   bool                fVerbose;

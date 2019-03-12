@@ -22,7 +22,7 @@ treereader_eventweight: {
   ##########################################################
  
   weight_functions_beam: [
-    bnbcorrection, horncurrent, expskin,
+    horncurrent, expskin,
     piplus, piminus, kplus, kzero, kminus,
     pioninexsec, pionqexsec, piontotxsec,
     nucleontotxsec, nucleonqexsec, nucleoninexsec

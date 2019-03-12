@@ -6,7 +6,7 @@
 
 #include "art/Framework/Core/InputSourceMacros.h"
 #include "art/Framework/IO/Sources/Source.h"
-#include "uboone/TreeReader/TreeReader.h"
+#include "ubana/TreeReader/TreeReader.h"
 
 namespace uboone {
   typedef art::Source<TreeReader> TreeReaderSource;

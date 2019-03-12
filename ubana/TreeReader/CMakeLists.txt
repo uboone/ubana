@@ -24,9 +24,10 @@ art_make_library(LIBRARY_NAME TreeInterface
 			${GMESSENGER}
 			${GHEP}
 ####################################################
-                      ${CETLIB}
+		#$(CETLIB)
 		      ${FHICLCPP}
-                      #${MF_MESSAGELOGGER}
+		      cetlib cetlib_except
+		      #${MF_MESSAGELOGGER}
 		      ${CLHEP}
                       ${ROOT_BASIC_LIB_LIST}
                       ${Boost_SYSTEM_LIBRARY}
@@ -44,12 +45,13 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		      art_Persistency_Common canvas_Persistency_Common canvas_Persistency_Common
-                      art_Persistency_Provenance canvas_Persistency_Provenance canvas_Persistency_Provenance
-                      art_Utilities canvas_Utilities canvas_Utilities
+		      art_Persistency_Common canvas 
+                      art_Persistency_Provenance canvas 
+                      art_Utilities canvas
 			${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}
                         ${FHICLCPP}
+			cetlib cetlib_except
                         ${Boost_SYSTEM_LIBRARY}
                         ${ROOT_BASIC_LIB_LIST}
 
@@ -78,6 +80,7 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
                         ${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}
                         ${FHICLCPP}
+			cetlib cetlib_except
                         ${Boost_SYSTEM_LIBRARY}
                         ${ROOT_BASIC_LIB_LIST}
         )                                                           
