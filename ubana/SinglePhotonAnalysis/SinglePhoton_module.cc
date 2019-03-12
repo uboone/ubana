@@ -4,7 +4,9 @@
 #include "analyze_Showers.h"
 #include "analyze_Template.h"
 #include "analyze_MCTruth.h"
+#include "analyze_EventWeight.h"
 #include "analyze_Slice.h"
+
 
 
 namespace single_photon
@@ -447,7 +449,9 @@ namespace single_photon
            //Obsolete function
             //this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
             this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
-            
+	    this->AnalyzeEventWeight(evt);
+	    
+            //added since last time?
             std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
             std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
             this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec);
@@ -459,7 +463,6 @@ namespace single_photon
             this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
 
 
-
         }
 
 
@@ -469,7 +472,9 @@ namespace single_photon
         vertex_tree->Fill();
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
+	
     }
+  
 
 
 
@@ -491,6 +496,7 @@ namespace single_photon
 
         vertex_tree = tfs->make<TTree>("vertex_tree", "vertex_tree");
         pot_tree = tfs->make<TTree>("pot_tree", "pot_tree");
+	eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
 
         // --------------------- POT Releated variables -----------------
         m_number_of_events = 0;
@@ -550,6 +556,10 @@ namespace single_photon
 
         // ---------------------- MCTruth Related Variables ----------
         this->CreateMCTruthBranches();
+
+	// ---------------------- Eventweight CTruth Related Variables ---------
+	this->CreateEventWeightBranches();
+	
 
         //std::string bad_channel_file = "/pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt";
 
@@ -611,6 +621,11 @@ namespace single_photon
         //------------- Track Related Variables -----------------
         this->ClearShowers();
         this->ClearMCTruths();
+
+	//------------- EventWeight Related Variables -----------------
+	this->ClearEventWeightBranches();
+
+
         
         //MetaData Related Varibles
         this->ClearSlices();
