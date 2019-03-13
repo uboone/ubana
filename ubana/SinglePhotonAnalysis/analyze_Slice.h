@@ -288,6 +288,27 @@ namespace single_photon
         return slice;
     }
 
+/*
+    void SinglePhoton::AnalyzeRecoMCSlices(){
+       //currently only looking at NCDelta events, will expand to more true signal defs 
+        if(m_mctruth_is_delta_radiative== true){
+              
+            //get true shower info       
+            //get true track ifo
+            
+            //if at least one true shower and true track above threshold, define as reco-able 1g1p
+            if (m_mctruth_exiting_photon_energy > 20){
+
+            }
+            //if at least true shower above threshold, define as recoable 1g0p
+            //else not recoable
+        
+         }
+
+
+    }
+*/
+
     //for a given signal def, finds the MCParticles in event
     //loops over association between reco tracks/showers to get associated slice(s)
     //can also look at things like shower energy, conversion length, etc.

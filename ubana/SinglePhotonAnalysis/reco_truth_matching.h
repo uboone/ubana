@@ -550,7 +550,11 @@ namespace single_photon
 
             std::vector<double> trk_overlay_vec;
             std::vector<double> vec_fraction_matched;
+<<<<<<< HEAD
             bool reco_verbose = false;
+=======
+            bool reco_verbose = true;
+>>>>>>> 535e6a52d76370eeeaa5ea608e7ffac8571e9f1d
 
             //for each recob::track/shower in the event
             for(size_t i=0; i<objectVector.size();++i){
