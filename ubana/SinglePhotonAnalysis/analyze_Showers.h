@@ -366,14 +366,14 @@ namespace single_photon
             std::vector<double> t_area(3,0.0);
 
             //Right, this basically loops over all hits in all planes and for each plane forms the Delaunay triangilization of it and calculates the 2D area inscribed by the convex hull
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Starting Delaunay Triangleization"<<std::endl;;
+            //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Starting Delaunay Triangleization"<<std::endl;;
 
             auto start = std::chrono::high_resolution_clock::now();
             this->delaunay_hit_wrapper(hits, t_numhits, t_num, t_area);
 
             auto finish = std::chrono::high_resolution_clock::now();
             auto microseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start);
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles"<<std::endl;;
+            //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles"<<std::endl;;
 
             m_reco_shower_delaunay_num_triangles_plane0[i_shr] = t_num[0];
             m_reco_shower_delaunay_num_triangles_plane1[i_shr] = t_num[1];
@@ -414,7 +414,7 @@ namespace single_photon
             m_reco_shower_dQdx_plane2_median[i_shr] = getMedian(m_reco_shower_dQdx_plane2[i_shr]);
 
 
-            std::cout<<"PAR: "<<m_reco_shower_dEdx_plane0[i_shr].size()<<" "<<m_reco_shower_dEdx_plane1[i_shr].size()<<" "<<m_reco_shower_dEdx_plane2[i_shr].size()<<std::endl;
+            if(m_is_verbose) std::cout<<"PAR: "<<m_reco_shower_dEdx_plane0[i_shr].size()<<" "<<m_reco_shower_dEdx_plane1[i_shr].size()<<" "<<m_reco_shower_dEdx_plane2[i_shr].size()<<std::endl;
 
             m_reco_shower_dEdx_plane0_mean[i_shr] = std::accumulate(m_reco_shower_dEdx_plane0[i_shr].begin(), m_reco_shower_dEdx_plane0[i_shr].end(), 0.0)/((double)m_reco_shower_dEdx_plane0[i_shr].size()); 
             m_reco_shower_dEdx_plane1_mean[i_shr] = std::accumulate(m_reco_shower_dEdx_plane1[i_shr].begin(), m_reco_shower_dEdx_plane1[i_shr].end(), 0.0)/((double)m_reco_shower_dEdx_plane1[i_shr].size()); 

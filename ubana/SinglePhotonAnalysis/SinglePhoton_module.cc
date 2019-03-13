@@ -4,7 +4,9 @@
 #include "analyze_Showers.h"
 #include "analyze_Template.h"
 #include "analyze_MCTruth.h"
+#include "analyze_EventWeight.h"
 #include "analyze_Slice.h"
+
 
 
 namespace single_photon
@@ -22,7 +24,7 @@ namespace single_photon
 
     void SinglePhoton::reconfigure(fhicl::ParameterSet const &pset)
     {
-        m_is_verbose = pset.get<bool>("Verbose",true);
+        m_is_verbose = pset.get<bool>("Verbose",false);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
         m_is_data = pset.get<bool>("isData",false);
@@ -356,6 +358,10 @@ namespace single_photon
             art::fill_ptr_vector(mcParticleVector,mcParticleHandle);
 
 
+
+
+
+
             //testbed(mcParticleVector,evt);
 
             /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
@@ -377,6 +383,31 @@ namespace single_photon
           //  art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
 
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
+
+
+            //mcc9 march miniretreat fix
+            std::vector<art::Ptr<simb::MCParticle>> particle_vec; //vector of all MCParticles associated with a given hit in the reco PFP
+            std::vector<anab::BackTrackerHitMatchingData const *> match_vec; //vector of some backtracker thing
+
+            m_test_matched_hits = 0;
+
+            for(size_t j=0; j<hitVector.size();j++){
+                const art::Ptr<recob::Hit> hit = hitVector[j];
+            
+                    particle_vec.clear(); match_vec.clear(); //only store per hit
+
+                    mcparticles_per_hit.get(hit.key(), particle_vec, match_vec);
+                    
+                    if(particle_vec.size() > 0){
+                        m_test_matched_hits++;
+                    }
+
+            }
+            std::cout<<"TEST: matched "<<m_test_matched_hits<<std::endl;
+
+            //end
+
+
 
             this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters,  MCParticleToTrackIdMap);
 
@@ -409,19 +440,10 @@ namespace single_photon
             //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
 
 
-            for(auto & track: tracks){
-                std::cout<<"Reallyside: "<<trackToMCParticleMap.count(track)<<std::endl;
-                //const art::Ptr<simb::MCParticle> mp = trackToMCParticleMap[track];
-                //std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
-            }
             //for(auto & shower: showers){
             //    auto mp = showerToMCParticleMap[shower];
             //    std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
             //}
-
-            for(auto & track: tracks){
-                std::cout<<"BINside: "<<trackToMCParticleMap.count(track)<<std::endl;
-            }
 
 
 
@@ -432,9 +454,14 @@ namespace single_photon
            //Obsolete function
             //this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
             this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
+	    this->AnalyzeEventWeight(evt);
+	    
+            //added since last time?
+            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
             
          /*   std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
            std::map<int, std::vector<art::Ptr<recob::PFParticle>>> sliceIdToPFPMap; //this is an alternative, stores all the PFP's but organized by slice ID
+>>>>>>> 37870fe8094e854e1661be2442637aaaeea236c9
             std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
             this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec, sliceIdToPFPMap);
             std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
@@ -447,7 +474,6 @@ namespace single_photon
            // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
 
 
-
         }
 
 
@@ -457,7 +483,9 @@ namespace single_photon
         vertex_tree->Fill();
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
+	
     }
+  
 
 
 
@@ -479,6 +507,7 @@ namespace single_photon
 
         vertex_tree = tfs->make<TTree>("vertex_tree", "vertex_tree");
         pot_tree = tfs->make<TTree>("pot_tree", "pot_tree");
+	eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
 
         // --------------------- POT Releated variables -----------------
         m_number_of_events = 0;
@@ -493,6 +522,8 @@ namespace single_photon
         vertex_tree->Branch("subrun_number", &m_subrun_number, "subrun_number/I");
         vertex_tree->Branch("event_number", &m_event_number, "event_number/I");
 
+
+        vertex_tree->Branch("test_matched_hits", &m_test_matched_hits, "test_matched_hits/I");
         // --------------------- Vertex Related variables ------------
         vertex_tree->Branch("reco_vertex_size", &m_reco_vertex_size);
         vertex_tree->Branch("reco_vertex_x", &m_vertex_pos_x);
@@ -537,6 +568,10 @@ namespace single_photon
         // ---------------------- MCTruth Related Variables ----------
         this->CreateMCTruthBranches();
 
+	// ---------------------- Eventweight CTruth Related Variables ---------
+	this->CreateEventWeightBranches();
+	
+
         //std::string bad_channel_file = "/pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt";
 
         std::string bad_channel_file = "MCC9_channel_list.txt";
@@ -576,7 +611,7 @@ namespace single_photon
         m_event_number = -99;
         m_subrun_number = -99;
         m_run_number = -99;
-
+        m_test_matched_hits = 0;
 
         //------------ Vertex related Variables -------------
         m_reco_vertex_size = 0;
@@ -597,6 +632,11 @@ namespace single_photon
         //------------- Track Related Variables -----------------
         this->ClearShowers();
         this->ClearMCTruths();
+
+	//------------- EventWeight Related Variables -----------------
+	this->ClearEventWeightBranches();
+
+
         
         //MetaData Related Varibles
         this->ClearSlices();

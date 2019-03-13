@@ -375,7 +375,6 @@ namespace single_photon
             //   const art::Ptr<recob::Track> track = *iter;
             const art::Ptr<recob::Track> track = tracks[k];
             m_sim_track_matched[i_trk] = 0;
-            std::cout<<"INSIDE : "<<trackToMCParticleMap.count(track)<<std::endl;
 
             if(trackToMCParticleMap.count(track)>0){
 
