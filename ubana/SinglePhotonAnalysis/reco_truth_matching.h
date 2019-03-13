@@ -306,7 +306,7 @@ namespace single_photon
             }//for each MCParticle that's associated to a the recob::Shower
 
             //there should be at least 1 mother MCP
-            std::cout<<"SinglePhoton::recoMC()\t||\t the number of source mother particles is "<<mother_MCP_map.size()<<" of which : "<<marks_mother_vector.size()<<" are unique!"<<std::endl;
+ if(reco_verbose)           std::cout<<"SinglePhoton::recoMC()\t||\t the number of source mother particles is "<<mother_MCP_map.size()<<" of which : "<<marks_mother_vector.size()<<" are unique!"<<std::endl;
 
             if(reco_verbose)       std::cout<<"---------------------------- L2-------------------------------"<<std::endl;
 
@@ -341,15 +341,15 @@ namespace single_photon
             }
 
             if(marks_mother_vector.size()!=0){
-                std::cout<<"SinglePhoton::recoMC()\t||\t The `BEST` mother is a "<<marks_mother_vector[best_mother_index]->PdgCode()<<" at "<<best_mother_index<<" on plane: "<<best_mother_plane<<std::endl;
+               if(reco_verbose)  std::cout<<"SinglePhoton::recoMC()\t||\t The `BEST` mother is a "<<marks_mother_vector[best_mother_index]->PdgCode()<<" at "<<best_mother_index<<" on plane: "<<best_mother_plane<<std::endl;
                 for(int l=0; l<3; l++){
-                    std::cout<<"SinglePhoton::recoMC()\t||\t It represents "<<marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][l]/total_energy_on_plane[l]*100.0<<"% of the energy on plane: "<<l<<std::endl;
+                   if(reco_verbose) std::cout<<"SinglePhoton::recoMC()\t||\t It represents "<<marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][l]/total_energy_on_plane[l]*100.0<<"% of the energy on plane: "<<l<<std::endl;
                 }
             }
 
 
 
-            std::cout<<"---------------------------- L2-------------------------------"<<std::endl;
+           if(reco_verbose) std::cout<<"---------------------------- L2-------------------------------"<<std::endl;
             const art::Ptr<simb::MCParticle> match = marks_mother_vector[best_mother_index];
 
             std::vector<double> corrected_vertex(3), corrected_start(3);
@@ -580,7 +580,7 @@ namespace single_photon
                 int n_associated_mcparticle_hits = 0;
                 int n_not_associated_hits = 0;
 
-                std::cout<<"REC: This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
+                //std::cout<<"REC: This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
 
                 //loop only over hits associated to this reco PFP
                 for(size_t i_h=0; i_h < obj_hits_ptrs.size(); ++i_h){
@@ -629,7 +629,7 @@ namespace single_photon
 
                 }//for each recob::track/shower in the event
 
-                std::cout << "SinglePhoton::recoMC()\t||\t the number of MCParticles associated with this PFP is "<<objide.size()<<std::endl;       
+                //std::cout << "SinglePhoton::recoMC()\t||\t the number of MCParticles associated with this PFP is "<<objide.size()<<std::endl;       
 
                 if(found_a_match){
                     mcParticleVector.push_back(best_matched_mcparticle);
@@ -644,10 +644,10 @@ namespace single_photon
 
 
                 if(!found_a_match){
-                    std::cout << "SinglePhoton::recoMC()\t||\t NO MATCH NO MATCH (from my loop) for PFP with pdg  "<<pdg<<std::endl;
-                    std::cout<<" count "<<objectToMCParticleMap.count(object)<<std::endl;
+                   if(reco_verbose) std::cout << "SinglePhoton::recoMC()\t||\t NO MATCH NO MATCH (from my loop) for PFP with pdg  "<<pdg<<std::endl;
+                    if(reco_verbose)std::cout<<" count "<<objectToMCParticleMap.count(object)<<std::endl;
                 }else{
-                    std::cout << "SinglePhoton::recoMC()\t||\t Final Match (from my loop) for PFP with pdg "<<pdg<<" is " << best_matched_mcparticle->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
+                 if(reco_verbose)   std::cout << "SinglePhoton::recoMC()\t||\t Final Match (from my loop) for PFP with pdg "<<pdg<<" is " << best_matched_mcparticle->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
                         << " pdg=" << best_matched_mcparticle->PdgCode()
                         << " trkid=" << best_matched_mcparticle->TrackId()
                         << " ke=" << best_matched_mcparticle->E()-best_matched_mcparticle->Mass()<< "\n";
