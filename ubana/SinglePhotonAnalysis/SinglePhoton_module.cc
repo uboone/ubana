@@ -476,6 +476,9 @@ namespace single_photon
 
             //this one was for testing, leaving out for now
             // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
+            
+            this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
+
 
 
         }
@@ -485,6 +488,7 @@ namespace single_photon
 
         //---------------------- END OF LOOP, fill vertex ---------------------
         vertex_tree->Fill();
+        ncdelta_slice_tree->Fill();
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 
@@ -512,6 +516,8 @@ namespace single_photon
         vertex_tree = tfs->make<TTree>("vertex_tree", "vertex_tree");
         pot_tree = tfs->make<TTree>("pot_tree", "pot_tree");
         eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
+        ncdelta_slice_tree = tfs->make<TTree>("ncdelta_slice_tree", "ncdelta_slice_tree");
+
 
         // --------------------- POT Releated variables -----------------
         m_number_of_events = 0;
@@ -566,7 +572,7 @@ namespace single_photon
 
         //Metadata Branches
         this->CreateSliceBranches();
-        this->CreateMatchedSliceBranches();
+        //this->CreateMatchedSliceBranches();
 
 
         // ---------------------- MCTruth Related Variables ----------
