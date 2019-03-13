@@ -55,7 +55,7 @@ namespace single_photon
         m_mctruth_exiting_proton_mother_trackID.clear();
         m_mctruth_exiting_proton_trackID.clear();
         m_mctruth_exiting_proton_from_delta_decay.clear();
-        m_mctruth_exiting_photon_energy.clear();
+        m_mctruth_exiting_proton_energy.clear();
 
     }
 
@@ -165,6 +165,8 @@ namespace single_photon
             int tmp_n_neutrons_from_delta = 0; 
 
 
+            m_mctruth_leading_exiting_proton_energy = -9999;
+
             for(int j=0; j< m_mctruth_num_daughter_particles; j++){
 
                 const simb::MCParticle par = truth->GetParticle(j);
@@ -273,8 +275,8 @@ namespace single_photon
             }
 
 
-           for(int p=0; p< m_mctruth_exiting_proton_energy.size(); p++){
-                     if( m_mctruth_exiting_proton_energy[p] > m_mctruth_leading_exiting_proton_energy[p] ){
+           for(size_t p=0; p< m_mctruth_exiting_proton_energy.size(); p++){
+                     if( m_mctruth_exiting_proton_energy[p] > m_mctruth_leading_exiting_proton_energy ){
                             m_mctruth_leading_exiting_proton_energy = m_mctruth_exiting_proton_energy[p];
                      }
            }
