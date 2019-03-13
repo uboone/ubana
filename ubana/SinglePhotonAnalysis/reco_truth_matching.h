@@ -100,7 +100,7 @@ namespace single_photon
 
             bool found_a_match = false;
 
-            std::cout<<"SinglePhoton::RecoMC()\t||\t On object: "<<i<<". This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
+            //std::cout<<"SinglePhoton::RecoMC()\t||\t On object: "<<i<<". This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
 
             //loop only over hits associated to this reco PFP
             for(size_t i_h=0; i_h < obj_hits_ptrs.size(); ++i_h){

@@ -24,7 +24,7 @@ namespace single_photon
 
     void SinglePhoton::reconfigure(fhicl::ParameterSet const &pset)
     {
-        m_is_verbose = pset.get<bool>("Verbose",true);
+        m_is_verbose = pset.get<bool>("Verbose",false);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
         m_is_data = pset.get<bool>("isData",false);
@@ -438,19 +438,10 @@ namespace single_photon
             //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
 
 
-            for(auto & track: tracks){
-                std::cout<<"Reallyside: "<<trackToMCParticleMap.count(track)<<std::endl;
-                //const art::Ptr<simb::MCParticle> mp = trackToMCParticleMap[track];
-                //std::cout<<"CHECKTRACK: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
-            }
             //for(auto & shower: showers){
             //    auto mp = showerToMCParticleMap[shower];
             //    std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
             //}
-
-            for(auto & track: tracks){
-                std::cout<<"BINside: "<<trackToMCParticleMap.count(track)<<std::endl;
-            }
 
 
 
