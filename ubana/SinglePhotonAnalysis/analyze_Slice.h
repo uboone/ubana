@@ -124,7 +124,8 @@ namespace single_photon
             std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> &primaryPFPSliceIdVec,
             std::map<int, double> &sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
-            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap){
 
 
         //std::vector<std::pair<art::Ptr<recob::PFParticle>, int>> primaryPFPSliceIdVec; //maps a primary PFP to a slice index
@@ -171,10 +172,10 @@ namespace single_photon
                     int temp_ind = -1;
                     double temp_score = -1.0;
                     int clear_cosmic = -1;
-                    //bool is_nuslice = false;
+                    bool is_nuslice = false;
                     //for each of the things in the list
                     for (auto it:propertiesmap ){
-                        std::cout << "  - " << it.first << " = " << it.second << std::endl;
+                        //std::cout << "  - " << it.first << " = " << it.second << std::endl;
                         if (it.first == "SliceIndex"){
                             temp_ind = it.second;
                             // std::cout << "  - " << it.first << " = " << it.second << std::endl;
@@ -193,9 +194,9 @@ namespace single_photon
                         if (it.first == "IsClearCosmic"){
                             clear_cosmic = 1;
                         }
-                        //   if(it.first == "IsNeutrino"){
-
-                        // }
+                           if(it.first == "IsNeutrino"){
+                              is_nuslice = true;
+                        }
                     }//for each item in properties map
 
                     //if there is a neutrino score it's the primary PFP, so save the score+slice info
@@ -213,6 +214,12 @@ namespace single_photon
                     }else{
                         PFPToClearCosmicMap[pfp] = false;
 
+                    }
+                    if(is_nuslice == true){
+                        PFPToNuSliceMap[pfp] = true;
+                    }else{ 
+                        PFPToNuSliceMap[pfp] = false;
+                    
                     }
 
                 }//for each PFP/metadata
