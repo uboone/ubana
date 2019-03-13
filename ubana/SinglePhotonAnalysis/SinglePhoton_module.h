@@ -435,6 +435,9 @@ namespace single_photon
             bool m_is_overlayed;
             bool m_run_all_pfps;
 
+            double m_exiting_photon_energy_threshold ;
+            double m_exiting_proton_energy_threshold ;
+           
             double m_track_calo_min_dEdx;
             double m_track_calo_max_dEdx;
             double m_track_calo_min_dEdx_hits;
@@ -802,7 +805,10 @@ namespace single_photon
             std::vector<int> m_mctruth_exiting_proton_mother_trackID;
             std::vector<int> m_mctruth_exiting_proton_from_delta_decay;
             std::vector<double> m_mctruth_exiting_proton_energy;
-
+            
+            bool  m_mctruth_is_reconstructable_1g1p;
+            bool  m_mctruth_is_reconstructable_1g0p;
+            
 
             std::vector<double>        m_mctruth_exiting_pi0_E;
             std::vector<double>        m_mctruth_exiting_pi0_px;
