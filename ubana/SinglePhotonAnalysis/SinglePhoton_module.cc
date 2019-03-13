@@ -241,7 +241,7 @@ namespace single_photon
 
         //Track Calorimetry
         art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
-        std::map<art::Ptr<recob::Track>, art::Ptr<anab::Calorimetry> > trackToCalorimetryMap;
+        std::map<art::Ptr<recob::Track>, std::vector<art::Ptr<anab::Calorimetry>> > trackToCalorimetryMap;
         //So a cross check
         if (!calo_per_track.isValid())
         {
@@ -252,7 +252,13 @@ namespace single_photon
             if(calo_per_track.at(tracks[i].key()).size() ==0){
                 std::cerr<<"Track Calorimetry Breaking!  the vector of calo_per_track is of length 0 at this track."<<std::endl;
             }
-            trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
+            
+            size_t calo_size = calo_per_track.at(tracks[i].key()).size();
+            std::cout<<"Track Calo from producer: "<<m_caloLabel<<" has "<<calo_size<<" anab::Calorimetry objects associaed."<<std::endl;
+            trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key());
+            for(size_t k=0; k<calo_size; k++){
+                std::cout<<"Calo "<<k<<" PlaneID: "<<calo_per_track.at(tracks[i].key())[k]->PlaneID()<<std::endl;
+            }
         }
 
 
@@ -364,8 +370,6 @@ namespace single_photon
 
 
 
-
-
             //testbed(mcParticleVector,evt);
 
             /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
@@ -416,7 +420,9 @@ namespace single_photon
             this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters,  MCParticleToTrackIdMap);
 
             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::track"<<std::endl;
-            recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector);
+            std::vector<double> trk_overlay_vec = recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector);
+
+
             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
             this->showerRecoMCmatching(showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap);
 
@@ -452,13 +458,14 @@ namespace single_photon
 
 
 
-            this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector, MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap);
+           this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector, MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,trk_overlay_vec);
+            
 
 
             //Obsolete function
             //this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
             this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
-            this->AnalyzeEventWeight(evt);
+	        this->AnalyzeEventWeight(evt);
 
             //added since last time?
             std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
