@@ -322,11 +322,12 @@ namespace single_photon
 
             //if it's a true delta radiative event, check the energies
 
-            if (m_mctruth_is_delta_radiative){
+            if (m_mctruth_is_delta_radiative==true){
                 for (unsigned int p = 0; p <  m_mctruth_exiting_photon_energy.size(); p++){
+                    std::cout<<"looking at exiting photon with energy "<<m_mctruth_exiting_photon_energy[p]<<std::endl;
                     if ( m_mctruth_exiting_photon_energy[p] > m_exiting_photon_energy_threshold){
                         m_mctruth_is_reconstructable_1g0p = true;
-                        break;
+      
                     }//if g above threshold
                 }//for all exiting g
                 for(unsigned int pr = 0; pr <  m_mctruth_exiting_proton_energy.size(); pr++){
@@ -334,7 +335,7 @@ namespace single_photon
                         if( m_mctruth_is_reconstructable_1g0p == true){
                             m_mctruth_is_reconstructable_1g1p = true;
                             m_mctruth_is_reconstructable_1g0p = false;
-                            break;
+                     
                         }
                     }//if p above threshold
                 }//for all exiting p

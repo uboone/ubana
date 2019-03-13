@@ -67,8 +67,8 @@ physics: {
        length_box : 4.
        truthmatching_signaldef : "ncdelta"
        runAllPFPs: "false"
-       exiting_photon_energy: 20
-       exiting_proton_energy: 978  #40Mev + proton mass 
+       exiting_photon_energy: 0.2
+       exiting_proton_energy: 0.978  #40Mev + proton mass 
       }
 
   }
