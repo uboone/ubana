@@ -236,7 +236,7 @@ namespace single_photon
 
         //Track Calorimetry
         art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
-        std::map<art::Ptr<recob::Track>, art::Ptr<anab::Calorimetry> > trackToCalorimetryMap;
+        std::map<art::Ptr<recob::Track>, std::vector<art::Ptr<anab::Calorimetry>> > trackToCalorimetryMap;
         //So a cross check
         if (!calo_per_track.isValid())
         {
@@ -247,7 +247,13 @@ namespace single_photon
             if(calo_per_track.at(tracks[i].key()).size() ==0){
                 std::cerr<<"Track Calorimetry Breaking!  the vector of calo_per_track is of length 0 at this track."<<std::endl;
             }
-            trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
+            
+            size_t calo_size = calo_per_track.at(tracks[i].key()).size();
+            std::cout<<"Track Calo from producer: "<<m_caloLabel<<" has "<<calo_size<<" anab::Calorimetry objects associaed."<<std::endl;
+            trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key());
+            for(size_t k=0; k<calo_size; k++){
+                std::cout<<"Calo "<<k<<" PlaneID: "<<calo_per_track.at(tracks[i].key())[k]->PlaneID()<<std::endl;
+            }
         }
 
 

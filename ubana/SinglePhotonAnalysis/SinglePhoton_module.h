@@ -300,7 +300,7 @@ namespace single_photon
             void ClearTracks();
             void ResizeTracks(size_t);
             void CreateTrackBranches();
-            void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap);
+            void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>, std::vector<art::Ptr<anab::Calorimetry>>> &trackToCaloMap);
             void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap, 
                     std::map<int, double>& sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
@@ -630,16 +630,43 @@ namespace single_photon
             std::vector<double> m_reco_track_spacepoint_chi;
             std::vector<double> m_reco_track_spacepoint_max_dist;
 
-            std::vector<double> m_reco_track_mean_dEdx;
-            std::vector<double> m_reco_track_mean_dEdx_start_half;
-            std::vector<double> m_reco_track_mean_dEdx_end_half;
-            std::vector<int> m_reco_track_good_calo;
-            std::vector<double> m_reco_track_mean_trunc_dEdx;
-            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half;
-            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half;
-            std::vector<double> m_reco_track_trunc_PIDA;
-            std::vector<std::vector<double>> m_reco_track_resrange;
-            std::vector<std::vector<double>> m_reco_track_dEdx;
+            std::vector<double> m_reco_track_mean_dEdx_p0;
+            std::vector<double> m_reco_track_mean_dEdx_start_half_p0;
+            std::vector<double> m_reco_track_mean_dEdx_end_half_p0;
+            std::vector<int> m_reco_track_good_calo_p0;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_p0;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p0;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p0;
+            std::vector<double> m_reco_track_trunc_PIDA_p0;
+            std::vector<std::vector<double>> m_reco_track_resrange_p0;
+            std::vector<std::vector<double>> m_reco_track_dEdx_p0;
+
+            std::vector<double> m_reco_track_mean_dEdx_p1;
+            std::vector<double> m_reco_track_mean_dEdx_start_half_p1;
+            std::vector<double> m_reco_track_mean_dEdx_end_half_p1;
+            std::vector<int> m_reco_track_good_calo_p1;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_p1;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p1;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p1;
+            std::vector<double> m_reco_track_trunc_PIDA_p1;
+            std::vector<std::vector<double>> m_reco_track_resrange_p1;
+            std::vector<std::vector<double>> m_reco_track_dEdx_p1;
+
+            std::vector<double> m_reco_track_mean_dEdx_p2;
+            std::vector<double> m_reco_track_mean_dEdx_start_half_p2;
+            std::vector<double> m_reco_track_mean_dEdx_end_half_p2;
+            std::vector<int> m_reco_track_good_calo_p2;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_p2;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p2;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p2;
+            std::vector<double> m_reco_track_trunc_PIDA_p2;
+            std::vector<std::vector<double>> m_reco_track_resrange_p2;
+            std::vector<std::vector<double>> m_reco_track_dEdx_p2;
+
+
+            std::vector<int> m_reco_trac_num_calo_hits_p0;
+            std::vector<int> m_reco_trac_num_calo_hits_p1;
+            std::vector<int> m_reco_trac_num_calo_hits_p2;
 
 
             std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane0;

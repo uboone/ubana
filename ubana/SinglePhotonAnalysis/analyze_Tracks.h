@@ -36,16 +36,43 @@ namespace single_photon
         m_reco_track_spacepoint_chi.clear();
         m_reco_track_spacepoint_max_dist.clear();
 
-        m_reco_track_mean_dEdx.clear();
-        m_reco_track_mean_dEdx_start_half.clear();
-        m_reco_track_mean_dEdx_end_half.clear();
-        m_reco_track_good_calo.clear();
-        m_reco_track_mean_trunc_dEdx.clear();
-        m_reco_track_mean_trunc_dEdx_start_half.clear();
-        m_reco_track_mean_trunc_dEdx_end_half.clear();
-        m_reco_track_trunc_PIDA.clear();
-        m_reco_track_resrange.clear();
-        m_reco_track_dEdx.clear();
+        m_reco_track_mean_dEdx_p0.clear();
+        m_reco_track_mean_dEdx_start_half_p0.clear();
+        m_reco_track_mean_dEdx_end_half_p0.clear();
+        m_reco_track_good_calo_p0.clear();
+        m_reco_track_mean_trunc_dEdx_p0.clear();
+        m_reco_track_mean_trunc_dEdx_start_half_p0.clear();
+        m_reco_track_mean_trunc_dEdx_end_half_p0.clear();
+        m_reco_track_trunc_PIDA_p0.clear();
+        m_reco_track_resrange_p0.clear();
+        m_reco_track_dEdx_p0.clear();
+
+        m_reco_track_mean_dEdx_p1.clear();
+        m_reco_track_mean_dEdx_start_half_p1.clear();
+        m_reco_track_mean_dEdx_end_half_p1.clear();
+        m_reco_track_good_calo_p1.clear();
+        m_reco_track_mean_trunc_dEdx_p1.clear();
+        m_reco_track_mean_trunc_dEdx_start_half_p1.clear();
+        m_reco_track_mean_trunc_dEdx_end_half_p1.clear();
+        m_reco_track_trunc_PIDA_p1.clear();
+        m_reco_track_resrange_p1.clear();
+        m_reco_track_dEdx_p1.clear();
+
+        m_reco_track_mean_dEdx_p2.clear();
+        m_reco_track_mean_dEdx_start_half_p2.clear();
+        m_reco_track_mean_dEdx_end_half_p2.clear();
+        m_reco_track_good_calo_p2.clear();
+        m_reco_track_mean_trunc_dEdx_p2.clear();
+        m_reco_track_mean_trunc_dEdx_start_half_p2.clear();
+        m_reco_track_mean_trunc_dEdx_end_half_p2.clear();
+        m_reco_track_trunc_PIDA_p2.clear();
+        m_reco_track_resrange_p2.clear();
+        m_reco_track_dEdx_p2.clear();
+
+        m_reco_track_num_calo_hits_p1.clear();
+        m_reco_track_num_calo_hits_p0.clear();
+        m_reco_track_num_calo_hits_p2.clear();
+
 
         m_sim_track_matched.clear();
         m_sim_track_energy.clear();
@@ -106,16 +133,44 @@ namespace single_photon
         m_reco_track_theta_yz.resize(size);
         m_reco_track_phi_yx.resize(size);
 
-        m_reco_track_mean_dEdx.resize(size);
-        m_reco_track_mean_dEdx_start_half.resize(size);
-        m_reco_track_mean_dEdx_end_half.resize(size);
-        m_reco_track_good_calo.resize(size);
-        m_reco_track_mean_trunc_dEdx.resize(size);
-        m_reco_track_mean_trunc_dEdx_start_half.resize(size);
-        m_reco_track_mean_trunc_dEdx_end_half.resize(size);
-        m_reco_track_trunc_PIDA.resize(size);
-        m_reco_track_resrange.resize(size);
-        m_reco_track_dEdx.resize(size);
+        m_reco_track_mean_dEdx_p0.resize(size);
+        m_reco_track_mean_dEdx_start_half_p0.resize(size);
+        m_reco_track_mean_dEdx_end_half_p0.resize(size);
+        m_reco_track_good_calo_p0.resize(size);
+        m_reco_track_mean_trunc_dEdx_p0.resize(size);
+        m_reco_track_mean_trunc_dEdx_start_half_p0.resize(size);
+        m_reco_track_mean_trunc_dEdx_end_half_p0.resize(size);
+        m_reco_track_trunc_PIDA_p0.resize(size);
+        m_reco_track_resrange_p0.resize(size);
+        m_reco_track_dEdx_p0.resize(size);
+
+        m_reco_track_mean_dEdx_p1.resize(size);
+        m_reco_track_mean_dEdx_start_half_p1.resize(size);
+        m_reco_track_mean_dEdx_end_half_p1.resize(size);
+        m_reco_track_good_calo_p1.resize(size);
+        m_reco_track_mean_trunc_dEdx_p1.resize(size);
+        m_reco_track_mean_trunc_dEdx_start_half_p1.resize(size);
+        m_reco_track_mean_trunc_dEdx_end_half_p1.resize(size);
+        m_reco_track_trunc_PIDA_p1.resize(size);
+        m_reco_track_resrange_p1.resize(size);
+        m_reco_track_dEdx_p1.resize(size);
+
+        m_reco_track_mean_dEdx_p2.resize(size);
+        m_reco_track_mean_dEdx_start_half_p2.resize(size);
+        m_reco_track_mean_dEdx_end_half_p2.resize(size);
+        m_reco_track_good_calo_p2.resize(size);
+        m_reco_track_mean_trunc_dEdx_p2.resize(size);
+        m_reco_track_mean_trunc_dEdx_start_half_p2.resize(size);
+        m_reco_track_mean_trunc_dEdx_end_half_p2.resize(size);
+        m_reco_track_trunc_PIDA_p2.resize(size);
+        m_reco_track_resrange_p2.resize(size);
+        m_reco_track_dEdx_p2.resize(size);
+
+m_reco_track_num_calo_hits_p1.resize(size);
+        m_reco_track_num_calo_hits_p0.resize(size);
+        m_reco_track_num_calo_hits_p2.resize(size);
+
+
 
         m_sim_track_matched.resize(size);
         m_sim_track_energy.resize(size);
@@ -173,20 +228,50 @@ namespace single_photon
         vertex_tree->Branch("reco_track_spacepoint_principal1",&m_reco_track_spacepoint_principal1);
         vertex_tree->Branch("reco_track_spacepoint_principal2",&m_reco_track_spacepoint_principal2);
 
-
-
         vertex_tree->Branch("reco_track_spacepoint_chi",&m_reco_track_spacepoint_chi);
         vertex_tree->Branch("reco_track_spacepoint_max_dist",&m_reco_track_spacepoint_max_dist);
 
-        vertex_tree->Branch("reco_track_mean_dEdx",&m_reco_track_mean_dEdx);
-        vertex_tree->Branch("reco_track_mean_dEdx_start_half",&m_reco_track_mean_dEdx_end_half);
-        vertex_tree->Branch("reco_track_mean_dEdx_end_half",&m_reco_track_mean_dEdx_start_half);
-        vertex_tree->Branch("reco_track_good_calo",&m_reco_track_good_calo);
-        vertex_tree->Branch("reco_track_mean_trunc_dEdx",&m_reco_track_mean_trunc_dEdx);
-        vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half",&m_reco_track_mean_trunc_dEdx_end_half);
-        vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half",&m_reco_track_mean_trunc_dEdx_start_half);
-        vertex_tree->Branch("reco_track_trunc_PIDA",&m_reco_track_trunc_PIDA);
-        vertex_tree->Branch("reco_track_resrange",&m_reco_track_resrange);
+        vertex_tree->Branch("reco_track_mean_dEdx_plane0",&m_reco_track_mean_dEdx_p0);
+        vertex_tree->Branch("reco_track_mean_dEdx_plane1",&m_reco_track_mean_dEdx_p1);
+        vertex_tree->Branch("reco_track_mean_dEdx_plane2",&m_reco_track_mean_dEdx_p2);
+
+        vertex_tree->Branch("reco_track_mean_dEdx_start_half_plane0",&m_reco_track_mean_dEdx_end_half_p0);
+        vertex_tree->Branch("reco_track_mean_dEdx_start_half_plane1",&m_reco_track_mean_dEdx_end_half_p1);
+        vertex_tree->Branch("reco_track_mean_dEdx_start_half_plane2",&m_reco_track_mean_dEdx_end_half_p2);
+
+        vertex_tree->Branch("reco_track_mean_dEdx_end_half_plane0",&m_reco_track_mean_dEdx_start_half_p0);
+        vertex_tree->Branch("reco_track_mean_dEdx_end_half_plane1",&m_reco_track_mean_dEdx_start_half_p1);
+        vertex_tree->Branch("reco_track_mean_dEdx_end_half_plane2",&m_reco_track_mean_dEdx_start_half_p2);
+       
+        vertex_tree->Branch("reco_track_good_calo_plane0",&m_reco_track_good_calo_p0);
+        vertex_tree->Branch("reco_track_good_calo_plane1",&m_reco_track_good_calo_p1);
+        vertex_tree->Branch("reco_track_good_calo_plane2",&m_reco_track_good_calo_p2);
+
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_plane0",&m_reco_track_mean_trunc_dEdx_p0);
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_plane1",&m_reco_track_mean_trunc_dEdx_p1);
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_plane2",&m_reco_track_mean_trunc_dEdx_p2);
+        
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half_plane0",&m_reco_track_mean_trunc_dEdx_end_half_p0);
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half_plane1",&m_reco_track_mean_trunc_dEdx_end_half_p1);
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half_plane2",&m_reco_track_mean_trunc_dEdx_end_half_p2);
+        
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half_plane0",&m_reco_track_mean_trunc_dEdx_start_half_p0);
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half_plane1",&m_reco_track_mean_trunc_dEdx_start_half_p1);
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half_plane2",&m_reco_track_mean_trunc_dEdx_start_half_p2);
+        
+        vertex_tree->Branch("reco_track_trunc_PIDA_plane0",&m_reco_track_trunc_PIDA_p0);
+        vertex_tree->Branch("reco_track_trunc_PIDA_plane1",&m_reco_track_trunc_PIDA_p1);
+        vertex_tree->Branch("reco_track_trunc_PIDA_plane2",&m_reco_track_trunc_PIDA_p2);
+        
+        vertex_tree->Branch("reco_track_resrange_plane0",&m_reco_track_resrange_p0);
+        vertex_tree->Branch("reco_track_resrange_plane1",&m_reco_track_resrange_p1);
+        vertex_tree->Branch("reco_track_resrange_plane2",&m_reco_track_resrange_p2);
+       
+        vertex_tree->Branch("reco_track_num_calo_hits_plane0",&m_reco_track_num_calo_hits_p0);
+        vertex_tree->Branch("reco_track_num_calo_hits_plane1",&m_reco_track_num_calo_hits_p1);
+        vertex_tree->Branch("reco_track_num_calo_hits_plane2",&m_reco_track_num_calo_hits_p2);
+        
+
 
 
         vertex_tree->Branch("reco_track_pid_bragg_likelihood_plane2",&m_reco_track_pid_bragg_likelihood_plane2);
@@ -432,44 +517,88 @@ namespace single_photon
 
 
 
-        void SinglePhoton::AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap)
+        void SinglePhoton::AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>> > &trackToCaloMap)
         {
 
             if(m_is_verbose) std::cout<<"SinglePhoton::CollectCalo(recob::Track)\t||\t Starting calo module for recob::Track"<<std::endl;;
 
             for(size_t i_trk = 0; i_trk<tracks.size(); ++i_trk){
                 const art::Ptr<recob::Track>      track = tracks[i_trk];
-                const art::Ptr<anab::Calorimetry> calo  = trackToCaloMap[track];
 
-                size_t calo_length = calo->dEdx().size();
+                if(trackToCaloMap[track].size()!=3){
+                    std::cout<<"ERROR!! ERROR!!! anab::Calorimetery vector is not of length 3!!! "<<trackToCaloMap[track].size()<<". Skipping this track!!"<<std::endl;
+                    continue;
+                }
 
-                TruncMean tm;
-                std::vector<double> trunc_dEdx;
-                std::vector<double> res_range_good;
-                std::vector<double> dEdx_good;
+                const art::Ptr<anab::Calorimetry> calo_p0  = trackToCaloMap[track][0];
+                const art::Ptr<anab::Calorimetry> calo_p1  = trackToCaloMap[track][1];
+                const art::Ptr<anab::Calorimetry> calo_p2  = trackToCaloMap[track][2];
 
-                m_reco_track_good_calo[i_trk] =  0;
-                m_reco_track_mean_dEdx[i_trk] =  0.0;
-                m_reco_track_mean_dEdx_start_half[i_trk] =  0.0;
-                m_reco_track_mean_dEdx_end_half[i_trk] =  0.0;
-                m_reco_track_mean_trunc_dEdx[i_trk] =  0.0;
-                m_reco_track_mean_trunc_dEdx_start_half[i_trk] =  0.0;
-                m_reco_track_mean_trunc_dEdx_end_half[i_trk] =  0.0;
-                m_reco_track_trunc_PIDA[i_trk] =  0.0;
-                // m_reco_track_resrange[i_trk] =  0.0;
+                
+                size_t calo_length_p0 = calo_p0->dEdx().size();
+                size_t calo_length_p1 = calo_p1->dEdx().size();
+                size_t calo_length_p2 = calo_p2->dEdx().size();
 
+                TruncMean tm_p0;
+                TruncMean tm_p1;
+                TruncMean tm_p2;
+                
+                std::vector<double> trunc_dEdx_p0;
+                std::vector<double> res_range_good_p0;
+                std::vector<double> dEdx_good_p0;
+ 
+                std::vector<double> trunc_dEdx_p1;
+                std::vector<double> res_range_good_p1;
+                std::vector<double> dEdx_good_p1;
+ 
+                std::vector<double> trunc_dEdx_p2;
+                std::vector<double> res_range_good_p2;
+                std::vector<double> dEdx_good_p2;
+
+                m_reco_track_num_calo_hits_p0[i_trk] = (int)calo_length_p0.;
+                m_reco_track_num_calo_hits_p1[i_trk] = (int)calo_length_p1;
+                m_reco_track_num_calo_hits_p2[i_trk] = (int)calo_length_p2;
+
+
+                m_reco_track_good_calo_p0[i_trk] =  0;
+                m_reco_track_mean_dEdx_p0[i_trk] =  0.0;
+                m_reco_track_mean_dEdx_start_half_p0[i_trk] =  0.0;
+                m_reco_track_mean_dEdx_end_half_p0[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_p0[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_start_half_p0[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_end_half_p0[i_trk] =  0.0;
+                m_reco_track_trunc_PIDA_p0[i_trk] =  0.0;
+
+                m_reco_track_good_calo_p1[i_trk] =  0;
+                m_reco_track_mean_dEdx_p1[i_trk] =  0.0;
+                m_reco_track_mean_dEdx_start_half_p1[i_trk] =  0.0;
+                m_reco_track_mean_dEdx_end_half_p1[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_p1[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_start_half_p1[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_end_half_p1[i_trk] =  0.0;
+                m_reco_track_trunc_PIDA_p1[i_trk] =  0.0;
+
+                m_reco_track_good_calo_p2[i_trk] =  0;
+                m_reco_track_mean_dEdx_p2[i_trk] =  0.0;
+                m_reco_track_mean_dEdx_start_half_p2[i_trk] =  0.0;
+                m_reco_track_mean_dEdx_end_half_p2[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_p2[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_start_half_p2[i_trk] =  0.0;
+                m_reco_track_mean_trunc_dEdx_end_half_p2[i_trk] =  0.0;
+                m_reco_track_trunc_PIDA_p2[i_trk] =  0.0;
 
 
                 //First off look over ALL points
-                for (size_t k = 0; k < calo_length; ++k) {
-                    double res_range =    calo->ResidualRange()[k];
-                    double dEdx =         calo->dEdx()[k];
+                //--------------------------------- plane 0 ----------- Induction
+                for (size_t k = 0; k < calo_length_p0; ++k) {
+                    double res_range =    calo_p0->ResidualRange()[k];
+                    double dEdx =         calo_p0->dEdx()[k];
 
-                    m_reco_track_mean_dEdx[i_trk] += dEdx;
-                    if(k <= calo_length/2){ 
-                        m_reco_track_mean_dEdx_start_half[i_trk]+=dEdx;
+                    m_reco_track_mean_dEdx_p0[i_trk] += dEdx;
+                    if(k <= calo_length_p0/2){ 
+                        m_reco_track_mean_dEdx_start_half_p0[i_trk]+=dEdx;
                     }else{
-                        m_reco_track_mean_dEdx_end_half[i_trk]+=dEdx;
+                        m_reco_track_mean_dEdx_end_half_p0[i_trk]+=dEdx;
                     }
 
                     bool is_sensible = dEdx < m_track_calo_max_dEdx; 
@@ -477,72 +606,241 @@ namespace single_photon
                     bool is_inf = std::isinf(dEdx);
                     bool is_nonzero = dEdx> m_track_calo_min_dEdx;
 
-                    if(is_sensible && !is_nan && !is_inf && is_nonzero && k != 0 && k != calo_length-1){
-                        res_range_good.push_back(res_range);
-                        dEdx_good.push_back(dEdx);
+                    if(is_sensible && !is_nan && !is_inf && is_nonzero && k != 0 && k != calo_length_p0-1){
+                        res_range_good_p0.push_back(res_range);
+                        dEdx_good_p0.push_back(dEdx);
                     }
 
                     //    std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< ""<<std::endl;;
                 }// End of first loop.
 
-                m_reco_track_good_calo[i_trk] = 0;
-                if(res_range_good.size() >= m_track_calo_min_dEdx_hits){
-                    m_reco_track_good_calo[i_trk] = res_range_good.size();
+                m_reco_track_good_calo_p0[i_trk] = 0;
+                if(res_range_good_p0.size() >= m_track_calo_min_dEdx_hits){
+                    m_reco_track_good_calo_p0[i_trk] = res_range_good_p0.size();
 
                     //The radius we truncate over is going to be the max of either 1/frac of a track or 2x the minimum_dx in the res_range
-                    double tenth_track = std::max(res_range_good.front(), res_range_good.back())/m_track_calo_trunc_fraction;
+                    double tenth_track = std::max(res_range_good_p0.front(), res_range_good_p0.back())/m_track_calo_trunc_fraction;
                     double min_dx = 999;
-                    for(int j = res_range_good.size()-1; j>1; j--){
-                        double dx = fabs(res_range_good[j]-res_range_good[j-1]);
+                    for(int j = res_range_good_p0.size()-1; j>1; j--){
+                        double dx = fabs(res_range_good_p0[j]-res_range_good_p0[j-1]);
                         if(dx < min_dx) min_dx = dx;
                     }
                     double rad = std::max( min_dx*2, tenth_track); 
 
                     //Calculate the residual range
-                    tm.setRadius(rad);
-                    tm.CalcTruncMeanProfile(res_range_good,dEdx_good, trunc_dEdx);			
+                    tm_p0.setRadius(rad);
+                    tm_p0.CalcTruncMeanProfile(res_range_good_p0,dEdx_good_p0, trunc_dEdx_p0);			
 
                     double pida_sum_trunc=0.0;
                     //Calculate the mean truncated mean dEdx
-                    for(size_t k=0; k< trunc_dEdx.size(); k++){
-                        double dEdx = trunc_dEdx[k];
-                        m_reco_track_mean_trunc_dEdx[i_trk] += dEdx;
-                        if(k <= trunc_dEdx.size()/2){ 
-                            m_reco_track_mean_trunc_dEdx_start_half[i_trk]+=dEdx;
+                    for(size_t k=0; k< trunc_dEdx_p0.size(); k++){
+                        double dEdx = trunc_dEdx_p0[k];
+                        m_reco_track_mean_trunc_dEdx_p0[i_trk] += dEdx;
+                        if(k <= trunc_dEdx_p0.size()/2){ 
+                            m_reco_track_mean_trunc_dEdx_start_half_p0[i_trk]+=dEdx;
                         }else{
-                            m_reco_track_mean_trunc_dEdx_end_half[i_trk]+=dEdx;
+                            m_reco_track_mean_trunc_dEdx_end_half_p0[i_trk]+=dEdx;
                         }
 
 
-                        if(trunc_dEdx[k] != trunc_dEdx[k] || std::isinf(trunc_dEdx[k]) || trunc_dEdx[k]<0){
-                            std::cout<<"Truncated dedx is either inf or nan (or negative) @ "<<k<<" "<<trunc_dEdx[k]<<std::endl;
-                            std::cout<<"Vector Length : "<<trunc_dEdx.size()<<std::endl;
+                        if(trunc_dEdx_p0[k] != trunc_dEdx_p0[k] || std::isinf(trunc_dEdx_p0[k]) || trunc_dEdx_p0[k]<0){
+                            std::cout<<"Truncated dedx is either inf or nan (or negative) @ "<<k<<" "<<trunc_dEdx_p0[k]<<std::endl;
+                            std::cout<<"Vector Length : "<<trunc_dEdx_p0.size()<<std::endl;
                             std::cout<<"i\t range \t dedx \t trunc dedx"<<std::endl;
                             //for(int m=0; m<trunc_dEdx.size(); m++){
                             //    std::cout<<m<<"\t"<<c_resrange.at(m)<<"  "<<c_dEdx.at(m)<<"  "<<trunc_dEdx.at(m)<<std::endl;
                             //}
                             std::cout<<"Using Radius: "<<rad<<std::endl;
                             //exit(EXIT_FAILURE);
-                            m_reco_track_good_calo[i_trk] = 0; 
+                            m_reco_track_good_calo_p0[i_trk] = 0; 
                         }
 
-                        pida_sum_trunc += trunc_dEdx[k]/(pow(res_range_good[k],-0.42));
+                        pida_sum_trunc += trunc_dEdx_p0[k]/(pow(res_range_good_p0[k],-0.42));
                     }
-                    m_reco_track_trunc_PIDA[i_trk] = pida_sum_trunc;           
-                    m_reco_track_resrange[i_trk] = res_range_good;
-                    m_reco_track_dEdx[i_trk] = trunc_dEdx;
+                    m_reco_track_trunc_PIDA_p0[i_trk] = pida_sum_trunc;           
+                    m_reco_track_resrange_p0[i_trk] = res_range_good_p0;
+                    m_reco_track_dEdx_p0[i_trk] = trunc_dEdx_p0;
 
                     //std::cout<<"the residual range at the start is "<<res_range_good[0]<<std::endl;
                 }
 
-                m_reco_track_mean_dEdx[i_trk]            *=1.0/((double)calo_length);
-                m_reco_track_mean_dEdx_start_half[i_trk] *=2.0/((double)calo_length);
-                m_reco_track_mean_dEdx_end_half[i_trk]   *=2.0/((double)calo_length);
-                m_reco_track_mean_trunc_dEdx[i_trk]            *=1.0/((double)trunc_dEdx.size());
-                m_reco_track_mean_trunc_dEdx_start_half[i_trk] *=2.0/((double)trunc_dEdx.size());
-                m_reco_track_mean_trunc_dEdx_end_half[i_trk]   *=2.0/((double)trunc_dEdx.size());
-                m_reco_track_trunc_PIDA[i_trk]  *=1.0/((double)trunc_dEdx.size());
-                //m_reco_track_resrange[i_trk] *=1.0/((double)res_range_good.size());
+                m_reco_track_mean_dEdx_p0[i_trk]            *=1.0/((double)calo_length_p0);
+                m_reco_track_mean_dEdx_start_half_p0[i_trk] *=2.0/((double)calo_length_p0);
+                m_reco_track_mean_dEdx_end_half_p0[i_trk]   *=2.0/((double)calo_length_p0);
+                m_reco_track_mean_trunc_dEdx_p0[i_trk]            *=1.0/((double)trunc_dEdx_p0.size());
+                m_reco_track_mean_trunc_dEdx_start_half_p0[i_trk] *=2.0/((double)trunc_dEdx_p0.size());
+                m_reco_track_mean_trunc_dEdx_end_half_p0[i_trk]   *=2.0/((double)trunc_dEdx_p0.size());
+                m_reco_track_trunc_PIDA_p0[i_trk]  *=1.0/((double)trunc_dEdx_p0.size());
+
+                //First off look over ALL points
+                //--------------------------------- plane 1 ----------- Induction
+                for (size_t k = 0; k < calo_length_p1; ++k) {
+                    double res_range =    calo_p1->ResidualRange()[k];
+                    double dEdx =         calo_p1->dEdx()[k];
+
+                    m_reco_track_mean_dEdx_p1[i_trk] += dEdx;
+                    if(k <= calo_length_p1/2){ 
+                        m_reco_track_mean_dEdx_start_half_p1[i_trk]+=dEdx;
+                    }else{
+                        m_reco_track_mean_dEdx_end_half_p1[i_trk]+=dEdx;
+                    }
+
+                    bool is_sensible = dEdx < m_track_calo_max_dEdx; 
+                    bool is_nan =dEdx != dEdx; 
+                    bool is_inf = std::isinf(dEdx);
+                    bool is_nonzero = dEdx> m_track_calo_min_dEdx;
+
+                    if(is_sensible && !is_nan && !is_inf && is_nonzero && k != 0 && k != calo_length_p1-1){
+                        res_range_good_p1.push_back(res_range);
+                        dEdx_good_p1.push_back(dEdx);
+                    }
+
+                    //    std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< ""<<std::endl;;
+                }// End of first loop.
+
+                m_reco_track_good_calo_p1[i_trk] = 0;
+                if(res_range_good_p1.size() >= m_track_calo_min_dEdx_hits){
+                    m_reco_track_good_calo_p1[i_trk] = res_range_good_p1.size();
+
+                    //The radius we truncate over is going to be the max of either 1/frac of a track or 2x the minimum_dx in the res_range
+                    double tenth_track = std::max(res_range_good_p1.front(), res_range_good_p1.back())/m_track_calo_trunc_fraction;
+                    double min_dx = 999;
+                    for(int j = res_range_good_p1.size()-1; j>1; j--){
+                        double dx = fabs(res_range_good_p1[j]-res_range_good_p1[j-1]);
+                        if(dx < min_dx) min_dx = dx;
+                    }
+                    double rad = std::max( min_dx*2, tenth_track); 
+
+                    //Calculate the residual range
+                    tm_p1.setRadius(rad);
+                    tm_p1.CalcTruncMeanProfile(res_range_good_p1,dEdx_good_p1, trunc_dEdx_p1);			
+
+                    double pida_sum_trunc=0.0;
+                    //Calculate the mean truncated mean dEdx
+                    for(size_t k=0; k< trunc_dEdx_p1.size(); k++){
+                        double dEdx = trunc_dEdx_p1[k];
+                        m_reco_track_mean_trunc_dEdx_p1[i_trk] += dEdx;
+                        if(k <= trunc_dEdx_p1.size()/2){ 
+                            m_reco_track_mean_trunc_dEdx_start_half_p1[i_trk]+=dEdx;
+                        }else{
+                            m_reco_track_mean_trunc_dEdx_end_half_p1[i_trk]+=dEdx;
+                        }
+
+
+                        if(trunc_dEdx_p1[k] != trunc_dEdx_p1[k] || std::isinf(trunc_dEdx_p1[k]) || trunc_dEdx_p1[k]<0){
+                            std::cout<<"Truncated dedx is either inf or nan (or negative) @ "<<k<<" "<<trunc_dEdx_p1[k]<<std::endl;
+                            std::cout<<"Vector Length : "<<trunc_dEdx_p1.size()<<std::endl;
+                            std::cout<<"i\t range \t dedx \t trunc dedx"<<std::endl;
+                            //for(int m=0; m<trunc_dEdx.size(); m++){
+                            //    std::cout<<m<<"\t"<<c_resrange.at(m)<<"  "<<c_dEdx.at(m)<<"  "<<trunc_dEdx.at(m)<<std::endl;
+                            //}
+                            std::cout<<"Using Radius: "<<rad<<std::endl;
+                            //exit(EXIT_FAILURE);
+                            m_reco_track_good_calo_p1[i_trk] = 0; 
+                        }
+
+                        pida_sum_trunc += trunc_dEdx_p1[k]/(pow(res_range_good_p1[k],-0.42));
+                    }
+                    m_reco_track_trunc_PIDA_p1[i_trk] = pida_sum_trunc;           
+                    m_reco_track_resrange_p1[i_trk] = res_range_good_p1;
+                    m_reco_track_dEdx_p1[i_trk] = trunc_dEdx_p1;
+
+                    //std::cout<<"the residual range at the start is "<<res_range_good[0]<<std::endl;
+                }
+
+                m_reco_track_mean_dEdx_p1[i_trk]            *=1.0/((double)calo_length_p1);
+                m_reco_track_mean_dEdx_start_half_p1[i_trk] *=2.0/((double)calo_length_p1);
+                m_reco_track_mean_dEdx_end_half_p1[i_trk]   *=2.0/((double)calo_length_p1);
+                m_reco_track_mean_trunc_dEdx_p1[i_trk]            *=1.0/((double)trunc_dEdx_p1.size());
+                m_reco_track_mean_trunc_dEdx_start_half_p1[i_trk] *=2.0/((double)trunc_dEdx_p1.size());
+                m_reco_track_mean_trunc_dEdx_end_half_p1[i_trk]   *=2.0/((double)trunc_dEdx_p1.size());
+                m_reco_track_trunc_PIDA_p1[i_trk]  *=1.0/((double)trunc_dEdx_p1.size());
+
+                //First off look over ALL points
+                //--------------------------------- plane 2 ----------- Collection
+                for (size_t k = 0; k < calo_length_p2; ++k) {
+                    double res_range =    calo_p2->ResidualRange()[k];
+                    double dEdx =         calo_p2->dEdx()[k];
+
+                    m_reco_track_mean_dEdx_p2[i_trk] += dEdx;
+                    if(k <= calo_length_p2/2){ 
+                        m_reco_track_mean_dEdx_start_half_p2[i_trk]+=dEdx;
+                    }else{
+                        m_reco_track_mean_dEdx_end_half_p2[i_trk]+=dEdx;
+                    }
+
+                    bool is_sensible = dEdx < m_track_calo_max_dEdx; 
+                    bool is_nan =dEdx != dEdx; 
+                    bool is_inf = std::isinf(dEdx);
+                    bool is_nonzero = dEdx> m_track_calo_min_dEdx;
+
+                    if(is_sensible && !is_nan && !is_inf && is_nonzero && k != 0 && k != calo_length_p2-1){
+                        res_range_good_p2.push_back(res_range);
+                        dEdx_good_p2.push_back(dEdx);
+                    }
+
+                    //    std::cout<<"\t"<<k<<" "<<calo->dEdx()[k]<<" "<<calo->ResidualRange()[k]<<" "<< ""<<std::endl;;
+                }// End of first loop.
+
+                m_reco_track_good_calo_p2[i_trk] = 0;
+                if(res_range_good_p2.size() >= m_track_calo_min_dEdx_hits){
+                    m_reco_track_good_calo_p2[i_trk] = res_range_good_p2.size();
+
+                    //The radius we truncate over is going to be the max of either 1/frac of a track or 2x the minimum_dx in the res_range
+                    double tenth_track = std::max(res_range_good_p2.front(), res_range_good_p2.back())/m_track_calo_trunc_fraction;
+                    double min_dx = 999;
+                    for(int j = res_range_good_p2.size()-1; j>1; j--){
+                        double dx = fabs(res_range_good_p2[j]-res_range_good_p2[j-1]);
+                        if(dx < min_dx) min_dx = dx;
+                    }
+                    double rad = std::max( min_dx*2, tenth_track); 
+
+                    //Calculate the residual range
+                    tm_p2.setRadius(rad);
+                    tm_p2.CalcTruncMeanProfile(res_range_good_p2,dEdx_good_p2, trunc_dEdx_p2);			
+
+                    double pida_sum_trunc=0.0;
+                    //Calculate the mean truncated mean dEdx
+                    for(size_t k=0; k< trunc_dEdx_p2.size(); k++){
+                        double dEdx = trunc_dEdx_p2[k];
+                        m_reco_track_mean_trunc_dEdx_p2[i_trk] += dEdx;
+                        if(k <= trunc_dEdx_p2.size()/2){ 
+                            m_reco_track_mean_trunc_dEdx_start_half_p2[i_trk]+=dEdx;
+                        }else{
+                            m_reco_track_mean_trunc_dEdx_end_half_p2[i_trk]+=dEdx;
+                        }
+
+
+                        if(trunc_dEdx_p2[k] != trunc_dEdx_p2[k] || std::isinf(trunc_dEdx_p2[k]) || trunc_dEdx_p2[k]<0){
+                            std::cout<<"Truncated dedx is either inf or nan (or negative) @ "<<k<<" "<<trunc_dEdx_p2[k]<<std::endl;
+                            std::cout<<"Vector Length : "<<trunc_dEdx_p2.size()<<std::endl;
+                            std::cout<<"i\t range \t dedx \t trunc dedx"<<std::endl;
+                            //for(int m=0; m<trunc_dEdx.size(); m++){
+                            //    std::cout<<m<<"\t"<<c_resrange.at(m)<<"  "<<c_dEdx.at(m)<<"  "<<trunc_dEdx.at(m)<<std::endl;
+                            //}
+                            std::cout<<"Using Radius: "<<rad<<std::endl;
+                            //exit(EXIT_FAILURE);
+                            m_reco_track_good_calo_p2[i_trk] = 0; 
+                        }
+
+                        pida_sum_trunc += trunc_dEdx_p2[k]/(pow(res_range_good_p2[k],-0.42));
+                    }
+                    m_reco_track_trunc_PIDA_p2[i_trk] = pida_sum_trunc;           
+                    m_reco_track_resrange_p2[i_trk] = res_range_good_p2;
+                    m_reco_track_dEdx_p2[i_trk] = trunc_dEdx_p2;
+
+                    //std::cout<<"the residual range at the start is "<<res_range_good[0]<<std::endl;
+                }
+
+                m_reco_track_mean_dEdx_p2[i_trk]            *=1.0/((double)calo_length_p2);
+                m_reco_track_mean_dEdx_start_half_p2[i_trk] *=2.0/((double)calo_length_p2);
+                m_reco_track_mean_dEdx_end_half_p2[i_trk]   *=2.0/((double)calo_length_p2);
+                m_reco_track_mean_trunc_dEdx_p2[i_trk]            *=1.0/((double)trunc_dEdx_p2.size());
+                m_reco_track_mean_trunc_dEdx_start_half_p2[i_trk] *=2.0/((double)trunc_dEdx_p2.size());
+                m_reco_track_mean_trunc_dEdx_end_half_p2[i_trk]   *=2.0/((double)trunc_dEdx_p2.size());
+                m_reco_track_trunc_PIDA_p2[i_trk]  *=1.0/((double)trunc_dEdx_p2.size());
+
+
 
             }
         }
