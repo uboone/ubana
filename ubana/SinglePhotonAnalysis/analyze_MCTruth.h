@@ -35,6 +35,8 @@ namespace single_photon
         m_mctruth_num_exiting_deltapm=0;
         m_mctruth_num_exiting_deltapp=0;
 
+        m_mctruth_leading_exiting_proton_energy = -9999;
+
         m_mctruth_exiting_pi0_E.clear();
         m_mctruth_exiting_pi0_px.clear();
         m_mctruth_exiting_pi0_py.clear();
@@ -95,6 +97,7 @@ namespace single_photon
         vertex_tree->Branch("mctruth_num_exiting_deltapm",&m_mctruth_num_exiting_deltapm);
         vertex_tree->Branch("mctruth_num_exiting_deltapp",&m_mctruth_num_exiting_deltapp);
 
+        vertex_tree->Branch("mctruth_leading_exiting_proton_energy",&m_mctruth_leading_exiting_proton_energy);
         vertex_tree->Branch("mctruth_is_delta_radiative",&m_mctruth_is_delta_radiative);
         vertex_tree->Branch("mctruth_delta_radiative_1g1p_or_1g1n",&m_mctruth_delta_radiative_1g1p_or_1g1n);
         vertex_tree->Branch("mctruth_delta_photon_energy",&m_mctruth_delta_photon_energy);
@@ -268,6 +271,15 @@ namespace single_photon
                         break;
                 }
             }
+
+
+           for(int p=0; p< m_mctruth_exiting_proton_energy.size(); p++){
+                     if( m_mctruth_exiting_proton_energy[p] > m_mctruth_leading_exiting_proton_energy[p] ){
+                            m_mctruth_leading_exiting_proton_energy = m_mctruth_exiting_proton_energy[p];
+                     }
+           }
+
+
 
                  std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t This event is ";
             if(tmp_n_photons_from_delta==1 && tmp_n_protons_from_delta==1){

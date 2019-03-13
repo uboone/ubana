@@ -742,7 +742,7 @@ namespace single_photon
             int   m_mctruth_num_exiting_deltapm; 
             int   m_mctruth_num_exiting_deltapp; 
 
-
+            double m_mctruth_leading_exiting_proton_energy;
 
             int m_mctruth_is_delta_radiative;
             int m_mctruth_delta_radiative_1g1p_or_1g1n;
