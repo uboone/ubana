@@ -549,7 +549,7 @@ namespace single_photon
                 std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector){
 
             std::vector<double> vec_fraction_matched;
-            bool reco_verbose = false;
+            bool reco_verbose = true;
 
             //for each recob::track/shower in the event
             for(size_t i=0; i<objectVector.size();++i){
