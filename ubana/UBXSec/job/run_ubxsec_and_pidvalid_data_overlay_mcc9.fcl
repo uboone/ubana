@@ -1,5 +1,5 @@
 #include "config_particle_identification_validation.fcl"
-#include "ubxsec_data_common_mcc9.fcl"
+#include "ubxsec_overlay_common_mcc9.fcl"
 #include "config_particle_identification_validation_formcc9production.fcl"
 
 ############################################################################################################################################
@@ -19,6 +19,9 @@ outputs.out1.dataTier: "reconstructed"
 outputs.out1.SelectEvents: [ reco ]
 
 source.inputCommands: ["keep *_*_*_*"]
+
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: 3.60
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   5.20
 
 physics.producers.UBXSec.BeamSpillStart:                 3.60
 physics.producers.UBXSec.BeamSpillEnd:                   5.20

@@ -194,9 +194,12 @@ std::cout<<"Lu overlay?"<<_is_overlay<<std::endl;
     util::CreateAssn(*this, e, *mcGhostVector, mc_par, *assnOutGhostMCP);
   }
 
+  std::cout<<"fun dayz" <<std::endl;
   e.put(std::move(mcGhostVector));
   e.put(std::move(assnOutGhostMCP));
   e.put(std::move(assnOutGhostPFP));
+
+  std::cout<<"fun dayz" <<std::endl;
   
 }
 

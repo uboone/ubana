@@ -1,4 +1,4 @@
- #include "fiducial_volume_settings.fcl"
+#include "fiducial_volume_settings.fcl"
 
 BEGIN_PROLOG
 #
@@ -12,8 +12,8 @@ RecoTrueMatcher: {
   SpacePointProducer:     "pandora"
   MCPHitAssProducer:      "gaushitTruthMatch" #"crHitRemovalTruthMatch::UBXSec"
 
-  OverrideRealData:       false
-
+  OverrideRealData:       true
+  Overlay:                true
   UsePremadeMCPHitAss:    true
   DebugMode:              false 
   Verbose:                false
