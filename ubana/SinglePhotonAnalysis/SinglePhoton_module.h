@@ -722,6 +722,11 @@ namespace single_photon
             std::vector<double> m_reco_shower_dEdx_plane0_median;
             std::vector<double> m_reco_shower_dEdx_plane1_median;
             std::vector<double> m_reco_shower_dEdx_plane2_median;
+           
+            std::vector<double> m_reco_shower_dQdx_plane0_median;
+            std::vector<double> m_reco_shower_dQdx_plane1_median;
+            std::vector<double> m_reco_shower_dQdx_plane2_median;
+           
             std::vector<double> m_reco_shower_dEdx_plane0_nhits;
             std::vector<double> m_reco_shower_dEdx_plane1_nhits;
             std::vector<double> m_reco_shower_dEdx_plane2_nhits;
