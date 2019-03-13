@@ -68,6 +68,11 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_median.clear();
         m_reco_shower_dEdx_plane1_median.clear();
         m_reco_shower_dEdx_plane2_median.clear();
+        
+        m_reco_shower_dQdx_plane0_median.clear();
+        m_reco_shower_dQdx_plane1_median.clear();
+        m_reco_shower_dQdx_plane2_median.clear();
+       
         m_reco_shower_dEdx_plane0_mean.clear();
         m_reco_shower_dEdx_plane1_mean.clear();
         m_reco_shower_dEdx_plane2_mean.clear();	
@@ -136,6 +141,11 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_median.resize(size);
         m_reco_shower_dEdx_plane1_median.resize(size);
         m_reco_shower_dEdx_plane2_median.resize(size);
+        
+        m_reco_shower_dQdx_plane0_median.resize(size);
+        m_reco_shower_dQdx_plane1_median.resize(size);
+        m_reco_shower_dQdx_plane2_median.resize(size);
+        
         m_reco_shower_dEdx_plane0_min.resize(size);
         m_reco_shower_dEdx_plane1_min.resize(size);
         m_reco_shower_dEdx_plane2_min.resize(size);
@@ -237,6 +247,11 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_dEdx_plane0_median",&m_reco_shower_dEdx_plane0_median);
         vertex_tree->Branch("reco_shower_dEdx_plane1_median",&m_reco_shower_dEdx_plane1_median);
         vertex_tree->Branch("reco_shower_dEdx_plane2_median",&m_reco_shower_dEdx_plane2_median);
+      
+        vertex_tree->Branch("reco_shower_dQdx_plane0_median",&m_reco_shower_dQdx_plane0_median);
+        vertex_tree->Branch("reco_shower_dQdx_plane1_median",&m_reco_shower_dQdx_plane1_median);
+        vertex_tree->Branch("reco_shower_dQdx_plane2_median",&m_reco_shower_dQdx_plane2_median);
+       
         vertex_tree->Branch("reco_shower_dEdx_plane0_mean",&m_reco_shower_dEdx_plane0_mean);
         vertex_tree->Branch("reco_shower_dEdx_plane1_mean",&m_reco_shower_dEdx_plane1_mean);
         vertex_tree->Branch("reco_shower_dEdx_plane2_mean",&m_reco_shower_dEdx_plane2_mean);
@@ -393,6 +408,11 @@ namespace single_photon
             m_reco_shower_dEdx_plane0_median[i_shr] = getMedian(m_reco_shower_dEdx_plane0[i_shr]);
             m_reco_shower_dEdx_plane1_median[i_shr] = getMedian(m_reco_shower_dEdx_plane1[i_shr]);
             m_reco_shower_dEdx_plane2_median[i_shr] = getMedian(m_reco_shower_dEdx_plane2[i_shr]);
+            
+            m_reco_shower_dQdx_plane0_median[i_shr] = getMedian(m_reco_shower_dQdx_plane0[i_shr]);
+            m_reco_shower_dQdx_plane1_median[i_shr] = getMedian(m_reco_shower_dQdx_plane1[i_shr]);
+            m_reco_shower_dQdx_plane2_median[i_shr] = getMedian(m_reco_shower_dQdx_plane2[i_shr]);
+
 
             if(m_is_verbose) std::cout<<"PAR: "<<m_reco_shower_dEdx_plane0[i_shr].size()<<" "<<m_reco_shower_dEdx_plane1[i_shr].size()<<" "<<m_reco_shower_dEdx_plane2[i_shr].size()<<std::endl;
 
