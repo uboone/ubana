@@ -75,6 +75,7 @@ namespace single_photon
 
 
         m_sim_track_matched.clear();
+        m_sim_track_overlay_fraction.clear();
         m_sim_track_energy.clear();
         m_sim_track_kinetic_energy.clear();
         m_sim_track_mass.clear();
@@ -184,6 +185,7 @@ m_reco_track_num_calo_hits_p1.resize(size);
         m_sim_track_starty.resize(size);
         m_sim_track_startz.resize(size);
         m_sim_track_trackID.resize(size);
+        m_sim_track_overlay_fraction.resize(size);
 
         m_reco_track_pid_bragg_likelihood_plane2.resize(size);
         m_reco_track_pid_pida_plane2.resize(size);
@@ -288,6 +290,7 @@ m_reco_track_num_calo_hits_p1.resize(size);
 
 
         vertex_tree->Branch("sim_track_matched",&m_sim_track_matched);
+        vertex_tree->Branch("sim_track_overlay_fraction",&m_sim_track_overlay_fraction);
         vertex_tree->Branch("sim_track_energy",&m_sim_track_energy);
         vertex_tree->Branch("sim_track_kinetic_energy",&m_sim_track_kinetic_energy);
         vertex_tree->Branch("sim_track_mass",&m_sim_track_mass);
@@ -445,7 +448,8 @@ m_reco_track_num_calo_hits_p1.resize(size);
             std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap, 
             std::map<int, double>& sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
-            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+            std::vector<double> & vfrac
             ){
 
 
@@ -483,7 +487,7 @@ m_reco_track_num_calo_hits_p1.resize(size);
                 m_sim_track_startz[i_trk] = corrected[2];
                 m_sim_track_origin[i_trk] = mctruth->Origin();
                 m_sim_track_trackID[i_trk] = mcparticle->TrackId();
-
+                m_sim_track_overlay_fraction[i_trk] = vfrac[i_trk];
 
                 m_sim_track_sliceId[i_trk] = PFPToSliceIdMap[pfp];
                 m_sim_track_nuscore[i_trk] = sliceIdToNuScoreMap[ m_sim_track_sliceId[i_trk]] ;
@@ -555,7 +559,7 @@ m_reco_track_num_calo_hits_p1.resize(size);
                 std::vector<double> res_range_good_p2;
                 std::vector<double> dEdx_good_p2;
 
-                m_reco_track_num_calo_hits_p0[i_trk] = (int)calo_length_p0.;
+                m_reco_track_num_calo_hits_p0[i_trk] = (int)calo_length_p0;
                 m_reco_track_num_calo_hits_p1[i_trk] = (int)calo_length_p1;
                 m_reco_track_num_calo_hits_p2[i_trk] = (int)calo_length_p2;
 

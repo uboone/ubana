@@ -132,7 +132,7 @@ namespace single_photon
                         primaryPFPSliceIdVec.push_back(std::pair(pfp, temp_ind));
                         //primaryToSliceIdMap[pfp] = temp_ind;
                         sliceIdToNuScoreMap[temp_ind] = temp_score;
-                        std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t found primary PFP at index "<<pfp->Self()<<std::endl;
+                        if(m_is_verbose)std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t found primary PFP at index "<<pfp->Self()<<std::endl;
 
                     }
                     if( clear_cosmic> 0){
@@ -201,7 +201,7 @@ namespace single_photon
 
             //store original pfp and it's slice id
             if(slice_id < 0 ){
-                std::cout<<"no matching slice found for this PFP with primary id "<<parent_pfp->Self()<<std::endl;
+                if(m_is_verbose)std::cout<<"no matching slice found for this PFP with primary id "<<parent_pfp->Self()<<std::endl;
             } else {
                 // allPFPSliceIdVec[i] = std::pair(start_pfp,slice_id);
                 allPFPSliceIdVec.push_back(std::pair(start_pfp,slice_id));
@@ -345,7 +345,7 @@ namespace single_photon
                     }//if it's a photon from the neutrino interaction
                 }//for all sim showers
 
-                std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of sim showers-MCP matches associated to the true ncdelta is "<<matched_reco_slice_shower_MCP.size()<<std::endl;
+                if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of sim showers-MCP matches associated to the true ncdelta is "<<matched_reco_slice_shower_MCP.size()<<std::endl;
 
                 m_reco_slice_shower_num_matched_signal = matched_reco_slice_shower_MCP.size();
                 m_reco_slice_shower_matched_overlay_frac = matched_reco_slice_shower_overlay_fraction;
@@ -439,13 +439,13 @@ namespace single_photon
                 for(auto pair :allPFPSliceIdVec){
                     art::Ptr<recob::PFParticle> pfp = pair.first;
                     if (this_pfp == pfp){
-                        std::cout<<"found recob shower - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
+                if(m_is_verbose)        std::cout<<"found recob shower - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
                         m_reco_slice_shower_matched_sliceId[i_shr] = pair.second; 
                         m_reco_slice_shower_matched_energy[i_shr] = mcp->E();
                     }
                 }
             } else{
-                std::cout<<"no corresponding slice found for recob shower - MCP at track id "<<mcp->TrackId()<<std::endl;
+              if(m_is_verbose)  std::cout<<"no corresponding slice found for recob shower - MCP at track id "<<mcp->TrackId()<<std::endl;
             }
             i_shr++;
         } 
@@ -469,13 +469,13 @@ namespace single_photon
                 for(auto pair :allPFPSliceIdVec){
                     art::Ptr<recob::PFParticle> pfp = pair.first;
                     if (this_pfp == pfp){
-                        std::cout<<"found recob track - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
+                if(m_is_verbose)        std::cout<<"found recob track - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
                         m_reco_slice_track_matched_sliceId[i_trk] = pair.second;
                         m_reco_slice_track_matched_energy[i_trk]= mcp->E();
                     }
                 }
             } else{
-                std::cout<<"no corresponding slice found for recob track - MCP at track id "<<mcp->TrackId()<<std::endl;
+                if(m_is_verbose)std::cout<<"no corresponding slice found for recob track - MCP at track id "<<mcp->TrackId()<<std::endl;
             }
             i_trk++;
         }

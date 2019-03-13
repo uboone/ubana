@@ -304,7 +304,8 @@ namespace single_photon
             void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap, 
                     std::map<int, double>& sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
-                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap);
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+                    std::vector<double>& vec);
 
             void CollectPID(std::vector<art::Ptr<recob::Track>> & tracks,std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap);
             TGraph proton_length2energy_tgraph;
@@ -664,9 +665,9 @@ namespace single_photon
             std::vector<std::vector<double>> m_reco_track_dEdx_p2;
 
 
-            std::vector<int> m_reco_trac_num_calo_hits_p0;
-            std::vector<int> m_reco_trac_num_calo_hits_p1;
-            std::vector<int> m_reco_trac_num_calo_hits_p2;
+            std::vector<int> m_reco_track_num_calo_hits_p0;
+            std::vector<int> m_reco_track_num_calo_hits_p1;
+            std::vector<int> m_reco_track_num_calo_hits_p2;
 
 
             std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane0;
@@ -679,6 +680,7 @@ namespace single_photon
 
 
             std::vector<int> m_sim_track_matched;
+            std::vector<double> m_sim_track_overlay_fraction;
             std::vector<double> m_sim_track_energy;
             std::vector<double> m_sim_track_mass;
             std::vector<double> m_sim_track_kinetic_energy;

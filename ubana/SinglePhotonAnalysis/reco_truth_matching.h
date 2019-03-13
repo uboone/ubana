@@ -548,6 +548,7 @@ namespace single_photon
                 art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
                 std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector){
 
+            std::vector<double> trk_overlay_vec;
             std::vector<double> vec_fraction_matched;
             bool reco_verbose = false;
 
@@ -624,10 +625,10 @@ namespace single_photon
 
                 double fraction_num_hits_overlay = (double)n_not_associated_hits/(double)obj_hits_ptrs.size();
 
+                    trk_overlay_vec.push_back(fraction_num_hits_overlay);
                 if(n_associated_mcparticle_hits == 0){
                     //This will only occur if the whole recob::PFParticle is associated with an overlay object
                     std::cout<<fraction_num_hits_overlay<<std::endl;
-
                 }//for each recob::track/shower in the event
 
                 //std::cout << "SinglePhoton::recoMC()\t||\t the number of MCParticles associated with this PFP is "<<objide.size()<<std::endl;       
@@ -655,7 +656,8 @@ namespace single_photon
                 }
 
             }//end vector loop.
-            return vec_fraction_matched;
+            //return vec_fraction_matched;
+            return trk_overlay_vec;
         }
 
 
