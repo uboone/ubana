@@ -358,8 +358,6 @@ namespace single_photon
 
 
 
-
-
             //testbed(mcParticleVector,evt);
 
             /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
@@ -452,7 +450,7 @@ namespace single_photon
            //Obsolete function
             //this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
             this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
-	    this->AnalyzeEventWeight(evt);
+	        this->AnalyzeEventWeight(evt);
 	    
             //added since last time?
             std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
