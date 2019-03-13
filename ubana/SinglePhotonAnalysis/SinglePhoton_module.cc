@@ -221,7 +221,6 @@ namespace single_photon
 
 
 
-
         // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino
         //At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.
         //tracks is a vector of recob::Tracks and same for showers.
