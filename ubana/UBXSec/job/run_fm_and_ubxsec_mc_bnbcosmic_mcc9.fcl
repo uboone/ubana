@@ -12,6 +12,7 @@ microboone_tfile_metadata:
   dataTier:              [ "root-tuple" ] #ccinc
   fileFormat:            [ "root" ] #ccinc
 }
+
 process_name: UBXSec
 
 services.TFileService.fileName: "ubxsec_output_mc_bnbcosmic_fm.root"
@@ -28,23 +29,18 @@ outputs.out1.SelectEvents: [ reco ]
 
 source.inputCommands: ["keep *_*_*_*"]
 
-
-physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: 3.20
-physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   4.80
-
 physics.producers.UBXSec.BeamSpillStart:                 3.20
 physics.producers.UBXSec.BeamSpillEnd:                   4.80
 
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.20
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   4.80
 
-physics.producers.UBXSec.UseGENIEInfo:                   true  # Andy doesn't know if this should be true or false
-
+physics.producers.UBXSec.UseGENIEInfo:                   true 
 physics.producers.RecoTrueMatcher.Overlay:           false
 physics.producers.UBXSec.FileType: "mc_bnbcosmic"
 
 physics.producers.pandoraFlashEventBuilding.GeneratorLabel: "generator"
-physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowStartTime: 3.2
-physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowEndTime:   4.8 
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowStartTime: 3.20
+physics.producers.pandoraFlashEventBuilding.SliceIdTool.BeamWindowEndTime:   4.80
 physics.producers.pandoraFlashEventBuilding.SliceIdTool.HasMCNeutrino:       true 
 

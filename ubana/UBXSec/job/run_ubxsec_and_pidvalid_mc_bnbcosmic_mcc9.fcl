@@ -3,10 +3,16 @@
 #include "config_particle_identification_validation_formcc9production.fcl"
 
 ############################################################################################################################################
-
+microboone_tfile_metadata:
+{
+  JSONFileName:[ "ubxsec_output_mc_bnbcosmic.root.json" ]
+  GenerateTFileMetadata: [ true ] #ccinc
+  dataTier:              [ "root-tuple" ] #ccinc
+  fileFormat:            [ "root" ] #ccinc
+}
 process_name: UBXSec
 
-services.TFileService.fileName: "ubxsec_output_mc_bnbcosmic_fm.root"
+services.TFileService.fileName: "ubxsec_output_mc_bnbcosmic.root"
 
 physics.reco:          [ @sequence::ubxsec_mc_producers , @sequence::ubxsec_mc_filters ]
 physics.trigger_paths: [ reco ]
@@ -26,7 +32,6 @@ physics.producers.UBXSec.BeamSpillEnd:                   4.80
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.20
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   4.80
 
-physics.producers.UBXSec.UseGENIEInfo:                   true  # Andy doesn't know if this should be true or false
-
+physics.producers.UBXSec.UseGENIEInfo:                   true 
 physics.producers.RecoTrueMatcher.Overlay:           false
 physics.producers.UBXSec.FileType: "mc_bnbcosmic"
