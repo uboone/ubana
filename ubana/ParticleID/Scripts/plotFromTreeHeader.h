@@ -52,7 +52,7 @@ struct treevars{
   double true_end_x = -9999;
   double true_end_y = -9999;
   double true_end_z = -9999;
-  double track_id = -9999;
+  int track_id = -9999;
   double track_start_x = -9999;
   double track_start_y = -9999;
   double track_start_z = -9999;
@@ -60,7 +60,7 @@ struct treevars{
   double track_end_y = -9999;
   double track_end_z = -9999;
   double track_shower_score = -9999;
-  double track_nhits = -9999;
+  std::vector<double> *track_nhits = nullptr;
 
   // Make the chi2 variables std::vector<doubles> so we can handle them in the same way as the other variables
   // This is just a cheat - we only have chi2 variables for collection plane right now, so set other values to 0 by hand. Fix this in the future!
@@ -156,7 +156,6 @@ void settreevars(TTree *intree, treevars *varstoset){
   intree->SetBranchAddress("track_end_z", &(varstoset->track_end_z));
   intree->SetBranchAddress("track_shower_score", &(varstoset->track_shower_score));
   intree->SetBranchAddress("track_nhits", &(varstoset->track_nhits));
-
 
   intree->GetEntry(0);
   size_t nplanes = varstoset->track_likelihood_fwd_p->size();
@@ -254,11 +253,13 @@ void CalcPIDvars(treevars *vars, bool isScale){
           }
           else{
           */
-    vars->track_chi2mu->at(i_pl) = vars->track_chi2mu->at(i_pl);
-    vars->track_chi2p->at(i_pl) = vars->track_chi2p->at(i_pl);
-    vars->track_chi2k->at(i_pl) = vars->track_chi2k->at(i_pl);
-    vars->track_chi2pi->at(i_pl) = vars->track_chi2pi->at(i_pl);
-    vars->track_chi2_muminusp->at(i_pl) = vars->track_chi2mu->at(i_pl) - vars->track_chi2p->at(i_pl);
+    // vars->track_chi2mu->at(i_pl) = vars->track_chi2mu->at(i_pl);
+    // vars->track_chi2p->at(i_pl) = vars->track_chi2p->at(i_pl);
+    // vars->track_chi2k->at(i_pl) = vars->track_chi2k->at(i_pl);
+    // vars->track_chi2pi->at(i_pl) = vars->track_chi2pi->at(i_pl);
+    if (vars->track_chi2mu->at(i_pl)>=0 && vars->track_chi2p->at(i_pl)>=0){
+      vars->track_chi2_muminusp->at(i_pl) = vars->track_chi2mu->at(i_pl) - vars->track_chi2p->at(i_pl);
+    }
     //}
 
     //double scalefactor_mu = 0.821;
@@ -277,27 +278,37 @@ void CalcPIDvars(treevars *vars, bool isScale){
     vars->track_likelihood_k->at(i_pl) = std::max(vars->track_likelihood_fwd_k->at(i_pl)     , vars->track_likelihood_bwd_k->at(i_pl)) * scalefactor_mu;
     vars->track_likelihood_mip->at(i_pl) = vars->track_likelihood_fwd_mip->at(i_pl) * scalefactor_mu;
     vars->track_likelihood_maxmumip->at(i_pl) = std::max(vars->track_likelihood_mu->at(i_pl), vars->track_likelihood_mip->at(i_pl));
-    vars->track_likelihood_muoverp->at(i_pl) = vars->track_likelihood_mu->at(i_pl) / vars->track_likelihood_p->at(i_pl);
-    vars->track_likelihood_mipoverp->at(i_pl) = vars->track_likelihood_mip->at(i_pl) / vars->track_likelihood_p->at(i_pl);
-    vars->track_lnlikelihood_mipoverp->at(i_pl) = TMath::Log(vars->track_likelihood_mipoverp->at(i_pl));
-    vars->track_likelihood_maxmumipoverp->at(i_pl) = vars->track_likelihood_maxmumip->at(i_pl) / vars->track_likelihood_p->at(i_pl);
+    if (vars->track_likelihood_mipoverp->at(i_pl)>0){
+      vars->track_lnlikelihood_mipoverp->at(i_pl) = TMath::Log(vars->track_likelihood_mipoverp->at(i_pl));
+    }
 
-    double denom = (vars->track_likelihood_p->at(i_pl)+vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_k->at(i_pl)+vars->track_likelihood_pi->at(i_pl)+vars->track_likelihood_mip->at(i_pl));
+    // Skip tracks with invalid likelihood scores
+    if (vars->track_likelihood_p->at(i_pl)<0 || vars->track_likelihood_mu->at(i_pl)<0 || vars->track_likelihood_k->at(i_pl)<0 || vars->track_likelihood_pi->at(i_pl)<0 || vars->track_likelihood_mip->at(i_pl)<0){
+      // Do nothing
+    }
+    else{
+      vars->track_likelihood_muoverp->at(i_pl) = vars->track_likelihood_mu->at(i_pl) / vars->track_likelihood_p->at(i_pl);
+      vars->track_likelihood_mipoverp->at(i_pl) = vars->track_likelihood_mip->at(i_pl) / vars->track_likelihood_p->at(i_pl);
+      vars->track_likelihood_maxmumipoverp->at(i_pl) = vars->track_likelihood_maxmumip->at(i_pl) / vars->track_likelihood_p->at(i_pl);
 
-    vars->track_Lmu_0to1->at(i_pl) = vars->track_likelihood_mu->at(i_pl)/denom;
-    vars->track_Lmip_0to1->at(i_pl) = vars->track_likelihood_mip->at(i_pl)/denom;
-    vars->track_Lpi_0to1->at(i_pl) = vars->track_likelihood_pi->at(i_pl)/denom;
-    vars->track_Lp_0to1->at(i_pl) = vars->track_likelihood_p->at(i_pl)/denom;
-    vars->track_Lk_0to1->at(i_pl) = vars->track_likelihood_k->at(i_pl)/denom;
-    vars->track_Lmumip_0to1->at(i_pl) = (vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_mip->at(i_pl))/denom;
-    vars->track_Lmumippi_0to1->at(i_pl) = (vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_mip->at(i_pl)+vars->track_likelihood_pi->at(i_pl))/denom;
+      double denom = (vars->track_likelihood_p->at(i_pl)+vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_k->at(i_pl)+vars->track_likelihood_pi->at(i_pl)+vars->track_likelihood_mip->at(i_pl));
+
+      vars->track_Lmu_0to1->at(i_pl) = vars->track_likelihood_mu->at(i_pl)/denom;
+      vars->track_Lmip_0to1->at(i_pl) = vars->track_likelihood_mip->at(i_pl)/denom;
+      vars->track_Lpi_0to1->at(i_pl) = vars->track_likelihood_pi->at(i_pl)/denom;
+      vars->track_Lp_0to1->at(i_pl) = vars->track_likelihood_p->at(i_pl)/denom;
+      vars->track_Lk_0to1->at(i_pl) = vars->track_likelihood_k->at(i_pl)/denom;
+      vars->track_Lmumip_0to1->at(i_pl) = (vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_mip->at(i_pl))/denom;
+      vars->track_Lmumippi_0to1->at(i_pl) = (vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_mip->at(i_pl)+vars->track_likelihood_pi->at(i_pl))/denom;
+
+      vars->track_Lmumip_0to1_nopionkaon->at(i_pl) = (vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_mip->at(i_pl))/(vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_mip->at(i_pl)+vars->track_likelihood_p->at(i_pl));
+    }
+
     vars->track_depE_minus_rangeE_mu->at(i_pl) = vars->track_depE->at(i_pl) - vars->track_rangeE_mu;
     vars->track_depE_minus_rangeE_p->at(i_pl) = vars->track_depE->at(i_pl) - vars->track_rangeE_p;
 
     vars->track_Lmuovermip->at(i_pl) = vars->track_likelihood_mu->at(i_pl) / vars->track_likelihood_mip->at(i_pl);
     vars->track_Lmumipoverpi->at(i_pl) = std::max(vars->track_likelihood_mu->at(i_pl), vars->track_likelihood_mip->at(i_pl)) / vars->track_likelihood_pi->at(i_pl);
-
-    vars->track_Lmumip_0to1_nopionkaon->at(i_pl) = (vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_mip->at(i_pl))/(vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_mip->at(i_pl)+vars->track_likelihood_p->at(i_pl));
 
     double maxl = std::max({vars->track_likelihood_fwd_p->at(i_pl),vars->track_likelihood_bwd_p->at(i_pl),vars->track_likelihood_fwd_mu->at(i_pl),vars->track_likelihood_bwd_mu->at(i_pl),vars->track_likelihood_fwd_pi->at(i_pl),vars->track_likelihood_bwd_pi->at(i_pl),vars->track_likelihood_fwd_k->at(i_pl),vars->track_likelihood_bwd_k->at(i_pl)});
 
@@ -487,7 +498,7 @@ void Fill2DHist(hist2D *hists, double valuex, double valuey, double valuez, int 
 void DrawMC(hist1D *hists, double POTScaling, double yrange){
   gStyle->SetTitleX(0.1f);
   gStyle->SetTitleW(0.8f);
-  
+
   if (POTScaling == 0.){ // area normalise
     POTScaling = 1./hists->h_all->Integral();
     hists->h_all->GetYaxis()->SetTitle("No. tracks (area normalised)");
