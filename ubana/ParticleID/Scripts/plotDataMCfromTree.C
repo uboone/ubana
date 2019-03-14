@@ -446,6 +446,7 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
             slice=rr/5;
             if (slice>10){slice=10;}
           }
+          if (slice<0){continue;}
           FillHist(onb_hists_dEdxSlices[i_pl][slice],dedx,0);
         }
       }
@@ -531,6 +532,7 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
             slice=rr/5;
             if (slice>10){slice=10;}
           }
+          if (slice<0){continue;}
           FillHist(offb_hists_dEdxSlices[i_pl][slice],dedx,0);
         }
       }
