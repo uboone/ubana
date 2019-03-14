@@ -172,6 +172,7 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     double track_phi;
     double track_rangeE_mu;
     double track_rangeE_p;
+    bool track_ismuoncandidate;
     bool track_dQdxtruncmeanvslength_isMuon;
     std::vector<float> track_dEdx_perhit_u;
     std::vector<float> track_dEdx_perhit_v;
@@ -356,6 +357,15 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
    */
   TVector3 true_start;
   TVector3 true_end;
+  // quickly find out which track is the longest in the event - this is the muon candidate
+  double max_length=-1.0;
+  size_t muoncandidatekey=99999;
+  for (auto& track : trackPtrVector){
+    if (track->Length() > max_length){
+      max_length=track->Length();
+      muoncandidatekey=track.key();
+    }
+  }
   for (auto& track : trackPtrVector){
     // std::cout << "found track" << std::endl;
 
@@ -404,6 +414,7 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
     track_end_x = track->End().X();
     track_end_y = track->End().Y();
     track_end_z = track->End().Z();
+    track_ismuoncandidate = (track.key()==muoncandidatekey);
 
     // Get track/shower score from PFP metadata
     std::vector<art::Ptr<recob::PFParticle>> pfps = pfps_from_tracks.at(track.key());
@@ -1050,7 +1061,8 @@ void ParticleIdValidationPlots::beginJob(){
   pidTree->Branch( "track_resrange_perhit_u"   , &track_resrange_perhit_u ) ;
   pidTree->Branch( "track_resrange_perhit_v"   , &track_resrange_perhit_v ) ;
   pidTree->Branch( "track_resrange_perhit_y"   , &track_resrange_perhit_y ) ;
-  pidTree->Branch( "track_Lmip_perhit"         , &track_Lmip_perhit ) ;
+  pidTree->Branch( "track_Lmip_perhit"         , &track_Lmip_perhit       ) ;
+  pidTree->Branch( "track_ismuoncandidate"     , &track_ismuoncandidate   ) ;
 
 
 
