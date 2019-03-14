@@ -55,6 +55,8 @@ namespace single_photon
         m_sim_shower_sliceId.clear();
         m_sim_shower_nuscore.clear();
         m_sim_shower_isclearcosmic.clear();
+         m_sim_shower_is_nuslice.clear();
+
 
 
         m_reco_shower_ordered_energy_index.clear();
@@ -102,6 +104,8 @@ namespace single_photon
         m_reco_shower_sliceId.clear();
         m_reco_shower_nuscore.clear();
         m_reco_shower_isclearcosmic.clear();
+         m_reco_shower_is_nuslice.clear();
+
 
 
 
@@ -178,6 +182,8 @@ namespace single_photon
         m_reco_shower_sliceId.resize(size);
         m_reco_shower_nuscore.resize(size);
         m_reco_shower_isclearcosmic.resize(size);
+         m_reco_shower_is_nuslice.resize(size);
+
 
         m_sim_shower_energy.resize(size);
         m_sim_shower_matched.resize(size);
@@ -208,6 +214,9 @@ namespace single_photon
         m_sim_shower_sliceId.resize(size);
         m_sim_shower_nuscore.resize(size);
         m_sim_shower_isclearcosmic.resize(size);
+         m_sim_shower_is_nuslice.resize(size);
+ 
+
 
 
 
@@ -279,6 +288,8 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_sliceId",& m_reco_shower_sliceId);
         vertex_tree->Branch("reco_shower_nuscore",& m_reco_shower_nuscore);
         vertex_tree->Branch("reco_shower_isclearcosmic",& m_reco_shower_isclearcosmic);
+         vertex_tree->Branch("reco_shower_is_nusclice", & m_reco_shower_is_nuslice);
+        
 
         vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
         vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
@@ -310,13 +321,15 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
         vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
         vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
+         vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
         
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
             std::map<int, double>& sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
-            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
+            std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite"<<std::endl;;
 
@@ -570,6 +583,8 @@ namespace single_photon
             m_reco_shower_sliceId[i_shr] = PFPToSliceIdMap[pfp];
             m_reco_shower_nuscore[i_shr] = sliceIdToNuScoreMap[ m_reco_shower_sliceId[i_shr]] ;
             m_reco_shower_isclearcosmic[i_shr] = PFPToClearCosmicMap[pfp];
+            m_reco_shower_is_nuslice[i_shr] = PFPToNuSliceMap[pfp];
+
 
 
 

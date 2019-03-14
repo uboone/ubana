@@ -12,7 +12,7 @@ namespace single_photon
         m_matched_signal_shower_sliceId.clear();
         m_matched_signal_shower_is_clearcosmic.clear();
         m_matched_signal_shower_num = 0;
-        // std::vector<bool> m_matched_signal_shower_is_nuslice;
+        m_matched_signal_shower_is_nuslice.clear();
 
         m_matched_signal_track_true_E.clear();
         m_matched_signal_track_nuscore.clear();
@@ -26,8 +26,8 @@ namespace single_photon
 
         m_reco_1g1p_is_same_slice = false;
         m_reco_1g1p_is_multiple_slices = false;
-        // bool m_reco_1g1p_is_nuslice;
-        // bool m_reco_1g0p_is_nuslice;
+        m_reco_1g1p_is_nuslice = false;
+        m_reco_1g0p_is_nuslice = false;
         m_reco_1g1p_nuscore = -999;
         m_reco_1g0p_nuscore = -999;
         m_is_matched_1g1p = false;
@@ -80,8 +80,7 @@ namespace single_photon
         ncdelta_slice_tree->Branch("matched_signal_shower_sliceId", &m_matched_signal_shower_sliceId);
         ncdelta_slice_tree->Branch("matched_signal_shower_is_clearcosmic", &m_matched_signal_shower_is_clearcosmic);
         ncdelta_slice_tree->Branch("matched_signal_shower_num", &m_matched_signal_shower_num);
-
-        // std::vector<bool> m_matched_signal_shower_is_nuslice;
+        ncdelta_slice_tree->Branch("matched_signal_shower_is_nuslice", &m_matched_signal_shower_is_nuslice);
 
         // ncdelta_slice_tree->Branch("matched_signal_track_overlay_fraction", &m_matched_signal_track_overlay_fraction);
         ncdelta_slice_tree->Branch("matched_signal_track_true_E", &m_matched_signal_track_true_E);
@@ -92,11 +91,13 @@ namespace single_photon
 
         //int m_matched_signal_total_num_slices;
         ncdelta_slice_tree->Branch("reco_1g1p_is_same_slice",&m_reco_1g1p_is_same_slice);
+        ncdelta_slice_tree->Branch("reco_1g1p_is_nuslice",&m_reco_1g1p_is_nuslice);
         ncdelta_slice_tree->Branch("reco_1g1p_is_multiple_slices",&m_reco_1g1p_is_multiple_slices);
         ncdelta_slice_tree->Branch("reco_1g1p_nuscore",&m_reco_1g1p_nuscore);
         ncdelta_slice_tree->Branch("is_matched_1g1p",&m_is_matched_1g1p);
 
         ncdelta_slice_tree->Branch("reco_1g0p_nuscore",&m_reco_1g0p_nuscore);
+        ncdelta_slice_tree->Branch("reco_1g0p_is_nuslice",&m_reco_1g0p_is_nuslice);
         ncdelta_slice_tree->Branch("is_matched_1g0p",&m_is_matched_1g0p);
 
         ncdelta_slice_tree->Branch("no_matched_showers",& m_no_matched_showers);
@@ -135,6 +136,7 @@ namespace single_photon
 
 
         std::vector<double> nuscore_slices; //this is a temporary vector to store neutrino score per slice for this event
+         std::map<int, bool> sliceIdToNuSliceMap; //this is a temporary vector to store neutrino score per slice for this event
         //std::vector<art::Ptr<recob::PFParticle>> primary_pfps; //store the primary PFP for each slice
         // sliceIdToPFPMap.clear(); //clear between events
 
@@ -215,13 +217,9 @@ namespace single_photon
                         PFPToClearCosmicMap[pfp] = false;
 
                     }
-                    if(is_nuslice == true){
-                        PFPToNuSliceMap[pfp] = true;
-                    }else{ 
-                        PFPToNuSliceMap[pfp] = false;
-                    
-                    }
-
+                   
+                        sliceIdToNuSliceMap[temp_ind] = is_nuslice;
+                                      
                 }//for each PFP/metadata
 
             }//if the list isn't empty
@@ -285,8 +283,9 @@ namespace single_photon
                 allPFPSliceIdVec.push_back(std::pair(start_pfp,slice_id));
                 // PFPToSliceIdMap[start_pfp] = slice_id; 
             }
-            PFPToSliceIdMap[start_pfp] = slice_id; 
-
+           
+             PFPToSliceIdMap[start_pfp] = slice_id; 
+             PFPToNuSliceMap[start_pfp] = sliceIdToNuSliceMap[slice_id];
             // sliceIdToPFPMap[slice_id].push_back(start_pfp);
         }//for all pfp's in the event
 
@@ -450,7 +449,7 @@ namespace single_photon
                             m_matched_signal_shower_nuscore.push_back( m_sim_shower_nuscore[j]);
                             m_matched_signal_shower_sliceId.push_back(m_sim_shower_sliceId[j]);
                             m_matched_signal_shower_is_clearcosmic.push_back( m_sim_shower_isclearcosmic[j]);
-                            //m_matched_signal_shower_is_nuslice.push_back();
+                            m_matched_signal_shower_is_nuslice.push_back(m_sim_shower_is_nuslice[j]);
 
                         }
                     }//if it's a photon from the neutrino interaction

@@ -16,7 +16,8 @@ namespace single_photon
             std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap ,
             std::map<int, double>& sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
-            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap){
 
 
         std::vector<double> vec_fraction_matched;
@@ -198,6 +199,8 @@ namespace single_photon
                 m_sim_shower_sliceId[i] = -999;
                 m_sim_shower_nuscore[i] = -999;
                 m_sim_shower_isclearcosmic[i] = -999;
+                m_sim_shower_is_nuslice[i] = -999;
+
 
                 continue;
             }//
@@ -415,6 +418,8 @@ namespace single_photon
             m_sim_shower_sliceId[i] = PFPToSliceIdMap[pfp];
             m_sim_shower_nuscore[i] = sliceIdToNuScoreMap[ m_sim_shower_sliceId[i]] ;
             m_sim_shower_isclearcosmic[i] = PFPToClearCosmicMap[pfp];
+            m_sim_shower_is_nuslice[i] = PFPToNuSliceMap[pfp];
+
 
 
             //OLD OLD OLD
@@ -550,7 +555,7 @@ namespace single_photon
 
             std::vector<double> trk_overlay_vec;
             std::vector<double> vec_fraction_matched;
-           bool reco_verbose = true;
+           bool reco_verbose = false;
             //for each recob::track/shower in the event
             for(size_t i=0; i<objectVector.size();++i){
                 auto object = objectVector[i];

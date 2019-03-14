@@ -317,7 +317,8 @@ namespace single_photon
             void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap,std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > & clusterToHitMap,
                     std::map<int, double> &sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
-                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap );
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
+                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap);
             void ClearShowers();
             void ResizeShowers(size_t);
             void CreateShowerBranches();
@@ -335,7 +336,8 @@ namespace single_photon
                     std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap,
                     std::map<int, double> & sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
-                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap);
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap);
 
 
 
@@ -405,7 +407,7 @@ namespace single_photon
             std::vector<double> m_reco_slice_shower_matched_conversion; //the conversion distance for each matched shower
             std::vector<double> m_reco_slice_shower_matched_overlay_frac; //fraction of overlay hits for each matched shower
             //std::map<art::Ptr<recob::PFParticle>, double > & pfParticleToNuScoreMap;//is filled during analyze slices
-            
+
             std::vector<double> m_matched_signal_shower_overlay_fraction;
             //std::vector<double> m_matched_signal_shower_conversion_length;
             std::vector<double> m_matched_signal_shower_true_E;
@@ -413,7 +415,7 @@ namespace single_photon
             std::vector<int> m_matched_signal_shower_sliceId;
             std::vector<bool> m_matched_signal_shower_is_clearcosmic;
             int m_matched_signal_shower_num = 0;
-            // std::vector<bool> m_matched_signal_shower_is_nuslice;
+            std::vector<bool> m_matched_signal_shower_is_nuslice;
 
             std::vector<double> m_matched_signal_track_true_E;
             std::vector<double> m_matched_signal_track_nuscore;
@@ -426,8 +428,8 @@ namespace single_photon
 
             bool m_reco_1g1p_is_same_slice;
             bool m_reco_1g1p_is_multiple_slices;
-            // bool m_reco_1g1p_is_nuslice;
-            // bool m_reco_1g0p_is_nuslice;
+            bool m_reco_1g1p_is_nuslice;
+            bool m_reco_1g0p_is_nuslice;
             double m_reco_1g1p_nuscore;
             double  m_reco_1g0p_nuscore;
             bool m_is_matched_1g1p;
@@ -794,6 +796,8 @@ namespace single_photon
             std::vector<int> m_reco_shower_sliceId; //the slice id for the slice continaing the reco shower
             std::vector<double> m_reco_shower_nuscore; //the neutrino score of the slice containing the reco shower
             std::vector<bool> m_reco_shower_isclearcosmic;//true if reco shower is in a clear cosmic slice
+            std::vector<bool> m_reco_shower_is_nuslice;//true if reco shower is in a clear cosmic slice
+
 
 
             std::vector<int> m_sim_shower_matched;
@@ -829,6 +833,8 @@ namespace single_photon
             std::vector<int> m_sim_shower_sliceId; //the slice id for the slice continaing the sim shower matched to reco
             std::vector<double> m_sim_shower_nuscore; //the neutrino score of the slice containing the sim shower matched to reco
             std::vector<bool> m_sim_shower_isclearcosmic;//true if sim shower matched to reco is in a clear cosmic slice
+            std::vector<bool> m_sim_shower_is_nuslice;//true if sim shower matched to reco is in a clear cosmic slice
+
 
 
             //------------ MCTruth related Variables  -------------
