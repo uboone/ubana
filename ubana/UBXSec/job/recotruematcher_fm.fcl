@@ -10,14 +10,14 @@ RecoTrueMatcher: {
   HitProducer:            "gaushit"
   GeantModule:            "largeant"
   SpacePointProducer:     "pandora"
-  MCPHitAssProducer:      "gaushitTruthMatch" #"crHitRemovalTruthMatch::UBXSec"
+  MCPHitAssProducer:      "gaushitTruthMatch" 
 
   OverrideRealData:       false
 
   UsePremadeMCPHitAss:    true
   DebugMode:              false 
   Verbose:                false
-#  Overlay:                false
+
   FiducialVolumeSettings: @local::UBXSecFiducialVolumeSettings 
 }
 
