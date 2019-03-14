@@ -3,7 +3,7 @@ void dumpRunSubRun(){
   int run;
   int sub_run;
 
-  TTree* tree = (TTree*)_file0->Get("pidvalid/potTree");
+  TTree* tree = (TTree*)_file0->Get("pidvalidcalo/potTree");
 
   tree->SetBranchAddress("sr_run", &run);
   tree->SetBranchAddress("sr_sub_run", &sub_run);
@@ -36,7 +36,7 @@ void dumpRunSubRun(){
 
       int runt2 = outvec.at(j).first;
       int subrunt2 = outvec.at(j).second;
-  
+
       if (runt1 == runt2 && subrunt1 == subrunt2){
         isWritten = true;
       }
