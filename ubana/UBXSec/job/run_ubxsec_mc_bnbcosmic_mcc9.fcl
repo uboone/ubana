@@ -25,6 +25,8 @@ beam_end:   4.80
 physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: @local::beam_start
 physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   @local::beam_end
 
+physics.producers.RecoTrueMatcher.Overlay:           false
+
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: @local::beam_start
 physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   @local::beam_end
 
