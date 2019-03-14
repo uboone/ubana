@@ -38,7 +38,7 @@ std::vector<std::vector<double>> GetPIDvarstoplot(treevars *vars){
       vars->track_depE_minus_rangeE_p->at(i),
       vars->track_Lmip_atstart->at(i),
       vars->track_lnLmip_atstart->at(i),
-      vars->track_dEdx_mean_atstart->at(i),
+      // vars->track_dEdx_mean_atstart->at(i),
       vars->track_shift_bestL->at(i)
     });
   }
@@ -95,7 +95,7 @@ std::vector<std::vector<double>> bins = {
                     {50,-300,100}, // track_depE_minus_rangeE_p
                     {100,0,2}, // track_Lmip_atstart
                     {100,-10,10}, // track_lnLmip_atstart
-                    {50,0,10}, // track_dEdx_mean_atstart
+                    // {50,0,10}, // track_dEdx_mean_atstart
                     {20,-2,2} // track_shift_bestL
                     };
 
@@ -134,7 +134,7 @@ std::vector<std::string> histtitles = {
                     ";Dep. E - E. by range (proton assumption) [MeV];",
                     ";L_{MIP} at start of track;",
                     ";ln(L_{MIP}) at start of track;",
-                    ";Truncated Mean dE/dx at start of track;",
+                    // ";Truncated Mean dE/dx at start of track;",
                     ";Preferred shift for maximum likelihood [cm];"
                   };
 //
@@ -173,7 +173,7 @@ std::vector<std::string> histnames = {
                   "depErangeEp",
                   "Lmip_atstart",
                   "lnLmip_atstart",
-                  "dEdx_truncmean_atstart",
+                  // "dEdx_truncmean_atstart",
                   "shift_bestL"
                 };
 
@@ -213,7 +213,7 @@ std::vector<double> yrange = {
                   -999, // track_depE_minus_rangeE_p
                   -999, // track_Lmip_atstart
                   -999, // track_lnLmip_atstart
-                  -999, // track_dEdx_mean_atstart
+                  // -999, // track_dEdx_mean_atstart
                   -999 // track_shift_bestL
                 };
 
@@ -239,7 +239,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
   if (onbeamdatafile!=""){
     std::cout << "Making data-MC comparisons" << std::endl;
     f_onbeam = new TFile(onbeamdatafile.c_str(), "read");
-    t_onbeam = (TTree*)f_onbeam->Get("pidvalid/pidTree");
+    t_onbeam = (TTree*)f_onbeam->Get(treename.c_str());
     settreevars(t_onbeam,&onbeam_vars);
   }
 
@@ -248,7 +248,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
   treevars offbeam_vars;
   if (offbeamdatafile!=""){
     f_offbeam = new TFile(offbeamdatafile.c_str(), "read");
-    t_offbeam = (TTree*)f_offbeam->Get("pidvalid/pidTree");
+    t_offbeam = (TTree*)f_offbeam->Get(treename.c_str());
     settreevars(t_offbeam,&offbeam_vars);
   }
 
@@ -271,6 +271,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
   const size_t nplanes = PIDvarstoplot_dummy.size();
   const size_t nplots = PIDvarstoplot_dummy.at(0).size();
   hist1D *mc_hists[nplanes][nplots];
+  hist1D *mc_hists_alldEdx[nplanes];
   hist1D *mc_hists_MIPdEdx[nplanes];
   for (int i_pl=0; i_pl<nplanes; i_pl++){
     for (int i_h=0; i_h<nplots; i_h++){
@@ -278,6 +279,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
     }
     // Extra custom plots
     mc_hists_MIPdEdx[i_pl] = new hist1D(std::string("h_")+std::string("MIPregiondEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
+    mc_hists_alldEdx[i_pl] = new hist1D(std::string("h_")+std::string("alldEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (all hits);"),100,0,10);
   }
 
 
@@ -295,18 +297,21 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
       }
 
       for (size_t i_hit=0; i_hit<mc_vars.track_resrange_perhit_u->size(); i_hit++){
+        FillHist(mc_hists_alldEdx[0],mc_vars.track_dEdx_perhit_u->at(i_hit),mc_vars.true_PDG);
         if (mc_vars.track_resrange_perhit_u->at(i_hit)>100 && mc_vars.track_resrange_perhit_u->at(i_hit)<150){
           FillHist(mc_hists_MIPdEdx[0],mc_vars.track_dEdx_perhit_u->at(i_hit),mc_vars.true_PDG);
         }
       }
 
       for (size_t i_hit=0; i_hit<mc_vars.track_resrange_perhit_v->size(); i_hit++){
+        FillHist(mc_hists_alldEdx[1],mc_vars.track_dEdx_perhit_v->at(i_hit),mc_vars.true_PDG);
         if (mc_vars.track_resrange_perhit_v->at(i_hit)>100 && mc_vars.track_resrange_perhit_v->at(i_hit)<150){
           FillHist(mc_hists_MIPdEdx[1],mc_vars.track_dEdx_perhit_v->at(i_hit),mc_vars.true_PDG);
         }
       }
 
       for (size_t i_hit=0; i_hit<mc_vars.track_resrange_perhit_y->size(); i_hit++){
+        FillHist(mc_hists_alldEdx[2],mc_vars.track_dEdx_perhit_y->at(i_hit),mc_vars.true_PDG);
         if (mc_vars.track_resrange_perhit_y->at(i_hit)>100 && mc_vars.track_resrange_perhit_y->at(i_hit)<150){
           FillHist(mc_hists_MIPdEdx[2],mc_vars.track_dEdx_perhit_y->at(i_hit),mc_vars.true_PDG);
         }
@@ -318,6 +323,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
 
   // ----------------- On-beam data
   hist1D *onb_hists[nplanes][nplots];
+  hist1D *onb_hists_alldEdx[nplanes];
   hist1D *onb_hists_MIPdEdx[nplanes];
   if (t_onbeam){
     // Make histograms to fill
@@ -327,6 +333,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
       }
       // Extra custom plots
       onb_hists_MIPdEdx[i_pl] = new hist1D(std::string("h_ondat_")+std::string("MIPregiondEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
+      onb_hists_alldEdx[i_pl] = new hist1D(std::string("h_ondat_")+std::string("alldEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
     }
 
 
@@ -345,18 +352,21 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
       }
 
       for (size_t i_hit=0; i_hit<onbeam_vars.track_resrange_perhit_u->size(); i_hit++){
+        FillHist(onb_hists_alldEdx[0],onbeam_vars.track_dEdx_perhit_u->at(i_hit),onbeam_vars.true_PDG);
         if (onbeam_vars.track_resrange_perhit_u->at(i_hit)>100 && onbeam_vars.track_resrange_perhit_u->at(i_hit)<150){
           FillHist(onb_hists_MIPdEdx[0],onbeam_vars.track_dEdx_perhit_u->at(i_hit),onbeam_vars.true_PDG);
         }
       }
 
       for (size_t i_hit=0; i_hit<onbeam_vars.track_resrange_perhit_v->size(); i_hit++){
+        FillHist(onb_hists_alldEdx[1],onbeam_vars.track_dEdx_perhit_v->at(i_hit),onbeam_vars.true_PDG);
         if (onbeam_vars.track_resrange_perhit_v->at(i_hit)>100 && onbeam_vars.track_resrange_perhit_v->at(i_hit)<150){
           FillHist(onb_hists_MIPdEdx[1],onbeam_vars.track_dEdx_perhit_v->at(i_hit),onbeam_vars.true_PDG);
         }
       }
 
       for (size_t i_hit=0; i_hit<onbeam_vars.track_resrange_perhit_y->size(); i_hit++){
+        FillHist(onb_hists_alldEdx[2],onbeam_vars.track_dEdx_perhit_y->at(i_hit),onbeam_vars.true_PDG);
         if (onbeam_vars.track_resrange_perhit_y->at(i_hit)>100 && onbeam_vars.track_resrange_perhit_y->at(i_hit)<150){
           FillHist(onb_hists_MIPdEdx[2],onbeam_vars.track_dEdx_perhit_y->at(i_hit),onbeam_vars.true_PDG);
         }
@@ -366,6 +376,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
 
     // ----------------- Off-beam data
   hist1D *offb_hists[nplanes][nplots];
+  hist1D *offb_hists_alldEdx[nplanes];
   hist1D *offb_hists_MIPdEdx[nplanes];
   if (t_offbeam){
     // Make histograms to fill
@@ -375,6 +386,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
       }
       // Extra custom plots
       offb_hists_MIPdEdx[i_pl] = new hist1D(std::string("h_offdat_")+std::string("MIPregiondEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
+      offb_hists_alldEdx[i_pl] = new hist1D(std::string("h_offdat_")+std::string("alldEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
     }
 
 
@@ -393,18 +405,21 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
       }
 
       for (size_t i_hit=0; i_hit<offbeam_vars.track_resrange_perhit_u->size(); i_hit++){
+        FillHist(offb_hists_alldEdx[0],offbeam_vars.track_dEdx_perhit_u->at(i_hit),offbeam_vars.true_PDG);
         if (offbeam_vars.track_resrange_perhit_u->at(i_hit)>100 && offbeam_vars.track_resrange_perhit_u->at(i_hit)<150){
           FillHist(offb_hists_MIPdEdx[0],offbeam_vars.track_dEdx_perhit_u->at(i_hit),offbeam_vars.true_PDG);
         }
       }
 
       for (size_t i_hit=0; i_hit<offbeam_vars.track_resrange_perhit_v->size(); i_hit++){
+        FillHist(offb_hists_alldEdx[1],offbeam_vars.track_dEdx_perhit_v->at(i_hit),offbeam_vars.true_PDG);
         if (offbeam_vars.track_resrange_perhit_v->at(i_hit)>100 && offbeam_vars.track_resrange_perhit_v->at(i_hit)<150){
           FillHist(offb_hists_MIPdEdx[1],offbeam_vars.track_dEdx_perhit_v->at(i_hit),offbeam_vars.true_PDG);
         }
       }
 
       for (size_t i_hit=0; i_hit<offbeam_vars.track_resrange_perhit_y->size(); i_hit++){
+        FillHist(offb_hists_alldEdx[2],offbeam_vars.track_dEdx_perhit_y->at(i_hit),offbeam_vars.true_PDG);
         if (offbeam_vars.track_resrange_perhit_y->at(i_hit)>100 && offbeam_vars.track_resrange_perhit_y->at(i_hit)<150){
           FillHist(offb_hists_MIPdEdx[2],offbeam_vars.track_dEdx_perhit_y->at(i_hit),offbeam_vars.true_PDG);
         }
@@ -463,7 +478,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
       if (f_onbeam && f_offbeam){
         OverlayOnMinusOffData(c1,onb_hists_MIPdEdx[i_pl],offb_hists_MIPdEdx[i_pl],offbeamscaling,POTscaling_tmp);
         TString e_str("h_err");
-        TString o_str("h_ondat_MIPdEdx_plane"+std::to_string(i_pl)+"_all");
+        TString o_str("h_ondat_MIPregiondEdx_plane"+std::to_string(i_pl)+"_all");
         OverlayChi2(c1, e_str, o_str);
       }
     }
@@ -472,7 +487,7 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
         DrawMCPlusOffbeam(mc_hists_MIPdEdx[i_pl], offb_hists_MIPdEdx[i_pl], POTscaling_tmp, offbeamscaling,-999);
         OverlayOnBeamData(c1, onb_hists_MIPdEdx[i_pl]);
         TString e_str("h_err");
-        TString o_str("h_ondat_MIPdEdx_plane"+std::to_string(i_pl)+"_all");
+        TString o_str("h_ondat_MIPregiondEdx_plane"+std::to_string(i_pl)+"_all");
         OverlayChi2(c1, e_str, o_str);
       }
       else{
@@ -480,5 +495,36 @@ void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscal
       }
     }
     c1->Print(std::string(std::string("h_MIPregiondEdx_plane")+std::to_string(i_pl)+".png").c_str());
+
+
+    POTscaling_tmp = POTscaling; // Reset POT scaling for the next plot
+
+    if (templatefit){
+      TemplateFit(mc_hists_alldEdx[i_pl], onb_hists_alldEdx[i_pl], offb_hists_alldEdx[i_pl], offbeamscaling, POTscaling_tmp,-999);
+      POTscaling_tmp = 1.; // We have already applied POT scaling to MC in the template fit function. Set it to 1 so it doesn't get applied again in DrawMC.
+    }
+
+    if (onminusoffbeam){
+      DrawMC(mc_hists_alldEdx[i_pl],POTscaling_tmp,-999);
+      if (f_onbeam && f_offbeam){
+        OverlayOnMinusOffData(c1,onb_hists_alldEdx[i_pl],offb_hists_alldEdx[i_pl],offbeamscaling,POTscaling_tmp);
+        TString e_str("h_err");
+        TString o_str("h_ondat_alldEdx_plane"+std::to_string(i_pl)+"_all");
+        OverlayChi2(c1, e_str, o_str);
+      }
+    }
+    else{
+      if (f_onbeam && f_offbeam){
+        DrawMCPlusOffbeam(mc_hists_alldEdx[i_pl], offb_hists_alldEdx[i_pl], POTscaling_tmp, offbeamscaling,-999);
+        OverlayOnBeamData(c1, onb_hists_alldEdx[i_pl]);
+        TString e_str("h_err");
+        TString o_str("h_ondat_alldEdx_plane"+std::to_string(i_pl)+"_all");
+        OverlayChi2(c1, e_str, o_str);
+      }
+      else{
+        DrawMC(mc_hists_alldEdx[i_pl],POTscaling_tmp,-999);
+      }
+    }
+    c1->Print(std::string(std::string("h_alldEdx_plane")+std::to_string(i_pl)+".png").c_str());
   } // end loop over planes
 }
