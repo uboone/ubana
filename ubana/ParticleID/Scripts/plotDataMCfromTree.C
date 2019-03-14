@@ -240,6 +240,8 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
   gStyle->SetTitleW(0.8f);
   gStyle->SetTitleBorderSize(0.);
   gStyle->SetOptStat(0);
+  
+  gROOT->SetBatch(); // fill with 0 to turn off batch mode, if you want your screen full of plots
 
   TFile *f_bnbcos = new TFile(mcfile.c_str(), "read");
   TTree *t_bnbcos = (TTree*)f_bnbcos->Get(treename.c_str());
