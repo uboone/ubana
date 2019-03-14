@@ -222,18 +222,18 @@ std::vector<double> yrange = {
 //  Now the function starts
 // ---------------------------------------------------- //
 
-//void plotDataMCFromTree(std::string treename, std::string mcfile, double POTscaling=0., std::string onbeamdatafile="", std::string offbeamdatafile="", double offbeamscaling=0., bool onminusoffbeam=true, bool templatefit=false){
-void plotDataMCfromTree(){
-  std::string treename="pidvalidcaliSCE/pidTree";
-  std::string mcfile="/uboone/data/users/sfehlber/Mar/Mar11/mc/mc.root"; // MC pure
-//  std::string mcfile="/uboone/data/users/sfehlber/Mar/Mar11_test/overlay1/overlay1.root"; // Overlay
-  std::string onbeamdatafile="/uboone/data/users/sfehlber/Mar/Mar11/bnb/bnb.root"; // onbeam
-  std::string offbeamdatafile="/uboone/data/users/sfehlber/Mar/Mar11/extbnb/ext.root"; // onbeam
-  double offbeamscaling=0.647;
-  double POTscaling =1.118; //MC pure
-  //double POTscaling =6.202; Overlay
-  bool onminusoffbeam=false;
-  bool templatefit=false;
+void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscaling=0., std::string onbeamdatafile="", std::string offbeamdatafile="", double offbeamscaling=0., bool onminusoffbeam=true, bool templatefit=false){
+//void plotDataMCfromTree(){ // in case you want to hard-code things, you can uncomment this block
+//  std::string treename="pidvalidcaliSCE/pidTree";
+//  std::string mcfile="/uboone/data/users/sfehlber/Mar/Mar11/mc/mc.root"; // MC pure
+////  std::string mcfile="/uboone/data/users/sfehlber/Mar/Mar11_test/overlay1/overlay1.root"; // Overlay
+//  std::string onbeamdatafile="/uboone/data/users/sfehlber/Mar/Mar11/bnb/bnb.root"; // onbeam
+//  std::string offbeamdatafile="/uboone/data/users/sfehlber/Mar/Mar11/extbnb/ext.root"; // onbeam
+//  double offbeamscaling=0.647;
+//  double POTscaling =1.118; //MC pure
+//  //double POTscaling =6.202; Overlay
+//  bool onminusoffbeam=false;
+//  bool templatefit=false;
 
 
   gStyle->SetTitleX(0.1f);
