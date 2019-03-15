@@ -632,7 +632,7 @@ namespace single_photon
                     trk_overlay_vec.push_back(fraction_num_hits_overlay);
                 if(n_associated_mcparticle_hits == 0){
                     //This will only occur if the whole recob::PFParticle is associated with an overlay object
-                    std::cout<<fraction_num_hits_overlay<<std::endl;
+                    //std::cout<<fraction_num_hits_overlay<<std::endl;
                 }//for each recob::track/shower in the event
 
                 //std::cout << "SinglePhoton::recoMC()\t||\t the number of MCParticles associated with this PFP is "<<objide.size()<<std::endl;       
