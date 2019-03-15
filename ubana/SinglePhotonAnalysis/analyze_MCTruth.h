@@ -327,17 +327,22 @@ namespace single_photon
                     std::cout<<"looking at exiting photon with energy "<<m_mctruth_exiting_photon_energy[p]<<std::endl;
                     if ( m_mctruth_exiting_photon_energy[p] > m_exiting_photon_energy_threshold){
                         m_mctruth_is_reconstructable_1g0p = true;
-      
+
                     }//if g above threshold
                 }//for all exiting g
                 for(unsigned int pr = 0; pr <  m_mctruth_exiting_proton_energy.size(); pr++){
-                    if ( m_mctruth_exiting_proton_energy[pr]> m_exiting_proton_energy_threshold){
-                        if( m_mctruth_is_reconstructable_1g0p == true){
+                   if ( m_mctruth_exiting_proton_energy[pr]> m_exiting_proton_energy_threshold){
+                        //if it's already 1g1p then we've found a 1g2p which we aren't counting
+                        if( m_mctruth_is_reconstructable_1g1p == true && m_mctruth_is_reconstructable_1g0p == false){
+                            m_mctruth_is_reconstructable_1g1p = false;
+                        }
+                        //if there's a photon then it's actually a 1g1p
+                        if( m_mctruth_is_reconstructable_1g0p == true &&  m_mctruth_is_reconstructable_1g1p == false){
                             m_mctruth_is_reconstructable_1g1p = true;
                             m_mctruth_is_reconstructable_1g0p = false;
-                     
-                        }
-                    }//if p above threshold
+                        } 
+                       std::cout<<"checking proton with energy "<<m_mctruth_exiting_proton_energy[pr]<<", is 1g1p/1g0p= "<< m_mctruth_is_reconstructable_1g1p<<"/"<< m_mctruth_is_reconstructable_1g0p<<std::endl;
+                         }//if p above threshold
                 }//for all exiting p
 
             }//if ncdelta
