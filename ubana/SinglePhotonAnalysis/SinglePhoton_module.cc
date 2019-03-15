@@ -254,10 +254,10 @@ namespace single_photon
             }
             
             size_t calo_size = calo_per_track.at(tracks[i].key()).size();
-            std::cout<<"Track Calo from producer: "<<m_caloLabel<<" has "<<calo_size<<" anab::Calorimetry objects associaed."<<std::endl;
+            //std::cout<<"Track Calo from producer: "<<m_caloLabel<<" has "<<calo_size<<" anab::Calorimetry objects associaed."<<std::endl;
             trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key());
             for(size_t k=0; k<calo_size; k++){
-                std::cout<<"Calo "<<k<<" PlaneID: "<<calo_per_track.at(tracks[i].key())[k]->PlaneID()<<std::endl;
+                //std::cout<<"Calo "<<k<<" PlaneID: "<<calo_per_track.at(tracks[i].key())[k]->PlaneID()<<std::endl;
             }
         }
 
@@ -342,9 +342,10 @@ namespace single_photon
         std::map<int, double> sliceIdToNuScoreMap; //map between a slice Id and neutrino score
         std::map<art::Ptr<recob::PFParticle>, bool> PFPToClearCosmicMap; //returns true for clear cosmic, false otherwise
         std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap; //returns the slice id for all PFP's
+        std::map<art::Ptr<recob::PFParticle>,bool> PFPToNuSliceMap;
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
 
-        this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap);
+        this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap);
         //std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
         std::cout<<"the number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
 
@@ -355,7 +356,7 @@ namespace single_photon
 
 
         if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
-        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap); 
+        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap); 
 
         // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
         // MCShower and MCTrack come from energy depositions in GEANT4
@@ -424,7 +425,7 @@ namespace single_photon
 
 
             std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
-            this->showerRecoMCmatching(showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap);
+            this->showerRecoMCmatching(showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap);
 
 
             //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
@@ -483,6 +484,9 @@ namespace single_photon
 
             //this one was for testing, leaving out for now
             // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
+            
+            this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
+
 
 
         }
@@ -492,6 +496,7 @@ namespace single_photon
 
         //---------------------- END OF LOOP, fill vertex ---------------------
         vertex_tree->Fill();
+        ncdelta_slice_tree->Fill();
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 
@@ -519,6 +524,8 @@ namespace single_photon
         vertex_tree = tfs->make<TTree>("vertex_tree", "vertex_tree");
         pot_tree = tfs->make<TTree>("pot_tree", "pot_tree");
         eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
+        ncdelta_slice_tree = tfs->make<TTree>("ncdelta_slice_tree", "ncdelta_slice_tree");
+
 
         // --------------------- POT Releated variables -----------------
         m_number_of_events = 0;
@@ -573,7 +580,7 @@ namespace single_photon
 
         //Metadata Branches
         this->CreateSliceBranches();
-        this->CreateMatchedSliceBranches();
+        //this->CreateMatchedSliceBranches();
 
 
         // ---------------------- MCTruth Related Variables ----------

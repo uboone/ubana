@@ -5,14 +5,47 @@ namespace single_photon
     void SinglePhoton::ClearSlices(){
         m_reco_slice_num = 0;
         m_reco_slice_nuscore.clear();
-        m_reco_slice_shower_num_matched_signal = -999;
-        m_reco_slice_track_num_matched_signal = -999;
-        m_reco_slice_shower_matched_sliceId.clear();
-        m_reco_slice_track_matched_sliceId.clear();
-        m_reco_slice_shower_matched_energy.clear();
-        m_reco_slice_track_matched_energy.clear();
-        m_reco_slice_shower_matched_conversion.clear();
-        m_reco_slice_shower_matched_overlay_frac.clear();
+        m_matched_signal_shower_overlay_fraction.clear();
+        //std::vector<double> m_matched_signal_shower_conversion_length;
+        m_matched_signal_shower_true_E.clear();
+        m_matched_signal_shower_nuscore.clear();
+        m_matched_signal_shower_sliceId.clear();
+        m_matched_signal_shower_is_clearcosmic.clear();
+        m_matched_signal_shower_num = 0;
+        m_matched_signal_shower_is_nuslice.clear();
+
+        m_matched_signal_track_true_E.clear();
+        m_matched_signal_track_nuscore.clear();
+        m_matched_signal_track_sliceId.clear();
+        m_matched_signal_track_is_clearcosmic.clear();
+        //  std::vector<bool> m_matched_signal_track_is_nuslice;
+        m_matched_signal_track_num = 0;  
+
+
+        //int m_matched_signal_total_num_slices;
+
+        m_reco_1g1p_is_same_slice = false;
+        m_reco_1g1p_is_multiple_slices = false;
+        m_reco_1g1p_is_nuslice = false;
+        m_reco_1g0p_is_nuslice = false;
+        m_reco_1g1p_nuscore = -999;
+        m_reco_1g0p_nuscore = -999;
+        m_is_matched_1g1p = false;
+        m_is_matched_1g0p = false;
+        m_no_matched_showers = false;
+        m_multiple_matched_showers = false;
+        m_multiple_matched_tracks = false;
+
+
+        /*  m_reco_slice_shower_num_matched_signal = -999;
+            m_reco_slice_track_num_matched_signal = -999;
+            m_reco_slice_shower_matched_sliceId.clear();
+            m_reco_slice_track_matched_sliceId.clear();
+            m_reco_slice_shower_matched_energy.clear();
+            m_reco_slice_track_matched_energy.clear();
+            m_reco_slice_shower_matched_conversion.clear();
+            m_reco_slice_shower_matched_overlay_frac.clear();
+            */  
     }
 
     //resizes the branches that are filled for every slice int the event
@@ -20,17 +53,18 @@ namespace single_photon
         m_reco_slice_nuscore.resize(size);
     }
 
+    /*
     //resize the branches that are filled for matched track and shower objects
     void SinglePhoton::ResizeMatchedSlices(size_t size_shower ,size_t size_track){
-        m_reco_slice_shower_matched_sliceId.resize(size_shower);
-        m_reco_slice_track_matched_sliceId.resize( size_track);
-        m_reco_slice_shower_matched_energy.resize(size_shower);
-        m_reco_slice_track_matched_energy.resize( size_track);
-        m_reco_slice_shower_matched_conversion.resize(size_shower);
-        m_reco_slice_shower_matched_overlay_frac.resize(size_shower);
+    m_reco_slice_shower_matched_sliceId.resize(size_shower);
+    m_reco_slice_track_matched_sliceId.resize( size_track);
+    m_reco_slice_shower_matched_energy.resize(size_shower);
+    m_reco_slice_track_matched_energy.resize( size_track);
+    m_reco_slice_shower_matched_conversion.resize(size_shower);
+    m_reco_slice_shower_matched_overlay_frac.resize(size_shower);
 
     }
-
+    */
 
 
     void SinglePhoton::CreateSliceBranches(){
@@ -38,16 +72,50 @@ namespace single_photon
         vertex_tree->Branch("reco_slice_num",&m_reco_slice_num);
         vertex_tree->Branch("reco_slice_shower_num_matched_signal",& m_reco_slice_shower_num_matched_signal);
         vertex_tree->Branch("reco_slice_track_num_matched_signal",& m_reco_slice_track_num_matched_signal);
+
+        ncdelta_slice_tree->Branch("matched_signal_shower_overlay_fraction", &m_matched_signal_shower_overlay_fraction);
+        //std::vector<double> m_matched_signal_shower_conversion_length;
+        ncdelta_slice_tree->Branch("matched_signal_shower_true_E", &m_matched_signal_shower_true_E);
+        ncdelta_slice_tree->Branch("matched_signal_shower_nuscore", &m_matched_signal_shower_nuscore);
+        ncdelta_slice_tree->Branch("matched_signal_shower_sliceId", &m_matched_signal_shower_sliceId);
+        ncdelta_slice_tree->Branch("matched_signal_shower_is_clearcosmic", &m_matched_signal_shower_is_clearcosmic);
+        ncdelta_slice_tree->Branch("matched_signal_shower_num", &m_matched_signal_shower_num);
+        ncdelta_slice_tree->Branch("matched_signal_shower_is_nuslice", &m_matched_signal_shower_is_nuslice);
+
+        // ncdelta_slice_tree->Branch("matched_signal_track_overlay_fraction", &m_matched_signal_track_overlay_fraction);
+        ncdelta_slice_tree->Branch("matched_signal_track_true_E", &m_matched_signal_track_true_E);
+        ncdelta_slice_tree->Branch("matched_signal_track_nuscore", &m_matched_signal_track_nuscore);
+        ncdelta_slice_tree->Branch("matched_signal_track_sliceId", &m_matched_signal_track_sliceId);
+        ncdelta_slice_tree->Branch("matched_signal_track_is_clearcosmic", &m_matched_signal_track_is_clearcosmic);
+        ncdelta_slice_tree->Branch("matched_signal_track_num", &m_matched_signal_track_num);
+
+        //int m_matched_signal_total_num_slices;
+        ncdelta_slice_tree->Branch("reco_1g1p_is_same_slice",&m_reco_1g1p_is_same_slice);
+        ncdelta_slice_tree->Branch("reco_1g1p_is_nuslice",&m_reco_1g1p_is_nuslice);
+        ncdelta_slice_tree->Branch("reco_1g1p_is_multiple_slices",&m_reco_1g1p_is_multiple_slices);
+        ncdelta_slice_tree->Branch("reco_1g1p_nuscore",&m_reco_1g1p_nuscore);
+        ncdelta_slice_tree->Branch("is_matched_1g1p",&m_is_matched_1g1p);
+
+        ncdelta_slice_tree->Branch("reco_1g0p_nuscore",&m_reco_1g0p_nuscore);
+        ncdelta_slice_tree->Branch("reco_1g0p_is_nuslice",&m_reco_1g0p_is_nuslice);
+        ncdelta_slice_tree->Branch("is_matched_1g0p",&m_is_matched_1g0p);
+
+        ncdelta_slice_tree->Branch("no_matched_showers",& m_no_matched_showers);
+        ncdelta_slice_tree->Branch("multiple_matched_showers",& m_multiple_matched_showers);
+        ncdelta_slice_tree->Branch("multiple_matched_tracks",& m_multiple_matched_tracks);
+
     }
 
-    void SinglePhoton::CreateMatchedSliceBranches(){
-        vertex_tree->Branch("reco_slice_shower_matched_sliceId", & m_reco_slice_shower_matched_sliceId);
-        vertex_tree->Branch("reco_slice_track_matched_sliceId", & m_reco_slice_track_matched_sliceId);
-        vertex_tree->Branch("reco_slice_shower_matched_energy",& m_reco_slice_shower_matched_energy);
-        vertex_tree->Branch("reco_slice_track_matched_energy",& m_reco_slice_track_matched_energy);
-        vertex_tree->Branch("reco_slice_shower_matched_conversion",&  m_reco_slice_shower_matched_conversion); 
-        vertex_tree->Branch("reco_slice_shower_matched_overlay_frac",&  m_reco_slice_shower_matched_overlay_frac); 
-    }
+    /*
+       void SinglePhoton::CreateMatchedSliceBranches(){
+       vertex_tree->Branch("reco_slice_shower_matched_sliceId", & m_reco_slice_shower_matched_sliceId);
+       vertex_tree->Branch("reco_slice_track_matched_sliceId", & m_reco_slice_track_matched_sliceId);
+       vertex_tree->Branch("reco_slice_shower_matched_energy",& m_reco_slice_shower_matched_energy);
+       vertex_tree->Branch("reco_slice_track_matched_energy",& m_reco_slice_track_matched_energy);
+       vertex_tree->Branch("reco_slice_shower_matched_conversion",&  m_reco_slice_shower_matched_conversion); 
+       vertex_tree->Branch("reco_slice_shower_matched_overlay_frac",&  m_reco_slice_shower_matched_overlay_frac); 
+       }
+       */
 
     //called once per event to get all the slice info
     //fills a map between the neutrino score for the slice and the primary reco PFP
@@ -57,7 +125,8 @@ namespace single_photon
             std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> &primaryPFPSliceIdVec,
             std::map<int, double> &sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
-            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap){
 
 
         //std::vector<std::pair<art::Ptr<recob::PFParticle>, int>> primaryPFPSliceIdVec; //maps a primary PFP to a slice index
@@ -67,6 +136,7 @@ namespace single_photon
 
 
         std::vector<double> nuscore_slices; //this is a temporary vector to store neutrino score per slice for this event
+         std::map<int, bool> sliceIdToNuSliceMap; //this is a temporary vector to store neutrino score per slice for this event
         //std::vector<art::Ptr<recob::PFParticle>> primary_pfps; //store the primary PFP for each slice
         // sliceIdToPFPMap.clear(); //clear between events
 
@@ -104,9 +174,10 @@ namespace single_photon
                     int temp_ind = -1;
                     double temp_score = -1.0;
                     int clear_cosmic = -1;
+                    bool is_nuslice = false;
                     //for each of the things in the list
                     for (auto it:propertiesmap ){
-                        // std::cout << "  - " << it.first << " = " << it.second << std::endl;
+                        //std::cout << "  - " << it.first << " = " << it.second << std::endl;
                         if (it.first == "SliceIndex"){
                             temp_ind = it.second;
                             // std::cout << "  - " << it.first << " = " << it.second << std::endl;
@@ -124,6 +195,9 @@ namespace single_photon
                         }
                         if (it.first == "IsClearCosmic"){
                             clear_cosmic = 1;
+                        }
+                           if(it.first == "IsNeutrino"){
+                              is_nuslice = true;
                         }
                     }//for each item in properties map
 
@@ -143,7 +217,9 @@ namespace single_photon
                         PFPToClearCosmicMap[pfp] = false;
 
                     }
-
+                   
+                        sliceIdToNuSliceMap[temp_ind] = is_nuslice;
+                                      
                 }//for each PFP/metadata
 
             }//if the list isn't empty
@@ -207,8 +283,9 @@ namespace single_photon
                 allPFPSliceIdVec.push_back(std::pair(start_pfp,slice_id));
                 // PFPToSliceIdMap[start_pfp] = slice_id; 
             }
-            PFPToSliceIdMap[start_pfp] = slice_id; 
-
+           
+             PFPToSliceIdMap[start_pfp] = slice_id; 
+             PFPToNuSliceMap[start_pfp] = sliceIdToNuSliceMap[slice_id];
             // sliceIdToPFPMap[slice_id].push_back(start_pfp);
         }//for all pfp's in the event
 
@@ -288,26 +365,155 @@ namespace single_photon
         return slice;
     }
 
-/*
-    void SinglePhoton::AnalyzeRecoMCSlices(){
-       //currently only looking at NCDelta events, will expand to more true signal defs 
-        if(m_mctruth_is_delta_radiative== true){
-              
-            //get true shower info       
-            //get true track ifo
-            
-            //if at least one true shower and true track above threshold, define as reco-able 1g1p
-            if (m_mctruth_exiting_photon_energy > 20){
+    //if 1g1p
+    //is there at least 1 reco track and shower
+    //if there yes, are they in the same slice
+    //if yes, what is the slice score?
+    //if yes, was it a cosmic slice?
+    //if yes is that the neutrino slice?
+    //if they are in different slices
+    //was the shower/track:
+    //in the neutrino slice?
+    //in a cosmic slice?
+
+    //if 1g0p 
+    //id there is 1 shower
+    //what is the slice id? slice score? cosmic?
+    //if missing, not-recoed         
+
+    //if missing atleast 1shower, not recoed
+
+
+    //for a given signal def, finds the MCParticles in event
+    //loops over association between reco tracks/showers to get associated slice(s)
+    //can also look at things like shower energy, conversion length, etc.
+    void SinglePhoton::AnalyzeRecoMCSlices(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,
+            std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap, 
+            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, 
+            std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
+            std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle> > & trackToNuPFParticleMap,
+            std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap){
+
+
+        /*std::vector<double> m_matched_signal_shower_overlay_fraction;
+        //std::vector<double> m_matched_signal_shower_conversion_length;
+        std::vector<double> m_matched_signal_shower_true_E;
+        std::vector<double> m_matched_signal_shower_nuscore;
+        std::vector<int> m_matched_signal_shower_sliceId;
+        std::vector<bool> m_matched_signal_shower_is_clearcosmic;
+        int m_matched_signal_shower_num = 0;
+        // std::vector<bool> m_matched_signal_shower_is_nuslice;
+
+        std::vector<double> m_matched_signal_track_true_E;
+        std::vector<double> m_matched_signal_track_nuscore;
+        std::vector<int> m_matched_signal_track_sliceId;
+        std::vector<bool> m_matched_signal_track_is_clearcosmic;
+        //  std::vector<bool> m_matched_signal_track_is_nuslice;
+        int m_matched_signal_track_num = 0;  
+
+
+        //int m_matched_signal_total_num_slices;
+
+        bool m_reco_1g1p_is_same_slice;
+        bool m_reco_1g1p_is_multiple_slices;
+        // bool m_reco_1g1p_is_nuslice;
+        // bool m_reco_1g0p_is_nuslice;
+        double m_reco_1g1p_nuscore;
+        double  m_reco_1g0p_nuscore;
+        bool m_is_matched_1g1p;
+        bool m_is_matched_1g0p;
+        bool m_no_matched_showers;
+        bool m_multiple_matched_showers;
+        bool m_multiple_matched_tracks;
+        */
+
+        //first check if in the event there's a match to a given signal
+        if(signal_def == "ncdelta"){
+            if(m_mctruth_is_delta_radiative== true){
+                std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t looking for signal def "<<signal_def<<", m_mctruth_is_delta_radiative = "<<m_mctruth_is_delta_radiative<<std::endl; 
+
+                //first look for sim showers
+                for (unsigned int j = 0; j< m_sim_shower_parent_pdg.size(); j++){
+                    int parent= m_sim_shower_parent_pdg[j];
+                    int pdg =  m_sim_shower_pdg[j];
+
+                    //if this sim shower is a photon and it's primary (parent pdg is -1)
+                    if(parent == -1 && pdg ==22){
+                        //first check that this particle isn't alread saved
+                        //use map from track ID to get MCP
+                        //if this shower is matched to a recob:shower
+                        if (m_sim_shower_matched[j] > 0){
+                            m_matched_signal_shower_overlay_fraction.push_back(m_sim_shower_overlay_fraction[j]);
+                            //m_matched_signal_shower_conversion_length;
+                            m_matched_signal_shower_true_E.push_back(m_sim_shower_energy[j]);
+                            m_matched_signal_shower_nuscore.push_back( m_sim_shower_nuscore[j]);
+                            m_matched_signal_shower_sliceId.push_back(m_sim_shower_sliceId[j]);
+                            m_matched_signal_shower_is_clearcosmic.push_back( m_sim_shower_isclearcosmic[j]);
+                            m_matched_signal_shower_is_nuslice.push_back(m_sim_shower_is_nuslice[j]);
+
+                        }
+                    }//if it's a photon from the neutrino interaction
+                }//for all sim showers
+
+                m_matched_signal_shower_num = m_matched_signal_shower_true_E.size();
+
+                //then repeat for sim tracks
+                for (unsigned int k = 0; k< m_sim_track_parent_pdg.size(); k++){
+                    int parent= m_sim_track_parent_pdg[k];
+                    int pdg =  m_sim_track_pdg[k];
+
+                    //if this sim track is a photon and it's primary (parent pdg is -1)
+                    if((parent == -1 ||parent == 12 || parent ==14 ) && pdg == 2212){
+
+                        if (m_sim_track_matched[k] > 0){
+                            // m_matched_signal_track_overlay_fraction.push_back(m_sim_track_overlay_fraction[j]);
+                            m_matched_signal_track_true_E.push_back(m_sim_track_energy[k]);
+                            m_matched_signal_track_nuscore.push_back( m_sim_track_nuscore[k]);
+                            m_matched_signal_track_sliceId.push_back(m_sim_track_sliceId[k]);
+                            m_matched_signal_track_is_clearcosmic.push_back( m_sim_track_isclearcosmic[k]);
+
+
+                        }//if matched
+                    }//if proton from neutrino interaction
+                }//for all sim tracks
+
+                m_matched_signal_track_num = m_matched_signal_track_true_E.size();
 
             }
-            //if at least true shower above threshold, define as recoable 1g0p
-            //else not recoable
-        
-         }
+            std::cout<<"matched showers == "<< m_matched_signal_shower_num<<" and tracks =="<< m_matched_signal_track_num<<std::endl;
+
+        }
+        //check if either 1g1p or 1g0p topology
+
+        if (m_matched_signal_shower_num ==1  && m_matched_signal_track_num ==1){
+            //check if same slice
+            if ( m_matched_signal_track_sliceId[0] == m_matched_signal_shower_sliceId[0]){
+                m_reco_1g1p_is_same_slice = true;
+                //m_reco_1g1p_is_multiple_slices = false;
+                // m_reco_1g1p_is_nuslice;
+                m_reco_1g1p_nuscore = m_matched_signal_track_nuscore[0];
+                m_is_matched_1g1p = true;
+            } else{
+                m_is_matched_1g1p = true;
+                m_reco_1g1p_is_multiple_slices = true;
+            }
+        }
+
+        if (m_matched_signal_shower_num ==1  && m_matched_signal_track_num ==0){
+            //m_reco_1g0p_is_nuslice = ;
+            m_reco_1g0p_nuscore =  m_matched_signal_shower_nuscore[0];
+            m_is_matched_1g0p = true;
+
+        }
+
+        if (m_matched_signal_shower_num > 1) m_multiple_matched_showers = true;
+        if (m_matched_signal_track_num > 1) m_multiple_matched_tracks = true;
+        if (m_matched_signal_shower_num == 0)  m_no_matched_showers = true;
 
 
-    }
-*/
+    }//findslice
+
+
 
     //for a given signal def, finds the MCParticles in event
     //loops over association between reco tracks/showers to get associated slice(s)
@@ -318,15 +524,9 @@ namespace single_photon
             std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
             std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle> > & trackToNuPFParticleMap,
             std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap){
-        // std::vector<recob::Shower> shower_from_truth; //stores the recob::Showers which are matched to the signal MCP's
-        // std::vector<recob::Track> track_from_truth; //stores the recob::Tracks matched to the signal MCP's
-
-        //std::vector<simb::MCParticle>;
 
         std::vector<double> matched_reco_slice_shower_overlay_fraction;
-        //std::vector<int> matched_reco_slice_shower_matched;
         std::vector<art::Ptr<simb::MCParticle>> matched_reco_slice_shower_MCP;
-        //std::vector<double> matched_reco_slice_track_overlay_fraction;
         //std::vector<int> matched_reco_slice_track_matched;
         std::vector<art::Ptr<simb::MCParticle>> matched_reco_slice_track_MCP;
 
@@ -404,7 +604,7 @@ namespace single_photon
                 m_reco_slice_track_num_matched_signal = matched_reco_slice_track_MCP.size();
 
 
-                this->ResizeMatchedSlices(m_reco_slice_shower_num_matched_signal ,m_reco_slice_track_num_matched_signal);  
+                //this->ResizeMatchedSlices(m_reco_slice_shower_num_matched_signal ,m_reco_slice_track_num_matched_signal);  
 
 
                 std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of sim tracks-MCP matches associated to the true ncdelta is "<<matched_reco_slice_track_MCP.size()<<std::endl;
