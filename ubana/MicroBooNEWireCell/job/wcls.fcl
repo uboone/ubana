@@ -211,8 +211,8 @@ wcls: {
 	      YZCorrhistnames: '["hCorr0","hCorr1","hCorr2"]' // plane U, V, Y
               #scaleDATA_perplane: '[0.0045, 0.0045, 0.0045]'
               #scaleMC_perplane:   '[0.0040, 0.0043, 0.0040]'
-              scaleMC_perplane: @local::microboone_calorimetryalgmcc84mc.CalAreaConstantsWCLS
-              scaleDATA_perplane: @local::microboone_calorimetryalgmcc84data.CalAreaConstantsWCLS
+              scaleMC_perplane: @local::microboone_calorimetryalgmcc84mc_CalAreaConstantsWCLS
+              scaleDATA_perplane: @local::microboone_calorimetryalgmcc84data_CalAreaConstantsWCLS
       	  }
       }
    }
