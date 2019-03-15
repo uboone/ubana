@@ -4,18 +4,14 @@
 #include "opticaldetectormodules_microboone.fcl"
 #include "correct_saturation.fcl"
 #include "calibration_microboone.fcl"
-
 #include "genie_eventweight_microboone_ubxsec.fcl"
 #include "flux_eventweight_microboone_ubxsec.fcl"
-
 #include "tpcobjectmaker_mcc9.fcl"
 #include "neutrinomcflash.fcl"
 #include "neutrinoflashmatch.fcl"
 #include "cosmicflashmatch.fcl"
-
 #include "calorimetry_microboone.fcl"
 #include "particleid_microboone.fcl"
-
 #include "pandoramodules_microboone.fcl"
 #include "hitfindermodules_microboone.fcl"
 #include "cosmicremovalmodules.fcl"
@@ -26,21 +22,20 @@
 #include "geocosmictagger.fcl"
 #include "stoppingmuontagger.fcl"
 #include "candidateconsistency.fcl"
-
 #include "mcsfitproducer.fcl"
-
 #include "fiducial_volume_settings.fcl"
 #include "numucc_eventselection_settings.fcl"
 
 #include "ubxsec_settings_mcc9.fcl"
 
 #include "tpcneutrinoidfilter_microboone.fcl"
-
 #include "mctrutht0matching.fcl"
 #include "ubflashfinder.fcl"
 ##include "cosmicflashtagger.fcl"
 ##include "acpttagger.fcl"
 ##include "cosmictaggerana.fcl"
+
+
 BEGIN_PROLOG
 #
 # Module configuration
@@ -49,59 +44,55 @@ BEGIN_PROLOG
 
 ubxsec_mc_reco:
 {
-   pandoraCosmicTPCObj:            @local::TPCObjectMakerCosmic
-   RecoTrueMatcherCosmic:          @local::microboone_recotruematcher_pandoracosmic
+   #pandoraCosmicTPCObj:            @local::TPCObjectMakerCosmic
+   #RecoTrueMatcherCosmic:          @local::microboone_recotruematcher_pandoracosmic
 
-  pandoraCosmicTrackPFPart:       @local::microboone_cosmicpfparticletagger
+   pandoraCosmicTrackPFPart:       @local::microboone_cosmicpfparticletagger
    pandoraCosmicFlashTag:          @local::microboone_cosmicpfpflashtagger
    pandoraCosmicACPTTagger:        @local::microboone_acpttagger_mc
    pandoraCosmicStoppingMu:        @local::microboone_cosmicstoppingmutagger_mc
    pandoraCosmicHitRemoval:        @local::microboone_crhitremoval
 
   #crHitRemovalTruthMatch:         @local::standard_mcparticlehitmatching
-
   #pandora:                      @local::microboone_pandora
   #pandoraNuAll:                   @local::microboone_pandora
-
- #pandoraNuGeoCosmicTag:          @local::GeoCosmicTagger
-
- # pandoracalo:                  @local::microboone_calomc
+  #pandoraNuGeoCosmicTag:          @local::GeoCosmicTagger
+  #pandoracalo:                  @local::microboone_calomc
   #pandorapid:                   @local::microboone_chi2pid
   #pandoracali:                  @local::microboone_calibrationdedx
   #pandoraNucalipid:               @local::microboone_chi2pid
 
- # pandoraMCSMu:                 @local::mcsfitproducer
+  #pandoraMCSMu:                 @local::mcsfitproducer
   #pandoraNuMCSPi:                 @local::mcsfitproducer
 }
 
 ubxsec_mc_flashmatch:
 {
-   RecoTrueMatcher:                @local::microboone_recotruematcher_pandoranu
 
-   TPCObjectMaker:                 @local::TPCObjectMaker
+  RecoTrueMatcher:                @local::microboone_recotruematcher_pandoranu
+  
+  TPCObjectMaker:                 @local::TPCObjectMaker
   pandoraCosmicPFPart:       @local::microboone_cosmicpfparticletagger
   pandoraCosmicFlashTag:          @local::microboone_cosmicpfpflashtagger
   pandoraCosmicACPTTagger:        @local::microboone_acpttagger_mc
   #pandoraCosmicStoppingMu:        @local::microboone_cosmicstoppingmutagger_mc
- pandoraStoppingMu:        @local::StoppingMuonTagger
+  pandoraStoppingMu:        @local::StoppingMuonTagger
 
-#pandoraCosmicHitRemoval:        @local::microboone_crhitremoval
-
-   #pandoraNuGeoCosmicTag:          @local::GeoCosmicTagger
-
+  #pandoraCosmicHitRemoval:        @local::microboone_crhitremoval
+  #pandoraNuGeoCosmicTag:          @local::GeoCosmicTagger
   #pandoraNuStoppingMuonTag:       @local::StoppingMuonTagger
 
-   NeutrinoMCFlash:                @local::NeutrinoMCFlash
-   NeutrinoFlashMatch:             @local::NeutrinoFlashMatch
-   CosmicFlashMatch:               @local::CosmicFlashMatch
+  NeutrinoMCFlash:                @local::NeutrinoMCFlash
+  NeutrinoFlashMatch:             @local::NeutrinoFlashMatch
+  CosmicFlashMatch:               @local::CosmicFlashMatch
 
-   CandidateConsistency:           @local::CandidateConsistency_mc
+  CandidateConsistency:           @local::CandidateConsistency_mc
 
-   #genieeventweightpm1:            @local::genie_microboone_eventweight_ubxsec
-   #genieeventweightmultisim:       @local::genie_microboone_eventweight_ubxsec
-   #fluxeventweightmultisim:        @local::flux_microboone_eventweight_ubxsec
+  #genieeventweightpm1:            @local::genie_microboone_eventweight_ubxsec
+  #genieeventweightmultisim:       @local::genie_microboone_eventweight_ubxsec
+  #fluxeventweightmultisim:        @local::flux_microboone_eventweight_ubxsec
 
-   UBXSec:                         @local::UBXSec_mc
+  UBXSec:                         @local::UBXSec_mc
 
 }
 
@@ -119,37 +110,37 @@ ubxsec_mc_ana:
 
 
 ubxsec_mc_producers: [
-#			pandoraCosmicTPCObj,
-#                       RecoTrueMatcherCosmic,
- #                     pandoraCosmicTrackPFPart,
-  #                     pandoraCosmicFlashTag,
+		      #pandoraCosmicTPCObj,
+                      #RecoTrueMatcherCosmic,
+                      #pandoraCosmicTrackPFPart,
+                      #pandoraCosmicFlashTag,
                       # pandoraCosmicACPTTagger,
- #                     pandoraCosmicStoppingMu,
-  #                     pandoraCosmicHitRemoval,
-   #                    crHitRemovalTruthMatch,
-#                       pandora,
-                       #pandoraNuAll,
-                       #pandoraNucalo,
-                       #pandoraNupid,
-                       #pandoraNucali,
-                       #pandoraNucalipid,
-                       #pandoraNuMCSMu,
-                       #pandoraNuMCSPi,
-                       RecoTrueMatcher,
-                       TPCObjectMaker,
-                     #  pandoraNuGeoCosmicTag,
-                      # pandoraNuStoppingMuonTag,
- 			  #pandoraCosmicPFPart,
-                       pandoraCosmicFlashTag,
+                      #pandoraCosmicStoppingMu,
+                      #pandoraCosmicHitRemoval,
+                      #crHitRemovalTruthMatch,
+                      #pandora,
+                      #pandoraNuAll,
+                      #pandoraNucalo,
+                      #pandoraNupid,
+                      #pandoraNucali,
+                      #pandoraNucalipid,
+                      #pandoraNuMCSMu,
+                      #pandoraNuMCSPi,
+                      RecoTrueMatcher,
+                      TPCObjectMaker,
+                      #pandoraNuGeoCosmicTag,
+                      #pandoraNuStoppingMuonTag,
+ 		      #pandoraCosmicPFPart,
+                      pandoraCosmicFlashTag,
                       #pandoraCosmicACPTTagger,
                       pandoraStoppingMu,
                       NeutrinoMCFlash,
-                       NeutrinoFlashMatch,
-                       CandidateConsistency,
-                       #genieeventweightpm1,
-                       #genieeventweightmultisim,
-                       #fluxeventweightmultisim,
-                       UBXSec
+                      NeutrinoFlashMatch,
+                      CandidateConsistency,
+                      #genieeventweightpm1,
+                      #genieeventweightmultisim,
+                      #fluxeventweightmultisim,
+                      UBXSec
                        ]
 
 ubxsec_mc_filters: [ tpcneutrinoidfilternumuccinc
@@ -160,10 +151,8 @@ ubxsec_mc_analyzers: [ #ProtonID
  #                     CosmicTaggerAna
                      ]
 
-
-
-
 # Set reco properties
+
 #ubxsec_mc_flashmatch.pandoraCosmicPFPart.PFParticleModuleLabel:   "pandora"
 #ubxsec_mc_flashmatch.pandoraCosmicPFPart.TrackModuleLabel:        "pandora"
 #ubxsec_mc_flashmatch.pandoraCosmicPFPart.EndTickPadding:          75
@@ -172,7 +161,7 @@ ubxsec_mc_analyzers: [ #ProtonID
 #ubxsec_mc_flashmatch.pandoraCosmicPFPart.TPCZBoundary:            20
 #ubxsec_mc_flashmatch.pandoraCosmicPFPart.Debug:                   false
 
-#ubxsec_mc_flashmatch.pandoraCosmicFlashTag.DebugMode:                  false
+#ubxsec_mc_flashmatch.pandoraCosmicFlashTag.DebugMode:             false
 
 #ubxsec_mc_flashmatch.UBXSec.CosmicProducerLabels:     ["pandoraCosmicTrackPFPart", "pandoraCosmicFlashTag", "pandoraCosmicACPTTagger", "pandoraCosmicStoppingMu" ]
 #ubxsec_mc_flashmatch..TrackProducerLabels:      ["pandora","pandora", "pandora","pandora"                   ]

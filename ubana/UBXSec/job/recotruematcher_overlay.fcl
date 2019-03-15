@@ -10,10 +10,10 @@ RecoTrueMatcher: {
   HitProducer:            "gaushit"
   GeantModule:            "largeant"
   SpacePointProducer:     "pandora"
-  MCPHitAssProducer:      "gaushitTruthMatch" 
+  MCPHitAssProducer:      "gaushitTruthMatch" #"crHitRemovalTruthMatch::UBXSec"
 
-  OverrideRealData:       false
-
+  OverrideRealData:       true
+  Overlay:                true
   UsePremadeMCPHitAss:    true
   DebugMode:              false 
   Verbose:                false
