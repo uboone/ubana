@@ -24,7 +24,7 @@ namespace single_photon
 
     void SinglePhoton::reconfigure(fhicl::ParameterSet const &pset)
     {
-        m_is_verbose = pset.get<bool>("Verbose",false);
+        m_is_verbose = pset.get<bool>("Verbose",true);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
         m_is_data = pset.get<bool>("isData",false);
@@ -179,7 +179,7 @@ namespace single_photon
         std::vector< art::Ptr<recob::PFParticle> > nuParticles;
         this->GetFinalStatePFParticleVectors(pfParticleMap, pfParticlesToVerticesMap, crParticles, nuParticles);
 
-
+        if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Spacepoints"<<std::endl;
         //Look, here is a map that I just forced myself rather than build using helpers. Not that different is it. But for somereason I only use PFParticles.. huh,
         //Spacepoint associaitions
         art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
@@ -188,7 +188,9 @@ namespace single_photon
             const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
             pfParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
         }
-
+        
+        if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get PandoraMetadata"<<std::endl;
+        
         //add the associaton between PFP and metadata, this is important to look at the slices and scores
         art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  m_pandoraLabel);
         std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap;
@@ -196,7 +198,9 @@ namespace single_photon
             const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
             pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
         }
-
+        
+        if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Clusters"<<std::endl;
+        
         //Get a map between the PFP's and the clusters. Although Mark isn't a fan of clusters, they're imporant for the shower dQ/dx
         //Also need a map between clusters and hits
         art::FindManyP<recob::Cluster> clusters_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
@@ -216,6 +220,8 @@ namespace single_photon
             clusterToHitsMap[cluster] = hits_per_cluster.at(cluster.key());
         }
 
+       if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Build hits to PFP Maps"<<std::endl;
+        
 
         //OK Here we build two IMPORTANT maps for the analysis, (a) given a PFParticle get a vector of hits..
         //and (b) given a single hit, get the PFParticle it is in (MARK: is it only one? always? RE-MARK: Yes)
@@ -236,6 +242,9 @@ namespace single_photon
         std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
         //std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToAllPFParticleMap; 
         //std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToAllPFParticleMap;
+        
+        if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Tracks and Showers"<<std::endl;
+        
 
         this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
 
@@ -616,8 +625,9 @@ namespace single_photon
             bc_file.close();
         }
 
-
-    }
+         std::cout<<"SinglePhoton \t||\t beginJob() is complete"<<std::endl;
+   
+        }
 
 
 
