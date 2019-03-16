@@ -60,6 +60,7 @@ struct treevars{
   double track_end_y = -9999;
   double track_end_z = -9999;
   double track_shower_score = -9999;
+  bool track_ismuoncandidate = -1;
   std::vector<double> *track_nhits = nullptr;
 
   // Make the chi2 variables std::vector<doubles> so we can handle them in the same way as the other variables
@@ -155,6 +156,7 @@ void settreevars(TTree *intree, treevars *varstoset){
   intree->SetBranchAddress("track_end_y", &(varstoset->track_end_y));
   intree->SetBranchAddress("track_end_z", &(varstoset->track_end_z));
   intree->SetBranchAddress("track_shower_score", &(varstoset->track_shower_score));
+  intree->SetBranchAddress("track_ismuoncandidate", &(varstoset->track_ismuoncandidate));
   intree->SetBranchAddress("track_nhits", &(varstoset->track_nhits));
 
   intree->GetEntry(0);
