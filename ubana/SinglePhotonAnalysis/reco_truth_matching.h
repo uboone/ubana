@@ -13,7 +13,11 @@ namespace single_photon
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
             std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
             std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap ){
+            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap ,
+            std::map<int, double>& sliceIdToNuScoreMap,
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap){
 
 
         std::vector<double> vec_fraction_matched;
@@ -97,7 +101,7 @@ namespace single_photon
 
             bool found_a_match = false;
 
-            std::cout<<"SinglePhoton::RecoMC()\t||\t On object: "<<i<<". This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
+            //std::cout<<"SinglePhoton::RecoMC()\t||\t On object: "<<i<<". This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
 
             //loop only over hits associated to this reco PFP
             for(size_t i_h=0; i_h < obj_hits_ptrs.size(); ++i_h){
@@ -192,6 +196,11 @@ namespace single_photon
                 m_sim_shower_matched_energy_fraction_plane2[i] = -999;
 
                 m_sim_shower_overlay_fraction[i] = fraction_num_hits_overlay;
+                m_sim_shower_sliceId[i] = -999;
+                m_sim_shower_nuscore[i] = -999;
+                m_sim_shower_isclearcosmic[i] = -999;
+                m_sim_shower_is_nuslice[i] = -999;
+
 
                 continue;
             }//
@@ -300,7 +309,7 @@ namespace single_photon
             }//for each MCParticle that's associated to a the recob::Shower
 
             //there should be at least 1 mother MCP
-            std::cout<<"SinglePhoton::recoMC()\t||\t the number of source mother particles is "<<mother_MCP_map.size()<<" of which : "<<marks_mother_vector.size()<<" are unique!"<<std::endl;
+ if(reco_verbose)           std::cout<<"SinglePhoton::recoMC()\t||\t the number of source mother particles is "<<mother_MCP_map.size()<<" of which : "<<marks_mother_vector.size()<<" are unique!"<<std::endl;
 
             if(reco_verbose)       std::cout<<"---------------------------- L2-------------------------------"<<std::endl;
 
@@ -335,15 +344,15 @@ namespace single_photon
             }
 
             if(marks_mother_vector.size()!=0){
-                std::cout<<"SinglePhoton::recoMC()\t||\t The `BEST` mother is a "<<marks_mother_vector[best_mother_index]->PdgCode()<<" at "<<best_mother_index<<" on plane: "<<best_mother_plane<<std::endl;
+               if(reco_verbose)  std::cout<<"SinglePhoton::recoMC()\t||\t The `BEST` mother is a "<<marks_mother_vector[best_mother_index]->PdgCode()<<" at "<<best_mother_index<<" on plane: "<<best_mother_plane<<std::endl;
                 for(int l=0; l<3; l++){
-                    std::cout<<"SinglePhoton::recoMC()\t||\t It represents "<<marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][l]/total_energy_on_plane[l]*100.0<<"% of the energy on plane: "<<l<<std::endl;
+                   if(reco_verbose) std::cout<<"SinglePhoton::recoMC()\t||\t It represents "<<marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][l]/total_energy_on_plane[l]*100.0<<"% of the energy on plane: "<<l<<std::endl;
                 }
             }
 
 
 
-            std::cout<<"---------------------------- L2-------------------------------"<<std::endl;
+           if(reco_verbose) std::cout<<"---------------------------- L2-------------------------------"<<std::endl;
             const art::Ptr<simb::MCParticle> match = marks_mother_vector[best_mother_index];
 
             std::vector<double> corrected_vertex(3), corrected_start(3);
@@ -404,6 +413,13 @@ namespace single_photon
 
             mcParticleVector.push_back(match);
             objectToMCParticleMap[object] = mcParticleVector.back();
+
+
+            m_sim_shower_sliceId[i] = PFPToSliceIdMap[pfp];
+            m_sim_shower_nuscore[i] = sliceIdToNuScoreMap[ m_sim_shower_sliceId[i]] ;
+            m_sim_shower_isclearcosmic[i] = PFPToClearCosmicMap[pfp];
+            m_sim_shower_is_nuslice[i] = PFPToNuSliceMap[pfp];
+
 
 
             //OLD OLD OLD
@@ -525,7 +541,7 @@ namespace single_photon
         }//end vector loop.
 
         return {0};
-    }
+    }//end showerRecoMCmatching
 
 
     //Typenamed for recob::Track and recob::Shower
@@ -537,8 +553,9 @@ namespace single_photon
                 art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
                 std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector){
 
+            std::vector<double> trk_overlay_vec;
             std::vector<double> vec_fraction_matched;
-
+           bool reco_verbose = false;
             //for each recob::track/shower in the event
             for(size_t i=0; i<objectVector.size();++i){
                 auto object = objectVector[i];
@@ -567,8 +584,9 @@ namespace single_photon
 
                 bool found_a_match = false;
                 int n_associated_mcparticle_hits = 0;
+                int n_not_associated_hits = 0;
 
-                std::cout<<"REC: This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
+                //std::cout<<"REC: This object has "<<obj_hits_ptrs.size()<<" hits associated with it"<<std::endl;
 
                 //loop only over hits associated to this reco PFP
                 for(size_t i_h=0; i_h < obj_hits_ptrs.size(); ++i_h){
@@ -583,7 +601,12 @@ namespace single_photon
                     //std::cout<<"REC: hit "<<i_h<<" has "<<particle_vec.size()<<" MCparticles assocaied: "<<std::endl;
 
                     //if there is an MCParticle associated to this hit
-                    if(particle_vec.size()>0) n_associated_mcparticle_hits++;
+
+                //if there is an MCParticle associated to this hit
+                if(particle_vec.size()>0) n_associated_mcparticle_hits++;
+
+                if(particle_vec.size()==0) n_not_associated_hits++;
+
 
                     //loop over MCparticles finding which is the MCparticle with most "energy" matched correctly
                     //for each MCParticle associated with this hit
@@ -602,12 +625,17 @@ namespace single_photon
                         }
                     }//end loop over particles per hit
                 }
+
+
+                double fraction_num_hits_overlay = (double)n_not_associated_hits/(double)obj_hits_ptrs.size();
+
+                    trk_overlay_vec.push_back(fraction_num_hits_overlay);
                 if(n_associated_mcparticle_hits == 0){
                     //This will only occur if the whole recob::PFParticle is associated with an overlay object
-
+                    //std::cout<<fraction_num_hits_overlay<<std::endl;
                 }//for each recob::track/shower in the event
 
-                std::cout << "SinglePhoton::recoMC()\t||\t the number of MCParticles associated with this PFP is "<<objide.size()<<std::endl;       
+                //std::cout << "SinglePhoton::recoMC()\t||\t the number of MCParticles associated with this PFP is "<<objide.size()<<std::endl;       
 
                 if(found_a_match){
                     mcParticleVector.push_back(best_matched_mcparticle);
@@ -622,17 +650,18 @@ namespace single_photon
 
 
                 if(!found_a_match){
-                    std::cout << "SinglePhoton::recoMC()\t||\t NO MATCH NO MATCH (from my loop) for PFP with pdg  "<<pdg<<std::endl;
-                    std::cout<<" count "<<objectToMCParticleMap.count(object)<<std::endl;
+                   if(reco_verbose) std::cout << "SinglePhoton::recoMC()\t||\t NO MATCH NO MATCH (from my loop) for PFP with pdg  "<<pdg<<std::endl;
+                    if(reco_verbose)std::cout<<" count "<<objectToMCParticleMap.count(object)<<std::endl;
                 }else{
-                    std::cout << "SinglePhoton::recoMC()\t||\t Final Match (from my loop) for PFP with pdg "<<pdg<<" is " << best_matched_mcparticle->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
+                 if(reco_verbose)   std::cout << "SinglePhoton::recoMC()\t||\t Final Match (from my loop) for PFP with pdg "<<pdg<<" is " << best_matched_mcparticle->TrackId() << " with energy " << maxe << " over " << tote << " (" << maxe/tote << ")"
                         << " pdg=" << best_matched_mcparticle->PdgCode()
                         << " trkid=" << best_matched_mcparticle->TrackId()
                         << " ke=" << best_matched_mcparticle->E()-best_matched_mcparticle->Mass()<< "\n";
                 }
 
             }//end vector loop.
-            return vec_fraction_matched;
+            //return vec_fraction_matched;
+            return trk_overlay_vec;
         }
 
 

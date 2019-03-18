@@ -177,7 +177,9 @@ namespace single_photon
              *  @param  tracks a vector to hold the associated tracks
              *  @param  showers a vector to hold the associated showers
              */
-            void CollectTracksAndShowers(const PFParticleVector &particles, const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap );
+            void CollectTracksAndShowers(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap,  const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap);
+
+            void FillTracksAndShowers( const std::vector< art::Ptr<recob::Track> > & associatedTracks, const std::vector< art::Ptr<recob::Shower> > & associatedShowers, const art::Ptr<recob::PFParticle> &pParticle , const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap);
 
             void GetVertex(const lar_pandora::PFParticlesToVertices & particlestoVertices, const art::Ptr<recob::PFParticle> & particle );
 
@@ -293,19 +295,30 @@ namespace single_photon
             void CreateFlashBranches();
 
             //----------------  Tracks ----------------------------
-            void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap);
+            void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap );
+
             void ClearTracks();
             void ResizeTracks(size_t);
             void CreateTrackBranches();
-            void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> &trackToCaloMap);
-            void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap);
+            void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>, std::vector<art::Ptr<anab::Calorimetry>>> &trackToCaloMap);
+            void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap, 
+                    std::map<int, double>& sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+                    std::vector<double>& vec);
 
             void CollectPID(std::vector<art::Ptr<recob::Track>> & tracks,std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap);
             TGraph proton_length2energy_tgraph;
 
             //----------------  Showers ----------------------------
 
-            void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap,std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > & clusterToHitMap );
+            void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap,std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > & clusterToHitMap,
+                    std::map<int, double> &sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
+                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap);
             void ClearShowers();
             void ResizeShowers(size_t);
             void CreateShowerBranches();
@@ -320,7 +333,11 @@ namespace single_photon
                     art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
                     std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
                     std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-                    std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap );
+                    std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap,
+                    std::map<int, double> & sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap);
 
 
 
@@ -334,13 +351,17 @@ namespace single_photon
 
             std::map<int,std::string> is_delta_map;
 
-           //---------------- EventWeight ----------------------------
+            //---------------- EventWeight ----------------------------
 
             void AnalyzeEventWeight(art::Event const & e );
             void ClearEventWeightBranches();
-	    void CreateEventWeightBranches();
+            void CreateEventWeightBranches();
 
             //These three are shameless steals from LArPandorHelper But overlays dont work so this is a direct clone. We will filter out later.
+
+
+
+
             void CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector);
             void CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth, std::map< int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIdMap);
             void BuildMCParticleHitMaps(const art::Event &evt, const std::string &label, const std::vector<art::Ptr<recob::Hit>> &hitVector,   std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  &particlesToHits,         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  &hitsToParticles, const lar_pandora::LArPandoraHelper::DaughterMode daughterMode, std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap);
@@ -349,15 +370,29 @@ namespace single_photon
             //-------------- Slices/Pandora Metadata ---------------//
             void  ClearSlices();
             void  ResizeSlices(size_t size); 
-            void  ResizeMatchedSlices(size_t size_shower ,size_t size_track); 
+            //void  ResizeMatchedSlices(size_t size_shower ,size_t size_track); 
             void CreateSliceBranches();
-            void CreateMatchedSliceBranches();
-            void AnalyzeSlices( std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,  PFParticleIdMap &pfParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
+            //void CreateMatchedSliceBranches();
+            void AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,
+                    PFParticleIdMap &pfParticleMap,
+                    std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & primaryPFPSliceIdVec,   
+                    std::map<int, double> & sliceIdToNuScoreMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,   
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap);
 
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
 
             int GetTrackSlice(art::Ptr<recob::Track>& this_track, std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>& trackToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
             //can also look at things like shower energy, conversion length, etc.
+
+            void AnalyzeRecoMCSlices(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,
+                    std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap, 
+                    std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, 
+                    std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
+                    std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle> > & trackToNuPFParticleMap,
+                    std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap);
+
 
             void FindSignalSlice(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap,  std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap, std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle> > & trackToNuPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap);
 
@@ -372,6 +407,38 @@ namespace single_photon
             std::vector<double> m_reco_slice_shower_matched_conversion; //the conversion distance for each matched shower
             std::vector<double> m_reco_slice_shower_matched_overlay_frac; //fraction of overlay hits for each matched shower
             //std::map<art::Ptr<recob::PFParticle>, double > & pfParticleToNuScoreMap;//is filled during analyze slices
+
+            std::vector<double> m_matched_signal_shower_overlay_fraction;
+            //std::vector<double> m_matched_signal_shower_conversion_length;
+            std::vector<double> m_matched_signal_shower_true_E;
+            std::vector<double> m_matched_signal_shower_nuscore;
+            std::vector<int> m_matched_signal_shower_sliceId;
+            std::vector<bool> m_matched_signal_shower_is_clearcosmic;
+            int m_matched_signal_shower_num = 0;
+            std::vector<bool> m_matched_signal_shower_is_nuslice;
+
+            std::vector<double> m_matched_signal_track_true_E;
+            std::vector<double> m_matched_signal_track_nuscore;
+            std::vector<int> m_matched_signal_track_sliceId;
+            std::vector<bool> m_matched_signal_track_is_clearcosmic;
+            //  std::vector<bool> m_matched_signal_track_is_nuslice;
+            int m_matched_signal_track_num = 0;   
+
+            //int m_matched_signal_total_num_slices;
+
+            bool m_reco_1g1p_is_same_slice;
+            bool m_reco_1g1p_is_multiple_slices;
+            bool m_reco_1g1p_is_nuslice;
+            bool m_reco_1g0p_is_nuslice;
+            double m_reco_1g1p_nuscore;
+            double  m_reco_1g0p_nuscore;
+            bool m_is_matched_1g1p;
+            bool m_is_matched_1g0p;
+            bool m_no_matched_showers;
+            bool m_multiple_matched_showers;
+            bool m_multiple_matched_tracks;
+
+
 
             //------------------ Delaunay triangle tools -----------//
 
@@ -410,6 +477,10 @@ namespace single_photon
             bool m_is_verbose;
             bool m_is_data;
             bool m_is_overlayed;
+            bool m_run_all_pfps;
+
+            double m_exiting_photon_energy_threshold ;
+            double m_exiting_proton_energy_threshold ;
 
             double m_track_calo_min_dEdx;
             double m_track_calo_max_dEdx;
@@ -435,7 +506,8 @@ namespace single_photon
 
             TTree* pot_tree;
             TTree* vertex_tree;
-	    TTree* eventweight_tree;
+            TTree* eventweight_tree;
+            TTree* ncdelta_slice_tree;
 
             //------------ POT related variables --------------
             int m_number_of_events;
@@ -446,7 +518,10 @@ namespace single_photon
             int m_run_number;
             int m_subrun_number;
             int m_event_number;
-	   
+
+            int m_test_matched_hits;
+
+
             //------------ Vertex Related variables -------------
             int m_reco_vertex_size;
             double m_vertex_pos_x;
@@ -458,101 +533,101 @@ namespace single_photon
             double m_reco_vertex_to_nearest_dead_wire_plane1;
             double m_reco_vertex_to_nearest_dead_wire_plane2;
 
-	    //added eventweight
-	    //-------------- EventWeight related variables -------------
-	    static const int k_max_mc_particles=100;
+            //added eventweight
+            //-------------- EventWeight related variables -------------
+            static const int k_max_mc_particles=100;
 
-	    int m_run_number_eventweight;
+            int m_run_number_eventweight;
             int m_subrun_number_eventweight;
             int m_event_number_eventweight;
-	    
-	    double m_mcflux_nu_pos_x;
-	    double m_mcflux_nu_pos_y;
-	    double m_mcflux_nu_pos_z;
-	    double m_mcflux_nu_mom_x;
-	    double m_mcflux_nu_mom_y;
-	    double m_mcflux_nu_mom_z;
-	    double m_mcflux_nu_mom_E;
-	    int m_mcflux_ntype;
-	    int m_mcflux_ptype;
-	    double m_mcflux_nimpwt;
-	    double m_mcflux_dk2gen;
-	    double m_mcflux_nenergyn;
-	    double m_mcflux_tpx;
-	    double m_mcflux_tpy;
-	    double m_mcflux_tpz;
-	    double m_mcflux_vx;
-	    double m_mcflux_vy;
-	    double m_mcflux_vz;
-	    int m_mcflux_tptype;
-	    int m_mctruth_nparticles;
-	    int m_mctruth_particles_track_Id[k_max_mc_particles];
-	    int m_mctruth_particles_pdg_code[k_max_mc_particles];
-	    int m_mctruth_particles_mother[k_max_mc_particles];
-	    int m_mctruth_particles_status_code[k_max_mc_particles];
-	    int m_mctruth_particles_num_daughters[k_max_mc_particles]; //other similar variables
-	    int m_mctruth_particles_daughters[100][100];
-	    double m_mctruth_particles_Gvx[k_max_mc_particles];
-	    double m_mctruth_particles_Gvy[k_max_mc_particles];
-	    double m_mctruth_particles_Gvz[k_max_mc_particles];
-	    double m_mctruth_particles_Gvt[k_max_mc_particles];
-	    double m_mctruth_particles_px0[k_max_mc_particles];
-	    double m_mctruth_particles_py0[k_max_mc_particles];
-	    double m_mctruth_particles_pz0[k_max_mc_particles];
-	    double m_mctruth_particles_e0[k_max_mc_particles];
-	    int m_mctruth_particles_rescatter[k_max_mc_particles];
-	    double m_mctruth_particles_polx[k_max_mc_particles];
-	    double m_mctruth_particles_poly[k_max_mc_particles];
-	    double m_mctruth_particles_polz[k_max_mc_particles];
-	    int m_mctruth_neutrino_ccnc;
-	    int m_mctruth_neutrino_mode;
-	    int m_mctruth_neutrino_interaction_type;
-	    int m_mctruth_neutrino_target;
-	    int m_mctruth_neutrino_nucleon;
-	    int m_mctruth_neutrino_quark;
-	    double m_mctruth_neutrino_w;
-	    double m_mctruth_neutrino_x;
-	    double m_mctruth_neutrino_y;
-	    double m_mctruth_neutrino_qsqr;
-	    bool m_gtruth_is_sea_quark;
-	    int m_gtruth_tgt_pdg;
-	    double m_gtruth_weight;
-	    double m_gtruth_probability;
-	    double m_gtruth_xsec;
-	    double m_gtruth_diff_xsec;
-	    double m_gtruth_vertex_x;
-	    double m_gtruth_vertex_y;
-	    double m_gtruth_vertex_z;
-	    double m_gtruth_vertex_T;
-	    int m_gtruth_gscatter;
-	    int m_gtruth_gint;
-	    int m_gtruth_res_num;
-	    int m_gtruth_num_piplus;
-	    int m_gtruth_num_pi0;
-	    int m_gtruth_num_piminus;
-	    int m_gtruth_num_proton;
-	    int m_gtruth_num_neutron;
-	    bool m_gtruth_is_charm;
-	    double m_gtruth_gx;
-	    double m_gtruth_gy;
-	    double m_gtruth_gt;
-	    double m_gtruth_gw;
-	    double m_gtruth_gQ2;
-	    double m_gtruth_gq2;
-	    int m_gtruth_probe_pdg;
-	    double m_gtruth_probe_p4_x;
-	    double m_gtruth_probe_p4_y;
-	    double m_gtruth_probe_p4_z;
-	    double m_gtruth_probe_p4_E;
-	    double m_gtruth_hit_nuc_p4_x;
-	    double m_gtruth_hit_nuc_p4_y;
-	    double m_gtruth_hit_nuc_p4_z;
-	    double m_gtruth_hit_nuc_p4_E;
-	    double m_gtruth_fs_had_syst_p4_x;
-	    double m_gtruth_fs_had_syst_p4_y;
-	    double m_gtruth_fs_had_syst_p4_z;
-	    double m_gtruth_fs_had_syst_p4_E;
-	    
+
+            double m_mcflux_nu_pos_x;
+            double m_mcflux_nu_pos_y;
+            double m_mcflux_nu_pos_z;
+            double m_mcflux_nu_mom_x;
+            double m_mcflux_nu_mom_y;
+            double m_mcflux_nu_mom_z;
+            double m_mcflux_nu_mom_E;
+            int m_mcflux_ntype;
+            int m_mcflux_ptype;
+            double m_mcflux_nimpwt;
+            double m_mcflux_dk2gen;
+            double m_mcflux_nenergyn;
+            double m_mcflux_tpx;
+            double m_mcflux_tpy;
+            double m_mcflux_tpz;
+            double m_mcflux_vx;
+            double m_mcflux_vy;
+            double m_mcflux_vz;
+            int m_mcflux_tptype;
+            int m_mctruth_nparticles;
+            int m_mctruth_particles_track_Id[k_max_mc_particles];
+            int m_mctruth_particles_pdg_code[k_max_mc_particles];
+            int m_mctruth_particles_mother[k_max_mc_particles];
+            int m_mctruth_particles_status_code[k_max_mc_particles];
+            int m_mctruth_particles_num_daughters[k_max_mc_particles]; //other similar variables
+            int m_mctruth_particles_daughters[100][100];
+            double m_mctruth_particles_Gvx[k_max_mc_particles];
+            double m_mctruth_particles_Gvy[k_max_mc_particles];
+            double m_mctruth_particles_Gvz[k_max_mc_particles];
+            double m_mctruth_particles_Gvt[k_max_mc_particles];
+            double m_mctruth_particles_px0[k_max_mc_particles];
+            double m_mctruth_particles_py0[k_max_mc_particles];
+            double m_mctruth_particles_pz0[k_max_mc_particles];
+            double m_mctruth_particles_e0[k_max_mc_particles];
+            int m_mctruth_particles_rescatter[k_max_mc_particles];
+            double m_mctruth_particles_polx[k_max_mc_particles];
+            double m_mctruth_particles_poly[k_max_mc_particles];
+            double m_mctruth_particles_polz[k_max_mc_particles];
+            int m_mctruth_neutrino_ccnc;
+            int m_mctruth_neutrino_mode;
+            int m_mctruth_neutrino_interaction_type;
+            int m_mctruth_neutrino_target;
+            int m_mctruth_neutrino_nucleon;
+            int m_mctruth_neutrino_quark;
+            double m_mctruth_neutrino_w;
+            double m_mctruth_neutrino_x;
+            double m_mctruth_neutrino_y;
+            double m_mctruth_neutrino_qsqr;
+            bool m_gtruth_is_sea_quark;
+            int m_gtruth_tgt_pdg;
+            double m_gtruth_weight;
+            double m_gtruth_probability;
+            double m_gtruth_xsec;
+            double m_gtruth_diff_xsec;
+            double m_gtruth_vertex_x;
+            double m_gtruth_vertex_y;
+            double m_gtruth_vertex_z;
+            double m_gtruth_vertex_T;
+            int m_gtruth_gscatter;
+            int m_gtruth_gint;
+            int m_gtruth_res_num;
+            int m_gtruth_num_piplus;
+            int m_gtruth_num_pi0;
+            int m_gtruth_num_piminus;
+            int m_gtruth_num_proton;
+            int m_gtruth_num_neutron;
+            bool m_gtruth_is_charm;
+            double m_gtruth_gx;
+            double m_gtruth_gy;
+            double m_gtruth_gt;
+            double m_gtruth_gw;
+            double m_gtruth_gQ2;
+            double m_gtruth_gq2;
+            int m_gtruth_probe_pdg;
+            double m_gtruth_probe_p4_x;
+            double m_gtruth_probe_p4_y;
+            double m_gtruth_probe_p4_z;
+            double m_gtruth_probe_p4_E;
+            double m_gtruth_hit_nuc_p4_x;
+            double m_gtruth_hit_nuc_p4_y;
+            double m_gtruth_hit_nuc_p4_z;
+            double m_gtruth_hit_nuc_p4_E;
+            double m_gtruth_fs_had_syst_p4_x;
+            double m_gtruth_fs_had_syst_p4_y;
+            double m_gtruth_fs_had_syst_p4_z;
+            double m_gtruth_fs_had_syst_p4_E;
+
             //-------------- Flash related variables -------------
             int m_reco_num_templates;
             std::vector<double> m_reco_template;
@@ -606,23 +681,56 @@ namespace single_photon
             std::vector<double> m_reco_track_spacepoint_chi;
             std::vector<double> m_reco_track_spacepoint_max_dist;
 
-            std::vector<double> m_reco_track_mean_dEdx;
-            std::vector<double> m_reco_track_mean_dEdx_start_half;
-            std::vector<double> m_reco_track_mean_dEdx_end_half;
-            std::vector<int> m_reco_track_good_calo;
-            std::vector<double> m_reco_track_mean_trunc_dEdx;
-            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half;
-            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half;
-            std::vector<double> m_reco_track_trunc_PIDA;
-            std::vector<std::vector<double>> m_reco_track_resrange;
-            std::vector<std::vector<double>> m_reco_track_dEdx;
+            std::vector<double> m_reco_track_mean_dEdx_p0;
+            std::vector<double> m_reco_track_mean_dEdx_start_half_p0;
+            std::vector<double> m_reco_track_mean_dEdx_end_half_p0;
+            std::vector<int> m_reco_track_good_calo_p0;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_p0;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p0;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p0;
+            std::vector<double> m_reco_track_trunc_PIDA_p0;
+            std::vector<std::vector<double>> m_reco_track_resrange_p0;
+            std::vector<std::vector<double>> m_reco_track_dEdx_p0;
+
+            std::vector<double> m_reco_track_mean_dEdx_p1;
+            std::vector<double> m_reco_track_mean_dEdx_start_half_p1;
+            std::vector<double> m_reco_track_mean_dEdx_end_half_p1;
+            std::vector<int> m_reco_track_good_calo_p1;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_p1;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p1;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p1;
+            std::vector<double> m_reco_track_trunc_PIDA_p1;
+            std::vector<std::vector<double>> m_reco_track_resrange_p1;
+            std::vector<std::vector<double>> m_reco_track_dEdx_p1;
+
+            std::vector<double> m_reco_track_mean_dEdx_p2;
+            std::vector<double> m_reco_track_mean_dEdx_start_half_p2;
+            std::vector<double> m_reco_track_mean_dEdx_end_half_p2;
+            std::vector<int> m_reco_track_good_calo_p2;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_p2;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p2;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p2;
+            std::vector<double> m_reco_track_trunc_PIDA_p2;
+            std::vector<std::vector<double>> m_reco_track_resrange_p2;
+            std::vector<std::vector<double>> m_reco_track_dEdx_p2;
+
+
+            std::vector<int> m_reco_track_num_calo_hits_p0;
+            std::vector<int> m_reco_track_num_calo_hits_p1;
+            std::vector<int> m_reco_track_num_calo_hits_p2;
 
 
             std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane0;
             std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane1;
             std::vector<double> m_reco_track_end_to_nearest_dead_wire_plane2;
 
+            std::vector<int> m_reco_track_sliceId; //the slice id for the slice continaing the reco track
+            std::vector<double> m_reco_track_nuscore; //the neutrino score of the slice containing the reco track
+            std::vector<bool> m_reco_track_isclearcosmic;//true if reco track is in a clear cosmic slice
+
+
             std::vector<int> m_sim_track_matched;
+            std::vector<double> m_sim_track_overlay_fraction;
             std::vector<double> m_sim_track_energy;
             std::vector<double> m_sim_track_mass;
             std::vector<double> m_sim_track_kinetic_energy;
@@ -634,6 +742,11 @@ namespace single_photon
             std::vector<double> m_sim_track_starty;
             std::vector<double> m_sim_track_startz;
             std::vector<int> m_sim_track_trackID;
+
+            std::vector<int> m_sim_track_sliceId; //the slice id for the slice continaing the sim track
+            std::vector<double> m_sim_track_nuscore; //the neutrino score of the slice containing the sim track
+            std::vector<bool> m_sim_track_isclearcosmic;//true if sim track is in a clear cosmic slice
+
 
 
             //------------ Shower related Variables  -------------
@@ -680,6 +793,13 @@ namespace single_photon
             std::vector<double> m_reco_shower_delaunay_area_plane1;
             std::vector<double> m_reco_shower_delaunay_area_plane2;
 
+            std::vector<int> m_reco_shower_sliceId; //the slice id for the slice continaing the reco shower
+            std::vector<double> m_reco_shower_nuscore; //the neutrino score of the slice containing the reco shower
+            std::vector<bool> m_reco_shower_isclearcosmic;//true if reco shower is in a clear cosmic slice
+            std::vector<bool> m_reco_shower_is_nuslice;//true if reco shower is in a clear cosmic slice
+
+
+
             std::vector<int> m_sim_shower_matched;
             std::vector<double> m_sim_shower_energy;
             std::vector<double> m_sim_shower_kinetic_energy;
@@ -710,6 +830,12 @@ namespace single_photon
             std::vector<double> m_sim_shower_matched_energy_fraction_plane2;
             std::vector<double> m_sim_shower_overlay_fraction;
 
+            std::vector<int> m_sim_shower_sliceId; //the slice id for the slice continaing the sim shower matched to reco
+            std::vector<double> m_sim_shower_nuscore; //the neutrino score of the slice containing the sim shower matched to reco
+            std::vector<bool> m_sim_shower_isclearcosmic;//true if sim shower matched to reco is in a clear cosmic slice
+            std::vector<bool> m_sim_shower_is_nuslice;//true if sim shower matched to reco is in a clear cosmic slice
+
+
 
             //------------ MCTruth related Variables  -------------
             int m_mctruth_num;
@@ -739,6 +865,8 @@ namespace single_photon
             int   m_mctruth_num_exiting_deltapm; 
             int   m_mctruth_num_exiting_deltapp; 
 
+            double m_mctruth_leading_exiting_proton_energy;
+
             int m_mctruth_is_delta_radiative;
             int m_mctruth_delta_radiative_1g1p_or_1g1n;
             double m_mctruth_delta_photon_energy;
@@ -755,11 +883,17 @@ namespace single_photon
             std::vector<int> m_mctruth_exiting_proton_from_delta_decay;
             std::vector<double> m_mctruth_exiting_proton_energy;
 
+            bool  m_mctruth_is_reconstructable_1g1p;
+            bool  m_mctruth_is_reconstructable_1g0p;
+
 
             std::vector<double>        m_mctruth_exiting_pi0_E;
             std::vector<double>        m_mctruth_exiting_pi0_px;
             std::vector<double>        m_mctruth_exiting_pi0_py;
             std::vector<double>        m_mctruth_exiting_pi0_pz;
+
+            double m_mctruth_pi0_leading_photon_energy;
+            double m_mctruth_pi0_subleading_photon_energy;
 
             std::string  m_truthmatching_signaldef;
 
@@ -785,6 +919,11 @@ namespace single_photon
             std::vector<double> m_reco_shower_dEdx_plane0_median;
             std::vector<double> m_reco_shower_dEdx_plane1_median;
             std::vector<double> m_reco_shower_dEdx_plane2_median;
+
+            std::vector<double> m_reco_shower_dQdx_plane0_median;
+            std::vector<double> m_reco_shower_dQdx_plane1_median;
+            std::vector<double> m_reco_shower_dQdx_plane2_median;
+
             std::vector<double> m_reco_shower_dEdx_plane0_nhits;
             std::vector<double> m_reco_shower_dEdx_plane1_nhits;
             std::vector<double> m_reco_shower_dEdx_plane2_nhits;

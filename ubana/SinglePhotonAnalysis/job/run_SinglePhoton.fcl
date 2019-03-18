@@ -51,7 +51,7 @@ physics: {
 	   ShowerLabel:    "pandora"
        #ShowerLabel: "showerreco3dpandora"
 	   ParticleIDLabel:"pid"
-       CaloLabel:      "pandoracalo"
+       CaloLabel:      "pandoracaliSCE"
        FlashLabel:     "simpleFlashBeam"
        POTLabel:       "generator"
        input_param:    "optional" 
@@ -66,6 +66,9 @@ physics: {
        width_box : 1.
        length_box : 4.
        truthmatching_signaldef : "ncdelta"
+       runAllPFPs: "false"
+       exiting_photon_energy: 0.02
+       exiting_proton_energy: 0.978  #40Mev + proton mass 
       }
 
   }
