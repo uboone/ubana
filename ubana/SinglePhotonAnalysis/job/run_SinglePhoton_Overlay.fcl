@@ -2,7 +2,6 @@
 physics.analyzers.singlephoton.isData: "false"
 physics.analyzers.singlephoton.BadChannelProducer: "nfspl1"
 #physics.analyzers.singlephoton.BadChannelProducer: "simnfspl1"
-physics.analyzers.singlephoton.POTLabel: "beamdata"
 physics.analyzers.singlephoton.isOverlayed: "true"
 physics.analyzers.singlephoton.beamgateStartTime: 3.5
 physics.analyzers.singlephoton.beamgateEndTime: 5.3
