@@ -246,7 +246,13 @@ namespace single_photon
              *@param plane - a single plane
              * */
             double getPitch(TVector3 shower_dir, int plane);
+            TVector3 getWireVec(int plane);
+            double getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir);
+            double getAnglewrtWires(TVector3 shower_dir, int plane);
 
+             double getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2);
+             double degToRad(double deg);
+             double radToDeg(double rad);
             /**
              *@brief Calculates the four corners of a box of given length and width around a cluster given the start point and axis direction
              *@param cluster_start - the start position of a cluster in CM
@@ -931,6 +937,12 @@ namespace single_photon
             std::vector<double> m_reco_shower_dEdx_plane0_median;
             std::vector<double> m_reco_shower_dEdx_plane1_median;
             std::vector<double> m_reco_shower_dEdx_plane2_median;
+
+            std::vector<double>  m_reco_shower_angle_wrt_wires_plane0;
+            std::vector<double>  m_reco_shower_angle_wrt_wires_plane1;
+            std::vector<double>  m_reco_shower_angle_wrt_wires_plane2;
+
+            std::vector<double>  m_reco_shower_dEdx_amalgamated;
 
             std::vector<double> m_reco_shower_dQdx_plane0_median;
             std::vector<double> m_reco_shower_dQdx_plane1_median;
