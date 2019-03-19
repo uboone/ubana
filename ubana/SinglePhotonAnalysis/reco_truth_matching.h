@@ -418,6 +418,9 @@ namespace single_photon
             m_sim_shower_sliceId[i] = PFPToSliceIdMap[pfp];
             m_sim_shower_nuscore[i] = sliceIdToNuScoreMap[ m_sim_shower_sliceId[i]] ;
             m_sim_shower_isclearcosmic[i] = PFPToClearCosmicMap[pfp];
+            if (m_sim_shower_isclearcosmic[i]== false){
+                std::cout<<"sim shower is matched to non-clear cosmic PFP "<<pfp->Self()<<std::endl;
+            }
             m_sim_shower_is_nuslice[i] = PFPToNuSliceMap[pfp];
 
 

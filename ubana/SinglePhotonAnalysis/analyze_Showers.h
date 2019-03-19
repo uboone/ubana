@@ -55,12 +55,16 @@ namespace single_photon
         m_sim_shower_sliceId.clear();
         m_sim_shower_nuscore.clear();
         m_sim_shower_isclearcosmic.clear();
-         m_sim_shower_is_nuslice.clear();
+        m_sim_shower_is_nuslice.clear();
 
 
 
         m_reco_shower_ordered_energy_index.clear();
-        m_reco_shower_energy.clear();
+        m_reco_shower_energy_max.clear();
+        m_reco_shower_energy_plane0.clear();
+         m_reco_shower_energy_plane1.clear();
+         m_reco_shower_energy_plane2.clear();
+        
         m_reco_shower_dQdx_plane0.clear();
         m_reco_shower_dQdx_plane2.clear();
         m_reco_shower_dQdx_plane2.clear();
@@ -70,11 +74,11 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_median.clear();
         m_reco_shower_dEdx_plane1_median.clear();
         m_reco_shower_dEdx_plane2_median.clear();
-        
+
         m_reco_shower_dQdx_plane0_median.clear();
         m_reco_shower_dQdx_plane1_median.clear();
         m_reco_shower_dQdx_plane2_median.clear();
-       
+
         m_reco_shower_dEdx_plane0_mean.clear();
         m_reco_shower_dEdx_plane1_mean.clear();
         m_reco_shower_dEdx_plane2_mean.clear();	
@@ -104,7 +108,7 @@ namespace single_photon
         m_reco_shower_sliceId.clear();
         m_reco_shower_nuscore.clear();
         m_reco_shower_isclearcosmic.clear();
-         m_reco_shower_is_nuslice.clear();
+        m_reco_shower_is_nuslice.clear();
 
 
 
@@ -134,7 +138,13 @@ namespace single_photon
         m_reco_shower_delaunay_area_plane1.resize(size);
         m_reco_shower_delaunay_area_plane2.resize(size);
 
-        m_reco_shower_energy.resize(size);
+        m_reco_shower_energy_max.resize(size);
+         m_reco_shower_energy_plane0.resize(size);
+         m_reco_shower_energy_plane1.resize(size);
+         m_reco_shower_energy_plane2.resize(size);
+
+
+
         m_reco_shower_ordered_energy_index.resize(size);
         m_reco_shower_dQdx_plane0.resize(size);
         m_reco_shower_dQdx_plane1.resize(size);
@@ -145,11 +155,11 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_median.resize(size);
         m_reco_shower_dEdx_plane1_median.resize(size);
         m_reco_shower_dEdx_plane2_median.resize(size);
-        
+
         m_reco_shower_dQdx_plane0_median.resize(size);
         m_reco_shower_dQdx_plane1_median.resize(size);
         m_reco_shower_dQdx_plane2_median.resize(size);
-        
+
         m_reco_shower_dEdx_plane0_min.resize(size);
         m_reco_shower_dEdx_plane1_min.resize(size);
         m_reco_shower_dEdx_plane2_min.resize(size);
@@ -182,7 +192,7 @@ namespace single_photon
         m_reco_shower_sliceId.resize(size);
         m_reco_shower_nuscore.resize(size);
         m_reco_shower_isclearcosmic.resize(size);
-         m_reco_shower_is_nuslice.resize(size);
+        m_reco_shower_is_nuslice.resize(size);
 
 
         m_sim_shower_energy.resize(size);
@@ -214,8 +224,8 @@ namespace single_photon
         m_sim_shower_sliceId.resize(size);
         m_sim_shower_nuscore.resize(size);
         m_sim_shower_isclearcosmic.resize(size);
-         m_sim_shower_is_nuslice.resize(size);
- 
+        m_sim_shower_is_nuslice.resize(size);
+
 
 
 
@@ -245,8 +255,11 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_delaunay_area_plane1",&m_reco_shower_delaunay_area_plane1);
         vertex_tree->Branch("reco_shower_delaunay_area_plane2",&m_reco_shower_delaunay_area_plane2);
         //the calorimetry info
-        vertex_tree->Branch("reco_shower_energy",&m_reco_shower_energy);
-        vertex_tree->Branch("reco_shower_ordered_energy_index",&m_reco_shower_ordered_energy_index);
+        vertex_tree->Branch("reco_shower_energy_max",&m_reco_shower_energy_max);
+        vertex_tree->Branch("reco_shower_energy_plane0",&m_reco_shower_energy_plane0);
+        vertex_tree->Branch("reco_shower_energy_plane1",&m_reco_shower_energy_plane1);
+         vertex_tree->Branch("reco_shower_energy_plane2",&m_reco_shower_energy_plane2);
+       vertex_tree->Branch("reco_shower_ordered_energy_index",&m_reco_shower_ordered_energy_index);
         vertex_tree->Branch("reco_shower_dQdx_plane0",&m_reco_shower_dQdx_plane0);
         vertex_tree->Branch("reco_shower_dQdx_plane1",&m_reco_shower_dQdx_plane1);
         vertex_tree->Branch("reco_shower_dQdx_plane2",&m_reco_shower_dQdx_plane2);
@@ -256,11 +269,11 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_dEdx_plane0_median",&m_reco_shower_dEdx_plane0_median);
         vertex_tree->Branch("reco_shower_dEdx_plane1_median",&m_reco_shower_dEdx_plane1_median);
         vertex_tree->Branch("reco_shower_dEdx_plane2_median",&m_reco_shower_dEdx_plane2_median);
-      
+
         vertex_tree->Branch("reco_shower_dQdx_plane0_median",&m_reco_shower_dQdx_plane0_median);
         vertex_tree->Branch("reco_shower_dQdx_plane1_median",&m_reco_shower_dQdx_plane1_median);
         vertex_tree->Branch("reco_shower_dQdx_plane2_median",&m_reco_shower_dQdx_plane2_median);
-       
+
         vertex_tree->Branch("reco_shower_dEdx_plane0_mean",&m_reco_shower_dEdx_plane0_mean);
         vertex_tree->Branch("reco_shower_dEdx_plane1_mean",&m_reco_shower_dEdx_plane1_mean);
         vertex_tree->Branch("reco_shower_dEdx_plane2_mean",&m_reco_shower_dEdx_plane2_mean);
@@ -288,8 +301,8 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_sliceId",& m_reco_shower_sliceId);
         vertex_tree->Branch("reco_shower_nuscore",& m_reco_shower_nuscore);
         vertex_tree->Branch("reco_shower_isclearcosmic",& m_reco_shower_isclearcosmic);
-         vertex_tree->Branch("reco_shower_is_nusclice", & m_reco_shower_is_nuslice);
-        
+        vertex_tree->Branch("reco_shower_is_nusclice", & m_reco_shower_is_nuslice);
+
 
         vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
         vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
@@ -321,8 +334,8 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
         vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
         vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
-         vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
-        
+        vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
+
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
@@ -403,7 +416,14 @@ namespace single_photon
             //-------------- Calorimetry --------------------
 
 
-            m_reco_shower_energy[i_shr] = CalcEShower(hits);
+            m_reco_shower_energy_max[i_shr] = CalcEShower(hits);
+            m_reco_shower_energy_plane0[i_shr] = CalcEShowerPlane(hits, 0);
+            m_reco_shower_energy_plane1[i_shr] = CalcEShowerPlane(hits, 1);
+            m_reco_shower_energy_plane2[i_shr] = CalcEShowerPlane(hits, 2);
+
+            //std::cout<<"The energy on each plane is 0: "<< m_reco_shower_energy_plane0[i_shr]<<", 1: "<< m_reco_shower_energy_plane1[i_shr]<<", 2: "<<  m_reco_shower_energy_plane2[i_shr]<<std::endl;
+
+
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting dq/dx plane 0"<<std::endl;
             m_reco_shower_dQdx_plane0[i_shr] = CalcdQdxShower(shower,clusters, clusterToHitMap, 0 ); 
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting dq/dx plane 1"<<std::endl;
@@ -421,7 +441,7 @@ namespace single_photon
             m_reco_shower_dEdx_plane0_median[i_shr] = getMedian(m_reco_shower_dEdx_plane0[i_shr]);
             m_reco_shower_dEdx_plane1_median[i_shr] = getMedian(m_reco_shower_dEdx_plane1[i_shr]);
             m_reco_shower_dEdx_plane2_median[i_shr] = getMedian(m_reco_shower_dEdx_plane2[i_shr]);
-            
+
             m_reco_shower_dQdx_plane0_median[i_shr] = getMedian(m_reco_shower_dQdx_plane0[i_shr]);
             m_reco_shower_dQdx_plane1_median[i_shr] = getMedian(m_reco_shower_dQdx_plane1[i_shr]);
             m_reco_shower_dQdx_plane2_median[i_shr] = getMedian(m_reco_shower_dQdx_plane2[i_shr]);
@@ -595,7 +615,7 @@ namespace single_photon
 
 
         //Lets sort and order the showers
-        m_reco_shower_ordered_energy_index = sort_indexes(m_reco_shower_energy);
+        m_reco_shower_ordered_energy_index = sort_indexes(m_reco_shower_energy_max);
 
 
 
@@ -684,8 +704,32 @@ namespace single_photon
 
     }
 
+    double SinglePhoton::CalcEShowerPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){    
+        double energy = 0.;
+
+        //for each hit in the shower
+        for (art::Ptr<recob::Hit> thishitptr : hits){
+            //check the plane
+            int plane= thishitptr->View();
+
+            //skip invalid planes     	
+            if (plane != this_plane )	continue;
+
+            //calc the energy of the hit
+            double E = QtoEConversionHit(thishitptr, plane);	
+
+            //add the energy to the plane
+            energy += E;
+        }//for each hit
+
+        return energy;
+
+    }
+
     double SinglePhoton::CalcEShower(std::vector<art::Ptr<recob::Hit>> hits){    
         double energy[3] = {0., 0., 0.};
+
+        //std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t Looking at shower with "<<hits.size() <<" hits on all planes"<<std::endl;
 
         //for each hit in the shower
         for (art::Ptr<recob::Hit> thishitptr : hits){
@@ -696,11 +740,11 @@ namespace single_photon
             if (plane > 2 || plane < 0)	continue;
 
             //calc the energy of the hit
-            double E = QtoEConversionHit(thishitptr, plane);	
+            double E = QtoEConversionHit(thishitptr, plane);    
 
             //add the energy to the plane
             energy[plane] += E;
-        }//for each hit
+        }//for each hiti
 
         //find the max energy on a single plane
         double max = energy[0];
@@ -709,7 +753,7 @@ namespace single_photon
                 max = en;
             }
         }
-        if (m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
+        std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
 
         //return the highest energy on any of the planes
         return max;

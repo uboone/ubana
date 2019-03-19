@@ -194,6 +194,9 @@ namespace single_photon
              * */
             double CalcEShower(std::vector<art::Ptr<recob::Hit>> hits);
 
+            double CalcEShowerPlane(std::vector<art::Ptr<recob::Hit>> hits, int plane);
+
+
             /**
              *@brief Takes a hit and multiplies the charge by the gain
              *@param thishitptr art pointer to a hit
@@ -898,7 +901,13 @@ namespace single_photon
             std::string  m_truthmatching_signaldef;
 
             //the calo calculated quantities 
-            std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
+            std::vector<double> m_reco_shower_energy_max; //for each hit in a shower, converts Q->E, and sums
+            std::vector<double> m_reco_shower_energy_plane0;
+            std::vector<double> m_reco_shower_energy_plane1;
+            std::vector<double> m_reco_shower_energy_plane2;
+
+
+
             std::vector<size_t>  m_reco_shower_ordered_energy_index;
             std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
             std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
