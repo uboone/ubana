@@ -685,6 +685,7 @@ namespace single_photon
             std::vector<double> m_reco_track_mean_dEdx_start_half_p0;
             std::vector<double> m_reco_track_mean_dEdx_end_half_p0;
             std::vector<int> m_reco_track_good_calo_p0;
+            std::vector<std::vector<double>> m_reco_track_trunc_dEdx_p0;
             std::vector<double> m_reco_track_mean_trunc_dEdx_p0;
             std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p0;
             std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p0;
@@ -696,6 +697,7 @@ namespace single_photon
             std::vector<double> m_reco_track_mean_dEdx_start_half_p1;
             std::vector<double> m_reco_track_mean_dEdx_end_half_p1;
             std::vector<int> m_reco_track_good_calo_p1;
+            std::vector<std::vector<double>> m_reco_track_trunc_dEdx_p1;
             std::vector<double> m_reco_track_mean_trunc_dEdx_p1;
             std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p1;
             std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p1;
@@ -707,6 +709,7 @@ namespace single_photon
             std::vector<double> m_reco_track_mean_dEdx_start_half_p2;
             std::vector<double> m_reco_track_mean_dEdx_end_half_p2;
             std::vector<int> m_reco_track_good_calo_p2;
+            std::vector<std::vector<double>> m_reco_track_trunc_dEdx_p2;
             std::vector<double> m_reco_track_mean_trunc_dEdx_p2;
             std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p2;
             std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p2;

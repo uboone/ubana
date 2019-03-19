@@ -40,6 +40,7 @@ namespace single_photon
         m_reco_track_mean_dEdx_start_half_p0.clear();
         m_reco_track_mean_dEdx_end_half_p0.clear();
         m_reco_track_good_calo_p0.clear();
+        m_reco_track_trunc_dEdx_p0.clear();
         m_reco_track_mean_trunc_dEdx_p0.clear();
         m_reco_track_mean_trunc_dEdx_start_half_p0.clear();
         m_reco_track_mean_trunc_dEdx_end_half_p0.clear();
@@ -51,6 +52,7 @@ namespace single_photon
         m_reco_track_mean_dEdx_start_half_p1.clear();
         m_reco_track_mean_dEdx_end_half_p1.clear();
         m_reco_track_good_calo_p1.clear();
+        m_reco_track_trunc_dEdx_p1.clear();
         m_reco_track_mean_trunc_dEdx_p1.clear();
         m_reco_track_mean_trunc_dEdx_start_half_p1.clear();
         m_reco_track_mean_trunc_dEdx_end_half_p1.clear();
@@ -62,6 +64,7 @@ namespace single_photon
         m_reco_track_mean_dEdx_start_half_p2.clear();
         m_reco_track_mean_dEdx_end_half_p2.clear();
         m_reco_track_good_calo_p2.clear();
+        m_reco_track_trunc_dEdx_p2.clear();
         m_reco_track_mean_trunc_dEdx_p2.clear();
         m_reco_track_mean_trunc_dEdx_start_half_p2.clear();
         m_reco_track_mean_trunc_dEdx_end_half_p2.clear();
@@ -138,6 +141,7 @@ namespace single_photon
         m_reco_track_mean_dEdx_start_half_p0.resize(size);
         m_reco_track_mean_dEdx_end_half_p0.resize(size);
         m_reco_track_good_calo_p0.resize(size);
+        m_reco_track_trunc_dEdx_p0.resize(size);
         m_reco_track_mean_trunc_dEdx_p0.resize(size);
         m_reco_track_mean_trunc_dEdx_start_half_p0.resize(size);
         m_reco_track_mean_trunc_dEdx_end_half_p0.resize(size);
@@ -149,6 +153,7 @@ namespace single_photon
         m_reco_track_mean_dEdx_start_half_p1.resize(size);
         m_reco_track_mean_dEdx_end_half_p1.resize(size);
         m_reco_track_good_calo_p1.resize(size);
+        m_reco_track_trunc_dEdx_p1.resize(size);
         m_reco_track_mean_trunc_dEdx_p1.resize(size);
         m_reco_track_mean_trunc_dEdx_start_half_p1.resize(size);
         m_reco_track_mean_trunc_dEdx_end_half_p1.resize(size);
@@ -160,6 +165,7 @@ namespace single_photon
         m_reco_track_mean_dEdx_start_half_p2.resize(size);
         m_reco_track_mean_dEdx_end_half_p2.resize(size);
         m_reco_track_good_calo_p2.resize(size);
+        m_reco_track_trunc_dEdx_p2.resize(size);
         m_reco_track_mean_trunc_dEdx_p2.resize(size);
         m_reco_track_mean_trunc_dEdx_start_half_p2.resize(size);
         m_reco_track_mean_trunc_dEdx_end_half_p2.resize(size);
@@ -249,6 +255,10 @@ m_reco_track_num_calo_hits_p1.resize(size);
         vertex_tree->Branch("reco_track_good_calo_plane1",&m_reco_track_good_calo_p1);
         vertex_tree->Branch("reco_track_good_calo_plane2",&m_reco_track_good_calo_p2);
 
+        vertex_tree->Branch("reco_track_trunc_dEdx_plane0",&m_reco_track_trunc_dEdx_p0);
+        vertex_tree->Branch("reco_track_trunc_dEdx_plane1",&m_reco_track_trunc_dEdx_p1);
+        vertex_tree->Branch("reco_track_trunc_dEdx_plane2",&m_reco_track_trunc_dEdx_p2);
+
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_plane0",&m_reco_track_mean_trunc_dEdx_p0);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_plane1",&m_reco_track_mean_trunc_dEdx_p1);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_plane2",&m_reco_track_mean_trunc_dEdx_p2);
@@ -269,6 +279,10 @@ m_reco_track_num_calo_hits_p1.resize(size);
         vertex_tree->Branch("reco_track_resrange_plane1",&m_reco_track_resrange_p1);
         vertex_tree->Branch("reco_track_resrange_plane2",&m_reco_track_resrange_p2);
        
+        vertex_tree->Branch("reco_track_dEdx_plane0",&m_reco_track_dEdx_p0);
+        vertex_tree->Branch("reco_track_dEdx_plane1",&m_reco_track_dEdx_p1);
+        vertex_tree->Branch("reco_track_dEdx_plane2",&m_reco_track_dEdx_p2);
+
         vertex_tree->Branch("reco_track_num_calo_hits_plane0",&m_reco_track_num_calo_hits_p0);
         vertex_tree->Branch("reco_track_num_calo_hits_plane1",&m_reco_track_num_calo_hits_p1);
         vertex_tree->Branch("reco_track_num_calo_hits_plane2",&m_reco_track_num_calo_hits_p2);
@@ -592,6 +606,7 @@ m_reco_track_num_calo_hits_p1.resize(size);
                 m_reco_track_trunc_PIDA_p2[i_trk] =  0.0;
 
 
+
                 //First off look over ALL points
                 //--------------------------------- plane 0 ----------- Induction
                 for (size_t k = 0; k < calo_length_p0; ++k) {
@@ -663,7 +678,8 @@ m_reco_track_num_calo_hits_p1.resize(size);
                     }
                     m_reco_track_trunc_PIDA_p0[i_trk] = pida_sum_trunc;           
                     m_reco_track_resrange_p0[i_trk] = res_range_good_p0;
-                    m_reco_track_dEdx_p0[i_trk] = trunc_dEdx_p0;
+                    m_reco_track_trunc_dEdx_p0[i_trk] = trunc_dEdx_p0;
+                    m_reco_track_dEdx_p0[i_trk] = dEdx_good_p0;
 
                     //std::cout<<"the residual range at the start is "<<res_range_good[0]<<std::endl;
                 }
@@ -747,7 +763,8 @@ m_reco_track_num_calo_hits_p1.resize(size);
                     }
                     m_reco_track_trunc_PIDA_p1[i_trk] = pida_sum_trunc;           
                     m_reco_track_resrange_p1[i_trk] = res_range_good_p1;
-                    m_reco_track_dEdx_p1[i_trk] = trunc_dEdx_p1;
+                    m_reco_track_trunc_dEdx_p1[i_trk] = trunc_dEdx_p1;
+                    m_reco_track_dEdx_p1[i_trk] = dEdx_good_p1;
 
                     //std::cout<<"the residual range at the start is "<<res_range_good[0]<<std::endl;
                 }
@@ -831,7 +848,8 @@ m_reco_track_num_calo_hits_p1.resize(size);
                     }
                     m_reco_track_trunc_PIDA_p2[i_trk] = pida_sum_trunc;           
                     m_reco_track_resrange_p2[i_trk] = res_range_good_p2;
-                    m_reco_track_dEdx_p2[i_trk] = trunc_dEdx_p2;
+                    m_reco_track_trunc_dEdx_p2[i_trk] = trunc_dEdx_p2;
+                    m_reco_track_dEdx_p2[i_trk] = dEdx_good_p2;
 
                     //std::cout<<"the residual range at the start is "<<res_range_good[0]<<std::endl;
                 }
