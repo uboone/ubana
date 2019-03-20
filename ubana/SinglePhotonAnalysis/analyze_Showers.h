@@ -1019,7 +1019,17 @@ namespace single_photon
                         return median_plane1;
                     }
                 }
+                return median_plane2;
+            } if (plane2_nhits< 2){
+                if (plane1_nhits >=2 || plane0_nhits >=2 ){
+                    if (plane1_nhits > plane0_nhits){
+                        return median_plane1;
+                    }else{
+                        return median_plane0;
+                    }
+                }
             }
+
             return median_plane2;
         }
 
