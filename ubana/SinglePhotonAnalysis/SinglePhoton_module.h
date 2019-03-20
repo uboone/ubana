@@ -194,6 +194,9 @@ namespace single_photon
              * */
             double CalcEShower(std::vector<art::Ptr<recob::Hit>> hits);
 
+            double CalcEShowerPlane(std::vector<art::Ptr<recob::Hit>> hits, int plane);
+
+
             /**
              *@brief Takes a hit and multiplies the charge by the gain
              *@param thishitptr art pointer to a hit
@@ -243,7 +246,13 @@ namespace single_photon
              *@param plane - a single plane
              * */
             double getPitch(TVector3 shower_dir, int plane);
+            TVector3 getWireVec(int plane);
+            double getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir);
+            double getAnglewrtWires(TVector3 shower_dir, int plane);
 
+             double getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits);
+             double degToRad(double deg);
+             double radToDeg(double rad);
             /**
              *@brief Calculates the four corners of a box of given length and width around a cluster given the start point and axis direction
              *@param cluster_start - the start position of a cluster in CM
@@ -687,6 +696,7 @@ namespace single_photon
             std::vector<double> m_reco_track_mean_dEdx_start_half_p0;
             std::vector<double> m_reco_track_mean_dEdx_end_half_p0;
             std::vector<int> m_reco_track_good_calo_p0;
+            std::vector<std::vector<double>> m_reco_track_trunc_dEdx_p0;
             std::vector<double> m_reco_track_mean_trunc_dEdx_p0;
             std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p0;
             std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p0;
@@ -698,6 +708,7 @@ namespace single_photon
             std::vector<double> m_reco_track_mean_dEdx_start_half_p1;
             std::vector<double> m_reco_track_mean_dEdx_end_half_p1;
             std::vector<int> m_reco_track_good_calo_p1;
+            std::vector<std::vector<double>> m_reco_track_trunc_dEdx_p1;
             std::vector<double> m_reco_track_mean_trunc_dEdx_p1;
             std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p1;
             std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p1;
@@ -709,6 +720,7 @@ namespace single_photon
             std::vector<double> m_reco_track_mean_dEdx_start_half_p2;
             std::vector<double> m_reco_track_mean_dEdx_end_half_p2;
             std::vector<int> m_reco_track_good_calo_p2;
+            std::vector<std::vector<double>> m_reco_track_trunc_dEdx_p2;
             std::vector<double> m_reco_track_mean_trunc_dEdx_p2;
             std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_p2;
             std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_p2;
@@ -900,7 +912,13 @@ namespace single_photon
             std::string  m_truthmatching_signaldef;
 
             //the calo calculated quantities 
-            std::vector<double> m_reco_shower_energy; //for each hit in a shower, converts Q->E, and sums
+            std::vector<double> m_reco_shower_energy_max; //for each hit in a shower, converts Q->E, and sums
+            std::vector<double> m_reco_shower_energy_plane0;
+            std::vector<double> m_reco_shower_energy_plane1;
+            std::vector<double> m_reco_shower_energy_plane2;
+
+
+
             std::vector<size_t>  m_reco_shower_ordered_energy_index;
             std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 
             std::vector<std::vector<double>> m_reco_shower_dQdx_plane1;
@@ -921,6 +939,12 @@ namespace single_photon
             std::vector<double> m_reco_shower_dEdx_plane0_median;
             std::vector<double> m_reco_shower_dEdx_plane1_median;
             std::vector<double> m_reco_shower_dEdx_plane2_median;
+
+            std::vector<double>  m_reco_shower_angle_wrt_wires_plane0;
+            std::vector<double>  m_reco_shower_angle_wrt_wires_plane1;
+            std::vector<double>  m_reco_shower_angle_wrt_wires_plane2;
+
+            std::vector<double>  m_reco_shower_dEdx_amalgamated;
 
             std::vector<double> m_reco_shower_dQdx_plane0_median;
             std::vector<double> m_reco_shower_dQdx_plane1_median;

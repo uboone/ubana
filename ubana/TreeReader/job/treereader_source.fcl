@@ -117,7 +117,7 @@ source: {
 outputs: {
  out1: {
    module_type: RootOutput
-   fileName: "treereader.root" 
+   fileName: "treereader_%tc_eventweight.root"
    compressionLevel: 1
    dataTier: "simulated"
   }

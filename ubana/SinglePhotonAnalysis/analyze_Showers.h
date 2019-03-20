@@ -55,12 +55,16 @@ namespace single_photon
         m_sim_shower_sliceId.clear();
         m_sim_shower_nuscore.clear();
         m_sim_shower_isclearcosmic.clear();
-         m_sim_shower_is_nuslice.clear();
+        m_sim_shower_is_nuslice.clear();
 
 
 
         m_reco_shower_ordered_energy_index.clear();
-        m_reco_shower_energy.clear();
+        m_reco_shower_energy_max.clear();
+        m_reco_shower_energy_plane0.clear();
+        m_reco_shower_energy_plane1.clear();
+        m_reco_shower_energy_plane2.clear();
+
         m_reco_shower_dQdx_plane0.clear();
         m_reco_shower_dQdx_plane2.clear();
         m_reco_shower_dQdx_plane2.clear();
@@ -70,11 +74,17 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_median.clear();
         m_reco_shower_dEdx_plane1_median.clear();
         m_reco_shower_dEdx_plane2_median.clear();
-        
+
+        m_reco_shower_angle_wrt_wires_plane0.clear();
+        m_reco_shower_angle_wrt_wires_plane1.clear();
+        m_reco_shower_angle_wrt_wires_plane2.clear();
+
+        m_reco_shower_dEdx_amalgamated.clear();
+
         m_reco_shower_dQdx_plane0_median.clear();
         m_reco_shower_dQdx_plane1_median.clear();
         m_reco_shower_dQdx_plane2_median.clear();
-       
+
         m_reco_shower_dEdx_plane0_mean.clear();
         m_reco_shower_dEdx_plane1_mean.clear();
         m_reco_shower_dEdx_plane2_mean.clear();	
@@ -104,7 +114,7 @@ namespace single_photon
         m_reco_shower_sliceId.clear();
         m_reco_shower_nuscore.clear();
         m_reco_shower_isclearcosmic.clear();
-         m_reco_shower_is_nuslice.clear();
+        m_reco_shower_is_nuslice.clear();
 
 
 
@@ -134,7 +144,13 @@ namespace single_photon
         m_reco_shower_delaunay_area_plane1.resize(size);
         m_reco_shower_delaunay_area_plane2.resize(size);
 
-        m_reco_shower_energy.resize(size);
+        m_reco_shower_energy_max.resize(size);
+        m_reco_shower_energy_plane0.resize(size);
+        m_reco_shower_energy_plane1.resize(size);
+        m_reco_shower_energy_plane2.resize(size);
+
+
+
         m_reco_shower_ordered_energy_index.resize(size);
         m_reco_shower_dQdx_plane0.resize(size);
         m_reco_shower_dQdx_plane1.resize(size);
@@ -145,11 +161,17 @@ namespace single_photon
         m_reco_shower_dEdx_plane0_median.resize(size);
         m_reco_shower_dEdx_plane1_median.resize(size);
         m_reco_shower_dEdx_plane2_median.resize(size);
-        
+
+        m_reco_shower_angle_wrt_wires_plane0.resize(size);
+        m_reco_shower_angle_wrt_wires_plane1.resize(size);
+        m_reco_shower_angle_wrt_wires_plane2.resize(size);
+
+        m_reco_shower_dEdx_amalgamated.resize(size);
+
         m_reco_shower_dQdx_plane0_median.resize(size);
         m_reco_shower_dQdx_plane1_median.resize(size);
         m_reco_shower_dQdx_plane2_median.resize(size);
-        
+
         m_reco_shower_dEdx_plane0_min.resize(size);
         m_reco_shower_dEdx_plane1_min.resize(size);
         m_reco_shower_dEdx_plane2_min.resize(size);
@@ -182,7 +204,7 @@ namespace single_photon
         m_reco_shower_sliceId.resize(size);
         m_reco_shower_nuscore.resize(size);
         m_reco_shower_isclearcosmic.resize(size);
-         m_reco_shower_is_nuslice.resize(size);
+        m_reco_shower_is_nuslice.resize(size);
 
 
         m_sim_shower_energy.resize(size);
@@ -214,8 +236,8 @@ namespace single_photon
         m_sim_shower_sliceId.resize(size);
         m_sim_shower_nuscore.resize(size);
         m_sim_shower_isclearcosmic.resize(size);
-         m_sim_shower_is_nuslice.resize(size);
- 
+        m_sim_shower_is_nuslice.resize(size);
+
 
 
 
@@ -245,7 +267,10 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_delaunay_area_plane1",&m_reco_shower_delaunay_area_plane1);
         vertex_tree->Branch("reco_shower_delaunay_area_plane2",&m_reco_shower_delaunay_area_plane2);
         //the calorimetry info
-        vertex_tree->Branch("reco_shower_energy",&m_reco_shower_energy);
+        vertex_tree->Branch("reco_shower_energy_max",&m_reco_shower_energy_max);
+        vertex_tree->Branch("reco_shower_energy_plane0",&m_reco_shower_energy_plane0);
+        vertex_tree->Branch("reco_shower_energy_plane1",&m_reco_shower_energy_plane1);
+        vertex_tree->Branch("reco_shower_energy_plane2",&m_reco_shower_energy_plane2);
         vertex_tree->Branch("reco_shower_ordered_energy_index",&m_reco_shower_ordered_energy_index);
         vertex_tree->Branch("reco_shower_dQdx_plane0",&m_reco_shower_dQdx_plane0);
         vertex_tree->Branch("reco_shower_dQdx_plane1",&m_reco_shower_dQdx_plane1);
@@ -256,11 +281,17 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_dEdx_plane0_median",&m_reco_shower_dEdx_plane0_median);
         vertex_tree->Branch("reco_shower_dEdx_plane1_median",&m_reco_shower_dEdx_plane1_median);
         vertex_tree->Branch("reco_shower_dEdx_plane2_median",&m_reco_shower_dEdx_plane2_median);
-      
+
+        vertex_tree->Branch("reco_shower_angle_wrt_wires_plane0",& m_reco_shower_angle_wrt_wires_plane0);
+        vertex_tree->Branch("reco_shower_angle_wrt_wires_plane1",& m_reco_shower_angle_wrt_wires_plane1);
+        vertex_tree->Branch("reco_shower_angle_wrt_wires_plane2",& m_reco_shower_angle_wrt_wires_plane2);
+
+        vertex_tree->Branch("reco_shower_dEdx_amalgamated",&m_reco_shower_dEdx_amalgamated);
+
         vertex_tree->Branch("reco_shower_dQdx_plane0_median",&m_reco_shower_dQdx_plane0_median);
         vertex_tree->Branch("reco_shower_dQdx_plane1_median",&m_reco_shower_dQdx_plane1_median);
         vertex_tree->Branch("reco_shower_dQdx_plane2_median",&m_reco_shower_dQdx_plane2_median);
-       
+
         vertex_tree->Branch("reco_shower_dEdx_plane0_mean",&m_reco_shower_dEdx_plane0_mean);
         vertex_tree->Branch("reco_shower_dEdx_plane1_mean",&m_reco_shower_dEdx_plane1_mean);
         vertex_tree->Branch("reco_shower_dEdx_plane2_mean",&m_reco_shower_dEdx_plane2_mean);
@@ -321,7 +352,6 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
         vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
         vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
-        
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
@@ -402,7 +432,14 @@ namespace single_photon
             //-------------- Calorimetry --------------------
 
 
-            m_reco_shower_energy[i_shr] = CalcEShower(hits);
+            m_reco_shower_energy_max[i_shr] = CalcEShower(hits);
+            m_reco_shower_energy_plane0[i_shr] = CalcEShowerPlane(hits, 0);
+            m_reco_shower_energy_plane1[i_shr] = CalcEShowerPlane(hits, 1);
+            m_reco_shower_energy_plane2[i_shr] = CalcEShowerPlane(hits, 2);
+
+            //std::cout<<"The energy on each plane is 0: "<< m_reco_shower_energy_plane0[i_shr]<<", 1: "<< m_reco_shower_energy_plane1[i_shr]<<", 2: "<<  m_reco_shower_energy_plane2[i_shr]<<std::endl;
+
+
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting dq/dx plane 0"<<std::endl;
             m_reco_shower_dQdx_plane0[i_shr] = CalcdQdxShower(shower,clusters, clusterToHitMap, 0 ); 
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting dq/dx plane 1"<<std::endl;
@@ -420,7 +457,12 @@ namespace single_photon
             m_reco_shower_dEdx_plane0_median[i_shr] = getMedian(m_reco_shower_dEdx_plane0[i_shr]);
             m_reco_shower_dEdx_plane1_median[i_shr] = getMedian(m_reco_shower_dEdx_plane1[i_shr]);
             m_reco_shower_dEdx_plane2_median[i_shr] = getMedian(m_reco_shower_dEdx_plane2[i_shr]);
-            
+
+            m_reco_shower_angle_wrt_wires_plane0[i_shr] = getAnglewrtWires(shr_dir,0);
+            m_reco_shower_angle_wrt_wires_plane1[i_shr] = getAnglewrtWires(shr_dir,1);
+            m_reco_shower_angle_wrt_wires_plane2[i_shr] = getAnglewrtWires(shr_dir,2);
+
+
             m_reco_shower_dQdx_plane0_median[i_shr] = getMedian(m_reco_shower_dQdx_plane0[i_shr]);
             m_reco_shower_dQdx_plane1_median[i_shr] = getMedian(m_reco_shower_dQdx_plane1[i_shr]);
             m_reco_shower_dQdx_plane2_median[i_shr] = getMedian(m_reco_shower_dQdx_plane2[i_shr]);
@@ -481,6 +523,8 @@ namespace single_photon
             m_reco_shower_dEdx_plane0_nhits[i_shr] = m_reco_shower_dEdx_plane0[i_shr].size();
             m_reco_shower_dEdx_plane1_nhits[i_shr] = m_reco_shower_dEdx_plane1[i_shr].size();
             m_reco_shower_dEdx_plane2_nhits[i_shr] = m_reco_shower_dEdx_plane2[i_shr].size();
+
+            m_reco_shower_dEdx_amalgamated[i_shr] = getAmalgamateddEdx( m_reco_shower_angle_wrt_wires_plane0[i_shr],  m_reco_shower_angle_wrt_wires_plane1[i_shr],  m_reco_shower_angle_wrt_wires_plane2[i_shr], m_reco_shower_dEdx_plane0_median[i_shr], m_reco_shower_dEdx_plane1_median[i_shr], m_reco_shower_dEdx_plane2_median[i_shr],m_reco_shower_dEdx_plane0_nhits[i_shr], m_reco_shower_dEdx_plane1_nhits[i_shr], m_reco_shower_dEdx_plane2_nhits[i_shr] );
 
 
             //-------------- Flashes : Was there a flash in the beam_time and if so was it near in Z? --------------------
@@ -594,7 +638,7 @@ namespace single_photon
 
 
         //Lets sort and order the showers
-        m_reco_shower_ordered_energy_index = sort_indexes(m_reco_shower_energy);
+        m_reco_shower_ordered_energy_index = sort_indexes(m_reco_shower_energy_max);
 
 
 
@@ -683,8 +727,32 @@ namespace single_photon
 
     }
 
+    double SinglePhoton::CalcEShowerPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){    
+        double energy = 0.;
+
+        //for each hit in the shower
+        for (art::Ptr<recob::Hit> thishitptr : hits){
+            //check the plane
+            int plane= thishitptr->View();
+
+            //skip invalid planes     	
+            if (plane != this_plane )	continue;
+
+            //calc the energy of the hit
+            double E = QtoEConversionHit(thishitptr, plane);	
+
+            //add the energy to the plane
+            energy += E;
+        }//for each hit
+
+        return energy;
+
+    }
+
     double SinglePhoton::CalcEShower(std::vector<art::Ptr<recob::Hit>> hits){    
         double energy[3] = {0., 0., 0.};
+
+        //std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t Looking at shower with "<<hits.size() <<" hits on all planes"<<std::endl;
 
         //for each hit in the shower
         for (art::Ptr<recob::Hit> thishitptr : hits){
@@ -695,11 +763,11 @@ namespace single_photon
             if (plane > 2 || plane < 0)	continue;
 
             //calc the energy of the hit
-            double E = QtoEConversionHit(thishitptr, plane);	
+            double E = QtoEConversionHit(thishitptr, plane);    
 
             //add the energy to the plane
             energy[plane] += E;
-        }//for each hit
+        }//for each hiti
 
         //find the max energy on a single plane
         double max = energy[0];
@@ -708,7 +776,7 @@ namespace single_photon
                 max = en;
             }
         }
-        if (m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
+        std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
 
         //return the highest energy on any of the planes
         return max;
@@ -871,17 +939,28 @@ namespace single_photon
             //TVector3 this_wire_dir =  geom->TPC(m_TPC).Plane(plane).FirstWire().Direction();
             //std::cout<<"the wire direction from geom on plane "<<plane<<" is "<<this_wire_dir.X()<<", "<<this_wire_dir.Y()<<", "<<this_wire_dir.Z()<<std::endl;
             //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The wire_pitch for plane "<<plane<<" is "<<wire_direction[0]<<", "<<wire_direction[1]<<", "<<wire_direction[2]<<std::endl;	
-            TVector3 wire_dir;
-            if (plane == 0){
-                wire_dir = {0., -sqrt(3) / 2., 1 / 2.};
-            } else if (plane == 1){
-                wire_dir = {0., sqrt(3) / 2., 1 / 2.};
-            } else if (plane == 2) {
-                wire_dir = {0., 0., 1.};
-            }
+            //
+
+            /*
+               TVector3 wire_dir;
+               if (plane == 0){
+               wire_dir = {0., -sqrt(3) / 2., 1 / 2.};
+               } else if (plane == 1){
+               wire_dir = {0., sqrt(3) / 2., 1 / 2.};
+               } else if (plane == 2) {
+               wire_dir = {0., 0., 1.};
+               }
 
             //take the dot product between the wire direction and the shower direction
             double cos = wire_dir.Dot(shower_dir);
+
+            //want only positive values so take abs, normalize by the lengths of the shower and wire
+            cos = abs(cos)/(wire_dir.Mag() * shower_dir.Mag());	
+            */
+
+
+            TVector3 wire_dir = getWireVec(plane);
+            double cos = getCoswrtWires(shower_dir, wire_dir);
 
             //want only positive values so take abs, normalize by the lengths of the shower and wire
             cos = abs(cos)/(wire_dir.Mag() * shower_dir.Mag());	
@@ -891,6 +970,73 @@ namespace single_photon
 
             //output is always >= the wire spacing
             return m_wire_spacing/cos;
+        }
+
+        TVector3 SinglePhoton::getWireVec(int plane){
+            TVector3 wire_dir;
+            if (plane == 0){
+                wire_dir = {0., -sqrt(3) / 2., 1 / 2.};
+            } else if (plane == 1){
+                wire_dir = {0., sqrt(3) / 2., 1 / 2.};
+            } else if (plane == 2) {
+                wire_dir = {0., 0., 1.};
+            }
+            return wire_dir;
+
+        }
+
+        double SinglePhoton::getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir){
+            //take the dot product between the wire direction and the shower direction
+            double cos = wire_dir.Dot(shower_dir);
+
+            return cos;
+
+        }
+
+
+        double SinglePhoton::getAnglewrtWires(TVector3 shower_dir,int plane){
+
+            TVector3 wire_dir = getWireVec(plane);
+            double cos_theta =  getCoswrtWires(shower_dir, wire_dir);
+
+            double theta = acos(cos_theta);
+            // return abs(theta);
+            return abs(M_PI/2 - theta);
+
+        }
+
+
+        double SinglePhoton::getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
+            if(angle_wrt_plane2< degToRad(10)){
+                if (angle_wrt_plane0> degToRad(20)  || angle_wrt_plane1<degToRad(20) ){
+                    std::cout<<"Potential candidate for amalgamted dE/dx, angle wrt plane 2 is "<<angle_wrt_plane2<<" but angles wrt plane 0/1 are "<<angle_wrt_plane0<<"/"<<angle_wrt_plane1<<std::endl;
+                    std::cout<<"The median dE/dx on plane 2 is "<<median_plane2<<" and for planes 0/1 are "<<median_plane0<<"/"<<median_plane1<<std::endl;
+                    if (angle_wrt_plane0> angle_wrt_plane1){
+                        return median_plane0;
+                    }else{
+                        return median_plane1;
+                    }
+                }
+                return median_plane2;
+            } if (plane2_nhits< 2){
+                if (plane1_nhits >=2 || plane0_nhits >=2 ){
+                    if (plane1_nhits > plane0_nhits){
+                        return median_plane1;
+                    }else{
+                        return median_plane0;
+                    }
+                }
+            }
+
+            return median_plane2;
+        }
+
+        double SinglePhoton::degToRad(double deg){
+            return deg * M_PI/180;
+        }
+
+        double SinglePhoton::radToDeg(double rad){
+            return rad * 180/M_PI;
         }
 
 
