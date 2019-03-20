@@ -334,7 +334,6 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_isclearcosmic",& m_reco_shower_isclearcosmic);
         vertex_tree->Branch("reco_shower_is_nusclice", & m_reco_shower_is_nuslice);
 
-
         vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
         vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
         vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
@@ -366,7 +365,6 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
         vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
         vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
-
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 

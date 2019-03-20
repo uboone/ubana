@@ -691,6 +691,22 @@ namespace single_photon
 
             std::vector<double> m_reco_track_spacepoint_chi;
             std::vector<double> m_reco_track_spacepoint_max_dist;
+            
+            std::vector<int> m_reco_track_best_calo_plane;
+
+            std::vector<double> m_reco_track_mean_dEdx_best_plane;
+            std::vector<double> m_reco_track_mean_dEdx_start_half_best_plane;
+            std::vector<double> m_reco_track_mean_dEdx_end_half_best_plane;
+            std::vector<int> m_reco_track_good_calo_best_plane;
+            std::vector<std::vector<double>> m_reco_track_trunc_dEdx_best_plane;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_best_plane;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_start_half_best_plane;
+            std::vector<double> m_reco_track_mean_trunc_dEdx_end_half_best_plane;
+            std::vector<double> m_reco_track_trunc_PIDA_best_plane;
+            std::vector<std::vector<double>> m_reco_track_resrange_best_plane;
+            std::vector<std::vector<double>> m_reco_track_dEdx_best_plane;
+
+
 
             std::vector<double> m_reco_track_mean_dEdx_p0;
             std::vector<double> m_reco_track_mean_dEdx_start_half_p0;
