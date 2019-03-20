@@ -64,6 +64,12 @@ namespace single_photon
         m_reco_shower_energy_plane0.clear();
         m_reco_shower_energy_plane1.clear();
         m_reco_shower_energy_plane2.clear();
+        m_reco_shower_plane0_nhits.clear();
+        m_reco_shower_plane1_nhits.clear();
+        m_reco_shower_plane2_nhits.clear();
+
+
+
 
         m_reco_shower_dQdx_plane0.clear();
         m_reco_shower_dQdx_plane2.clear();
@@ -149,6 +155,9 @@ namespace single_photon
         m_reco_shower_energy_plane1.resize(size);
         m_reco_shower_energy_plane2.resize(size);
 
+        m_reco_shower_plane0_nhits.resize(size);
+        m_reco_shower_plane1_nhits.resize(size);
+        m_reco_shower_plane2_nhits.resize(size);
 
 
         m_reco_shower_ordered_energy_index.resize(size);
@@ -271,6 +280,10 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_energy_plane0",&m_reco_shower_energy_plane0);
         vertex_tree->Branch("reco_shower_energy_plane1",&m_reco_shower_energy_plane1);
         vertex_tree->Branch("reco_shower_energy_plane2",&m_reco_shower_energy_plane2);
+        vertex_tree->Branch("reco_shower_plane0_nhits",&m_reco_shower_plane0_nhits);
+        vertex_tree->Branch("reco_shower_plane1_nhits",&m_reco_shower_plane1_nhits);
+        vertex_tree->Branch("reco_shower_plane2_nhits",&m_reco_shower_plane2_nhits);
+
         vertex_tree->Branch("reco_shower_ordered_energy_index",&m_reco_shower_ordered_energy_index);
         vertex_tree->Branch("reco_shower_dQdx_plane0",&m_reco_shower_dQdx_plane0);
         vertex_tree->Branch("reco_shower_dQdx_plane1",&m_reco_shower_dQdx_plane1);
@@ -436,6 +449,12 @@ namespace single_photon
             m_reco_shower_energy_plane0[i_shr] = CalcEShowerPlane(hits, 0);
             m_reco_shower_energy_plane1[i_shr] = CalcEShowerPlane(hits, 1);
             m_reco_shower_energy_plane2[i_shr] = CalcEShowerPlane(hits, 2);
+
+            m_reco_shower_plane0_nhits[i_shr] = getNHitsPlane(hits, 0);
+            m_reco_shower_plane1_nhits[i_shr] = getNHitsPlane(hits, 1);
+            m_reco_shower_plane2_nhits[i_shr] = getNHitsPlane(hits, 2);
+
+
 
             //std::cout<<"The energy on each plane is 0: "<< m_reco_shower_energy_plane0[i_shr]<<", 1: "<< m_reco_shower_energy_plane1[i_shr]<<", 2: "<<  m_reco_shower_energy_plane2[i_shr]<<std::endl;
 
@@ -1039,6 +1058,21 @@ namespace single_photon
             return rad * 180/M_PI;
         }
 
+        int SinglePhoton::getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){
+            int nhits = 0;
+            for (art::Ptr<recob::Hit> thishitptr : hits){
+                //check the plane
+                int plane= thishitptr->View();
+
+                //skip invalid planes       
+                if (plane != this_plane) continue;
+
+                nhits++;
+
+            }//for each hiti
+            return nhits;
+
+        }
 
         std::vector<std::vector<double>> SinglePhoton::buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length){
             std::vector<std::vector<double>> corners;

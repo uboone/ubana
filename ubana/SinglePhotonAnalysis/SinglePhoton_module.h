@@ -196,6 +196,8 @@ namespace single_photon
 
             double CalcEShowerPlane(std::vector<art::Ptr<recob::Hit>> hits, int plane);
 
+            int getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane);
+
 
             /**
              *@brief Takes a hit and multiplies the charge by the gain
@@ -250,9 +252,9 @@ namespace single_photon
             double getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir);
             double getAnglewrtWires(TVector3 shower_dir, int plane);
 
-             double getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits);
-             double degToRad(double deg);
-             double radToDeg(double rad);
+            double getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits);
+            double degToRad(double deg);
+            double radToDeg(double rad);
             /**
              *@brief Calculates the four corners of a box of given length and width around a cluster given the start point and axis direction
              *@param cluster_start - the start position of a cluster in CM
@@ -931,6 +933,13 @@ namespace single_photon
             std::vector<double> m_reco_shower_energy_plane1;
             std::vector<double> m_reco_shower_energy_plane2;
 
+            std::vector<double> m_reco_shower_plane0;
+            std::vector<double> m_reco_shower_plane1;
+            std::vector<double> m_reco_shower_plane2;
+            
+            std::vector<double> m_reco_shower_plane0_nhits;
+            std::vector<double> m_reco_shower_plane1_nhits;
+            std::vector<double> m_reco_shower_plane2_nhits;
 
 
             std::vector<size_t>  m_reco_shower_ordered_energy_index;
