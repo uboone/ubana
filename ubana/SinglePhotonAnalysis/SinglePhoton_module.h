@@ -680,6 +680,8 @@ namespace single_photon
 
             std::vector<double> m_reco_track_spacepoint_chi;
             std::vector<double> m_reco_track_spacepoint_max_dist;
+            
+            std::vector<int> m_reco_track_best_calo_plane;
 
             std::vector<double> m_reco_track_mean_dEdx_p0;
             std::vector<double> m_reco_track_mean_dEdx_start_half_p0;

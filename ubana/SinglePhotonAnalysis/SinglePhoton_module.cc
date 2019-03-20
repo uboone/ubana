@@ -53,8 +53,8 @@ namespace single_photon
 
 
         //Some track calorimetry parameters
-        m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.01);
-        m_track_calo_max_dEdx = pset.get<double>("Max_dEdx",25);
+        m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.005);
+        m_track_calo_max_dEdx = pset.get<double>("Max_dEdx", 30);
         m_track_calo_min_dEdx_hits = pset.get<double>("Min_dEdx_hits",5); //might be good?
         m_track_calo_trunc_fraction = pset.get<double>("TruncMeanFraction",20.0);
 

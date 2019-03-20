@@ -288,8 +288,7 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_sliceId",& m_reco_shower_sliceId);
         vertex_tree->Branch("reco_shower_nuscore",& m_reco_shower_nuscore);
         vertex_tree->Branch("reco_shower_isclearcosmic",& m_reco_shower_isclearcosmic);
-         vertex_tree->Branch("reco_shower_is_nusclice", & m_reco_shower_is_nuslice);
-        
+        vertex_tree->Branch("reco_shower_is_nusclice", & m_reco_shower_is_nuslice);
 
         vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
         vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
@@ -321,7 +320,7 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
         vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
         vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
-         vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
+        vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
         
     }
 
