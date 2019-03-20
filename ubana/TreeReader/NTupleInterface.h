@@ -96,7 +96,7 @@ public:
 
 private:
 
-  enum Max { kMaxParticles = 50};  //!< Max. MCParticles in MCTruth
+  enum Max { kMaxParticles = 200};  //!< Max. MCParticles in MCTruth
 
   TTree* fTree;  //!< Input TTree
   int fRun;
