@@ -1028,24 +1028,21 @@ namespace single_photon
 
 
         double SinglePhoton::getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
+            //if the shower is within 10 degrees of the wires on plane 2, consider planes 1 and 0
             if(angle_wrt_plane2< degToRad(10)){
-                if (angle_wrt_plane0> degToRad(20)  || angle_wrt_plane1<degToRad(20) ){
-                    std::cout<<"Potential candidate for amalgamted dE/dx, angle wrt plane 2 is "<<angle_wrt_plane2<<" but angles wrt plane 0/1 are "<<angle_wrt_plane0<<"/"<<angle_wrt_plane1<<std::endl;
-                    std::cout<<"The median dE/dx on plane 2 is "<<median_plane2<<" and for planes 0/1 are "<<median_plane0<<"/"<<median_plane1<<std::endl;
-                    if (angle_wrt_plane0> angle_wrt_plane1){
-                        return median_plane0;
-                    }else{
-                        return median_plane1;
-                    }
+                //if it's too close to the wires on either of the planes, then stick with plane 2
+                if (angle_wrt_plane1> degToRad(20)){
+                    //but if it's outside of the range on plane 1, choose that
+                    return median_plane1;
+                } else if (angle_wrt_plane0>degToRad(20) ){
+                    return median_plane0;
                 }
-                return median_plane2;
-            } if (plane2_nhits< 2){
-                if (plane1_nhits >=2 || plane0_nhits >=2 ){
-                    if (plane1_nhits > plane0_nhits){
-                        return median_plane1;
-                    }else{
-                        return median_plane0;
-                    }
+            } 
+            if (plane2_nhits< 2){
+                if (plane1_nhits >=2 ){           
+                    return median_plane1;
+                } else if (plane0_nhits >=2 ){
+                    return median_plane0;
                 }
             }
 
