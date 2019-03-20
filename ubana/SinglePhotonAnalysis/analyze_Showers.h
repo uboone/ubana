@@ -1011,132 +1011,142 @@ namespace single_photon
         double SinglePhoton::getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
             if(angle_wrt_plane2< degToRad(10)){
                 if (angle_wrt_plane0> degToRad(20)  || angle_wrt_plane1<degToRad(20) ){
-                        std::cout<<"Potential candidate for amalgamted dE/dx, angle wrt plane 2 is "<<angle_wrt_plane2<<" but angles wrt plane 0/1 are "<<angle_wrt_plane0<<"/"<<angle_wrt_plane1<<std::endl;
-                        std::cout<<"The median dE/dx on plane 2 is "<<median_plane2<<" and for planes 0/1 are "<<median_plane0<<"/"<<median_plane1<<std::endl;
-                        if (angle_wrt_plane0> angle_wrt_plane1 && plane0_nhits > 3){
+                    std::cout<<"Potential candidate for amalgamted dE/dx, angle wrt plane 2 is "<<angle_wrt_plane2<<" but angles wrt plane 0/1 are "<<angle_wrt_plane0<<"/"<<angle_wrt_plane1<<std::endl;
+                    std::cout<<"The median dE/dx on plane 2 is "<<median_plane2<<" and for planes 0/1 are "<<median_plane0<<"/"<<median_plane1<<std::endl;
+                    if (angle_wrt_plane0> angle_wrt_plane1){
                         return median_plane0;
-                        }else if ( plane1_nhits > 3){
+                    }else{
                         return median_plane1;
-                        }
-                        }
-                        }
-                        return median_plane2;
-                        }
+                    }
+                }
+                return median_plane2;
+            } if (plane2_nhits< 2){
+                if (plane1_nhits >=2 || plane0_nhits >=2 ){
+                    if (plane1_nhits > plane0_nhits){
+                        return median_plane1;
+                    }else{
+                        return median_plane0;
+                    }
+                }
+            }
 
-                        double SinglePhoton::degToRad(double deg){
-                        return deg * M_PI/180;
-                        }
+            return median_plane2;
+        }
 
-                        double SinglePhoton::radToDeg(double rad){
-                        return rad * 180/M_PI;
-                        }
+        double SinglePhoton::degToRad(double deg){
+            return deg * M_PI/180;
+        }
+
+        double SinglePhoton::radToDeg(double rad){
+            return rad * 180/M_PI;
+        }
 
 
-                        std::vector<std::vector<double>> SinglePhoton::buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length){
-                            std::vector<std::vector<double>> corners;
+        std::vector<std::vector<double>> SinglePhoton::buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length){
+            std::vector<std::vector<double>> corners;
 
-                            //get the axis perpedicular to the cluster axis
-                            double perp_axis[2] = {-cluster_axis[1], cluster_axis[0]};
+            //get the axis perpedicular to the cluster axis
+            double perp_axis[2] = {-cluster_axis[1], cluster_axis[0]};
 
-                            //create a vector for each corner of the rectangle on the plane
-                            //c1 = bottom left corner
-                            std::vector<double> c1 = {cluster_start[0] + perp_axis[0] * width / 2,  cluster_start[1] + perp_axis[1] * width / 2};
-                            //c2 = top left corner
-                            std::vector<double> c2 = {c1[0] + cluster_axis[0] * length, c1[1] + cluster_axis[1] * length};
-                            //c3 = bottom right corner
-                            std::vector<double> c3 = {cluster_start[0] - perp_axis[0] * width / 2, cluster_start[1] - perp_axis[1] * width / 2};
-                            //c4 = top right corner
-                            std::vector<double> c4 ={c3[0] + cluster_axis[0] * length, c3[1] + cluster_axis[1] * length}; 
+            //create a vector for each corner of the rectangle on the plane
+            //c1 = bottom left corner
+            std::vector<double> c1 = {cluster_start[0] + perp_axis[0] * width / 2,  cluster_start[1] + perp_axis[1] * width / 2};
+            //c2 = top left corner
+            std::vector<double> c2 = {c1[0] + cluster_axis[0] * length, c1[1] + cluster_axis[1] * length};
+            //c3 = bottom right corner
+            std::vector<double> c3 = {cluster_start[0] - perp_axis[0] * width / 2, cluster_start[1] - perp_axis[1] * width / 2};
+            //c4 = top right corner
+            std::vector<double> c4 ={c3[0] + cluster_axis[0] * length, c3[1] + cluster_axis[1] * length}; 
 
-                            //save each of the vectors
-                            corners.push_back(c1);
-                            corners.push_back(c2);
-                            corners.push_back(c4);
-                            corners.push_back(c3);
-                            //corners.push_back(c4);
-                            // std::cout<<"the cluster start is "<<cluster_start[0]<<", "<<cluster_start[1]<<" the cluster axis is "<<cluster_axis[0]<<", "<<cluster_axis[1]<<std::endl;
-                            // std::cout<<"the corners are bottom left/top left/top right/bottom right: ("<<c1[0]<<", "<<c1[1]<<")/("<<c2[0]<<", "<<c2[1]<<")/("<<c3[0]<<", "<<c3[1]<<")/("<<c4[0]<<", "<<c4[1]<<")"<<std::endl;
-                            return corners;
-                        }
+            //save each of the vectors
+            corners.push_back(c1);
+            corners.push_back(c2);
+            corners.push_back(c4);
+            corners.push_back(c3);
+            //corners.push_back(c4);
+            // std::cout<<"the cluster start is "<<cluster_start[0]<<", "<<cluster_start[1]<<" the cluster axis is "<<cluster_axis[0]<<", "<<cluster_axis[1]<<std::endl;
+            // std::cout<<"the corners are bottom left/top left/top right/bottom right: ("<<c1[0]<<", "<<c1[1]<<")/("<<c2[0]<<", "<<c2[1]<<")/("<<c3[0]<<", "<<c3[1]<<")/("<<c4[0]<<", "<<c4[1]<<")"<<std::endl;
+            return corners;
+        }
 
-                        bool SinglePhoton::insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
-                            //	std::cout<<"checking if inside"<<std::endl;
-                            //for a rectangle this is a known value but this is the most general
-                            int n_vertices = (int)rectangle.size();
-                            bool inside = false;
-                            int i, j = 0;
-                            //for each pair of vertices
-                            for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
-                                //std::cout<<"checking if inside at i, j = "<<i<<", "<<j<<std::endl;
-                                //if the hit y coordinate is between the y and x coordinates of two vertices
-                                if ( ((rectangle[i][1]> thishit_pos[1]) != (rectangle[j][1]>thishit_pos[1])) 
-                                        &&(thishit_pos[0] < (rectangle[j][0]-rectangle[i][0]) * (thishit_pos[1]-rectangle[i][1]) / (rectangle[j][1]-rectangle[i][1]) + rectangle[i][0]) ){   
-                                    if (inside == false){    
-                                        inside = true;
-                                    } else{
-                                        inside = false;
-                                    }
-                                }
-                                //std::cout<<"currently the status is "<<inside<<std::endl;
-                            }
-                            //std::cout<<"done checking, inside = "<<inside<<std::endl;
-                            //std::cout<<"checking hit at position "<<thishit_pos[0]<<", "<<thishit_pos[1]<<" inside = "<<inside<<". true/false = "<<true<<"/"<<false<<std::endl;
+        bool SinglePhoton::insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
+            //	std::cout<<"checking if inside"<<std::endl;
+            //for a rectangle this is a known value but this is the most general
+            int n_vertices = (int)rectangle.size();
+            bool inside = false;
+            int i, j = 0;
+            //for each pair of vertices
+            for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
+                //std::cout<<"checking if inside at i, j = "<<i<<", "<<j<<std::endl;
+                //if the hit y coordinate is between the y and x coordinates of two vertices
+                if ( ((rectangle[i][1]> thishit_pos[1]) != (rectangle[j][1]>thishit_pos[1])) 
+                        &&(thishit_pos[0] < (rectangle[j][0]-rectangle[i][0]) * (thishit_pos[1]-rectangle[i][1]) / (rectangle[j][1]-rectangle[i][1]) + rectangle[i][0]) ){   
+                    if (inside == false){    
+                        inside = true;
+                    } else{
+                        inside = false;
+                    }
+                }
+                //std::cout<<"currently the status is "<<inside<<std::endl;
+            }
+            //std::cout<<"done checking, inside = "<<inside<<std::endl;
+            //std::cout<<"checking hit at position "<<thishit_pos[0]<<", "<<thishit_pos[1]<<" inside = "<<inside<<". true/false = "<<true<<"/"<<false<<std::endl;
 
-                            return inside;
-                        }
+            return inside;
+        }
 
-                        //determines if a point is inside the rectangle by summing the areas of the four triangles made by 
-                        //if the point is inside, the sum of the triangles should exactly equal the area of the rectangle
-                        //also returns true if the point is on the boundary
-                        bool SinglePhoton::isInsidev2(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
-                            int n_vertices = (int)rectangle.size();
-                            //bool inside = false;
-                            int i, j = 0;
-                            double areas = 0;
-                            //std::vector<double> areas;
+        //determines if a point is inside the rectangle by summing the areas of the four triangles made by 
+        //if the point is inside, the sum of the triangles should exactly equal the area of the rectangle
+        //also returns true if the point is on the boundary
+        bool SinglePhoton::isInsidev2(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
+            int n_vertices = (int)rectangle.size();
+            //bool inside = false;
+            int i, j = 0;
+            double areas = 0;
+            //std::vector<double> areas;
 
-                            //for each pair of vertices
-                            for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
-                                //std::cout<<"vertices number "<<i<<", "<<j<<std::endl;
-                                //calculate the area of a triangle with the point and two vertices
-                                double this_area = areaTriangle(rectangle[i][0], rectangle[i][1], rectangle[j][0], rectangle[j][1], thishit_pos[0], thishit_pos[1]);
-                                //std::cout<<"area of this triangle = "<<this_area<<std::endl;   
-                                areas += this_area;
-                                // areas.push_back(this_area)
-                            }        
-                            //calc area of the rectangle
-                            double area_rectangle = m_width_dqdx_box* m_length_dqdx_box;
+            //for each pair of vertices
+            for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
+                //std::cout<<"vertices number "<<i<<", "<<j<<std::endl;
+                //calculate the area of a triangle with the point and two vertices
+                double this_area = areaTriangle(rectangle[i][0], rectangle[i][1], rectangle[j][0], rectangle[j][1], thishit_pos[0], thishit_pos[1]);
+                //std::cout<<"area of this triangle = "<<this_area<<std::endl;   
+                areas += this_area;
+                // areas.push_back(this_area)
+            }        
+            //calc area of the rectangle
+            double area_rectangle = m_width_dqdx_box* m_length_dqdx_box;
 
-                            //check the sum of areas match
-                            //std::cout<<"the sum of the areas is "<<areas<<std::endl;
-                            if (abs(areas - area_rectangle) <= 0.001 ){
-                                return true;
-                            }
-                            return false;
-                        }
+            //check the sum of areas match
+            //std::cout<<"the sum of the areas is "<<areas<<std::endl;
+            if (abs(areas - area_rectangle) <= 0.001 ){
+                return true;
+            }
+            return false;
+        }
 
-                        //area of a triangle given three vertices
-                        double SinglePhoton::areaTriangle(double x1, double y1, double x2, double y2, double x3, double y3){
-                            double num = x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2);
-                            return abs(num)/2;
-                        }
+        //area of a triangle given three vertices
+        double SinglePhoton::areaTriangle(double x1, double y1, double x2, double y2, double x3, double y3){
+            double num = x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2);
+            return abs(num)/2;
+        }
 
-                        double SinglePhoton::getMedian(std::vector<double> thisvector){
-                            //here the size corresponds to the max index
-                            int size = thisvector.size() - 1;
-                            //if no entries, return nonsense value
-                            if (size <= 0) return NAN;
+        double SinglePhoton::getMedian(std::vector<double> thisvector){
+            //here the size corresponds to the max index
+            int size = thisvector.size() - 1;
+            //if no entries, return nonsense value
+            if (size <= 0) return NAN;
 
-                            //find index of median location
-                            int ind;
-                            if (size%2 == 0) ind = size/2;
-                            else ind = size/2 + 1;
-                            //std::cout<<"the median index in vector with size "<<size+1<<" and  max index "<<size<<" is "<<ind<<std::endl;
+            //find index of median location
+            int ind;
+            if (size%2 == 0) ind = size/2;
+            else ind = size/2 + 1;
+            //std::cout<<"the median index in vector with size "<<size+1<<" and  max index "<<size<<" is "<<ind<<std::endl;
 
-                            double median = thisvector[ind];
-                            //std::cout<<"returning median value "<< median<<std::endl;
-                            //return the value at median index
-                            return median;		
-                        }
+            double median = thisvector[ind];
+            //std::cout<<"returning median value "<< median<<std::endl;
+            //return the value at median index
+            return median;		
+        }
 
     }
