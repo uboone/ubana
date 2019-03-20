@@ -250,7 +250,7 @@ namespace single_photon
             double getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir);
             double getAnglewrtWires(TVector3 shower_dir, int plane);
 
-             double getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2);
+             double getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits);
              double degToRad(double deg);
              double radToDeg(double rad);
             /**
