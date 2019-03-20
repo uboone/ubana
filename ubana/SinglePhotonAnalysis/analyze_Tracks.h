@@ -38,6 +38,19 @@ namespace single_photon
 
         m_reco_track_best_calo_plane.clear();
 
+        m_reco_track_mean_dEdx_best_plane.clear();
+        m_reco_track_mean_dEdx_start_half_best_plane.clear();
+        m_reco_track_mean_dEdx_end_half_best_plane.clear();
+        m_reco_track_good_calo_best_plane.clear();
+        m_reco_track_trunc_dEdx_best_plane.clear();
+        m_reco_track_mean_trunc_dEdx_best_plane.clear();
+        m_reco_track_mean_trunc_dEdx_start_half_best_plane.clear();
+        m_reco_track_mean_trunc_dEdx_end_half_best_plane.clear();
+        m_reco_track_trunc_PIDA_best_plane.clear();
+        m_reco_track_resrange_best_plane.clear();
+        m_reco_track_dEdx_best_plane.clear();
+
+
         m_reco_track_mean_dEdx_p0.clear();
         m_reco_track_mean_dEdx_start_half_p0.clear();
         m_reco_track_mean_dEdx_end_half_p0.clear();
@@ -141,6 +154,19 @@ namespace single_photon
 
         m_reco_track_best_calo_plane.resize(size);
 
+        m_reco_track_mean_dEdx_best_plane.resize(size);
+        m_reco_track_mean_dEdx_start_half_best_plane.resize(size);
+        m_reco_track_mean_dEdx_end_half_best_plane.resize(size);
+        m_reco_track_good_calo_best_plane.resize(size);
+        m_reco_track_trunc_dEdx_best_plane.resize(size);
+        m_reco_track_mean_trunc_dEdx_best_plane.resize(size);
+        m_reco_track_mean_trunc_dEdx_start_half_best_plane.resize(size);
+        m_reco_track_mean_trunc_dEdx_end_half_best_plane.resize(size);
+        m_reco_track_trunc_PIDA_best_plane.resize(size);
+        m_reco_track_resrange_best_plane.resize(size);
+        m_reco_track_dEdx_best_plane.resize(size);
+
+
         m_reco_track_mean_dEdx_p0.resize(size);
         m_reco_track_mean_dEdx_start_half_p0.resize(size);
         m_reco_track_mean_dEdx_end_half_p0.resize(size);
@@ -243,48 +269,59 @@ namespace single_photon
         vertex_tree->Branch("reco_track_spacepoint_chi",&m_reco_track_spacepoint_chi);
         vertex_tree->Branch("reco_track_spacepoint_max_dist",&m_reco_track_spacepoint_max_dist);
 
+        vertex_tree->Branch("reco_track_best_calo_plane",&m_reco_track_best_calo_plane);
+
+        vertex_tree->Branch("reco_track_mean_dEdx_best_plane",&m_reco_track_mean_dEdx_best_plane);
         vertex_tree->Branch("reco_track_mean_dEdx_plane0",&m_reco_track_mean_dEdx_p0);
         vertex_tree->Branch("reco_track_mean_dEdx_plane1",&m_reco_track_mean_dEdx_p1);
         vertex_tree->Branch("reco_track_mean_dEdx_plane2",&m_reco_track_mean_dEdx_p2);
 
+        vertex_tree->Branch("reco_track_mean_dEdx_start_half_best_plane",&m_reco_track_mean_dEdx_end_half_best_plane);
         vertex_tree->Branch("reco_track_mean_dEdx_start_half_plane0",&m_reco_track_mean_dEdx_end_half_p0);
         vertex_tree->Branch("reco_track_mean_dEdx_start_half_plane1",&m_reco_track_mean_dEdx_end_half_p1);
         vertex_tree->Branch("reco_track_mean_dEdx_start_half_plane2",&m_reco_track_mean_dEdx_end_half_p2);
 
+        vertex_tree->Branch("reco_track_mean_dEdx_end_half_best_plane",&m_reco_track_mean_dEdx_start_half_best_plane);
         vertex_tree->Branch("reco_track_mean_dEdx_end_half_plane0",&m_reco_track_mean_dEdx_start_half_p0);
         vertex_tree->Branch("reco_track_mean_dEdx_end_half_plane1",&m_reco_track_mean_dEdx_start_half_p1);
         vertex_tree->Branch("reco_track_mean_dEdx_end_half_plane2",&m_reco_track_mean_dEdx_start_half_p2);
-       
-        vertex_tree->Branch("reco_track_best_calo_plane",&m_reco_track_best_calo_plane);
 
+        vertex_tree->Branch("reco_track_good_calo_best_plane",&m_reco_track_good_calo_best_plane);
         vertex_tree->Branch("reco_track_good_calo_plane0",&m_reco_track_good_calo_p0);
         vertex_tree->Branch("reco_track_good_calo_plane1",&m_reco_track_good_calo_p1);
         vertex_tree->Branch("reco_track_good_calo_plane2",&m_reco_track_good_calo_p2);
 
+        vertex_tree->Branch("reco_track_trunc_dEdx_best_plane",&m_reco_track_trunc_dEdx_best_plane);
         vertex_tree->Branch("reco_track_trunc_dEdx_plane0",&m_reco_track_trunc_dEdx_p0);
         vertex_tree->Branch("reco_track_trunc_dEdx_plane1",&m_reco_track_trunc_dEdx_p1);
         vertex_tree->Branch("reco_track_trunc_dEdx_plane2",&m_reco_track_trunc_dEdx_p2);
 
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_best_plane",&m_reco_track_mean_trunc_dEdx_best_plane);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_plane0",&m_reco_track_mean_trunc_dEdx_p0);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_plane1",&m_reco_track_mean_trunc_dEdx_p1);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_plane2",&m_reco_track_mean_trunc_dEdx_p2);
-        
+
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half_best_plane",&m_reco_track_mean_trunc_dEdx_end_half_best_plane);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half_plane0",&m_reco_track_mean_trunc_dEdx_end_half_p0);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half_plane1",&m_reco_track_mean_trunc_dEdx_end_half_p1);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_start_half_plane2",&m_reco_track_mean_trunc_dEdx_end_half_p2);
-        
+
+        vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half_best_plane",&m_reco_track_mean_trunc_dEdx_start_half_best_plane);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half_plane0",&m_reco_track_mean_trunc_dEdx_start_half_p0);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half_plane1",&m_reco_track_mean_trunc_dEdx_start_half_p1);
         vertex_tree->Branch("reco_track_mean_trunc_dEdx_end_half_plane2",&m_reco_track_mean_trunc_dEdx_start_half_p2);
-        
+
+        vertex_tree->Branch("reco_track_trunc_PIDA_best_plane",&m_reco_track_trunc_PIDA_best_plane);
         vertex_tree->Branch("reco_track_trunc_PIDA_plane0",&m_reco_track_trunc_PIDA_p0);
         vertex_tree->Branch("reco_track_trunc_PIDA_plane1",&m_reco_track_trunc_PIDA_p1);
         vertex_tree->Branch("reco_track_trunc_PIDA_plane2",&m_reco_track_trunc_PIDA_p2);
-        
+
+        vertex_tree->Branch("reco_track_resrange_best_plane",&m_reco_track_resrange_best_plane);
         vertex_tree->Branch("reco_track_resrange_plane0",&m_reco_track_resrange_p0);
         vertex_tree->Branch("reco_track_resrange_plane1",&m_reco_track_resrange_p1);
         vertex_tree->Branch("reco_track_resrange_plane2",&m_reco_track_resrange_p2);
-       
+
+        vertex_tree->Branch("reco_track_dEdx_best_plane",&m_reco_track_dEdx_best_plane);
         vertex_tree->Branch("reco_track_dEdx_plane0",&m_reco_track_dEdx_p0);
         vertex_tree->Branch("reco_track_dEdx_plane1",&m_reco_track_dEdx_p1);
         vertex_tree->Branch("reco_track_dEdx_plane2",&m_reco_track_dEdx_p2);
@@ -292,7 +329,6 @@ namespace single_photon
         vertex_tree->Branch("reco_track_num_calo_hits_plane0",&m_reco_track_num_calo_hits_p0);
         vertex_tree->Branch("reco_track_num_calo_hits_plane1",&m_reco_track_num_calo_hits_p1);
         vertex_tree->Branch("reco_track_num_calo_hits_plane2",&m_reco_track_num_calo_hits_p2);
-        
 
 
 
@@ -558,7 +594,7 @@ namespace single_photon
                 const art::Ptr<anab::Calorimetry> calo_p1  = trackToCaloMap[track][1];
                 const art::Ptr<anab::Calorimetry> calo_p2  = trackToCaloMap[track][2];
 
-                
+
                 size_t calo_length_p0 = calo_p0->dEdx().size();
                 size_t calo_length_p1 = calo_p1->dEdx().size();
                 size_t calo_length_p2 = calo_p2->dEdx().size();
@@ -566,15 +602,15 @@ namespace single_photon
                 TruncMean tm_p0;
                 TruncMean tm_p1;
                 TruncMean tm_p2;
-                
+
                 std::vector<double> trunc_dEdx_p0;
                 std::vector<double> res_range_good_p0;
                 std::vector<double> dEdx_good_p0;
- 
+
                 std::vector<double> trunc_dEdx_p1;
                 std::vector<double> res_range_good_p1;
                 std::vector<double> dEdx_good_p1;
- 
+
                 std::vector<double> trunc_dEdx_p2;
                 std::vector<double> res_range_good_p2;
                 std::vector<double> dEdx_good_p2;
@@ -875,10 +911,54 @@ namespace single_photon
 
                 if(m_reco_track_good_calo_p2[i_trk]!=0){
                     m_reco_track_best_calo_plane[i_trk] = 2;
+
+                    m_reco_track_mean_dEdx_best_plane[i_trk] = m_reco_track_mean_dEdx_p2[i_trk];
+                    m_reco_track_mean_dEdx_start_half_best_plane[i_trk] = m_reco_track_mean_dEdx_start_half_p2[i_trk];
+                    m_reco_track_mean_dEdx_end_half_best_plane[i_trk] = m_reco_track_mean_dEdx_end_half_p2[i_trk];
+                    m_reco_track_good_calo_best_plane[i_trk] = m_reco_track_good_calo_p2[i_trk];
+                    m_reco_track_trunc_dEdx_best_plane[i_trk] = m_reco_track_trunc_dEdx_p2[i_trk];
+                    m_reco_track_mean_trunc_dEdx_best_plane[i_trk] = m_reco_track_mean_trunc_dEdx_p2[i_trk];
+                    m_reco_track_mean_trunc_dEdx_start_half_best_plane[i_trk] = m_reco_track_mean_trunc_dEdx_start_half_p2[i_trk];
+                    m_reco_track_mean_trunc_dEdx_end_half_best_plane[i_trk] = m_reco_track_mean_trunc_dEdx_end_half_p2[i_trk];
+                    m_reco_track_trunc_PIDA_best_plane[i_trk] = m_reco_track_trunc_PIDA_p2[i_trk];
+                    m_reco_track_resrange_best_plane[i_trk] = m_reco_track_resrange_p2[i_trk];
+                    m_reco_track_dEdx_best_plane [i_trk] = m_reco_track_dEdx_p2[i_trk];
+
+
+
                 }else if(m_reco_track_good_calo_p0[i_trk] > m_reco_track_good_calo_p1[i_trk] ){
                     m_reco_track_best_calo_plane[i_trk] = 0;
+
+                    m_reco_track_mean_dEdx_best_plane[i_trk] = m_reco_track_mean_dEdx_p0[i_trk];
+                    m_reco_track_mean_dEdx_start_half_best_plane[i_trk] = m_reco_track_mean_dEdx_start_half_p0[i_trk];
+                    m_reco_track_mean_dEdx_end_half_best_plane[i_trk] = m_reco_track_mean_dEdx_end_half_p0[i_trk];
+                    m_reco_track_good_calo_best_plane[i_trk] = m_reco_track_good_calo_p0[i_trk];
+                    m_reco_track_trunc_dEdx_best_plane[i_trk] = m_reco_track_trunc_dEdx_p0[i_trk];
+                    m_reco_track_mean_trunc_dEdx_best_plane[i_trk] = m_reco_track_mean_trunc_dEdx_p0[i_trk];
+                    m_reco_track_mean_trunc_dEdx_start_half_best_plane[i_trk] = m_reco_track_mean_trunc_dEdx_start_half_p0[i_trk];
+                    m_reco_track_mean_trunc_dEdx_end_half_best_plane[i_trk] = m_reco_track_mean_trunc_dEdx_end_half_p0[i_trk];
+                    m_reco_track_trunc_PIDA_best_plane[i_trk] = m_reco_track_trunc_PIDA_p0[i_trk];
+                    m_reco_track_resrange_best_plane[i_trk] = m_reco_track_resrange_p0[i_trk];
+                    m_reco_track_dEdx_best_plane [i_trk] = m_reco_track_dEdx_p0[i_trk];
+
+
                 }else if(m_reco_track_good_calo_p1[i_trk]!=0){
                     m_reco_track_best_calo_plane[i_trk] = 1;
+
+                    m_reco_track_mean_dEdx_best_plane[i_trk] = m_reco_track_mean_dEdx_p1[i_trk];
+                    m_reco_track_mean_dEdx_start_half_best_plane[i_trk] = m_reco_track_mean_dEdx_start_half_p1[i_trk];
+                    m_reco_track_mean_dEdx_end_half_best_plane[i_trk] = m_reco_track_mean_dEdx_end_half_p1[i_trk];
+                    m_reco_track_good_calo_best_plane[i_trk] = m_reco_track_good_calo_p1[i_trk];
+                    m_reco_track_trunc_dEdx_best_plane[i_trk] = m_reco_track_trunc_dEdx_p1[i_trk];
+                    m_reco_track_mean_trunc_dEdx_best_plane[i_trk] = m_reco_track_mean_trunc_dEdx_p1[i_trk];
+                    m_reco_track_mean_trunc_dEdx_start_half_best_plane[i_trk] = m_reco_track_mean_trunc_dEdx_start_half_p1[i_trk];
+                    m_reco_track_mean_trunc_dEdx_end_half_best_plane[i_trk] = m_reco_track_mean_trunc_dEdx_end_half_p1[i_trk];
+                    m_reco_track_trunc_PIDA_best_plane[i_trk] = m_reco_track_trunc_PIDA_p1[i_trk];
+                    m_reco_track_resrange_best_plane[i_trk] = m_reco_track_resrange_p1[i_trk];
+                    m_reco_track_dEdx_best_plane [i_trk] = m_reco_track_dEdx_p1[i_trk];
+
+
+
                 }else{
                     m_reco_track_best_calo_plane[i_trk] = -1; 
                 }
