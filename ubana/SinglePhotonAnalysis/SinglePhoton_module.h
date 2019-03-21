@@ -253,6 +253,7 @@ namespace single_photon
             double getAnglewrtWires(TVector3 shower_dir, int plane);
 
             double getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits);
+            int getAmalgamateddEdxNHits(double amalgamateddEdx, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits);
             double degToRad(double deg);
             double radToDeg(double rad);
             /**
@@ -691,7 +692,7 @@ namespace single_photon
 
             std::vector<double> m_reco_track_spacepoint_chi;
             std::vector<double> m_reco_track_spacepoint_max_dist;
-            
+
             std::vector<int> m_reco_track_best_calo_plane;
 
             std::vector<double> m_reco_track_mean_dEdx_best_plane;
@@ -936,7 +937,7 @@ namespace single_photon
             std::vector<double> m_reco_shower_plane0;
             std::vector<double> m_reco_shower_plane1;
             std::vector<double> m_reco_shower_plane2;
-            
+
             std::vector<double> m_reco_shower_plane0_nhits;
             std::vector<double> m_reco_shower_plane1_nhits;
             std::vector<double> m_reco_shower_plane2_nhits;
@@ -968,6 +969,7 @@ namespace single_photon
             std::vector<double>  m_reco_shower_angle_wrt_wires_plane2;
 
             std::vector<double>  m_reco_shower_dEdx_amalgamated;
+            std::vector<int>  m_reco_shower_dEdx_amalgamated_nhits;
 
             std::vector<double> m_reco_shower_dQdx_plane0_median;
             std::vector<double> m_reco_shower_dQdx_plane1_median;
