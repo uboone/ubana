@@ -52,6 +52,9 @@ namespace single_photon
         m_hitMCParticleAssnsLabel = pset.get<std::string>("HitMCParticleAssnLabel","gaushitTruthMatch");
 
 
+        m_CRTTzeroLabel = pset.get<std::string>("CRTTzeroLabel","crttzero");
+        m_has_CRT = pset.get<bool>("hasCRT",true);
+
         //Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.005);
         m_track_calo_max_dEdx = pset.get<double>("Max_dEdx", 30);
@@ -223,6 +226,8 @@ namespace single_photon
        if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Build hits to PFP Maps"<<std::endl;
         
 
+
+
         //OK Here we build two IMPORTANT maps for the analysis, (a) given a PFParticle get a vector of hits..
         //and (b) given a single hit, get the PFParticle it is in (MARK: is it only one? always? RE-MARK: Yes)
         std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Hit>> > pfParticleToHitsMap;
@@ -281,6 +286,17 @@ namespace single_photon
                 art::Ptr<recob::Track> track = tracks[i];
                 trackToPIDMap[track] = pid_per_track.at(track.key());
             }
+        }
+
+
+        //CRT 
+        if(m_has_CRT){
+             art::ValidHandle<std::vector<crt::CRTTzero>> const & crtHandle  = evt.getValidHandle<std::vector<crt::CRTTzero>>(m_CRTTzeroLabel);
+             std::vector<art::Ptr<crt::CRTTzero>> crtVector;
+             art::fill_ptr_vector(crtVector,crtHandle);
+
+
+
         }
 
 

@@ -414,7 +414,6 @@ namespace single_photon
             mcParticleVector.push_back(match);
             objectToMCParticleMap[object] = mcParticleVector.back();
 
-
             m_sim_shower_sliceId[i] = PFPToSliceIdMap[pfp];
             m_sim_shower_nuscore[i] = sliceIdToNuScoreMap[ m_sim_shower_sliceId[i]] ;
             m_sim_shower_isclearcosmic[i] = PFPToClearCosmicMap[pfp];

@@ -483,12 +483,14 @@ namespace single_photon
             std::string m_mcTrackLabel;
             std::string m_mcShowerLabel;
             std::string m_pidLabel;            ///< For PID stuff
+            std::string m_CRTTzeroLabel;
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
             bool m_is_verbose;
             bool m_is_data;
             bool m_is_overlayed;
             bool m_run_all_pfps;
+            bool m_has_CRT;
 
             double m_exiting_photon_energy_threshold ;
             double m_exiting_proton_energy_threshold ;
