@@ -362,6 +362,11 @@ constexpr int kMaxNDaughtersPerPFP = 100; //maximum number of daughters per PFPa
 constexpr int kMaxNClustersPerPFP  = 100; //maximum number of clusters per PFParticle
 constexpr int kMaxNPFPNeutrinos    = 10;  //maximum number of reconstructed neutrino PFParticles
 
+// === Asaadi ===
+constexpr int kMaxPrimaryPart     = 20;   //maximum number of true primary particles
+constexpr int kMaxTruePrimaryPts  = 5000; //maximum number of points in the true primary trajectory
+
+
 //constexpr int kMaxSysts = 1000;
 //constexpr int kMaxWeights = 1000;
 
@@ -1211,6 +1216,15 @@ namespace microboone {
     std::vector<Int_t>    MergedId; //geant track segments, which belong to the same particle, get the same
     std::vector<Int_t>    origin;   ////0: unknown, 1: neutrino, 2: cosmic, 3: supernova, 4: singles 
     std::vector<Int_t>    MCTruthIndex; //this geant particle comes from the neutrino interaction of the _truth variables with this index
+    
+    
+    // === Asaadi ====
+    int NTrTrajPts[kMaxPrimaryPart]; //<--Nb. of true points in the true primary trajectories
+    double TrueTraj_X[kMaxPrimaryPart][kMaxTruePrimaryPts];//<--X position of a point in the true primary trajectory
+    double TrueTraj_Y[kMaxPrimaryPart][kMaxTruePrimaryPts];//<--Y position of a point in the true primary trajectory
+    double TrueTraj_Z[kMaxPrimaryPart][kMaxTruePrimaryPts];//<--Z position of a point in the true primary trajectory
+    double TrueTraj_E[kMaxPrimaryPart][kMaxTruePrimaryPts];//<--E position of a point in the true primary trajectory
+
 
     //MC Shower information
     Int_t     no_mcshowers;                         //number of MC Showers in this event.
@@ -3160,6 +3174,21 @@ void microboone::AnalysisTreeDataStruct::ClearLocalData() {
   no_mcshowers = 0;
   no_mctracks = 0;
   
+  // ### Asaadi: Clearing things the ol' fashion way ###
+  for(int i = 0; i<kMaxPrimaryPart; i++)
+     {
+     NTrTrajPts[i] = -99999;
+  for(int j = 0; j<kMaxTruePrimaryPts; j++)
+        {
+	TrueTraj_X[i][j] = -99999;
+	TrueTraj_Y[i][j] = -99999;
+	TrueTraj_Z[i][j] = -99999;
+	TrueTraj_E[i][j] = -99999;
+
+	}
+     }
+
+  
   FillWith(pdg, -99999);
   FillWith(status, -99999);
   FillWith(Mass, -99999.);
@@ -3966,6 +3995,16 @@ void microboone::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("MCTruthIndex", MCTruthIndex, "MCTruthIndex[geant_list_size]/I");
     CreateBranch("process_primary",process_primary,"process_primary[geant_list_size]/I");
     CreateBranch("processname", processname);
+    
+    // === Asaadi ===
+    CreateBranch("NTrTrajPts",NTrTrajPts,"NTrTrajPts[no_primaries]/I");
+    CreateBranch("TrueTraj_X",TrueTraj_X,"TrueTraj_X[no_primaries][5000]/D");
+    CreateBranch("TrueTraj_Y",TrueTraj_Y,"TrueTraj_Y[no_primaries][5000]/D");
+    CreateBranch("TrueTraj_Z",TrueTraj_Z,"TrueTraj_Z[no_primaries][5000]/D");
+    CreateBranch("TrueTraj_E",TrueTraj_E,"TrueTraj_E[no_primaries][5000]/D");
+
+
+    
   }
 
   if (hasMCShowerInfo()){
@@ -5982,6 +6021,33 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       if (fSaveMCTrackInfo && mctrackh.isValid()){
 	fData->no_mctracks = nMCTracks;       
 	size_t trk = 0;
+	
+	//////////////////////////////////////////////////////////////////////////////////
+	
+	// ### Loop over the MCTrack collection ###
+	/*for(std::vector<sim::MCTrack>::const_iterator jmctrk = mctrackh->begin();jmctrk != mctrackh->end(); ++jmctrk) 
+	   {
+	   const sim::MCTrack& mctrk2 = *jmctrk;
+	   
+	   std::cout<<"mctrk2.dEdx.size() "<<mctrk2.dEdx().size()<<std::endl;
+	   std::vector<double> TestdEdX = mctrk2.dEdx();
+	   for(unsigned int a = 0; a < mctrk2.dEdx().size(); a++)
+	      {
+	      std::cout<<"mctrk2.dEdx(a) "<<TestdEdX[a]<<std::endl;
+	      
+	      
+	      }
+	   
+	   
+	   
+	   }//<---end jmctrk*/
+	
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
 	for(std::vector<sim::MCTrack>::const_iterator imctrk = mctrackh->begin();imctrk != mctrackh->end(); ++imctrk) {
     	  const sim::MCTrack& mctrk = *imctrk;
 	  TLorentzVector tpcstart, tpcend, tpcmom;
@@ -6068,6 +6134,42 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
           
           //++geant_particle;
 	  bool isPrimary = pPart->Process() == pri;
+	  
+	  //////////////////////////////////////////////////////////////////////////////////////////
+	  //					Asaadi
+	  
+	  // ### Save intermediary information for the primary track
+          if(pPart->Process()==pri)
+	     {
+	     std::cout<<std::endl;
+	     std::cout<<std::endl;
+	     std::cout<<" Primary # "<<primary<<std::endl;
+	     std::cout<<std::endl;
+	     fData->NTrTrajPts[primary] = pPart->NumberTrajectoryPoints();
+	     simb::MCTrajectory truetraj = pPart->Trajectory();
+	     int iPrimPt = 0;
+	     
+	     for(auto itTraj = truetraj.begin(); itTraj != truetraj.end(); ++itTraj)
+	        {
+		fData->TrueTraj_X[primary][iPrimPt] = truetraj.X(iPrimPt);
+		fData->TrueTraj_Y[primary][iPrimPt] = truetraj.Y(iPrimPt);
+		fData->TrueTraj_Z[primary][iPrimPt] = truetraj.Z(iPrimPt);
+		fData->TrueTraj_E[primary][iPrimPt] = truetraj.E(iPrimPt);
+
+
+		
+		std::cout<<"Primary Particle"<<std::endl;
+		std::cout<<"X "<<truetraj.X(iPrimPt)<<", Y "<<truetraj.Y(iPrimPt)<<", Z "<<truetraj.Z(iPrimPt)<<std::endl;
+		std::cout<<"Energy "<<truetraj.E(iPrimPt)<<std::endl;
+		
+		iPrimPt++;
+		}//<---End itTraj
+
+	     
+	     
+	     }//<---End only looking at primary track
+
+	  ///////////////////////////////////////////////////////////////////////////////////////////
 	  int TrackID = pPart->TrackId();
 	  TrackIDtoIndex.emplace(TrackID, iPart);
 	  gpdg.push_back(pPart->PdgCode());
