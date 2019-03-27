@@ -1,7 +1,7 @@
-#ifndef UB_PLANEIDBITSETHELPERFUNCTIONS_H
-#define UB_PLANEIDBITSETHELPERFUNCTIONS_H
-
 // MicroBooNE-specific helper functions to translate bitset planeIDs used in anab::ParticleID
+
+#ifndef _UB_PLANEIDBITSETHELPER_H_
+#define _UB_PLANEIDBITSETHELPER_H_
 
 #include <bitset>
 
@@ -10,13 +10,13 @@ namespace UBPID{
   /// Returns planeID from bitset, if exactly 1 plane is set in the bitset.
   /// Plane 2 = collection (y) plane, Plane 1 = induction (v) plane, Plane 0 = induction (u) plane
   inline int uB_getSinglePlane(std::bitset<8> planeid){
-    if ((planeid[0]+planeid[1]+planeid[2]+planeid[3]+planeid[4]>1) || (planeid[0]+planeid[1]+planeid[2]+planeid[3]+planeid[4]==0) || planeid[0]==1 || planeid[1]==1){
+    if (planeid.none() || planeid.count() > 1 || (planeid.count()==1 && !(planeid.test(0) || planeid.test(1) || planeid.test(2)))){
       std::cout << "[uB_PlaneIDBitsetHelper] Cannot return a single MicroBooNE plane for bitset " << planeid << ". Returning -1 (invalid planeID)." << std::endl;
       return -1;
     }
-    else if (planeid[4]==1) return 2;
-    else if (planeid[3]==1) return 1;
-    else if (planeid[2]==1) return 0;
+    else if (planeid.test(0)) return 2;
+    else if (planeid.test(1)) return 1;
+    else if (planeid.test(2)) return 0;
 
     // Default: invalid return
     return -1;
@@ -24,16 +24,15 @@ namespace UBPID{
 
   /// Returns the bitset corresponding to a given (single) uBooNE plane.
   inline std::bitset<8> uB_SinglePlaneGetBitset(int planeid){
+    std::bitset<8> bs;
     if (planeid<0 || planeid>2){
-      std::cout << "[uB_PlaneIDBitsetHelper] Cannot return a bitset for MicroBooNE planeid " << planeid << ". Returning 00000 (invalid planeID)." << std::endl;
-      return std::bitset<8>("00000");
+      std::cout << "[uB_PlaneIDBitsetHelper] Cannot return a bitset for MicroBooNE planeid " << planeid << ". Returning invalid planeID." << std::endl;
+      return bs;
     }
-    else if (planeid==2) return std::bitset<8>("10000000");
-    else if (planeid==1) return std::bitset<8>("01000000");
-    else if (planeid==0) return std::bitset<8>("00100000");
+    else bs.set(2-planeid); // minus 2 because that is the collection plane
 
     // Default: invalid return
-    return std::bitset<8>("00000000");
+    return bs;
   }
 
 }
