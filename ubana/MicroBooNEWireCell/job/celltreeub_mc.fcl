@@ -23,6 +23,9 @@ celltreeub_mc: {
  PMT_LG_cosmicProducer         : "pmtreadout"
  PMT_HG_beamProducer           : "pmtreadout"
  PMT_LG_beamProducer           : "pmtreadout"
+ PMT_overlay_detsim_producer      : "pmtreadoutnonoise"
+ PMT_overlay_mixer_producer       : "mixer"
+ PMT_overlay_saturation_producer  : "saturation"
  PMT_wfmSaturationLabel        : "saturation"
  PMT_recoLabel                 : "opflash"
  HWTrigger_label               : "triggersim"
@@ -34,6 +37,10 @@ celltreeub_mc: {
  POT_numilabel                 : "numiETORTGT"
  MuCS_dataLabel		       : "MuCSMerger"
  MuCS_recoDataLabel	       : "MuCSReco"
+ SimEnergyDepositInside_label  : ""
+ SimEnergyDepositInside_producer : "ionization"
+ SimEnergyDepositOutside_label : "Other"
+ SimEnergyDepositOutside_producer : "largeant"
  SimChannel_producer	       : "driftWC"
  SimChannel_label	       : "simpleSC"
  SaveTPC_raw                   : false # short type  
@@ -43,6 +50,7 @@ celltreeub_mc: {
  SaveTPC_badChannelList        : true  # default
  SaveTPC_channelThreshold      : true  # default
  SavePMT_raw                   : true  # default
+ SavePMT_overlay	       : false
  SavePMT_wfmSaturation         : false
  SavePMT_reco                  : false
  SavePMT_gainData              : false
@@ -50,10 +58,12 @@ celltreeub_mc: {
  SaveHWTrigger                 : true  # default
  SaveSWTrigger                 : true  # default
  SaveBeam                      : false 
- SavePOT                       : false
+ SavePOT                       : true  # default
  SaveMuCSData		       : false
  SaveMuCSRecoData	       : false
- SaveMCParticle 	       : true   # default
+ SaveMCParticle 	       : true  # default
+ SaveSimEnergyDepositInside    : true  # default
+ SaveSimEnergyDepositOutside   : true  # default
  SaveSimChannel		       : false 
  UseLGBeamForHGCosmic          : true   # default
  FlashMultPEThreshold          : 5

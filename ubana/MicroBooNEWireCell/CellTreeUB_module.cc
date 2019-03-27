@@ -17,6 +17,7 @@
 #include "lardataobj/RecoBase/OpHit.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/SimEnergyDeposit.h"
 #include "larevt/CalibrationDBI/Interface/PmtGainService.h"
 #include "larevt/CalibrationDBI/Interface/PmtGainProvider.h"
 #include "lardataobj/RawData/TriggerData.h"
@@ -77,6 +78,7 @@ namespace wc{
     void processTPC_badChannelList(const art::Event& evt);
     void processTPC_channelThreshold(const art::Event& evt);
     void processPMT_raw(const art::Event& evt);
+    void processPMT_overlay(const art::Event& evt);
     void processPMT_wfmSaturation(const art::Event& evt);
     void processPMT_reco(const art::Event& evt);
     void processPMT_gainData(const art::Event& evt);
@@ -88,6 +90,8 @@ namespace wc{
     void processMuCS_data(const art::Event& evt);
     void processMuCS_recoData(const art::Event& evt);
     void processMCParticle(const art::Event& evt);
+    void processSimEnergyDepositInside(const art::Event& evt);
+    void processSimEnergyDepositOutside(const art::Event& evt);
     void processSimChannel(const art::Event& evt);
   private:
     // --- fhicl parameters ---
@@ -112,6 +116,9 @@ namespace wc{
     std::string fPMT_HG_beamProducer;
     std::string fPMT_LG_beamProducer;
     std::string fPMT_wfmSaturationLabel;
+    std::string fPMT_overlay_detsim_producer;
+    std::string fPMT_overlay_mixer_producer;
+    std::string fPMT_overlay_saturation_producer;
     std::string fPMT_recoLabel;
     std::string fHWTrigger_label;
     std::string fSWTrigger_label;
@@ -122,6 +129,10 @@ namespace wc{
     std::string fPOT_producer;
     std::string fMuCS_dataLabel;
     std::string fMuCS_recoDataLabel;
+    std::string fSimEnergyDepositInside_label;
+    std::string fSimEnergyDepositInside_producer;
+    std::string fSimEnergyDepositOutside_label;
+    std::string fSimEnergyDepositOutside_producer;
     std::string fSimChannel_label;
     std::string fSimChannel_producer;
     bool _use_LG_beam_for_HG_cosmic;
@@ -132,6 +143,7 @@ namespace wc{
     bool fSaveTPC_badChannelList;
     bool fSaveTPC_channelThreshold;
     bool fSavePMT_raw;
+    bool fSavePMT_overlay;
     bool fSavePMT_wfmSaturation;
     bool fSavePMT_reco;
     bool fSavePMT_gainData;
@@ -143,6 +155,8 @@ namespace wc{
     bool fSaveMuCSData;
     bool fSaveMuCSRecoData;
     bool fSaveMCParticle;
+    bool fSaveSimEnergyDepositInside;
+    bool fSaveSimEnergyDepositOutside;
     bool fSaveSimChannel;
     int deconRebin;
     float flashMultPEThreshold;
@@ -194,6 +208,33 @@ namespace wc{
     TClonesArray *fOp_cosmic_lg_wf;
     TClonesArray *fOp_beam_hg_wf;
     TClonesArray *fOp_beam_lg_wf;
+    // --- PMT overlay --- ### detsim
+    vector<short> fOp_detsim_cosmic_hg_opch;
+    vector<short> fOp_detsim_cosmic_lg_opch;
+    vector<short> fOp_detsim_beam_hg_opch;
+    vector<short> fOp_detsim_beam_lg_opch;
+    vector<double> fOp_detsim_cosmic_hg_timestamp;
+    vector<double> fOp_detsim_cosmic_lg_timestamp;
+    vector<double> fOp_detsim_beam_hg_timestamp;
+    vector<double> fOp_detsim_beam_lg_timestamp;
+    TClonesArray *fOp_detsim_cosmic_hg_wf;
+    TClonesArray *fOp_detsim_cosmic_lg_wf;
+    TClonesArray *fOp_detsim_beam_hg_wf;
+    TClonesArray *fOp_detsim_beam_lg_wf;
+    // --- PMT overlay --- ### mixer
+    vector<short> fOp_mixer_beam_hg_opch;
+    vector<short> fOp_mixer_beam_lg_opch;
+    vector<double> fOp_mixer_beam_hg_timestamp;
+    vector<double> fOp_mixer_beam_lg_timestamp;
+    TClonesArray *fOp_mixer_beam_hg_wf;
+    TClonesArray *fOp_mixer_beam_lg_wf;
+    // --- PMT overlay --- ### saturation
+    vector<short> fOp_saturation_beam_hg_opch;
+    vector<short> fOp_saturation_beam_lg_opch;
+    vector<double> fOp_saturation_beam_hg_timestamp;
+    vector<double> fOp_saturation_beam_lg_timestamp;
+    TClonesArray *fOp_saturation_beam_hg_wf;
+    TClonesArray *fOp_saturation_beam_lg_wf;
     // --- PMT waveform saturation ---
     TClonesArray *fOp_wf;
     vector<short> fOp_femch;
@@ -295,11 +336,41 @@ namespace wc{
     double mc_nu_Theta;
     float mc_nu_pos[4];
     float mc_nu_mom[4];
+    // --- SimEnergyDeposit (inside) ---
+    std::vector<double> sedi_nelectrons;
+    std::vector<double> sedi_nphotons;
+    std::vector<double> sedi_time_start;
+    std::vector<double> sedi_time_end;
+    std::vector<double> sedi_x_start;
+    std::vector<double> sedi_x_end;
+    std::vector<double> sedi_y_start;
+    std::vector<double> sedi_y_end;
+    std::vector<double> sedi_z_start;
+    std::vector<double> sedi_z_end;
+    std::vector<int> sedi_pdg;
+    std::vector<int> sedi_trackId;
+    std::vector<double> sedi_energy;
+    // --- SimEnergyDeposit (outside) ---
+    std::vector<double> sedo_nelectrons;
+    std::vector<double> sedo_nphotons;
+    std::vector<double> sedo_time_start;
+    std::vector<double> sedo_time_end;
+    std::vector<double> sedo_x_start;
+    std::vector<double> sedo_x_end;
+    std::vector<double> sedo_y_start;
+    std::vector<double> sedo_y_end;
+    std::vector<double> sedo_z_start;
+    std::vector<double> sedo_z_end;
+    std::vector<int> sedo_pdg;
+    std::vector<int> sedo_trackId;
+    std::vector<double> sedo_energy;
     // --- SimChannel ---
     std::vector<float> sc_x;
     std::vector<float> sc_y;
     std::vector<float> sc_z;
     std::vector<float> sc_q;
+    std::vector<int> sc_chan;
+    std::vector<unsigned int> sc_tick;
     std::vector<unsigned int> sc_tdc;
     float sc_drift_speed=1.098; // mm/us
 
@@ -337,6 +408,9 @@ namespace wc{
     fPMT_LG_cosmicProducer = pset.get<std::string>("PMT_LG_cosmicProducer");
     fPMT_HG_beamProducer = pset.get<std::string>("PMT_HG_beamProducer");
     fPMT_LG_beamProducer = pset.get<std::string>("PMT_LG_beamProducer");
+    fPMT_overlay_detsim_producer = pset.get<std::string>("PMT_overlay_detsim_producer");
+    fPMT_overlay_mixer_producer = pset.get<std::string>("PMT_overlay_mixer_producer");
+    fPMT_overlay_saturation_producer = pset.get<std::string>("PMT_overlay_saturation_producer");
     fPMT_wfmSaturationLabel = pset.get<std::string>("PMT_wfmSaturationLabel");
     fPMT_recoLabel = pset.get<std::string>("PMT_recoLabel");
     fHWTrigger_label = pset.get<std::string>("HWTrigger_label");
@@ -348,6 +422,10 @@ namespace wc{
     fPOT_producer = pset.get<std::string>("POT_producer");
     fMuCS_dataLabel = pset.get<std::string>("MuCS_dataLabel");
     fMuCS_recoDataLabel = pset.get<std::string>("MuCS_recoDataLabel");
+    fSimEnergyDepositInside_label = pset.get<std::string>("SimEnergyDepositInside_label");
+    fSimEnergyDepositInside_producer = pset.get<std::string>("SimEnergyDepositInside_producer");
+    fSimEnergyDepositOutside_label = pset.get<std::string>("SimEnergyDepositOutside_label");
+    fSimEnergyDepositOutside_producer = pset.get<std::string>("SimEnergyDepositOutside_producer");
     fSimChannel_label = pset.get<std::string>("SimChannel_label");
     fSimChannel_producer = pset.get<std::string>("SimChannel_producer");
     fSaveTPC_raw = pset.get<bool>("SaveTPC_raw");
@@ -357,6 +435,7 @@ namespace wc{
     fSaveTPC_badChannelList = pset.get<bool>("SaveTPC_badChannelList");
     fSaveTPC_channelThreshold = pset.get<bool>("SaveTPC_channelThreshold");
     fSavePMT_raw = pset.get<bool>("SavePMT_raw");
+    fSavePMT_overlay = pset.get<bool>("SavePMT_overlay");
     fSavePMT_wfmSaturation = pset.get<bool>("SavePMT_wfmSaturation");
     fSavePMT_reco = pset.get<bool>("SavePMT_reco");
     fSavePMT_gainData = pset.get<bool>("SavePMT_gainData");
@@ -368,6 +447,8 @@ namespace wc{
     fSaveMuCSData = pset.get<bool>("SaveMuCSData");
     fSaveMuCSRecoData = pset.get<bool>("SaveMuCSRecoData");
     fSaveMCParticle = pset.get<bool>("SaveMCParticle");
+    fSaveSimEnergyDepositInside = pset.get<bool>("SaveSimEnergyDepositInside");
+    fSaveSimEnergyDepositOutside = pset.get<bool>("SaveSimEnergyDepositOutside");
     fSaveSimChannel = pset.get<bool>("SaveSimChannel");
     _use_LG_beam_for_HG_cosmic = pset.get<bool>("UseLGBeamForHGCosmic");
     flashMultPEThreshold = pset.get<float>("FlashMultPEThreshold");
@@ -437,6 +518,40 @@ namespace wc{
       fEventTree->Branch("beam_hg_wf", &fOp_beam_hg_wf, 256000, 0);
       fOp_beam_lg_wf = new TClonesArray("TH1S");
       fEventTree->Branch("beam_lg_wf", &fOp_beam_lg_wf, 256000, 0);
+    }
+    if(fSavePMT_overlay){
+      fEventTree->Branch("detsim_cosmic_hg_opch", &fOp_detsim_cosmic_hg_opch);
+      fEventTree->Branch("detsim_cosmic_lg_opch", &fOp_detsim_cosmic_lg_opch);
+      fEventTree->Branch("detsim_beam_hg_opch", &fOp_detsim_beam_hg_opch);
+      fEventTree->Branch("detsim_beam_lg_opch", &fOp_detsim_beam_lg_opch);
+      fEventTree->Branch("detsim_cosmic_hg_timestamp", &fOp_detsim_cosmic_hg_timestamp);
+      fEventTree->Branch("detsim_cosmic_lg_timestamp", &fOp_detsim_cosmic_lg_timestamp);
+      fEventTree->Branch("detsim_beam_hg_timestamp", &fOp_detsim_beam_hg_timestamp);
+      fEventTree->Branch("detsim_beam_lg_timestamp", &fOp_detsim_beam_lg_timestamp);
+      fOp_detsim_cosmic_hg_wf = new TClonesArray("TH1S");
+      fEventTree->Branch("detsim_cosmic_hg_wf", &fOp_detsim_cosmic_hg_wf, 256000, 0);
+      fOp_detsim_cosmic_lg_wf = new TClonesArray("TH1S");
+      fEventTree->Branch("detsim_cosmic_lg_wf", &fOp_detsim_cosmic_lg_wf, 256000, 0);
+      fOp_detsim_beam_hg_wf = new TClonesArray("TH1S");
+      fEventTree->Branch("detsim_beam_hg_wf", &fOp_detsim_beam_hg_wf, 256000, 0);
+      fOp_detsim_beam_lg_wf = new TClonesArray("TH1S");
+      fEventTree->Branch("detsim_beam_lg_wf", &fOp_detsim_beam_lg_wf, 256000, 0);
+      fEventTree->Branch("mixer_beam_hg_opch", &fOp_mixer_beam_hg_opch);
+      fEventTree->Branch("mixer_beam_lg_opch", &fOp_mixer_beam_lg_opch);
+      fEventTree->Branch("mixer_beam_hg_timestamp", &fOp_mixer_beam_hg_timestamp);
+      fEventTree->Branch("mixer_beam_lg_timestamp", &fOp_mixer_beam_lg_timestamp);
+      fOp_mixer_beam_hg_wf = new TClonesArray("TH1S");
+      fEventTree->Branch("mixer_beam_hg_wf", &fOp_mixer_beam_hg_wf, 256000, 0);
+      fOp_mixer_beam_lg_wf = new TClonesArray("TH1S");
+      fEventTree->Branch("mixer_beam_lg_wf", &fOp_mixer_beam_lg_wf, 256000, 0);
+      fEventTree->Branch("saturation_beam_hg_opch", &fOp_saturation_beam_hg_opch);
+      fEventTree->Branch("saturation_beam_lg_opch", &fOp_saturation_beam_lg_opch);
+      fEventTree->Branch("saturation_beam_hg_timestamp", &fOp_saturation_beam_hg_timestamp);
+      fEventTree->Branch("saturation_beam_lg_timestamp", &fOp_saturation_beam_lg_timestamp);
+      fOp_saturation_beam_hg_wf = new TClonesArray("TH1S");
+      fEventTree->Branch("saturation_beam_hg_wf", &fOp_saturation_beam_hg_wf, 256000, 0);
+      fOp_saturation_beam_lg_wf = new TClonesArray("TH1S");
+      fEventTree->Branch("saturation_beam_lg_wf", &fOp_saturation_beam_lg_wf, 256000, 0);
     }
     if(fSavePMT_wfmSaturation){
       fOp_wf = new TClonesArray("TH1S");
@@ -555,12 +670,44 @@ namespace wc{
       fEventTree->Branch("mc_nu_pos", &mc_nu_pos, "mc_nu_pos[4]/F");      
       fEventTree->Branch("mc_nu_mom", &mc_nu_mom, "mc_nu_mom[4]/F");      
     }
+    if(fSaveSimEnergyDepositInside){
+      fEventTree->Branch("sedi_nelectrons",&sedi_nelectrons);
+      fEventTree->Branch("sedi_nphotons",&sedi_nphotons);
+      fEventTree->Branch("sedi_time_start",&sedi_time_start);
+      fEventTree->Branch("sedi_time_end",&sedi_time_end);
+      fEventTree->Branch("sedi_x_start",&sedi_x_start);
+      fEventTree->Branch("sedi_x_end",&sedi_x_end);
+      fEventTree->Branch("sedi_y_start",&sedi_y_start);
+      fEventTree->Branch("sedi_y_end",&sedi_y_end);
+      fEventTree->Branch("sedi_z_start",&sedi_z_start);
+      fEventTree->Branch("sedi_z_end",&sedi_z_end);
+      fEventTree->Branch("sedi_pdg",&sedi_pdg);
+      fEventTree->Branch("sedi_trackId",&sedi_trackId);
+      fEventTree->Branch("sedi_energy",&sedi_energy);
+    }
+    if(fSaveSimEnergyDepositOutside){
+      fEventTree->Branch("sedo_nelectrons",&sedo_nelectrons);
+      fEventTree->Branch("sedo_nphotons",&sedo_nphotons);
+      fEventTree->Branch("sedo_time_start",&sedo_time_start);
+      fEventTree->Branch("sedo_time_end",&sedo_time_end);
+      fEventTree->Branch("sedo_x_start",&sedo_x_start);
+      fEventTree->Branch("sedo_x_end",&sedo_x_end);
+      fEventTree->Branch("sedo_y_start",&sedo_y_start);
+      fEventTree->Branch("sedo_y_end",&sedo_y_end);
+      fEventTree->Branch("sedo_z_start",&sedo_z_start);
+      fEventTree->Branch("sedo_z_end",&sedo_z_end);
+      fEventTree->Branch("sedo_pdg",&sedo_pdg);
+      fEventTree->Branch("sedo_trackId",&sedo_trackId);
+      fEventTree->Branch("sedo_energy",&sedo_energy);
+    }
     if(fSaveSimChannel){
       fEventTree->Branch("sc_x",&sc_x);
       fEventTree->Branch("sc_y",&sc_y);
       fEventTree->Branch("sc_z",&sc_z);
       fEventTree->Branch("sc_q",&sc_q);
+      fEventTree->Branch("sc_chan",&sc_chan);
       fEventTree->Branch("sc_tdc",&sc_tdc);
+      fEventTree->Branch("sc_tick",&sc_tick);
       fEventTree->Branch("sc_drift_speed",&sc_drift_speed);
     }
   }
@@ -598,6 +745,7 @@ namespace wc{
     if(fSaveTPC_badChannelList) processTPC_badChannelList(evt);
     if(fSaveTPC_channelThreshold) processTPC_channelThreshold(evt);
     if(fSavePMT_raw) processPMT_raw(evt);
+    if(fSavePMT_overlay) processPMT_overlay(evt);
     if(fSavePMT_wfmSaturation) processPMT_wfmSaturation(evt);
     if(fSavePMT_reco) processPMT_reco(evt);
     if(fSavePMT_gainData) processPMT_gainData(evt);
@@ -608,6 +756,8 @@ namespace wc{
     if(fSaveMuCSData) processMuCS_data(evt);
     if(fSaveMuCSRecoData) processMuCS_recoData(evt);
     if(fSaveMCParticle) processMCParticle(evt);
+    if(fSaveSimEnergyDepositInside) processSimEnergyDepositInside(evt);
+    if(fSaveSimEnergyDepositOutside) processSimEnergyDepositOutside(evt);
     if(fSaveSimChannel) processSimChannel(evt);
     fEventTree->Fill();
   }
@@ -650,6 +800,32 @@ namespace wc{
       fOp_cosmic_lg_wf->Delete();
       fOp_beam_hg_wf->Delete();
       fOp_beam_lg_wf->Delete();
+    }
+    if(fSavePMT_overlay){
+      fOp_detsim_cosmic_hg_opch.clear();
+      fOp_detsim_cosmic_lg_opch.clear();
+      fOp_detsim_beam_hg_opch.clear();
+      fOp_detsim_beam_lg_opch.clear();
+      fOp_detsim_cosmic_hg_timestamp.clear();
+      fOp_detsim_cosmic_lg_timestamp.clear();
+      fOp_detsim_beam_hg_timestamp.clear();
+      fOp_detsim_beam_lg_timestamp.clear();
+      fOp_detsim_cosmic_hg_wf->Delete();
+      fOp_detsim_cosmic_lg_wf->Delete();
+      fOp_detsim_beam_hg_wf->Delete();
+      fOp_detsim_beam_lg_wf->Delete();
+      fOp_mixer_beam_hg_opch.clear();
+      fOp_mixer_beam_lg_opch.clear();
+      fOp_mixer_beam_hg_timestamp.clear();
+      fOp_mixer_beam_lg_timestamp.clear();
+      fOp_mixer_beam_hg_wf->Delete();
+      fOp_mixer_beam_lg_wf->Delete();
+      fOp_saturation_beam_hg_opch.clear();
+      fOp_saturation_beam_lg_opch.clear();
+      fOp_saturation_beam_hg_timestamp.clear();
+      fOp_saturation_beam_lg_timestamp.clear();
+      fOp_saturation_beam_hg_wf->Delete();
+      fOp_saturation_beam_lg_wf->Delete();
     }
     if(fSavePMT_wfmSaturation){
       fOp_wf->Delete();
@@ -719,6 +895,36 @@ namespace wc{
 	mc_nu_mom[i] = 0;
       }
     }
+    if(fSaveSimEnergyDepositInside){
+      sedi_nelectrons.clear();
+      sedi_nphotons.clear();
+      sedi_time_start.clear();
+      sedi_time_end.clear();
+      sedi_x_start.clear();
+      sedi_x_end.clear();
+      sedi_y_start.clear();
+      sedi_y_end.clear();
+      sedi_z_start.clear();
+      sedi_z_end.clear();
+      sedi_pdg.clear();
+      sedi_trackId.clear();
+      sedi_energy.clear();
+    }
+    if(fSaveSimEnergyDepositOutside){
+      sedo_nelectrons.clear();
+      sedo_nphotons.clear();
+      sedo_time_start.clear();
+      sedo_time_end.clear();
+      sedo_x_start.clear();
+      sedo_x_end.clear();
+      sedo_y_start.clear();
+      sedo_y_end.clear();
+      sedo_z_start.clear();
+      sedo_z_end.clear();
+      sedo_pdg.clear();
+      sedo_trackId.clear();
+      sedo_energy.clear();
+    }
     if(fSaveSimChannel){
       sc_x.clear();
       sc_y.clear();
@@ -778,7 +984,7 @@ namespace wc{
     } 
   }
 
-  void CellTreeUB::processTPC_noiseFiltered(const art::Event& evt){
+  void CellTreeUB::processTPC_noiseFiltered(const art::Event& evt){ // for old pre-MCC9 L1SP within imaging
     art::Handle<std::vector<recob::Wire> > wire;
     if(! evt.getByLabel(fTPC_noiseFilteredProducer, fTPC_noiseFilteredLabel, wire)){
       cout << "WARNING: no recob::Wire producer " << fTPC_noiseFilteredProducer 
@@ -976,6 +1182,153 @@ namespace wc{
     if(!opwf_beam_lg.isValid()){
       cout << "WARNINg: no raw::OpDetWaveform producer " << fPMT_LG_beamProducer
 	   << " or no label " << fPMT_LG_beamLabel << endl;
+    }
+  }
+
+  void CellTreeUB::processPMT_overlay(const art::Event& evt){
+    art::Handle<std::vector<raw::OpDetWaveform> > detsim_opwf_cosmic_hg;
+    evt.getByLabel(fPMT_overlay_detsim_producer, "OpdetCosmicHighGain", detsim_opwf_cosmic_hg);
+    if(detsim_opwf_cosmic_hg.isValid()){
+      std::vector<raw::OpDetWaveform> const& opwf_v(*detsim_opwf_cosmic_hg);
+      int i=0;
+      for(auto const& op : opwf_v){
+        fOp_detsim_cosmic_hg_opch.push_back(op.ChannelNumber());
+        fOp_detsim_cosmic_hg_timestamp.push_back(op.TimeStamp());
+        int nbins = (int)op.size();
+        TH1S *h = new ((*fOp_detsim_cosmic_hg_wf)[i]) TH1S("","",nbins,0,nbins);
+        for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
+        i++;
+      }
+    }
+    if(!detsim_opwf_cosmic_hg.isValid()){
+      cout << "WARNING: no raw::OpDetWaveform producer " << fPMT_overlay_detsim_producer
+           << " or no label OpdetCosmicHighGain"<< endl;
+    }
+    art::Handle<std::vector<raw::OpDetWaveform> > detsim_opwf_cosmic_lg;
+    evt.getByLabel(fPMT_overlay_detsim_producer, "OpdetCosmicLowGain", detsim_opwf_cosmic_lg);
+    if(detsim_opwf_cosmic_lg.isValid()){
+      std::vector<raw::OpDetWaveform> const& opwf_v(*detsim_opwf_cosmic_lg);
+      int i=0;
+      for(auto const& op : opwf_v){
+        fOp_detsim_cosmic_lg_opch.push_back(op.ChannelNumber());
+        fOp_detsim_cosmic_lg_timestamp.push_back(op.TimeStamp());
+        int nbins = (int)op.size();
+        TH1S *h = new ((*fOp_detsim_cosmic_lg_wf)[i]) TH1S("","",nbins,0,nbins);
+        for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
+        i++;
+      }
+    }
+    if(!detsim_opwf_cosmic_lg.isValid()){
+      cout << "WARNING: no raw::OpDetWaveform producer " << fPMT_overlay_detsim_producer
+           << " or no label OpdetCosmicLowGain"<< endl;
+    }
+    art::Handle<std::vector<raw::OpDetWaveform> > detsim_opwf_beam_hg;
+    evt.getByLabel(fPMT_overlay_detsim_producer, "OpdetBeamHighGain", detsim_opwf_beam_hg);
+    if(detsim_opwf_beam_hg.isValid()){
+      std::vector<raw::OpDetWaveform> const& opwf_v(*detsim_opwf_beam_hg);
+      int i=0;
+      for(auto const& op : opwf_v){
+        fOp_detsim_beam_hg_opch.push_back(op.ChannelNumber());
+        fOp_detsim_beam_hg_timestamp.push_back(op.TimeStamp());
+        int nbins = (int)op.size();
+        TH1S *h = new ((*fOp_detsim_beam_hg_wf)[i]) TH1S("","",nbins,0,nbins);
+        for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
+        i++;
+      }
+    }
+    if(!detsim_opwf_beam_hg.isValid()){
+      cout << "WARNING: no raw::OpDetWaveform producer " << fPMT_overlay_detsim_producer
+           << " or no label OpdetBeamHighGain"<< endl;
+    }
+    art::Handle<std::vector<raw::OpDetWaveform> > detsim_opwf_beam_lg;
+    evt.getByLabel(fPMT_overlay_detsim_producer, "OpdetBeamLowGain", detsim_opwf_beam_lg);
+    if(detsim_opwf_beam_lg.isValid()){
+      std::vector<raw::OpDetWaveform> const& opwf_v(*detsim_opwf_beam_lg);
+      int i=0;
+      for(auto const& op : opwf_v){
+        fOp_detsim_beam_lg_opch.push_back(op.ChannelNumber());
+        fOp_detsim_beam_lg_timestamp.push_back(op.TimeStamp());
+        int nbins = (int)op.size();
+        TH1S *h = new ((*fOp_detsim_beam_lg_wf)[i]) TH1S("","",nbins,0,nbins);
+        for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
+        i++;
+      }
+    }
+    if(!detsim_opwf_beam_lg.isValid()){
+      cout << "WARNING: no raw::OpDetWaveform producer " << fPMT_overlay_detsim_producer
+           << " or no label OpdetBeamLowGain"<< endl;
+    }
+    art::Handle<std::vector<raw::OpDetWaveform> > mixer_opwf_beam_hg;
+    evt.getByLabel(fPMT_overlay_mixer_producer, "OpdetBeamHighGain", mixer_opwf_beam_hg);
+    if(mixer_opwf_beam_hg.isValid()){
+      std::vector<raw::OpDetWaveform> const& opwf_v(*mixer_opwf_beam_hg);
+      int i=0;
+      for(auto const& op : opwf_v){
+        fOp_mixer_beam_hg_opch.push_back(op.ChannelNumber());
+        fOp_mixer_beam_hg_timestamp.push_back(op.TimeStamp());
+        int nbins = (int)op.size();
+        TH1S *h = new ((*fOp_mixer_beam_hg_wf)[i]) TH1S("","",nbins,0,nbins);
+        for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
+        i++;
+      }
+    }
+    if(!mixer_opwf_beam_hg.isValid()){
+      cout << "WARNING: no raw::OpDetWaveform producer " << fPMT_overlay_mixer_producer
+           << " or no label OpdetBeamHighGain"<< endl;
+    }
+    art::Handle<std::vector<raw::OpDetWaveform> > mixer_opwf_beam_lg;
+    evt.getByLabel(fPMT_overlay_mixer_producer, "OpdetBeamLowGain", mixer_opwf_beam_lg);
+    if(mixer_opwf_beam_lg.isValid()){
+      std::vector<raw::OpDetWaveform> const& opwf_v(*mixer_opwf_beam_lg);
+      int i=0;
+      for(auto const& op : opwf_v){
+        fOp_mixer_beam_lg_opch.push_back(op.ChannelNumber());
+        fOp_mixer_beam_lg_timestamp.push_back(op.TimeStamp());
+        int nbins = (int)op.size();
+        TH1S *h = new ((*fOp_mixer_beam_lg_wf)[i]) TH1S("","",nbins,0,nbins);
+        for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
+        i++;
+      }
+    }
+    if(!mixer_opwf_beam_lg.isValid()){
+      cout << "WARNING: no raw::OpDetWaveform producer " << fPMT_overlay_mixer_producer
+           << " or no label OpdetBeamLowGain"<< endl;
+    }
+    art::Handle<std::vector<raw::OpDetWaveform> > saturation_opwf_beam_hg;
+    evt.getByLabel(fPMT_overlay_saturation_producer, "OpdetBeamHighGain", saturation_opwf_beam_hg);
+    if(saturation_opwf_beam_hg.isValid()){
+      std::vector<raw::OpDetWaveform> const& opwf_v(*saturation_opwf_beam_hg);
+      int i=0;
+      for(auto const& op : opwf_v){
+        fOp_saturation_beam_hg_opch.push_back(op.ChannelNumber());
+        fOp_saturation_beam_hg_timestamp.push_back(op.TimeStamp());
+        int nbins = (int)op.size();
+        TH1S *h = new ((*fOp_saturation_beam_hg_wf)[i]) TH1S("","",nbins,0,nbins);
+        for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
+        i++;
+      }
+    }
+    if(!saturation_opwf_beam_hg.isValid()){
+      cout << "WARNING: no raw::OpDetWaveform producer " << fPMT_overlay_saturation_producer
+           << " or no label OpdetBeamHighGain"<< endl;
+    }
+    art::Handle<std::vector<raw::OpDetWaveform> > saturation_opwf_beam_lg;
+    evt.getByLabel(fPMT_overlay_saturation_producer, "OpdetBeamLowGain", saturation_opwf_beam_lg);
+    if(saturation_opwf_beam_lg.isValid()){
+      std::vector<raw::OpDetWaveform> const& opwf_v(*saturation_opwf_beam_lg);
+      int i=0;
+      for(auto const& op : opwf_v){
+        fOp_saturation_beam_lg_opch.push_back(op.ChannelNumber());
+        fOp_saturation_beam_lg_timestamp.push_back(op.TimeStamp());
+        int nbins = (int)op.size();
+        TH1S *h = new ((*fOp_saturation_beam_lg_wf)[i]) TH1S("","",nbins,0,nbins);
+        for(int j=1; j<=nbins; j++){h->SetBinContent(j,op[j-1]);}
+        i++;
+      }
+    }
+    if(!saturation_opwf_beam_lg.isValid()){
+      cout << "WARNING: no raw::OpDetWaveform producer " << fPMT_overlay_saturation_producer
+           << " or no label OpdetBeamLowGain"<< endl;
     }
   }
 
@@ -1300,6 +1653,59 @@ namespace wc{
     }
   }
 
+  void CellTreeUB::processSimEnergyDepositInside(const art::Event& evt){
+    art::Handle<std::vector<sim::SimEnergyDeposit> > sed;
+    if(! evt.getByLabel(fSimEnergyDepositInside_producer, fSimEnergyDepositInside_label, sed)){
+      cout << "WARNING: no sim::SimEnergyDeposit (inside) with producer " << fSimEnergyDepositInside_producer
+           << " or label " << fSimEnergyDepositInside_label << endl;
+      return;
+    }
+    vector<sim::SimEnergyDeposit> const& sed_v(*sed);
+    for(size_t i=0; i<sed_v.size(); i++){
+      sim::SimEnergyDeposit s = sed_v[i];
+      sedi_nelectrons.push_back(s.NumElectrons());
+      sedi_nphotons.push_back(s.NumPhotons());
+      sedi_time_start.push_back(s.T0());
+      sedi_time_end.push_back(s.T1());
+      sedi_x_start.push_back(s.Start().X());
+      sedi_x_end.push_back(s.End().X());
+      sedi_y_start.push_back(s.Start().Y());
+      sedi_y_end.push_back(s.End().Y());
+      sedi_z_start.push_back(s.Start().Z());
+      sedi_z_end.push_back(s.End().Z());
+      sedi_pdg.push_back(s.PdgCode());
+      sedi_trackId.push_back(s.TrackID());
+      sedi_energy.push_back(s.Energy());
+    }
+  }
+
+  void CellTreeUB::processSimEnergyDepositOutside(const art::Event& evt){
+    art::InputTag sedTag(fSimEnergyDepositOutside_producer, fSimEnergyDepositOutside_label);
+    art::Handle<std::vector<sim::SimEnergyDeposit> > sed;
+    if(! evt.getByLabel(fSimEnergyDepositOutside_producer, fSimEnergyDepositOutside_label, sed)){
+      cout << "WARNING: no sim::SimEnergyDeposit (outside) with producer " << fSimEnergyDepositOutside_producer
+           << " or label " << fSimEnergyDepositOutside_label << endl;
+      return;
+    }
+    vector<sim::SimEnergyDeposit> const& sed_v(*sed);
+    for(size_t i=0; i<sed_v.size(); i++){
+      sim::SimEnergyDeposit s = sed_v[i];
+      sedo_nelectrons.push_back(s.NumElectrons());
+      sedo_nphotons.push_back(s.NumPhotons());
+      sedo_time_start.push_back(s.T0());
+      sedo_time_end.push_back(s.T1());
+      sedo_x_start.push_back(s.Start().X());
+      sedo_x_end.push_back(s.End().X());
+      sedo_y_start.push_back(s.Start().Y());
+      sedo_y_end.push_back(s.End().Y());
+      sedo_z_start.push_back(s.Start().Z());
+      sedo_z_end.push_back(s.End().Z());
+      sedo_pdg.push_back(s.PdgCode());
+      sedo_trackId.push_back(s.TrackID());
+      sedo_energy.push_back(s.Energy());
+    }
+  }
+
   void CellTreeUB::processSimChannel(const art::Event& evt){
     art::InputTag scTag(fSimChannel_producer,fSimChannel_label);
     auto const& scHandle = evt.getValidHandle<std::vector<sim::SimChannel>>(scTag);
@@ -1314,7 +1720,10 @@ namespace wc{
 	  sc_y.push_back(energyDeposit.y);
 	  sc_z.push_back(energyDeposit.z);
 	  sc_q.push_back(energyDeposit.numElectrons);
+	  sc_chan.push_back(sc.Channel());
 	  sc_tdc.push_back(timeSlice.first);
+	  unsigned int tick = (unsigned int) timeSlice.first - ((4050.0 + 1600.0)/0.5);
+	  sc_tick.push_back(tick);
 	}
       }
     }
