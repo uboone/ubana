@@ -280,9 +280,6 @@ void CalcPIDvars(treevars *vars, bool isScale){
     vars->track_likelihood_k->at(i_pl) = std::max(vars->track_likelihood_fwd_k->at(i_pl)     , vars->track_likelihood_bwd_k->at(i_pl)) * scalefactor_mu;
     vars->track_likelihood_mip->at(i_pl) = vars->track_likelihood_fwd_mip->at(i_pl) * scalefactor_mu;
     vars->track_likelihood_maxmumip->at(i_pl) = std::max(vars->track_likelihood_mu->at(i_pl), vars->track_likelihood_mip->at(i_pl));
-    if (vars->track_likelihood_mipoverp->at(i_pl)>0){
-      vars->track_lnlikelihood_mipoverp->at(i_pl) = TMath::Log(vars->track_likelihood_mipoverp->at(i_pl));
-    }
 
     // Skip tracks with invalid likelihood scores
     if (vars->track_likelihood_p->at(i_pl)<0 || vars->track_likelihood_mu->at(i_pl)<0 || vars->track_likelihood_k->at(i_pl)<0 || vars->track_likelihood_pi->at(i_pl)<0 || vars->track_likelihood_mip->at(i_pl)<0){
@@ -292,6 +289,8 @@ void CalcPIDvars(treevars *vars, bool isScale){
       vars->track_likelihood_muoverp->at(i_pl) = vars->track_likelihood_mu->at(i_pl) / vars->track_likelihood_p->at(i_pl);
       vars->track_likelihood_mipoverp->at(i_pl) = vars->track_likelihood_mip->at(i_pl) / vars->track_likelihood_p->at(i_pl);
       vars->track_likelihood_maxmumipoverp->at(i_pl) = vars->track_likelihood_maxmumip->at(i_pl) / vars->track_likelihood_p->at(i_pl);
+      
+      vars->track_lnlikelihood_mipoverp->at(i_pl) = TMath::Log(vars->track_likelihood_mipoverp->at(i_pl));
 
       double denom = (vars->track_likelihood_p->at(i_pl)+vars->track_likelihood_mu->at(i_pl)+vars->track_likelihood_k->at(i_pl)+vars->track_likelihood_pi->at(i_pl)+vars->track_likelihood_mip->at(i_pl));
 
