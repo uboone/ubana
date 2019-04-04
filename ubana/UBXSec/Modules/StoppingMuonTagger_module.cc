@@ -289,8 +289,8 @@ void StoppingMuonTagger::produce(art::Event & e) {
 
     if (_debug) std::cout << "[StoppingMuonTagger] >>>>> Associated to " << pfps.size() << " PFPs: " << tracks.size() << " tracks, " << showers.size() << " showers." << std::endl;
 
-    if (_debug) std::cout << "[StoppingMuonTagger] Origin is " << ubana::TPCObjectOriginToString(tpcobj->GetOrigin()) << std::endl;
-    if (_debug) std::cout << "[StoppingMuonTagger] Origin extra is " << ubana::TPCObjectOriginExtraToString(tpcobj->GetOriginExtra()) << std::endl;
+    //    if (_debug) std::cout << "[StoppingMuonTagger] Origin is " << ubana::TPCObjectOriginToString(tpcobj->GetOrigin()) << std::endl;
+    // if (_debug) std::cout << "[StoppingMuonTagger] Origin extra is " << ubana::TPCObjectOriginExtraToString(tpcobj->GetOriginExtra()) << std::endl;
 
 
     bool ignore_this = false;
