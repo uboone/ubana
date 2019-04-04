@@ -23,7 +23,7 @@
 // Framework Includes
 #include "art/Framework/Core/EDProducer.h"
 #include "canvas/Persistency/Common/FindManyP.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 // LArSoft includes
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
