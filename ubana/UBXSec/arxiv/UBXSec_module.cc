@@ -250,7 +250,7 @@ private:
 };
 
 
-UBXSec::UBXSec(fhicl::ParameterSet const & p) {
+UBXSec::UBXSec(fhicl::ParameterSet const & p) : EDProducer{p} {
 
   ::art::ServiceHandle<cheat::BackTracker> bt;
   ::art::ServiceHandle<geo::Geometry> geo;

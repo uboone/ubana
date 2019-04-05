@@ -92,7 +92,7 @@ private:
 
 
 MuCST0Finder::MuCST0Finder(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
 

@@ -71,7 +71,7 @@ private:
 
 
 SimpleFlashFinder::SimpleFlashFinder(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
   produces< std::vector<recob::OpFlash>   >();

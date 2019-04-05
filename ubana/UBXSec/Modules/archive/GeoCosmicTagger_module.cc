@@ -79,7 +79,7 @@ private:
 };
 
 
-GeoCosmicTagger::GeoCosmicTagger(fhicl::ParameterSet const & p) {
+GeoCosmicTagger::GeoCosmicTagger(fhicl::ParameterSet const & p) : EDProducer{p} {
 
   _track_producer                 = p.get<std::string>("TrackProducer");
   _pfp_producer                   = p.get<std::string>("PFParticleProducer");

@@ -71,7 +71,7 @@ private:
 };
 
 
-QEEventSelectionFilter::QEEventSelectionFilter(fhicl::ParameterSet const & p)
+QEEventSelectionFilter::QEEventSelectionFilter(fhicl::ParameterSet const & p) : EDFilter{p}
 {
   _minLR            = p.get<float>("MinimumLRScore",0.9);
 

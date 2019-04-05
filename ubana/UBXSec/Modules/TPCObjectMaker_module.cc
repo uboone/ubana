@@ -159,7 +159,7 @@ private:
 };
 
 
-ubana::TPCObjectMaker::TPCObjectMaker(fhicl::ParameterSet const & p)
+ubana::TPCObjectMaker::TPCObjectMaker(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _pfp_producer        = p.get<std::string>("PFParticleProducer"); 
   _vertexLabel         = p.get<std::string>("VertexProducer");

@@ -61,7 +61,7 @@ public:
 };
 
 
-NCDeltaRadiative::NCDeltaRadiative(fhicl::ParameterSet const & p) :
+NCDeltaRadiative::NCDeltaRadiative(fhicl::ParameterSet const & p) : EDFilter{p},
   ftree(nullptr) {
 
   if(true) {

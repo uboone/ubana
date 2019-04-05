@@ -75,7 +75,7 @@ private:
 };
 
 
-DecisionTreeID::DecisionTreeID(fhicl::ParameterSet const & p)
+DecisionTreeID::DecisionTreeID(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   ftrackmodulelabel     = p.get<std::string>("TrackModuleLabel");
   fmodelname            = p.get<std::string>("ModelFile");

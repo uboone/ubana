@@ -77,7 +77,7 @@ private:
 
 
 CCInclusiveTruthFilter::CCInclusiveTruthFilter(fhicl::ParameterSet const & p)
-// :
+  : EDFilter{p}
 // Initialize member data here.
 {
 

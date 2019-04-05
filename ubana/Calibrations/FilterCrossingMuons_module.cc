@@ -69,7 +69,7 @@ namespace crossingmufilter{
   
   //-----------------------------------------------------------------------
   // Constructor
-  FilterCrossingMuons::FilterCrossingMuons(fhicl::ParameterSet const& pset)
+  FilterCrossingMuons::FilterCrossingMuons(fhicl::ParameterSet const& pset) : EDFilter{pset}
   {
     this->reconfigure(pset);
   }

@@ -103,7 +103,7 @@ protected:
 
 
   //-------------------------------------------------
-TrackCalo::TrackCalo(fhicl::ParameterSet const& pset)
+TrackCalo::TrackCalo(fhicl::ParameterSet const& pset) : EDProducer{pset}
 {
 
   fTrackModuleLabel = pset.get< std::string >("TrackModuleLabel", "pandoraNu::UBXSec");

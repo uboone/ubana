@@ -154,7 +154,7 @@ private:
 };
 
 
-NeutrinoFlashMatch::NeutrinoFlashMatch(fhicl::ParameterSet const & p)
+NeutrinoFlashMatch::NeutrinoFlashMatch(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _pfp_producer            = p.get<std::string>("PFParticleModule",      "pandoraNu");
   _track_producer          = p.get<std::string>("TrackModule",           "pandoraNu");

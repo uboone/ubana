@@ -69,7 +69,7 @@ private:
 };
 
 
-TPCNeutrinoIDFilter::TPCNeutrinoIDFilter(fhicl::ParameterSet const& pset) 
+TPCNeutrinoIDFilter::TPCNeutrinoIDFilter(fhicl::ParameterSet const& pset) : EDFilter{pset} 
 {
     this->reconfigure(pset);
 }

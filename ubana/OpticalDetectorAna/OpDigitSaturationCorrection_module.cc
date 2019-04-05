@@ -244,7 +244,7 @@ size_t OpDigitSaturationCorrection::FindMatchingLGPulse(const unsigned int opdet
 }
 
 OpDigitSaturationCorrection::OpDigitSaturationCorrection(fhicl::ParameterSet const & p)
-  : _tree(nullptr)
+  : EDProducer{p}, _tree(nullptr)
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.

@@ -155,7 +155,7 @@ private:
 };
 
 
-CandidateConsistency::CandidateConsistency(fhicl::ParameterSet const & p)
+CandidateConsistency::CandidateConsistency(fhicl::ParameterSet const & p) : EDProducer{p}
 {
 
   _tpcobject_producer        = p.get<std::string>("TPCObjectProducer",  "TPCObjectMaker::UBXSec");

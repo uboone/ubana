@@ -274,7 +274,7 @@ private:
 
 
 UBXSec::UBXSec(fhicl::ParameterSet const & p)
-  : _min_track_len{p.get<double>("MinTrackLength", 0.1)}
+  : EDProducer{p}, _min_track_len{p.get<double>("MinTrackLength", 0.1)}
   , _trk_mom_calculator{_min_track_len}
 {
 

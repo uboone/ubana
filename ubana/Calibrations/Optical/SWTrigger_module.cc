@@ -146,7 +146,7 @@ private:
 
 
 SWTrigger::SWTrigger(fhicl::ParameterSet const & p)
-// :
+  : EDFilter{p}
 // Initialize member data here.
 {
   // Declare handle to analyzer file

@@ -89,7 +89,7 @@ private:
 
 
 MuCSTrackFinder::MuCSTrackFinder(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
   _track_producer          = p.get<std::string>("TrackProducer");

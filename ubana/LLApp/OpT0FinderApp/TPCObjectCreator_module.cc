@@ -88,7 +88,7 @@ private:
 
 
 TPCObjectCreator::TPCObjectCreator(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
 

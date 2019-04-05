@@ -117,7 +117,7 @@ private:
 
 
 StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p) 
-  : _mcs_fitter(p.get< fhicl::ParameterSet >("MCSFitter")) {
+  : EDProducer{p}, _mcs_fitter(p.get< fhicl::ParameterSet >("MCSFitter")) {
 
 
   _fiducial_volume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),

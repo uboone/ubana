@@ -87,7 +87,7 @@ private:
 
 
 MuCSGainAna::MuCSGainAna(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
   _ophit_producer = p.get<std::string>("OpHitProducer");

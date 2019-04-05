@@ -114,7 +114,7 @@ private:
 
 
 FlashTrigger::FlashTrigger(fhicl::ParameterSet const & p)
-  : _flash_tree(nullptr)
+  : EDFilter{p}, _flash_tree(nullptr)
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.

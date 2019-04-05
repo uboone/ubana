@@ -101,7 +101,7 @@ private:
 };
 
 
-CosmicFlashMatch::CosmicFlashMatch(fhicl::ParameterSet const & p)
+CosmicFlashMatch::CosmicFlashMatch(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _particleLabel           = p.get<std::string>("PFParticleModule",      "pandoraNu");
   _debug                   = p.get<bool>       ("DebugMode",             true);

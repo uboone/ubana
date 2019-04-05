@@ -177,7 +177,7 @@ private:
 };
 
 
-ACPTTagger::ACPTTagger(fhicl::ParameterSet const & p) {
+ACPTTagger::ACPTTagger(fhicl::ParameterSet const & p) : EDProducer{p} {
 
   _flash_producer        = p.get<std::string>("FlashProducer", "simpleFlashCosmic");
   _ophit_producer        = p.get<std::string>("OpHitProducer", "ophitCosmic");

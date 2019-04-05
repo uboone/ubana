@@ -99,7 +99,7 @@ namespace calibration {
 
   //-------------------------------------------------------------------
   NoiseFilter::NoiseFilter(fhicl::ParameterSet const& pset)
-    : EDProducer(),
+    : EDProducer{pset},
     fMaxTicks(9595),
     fPedestalRetrievalAlg(art::ServiceHandle<lariov::DetPedestalService>()->GetPedestalProvider())
     {

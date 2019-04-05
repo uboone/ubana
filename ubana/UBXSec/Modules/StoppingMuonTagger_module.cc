@@ -157,7 +157,7 @@ private:
 
 
 StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p) 
-  : _mcs_fitter(p.get< fhicl::ParameterSet >("MCSFitter")) {
+  : EDProducer{p}, _mcs_fitter(p.get< fhicl::ParameterSet >("MCSFitter")) {
 
 
   _ct_manager.Configure(p.get<cosmictag::Config_t>("CosmicTagManager"));
