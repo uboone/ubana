@@ -915,6 +915,8 @@ namespace single_photon
             std::vector<int> m_mctruth_exiting_proton_from_delta_decay;
             std::vector<double> m_mctruth_exiting_proton_energy;
 
+            int  m_mctruth_num_reconstructable_protons;
+            
             bool  m_mctruth_is_reconstructable_1g1p;
             bool  m_mctruth_is_reconstructable_1g0p;
 

@@ -290,14 +290,13 @@ namespace single_photon
 
 
         //CRT 
+        /*
         if(m_has_CRT){
              art::ValidHandle<std::vector<crt::CRTTzero>> const & crtHandle  = evt.getValidHandle<std::vector<crt::CRTTzero>>(m_CRTTzeroLabel);
              std::vector<art::Ptr<crt::CRTTzero>> crtVector;
              art::fill_ptr_vector(crtVector,crtHandle);
-
-
-
         }
+        */
 
 
         //**********************************************************************************************/
