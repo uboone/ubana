@@ -1,5 +1,19 @@
 #include "/uboone/app/users/afurmans/CCInclusive_PID_Jan/srcs/ubobj/ubobj/UBXSec/UBXSecEvent.h"
 #include "plotFromTreeHeader.h"
+#include "/uboone/app/users/piphamil/CCInclusive_PID_March11/srcs/ubana/ubana/ParticleID/Algorithms/Theory_dEdx_resrange.h"
+#include "/uboone/app/users/piphamil/CCInclusive_PID_March11/srcs/ubana/ubana/ParticleID/Algorithms/Theory_dEdx_resrange.cxx"
+
+//dEdx curves
+particleid::Theory_dEdx_resrange particle_knower;
+
+TGraph *muon_graph = particle_knower.g_ThdEdxRR_Muon;
+TGraph *proton_graph = particle_knower.g_ThdEdxRR_Proton;
+
+double MuonFunction(double *x, double *) {return muon_graph->Eval(x[0]);}
+double ProtonFunction(double *x, double *) {return proton_graph->Eval(x[0]);}
+
+TF1 *muon_curve = new TF1("muoncurve", MuonFunction, 0, 100, 0);
+TF1 *proton_curve = new TF1("protoncurve", ProtonFunction, 0, 100, 0);
 
 // What variables do we want these plots as a function of?
 std::vector<std::vector<double>> GetPIDvarstoplot(treevars *vars){
@@ -222,22 +236,40 @@ std::vector<double> yrange = {
 //  Now the function starts
 // ---------------------------------------------------- //
 
-void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscaling=0., std::string onbeamdatafile="", std::string offbeamdatafile="", double offbeamscaling=0., bool onminusoffbeam=true, bool templatefit=false){
-//void plotDataMCfromTree(){ // in case you want to hard-code things, you can uncomment this block
-//  std::string treename="pidvalidcaliSCE/pidTree";
+void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, double POTscaling=0., std::string onbeamdatafile="", std::string offbeamdatafile="", double offbeamscaling=0., bool onminusoffbeam=true, bool templatefit=false, int containment_switch=0, int muon_switch=0){
+
+  //void plotDataMCfromTree(){ // in case you want to hard-code things, you can uncomment this block
+  
+ // std::string treename="pidvalidcaliSCE/pidTree";
 ////  std::string mcfile="/uboone/data/users/sfehlber/Mar/Mar11/mc/mc.root"; // MC pure
-//  std::string mcfile="/uboone/data/users/sfehlber/Mar/Mar14/overlay/overlay.root"; // Overlay
-//  std::string onbeamdatafile="/uboone/data/users/sfehlber/Mar/Mar14/bnb/bnb.root"; // onbeam
-//  std::string offbeamdatafile="/uboone/data/users/sfehlber/Mar/Mar14/ext/ext.root"; // onbeam
-//  double offbeamscaling=0.812;
-//  double POTscaling =0.515; //MC pure
-//  //double POTscaling =6.202; Overlay
-//  bool onminusoffbeam=false;
-//  bool templatefit=false;
+ // std::string mcfile="/uboone/data/users/renlu23/MCC9/April_v12/overlay_75k_v12.root"; // Overlay
+ // std::string onbeamdatafile="/uboone/data/users/renlu23/MCC9/April_v12/bnb_v12.root"; // onbeam
+ // std::string offbeamdatafile="/uboone/data/users/renlu23/MCC9/April_v12/extbnb_v12.root"; // onbeam
+ // double offbeamscaling=0.587;
+ // double POTscaling =0.547; //MC pure
+ // //double POTscaling =6.202; Overlay
+ // bool onminusoffbeam=false;
+ // bool templatefit=false;
+ // //PIP'S CHANGE: switches for plot splitting
+ // int containment_switch = 0;
+ // int muon_switch = 0;
+
+  std::string dir0 = std::string("apr12_switches");
+  std::string delimiter = "/";
+  std::string dir1 = treename.substr(0, treename.find(delimiter));
+  std::string dir2;
+  if (muon_switch == 0) dir2 = std::string("all_tracks");
+  if (muon_switch == 1) dir2 = std::string("muon_candidates");
+  if (muon_switch == 2) dir2 = std::string("non_muon_candidates");
+  std::string dir3;
+  if (containment_switch == 0) dir3 = std::string("all");
+  if (containment_switch == 1) dir3 = std::string("contained");
+  if (containment_switch == 2) dir3 = std::string("uncontained");
+  std::string output_dir = dir0 + std::string("/") + dir1 + std::string("/") + dir2 + std::string("/") + dir3 + std::string("/");
 
 
-  gStyle->SetTitleX(0.1f);
-  gStyle->SetTitleW(0.8f);
+  //gStyle->SetTitleX(0.1f);
+  //gStyle->SetTitleW(0.8f);
   gStyle->SetTitleBorderSize(0.);
   gStyle->SetOptStat(0);
 
@@ -289,11 +321,21 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
   hist1D *mc_hists_alldEdx[nplanes];
   hist1D *mc_hists_MIPdEdx[nplanes];
   hist1D *mc_hists_dEdxSlices[nplanes][10];
+  hist1D *mc_hists_dEdxslicedphi[nplanes][10];
+  TH2F *mc_hists_dEdxvsresrange[nplanes];
+  TH2F *mc_hists_dEdxvsthetaxz[nplanes];
+  TH2F *mc_hists_dEdxvsthetayz[nplanes];
+  TH2F *mc_hists_dEdxvsphi[nplanes];
+  TH2F *mc_hists_dEdxvscostheta[nplanes];
+
   for (int i_pl=0; i_pl<nplanes; i_pl++){
     for (int i_h=0; i_h<nplots; i_h++){
       mc_hists[i_pl][i_h] = new hist1D(std::string("h_")+histnames.at(i_h)+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+histtitles.at(i_h),bins.at(i_h).at(0),bins.at(i_h).at(1),bins.at(i_h).at(2));
     }
     for (int slice(0); slice < 10; slice++){
+
+      mc_hists_dEdxslicedphi[i_pl][slice] = new hist1D("h_mc_hists_dEdxSlicedPhi_"+std::to_string(i_pl)+"_"+std::to_string(slice),"",50,0,10);
+
       if (slice<2){
         mc_hists_dEdxSlices[i_pl][slice] = new hist1D("h_mc_hists_dEdxSlices_"+std::to_string(i_pl)+"_"+std::to_string(slice),"",50,0,10);}
       else{
@@ -303,6 +345,12 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
     // Extra custom plots
     mc_hists_MIPdEdx[i_pl] = new hist1D(std::string("h_")+std::string("MIPregiondEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
     mc_hists_alldEdx[i_pl] = new hist1D(std::string("h_")+std::string("alldEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (all hits);"),100,0,10);
+    mc_hists_dEdxvsresrange[i_pl] = new TH2F((std::string("h_")+std::string("dEdx_vs_resrange")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs residual range")).c_str(), 100, 0, 30, 100, 0, 10);
+    mc_hists_dEdxvsthetaxz[i_pl] = new TH2F((std::string("h_")+std::string("dEdx_vs_thetaxz")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs theta_(xz)")).c_str(), 100, 0, 3.14, 100, 0, 10);
+    mc_hists_dEdxvsthetayz[i_pl] = new TH2F((std::string("h_")+std::string("dEdx_vs_thetayz")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs theta_(yz)")).c_str(), 100, 0, 3.14, 100, 0, 10);
+    mc_hists_dEdxvsphi[i_pl] = new TH2F((std::string("h_")+std::string("dEdx_vs_phi")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs phi")).c_str(), 100, -3.14, 3.14, 100, 0, 25);
+    mc_hists_dEdxvscostheta[i_pl] = new TH2F((std::string("h_")+std::string("dEdx_vs_costheta")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs cos(theta)")).c_str(), 100, -1, 1, 100, 0, 10);
+
   }
 
 
@@ -312,6 +360,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
     CalcPIDvars(&mc_vars, true);
     std::vector<std::vector<double>> PIDvarstoplot = GetPIDvarstoplot(&mc_vars);
 
+    //PIP'S CHANGE: switch splitting
+    //--------------------------------
+    if (containment_switch == 1 && !IsContained(mc_vars)) continue;
+    if (containment_switch == 2 && IsContained(mc_vars)) continue;
+    if (muon_switch == 1 && !mc_vars.track_ismuoncandidate) continue;
+    if (muon_switch == 2 && mc_vars.track_ismuoncandidate) continue;
+    //--------------------------------
 
     // if (mc_vars.track_theta_x > 75 && mc_vars.track_theta_x < 90){
       for (size_t i_pl=0; i_pl < nplanes; i_pl++){
@@ -322,6 +377,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
       for (size_t i_hit=0; i_hit<mc_vars.track_resrange_perhit_u->size(); i_hit++){
         FillHist(mc_hists_alldEdx[0],mc_vars.track_dEdx_perhit_u->at(i_hit),mc_vars.true_PDG);
+
+        if (mc_vars.track_resrange_perhit_u->at(i_hit) > 0.3) mc_hists_dEdxvsresrange[0]->Fill(mc_vars.track_resrange_perhit_u->at(i_hit), mc_vars.track_dEdx_perhit_u->at(i_hit));
+        mc_hists_dEdxvsthetaxz[0] ->Fill(ThetaXZ(mc_vars)                          , mc_vars.track_dEdx_perhit_u->at(i_hit));
+        mc_hists_dEdxvsthetayz[0] ->Fill(ThetaYZ(mc_vars)                          , mc_vars.track_dEdx_perhit_u->at(i_hit));
+        mc_hists_dEdxvsphi[0]     ->Fill(mc_vars.track_phi                         , mc_vars.track_dEdx_perhit_u->at(i_hit));
+        mc_hists_dEdxvscostheta[0]->Fill(TMath::Cos(mc_vars.track_theta)           , mc_vars.track_dEdx_perhit_u->at(i_hit));
+
         if (mc_vars.track_resrange_perhit_u->at(i_hit)>100 && mc_vars.track_resrange_perhit_u->at(i_hit)<150){
           FillHist(mc_hists_MIPdEdx[0],mc_vars.track_dEdx_perhit_u->at(i_hit),mc_vars.true_PDG);
         }
@@ -329,6 +391,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
       for (size_t i_hit=0; i_hit<mc_vars.track_resrange_perhit_v->size(); i_hit++){
         FillHist(mc_hists_alldEdx[1],mc_vars.track_dEdx_perhit_v->at(i_hit),mc_vars.true_PDG);
+        
+        if (mc_vars.track_resrange_perhit_v->at(i_hit) > 0.3) mc_hists_dEdxvsresrange[1]->Fill(mc_vars.track_resrange_perhit_v->at(i_hit), mc_vars.track_dEdx_perhit_v->at(i_hit));
+        mc_hists_dEdxvsthetaxz[1] ->Fill(ThetaXZ(mc_vars)                          , mc_vars.track_dEdx_perhit_v->at(i_hit));
+        mc_hists_dEdxvsthetayz[1] ->Fill(ThetaYZ(mc_vars)                          , mc_vars.track_dEdx_perhit_v->at(i_hit));
+        mc_hists_dEdxvsphi[1]     ->Fill(mc_vars.track_phi                         , mc_vars.track_dEdx_perhit_v->at(i_hit));
+        mc_hists_dEdxvscostheta[1]->Fill(TMath::Cos(mc_vars.track_theta)           , mc_vars.track_dEdx_perhit_v->at(i_hit));
+
         if (mc_vars.track_resrange_perhit_v->at(i_hit)>100 && mc_vars.track_resrange_perhit_v->at(i_hit)<150){
           FillHist(mc_hists_MIPdEdx[1],mc_vars.track_dEdx_perhit_v->at(i_hit),mc_vars.true_PDG);
         }
@@ -336,6 +405,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
       for (size_t i_hit=0; i_hit<mc_vars.track_resrange_perhit_y->size(); i_hit++){
         FillHist(mc_hists_alldEdx[2],mc_vars.track_dEdx_perhit_y->at(i_hit),mc_vars.true_PDG);
+
+        if (mc_vars.track_resrange_perhit_y->at(i_hit) > 0.3) mc_hists_dEdxvsresrange[2]->Fill(mc_vars.track_resrange_perhit_y->at(i_hit), mc_vars.track_dEdx_perhit_y->at(i_hit));
+        mc_hists_dEdxvsthetaxz[2] ->Fill(ThetaXZ(mc_vars)                          , mc_vars.track_dEdx_perhit_y->at(i_hit));
+        mc_hists_dEdxvsthetayz[2] ->Fill(ThetaYZ(mc_vars)                          , mc_vars.track_dEdx_perhit_y->at(i_hit));
+        mc_hists_dEdxvsphi[2]     ->Fill(mc_vars.track_phi                         , mc_vars.track_dEdx_perhit_y->at(i_hit));
+        mc_hists_dEdxvscostheta[2]->Fill(TMath::Cos(mc_vars.track_theta)           , mc_vars.track_dEdx_perhit_y->at(i_hit));
+
         if (mc_vars.track_resrange_perhit_y->at(i_hit)>100 && mc_vars.track_resrange_perhit_y->at(i_hit)<150){
           FillHist(mc_hists_MIPdEdx[2],mc_vars.track_dEdx_perhit_y->at(i_hit),mc_vars.true_PDG);
         }
@@ -343,9 +419,11 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
     double rr;
     double dedx;
+    double phi;
     int slice;
+    int phislice;
     int nhits;
-    if (mc_vars.track_ismuoncandidate==1){continue;}
+    //if (mc_vars.track_ismuoncandidate==1){continue;}
     for (size_t i_pl=0; i_pl < nplanes; i_pl++){
       if (i_pl==0){
         nhits=mc_vars.track_resrange_perhit_u->size();}
@@ -358,21 +436,31 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
         if (i_pl==0){
           rr = mc_vars.track_resrange_perhit_u->at(i_hit);
           dedx = mc_vars.track_dEdx_perhit_u->at(i_hit);
+          phi = mc_vars.track_phi; 
           slice=rr/5;
+          phislice=5+phi/0.628;
         }
         if (i_pl==1){
           rr = mc_vars.track_resrange_perhit_v->at(i_hit);
           dedx = mc_vars.track_dEdx_perhit_v->at(i_hit);
+          phi = mc_vars.track_phi;
           slice=rr/5;
+          phislice=5+phi/0.628;
         }
         if (i_pl==2){
           rr = mc_vars.track_resrange_perhit_y->at(i_hit);
           dedx = mc_vars.track_dEdx_perhit_y->at(i_hit);
+          phi = mc_vars.track_phi;
           slice=rr/5;
+          phislice=5+phi/0.628;
         }
         if (slice>10){slice=10;}
         if (slice<0){continue;}
         FillHist(mc_hists_dEdxSlices[i_pl][slice],dedx,mc_vars.true_PDG);
+
+        if (phislice>10){phislice=10;}
+        if (phislice<0){continue;}
+        FillHist(mc_hists_dEdxslicedphi[i_pl][phislice],dedx,mc_vars.true_PDG);
       }
     }
     //} // end theta_x cut
@@ -384,6 +472,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
   hist1D *onb_hists_alldEdx[nplanes];
   hist1D *onb_hists_MIPdEdx[nplanes];
   hist1D *onb_hists_dEdxSlices[nplanes][10];
+  hist1D *onb_hists_dEdxslicedphi[nplanes][10];
+  TH2F *onb_hists_dEdxvsresrange[nplanes];
+  TH2F *onb_hists_dEdxvsthetaxz[nplanes];
+  TH2F *onb_hists_dEdxvsthetayz[nplanes];
+  TH2F *onb_hists_dEdxvsphi[nplanes];
+  TH2F *onb_hists_dEdxvscostheta[nplanes];
+
   if (t_onbeam){
     // Make histograms to fill
     for (size_t i_pl=0; i_pl < nplanes; i_pl++){
@@ -391,6 +486,9 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
         onb_hists[i_pl][i_h] = new hist1D(std::string("h_ondat_")+histnames.at(i_h)+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+histtitles.at(i_h),bins.at(i_h).at(0),bins.at(i_h).at(1),bins.at(i_h).at(2));
       }
       for (int slice(0); slice <10; slice++){
+
+        onb_hists_dEdxslicedphi[i_pl][slice] = new hist1D("h_onb_hists_dEdxSlicedPhi_"+std::to_string(i_pl)+"_"+std::to_string(slice),"",50,0,10);
+
         if (slice<2){
           onb_hists_dEdxSlices[i_pl][slice] = new hist1D("h_onb_hists_dEdxSlices_"+std::to_string(i_pl)+"_"+std::to_string(slice),"",50,0,10);}
         else{
@@ -399,6 +497,12 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
       // Extra custom plots
       onb_hists_MIPdEdx[i_pl] = new hist1D(std::string("h_ondat_")+std::string("MIPregiondEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
       onb_hists_alldEdx[i_pl] = new hist1D(std::string("h_ondat_")+std::string("alldEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
+      onb_hists_dEdxvsresrange[i_pl] = new TH2F((std::string("h_ondat_")+std::string("dEdx_vs_resrange")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs residual range")).c_str(), 100, 0, 30, 100, 0, 10);
+      onb_hists_dEdxvsthetaxz[i_pl] = new TH2F((std::string("h_ondat__")+std::string("dEdx_vs_thetaxz")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs theta_(xz)")).c_str(), 100, 0, 3.14, 100, 0, 10);
+      onb_hists_dEdxvsthetayz[i_pl] = new TH2F((std::string("h_ondat_")+std::string("dEdx_vs_thetayz")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs theta_(yz)")).c_str(), 100, 0, 3.14, 100, 0, 10);
+      onb_hists_dEdxvsphi[i_pl] = new TH2F((std::string("h_ondat_")+std::string("dEdx_vs_phi")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs phi")).c_str(), 100, -3.14, 3.14, 100, 0, 25);
+      onb_hists_dEdxvscostheta[i_pl] = new TH2F((std::string("h_ondat_")+std::string("dEdx_vs_costheta")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs cos(theta)")).c_str(), 100, -1, 1, 100, 0, 10);
+
     }
 
     // Loop through on-beam data tree and fill plots
@@ -406,6 +510,14 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
       t_onbeam->GetEntry(i);
       CalcPIDvars(&onbeam_vars, false);
       std::vector<std::vector<double>> PIDvarstoplot = GetPIDvarstoplot(&onbeam_vars);
+
+      //PIP'S CHANGE: switch splitting
+      //--------------------------------
+      if (containment_switch == 1 && !IsContained(onbeam_vars)) continue;
+      if (containment_switch == 2 && IsContained(onbeam_vars)) continue;
+      if (muon_switch == 1 && !onbeam_vars.track_ismuoncandidate) continue;
+      if (muon_switch == 2 && onbeam_vars.track_ismuoncandidate) continue;
+      //--------------------------------
 
 //      if (onbeam_vars.track_theta_x > 75 && onbeam_vars.track_theta_x < 90){
         for (size_t i_pl=0; i_pl < nplanes; i_pl++){
@@ -417,6 +529,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
       for (size_t i_hit=0; i_hit<onbeam_vars.track_resrange_perhit_u->size(); i_hit++){
         FillHist(onb_hists_alldEdx[0],onbeam_vars.track_dEdx_perhit_u->at(i_hit),onbeam_vars.true_PDG);
+
+        if(onbeam_vars.track_resrange_perhit_u->at(i_hit) > 0.3) onb_hists_dEdxvsresrange[0]->Fill(onbeam_vars.track_resrange_perhit_u->at(i_hit), onbeam_vars.track_dEdx_perhit_u->at(i_hit));
+        onb_hists_dEdxvsthetaxz[0] ->Fill(ThetaXZ(onbeam_vars)                          , onbeam_vars.track_dEdx_perhit_u->at(i_hit));
+        onb_hists_dEdxvsthetayz[0] ->Fill(ThetaYZ(onbeam_vars)                          , onbeam_vars.track_dEdx_perhit_u->at(i_hit));
+        onb_hists_dEdxvsphi[0]     ->Fill(onbeam_vars.track_phi                         , onbeam_vars.track_dEdx_perhit_u->at(i_hit));
+        onb_hists_dEdxvscostheta[0]->Fill(TMath::Cos(onbeam_vars.track_theta)           , onbeam_vars.track_dEdx_perhit_u->at(i_hit));
+
         if (onbeam_vars.track_resrange_perhit_u->at(i_hit)>100 && onbeam_vars.track_resrange_perhit_u->at(i_hit)<150){
           FillHist(onb_hists_MIPdEdx[0],onbeam_vars.track_dEdx_perhit_u->at(i_hit),0);
         }
@@ -424,6 +543,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
       for (size_t i_hit=0; i_hit<onbeam_vars.track_resrange_perhit_v->size(); i_hit++){
         FillHist(onb_hists_alldEdx[1],onbeam_vars.track_dEdx_perhit_v->at(i_hit),onbeam_vars.true_PDG);
+
+        if(onbeam_vars.track_resrange_perhit_v->at(i_hit) > 0.3) onb_hists_dEdxvsresrange[1]->Fill(onbeam_vars.track_resrange_perhit_v->at(i_hit), onbeam_vars.track_dEdx_perhit_v->at(i_hit));
+        onb_hists_dEdxvsthetaxz[1] ->Fill(ThetaXZ(onbeam_vars)                          , onbeam_vars.track_dEdx_perhit_v->at(i_hit));
+        onb_hists_dEdxvsthetayz[1] ->Fill(ThetaYZ(onbeam_vars)                          , onbeam_vars.track_dEdx_perhit_v->at(i_hit));
+        onb_hists_dEdxvsphi[1]     ->Fill(onbeam_vars.track_phi                         , onbeam_vars.track_dEdx_perhit_v->at(i_hit));
+        onb_hists_dEdxvscostheta[1]->Fill(TMath::Cos(onbeam_vars.track_theta)           , onbeam_vars.track_dEdx_perhit_v->at(i_hit));
+
         if (onbeam_vars.track_resrange_perhit_v->at(i_hit)>100 && onbeam_vars.track_resrange_perhit_v->at(i_hit)<150){
           FillHist(onb_hists_MIPdEdx[1],onbeam_vars.track_dEdx_perhit_v->at(i_hit),0);
         }
@@ -431,15 +557,24 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
       for (size_t i_hit=0; i_hit<onbeam_vars.track_resrange_perhit_y->size(); i_hit++){
         FillHist(onb_hists_alldEdx[2],onbeam_vars.track_dEdx_perhit_y->at(i_hit),onbeam_vars.true_PDG);
+
+        if (onbeam_vars.track_resrange_perhit_y->at(i_hit) > 0.3) onb_hists_dEdxvsresrange[2]->Fill(onbeam_vars.track_resrange_perhit_y->at(i_hit), onbeam_vars.track_dEdx_perhit_y->at(i_hit));
+        onb_hists_dEdxvsthetaxz[2] ->Fill(ThetaXZ(onbeam_vars)                          , onbeam_vars.track_dEdx_perhit_y->at(i_hit));
+        onb_hists_dEdxvsthetayz[2] ->Fill(ThetaYZ(onbeam_vars)                          , onbeam_vars.track_dEdx_perhit_y->at(i_hit));
+        onb_hists_dEdxvsphi[2]     ->Fill(onbeam_vars.track_phi                         , onbeam_vars.track_dEdx_perhit_y->at(i_hit));
+        onb_hists_dEdxvscostheta[2]->Fill(TMath::Cos(onbeam_vars.track_theta)           , onbeam_vars.track_dEdx_perhit_y->at(i_hit));
+
         if (onbeam_vars.track_resrange_perhit_y->at(i_hit)>100 && onbeam_vars.track_resrange_perhit_y->at(i_hit)<150){
           FillHist(onb_hists_MIPdEdx[2],onbeam_vars.track_dEdx_perhit_y->at(i_hit),0);
         }
       }
       double rr;
       double dedx;
+      double phi;
       int slice;
+      int phislice;
       int nhits;
-      if (onbeam_vars.track_ismuoncandidate==1){continue;}
+      //if (onbeam_vars.track_ismuoncandidate==1){continue;}
       for (size_t i_pl=0; i_pl < nplanes; i_pl++){
         if (i_pl==0){
           nhits=onbeam_vars.track_resrange_perhit_u->size();}
@@ -451,23 +586,33 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
           if (i_pl==0){
             rr = onbeam_vars.track_resrange_perhit_u->at(i_hit);
             dedx = onbeam_vars.track_dEdx_perhit_u->at(i_hit);
+            phi = onbeam_vars.track_phi;
             slice=rr/5;
+            phislice=5+phi/0.628;
             if (slice>10){slice=10;}
           }
           if (i_pl==1){
             rr = onbeam_vars.track_resrange_perhit_v->at(i_hit);
             dedx = onbeam_vars.track_dEdx_perhit_v->at(i_hit);
+            phi = onbeam_vars.track_phi;
             slice=rr/5;
+            phislice=5+phi/0.628;
             if (slice>10){slice=10;}
+            if (phislice>10){phislice=10;}
           }
           if (i_pl==2){
             rr = onbeam_vars.track_resrange_perhit_y->at(i_hit);
             dedx = onbeam_vars.track_dEdx_perhit_y->at(i_hit);
+            phi = onbeam_vars.track_phi;
             slice=rr/5;
+            phislice=5+phi/0.628;
             if (slice>10){slice=10;}
+            if (phislice>10){phislice=10;}
           }
           if (slice<0){continue;}
           FillHist(onb_hists_dEdxSlices[i_pl][slice],dedx,0);
+          if (phislice<0){continue;}
+          FillHist(onb_hists_dEdxslicedphi[i_pl][phislice],dedx,0);
         }
       }
     }
@@ -477,6 +622,14 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
   hist1D *offb_hists_alldEdx[nplanes];
   hist1D *offb_hists_MIPdEdx[nplanes];
   hist1D *offb_hists_dEdxSlices[nplanes][10];
+  hist1D *offb_hists_dEdxslicedphi[nplanes][10];
+  TH2F *offb_hists_dEdxvsresrange[nplanes];
+  TH2F *offb_hists_dEdxvsthetaxz[nplanes];
+  TH2F *offb_hists_dEdxvsthetayz[nplanes];
+  TH2F *offb_hists_dEdxvsphi[nplanes];
+  TH2F *offb_hists_dEdxvscostheta[nplanes];
+
+
   if (t_offbeam){
     // Make histograms to fill
     for (size_t i_pl=0; i_pl < nplanes; i_pl++){
@@ -484,6 +637,9 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
         offb_hists[i_pl][i_h] = new hist1D(std::string("h_offdat_")+histnames.at(i_h)+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+histtitles.at(i_h),bins.at(i_h).at(0),bins.at(i_h).at(1),bins.at(i_h).at(2));
       }
       for (int slice(0); slice <10; slice++){
+
+        offb_hists_dEdxslicedphi[i_pl][slice] = new hist1D("h_offb_hists_dEdxSlicedPhi_"+std::to_string(i_pl)+"_"+std::to_string(slice),"",50,0,10);
+
         if (slice<2){
           offb_hists_dEdxSlices[i_pl][slice] = new hist1D("h_offb_hists_dEdxSlices_"+std::to_string(i_pl)+"_"+std::to_string(slice),"",50,0,10);}
         else{
@@ -492,6 +648,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
       // Extra custom plots
       offb_hists_MIPdEdx[i_pl] = new hist1D(std::string("h_offdat_")+std::string("MIPregiondEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
       offb_hists_alldEdx[i_pl] = new hist1D(std::string("h_offdat_")+std::string("alldEdx")+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx per hit (res. range 100-150 cm);"),100,0,10);
+      offb_hists_dEdxvsresrange[i_pl] = new TH2F((std::string("h_offdat_")+std::string("dEdx_vs_resrange")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs residual range")).c_str(), 100, 0, 30, 100, 0, 10);
+      offb_hists_dEdxvsthetaxz[i_pl] = new TH2F((std::string("h_offdat__")+std::string("dEdx_vs_thetaxz")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs theta_(xz)")).c_str(), 100, 0, 3.14, 100, 0, 10);
+      offb_hists_dEdxvsthetayz[i_pl] = new TH2F((std::string("h_offdat_")+std::string("dEdx_vs_thetayz")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs theta_(yz)")).c_str(), 100, 0, 3.14, 100, 0, 10);
+      offb_hists_dEdxvsphi[i_pl] = new TH2F((std::string("h_offdat_")+std::string("dEdx_vs_phi")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs phi")).c_str(), 100, -3.14, 3.14, 100, 0, 25);
+      offb_hists_dEdxvscostheta[i_pl] = new TH2F((std::string("h_offdat_")+std::string("dEdx_vs_costheta")+std::string("_plane")+std::to_string(i_pl)).c_str(), (std::string("Plane ")+std::to_string(i_pl)+std::string(";dE/dx vs cos(theta)")).c_str(), 100, -1, 1, 100, 0, 10);
+
+
     }
 
 
@@ -500,6 +663,14 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
       t_offbeam->GetEntry(i);
       CalcPIDvars(&offbeam_vars, false);
       std::vector<std::vector<double>> PIDvarstoplot = GetPIDvarstoplot(&offbeam_vars);
+
+      //PIP'S CHANGE: switch splitting
+      //--------------------------------
+      if (containment_switch == 1 && !IsContained(offbeam_vars)) continue;
+      if (containment_switch == 2 && IsContained(offbeam_vars)) continue;
+      if (muon_switch == 1 && !offbeam_vars.track_ismuoncandidate) continue;
+      if (muon_switch == 2 && offbeam_vars.track_ismuoncandidate) continue;
+      //--------------------------------
 
       //if (offbeam_vars.track_theta_x >75 && offbeam_vars.track_theta_x < 90){
         for (size_t i_pl=0; i_pl < nplanes; i_pl++){
@@ -511,6 +682,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
       for (size_t i_hit=0; i_hit<offbeam_vars.track_resrange_perhit_u->size(); i_hit++){
         FillHist(offb_hists_alldEdx[0],offbeam_vars.track_dEdx_perhit_u->at(i_hit),offbeam_vars.true_PDG);
+
+        if (offbeam_vars.track_resrange_perhit_u->at(i_hit) > 0.3) offb_hists_dEdxvsresrange[0]->Fill(offbeam_vars.track_resrange_perhit_u->at(i_hit), offbeam_vars.track_dEdx_perhit_u->at(i_hit));
+        offb_hists_dEdxvsthetaxz[0] ->Fill(ThetaXZ(offbeam_vars)                          , offbeam_vars.track_dEdx_perhit_u->at(i_hit));
+        offb_hists_dEdxvsthetayz[0] ->Fill(ThetaYZ(offbeam_vars)                          , offbeam_vars.track_dEdx_perhit_u->at(i_hit));
+        offb_hists_dEdxvsphi[0]     ->Fill(offbeam_vars.track_phi                         , offbeam_vars.track_dEdx_perhit_u->at(i_hit));
+        offb_hists_dEdxvscostheta[0]->Fill(TMath::Cos(offbeam_vars.track_theta)           , offbeam_vars.track_dEdx_perhit_u->at(i_hit));
+
         if (offbeam_vars.track_resrange_perhit_u->at(i_hit)>100 && offbeam_vars.track_resrange_perhit_u->at(i_hit)<150){
           FillHist(offb_hists_MIPdEdx[0],offbeam_vars.track_dEdx_perhit_u->at(i_hit),offbeam_vars.true_PDG);
         }
@@ -518,6 +696,13 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
       for (size_t i_hit=0; i_hit<offbeam_vars.track_resrange_perhit_v->size(); i_hit++){
         FillHist(offb_hists_alldEdx[1],offbeam_vars.track_dEdx_perhit_v->at(i_hit),offbeam_vars.true_PDG);
+
+        if (offbeam_vars.track_resrange_perhit_v->at(i_hit) > 0.3) offb_hists_dEdxvsresrange[1]->Fill(offbeam_vars.track_resrange_perhit_v->at(i_hit), offbeam_vars.track_dEdx_perhit_v->at(i_hit));
+        offb_hists_dEdxvsthetaxz[1] ->Fill(ThetaXZ(offbeam_vars)                          , offbeam_vars.track_dEdx_perhit_v->at(i_hit));
+        offb_hists_dEdxvsthetayz[1] ->Fill(ThetaYZ(offbeam_vars)                          , offbeam_vars.track_dEdx_perhit_v->at(i_hit));
+        offb_hists_dEdxvsphi[1]     ->Fill(offbeam_vars.track_phi                         , offbeam_vars.track_dEdx_perhit_v->at(i_hit));
+        offb_hists_dEdxvscostheta[1]->Fill(TMath::Cos(offbeam_vars.track_theta)           , offbeam_vars.track_dEdx_perhit_v->at(i_hit));
+
         if (offbeam_vars.track_resrange_perhit_v->at(i_hit)>100 && offbeam_vars.track_resrange_perhit_v->at(i_hit)<150){
           FillHist(offb_hists_MIPdEdx[1],offbeam_vars.track_dEdx_perhit_v->at(i_hit),offbeam_vars.true_PDG);
         }
@@ -525,15 +710,25 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
       for (size_t i_hit=0; i_hit<offbeam_vars.track_resrange_perhit_y->size(); i_hit++){
         FillHist(offb_hists_alldEdx[2],offbeam_vars.track_dEdx_perhit_y->at(i_hit),offbeam_vars.true_PDG);
+
+        if (offbeam_vars.track_resrange_perhit_y->at(i_hit) > 0.3) offb_hists_dEdxvsresrange[2]->Fill(offbeam_vars.track_resrange_perhit_y->at(i_hit), offbeam_vars.track_dEdx_perhit_y->at(i_hit));
+        offb_hists_dEdxvsthetaxz[2] ->Fill(ThetaXZ(offbeam_vars)                          , offbeam_vars.track_dEdx_perhit_y->at(i_hit));
+        offb_hists_dEdxvsthetayz[2] ->Fill(ThetaYZ(offbeam_vars)                          , offbeam_vars.track_dEdx_perhit_y->at(i_hit));
+        offb_hists_dEdxvsphi[2]     ->Fill(offbeam_vars.track_phi                         , offbeam_vars.track_dEdx_perhit_y->at(i_hit));
+        offb_hists_dEdxvscostheta[2]->Fill(TMath::Cos(offbeam_vars.track_theta)           , offbeam_vars.track_dEdx_perhit_y->at(i_hit));
+
+
         if (offbeam_vars.track_resrange_perhit_y->at(i_hit)>100 && offbeam_vars.track_resrange_perhit_y->at(i_hit)<150){
           FillHist(offb_hists_MIPdEdx[2],offbeam_vars.track_dEdx_perhit_y->at(i_hit),offbeam_vars.true_PDG);
         }
       }
       double rr;
       double dedx;
+      double phi;
       int slice;
+      int phislice;
       int nhits;
-      if (offbeam_vars.track_ismuoncandidate==1){continue;}
+      //if (offbeam_vars.track_ismuoncandidate==1){continue;}
       for (size_t i_pl=0; i_pl < nplanes; i_pl++){
         if (i_pl==0){
           nhits=offbeam_vars.track_resrange_perhit_u->size();}
@@ -546,21 +741,32 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
           if (i_pl==0){
             rr = offbeam_vars.track_resrange_perhit_u->at(i_hit);
             dedx = offbeam_vars.track_dEdx_perhit_u->at(i_hit);
+            phi = offbeam_vars.track_phi;
             slice=rr/5;
+            phislice=5+phi/0.628;
           }
           if (i_pl==1){
             rr = offbeam_vars.track_resrange_perhit_v->at(i_hit);
             dedx = offbeam_vars.track_dEdx_perhit_v->at(i_hit);
+            phi = offbeam_vars.track_phi;
             slice=rr/5;
+            phislice=5+phi/0.628;
           }
           if (i_pl==2){
             rr = offbeam_vars.track_resrange_perhit_y->at(i_hit);
             dedx = offbeam_vars.track_dEdx_perhit_y->at(i_hit);
+            phi = offbeam_vars.track_phi;
             slice=rr/5;
+            phislice=5+phi/0.628;
           }
           if (slice>10){slice=10;}
           if (slice<0){continue;}
           FillHist(offb_hists_dEdxSlices[i_pl][slice],dedx,0);
+
+          if (phislice>10){phislice=10;}
+          if (phislice<0){continue;}
+          FillHist(offb_hists_dEdxslicedphi[i_pl][phislice],dedx,0);
+
         }
       }
     } // end loop over entries in tree
@@ -568,7 +774,8 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
 
   // -------------------- Now make all the plots
 
-  for (size_t i_pl=0; i_pl < nplanes; i_pl++){
+  //for (size_t i_pl=0; i_pl < nplanes; i_pl++){
+  for (size_t i_pl=0; i_pl < 3; i_pl++){
     for (size_t i_h=0; i_h < nplots; i_h++){
       TCanvas *c1 = new TCanvas();
 
@@ -600,7 +807,7 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
           DrawMC(mc_hists[i_pl][i_h],POTscaling_tmp,yrange.at(i_h));
         }
       }
-      c1->Print(std::string(histnames[i_h]+std::string("_plane")+std::to_string(i_pl)+".png").c_str());
+      c1->Print(std::string(output_dir+histnames[i_h]+std::string("_plane")+std::to_string(i_pl)+".png").c_str());
     } // end loop over plot variables
 
    TCanvas *c1 = new TCanvas();
@@ -633,7 +840,7 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
       DrawMC(mc_hists_MIPdEdx[i_pl],POTscaling_tmp,-999);
     }
   }
-  c1->Print(std::string(std::string("h_MIPregiondEdx_plane")+std::to_string(i_pl)+".png").c_str());
+  c1->Print(std::string(output_dir+std::string("h_MIPregiondEdx_plane")+std::to_string(i_pl)+".png").c_str());
 
   POTscaling_tmp = POTscaling; // Reset POT scaling for the next plot
 
@@ -663,15 +870,153 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
       DrawMC(mc_hists_alldEdx[i_pl],POTscaling_tmp,-999);
     }
   }
-  c1->Print(std::string(std::string("h_alldEdx_plane")+std::to_string(i_pl)+".png").c_str());
+  c1->Print(std::string(output_dir+std::string("h_alldEdx_plane")+std::to_string(i_pl)+".png").c_str());
+
+  // Make plots of dE/dx vs things
+ 
+  mc_hists_dEdxvsresrange[i_pl]->Scale(POTscaling);
+  offb_hists_dEdxvsresrange[i_pl]->Scale(offbeamscaling);
+  mc_hists_dEdxvsresrange[i_pl]->Add(offb_hists_dEdxvsresrange[i_pl]);
+  mc_hists_dEdxvsresrange[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  mc_hists_dEdxvsresrange[i_pl]->GetXaxis()->SetTitle("Residual range (cm)");
+  mc_hists_dEdxvsresrange[i_pl]->Draw("colz");
+  muon_curve->Draw("same");
+  proton_curve->Draw("same");
+  c1->Print(std::string(output_dir+std::string("h_mc_dEdxvsresrange_plane")+std::to_string(i_pl)+".png").c_str());
+
+  mc_hists_dEdxvsthetaxz[i_pl]->Scale(POTscaling);
+  offb_hists_dEdxvsthetaxz[i_pl]->Scale(offbeamscaling);
+  mc_hists_dEdxvsthetaxz[i_pl]->Add(offb_hists_dEdxvsthetaxz[i_pl]);
+  mc_hists_dEdxvsthetaxz[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  mc_hists_dEdxvsthetaxz[i_pl]->GetXaxis()->SetTitle("#theta_{xz}");
+  mc_hists_dEdxvsthetaxz[i_pl]->Draw("colz");
+  c1->Print(std::string(output_dir+std::string("h_mc_dEdxvsthetaxz_plane")+std::to_string(i_pl)+".png").c_str());
+
+  mc_hists_dEdxvsthetayz[i_pl]->Scale(POTscaling);
+  offb_hists_dEdxvsthetayz[i_pl]->Scale(offbeamscaling);
+  mc_hists_dEdxvsthetayz[i_pl]->Add(offb_hists_dEdxvsthetayz[i_pl]);
+  mc_hists_dEdxvsthetayz[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  mc_hists_dEdxvsthetayz[i_pl]->GetXaxis()->SetTitle("#Theta_{yz}");
+  mc_hists_dEdxvsthetayz[i_pl]->Draw("colz");
+  c1->Print(std::string(output_dir+std::string("h_mc_dEdxvsthetayz_plane")+std::to_string(i_pl)+".png").c_str());
+
+  mc_hists_dEdxvsphi[i_pl]->Scale(POTscaling);
+  offb_hists_dEdxvsphi[i_pl]->Scale(offbeamscaling);
+  mc_hists_dEdxvsphi[i_pl]->Add(offb_hists_dEdxvsphi[i_pl]);
+  mc_hists_dEdxvsphi[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  mc_hists_dEdxvsphi[i_pl]->GetXaxis()->SetTitle("#phi");
+  mc_hists_dEdxvsphi[i_pl]->Draw("colz");
+  c1->Print(std::string(output_dir+std::string("h_mc_dEdxvsphi_plane")+std::to_string(i_pl)+".png").c_str());
+
+  mc_hists_dEdxvscostheta[i_pl]->Scale(POTscaling);
+  offb_hists_dEdxvscostheta[i_pl]->Scale(offbeamscaling);
+  mc_hists_dEdxvscostheta[i_pl]->Add(offb_hists_dEdxvscostheta[i_pl]);
+  mc_hists_dEdxvscostheta[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  mc_hists_dEdxvscostheta[i_pl]->GetXaxis()->SetTitle("cos(#theta)");
+  mc_hists_dEdxvscostheta[i_pl]->Draw("colz");
+  c1->Print(std::string(output_dir+std::string("h_mc_dEdxvscostheta_plane")+std::to_string(i_pl)+".png").c_str());
+
+  onb_hists_dEdxvsresrange[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  onb_hists_dEdxvsresrange[i_pl]->GetXaxis()->SetTitle("Residual range (cm)");
+  onb_hists_dEdxvsresrange[i_pl]->Draw("colz");
+  muon_curve->Draw("same");
+  proton_curve->Draw("same");
+  c1->Print(std::string(output_dir+std::string("h_data_dEdxvsresrange_plane")+std::to_string(i_pl)+".png").c_str());
+
+  onb_hists_dEdxvsthetaxz[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  onb_hists_dEdxvsthetaxz[i_pl]->GetXaxis()->SetTitle("#theta_{xz}");
+  onb_hists_dEdxvsthetaxz[i_pl]->Draw("colz");
+  c1->Print(std::string(output_dir+std::string("h_data_dEdxvsthetaxz_plane")+std::to_string(i_pl)+".png").c_str());
+
+  onb_hists_dEdxvsthetayz[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  onb_hists_dEdxvsthetayz[i_pl]->GetXaxis()->SetTitle("#Theta_{yz}");
+  onb_hists_dEdxvsthetayz[i_pl]->Draw("colz");
+  c1->Print(std::string(output_dir+std::string("h_data_dEdxvsthetayz_plane")+std::to_string(i_pl)+".png").c_str());
+
+  onb_hists_dEdxvsphi[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  onb_hists_dEdxvsphi[i_pl]->GetXaxis()->SetTitle("#phi");
+  onb_hists_dEdxvsphi[i_pl]->Draw("colz");
+  c1->Print(std::string(output_dir+std::string("h_data_dEdxvsphi_plane")+std::to_string(i_pl)+".png").c_str());
+
+  onb_hists_dEdxvscostheta[i_pl]->GetYaxis()->SetTitle("dE/dx per hit (all hits)");
+  onb_hists_dEdxvscostheta[i_pl]->GetXaxis()->SetTitle("cos(#theta)");
+  onb_hists_dEdxvscostheta[i_pl]->Draw("colz");
+  c1->Print(std::string(output_dir+std::string("h_data_dEdxvscostheta_plane")+std::to_string(i_pl)+".png").c_str());
+
 
   // Make the dE/dx plots in RR slices
   for (size_t slice(0); slice<10; slice++){
     c1->cd();
+    FormatYourPlotsAndy(mc_hists_dEdxSlices[i_pl][slice], slice);
+    FormatYourPlotsAndy(offb_hists_dEdxSlices[i_pl][slice], slice);
+    FormatYourPlotsAndy(onb_hists_dEdxSlices[i_pl][slice], slice);
+
+    //double proton_exp = 17*pow((slice*5+2.5),(-0.42));
+    double lineheight = onb_hists_dEdxSlices[i_pl][slice]->h_all->GetMaximum();
+    double proton_exp = particle_knower.g_ThdEdxRR_Proton->Eval(2.5+slice*5, 0, "S");
+    double muon_exp   = particle_knower.g_ThdEdxRR_Muon->Eval(2.5+slice*5, 0, "S");
+
+    TLine *protonline = new TLine(proton_exp, 0, proton_exp, lineheight);
+    protonline->SetLineWidth(3);
+    protonline->SetLineColor(kRed);
+    TLine *muonline = new TLine(muon_exp, 0, muon_exp, lineheight);
+    muonline->SetLineWidth(3);
+    muonline->SetLineColor(kViolet);
+
     DrawMCPlusOffbeam(mc_hists_dEdxSlices[i_pl][slice], offb_hists_dEdxSlices[i_pl][slice], POTscaling, offbeamscaling,-999);
     OverlayOnBeamData(c1, onb_hists_dEdxSlices[i_pl][slice]);
-    c1->Print(std::string(std::string("h_dEdx_plane_")+std::to_string(i_pl)+"_slice_"+std::to_string(slice)+".png").c_str());
-    c1->Print(std::string(std::string("h_dEdx_plane_")+std::to_string(i_pl)+"_slice_"+std::to_string(slice)+".eps").c_str());
+    protonline->Draw("same");
+    muonline->Draw("same");
+    c1->Print(std::string(output_dir+std::string("h_dEdx_plane_")+std::to_string(i_pl)+"_slice_"+std::to_string(slice)+".png").c_str());
+    //c1->Print(std::string(output_dir+std::string("h_dEdx_plane_")+std::to_string(i_pl)+"_slice_"+std::to_string(slice)+".eps").c_str());
+    
+    //Make the dE/dx plots in phi slices
+
+    FormatPhiSlices(mc_hists_dEdxslicedphi[i_pl][slice], slice);
+    FormatPhiSlices(offb_hists_dEdxslicedphi[i_pl][slice], slice);
+    FormatPhiSlices(onb_hists_dEdxslicedphi[i_pl][slice], slice);
+
+    DrawMCPlusOffbeam(mc_hists_dEdxslicedphi[i_pl][slice], offb_hists_dEdxslicedphi[i_pl][slice], POTscaling, offbeamscaling,-999);
+    OverlayOnBeamData(c1, onb_hists_dEdxslicedphi[i_pl][slice]);
+    c1->Print(std::string(output_dir+std::string("h_dEdx_plane_")+std::to_string(i_pl)+"_phislice_"+std::to_string(slice)+".png").c_str());
   }
   } // end loop over planes
 }
+
+void plotDataMCfromTree()
+{
+  muon_curve->SetLineWidth(3);
+  muon_curve->SetLineColor(kViolet);
+  
+  proton_curve->SetLineWidth(3);
+  proton_curve->SetLineColor(kBlue);
+
+  std::string mcfile="/uboone/data/users/renlu23/MCC9/April_v12/overlay_75k_v12.root"; // Overlay
+  std::string onbeamdatafile="/uboone/data/users/renlu23/MCC9/April_v12/bnb_v12.root"; // onbeam
+  std::string offbeamdatafile="/uboone/data/users/renlu23/MCC9/April_v12/extbnb_v12.root"; // offbeam
+  double offbeamscaling=0.587;
+  double POTscaling =0.547; //MC pure
+
+  //plotDataMCfromTree_Vandalised(std::string("pidvalidcaliSCE/pidTree"), mcfile, POTscaling, onbeamdatafile, offbeamdatafile, offbeamscaling, false, false, 1, 1);
+
+  std::string treename;
+  for (int i = 0; i < 4; i++)
+  {
+    if (i == 0) treename = std::string("pidvalidcalo/pidTree");
+    if (i == 1) treename = std::string("pidvalidcaloSCE/pidTree");
+    if (i == 2) treename = std::string("pidvalidcali/pidTree");
+    if (i == 3) treename = std::string("pidvalidcaliSCE/pidTree");
+
+    for (int j = 0; j < 3; j++)
+    {
+      for (int k = 0; k < 3; k++)
+      {
+        plotDataMCfromTree_Vandalised(treename, mcfile, POTscaling, onbeamdatafile, offbeamdatafile, offbeamscaling, false, false, j, k);
+      }
+    }
+  }
+
+  return;
+}
+
+
