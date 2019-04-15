@@ -222,18 +222,21 @@ std::vector<double> yrange = {
 //  Now the function starts
 // ---------------------------------------------------- //
 
-void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscaling=0., std::string onbeamdatafile="", std::string offbeamdatafile="", double offbeamscaling=0., bool onminusoffbeam=true, bool templatefit=false){
-//void plotDataMCfromTree(){ // in case you want to hard-code things, you can uncomment this block
-//  std::string treename="pidvalidcaliSCE/pidTree";
-////  std::string mcfile="/uboone/data/users/sfehlber/Mar/Mar11/mc/mc.root"; // MC pure
+//void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscaling=0., std::string onbeamdatafile="", std::string offbeamdatafile="", double offbeamscaling=0., bool onminusoffbeam=true, bool templatefit=false){
+void plotDataMCfromTree(){ // in case you want to hard-code things, you can uncomment this block
+  std::string treename="pidvalidcaliSCE/pidTree";
+//  std::string mcfile="/uboone/data/users/sfehlber/Mar/Mar11/mc/mc.root"; // MC pure
 //  std::string mcfile="/uboone/data/users/sfehlber/Mar/Mar14/overlay/overlay.root"; // Overlay
 //  std::string onbeamdatafile="/uboone/data/users/sfehlber/Mar/Mar14/bnb/bnb.root"; // onbeam
 //  std::string offbeamdatafile="/uboone/data/users/sfehlber/Mar/Mar14/ext/ext.root"; // onbeam
-//  double offbeamscaling=0.812;
-//  double POTscaling =0.515; //MC pure
-//  //double POTscaling =6.202; Overlay
-//  bool onminusoffbeam=false;
-//  bool templatefit=false;
+  std::string mcfile="/uboone/data/users/renlu23/MCC9/April_v12/overlay_more_v12.root"; // Overlay
+  std::string onbeamdatafile="/uboone/data/users/renlu23/MCC9/April_v12/bnb_more_v12.root"; // onbeam
+  std::string offbeamdatafile="/uboone/data/users/renlu23/MCC9/April_v12/extbnb_more_v12.root"; // onbeam
+  double offbeamscaling=0.273;
+  double POTscaling =0.132; //MC pure
+  //double POTscaling =6.202; Overlay
+  bool onminusoffbeam=false;
+  bool templatefit=false;
 
 
   gStyle->SetTitleX(0.1f);
@@ -289,6 +292,8 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
   hist1D *mc_hists_alldEdx[nplanes];
   hist1D *mc_hists_MIPdEdx[nplanes];
   hist1D *mc_hists_dEdxSlices[nplanes][10];
+  hist1D *mc_hists_trackShowerScore = new hist1D("h_mc_hists_trackShowerScore","",50,0,1);
+  hist1D *mc_hists_trackShowerScore_less10cm = new hist1D("h_mc_hists_trackShowerScore_less10cm","",50,0,1);
   for (int i_pl=0; i_pl<nplanes; i_pl++){
     for (int i_h=0; i_h<nplots; i_h++){
       mc_hists[i_pl][i_h] = new hist1D(std::string("h_")+histnames.at(i_h)+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_pl)+histtitles.at(i_h),bins.at(i_h).at(0),bins.at(i_h).at(1),bins.at(i_h).at(2));
@@ -375,6 +380,12 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
         FillHist(mc_hists_dEdxSlices[i_pl][slice],dedx,mc_vars.true_PDG);
       }
     }
+    if (mc_vars.track_lnlikelihood_mipoverp->at(2) < -1){
+      FillHist(mc_hists_trackShowerScore, mc_vars.track_shower_score, mc_vars.true_PDG);
+      if (mc_vars.track_length < 10){
+        FillHist(mc_hists_trackShowerScore_less10cm, mc_vars.track_shower_score, mc_vars.true_PDG);
+      }
+    }
     //} // end theta_x cut
   } // end loop over entries in tree
 
@@ -384,6 +395,8 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
   hist1D *onb_hists_alldEdx[nplanes];
   hist1D *onb_hists_MIPdEdx[nplanes];
   hist1D *onb_hists_dEdxSlices[nplanes][10];
+  hist1D *onb_hists_trackShowerScore = new hist1D("h_onb_hists_trackShowerScore","",50,0,1);
+  hist1D *onb_hists_trackShowerScore_less10cm = new hist1D("h_onb_hists_trackShowerScore_less10cm","",50,0,1);
   if (t_onbeam){
     // Make histograms to fill
     for (size_t i_pl=0; i_pl < nplanes; i_pl++){
@@ -470,6 +483,12 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
           FillHist(onb_hists_dEdxSlices[i_pl][slice],dedx,0);
         }
       }
+      if (onbeam_vars.track_lnlikelihood_mipoverp->at(2) < -1){
+        FillHist(onb_hists_trackShowerScore, onbeam_vars.track_shower_score, 0);
+        if (onbeam_vars.track_length<10){
+          FillHist(onb_hists_trackShowerScore_less10cm, onbeam_vars.track_shower_score, 0);
+        }
+      }
     }
   }
     // ----------------- Off-beam data
@@ -477,6 +496,8 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
   hist1D *offb_hists_alldEdx[nplanes];
   hist1D *offb_hists_MIPdEdx[nplanes];
   hist1D *offb_hists_dEdxSlices[nplanes][10];
+  hist1D *offb_hists_trackShowerScore = new hist1D("h_offb_hists_trackShowerScore","",50,0,1);
+  hist1D *offb_hists_trackShowerScore_less10cm = new hist1D("h_offb_hists_trackShowerScore_less10cm","",50,0,1);
   if (t_offbeam){
     // Make histograms to fill
     for (size_t i_pl=0; i_pl < nplanes; i_pl++){
@@ -561,6 +582,12 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
           if (slice>10){slice=10;}
           if (slice<0){continue;}
           FillHist(offb_hists_dEdxSlices[i_pl][slice],dedx,0);
+        }
+      }
+      if (offbeam_vars.track_lnlikelihood_mipoverp->at(2) < -1){
+        FillHist(offb_hists_trackShowerScore, offbeam_vars.track_shower_score, 0);
+        if (offbeam_vars.track_length<10){
+          FillHist(offb_hists_trackShowerScore_less10cm, offbeam_vars.track_shower_score, 0);
         }
       }
     } // end loop over entries in tree
@@ -674,4 +701,21 @@ void plotDataMCfromTree(std::string treename, std::string mcfile, double POTscal
     c1->Print(std::string(std::string("h_dEdx_plane_")+std::to_string(i_pl)+"_slice_"+std::to_string(slice)+".eps").c_str());
   }
   } // end loop over planes
+
+  // Make track-shower score plot for protons
+  TCanvas *c1 = new TCanvas();
+  DrawMCPlusOffbeam(mc_hists_trackShowerScore, offb_hists_trackShowerScore, POTscaling, offbeamscaling, -999);
+  OverlayOnBeamData(c1, onb_hists_trackShowerScore);
+  c1->Print("h_trackShowerScore_protonLike.eps");
+  c1->Print("h_trackShowerScore_protonLike.png");
+
+  // Make track-shower score plot for protons
+  //TCanvas *c1 = new TCanvas();
+  c1->Clear();
+  DrawMCPlusOffbeam(mc_hists_trackShowerScore_less10cm, offb_hists_trackShowerScore_less10cm, POTscaling, offbeamscaling, -999);
+  OverlayOnBeamData(c1, onb_hists_trackShowerScore_less10cm);
+  c1->Print("h_trackShowerScore_protonLike_less10cm.eps");
+  c1->Print("h_trackShowerScore_protonLike_less10cm.png");
+
+
 }
