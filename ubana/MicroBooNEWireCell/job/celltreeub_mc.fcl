@@ -67,7 +67,7 @@ celltreeub_mc: {
  SaveSimEnergyDepositInside    : true  # default
  SaveSimEnergyDepositOutside   : true  # default
  SaveSimChannel		       : false 
- SaveEventWeight	       : true  # default
+ SaveEventWeight	       : false  # default
  UseLGBeamForHGCosmic          : true   # default
  FlashMultPEThreshold          : 5
  DeconRebin                    : 4	
