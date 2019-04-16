@@ -555,6 +555,69 @@ void DrawMC(hist1D *hists, double POTScaling, double yrange){
   hists->l->Draw();
 }
 
+void DrawMC2D(hist2D *hists, double POTScaling, double yrange){
+  gStyle->SetTitleX(0.1f);
+  gStyle->SetTitleW(0.8f);
+
+  if (POTScaling == 0.){ // area normalise
+    POTScaling = 1./hists->h2D_all->Integral();
+    //hists->h2D_all->GetYaxis()->SetTitle("No. tracks (area normalised)");
+  }
+ // else hists->h2D_all->GetYaxis()->SetTitle("No. tracks (POT normalised)");
+
+  //hists->h2D_mu->Sumw2();
+  //hists->h2D_p->Sumw2();
+  //hists->h2D_pi->Sumw2();
+  //hists->h2D_k->Sumw2();
+  //hists->h2D_other->Sumw2();
+  hists->h2D_all->Sumw2();
+
+  //hists->h2D_mu->Scale(POTScaling);
+  //hists->h2D_p->Scale(POTScaling);
+  //hists->h2D_pi->Scale(POTScaling);
+  //hists->h2D_k->Scale(POTScaling);
+  //hists->h2D_other->Scale(POTScaling);
+  hists->h2D_all->Scale(POTScaling);
+
+  std::cout << "h2D_all MC->Integral() = " << hists->h2D_all->Integral() << std::endl;
+
+  //THStack *hs = new THStack("hs","hs");
+  //hs->Add(hists->h_p);
+  //hs->Add(hists->h_mu);
+  //hs->Add(hists->h_pi);
+  //hs->Add(hists->h_k);
+  //hs->Add(hists->h_other);
+
+  //if (yrange == -999){
+  //  hists->h_all->SetMaximum((hists->h_all->GetMaximum())*1.2);
+  //}
+  //else{
+  //  hists->h_all->SetMaximum(yrange);
+  //}
+  //hists->h_all->SetMinimum(0);
+
+  hists->h2D_all->Draw("scat"); // Draw this one first because it knows about the axis titles
+  //hists->h2D_other->Draw("same");
+  //hists->h2D_k->Draw("same");
+  //hists->h2D_pi->Draw("same");
+  //hists->h2D_p->Draw("same");
+  //hists->h2D_mu->Draw("same");
+
+  //bool legendleft=false;
+  //int nbinsx = hists->h2D_all->GetXaxis()->GetNbins();
+  //for (int i_bin=(int)(nbinsx/2); i_bin < nbinsx+1; i_bin++){
+  //  if (hists->h2D_all->GetBinContent(i_bin)>0.6*hists->h2D_all->GetMaximum()){
+  //    legendleft=true;
+  //  }
+  //}
+  //if (legendleft){
+  //  hists->l->SetX1(0.19);
+  //  hists->l->SetX2(0.41);
+  //}
+  //hists->l->Draw();
+}
+
+
 void DrawMCPlusOffbeam(hist1D *hists, hist1D *offbeam, double POTScaling, double OffBeamScaling, double yrange){
   // Note that there are no area-normalised options here because I'm not sure that makes sense
   hists->h_all->GetYaxis()->SetTitle("No. tracks (POT normalised)");
@@ -1098,6 +1161,106 @@ void DrawMCEffPur(TCanvas *c, hist1D *hists, bool MIPlow, double cutval, TFile *
   }
   outtxtfile.close();
 }
+
+
+//PIP'S CHANGES
+//---------------------------------
+bool IsContained(treevars vars)
+{
+
+  //TPC boundary + FV cut
+  double FVxmin = 10;
+  double FVxmax = 245;
+  double FVymin = -100;
+  double FVymax = 100;
+  double FVzmin = 10;
+  double FVzmax = 1030;
+  
+  ////Cut out additional section of mostly dead wires in z
+  double deadzmin = 675.1;
+  double deadzmax = 775.1;
+
+  bool contained = true;
+  if ((vars.track_start_x > FVxmax) || (vars.track_start_x < FVxmin)) contained = false;
+  if ((vars.track_start_y > FVymax) || (vars.track_start_y < FVymin)) contained = false;
+  if ((vars.track_start_z > FVzmax) || (vars.track_start_z < FVzmin)) contained = false;
+ 
+  if ((vars.track_end_x > FVxmax) || (vars.track_end_x < FVxmin)) contained = false;
+  if ((vars.track_end_y > FVymax) || (vars.track_end_y < FVymin)) contained = false;
+  if ((vars.track_end_z > FVzmax) || (vars.track_end_z < FVzmin)) contained = false;
+
+  //if ((vars.track_end_z < deadzmax) && (vars.track_end_z > deadzmin)) contained = false;
+
+  return contained;
+}
+
+double ThetaXZ(treevars vars)
+{
+  double x = vars.track_end_x - vars.track_start_x;
+  double z = vars.track_end_z - vars.track_start_z;
+
+  TVector3 trackvec(x, 0, z);
+  trackvec = trackvec.Unit();
+  TVector3 zaxis(0, 0, 1);
+  double costhetaxz = trackvec.Dot(zaxis);
+  double thetaxz = TMath::ACos(costhetaxz);
+
+  trackvec.Delete();
+  zaxis.Delete();
+  return thetaxz;
+}
+
+double ThetaYZ(treevars vars)
+{
+  double y = vars.track_end_y - vars.track_start_y;
+  double z = vars.track_end_z - vars.track_start_z;
+
+  TVector3 trackvec(0, y, z);
+  trackvec = trackvec.Unit();
+  TVector3 zaxis(0, 0, 1);
+  double costhetayz = trackvec.Dot(zaxis);
+  double thetayz = TMath::ACos(costhetayz);
+
+  trackvec.Delete();
+  zaxis.Delete();
+  return thetayz;
+}
+
+void FormatYourPlotsAndy(hist1D *sliceplot, int slice)
+{
+  int rr_floor = 0 + slice*5;
+  int rr_ceil  = (slice+1)*5;
+  std::string title = std::string(std::to_string(rr_floor) + std::string(" < Residual Range < ") + std::to_string(rr_ceil) + std::string(" cm"));
+  sliceplot->h_all->SetTitle(title.c_str());
+  sliceplot->h_all->GetXaxis()->SetTitle("dE/dx per hit (all hits)");
+}
+
+void FormatPhiSlices(hist1D *sliceplot, int slice)
+{
+  double phi_floor = 0 + slice*0.628;
+  double phi_ceil  = (slice+1)*0.628;
+  std::string title = std::string(std::to_string(phi_floor) + std::string(" < #phi < ") + std::to_string(phi_ceil) + std::string(" rad"));
+  sliceplot->h_all->SetTitle(title.c_str());
+  sliceplot->h_all->GetXaxis()->SetTitle("dE/dx per hit (all hits)");
+}
+
+double FunctionFromGraph(TGraph *graph, double *x, double *)
+{
+  return graph->Eval(x[0]);
+}
+
+//double TruncMeandEdx(std::vector<float> v)
+//{
+//  const size_t nmin = 1;
+//  const size_t nmax = 1;
+//  const size_t currentiteration = 0;
+//  const size_t lmin = 1;
+//  const float convergencelimit = 0.1;
+//  const float nsigma = 1;
+//}
+
+//---------------------------------
+
 
 // void SaveHists(hist1D *hists, TFile *fout){
 //   fout->cd();
