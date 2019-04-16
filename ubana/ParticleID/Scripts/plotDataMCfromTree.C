@@ -1055,25 +1055,25 @@ void plotDataMCfromTree()
   double offbeamscaling=0.4569;
   double POTscaling =0.277; //MC pure
 
-  plotDataMCfromTree_Vandalised(std::string("pidvalidcaliSCEtracksFromShower/pidTree"), mcfile, POTscaling, onbeamdatafile, offbeamdatafile, offbeamscaling, false, false, 1, 2);
+  //plotDataMCfromTree_Vandalised(std::string("pidvalidcaliSCEtracksFromShower/pidTree"), mcfile, POTscaling, onbeamdatafile, offbeamdatafile, offbeamscaling, false, false, 1, 2);
 
-  //std::string treename;
-  //for (int i = 0; i < 4; i++)
-  //{
-  //  if (i == 0) treename = std::string("pidvalidcalo/pidTree");
-  //  if (i == 1) treename = std::string("pidvalidcaloSCE/pidTree");
-  //  if (i == 2) treename = std::string("pidvalidcali/pidTree");
-  //  if (i == 3) treename = std::string("pidvalidcaliSCE/pidTree");
-  //  if (i == 3) treename = std::string("pidvalidcaliSCEtracksFromShower/pidTree");
+  std::string treename;
+  for (int i = 0; i < 4; i++)
+  {
+    if (i == 0) treename = std::string("pidvalidcalo/pidTree");
+    if (i == 1) treename = std::string("pidvalidcaloSCE/pidTree");
+    if (i == 2) treename = std::string("pidvalidcali/pidTree");
+    if (i == 3) treename = std::string("pidvalidcaliSCE/pidTree");
+    if (i == 3) treename = std::string("pidvalidcaliSCEtracksFromShower/pidTree");
 
-  //  for (int j = 0; j < 3; j++)
-  //  {
-  //    for (int k = 0; k < 3; k++)
-  //    {
-  //      plotDataMCfromTree_Vandalised(treename, mcfile, POTscaling, onbeamdatafile, offbeamdatafile, offbeamscaling, false, false, j, k);
-  //    }
-  //  }
-  //}
+    for (int j = 0; j < 3; j++)
+    {
+      for (int k = 0; k < 3; k++)
+      {
+        plotDataMCfromTree_Vandalised(treename, mcfile, POTscaling, onbeamdatafile, offbeamdatafile, offbeamscaling, false, false, j, k);
+      }
+    }
+  }
 
   return;
 }
