@@ -1249,15 +1249,80 @@ double FunctionFromGraph(TGraph *graph, double *x, double *)
   return graph->Eval(x[0]);
 }
 
-//double TruncMeandEdx(std::vector<float> v)
-//{
-//  const size_t nmin = 1;
-//  const size_t nmax = 1;
-//  const size_t currentiteration = 0;
-//  const size_t lmin = 1;
-//  const float convergencelimit = 0.1;
-//  const float nsigma = 1;
-//}
+float Mean(std::vector<float> v)
+{
+  float mean = 0.;
+  for (auto const& n : v) mean += n;
+  mean /= v.size();
+  
+  return mean;
+}
+
+float Median(std::vector<float> v)
+{
+  if (v.size() == 1) return v[0];
+  std::vector<float> vcpy = v;
+  std::sort(vcpy.begin(), vcpy.end());
+  float median = vcpy[ vcpy.size() / 2 ];
+
+  return median;
+}
+
+float RMS(std::vector<float> v)
+{
+  float avg = 0.;
+  for (auto const& val : v) avg += val;
+  avg /= v.size();
+  float rms = 0.;
+  for (auto const& val : v) rms += (val-avg)*(val-avg);
+  rms = sqrt( rms / ( v.size() -  1 ) );
+ 
+  return rms;
+}
+
+static const float  kINVALID_FLOAT = std::numeric_limits<float>::max();
+
+double TruncMeandEdx(std::vector<float> v, const size_t & currentiteration, const float & oldmed = kINVALID_FLOAT)
+{
+  const size_t nmin = 1;
+  const size_t nmax = 1;
+  const size_t lmin = 1;
+  const float convergencelimit = 0.1;
+  const float nsigma = 1;
+
+
+  float const& mean = Mean(v);
+  float const& med  = Median(v);
+  float const& rms  = RMS(v);
+  
+  // if the vector length is below the lower limit -> return
+  if (v.size() < lmin) 
+  {
+    return mean;
+  }
+  
+  // if we have passed the maximum number of iterations -> return
+  if (currentiteration >= nmax) 
+  {
+    return mean;
+  }
+      
+  // if we passed the minimum number of iterations and the mean is close enough to the old value
+  float fracdiff = fabs(med-oldmed) / oldmed;
+  if ( (currentiteration >= nmin) && (fracdiff < convergencelimit) ) 
+  {
+    return mean;
+  }
+   
+  // if reached here it means we have to go on for another iteration
+  // cutoff tails of distribution surrounding the mean
+  // use erase-remove : https://en.wikipedia.org/wiki/Erase%E2%80%93remove_idiom
+  // https://stackoverflow.com/questions/17270837/stdvector-removing-elements-which-fulfill-some-conditions
+  
+  v.erase( std::remove_if( v.begin(), v.end(), [med,nsigma,rms](const float& x) { return ( (x < (med-nsigma*rms)) || (x > (med+nsigma*rms)) ); }), v.end());
+
+  return TruncMeandEdx(v, currentiteration+1, med);
+}
 
 //---------------------------------
 
