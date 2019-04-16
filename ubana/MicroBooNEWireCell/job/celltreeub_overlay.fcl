@@ -43,6 +43,8 @@ celltreeub_overlay: {
  SimEnergyDepositOutside_producer : "largeant"
  SimChannel_producer	       : "driftWC"
  SimChannel_label	       : "simpleSC"
+ EventWeight_label             : ""
+ EventWeight_producer          : "eventweightLEE"
  SaveTPC_raw                   : false # short type
  SaveTPC_noiseFiltered         : false # float converted to short through scale & shift
  SaveTPC_deconWiener           : true  # default
@@ -65,6 +67,7 @@ celltreeub_overlay: {
  SaveSimEnergyDepositInside    : true  # default
  SaveSimEnergyDepositOutside   : true  # default
  SaveSimChannel		       : false
+ SaveEventWeight               : true  # default
  UseLGBeamForHGCosmic          : true  # default
  FlashMultPEThreshold          : 5
  DeconRebin                    : 4	

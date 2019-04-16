@@ -23,6 +23,7 @@
 #include "lardataobj/RawData/TriggerData.h"
 #include "lardataobj/RawData/BeamInfo.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
+#include "larsim/EventWeight/Base/MCEventWeight.h"
 
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Principal/Event.h"
@@ -93,6 +94,7 @@ namespace wc{
     void processSimEnergyDepositInside(const art::Event& evt);
     void processSimEnergyDepositOutside(const art::Event& evt);
     void processSimChannel(const art::Event& evt);
+    void processEventWeight(const art::Event& evt);
   private:
     // --- fhicl parameters ---
     std::string fTPC_rawLabel;
@@ -135,6 +137,9 @@ namespace wc{
     std::string fSimEnergyDepositOutside_producer;
     std::string fSimChannel_label;
     std::string fSimChannel_producer;
+    std::string fEventWeight_label;
+    std::string fEventWeight_producer;
+
     bool _use_LG_beam_for_HG_cosmic;
     bool fSaveTPC_raw;
     bool fSaveTPC_noiseFiltered;
@@ -158,6 +163,7 @@ namespace wc{
     bool fSaveSimEnergyDepositInside;
     bool fSaveSimEnergyDepositOutside;
     bool fSaveSimChannel;
+    bool fSaveEventWeight;
     int deconRebin;
     float flashMultPEThreshold;
     bool saveVYshorted;
@@ -373,7 +379,8 @@ namespace wc{
     std::vector<unsigned int> sc_tick;
     std::vector<unsigned int> sc_tdc;
     float sc_drift_speed=1.098; // mm/us
-
+    // --- EventWeight ---
+    double fEventWeight;
   }; // class CellTreeUB
 
   CellTreeUB::CellTreeUB(fhicl::ParameterSet const& pset)
@@ -428,6 +435,8 @@ namespace wc{
     fSimEnergyDepositOutside_producer = pset.get<std::string>("SimEnergyDepositOutside_producer");
     fSimChannel_label = pset.get<std::string>("SimChannel_label");
     fSimChannel_producer = pset.get<std::string>("SimChannel_producer");
+    fEventWeight_label = pset.get<std::string>("EventWeight_label");
+    fEventWeight_producer = pset.get<std::string>("EventWeight_producer");
     fSaveTPC_raw = pset.get<bool>("SaveTPC_raw");
     fSaveTPC_noiseFiltered = pset.get<bool>("SaveTPC_noiseFiltered");
     fSaveTPC_deconWiener = pset.get<bool>("SaveTPC_deconWiener");
@@ -450,6 +459,7 @@ namespace wc{
     fSaveSimEnergyDepositInside = pset.get<bool>("SaveSimEnergyDepositInside");
     fSaveSimEnergyDepositOutside = pset.get<bool>("SaveSimEnergyDepositOutside");
     fSaveSimChannel = pset.get<bool>("SaveSimChannel");
+    fSaveEventWeight = pset.get<bool>("SaveEventWeight");
     _use_LG_beam_for_HG_cosmic = pset.get<bool>("UseLGBeamForHGCosmic");
     flashMultPEThreshold = pset.get<float>("FlashMultPEThreshold");
     deconRebin = pset.get<int>("DeconRebin");
@@ -710,6 +720,9 @@ namespace wc{
       fEventTree->Branch("sc_tick",&sc_tick);
       fEventTree->Branch("sc_drift_speed",&sc_drift_speed);
     }
+    if(fSaveEventWeight){
+      fEventTree->Branch("event_weight",&fEventWeight);
+    }
   }
 
   void CellTreeUB::beginJob(){
@@ -759,6 +772,7 @@ namespace wc{
     if(fSaveSimEnergyDepositInside) processSimEnergyDepositInside(evt);
     if(fSaveSimEnergyDepositOutside) processSimEnergyDepositOutside(evt);
     if(fSaveSimChannel) processSimChannel(evt);
+    if(fEventWeight) processEventWeight(evt);
     fEventTree->Fill();
   }
 
@@ -930,6 +944,9 @@ namespace wc{
       sc_y.clear();
       sc_z.clear();
       sc_tdc.clear();
+    }
+    if(fSaveEventWeight){
+      fEventWeight=-1.;
     }
   }
 
@@ -1725,6 +1742,19 @@ namespace wc{
 	  unsigned int tick = (unsigned int) timeSlice.first - ((4050.0 + 1600.0)/0.5);
 	  sc_tick.push_back(tick);
 	}
+      }
+    }
+  }
+
+  void CellTreeUB::processEventWeight(const art::Event& evt){
+    art::InputTag ewTag(fEventWeight_producer,fEventWeight_label);
+    auto const& ewHandle = evt.getValidHandle<std::vector<evwgh::MCEventWeight> >(ewTag);
+    auto const& ew_vec(*ewHandle);
+
+    if(ew_vec.size()>0){
+      for(auto element : ew_vec.at(0).fWeight){
+	std::cout<<"EventWeight string key: "<< element.first <<" with value size " << element.second.size() <<" and initial element "<<element.second.at(0)<<std::endl;
+	fEventWeight = element.second.at(0);
       }
     }
   }
