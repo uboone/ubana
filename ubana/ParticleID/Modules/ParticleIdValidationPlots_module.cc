@@ -100,6 +100,7 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     bool fIsUBXSecSelected;
     bool fIsNuSliceOnly;
     std::string fTrackLabel;
+    std::string fPfpLabel;
     std::string fHitLabel;
     std::string fHitTrackAssns;
     std::string fCaloTrackAssns;
@@ -240,6 +241,7 @@ ParticleIdValidationPlots::ParticleIdValidationPlots(fhicl::ParameterSet const &
   fIsUBXSecSelected = p.get<bool>("IsUBXSecSelected", "false");
   fIsNuSliceOnly = p.get<bool>("UseNuSliceOnly","false");
   fTrackLabel = p_labels.get<std::string>("TrackLabel","myTracks::PandoraWorkshopTrackShower");
+  fPfpLabel = p_labels.get<std::string>("PFPLabel",fTrackLabel);
   fHitLabel = p_labels.get<std::string>("HitLabel","gaushit::McRecoStage1");
   //This should just be the neutrino slice........
   fHitTrackAssns = p_labels.get<std::string>("HitTrackAssn","myTracks::PandoraWorkshopTrackShower");
@@ -297,16 +299,16 @@ void ParticleIdValidationPlots::analyze(art::Event const & e)
 
   // PFPs
   art::Handle<std::vector<recob::PFParticle> > pfp_h;
-  e.getByLabel(fTrackLabel,pfp_h);
+  e.getByLabel(fPfpLabel,pfp_h); 
   art::FindManyP<recob::PFParticle> pfps_from_tracks(trackHandle, e, fTrackLabel);
   lar_pandora::PFParticleVector pfparticleVector;
-  lar_pandora::LArPandoraHelper::CollectPFParticles(e,fTrackLabel,pfparticleVector);
+  lar_pandora::LArPandoraHelper::CollectPFParticles(e,fPfpLabel,pfparticleVector);
   lar_pandora::PFParticleMap pfparticleMap;
   lar_pandora::LArPandoraHelper::BuildPFParticleMap(pfparticleVector,pfparticleMap);
-  art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfp_h,e,fTrackLabel);
+  art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfp_h,e,fPfpLabel);
   // lar_pandora::PFParticlesToMetadata pfParticlesToMetadata;
   // lar_pandora::LArPandoraHelper::CollectPFParticleMetadata(e,fTrackLabel,pfparticleVector,pfParticlesToMetadata);
-
+  
   if (fIsUBXSecSelected == true){
 
     art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;

@@ -1,0 +1,68 @@
+#include "config_particle_identification_validation.fcl"
+#include "config_particle_identification.fcl"
+#include "config_dedx_calibration_producerlabels.fcl"
+#include "calorimetry_microboone.fcl"
+#include "pandoramodules_microboone.fcl"
+#include "config_track_creation.fcl"
+
+#include "ubxsec_data_common_mcc9.fcl"
+#include "config_particle_identification_validation_formcc9production.fcl"
+#include "config_track_calo_cali_pid_valid.fcl"
+
+############################################################################################################################################
+microboone_tfile_metadata:
+{
+  JSONFileName:[ "ubxsec_trackshower_output_data_ext.root.json" ]
+  GenerateTFileMetadata: [ true ] #ccinc
+  dataTier:              [ "root-tuple" ] #ccinc
+  fileFormat:            [ "root" ] #ccinc
+}
+
+process_name: UBXSec
+
+services.TFileService.fileName: "ubxsec_trackshower_output_data_ext.root"
+
+physics.analyzers.pidvalidcaliSCEtracksFromShower: @local::particleidvalidconfig
+
+#physics.reco:          [ @sequence::ubxsec_data_producers , @sequence::ubxsec_data_filters , @sequence::tracksFromShower_producers ]
+physics.reco:          [ @sequence::ubxsec_data_producers , @sequence::tracksFromShower_producers , @sequence::ubxsec_data_filters ]
+#physics.reco:          [ @sequence::ubxsec_data_producers ,  @sequence::tracksFromShower_producers ]
+physics.trigger_paths: [ reco ]
+physics.ana:           [ @sequence::ubxsec_data_analyzers , @sequence::pidvalid_mcc9 , pidvalidcaliSCEtracksFromShower]
+#physics.ana:           [ @sequence::ubxsec_data_analyzers , pidvalidcaliSCEtracksFromShower ]
+physics.stream1:       [ out1 ]
+physics.end_paths:     [ ana, stream1 ]
+
+outputs.out1.fileName: "%ifb_%tc_ubxsec.root"
+outputs.out1.dataTier: "reconstructed"
+outputs.out1.SelectEvents: [ reco ]
+
+source.inputCommands: ["keep *_*_*_*"]
+
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeStart: 3.65
+physics.producers.NeutrinoFlashMatch.FlashVetoTimeEnd:   5.25
+
+physics.producers.UBXSec.BeamSpillStart:                 3.65
+physics.producers.UBXSec.BeamSpillEnd:                   5.25
+
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillStarts: 3.65
+physics.producers.UBXSec.NuMuCCSelectionSettings.BeamSpillEnds:   5.25
+
+physics.producers.UBXSec.UseGENIEInfo:                   false
+
+physics.producers.UBXSec.DoOpDetSwap:                false
+physics.producers.RecoTrueMatcher.Overlay:           false
+physics.producers.RecoTrueMatcher.DebugMode:           true
+
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels: @local::producerlabels_mcc9_caliSCE
+
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels.TrackLabel       : "pandoraAllTracks"
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels.PFPLabel       : "pandora"
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels.CalorimetryLabel : "pandoraAllTrackscali"
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels.ParticleIdLabel     : "pandoraAllTrackscalipid"
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels.HitLabel            : "gaushit"
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels.HitTrackAssn        : "pandoraAllTracks"
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels.HitTruthAssn        : "gaushitTruthMatch"
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels.CaloTrackAssn       : "pandoraAllTrackscali"
+physics.analyzers.pidvalidcaliSCEtracksFromShower.ProducerLabels.UBXSecSelectionResultLabel: "UBXSec"
+physics.producers.UBXSec.FileType: "extbnb"

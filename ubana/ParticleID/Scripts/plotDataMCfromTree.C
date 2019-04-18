@@ -336,6 +336,7 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
   
   hist1D *mc_hists_trackShowerScore = new hist1D("h_mc_hists_trackShowerScore","",50,0,1);
   hist1D *mc_hists_trackShowerScore_less10cm = new hist1D("h_mc_hists_trackShowerScore_less10cm","",50,0,1);
+  hist1D *mc_hists_llr_showers[nplanes];
   
   hist1D *mc_hists_dEdxslicedphi[nplanes][10];
   hist1D *mc_hists_tmeandEdx_slicedphi[nplanes][10];
@@ -358,6 +359,7 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
 
       mc_hists[i_pl][i_h] = new hist1D(std::string("h_")+histnames.at(i_h)+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_plane)+histtitles.at(i_h),bins.at(i_h).at(0),bins.at(i_h).at(1),bins.at(i_h).at(2));
     }
+    mc_hists_llr_showers[i_pl] = new hist1D(std::string("mc_hists_llr_showers_")+std::to_string(i_pl),"",50,-10,10);
     for (int slice(0); slice < 10; slice++){
 
       mc_hists_dEdxslicedphi[i_pl][slice] = new hist1D("h_mc_hists_dEdxSlicedPhi_"+std::to_string(i_pl)+"_"+std::to_string(slice),"",50,0,10);
@@ -499,6 +501,9 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
         double truncmean = TruncMeandEdx(dEdx_vec, 0);
         FillHist(mc_hists_tmeandEdx_slicedphi[i_pl][phislice], truncmean, mc_vars.true_PDG);
       }
+      if (mc_vars.track_shower_score<0.5 and i_pl < 3){
+        FillHist(mc_hists_llr_showers[i_pl], mc_vars.track_lnlikelihood_mipoverp->at(i_pl), mc_vars.true_PDG);
+      }
     }
     if (mc_vars.track_lnlikelihood_mipoverp->at(2) < -1){
       FillHist(mc_hists_trackShowerScore, mc_vars.track_shower_score, mc_vars.true_PDG);
@@ -517,6 +522,7 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
   hist1D *onb_hists_dEdxSlices[nplanes][10];
   hist1D *onb_hists_trackShowerScore = new hist1D("h_onb_hists_trackShowerScore","",50,0,1);
   hist1D *onb_hists_trackShowerScore_less10cm = new hist1D("h_onb_hists_trackShowerScore_less10cm","",50,0,1);
+  hist1D *onb_hists_llr_showers[nplanes];
   hist1D *onb_hists_dEdxslicedphi[nplanes][10];
   hist1D *onb_hists_tmeandEdx_slicedphi[nplanes][10];
   TH2F *onb_hists_dEdxvsresrange[nplanes];
@@ -540,6 +546,7 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
 
         onb_hists[i_pl][i_h] = new hist1D(std::string("h_ondat_")+histnames.at(i_h)+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_plane)+histtitles.at(i_h),bins.at(i_h).at(0),bins.at(i_h).at(1),bins.at(i_h).at(2));
       }
+      onb_hists_llr_showers[i_pl] = new hist1D(std::string("onb_hists_llr_showers_")+std::to_string(i_pl),"",50,-10,10);
       for (int slice(0); slice <10; slice++){
 
         onb_hists_dEdxslicedphi[i_pl][slice] = new hist1D("h_onb_hists_dEdxSlicedPhi_"+std::to_string(i_pl)+"_"+std::to_string(slice),"",50,0,10);
@@ -677,6 +684,9 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
           FillHist(onb_hists_dEdxslicedphi[i_pl][phislice],dedx,0);
         }
         if (dEdx_vec.size() > 0) FillHist(onb_hists_tmeandEdx_slicedphi[i_pl][phislice],TruncMeandEdx(dEdx_vec,0),0);
+        if (onbeam_vars.track_shower_score<0.5 and i_pl < 3){
+          FillHist(onb_hists_llr_showers[i_pl], onbeam_vars.track_lnlikelihood_mipoverp->at(i_pl), 0);
+        }
       }
       if (onbeam_vars.track_lnlikelihood_mipoverp->at(2) < -1){
         FillHist(onb_hists_trackShowerScore, onbeam_vars.track_shower_score, 0);
@@ -693,6 +703,7 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
   hist1D *offb_hists_dEdxSlices[nplanes][10];
   hist1D *offb_hists_trackShowerScore = new hist1D("h_offb_hists_trackShowerScore","",50,0,1);
   hist1D *offb_hists_trackShowerScore_less10cm = new hist1D("h_offb_hists_trackShowerScore_less10cm","",50,0,1);
+  hist1D *offb_hists_llr_showers[nplanes];
   hist1D *offb_hists_dEdxslicedphi[nplanes][10];
   hist1D *offb_hists_tmeandEdx_slicedphi[nplanes][10];
   TH2F *offb_hists_dEdxvsresrange[nplanes];
@@ -719,6 +730,7 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
         offb_hists[i_pl][i_h] = new hist1D(std::string("h_offdat_")+histnames.at(i_h)+std::string("_plane")+std::to_string(i_pl),std::string("Plane ")+std::to_string(i_plane)+histtitles.at(i_h),bins.at(i_h).at(0),bins.at(i_h).at(1),bins.at(i_h).at(2));
 
       }
+      offb_hists_llr_showers[i_pl] = new hist1D(std::string("offb_hists_llr_showers_")+std::to_string(i_pl),"",50,-10,10);
 
       for (int slice(0); slice <10; slice++){
 
@@ -860,6 +872,9 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
 
         }
         if (dEdx_vec.size() > 0) FillHist(offb_hists_tmeandEdx_slicedphi[i_pl][phislice], TruncMeandEdx(dEdx_vec,0),0);
+        if (offbeam_vars.track_shower_score<0.5 and i_pl < 3){
+          FillHist(offb_hists_llr_showers[i_pl], offbeam_vars.track_lnlikelihood_mipoverp->at(i_pl), 0);
+        }
       }
       if (offbeam_vars.track_lnlikelihood_mipoverp->at(2) < -1){
         FillHist(offb_hists_trackShowerScore, offbeam_vars.track_shower_score, 0);
@@ -1110,6 +1125,12 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
 
 
   }
+
+  DrawMCPlusOffbeam(mc_hists_llr_showers[i_pl], offb_hists_llr_showers[i_pl], POTscaling, offbeamscaling, -999);
+  OverlayOnBeamData(c1, onb_hists_llr_showers[i_pl]);
+  c1->Print(std::string(output_dir+std::string("h_llr_showers_")+std::to_string(i_pl)+".eps").c_str());
+  
+
   } // end loop over planes
 
   // Make track-shower score plot for protons

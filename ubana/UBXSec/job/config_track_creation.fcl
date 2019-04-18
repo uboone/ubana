@@ -1,0 +1,13 @@
+#  #include "reco_uboone_mcc9_8_driver_common.fcl" ## Not sure if this one is needed
+# #include "pandoramodules_microboone.fcl"
+
+BEGIN_PROLOG
+
+trackFromShowerCreation:
+{
+  module_type:        "LArPandoraTrackCreation"
+  PFParticleLabel:    "pandora"
+  MinTrackScore:      0
+  UseAllParticles:      true
+}
+END_PROLOG
