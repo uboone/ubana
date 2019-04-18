@@ -930,6 +930,15 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
         }
       }
       c1->Print(std::string(output_dir+histnames[i_h]+std::string("_plane")+std::to_string(i_plane)+".png").c_str());
+
+      TH1D *ratio = RatioHist(onb_hists[i_pl][i_h], offb_hists[i_pl][i_h], mc_hists[i_pl][i_h], POTscaling, offbeamscaling);
+      ratio->Draw("EL");
+      TLine *ratioline = new TLine(ratio->GetBinCenter(0), 1, ratio->GetBinCenter(ratio->GetNbinsX()), 1);
+      ratioline->SetLineWidth(3);
+      ratioline->SetLineColor(kRed);
+      ratioline->Draw("Same");
+      c1->Print(std::string(output_dir+std::string("ratio_")+histnames[i_h]+std::string("_plane")+std::to_string(i_plane)+".png").c_str());
+      
     } // end loop over plot variables
 
    TCanvas *c1 = new TCanvas();
@@ -1131,6 +1140,15 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
   c1->Print(std::string(output_dir+std::string("h_trackShowerScore_protonLike.eps")).c_str());
   c1->Print(std::string(output_dir+std::string("h_trackShowerScore_protonLike.png")).c_str());
 
+  TH1D *trackshowerratio = RatioHist(onb_hists_trackShowerScore, offb_hists_trackShowerScore, mc_hists_trackShowerScore, POTscaling, offbeamscaling);
+  trackshowerratio->Draw("EL");
+  TLine *trackshower_ratioline = new TLine(trackshowerratio->GetBinCenter(0), 1, trackshowerratio->GetBinCenter(trackshowerratio->GetNbinsX()), 1);
+  trackshower_ratioline->SetLineWidth(3);
+  trackshower_ratioline->SetLineColor(kRed);
+  trackshower_ratioline->Draw("Same");
+  c1->Print(std::string(output_dir+std::string("ratio_")+std::string("h_trackShowerScore_protonLike.png")).c_str());
+
+
   // Make track-shower score plot for protons
   //TCanvas *c1 = new TCanvas();
   c1->Clear();
@@ -1139,6 +1157,13 @@ void plotDataMCfromTree_Vandalised(std::string treename, std::string mcfile, dou
   c1->Print(std::string(output_dir+std::string("h_trackShowerScore_protonLike_less10cm.eps")).c_str());
   c1->Print(std::string(output_dir+std::string("h_trackShowerScore_protonLike_less10cm.png")).c_str());
 
+  TH1D *trackshowerratio_less10cm = RatioHist(onb_hists_trackShowerScore_less10cm, offb_hists_trackShowerScore_less10cm, mc_hists_trackShowerScore_less10cm, POTscaling, offbeamscaling);
+  trackshowerratio_less10cm->Draw("EL");
+  TLine *trackshower_less10cm_ratioline = new TLine(trackshowerratio_less10cm->GetBinCenter(0), 1, trackshowerratio_less10cm->GetBinCenter(trackshowerratio_less10cm->GetNbinsX()), 1);
+  trackshower_less10cm_ratioline->SetLineWidth(3);
+  trackshower_less10cm_ratioline->SetLineColor(kRed);
+  trackshower_less10cm_ratioline->Draw("Same");
+  c1->Print(std::string(output_dir+std::string("ratio_")+std::string("h_trackShowerScore_protonLike_less10cm.png")).c_str());
 
 }
 
@@ -1159,8 +1184,9 @@ void plotDataMCfromTree()
   double offbeamscaling=0.4569;
   double POTscaling =0.277; //MC pure
 
-  //plotDataMCfromTree_Vandalised(std::string("pidvalidcaliSCEtracksFromShower/pidTree"), mcfile, POTscaling, onbeamdatafile, offbeamdatafile, offbeamscaling, false, false, 1, 2);
+  plotDataMCfromTree_Vandalised(std::string("pidvalidcaliSCEtracksFromShower/pidTree"), mcfile, POTscaling, onbeamdatafile, offbeamdatafile, offbeamscaling, false, false, 1, 2);
 
+  /*
   std::string treename;
   for (int i = 0; i < 4; i++)
   {
@@ -1178,6 +1204,7 @@ void plotDataMCfromTree()
       }
     }
   }
+  */
 
   return;
 }

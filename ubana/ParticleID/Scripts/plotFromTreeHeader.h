@@ -1324,6 +1324,21 @@ double TruncMeandEdx(std::vector<float> v, const size_t & currentiteration, cons
   return TruncMeandEdx(v, currentiteration+1, med);
 }
 
+TH1D *RatioHist(hist1D *onb_hist, hist1D *offb_hist, hist1D *mc_hist, double potscale, double offbscale)
+{
+  TH1D *onb  = onb_hist->h_all;
+  TH1D *offb = offb_hist->h_all;
+  TH1D *mc   = mc_hist->h_all;
+
+  //mc->Scale(potscale);
+  //offb->Scale(offbscale);
+  mc->Add(offb);
+
+  onb->Divide(mc);
+  onb->GetYaxis()->SetTitle("Data:MC Ratio");
+  return onb;
+}
+
 //---------------------------------
 
 
