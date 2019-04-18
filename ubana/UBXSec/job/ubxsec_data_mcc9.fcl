@@ -205,7 +205,7 @@ ubxsec_data_reco.UBXSec.POTSummaryProducer:                         "beamdata"
 ubxsec_data_reco.UBXSec.POTSummaryInstance:                         "bnbETOR860"
 
 # Set Filter properties
-ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandoraNu::UBXSec" ]
+ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandoraNu" ]
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "UBXSec::UBXSec" ]
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicProducerLabel:  ""
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicClusterAssns:   ""

@@ -1,0 +1,52 @@
+# #include "config_particle_identification.fcl"
+# #include "config_particle_identification_validation.fcl"
+# #include "config_dedx_calibration.fcl"
+# #include "calibration_microboone.fcl"
+# #include "caldata_microboone.fcl"
+# #include "particleid_microboone.fcl"
+# #include "calorimetry_microboone.fcl"
+# #include "trackfindermodules_microboone.fcl"
+# #include "showerfindermodules_microboone.fcl"
+# #include "trackproducerfrompfparticle.fcl"
+
+physics.producers.pandoraAllTracks:         @local::trackFromShowerCreation
+physics.producers.pandoraAllTrackscalo:     @local::microboone_calodata
+physics.producers.pandoraAllTrackscali:     @local::microboone_calibrationdedx_data
+physics.producers.pandoraAllTrackscalipid:  @local::particleidconfig
+
+tracksFromShower_producers: [pandoraAllTracks, pandoraAllTrackscalo, pandoraAllTrackscali, pandoraAllTrackscalipid]
+
+## Configure them all as I want here...
+#physics.producers.pandoraAllTracks.
+physics.producers.pandoraAllTrackscalo.TrackLabel: "pandoraAllTracks"
+physics.producers.pandoraAllTrackscalo.TrackModuleLabel: "pandoraAllTracks"
+physics.producers.pandoraAllTrackscalo.SpacePointModuleLabel: "pandora"
+physics.producers.pandoraAllTrackscalo.CorrectSCE:  true
+
+
+physics.producers.pandoraAllTrackscali.TrackLabel: "pandoraAllTracks"
+physics.producers.pandoraAllTrackscali.TrackModuleLabel: "pandoraAllTracks"
+physics.producers.pandoraAllTrackscali.CalorimetryModuleLabel: "pandoraAllTrackscalo"
+physics.producers.pandoraAllTrackscali.CorrectSCE:  true
+
+
+physics.producers.pandoraAllTrackscalipid.TrackLabel       : "pandoraAllTracks"
+physics.producers.pandoraAllTrackscalipid.CalorimetryLabel : "pandoraAllTrackscali"
+physics.producers.pandoraAllTrackscalipid.ParticleIdLabel     : "pandoraAllTrackscalipid"
+physics.producers.pandoraAllTrackscalipid.HitLabel            : "gaushit"
+physics.producers.pandoraAllTrackscalipid.HitTrackAssn        : "pandoraAllTracks"
+physics.producers.pandoraAllTrackscalipid.HitTruthAssn        : "gaushitTruthMatch"
+physics.producers.pandoraAllTrackscalipid.CaloTrackAssn       : "pandoraAllTrackscali"
+physics.producers.pandoraAllTrackscalipid.UBXSecSelectionResultLabel: "UBXSec"
+
+physics.producers.pandoraAllTrackscalipid.ProducerLabels:{
+    CaloTrackAssn: "pandoraAllTrackscali"
+    CalorimetryLabel: "pandoraAllTrackscali"
+    HitLabel: "gaushit"
+    HitTrackAssn: "pandoraAllTracks"
+    HitTruthAssn: "gaushitTruthMatch"
+    ParticleIdLabel: "pandoraAllTrackscalipid"
+    TrackLabel: "pandoraAllTracks"
+    UBXSecSelectionResultLabel: "UBXSec"
+}
+

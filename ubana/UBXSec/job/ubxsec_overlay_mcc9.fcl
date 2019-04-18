@@ -209,7 +209,7 @@ ubxsec_data_reco.UBXSec.POTSummaryProducer:                         "generator"
 
 
 # Set Filter properties
-ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandora::UBXSec" ]
+ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandora" ]
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "UBXSec" ]
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicProducerLabel:  ""
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicClusterAssns:   ""
