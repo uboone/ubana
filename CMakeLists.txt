@@ -57,6 +57,7 @@ find_ups_product( larcore )
 find_ups_product( nutools )
 find_ups_product( eigen )
 find_ups_product( ubevt )
+find_ups_product( ubobj )
 
 # macros for dictionary and simple_plugin
 include(ArtDictionary)
