@@ -83,7 +83,7 @@ private:
 
 
 T0TrackFilter::T0TrackFilter(fhicl::ParameterSet const & p)
-// :
+  : EDFilter{p}
 // Initialize member data here.
 {
   _track_producer          = p.get<std::string>("TrackProducer");

@@ -105,7 +105,7 @@ private:
 };
 
 
-RecoTrueMatcher::RecoTrueMatcher(fhicl::ParameterSet const & p) {
+RecoTrueMatcher::RecoTrueMatcher(fhicl::ParameterSet const & p) : EDProducer{p} {
 
   ::art::ServiceHandle<geo::Geometry> geo;
 

@@ -20,7 +20,7 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -244,7 +244,7 @@ size_t OpDigitSaturationCorrection::FindMatchingLGPulse(const unsigned int opdet
 }
 
 OpDigitSaturationCorrection::OpDigitSaturationCorrection(fhicl::ParameterSet const & p)
-  : _tree(nullptr)
+  : EDProducer{p}, _tree(nullptr)
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.

@@ -16,8 +16,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -71,7 +71,7 @@ private:
 };
 
 
-PhotonActivity::PhotonActivity(fhicl::ParameterSet const & p)
+PhotonActivity::PhotonActivity(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _mctruth_label = p.get<std::string>("MCTruthProduct", "generator");
   _trigger_label = p.get<std::string>("TriggerProduct", "triggersim");

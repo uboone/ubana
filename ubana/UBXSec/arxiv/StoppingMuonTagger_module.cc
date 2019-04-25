@@ -69,7 +69,7 @@ private:
 };
 
 
-StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p) {
+StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p) : EDProducer{p} {
 
 
   _fiducial_volume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),

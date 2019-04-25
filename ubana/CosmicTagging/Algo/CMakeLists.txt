@@ -15,8 +15,8 @@ art_make( BASENAME_ONLY
    		          ${ART_FRAMEWORK_PRINCIPAL}
 		          ${ART_FRAMEWORK_BASIC}
                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
-   		          ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-     		          ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+   		          ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+     		          ${ART_ROOT_IO_TFILESERVICE_SERVICE}
      		          ${ART_PERSISTENCY_COMMON}
                           ${ART_PERSISTENCY_PROVENANCE}
                           ${ART_UTILITIES}

@@ -17,7 +17,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include <memory>
 
@@ -114,7 +114,7 @@ private:
 
 
 FlashTrigger::FlashTrigger(fhicl::ParameterSet const & p)
-  : _flash_tree(nullptr)
+  : EDFilter{p}, _flash_tree(nullptr)
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.
