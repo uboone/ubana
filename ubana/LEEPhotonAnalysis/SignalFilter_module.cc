@@ -50,7 +50,7 @@ private:
 };
 
 
-SignalFilter::SignalFilter(fhicl::ParameterSet const & p) {
+SignalFilter::SignalFilter(fhicl::ParameterSet const & p) : EDFilter{p} {
 
 }
 

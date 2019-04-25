@@ -36,8 +36,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
@@ -155,7 +155,7 @@ private:
 };
 
 
-CandidateConsistency::CandidateConsistency(fhicl::ParameterSet const & p)
+CandidateConsistency::CandidateConsistency(fhicl::ParameterSet const & p) : EDProducer{p}
 {
 
   _tpcobject_producer        = p.get<std::string>("TPCObjectProducer",  "TPCObjectMaker::UBXSec");

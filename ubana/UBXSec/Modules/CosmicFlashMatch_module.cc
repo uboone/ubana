@@ -17,8 +17,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "lardataobj/RecoBase/PFParticle.h"
@@ -101,7 +101,7 @@ private:
 };
 
 
-CosmicFlashMatch::CosmicFlashMatch(fhicl::ParameterSet const & p)
+CosmicFlashMatch::CosmicFlashMatch(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _particleLabel           = p.get<std::string>("PFParticleModule",      "pandoraNu");
   _debug                   = p.get<bool>       ("DebugMode",             true);

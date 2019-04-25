@@ -26,7 +26,7 @@
 
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -71,7 +71,7 @@ DEFINE_ART_MODULE(TPCNeutrinoID)
 ///
 /// pset - Fcl parameters.
 ///
-TPCNeutrinoID::TPCNeutrinoID(fhicl::ParameterSet const & pset) :
+TPCNeutrinoID::TPCNeutrinoID(fhicl::ParameterSet const & pset) : EDProducer{pset},
                       fNumEvent(0)
 {
     // Instantiate the algorithm we'll use to do the work

@@ -45,7 +45,7 @@ private:
 
 
 UBT0Finder::UBT0Finder(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.

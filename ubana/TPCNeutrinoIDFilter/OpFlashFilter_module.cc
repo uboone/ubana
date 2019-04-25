@@ -79,7 +79,7 @@ private:
 };
 
 
-op::OpFlashFilter::OpFlashFilter(fhicl::ParameterSet const & p)
+op::OpFlashFilter::OpFlashFilter(fhicl::ParameterSet const & p) : EDFilter{p}
 {
   this->reconfigure(p);
 }
