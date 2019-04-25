@@ -64,7 +64,7 @@ private:
 
 
 dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
-// :
+  : EDFilter{p}
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.

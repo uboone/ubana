@@ -36,7 +36,7 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -177,7 +177,7 @@ private:
 };
 
 
-ACPTTagger::ACPTTagger(fhicl::ParameterSet const & p) {
+ACPTTagger::ACPTTagger(fhicl::ParameterSet const & p) : EDProducer{p} {
 
   _flash_producer        = p.get<std::string>("FlashProducer", "simpleFlashCosmic");
   _ophit_producer        = p.get<std::string>("OpHitProducer", "ophitCosmic");

@@ -75,7 +75,7 @@ private:
 };
 
 
-CosmicTrackHitTagger::CosmicTrackHitTagger(fhicl::ParameterSet const & p) {
+CosmicTrackHitTagger::CosmicTrackHitTagger(fhicl::ParameterSet const & p) : EDProducer{p} {
 
   _pfp_producer       = p.get<std::string>("PFPartProducer", "pandoraCosmic");
   _track_producer     = p.get<std::string>("TrackProducer", "pandoraCosmic");

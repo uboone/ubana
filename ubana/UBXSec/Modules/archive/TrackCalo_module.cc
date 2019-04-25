@@ -59,7 +59,7 @@ extern "C" {
   #include "canvas/Persistency/Common/Ptr.h" 
   #include "canvas/Persistency/Common/PtrVector.h" 
   #include "art/Framework/Services/Registry/ServiceHandle.h" 
-  #include "art/Framework/Services/Optional/TFileService.h" 
+  #include "art_root_io/TFileService.h" 
   #include "art/Framework/Services/Optional/TFileDirectory.h" 
   #include "messagefacility/MessageLogger/MessageLogger.h" 
 
@@ -103,7 +103,7 @@ protected:
 
 
   //-------------------------------------------------
-TrackCalo::TrackCalo(fhicl::ParameterSet const& pset)
+TrackCalo::TrackCalo(fhicl::ParameterSet const& pset) : EDProducer{pset}
 {
 
   fTrackModuleLabel = pset.get< std::string >("TrackModuleLabel", "pandoraNu::UBXSec");

@@ -94,7 +94,7 @@ private:
 
 
 SubEventBuilder::SubEventBuilder(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
 
