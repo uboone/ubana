@@ -323,12 +323,13 @@ namespace single_photon
             // So if a  final_state_particle has a status(3) delta in its history its "from" a delta.
             //first we loop over all 14's to see which have a direct mother delta. [done above]
             //so first we loop over all state 1 (exiting) to see what a LArTPC sees (post FSI)
+                for (unsigned int p = 0; p <  m_mctruth_exiting_photon_energy.size(); p++){
 
             if ( m_mctruth_exiting_photon_energy[p] > m_exiting_photon_energy_threshold){
                         m_mctruth_num_reconstructable_protons++;
 
             }//if g above threshold
-
+                }
 
             //if it's a true delta radiative event, check the energies
 
