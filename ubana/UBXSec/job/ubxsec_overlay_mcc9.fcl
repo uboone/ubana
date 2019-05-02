@@ -210,11 +210,7 @@ ubxsec_data_reco.UBXSec.POTSummaryProducer:                         "generator"
 
 # Set Filter properties
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandora" ]
-<<<<<<< HEAD
-ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "UBXSec::UBXSec" ]
-=======
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "UBXSec" ]
->>>>>>> refs/remotes/origin/feature/sfehlber_MCC9
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicProducerLabel:  ""
 ubxsec_data_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicClusterAssns:   ""
 
