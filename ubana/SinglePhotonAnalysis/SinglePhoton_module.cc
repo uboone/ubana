@@ -24,7 +24,7 @@ namespace single_photon
 
     void SinglePhoton::reconfigure(fhicl::ParameterSet const &pset)
     {
-        m_is_verbose = pset.get<bool>("Verbose",false);
+        m_is_verbose = pset.get<bool>("Verbose",true);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
         m_is_data = pset.get<bool>("isData",false);

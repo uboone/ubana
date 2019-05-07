@@ -653,7 +653,8 @@ namespace single_photon
             m_reco_shower_isclearcosmic[i_shr] = PFPToClearCosmicMap[pfp];
             m_reco_shower_is_nuslice[i_shr] = PFPToNuSliceMap[pfp];
 
-
+            if (m_is_verbose && m_reco_shower_sliceId[i_shr] >0) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<". Pfp id = "<< pfp->Self()<<". The slice id for this shower is "<< m_reco_shower_sliceId[i_shr]<<", the neutrino score for this slice is "<< m_reco_shower_nuscore[i_shr]<<", and is_nuslice = "<<  m_reco_shower_is_nuslice[i_shr]<<std::endl;
+          
 
 
 
@@ -801,7 +802,7 @@ namespace single_photon
                 max = en;
             }
         }
-        std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
+       // std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
 
         //return the highest energy on any of the planes
         return max;
