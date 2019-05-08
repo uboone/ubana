@@ -217,7 +217,7 @@ ubxsec_mc_flashmatch.NeutrinoFlashMatch.TrackModule:             "pandora::UBXSe
 
 
 # Set Filter properties
-ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandora::UBXSec" ]
+ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.VertexModuleLabelVec:          [ "pandora" ]
 ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.VtxTrackAssnModuleLabelVec:    [ "UBXSec::UBXSec" ]
 ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicProducerLabel:  ""
 ubxsec_mc_filter.tpcneutrinoidfilternumuccinc.Cluster2DCosmicClusterAssns:   ""

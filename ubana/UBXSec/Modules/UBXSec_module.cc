@@ -183,7 +183,7 @@ int PFPInCommon(lar_pandora::PFParticleVector first, lar_pandora::PFParticleVect
   std::string _cosmic_flash_match_producer;
   std::string _opflash_producer_beam;
 
- std::string _cosmic_flash_tag_producer;
+  std::string _cosmic_flash_tag_producer;
   std::string _cosmic_geo_tag_producer;
   std::string _cosmic_acpt_tag_producer;
   std::string _cosmic_stopmu_tag_producer;
@@ -1994,9 +1994,8 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       if (iter != trackToHitsMap.end()) {
         std::vector<art::Ptr<recob::Hit>> hits = iter->second;
         for (auto hit : hits) {
-          if (hit->View() == 2) {
+            if (hit->View() == 2) {
             TVector3 h (hit->WireID().Wire, hit->PeakTime(), 0);
-            //std::cout << "emplacing hit with wire " << h.X() << ", and time " << h.Y() << std::endl;
             hit_v.emplace_back(h);
           }
         }
@@ -2025,7 +2024,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       _track_quality.SetTrackPoints(track_v);
       _track_quality.SetHitCollection(hit_v);
       std::pair<double, double> residual_mean_std = _track_quality.GetResiduals();
-        std::pair<double, double> residual_truncated_mean_std = _track_quality.GetTruncatedResiduals();
+      std::pair<double, double> residual_truncated_mean_std = _track_quality.GetTruncatedResiduals();
 	//std::cout << "[Lu UBXSec] \t \t Residuals, mean " << residual_mean_std.first << ", std " << residual_mean_std.second << std::endl;
 	//std::cout << "[Lu UBXSec] \t \t Truncated Residuals, mean " << residual_truncated_mean_std.first << ", std " << residual_truncated_mean_std.second << std::endl;
       std::pair<double,int> dist_wire_pair = _track_quality.GetTrackGap();
@@ -2065,7 +2064,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
       if (it != recoParticlesToHits.end()) {
         for (auto h : it->second) {
           if (h->View() == 2) {
-            n_hits_in_cluster++;
+              n_hits_in_cluster++;
           }
         }
       }
@@ -2096,7 +2095,7 @@ for (unsigned int t = 0; t < pfp_v_v[slice].size(); t++) {
 
       ubxsec_event->slc_muoncandidate_residuals_mean[slice] = residual_mean_std.first;
       ubxsec_event->slc_muoncandidate_residuals_std[slice] = residual_mean_std.second;
-       ubxsec_event->slc_muoncandidate_residuals_truncatedmean[slice] = residual_truncated_mean_std.first;
+      ubxsec_event->slc_muoncandidate_residuals_truncatedmean[slice] = residual_truncated_mean_std.first;
       ubxsec_event->slc_muoncandidate_residuals_truncatedstd[slice] = residual_truncated_mean_std.second;
       ubxsec_event->slc_muoncandidate_wiregap[slice] = end_wire-start_wire;
       ubxsec_event->slc_muoncandidate_wiregap_dead[slice] = n_dead_wires;

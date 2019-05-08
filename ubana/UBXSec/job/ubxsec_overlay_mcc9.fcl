@@ -201,7 +201,7 @@ ubxsec_data_flashmatch.RecoTrueMatcher.Ovelay:                 true
 # Set FlashMatching properties
 
 # Set FlashMatching properties
-ubxsec_mc_flashmatch.NeutrinoFlashMatch.TrackModule:             "pandora::UBXSec"
+ubxsec_mc_flashmatch.NeutrinoFlashMatch.TrackModule:             "pandora" #this must match line 212
 
 # Set UBXSec properties
 ubxsec_data_reco.UBXSec.UseGENIEInfo:                               true

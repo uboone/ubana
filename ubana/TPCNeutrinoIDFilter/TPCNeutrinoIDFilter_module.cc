@@ -123,13 +123,14 @@ bool TPCNeutrinoIDFilter::filter(art::Event& event)
     for(size_t assnIdx = 0; assnIdx < fVertexModuleLabelVec.size(); assnIdx++)
     {
         // Recover a handle to the collection of vertices
-        art::Handle< std::vector<recob::Vertex> > vertexVecHandle;
+        std::cout << "[TPCNeutrinoIDFilter] Vertex Object Module Label: " << fVertexModuleLabelVec[assnIdx] << std::endl;
+	art::Handle< std::vector<recob::Vertex> > vertexVecHandle;
         event.getByLabel(fVertexModuleLabelVec[assnIdx], vertexVecHandle);
     
         if (vertexVecHandle.isValid())
         {
 
-            // Recover associations relating vertices and tracks
+	    // Recover associations relating vertices and tracks
             art::FindManyP<recob::Track> vertexTrackAssns(vertexVecHandle, event, fVtxTrackAssnsModuleLabelVec[assnIdx]);
         
             // First check that we have something

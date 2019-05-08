@@ -303,7 +303,10 @@ namespace ubana {
 	  
       }
 
-    std::sort(data_t.begin(), data_t.end());
+     if(data_t.size() > 0)
+      std::sort(data_t.begin(), data_t.end());
+     else
+         return median;
   if (size % 2 == 0){
     median = (data[size/2 - 1] + data[size/2]) / 2;
   }
