@@ -31,7 +31,7 @@ UBXSec: {
   CandidateConsistencyProducer: "CandidateConsistency"
   MCSFitResultMuProducer:       "pandoraMCSMu"
   MCSFitResultPiProducer:       "pandoraMCSPi"
-  CalorimetryProducer:          "pandoracalo"
+  CalorimetryProducer:          "pandoracali"
   EventWeightProducer:          "eventweight"
   GenieEventWeightPMOneProducer: "genieeventweightpm1::UBXSec"
   GenieEventWeightMultisimProducer: "genieeventweightmultisim::UBXSec"

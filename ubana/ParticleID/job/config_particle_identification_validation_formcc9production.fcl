@@ -4,15 +4,15 @@
 # Module configuration
 #
 
-physics.analyzers.pidvalidcalo: @local::particleidvalidconfig
-physics.analyzers.pidvalidcaloSCE: @local::particleidvalidconfig
+#physics.analyzers.pidvalidcalo: @local::particleidvalidconfig
+#physics.analyzers.pidvalidcaloSCE: @local::particleidvalidconfig
 physics.analyzers.pidvalidcali: @local::particleidvalidconfig
 physics.analyzers.pidvalidcaliSCE: @local::particleidvalidconfig
 
-pidvalid_mcc9: [ pidvalidcalo, pidvalidcaloSCE, pidvalidcali, pidvalidcaliSCE ]
+#pidvalid_mcc9: [ pidvalidcalo, pidvalidcaloSCE, pidvalidcali, pidvalidcaliSCE ]
+pidvalid_mcc9: [ pidvalidcali, pidvalidcaliSCE ]
 
-
-physics.analyzers.pidvalidcalo.ProducerLabels: @local::producerlabels_mcc9_calo
-physics.analyzers.pidvalidcaloSCE.ProducerLabels: @local::producerlabels_mcc9_caloSCE
+#physics.analyzers.pidvalidcalo.ProducerLabels: @local::producerlabels_mcc9_calo
+#physics.analyzers.pidvalidcaloSCE.ProducerLabels: @local::producerlabels_mcc9_caloSCE
 physics.analyzers.pidvalidcali.ProducerLabels: @local::producerlabels_mcc9_cali
 physics.analyzers.pidvalidcaliSCE.ProducerLabels: @local::producerlabels_mcc9_caliSCE

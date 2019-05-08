@@ -2,15 +2,12 @@
 #include "ubflashcalib.fcl"
 #include "T0RecoAnodeCathodePiercing.fcl"
 #include "calibration_microboone.fcl"
-
 #include "tpcobjectmaker_mcc9.fcl"
 #include "neutrinomcflash.fcl"
 #include "neutrinoflashmatch.fcl"
 #include "cosmicflashmatch.fcl"
-
 #include "calorimetry_microboone.fcl"
 #include "particleid_microboone.fcl"
-
 #include "pandoramodules_microboone.fcl"
 #include "hitfindermodules_microboone.fcl"
 #include "cosmicremovalmodules.fcl"
@@ -21,27 +18,20 @@
 #include "geocosmictagger.fcl"
 #include "stoppingmuontagger.fcl"
 #include "candidateconsistency.fcl"
-
 #include "opticaldetectormodules_microboone.fcl"
 #include "ubflashfinder.fcl"
 #include "correct_saturation.fcl"
-
 #include "mcsfitproducer.fcl"
-
 #include "fiducial_volume_settings.fcl"
 #include "numucc_eventselection_settings.fcl"
-
-#include "ubxsec_settings_mcc9.fcl"
-
 #include "tpcneutrinoidfilter_microboone.fcl"
-
 #include "photpropservices_microboone.fcl"
-
 #include "services_microboone.fcl"
 #include "opticaldetectorsim_microboone.fcl"
 #include "opticaldetectormodules_microboone.fcl"
 #include "time_memory_tracker_microboone.fcl"
 
+#include "ubxsec_settings_mcc9.fcl"
 
 BEGIN_PROLOG
 #
