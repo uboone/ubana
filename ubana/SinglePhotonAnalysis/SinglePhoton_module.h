@@ -330,7 +330,8 @@ namespace single_photon
                     std::map<int, double> &sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
-                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap);
+                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap,
+                    std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap);
             void ClearShowers();
             void ResizeShowers(size_t);
             void CreateShowerBranches();
@@ -391,7 +392,8 @@ namespace single_photon
                     std::map<int, double> & sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,   
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
-                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap);
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap,
+                    std::map<art::Ptr<recob::PFParticle>,double>& PFPToTrackScoreMap);
 
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
 
@@ -828,6 +830,7 @@ namespace single_photon
             std::vector<double> m_reco_shower_nuscore; //the neutrino score of the slice containing the reco shower
             std::vector<bool> m_reco_shower_isclearcosmic;//true if reco shower is in a clear cosmic slice
             std::vector<bool> m_reco_shower_is_nuslice;//true if reco shower is in a clear cosmic slice
+            std::vector<double> m_reco_shower_trackscore;
 
 
 

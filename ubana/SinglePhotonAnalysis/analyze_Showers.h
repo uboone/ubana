@@ -123,6 +123,7 @@ namespace single_photon
         m_reco_shower_nuscore.clear();
         m_reco_shower_isclearcosmic.clear();
         m_reco_shower_is_nuslice.clear();
+        m_reco_shower_trackscore.clear();
 
 
 
@@ -217,6 +218,7 @@ namespace single_photon
         m_reco_shower_nuscore.resize(size);
         m_reco_shower_isclearcosmic.resize(size);
         m_reco_shower_is_nuslice.resize(size);
+        m_reco_shower_trackscore.resize(size);
 
 
         m_sim_shower_energy.resize(size);
@@ -337,46 +339,49 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_sliceId",& m_reco_shower_sliceId);
         vertex_tree->Branch("reco_shower_nuscore",& m_reco_shower_nuscore);
         vertex_tree->Branch("reco_shower_isclearcosmic",& m_reco_shower_isclearcosmic);
-        vertex_tree->Branch("reco_shower_is_nusclice", & m_reco_shower_is_nuslice);
+        vertex_tree->Branch("reco_shower_is_nuslice", & m_reco_shower_is_nuslice);
+        vertex_tree->Branch("reco_shower_trackscore", & m_reco_shower_trackscore);
 
-        vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
-        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
-        vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
-        vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
-        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
-        vertex_tree->Branch("sim_shower_trackID",&m_sim_shower_trackID);
-        vertex_tree->Branch("sim_shower_parent_pdg",&m_sim_shower_parent_pdg);
-        vertex_tree->Branch("sim_shower_parent_trackID",&m_sim_shower_parent_trackID);
-        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
-        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
-        vertex_tree->Branch("sim_shower_end_process",&m_sim_shower_end_process);
-        vertex_tree->Branch("sim_shower_start_x",&m_sim_shower_start_x);
-        vertex_tree->Branch("sim_shower_start_y",&m_sim_shower_start_y);
-        vertex_tree->Branch("sim_shower_start_z",&m_sim_shower_start_z);
-        vertex_tree->Branch("sim_shower_vertex_x",&m_sim_shower_vertex_x);
-        vertex_tree->Branch("sim_shower_vertex_y",&m_sim_shower_vertex_y);
-        vertex_tree->Branch("sim_shower_vertex_z",&m_sim_shower_vertex_z);
-        vertex_tree->Branch("sim_shower_px",&m_sim_shower_px);
-        vertex_tree->Branch("sim_shower_py",&m_sim_shower_py);
-        vertex_tree->Branch("sim_shower_pz",&m_sim_shower_pz);
 
-        vertex_tree->Branch("sim_shower_is_true_shower",&m_sim_shower_is_true_shower);
-        vertex_tree->Branch("sim_shower_best_matched_plane",&m_sim_shower_best_matched_plane);
-        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane0",&m_sim_shower_matched_energy_fraction_plane0);
-        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane1",&m_sim_shower_matched_energy_fraction_plane1);
-        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane2",&m_sim_shower_matched_energy_fraction_plane2);
-        vertex_tree->Branch("sim_shower_overlay_fraction",&m_sim_shower_overlay_fraction);
-        vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
-        vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
-        vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
-        vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
+                vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
+                vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
+                vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
+                vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
+                vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
+                vertex_tree->Branch("sim_shower_trackID",&m_sim_shower_trackID);
+                vertex_tree->Branch("sim_shower_parent_pdg",&m_sim_shower_parent_pdg);
+                vertex_tree->Branch("sim_shower_parent_trackID",&m_sim_shower_parent_trackID);
+                vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
+                vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
+                vertex_tree->Branch("sim_shower_end_process",&m_sim_shower_end_process);
+                vertex_tree->Branch("sim_shower_start_x",&m_sim_shower_start_x);
+                vertex_tree->Branch("sim_shower_start_y",&m_sim_shower_start_y);
+                vertex_tree->Branch("sim_shower_start_z",&m_sim_shower_start_z);
+                vertex_tree->Branch("sim_shower_vertex_x",&m_sim_shower_vertex_x);
+                vertex_tree->Branch("sim_shower_vertex_y",&m_sim_shower_vertex_y);
+                vertex_tree->Branch("sim_shower_vertex_z",&m_sim_shower_vertex_z);
+                vertex_tree->Branch("sim_shower_px",&m_sim_shower_px);
+                vertex_tree->Branch("sim_shower_py",&m_sim_shower_py);
+                vertex_tree->Branch("sim_shower_pz",&m_sim_shower_pz);
+
+                vertex_tree->Branch("sim_shower_is_true_shower",&m_sim_shower_is_true_shower);
+                vertex_tree->Branch("sim_shower_best_matched_plane",&m_sim_shower_best_matched_plane);
+                vertex_tree->Branch("sim_shower_matched_energy_fraction_plane0",&m_sim_shower_matched_energy_fraction_plane0);
+                vertex_tree->Branch("sim_shower_matched_energy_fraction_plane1",&m_sim_shower_matched_energy_fraction_plane1);
+                vertex_tree->Branch("sim_shower_matched_energy_fraction_plane2",&m_sim_shower_matched_energy_fraction_plane2);
+                vertex_tree->Branch("sim_shower_overlay_fraction",&m_sim_shower_overlay_fraction);
+                vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
+                vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
+                vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
+                vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
             std::map<int, double>& sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
-            std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap){
+            std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap, 
+            std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite"<<std::endl;;
 
@@ -652,9 +657,10 @@ namespace single_photon
             m_reco_shower_nuscore[i_shr] = sliceIdToNuScoreMap[ m_reco_shower_sliceId[i_shr]] ;
             m_reco_shower_isclearcosmic[i_shr] = PFPToClearCosmicMap[pfp];
             m_reco_shower_is_nuslice[i_shr] = PFPToNuSliceMap[pfp];
+            m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
 
-            if (m_is_verbose && m_reco_shower_sliceId[i_shr] >0) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<". Pfp id = "<< pfp->Self()<<". The slice id for this shower is "<< m_reco_shower_sliceId[i_shr]<<", the neutrino score for this slice is "<< m_reco_shower_nuscore[i_shr]<<", and is_nuslice = "<<  m_reco_shower_is_nuslice[i_shr]<<std::endl;
-          
+            if (m_reco_shower_sliceId[i_shr] >0) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<". Pfp id = "<< pfp->Self()<<". The slice id for this shower is "<< m_reco_shower_sliceId[i_shr]<<", the neutrino score for this slice is "<< m_reco_shower_nuscore[i_shr]<<", and is_nuslice = "<<  m_reco_shower_is_nuslice[i_shr]<<". The track score is : "<< m_reco_shower_trackscore[i_shr]<<std::endl;
+
 
 
 
@@ -802,7 +808,7 @@ namespace single_photon
                 max = en;
             }
         }
-       // std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
+        // std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
 
         //return the highest energy on any of the planes
         return max;

@@ -126,7 +126,8 @@ namespace single_photon
             std::map<int, double> &sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
-            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap){
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap,
+            std::map<art::Ptr<recob::PFParticle>,double>& PFPToTrackScoreMap){
 
 
         //std::vector<std::pair<art::Ptr<recob::PFParticle>, int>> primaryPFPSliceIdVec; //maps a primary PFP to a slice index
@@ -177,7 +178,7 @@ namespace single_photon
                     bool is_nuslice = false;
                     //for each of the things in the list
                     for (auto it:propertiesmap ){
-                        //std::cout << "  - " << it.first << " = " << it.second << std::endl;
+                       // std::cout << "  - " << it.first << " = " << it.second << std::endl;
                         if (it.first == "SliceIndex"){
                             temp_ind = it.second;
                             // std::cout << "  - " << it.first << " = " << it.second << std::endl;
@@ -199,6 +200,11 @@ namespace single_photon
                            if(it.first == "IsNeutrino"){
                               is_nuslice = true;
                         }
+                           if(it.first == "TrackScore"){
+                              std::cout << "  - " << it.first << " = " << it.second << std::endl;
+                              PFPToTrackScoreMap[pfp] = it.second;
+                           }
+
                     }//for each item in properties map
 
                     //if there is a neutrino score it's the primary PFP, so save the score+slice info

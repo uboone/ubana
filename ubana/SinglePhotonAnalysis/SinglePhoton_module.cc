@@ -24,7 +24,7 @@ namespace single_photon
 
     void SinglePhoton::reconfigure(fhicl::ParameterSet const &pset)
     {
-        m_is_verbose = pset.get<bool>("Verbose",true);
+        m_is_verbose = pset.get<bool>("Verbose",false);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
         m_is_data = pset.get<bool>("isData",false);
@@ -352,9 +352,10 @@ namespace single_photon
         std::map<art::Ptr<recob::PFParticle>, bool> PFPToClearCosmicMap; //returns true for clear cosmic, false otherwise
         std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap; //returns the slice id for all PFP's
         std::map<art::Ptr<recob::PFParticle>,bool> PFPToNuSliceMap;
+        std::map<art::Ptr<recob::PFParticle>,double> PFPToTrackScoreMap;
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
 
-        this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap);
+        this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
         //std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
         std::cout<<"the number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
 
@@ -365,7 +366,7 @@ namespace single_photon
 
 
         if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
-        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap); 
+        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap); 
 
         // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
         // MCShower and MCTrack come from energy depositions in GEANT4
