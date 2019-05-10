@@ -116,6 +116,8 @@ namespace single_photon
         m_reco_track_sliceId.clear();
         m_reco_track_nuscore.clear();
         m_reco_track_isclearcosmic.clear();
+        m_reco_track_trackscore.clear();
+
 
         m_sim_track_sliceId.clear();
         m_sim_track_nuscore.clear();
@@ -235,6 +237,8 @@ namespace single_photon
         m_reco_track_sliceId.resize(size);
         m_reco_track_nuscore.resize(size);
         m_reco_track_isclearcosmic.resize(size);
+        m_reco_track_trackscore.resize(size);
+
 
         m_sim_track_sliceId.resize(size);
         m_sim_track_nuscore.resize(size);
@@ -343,6 +347,8 @@ namespace single_photon
         vertex_tree->Branch("reco_track_sliceId",& m_reco_track_sliceId);
         vertex_tree->Branch("reco_track_nuscore",& m_reco_track_nuscore);
         vertex_tree->Branch("reco_track_isclearcosmic",& m_reco_track_isclearcosmic);
+        vertex_tree->Branch("reco_track_trackscore",& m_reco_track_trackscore);
+
 
 
         vertex_tree->Branch("sim_track_matched",&m_sim_track_matched);
@@ -376,7 +382,8 @@ namespace single_photon
             std::map<int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap,
             std::map<int, double> &sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
-            std::map<art::Ptr<recob::PFParticle>, int> &PFPToSliceIdMap){
+            std::map<art::Ptr<recob::PFParticle>, int> &PFPToSliceIdMap,
+            std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap){
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Starting recob::Track analysis"<<std::endl;;
@@ -472,6 +479,12 @@ namespace single_photon
             m_reco_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp];
 
 
+          //  m_reco_track_trackscore[i_trk] = PFPToTrackScoreMap[pfp];
+            if ( PFPToTrackScoreMap.find(pfp) != PFPToTrackScoreMap.end() ) {
+                m_reco_track_trackscore[i_trk] = PFPToTrackScoreMap[pfp];
+            } else{
+                m_reco_track_trackscore[i_trk] = -999; 
+            }
 
             //A loop over the trajectory points
             size_t const traj_size = track->CountValidPoints();

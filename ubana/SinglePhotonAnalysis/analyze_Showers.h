@@ -657,7 +657,13 @@ namespace single_photon
             m_reco_shower_nuscore[i_shr] = sliceIdToNuScoreMap[ m_reco_shower_sliceId[i_shr]] ;
             m_reco_shower_isclearcosmic[i_shr] = PFPToClearCosmicMap[pfp];
             m_reco_shower_is_nuslice[i_shr] = PFPToNuSliceMap[pfp];
-            m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
+            //m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
+
+            if ( PFPToTrackScoreMap.find(pfp) != PFPToTrackScoreMap.end() ) {
+                 m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
+            } else{
+                 m_reco_shower_trackscore[i_shr] = -999; 
+            }
 
             if (m_reco_shower_sliceId[i_shr] >0) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<". Pfp id = "<< pfp->Self()<<". The slice id for this shower is "<< m_reco_shower_sliceId[i_shr]<<", the neutrino score for this slice is "<< m_reco_shower_nuscore[i_shr]<<", and is_nuslice = "<<  m_reco_shower_is_nuslice[i_shr]<<". The track score is : "<< m_reco_shower_trackscore[i_shr]<<std::endl;
 
