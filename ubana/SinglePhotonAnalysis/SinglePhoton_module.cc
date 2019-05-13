@@ -353,11 +353,14 @@ namespace single_photon
         std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap; //returns the slice id for all PFP's
         std::map<art::Ptr<recob::PFParticle>,bool> PFPToNuSliceMap;
         std::map<art::Ptr<recob::PFParticle>,double> PFPToTrackScoreMap;
+        std::map<int, int> sliceIdToNumPFPsMap;
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
 
         this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
         //std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
         std::cout<<"the number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
+        
+        //this->GetPFPsPerSlice( PFPToSliceIdMap,sliceIdToNumPFPsMap );
 
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
@@ -495,7 +498,7 @@ namespace single_photon
             //this one was for testing, leaving out for now
             // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
 
-            this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
+            this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
 
 
 
