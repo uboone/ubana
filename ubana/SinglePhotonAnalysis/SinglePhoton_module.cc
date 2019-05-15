@@ -504,6 +504,7 @@ namespace single_photon
 
             this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
 
+            std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
                   }
 
 

@@ -322,13 +322,13 @@ namespace single_photon
         //std::cout<<"saving the info for "<<m_reco_slice_num<<" slices"<<std::endl;
         this->ResizeSlices(m_reco_slice_num); 
         m_reco_slice_nuscore = nuscore_slices;
-         /* std::vector<int> sliceIdToNumPFPsvec(m_reco_slice_num, 1);
-       // GetPFPsPerSlice(PFPToSliceIdMap , sliceIdToNumPFPsvec);
-         m_reco_slice_num_pfps = sliceIdToNumPFPsvec; //the total number of PFP's per slice
-         m_reco_slice_num_showers; //the subset of PFP's that are showers
-           m_reco_slice_num_tracks;
-           */
-       
+        /* std::vector<int> sliceIdToNumPFPsvec(m_reco_slice_num, 1);
+        // GetPFPsPerSlice(PFPToSliceIdMap , sliceIdToNumPFPsvec);
+        m_reco_slice_num_pfps = sliceIdToNumPFPsvec; //the total number of PFP's per slice
+        m_reco_slice_num_showers; //the subset of PFP's that are showers
+        m_reco_slice_num_tracks;
+        */
+
 
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of clear cosmic PFP's in the event is "<<clearCosmicPFP.size()<<std::endl;
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t the number of items in the primary to slice vector is "<<primaryPFPSliceIdVec.size()<<" and in the slice to score map is "<<sliceIdToNuScoreMap.size()<<std::endl;
@@ -355,8 +355,9 @@ namespace single_photon
         // }
     }
 
-    void  SinglePhoton::GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, std::vector<int> &sliceIdToNumPFPsvec){
-        //std::vector<int> sliceIdToNumPFPsvec(m_reco_slice_num, 0);
+  //  void  SinglePhoton::GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, std::vector<int> &sliceIdToNumPFPsvec){
+    std::vector<int>  SinglePhoton::GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
+          std::vector<int> sliceIdToNumPFPsvec(m_reco_slice_num, 0);
         //return sliceIdToNumPFPsvec;
 
         std::cout<<"starting to look at the PFP's per slice"<<std::endl;
@@ -364,7 +365,7 @@ namespace single_photon
         //if the map isn't filled, return 0 PFP's per slice
         if(PFPToSliceIdMap.size() < 1){ 
             std::cout<<"Error, no PFP's in PFPToSliceIdMap, size = "<<PFPToSliceIdMap.size()<<std::endl;
-            return;
+            return sliceIdToNumPFPsvec;
         }
 
 
@@ -372,7 +373,15 @@ namespace single_photon
         for (auto pair:PFPToSliceIdMap ){
             //get the slice and increment the vector
             int slice_id = pair.second;
-            sliceIdToNumPFPsvec[slice_id]++;
+            if (slice_id > -1){
+                // std::cout<<"error, invalid slice id"<<std::endl;
+
+                int num = sliceIdToNumPFPsvec[slice_id];
+                //std::cout<<"for slice id "<<slice_id <<" current num = "<<num<<" which now should be "<< num + 1 <<std::endl;
+                
+                sliceIdToNumPFPsvec[slice_id] = ++num;
+                //std::cout<<"now sliceIdToNumPFPsvec[slice_id] = "<< sliceIdToNumPFPsvec[slice_id] <<std::endl;
+            }
         }
 
         std::cout<<"so how many do we have per slice?"<<std::endl;
@@ -383,7 +392,7 @@ namespace single_photon
         }
 
         std::cout<<"done with all the slices"<<std::endl;
-        return;
+        return sliceIdToNumPFPsvec;
 
     }
 
@@ -588,12 +597,12 @@ namespace single_photon
         if (m_matched_signal_track_num > 1) m_multiple_matched_tracks = true;
         if (m_matched_signal_shower_num == 0)  m_no_matched_showers = true;
 
-        std::vector<int> sliceIdToNumPFPsvec(m_reco_slice_num, 1);
+        //std::vector<int> sliceIdToNumPFPsvec(m_reco_slice_num, 1);
        // GetPFPsPerSlice(PFPToSliceIdMap , sliceIdToNumPFPsvec);
-         m_reco_slice_num_pfps = sliceIdToNumPFPsvec; //the total number of PFP's per slice
-       /*  m_reco_slice_num_showers; //the subset of PFP's that are showers
-           m_reco_slice_num_tracks;
-           */
+        m_reco_slice_num_pfps = GetPFPsPerSlice(PFPToSliceIdMap); //the total number of PFP's per slice
+        /*  m_reco_slice_num_showers; //the subset of PFP's that are showers
+            m_reco_slice_num_tracks;
+            */
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t AnalyzeRecoMCSlices is done "<<std::endl;
 
     }//findslice
