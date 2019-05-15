@@ -347,6 +347,10 @@ namespace single_photon
      std::vector<int>  SinglePhoton::GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap ){
         std::vector<int> sliceIdToNumPFPsvec(m_reco_slice_num, 0);
 
+        std::cout<<"starting to look at the PFP's per slice"<<std::endl;
+
+        //if the map isn't filled, return 0 PFP's per slice
+        if( !PFPToSliceIdMap.empty()){ return sliceIdToNumPFPsvec;}
 
        //for all PFP's
         for (auto pair:PFPToSliceIdMap ){
@@ -355,11 +359,14 @@ namespace single_photon
             sliceIdToNumPFPsvec[slice_id]++;
         }
 
+        std::cout<<"so how many do we have per slice?"<<std::endl;
         std::cout<<"The number of slices "<<m_reco_slice_num<<std::endl;
         for(unsigned int i= 0; i<sliceIdToNumPFPsvec.size(); i++){
-            std::cout<<"The number of PFP's in slice: " << i<<" is "<<sliceIdToNumPFPsvec[i]<<std::endl;
+            std::cout<<"The number of PFP's in slice: " << i<<std::endl;
+            std::cout<< "-- is "<<sliceIdToNumPFPsvec[i]<<std::endl;
         }
 
+        std::cout<<"done with all the slices"<<std::endl;
         return sliceIdToNumPFPsvec;
 
           }
