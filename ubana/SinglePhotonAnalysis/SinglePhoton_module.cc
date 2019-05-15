@@ -6,7 +6,7 @@
 #include "analyze_MCTruth.h"
 #include "analyze_EventWeight.h"
 #include "analyze_Slice.h"
-
+#include "second_shower_search.h"
 
 
 namespace single_photon
@@ -32,6 +32,7 @@ namespace single_photon
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
+        m_sliceLabel = pset.get<std::string>("SliceLabel","pandora");
         m_showerLabel = pset.get<std::string>("ShowerLabel");
         m_caloLabel = pset.get<std::string>("CaloLabel");
         m_flashLabel = pset.get<std::string>("FlashLabel");
@@ -135,6 +136,20 @@ namespace single_photon
         evt.getByLabel(m_badChannelProducer, m_badChannelLabel, badChannelHandle);
         std::vector<int> badChannelVector = *(badChannelHandle);
 
+        //Slices
+        art::ValidHandle<std::vector<recob::Slice>> const & sliceHandle  = evt.getValidHandle<std::vector<recob::Slice>>(m_sliceLabel);
+        std::vector<art::Ptr<recob::Slice>> sliceVector;
+        art::fill_ptr_vector(sliceVector,sliceHandle);
+        //And some associations
+        art::FindManyP<recob::Hit> hits_per_slice(sliceHandle, evt, m_sliceLabel);
+        std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::Hit>> > sliceToHitsMap;
+        std::map<int, std::vector<art::Ptr<recob::Hit>> > sliceIDToHitsMap;
+        for(size_t i=0; i< sliceVector.size(); ++i){
+            auto slice = sliceVector[i];
+            sliceToHitsMap[slice] =hits_per_slice.at(slice.key());
+            sliceIDToHitsMap[slice->ID()] = hits_per_slice.at(slice.key());
+        }
+
 
         // Collect the PFParticles from the event. This is the core!
         art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
@@ -234,7 +249,6 @@ namespace single_photon
         std::map<art::Ptr<recob::Hit>, art::Ptr<recob::PFParticle>>                hitToPFParticleMap;
         //Using a pandora helper here, but to be honest we should probably just build using normal associations so keep independant if pssoble
         lar_pandora::LArPandoraHelper::BuildPFParticleHitMaps(evt, m_pandoraLabel, pfParticleToHitsMap, hitToPFParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
-
 
 
         // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino
@@ -371,12 +385,20 @@ namespace single_photon
         std::map<int, int> sliceIdToNumPFPsMap;
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
 
-        this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
+        this->AnalyzeSlices(pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
         //std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
         std::cout<<"the number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
         std::cout<<"the number of PFP's stored in the PFPToSliceIdMap is "<<PFPToSliceIdMap.size()<<std::endl;
 
         //this->GetPFPsPerSlice( PFPToSliceIdMap,sliceIdToNumPFPsMap );
+
+
+
+
+        //Second Shower Search-Pandora style
+        this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
+
+
 
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
@@ -580,6 +602,8 @@ namespace single_photon
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane1",&m_reco_vertex_to_nearest_dead_wire_plane1);
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
 
+
+        this->CreateSecondShowerBranches();
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
 
@@ -671,6 +695,7 @@ namespace single_photon
         m_reco_vertex_to_nearest_dead_wire_plane2=-99999;
 
 
+        this->ClearSecondShowers();
         //------------- Flash related Variables ------------------
         this->ClearFlashes();
 

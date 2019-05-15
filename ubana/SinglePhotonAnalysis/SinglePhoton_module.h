@@ -16,6 +16,7 @@
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/Slice.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/OpFlash.h"
@@ -299,6 +300,16 @@ namespace single_photon
             void CreateTemplateBranches();
 
 
+            //---------------- SecondShower----
+    void ClearSecondShowers();
+
+    void ResizeSecondShowers(size_t size);
+
+    
+    void CreateSecondShowerBranches();
+
+
+            void SecondShowerSearch(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showertopfparticlemap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfparticletohitsmap,    const   std::map<art::Ptr<recob::PFParticle>, int> & pfparticletosliceidmap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceidtohitsmap);
 
             //----------------  Flashes ----------------------------
             void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes);
@@ -488,6 +499,7 @@ namespace single_photon
 
             std::string m_pandoraLabel;         ///< The label for the pandora producer
             std::string m_trackLabel;           ///< The label for the track producer from PFParticles
+            std::string m_sliceLabel;          
             std::string m_showerLabel;          ///< The label for the shower producer from PFParticles
             std::string m_caloLabel;            ///< The label for calorimetry associations producer
             std::string m_flashLabel;
@@ -552,6 +564,9 @@ namespace single_photon
             int m_event_number;
 
             int m_test_matched_hits;
+
+            //------- Second shower related variables ----
+            int m_sss_num_unassociated_hits;
 
 
             //------------ Vertex Related variables -------------
