@@ -360,6 +360,9 @@ namespace single_photon
         //std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
         std::cout<<"the number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
         std::cout<<"the number of PFP's stored in the PFPToSliceIdMap is "<<PFPToSliceIdMap.size()<<std::endl;
+        if (PFPToSliceIdMap.size() < 1){
+            std::cout<<"ERROR, not storing PFP's in PFPToSliceIdMap"<<std::endl;
+        }
 
         //this->GetPFPsPerSlice( PFPToSliceIdMap,sliceIdToNumPFPsMap );
 
@@ -501,14 +504,13 @@ namespace single_photon
 
             this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
 
-
-
-        }
+                  }
 
 
 
 
         //---------------------- END OF LOOP, fill vertex ---------------------
+       
         vertex_tree->Fill();
         ncdelta_slice_tree->Fill();
 
