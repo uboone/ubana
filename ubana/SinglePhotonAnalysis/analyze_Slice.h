@@ -14,6 +14,11 @@ namespace single_photon
         m_matched_signal_shower_num = 0;
         m_matched_signal_shower_is_nuslice.clear();
 
+        m_reco_slice_num_pfps.clear();
+        m_reco_slice_num_showers.clear();
+        m_reco_slice_num_tracks.clear();
+
+
         m_matched_signal_track_true_E.clear();
         m_matched_signal_track_nuscore.clear();
         m_matched_signal_track_sliceId.clear();
@@ -81,6 +86,10 @@ namespace single_photon
         ncdelta_slice_tree->Branch("matched_signal_shower_is_clearcosmic", &m_matched_signal_shower_is_clearcosmic);
         ncdelta_slice_tree->Branch("matched_signal_shower_num", &m_matched_signal_shower_num);
         ncdelta_slice_tree->Branch("matched_signal_shower_is_nuslice", &m_matched_signal_shower_is_nuslice);
+        
+        ncdelta_slice_tree->Branch(" reco_slice_num_pfps", & m_reco_slice_num_pfps);
+        ncdelta_slice_tree->Branch(" reco_slice_num_showers", & m_reco_slice_num_showers);
+        ncdelta_slice_tree->Branch(" reco_slice_num_tracks", & m_reco_slice_num_tracks);
 
         // ncdelta_slice_tree->Branch("matched_signal_track_overlay_fraction", &m_matched_signal_track_overlay_fraction);
         ncdelta_slice_tree->Branch("matched_signal_track_true_E", &m_matched_signal_track_true_E);
@@ -126,7 +135,8 @@ namespace single_photon
             std::map<int, double> &sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
-            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap){
+            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap,
+            std::map<art::Ptr<recob::PFParticle>,double>& PFPToTrackScoreMap){
 
 
         //std::vector<std::pair<art::Ptr<recob::PFParticle>, int>> primaryPFPSliceIdVec; //maps a primary PFP to a slice index
@@ -136,7 +146,7 @@ namespace single_photon
 
 
         std::vector<double> nuscore_slices; //this is a temporary vector to store neutrino score per slice for this event
-         std::map<int, bool> sliceIdToNuSliceMap; //this is a temporary vector to store neutrino score per slice for this event
+        std::map<int, bool> sliceIdToNuSliceMap; //this is a temporary vector to store neutrino score per slice for this event
         //std::vector<art::Ptr<recob::PFParticle>> primary_pfps; //store the primary PFP for each slice
         // sliceIdToPFPMap.clear(); //clear between events
 
@@ -177,7 +187,7 @@ namespace single_photon
                     bool is_nuslice = false;
                     //for each of the things in the list
                     for (auto it:propertiesmap ){
-                        //std::cout << "  - " << it.first << " = " << it.second << std::endl;
+                        // std::cout << "  - " << it.first << " = " << it.second << std::endl;
                         if (it.first == "SliceIndex"){
                             temp_ind = it.second;
                             // std::cout << "  - " << it.first << " = " << it.second << std::endl;
@@ -196,9 +206,14 @@ namespace single_photon
                         if (it.first == "IsClearCosmic"){
                             clear_cosmic = 1;
                         }
-                           if(it.first == "IsNeutrino"){
-                              is_nuslice = true;
+                        if(it.first == "IsNeutrino"){
+                            is_nuslice = true;
                         }
+                        if(it.first == "TrackScore"){
+                            std::cout << "  - " << it.first << " = " << it.second << std::endl;
+                            PFPToTrackScoreMap[pfp] = it.second;
+                        }
+
                     }//for each item in properties map
 
                     //if there is a neutrino score it's the primary PFP, so save the score+slice info
@@ -217,9 +232,9 @@ namespace single_photon
                         PFPToClearCosmicMap[pfp] = false;
 
                     }
-                   
-                        sliceIdToNuSliceMap[temp_ind] = is_nuslice;
-                                      
+
+                    sliceIdToNuSliceMap[temp_ind] = is_nuslice;
+
                 }//for each PFP/metadata
 
             }//if the list isn't empty
@@ -283,9 +298,9 @@ namespace single_photon
                 allPFPSliceIdVec.push_back(std::pair(start_pfp,slice_id));
                 // PFPToSliceIdMap[start_pfp] = slice_id; 
             }
-           
-             PFPToSliceIdMap[start_pfp] = slice_id; 
-             PFPToNuSliceMap[start_pfp] = sliceIdToNuSliceMap[slice_id];
+
+            PFPToSliceIdMap[start_pfp] = slice_id; 
+            PFPToNuSliceMap[start_pfp] = sliceIdToNuSliceMap[slice_id];
             // sliceIdToPFPMap[slice_id].push_back(start_pfp);
         }//for all pfp's in the event
 
@@ -327,6 +342,52 @@ namespace single_photon
         //std::cout<<"the pfp with id "<<item.first->Self()<<" is associated to slice "<<item.second<<std::endl;
         //      pfp_pdg_slice[item.second].push_back(item.first->PdgCode());
         // }
+    }
+
+     std::vector<int>  SinglePhoton::GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap ){
+        std::vector<int> sliceIdToNumPFPsvec(m_reco_slice_num, 0);
+
+        std::cout<<"starting to look at the PFP's per slice"<<std::endl;
+
+        //if the map isn't filled, return 0 PFP's per slice
+        if( !PFPToSliceIdMap.empty()){ return sliceIdToNumPFPsvec;}
+
+       //for all PFP's
+        for (auto pair:PFPToSliceIdMap ){
+            //get the slice and increment the vector
+            int slice_id = pair.second;
+            sliceIdToNumPFPsvec[slice_id]++;
+        }
+
+        std::cout<<"so how many do we have per slice?"<<std::endl;
+        std::cout<<"The number of slices "<<m_reco_slice_num<<std::endl;
+        for(unsigned int i= 0; i<sliceIdToNumPFPsvec.size(); i++){
+            std::cout<<"The number of PFP's in slice: " << i<<std::endl;
+            std::cout<< "-- is "<<sliceIdToNumPFPsvec[i]<<std::endl;
+        }
+
+        std::cout<<"done with all the slices"<<std::endl;
+        return sliceIdToNumPFPsvec;
+
+          }
+
+    void SinglePhoton::GetNumShowersPerSlice(std::map< art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& showerToPFParticleMap, 
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+            std::map<int, int>& sliceIdToNumShowersMap ){
+        //for each shower
+        for (auto pair: showerToPFParticleMap){
+            art::Ptr<recob::PFParticle> pfp = pair.second;
+            //find slice corresponding to PFP
+            //have to check if it's in the map otherwise it returns 0 which is misleading
+            if (PFPToSliceIdMap.find(pfp) != PFPToSliceIdMap.end()){
+                //get the slice id
+                int slice_id = PFPToSliceIdMap[pfp];
+                //incrmement number of tracks per slice
+                sliceIdToNumShowersMap[slice_id]++;
+            }//if there's a fpf-slice match
+        }//for each shower
+
+
     }
 
 
@@ -392,7 +453,8 @@ namespace single_photon
             std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, 
             std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
             std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle> > & trackToNuPFParticleMap,
-            std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap){
+            std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap,
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
 
 
         /*std::vector<double> m_matched_signal_shower_overlay_fraction;
@@ -510,6 +572,10 @@ namespace single_photon
         if (m_matched_signal_track_num > 1) m_multiple_matched_tracks = true;
         if (m_matched_signal_shower_num == 0)  m_no_matched_showers = true;
 
+        m_reco_slice_num_pfps = GetPFPsPerSlice(PFPToSliceIdMap ); //the total number of PFP's per slice
+       /* m_reco_slice_num_showers; //the subset of PFP's that are showers
+        m_reco_slice_num_tracks;
+*/
 
     }//findslice
 
@@ -660,13 +726,13 @@ namespace single_photon
                 for(auto pair :allPFPSliceIdVec){
                     art::Ptr<recob::PFParticle> pfp = pair.first;
                     if (this_pfp == pfp){
-                if(m_is_verbose)        std::cout<<"found recob shower - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
+                        if(m_is_verbose)        std::cout<<"found recob shower - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
                         m_reco_slice_shower_matched_sliceId[i_shr] = pair.second; 
                         m_reco_slice_shower_matched_energy[i_shr] = mcp->E();
                     }
                 }
             } else{
-              if(m_is_verbose)  std::cout<<"no corresponding slice found for recob shower - MCP at track id "<<mcp->TrackId()<<std::endl;
+                if(m_is_verbose)  std::cout<<"no corresponding slice found for recob shower - MCP at track id "<<mcp->TrackId()<<std::endl;
             }
             i_shr++;
         } 
@@ -690,7 +756,7 @@ namespace single_photon
                 for(auto pair :allPFPSliceIdVec){
                     art::Ptr<recob::PFParticle> pfp = pair.first;
                     if (this_pfp == pfp){
-                if(m_is_verbose)        std::cout<<"found recob track - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
+                        if(m_is_verbose)        std::cout<<"found recob track - MCP at track id "<<mcp->TrackId()<<" in slice "<<pair.second <<std::endl;
                         m_reco_slice_track_matched_sliceId[i_trk] = pair.second;
                         m_reco_slice_track_matched_energy[i_trk]= mcp->E();
                     }

@@ -84,6 +84,8 @@ namespace single_photon
         m_reco_shower_angle_wrt_wires_plane2.clear();
 
         m_reco_shower_dEdx_amalgamated.clear();
+        m_reco_shower_dEdx_amalgamated_nhits.clear();
+
 
         m_reco_shower_dQdx_plane0_median.clear();
         m_reco_shower_dQdx_plane1_median.clear();
@@ -119,6 +121,7 @@ namespace single_photon
         m_reco_shower_nuscore.clear();
         m_reco_shower_isclearcosmic.clear();
         m_reco_shower_is_nuslice.clear();
+        m_reco_shower_trackscore.clear();
 
     }
 
@@ -170,6 +173,7 @@ namespace single_photon
         m_reco_shower_angle_wrt_wires_plane2.resize(size);
 
         m_reco_shower_dEdx_amalgamated.resize(size);
+        m_reco_shower_dEdx_amalgamated_nhits.resize(size);
 
         m_reco_shower_dQdx_plane0_median.resize(size);
         m_reco_shower_dQdx_plane1_median.resize(size);
@@ -208,6 +212,7 @@ namespace single_photon
         m_reco_shower_nuscore.resize(size);
         m_reco_shower_isclearcosmic.resize(size);
         m_reco_shower_is_nuslice.resize(size);
+        m_reco_shower_trackscore.resize(size);
 
 
         m_sim_shower_energy.resize(size);
@@ -294,6 +299,8 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_angle_wrt_wires_plane2",& m_reco_shower_angle_wrt_wires_plane2);
 
         vertex_tree->Branch("reco_shower_dEdx_amalgamated",&m_reco_shower_dEdx_amalgamated);
+        vertex_tree->Branch("reco_shower_dEdx_amalgamated_nhits",&m_reco_shower_dEdx_amalgamated_nhits);
+
 
         vertex_tree->Branch("reco_shower_dQdx_plane0_median",&m_reco_shower_dQdx_plane0_median);
         vertex_tree->Branch("reco_shower_dQdx_plane1_median",&m_reco_shower_dQdx_plane1_median);
@@ -326,46 +333,49 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_sliceId",& m_reco_shower_sliceId);
         vertex_tree->Branch("reco_shower_nuscore",& m_reco_shower_nuscore);
         vertex_tree->Branch("reco_shower_isclearcosmic",& m_reco_shower_isclearcosmic);
-        vertex_tree->Branch("reco_shower_is_nusclice", & m_reco_shower_is_nuslice);
+        vertex_tree->Branch("reco_shower_is_nuslice", & m_reco_shower_is_nuslice);
+        vertex_tree->Branch("reco_shower_trackscore", & m_reco_shower_trackscore);
 
-        vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
-        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
-        vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
-        vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
-        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
-        vertex_tree->Branch("sim_shower_trackID",&m_sim_shower_trackID);
-        vertex_tree->Branch("sim_shower_parent_pdg",&m_sim_shower_parent_pdg);
-        vertex_tree->Branch("sim_shower_parent_trackID",&m_sim_shower_parent_trackID);
-        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
-        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
-        vertex_tree->Branch("sim_shower_end_process",&m_sim_shower_end_process);
-        vertex_tree->Branch("sim_shower_start_x",&m_sim_shower_start_x);
-        vertex_tree->Branch("sim_shower_start_y",&m_sim_shower_start_y);
-        vertex_tree->Branch("sim_shower_start_z",&m_sim_shower_start_z);
-        vertex_tree->Branch("sim_shower_vertex_x",&m_sim_shower_vertex_x);
-        vertex_tree->Branch("sim_shower_vertex_y",&m_sim_shower_vertex_y);
-        vertex_tree->Branch("sim_shower_vertex_z",&m_sim_shower_vertex_z);
-        vertex_tree->Branch("sim_shower_px",&m_sim_shower_px);
-        vertex_tree->Branch("sim_shower_py",&m_sim_shower_py);
-        vertex_tree->Branch("sim_shower_pz",&m_sim_shower_pz);
 
-        vertex_tree->Branch("sim_shower_is_true_shower",&m_sim_shower_is_true_shower);
-        vertex_tree->Branch("sim_shower_best_matched_plane",&m_sim_shower_best_matched_plane);
-        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane0",&m_sim_shower_matched_energy_fraction_plane0);
-        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane1",&m_sim_shower_matched_energy_fraction_plane1);
-        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane2",&m_sim_shower_matched_energy_fraction_plane2);
-        vertex_tree->Branch("sim_shower_overlay_fraction",&m_sim_shower_overlay_fraction);
-        vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
-        vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
-        vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
-        vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
+                vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
+                vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
+                vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
+                vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
+                vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
+                vertex_tree->Branch("sim_shower_trackID",&m_sim_shower_trackID);
+                vertex_tree->Branch("sim_shower_parent_pdg",&m_sim_shower_parent_pdg);
+                vertex_tree->Branch("sim_shower_parent_trackID",&m_sim_shower_parent_trackID);
+                vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
+                vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
+                vertex_tree->Branch("sim_shower_end_process",&m_sim_shower_end_process);
+                vertex_tree->Branch("sim_shower_start_x",&m_sim_shower_start_x);
+                vertex_tree->Branch("sim_shower_start_y",&m_sim_shower_start_y);
+                vertex_tree->Branch("sim_shower_start_z",&m_sim_shower_start_z);
+                vertex_tree->Branch("sim_shower_vertex_x",&m_sim_shower_vertex_x);
+                vertex_tree->Branch("sim_shower_vertex_y",&m_sim_shower_vertex_y);
+                vertex_tree->Branch("sim_shower_vertex_z",&m_sim_shower_vertex_z);
+                vertex_tree->Branch("sim_shower_px",&m_sim_shower_px);
+                vertex_tree->Branch("sim_shower_py",&m_sim_shower_py);
+                vertex_tree->Branch("sim_shower_pz",&m_sim_shower_pz);
+
+                vertex_tree->Branch("sim_shower_is_true_shower",&m_sim_shower_is_true_shower);
+                vertex_tree->Branch("sim_shower_best_matched_plane",&m_sim_shower_best_matched_plane);
+                vertex_tree->Branch("sim_shower_matched_energy_fraction_plane0",&m_sim_shower_matched_energy_fraction_plane0);
+                vertex_tree->Branch("sim_shower_matched_energy_fraction_plane1",&m_sim_shower_matched_energy_fraction_plane1);
+                vertex_tree->Branch("sim_shower_matched_energy_fraction_plane2",&m_sim_shower_matched_energy_fraction_plane2);
+                vertex_tree->Branch("sim_shower_overlay_fraction",&m_sim_shower_overlay_fraction);
+                vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
+                vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
+                vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
+                vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
             std::map<int, double>& sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
-            std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap){
+            std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap, 
+            std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite"<<std::endl;;
 
@@ -539,6 +549,7 @@ namespace single_photon
 
             m_reco_shower_dEdx_amalgamated[i_shr] = getAmalgamateddEdx( m_reco_shower_angle_wrt_wires_plane0[i_shr],  m_reco_shower_angle_wrt_wires_plane1[i_shr],  m_reco_shower_angle_wrt_wires_plane2[i_shr], m_reco_shower_dEdx_plane0_median[i_shr], m_reco_shower_dEdx_plane1_median[i_shr], m_reco_shower_dEdx_plane2_median[i_shr],m_reco_shower_dEdx_plane0_nhits[i_shr], m_reco_shower_dEdx_plane1_nhits[i_shr], m_reco_shower_dEdx_plane2_nhits[i_shr] );
 
+            m_reco_shower_dEdx_amalgamated_nhits[i_shr] = getAmalgamateddEdxNHits(m_reco_shower_dEdx_amalgamated[i_shr], m_reco_shower_dEdx_plane0_median[i_shr], m_reco_shower_dEdx_plane1_median[i_shr], m_reco_shower_dEdx_plane2_median[i_shr],m_reco_shower_dEdx_plane0_nhits[i_shr], m_reco_shower_dEdx_plane1_nhits[i_shr], m_reco_shower_dEdx_plane2_nhits[i_shr] );
 
             //-------------- Flashes : Was there a flash in the beam_time and if so was it near in Z? --------------------
             double zmin = m_reco_shower_startz[i_shr];
@@ -640,7 +651,15 @@ namespace single_photon
             m_reco_shower_nuscore[i_shr] = sliceIdToNuScoreMap[ m_reco_shower_sliceId[i_shr]] ;
             m_reco_shower_isclearcosmic[i_shr] = PFPToClearCosmicMap[pfp];
             m_reco_shower_is_nuslice[i_shr] = PFPToNuSliceMap[pfp];
+            //m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
 
+            if ( PFPToTrackScoreMap.find(pfp) != PFPToTrackScoreMap.end() ) {
+                 m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
+            } else{
+                 m_reco_shower_trackscore[i_shr] = -999; 
+            }
+
+            if (m_is_verbose && m_reco_shower_sliceId[i_shr] >0) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<". Pfp id = "<< pfp->Self()<<". The slice id for this shower is "<< m_reco_shower_sliceId[i_shr]<<", the neutrino score for this slice is "<< m_reco_shower_nuscore[i_shr]<<", and is_nuslice = "<<  m_reco_shower_is_nuslice[i_shr]<<". The track score is : "<< m_reco_shower_trackscore[i_shr]<<std::endl;
 
 
 
@@ -789,7 +808,7 @@ namespace single_photon
                 max = en;
             }
         }
-        std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
+        // std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
 
         //return the highest energy on any of the planes
         return max;
@@ -819,10 +838,7 @@ namespace single_photon
 
     double SinglePhoton::QtoEConversion(double Q){
         //return the energy value converted to MeV (the factor of 1e-6)
-        //std::cout<<"computing the E value"<<std::endl;
         double E = Q* m_work_function *1e-6 /m_recombination_factor;
-        // double E = Q* m_work_function /m_recombination_factor;  
-        //std::cout<<"returning E = "<<E<<std::endl;
         return E;
 
     }
@@ -861,32 +877,14 @@ namespace single_photon
             if(thiscluster->View() != plane) continue;
 
             //calculate the cluster direction
-
             std::vector<double> cluster_axis = {cos(thiscluster->StartAngle()), sin(thiscluster->StartAngle())};		
 
             //get the cluster start and and in CM
             std::cout<<"for plane/tpc/cryo:"<<plane<<"/"<<m_TPC<<"/"<<m_Cryostat<<", fXTicksOffset: "<<theDetector->GetXTicksOffset(plane, m_TPC, m_Cryostat)<<" fXTicksCoefficient: "<<theDetector->GetXTicksCoefficient(m_TPC, m_Cryostat)<<std::endl;
 
-            //double fromTickToNs = 4.8 / theDetector->ReadOutWindowSize() * 1e6;
-            //double drift = theDetector->DriftVelocity() * 1e-3;
-
-            // std::cout<<"fromTickToNs: "<<fromTickToNs<<" , drift: "<<drift<<std::endl;
-
-            //double converted = theDetector->ConvertTicksToX( thiscluster->StartTick(), plane,m_TPC ,m_Cryostat);
-            //double check = thiscluster->StartTick() - (theDetector->GetXTicksOffset(plane, m_TPC, m_Cryostat) * theDetector->GetXTicksCoefficient(m_TPC, m_Cryostat));
-            //double legacy = thiscluster->StartTick()* fromTickToNs * drift ;
-
-            //std::cout<<"converted/check/legacy = "<<converted<<"/"<<check<<"/"<<legacy<<std::endl;
-
-            //" fDriftDirection: "<<theDetector->GetDriftDirection.at(m_Cryostat).at(m_TPC)<<std::endl;
+            //convert the cluster start and end positions to time and wire coordinates
             std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,(thiscluster->StartTick() - theDetector->TriggerOffset())* _time2cm};
-            //std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->StartTick(), plane,m_TPC ,m_Cryostat)};
-            //std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,thiscluster->StartTick()  * fromTickToNs * drift };
-            //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t the start position of the cluster is "<<cluster_start[0]<<", "<<cluster_start[1]<<std::endl;
             std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,(thiscluster->EndTick() - theDetector->TriggerOffset())* _time2cm };
-            // std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,theDetector->ConvertTicksToX( thiscluster->EndTick(), plane,m_TPC ,m_Cryostat) };
-            //std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,thiscluster->EndTick()* fromTickToNs * drift};
-            //std::cout<<"the end position of the cluster is "<<cluster_end[0]<<", "<<cluster_end[1]<<std::endl;
 
             //check that the cluster has non-zero length
             double length = sqrt(pow(cluster_end[0] - cluster_start[0], 2) + pow(cluster_end[1] - cluster_start[1], 2));
@@ -904,275 +902,224 @@ namespace single_photon
             std::vector<art::Ptr<recob::Hit>> hits =  clusterToHitMap[thiscluster];
 
             //for each hit in the cluster
-            //std::cout<<"the number of hits in this cluster is "<<hits.size()<<std::endl;
-            //int n = 0;
             for (art::Ptr<recob::Hit> &thishit: hits){	
-                //	std::cout<<"starting hit "<<++n<<std::endl;
-                //get the hit position in cm
+                //get the hit position in cm from the wire and time
                 std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, (thishit->PeakTime() - theDetector->TriggerOffset())* _time2cm};
-                // std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, theDetector->ConvertTicksToX( thishit->PeakTime(), plane,m_TPC ,m_Cryostat)};
-                //std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, thishit->PeakTime() * fromTickToNs * drift };
-                //std::cout<<"the position of this hit in the cluster is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
 
                 //check if inside the box
                 bool v2 = isInsidev2(thishit_pos, rectangle);
-                //bool v1 = insideBox(thishit_pos, rectangle);
                 if (v2){
-                    // if(v2 != v1){
-                    // std::cout<<"isInsidev2/insideBox = "<<v2<<"/"<<v1<<std::endl;
-                    //}
-                    //if (insideBox(thishit_pos, rectangle)){
-                    //	std::cout<<"the position of this hit inside of the rectangle is "<<thishit_pos[0]<<", "<<thishit_pos[1]<<std::endl;
                     double q = GetQHit(thishit, plane); 
-                    //double q_other = thishit->Integral() * 200;
-                    //std::cout<<"q/q_other = "<<q<<"/"<<q_other<<std::endl;             
-                    //double q = thishit->Integral() * m_gain;
-                    //	std::cout<<"the q for this hit is "<<q<<std::endl;
                     double this_dqdx = q/pitch; 
                     dqdx.push_back(this_dqdx);
-                    // std::cout<<"the calculated dq/dx for this hit is "<<this_dqdx<<std::endl;
                 }//if hit falls inside the box
-                //	else{
-                //		std::cout<<"hit not inside box"<<std::endl;
-                //	}
-                }//for each hit inthe cluster
-            }//for each cluster
-            //std::cout<<"the number of dq/dx points on this plane is "<<dqdx.size()<<std::endl;
-            //for (double mydqdx: dqdx){
-            //	std::cout<<"final dqdx for plane "<<plane<<" = "<<mydqdx<<std::endl;
-            //}
-            return dqdx;
+
+            }//for each hit inthe cluster
+        }//for each cluster
+        return dqdx;
+    }
+
+    double SinglePhoton::getPitch(TVector3 shower_dir, int plane){
+        //get the wire direction for this plane - values are hardcoded which isn't great but the TPC geom object gave weird values
+        TVector3 wire_dir = getWireVec(plane);
+
+        //take dot product of shower and wire dir
+        double cos = getCoswrtWires(shower_dir, wire_dir);
+
+        //want only positive values so take abs, normalize by the lengths of the shower and wire
+        cos = abs(cos)/(wire_dir.Mag() * shower_dir.Mag());	
+
+        //If the cos is 0 shower is perpendicular and therefore get infinite distance 
+        if (cos == 0){ return std::numeric_limits<double>::max(); }
+
+        //output is always >= the wire spacing
+        return m_wire_spacing/cos;
+    }
+
+    TVector3 SinglePhoton::getWireVec(int plane){
+        TVector3 wire_dir;
+        if (plane == 0){
+            wire_dir = {0., -sqrt(3) / 2., 1 / 2.};
+        } else if (plane == 1){
+            wire_dir = {0., sqrt(3) / 2., 1 / 2.};
+        } else if (plane == 2) {
+            wire_dir = {0., 0., 1.};
         }
-
-        double SinglePhoton::getPitch(TVector3 shower_dir, int plane){
-            //geo::TPCGeo const& tpc = geom->TPC(0);
-
-            //get the wire direction for this plane
-            //TVector3 wire_dir =  geom->TPC(m_TPC).Plane(plane).FirstWire().Direction();
-            //TVector3 this_wire_dir =  geom->TPC(m_TPC).Plane(plane).FirstWire().Direction();
-            //std::cout<<"the wire direction from geom on plane "<<plane<<" is "<<this_wire_dir.X()<<", "<<this_wire_dir.Y()<<", "<<this_wire_dir.Z()<<std::endl;
-            //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The wire_pitch for plane "<<plane<<" is "<<wire_direction[0]<<", "<<wire_direction[1]<<", "<<wire_direction[2]<<std::endl;	
-            //
-
-            /*
-               TVector3 wire_dir;
-               if (plane == 0){
-               wire_dir = {0., -sqrt(3) / 2., 1 / 2.};
-               } else if (plane == 1){
-               wire_dir = {0., sqrt(3) / 2., 1 / 2.};
-               } else if (plane == 2) {
-               wire_dir = {0., 0., 1.};
-               }
-
-            //take the dot product between the wire direction and the shower direction
-            double cos = wire_dir.Dot(shower_dir);
-
-            //want only positive values so take abs, normalize by the lengths of the shower and wire
-            cos = abs(cos)/(wire_dir.Mag() * shower_dir.Mag());	
-            */
-
-
-            TVector3 wire_dir = getWireVec(plane);
-            double cos = getCoswrtWires(shower_dir, wire_dir);
-
-            //want only positive values so take abs, normalize by the lengths of the shower and wire
-            cos = abs(cos)/(wire_dir.Mag() * shower_dir.Mag());	
-
-            //If the cos is 0 shower is perpendicular and therefore get infinite distance 
-            if (cos == 0){ return std::numeric_limits<double>::max(); }
-
-            //output is always >= the wire spacing
-            return m_wire_spacing/cos;
-        }
-
-        TVector3 SinglePhoton::getWireVec(int plane){
-            TVector3 wire_dir;
-            if (plane == 0){
-                wire_dir = {0., -sqrt(3) / 2., 1 / 2.};
-            } else if (plane == 1){
-                wire_dir = {0., sqrt(3) / 2., 1 / 2.};
-            } else if (plane == 2) {
-                wire_dir = {0., 0., 1.};
-            }
-            return wire_dir;
-
-        }
-
-        double SinglePhoton::getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir){
-            //take the dot product between the wire direction and the shower direction
-            double cos = wire_dir.Dot(shower_dir);
-
-            return cos;
-
-        }
-
-
-        double SinglePhoton::getAnglewrtWires(TVector3 shower_dir,int plane){
-
-            TVector3 wire_dir = getWireVec(plane);
-            double cos_theta =  getCoswrtWires(shower_dir, wire_dir);
-
-            double theta = acos(cos_theta);
-            // return abs(theta);
-            return abs(M_PI/2 - theta);
-
-        }
-
-
-        double SinglePhoton::getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
-            if(angle_wrt_plane2< degToRad(10)){
-                if (angle_wrt_plane0> degToRad(20)  || angle_wrt_plane1<degToRad(20) ){
-                    std::cout<<"Potential candidate for amalgamted dE/dx, angle wrt plane 2 is "<<angle_wrt_plane2<<" but angles wrt plane 0/1 are "<<angle_wrt_plane0<<"/"<<angle_wrt_plane1<<std::endl;
-                    std::cout<<"The median dE/dx on plane 2 is "<<median_plane2<<" and for planes 0/1 are "<<median_plane0<<"/"<<median_plane1<<std::endl;
-                    if (angle_wrt_plane0> angle_wrt_plane1){
-                        return median_plane0;
-                    }else{
-                        return median_plane1;
-                    }
-                }
-                return median_plane2;
-            } if (plane2_nhits< 2){
-                if (plane1_nhits >=2 || plane0_nhits >=2 ){
-                    if (plane1_nhits > plane0_nhits){
-                        return median_plane1;
-                    }else{
-                        return median_plane0;
-                    }
-                }
-            }
-
-            return median_plane2;
-        }
-
-        double SinglePhoton::degToRad(double deg){
-            return deg * M_PI/180;
-        }
-
-        double SinglePhoton::radToDeg(double rad){
-            return rad * 180/M_PI;
-        }
-
-        int SinglePhoton::getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){
-            int nhits = 0;
-            for (art::Ptr<recob::Hit> thishitptr : hits){
-                //check the plane
-                int plane= thishitptr->View();
-
-                //skip invalid planes       
-                if (plane != this_plane) continue;
-
-                nhits++;
-
-            }//for each hiti
-            return nhits;
-
-        }
-
-        std::vector<std::vector<double>> SinglePhoton::buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length){
-            std::vector<std::vector<double>> corners;
-
-            //get the axis perpedicular to the cluster axis
-            double perp_axis[2] = {-cluster_axis[1], cluster_axis[0]};
-
-            //create a vector for each corner of the rectangle on the plane
-            //c1 = bottom left corner
-            std::vector<double> c1 = {cluster_start[0] + perp_axis[0] * width / 2,  cluster_start[1] + perp_axis[1] * width / 2};
-            //c2 = top left corner
-            std::vector<double> c2 = {c1[0] + cluster_axis[0] * length, c1[1] + cluster_axis[1] * length};
-            //c3 = bottom right corner
-            std::vector<double> c3 = {cluster_start[0] - perp_axis[0] * width / 2, cluster_start[1] - perp_axis[1] * width / 2};
-            //c4 = top right corner
-            std::vector<double> c4 ={c3[0] + cluster_axis[0] * length, c3[1] + cluster_axis[1] * length}; 
-
-            //save each of the vectors
-            corners.push_back(c1);
-            corners.push_back(c2);
-            corners.push_back(c4);
-            corners.push_back(c3);
-            //corners.push_back(c4);
-            // std::cout<<"the cluster start is "<<cluster_start[0]<<", "<<cluster_start[1]<<" the cluster axis is "<<cluster_axis[0]<<", "<<cluster_axis[1]<<std::endl;
-            // std::cout<<"the corners are bottom left/top left/top right/bottom right: ("<<c1[0]<<", "<<c1[1]<<")/("<<c2[0]<<", "<<c2[1]<<")/("<<c3[0]<<", "<<c3[1]<<")/("<<c4[0]<<", "<<c4[1]<<")"<<std::endl;
-            return corners;
-        }
-
-        bool SinglePhoton::insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
-            //	std::cout<<"checking if inside"<<std::endl;
-            //for a rectangle this is a known value but this is the most general
-            int n_vertices = (int)rectangle.size();
-            bool inside = false;
-            int i, j = 0;
-            //for each pair of vertices
-            for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
-                //std::cout<<"checking if inside at i, j = "<<i<<", "<<j<<std::endl;
-                //if the hit y coordinate is between the y and x coordinates of two vertices
-                if ( ((rectangle[i][1]> thishit_pos[1]) != (rectangle[j][1]>thishit_pos[1])) 
-                        &&(thishit_pos[0] < (rectangle[j][0]-rectangle[i][0]) * (thishit_pos[1]-rectangle[i][1]) / (rectangle[j][1]-rectangle[i][1]) + rectangle[i][0]) ){   
-                    if (inside == false){    
-                        inside = true;
-                    } else{
-                        inside = false;
-                    }
-                }
-                //std::cout<<"currently the status is "<<inside<<std::endl;
-            }
-            //std::cout<<"done checking, inside = "<<inside<<std::endl;
-            //std::cout<<"checking hit at position "<<thishit_pos[0]<<", "<<thishit_pos[1]<<" inside = "<<inside<<". true/false = "<<true<<"/"<<false<<std::endl;
-
-            return inside;
-        }
-
-        //determines if a point is inside the rectangle by summing the areas of the four triangles made by 
-        //if the point is inside, the sum of the triangles should exactly equal the area of the rectangle
-        //also returns true if the point is on the boundary
-        bool SinglePhoton::isInsidev2(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
-            int n_vertices = (int)rectangle.size();
-            //bool inside = false;
-            int i, j = 0;
-            double areas = 0;
-            //std::vector<double> areas;
-
-            //for each pair of vertices
-            for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
-                //std::cout<<"vertices number "<<i<<", "<<j<<std::endl;
-                //calculate the area of a triangle with the point and two vertices
-                double this_area = areaTriangle(rectangle[i][0], rectangle[i][1], rectangle[j][0], rectangle[j][1], thishit_pos[0], thishit_pos[1]);
-                //std::cout<<"area of this triangle = "<<this_area<<std::endl;   
-                areas += this_area;
-                // areas.push_back(this_area)
-            }        
-            //calc area of the rectangle
-            double area_rectangle = m_width_dqdx_box* m_length_dqdx_box;
-
-            //check the sum of areas match
-            //std::cout<<"the sum of the areas is "<<areas<<std::endl;
-            if (abs(areas - area_rectangle) <= 0.001 ){
-                return true;
-            }
-            return false;
-        }
-
-        //area of a triangle given three vertices
-        double SinglePhoton::areaTriangle(double x1, double y1, double x2, double y2, double x3, double y3){
-            double num = x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2);
-            return abs(num)/2;
-        }
-
-        double SinglePhoton::getMedian(std::vector<double> thisvector){
-            //here the size corresponds to the max index
-            int size = thisvector.size() - 1;
-            //if no entries, return nonsense value
-            if (size <= 0) return NAN;
-
-            //find index of median location
-            int ind;
-            if (size%2 == 0) ind = size/2;
-            else ind = size/2 + 1;
-            //std::cout<<"the median index in vector with size "<<size+1<<" and  max index "<<size<<" is "<<ind<<std::endl;
-
-            double median = thisvector[ind];
-            //std::cout<<"returning median value "<< median<<std::endl;
-            //return the value at median index
-            return median;		
-        }
+        return wire_dir;
 
     }
+
+    double SinglePhoton::getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir){
+        //take the dot product between the wire direction and the shower direction
+        double cos = wire_dir.Dot(shower_dir);
+        return cos;
+    }
+
+
+    double SinglePhoton::getAnglewrtWires(TVector3 shower_dir,int plane){
+
+        TVector3 wire_dir = getWireVec(plane);
+        double cos_theta =  getCoswrtWires(shower_dir, wire_dir);
+
+        double theta = acos(cos_theta);
+        // return abs(theta);
+        return abs(M_PI/2 - theta);
+
+    }
+
+
+    double SinglePhoton::getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
+        //if the shower is within 10 degrees of the wires on plane 2, consider planes 1 and 0
+        if(angle_wrt_plane2< degToRad(10)){
+            //if it's too close to the wires on either of the planes, then stick with plane 2
+            if (angle_wrt_plane1> degToRad(20)|| angle_wrt_plane0>degToRad(20) ){
+                //but if it's outside of the range on plane 1, choose that
+                if(angle_wrt_plane1> angle_wrt_plane0){
+                    return median_plane1;
+                } else{
+                    return median_plane0;
+                }
+            }
+        }
+        if (plane2_nhits< 2){
+            if (plane1_nhits >=2 ){           
+                return median_plane1;
+            } else if (plane0_nhits >=2 ){
+                return median_plane0;
+            }
+        }
+
+        return median_plane2;
+    }
+
+    int SinglePhoton::getAmalgamateddEdxNHits(double amalgamateddEdx, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
+        if (amalgamateddEdx == median_plane0){
+            return plane0_nhits;
+        }
+        if (amalgamateddEdx == median_plane1){
+            return plane1_nhits;
+        }
+        if (amalgamateddEdx == median_plane2){
+            return plane2_nhits;
+        }
+        return -999;
+
+    }   
+
+    double SinglePhoton::degToRad(double deg){
+        return deg * M_PI/180;
+    }
+
+    double SinglePhoton::radToDeg(double rad){
+        return rad * 180/M_PI;
+    }
+
+    int SinglePhoton::getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){
+        int nhits = 0;
+        for (art::Ptr<recob::Hit> thishitptr : hits){
+            //check the plane
+            int plane= thishitptr->View();
+
+            //skip invalid planes       
+            if (plane != this_plane) continue;
+
+            nhits++;
+
+        }//for each hiti
+        return nhits;
+
+    }
+
+    std::vector<std::vector<double>> SinglePhoton::buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length){
+        std::vector<std::vector<double>> corners;
+
+        //get the axis perpedicular to the cluster axis
+        double perp_axis[2] = {-cluster_axis[1], cluster_axis[0]};
+
+        //create a vector for each corner of the rectangle on the plane
+        //c1 = bottom left corner
+        std::vector<double> c1 = {cluster_start[0] + perp_axis[0] * width / 2,  cluster_start[1] + perp_axis[1] * width / 2};
+        //c2 = top left corner
+        std::vector<double> c2 = {c1[0] + cluster_axis[0] * length, c1[1] + cluster_axis[1] * length};
+        //c3 = bottom right corner
+        std::vector<double> c3 = {cluster_start[0] - perp_axis[0] * width / 2, cluster_start[1] - perp_axis[1] * width / 2};
+        //c4 = top right corner
+        std::vector<double> c4 ={c3[0] + cluster_axis[0] * length, c3[1] + cluster_axis[1] * length}; 
+
+        //save each of the vectors
+        corners.push_back(c1);
+        corners.push_back(c2);
+        corners.push_back(c4);
+        corners.push_back(c3);
+        return corners;
+    }
+
+    bool SinglePhoton::insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
+        //for a rectangle this is a known value but this is the most general
+        int n_vertices = (int)rectangle.size();
+        bool inside = false;
+        int i, j = 0;
+        //for each pair of vertices
+        for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
+            //if the hit y coordinate is between the y and x coordinates of two vertices
+            if ( ((rectangle[i][1]> thishit_pos[1]) != (rectangle[j][1]>thishit_pos[1])) 
+                    &&(thishit_pos[0] < (rectangle[j][0]-rectangle[i][0]) * (thishit_pos[1]-rectangle[i][1]) / (rectangle[j][1]-rectangle[i][1]) + rectangle[i][0]) ){   
+                if (inside == false){    
+                    inside = true;
+                } else{
+                    inside = false;
+                }
+            }
+        }
+        return inside;
+    }
+
+    //determines if a point is inside the rectangle by summing the areas of the four triangles made by 
+    //if the point is inside, the sum of the triangles should exactly equal the area of the rectangle
+    //also returns true if the point is on the boundary
+    bool SinglePhoton::isInsidev2(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
+        int n_vertices = (int)rectangle.size();
+        //bool inside = false;
+        int i, j = 0;
+        double areas = 0;
+        //for each pair of vertices
+        for (i = 0, j = n_vertices-1; i < n_vertices; j = i++) {
+            //calculate the area of a triangle with the point and two vertices
+            double this_area = areaTriangle(rectangle[i][0], rectangle[i][1], rectangle[j][0], rectangle[j][1], thishit_pos[0], thishit_pos[1]);
+            areas += this_area;
+        }        
+        //calc area of the rectangle
+        double area_rectangle = m_width_dqdx_box* m_length_dqdx_box;
+
+        //check the sum of areas match
+        if (abs(areas - area_rectangle) <= 0.001 ){
+            return true;
+        }
+        return false;
+    }
+
+    //area of a triangle given three vertices
+    double SinglePhoton::areaTriangle(double x1, double y1, double x2, double y2, double x3, double y3){
+        double num = x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2);
+        return abs(num)/2;
+    }
+
+    double SinglePhoton::getMedian(std::vector<double> thisvector){
+        //here the size corresponds to the max index
+        int size = thisvector.size() - 1;
+        //if no entries, return nonsense value
+        if (size <= 0) return NAN;
+
+        //find index of median location
+        int ind;
+        if (size%2 == 0) ind = size/2;
+        else ind = size/2 + 1;
+        //std::cout<<"the median index in vector with size "<<size+1<<" and  max index "<<size<<" is "<<ind<<std::endl;
+
+        double median = thisvector[ind];
+        //std::cout<<"returning median value "<< median<<std::endl;
+        //return the value at median index
+        return median;		
+    }
+
+}

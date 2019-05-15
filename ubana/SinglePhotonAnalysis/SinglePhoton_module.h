@@ -253,6 +253,7 @@ namespace single_photon
             double getAnglewrtWires(TVector3 shower_dir, int plane);
 
             double getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits);
+            int getAmalgamateddEdxNHits(double amalgamateddEdx, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits);
             double degToRad(double deg);
             double radToDeg(double rad);
             /**
@@ -308,7 +309,8 @@ namespace single_photon
             //----------------  Tracks ----------------------------
             void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
-                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap );
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+                    std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap );
 
             void ClearTracks();
             void ResizeTracks(size_t);
@@ -329,7 +331,8 @@ namespace single_photon
                     std::map<int, double> &sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
-                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap);
+                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap,
+                    std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap);
             void ClearShowers();
             void ResizeShowers(size_t);
             void CreateShowerBranches();
@@ -390,19 +393,30 @@ namespace single_photon
                     std::map<int, double> & sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,   
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
-                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap);
+                    std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap,
+                    std::map<art::Ptr<recob::PFParticle>,double>& PFPToTrackScoreMap);
 
+           // void GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+            //        std::map<int, int>& sliceIdToNumPFPsMap );
+            std::vector<int> GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap );
+            
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
 
             int GetTrackSlice(art::Ptr<recob::Track>& this_track, std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>& trackToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
             //can also look at things like shower energy, conversion length, etc.
+
+
+            void GetNumShowersPerSlice(std::map< art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& showerToPFParticleMap,
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+                    std::map<int, int>& sliceIdToNumShowersMap );
 
             void AnalyzeRecoMCSlices(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap, 
                     std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, 
                     std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
                     std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle> > & trackToNuPFParticleMap,
-                    std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap);
+                    std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap,
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap);
 
 
             void FindSignalSlice(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap,  std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap, std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle> > & trackToNuPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > &trackToMCParticleMap);
@@ -413,6 +427,11 @@ namespace single_photon
             int m_reco_slice_track_num_matched_signal; //the number of sim showers matched an MCP in the signal def
             std::vector<int> m_reco_slice_shower_matched_sliceId; //the slice id for each matched shower
             std::vector<int> m_reco_slice_track_matched_sliceId; //the slice id for each matched track
+
+            std::vector<int> m_reco_slice_num_pfps; //the total number of PFP's per slice
+            std::vector<int> m_reco_slice_num_showers; //the subset of PFP's that are showers
+            std::vector<int> m_reco_slice_num_tracks; //the subset of PFP's that are tracks
+
             std::vector<double> m_reco_slice_shower_matched_energy; //the energy for each matched shower
             std::vector<double> m_reco_slice_track_matched_energy; //the energy for each matched track
             std::vector<double> m_reco_slice_shower_matched_conversion; //the conversion distance for each matched shower
@@ -693,7 +712,7 @@ namespace single_photon
 
             std::vector<double> m_reco_track_spacepoint_chi;
             std::vector<double> m_reco_track_spacepoint_max_dist;
-            
+
             std::vector<int> m_reco_track_best_calo_plane;
 
             std::vector<double> m_reco_track_mean_dEdx_best_plane;
@@ -759,7 +778,7 @@ namespace single_photon
             std::vector<int> m_reco_track_sliceId; //the slice id for the slice continaing the reco track
             std::vector<double> m_reco_track_nuscore; //the neutrino score of the slice containing the reco track
             std::vector<bool> m_reco_track_isclearcosmic;//true if reco track is in a clear cosmic slice
-
+            std::vector<double> m_reco_track_trackscore;
 
             std::vector<int> m_sim_track_matched;
             std::vector<double> m_sim_track_overlay_fraction;
@@ -829,6 +848,7 @@ namespace single_photon
             std::vector<double> m_reco_shower_nuscore; //the neutrino score of the slice containing the reco shower
             std::vector<bool> m_reco_shower_isclearcosmic;//true if reco shower is in a clear cosmic slice
             std::vector<bool> m_reco_shower_is_nuslice;//true if reco shower is in a clear cosmic slice
+            std::vector<double> m_reco_shower_trackscore;
 
 
 
@@ -940,7 +960,7 @@ namespace single_photon
             std::vector<double> m_reco_shower_plane0;
             std::vector<double> m_reco_shower_plane1;
             std::vector<double> m_reco_shower_plane2;
-            
+
             std::vector<double> m_reco_shower_plane0_nhits;
             std::vector<double> m_reco_shower_plane1_nhits;
             std::vector<double> m_reco_shower_plane2_nhits;
@@ -972,6 +992,7 @@ namespace single_photon
             std::vector<double>  m_reco_shower_angle_wrt_wires_plane2;
 
             std::vector<double>  m_reco_shower_dEdx_amalgamated;
+            std::vector<int>  m_reco_shower_dEdx_amalgamated_nhits;
 
             std::vector<double> m_reco_shower_dQdx_plane0_median;
             std::vector<double> m_reco_shower_dQdx_plane1_median;
