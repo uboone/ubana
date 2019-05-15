@@ -384,14 +384,14 @@ namespace single_photon
             }
         }
 
-       /* std::cout<<"so how many do we have per slice?"<<std::endl;
-        std::cout<<"The number of slices "<<m_reco_slice_num<<std::endl;
-        for(unsigned int i= 0; i<sliceIdToNumPFPsvec.size(); i++){
-            std::cout<<"The number of PFP's in slice: " << i<<std::endl;
-            std::cout<< "-- is "<<sliceIdToNumPFPsvec[i]<<std::endl;
-        }
+        /* std::cout<<"so how many do we have per slice?"<<std::endl;
+           std::cout<<"The number of slices "<<m_reco_slice_num<<std::endl;
+           for(unsigned int i= 0; i<sliceIdToNumPFPsvec.size(); i++){
+           std::cout<<"The number of PFP's in slice: " << i<<std::endl;
+           std::cout<< "-- is "<<sliceIdToNumPFPsvec[i]<<std::endl;
+           }
 
-        std::cout<<"done with all the slices"<<std::endl;*/
+           std::cout<<"done with all the slices"<<std::endl;*/
         return sliceIdToNumPFPsvec;
 
     }
@@ -418,6 +418,30 @@ namespace single_photon
         }//for each shower
         return sliceIdToNumShowersvec;
     }
+
+    std::vector<int> SinglePhoton::GetNumTracksPerSlice(std::map< art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>>& trackToPFParticleMap, 
+            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
+        std::vector<int> sliceIdToNumTracksvec(m_reco_slice_num, 0);
+
+        //for each track
+        for (auto pair: trackToPFParticleMap){
+            art::Ptr<recob::PFParticle> pfp = pair.second;
+            //find slice corresponding to PFP
+            //have to check if it's in the map otherwise it returns 0 which is misleading
+            if (PFPToSliceIdMap.find(pfp) != PFPToSliceIdMap.end()){
+                //get the slice id
+
+                int slice_id = PFPToSliceIdMap[pfp];
+                if (slice_id > -1){
+                    //incrmement number of tracks per slice
+                    int num =  sliceIdToNumTracksvec[slice_id];
+                    sliceIdToNumTracksvec[slice_id]= ++num;
+                }//if neutrino slice id
+            }//if there's a fpf-slice match
+        }//for each track
+        return sliceIdToNumTracksvec;
+    }
+
 
 
     //here we put in some reco truth matching thing where given an true interaction, find the corresponding reco objects
@@ -605,12 +629,15 @@ namespace single_photon
         // GetPFPsPerSlice(PFPToSliceIdMap , sliceIdToNumPFPsvec);
         m_reco_slice_num_pfps = GetPFPsPerSlice(PFPToSliceIdMap); //the total number of PFP's per slice
         m_reco_slice_num_showers = GetNumShowersPerSlice(showerToPFParticleMap, PFPToSliceIdMap); //the subset of PFP's that are showers
-        // m_reco_slice_num_tracks;
-        
+        m_reco_slice_num_tracks = GetNumTracksPerSlice(trackToNuPFParticleMap, PFPToSliceIdMap);;
+
         for(unsigned int i= 0; i<m_reco_slice_num_pfps.size(); i++){
-            std::cout<<"The number of PFP's in slice: " << i<<std::endl;
-            std::cout<< "-- is "<<m_reco_slice_num_pfps[i]<<std::endl;
-            std::cout<<"-- -- of which "<< m_reco_slice_num_showers[i]<< " are showers" <<std::endl;
+      //      std::cout<<"The number of PFP's in slice: " << i<<std::endl;
+      //      std::cout<< "-- is "<<m_reco_slice_num_pfps[i]<<std::endl;
+       //     std::cout<<"-- -- of which "<< m_reco_slice_num_showers[i]<< " are showers and "<< m_reco_slice_num_tracks[i] <<" are tracks"<<std::endl;
+            if (m_reco_slice_num_showers[i] + m_reco_slice_num_tracks[i] != m_reco_slice_num_pfps[i]){
+                std::cout<<"ERROR, mismatching numbers of PFPs"<<std::endl;
+            }
         }
 
 

@@ -412,6 +412,10 @@ namespace single_photon
             //                 std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
             //                std::map<int, int>& sliceIdToNumShowersMap );
 
+
+            std::vector<int> GetNumTracksPerSlice(std::map< art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>>& trackToPFParticleMap,   
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap);
+
             void AnalyzeRecoMCSlices(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap, 
                     std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, 
