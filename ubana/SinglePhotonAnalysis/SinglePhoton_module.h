@@ -396,20 +396,21 @@ namespace single_photon
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap,
                     std::map<art::Ptr<recob::PFParticle>,double>& PFPToTrackScoreMap);
 
-           // void GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+            // void GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
             //        std::map<int, int>& sliceIdToNumPFPsMap );
             std::vector<int>  GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap );
-             //void  GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap , std::vector<int> &sliceIdToNumPFPsvec);
-            
+            //void  GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap , std::vector<int> &sliceIdToNumPFPsvec);
+
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
 
             int GetTrackSlice(art::Ptr<recob::Track>& this_track, std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>& trackToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
             //can also look at things like shower energy, conversion length, etc.
 
-
-            void GetNumShowersPerSlice(std::map< art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& showerToPFParticleMap,
-                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
-                    std::map<int, int>& sliceIdToNumShowersMap );
+            std::vector<int> GetNumShowersPerSlice(std::map< art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& showerToPFParticleMap,
+                    std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap );
+            //        void GetNumShowersPerSlice(std::map< art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& showerToPFParticleMap,
+            //                 std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
+            //                std::map<int, int>& sliceIdToNumShowersMap );
 
             void AnalyzeRecoMCSlices(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap, 
