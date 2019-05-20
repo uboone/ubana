@@ -505,13 +505,13 @@ namespace single_photon
             this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
 
             std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
-                  }
+        }
 
 
 
 
         //---------------------- END OF LOOP, fill vertex ---------------------
-       
+
         vertex_tree->Fill();
         ncdelta_slice_tree->Fill();
 
@@ -756,9 +756,11 @@ namespace single_photon
 
     void SinglePhoton::GetPFParticleIdMap(const PFParticleHandle &pfParticleHandle, PFParticleIdMap &pfParticleMap)
     {
+        //std::cout<<"Filling pfParticleMap with from the handle with total number "<<pfParticleHandle->size()<<std::endl;
         for (unsigned int i = 0; i < pfParticleHandle->size(); ++i)
         {
             const art::Ptr<recob::PFParticle> pParticle(pfParticleHandle, i);
+           // std::cout<<"Adding PFP to pfParticleMap with pfp id  "<<pParticle->Self()<<std::endl;
             if (!pfParticleMap.insert(PFParticleIdMap::value_type(pParticle->Self(), pParticle)).second)
             {
                 throw cet::exception("SinglePhoton") << "  Unable to get PFParticle ID map, the input PFParticle collection has repeat IDs!";
@@ -844,6 +846,8 @@ namespace single_photon
                 FillTracksAndShowers(associatedTracks, associatedShowers, pParticle,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
             }
         } else{ //if running over all slices
+            std::cout<<"The total number of PFP's in the map is "<<pfParticleMap.size()<<std::endl;
+//            std::cout<<"The total number of PFP's in the vector is "<< particles.size()<<std::endl;
             for (auto pair : pfParticleMap){
                 const art::Ptr<recob::PFParticle> &pParticle = pair.second;
 
@@ -868,6 +872,8 @@ namespace single_photon
         // Check if the PFParticle has no associated tracks or showers
         if (nTracks == 0 && nShowers == 0)
         {
+            std::cout<<"ERROR No tracks or showers were associated to PFParticle " << pParticle->Self()<<" with pdg "<<pParticle->PdgCode() <<std::endl;
+            std::cout<<"-- isPrimary = "<<pParticle->IsPrimary()<<std::endl;
             mf::LogDebug("SinglePhoton") << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << "\n";
             return;
         }
@@ -878,6 +884,7 @@ namespace single_photon
 
             tracks.push_back(associatedTracks.front());
             trackToNuPFParticleMap[tracks.back()]= pParticle;
+            //std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  associatedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
             return;
         }
@@ -887,6 +894,8 @@ namespace single_photon
         {
             showers.push_back(associatedShowers.front());
             showerToNuPFParticleMap[showers.back()] = pParticle;
+           // std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  associatedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
+
             return;
         }
 

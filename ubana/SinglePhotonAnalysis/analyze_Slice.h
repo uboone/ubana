@@ -260,7 +260,7 @@ namespace single_photon
             //auto iter = find(clearCosmicPFP.begin(), clearCosmicPFP.end(), start_pfp);
             //if(iter != clearCosmicPFP.end()) continue;
 
-            //std::cout<<"START: looking for match for pfp - track id/pdg code "<<start_pfp->Self()<<"/"<<start_pfp->PdgCode()<<std::endl; 
+           // std::cout<<"START: looking for match for pfp - track id/pdg code "<<start_pfp->Self()<<"/"<<start_pfp->PdgCode()<<std::endl; 
 
             art::Ptr<recob::PFParticle> this_pfp = start_pfp;
             art::Ptr<recob::PFParticle> parent_pfp ;
@@ -303,7 +303,8 @@ namespace single_photon
                 // PFPToSliceIdMap[start_pfp] = slice_id; 
             }
 
-            PFPToSliceIdMap[start_pfp] = slice_id; 
+            PFPToSliceIdMap[start_pfp] = slice_id;
+            //std::cout<<"storing PFP with id "<<start_pfp->Self()<<" and slice id "<<slice_id<<" in  PFPToSliceIdMap"<<std::endl; 
             PFPToNuSliceMap[start_pfp] = sliceIdToNuSliceMap[slice_id];
             // sliceIdToPFPMap[slice_id].push_back(start_pfp);
         }//for all pfp's in the event
@@ -378,7 +379,7 @@ namespace single_photon
             if (slice_id > -1){
                 // std::cout<<"error, invalid slice id"<<std::endl;
 
-                std::cout<<"looking at pfp "<<pair.first->Self()<<" in slice "<<slice_id<<std::endl;
+            //    std::cout<<"looking at pfp "<<pair.first->Self()<<" in slice "<<slice_id<<std::endl;
                 int num = sliceIdToNumPFPsvec[slice_id];
                 //std::cout<<"for slice id "<<slice_id <<" current num = "<<num<<" which now should be "<< num + 1 <<std::endl;
 
@@ -415,10 +416,28 @@ namespace single_photon
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
         std::vector<int> sliceIdToNumShowersvec(m_reco_slice_num, 0);
 
+/*
+        int max_pfp = -1;
+        for(auto it = PFPToSliceIdMap.begin(); it != PFPToSliceIdMap.end(); ++it ) {
+           int this_pfp = it->first->Self();
+           if (this_pfp> max_pfp) {
+                max_pfp = this_pfp;
+           }
+
+        }
+       std::cout<<"the max PFP id in PFPToSliceIdMap is  = "<< max_pfp<<std::endl;
+*/
         int cosmics = 0;
         //for each shower
         for (auto pair: showerToPFParticleMap){
             art::Ptr<recob::PFParticle> pfp = pair.second;
+
+            //check if this is a valid PFP
+            //if (pfp->self() > PFPToSliceIdMap.size()){
+               // std::cout<<"ERROR, this pfp is out of bounds "
+    
+           // }
+
             //find slice corresponding to PFP
             //have to check if it's in the map otherwise it returns 0 which is misleading
             if (PFPToSliceIdMap.find(pfp) != PFPToSliceIdMap.end()){
@@ -426,7 +445,7 @@ namespace single_photon
 
                 int slice_id = PFPToSliceIdMap[pfp];
                 if (slice_id > -1){
-                    std::cout<<"looking at shower id  "<<pair.first->ID()<<" with pfp "<<pair.second->Self()<<" in slice "<<slice_id<<std::endl;
+                    //std::cout<<"looking at shower id  "<<pair.first->ID()<<" with pfp "<<pair.second->Self()<<" in slice "<<slice_id<<std::endl;
                     //incrmement number of tracks per slice
                     int num =  sliceIdToNumShowersvec[slice_id];
                     sliceIdToNumShowersvec[slice_id]= ++num;
@@ -453,7 +472,7 @@ namespace single_photon
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap){
         std::vector<int> sliceIdToNumTracksvec(m_reco_slice_num, 0);
 
-        std::cout<<"looking at number of tracks per slice"<<std::endl;
+       // std::cout<<"looking at number of tracks per slice"<<std::endl;
         int cosmics = 0;
         //for each track
         for (auto pair: trackToPFParticleMap){
@@ -465,7 +484,7 @@ namespace single_photon
 
                 int slice_id = PFPToSliceIdMap[pfp];
                 if (slice_id > -1){
-                    std::cout<<"looking at track id  "<<pair.first->ID()<<" with pfp "<<pair.second->Self()<<" in slice "<<slice_id<<std::endl;
+                   // std::cout<<"looking at track id  "<<pair.first->ID()<<" with pfp "<<pair.second->Self()<<" in slice "<<slice_id<<std::endl;
                     //incrmement number of tracks per slice
                     int num =  sliceIdToNumTracksvec[slice_id];
                     sliceIdToNumTracksvec[slice_id]= ++num;
