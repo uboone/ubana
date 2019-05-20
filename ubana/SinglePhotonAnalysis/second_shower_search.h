@@ -370,7 +370,7 @@ namespace single_photon
 
                 //*****************************DBSCAN***********************************
                 int min_pts = 5;
-                double eps = 100.0;
+                double eps = 50.0;
                 std::vector<int> num_clusters(3,0);
                 
                 std::vector<std::vector<int>> cluster_labels(3);

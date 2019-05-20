@@ -88,7 +88,7 @@ std::vector<std::vector<double>> DBSCAN::GetNeighbours(size_t point, std::vector
     for(auto &p:pts){
         double dist = sqrt(pow(p[0]-pts[point][0],2)+pow(p[1]-pts[point][1],2));
         //std::cout<<"DIST: "<<dist<<" "<<p[0]<<" "<<p[1]<<" "<<pts[point][0]<<" "<<pts[point][1]<<std::endl;
-        if(dist< m_eps){
+        if(dist< m_eps && dist != 0){
             neighbours.push_back(p);
         }
     }
