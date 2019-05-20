@@ -78,7 +78,8 @@ namespace single_photon
         m_exiting_photon_energy_threshold = pset.get<double>("exiting_photon_energy");
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
 
-
+        rangen = new TRandom3(0);
+        bool_make_sss_plots = true;
 
         std::vector<std::string> delta_names = {"Delta++","Delta+","Delta-","Delta0"};
         std::vector<int> delta_pdg_list = {2224,2214,1114,2114};
@@ -305,12 +306,12 @@ namespace single_photon
 
         //CRT 
         /*
-        if(m_has_CRT){
-             art::ValidHandle<std::vector<crt::CRTTzero>> const & crtHandle  = evt.getValidHandle<std::vector<crt::CRTTzero>>(m_CRTTzeroLabel);
-             std::vector<art::Ptr<crt::CRTTzero>> crtVector;
-             art::fill_ptr_vector(crtVector,crtHandle);
-        }
-        */
+           if(m_has_CRT){
+           art::ValidHandle<std::vector<crt::CRTTzero>> const & crtHandle  = evt.getValidHandle<std::vector<crt::CRTTzero>>(m_CRTTzeroLabel);
+           std::vector<art::Ptr<crt::CRTTzero>> crtVector;
+           art::fill_ptr_vector(crtVector,crtHandle);
+           }
+           */
 
 
         //**********************************************************************************************/
@@ -1167,9 +1168,6 @@ namespace single_photon
 
 
     }
-
-
-
 
 
 } //namespace

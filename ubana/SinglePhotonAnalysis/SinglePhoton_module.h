@@ -63,6 +63,7 @@
 #include "TGraph.h"
 #include "TGraph2D.h"
 #include "TGraphDelaunay.h"
+#include "TRandom3.h"
 
 #include "Pandora/PdgTable.h"
 #include <chrono>
@@ -76,6 +77,7 @@
 #include <sys/stat.h>
 
 #include "bad_channel_matching.h"
+#include "DBSCAN.h"
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace single_photon
@@ -92,6 +94,18 @@ namespace single_photon
 
             return idx;
         }
+
+    double calcWire(double Y, double Z, int plane, int fTPC, int fCryostat, geo::GeometryCore const& geo ){
+        double wire = geo.WireCoordinate(Y, Z, plane, fTPC, fCryostat);
+        return wire;
+    }
+
+
+    double calcTime(double X,int plane,int fTPC,int fCryostat, detinfo::DetectorProperties const& detprop){
+        double time = detprop.ConvertXToTicks(X, plane, fTPC,fCryostat);
+        return time;
+    }
+
 
 
     /**
@@ -497,6 +511,8 @@ namespace single_photon
             std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
             std::map<int,bool> bad_channel_map_fixed_mcc9;
 
+            TRandom3 *rangen;
+
             std::string m_pandoraLabel;         ///< The label for the pandora producer
             std::string m_trackLabel;           ///< The label for the track producer from PFParticles
             std::string m_sliceLabel;          
@@ -567,7 +583,9 @@ namespace single_photon
 
             //------- Second shower related variables ----
             int m_sss_num_unassociated_hits;
+            int m_sss_num_associated_hits;
 
+            bool bool_make_sss_plots;
 
             //------------ Vertex Related variables -------------
             int m_reco_vertex_size;
