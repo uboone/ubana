@@ -872,8 +872,8 @@ namespace single_photon
         // Check if the PFParticle has no associated tracks or showers
         if (nTracks == 0 && nShowers == 0)
         {
-            std::cout<<"ERROR No tracks or showers were associated to PFParticle " << pParticle->Self()<<" with pdg "<<pParticle->PdgCode() <<std::endl;
-            std::cout<<"-- isPrimary = "<<pParticle->IsPrimary()<<std::endl;
+          //  std::cout<<"ERROR No tracks or showers were associated to PFParticle " << pParticle->Self()<<" with pdg "<<pParticle->PdgCode() <<std::endl;
+            //std::cout<<"-- isPrimary = "<<pParticle->IsPrimary()<<std::endl;
             mf::LogDebug("SinglePhoton") << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << "\n";
             return;
         }
