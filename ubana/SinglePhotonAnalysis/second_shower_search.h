@@ -264,7 +264,7 @@ namespace single_photon
 
                     g_vertex[i] = new TGraph(1,&wire[0],&time[0]);
                     g_vertex[i]->SetMarkerStyle(29);
-                    g_vertex[i]->SetMarkerSize(2);
+                    g_vertex[i]->SetMarkerSize(4);
                     g_vertex[i]->SetMarkerColor(kMagenta-3);
                     g_vertex[i]->GetYaxis()->SetRangeUser(tick_min*0.9,tick_max*1.1);
                     g_vertex[i]->GetXaxis()->SetLimits(chan_min[i]*0.9,chan_max[i]*1.1);
@@ -369,23 +369,53 @@ namespace single_photon
 
 
                 //*****************************DBSCAN***********************************
-                int min_pts = 4;
-                double eps = 50;
-
+                int min_pts = 5;
+                double eps = 100.0;
+                std::vector<int> num_clusters(3,0);
+                
+                std::vector<std::vector<int>> cluster_labels(3);
                 for(int i=0; i<3; i++){
 
                     std::cout<<"Starting to run DBSCAN for plane: "<<i<<" has "<<pts_to_recluster[i].size()<<" pts to do using eps: "<<eps<<" and min_pts: "<<min_pts<<std::endl; 
                     DBSCAN ReCluster(eps,min_pts);
-                    std::vector<int> cluster_labels =  ReCluster.Scan2D(pts_to_recluster[i]);
+                    cluster_labels[i] =  ReCluster.Scan2D(pts_to_recluster[i]);
         
-                    int how_many = 0;
-                    for(auto &c: cluster_labels){
-                        how_many = std::max(c,how_many);
+                    for(auto &c: cluster_labels[i]){
+                        num_clusters[i] = std::max(c,num_clusters[i]);
                     }
-                    std::cout<<"On this plane, DBSCAN found: "<<how_many<<" clusters"<<std::endl;
+                    std::cout<<"On this plane, DBSCAN found: "<<num_clusters[i]<<" clusters"<<std::endl;
                 }
 
                 //Step next, loop over and make plots again
+                for(int i=0; i<3; i++){
+                    std::vector<std::vector<double>> vec_time(num_clusters[i]+1);
+                    std::vector<std::vector<double>> vec_wire(num_clusters[i]+1);
+                    std::vector<TGraph*> g_clusters(num_clusters[i]+1);
+
+
+                    if(cluster_labels[i].size() != pts_to_recluster[i].size()){
+                        std::cout<<"ERROR!! someting amiss cluster labels of size "<<cluster_labels[i].size()<<" and pts  in this plane "<<pts_to_recluster[i].size()<<std::endl;
+                    }  
+
+                    for(size_t k=0; k< pts_to_recluster[i].size(); k++){
+                            //std::cout<<vec_wire.size()<<" "<<cluster_labels[i][k]<<std::endl;
+                            vec_wire[cluster_labels[i][k]].push_back(pts_to_recluster[i][k][0]); 
+                            vec_time[cluster_labels[i][k]].push_back(pts_to_recluster[i][k][1]); 
+
+                    }
+
+                    for(int c=0; c< num_clusters[i]+1; c++){
+                        int tcol = kBlack;
+                        if(c>0) tcol = tcols[tcols.size()-c];
+                        g_clusters[c] = new TGraph(vec_wire[c].size(),&(vec_wire[c])[0],&(vec_time[c])[0] );
+                        can->cd(i+4);
+                        g_clusters[c]->Draw("p same");
+                        g_clusters[c]->SetMarkerColor(tcol);
+                        g_clusters[c]->SetMarkerStyle(20);
+                        g_clusters[c]->SetMarkerSize(0.75);
+                    }
+                }
+
 
 
                 can->Write();

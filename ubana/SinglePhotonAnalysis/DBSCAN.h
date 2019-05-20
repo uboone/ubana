@@ -47,11 +47,11 @@ std::vector<int> DBSCAN::Scan2D(std::vector<std::vector<double>> &pts){
     for(size_t i=0; i<N; i++){
         if(label[i]!=l_undef) continue;
         std::vector<std::vector<double>> neighbours = this->GetNeighbours(i,pts);
-        std::cout<<i<<" has neightbours "<<neighbours.size()<<std::endl;
+        //std::cout<<i<<" has neightbours "<<neighbours.size()<<std::endl;
 
         if((int)neighbours.size() < m_minpts){ // if there is less than minpts, its a noise point
             label[i]= l_noise;
-            std::cout<<i<<" thats less than min, noise"<<std::endl;
+          //  std::cout<<i<<" thats less than min, noise"<<std::endl;
             continue;
         }
         cluster_count+=1;
@@ -68,7 +68,7 @@ std::vector<int> DBSCAN::Scan2D(std::vector<std::vector<double>> &pts){
             std::vector<std::vector<double>> new_neighbours = this->GetNeighbours(q,pts);
 
             if((int)new_neighbours.size() >= m_minpts ){ //expand the seed set
-                std::cout<<i<<" "<<q<<" unionizing "<<std::endl;
+               // std::cout<<i<<" "<<q<<" unionizing "<<std::endl;
                 this->UnionSets(seed_set,new_neighbours); 
             }
 
@@ -87,7 +87,7 @@ std::vector<std::vector<double>> DBSCAN::GetNeighbours(size_t point, std::vector
 
     for(auto &p:pts){
         double dist = sqrt(pow(p[0]-pts[point][0],2)+pow(p[1]-pts[point][1],2));
-        std::cout<<"DIST: "<<dist<<" "<<p[0]<<" "<<p[1]<<" "<<pts[point][0]<<" "<<pts[point][1]<<std::endl;
+        //std::cout<<"DIST: "<<dist<<" "<<p[0]<<" "<<p[1]<<" "<<pts[point][0]<<" "<<pts[point][1]<<std::endl;
         if(dist< m_eps){
             neighbours.push_back(p);
         }
