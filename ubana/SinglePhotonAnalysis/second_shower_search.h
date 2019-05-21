@@ -136,12 +136,13 @@ namespace single_photon
             std::cout<<" associated_hits.size() "<<associated_hits.size()<<" unassociated_hits.size() "<<unassociated_hits.size()<<" p0: "<<unassociated_hits_plane0.size()<<" p1:  "<<unassociated_hits_plane1.size()<<" p2: "<<unassociated_hits_plane2.size()<<std::endl;
 
 
-            if(bool_make_sss_plots && showers.size()>0 && tracks.size()>0){
+            if(bool_make_sss_plots && showers.size()>0){
 
-                TFile *f = new TFile("t.root","recreate");
-                f->cd();
+                //TFile *f = new TFile("t.root","recreate");
+                //f->cd();
 
-                TCanvas *can=new TCanvas("","",2400,1600);
+                std::string print_name = "sss_"+std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
+                TCanvas *can=new TCanvas(print_name.c_str(),print_name.c_str(),2400,1600);
                 can->Divide(3,2,0,0.1);
 
                 double tick_max = 0;
@@ -149,6 +150,8 @@ namespace single_photon
                 std::vector<double> chan_max(3,0);
                 std::vector<double> chan_min(3,1e10);
 
+
+                //First grab all shower clusters
                 std::vector<std::vector<TGraph *>> pts_shr( showers.size(), std::vector<TGraph *>(3)  );
 
                 for(size_t s =0; s< showers.size(); s++){
@@ -203,7 +206,7 @@ namespace single_photon
                     pts_trk[t] = t_pts;
                 }
                 //Now the "Unassociated Hits"
-                
+
                 std::vector<TGraph *> g_unass(3);
                 std::vector<std::vector<std::vector<double>>> pts_to_recluster(3);
                 for(int i=0; i<3; i++){
@@ -219,13 +222,13 @@ namespace single_photon
                         tick_min = std::min(tick_min, (double)h->PeakTime());
                         chan_max[(int)h->View()] = std::max( chan_max[(int)h->View()],wire);
                         chan_min[(int)h->View()] = std::min( chan_min[(int)h->View()],wire);
-                        
+
                         //for reclustering
                         std::vector<double> pt = {wire,vec_t.back()};
                         pts_to_recluster[(int)h->View()].push_back(pt);
 
                     }
-                                 
+
                     g_unass[i] = new TGraph(vec_c.size(), &vec_c[0], &vec_t[0]);
 
 
@@ -287,81 +290,65 @@ namespace single_photon
                     int tcol = tcols[used_col];
                     used_col++;
 
-                    can->cd(1);
-                    pts_trk[t][0]->Draw("p same"); 
-                    pts_trk[t][0]->SetMarkerColor(tcol);
-                    pts_trk[t][0]->SetMarkerStyle(20);
-                    pts_trk[t][0]->SetMarkerSize(0.75);
-
-                    can->cd(2);
-                    pts_trk[t][1]->Draw("p same"); 
-                    pts_trk[t][1]->SetMarkerColor(tcol);
-                    pts_trk[t][1]->SetMarkerStyle(20);
-                    pts_trk[t][1]->SetMarkerSize(0.75);
-
-                    can->cd(3);
-                    pts_trk[t][2]->Draw("p same"); 
-                    pts_trk[t][2]->SetMarkerColor(tcol);
-                    pts_trk[t][2]->SetMarkerStyle(20);
-                    pts_trk[t][2]->SetMarkerSize(0.75);
-                    std::cout<<"Plotting another track with color: "<<tcol<<std::endl;
+                    for(int i=0; i<3; i++){
+                        can->cd(i+1);
+                        if(pts_trk[t][i]->GetN()>0){//need a check in case this track has no hits on this plane.
+                            pts_trk[t][i]->Draw("p same"); 
+                            pts_trk[t][i]->SetMarkerColor(tcol);
+                            pts_trk[t][i]->SetMarkerStyle(20);
+                            pts_trk[t][i]->SetMarkerSize(0.75);
+                        }
+                    }
                 }
 
                 for(size_t t=0; t< pts_shr.size(); t++){
                     int tcol = tcols[used_col];
                     used_col++;
 
-                    can->cd(1);
-                    pts_shr[t][0]->Draw("p same"); //used in the vertex
-                    pts_shr[t][0]->SetMarkerColor(tcol);
-                    pts_shr[t][0]->SetMarkerStyle(20);
-                    pts_shr[t][0]->SetMarkerSize(0.75);
-
-                    can->cd(2);
-                    pts_shr[t][1]->Draw("p same"); 
-                    pts_shr[t][1]->SetMarkerColor(tcol);
-                    pts_shr[t][1]->SetMarkerStyle(20);
-                    pts_shr[t][1]->SetMarkerSize(0.75);
-
-                    can->cd(3);
-                    pts_shr[t][2]->Draw("p same"); 
-                    pts_shr[t][2]->SetMarkerColor(tcol);
-                    pts_shr[t][2]->SetMarkerStyle(20);
-                    pts_shr[t][2]->SetMarkerSize(0.75);
-                    std::cout<<"Plotting another shower with color: "<<tcol<<std::endl;
+                    for(int i=0; i<3; i++){
+                        can->cd(i+1);
+                        if(pts_shr[t][i]->GetN()>0){
+                            pts_shr[t][i]->Draw("p same"); //used in the vertex
+                            pts_shr[t][i]->SetMarkerColor(tcol);
+                            pts_shr[t][i]->SetMarkerStyle(20);
+                            pts_shr[t][i]->SetMarkerSize(0.75);
+                        }
+                    }
                 }
 
 
                 for(int i=0; i<3; i++){
                     can->cd(i+1);
-                    g_unass[i]->Draw("p same");
-                    g_unass[i]->SetMarkerColor(kBlack);
-                    g_unass[i]->SetMarkerStyle(20);
-                    g_unass[i]->SetMarkerSize(0.75);
- 
+
+                    if(g_unass[i]->GetN()>0){
+                        g_unass[i]->Draw("p same");
+                        g_unass[i]->SetMarkerColor(kBlack);
+                        g_unass[i]->SetMarkerStyle(20);
+                        g_unass[i]->SetMarkerSize(0.75);
+                    }
                     g_vertex[i]->Draw("p same");
                 }
 
 
 
-                //and DeadWireRegions
+                //******************************** DeadWireRegions********************************************
                 for(size_t i=0; i< bad_channel_list_fixed_mcc9.size(); i++){
                     int badchan = bad_channel_list_fixed_mcc9[i].first;                                       
                     int ok = bad_channel_list_fixed_mcc9[i].second;       
 
                     if(ok>1){
-                    auto hs = geom->ChannelToWire(badchan);
+                        auto hs = geom->ChannelToWire(badchan);
 
-                    //std::cout<<"KNK: "<<bc<<" "<<hs[0]<<" "<<result.start().X()<<" "<<result.start().Y()<<" "<<result.start().Z()<<" "<<result.end().X()<<" "<<result.end().Y()<<" "<<result.end().Z()<<std::endl; 
-//                    std::cout<<wireids[0].Plane<<" "<<result.start().X()<<std::endl;
-                    int thisp = (int)hs[0].Plane;
-                    double bc = hs[0].Wire;
+                        //std::cout<<"KNK: "<<bc<<" "<<hs[0]<<" "<<result.start().X()<<" "<<result.start().Y()<<" "<<result.start().Z()<<" "<<result.end().X()<<" "<<result.end().Y()<<" "<<result.end().Z()<<std::endl; 
+                        //                    std::cout<<wireids[0].Plane<<" "<<result.start().X()<<std::endl;
+                        int thisp = (int)hs[0].Plane;
+                        double bc = hs[0].Wire;
 
 
                         if(chan_min[thisp]*0.9> bc && bc < chan_max[thisp]*1.1 ){
-                             can->cd(thisp+1);
-                             //TLine *l = new TLine(bc,tick_min*0.9,bc,tick_max*1.1);
-                             //l->Draw("same");
+                            can->cd(thisp+1);
+                            //TLine *l = new TLine(bc,tick_min*0.9,bc,tick_max*1.1);
+                            //l->Draw("same");
                         }
                     }
                 }
@@ -370,16 +357,17 @@ namespace single_photon
 
                 //*****************************DBSCAN***********************************
                 int min_pts = 5;
-                double eps = 50.0;
+                double eps = 100.0;
                 std::vector<int> num_clusters(3,0);
-                
+
+                std::vector<std::vector<TGraph*>> g_clusters(3);
                 std::vector<std::vector<int>> cluster_labels(3);
                 for(int i=0; i<3; i++){
 
                     std::cout<<"Starting to run DBSCAN for plane: "<<i<<" has "<<pts_to_recluster[i].size()<<" pts to do using eps: "<<eps<<" and min_pts: "<<min_pts<<std::endl; 
                     DBSCAN ReCluster(eps,min_pts);
                     cluster_labels[i] =  ReCluster.Scan2D(pts_to_recluster[i]);
-        
+
                     for(auto &c: cluster_labels[i]){
                         num_clusters[i] = std::max(c,num_clusters[i]);
                     }
@@ -390,40 +378,59 @@ namespace single_photon
                 for(int i=0; i<3; i++){
                     std::vector<std::vector<double>> vec_time(num_clusters[i]+1);
                     std::vector<std::vector<double>> vec_wire(num_clusters[i]+1);
-                    std::vector<TGraph*> g_clusters(num_clusters[i]+1);
-
+                    std::vector<TGraph*> tmp_g_clusters(num_clusters[i]+1);
 
                     if(cluster_labels[i].size() != pts_to_recluster[i].size()){
                         std::cout<<"ERROR!! someting amiss cluster labels of size "<<cluster_labels[i].size()<<" and pts  in this plane "<<pts_to_recluster[i].size()<<std::endl;
                     }  
 
                     for(size_t k=0; k< pts_to_recluster[i].size(); k++){
-                            //std::cout<<vec_wire.size()<<" "<<cluster_labels[i][k]<<std::endl;
-                            vec_wire[cluster_labels[i][k]].push_back(pts_to_recluster[i][k][0]); 
-                            vec_time[cluster_labels[i][k]].push_back(pts_to_recluster[i][k][1]); 
+                        //std::cout<<vec_wire.size()<<" "<<cluster_labels[i][k]<<std::endl;
+                        vec_wire[cluster_labels[i][k]].push_back(pts_to_recluster[i][k][0]); 
+                        vec_time[cluster_labels[i][k]].push_back(pts_to_recluster[i][k][1]); 
 
                     }
 
                     for(int c=0; c< num_clusters[i]+1; c++){
                         int tcol = kBlack;
-                        if(c>0) tcol = tcols[tcols.size()-c];
-                        g_clusters[c] = new TGraph(vec_wire[c].size(),&(vec_wire[c])[0],&(vec_time[c])[0] );
+                        if(c>0) tcol = rangen->Uniform(400,900);//tcols[tcols.size()-c];
+                        tmp_g_clusters[c] = new TGraph(vec_wire[c].size(),&(vec_wire[c])[0],&(vec_time[c])[0] );
                         can->cd(i+4);
-                        g_clusters[c]->Draw("p same");
-                        g_clusters[c]->SetMarkerColor(tcol);
-                        g_clusters[c]->SetMarkerStyle(20);
-                        g_clusters[c]->SetMarkerSize(0.75);
+                        if(tmp_g_clusters[c]->GetN()>0){
+                            tmp_g_clusters[c]->Draw("p same");
+                            tmp_g_clusters[c]->SetMarkerColor(tcol);
+                            tmp_g_clusters[c]->SetMarkerStyle(20);
+                            tmp_g_clusters[c]->SetMarkerSize(0.75);
+                        }
                     }
+                    g_clusters[i] = tmp_g_clusters;
                 }
 
+                //********** Some Error Checking ********************//
+
+                /*for(int i=0; i<3; i++){
+
+                    std::cout<<"Plane "<<i<<" Vertex pts "<<g_vertex[i]->GetN()<<std::endl;
+                    for(size_t s=0; s< pts_shr.size(); s++){
+                        std::cout<<"Plane "<<i<<" Shower "<<s<<" pts "<<pts_shr[s][i]->GetN()<<std::endl;
+                    }
+                    for(size_t t=0;t < pts_trk.size(); t++){
+                        std::cout<<"Plane "<<i<<" Track "<<t<<" pts "<<pts_trk[t][i]->GetN()<<std::endl;
+                    }
+                    for(int c=0; c< num_clusters[i]+1; c++){
+                        std::cout<<"Plane "<<i<<" Cluster "<<c<<" pts "<<g_clusters[i][c]->GetN()<<std::endl;
+                    }
+                }*/
 
 
-                can->Write();
-                can->SaveAs("test.pdf","pdf");
-                f->Close();
 
+                std::cout<<"Done Plotting clusters"<<std::endl;
+                can->Update();
+                //can->Write();
+                can->SaveAs((print_name+".pdf").c_str(),"pdf");
+                //f->Close();
                 std::cout<<"PRINTING"<<std::endl;
-                bool_make_sss_plots=false;
+                //bool_make_sss_plots=false;
                 delete can;
 
 
