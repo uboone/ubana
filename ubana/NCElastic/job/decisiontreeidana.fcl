@@ -1,0 +1,76 @@
+#include "mctruthmatching_uboone.fcl"
+#include "mctruthassociations_uboone.fcl"
+#include "calorimetry_microboone.fcl"
+#include "particleid_microboone.fcl"
+#include "reco_uboone_mcc9_8.fcl"
+BEGIN_PROLOG
+#
+# Module configuration
+#
+DecisionTreeIDAna: {
+
+ module_type:           "DecisionTreeIDAna"
+ TrackModuleLabel:      "pmtrack"
+ Overlay: true
+ GetMCTruth:    true
+ GetMCParticle: true
+HitAssocLabel:         "pmtrack"
+ # get and save the decision tree prediction
+ # (only works after prediction has run)
+ GetDTPrediction: false
+ DTAssocLabel:    "pmtrackdecisiontreeid"
+POTSummaryProducer:           "generator"
+  POTSummaryInstance:           ""
+ # write track features to a csv file 
+ WriteCSV:   false
+ CSVFileOut: "trackfeatures.csv"
+ MCTruthMatching:     @local::AssociationsTruthTool
+MCTruthAssociations: @local::MCTruthAssociations 
+# this should be the same for training and predicting!
+ FeaturesConfig:
+ {
+    NEndHits:         6
+    DeadEndHits:      3
+    # values for MCC8 MC and MCC8 DIRT MC
+    BeamWindowStartT: 3.2
+    BeamWindowEndT:   4.8
+    # values for MCC8 MC Corsika In-Time
+    #BeamWindowStartT: 3.65
+    #BeamWindowEndT:   5.25
+    # values for MCC8 MC overlay
+    #BeamWindowStartT: 3.6
+    #BeamWindowEndT:   5.2
+    # values for MCC8 BNBEXT
+    #BeamWindowStartT: 3.7 #3.6
+    #BeamWindowEndT:   5.3 #5.2
+    # values for MCC8 BNB
+    #BeamWindowStartT: 3.3 #3.25
+    #BeamWindowEndT:   4.9 #4.85
+
+    PIDAssocLabel:         "pmtrackpid"
+    CaloAssocLabel:        "pmtrackcalo"
+    CosmicTagAssocLabel:   "pmtracktag"
+    ContainTagAssocLabel:  "pmtracktag"
+    GenieGenModuleLabel:   "generator"
+    HitModuleLabel:                    "gaushit"
+    MCParticleModuleLabel:             "largeant"
+    MCParticleToMCTruthAssModuleLabel: "largeant"
+    MCTruthMatching:     @local::AssociationsTruthTool
+ }
+
+}
+###calo for trajclusterkalmantrack
+
+ physics.producers.trajclusterKalmanTrackcalo:           @local::microboone_calomc
+ physics.producers.trajclusterKalmanTrackpid:            @local::particleidconfig
+ physics.producers.trajclusterKalmanTrackcali:           @local::microboone_calibrationdedx
+ physics.producers.trajclusterKalmanTrackcalipid:        @local::particleidconfig
+
+trajcluster_mcc9_reco:[
+  trajclusterKalmanTrackcalo,
+  trajclusterKalmanTrackpid,
+  trajclusterKalmanTrackcali,
+  trajclusterKalmanTrackcalipid
+   ]
+###configs
+END_PROLOG

@@ -17,7 +17,7 @@ services:
   RandomNumberGenerator:   {} #ART native random number generator
   message:                 @local::microboone_message_services_prod_debug
   #FileCatalogMetadata:     @local::art_file_catalog_mc
-                           @table::microboone_services_reco
+                           @table::microboone_reco_data_services 
 }
 
 services.TimeTracker.printSummary: false
@@ -67,7 +67,7 @@ physics:
 #physics.producers.pmtrackdecisiontreeid.FeaturesConfig.CosmicTagAssocLabel:  "pmtracktag"
 #physics.producers.pmtrackdecisiontreeid.FeaturesConfig.ContainTagAssocLabel: "pmtrackContTag"
 #physics.producers.pmtrackdecisiontreeid.FeaturesConfig.HitAssocLabel:        "pmtrack"
-physics.producers.pmtrackdecisiontreeid.FeaturesConfig.CaloAssocLabel: "pmtrackrecali"
+#physics.producers.pmtrackdecisiontreeid.FeaturesConfig.CaloAssocLabel: "pmtrackrecali"
 
 #physics.producers.pandoraNudecisiontreeid.TrackModuleLabel:     "pandoraNu"
 #physics.producers.pandoraNudecisiontreeid.ModelFile: "multiclass_pandoraNu_mcc86.model"
@@ -114,7 +114,7 @@ services.message.destinations :
   }
 }
 
-physics.producers.pmtrackdecisiontreeid.FeaturesConfig.CaloAssocLabel: "pmtrackrecali"
+#physics.producers.pmtrackdecisiontreeid.FeaturesConfig.CaloAssocLabel: "pmtrackrecali"
 
 services.DetectorClocksService.InheritClockConfig:           false
 services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
