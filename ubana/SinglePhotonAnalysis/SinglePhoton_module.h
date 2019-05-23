@@ -107,6 +107,27 @@ namespace single_photon
     }
 
 
+    struct sss_score{
+        int plane;
+        int cluster_label;
+        double point_score;
+        int n_hits;
+        
+        double max_dist_tick;
+        double mean_dist_tick;
+        double min_dist_tick;
+        double max_dist_wire;
+        double mean_dist_wire;
+        double min_dist_wire;
+
+        double pca_0;
+        double pca_1;
+        double pca_theta;
+
+        sss_score(int ip, int cl): plane(ip), cluster_label(cl){};
+    };
+
+
 
     /**
      *  @brief  SinglePhoton class
@@ -316,14 +337,15 @@ namespace single_photon
 
             //---------------- SecondShower----
     void ClearSecondShowers();
-
     void ResizeSecondShowers(size_t size);
-
     
     void CreateSecondShowerBranches();
 
 
             void SecondShowerSearch(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showertopfparticlemap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfparticletohitsmap,    const   std::map<art::Ptr<recob::PFParticle>, int> & pfparticletosliceidmap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceidtohitsmap);
+
+
+            sss_score ScoreCluster(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double, const art::Ptr<recob::Shower>&);
 
             //----------------  Flashes ----------------------------
             void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes);

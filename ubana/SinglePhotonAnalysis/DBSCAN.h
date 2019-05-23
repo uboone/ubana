@@ -32,7 +32,7 @@ class DBSCAN{
         ~DBSCAN(){}
 
         std::vector<int> Scan2D(std::vector<std::vector<double>> &pts);
-        std::vector<std::vector<double>> GetNeighbours(size_t i, std::vector<std::vector<double>> &pts);
+        std::vector<std::vector<double>> GetNeighbours(size_t i, std::vector<std::vector<double>> &pts,bool);
         int UnionSets(std::vector<std::vector<double>> &seed, std::vector<std::vector<double>> &pts);
 };
 
@@ -46,32 +46,38 @@ std::vector<int> DBSCAN::Scan2D(std::vector<std::vector<double>> &pts){
 
     for(size_t i=0; i<N; i++){
         if(label[i]!=l_undef) continue;
-        std::vector<std::vector<double>> neighbours = this->GetNeighbours(i,pts);
+        std::vector<std::vector<double>> neighbours = this->GetNeighbours(i,pts,false);
         //std::cout<<i<<" has neightbours "<<neighbours.size()<<std::endl;
 
-        if((int)neighbours.size() < m_minpts){ // if there is less than minpts, its a noise point
+        if((int)neighbours.size()+1 < m_minpts){ // if there is less than minpts, its a noise point
             label[i]= l_noise;
           //  std::cout<<i<<" thats less than min, noise"<<std::endl;
             continue;
         }
+
         cluster_count+=1;
         label[i] = cluster_count;
+        
 
         std::vector<std::vector<double>> seed_set = neighbours;
         for(size_t q=0; q<seed_set.size(); q++){
+            size_t iq = (size_t)seed_set[q][2]; //This is original 
 
-            if(label[q]==l_noise){
-                label[q] = cluster_count;
+            if(label[iq]==l_noise){
+                label[iq] = cluster_count;//Change noise to a border point;
             }
-            if(label[q]!=l_undef) continue;
-            label[q]=cluster_count;
-            std::vector<std::vector<double>> new_neighbours = this->GetNeighbours(q,pts);
+
+            if(label[iq]!=l_undef){
+                continue; // previously processed
+            }
+
+            label[iq]=cluster_count;// wasn't noise, new point, add to cluster
+
+            std::vector<std::vector<double>> new_neighbours = this->GetNeighbours(iq,pts,true);//Get neighbours of this point, including itslef eh.
 
             if((int)new_neighbours.size() >= m_minpts ){ //expand the seed set
-               // std::cout<<i<<" "<<q<<" unionizing "<<std::endl;
-                this->UnionSets(seed_set,new_neighbours); 
+                this->UnionSets(seed_set, new_neighbours); 
             }
-
         }
     }
     return label;
@@ -80,16 +86,29 @@ std::vector<int> DBSCAN::Scan2D(std::vector<std::vector<double>> &pts){
 
 
 
-std::vector<std::vector<double>> DBSCAN::GetNeighbours(size_t point, std::vector<std::vector<double>>&pts){
+std::vector<std::vector<double>> DBSCAN::GetNeighbours(size_t ipoint, std::vector<std::vector<double>>&pts,bool include_self){
     std::vector<std::vector<double>> neighbours;
+    std::vector<double> point = pts[ipoint];
 
     //VERY simple, will update soon to a DB 
 
-    for(auto &p:pts){
-        double dist = sqrt(pow(p[0]-pts[point][0],2)+pow(p[1]-pts[point][1],2));
-        //std::cout<<"DIST: "<<dist<<" "<<p[0]<<" "<<p[1]<<" "<<pts[point][0]<<" "<<pts[point][1]<<std::endl;
-        if(dist< m_eps && dist != 0){
-            neighbours.push_back(p);
+
+    for(size_t ip=0; ip<pts.size(); ip++){
+        std::vector<double> p = pts[ip];
+        
+        double dist = sqrt(pow(p[0]*0.3-point[0]*0.3,2)+pow(p[1]/25.0-point[1]/25.0,2));
+
+        if(include_self){
+            if(dist <= m_eps){
+                std::vector<double> tp = {p[0],p[1],(double)ip};//Push back original index too
+                neighbours.push_back(tp);
+            }
+        }else{
+             if(dist <= m_eps && p != point ){
+                std::vector<double> tp = {p[0],p[1],(double)ip};//Push back original index too
+                neighbours.push_back(tp);
+             }
+
         }
     }
     return neighbours;
@@ -107,7 +126,8 @@ int DBSCAN::UnionSets(std::vector<std::vector<double>> &seed, std::vector<std::v
                 break;
             }
         }
-        if(is_in ==false){
+
+        if(is_in == false){
             seed.push_back(p);
         }
 
