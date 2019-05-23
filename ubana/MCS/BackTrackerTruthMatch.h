@@ -61,10 +61,10 @@ class BackTrackerTruthMatch {
 	private:
 
 		art::Ptr< simb::MCParticle > fmaxp_me;
-		double fpurity;
-		double fcompleteness;
-		double ftote;
-		double fmaxe;
+		double fpurity = -999;
+		double fcompleteness = -999;
+		double ftote = 0;
+		double fmaxe = 0;
 		int fMCParticleID;
 
 };

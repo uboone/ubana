@@ -12,6 +12,7 @@ art_make( BASENAME_ONLY
           LIB_LIBRARIES
                    uboonecode_uboone_UBXSec_Algorithms
                    BackTrack
+                   RecoTruth
                    ubobj_UBXSec
                    ubobj_Trigger
                    HitCosmicTag_Base 
@@ -68,6 +69,7 @@ art_make( BASENAME_ONLY
           MODULE_LIBRARIES
                    uboonecode_uboone_UBXSec_Algorithms 
                    BackTrack
+                   RecoTruth
                    ubobj_UBXSec
 		   ubobj_Trigger
                    HitCosmicTag_Base
@@ -121,6 +123,40 @@ art_make_library(
        BackTrack
    SOURCE
        BackTrackerTruthMatch.cxx
+   LIBRARIES
+         lardataobj_RawData
+         larcorealg_Geometry
+       larcore_Geometry_Geometry_service
+       ${ART_FRAMEWORK_CORE}
+       ${ART_FRAMEWORK_IO_SOURCES}
+       ${ART_FRAMEWORK_PRINCIPAL}
+       art_Persistency_Common canvas
+       art_Persistency_Provenance canvas
+       art_Utilities canvas
+    lardataobj_RecoBase
+    lardataobj_AnalysisBase
+ lardata_Utilities
+ larpandora_LarPandoraEventBuilding
+ LArPandoraContent
+ larpandora_LArPandoraInterface
+ nusimdata_SimulationBase
+ LArPandoraContent
+       ${ART_FRAMEWORK_SERVICES_REGISTRY}
+       ${MF_MESSAGELOGGER}
+       ${FHICLCPP}
+       ${ROOT_BASIC_LIB_LIST}
+       ${ROOT_GEOM}
+       ${Boost_FILESYSTEM_LIBRARY}
+       ${Boost_SYSTEM_LIBRARY}
+       cetlib cetlib_except
+
+)
+
+art_make_library(
+   LIBRARY_NAME
+       RecoTruth
+   SOURCE
+       RecoTruthMCParticle.cxx
    LIBRARIES
          lardataobj_RawData
          larcorealg_Geometry

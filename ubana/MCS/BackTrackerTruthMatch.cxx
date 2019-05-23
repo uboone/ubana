@@ -23,7 +23,6 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 	std::unordered_map<int,double> trackid_dQinTruthMatchedHits;
 
 	// Loop only over the recob::Hits
-
 	for (int i_h = 0; i_h < int(trk_hits_ptrs.size()); ++i_h) {
 
 		float dQinHit = trk_hits_ptrs[i_h]->Integral(); // Charge deposition of a recob::Hit
@@ -39,14 +38,13 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 		std::vector <int> ParticlesMatchedInThisHit;
 
 		// Loop over MCParticles that match this hit and ask which one deposited the most energy
-
 		for(int i_p = 0; i_p < int(particle_vec.size()); ++i_p) {
-
 			art::Handle<std::vector<simb::MCParticle>> mcparticle_handle; 
 			e.getByLabel(MCParticleModuleLabel,mcparticle_handle);
-			art::FindOneP<simb::MCTruth> MCParticleToMCTruth(mcparticle_handle,e,MCParticleModuleLabel);
-			const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruth.at( particle_vec[i_p].key());
-			if (mctruth->Origin() != 1) { continue; }
+			//art::FindOneP<simb::MCTruth> MCParticleToMCTruth(mcparticle_handle,e,MCParticleModuleLabel);
+			//const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruth.at( particle_vec[i_p].key());
+                        //std::cout<<"MC truth pdg: "<<mctruth->GetParticle()->PdgCode()<<std::endl;
+			//if (mctruth->Origin() != 1) { continue; }
 
 			float Edep_particle = match_vec[i_p]->energy; // Energy deposited by ionization by this track ID [MeV]
 
@@ -74,6 +72,7 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 
 	} // End of the loop over the hits
 
+
 	fpurity = max_dQinTruthMatchedHits / dQinAllHits;
 
 	fcompleteness = fmaxe / ftote;
@@ -86,7 +85,7 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 		fmaxp_me = fmaxp_me_empty;	
 
 	}
-
+        
 	return;
 }
 // _________________________________________________________________________________________________________________________________________________________________________________________________
