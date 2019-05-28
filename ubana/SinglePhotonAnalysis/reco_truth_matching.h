@@ -423,6 +423,15 @@ namespace single_photon
             }
             m_sim_shower_is_nuslice[i] = PFPToNuSliceMap[pfp];
 
+           // if (PFPToNuSliceMap[pfp] ==true){
+           //     std::cout<<"m_sim_shower_is_nuslice is true for sim shower matched to reco pfp id "<<pfp->Self()<<std::endl;
+
+           // }
+           //
+           if (m_sim_shower_pdg[i]==22){
+                std::cout<<"looking at pfp "<< pfp->Self()<<" with is matched to true photon shower m_sim_shower_pdg[i]==22 is_nuslice = "<< m_sim_shower_is_nuslice[i]<<" in slice "<< m_sim_shower_sliceId[i]<<std::endl;
+           }
+
 
 
             //OLD OLD OLD

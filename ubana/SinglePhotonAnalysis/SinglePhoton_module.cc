@@ -364,6 +364,7 @@ namespace single_photon
             std::cout<<"ERROR, not storing PFP's in PFPToSliceIdMap"<<std::endl;
         }
 
+      
         //this->GetPFPsPerSlice( PFPToSliceIdMap,sliceIdToNumPFPsMap );
 
         this->AnalyzeFlashes(flashVector);

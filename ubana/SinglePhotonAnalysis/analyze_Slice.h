@@ -306,6 +306,8 @@ namespace single_photon
             PFPToSliceIdMap[start_pfp] = slice_id;
             //std::cout<<"storing PFP with id "<<start_pfp->Self()<<" and slice id "<<slice_id<<" in  PFPToSliceIdMap"<<std::endl; 
             PFPToNuSliceMap[start_pfp] = sliceIdToNuSliceMap[slice_id];
+
+
             // sliceIdToPFPMap[slice_id].push_back(start_pfp);
         }//for all pfp's in the event
 
@@ -313,6 +315,11 @@ namespace single_photon
         //     std::cout<<"in slice ID "<<pair.first<<" there are "<<pair.second.size()<<" PFP's"<<std::endl;
         //} 
 
+        for (auto pair:PFPToNuSliceMap ){
+            if(pair.second == true){
+                std::cout<<"stored in PFPToNuSliceMap for pfp "<<pair.first->Self()<<", isNeutrino = "<<pair.second<<std::endl;
+            }
+        } 
 
         /*
          * store stuff in the output tree
@@ -629,8 +636,12 @@ namespace single_photon
                             m_matched_signal_shower_true_E.push_back(m_sim_shower_energy[j]);
                             m_matched_signal_shower_nuscore.push_back( m_sim_shower_nuscore[j]);
                             m_matched_signal_shower_sliceId.push_back(m_sim_shower_sliceId[j]);
+
+
                             m_matched_signal_shower_is_clearcosmic.push_back( m_sim_shower_isclearcosmic[j]);
                             m_matched_signal_shower_is_nuslice.push_back(m_sim_shower_is_nuslice[j]);
+                            std::cout<<"found signal photon shower pdg"<< m_sim_shower_pdg[j]<<"and is in neutrino slice =  "<< m_sim_shower_is_nuslice[j]<<std::endl;
+
 
                         }
                     }//if it's a photon from the neutrino interaction
