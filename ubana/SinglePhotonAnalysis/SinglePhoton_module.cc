@@ -88,6 +88,8 @@ namespace single_photon
 
     void SinglePhoton::analyze(const art::Event &evt)
     {
+
+        //m_is_verbose = true;
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
         std::cout<<"SinglePhoton::analyze()\t||\t On entry: "<<m_number_of_events<<std::endl;
 
@@ -179,6 +181,11 @@ namespace single_photon
         std::vector< art::Ptr<recob::PFParticle> > nuParticles;
         this->GetFinalStatePFParticleVectors(pfParticleMap, pfParticlesToVerticesMap, crParticles, nuParticles);
 
+        //if not running over neutrino slice only, use all pfp's in event
+        if (m_run_all_pfps ==true){
+            nuParticles = pfParticleVector;
+        }
+
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Spacepoints"<<std::endl;
         //Look, here is a map that I just forced myself rather than build using helpers. Not that different is it. But for somereason I only use PFParticles.. huh,
         //Spacepoint associaitions
@@ -198,6 +205,29 @@ namespace single_photon
             const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
             pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
         }
+
+        /*   art::FindManyP<recob::Slice > pfPartToSliceAssoc(pfParticleHandle, evt,  m_pandoraLabel);
+             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Slice>> > pfParticleToSliceAssnMap;
+             for(size_t i=0; i< pfParticleVector.size(); ++i){
+             const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
+             pfParticleToSliceAssnMap[pfp] =  pfPartToSliceAssoc.at(pfp.key());
+             }
+             */
+        //Slices
+        art::ValidHandle<std::vector<recob::Slice>> const & sliceHandle  = evt.getValidHandle<std::vector<recob::Slice>>(m_pandoraLabel);
+        std::vector<art::Ptr<recob::Slice>> sliceVector;
+        art::fill_ptr_vector(sliceVector,sliceHandle);
+        //And some associations
+        art::FindManyP<recob::PFParticle> hits_per_slice(sliceHandle, evt, m_pandoraLabel);
+        std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::PFParticle>> > sliceToPFParticlesMap;
+        std::map<int, std::vector<art::Ptr<recob::PFParticle>> > sliceIDToPFParticlesMap;
+        for(size_t i=0; i< sliceVector.size(); ++i){
+            auto slice = sliceVector[i];
+            sliceToPFParticlesMap[slice] =hits_per_slice.at(slice.key());
+            sliceIDToPFParticlesMap[slice->ID()] = hits_per_slice.at(slice.key());
+        }
+
+
 
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Clusters"<<std::endl;
 
@@ -223,12 +253,43 @@ namespace single_photon
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Build hits to PFP Maps"<<std::endl;
 
 
+        //taking out the Larpandora helper functions here because they don't match to non-neutrino slice hits for some reason
+
         //OK Here we build two IMPORTANT maps for the analysis, (a) given a PFParticle get a vector of hits..
         //and (b) given a single hit, get the PFParticle it is in (MARK: is it only one? always? RE-MARK: Yes)
         std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Hit>> > pfParticleToHitsMap;
-        std::map<art::Ptr<recob::Hit>, art::Ptr<recob::PFParticle>>                hitToPFParticleMap;
+        //        std::map<art::Ptr<recob::Hit>, art::Ptr<recob::PFParticle>>                hitToPFParticleMap;
         //Using a pandora helper here, but to be honest we should probably just build using normal associations so keep independant if pssoble
-        lar_pandora::LArPandoraHelper::BuildPFParticleHitMaps(evt, m_pandoraLabel, pfParticleToHitsMap, hitToPFParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
+        // lar_pandora::LArPandoraHelper::BuildPFParticleHitMaps(evt, m_pandoraLabel, pfParticleToHitsMap, hitToPFParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
+
+        //use pfp->cluster and cluster->hit to build pfp->hit map
+        //for each PFP
+        for(size_t i=0; i<nuParticles.size(); ++i){
+            auto pfp = nuParticles[i];
+
+            std::cout<<"starting to match to hits for pfp "<<pfp->Self()<<std::endl;
+            //get the associated clusters
+            std::vector<art::Ptr<recob::Cluster>> clusters_vec  = pfParticleToClustersMap[pfp] ;
+
+            //make empty vector to store hits
+            std::vector<art::Ptr<recob::Hit>> hits_for_pfp = {};
+
+            std::cout<<"-- there are "<<clusters_vec.size()<<" associated clusters"<<std::endl;
+
+            //for each cluster, get the associated hits
+            for (art::Ptr<recob::Cluster> cluster: clusters_vec){
+                std::vector<art::Ptr<recob::Hit>> hits_vec =  clusterToHitsMap[cluster];
+
+                std::cout<<"looking at cluster in pfp "<<pfp->Self()<<" with "<<hits_vec.size() <<" hits"<<std::endl;
+                //insert hits into vector
+                hits_for_pfp.insert( hits_for_pfp.end(), hits_vec.begin(), hits_vec.end() );
+            }
+
+            //fill the map
+            pfParticleToHitsMap[pfp] = hits_for_pfp;
+            std::cout<<"saving a total of "<<hits_for_pfp.size()<<" hits for pfp "<<pfp->Self()<<std::endl;
+
+        }//for each pfp
 
 
 
@@ -364,7 +425,21 @@ namespace single_photon
             std::cout<<"ERROR, not storing PFP's in PFPToSliceIdMap"<<std::endl;
         }
 
-      
+        for (auto pair:sliceIDToPFParticlesMap){ 
+            std::vector<art::Ptr<recob::PFParticle>> pfp_vec = pair.second;
+            int slice_id = pair.first;
+            //if (slice_vec[0]->Slice() != PFPToSliceIdMap[pfp] )
+            for(auto pfp: pfp_vec){
+                if (slice_id != PFPToSliceIdMap[pfp] && PFPToSliceIdMap[pfp]>=0){
+                    std::cout<<"sliceIDToPFParticlesMap[slice->ID()] for pfp "<<pfp->Self()<<" is slice "<< slice_id<< "but PFPToSliceIdMap[pfp] = "<<PFPToSliceIdMap[pfp]<<std::endl;
+                }
+            }
+
+        }
+
+
+
+
         //this->GetPFPsPerSlice( PFPToSliceIdMap,sliceIdToNumPFPsMap );
 
         this->AnalyzeFlashes(flashVector);
@@ -761,7 +836,7 @@ namespace single_photon
         for (unsigned int i = 0; i < pfParticleHandle->size(); ++i)
         {
             const art::Ptr<recob::PFParticle> pParticle(pfParticleHandle, i);
-           // std::cout<<"Adding PFP to pfParticleMap with pfp id  "<<pParticle->Self()<<std::endl;
+            // std::cout<<"Adding PFP to pfParticleMap with pfp id  "<<pParticle->Self()<<std::endl;
             if (!pfParticleMap.insert(PFParticleIdMap::value_type(pParticle->Self(), pParticle)).second)
             {
                 throw cet::exception("SinglePhoton") << "  Unable to get PFParticle ID map, the input PFParticle collection has repeat IDs!";
@@ -848,7 +923,7 @@ namespace single_photon
             }
         } else{ //if running over all slices
             std::cout<<"The total number of PFP's in the map is "<<pfParticleMap.size()<<std::endl;
-//            std::cout<<"The total number of PFP's in the vector is "<< particles.size()<<std::endl;
+            //            std::cout<<"The total number of PFP's in the vector is "<< particles.size()<<std::endl;
             for (auto pair : pfParticleMap){
                 const art::Ptr<recob::PFParticle> &pParticle = pair.second;
 
@@ -873,7 +948,7 @@ namespace single_photon
         // Check if the PFParticle has no associated tracks or showers
         if (nTracks == 0 && nShowers == 0)
         {
-          //  std::cout<<"ERROR No tracks or showers were associated to PFParticle " << pParticle->Self()<<" with pdg "<<pParticle->PdgCode() <<std::endl;
+            //  std::cout<<"ERROR No tracks or showers were associated to PFParticle " << pParticle->Self()<<" with pdg "<<pParticle->PdgCode() <<std::endl;
             //std::cout<<"-- isPrimary = "<<pParticle->IsPrimary()<<std::endl;
             mf::LogDebug("SinglePhoton") << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << "\n";
             return;
@@ -895,7 +970,7 @@ namespace single_photon
         {
             showers.push_back(associatedShowers.front());
             showerToNuPFParticleMap[showers.back()] = pParticle;
-           // std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  associatedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
+            // std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  associatedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
             return;
         }
