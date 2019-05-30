@@ -267,27 +267,27 @@ namespace single_photon
         for(size_t i=0; i<nuParticles.size(); ++i){
             auto pfp = nuParticles[i];
 
-            std::cout<<"starting to match to hits for pfp "<<pfp->Self()<<std::endl;
+           // std::cout<<"starting to match to hits for pfp "<<pfp->Self()<<std::endl;
             //get the associated clusters
             std::vector<art::Ptr<recob::Cluster>> clusters_vec  = pfParticleToClustersMap[pfp] ;
 
             //make empty vector to store hits
             std::vector<art::Ptr<recob::Hit>> hits_for_pfp = {};
 
-            std::cout<<"-- there are "<<clusters_vec.size()<<" associated clusters"<<std::endl;
+           // std::cout<<"-- there are "<<clusters_vec.size()<<" associated clusters"<<std::endl;
 
             //for each cluster, get the associated hits
             for (art::Ptr<recob::Cluster> cluster: clusters_vec){
                 std::vector<art::Ptr<recob::Hit>> hits_vec =  clusterToHitsMap[cluster];
 
-                std::cout<<"looking at cluster in pfp "<<pfp->Self()<<" with "<<hits_vec.size() <<" hits"<<std::endl;
+             //   std::cout<<"looking at cluster in pfp "<<pfp->Self()<<" with "<<hits_vec.size() <<" hits"<<std::endl;
                 //insert hits into vector
                 hits_for_pfp.insert( hits_for_pfp.end(), hits_vec.begin(), hits_vec.end() );
             }
 
             //fill the map
             pfParticleToHitsMap[pfp] = hits_for_pfp;
-            std::cout<<"saving a total of "<<hits_for_pfp.size()<<" hits for pfp "<<pfp->Self()<<std::endl;
+            //std::cout<<"saving a total of "<<hits_for_pfp.size()<<" hits for pfp "<<pfp->Self()<<std::endl;
 
         }//for each pfp
 
