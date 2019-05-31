@@ -78,7 +78,7 @@ namespace single_photon
         m_exiting_photon_energy_threshold = pset.get<double>("exiting_photon_energy");
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
 
-        rangen = new TRandom3(0);
+        rangen = new TRandom3(22);
         bool_make_sss_plots = true;
 
         std::vector<std::string> delta_names = {"Delta++","Delta+","Delta-","Delta0"};
@@ -250,6 +250,8 @@ namespace single_photon
         std::map<art::Ptr<recob::Hit>, art::Ptr<recob::PFParticle>>                hitToPFParticleMap;
         //Using a pandora helper here, but to be honest we should probably just build using normal associations so keep independant if pssoble
         lar_pandora::LArPandoraHelper::BuildPFParticleHitMaps(evt, m_pandoraLabel, pfParticleToHitsMap, hitToPFParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
+
+
 
 
         // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino
@@ -691,6 +693,11 @@ namespace single_photon
         m_vertex_pos_x=-99999;
         m_vertex_pos_y=-99999;
         m_vertex_pos_z=-99999;
+        m_vertex_pos_tick=-9999;
+        m_vertex_pos_wire_p0=-9999;
+        m_vertex_pos_wire_p1=-9999;
+        m_vertex_pos_wire_p2=-9999;
+
         m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane2=-99999;

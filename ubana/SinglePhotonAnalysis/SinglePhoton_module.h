@@ -112,7 +112,16 @@ namespace single_photon
         int cluster_label;
         double point_score;
         int n_hits;
-        
+
+        double mean_wire;
+        double max_wire;
+        double min_wire;
+        double mean_tick;
+        double max_tick;
+        double min_tick;
+
+        double impact_parameter;
+
         double max_dist_tick;
         double mean_dist_tick;
         double min_dist_tick;
@@ -120,9 +129,18 @@ namespace single_photon
         double mean_dist_wire;
         double min_dist_wire;
 
+        double mean_dist;
+        double max_dist;
+        double min_dist;
+
         double pca_0;
         double pca_1;
         double pca_theta;
+
+        int n_wires;
+        int n_ticks;
+
+        bool pass;
 
         sss_score(int ip, int cl): plane(ip), cluster_label(cl){};
     };
@@ -341,11 +359,19 @@ namespace single_photon
     
     void CreateSecondShowerBranches();
 
+    void SecondShowerSearch(
+            const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
+            const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
+            const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
+            const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap);
 
-            void SecondShowerSearch(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showertopfparticlemap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfparticletohitsmap,    const   std::map<art::Ptr<recob::PFParticle>, int> & pfparticletosliceidmap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceidtohitsmap);
 
 
             sss_score ScoreCluster(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double, const art::Ptr<recob::Shower>&);
+            TGraph* GetNearestNpts(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double,int);
+            int CompareToShowers(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double,
+                    const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showertopfparticlemap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfparticletohitsmap,                    double eps);
+            
 
             //----------------  Flashes ----------------------------
             void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes);
@@ -606,6 +632,25 @@ namespace single_photon
             //------- Second shower related variables ----
             int m_sss_num_unassociated_hits;
             int m_sss_num_associated_hits;
+    
+            int m_sss_num_candidates;
+
+            std::vector<int> m_sss_candidate_num_hits;
+             std::vector<int> m_sss_candidate_num_wires;
+            std::vector<int>  m_sss_candidate_num_ticks;
+            std::vector<int>  m_sss_candidate_plane;
+             std::vector<double> m_sss_candidate_PCA;
+           std::vector<double> m_sss_candidate_impact_parameter;
+           std::vector<double> m_sss_candidate_fit_slope;
+           std::vector<double> m_sss_candidate_fit_constant;
+          std::vector<double>  m_sss_candidate_mean_tick;
+           std::vector<double> m_sss_candidate_max_tick;
+           std::vector<double> m_sss_candidate_min_tick;
+           std::vector<double> m_sss_candidate_min_wire;
+           std::vector<double> m_sss_candidate_max_wire;
+           std::vector<double> m_sss_candidate_mean_wire;
+           std::vector<double> m_sss_candidate_min_dist;
+
 
             bool bool_make_sss_plots;
 
@@ -614,6 +659,11 @@ namespace single_photon
             double m_vertex_pos_x;
             double m_vertex_pos_y;
             double m_vertex_pos_z;
+            double m_vertex_pos_tick;
+            double m_vertex_pos_wire_p0;
+            double m_vertex_pos_wire_p2;
+            double m_vertex_pos_wire_p1;
+
             int m_reco_asso_showers;
 
             double m_reco_vertex_to_nearest_dead_wire_plane0;

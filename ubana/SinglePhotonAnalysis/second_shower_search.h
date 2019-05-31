@@ -10,6 +10,7 @@
 #include "TVectorD.h"
 #include "TMatrixD.h"
 #include "TF1.h"
+#include "TEllipse.h"
 namespace single_photon
 {
 
@@ -19,6 +20,23 @@ namespace single_photon
         m_sss_num_unassociated_hits=0;
         m_sss_num_associated_hits=0;
 
+        m_sss_num_candidates = 0;
+
+        m_sss_candidate_num_hits.clear();
+        m_sss_candidate_num_wires.clear();
+        m_sss_candidate_num_ticks.clear();
+        m_sss_candidate_plane.clear();
+        m_sss_candidate_PCA.clear();
+        m_sss_candidate_impact_parameter.clear();
+        m_sss_candidate_fit_slope.clear();
+        m_sss_candidate_fit_constant.clear();
+        m_sss_candidate_mean_tick.clear();
+        m_sss_candidate_max_tick.clear();
+        m_sss_candidate_min_tick.clear();
+        m_sss_candidate_min_wire.clear();
+        m_sss_candidate_max_wire.clear();
+        m_sss_candidate_mean_wire.clear();
+        m_sss_candidate_min_dist.clear();
     }
 
     void SinglePhoton::ResizeSecondShowers(size_t size){
@@ -29,6 +47,25 @@ namespace single_photon
     void SinglePhoton::CreateSecondShowerBranches(){
         vertex_tree->Branch("sss_num_unassociated_hits",&m_sss_num_unassociated_hits,"sss_num_unassociated_hits/I");
         vertex_tree->Branch("sss_num_associated_hits",&m_sss_num_associated_hits,"sss_num_associated_hits/I");
+
+        vertex_tree->Branch("sss_num_candidates",&m_sss_num_candidates,"sss_num_candidates/I");
+        vertex_tree->Branch("sss_candidate_num_hits",&m_sss_candidate_num_hits);
+        vertex_tree->Branch("sss_candidate_num_wires",&m_sss_candidate_num_wires);
+        vertex_tree->Branch("sss_candidate_num_ticks",&m_sss_candidate_num_ticks);
+        vertex_tree->Branch("sss_candidate_plane",&m_sss_candidate_plane);
+        vertex_tree->Branch("sss_candidate_PCA",&m_sss_candidate_PCA);
+        vertex_tree->Branch("sss_candidate_impact_parameter",&m_sss_candidate_impact_parameter); 
+        vertex_tree->Branch("sss_candidate_fit_slope",&m_sss_candidate_fit_slope);
+        vertex_tree->Branch("sss_candidate_fit_constant",&m_sss_candidate_fit_constant);
+        vertex_tree->Branch("sss_candidate_mean_tick",&m_sss_candidate_mean_tick);
+        vertex_tree->Branch("sss_candidate_max_tick",&m_sss_candidate_max_tick);
+        vertex_tree->Branch("sss_candidate_min_tick",&m_sss_candidate_min_tick);
+        vertex_tree->Branch("sss_candidate_mean_wire",&m_sss_candidate_mean_wire);
+        vertex_tree->Branch("sss_candidate_max_wire",&m_sss_candidate_max_wire);
+        vertex_tree->Branch("sss_candidate_min_wire",&m_sss_candidate_min_wire);
+        vertex_tree->Branch("sss_candidate_min_dist",&m_sss_candidate_min_dist);
+
+
 
     }
 
@@ -151,8 +188,8 @@ namespace single_photon
                 //f->cd();
 
                 std::string print_name = "sss_"+std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
-                TCanvas *can=new TCanvas(print_name.c_str(),print_name.c_str(),3000,1600);
-                can->Divide(4,2,0,0.1);
+                TCanvas *can=new TCanvas(print_name.c_str(),print_name.c_str(),3000,2400);
+                can->Divide(4,3,0,0.1);
 
                 double tick_max = 0;
                 double tick_min = 1e10;
@@ -254,7 +291,7 @@ namespace single_photon
             int used_col=0;
             if(showers.size()+tracks.size() > tcols.size()){
                 for(int i =0; i< (int)(showers.size()+tracks.size() - tcols.size() +2); i++){
-                    tcols.push_back((int)rangen->Uniform(400,900));
+                    tcols.push_back(tcols[(int)rangen->Uniform(0,7)]+(int)rangen->Uniform(-5,5));
                 }
             }
 
@@ -269,22 +306,27 @@ namespace single_photon
 
 
             //Plotting the vertex position on the plot.
-            
+
             std::vector<double> vertex_time(3); 
             std::vector<double> vertex_wire(3); 
-            
-            
+
+
             std::vector<TGraph*> g_vertex(3);
             for(int i=0; i<3; i++){
                 TPad * pader = (TPad*)can->cd(i+1);
 
-                if(i==0 || i ==4) pader->SetLeftMargin(0.1);
+                if(i==0 || i ==4 || i == 8) pader->SetLeftMargin(0.1);
 
                 std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
                 std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
 
                 vertex_time[i] = time[0];
                 vertex_wire[i] = wire[0];
+
+                if(i==0) m_vertex_pos_wire_p0 = wire[0];
+                if(i==1) m_vertex_pos_wire_p1 = wire[0];
+                if(i==2) m_vertex_pos_wire_p2 = wire[0];
+                m_vertex_pos_tick = time[0];
 
                 chan_max[i] = std::max( chan_max[i],wire[0]);
                 chan_min[i] = std::min( chan_min[i],wire[0]);
@@ -309,6 +351,10 @@ namespace single_photon
                 can->cd(i+5);
                 g_vertex[i]->Draw("ap");
 
+                can->cd(i+9);
+                g_vertex[i]->Draw("ap");
+
+
             }
 
             //******************************** DeadWireRegions********************************************
@@ -331,6 +377,8 @@ namespace single_photon
                     l->SetLineColor(kGray+1);
                     l->Draw("same");
                     can->cd(thisp+5);
+                    l->Draw("same");
+                    can->cd(thisp+9);
                     l->Draw("same");
                 }
             }
@@ -378,6 +426,17 @@ namespace single_photon
                     g_unass[i]->SetMarkerSize(plot_point_size);
                 }
                 g_vertex[i]->Draw("p same");
+                can->cd(i+5);
+                g_vertex[i]->Draw("p same");
+                can->cd(i+9);
+                g_vertex[i]->Draw("p same");
+
+                double rad_cm = 12.0;
+                TEllipse * ell_p = new TEllipse(vertex_wire[i],vertex_time[i],rad_cm/0.3,rad_cm*25);
+                ell_p->SetLineColor(kRed);
+                ell_p->SetFillStyle(0);
+                ell_p->Draw("same");
+
             }
 
 
@@ -422,13 +481,13 @@ namespace single_photon
                     }
                 }
             }
-        
-            
+
+
             //for(size_t i=0; i<3; i++){
-              //  for(int c=0; c<num_clusters[i]+1; c++){
-                    //auto v_newClusterToHitsMap[i][c];
-               // }
-           // }
+            //  for(int c=0; c<num_clusters[i]+1; c++){
+            //auto v_newClusterToHitsMap[i][c];
+            // }
+            // }
 
 
             int max_n_clusters = std::max(num_clusters[0]+1, std::max(num_clusters[1]+1,num_clusters[2]+1))+2;
@@ -522,6 +581,8 @@ namespace single_photon
             can->cd(8);
             for(int i=0; i<3; i++){
                 TLegend * l_bot = new TLegend(0.1+i*0.25,0.1,0.1+i*0.25+0.25,0.89);
+                
+                TLegend * l_bot2 = new TLegend(0.1+i*0.25,0.1,0.1+i*0.25+0.25,0.89);
 
                 for(int c=0; c< num_clusters[i]+1; c++){
                     if(c==0)continue;
@@ -529,19 +590,86 @@ namespace single_photon
                     int num_hits_in_cluster = v_newClusterToHitsMap[i][c].size();
                     auto hitz = v_newClusterToHitsMap[i][c];
                     auto ssscorz = this->ScoreCluster(i,c, hitz ,vertex_wire[i], vertex_time[i], showers[0]);
+                    int is_in_shower = this->CompareToShowers(i,c, hitz ,vertex_wire[i], vertex_time[i], showers, showerToPFParticleMap, pfParticleToHitsMap,eps);
 
+                    // std::string sname = makeSplitlineString({"Cluster: ","Hits: ","PCA: ","Theta: "},{c,num_hits_in_cluster});
 
-                    std::string sname = "#splitline{Cluster "+std::to_string(c)+"}{#splitline{Hits: "+std::to_string(num_hits_in_cluster)+"}{#splitline{PCA "+std::to_string(ssscorz.pca_0)+"}{Theta:" +std::to_string(ssscorz.pca_theta)+"}}}";
+                    std::string sname = "#splitline{Cluster "+std::to_string(c)+"}{#splitline{Hits: "+std::to_string(num_hits_in_cluster)+"}{#splitline{PCA "+std::to_string(ssscorz.pca_0)+"}{#splitline{Theta:" +std::to_string(ssscorz.pca_theta)+"}{#splitline{Wires: "+std::to_string(ssscorz.n_wires)+ "}{#splitline{Ticks: "+std::to_string(ssscorz.n_ticks)+"}{#splitline{ReMerged: "+std::to_string(is_in_shower)+"}{}}}}}}}";
                     l_bot->AddEntry(g_clusters[i][c],sname.c_str(),"f");
 
+
+                    //Here we will only plot those that pass in bottom:
+                    if(ssscorz.pass && is_in_shower ==-1){
+                        can->cd(i+9);
+
+                        if(g_clusters[i][c]->GetN()>0){
+                            TGraph * tmp = (TGraph*)g_clusters[i][c]->Clone(("tmp_"+std::to_string(i)+std::to_string(c)).c_str());
+
+
+                            int Npts = 20;
+                            TGraph * core  = (TGraph*)this->GetNearestNpts(i,c,hitz,vertex_wire[i],vertex_time[i],Npts);
+
+                            core->Draw("p same");
+                            tmp->Draw("p same");
+                            core->Fit("pol1","Q","same",chan_min[i],chan_max[i]);
+                            core->GetFunction("pol1")->SetLineWidth(1); 
+                            core->GetFunction("pol1")->SetLineStyle(3); 
+                            core->GetFunction("pol1")->SetLineColor(g_clusters[i][c]->GetMarkerColor()); 
+                            double con = core->GetFunction("pol1")->GetParameter(0);
+                            double slope = core->GetFunction("pol1")->GetParameter(1);
+
+                            //lets map (wire,tick) to a rudamentary (cm,cm);
+                            //double slope2 = slope*25*0.3;
+                            //double con2 = con*25;
+                                
+                            double impact_parameter = 1e10;// fabs(slope*vertex_wire[i] +vertex_time[i]+con)/sqrt(slope*slope+1.0*1.0);
+
+                            //rudimentary!
+                            for(double k=chan_min[i]; k< chan_max[i];k++){
+                                double y = slope*k+con;
+                                double dist = sqrt(pow(k*0.3-vertex_wire[i]*0.3,2)+pow(y/25.0-vertex_time[i]/25.0,2));
+                                impact_parameter = std::min(impact_parameter,dist);
+                            }
+
+
+                            m_sss_num_candidates++;
+
+                            m_sss_candidate_num_hits.push_back(num_hits_in_cluster);
+                            m_sss_candidate_num_wires.push_back((int)ssscorz.n_wires);
+                            m_sss_candidate_num_ticks.push_back((int)ssscorz.n_ticks);
+                            m_sss_candidate_plane.push_back((int)i);
+                            m_sss_candidate_PCA.push_back(ssscorz.pca_0);
+                            m_sss_candidate_impact_parameter.push_back(impact_parameter);
+                            m_sss_candidate_fit_slope.push_back(slope);
+                            m_sss_candidate_fit_constant.push_back(con);
+                            m_sss_candidate_mean_tick.push_back(ssscorz.mean_tick);
+                            m_sss_candidate_max_tick.push_back(ssscorz.max_tick);
+                            m_sss_candidate_min_tick.push_back(ssscorz.min_tick);
+                            m_sss_candidate_min_wire.push_back(ssscorz.min_wire);
+                            m_sss_candidate_max_wire.push_back(ssscorz.max_wire);
+                            m_sss_candidate_mean_wire.push_back(ssscorz.mean_wire);
+                            m_sss_candidate_min_dist.push_back(ssscorz.min_dist);
+                            
+                            std::string sname2 = "#splitline{Cluster "+std::to_string(c)+"}{#splitline{Impact: "+std::to_string(impact_parameter)+"}{MinDist: "+std::to_string(ssscorz.min_dist)+"}}";
+                            l_bot2->AddEntry(tmp,sname2.c_str(),"f");
+                        }
+                    }          
+
                 }
+                can->cd(8);
                 l_bot->SetLineWidth(0);
                 l_bot->SetLineColor(kWhite);
                 l_bot->SetHeader(("Plane "+std::to_string(i)).c_str(),"C");
                 l_bot->Draw("same");
 
-            }
+                can->cd(12);
+                l_bot2->SetLineWidth(0);
+                l_bot2->SetLineColor(kWhite);
+                l_bot2->SetHeader(("Plane "+std::to_string(i)).c_str(),"C");
+                l_bot2->Draw("same");
 
+
+            }
             //********** Some Error Checking ********************//
 
             /*for(int i=0; i<3; i++){
@@ -591,81 +719,224 @@ namespace single_photon
 
 
 
+    TGraph* SinglePhoton::GetNearestNpts(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hitz, double vertex_wire, double vertex_tick, int Npts){
 
- sss_score SinglePhoton::ScoreCluster(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hits, double vertex_wire, double vertex_tick, const art::Ptr<recob::Shower> &shower){
-            sss_score score(p,cl);
-            score.n_hits = hits.size();
-            std::cout<<"SSS || Starting Score Calcultaion "<<std::endl;
+         std::vector<double>t_wire;
+         std::vector<double>t_tick;
+        // std::vector<double>t_dist;
 
-            std::vector<double> t_wires;
-            std::vector<double> t_ticks;
-
-            // ************* Some simple metrics relative to study point (usually vertex) ***************
-            score.max_dist_tick = 0;
-            score.min_dist_tick = 1e10;
-            score.mean_dist_tick = 0;
-
-            score.max_dist_wire = 0;
-            score.min_dist_wire = 1e10;
-            score.mean_dist_wire = 0;
-           
+         std::vector<double>all_wire;
+         std::vector<double>all_tick;
+         std::vector<double>all_dist;
 
 
-            for(auto &h: hits){
-                double h_tick = (double)h->PeakTime();
-                double h_wire = (double)h->WireID().Wire;
+        for(size_t h = 0; h< hitz.size(); h++){
+                auto hit = hitz[h];
+                double h_wire = (double)hit->WireID().Wire;
+                double h_tick = (double)hit->PeakTime();
+ 
+                double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
+                all_wire.push_back(h_wire);   
+                all_tick.push_back(h_tick);   
+                all_dist.push_back(dd);
+        }
 
-                score.max_dist_tick = std::max(score.max_dist_tick, fabs(h_tick-vertex_tick));
-                score.min_dist_tick = std::min(score.min_dist_tick, fabs(h_tick-vertex_tick));
+        std::vector<size_t> sorted_in = sort_indexes(all_dist);
+        size_t max_e = std::min((size_t)Npts,hitz.size());
 
-                score.max_dist_wire = std::max(score.max_dist_wire, fabs(h_wire-vertex_wire));
-                score.min_dist_wire = std::min(score.min_dist_wire, fabs(h_wire-vertex_wire));
+        for(size_t i =0; i<max_e; i++){
+            t_wire.push_back(all_wire[sorted_in[hitz.size()-1-i]]);
+            t_tick.push_back(all_tick[sorted_in[hitz.size()-1-i]]);
+        }
 
-                score.mean_dist_tick += fabs(h_tick-vertex_tick);
-                score.mean_dist_wire += fabs(h_wire-vertex_wire);
+        return new TGraph(t_wire.size(),&t_wire[0],&t_tick[0]);
+    }
 
-                t_wires.push_back(h_wire);
-                t_ticks.push_back(h_tick);
-            }
+    sss_score SinglePhoton::ScoreCluster(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hits, double vertex_wire, double vertex_tick, const art::Ptr<recob::Shower> &shower){
+        sss_score score(p,cl);
+        score.n_hits = hits.size();
+        std::cout<<"SSS || Starting Score Calcultaion "<<std::endl;
 
-//            TGraph * g_pts = new TGraph(t_wires.size(),&t_ticks[0],&t_wires[0]);
+        std::vector<double> t_wires;
+        std::vector<double> t_ticks;
 
-            score.mean_dist_tick = score.mean_dist_tick/(double)score.n_hits;
-            score.mean_dist_wire = score.mean_dist_wire/(double)score.n_hits;
+        // 
+        int n_min_ticks = 4;
+        int n_min_wires = 3;
+        double n_max_pca = 0.9999;
 
-            // **************** Metrics of Pointing: Does this cluster "point" back to the vertex? *************************
-            // **************** First off, PCA
+        score.pass = true;
+
+        // ************* Some simple metrics relative to study point (usually vertex) ***************
+        score.max_dist_tick = 0;
+        score.min_dist_tick = 1e10;
+        score.mean_dist_tick = 0;
+
+        score.max_dist_wire = 0;
+        score.min_dist_wire = 1e10;
+        score.mean_dist_wire = 0;
+
+        score.max_dist = 0;
+        score.min_dist = 1e10;
+        score.mean_dist = 0;
+
+        score.mean_tick =0;
+        score.max_tick =0;
+        score.min_tick =1e10;
         
-            TPrincipal* principal = new TPrincipal(2,"D");
+        score.mean_wire =0;
+        score.max_wire =0;
+        score.min_wire =1e10;
 
-            for(int i = 0; i < score.n_hits; i++){
-                std::vector<double> tmp_pts = {t_wires[i], t_ticks[i]};
-                principal->AddRow(&tmp_pts[0]);
+        score.n_wires = 0;
+        score.n_ticks = 0;
+
+        score.impact_parameter = -99;
+
+        std::map<int,bool> wire_count;
+        std::map<int,bool> tick_count;
+
+        for(auto &h: hits){
+            double h_tick = (double)h->PeakTime();
+            double h_wire = (double)h->WireID().Wire;
+
+            score.mean_wire += h_wire;
+            score.mean_tick += h_tick;
+
+            score.max_wire = std::max(score.max_wire, h_wire);
+            score.min_wire = std::min(score.min_wire, h_wire);
+
+            score.max_tick = std::max(score.max_tick, h_tick);
+            score.min_tick = std::min(score.min_tick, h_tick);
+
+            score.max_dist_tick = std::max(score.max_dist_tick, fabs(h_tick-vertex_tick));
+            score.min_dist_tick = std::min(score.min_dist_tick, fabs(h_tick-vertex_tick));
+
+            score.max_dist_wire = std::max(score.max_dist_wire, fabs(h_wire-vertex_wire));
+            score.min_dist_wire = std::min(score.min_dist_wire, fabs(h_wire-vertex_wire));
+
+            score.mean_dist_tick += fabs(h_tick-vertex_tick);
+            score.mean_dist_wire += fabs(h_wire-vertex_wire);
+            
+            //wierd dits
+            double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
+            score.mean_dist += dd;
+            score.max_dist = std::max(dd,score.max_dist);
+            score.min_dist = std::min(dd,score.min_dist);
+
+
+
+            t_wires.push_back(h_wire);
+            t_ticks.push_back(h_tick);
+
+            if(wire_count.count((int)h_wire)<1){
+                wire_count[((int)h_wire)] = true;
+                score.n_wires++;
             }
-            principal->MakePrincipals();
-            principal->Print();
+            if(tick_count.count((int)h_tick)<1){
+                tick_count[((int)h_tick)] = true;
+                score.n_ticks++;
+            }
 
-            TVectorD * eigenval = (TVectorD*) principal->GetEigenValues();
-            TMatrixD * eigenvec = (TMatrixD*) principal->GetEigenVectors();
-            TMatrixD * covar = (TMatrixD*) principal->GetCovarianceMatrix();
+        }
 
-            score.pca_0 = (*eigenval)(0);
-            score.pca_1 = (*eigenval)(1);
+        //            TGraph * g_pts = new TGraph(t_wires.size(),&t_ticks[0],&t_wires[0]);
 
-            (*eigenvec).Print();
-            (*covar).Print();
-            std::cout<<" SSS | Eigen: "<<score.pca_0<<" "<<score.pca_1<<std::endl;
-
-            score.pca_theta = atan((*covar)[0][0]/(*covar)[0][1])*180.0/3.14159;
-
-            delete principal;
-
+        score.mean_tick = score.mean_tick/(double)score.n_hits;
+        score.mean_wire = score.mean_wire/(double)score.n_hits;
     
+        score.mean_dist = score.mean_dist/(double)score.n_hits;
 
-            return score;
- }
+        score.mean_dist_tick = score.mean_dist_tick/(double)score.n_hits;
+        score.mean_dist_wire = score.mean_dist_wire/(double)score.n_hits;
+
+        // **************** Metrics of Pointing: Does this cluster "point" back to the vertex? *************************
+        // **************** First off, PCA
+
+        TPrincipal* principal = new TPrincipal(2,"D");
+        double mod_wire = 1.0;
+        double mod_tick = 1.0;
+
+        for(int i = 0; i < score.n_hits; i++){
+            std::vector<double> tmp_pts = {t_wires[i]*mod_wire, t_ticks[i]/mod_tick};
+            principal->AddRow(&tmp_pts[0]);
+        }
+        principal->MakePrincipals();
+        principal->Print();
+
+        TVectorD * eigenval = (TVectorD*) principal->GetEigenValues();
+        TMatrixD * eigenvec = (TMatrixD*) principal->GetEigenVectors();
+        TMatrixD * covar = (TMatrixD*) principal->GetCovarianceMatrix();
+
+        score.pca_0 = (*eigenval)(0);
+        score.pca_1 = (*eigenval)(1);
+
+        (*eigenvec).Print();
+        (*covar).Print();
+        std::cout<<" SSS | Eigen: "<<score.pca_0<<" "<<score.pca_1<<std::endl;
+
+        score.pca_theta = atan((*covar)[0][0]/(*covar)[0][1])*180.0/3.14159;
+
+
+        double slope = ((*covar)[0][0]/(*covar)[0][1]);
+        double c = score.mean_tick*mod_wire - slope*score.mean_wire/mod_tick;
+        score.impact_parameter = fabs(slope*vertex_wire*mod_wire +vertex_tick/mod_tick+c)/sqrt(slope*slope+1.0*1.0);
+
+
+        if(score.n_wires < n_min_wires || score.n_ticks < n_min_ticks || score.pca_0 >= n_max_pca){
+
+            score.pass = false;
+        }
 
 
 
+        delete principal;
+
+        return score;
+    }
+
+    int SinglePhoton::CompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,
+            const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,                    double eps){
+
+
+        for(size_t s =0; s< showers.size(); s++){
+            art::Ptr<recob::Shower> shower = showers[s];
+            art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap.at(shower);
+            std::vector<art::Ptr<recob::Hit>> showerhits = pfParticleToHitsMap.at(pfp);
+
+            bool in_primary_shower = false;
+            for(size_t h = 0; h< hitz.size(); h++){
+                auto hit = hitz[h];
+                double h_wire = (double)hit->WireID().Wire;
+                double h_tick = (double)hit->PeakTime();
+
+
+                for(auto &sh: showerhits){
+
+                    if(sh->View() != hit->View()) continue;
+
+                    double sh_wire = (double)sh->WireID().Wire;
+                    double sh_tick = (double)sh->PeakTime();
+
+
+                    double dist = sqrt(pow(sh_wire*0.3-h_wire*0.3,2)+pow(sh_tick/25.0-h_tick/25.0,2));
+
+                    if(dist<=eps){
+                        in_primary_shower = true;
+                        return (int)s;
+                    }
+
+                }
+
+            }
+
+            if(in_primary_shower){
+                return (int)s;
+            }
+        }
+
+
+        return -1;
+    }
 
 }
