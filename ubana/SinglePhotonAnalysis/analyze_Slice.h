@@ -640,7 +640,7 @@ namespace single_photon
 
                             m_matched_signal_shower_is_clearcosmic.push_back( m_sim_shower_isclearcosmic[j]);
                             m_matched_signal_shower_is_nuslice.push_back(m_sim_shower_is_nuslice[j]);
-                            std::cout<<"found signal photon shower pdg"<< m_sim_shower_pdg[j]<<"and is in neutrino slice =  "<< m_sim_shower_is_nuslice[j]<<std::endl;
+                           // std::cout<<"found signal photon shower pdg"<< m_sim_shower_pdg[j]<<"and is in neutrino slice =  "<< m_sim_shower_is_nuslice[j]<<std::endl;
 
 
                         }
@@ -672,7 +672,7 @@ namespace single_photon
                 m_matched_signal_track_num = m_matched_signal_track_true_E.size();
 
             }
-            std::cout<<"matched showers == "<< m_matched_signal_shower_num<<" and tracks =="<< m_matched_signal_track_num<<std::endl;
+            //std::cout<<"matched showers == "<< m_matched_signal_shower_num<<" and tracks =="<< m_matched_signal_track_num<<std::endl;
 
         }
         //check if either 1g1p or 1g0p topology
