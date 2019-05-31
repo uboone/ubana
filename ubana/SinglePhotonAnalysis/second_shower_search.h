@@ -690,13 +690,14 @@ namespace single_photon
 
 
 
-
+            if(false){
             std::cout<<"Done Plotting clusters"<<std::endl;
             can->Update();
             //can->Write();
             can->SaveAs((print_name+".pdf").c_str(),"pdf");
             //f->Close();
             std::cout<<"PRINTING"<<std::endl;
+            }
             //bool_make_sss_plots=false;
             delete can;
 
