@@ -7,7 +7,7 @@
 #include "analyze_EventWeight.h"
 #include "analyze_Slice.h"
 #include "second_shower_search.h"
-
+#include "isolation.h"
 
 namespace single_photon
 {
@@ -477,7 +477,8 @@ namespace single_photon
         //Second Shower Search-Pandora style
         this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
 
-
+        //Isolation
+        this-> IsolationStudy(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
 
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
