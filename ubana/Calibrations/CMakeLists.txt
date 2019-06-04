@@ -24,7 +24,7 @@ art_make( BASENAME_ONLY
 			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 			lardataobj_RecoBase
 			lardataobj_AnalysisBase
-			lardata_RecoObjects larreco_Deprecated  
+			lardata_RecoObjects
 			larreco_RecoAlg
                         larreco_Calorimetry
 			lardata_Utilities
