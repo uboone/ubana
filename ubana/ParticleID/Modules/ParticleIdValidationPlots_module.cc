@@ -168,6 +168,7 @@ class ParticleIdValidationPlots : public art::EDAnalyzer {
     double track_phi;
     double track_rangeE_mu;
     double track_rangeE_p;
+    double track_threeplane_protonpid;
     bool track_dQdxtruncmeanvslength_isMuon;
     std::vector<float> track_dEdx_perhit_u;
     std::vector<float> track_dEdx_perhit_v;
@@ -647,6 +648,7 @@ particle_vec.clear(); match_vec.clear();
     double trklen = -999;
     double rangeE_mu = -999;
     double rangeE_p = -999;
+    double threeplane_protonpid = -999;
 
     std::vector<art::Ptr<anab::ParticleID>> trackPID = trackPIDAssn.at(track->ID());
     if (trackPID.size() == 0){
@@ -788,6 +790,14 @@ particle_vec.clear(); match_vec.clear();
           if (AlgScore.fAssumedPdg == 2212) rangeE_p = AlgScore.fValue;
         }
       }
+
+      if (AlgScore.fAlgName == "ThreePlaneProtonPID")
+      {
+        if (anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood)
+        {
+          if (AlgScore.fAssumedPdg == 2212) threeplane_protonpid = AlgScore.fValue;
+        }
+      }
     } // Loop over AlgScoresVec
 
 
@@ -825,6 +835,7 @@ particle_vec.clear(); match_vec.clear();
     track_length = trklen;
     track_rangeE_mu = rangeE_mu;
     track_rangeE_p = rangeE_p;
+    track_threeplane_protonpid = threeplane_protonpid;
     track_dEdx_perhit_u = dEdx.at(0);
     track_dEdx_perhit_v = dEdx.at(1);
     track_dEdx_perhit_y = dEdx.at(2);
@@ -976,15 +987,16 @@ void ParticleIdValidationPlots::beginJob(){
   pidTree->Branch( "track_end_x"              , &track_end_x         ) ;
   pidTree->Branch( "track_end_y"              , &track_end_y         ) ;
   pidTree->Branch( "track_end_z"              , &track_end_z         ) ;
-  pidTree->Branch( "track_likelihood_fwd_mu"  , &track_likelihood_fwd_mu    ) ;
-  pidTree->Branch( "track_likelihood_fwd_p"   , &track_likelihood_fwd_p     ) ;
-  pidTree->Branch( "track_likelihood_fwd_pi"  , &track_likelihood_fwd_pi    ) ;
-  pidTree->Branch( "track_likelihood_fwd_k"   , &track_likelihood_fwd_k     ) ;
-  pidTree->Branch( "track_likelihood_fwd_mip" , &track_likelihood_fwd_mip   ) ;
-  pidTree->Branch( "track_likelihood_bwd_mu"  , &track_likelihood_bwd_mu    ) ;
-  pidTree->Branch( "track_likelihood_bwd_p"   , &track_likelihood_bwd_p     ) ;
-  pidTree->Branch( "track_likelihood_bwd_pi"  , &track_likelihood_bwd_pi    ) ;
-  pidTree->Branch( "track_likelihood_bwd_k"   , &track_likelihood_bwd_k     ) ;
+  pidTree->Branch( "track_likelihood_fwd_mu"  , &track_likelihood_fwd_mu       ) ;
+  pidTree->Branch( "track_likelihood_fwd_p"   , &track_likelihood_fwd_p        ) ;
+  pidTree->Branch( "track_likelihood_fwd_pi"  , &track_likelihood_fwd_pi       ) ;
+  pidTree->Branch( "track_likelihood_fwd_k"   , &track_likelihood_fwd_k        ) ;
+  pidTree->Branch( "track_likelihood_fwd_mip" , &track_likelihood_fwd_mip      ) ;
+  pidTree->Branch( "track_likelihood_bwd_mu"  , &track_likelihood_bwd_mu       ) ;
+  pidTree->Branch( "track_likelihood_bwd_p"   , &track_likelihood_bwd_p        ) ;
+  pidTree->Branch( "track_likelihood_bwd_pi"  , &track_likelihood_bwd_pi       ) ;
+  pidTree->Branch( "track_likelihood_bwd_k"   , &track_likelihood_bwd_k        ) ;
+  pidTree->Branch( "track_threeplane_protonpid", &track_threeplane_protonpid   ) ;
   pidTree->Branch( "track_likelihood_shift_fwd_mu"  , &track_likelihood_shift_fwd_mu    ) ;
   pidTree->Branch( "track_likelihood_shift_fwd_p"   , &track_likelihood_shift_fwd_p     ) ;
   pidTree->Branch( "track_likelihood_shift_fwd_pi"  , &track_likelihood_shift_fwd_pi    ) ;
