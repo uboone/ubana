@@ -13,6 +13,8 @@ namespace single_photon
         m_matched_signal_shower_is_clearcosmic.clear();
         m_matched_signal_shower_num = 0;
         m_matched_signal_shower_is_nuslice.clear();
+        m_matched_signal_shower_tracks_in_slice.clear();
+        m_matched_signal_shower_showers_in_slice.clear();
 
         m_reco_slice_num_pfps.clear();
         m_reco_slice_num_showers.clear();
@@ -90,6 +92,8 @@ namespace single_photon
         ncdelta_slice_tree->Branch("matched_signal_shower_is_clearcosmic", &m_matched_signal_shower_is_clearcosmic);
         ncdelta_slice_tree->Branch("matched_signal_shower_num", &m_matched_signal_shower_num);
         ncdelta_slice_tree->Branch("matched_signal_shower_is_nuslice", &m_matched_signal_shower_is_nuslice);
+        ncdelta_slice_tree->Branch("matched_signal_shower_tracks_in_slice", &m_matched_signal_shower_tracks_in_slice);
+        ncdelta_slice_tree->Branch("matched_signal_shower_showers_in_slice", &m_matched_signal_shower_showers_in_slice);
 
         ncdelta_slice_tree->Branch("reco_slice_num_pfps", & m_reco_slice_num_pfps);
         ncdelta_slice_tree->Branch("reco_slice_num_showers", & m_reco_slice_num_showers);
@@ -615,11 +619,17 @@ namespace single_photon
         bool m_multiple_matched_tracks;
         */
 
+        m_reco_slice_num_pfps = GetPFPsPerSlice(PFPToSliceIdMap); //the total number of PFP's per slice
+        m_reco_slice_num_showers = GetNumShowersPerSlice(showerToPFParticleMap, PFPToSliceIdMap); //the subset of PFP's that are showers
+        m_reco_slice_num_tracks = GetNumTracksPerSlice(trackToNuPFParticleMap, PFPToSliceIdMap);
+
+
         //first check if in the event there's a match to a given signal
         if(signal_def == "ncdelta"){
             if(m_mctruth_is_delta_radiative== true){
                 std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t looking for signal def "<<signal_def<<", m_mctruth_is_delta_radiative = "<<m_mctruth_is_delta_radiative<<std::endl; 
 
+                std::vector<int> matched_shower_ids;
                 //first look for sim showers
                 for (unsigned int j = 0; j< m_sim_shower_parent_pdg.size(); j++){
                     int parent= m_sim_shower_parent_pdg[j];
@@ -630,24 +640,40 @@ namespace single_photon
                         //first check that this particle isn't alread saved
                         //use map from track ID to get MCP
                         //if this shower is matched to a recob:shower
-                        if (m_sim_shower_matched[j] > 0){
-                            m_matched_signal_shower_overlay_fraction.push_back(m_sim_shower_overlay_fraction[j]);
-                            //m_matched_signal_shower_conversion_length;
-                            m_matched_signal_shower_true_E.push_back(m_sim_shower_energy[j]);
-                            m_matched_signal_shower_nuscore.push_back( m_sim_shower_nuscore[j]);
-                            m_matched_signal_shower_sliceId.push_back(m_sim_shower_sliceId[j]);
+                        if (m_sim_shower_matched[j] > 0 &&  m_reco_shower_energy_max[j] >20){
+                            int matched_shower_id = m_sim_shower_trackID[j];
 
 
-                            m_matched_signal_shower_is_clearcosmic.push_back( m_sim_shower_isclearcosmic[j]);
-                            m_matched_signal_shower_is_nuslice.push_back(m_sim_shower_is_nuslice[j]);
-                           // std::cout<<"found signal photon shower pdg"<< m_sim_shower_pdg[j]<<"and is in neutrino slice =  "<< m_sim_shower_is_nuslice[j]<<std::endl;
+                            //if this shower isn't already stored
+                            if (std::find(matched_shower_ids.begin(), matched_shower_ids.end(), matched_shower_id) == matched_shower_ids.end()){
+                                matched_shower_ids.push_back(matched_shower_id);
+                                m_matched_signal_shower_overlay_fraction.push_back(m_sim_shower_overlay_fraction[j]);
+                                //m_matched_signal_shower_conversion_length;
+                                m_matched_signal_shower_true_E.push_back(m_sim_shower_energy[j]);
+                                m_matched_signal_shower_nuscore.push_back( m_reco_shower_nuscore[j]);
+                                int id = m_reco_shower_sliceId[j];
+                                std::cout<<"found matched photon shower in slice "<<id<<" with m_sim_shower_energy[j] = "<<m_sim_shower_energy[j]<<std::endl;
+
+                                m_matched_signal_shower_sliceId.push_back(id);
 
 
-                        }
+                                m_matched_signal_shower_is_clearcosmic.push_back( m_reco_shower_isclearcosmic[j]);
+                                m_matched_signal_shower_is_nuslice.push_back(m_reco_shower_is_nuslice[j]);
+                                m_matched_signal_shower_tracks_in_slice.push_back(m_reco_slice_num_showers[id]);
+                                m_matched_signal_shower_showers_in_slice.push_back(m_reco_slice_num_tracks[id]);
+                                // std::cout<<"found signal photon shower pdg"<< m_sim_shower_pdg[j]<<"and is in neutrino slice =  "<< m_sim_shower_is_nuslice[j]<<std::endl;
+
+                            }//if not already stored
+                        }//if matched to a reco shower >20MeV
                     }//if it's a photon from the neutrino interaction
                 }//for all sim showers
 
                 m_matched_signal_shower_num = m_matched_signal_shower_true_E.size();
+
+                if ( m_matched_signal_shower_num > 1){
+                    std::cout<<"found a signal event with split showers at run = "<<m_run_number <<", subrun = "<<m_subrun_number  <<", event = "<<m_event_number<<std::endl;
+
+                }
 
                 //then repeat for sim tracks
                 for (unsigned int k = 0; k< m_sim_track_parent_pdg.size(); k++){
@@ -660,9 +686,9 @@ namespace single_photon
                         if (m_sim_track_matched[k] > 0){
                             // m_matched_signal_track_overlay_fraction.push_back(m_sim_track_overlay_fraction[j]);
                             m_matched_signal_track_true_E.push_back(m_sim_track_energy[k]);
-                            m_matched_signal_track_nuscore.push_back( m_sim_track_nuscore[k]);
-                            m_matched_signal_track_sliceId.push_back(m_sim_track_sliceId[k]);
-                            m_matched_signal_track_is_clearcosmic.push_back( m_sim_track_isclearcosmic[k]);
+                            m_matched_signal_track_nuscore.push_back( m_reco_track_nuscore[k]);
+                            m_matched_signal_track_sliceId.push_back(m_reco_track_sliceId[k]);
+                            m_matched_signal_track_is_clearcosmic.push_back( m_reco_track_isclearcosmic[k]);
 
 
                         }//if matched
@@ -682,8 +708,8 @@ namespace single_photon
             if ( m_matched_signal_track_sliceId[0] == m_matched_signal_shower_sliceId[0]){
                 m_reco_1g1p_is_same_slice = true;
                 //m_reco_1g1p_is_multiple_slices = false;
-                // m_reco_1g1p_is_nuslice;
-                m_reco_1g1p_nuscore = m_matched_signal_track_nuscore[0];
+                m_reco_1g1p_is_nuslice = m_matched_signal_shower_is_nuslice[0];
+                m_reco_1g1p_nuscore = m_matched_signal_shower_nuscore[0];
                 m_is_matched_1g1p = true;
             } else{
                 m_is_matched_1g1p = true;
@@ -692,7 +718,7 @@ namespace single_photon
         }
 
         if (m_matched_signal_shower_num ==1  && m_matched_signal_track_num ==0){
-            //m_reco_1g0p_is_nuslice = ;
+            m_reco_1g0p_is_nuslice = m_matched_signal_shower_is_nuslice[0];
             m_reco_1g0p_nuscore =  m_matched_signal_shower_nuscore[0];
             m_is_matched_1g0p = true;
 
@@ -704,10 +730,6 @@ namespace single_photon
 
         //std::vector<int> sliceIdToNumPFPsvec(m_reco_slice_num, 1);
         // GetPFPsPerSlice(PFPToSliceIdMap , sliceIdToNumPFPsvec);
-        m_reco_slice_num_pfps = GetPFPsPerSlice(PFPToSliceIdMap); //the total number of PFP's per slice
-        m_reco_slice_num_showers = GetNumShowersPerSlice(showerToPFParticleMap, PFPToSliceIdMap); //the subset of PFP's that are showers
-        m_reco_slice_num_tracks = GetNumTracksPerSlice(trackToNuPFParticleMap, PFPToSliceIdMap);
-
         /*
            for(unsigned int i= 0; i<m_reco_slice_num_pfps.size(); i++){
            std::cout<<"The number of PFP's in slice: " << i<<std::endl;
