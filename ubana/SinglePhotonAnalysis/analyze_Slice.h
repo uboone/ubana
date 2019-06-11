@@ -675,21 +675,30 @@ namespace single_photon
 
                 }
 
+                std::vector<int> matched_track_ids;
+
                 //then repeat for sim tracks
                 for (unsigned int k = 0; k< m_sim_track_parent_pdg.size(); k++){
                     int parent= m_sim_track_parent_pdg[k];
                     int pdg =  m_sim_track_pdg[k];
 
+                    int matched_track_id = m_sim_track_trackID[k];
+
                     //if this sim track is a photon and it's primary (parent pdg is -1)
                     if((parent == -1 ||parent == 12 || parent ==14 ) && pdg == 2212){
 
                         if (m_sim_track_matched[k] > 0){
-                            // m_matched_signal_track_overlay_fraction.push_back(m_sim_track_overlay_fraction[j]);
-                            m_matched_signal_track_true_E.push_back(m_sim_track_energy[k]);
-                            m_matched_signal_track_nuscore.push_back( m_reco_track_nuscore[k]);
-                            m_matched_signal_track_sliceId.push_back(m_reco_track_sliceId[k]);
-                            m_matched_signal_track_is_clearcosmic.push_back( m_reco_track_isclearcosmic[k]);
 
+                            if (std::find(matched_track_ids.begin(), matched_track_ids.end(), matched_track_id) == matched_track_ids.end()){
+                                matched_track_ids.push_back(matched_track_id);
+
+
+                                // m_matched_signal_track_overlay_fraction.push_back(m_sim_track_overlay_fraction[j]);
+                                m_matched_signal_track_true_E.push_back(m_sim_track_energy[k]);
+                                m_matched_signal_track_nuscore.push_back( m_reco_track_nuscore[k]);
+                                m_matched_signal_track_sliceId.push_back(m_reco_track_sliceId[k]);
+                                m_matched_signal_track_is_clearcosmic.push_back( m_reco_track_isclearcosmic[k]);
+                            }
 
                         }//if matched
                     }//if proton from neutrino interaction
