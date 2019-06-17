@@ -345,7 +345,7 @@ treereader_eventweight: {
     parameter_list: ["NCResAxial"]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 100
+    number_of_multisims: 10
   }
 
   genie_ncresVector: {
@@ -354,7 +354,7 @@ treereader_eventweight: {
     parameter_list: ["NCResVector"]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 100
+    number_of_multisims: 10
   }
  
   genie_cohMA: {
@@ -624,7 +624,7 @@ treereader_eventweight: {
     parameter_list: ["IntraNukePIabs"]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 100
+    number_of_multisims: 10
   }
 
   genie_IntraNukePIpi: {
