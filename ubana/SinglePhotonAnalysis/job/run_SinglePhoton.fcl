@@ -60,13 +60,13 @@ physics: {
        work_function: 23
        recombination_factor: 0.62
        #gain : 197
-       gain_mc: [245, 252, 245] #from DocDB 18982 gain calibration for MCC9
-       gain_data: [232, 249, 235] #see above docdb
+       gain_mc: [245, 252, 239.5] #from DocDB 18982 gain calibration for MCC9 and DocDB 20227 from 6/19
+       gain_data: [232, 249, 247.4] #see above docdb
        wire_spacing : 0.3 
        width_box : 1.
        length_box : 4.
        truthmatching_signaldef : "ncdelta"
-       runAllPFPs: "true"
+       runAllPFPs: "false"
        exiting_photon_energy: 0.02
        exiting_proton_energy: 0.978  #40Mev + proton mass 
       }

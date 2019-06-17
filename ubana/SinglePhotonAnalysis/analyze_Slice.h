@@ -726,6 +726,22 @@ namespace single_photon
             }
         }
 
+        if (m_reco_1g1p_is_nuslice){
+            int nu_id = m_matched_signal_shower_sliceId[0];
+            for (auto pair: PFPToSliceIdMap){
+                auto pfp = pair.first;
+                auto id = pair.second;
+                if (id == nu_id){
+                    std::cout<<"the pfp in this nu slice with id "<<id <<" is "<<pfp->Self()<<" with pdg "<<pfp->PdgCode()<<std::endl;
+                }
+            }
+        }
+
+        if (m_is_verbose && m_reco_1g1p_is_nuslice && ( m_matched_signal_shower_tracks_in_slice[0]>1 ||  m_matched_signal_shower_showers_in_slice[0]>1) ){
+            std::cout<<"found reco 1g1p with "<<  m_matched_signal_shower_showers_in_slice[0]<<" showers and "<< m_matched_signal_shower_tracks_in_slice[0]<<"tracks in the same slice in run = "<<m_run_number <<", subrun = "<<m_subrun_number  <<", event = "<<m_event_number<<std::endl;
+
+        }
+
         if (m_matched_signal_shower_num ==1  && m_matched_signal_track_num ==0){
             m_reco_1g0p_is_nuslice = m_matched_signal_shower_is_nuslice[0];
             m_reco_1g0p_nuscore =  m_matched_signal_shower_nuscore[0];
