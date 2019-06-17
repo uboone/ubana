@@ -19,7 +19,6 @@ namespace single_photon
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap){
 
-
         std::vector<double> vec_fraction_matched;
         std::map<std::string,bool> map_is_shower_process = {{"compt",true},{"FastScintillation",true},{"eBrem",true},{"phot",true},{"eIoni",true},{"conv",true},{"annihil",true}};
         bool reco_verbose = false;
@@ -421,7 +420,6 @@ namespace single_photon
 
             mcParticleVector.push_back(match);
             objectToMCParticleMap[object] = mcParticleVector.back();
-
 
             m_sim_shower_sliceId[i] = PFPToSliceIdMap[pfp];
             m_sim_shower_nuscore[i] = sliceIdToNuScoreMap[ m_sim_shower_sliceId[i]] ;

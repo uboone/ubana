@@ -35,6 +35,8 @@ namespace single_photon
         m_mctruth_num_exiting_deltapm=0;
         m_mctruth_num_exiting_deltapp=0;
 
+        m_mctruth_num_reconstructable_protons = 0;
+
         m_mctruth_is_reconstructable_1g1p = 0;
         m_mctruth_is_reconstructable_1g0p = 0;
 
@@ -119,7 +121,9 @@ namespace single_photon
         vertex_tree->Branch("mctruth_exiting_proton_energy",&m_mctruth_exiting_proton_energy);
 
         vertex_tree->Branch("mctruth_is_reconstructable_1g1p",&m_mctruth_is_reconstructable_1g1p);
-        vertex_tree->Branch("mctruth_is_reconstructable_1g0p",&m_mctruth_is_reconstructable_1g0p);
+
+        vertex_tree->Branch("mctruth_is_reconstructable_1g1p",&m_mctruth_is_reconstructable_1g1p);
+        vertex_tree->Branch("mctruth_num_reconstructable_protons",&m_mctruth_num_reconstructable_protons);
 
         vertex_tree->Branch("mctruth_pi0_leading_photon_energy",&m_mctruth_pi0_leading_photon_energy);
         vertex_tree->Branch("mctruth_pi0_subleading_photon_energy",&m_mctruth_pi0_subleading_photon_energy);
@@ -319,8 +323,17 @@ namespace single_photon
             // So if a  final_state_particle has a status(3) delta in its history its "from" a delta.
             //first we loop over all 14's to see which have a direct mother delta. [done above]
             //so first we loop over all state 1 (exiting) to see what a LArTPC sees (post FSI)
+                for (unsigned int p = 0; p <  m_mctruth_exiting_photon_energy.size(); p++){
+
+            if ( m_mctruth_exiting_photon_energy[p] > m_exiting_photon_energy_threshold){
+                        m_mctruth_num_reconstructable_protons++;
+
+            }//if g above threshold
+                }
 
             //if it's a true delta radiative event, check the energies
+
+
 
             if (m_mctruth_is_delta_radiative==true){
                 for (unsigned int p = 0; p <  m_mctruth_exiting_photon_energy.size(); p++){

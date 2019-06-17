@@ -69,8 +69,6 @@ namespace single_photon
         m_reco_shower_plane2_nhits.clear();
 
 
-
-
         m_reco_shower_dQdx_plane0.clear();
         m_reco_shower_dQdx_plane2.clear();
         m_reco_shower_dQdx_plane2.clear();
@@ -124,10 +122,6 @@ namespace single_photon
         m_reco_shower_isclearcosmic.clear();
         m_reco_shower_is_nuslice.clear();
         m_reco_shower_trackscore.clear();
-
-
-
-
 
     }
 

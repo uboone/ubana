@@ -6,8 +6,8 @@
 #include "analyze_MCTruth.h"
 #include "analyze_EventWeight.h"
 #include "analyze_Slice.h"
-
-
+#include "second_shower_search.h"
+#include "isolation.h"
 
 namespace single_photon
 {
@@ -32,6 +32,7 @@ namespace single_photon
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
+        m_sliceLabel = pset.get<std::string>("SliceLabel","pandora");
         m_showerLabel = pset.get<std::string>("ShowerLabel");
         m_caloLabel = pset.get<std::string>("CaloLabel");
         m_flashLabel = pset.get<std::string>("FlashLabel");
@@ -51,6 +52,9 @@ namespace single_photon
         m_backtrackerLabel = pset.get<std::string>("BackTrackerModule","gaushitTruthMatch");
         m_hitMCParticleAssnsLabel = pset.get<std::string>("HitMCParticleAssnLabel","gaushitTruthMatch");
 
+
+        m_CRTTzeroLabel = pset.get<std::string>("CRTTzeroLabel","crttzero");
+        m_has_CRT = pset.get<bool>("hasCRT",true);
 
         //Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.005);
@@ -74,7 +78,8 @@ namespace single_photon
         m_exiting_photon_energy_threshold = pset.get<double>("exiting_photon_energy");
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
 
-
+        rangen = new TRandom3(22);
+        bool_make_sss_plots = true;
 
         std::vector<std::string> delta_names = {"Delta++","Delta+","Delta-","Delta0"};
         std::vector<int> delta_pdg_list = {2224,2214,1114,2114};
@@ -134,7 +139,7 @@ namespace single_photon
         evt.getByLabel(m_badChannelProducer, m_badChannelLabel, badChannelHandle);
         std::vector<int> badChannelVector = *(badChannelHandle);
 
-
+        
         // Collect the PFParticles from the event. This is the core!
         art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
         std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
@@ -217,15 +222,27 @@ namespace single_photon
         art::ValidHandle<std::vector<recob::Slice>> const & sliceHandle  = evt.getValidHandle<std::vector<recob::Slice>>(m_pandoraLabel);
         std::vector<art::Ptr<recob::Slice>> sliceVector;
         art::fill_ptr_vector(sliceVector,sliceHandle);
+
         //And some associations
-        art::FindManyP<recob::PFParticle> hits_per_slice(sliceHandle, evt, m_pandoraLabel);
+        art::FindManyP<recob::PFParticle> pfparticles_per_slice(sliceHandle, evt, m_pandoraLabel);
+        art::FindManyP<recob::Hit> hits_per_slice(sliceHandle, evt, m_pandoraLabel);
+        
         std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::PFParticle>> > sliceToPFParticlesMap;
         std::map<int, std::vector<art::Ptr<recob::PFParticle>> > sliceIDToPFParticlesMap;
         for(size_t i=0; i< sliceVector.size(); ++i){
             auto slice = sliceVector[i];
-            sliceToPFParticlesMap[slice] =hits_per_slice.at(slice.key());
-            sliceIDToPFParticlesMap[slice->ID()] = hits_per_slice.at(slice.key());
+            sliceToPFParticlesMap[slice] =pfparticles_per_slice.at(slice.key());
+            sliceIDToPFParticlesMap[slice->ID()] = pfparticles_per_slice.at(slice.key());
         }
+        
+        std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::Hit>> > sliceToHitsMap;
+        std::map<int, std::vector<art::Ptr<recob::Hit>> > sliceIDToHitsMap;
+        for(size_t i=0; i< sliceVector.size(); ++i){
+            auto slice = sliceVector[i];
+            sliceToHitsMap[slice] =hits_per_slice.at(slice.key());
+            sliceIDToHitsMap[slice->ID()] = hits_per_slice.at(slice.key());
+        }
+
 
 
 
@@ -251,6 +268,7 @@ namespace single_photon
         }
 
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Build hits to PFP Maps"<<std::endl;
+
 
 
         //taking out the Larpandora helper functions here because they don't match to non-neutrino slice hits for some reason
@@ -290,6 +308,7 @@ namespace single_photon
             //std::cout<<"saving a total of "<<hits_for_pfp.size()<<" hits for pfp "<<pfp->Self()<<std::endl;
 
         }//for each pfp
+
 
 
 
@@ -343,6 +362,16 @@ namespace single_photon
                 trackToPIDMap[track] = pid_per_track.at(track.key());
             }
         }
+
+
+        //CRT 
+        /*
+           if(m_has_CRT){
+           art::ValidHandle<std::vector<crt::CRTTzero>> const & crtHandle  = evt.getValidHandle<std::vector<crt::CRTTzero>>(m_CRTTzeroLabel);
+           std::vector<art::Ptr<crt::CRTTzero>> crtVector;
+           art::fill_ptr_vector(crtVector,crtHandle);
+           }
+           */
 
 
         //**********************************************************************************************/
@@ -417,7 +446,7 @@ namespace single_photon
         std::map<int, int> sliceIdToNumPFPsMap;
         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
 
-        this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
+        this->AnalyzeSlices(pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
         //std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
         std::cout<<"the number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
         std::cout<<"the number of PFP's stored in the PFPToSliceIdMap is "<<PFPToSliceIdMap.size()<<std::endl;
@@ -450,6 +479,15 @@ namespace single_photon
 
 
         //this->GetPFPsPerSlice( PFPToSliceIdMap,sliceIdToNumPFPsMap );
+
+
+
+
+        //Second Shower Search-Pandora style
+        this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
+
+        //Isolation
+        this-> IsolationStudy(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
 
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
@@ -653,6 +691,8 @@ namespace single_photon
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane1",&m_reco_vertex_to_nearest_dead_wire_plane1);
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
 
+
+        this->CreateSecondShowerBranches();
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
 
@@ -739,11 +779,17 @@ namespace single_photon
         m_vertex_pos_x=-99999;
         m_vertex_pos_y=-99999;
         m_vertex_pos_z=-99999;
+        m_vertex_pos_tick=-9999;
+        m_vertex_pos_wire_p0=-9999;
+        m_vertex_pos_wire_p1=-9999;
+        m_vertex_pos_wire_p2=-9999;
+
         m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane2=-99999;
 
 
+        this->ClearSecondShowers();
         //------------- Flash related Variables ------------------
         this->ClearFlashes();
 
@@ -1224,9 +1270,6 @@ namespace single_photon
 
 
     }
-
-
-
 
 
 } //namespace

@@ -21,8 +21,11 @@ celltreeub_overlay: {
  PMT_LG_beamLabel              : "OpdetBeamLowGain"
  PMT_HG_cosmicProducer         : "pmtreadout"
  PMT_LG_cosmicProducer         : "pmtreadout"
- PMT_HG_beamProducer           : "mixer"
- PMT_LG_beamProducer           : "mixer"
+ PMT_HG_beamProducer           : "pmtreadout"
+ PMT_LG_beamProducer           : "pmtreadout"
+ PMT_overlay_detsim_producer      : "pmtreadoutnonoise"
+ PMT_overlay_mixer_producer       : "mixer"
+ PMT_overlay_saturation_producer  : "saturation"
  PMT_wfmSaturationLabel        : "saturation"
  PMT_recoLabel                 : "opflash"
  HWTrigger_label               : "daq"
@@ -34,8 +37,14 @@ celltreeub_overlay: {
  POT_numilabel                 : "numiETORTGT"
  MuCS_dataLabel		       : "MuCSMerger"
  MuCS_recoDataLabel	       : "MuCSReco"
+ SimEnergyDepositInside_label  : ""
+ SimEnergyDepositInside_producer : "ionization"
+ SimEnergyDepositOutside_label : "Other"
+ SimEnergyDepositOutside_producer : "largeant"
  SimChannel_producer	       : "driftWC"
  SimChannel_label	       : "simpleSC"
+ EventWeight_label             : ""
+ EventWeight_producer          : "eventweightLEE"
  SaveTPC_raw                   : false # short type
  SaveTPC_noiseFiltered         : false # float converted to short through scale & shift
  SaveTPC_deconWiener           : true  # default
@@ -43,6 +52,7 @@ celltreeub_overlay: {
  SaveTPC_badChannelList        : true  # default
  SaveTPC_channelThreshold      : true  # default
  SavePMT_raw                   : true  # default
+ SavePMT_overlay	       : true  # default
  SavePMT_wfmSaturation         : false
  SavePMT_reco                  : false
  SavePMT_gainData              : true  # default
@@ -50,11 +60,14 @@ celltreeub_overlay: {
  SaveHWTrigger                 : true  # default
  SaveSWTrigger                 : true  # default
  SaveBeam                      : false 
- SavePOT                       : false
+ SavePOT                       : true  # default
  SaveMuCSData		       : false
  SaveMuCSRecoData	       : false
  SaveMCParticle 	       : true  # default
+ SaveSimEnergyDepositInside    : true  # default
+ SaveSimEnergyDepositOutside   : true  # default
  SaveSimChannel		       : false
+ SaveEventWeight               : false # default
  UseLGBeamForHGCosmic          : true  # default
  FlashMultPEThreshold          : 5
  DeconRebin                    : 4	
