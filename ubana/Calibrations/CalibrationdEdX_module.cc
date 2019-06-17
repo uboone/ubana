@@ -75,6 +75,8 @@ private:
   
   bool fSCE;
 
+  bool fForceUnity;
+
   //histograms for calibration
   std::vector<TH2F*> hCorr_YZ;
   std::vector<TH1F*> hCorr_X;
@@ -98,6 +100,7 @@ ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
   , fModBoxA               (p.get< double >("ModBoxA"))
   , fModBoxB               (p.get< double >("ModBoxB")) 
   , fSCE                   (p.get< bool> ("CorrectSCE"))
+  , fForceUnity            (p.get< bool> ("ForceUnity"))
 {
   // Call appropriate produces<>() functions here.
   if (fCorr_YZ.size()!=3 || fCorr_X.size()!=3){
@@ -203,7 +206,7 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
         for (size_t j = 0; j<vdQdx.size(); ++j){
 	  float yzcorrection = energyCalibProvider.YZdqdxCorrection(planeID.Plane, vXYZ[j].Y(), vXYZ[j].Z());
 	  float xcorrection  = energyCalibProvider.XdqdxCorrection(planeID.Plane, vXYZ[j].X());
-	  if (!yzcorrection) yzcorrection = 1.0;
+       	  if (!yzcorrection) yzcorrection = 1.0;
 	  if (!xcorrection) xcorrection = 1.0;
 	  
           /*double alt_yzcorrection = GetYZCorrection(vXYZ[j], hCorr_YZ[planeID.Plane]);
@@ -219,6 +222,8 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
 	                                            << "  "<<yzcorrection<<" vs "<<alt_yzcorrection
 						    << "\n  at plane "<<planeID.Plane<<" and coords "<<vXYZ[j].X()<<","<<vXYZ[j].Y()<<","<<vXYZ[j].Z()<<"\n";
 	  }*/
+
+	  if(fForceUnity){ xcorrection = 1;}
 	  
           vdQdx[j] = yzcorrection*xcorrection*vdQdx[j];
           /*
