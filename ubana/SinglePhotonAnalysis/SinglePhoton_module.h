@@ -394,7 +394,8 @@ namespace single_photon
             void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
-                    std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap );
+                    std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
+                   std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap );
 
             void ClearTracks();
             void ResizeTracks(size_t);
@@ -545,7 +546,11 @@ namespace single_photon
             std::vector<int> m_matched_signal_track_sliceId;
             std::vector<bool> m_matched_signal_track_is_clearcosmic;
             //  std::vector<bool> m_matched_signal_track_is_nuslice;
-            int m_matched_signal_track_num = 0;   
+            std::vector<bool> m_matched_signal_track_is_nuslice;
+            std::vector<int> m_matched_signal_track_tracks_in_slice;
+            std::vector<int> m_matched_signal_track_showers_in_slice;
+
+int m_matched_signal_track_num = 0;   
 
             //int m_matched_signal_total_num_slices;
 
@@ -904,6 +909,8 @@ namespace single_photon
             std::vector<double> m_reco_track_nuscore; //the neutrino score of the slice containing the reco track
             std::vector<bool> m_reco_track_isclearcosmic;//true if reco track is in a clear cosmic slice
             std::vector<double> m_reco_track_trackscore;
+            std::vector<bool> m_reco_track_is_nuslice;
+
 
             std::vector<int> m_sim_track_matched;
             std::vector<double> m_sim_track_overlay_fraction;
