@@ -24,11 +24,8 @@ particleidvalidconfig:
   IsUBXSecSelected: false
 
   # bragg algorithm fcl parameters
-<<<<<<< HEAD
-  BraggAlgo: @local::braggalgo_mcc8_dedxcalib
-=======
+  #BraggAlgo: @local::braggalgo_mcc8_dedxcalib
   BraggAlgo: @local::braggalgo
->>>>>>> UBOONE_SUITE_v08_00_00_07
 }
 
 END_PROLOG

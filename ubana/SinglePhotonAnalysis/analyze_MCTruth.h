@@ -199,7 +199,7 @@ namespace single_photon
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
                             const  simb::MCParticle mother = truth->GetParticle(par.Mother());
-                            if(par.StatusCode()==14 && is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
+                            if((par.StatusCode()==1 || par.StatusCode()==14 ) && is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
                                 m_mctruth_delta_photon_energy = par.E();
                                 tmp_n_photons_from_delta ++;
                                 m_mctruth_is_delta_radiative++;
