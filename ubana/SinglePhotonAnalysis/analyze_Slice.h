@@ -707,8 +707,8 @@ namespace single_photon
                                 m_matched_signal_track_sliceId.push_back(m_reco_track_sliceId[k]);
                                 m_matched_signal_track_is_clearcosmic.push_back( m_reco_track_isclearcosmic[k]);
                                 //m_matched_signal_track_is_nuslice.push_back(m_reco_track_is_nuslice[k]);
-                                m_matched_signal_track_tracks_in_slice.push_back(m_reco_slice_num_showers[ matched_track_id]);
-                                m_matched_signal_track_showers_in_slice.push_back(m_reco_slice_num_tracks[ matched_track_id]);
+                                //m_matched_signal_track_tracks_in_slice.push_back(m_reco_slice_num_showers[ matched_track_id]);
+                                //m_matched_signal_track_showers_in_slice.push_back(m_reco_slice_num_tracks[ matched_track_id]);
                                
                             }
 
