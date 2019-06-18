@@ -536,6 +536,9 @@ namespace single_photon
             std::vector<bool> m_matched_signal_shower_is_clearcosmic;
             int m_matched_signal_shower_num = 0;
             std::vector<bool> m_matched_signal_shower_is_nuslice;
+            std::vector<int> m_matched_signal_shower_tracks_in_slice;
+            std::vector<int> m_matched_signal_shower_showers_in_slice;
+
 
             std::vector<double> m_matched_signal_track_true_E;
             std::vector<double> m_matched_signal_track_nuscore;

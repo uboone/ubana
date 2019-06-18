@@ -454,6 +454,15 @@ namespace single_photon
             std::cout<<"ERROR, not storing PFP's in PFPToSliceIdMap"<<std::endl;
         }
 
+        for (auto pair:PFPToNuSliceMap){
+            auto pfp = pair.first;
+            auto is_nuslice = pair.second;
+            if (is_nuslice){
+                std::cout<<"pfp in nuslice "<<pfp->Self()<<std::endl;
+            }
+
+        }
+        
         for (auto pair:sliceIDToPFParticlesMap){ 
             std::vector<art::Ptr<recob::PFParticle>> pfp_vec = pair.second;
             int slice_id = pair.first;
