@@ -404,7 +404,7 @@ namespace single_photon
 
 
             can->Update();
-            can->SaveAs((print_name+".pdf").c_str(),"pdf");
+//            can->SaveAs((print_name+".pdf").c_str(),"pdf");
             std::cout<<"PRINTING"<<std::endl;
 
             delete can;
