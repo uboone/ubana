@@ -484,10 +484,12 @@ namespace single_photon
 
 
         //Second Shower Search-Pandora style
+        if(!m_run_all_pfps){
         this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
 
         //Isolation
         this-> IsolationStudy(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
+    }
 
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
