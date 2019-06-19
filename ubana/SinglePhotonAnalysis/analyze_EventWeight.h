@@ -61,6 +61,7 @@ namespace single_photon
 	    m_gtruth_probability=-9999;
 	    m_gtruth_xsec=-9999;
 	    m_gtruth_diff_xsec=-9999;
+	    m_gtruth_gphase_space=-9999;
 	    m_gtruth_vertex_x=-9999;
 	    m_gtruth_vertex_y=-9999;
 	    m_gtruth_vertex_z=-9999;
@@ -315,6 +316,8 @@ namespace single_photon
   m_gtruth_probability = gTruth->fprobability;
   m_gtruth_xsec = gTruth->fXsec;
   m_gtruth_diff_xsec = gTruth->fDiffXsec;
+  m_gtruth_gphase_space = gTruth->fGPhaseSpace;
+
   m_gtruth_vertex_x = gTruth->fVertex.X();
   m_gtruth_vertex_y = gTruth->fVertex.Y();
   m_gtruth_vertex_z = gTruth->fVertex.Z();
