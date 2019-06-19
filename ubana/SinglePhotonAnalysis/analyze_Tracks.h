@@ -117,6 +117,8 @@ namespace single_photon
         m_reco_track_nuscore.clear();
         m_reco_track_isclearcosmic.clear();
         m_reco_track_trackscore.clear();
+        m_reco_track_is_nuslice.clear();
+
 
 
         m_sim_track_sliceId.clear();
@@ -348,8 +350,7 @@ namespace single_photon
         vertex_tree->Branch("reco_track_nuscore",& m_reco_track_nuscore);
         vertex_tree->Branch("reco_track_isclearcosmic",& m_reco_track_isclearcosmic);
         vertex_tree->Branch("reco_track_trackscore",& m_reco_track_trackscore);
-
-
+        vertex_tree->Branch("reco_track_is_nuslice",& m_reco_track_is_nuslice);
 
         vertex_tree->Branch("sim_track_matched",&m_sim_track_matched);
         vertex_tree->Branch("sim_track_overlay_fraction",&m_sim_track_overlay_fraction);
@@ -383,7 +384,8 @@ namespace single_photon
             std::map<int, double> &sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int> &PFPToSliceIdMap,
-            std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap){
+            std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
+            std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap){
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Starting recob::Track analysis"<<std::endl;;
@@ -477,6 +479,10 @@ namespace single_photon
             m_reco_track_sliceId[i_trk] = PFPToSliceIdMap[pfp];
             m_reco_track_nuscore[i_trk] = sliceIdToNuScoreMap[ m_reco_track_sliceId[i_trk]] ;
             m_reco_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp];
+
+            //std::cout<<"checking track nuslice"<<std::endl;
+            //m_reco_track_is_nuslice[i_trk] = PFPToNuSliceMap[pfp];
+
 
 
           //  m_reco_track_trackscore[i_trk] = PFPToTrackScoreMap[pfp];

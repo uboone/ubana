@@ -25,7 +25,11 @@ namespace single_photon
         m_matched_signal_track_nuscore.clear();
         m_matched_signal_track_sliceId.clear();
         m_matched_signal_track_is_clearcosmic.clear();
-        //  std::vector<bool> m_matched_signal_track_is_nuslice;
+        m_matched_signal_track_is_nuslice.clear();
+        m_matched_signal_track_tracks_in_slice.clear();
+       m_matched_signal_track_showers_in_slice.clear();
+
+
         m_matched_signal_track_num = 0;  
 
 
@@ -105,6 +109,10 @@ namespace single_photon
         ncdelta_slice_tree->Branch("matched_signal_track_sliceId", &m_matched_signal_track_sliceId);
         ncdelta_slice_tree->Branch("matched_signal_track_is_clearcosmic", &m_matched_signal_track_is_clearcosmic);
         ncdelta_slice_tree->Branch("matched_signal_track_num", &m_matched_signal_track_num);
+        ncdelta_slice_tree->Branch("matched_signal_track_is_nuslice", &m_matched_signal_track_is_nuslice);
+        ncdelta_slice_tree->Branch("matched_signal_track_tracks_in_slice", &m_matched_signal_track_tracks_in_slice);
+        ncdelta_slice_tree->Branch("matched_signal_track_showers_in_slice", &m_matched_signal_track_showers_in_slice);
+
 
         //int m_matched_signal_total_num_slices;
         ncdelta_slice_tree->Branch("reco_1g1p_is_same_slice",&m_reco_1g1p_is_same_slice);
@@ -698,6 +706,10 @@ namespace single_photon
                                 m_matched_signal_track_nuscore.push_back( m_reco_track_nuscore[k]);
                                 m_matched_signal_track_sliceId.push_back(m_reco_track_sliceId[k]);
                                 m_matched_signal_track_is_clearcosmic.push_back( m_reco_track_isclearcosmic[k]);
+                                //m_matched_signal_track_is_nuslice.push_back(m_reco_track_is_nuslice[k]);
+                                //m_matched_signal_track_tracks_in_slice.push_back(m_reco_slice_num_showers[ matched_track_id]);
+                                //m_matched_signal_track_showers_in_slice.push_back(m_reco_slice_num_tracks[ matched_track_id]);
+                               
                             }
 
                         }//if matched
