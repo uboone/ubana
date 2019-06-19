@@ -162,6 +162,7 @@ namespace single_photon
     eventweight_tree->Branch("GTruth_probability",  &m_gtruth_probability );
     eventweight_tree->Branch("GTruth_Xsec",  &m_gtruth_xsec );
     eventweight_tree->Branch("GTruth_DiffXsec", &m_gtruth_diff_xsec );
+    eventweight_tree->Branch("GTruth_GPhaseSpace", &m_gtruth_gphase_space );
     eventweight_tree->Branch("GTruth_vertexX",  &m_gtruth_vertex_x );
     eventweight_tree->Branch("GTruth_vertexY",  &m_gtruth_vertex_y );
     eventweight_tree->Branch("GTruth_vertexZ",  &m_gtruth_vertex_z );

@@ -752,6 +752,7 @@ namespace single_photon
             double m_gtruth_probability;
             double m_gtruth_xsec;
             double m_gtruth_diff_xsec;
+	    int m_gtruth_gphase_space;
             double m_gtruth_vertex_x;
             double m_gtruth_vertex_y;
             double m_gtruth_vertex_z;

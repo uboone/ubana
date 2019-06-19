@@ -91,7 +91,8 @@ void NTupleInterface::SetRootFile(TFile* inputFile, TString treeName, fhicl::Par
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_weight").c_str()                   , &GTruth_weight);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_probability").c_str()              , &GTruth_probability);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_Xsec").c_str()                     , &GTruth_Xsec);
-  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_DiffXsec").c_str()                , &GTruth_DiffXsec);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_DiffXsec").c_str()                 , &GTruth_DiffXsec);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_GPhaseSpace").c_str()              , &GTruth_GPhaseSpace); 
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_vertexX").c_str()                  , &GTruth_vertexX);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_vertexY").c_str()                  , &GTruth_vertexY);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_vertexZ").c_str()                  , &GTruth_vertexZ);
@@ -270,6 +271,7 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
   gtruth.fprobability = GTruth_probability;
   gtruth.fXsec = GTruth_Xsec;
   gtruth.fDiffXsec = GTruth_DiffXsec;
+  gtruth.fGPhaseSpace = GTruth_GPhaseSpace;
   gtruth.fVertex = TLorentzVector(
     GTruth_vertexX,
     GTruth_vertexY,
@@ -325,6 +327,7 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
     std::cout << "gtruth.fprobability:" << gtruth.fprobability << std::endl;
     std::cout << "gtruth.fXsec       :" << gtruth.fXsec        << std::endl;
     std::cout << "gtruth.fDiffXsec   :" << gtruth.fDiffXsec    << std::endl;
+    std::cout << "gtruth.fGPhaseSpace:" << gtruth.fGPhaseSpace << std::endl;
     std::cout << "gtruth.fVertex     :";
     gtruth.fVertex.Print();
     std::cout << "gtruth.fGscatter   :" << gtruth.fGscatter    << std::endl;
