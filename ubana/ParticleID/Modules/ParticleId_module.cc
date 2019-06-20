@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 // Class:       ParticleId
 // Plugin Type: producer (art v2_05_01)
 // File:        ParticleId_module.cc
@@ -142,6 +142,52 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
 
 }
 
+double ThreePlaneProtonPID(art::Ptr<recob::Track> track, double Lp[3], double Lmip[3])
+{
+  //Define wire plane angles
+  double plane0_wireangle = 30*6.28/360.0;
+  double plane1_wireangle = -30*6.28/360.0;
+  double plane2_wireangle = 90*6.28/360.0;
+
+  //Define weighting threshold
+  double tophat_thresh = 0.175;
+
+  //Find track angle in plane of the wires
+  double y = track->End().y() - track->Start().y();
+  double z = track->End().z() - track->Start().z();
+
+  TVector3 trackvec(0, y, z);
+  trackvec = trackvec.Unit();
+  TVector3 zaxis(0, 0, 1);
+  double costhetayz = trackvec.Dot(zaxis);
+  double thetayz = TMath::ACos(costhetayz);
+  if ((y < 0) && (thetayz > 0)) thetayz *= -1;
+
+  //Construct 3-plane PID
+  double Lp_weighted_sum = 0;
+  double Lmip_weighted_sum = 0;
+  for (int i_pl = 0; i_pl < 3; i_pl++)
+  {
+    double theta_towires = 0;
+    if (i_pl == 0) theta_towires = std::min(std::abs(plane0_wireangle - thetayz), std::abs((-1*(6.28-plane0_wireangle) - thetayz)));
+    if (i_pl == 1) theta_towires = std::min(std::abs(plane1_wireangle - thetayz), std::abs((-1*(6.28-plane1_wireangle) - thetayz)));
+    if (i_pl == 2) theta_towires = std::min(std::abs(plane2_wireangle - thetayz), std::abs((-1*(6.28-plane2_wireangle) - thetayz)));
+
+    double angle_planeweight = sin(theta_towires)*sin(theta_towires);
+    if (angle_planeweight < tophat_thresh) angle_planeweight = 0;
+    if (angle_planeweight != 0) angle_planeweight = 1;
+
+    //hygeine checks
+    if ((Lp[i_pl] < 0) || (Lmip[i_pl] < 0)) continue; //catch default fills
+
+    Lp_weighted_sum   += Lp[i_pl]*angle_planeweight;
+    Lmip_weighted_sum += Lmip[i_pl]*angle_planeweight;
+  }
+
+  double threeplane_LLR = Lp_weighted_sum/Lmip_weighted_sum;
+  return threeplane_LLR;
+}
+
 void UBPID::ParticleId::produce(art::Event & e)
 {
 
@@ -193,6 +239,8 @@ void UBPID::ParticleId::produce(art::Event & e)
     std::vector<anab::sParticleIDAlgScores> Bragg_bwd_pi    = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()} ;
     std::vector<anab::sParticleIDAlgScores> Bragg_bwd_k     = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()} ;
     std::vector<anab::sParticleIDAlgScores> noBragg_fwd_MIP = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()} ;
+
+    anab::sParticleIDAlgScores Bragg_fwd_p_threeplane;
 
     // Variables for storing residual range shift from ParticleID Class
     std::vector<anab::sParticleIDAlgScores> Bragg_fwd_mu_shift    = {anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores(), anab::sParticleIDAlgScores()} ;
@@ -569,6 +617,17 @@ void UBPID::ParticleId::produce(art::Event & e)
     // Set pdg=13. No other PID variables will be set because those are only filled for contained particles
     pdg = 13;
     }*/
+
+    //Fill 3-plane PID
+    double Lp[3]   = {Bragg_fwd_p.at(0).fValue, Bragg_fwd_p.at(1).fValue, Bragg_fwd_p.at(2).fValue};
+    double Lmip[3] = {Bragg_fwd_mu.at(0).fValue, Bragg_fwd_mu.at(1).fValue, Bragg_fwd_mu.at(2).fValue};
+    Bragg_fwd_p_threeplane.fAlgName      = "ThreePlaneProtonPID";
+    Bragg_fwd_p_threeplane.fVariableType = anab::kLikelihood;
+    Bragg_fwd_p_threeplane.fTrackDir     = anab::kForward;
+    Bragg_fwd_p_threeplane.fAssumedPdg   = 2212;
+    Bragg_fwd_p_threeplane.fValue        = ThreePlaneProtonPID(track, Lp, Lmip);
+    Bragg_fwd_p_threeplane.fPlaneMask    = UBPID::uB_SinglePlaneGetBitset(2); //dummy;
+    AlgScoresVec.push_back(Bragg_fwd_p_threeplane);
 
     /**
      * Fill ParticleID object and push back to event
