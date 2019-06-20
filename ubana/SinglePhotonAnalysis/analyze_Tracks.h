@@ -240,7 +240,7 @@ namespace single_photon
         m_reco_track_nuscore.resize(size);
         m_reco_track_isclearcosmic.resize(size);
         m_reco_track_trackscore.resize(size);
-
+        m_reco_track_is_nuslice.resize(size);
 
         m_sim_track_sliceId.resize(size);
         m_sim_track_nuscore.resize(size);
@@ -481,7 +481,8 @@ namespace single_photon
             m_reco_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp];
 
             //std::cout<<"checking track nuslice"<<std::endl;
-            //m_reco_track_is_nuslice[i_trk] = PFPToNuSliceMap[pfp];
+           // std::cout<<"is nuslice for track with pfp "<<pfp->Self()<<" is: "<<PFPToNuSliceMap[pfp]<<std::endl;
+            m_reco_track_is_nuslice[i_trk] = PFPToNuSliceMap[pfp];
 
 
 

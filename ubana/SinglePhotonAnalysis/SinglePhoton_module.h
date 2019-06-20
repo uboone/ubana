@@ -355,16 +355,16 @@ namespace single_photon
 
 
             //---------------- SecondShower----
-    void ClearSecondShowers();
-    void ResizeSecondShowers(size_t size);
-    
-    void CreateSecondShowerBranches();
+            void ClearSecondShowers();
+            void ResizeSecondShowers(size_t size);
 
-    void SecondShowerSearch(
-            const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
-            const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
-            const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
-            const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap);
+            void CreateSecondShowerBranches();
+
+            void SecondShowerSearch(
+                    const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
+                    const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
+                    const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
+                    const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap);
 
 
 
@@ -372,15 +372,15 @@ namespace single_photon
             TGraph* GetNearestNpts(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double,int);
             int CompareToShowers(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double,
                     const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showertopfparticlemap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfparticletohitsmap,                    double eps);
-            
-      
+
+
             //---------------- Isolation ----------------- /
-        
+
             void IsolationStudy(
-            const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
-            const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
-            const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
-            const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap);
+                    const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
+                    const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
+                    const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
+                    const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap);
 
 
 
@@ -395,7 +395,7 @@ namespace single_photon
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
                     std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
-                   std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap );
+                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap );
 
             void ClearTracks();
             void ResizeTracks(size_t);
@@ -550,7 +550,7 @@ namespace single_photon
             std::vector<int> m_matched_signal_track_tracks_in_slice;
             std::vector<int> m_matched_signal_track_showers_in_slice;
 
-int m_matched_signal_track_num = 0;   
+            int m_matched_signal_track_num = 0;   
 
             //int m_matched_signal_total_num_slices;
 
@@ -607,10 +607,13 @@ int m_matched_signal_track_num = 0;
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
             bool m_is_verbose;
+            bool m_print_out_event;
             bool m_is_data;
             bool m_is_overlayed;
             bool m_run_all_pfps;
             bool m_has_CRT;
+
+            std::ofstream out_stream;
 
             double m_exiting_photon_energy_threshold ;
             double m_exiting_proton_energy_threshold ;
@@ -657,24 +660,24 @@ int m_matched_signal_track_num = 0;
             //------- Second shower related variables ----
             int m_sss_num_unassociated_hits;
             int m_sss_num_associated_hits;
-    
+
             int m_sss_num_candidates;
 
             std::vector<int> m_sss_candidate_num_hits;
-             std::vector<int> m_sss_candidate_num_wires;
+            std::vector<int> m_sss_candidate_num_wires;
             std::vector<int>  m_sss_candidate_num_ticks;
             std::vector<int>  m_sss_candidate_plane;
-             std::vector<double> m_sss_candidate_PCA;
-           std::vector<double> m_sss_candidate_impact_parameter;
-           std::vector<double> m_sss_candidate_fit_slope;
-           std::vector<double> m_sss_candidate_fit_constant;
-          std::vector<double>  m_sss_candidate_mean_tick;
-           std::vector<double> m_sss_candidate_max_tick;
-           std::vector<double> m_sss_candidate_min_tick;
-           std::vector<double> m_sss_candidate_min_wire;
-           std::vector<double> m_sss_candidate_max_wire;
-           std::vector<double> m_sss_candidate_mean_wire;
-           std::vector<double> m_sss_candidate_min_dist;
+            std::vector<double> m_sss_candidate_PCA;
+            std::vector<double> m_sss_candidate_impact_parameter;
+            std::vector<double> m_sss_candidate_fit_slope;
+            std::vector<double> m_sss_candidate_fit_constant;
+            std::vector<double>  m_sss_candidate_mean_tick;
+            std::vector<double> m_sss_candidate_max_tick;
+            std::vector<double> m_sss_candidate_min_tick;
+            std::vector<double> m_sss_candidate_min_wire;
+            std::vector<double> m_sss_candidate_max_wire;
+            std::vector<double> m_sss_candidate_mean_wire;
+            std::vector<double> m_sss_candidate_min_dist;
 
 
             bool bool_make_sss_plots;
@@ -1068,7 +1071,7 @@ int m_matched_signal_track_num = 0;
             std::vector<double> m_mctruth_exiting_proton_energy;
 
             int  m_mctruth_num_reconstructable_protons;
-            
+
             bool  m_mctruth_is_reconstructable_1g1p;
             bool  m_mctruth_is_reconstructable_1g0p;
 
