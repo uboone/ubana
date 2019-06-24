@@ -63,7 +63,6 @@
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/MCSFitResult.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "ubobj/Trigger/ubdaqSoftwareTriggerData.h"
