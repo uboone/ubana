@@ -14,7 +14,6 @@ art_make(
     lardataobj_RawData
     lardataobj_RecoBase 
     lardata_RecoObjects 
-    larreco_Deprecated
     larreco_RecoAlg
     larpandora_LArPandoraInterface
     SignalShapingServiceMicroBooNE_service

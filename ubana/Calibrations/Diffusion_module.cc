@@ -47,7 +47,6 @@
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
@@ -807,32 +806,8 @@ void microboone::Diffusion::analyze(const art::Event& evt)
 
     double tlen = 0., mom = 0.;
     int TrackID = -1; 
-    int ntraj = 0;
 
-    //we need to use Bezier methods for Bezier tracks
-    if (fTrackModuleLabel.find("beziertracker")!=std::string::npos) {
-       trkf::BezierTrack btrack(*ptrack);
-       ntraj = btrack.NSegments();
-       if(ntraj > 0) {
-         double xyz[3];
-         btrack.GetTrackPoint(0,xyz);
-         pos.SetXYZ(xyz[0],xyz[1],xyz[2]);
-         btrack.GetTrackDirection(0,xyz);
-         dir_start.SetXYZ(xyz[0],xyz[1],xyz[2]);
-         btrack.GetTrackDirection(1,xyz);
-         dir_end.SetXYZ(xyz[0],xyz[1],xyz[2]);
-         btrack.GetTrackPoint(1,xyz);
-         end.SetXYZ(xyz[0],xyz[1],xyz[2]);
-
-         tlen = btrack.GetLength();
-         if (btrack.GetTrajectory().NumberTrajectoryPoints() > 0)
-            mom = btrack.GetTrajectory().StartMomentum(); // ?!? always 1!!!
-         // fill bezier track reco branches
-         TrackID = i;  //bezier has some screwed up track IDs
-       }
-     }  	 
-     else {   //use the normal methods for other kinds of tracks
-        ntraj = track.NumberTrajectoryPoints();
+    int ntraj = track.NumberTrajectoryPoints();
         if (ntraj > 0) {
      	  pos	   = track.Vertex<TVector3>();
      	  dir_start = track.VertexDirection<TVector3>();
@@ -844,10 +819,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
      	     mom = track.VertexMomentum();
      	  //fill non-bezier-track reco branches
      	  TrackID = track.ID();
-        }
-     }
      
-     if (ntraj > 0) {
        double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
        double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
        trkId[i]		   = TrackID;

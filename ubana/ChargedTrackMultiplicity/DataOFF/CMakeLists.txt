@@ -7,7 +7,7 @@ art_make(
 			larevt_Filters
 			lardataobj_RawData
 			lardataobj_RecoBase
-			lardata_RecoObjects larreco_Deprecated  
+			lardata_RecoObjects
 			larreco_RecoAlg
 			larpandora_LArPandoraInterface
 			SignalShapingServiceMicroBooNE_service
