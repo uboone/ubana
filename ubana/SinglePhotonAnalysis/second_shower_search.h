@@ -690,7 +690,7 @@ namespace single_photon
 
 
 
-            if(false){
+            if(true){
             std::cout<<"Done Plotting clusters"<<std::endl;
             can->Update();
             //can->Write();
