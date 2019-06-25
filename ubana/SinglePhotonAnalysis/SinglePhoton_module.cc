@@ -1126,11 +1126,13 @@ namespace single_photon
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
         double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
 
-        double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)+scecorr.X();
+        double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
+
+        double xOffset = -scecorr.X() +xtimeoffset+0.6;
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
 
-        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
+        corrected[0]=kx - scecorr.X() + xtimeoffset + 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
 
@@ -1139,6 +1141,7 @@ namespace single_photon
         std::cout<<"TRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
     }
+
 
 
 
@@ -1153,11 +1156,13 @@ namespace single_photon
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
         double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
 
-        double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)+scecorr.X();
+        double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
+
+        double xOffset = -scecorr.X() +xtimeoffset+0.6;
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
 
-        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
+        corrected[0]=kx - scecorr.X() + xtimeoffset + 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
 
