@@ -694,7 +694,7 @@ namespace single_photon
             std::cout<<"Done Plotting clusters"<<std::endl;
             can->Update();
             //can->Write();
-            can->SaveAs((print_name+".pdf").c_str(),"pdf");
+ //           can->SaveAs((print_name+".pdf").c_str(),"pdf");
             //f->Close();
             std::cout<<"PRINTING"<<std::endl;
             }
