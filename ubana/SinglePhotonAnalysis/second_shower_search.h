@@ -95,7 +95,7 @@ namespace single_photon
             auto slicehits = sliceIDToHitsMap.at(sliceid);
             auto trackhits = pfParticleToHitsMap.at(pfp);
 
-            std::cout<<"SSS: track "<<t<<" is in slice "<<sliceid<<" which has "<<slicehits.size()<<" hits. This track has  "<<trackhits.size()<<" of them. "<<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\ttrack "<<t<<" is in slice "<<sliceid<<" which has "<<slicehits.size()<<" hits. This track has  "<<trackhits.size()<<" of them. "<<std::endl;
             total_track_hits+=trackhits.size();
             if(nu_slice_id !=  sliceid && nu_slice_id != -999){
                 std::cout<<"ERROR!! In Second Shower Search, the neutrino slice ID changed? this: "<<sliceid<<", last: "<<nu_slice_id<<std::endl;
@@ -117,7 +117,7 @@ namespace single_photon
             auto slicehits = sliceIDToHitsMap.at(sliceid);
             auto showerhits = pfParticleToHitsMap.at(pfp);
 
-            std::cout<<"SSS: shower "<<s<<" is in slice "<<sliceid<<" which has "<<slicehits.size()<<" hits. This shower has  "<<showerhits.size()<<" of them. "<<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\tshower "<<s<<" is in slice "<<sliceid<<" which has "<<slicehits.size()<<" hits. This shower has  "<<showerhits.size()<<" of them. "<<std::endl;
             total_shower_hits+=showerhits.size();
             if(nu_slice_id !=  sliceid && nu_slice_id!=-999){
                 std::cout<<"ERROR!! In Second Shower Search, the neutrino slice ID changed? this: "<<sliceid<<", last: "<<nu_slice_id<<std::endl;
@@ -132,11 +132,11 @@ namespace single_photon
 
         }
 
-        std::cout<<"SSS: So in total we have "<<total_shower_hits<<" shower hits and "<<total_track_hits<<" track hits"<<" assocaedHits total: "<<associated_hits.size()<<std::endl;
+        std::cout<<"SinglePhoton::SSS\t||\tSo in total we have "<<total_shower_hits<<" shower hits and "<<total_track_hits<<" track hits"<<" assocaedHits total: "<<associated_hits.size()<<std::endl;
         m_sss_num_associated_hits = total_shower_hits+total_track_hits;
 
         if(nu_slice_id>=0){
-            std::cout<<"SSS: So that leaves "<<sliceIDToHitsMap.at(nu_slice_id).size()-total_shower_hits-total_track_hits<<" hits not included in tracks and showers"<<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\t So that leaves "<<sliceIDToHitsMap.at(nu_slice_id).size()-total_shower_hits-total_track_hits<<" hits not included in tracks and showers"<<std::endl;
             m_sss_num_unassociated_hits = sliceIDToHitsMap.at(nu_slice_id).size()-total_shower_hits-total_track_hits;
 
             if(m_sss_num_unassociated_hits<0){
@@ -179,7 +179,7 @@ namespace single_photon
 
             std::vector<std::vector<art::Ptr<recob::Hit>>> unassociated_hits_all = {unassociated_hits_plane0,unassociated_hits_plane1,unassociated_hits_plane2};
 
-            std::cout<<" associated_hits.size() "<<associated_hits.size()<<" unassociated_hits.size() "<<unassociated_hits.size()<<" p0: "<<unassociated_hits_plane0.size()<<" p1:  "<<unassociated_hits_plane1.size()<<" p2: "<<unassociated_hits_plane2.size()<<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\tassociated_hits.size() "<<associated_hits.size()<<" unassociated_hits.size() "<<unassociated_hits.size()<<" p0: "<<unassociated_hits_plane0.size()<<" p1:  "<<unassociated_hits_plane1.size()<<" p2: "<<unassociated_hits_plane2.size()<<std::endl;
 
 
             if(bool_make_sss_plots && showers.size()==1 && tracks.size()==1){
@@ -295,14 +295,14 @@ namespace single_photon
                 }
             }
 
-            std::cout<<"Tick Min: "<<tick_min<<" Max: "<<tick_max<<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\tTick Min: "<<tick_min<<" Max: "<<tick_max<<std::endl;
             auto const TPC = (*geom).begin_TPC();
             auto ID = TPC.ID();
             int fCryostat = ID.Cryostat;
             int fTPC = ID.TPC;
-            std::cout<<TPC.ID()<<"= the beginning TPC ID" <<std::endl;
-            std::cout<<"the cryostat id = "<<fCryostat<<std::endl;  
-            std::cout<<"the tpc id = "<<fTPC<<std::endl;  
+            std::cout<<"SinglePhoton::SSS\t||\t" << TPC.ID() << "= the beginning TPC ID" <<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\tthe cryostat id = " << fCryostat << std::endl;  
+            std::cout<<"SinglePhoton::SSS\t||\tthe tpc id = " << fTPC << std::endl;  
 
 
             //Plotting the vertex position on the plot.
@@ -453,14 +453,14 @@ namespace single_photon
             std::vector<std::vector<int>> cluster_labels(3);
             for(int i=0; i<3; i++){
 
-                std::cout<<"Starting to run DBSCAN for plane: "<<i<<" has "<<pts_to_recluster[i].size()<<" pts to do using eps: "<<eps<<" and min_pts: "<<min_pts<<std::endl; 
+                std::cout<<"SinglePhoton::SSS\t||\tStarting to run DBSCAN for plane: "<<i<<" has "<<pts_to_recluster[i].size()<<" pts to do using eps: "<<eps<<" and min_pts: "<<min_pts<<std::endl; 
                 DBSCAN ReCluster(eps,min_pts);
                 cluster_labels[i] =  ReCluster.Scan2D(pts_to_recluster[i]);
 
                 for(auto &c: cluster_labels[i]){
                     num_clusters[i] = std::max(c,num_clusters[i]);
                 }
-                std::cout<<"On this plane, DBSCAN found: "<<num_clusters[i]<<" clusters"<<std::endl;
+                std::cout << "SinglePhoton::SSS\t||\tOn this plane, DBSCAN found: "<<num_clusters[i]<<" clusters"<<std::endl;
             }
 
 
@@ -509,7 +509,7 @@ namespace single_photon
                 std::vector<TGraph*> tmp_g_clusters(num_clusters[i]+1);
 
                 if(cluster_labels[i].size() != pts_to_recluster[i].size()){
-                    std::cout<<"ERROR!! someting amiss cluster labels of size "<<cluster_labels[i].size()<<" and pts  in this plane "<<pts_to_recluster[i].size()<<std::endl;
+                    std::cout<<"SinglePhoton::SSS\t||\tERROR!! someting amiss cluster labels of size "<<cluster_labels[i].size()<<" and pts  in this plane "<<pts_to_recluster[i].size()<<std::endl;
                 }  
 
                 for(size_t k=0; k< pts_to_recluster[i].size(); k++){
@@ -691,12 +691,12 @@ namespace single_photon
 
 
             if(false){
-            std::cout<<"Done Plotting clusters"<<std::endl;
-            can->Update();
-            //can->Write();
-            can->SaveAs((print_name+".pdf").c_str(),"pdf");
-            //f->Close();
-            std::cout<<"PRINTING"<<std::endl;
+            	std::cout<<"SinglePhoton::SSS\t||\tDone Plotting clusters"<<std::endl;
+            	can->Update();
+            	//can->Write();
+            	can->SaveAs((print_name+".pdf").c_str(),"pdf");
+            	//f->Close();
+            	std::cout<<"SinglePhoton::SSS\t||\tPRINTING"<<std::endl;
             }
             //bool_make_sss_plots=false;
             delete can;
@@ -710,7 +710,7 @@ namespace single_photon
 
         }else{
 
-            std::cout<<" No Neutrino Slice Found/No Showers & tracks"<<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\tNo Neutrino Slice Found/No Showers & tracks"<<std::endl;
 
         }
 
@@ -756,7 +756,7 @@ namespace single_photon
     sss_score SinglePhoton::ScoreCluster(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hits, double vertex_wire, double vertex_tick, const art::Ptr<recob::Shower> &shower){
         sss_score score(p,cl);
         score.n_hits = hits.size();
-        std::cout<<"SSS || Starting Score Calcultaion "<<std::endl;
+        std::cout<<"SinglePhoton::SSS\t||\tStarting Score Calcultaion "<<std::endl;
 
         std::vector<double> t_wires;
         std::vector<double> t_ticks;
@@ -874,7 +874,7 @@ namespace single_photon
 
         (*eigenvec).Print();
         (*covar).Print();
-        std::cout<<" SSS | Eigen: "<<score.pca_0<<" "<<score.pca_1<<std::endl;
+        std::cout<<"SinglePhoton::SSS\t||\tEigen: "<<score.pca_0<<" "<<score.pca_1<<std::endl;
 
         score.pca_theta = atan((*covar)[0][0]/(*covar)[0][1])*180.0/3.14159;
 
