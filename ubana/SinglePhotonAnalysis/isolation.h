@@ -424,7 +424,7 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
 	
 		// place data into appropriate vertex_tree variables
 		for(int plane = 0; plane < 3; plane++){
-		    if (t_vec_t[plane].size() > 0 && unassociated_hits_all[plane] > 0){	
+		    if (t_vec_t[plane].size() > 0 && unassociated_hits_all[plane].size() > 0){	
 			m_isolation_min_dist_trk_unassoc.push_back(minDist_tot[plane]);  
 			m_isolation_nearest_unassoc_hit_to_trk_wire.push_back(minWire[plane]);
 			m_isolation_nearest_unassoc_hit_to_trk_time.push_back(minTime[plane]);
