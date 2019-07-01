@@ -444,12 +444,12 @@ namespace single_photon
         std::map<art::Ptr<recob::PFParticle>,bool> PFPToNuSliceMap;
         std::map<art::Ptr<recob::PFParticle>,double> PFPToTrackScoreMap;
         std::map<int, int> sliceIdToNumPFPsMap;
-        std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
+        std::cout<<"SinglePhoton::analyze::AnalyzeSlice()\t||\t Starting"<<std::endl;
 
         this->AnalyzeSlices(pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
         //std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
-        std::cout<<"the number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
-        std::cout<<"the number of PFP's stored in the PFPToSliceIdMap is "<<PFPToSliceIdMap.size()<<std::endl;
+        std::cout<<"SinglePhoton::analyze\t||\tthe number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
+        std::cout<<"SinglePhoton::analyze\t||\tthe number of PFP's stored in the PFPToSliceIdMap is "<<PFPToSliceIdMap.size()<<std::endl;
         if (PFPToSliceIdMap.size() < 1){
             std::cout<<"ERROR, not storing PFP's in PFPToSliceIdMap"<<std::endl;
         }
@@ -694,6 +694,8 @@ namespace single_photon
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
 
 
+	this->CreateIsolationBranches();
+
         this->CreateSecondShowerBranches();
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
@@ -789,7 +791,8 @@ namespace single_photon
         m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane2=-99999;
-
+	
+	this->ClearIsolation();
 
         this->ClearSecondShowers();
         //------------- Flash related Variables ------------------
@@ -979,7 +982,7 @@ namespace single_photon
                 FillTracksAndShowers(associatedTracks, associatedShowers, pParticle,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
             }
         } else{ //if running over all slices
-            std::cout<<"The total number of PFP's in the map is "<<pfParticleMap.size()<<std::endl;
+            std::cout<<"SinglePhoton\t||\tThe total number of PFP's in the map is "<<pfParticleMap.size()<<std::endl;
             //            std::cout<<"The total number of PFP's in the vector is "<< particles.size()<<std::endl;
             for (auto pair : pfParticleMap){
                 const art::Ptr<recob::PFParticle> &pParticle = pair.second;
@@ -1136,9 +1139,9 @@ namespace single_photon
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
 
-        std::cout<<"TRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
-        std::cout<<"TRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
-        std::cout<<"TRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
+        std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
     }
 
@@ -1166,9 +1169,9 @@ namespace single_photon
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
 
-        std::cout<<"TRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
-        std::cout<<"TRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
-        std::cout<<"TRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
+        std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
     }
 
@@ -1197,9 +1200,9 @@ namespace single_photon
         corrected[2]=kz+zOffset;
 
 
-        std::cout<<"TRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
-        std::cout<<"TRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
-        std::cout<<"TRIGGER_OFF: mcp->T(): "<<mcparticle.T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle.T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
+        std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle.T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle.T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
 
     }
