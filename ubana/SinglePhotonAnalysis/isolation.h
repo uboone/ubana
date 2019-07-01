@@ -321,7 +321,6 @@ std::cout << "Isolation: Acquiring  shower hit coordinates and comparing with tr
                         tick_min = std::min(tick_min, (double)sh->PeakTime());
                         chan_max[(int)sh->View()] = std::max( chan_max[(int)sh->View()], wire);
                         chan_min[(int)sh->View()] = std::min( chan_min[(int)sh->View()], wire);
-
 		    } // end if stmnt t_vec_c
                 } // end looping shower hits
 
@@ -329,17 +328,26 @@ std::cout << "Isolation: Acquiring  shower hit coordinates and comparing with tr
                 t_pts_s[0] = new TGraph(vec_c[0].size(), &(vec_c[0])[0], &(vec_t[0])[0]);
                 t_pts_s[1] = new TGraph(vec_c[1].size(), &(vec_c[1])[0], &(vec_t[1])[0]);
                 t_pts_s[2] = new TGraph(vec_c[2].size(), &(vec_c[2])[0], &(vec_t[2])[0]);
-
 		// save new graphs for this shower into vector containing all showers
 		pts_shr[0] = t_pts_s;
 	    
 		// place data into approriate vertex_tree variables
 		for(int plane = 0; plane < 3; plane++){
-		    if (t_vec_t[plane].size() > 0 && num_shr_hits[plane] > 0) {
+		    if (num_shr_hits[plane] == 0){ // if there are no shower hits on this plane, is extremely isolated
+			m_isolation_min_dist_trk_shr.push_back(999); 
+			m_isolation_nearest_shr_hit_to_trk_wire.push_back(999);
+			m_isolation_nearest_shr_hit_to_trk_time.push_back(999);
+		    }
+		    else if (t_vec_t[plane].size() > 0) { // have to have both shower and track hits on this plane to have valid comparisons for distance
 			auto abs_min = (*std::min_element(sh_dist[plane].begin(), sh_dist[plane].end(), map_min_fn));
 			m_isolation_min_dist_trk_shr.push_back(abs_min.second); 
 			m_isolation_nearest_shr_hit_to_trk_wire.push_back((double)abs_min.first->WireID().Wire);
 			m_isolation_nearest_shr_hit_to_trk_time.push_back((double)abs_min.first->PeakTime());
+		    }
+		    else{ // if there are no shower hits or there are no track hits on this plane, getting min distance fails
+			m_isolation_min_dist_trk_shr.push_back(-999); 
+			m_isolation_nearest_shr_hit_to_trk_wire.push_back(-999);
+			m_isolation_nearest_shr_hit_to_trk_time.push_back(-999);
 		    }
 		    m_isolation_num_shr_hits_win_1cm_trk.push_back(s_hists[plane]->Integral(1,1));
 		    m_isolation_num_shr_hits_win_2cm_trk.push_back(s_hists[plane]->Integral(1,2));
@@ -416,11 +424,16 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
 	
 		// place data into appropriate vertex_tree variables
 		for(int plane = 0; plane < 3; plane++){
-		    if (t_vec_t[plane].size() > 0){	
+		    if (t_vec_t[plane].size() > 0 && unassociated_hits_all[plane] > 0){	
 			m_isolation_min_dist_trk_unassoc.push_back(minDist_tot[plane]);  
 			m_isolation_nearest_unassoc_hit_to_trk_wire.push_back(minWire[plane]);
 			m_isolation_nearest_unassoc_hit_to_trk_time.push_back(minTime[plane]);
 		    }
+		    else {		
+			m_isolation_min_dist_trk_unassoc.push_back(-999);  
+			m_isolation_nearest_unassoc_hit_to_trk_wire.push_back(-999);
+			m_isolation_nearest_unassoc_hit_to_trk_time.push_back(-999);
+		}
 		    m_isolation_num_unassoc_hits_win_1cm_trk.push_back(u_hists[plane]->Integral(1,1));
 		    m_isolation_num_unassoc_hits_win_2cm_trk.push_back(u_hists[plane]->Integral(1,2));
 		    m_isolation_num_unassoc_hits_win_5cm_trk.push_back(u_hists[plane]->Integral(1,5));
