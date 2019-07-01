@@ -20,6 +20,12 @@
 #include "lardataobj/RecoBase/OpHit.h"
 #include "ubobj/Optical/UbooneOpticalFilter.h"
 
+#include "larcore/Geometry/Geometry.h"
+
+#include "ubevt/Database/LightYieldService.h"
+#include "ubevt/Database/LightYieldProvider.h"
+#include "ubevt/Database/UbooneLightYieldProvider.h"
+
 // from dlpmtprecutalgo in UPS
 #include "LEEPreCutAlgo.h"
 
@@ -59,6 +65,8 @@ private:
   float fPMTMaxFrac;
   bool  fStoreOpticalFilterObj;
 
+  bool fScaleLY;
+
   std::set<int> fIgnoreChannelList;
 };
 
@@ -80,6 +88,34 @@ dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
   fVetoStartTick = p.get< int >("VetoStartTick",  60);
   fVetoEndTick   = p.get< int >("VetoEndTick",    190);
   fPMTMaxFrac    = p.get< float > ("PMTMaxFrac",  0.6);
+
+  // Addition to account for LY scaling
+  fScaleLY      = p.get< bool > ("ScaleLY",false);
+
+  // if we are to scale by the LY, adjust fPEThreshold appropriately
+  if (fScaleLY == true) {
+    
+    float scaling = 0.;
+    int nfactors = 0;
+
+    const ::art::ServiceHandle<geo::Geometry> geo;
+
+    const lariov::LightYieldProvider& ly_provider = art::ServiceHandle<lariov::LightYieldService>()->GetProvider();
+    for (unsigned int i=0; i!= geo->NOpDets(); ++i) {
+      if (geo->IsValidOpChannel(i) && i<32) {
+	scaling += ly_provider.LYScaling(i);
+	nfactors += 1;
+      }
+    }
+    
+    if (nfactors != 32) std::cout << "ERROR != 32 PMTs " << std::endl;
+    
+    scaling /= nfactors;
+
+    fPEThreshold *= scaling;
+    
+    std::cout << "scaling now is " << fPEThreshold << std::endl;
+  }
 
   std::vector<int> tmpvec = p.get< std::vector<int> >("IgnoreChannelList",std::vector<int>());
   fIgnoreChannelList = std::set<int>(tmpvec.begin(),tmpvec.end());
