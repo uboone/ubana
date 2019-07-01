@@ -216,7 +216,7 @@ void SinglePhoton::IsolationStudy(
                 std::vector<double> chan_min(3,1e10);
 
 		// Creation of canvas and histograms to hold hit distance data
-		TCanvas *histcan = new TCanvas("hists", "Distances from the track", 600, 400);
+		TCanvas *histcan = new TCanvas(("hists_"+print_name).c_str(), "Distances from the track", 600, 400);
 		histcan->Divide(3, 2, 0.005, 0.1);
 		
 		TH1D *s_hist0 = new TH1D("shower hits hist plane0", "Showers Plane 0", 30, 0.0, 30.0);
@@ -444,9 +444,9 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
 /* SAVE THE CANVAS -which holds all 6 distance histograms for shower and unassociated hits*/
 /*		histcan->Update();
 		histcan->SaveAs((print_name + "_hist.pdf").c_str(), "pdf");
-		delete histcan;
 */
 
+		delete histcan;
 
 
 //PLOTTING NOW
