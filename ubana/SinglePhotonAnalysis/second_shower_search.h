@@ -599,7 +599,9 @@ namespace single_photon
 
 
                     //Here we will only plot those that pass in bottom:
-                    if(ssscorz.pass && is_in_shower ==-1){
+                    //We are also going to put a hard threshold of 70cm? 
+                    //
+                    if(ssscorz.pass && is_in_shower ==-1 ){
                         can->cd(i+9);
 
                         if(g_clusters[i][c]->GetN()>0){
