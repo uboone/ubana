@@ -19,6 +19,8 @@
 #include "larana/OpticalDetector/OpHitFinder/PulseRecoManager.h"
 
 #include "lardataobj/RawData/OpDetWaveform.h"
+#include "lardataobj/RecoBase/OpHit.h"
+#include "lardataobj/RecoBase/OpFlash.h"
 
 #include <TTree.h>
 #include <string>
@@ -43,6 +45,8 @@ namespace pmtana {
     void AnaWaveform       ( TTree* ptr );
     void SaveWaveform      ( TTree* ptr );
     void SaveEvWaveform    ( TTree* ptr );
+    void SaveEvHit         ( TTree* ptr );
+    void SaveEvFlash       ( TTree* ptr );
 
     void TickPeriod   ( const double period );    
     void SetEventInfo ( const unsigned int run,
@@ -52,6 +56,8 @@ namespace pmtana {
 			const double time_wrt_trigger,
 			const std::vector<short>& wf);
     void AnaEventWaveform  ( const std::vector<raw::OpDetWaveform>& ev_wf_v);
+    void AnaEventHit       ( const std::vector<recob::OpHit>& ev_hit_v);
+    void AnaEventFlash     ( const std::vector<recob::OpFlash>& ev_flash_v);
 
     ::pmtana::PulseRecoManager& GetManager() { return _preco_mgr; };
     ::pmtana::AlgoThreshold&    GetAlgo()    { return _preco_alg; }
@@ -66,6 +72,8 @@ namespace pmtana {
     TTree* _wfana_tree;
     TTree* _wf_tree;
     TTree* _ev_wf_tree;
+    TTree* _ev_hit_tree;
+    TTree* _ev_flash_tree;
 
     double _period;
     unsigned int _run;
@@ -90,6 +98,12 @@ namespace pmtana {
     std::vector<short> _wf;
     std::vector<int> _wfsum;
     std::vector<std::vector<short>> _wf_v;
+    // ev_hit_tree
+    int _hit_ch;
+    float _hit_pe, _hit_time, _hit_ampl, _hit_area;
+    // ev_flash_tree
+    float _flash_ycenter, _flash_zcenter, _flash_ywidth, _flash_zwidth;
+    float _flash_petotal, _flash_time;
   };
 }
 
