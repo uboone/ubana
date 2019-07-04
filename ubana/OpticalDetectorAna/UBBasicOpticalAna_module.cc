@@ -94,8 +94,14 @@ void UBBasicOpticalAna::analyze(art::Event const & e)
 {
   auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
 
+  auto run = e.run();
+  auto sub = e.subRun();
+  auto evt = e.event();
+
   // Implementation of required member function here.
   for(size_t i=0; i<_module_v.size(); ++i) {
+
+    _ana_v[i].SetEventInfo(run,sub,evt);
    
     _ana_v[i].TickPeriod(ts->OpticalClock().TickPeriod());
  
