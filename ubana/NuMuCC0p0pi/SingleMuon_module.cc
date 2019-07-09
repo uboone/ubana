@@ -38,6 +38,10 @@
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 
+#include "nusimdata/SimulationBase/simb.h"
+//#include "nutools/G4Base/PrimaryParticleInformation.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+
 #include "TTree.h"
 #include "TBenchmark.h"
 #include "TRandom.h"
@@ -83,6 +87,18 @@ private:
   TTree * my_event_;
   
   void Initialize_event();
+
+  bool MC_beamNeutrino; // MCTruth beam origin
+  bool MC_FV; // MCTruth vertex in FV = true, out of FV = false
+  int MC_ccnc; // MCTruth cc = 0 or nc = 1
+  int MC_nupdg; // MCTruth nupdg; numu = 14, nue = 12
+  double MC_nuVtxX; // MCTruth nu vtx X
+  double MC_nuVtxY; // MCTruth nu vtx Y
+  double MC_nuVtxZ; // MCTruth nu vtx Z
+  //todo
+  int MC_nu_e;
+  int lep_costheta = -9999.;
+  int true_muon_mom = -9999.;
  
   std::vector<double> true_mom_mu;//True momentum of muon track in the every event
   std::vector<double> true_vtx_x;//True vertex of muon track (X)
@@ -131,6 +147,7 @@ private:
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
 
+  std::string                         m_generatorLabel;
   std::string                         m_pandoraLabel;
   std::string                         m_hitProducerLabel;
   std::string                         m_trackProducerLabel;
@@ -149,6 +166,7 @@ private:
 SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   : 
   EDAnalyzer{pset},
+  m_generatorLabel(pset.get<std::string>("GeneratorLabel")),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
   m_hitProducerLabel(pset.get<std::string>("HitProducerLabel")),
   m_trackProducerLabel(pset.get<std::string>("TrackProducerLabel")),
@@ -173,6 +191,12 @@ void SingleMuon::analyze(art::Event const& evt)
 {
 
   //// Get necessary handles
+  // True
+  art::Handle< std::vector<simb::MCTruth> > Handle_MCTruth;
+  evt.getByLabel(m_generatorLabel, Handle_MCTruth);
+  std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
+  art::fill_ptr_vector(MCTruthCollection, Handle_MCTruth);
+
   // Hit
   art::Handle<std::vector<recob::Hit> > Handle_Hit;
   evt.getByLabel(m_hitProducerLabel, Handle_Hit);
@@ -250,7 +274,38 @@ void SingleMuon::analyze(art::Event const& evt)
   std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
   std::vector<float> vTrk_len;
 
-  //////// Get neutrino
+  //Constants
+  const simb::Origin_t Neutrino_Origin = simb::kBeamNeutrino;
+  //const simb::Origin_t Cosmic_Origin = simb::kCosmicRay;
+  //const simb::Origin_t Unknown_Origin = simb::kUnknown;
+
+  //////// Get part of the generator neutrino info
+  //Initiate the variables
+  MC_beamNeutrino = false;
+  MC_nupdg = -99999;
+  MC_ccnc = -99999;
+  MC_FV = false;
+
+  for(int i_mc = 0; i_mc < (int) MCTruthCollection.size(); i_mc++){
+    if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) MC_beamNeutrino = true;
+    MC_nupdg = MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode();
+    MC_ccnc = MCTruthCollection[i_mc]->GetNeutrino().CCNC();
+
+    MC_nuVtxX = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vx();
+    MC_nuVtxY = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vy();
+    MC_nuVtxZ = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vz();
+    TVector3 true_nuVtx(MC_nuVtxX, MC_nuVtxY, MC_nuVtxZ);
+    MC_FV = _fiducial_volume.InFV(true_nuVtx);
+
+    std::cout<<"MC nu vtx X: "<< MC_nuVtxX <<", Y: "<< MC_nuVtxY <<", Z: " << MC_nuVtxZ <<std::endl;
+    std::cout<<"MC FV: "<< MC_FV << std::endl;
+    std::cout<<"MC true pdg: "<< MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode()<<std::endl;
+    std::cout<<"MC CCNC: "<< MCTruthCollection[i_mc]->GetNeutrino().CCNC()<<std::endl;
+    //std::cout<<"If MC nu is from beam neutrino: "<< MCTruthCollection[i_mc]->Origin() <<std::endl;
+    std::cout<<"If MC nu is from beam neutrino: "<< (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) <<std::endl;
+    std::cout<<"==If MC nu is from beam neutrino: "<< MC_beamNeutrino <<std::endl;
+  }
+  //////// Get Reco neutrino
   for(int i = 0; i < (int) pfParticle_v.size(); i++){
     auto pfp = pfParticle_v[i];
     if(pfp->IsPrimary() && pfp->PdgCode() == 14){
@@ -292,16 +347,45 @@ void SingleMuon::analyze(art::Event const& evt)
       n_dau_tracks = daughter_Tracks.size();
       n_dau_showers = daughter_Showers.size();
 
-      ///////////Logics.......
+      ///////////Plan of implementation.......
       //
       //////1 track + 0 shower
-      // What is the direct
+      // What is the direction of the track? (dE/dx ramp up for bragg peak, MCS likelihood, vertex activity? If there's any daughter of the track? What are the daughters?)
+      // If the vertex is out the TPC, cosmic.
+      // If the vertex is in the TPC, can it be broken track? CRT info? nearby track?
+      // Is this track actually an integration of different tracks (dE/dx discontinuity)
+      // If yes, are the two tracks going same direction? (Is it a daughter of muon)
+      // Is it or are they muon-like from PID?
+      /////If at least one of them is muon-like, futher investigation!
+      //
+      //////1 track + 1 shower
+      // Is the shower michel electron like (low energy < 60 MeV?)?
+      // Is the track muon-like?
+      // What is the direction? Similar checks as the previous (1 track + 0 shower) case..
+      //// Only process to next step if this topology is from a muon decay to michel electron which makes a shower and the muon has a vertex in the TPC FV
+      //
+      ///////1 track + 2 shower
+      // What is the energy of the showers? assuming large shower can only comes from neutrino interaction..which is not my topology
+      // If it's weirdly low energy..check the track following the procedure above..Determine vertix position!
       //
       //
+      //////2 tracks + 0 shower
+      // Check the colinearity of the 2 tracks? 
+      // If colinear, are they the same particle or not? Where's the vertex
+      // If not colinear, Is one of them muon-like? The other electron-like (daughter of muon)? Or do they like cosmic coincidence?
       //
+      /////2 tracks + 1 shower
+      // Check what's the shower energy?
+      // If the shower has weirdly low energy, perform the above procedures to check if it worth to investigate further
+      // If yes, check the shower position wrt the position of tracks..
       //
-      //
-      //
+      ///// 3 tracks
+      // Check the colinearity of all three of them and either two of them.
+      // If there's at least a pair of colinear tracks, check the domenancy of the pair tracks and one track.
+      // This could be cosmic coincidence. Check if it’s actually two tracks which one of them is cosmic
+      //                        
+      ///// 4 tracks
+      // Is this actually cosmic coincidence…. Actually two tracks cross like four tracks? And one is neutrino induced muon and the other is cosmic induced muon?
       //
       ///////////////
 
@@ -394,7 +478,7 @@ void SingleMuon::analyze(art::Event const& evt)
       //std::cout<<"MC particle does not exist!"<<std::endl;
     }
     else{
-      
+     
       auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
       true_mom_mu.push_back(MCparticle->P());
       true_vtx_x.push_back(MCparticle->Vx());
@@ -516,6 +600,14 @@ void SingleMuon::Initialize_event()
   std::cout << "Initialize variables and histograms for root tree output" << std::endl;
   // Make a tree to store momentum information
   my_event_ = tfs->make<TTree>("tree","tree");
+
+  my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
+  my_event_->Branch("MC_nupdg", &MC_nupdg);
+  my_event_->Branch("MC_ccnc", &MC_ccnc);
+  my_event_->Branch("MC_nuVtxX", &MC_nuVtxX);
+  my_event_->Branch("MC_nuVtxY", &MC_nuVtxY);
+  my_event_->Branch("MC_nuVtxZ", &MC_nuVtxZ);
+  my_event_->Branch("MC_FV", &MC_FV);
 
   my_event_->Branch("true_mom_mu", &true_mom_mu);
   my_event_->Branch("true_vtx_x", &true_vtx_x);
