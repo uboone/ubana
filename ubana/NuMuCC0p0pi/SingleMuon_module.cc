@@ -41,6 +41,7 @@
 #include "nusimdata/SimulationBase/simb.h"
 //#include "nutools/G4Base/PrimaryParticleInformation.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/GTruth.h"
 
 #include "TTree.h"
 #include "TBenchmark.h"
@@ -95,15 +96,27 @@ private:
   double MC_nuVtxX; // MCTruth nu vtx X
   double MC_nuVtxY; // MCTruth nu vtx Y
   double MC_nuVtxZ; // MCTruth nu vtx Z
-  //todo
-  int MC_nu_e;
-  int lep_costheta = -9999.;
-  int true_muon_mom = -9999.;
- 
+  int MC_nNeutron; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_belowTH; // Number of proton(s) (p<200) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_middle; // Number of proton(s) (200<p<300) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_aboveTH; // Number of proton(s) (p > 300) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPi0; // Number of pi0(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiPlus; // Number of pi plus(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiMinus; // Number of pi minus(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int Genie_nNeutron_preFSI;// before FSI 
+  int Genie_nProton_preFSI;// before FSI 
+  int Genie_nPi0_preFSI;// before FSI 
+  int Genie_nPiPlus_preFSI;// before FSI 
+  int Genie_nPiMinus_preFSI;// before FSI 
+
+  bool if_selected; // If selected based on the reco info
+  bool if_matchMu; // If the selected track matched with true muon from numu cc
+  bool if_cosmic; // Check if a track is cosmic or not by if it has an associated MCParticle
+
   std::vector<double> true_mom_mu;//True momentum of muon track in the every event
-  std::vector<double> true_vtx_x;//True vertex of muon track (X)
-  std::vector<double> true_vtx_y;//True vertex of muon track (Y)
-  std::vector<double> true_vtx_z;//True vertex of muon track (Z)
+  //std::vector<double> true_vtx_x;//True vertex of muon track (X)
+  //std::vector<double> true_vtx_y;//True vertex of muon track (Y)
+  //std::vector<double> true_vtx_z;//True vertex of muon track (Z)
   std::vector<double> true_start_x;//True start of muon track (X)
   std::vector<double> true_start_y;//True start of muon track (Y)
   std::vector<double> true_start_z;//True start of muon track (Z)
@@ -112,15 +125,16 @@ private:
   std::vector<double> true_end_z;//True end of muon track (Z)
   std::vector<double> true_trk_phi;//True phi of muon track 
   std::vector<double> true_trk_theta;//True theta of muon track 
+  std::vector<double> true_trk_costheta;//True cos(theta) of muon track 
   std::vector<double> true_trk_length;//True track length (distance from the start to the end point) 
   std::vector<double> trk_pdg;//Track pdg 
 
   std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
   std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
-  std::vector<double> mom_fwdMCS_mu;//MCS forward momentum of muon track in the every event
-  std::vector<double> mom_fwdMCS_ll_mu;//Likelihood of MCS forward momentum of muon track in the every event
-  std::vector<double> mom_bwdMCS_mu;//MCS backward momentum of muon track in the every event
-  std::vector<double> mom_bwdMCS_ll_mu;//Likelihood of MCS backward momentum of muon track in the every event
+  //std::vector<double> mom_fwdMCS_mu;//MCS forward momentum of muon track in the every event
+  //std::vector<double> mom_fwdMCS_ll_mu;//Likelihood of MCS forward momentum of muon track in the every event
+  //std::vector<double> mom_bwdMCS_mu;//MCS backward momentum of muon track in the every event
+  //std::vector<double> mom_bwdMCS_ll_mu;//Likelihood of MCS backward momentum of muon track in the every event
  // std::vector<double> mom_bestMCS_SCEcorr_mu;//MCS best momentum with SCE correction of muon track in the every event
  // std::vector<double> mom_bestMCS_SCEcorr_ll_mu;//Likelihood of MCS best momentum with SCE correction of muon track in the every event
  // std::vector<double> mom_fwdMCS_SCEcorr_mu;//MCS forward momentum with SCE correction of muon track in the every event
@@ -139,15 +153,18 @@ private:
   std::vector<double> end_z;//Reconstructed end z in the every event
   std::vector<double> trk_phi;//Reconstructed track phi in the every event
   std::vector<double> trk_theta;//Reconstructed track theta in the every event
+  std::vector<double> trk_costheta;//Reconstructed track cos(theta) in the every event
   std::vector<double> trk_length;//Range momentum of muon track in the every event
   std::vector<bool> trk_ifcontained;//to check if the track is contained or not
-  int ntrack;//number of tracks in this event
-  int nshower;//number of shower in this event
+  std::vector<bool> vtx_FV;//to check if the vertex is in FV or not
+  //int ntrack;//number of tracks in this event
+  //int nshower;//number of shower in this event
   int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
 
   std::string                         m_generatorLabel;
+  std::string                         m_geantLabel;
   std::string                         m_pandoraLabel;
   std::string                         m_hitProducerLabel;
   std::string                         m_trackProducerLabel;
@@ -167,6 +184,7 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   : 
   EDAnalyzer{pset},
   m_generatorLabel(pset.get<std::string>("GeneratorLabel")),
+  m_geantLabel(pset.get<std::string>("GeantLabel")),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
   m_hitProducerLabel(pset.get<std::string>("HitProducerLabel")),
   m_trackProducerLabel(pset.get<std::string>("TrackProducerLabel")),
@@ -191,12 +209,24 @@ void SingleMuon::analyze(art::Event const& evt)
 {
 
   //// Get necessary handles
-  // True
+  // MC Truth
   art::Handle< std::vector<simb::MCTruth> > Handle_MCTruth;
   evt.getByLabel(m_generatorLabel, Handle_MCTruth);
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
   art::fill_ptr_vector(MCTruthCollection, Handle_MCTruth);
 
+  // Genie Truth
+  art::Handle< std::vector<simb::GTruth> > Handle_GTruth;
+  evt.getByLabel(m_generatorLabel, Handle_GTruth);
+  std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
+  art::fill_ptr_vector(GTruthCollection, Handle_GTruth);
+ 
+  // MC Particle
+  art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
+  evt.getByLabel(m_geantLabel, Handle_MCParticle);
+  std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
+  art::fill_ptr_vector(MCParticleCollection, Handle_MCParticle);
+ 
   // Hit
   art::Handle<std::vector<recob::Hit> > Handle_Hit;
   evt.getByLabel(m_hitProducerLabel, Handle_Hit);
@@ -253,8 +283,8 @@ void SingleMuon::analyze(art::Event const& evt)
   //RecoTruth recotruth;
   //recotruth.TrackToMCParticle(evt, Handle_Hit, m_trackProducerLabel);
 
-  ntrack = AllTrackCollection.size();
-  nshower = AllShowerCollection.size();
+  //ntrack = AllTrackCollection.size();
+  //nshower = AllShowerCollection.size();
 
   // Get mapping from ID to PFParticle
   std::unordered_map<size_t, art::Ptr<recob::PFParticle> > pfParticleIdMap;
@@ -276,16 +306,28 @@ void SingleMuon::analyze(art::Event const& evt)
 
   //Constants
   const simb::Origin_t Neutrino_Origin = simb::kBeamNeutrino;
-  //const simb::Origin_t Cosmic_Origin = simb::kCosmicRay;
-  //const simb::Origin_t Unknown_Origin = simb::kUnknown;
 
-  //////// Get part of the generator neutrino info
+  //------- Get part of the generator neutrino info
   //Initiate the variables
   MC_beamNeutrino = false;
   MC_nupdg = -99999;
   MC_ccnc = -99999;
   MC_FV = false;
 
+  MC_nNeutron = 0;
+  MC_nProton_belowTH = 0;
+  MC_nProton_middle = 0;
+  MC_nProton_aboveTH = 0;
+  MC_nPi0 = 0;
+  MC_nPiPlus = 0;
+  MC_nPiMinus = 0;
+
+  Genie_nNeutron_preFSI = 0;
+  Genie_nProton_preFSI = 0;
+  Genie_nPi0_preFSI = 0;
+  Genie_nPiPlus_preFSI = 0;
+  Genie_nPiMinus_preFSI = 0;
+  
   for(int i_mc = 0; i_mc < (int) MCTruthCollection.size(); i_mc++){
     if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) MC_beamNeutrino = true;
     MC_nupdg = MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode();
@@ -296,22 +338,44 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_nuVtxZ = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vz();
     TVector3 true_nuVtx(MC_nuVtxX, MC_nuVtxY, MC_nuVtxZ);
     MC_FV = _fiducial_volume.InFV(true_nuVtx);
-
-    std::cout<<"MC nu vtx X: "<< MC_nuVtxX <<", Y: "<< MC_nuVtxY <<", Z: " << MC_nuVtxZ <<std::endl;
-    std::cout<<"MC FV: "<< MC_FV << std::endl;
-    std::cout<<"MC true pdg: "<< MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode()<<std::endl;
-    std::cout<<"MC CCNC: "<< MCTruthCollection[i_mc]->GetNeutrino().CCNC()<<std::endl;
-    //std::cout<<"If MC nu is from beam neutrino: "<< MCTruthCollection[i_mc]->Origin() <<std::endl;
-    std::cout<<"If MC nu is from beam neutrino: "<< (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) <<std::endl;
-    std::cout<<"==If MC nu is from beam neutrino: "<< MC_beamNeutrino <<std::endl;
   }
-  //////// Get Reco neutrino
+
+  // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
+  // Not necessary all the Genie particles go through the geant4 stage?
+  if (MC_ccnc == 0){
+    for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
+      if(MCParticleCollection[i_mcp]->Process() == "primary"){
+        // neutron
+        if(MCParticleCollection[i_mcp]->PdgCode() == 2112) MC_nNeutron++;
+        // proton
+        if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.2) MC_nProton_belowTH++;
+        if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.2 && MCParticleCollection[i_mcp]->P() <= 0.3) MC_nProton_middle++;
+        if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() > 0.3) MC_nProton_aboveTH++;
+        // pion0
+        if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
+        // pion+
+        if(MCParticleCollection[i_mcp]->PdgCode() == 211) MC_nPiPlus++;
+        // pion-
+        if(MCParticleCollection[i_mcp]->PdgCode() == -211) MC_nPiMinus++;
+      }
+    }
+  }
+  // Get Genie info on how many particles produced
+  for(int i_gn = 0; i_gn < (int) GTruthCollection.size(); i_gn++){
+    Genie_nNeutron_preFSI = GTruthCollection[i_gn]->fNumNeutron;
+    Genie_nProton_preFSI = GTruthCollection[i_gn]->fNumProton;
+    Genie_nPi0_preFSI = GTruthCollection[i_gn]->fNumPi0;
+    Genie_nPiPlus_preFSI = GTruthCollection[i_gn]->fNumPiPlus;
+    Genie_nPiMinus_preFSI = GTruthCollection[i_gn]->fNumPiMinus;
+  }
+
+  //-------- Get Reco neutrino (pfparticle)
   for(int i = 0; i < (int) pfParticle_v.size(); i++){
     auto pfp = pfParticle_v[i];
     if(pfp->IsPrimary() && pfp->PdgCode() == 14){
-      std::cout<<"number of neutrino daughters: "<<pfp->NumDaughters()<<std::endl;
       n_pfp_nuDaughters = pfp->NumDaughters();
-      if(n_pfp_nuDaughters<4){
+      // For CC0pi0p, we only consider the case with the number of neutrino daughters less than 4
+      if(n_pfp_nuDaughters < 4){
         // Get the pointer for the daughters of the neutrino
         for(int j = 0; j< n_pfp_nuDaughters; j++){
           auto Iterator = pfParticleIdMap.find(pfp->Daughters().at(j));
@@ -346,7 +410,80 @@ void SingleMuon::analyze(art::Event const& evt)
       //number of tracks and showers
       n_dau_tracks = daughter_Tracks.size();
       n_dau_showers = daughter_Showers.size();
+      if_cosmic = true;
+      if_matchMu = false;
+      if_selected = false;
 
+      //Todo: temperary version
+      // Selection and Fill in Info
+      if(n_dau_tracks == 1){
+        //-- Fill RECO track info (in the naive version this is selected)
+        if_selected = true;
+
+        bool trk_contained = _fiducial_volume.InFV(daughter_Tracks.front()->Vertex<TVector3>(), daughter_Tracks.front()->End<TVector3>());
+        trk_ifcontained.push_back(trk_contained);       
+       
+        bool vtx_contained = _fiducial_volume.InFV(daughter_Tracks.front()->Vertex<TVector3>());
+        vtx_FV.push_back(vtx_contained);
+ 
+        double bestMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestMomentum();
+        double bestMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestLogLikelihood();
+        mom_bestMCS_mu.push_back(bestMCS);
+        mom_bestMCS_ll_mu.push_back(bestMCSLL);
+
+        auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key());
+        double Trk_Length = assoCal.front()->Range();  //It is said track length in pandoracali has spatial correction       
+        //double trk_len = daughter_Tracks.front()->Length(); //TODO: The track length may be uncorrected. Get the corrected track length from pandoracali
+        trk_length.push_back(Trk_Length);
+        
+        vtx_x.push_back(daughter_Tracks.front()->Vertex().X());
+        vtx_y.push_back(daughter_Tracks.front()->Vertex().Y());
+        vtx_z.push_back(daughter_Tracks.front()->Vertex().Z());
+        start_x.push_back(daughter_Tracks.front()->Start().X());
+        start_y.push_back(daughter_Tracks.front()->Start().Y());
+        start_z.push_back(daughter_Tracks.front()->Start().Z());
+        end_x.push_back(daughter_Tracks.front()->End().X());
+        end_y.push_back(daughter_Tracks.front()->End().Y());
+        end_z.push_back(daughter_Tracks.front()->End().Z());
+        
+        trk_phi.push_back(daughter_Tracks.front()->Phi());
+        trk_theta.push_back(daughter_Tracks.front()->Theta());
+        trk_costheta.push_back(cos(daughter_Tracks.front()->Theta()));
+    
+        double RangeMom = _trk_mom_calculator.GetTrackMomentum(Trk_Length, 13);
+        mom_Range_mu.push_back(RangeMom);
+
+
+        //-- Fill TRUE info, if the track is from numu cc muon
+        std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
+        BackTrackerTruthMatch backtrackertruthmatch;
+        backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
+        auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
+        if(!MCparticle){
+          if_cosmic = true;
+          std::cout<<"MC particle does not exist!"<<std::endl;
+        }
+        else{
+          if_cosmic = false;
+          if(MCparticle->PdgCode() == 13){
+            if_matchMu = true;
+
+            auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
+            true_mom_mu.push_back(MCparticle->P());
+            true_start_x.push_back(MCparticle->Position().X());
+            true_start_y.push_back(MCparticle->Position().Y());
+            true_start_z.push_back(MCparticle->Position().Z());
+            true_end_x.push_back(MCparticle->EndPosition().X());
+            true_end_y.push_back(MCparticle->EndPosition().Y());
+            true_end_z.push_back(MCparticle->EndPosition().Z());
+            true_trk_phi.push_back(TrueTrackPos.Phi());
+            true_trk_theta.push_back(TrueTrackPos.Theta());
+            true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
+            true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z()));
+            trk_pdg.push_back(MCparticle->PdgCode());
+          }
+        }
+      }
       ///////////Plan of implementation.......
       //
       //////1 track + 0 shower
@@ -444,29 +581,17 @@ void SingleMuon::analyze(art::Event const& evt)
           //if() 
         }
         std::cout<<"Spatial corrected length: "<< Trk_Length<<", raw track length: "<<daughter_Tracks.front()->Length()<<std::endl;
-        std::cout<<"size of Range: "<< vresRange.size()<<", size of dEdx: "<<vdEdx.size()<<std::endl;
-        for(int kk = 0; kk < size_dEdx; kk++){
-          std::cout<<"Residual: "<< vresRange[kk]<<", dEdx: "<< vdEdx[kk]<<std::endl;
-        }
-      }
-
-
-      /////
-      //Reco-True Matching
-      /////
-//////////////////////////////////////
-      if(pfp->NumDaughters()==1){
-        // Check if the pfp particle is track or not
-        // Check if the pfp particle is muon or not
-        //recob::PFParticle daughter = pfp->Daughters().front();
-        std::cout<<"type: "<<typeid(pfp->Daughters()).name()<<std::endl;
-        //std::cout<<"pdg of the only neutrino daughter: "<< daughter->PdgCode();
-        //if(daughter->PdgCode() == 13){
+        //std::cout<<"size of Range: "<< vresRange.size()<<", size of dEdx: "<<vdEdx.size()<<std::endl;
+        //for(int kk = 0; kk < size_dEdx; kk++){
+        //  std::cout<<"Residual: "<< vresRange[kk]<<", dEdx: "<< vdEdx[kk]<<std::endl;
         //}
-        // Check if this pfp particle has daughter or not
       }
+
+
     }
   }
+
+/*
   //
   for(int trk_id = 0; trk_id < ntrack; trk_id++){
     // Back track matching
@@ -548,13 +673,15 @@ void SingleMuon::analyze(art::Event const& evt)
     double RangeMom = _trk_mom_calculator.GetTrackMomentum(trk_len, 13);
     mom_Range_mu.push_back(RangeMom);
   }
+*/
+
 
   my_event_->Fill();
 
   true_mom_mu.clear();
-  true_vtx_x.clear();
-  true_vtx_y.clear();
-  true_vtx_z.clear();
+  //true_vtx_x.clear();
+  //true_vtx_y.clear();
+  //true_vtx_z.clear();
   true_start_x.clear();
   true_start_y.clear();
   true_start_z.clear();
@@ -563,15 +690,16 @@ void SingleMuon::analyze(art::Event const& evt)
   true_end_z.clear();
   true_trk_phi.clear();
   true_trk_theta.clear();
+  true_trk_costheta.clear();
   true_trk_length.clear();
   trk_pdg.clear();
 
   mom_bestMCS_mu.clear();
   mom_bestMCS_ll_mu.clear();
-  mom_fwdMCS_mu.clear();
-  mom_fwdMCS_ll_mu.clear();
-  mom_bwdMCS_mu.clear();
-  mom_bwdMCS_ll_mu.clear();
+  //mom_fwdMCS_mu.clear();
+  //mom_fwdMCS_ll_mu.clear();
+  //mom_bwdMCS_mu.clear();
+  //mom_bwdMCS_ll_mu.clear();
   //mom_bestMCS_SCEcorr_mu.clear();
   //mom_bestMCS_SCEcorr_ll_mu.clear();
   //mom_fwdMCS_SCEcorr_mu.clear();
@@ -590,8 +718,10 @@ void SingleMuon::analyze(art::Event const& evt)
   end_z.clear();
   trk_phi.clear();
   trk_theta.clear();
+  trk_costheta.clear();
   trk_length.clear();
   trk_ifcontained.clear();
+  vtx_FV.clear();
 }
 
 void SingleMuon::Initialize_event()
@@ -608,11 +738,23 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("MC_nuVtxY", &MC_nuVtxY);
   my_event_->Branch("MC_nuVtxZ", &MC_nuVtxZ);
   my_event_->Branch("MC_FV", &MC_FV);
+  my_event_->Branch("MC_nNeutron", &MC_nNeutron);
+  my_event_->Branch("MC_nProton_belowTH", &MC_nProton_belowTH);
+  my_event_->Branch("MC_nProton_middle", &MC_nProton_middle);
+  my_event_->Branch("MC_nProton_aboveTH", &MC_nProton_aboveTH);
+  my_event_->Branch("MC_nPi0", &MC_nPi0);
+  my_event_->Branch("MC_nPiPlus", &MC_nPiPlus);
+  my_event_->Branch("MC_nPiMinus", &MC_nPiMinus);
+  my_event_->Branch("Genie_nNeutron_preFSI", &Genie_nNeutron_preFSI);
+  my_event_->Branch("Genie_nProton_preFSI", &Genie_nProton_preFSI);
+  my_event_->Branch("Genie_nPi0_preFSI", &Genie_nPi0_preFSI);
+  my_event_->Branch("Genie_nPiPlus_preFSI", &Genie_nPiPlus_preFSI);
+  my_event_->Branch("Genie_nPiMinus_preFSI", &Genie_nPiMinus_preFSI);
 
   my_event_->Branch("true_mom_mu", &true_mom_mu);
-  my_event_->Branch("true_vtx_x", &true_vtx_x);
-  my_event_->Branch("true_vtx_y", &true_vtx_y);
-  my_event_->Branch("true_vtx_z", &true_vtx_z);
+  //my_event_->Branch("true_vtx_x", &true_vtx_x);
+  //my_event_->Branch("true_vtx_y", &true_vtx_y);
+  //my_event_->Branch("true_vtx_z", &true_vtx_z);
   my_event_->Branch("true_start_x", &true_start_x);
   my_event_->Branch("true_start_y", &true_start_y);
   my_event_->Branch("true_start_z", &true_start_z);
@@ -621,15 +763,23 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("true_end_z", &true_end_z);
   my_event_->Branch("true_trk_phi", &true_trk_phi);
   my_event_->Branch("true_trk_theta", &true_trk_theta);
+  my_event_->Branch("true_trk_costheta", &true_trk_costheta);
   my_event_->Branch("true_trk_length", &true_trk_length);
   my_event_->Branch("trk_pdg", &trk_pdg);
 
+  my_event_->Branch("n_dau_tracks", &n_dau_tracks);
+  my_event_->Branch("n_dau_showers", &n_dau_showers);
+
+  my_event_->Branch("if_cosmic", &if_cosmic);
+  my_event_->Branch("if_matchMu", &if_matchMu);
+  my_event_->Branch("if_selected", &if_selected);
+
   my_event_->Branch("mom_bestMCS_mu", &mom_bestMCS_mu);
   my_event_->Branch("mom_bestMCS_ll_mu", &mom_bestMCS_ll_mu);
-  my_event_->Branch("mom_fwdMCS_mu", &mom_fwdMCS_mu);
-  my_event_->Branch("mom_fwdMCS_ll_mu", &mom_fwdMCS_ll_mu);
-  my_event_->Branch("mom_bwdMCS_mu", &mom_bwdMCS_mu);
-  my_event_->Branch("mom_bwdMCS_ll_mu", &mom_bwdMCS_ll_mu);
+  //my_event_->Branch("mom_fwdMCS_mu", &mom_fwdMCS_mu);
+  //my_event_->Branch("mom_fwdMCS_ll_mu", &mom_fwdMCS_ll_mu);
+  //my_event_->Branch("mom_bwdMCS_mu", &mom_bwdMCS_mu);
+  //my_event_->Branch("mom_bwdMCS_ll_mu", &mom_bwdMCS_ll_mu);
   //my_event_->Branch("mom_bestMCS_SCEcorr_mu", &mom_bestMCS_SCEcorr_mu);
   //my_event_->Branch("mom_bestMCS_SCEcorr_ll_mu", &mom_bestMCS_SCEcorr_ll_mu);
   //my_event_->Branch("mom_fwdMCS_SCEcorr_mu", &mom_fwdMCS_SCEcorr_mu);
@@ -648,10 +798,12 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("end_z", &end_z);
   my_event_->Branch("trk_phi", &trk_phi);
   my_event_->Branch("trk_theta", &trk_theta);
+  my_event_->Branch("trk_costheta", &trk_costheta);
   my_event_->Branch("trk_length", &trk_length);
   my_event_->Branch("trk_ifcontained", &trk_ifcontained);
-  my_event_->Branch("ntrack", &ntrack);
-  my_event_->Branch("nshower", &nshower);
+  my_event_->Branch("vtx_FV", &vtx_FV);
+  //my_event_->Branch("ntrack", &ntrack);
+  //my_event_->Branch("nshower", &nshower);
 }
 
 void SingleMuon::beginJob()
