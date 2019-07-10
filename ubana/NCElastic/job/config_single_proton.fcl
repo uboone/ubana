@@ -1,0 +1,104 @@
+#include "pandoramodules_microboone.fcl"
+#include "external_event_building.fcl"
+#include "flash_neutrino_id.fcl"
+#include "calorimetry_microboone.fcl"
+#include "config_dedx_calibration.fcl"
+#include "config_particle_identification.fcl"
+#include "calibration_microboone.fcl"
+
+BEGIN_PROLOG
+
+# Track/Shower creation on the alloutcomes collections
+pandoraAllOutcomesTrack:          @local::microboone_pandoraTrackCreation
+pandoraAllOutcomesTrack.PFParticleLabel:  "pandoraPatRec:allOutcomes"
+pandoraAllOutcomesShower:         @local::microboone_pandoraShowerCreation
+pandoraAllOutcomesShower.PFParticleLabel:  "pandoraPatRec:allOutcomes"
+
+# Flash neutrino ID tool - Use optical information only to select the neutrino slice
+pandora_flash_event_building: @local::pandora_event_building
+pandora_flash_event_building.SliceIdTool: @local::flash_neutrino_id_tool
+#pandora_flash_event_building.ShouldUseTestBeamMode: false
+#pandora_flash_event_building.ShouldOutputSubrunsTree: true
+#pandora_flash_event_building.IsData: false
+#pandora_flash_event_building.GeneratorLabel: "generator"
+#pandora_flash_event_building.SliceIdTool.HasCRT: true
+#pandora_flash_event_building.SliceIdTool.FlashLabel: "wcopflash:beam"
+pandora_flash_event_building.SliceIdTool.FlashLabel: "simpleFlashBeam"
+
+pandoraFMLucaloSCE: @local::microboone_calomc
+pandoraFMLucaloSCE.TrackModuleLabel: "pandoraFMLu"
+pandoraFMLucaloSCE.SpacePointModuleLabel: "pandoraFMLu"
+pandoraFMLucaloSCE.CorrectSCE: true
+pandoraFMLucaliSCE: @local::microboone_calibrationdedx
+pandoraFMLucaliSCE.TrackModuleLabel: "pandoraFMLu"
+pandoraFMLucaliSCE.CalorimetryModuleLabel: "pandoraFMLucaloSCE"
+pandoraFMLucaliSCE.CorrectSCE: true
+pandoraFMLucalipidSCE: @local::particleidconfig
+pandoraFMLucalipidSCE.ProducerLabels.TrackLabel: "pandoraFMLu"
+pandoraFMLucalipidSCE.ProducerLabels.CalorimetryLabel: "pandoraFMLucaliSCE"
+
+single_proton_ana: 
+{
+    module_type: "SingleProton"
+
+    # Input producers
+    pfp_producer: "pandoraFMLu"
+}
+
+END_PROLOG
+
+###################################################################################
+
+#include "services_microboone.fcl"
+#include "photpropservices_microboone.fcl"
+#include "time_memory_tracker_microboone.fcl"
+#include "reco_uboone_mcc9_8.fcl"
+#
+process_name: NCEAna
+
+services:
+{
+  scheduler:               {defaultExceptions: false}
+  TFileService:            {fileName: "singleproton_anatree.root"}
+
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+
+  TimeTracker:              @local::microboone_time_tracker
+  MemoryTracker:            @local::microboone_memory_tracker
+  message:                  @local::microboone_message_services_prod_debug
+  FileCatalogMetadata:      @local::art_file_catalog_mc
+  SpaceCharge:              @local::microboone_spacecharge
+  DetectorPropertiesService:@local::microboone_detproperties
+  LArProperties:            @local::microboone_properties
+  DetectorClocksService:    @local::microboone_detectorclocks
+  PhotonVisibilityService:  @local::microboone_photonvisibilityservice
+#  PmtGainService:           @local::PMTService
+}
+
+# Configuration
+services.SpaceCharge.EnableCorrSCE:       true
+services.SpaceCharge.EnableSimEfieldSCE:  true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.DetectorClocksService.InheritClockConfig:                         false
+services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1
+  fileNames: []
+  #saveMemoryObjectThreshold: 0
+}
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName: "%ifb_%tc_FMLu.root"
+   dataTier: "reconstructed"
+   compressionLevel: 1
+   saveMemoryObjectThreshold: 0
+ }
+}

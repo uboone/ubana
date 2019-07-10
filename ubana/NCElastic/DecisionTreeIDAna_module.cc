@@ -38,6 +38,8 @@
 #include "ubana/NCElastic/Algorithms/BackTrackerTruthMatch.h"
 #include "ubana/NCElastic/Algorithms/TrackFeatures.h"
 
+#include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
+
 #include <memory>
 #include <iostream>
 
@@ -78,12 +80,13 @@ private:
   std::string _potsum_producer;
   std::string _potsum_instance;
   std::string _fcsvname;
+  std::string m_pfp_producer;
   bool        _writecsv;
   std::string fMCParticleModuleLabel;
   std::string fHitModuleLabel;                    
   std::string fMCParticleToMCTruthAssModuleLabel; 
   fhicl::ParameterSet _truthparams;
- bool _debug=true;
+ bool _debug=false;
   
   TTree* _tree1;
   int _run, _subrun, _event, _trackid;
@@ -110,6 +113,23 @@ private:
   double _sr_begintime, _sr_endtime;
   double _sr_pot;
 
+  lar_pandora::LArPandoraHelper larpandora;
+  lar_pandora::PFParticleVector pfparticles;
+  lar_pandora::PFParticleVector pfneutrinos;
+  lar_pandora::PFParticleVector pfdaughters;
+  lar_pandora::ShowerVector pfshowers;
+  lar_pandora::TrackVector pftracks;
+  lar_pandora::PFParticleMap particleMap;
+  lar_pandora::PFParticlesToMetadata particlesToMetadata;
+  lar_pandora::PFParticlesToVertices particlesToVertices;
+  lar_pandora::PFParticlesToClusters particlesToClusters;
+  lar_pandora::PFParticlesToShowers particlesToShowers;
+  lar_pandora::PFParticlesToTracks particlesToTracks;
+  lar_pandora::PFParticlesToSpacePoints particlesToSpacePoints;
+  lar_pandora::ClustersToHits clustersToHits;
+  lar_pandora::HitsToSpacePoints hitsToSpacePoints;
+  lar_pandora::SpacePointsToHits spacePointsToHits;
+  
   const anab::CosmicTagID_t TAGID_P  = anab::CosmicTagID_t::kGeometry_YY;
   const anab::CosmicTagID_t TAGID_MU = anab::CosmicTagID_t::kGeometry_YZ;
   const anab::CosmicTagID_t TAGID_PI = anab::CosmicTagID_t::kGeometry_ZZ;
@@ -123,7 +143,6 @@ DecisionTreeIDAna::DecisionTreeIDAna(fhicl::ParameterSet const & p)
   : EDAnalyzer(p) 
 {
   _trackmodulelabel = p.get<std::string>("TrackModuleLabel");
-  // _showermodulelabel = p.get<std::string>("ShowerModuleLabel","pandora");
   _getprediction    = p.get<bool>("GetDTPrediction", false);
   _dtassoclabel     = p.get<std::string>("DTAssocLabel", "decisiontreeid");
   _getmctruth       = p.get<bool>("GetMCTruth", false);
@@ -134,14 +153,15 @@ DecisionTreeIDAna::DecisionTreeIDAna(fhicl::ParameterSet const & p)
   _fcsvname         = p.get<std::string>("CSVFileOut","test.csv");
   _writecsv         = p.get<bool>("WriteCSV", false);
   _truthparams      = p.get<fhicl::ParameterSet>("MCTruthMatching");
-  //_tpcobject_producer             = p.get<std::string>("TPCObjectProducer");   
+  m_pfp_producer = p.get<std::string>("pfp_producer", "pandoraFlashEventBuilding");
+
   _potsum_producer                = p.get<std::string>("POTSummaryProducer");
   _potsum_instance                = p.get<std::string>("POTSummaryInstance");
   fTrackFeatures.Configure(p.get<fhicl::ParameterSet>("FeaturesConfig"));
   fMCParticleModuleLabel= p.get<std::string>("MCParticleModuleLabel","largeant");
-fMCParticleToMCTruthAssModuleLabel= p.get<std::string>("MCParticleToMCTruthAssModuleLabel","largeant");
- fHitModuleLabel=p.get<std::string>("HitModuleLabel","gaushit");
-
+  fMCParticleToMCTruthAssModuleLabel= p.get<std::string>("MCParticleToMCTruthAssModuleLabel","largeant");
+  fHitModuleLabel=p.get<std::string>("HitModuleLabel","gaushit");
+  
    art::ServiceHandle<art::TFileService> tfs;
   _tree1 = tfs->make<TTree>("tree","");
   _tree1->Branch("run",    &_run,    "run/I");
@@ -204,6 +224,22 @@ fMCParticleToMCTruthAssModuleLabel= p.get<std::string>("MCParticleToMCTruthAssMo
 
 void DecisionTreeIDAna::analyze(art::Event const & e)
 {
+ pfparticles.clear();
+    pfneutrinos.clear();
+    pfdaughters.clear();
+    pfshowers.clear();
+    pftracks.clear();
+    particleMap.clear();
+    particlesToMetadata.clear();
+    particlesToVertices.clear();
+    particlesToClusters.clear();
+    particlesToSpacePoints.clear();
+    particlesToShowers.clear();
+    particlesToTracks.clear();
+    clustersToHits.clear();
+    hitsToSpacePoints.clear();
+    spacePointsToHits.clear();
+
 
   _run    = e.id().run();
   _subrun = e.id().subRun();
@@ -214,6 +250,43 @@ void DecisionTreeIDAna::analyze(art::Event const & e)
   // open csv for writing 
   if(_writecsv) fout.open(_fcsvname.c_str(),std::ofstream::out | std::ofstream::app);
   
+  ////////
+/*
+ larpandora.CollectPFParticleMetadata(e, m_pfp_producer, pfparticles, particlesToMetadata);
+  larpandora.BuildPFParticleMap(pfparticles, particleMap);
+  std::cout << "Number of PFParticles in event " <<pfparticles.size()<< std::endl;
+  if (pfparticles.size() == 0)
+    std::cout << "[NuCC::FillReconstructed] No reconstructed PFParticles in event." << std::endl;
+  else
+  {
+    larpandora.SelectNeutrinoPFParticles(pfparticles, pfneutrinos);
+    if (pfneutrinos.size() != 1)
+      std::cout << "[NuCC::FillReconstructed] Number of reconstructed neutrinos in event is " << pfneutrinos.size() << std::endl;
+    else
+      { std::cout << "There is a neutrino slice! " << pfneutrinos.size() << std::endl;
+	//	 std::cout << "number of pfp is  " << pfparticles.size() << std::endl;
+
+	 for (const auto &particle : pfparticles)
+	   {
+
+	     std::cout<<"primary? "<<particle->IsPrimary()<<std::endl;
+	//     std::cout<<"pdg? "<<particle->PdgCode()<<std::endl;
+	   }
+	 //	art::Ptr<recob::PFParticle> pfnu = pfneutrinos.front();
+	//	 std::cout << "number of pfp is  " << pfneutrinos.at(0)->NumDaughters()<< std::endl;
+
+	// std::cout << "number of pfp is  " << pfdaughters.size() << std::endl;
+      }
+  }
+
+
+  /////
+*/
+
+
+
+
+
   // recover handle for tracks that we want to analyze
   art::Handle< std::vector<recob::Track> > trackVecHandle;
   e.getByLabel(_trackmodulelabel, trackVecHandle);

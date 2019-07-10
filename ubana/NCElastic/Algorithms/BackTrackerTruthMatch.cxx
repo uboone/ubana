@@ -16,26 +16,30 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 	art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hit_handle,e,BackTrackerLabel);
 
 	std::unordered_map<int,double> trkide;
-
+bool _debug=true;
 	//apapadop
 	std::vector<art::Ptr<simb::MCParticle>> particle_vec;
 	//std::vector<simb::MCParticle const*> particle_vec;
 
 	std::vector<anab::BackTrackerHitMatchingData const*> match_vec;
 
-	double max_dQinTruthMatchedHits = -1., dQinAllHits = 0.;
-	std::unordered_map<int,double> trackid_dQinTruthMatchedHits;
+//	double max_dQinTruthMatchedHits = -1., dQinAllHits = 0.;
+//	std::unordered_map<int,double> trackid_dQinTruthMatchedHits;
 
 	// Loop only over the recob::Hits
+ if (_debug)   std::cout << "[Single Proton] Truth Matching DEBUGGING 0 "<< std::endl;
+ if (_debug)   std::cout << "[Single Proton] Truth Matching DEBUGGING trk_hits_ptrs.size() "<<trk_hits_ptrs.size()<< std::endl;
+//  if (_debug)   std::cout << "[Single Proton] Truth Matching DEBUGGING particle_vec.size() "<<particle_vec.size()<< std::endl;
 
 	for (int i_h = 0; i_h < int(trk_hits_ptrs.size()); ++i_h) {
 
-		float dQinHit = trk_hits_ptrs[i_h]->Integral(); // Charge deposition of a recob::Hit
-		dQinAllHits += dQinHit; // Total charge deposition of all recob::Hit
+//		float dQinHit = trk_hits_ptrs[i_h]->Integral(); // Charge deposition of a recob::Hit
+//		dQinAllHits += dQinHit; // Total charge deposition of all recob::Hit
 
 		particle_vec.clear();  // vector of MCParticles
 		match_vec.clear();
 		particles_per_hit.get(trk_hits_ptrs[i_h].key(),particle_vec,match_vec);
+		//if (_debug)   std::cout << "[Single Proton] Truth Matching DEBUGGING particle_vec.size() "<<particle_vec.size()<<" "<<i_h<< std::endl;
 
 		// To avoid matching the same particle more than once, we introduce a vector of matched TrackId-s
 		// and require that the matched particle has not been matched already for this recob::Hit
@@ -44,7 +48,7 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 		/*		std::vector <int> ParticlesMatchedInThisHit;*/
 
 		// Loop over MCParticles that match this hit and ask which one deposited the most energy
-
+ //if (_debug)   std::cout << "[Single Proton] Truth Matching DEBUGGING 1"<< std::endl;
 		for(int i_p = 0; i_p < int(particle_vec.size()); ++i_p) {
 
 		  //apapadop
@@ -53,24 +57,25 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 		  			art::FindOneP<simb::MCTruth> MCParticleToMCTruth(mcparticle_handle,e,MCParticleModuleLabel);
 			const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruth.at( particle_vec[i_p].key());
 			if (mctruth->Origin() != 1) { continue; }*/
-
+ if (_debug)   std::cout << "[Single Proton] Truth Matching DEBUGGING 2"<< std::endl;
 			float Edep_particle = match_vec[i_p]->energy; // Energy deposited by ionization by this track ID [MeV]
 
 			trkide[particle_vec[i_p]->TrackId()] += Edep_particle; // Store energy [MeV] deposited by track id
 
 			ftote += Edep_particle; // Calculate total energy deposited by all recob::Hits
-
+ if (_debug)   std::cout << "[Single Proton] Truth Matching DEBUGGING 3"<< std::endl;
 			if (trkide[particle_vec[i_p]->TrackId()] > fmaxe) { // Keep track of maximum
 
 				fmaxe = trkide[ particle_vec[i_p]->TrackId() ];
 				fmaxp_me = particle_vec[i_p];
 				fMCParticleID = particle_vec[i_p].key();
+ if (_debug)   std::cout << "[Single Proton] Truth Matching DEBUGGING 4 "<< std::endl;
 				//apapadop
 				//				if (!ParticleAlreadyMatchedInThisHit( ParticlesMatchedInThisHit , (int)particle_vec[i_p]->TrackId()) ) {
 				//apapadop
 				//ParticlesMatchedInThisHit.push_back( (int)particle_vec[i_p]->TrackId() );
-					trackid_dQinTruthMatchedHits[ particle_vec[i_p]->TrackId() ] += dQinHit; // store the integral on the hit by the track id
-					max_dQinTruthMatchedHits = trackid_dQinTruthMatchedHits[ particle_vec[i_p]->TrackId() ];
+//					trackid_dQinTruthMatchedHits[ particle_vec[i_p]->TrackId() ] += dQinHit; // store the integral on the hit by the track id
+//					max_dQinTruthMatchedHits = trackid_dQinTruthMatchedHits[ particle_vec[i_p]->TrackId() ];
 
 					//}
 		
@@ -80,8 +85,8 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 
 	} // End of the loop over the hits
 
-	fpurity = max_dQinTruthMatchedHits / dQinAllHits;
-
+//	fpurity = max_dQinTruthMatchedHits / dQinAllHits;
+fpurity = 0.2;
 	fcompleteness = fmaxe / ftote;
 
 	double kMin_dQ_inTruthMatchedHits = 0.;

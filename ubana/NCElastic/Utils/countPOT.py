@@ -23,7 +23,7 @@ fname = glob(args.infile)
 print "Input file(s): ", fname
 
 # Creating TChain
-chainPOT = TChain("decisiontreeidana/pottree")
+chainPOT = TChain("SingleProtonAna/pottree")
 for f in fname: 
   chainPOT.Add(f)
            
