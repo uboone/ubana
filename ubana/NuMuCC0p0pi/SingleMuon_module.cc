@@ -37,9 +37,9 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
+#include "larcoreobj/SummaryData/POTSummary.h"
 
 #include "nusimdata/SimulationBase/simb.h"
-//#include "nutools/G4Base/PrimaryParticleInformation.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/GTruth.h"
 
@@ -70,9 +70,10 @@ public:
   SingleMuon& operator=(SingleMuon&&) = delete;
 
   // Required functions.
-  void analyze(art::Event const& e) override;
+  void analyze(art::Event const& evt) override;
 
   // Selected optional functions.
+  void endSubRun(art::SubRun const &sr) override;
   void beginJob() override;
   void endJob() override;
 
@@ -85,6 +86,11 @@ private:
   art::ServiceHandle<geo::Geometry> geo;
 
   art::ServiceHandle<art::TFileService> tfs;
+
+  TTree * POTtree;
+  int run, subrun;
+  double POT_miss1E10;
+
   TTree * my_event_;
   
   void Initialize_event();
@@ -539,7 +545,7 @@ void SingleMuon::analyze(art::Event const& evt)
         // Get directional info to see if the track start is in the TPC / FV by dE/dx
         // pandoracaliSCE has E-field and spatial correction
         auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key()); // take the only track
-        std::cout<<"calo size: "<< assoCal.size()<<std::endl;
+        //std::cout<<"calo size: "<< assoCal.size()<<std::endl;
         if(assoCal.size()!=3){
           throw cet::exception("[Numu0pi0p]") << "Where are the three planes for the calorimetry!" << std::endl;
         }
@@ -728,7 +734,15 @@ void SingleMuon::Initialize_event()
 {
   // Implementation of optional member function here.
   std::cout << "Initialize variables and histograms for root tree output" << std::endl;
-  // Make a tree to store momentum information
+
+  // Make a tree store run and subrun info for POT
+  POTtree = tfs->make<TTree>("POTtree","POTtree");
+ 
+  POTtree->Branch("run", &run);
+  POTtree->Branch("subrun", &subrun);
+  POTtree->Branch("POT_miss1E10", &POT_miss1E10);
+
+  // Make a tree to store selection information
   my_event_ = tfs->make<TTree>("tree","tree");
 
   my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
@@ -806,6 +820,22 @@ void SingleMuon::Initialize_event()
   //my_event_->Branch("nshower", &nshower);
 }
 
+void SingleMuon::endSubRun(art::SubRun const &sr){
+
+  run       = sr.run();
+  subrun    = sr.subRun();
+ 
+  // For Overlay or MC
+  art::Handle<sumdata::POTSummary> Handle_potsum;
+  sr.getByLabel("generator", Handle_potsum);
+  POT_miss1E10 = Handle_potsum->totpot;
+  POT_miss1E10 = POT_miss1E10 / 1E10;
+ // POT = 1E18;
+  std::cout<<"-------POT: "<<POT_miss1E10<<std::endl;
+  
+  POTtree->Fill();
+}
+   
 void SingleMuon::beginJob()
 {
   // Implementation of optional member function here.
