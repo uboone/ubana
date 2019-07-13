@@ -94,7 +94,7 @@ private:
   TTree * my_event_;
   
   void Initialize_event();
-
+  
   bool MC_beamNeutrino; // MCTruth beam origin
   bool MC_FV; // MCTruth vertex in FV = true, out of FV = false
   int MC_ccnc; // MCTruth cc = 0 or nc = 1
@@ -115,10 +115,6 @@ private:
   int Genie_nPiPlus_preFSI;// before FSI 
   int Genie_nPiMinus_preFSI;// before FSI 
 
-  bool if_selected; // If selected based on the reco info
-  bool if_matchMu; // If the selected track matched with true muon from numu cc
-  bool if_cosmic; // Check if a track is cosmic or not by if it has an associated MCParticle
-
   std::vector<double> true_mom_mu;//True momentum of muon track in the every event
   //std::vector<double> true_vtx_x;//True vertex of muon track (X)
   //std::vector<double> true_vtx_y;//True vertex of muon track (Y)
@@ -134,6 +130,10 @@ private:
   std::vector<double> true_trk_costheta;//True cos(theta) of muon track 
   std::vector<double> true_trk_length;//True track length (distance from the start to the end point) 
   std::vector<double> trk_pdg;//Track pdg 
+
+  bool if_selected; // If selected based on the reco info
+  bool if_matchMu; // If the selected track matched with true muon from numu cc
+  bool if_cosmic; // Check if a track is cosmic or not by if it has an associated MCParticle
 
   std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
   std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
@@ -169,6 +169,7 @@ private:
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
 
+  bool                                IsMC;
   std::string                         m_generatorLabel;
   std::string                         m_geantLabel;
   std::string                         m_pandoraLabel;
@@ -189,6 +190,7 @@ private:
 SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   : 
   EDAnalyzer{pset},
+  IsMC(pset.get<bool>("IsMC")),
   m_generatorLabel(pset.get<std::string>("GeneratorLabel")),
   m_geantLabel(pset.get<std::string>("GeantLabel")),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
@@ -215,24 +217,30 @@ void SingleMuon::analyze(art::Event const& evt)
 {
 
   //// Get necessary handles
-  // MC Truth
-  art::Handle< std::vector<simb::MCTruth> > Handle_MCTruth;
-  evt.getByLabel(m_generatorLabel, Handle_MCTruth);
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
-  art::fill_ptr_vector(MCTruthCollection, Handle_MCTruth);
-
-  // Genie Truth
-  art::Handle< std::vector<simb::GTruth> > Handle_GTruth;
-  evt.getByLabel(m_generatorLabel, Handle_GTruth);
   std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
-  art::fill_ptr_vector(GTruthCollection, Handle_GTruth);
- 
-  // MC Particle
-  art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
-  evt.getByLabel(m_geantLabel, Handle_MCParticle);
   std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
-  art::fill_ptr_vector(MCParticleCollection, Handle_MCParticle);
+
+  if(IsMC){
+    // MC Truth
+    art::Handle< std::vector<simb::MCTruth> > Handle_MCTruth;
+    evt.getByLabel(m_generatorLabel, Handle_MCTruth);
+    //std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
+    art::fill_ptr_vector(MCTruthCollection, Handle_MCTruth);
+
+    // Genie Truth
+    art::Handle< std::vector<simb::GTruth> > Handle_GTruth;
+    evt.getByLabel(m_generatorLabel, Handle_GTruth);
+    //std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
+    art::fill_ptr_vector(GTruthCollection, Handle_GTruth);
  
+    // MC Particle
+    art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
+    evt.getByLabel(m_geantLabel, Handle_MCParticle);
+    //std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
+    art::fill_ptr_vector(MCParticleCollection, Handle_MCParticle);
+  }
+
   // Hit
   art::Handle<std::vector<recob::Hit> > Handle_Hit;
   evt.getByLabel(m_hitProducerLabel, Handle_Hit);
@@ -313,66 +321,69 @@ void SingleMuon::analyze(art::Event const& evt)
   //Constants
   const simb::Origin_t Neutrino_Origin = simb::kBeamNeutrino;
 
-  //------- Get part of the generator neutrino info
-  //Initiate the variables
-  MC_beamNeutrino = false;
-  MC_nupdg = -99999;
-  MC_ccnc = -99999;
-  MC_FV = false;
+  if(IsMC){
+    //------- Get part of the generator neutrino info
+    //Initiate the variables
+    MC_beamNeutrino = false;
+    MC_nupdg = -99999;
+    MC_ccnc = -99999;
+    MC_FV = false;
 
-  MC_nNeutron = 0;
-  MC_nProton_belowTH = 0;
-  MC_nProton_middle = 0;
-  MC_nProton_aboveTH = 0;
-  MC_nPi0 = 0;
-  MC_nPiPlus = 0;
-  MC_nPiMinus = 0;
+    MC_nNeutron = 0;
+    MC_nProton_belowTH = 0;
+    MC_nProton_middle = 0;
+    MC_nProton_aboveTH = 0;
+    MC_nPi0 = 0;
+    MC_nPiPlus = 0;
+    MC_nPiMinus = 0;
 
-  Genie_nNeutron_preFSI = 0;
-  Genie_nProton_preFSI = 0;
-  Genie_nPi0_preFSI = 0;
-  Genie_nPiPlus_preFSI = 0;
-  Genie_nPiMinus_preFSI = 0;
-  
-  for(int i_mc = 0; i_mc < (int) MCTruthCollection.size(); i_mc++){
-    if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) MC_beamNeutrino = true;
-    MC_nupdg = MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode();
-    MC_ccnc = MCTruthCollection[i_mc]->GetNeutrino().CCNC();
+    Genie_nNeutron_preFSI = 0;
+    Genie_nProton_preFSI = 0;
+    Genie_nPi0_preFSI = 0;
+    Genie_nPiPlus_preFSI = 0;
+    Genie_nPiMinus_preFSI = 0;
+    
+    for(int i_mc = 0; i_mc < (int) MCTruthCollection.size(); i_mc++){
+      if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) MC_beamNeutrino = true;
+      MC_nupdg = MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode();
+      MC_ccnc = MCTruthCollection[i_mc]->GetNeutrino().CCNC();
 
-    MC_nuVtxX = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vx();
-    MC_nuVtxY = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vy();
-    MC_nuVtxZ = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vz();
-    TVector3 true_nuVtx(MC_nuVtxX, MC_nuVtxY, MC_nuVtxZ);
-    MC_FV = _fiducial_volume.InFV(true_nuVtx);
-  }
+      MC_nuVtxX = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vx();
+      MC_nuVtxY = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vy();
+      MC_nuVtxZ = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vz();
+      TVector3 true_nuVtx(MC_nuVtxX, MC_nuVtxY, MC_nuVtxZ);
+      MC_FV = _fiducial_volume.InFV(true_nuVtx);
+    }
 
-  // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
-  // Not necessary all the Genie particles go through the geant4 stage?
-  if (MC_ccnc == 0){
-    for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
-      if(MCParticleCollection[i_mcp]->Process() == "primary"){
-        // neutron
-        if(MCParticleCollection[i_mcp]->PdgCode() == 2112) MC_nNeutron++;
-        // proton
-        if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.2) MC_nProton_belowTH++;
-        if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.2 && MCParticleCollection[i_mcp]->P() <= 0.3) MC_nProton_middle++;
-        if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() > 0.3) MC_nProton_aboveTH++;
-        // pion0
-        if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
-        // pion+
-        if(MCParticleCollection[i_mcp]->PdgCode() == 211) MC_nPiPlus++;
-        // pion-
-        if(MCParticleCollection[i_mcp]->PdgCode() == -211) MC_nPiMinus++;
+    // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
+    // Not necessary all the Genie particles go through the geant4 stage?
+    if (MC_ccnc == 0){
+      for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
+        if(MCParticleCollection[i_mcp]->Process() == "primary"){
+          // neutron
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2112) MC_nNeutron++;
+          // proton
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.2) MC_nProton_belowTH++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.2 && MCParticleCollection[i_mcp]->P() <= 0.3) MC_nProton_middle++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() > 0.3) MC_nProton_aboveTH++;
+          // pion0
+          if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
+          // pion+
+          if(MCParticleCollection[i_mcp]->PdgCode() == 211) MC_nPiPlus++;
+          // pion-
+          if(MCParticleCollection[i_mcp]->PdgCode() == -211) MC_nPiMinus++;
+        }
       }
     }
-  }
-  // Get Genie info on how many particles produced
-  for(int i_gn = 0; i_gn < (int) GTruthCollection.size(); i_gn++){
-    Genie_nNeutron_preFSI = GTruthCollection[i_gn]->fNumNeutron;
-    Genie_nProton_preFSI = GTruthCollection[i_gn]->fNumProton;
-    Genie_nPi0_preFSI = GTruthCollection[i_gn]->fNumPi0;
-    Genie_nPiPlus_preFSI = GTruthCollection[i_gn]->fNumPiPlus;
-    Genie_nPiMinus_preFSI = GTruthCollection[i_gn]->fNumPiMinus;
+    
+    // Get Genie info on how many particles produced
+    for(int i_gn = 0; i_gn < (int) GTruthCollection.size(); i_gn++){
+      Genie_nNeutron_preFSI = GTruthCollection[i_gn]->fNumNeutron;
+      Genie_nProton_preFSI = GTruthCollection[i_gn]->fNumProton;
+      Genie_nPi0_preFSI = GTruthCollection[i_gn]->fNumPi0;
+      Genie_nPiPlus_preFSI = GTruthCollection[i_gn]->fNumPiPlus;
+      Genie_nPiMinus_preFSI = GTruthCollection[i_gn]->fNumPiMinus;
+    }
   }
 
   //-------- Get Reco neutrino (pfparticle)
@@ -461,32 +472,34 @@ void SingleMuon::analyze(art::Event const& evt)
 
 
         //-- Fill TRUE info, if the track is from numu cc muon
-        std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
-        BackTrackerTruthMatch backtrackertruthmatch;
-        backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
-        auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
-        if(!MCparticle){
-          if_cosmic = true;
-          std::cout<<"MC particle does not exist!"<<std::endl;
-        }
-        else{
-          if_cosmic = false;
-          if(MCparticle->PdgCode() == 13){
-            if_matchMu = true;
+        if(IsMC){
+          std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
+          BackTrackerTruthMatch backtrackertruthmatch;
+          backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
+          auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
+          if(!MCparticle){
+            if_cosmic = true;
+            std::cout<<"MC particle does not exist!"<<std::endl;
+          }
+          else{
+            if_cosmic = false;
+            if(MCparticle->PdgCode() == 13){
+              if_matchMu = true;
 
-            auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
-            true_mom_mu.push_back(MCparticle->P());
-            true_start_x.push_back(MCparticle->Position().X());
-            true_start_y.push_back(MCparticle->Position().Y());
-            true_start_z.push_back(MCparticle->Position().Z());
-            true_end_x.push_back(MCparticle->EndPosition().X());
-            true_end_y.push_back(MCparticle->EndPosition().Y());
-            true_end_z.push_back(MCparticle->EndPosition().Z());
-            true_trk_phi.push_back(TrueTrackPos.Phi());
-            true_trk_theta.push_back(TrueTrackPos.Theta());
-            true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
-            true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z()));
-            trk_pdg.push_back(MCparticle->PdgCode());
+              auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
+              true_mom_mu.push_back(MCparticle->P());
+              true_start_x.push_back(MCparticle->Position().X());
+              true_start_y.push_back(MCparticle->Position().Y());
+              true_start_z.push_back(MCparticle->Position().Z());
+              true_end_x.push_back(MCparticle->EndPosition().X());
+              true_end_y.push_back(MCparticle->EndPosition().Y());
+              true_end_z.push_back(MCparticle->EndPosition().Z());
+              true_trk_phi.push_back(TrueTrackPos.Phi());
+              true_trk_theta.push_back(TrueTrackPos.Theta());
+              true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
+              true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z()));
+              trk_pdg.push_back(MCparticle->PdgCode());
+            }
           }
         }
       }
@@ -684,21 +697,23 @@ void SingleMuon::analyze(art::Event const& evt)
 
   my_event_->Fill();
 
-  true_mom_mu.clear();
-  //true_vtx_x.clear();
-  //true_vtx_y.clear();
-  //true_vtx_z.clear();
-  true_start_x.clear();
-  true_start_y.clear();
-  true_start_z.clear();
-  true_end_x.clear();
-  true_end_y.clear();
-  true_end_z.clear();
-  true_trk_phi.clear();
-  true_trk_theta.clear();
-  true_trk_costheta.clear();
-  true_trk_length.clear();
-  trk_pdg.clear();
+  if(IsMC){
+    true_mom_mu.clear();
+    //true_vtx_x.clear();
+    //true_vtx_y.clear();
+    //true_vtx_z.clear();
+    true_start_x.clear();
+    true_start_y.clear();
+    true_start_z.clear();
+    true_end_x.clear();
+    true_end_y.clear();
+    true_end_z.clear();
+    true_trk_phi.clear();
+    true_trk_theta.clear();
+    true_trk_costheta.clear();
+    true_trk_length.clear();
+    trk_pdg.clear();
+  }
 
   mom_bestMCS_mu.clear();
   mom_bestMCS_ll_mu.clear();
@@ -744,42 +759,44 @@ void SingleMuon::Initialize_event()
 
   // Make a tree to store selection information
   my_event_ = tfs->make<TTree>("tree","tree");
+  
+  if(IsMC){
+    my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
+    my_event_->Branch("MC_nupdg", &MC_nupdg);
+    my_event_->Branch("MC_ccnc", &MC_ccnc);
+    my_event_->Branch("MC_nuVtxX", &MC_nuVtxX);
+    my_event_->Branch("MC_nuVtxY", &MC_nuVtxY);
+    my_event_->Branch("MC_nuVtxZ", &MC_nuVtxZ);
+    my_event_->Branch("MC_FV", &MC_FV);
+    my_event_->Branch("MC_nNeutron", &MC_nNeutron);
+    my_event_->Branch("MC_nProton_belowTH", &MC_nProton_belowTH);
+    my_event_->Branch("MC_nProton_middle", &MC_nProton_middle);
+    my_event_->Branch("MC_nProton_aboveTH", &MC_nProton_aboveTH);
+    my_event_->Branch("MC_nPi0", &MC_nPi0);
+    my_event_->Branch("MC_nPiPlus", &MC_nPiPlus);
+    my_event_->Branch("MC_nPiMinus", &MC_nPiMinus);
+    my_event_->Branch("Genie_nNeutron_preFSI", &Genie_nNeutron_preFSI);
+    my_event_->Branch("Genie_nProton_preFSI", &Genie_nProton_preFSI);
+    my_event_->Branch("Genie_nPi0_preFSI", &Genie_nPi0_preFSI);
+    my_event_->Branch("Genie_nPiPlus_preFSI", &Genie_nPiPlus_preFSI);
+    my_event_->Branch("Genie_nPiMinus_preFSI", &Genie_nPiMinus_preFSI);
 
-  my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
-  my_event_->Branch("MC_nupdg", &MC_nupdg);
-  my_event_->Branch("MC_ccnc", &MC_ccnc);
-  my_event_->Branch("MC_nuVtxX", &MC_nuVtxX);
-  my_event_->Branch("MC_nuVtxY", &MC_nuVtxY);
-  my_event_->Branch("MC_nuVtxZ", &MC_nuVtxZ);
-  my_event_->Branch("MC_FV", &MC_FV);
-  my_event_->Branch("MC_nNeutron", &MC_nNeutron);
-  my_event_->Branch("MC_nProton_belowTH", &MC_nProton_belowTH);
-  my_event_->Branch("MC_nProton_middle", &MC_nProton_middle);
-  my_event_->Branch("MC_nProton_aboveTH", &MC_nProton_aboveTH);
-  my_event_->Branch("MC_nPi0", &MC_nPi0);
-  my_event_->Branch("MC_nPiPlus", &MC_nPiPlus);
-  my_event_->Branch("MC_nPiMinus", &MC_nPiMinus);
-  my_event_->Branch("Genie_nNeutron_preFSI", &Genie_nNeutron_preFSI);
-  my_event_->Branch("Genie_nProton_preFSI", &Genie_nProton_preFSI);
-  my_event_->Branch("Genie_nPi0_preFSI", &Genie_nPi0_preFSI);
-  my_event_->Branch("Genie_nPiPlus_preFSI", &Genie_nPiPlus_preFSI);
-  my_event_->Branch("Genie_nPiMinus_preFSI", &Genie_nPiMinus_preFSI);
-
-  my_event_->Branch("true_mom_mu", &true_mom_mu);
-  //my_event_->Branch("true_vtx_x", &true_vtx_x);
-  //my_event_->Branch("true_vtx_y", &true_vtx_y);
-  //my_event_->Branch("true_vtx_z", &true_vtx_z);
-  my_event_->Branch("true_start_x", &true_start_x);
-  my_event_->Branch("true_start_y", &true_start_y);
-  my_event_->Branch("true_start_z", &true_start_z);
-  my_event_->Branch("true_end_x", &true_end_x);
-  my_event_->Branch("true_end_y", &true_end_y);
-  my_event_->Branch("true_end_z", &true_end_z);
-  my_event_->Branch("true_trk_phi", &true_trk_phi);
-  my_event_->Branch("true_trk_theta", &true_trk_theta);
-  my_event_->Branch("true_trk_costheta", &true_trk_costheta);
-  my_event_->Branch("true_trk_length", &true_trk_length);
-  my_event_->Branch("trk_pdg", &trk_pdg);
+    my_event_->Branch("true_mom_mu", &true_mom_mu);
+    //my_event_->Branch("true_vtx_x", &true_vtx_x);
+    //my_event_->Branch("true_vtx_y", &true_vtx_y);
+    //my_event_->Branch("true_vtx_z", &true_vtx_z);
+    my_event_->Branch("true_start_x", &true_start_x);
+    my_event_->Branch("true_start_y", &true_start_y);
+    my_event_->Branch("true_start_z", &true_start_z);
+    my_event_->Branch("true_end_x", &true_end_x);
+    my_event_->Branch("true_end_y", &true_end_y);
+    my_event_->Branch("true_end_z", &true_end_z);
+    my_event_->Branch("true_trk_phi", &true_trk_phi);
+    my_event_->Branch("true_trk_theta", &true_trk_theta);
+    my_event_->Branch("true_trk_costheta", &true_trk_costheta);
+    my_event_->Branch("true_trk_length", &true_trk_length);
+    my_event_->Branch("trk_pdg", &trk_pdg);
+  }
 
   my_event_->Branch("n_dau_tracks", &n_dau_tracks);
   my_event_->Branch("n_dau_showers", &n_dau_showers);
@@ -827,11 +844,10 @@ void SingleMuon::endSubRun(art::SubRun const &sr){
  
   // For Overlay or MC
   art::Handle<sumdata::POTSummary> Handle_potsum;
-  sr.getByLabel("generator", Handle_potsum);
-  POT_miss1E10 = Handle_potsum->totpot;
-  POT_miss1E10 = POT_miss1E10 / 1E10;
- // POT = 1E18;
-  std::cout<<"-------POT: "<<POT_miss1E10<<std::endl;
+  if(sr.getByLabel("generator", Handle_potsum)){
+    POT_miss1E10 = Handle_potsum->totpot;
+    POT_miss1E10 = POT_miss1E10 / 1E10;
+  }
   
   POTtree->Fill();
 }
