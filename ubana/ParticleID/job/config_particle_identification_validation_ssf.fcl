@@ -24,7 +24,6 @@ particleidvalidconfig:
   IsUBXSecSelected: false
 
   # bragg algorithm fcl parameters
-  #BraggAlgo: @local::braggalgo_mcc8_dedxcalib
   BraggAlgo: @local::braggalgo
 }
 

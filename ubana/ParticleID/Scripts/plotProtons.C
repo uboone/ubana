@@ -270,10 +270,7 @@ void plotProtons(){
 
   TCanvas *c_long = new TCanvas();
   h_long->Draw("colz");
-<<<<<<< HEAD
-=======
   h_long->SetStats(kFALSE);
->>>>>>> UBOONE_SUITE_v08_00_00_07
   c_long->SaveAs("twoTrack_longTrack_dedxresrg.png");
 
 }

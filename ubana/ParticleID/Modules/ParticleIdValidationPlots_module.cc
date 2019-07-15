@@ -510,6 +510,7 @@ particle_vec.clear(); match_vec.clear();
         Lmip = braggcalc.getLikelihood(dEdx_dummy,rr_dummy,0,1,planenum);
         Lmip_perhit.at(planenum).push_back(Lmip);
       }
+
       /**
        * Get hit charge of first and final 5 hits of track to try and find the
        * direction of the track. If there are fewer than 10 hits then take half
@@ -654,6 +655,7 @@ particle_vec.clear(); match_vec.clear();
       std::cout << "[ParticleIDValidation] No track-PID association found for trackID " << track->ID() << ". Skipping track." << std::endl;
       continue;
     }
+
     std::vector<anab::sParticleIDAlgScores> AlgScoresVec = trackPID.at(0)->ParticleIDAlgScores();
 
     // Loop through AlgScoresVec and find the variables we want

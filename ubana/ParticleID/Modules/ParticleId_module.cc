@@ -35,7 +35,6 @@
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "lardataobj/RecoBase/Track.h"
-#include "lardataobj/RecoBase/PFParticle.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larana/TruncatedMean/Algorithm/TruncMean.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
@@ -48,11 +47,6 @@
 #include "ubana/ParticleID/Algorithms/Bragg_Likelihood_Estimator.h"
 #include "ubana/ParticleID/Algorithms/LandauGaussian.h"
 #include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
-
-// Other stuff to select neutrino slices
-#include "lardataobj/RecoBase/PFParticleMetadata.h"
-#include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
-#include "Pandora/PdgTable.h"
 
 // root includes
 #include "TVector3.h"
@@ -75,8 +69,6 @@ class UBPID::ParticleId : public art::EDProducer {
     ParticleId & operator = (ParticleId const &) = delete;
     ParticleId & operator = (ParticleId &&) = delete;
 
-    typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
-
     // Required functions.
     void produce(art::Event & e) override;
 
@@ -87,7 +79,6 @@ class UBPID::ParticleId : public art::EDProducer {
     // fcl
     std::string fTrackLabel;
     std::string fCaloLabel;
-    std::string fPFParticleLabel;
     double fCutDistance;
     double fCutFraction;
     bool fIsSimSmear;
@@ -119,7 +110,6 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
   std::cout << "                   contact the authors." << std::endl;
   std::cout << "[ParticleID] Note: Note that each PID variable is provided on a per-plane basis," << std::endl;
   std::cout << "                   however we currently do not recommend using induction plane" << std::endl;
-  std::cout << "                   Particle ID or calorimetry. Proceed with caution." << std::endl;
   std::cout << "                   Particle ID or calorimetry. Proceed with caution." << std::endl;*/
 
   fhicl::ParameterSet const p_fv     = p.get<fhicl::ParameterSet>("FiducialVolume");
@@ -132,7 +122,6 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
   // fcl parameters
   fTrackLabel = p_labels.get< std::string > ("TrackLabel");
   fCaloLabel = p_labels.get< std::string > ("CalorimetryLabel");
-  fPFParticleLabel = p_labels.get< std::string > ("PFParticleLabel");
   fCutDistance  = p.get< double > ("DaughterFinderCutDistance");
   fCutFraction  = p.get< double > ("DaughterFinderCutFraction");
 
@@ -146,11 +135,10 @@ UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
   produces< std::vector<anab::ParticleID> >();
   produces< art::Assns< recob::Track, anab::ParticleID> >();
 
-  std::cout << "[ParticleID] >> Track Label: " << fTrackLabel << std::endl;
+  /*  std::cout << "[ParticleID] >> Track Label: " << fTrackLabel << std::endl;
   std::cout << "[ParticleID] >> Calorimetry Label: " << fCaloLabel << std::endl;
-  std::cout << "[ParticleID] >> PFParticle Label: " << fPFParticleLabel << std::endl;
   std::cout << "[ParticleID] >> Cut Distance : " << fCutDistance << std::endl;
-  std::cout << "[ParticleID] >> Cut Fraction : " << fCutFraction << std::endl;
+  std::cout << "[ParticleID] >> Cut Fraction : " << fCutFraction << std::endl;*/
 
 }
 
@@ -203,10 +191,8 @@ double ThreePlaneProtonPID(art::Ptr<recob::Track> track, double Lp[3], double Lm
 void UBPID::ParticleId::produce(art::Event & e)
 {
 
-  bool isData = e.isRealData();
-
-  if (!isData) std::cout << "[ParticleID] Running simulated data." << std::endl;
-  else std::cout << "[ParticleID] Running physics data." << std::endl;
+  //if (!e.isRealData()) std::cout << "[ParticleID] Running simulated data." << std::endl;
+  //else std::cout << "[ParticleID] Running physics data." << std::endl;
 
   // produce collection of particleID objects
   std::unique_ptr< std::vector<anab::ParticleID> > particleIDCollection( new std::vector<anab::ParticleID> );
@@ -229,104 +215,7 @@ void UBPID::ParticleId::produce(art::Event & e)
   // this seems to help with seg faults, but it's a little unclear why
   particleIDCollection->reserve(trackCollection.size());
 
-  ////// Determine if track is in neutrino slice /////////
-  // COPIED FROM MY VERSION OF CALIBRATION, STREAMLINE LATER
-  // First, get PFParticle handle
-  art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = e.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleLabel);
-  std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
-  art::fill_ptr_vector(pfParticleVector, pfParticleHandle);
-
-  if (!pfParticleHandle.isValid() ) {
-      std::cout << "Bad PFParticle handle" << std::endl;
-      return;
-  }
-
-  // Create PFParicle map
-  PFParticleIdMap pfParticleMap;
-
-  for (unsigned int i = 0; i < pfParticleHandle->size(); ++i) {
-    const art::Ptr<recob::PFParticle> pParticle(pfParticleHandle, i);
-    if (!pfParticleMap.insert(PFParticleIdMap::value_type(pParticle->Self(), pParticle)).second) {
-        std::cout << "Coudln't get PFParticleIdMap" << std::endl;
-        return;
-    }   
-  }
-
-  // Separate PFParticles into cosmic and neutrino-induced
-  std::vector< art::Ptr<recob::PFParticle> > crParticles;
-  std::vector< art::Ptr<recob::PFParticle> > nuParticles;
-
-  for (PFParticleIdMap::const_iterator it = pfParticleMap.begin(); it != pfParticleMap.end(); ++it) {
-        const art::Ptr<recob::PFParticle> pParticle(it->second);
-
-        // Only look for primary particles
-        if (!pParticle->IsPrimary()) continue;
-
-        // Check if this particle is identified as the neutrino
-        const int pdg(pParticle->PdgCode());
-        const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
-
-        // All non-neutrino primary particles are reconstructed under the cosmic hypothesis
-        if (!isNeutrino)
-        {
-            crParticles.push_back(pParticle);
-            continue;
-        }
-
-        // ATTN. We are filling nuParticles under the assumption that there is only one reconstructed neutrino identified per event.
-        //       If this is not the case please handle accordingly
-        if (!nuParticles.empty())
-        {
-            //throw cet::exception("SinglePhoton") << "  This event contains multiple reconstructed neutrinos!";
-            std::cerr << "Exception" << std::endl;
-        }
-
-        // Add the daughters of the neutrino PFParticle to the nuPFParticles vector
-        for (const size_t daughterId : pParticle->Daughters())
-        {
-            if (pfParticleMap.find(daughterId) == pfParticleMap.end())
-                //throw cet::exception("SinglePhoton") << "  Invalid PFParticle collection!";
-                std::cerr << "Exception" << std::endl;
-
-            nuParticles.push_back(pfParticleMap.at(daughterId));
-        }
-    }
-
-    std::cout << "NuParticles: " << nuParticles.size() << std::endl;
-    std::cout << "CrParticles: " << crParticles.size() << std::endl;
-
-    // Get PFP <-> Track associations
-    art::FindOneP< recob::PFParticle > pfParticlePerTrack(trackHandle, e, fPFParticleLabel);
-    art::FindOneP< recob::Track > trackPerPFParticle(pfParticleHandle, e, fTrackLabel);
-    std::map< art::Ptr<recob::Track>, art::Ptr<recob::PFParticle> > trackToPFParticleMap;
-    std::map< art::Ptr<recob::PFParticle>, art::Ptr<recob::Track> > pfParticleToTrackMap;
-
-    // Fill track -> pfparticle map
-    for (size_t i = 0; i < trackCollection.size(); i++) {
-        art::Ptr<recob::Track> thisTrack = trackCollection.at(i);
-        trackToPFParticleMap[thisTrack] = pfParticlePerTrack.at(thisTrack.key());
-    }
-
-    // Fill pfparticle -> track map
-    for (size_t i = 0; i < pfParticleVector.size(); i++) {
-        art::Ptr<recob::PFParticle> thisPFP = pfParticleVector.at(i);
-        pfParticleToTrackMap[thisPFP] = trackPerPFParticle.at(thisPFP.key());
-    }
-
-    // Find neutrino tracks in neutrino slice
-    std::vector< art::Ptr<recob::Track> > nuTrackCollection;
-    for (art::Ptr<recob::Track> track : trackCollection) {
-        art::Ptr<recob::PFParticle> pfp = trackToPFParticleMap[track];
-        for (art::Ptr<recob::PFParticle> &p : nuParticles ) {
-            if (pfp == p) {
-                std::cout << "Found pfp in nu slice" << std::endl;
-                nuTrackCollection.push_back(pfParticleToTrackMap[p]);
-            }
-        }
-    }
-
-  //for (auto& track : trackCollection){
-  for (auto& track : nuTrackCollection){
+  for (auto& track : trackCollection){
 
     // Skip tracks/events with no valid calorimetry object associated to it.
     // In practice this should be 0 tracks (0 hits = 0 tracks), but this is
@@ -387,10 +276,12 @@ void UBPID::ParticleId::produce(art::Event & e)
         continue;
       }
 
+
       std::vector<float> dEdx = calo->dEdx();
       std::vector<float> dQdx = calo->dQdx();
       std::vector<float> resRange = calo->ResidualRange();
       std::vector<float> trkpitchvec = calo->TrkPitchVec();
+
 
       /**
        * Initially wanted to only perform particle ID on tracks which Bragged,

@@ -45,18 +45,18 @@ physics: {
  analyzers: {
      # ParameterSets for zero or more analyzer modules
   singlephoton: { 
-       module_type:    SinglePhoton
+     module_type:    SinglePhoton
 	   PandoraLabel:   "pandora"
 	   TrackLabel:     "pandora"
 	   ShowerLabel:    "pandora"
-       #ShowerLabel: "showerreco3dpandora"
+     #ShowerLabel: "showerreco3dpandora"
 	   ParticleIDLabel:"pid"
        CaloLabel:      "pandoracaliSCE"
        FlashLabel:     "simpleFlashBeam"
        POTLabel:       "generator"
        input_param:    "optional" 
 
-       usePID:         "false" 
+       usePID:         "true" 
        work_function: 23
        recombination_factor: 0.62
        #gain : 197
