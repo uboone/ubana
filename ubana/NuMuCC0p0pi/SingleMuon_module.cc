@@ -38,6 +38,8 @@
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
+#include "larcorealg/Geometry/geo_vectors_utils.h"
+#include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
 #include "nusimdata/SimulationBase/simb.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -82,10 +84,10 @@ private:
   // Declare member data here.
   ::ubana::FiducialVolume _fiducial_volume;
  
-  //::art::ServiceHandle<geo::Geometry> geo;
   art::ServiceHandle<geo::Geometry> geo;
-
   art::ServiceHandle<art::TFileService> tfs;
+
+  spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
   TTree * POTtree;
   int run, subrun;
@@ -437,11 +439,29 @@ void SingleMuon::analyze(art::Event const& evt)
         //-- Fill RECO track info (in the naive version this is selected)
         if_selected = true;
 
-        bool trk_contained = _fiducial_volume.InFV(daughter_Tracks.front()->Vertex<TVector3>(), daughter_Tracks.front()->End<TVector3>());
+        // Add spatial correction to the track start and end
+        TVector3 Trk_start = daughter_Tracks.front()->Vertex<TVector3>();
+        auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
+        TVector3 Trk_start_SCEcorr;
+        Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
+        Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
+        Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
+
+        TVector3 Trk_end = daughter_Tracks.front()->End<TVector3>();
+        auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
+        TVector3 Trk_end_SCEcorr;
+        Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X());
+        Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
+        Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
+
+
+        //bool trk_contained = _fiducial_volume.InFV(daughter_Tracks.front()->Vertex<TVector3>(), daughter_Tracks.front()->End<TVector3>());
+        bool trk_contained = _fiducial_volume.InFV(Trk_start_SCEcorr, Trk_end_SCEcorr);
         trk_ifcontained.push_back(trk_contained);       
        
-        bool vtx_contained = _fiducial_volume.InFV(daughter_Tracks.front()->Vertex<TVector3>());
-        vtx_FV.push_back(vtx_contained);
+        //bool vtx_InFV = _fiducial_volume.InFV(daughter_Tracks.front()->Vertex<TVector3>());
+        bool vtx_InFV = _fiducial_volume.InFV(Trk_start_SCEcorr);
+        vtx_FV.push_back(vtx_InFV);
  
         double bestMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestMomentum();
         double bestMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestLogLikelihood();
@@ -450,18 +470,18 @@ void SingleMuon::analyze(art::Event const& evt)
 
         auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key());
         double Trk_Length = assoCal.front()->Range();  //It is said track length in pandoracali has spatial correction       
-        //double trk_len = daughter_Tracks.front()->Length(); //TODO: The track length may be uncorrected. Get the corrected track length from pandoracali
-        trk_length.push_back(Trk_Length);
-        
-        vtx_x.push_back(daughter_Tracks.front()->Vertex().X());
-        vtx_y.push_back(daughter_Tracks.front()->Vertex().Y());
-        vtx_z.push_back(daughter_Tracks.front()->Vertex().Z());
-        start_x.push_back(daughter_Tracks.front()->Start().X());
-        start_y.push_back(daughter_Tracks.front()->Start().Y());
-        start_z.push_back(daughter_Tracks.front()->Start().Z());
-        end_x.push_back(daughter_Tracks.front()->End().X());
-        end_y.push_back(daughter_Tracks.front()->End().Y());
-        end_z.push_back(daughter_Tracks.front()->End().Z());
+        trk_length.push_back(Trk_Length); // track length with spatial correction
+
+        // Usual case, the vertex is the single track start
+        vtx_x.push_back(Trk_start_SCEcorr.X());
+        vtx_y.push_back(Trk_start_SCEcorr.Y());
+        vtx_z.push_back(Trk_start_SCEcorr.Z());
+        start_x.push_back(Trk_start_SCEcorr.X());
+        start_y.push_back(Trk_start_SCEcorr.Y());
+        start_z.push_back(Trk_start_SCEcorr.Z());
+        end_x.push_back(Trk_end_SCEcorr.X());
+        end_y.push_back(Trk_end_SCEcorr.Y());
+        end_z.push_back(Trk_end_SCEcorr.Z());
         
         trk_phi.push_back(daughter_Tracks.front()->Phi());
         trk_theta.push_back(daughter_Tracks.front()->Theta());
