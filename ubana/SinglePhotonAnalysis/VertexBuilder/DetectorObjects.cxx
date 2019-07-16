@@ -14,9 +14,9 @@ DetectorObjects::DetectorObjects() :
 //void DetectorObjects::AddTracks(art::ValidHandle<std::vector<recob::Track>> const & ev_t,
 //DetectorObjects::AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t,
 //				bool const track_original_indices) {
-void AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t, bool const track_original_indices){
-  for(size_t i = 0; i < ev_t->size(); ++i) {
-    recob::Track const & t = ev_t->at(i);
+void DetectorObjects::AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t, bool const track_original_indices){
+  for(size_t i = 0; i < ev_t.size(); ++i) {
+    recob::Track const & t = *(ev_t.at(i));
     fobject_m.emplace(fobject_id, new Track(fobject_id, i, ftrack_reco_type, t)); 
     ftrack_index_v.push_back(fobject_id);
     if(track_original_indices) foriginal_track_index_m.emplace(i, fobject_id);
@@ -25,9 +25,9 @@ void AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t, bool const trac
 }
 
 //void DetectorObjects::AddShowers(art::ValidHandle<std::vector<recob::Shower>> const & ev_s,
-DetectorObjects::AddShowers(std::vector<art::Ptr<recob::Shower>> const & ev_s, bool const track_original_indices) {
-  for(size_t i = 0; i < ev_s->size(); ++i) {
-    recob::Shower const & s = ev_s->at(i);
+void DetectorObjects::AddShowers(std::vector<art::Ptr<recob::Shower>> const & ev_s, bool const track_original_indices) {
+  for(size_t i = 0; i < ev_s.size(); ++i) {
+    recob::Shower const & s = *(ev_s.at(i));
     fobject_m.emplace(fobject_id, new Shower(fobject_id, i, fshower_reco_type, s));
     fshower_index_v.push_back(fobject_id);
     if(track_original_indices) foriginal_shower_index_m.emplace(i, fobject_id);
