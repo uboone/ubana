@@ -171,6 +171,16 @@ private:
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
 
+  std::vector<float> dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
+  std::vector<float> dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
+  std::vector<float> dEdx_pl2; // dE/dx of the selected (muon) track from plane 2 (collection)
+  std::vector<float> dQdx_pl0; // dQ/dx of the selected (muon) track from plane 0 (closest to drift)
+  std::vector<float> dQdx_pl1; // dQ/dx of the selected (muon) track from plane 1
+  std::vector<float> dQdx_pl2; // dQ/dx of the selected (muon) track from plane 2 (collection)
+  std::vector<float> resRange_pl0; // range from a hit to the end of the selected track end
+  std::vector<float> resRange_pl1; // range from a hit to the end of the selected track end
+  std::vector<float> resRange_pl2; // range from a hit to the end of the selected track end
+
   bool                                IsMC;
   std::string                         m_generatorLabel;
   std::string                         m_geantLabel;
@@ -435,7 +445,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
       //Todo: temperary version
       // Selection and Fill in Info
-      if(n_dau_tracks == 1){
+      if(n_dau_tracks == 1 && n_dau_showers == 0){
         //-- Fill RECO track info (in the naive version this is selected)
         if_selected = true;
 
@@ -490,6 +500,25 @@ void SingleMuon::analyze(art::Event const& evt)
         double RangeMom = _trk_mom_calculator.GetTrackMomentum(Trk_Length, 13);
         mom_Range_mu.push_back(RangeMom);
 
+        //Calorimetry Info
+        // pandoracaliSCE has E-field and spatial correction
+        //auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key()); // take the only track
+        if(assoCal.size()!=3){
+          throw cet::exception("[Numu0pi0p]") << "Where are the three planes for the calorimetry!" << std::endl;
+        }
+        // induction 0 = 0, induction 1 = 1, collection = 2 (Check if the plane ID is correct)
+        // assoCal[id_pl]->PlaneID().Plane == 2 (collection)
+        dEdx_pl0 = assoCal[0]->dEdx();
+        dQdx_pl0 = assoCal[0]->dQdx();
+        resRange_pl0 = assoCal[0]->ResidualRange();
+
+        dEdx_pl1 = assoCal[1]->dEdx();
+        dQdx_pl1 = assoCal[1]->dQdx();
+        resRange_pl1 = assoCal[1]->ResidualRange();
+
+        dEdx_pl2 = assoCal[2]->dEdx();
+        dQdx_pl2 = assoCal[2]->dQdx();
+        resRange_pl2 = assoCal[2]->ResidualRange();
 
         //-- Fill TRUE info, if the track is from numu cc muon
         if(IsMC){
@@ -763,6 +792,16 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_length.clear();
   trk_ifcontained.clear();
   vtx_FV.clear();
+  
+  dEdx_pl0.clear();
+  dEdx_pl1.clear();
+  dEdx_pl2.clear();
+  dQdx_pl0.clear();
+  dQdx_pl1.clear();
+  dQdx_pl2.clear();
+  resRange_pl0.clear();
+  resRange_pl1.clear();
+  resRange_pl2.clear();
 }
 
 void SingleMuon::Initialize_event()
@@ -855,6 +894,16 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("vtx_FV", &vtx_FV);
   //my_event_->Branch("ntrack", &ntrack);
   //my_event_->Branch("nshower", &nshower);
+
+  my_event_->Branch("dEdx_pl0", &dEdx_pl0);
+  my_event_->Branch("dEdx_pl1", &dEdx_pl1);
+  my_event_->Branch("dEdx_pl2", &dEdx_pl2);
+  my_event_->Branch("dQdx_pl0", &dQdx_pl0);
+  my_event_->Branch("dQdx_pl1", &dQdx_pl1);
+  my_event_->Branch("dQdx_pl2", &dQdx_pl2);
+  my_event_->Branch("resRange_pl0", &resRange_pl0);
+  my_event_->Branch("resRange_pl1", &resRange_pl1);
+  my_event_->Branch("resRange_pl2", &resRange_pl2);
 }
 
 void SingleMuon::endSubRun(art::SubRun const &sr){
