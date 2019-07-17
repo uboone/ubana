@@ -27,7 +27,7 @@ namespace single_photon
         m_matched_signal_track_is_clearcosmic.clear();
         m_matched_signal_track_is_nuslice.clear();
         m_matched_signal_track_tracks_in_slice.clear();
-       m_matched_signal_track_showers_in_slice.clear();
+        m_matched_signal_track_showers_in_slice.clear();
 
 
         m_matched_signal_track_num = 0;  
@@ -634,7 +634,8 @@ namespace single_photon
 
         //first check if in the event there's a match to a given signal
         if(signal_def == "ncdelta"){
-            if(m_mctruth_is_delta_radiative== true){
+            //commenting out this requirement since it's different in v13
+            if(m_mctruth_is_delta_radiative || !m_mctruth_is_delta_radiative){
                 std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t looking for signal def "<<signal_def<<", m_mctruth_is_delta_radiative = "<<m_mctruth_is_delta_radiative<<std::endl; 
 
                 std::vector<int> matched_shower_ids;
@@ -706,10 +707,12 @@ namespace single_photon
                                 m_matched_signal_track_nuscore.push_back( m_reco_track_nuscore[k]);
                                 m_matched_signal_track_sliceId.push_back(m_reco_track_sliceId[k]);
                                 m_matched_signal_track_is_clearcosmic.push_back( m_reco_track_isclearcosmic[k]);
-                                //m_matched_signal_track_is_nuslice.push_back(m_reco_track_is_nuslice[k]);
-                                //m_matched_signal_track_tracks_in_slice.push_back(m_reco_slice_num_showers[ matched_track_id]);
-                                //m_matched_signal_track_showers_in_slice.push_back(m_reco_slice_num_tracks[ matched_track_id]);
+                                m_matched_signal_track_is_nuslice.push_back(m_reco_track_is_nuslice[k]);
                                
+                                int id = m_reco_track_sliceId[k];
+                                m_matched_signal_track_tracks_in_slice.push_back(m_reco_slice_num_tracks[ id]);
+                                m_matched_signal_track_showers_in_slice.push_back(m_reco_slice_num_showers[ id]);
+
                             }
 
                         }//if matched

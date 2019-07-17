@@ -29,6 +29,8 @@
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/Simulation/GeneratedParticleInfo.h"
 
+#include "larsim/EventWeight/Base/MCEventWeight.h"
+
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
 
 #include "larcoreobj/SummaryData/POTSummary.h"
@@ -372,12 +374,10 @@ namespace single_photon
             TGraph* GetNearestNpts(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double,int);
             int CompareToShowers(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double,
                     const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showertopfparticlemap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfparticletohitsmap,                    double eps);
-            
-      
             //---------------- Isolation ----------------- 
 
-	void ClearIsolation();
-	void CreateIsolationBranches();
+            void ClearIsolation();
+            void CreateIsolationBranches();
             void IsolationStudy(
                     const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
                     const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
@@ -609,10 +609,13 @@ namespace single_photon
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
             bool m_is_verbose;
+            bool m_print_out_event;
             bool m_is_data;
             bool m_is_overlayed;
             bool m_run_all_pfps;
             bool m_has_CRT;
+
+            std::ofstream out_stream;
 
             double m_exiting_photon_energy_threshold ;
             double m_exiting_proton_energy_threshold ;
@@ -933,27 +936,27 @@ namespace single_photon
             std::vector<double> m_sim_track_nuscore; //the neutrino score of the slice containing the sim track
             std::vector<bool> m_sim_track_isclearcosmic;//true if sim track is in a clear cosmic slice
 
-/*-------------------------------------------------------------------------------------*/
-	    std::vector<double> m_isolation_min_dist_trk_shr;	
-	    std::vector<double> m_isolation_min_dist_trk_unassoc;
+            /*-------------------------------------------------------------------------------------*/
+            std::vector<double> m_isolation_min_dist_trk_shr;	
+            std::vector<double> m_isolation_min_dist_trk_unassoc;
 
-	    std::vector<double> m_isolation_num_shr_hits_win_1cm_trk;	    
-	    std::vector<double> m_isolation_num_shr_hits_win_2cm_trk;	    
-	    std::vector<double> m_isolation_num_shr_hits_win_5cm_trk;	    
-	    std::vector<double> m_isolation_num_shr_hits_win_10cm_trk;	    
+            std::vector<double> m_isolation_num_shr_hits_win_1cm_trk;	    
+            std::vector<double> m_isolation_num_shr_hits_win_2cm_trk;	    
+            std::vector<double> m_isolation_num_shr_hits_win_5cm_trk;	    
+            std::vector<double> m_isolation_num_shr_hits_win_10cm_trk;	    
 
-	    std::vector<double> m_isolation_num_unassoc_hits_win_1cm_trk;	    
-	    std::vector<double> m_isolation_num_unassoc_hits_win_2cm_trk;	    
-	    std::vector<double> m_isolation_num_unassoc_hits_win_5cm_trk;	    
-	    std::vector<double> m_isolation_num_unassoc_hits_win_10cm_trk;	    
-	    
-	    std::vector<double> m_isolation_nearest_shr_hit_to_trk_wire;	
-	    std::vector<double> m_isolation_nearest_shr_hit_to_trk_time;	
+            std::vector<double> m_isolation_num_unassoc_hits_win_1cm_trk;	    
+            std::vector<double> m_isolation_num_unassoc_hits_win_2cm_trk;	    
+            std::vector<double> m_isolation_num_unassoc_hits_win_5cm_trk;	    
+            std::vector<double> m_isolation_num_unassoc_hits_win_10cm_trk;	    
 
-	    std::vector<double> m_isolation_nearest_unassoc_hit_to_trk_wire;	
-	    std::vector<double> m_isolation_nearest_unassoc_hit_to_trk_time;
-	
-/*-------------------------------------------------------------------------------------*/
+            std::vector<double> m_isolation_nearest_shr_hit_to_trk_wire;	
+            std::vector<double> m_isolation_nearest_shr_hit_to_trk_time;	
+
+            std::vector<double> m_isolation_nearest_unassoc_hit_to_trk_wire;	
+            std::vector<double> m_isolation_nearest_unassoc_hit_to_trk_time;
+
+            /*-------------------------------------------------------------------------------------*/
 
             //------------ Shower related Variables  -------------
 
@@ -1176,7 +1179,8 @@ namespace single_photon
             std::vector<double> m_reco_track_pid_chi2_plane2;
             std::vector<double> m_reco_track_pid_three_plane_proton_pid;
 
-
+    
+            double m_genie_spline_weight;
 
     };
 
