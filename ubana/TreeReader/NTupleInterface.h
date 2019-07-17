@@ -175,6 +175,7 @@ private:
   double GTruth_probability;
   double GTruth_Xsec;
   double GTruth_DiffXsec;
+  int    GTruth_GPhaseSpace;
   double GTruth_vertexX;
   double GTruth_vertexY;
   double GTruth_vertexZ;

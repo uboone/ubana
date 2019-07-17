@@ -14,6 +14,10 @@ namespace single_photon
         m_reco_shower_theta_yz.clear();
         m_reco_shower_phi_yx.clear();
         m_reco_shower_conversion_distance.clear();
+        m_reco_shower_impact_parameter.clear();
+        m_reco_shower_implied_dirx.clear();
+        m_reco_shower_implied_diry.clear();
+        m_reco_shower_implied_dirz.clear();
         m_reco_shower_openingangle.clear();
         m_reco_shower_length.clear();
         m_reco_shower_delaunay_num_triangles_plane0.clear();
@@ -137,6 +141,10 @@ namespace single_photon
         m_reco_shower_conversion_distance.resize(size);
         m_reco_shower_openingangle.resize(size);
         m_reco_shower_length.resize(size);
+        m_reco_shower_impact_parameter.resize(size);
+        m_reco_shower_implied_dirx.resize(size);
+        m_reco_shower_implied_diry.resize(size);
+        m_reco_shower_implied_dirz.resize(size);
         m_reco_shower_delaunay_num_triangles_plane0.resize(size);
         m_reco_shower_delaunay_num_triangles_plane1.resize(size);
         m_reco_shower_delaunay_num_triangles_plane2.resize(size);
@@ -265,6 +273,11 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_theta_yz",&m_reco_shower_theta_yz);
         vertex_tree->Branch("reco_shower_phi_yx",&m_reco_shower_phi_yx);
         vertex_tree->Branch("reco_shower_conversion_distance",& m_reco_shower_conversion_distance);
+        vertex_tree->Branch("reco_shower_impact_parameter",& m_reco_shower_impact_parameter);
+        vertex_tree->Branch("reco_shower_implied_dirx", &m_reco_shower_implied_dirx);
+        vertex_tree->Branch("reco_shower_implied_diry", &m_reco_shower_implied_diry);
+        vertex_tree->Branch("reco_shower_implied_dirz", &m_reco_shower_implied_dirz);
+
         vertex_tree->Branch("reco_shower_delaunay_num_triangles_plane0",&m_reco_shower_delaunay_num_triangles_plane0);
         vertex_tree->Branch("reco_shower_delaunay_num_triangles_plane1",&m_reco_shower_delaunay_num_triangles_plane1);
         vertex_tree->Branch("reco_shower_delaunay_num_triangles_plane2",&m_reco_shower_delaunay_num_triangles_plane2);
@@ -413,6 +426,21 @@ namespace single_photon
 
             m_reco_shower_conversion_distance[i_shr] = sqrt( pow(shr_start.X()-m_vertex_pos_x,2)+pow(shr_start.Y()-m_vertex_pos_y,2)+ pow(shr_start.Z()-m_vertex_pos_z,2)  );
 
+            std::vector<double> ts = {shr_start.X(), shr_start.Y(), shr_start.Z()};
+            std::vector<double> te = {shr_start.X()-shr_dir.X(),shr_start.Y()-shr_dir.Y(),shr_start.Z()-shr_dir.Z()};
+            std::vector<double> tv = {m_vertex_pos_x,m_vertex_pos_y,m_vertex_pos_z};
+            m_reco_shower_impact_parameter[i_shr] = dist_line_point(ts,te,tv );
+
+            m_reco_shower_implied_dirx[i_shr] = shr_start.X()-m_vertex_pos_x;;
+            m_reco_shower_implied_diry[i_shr] = shr_start.Y()-m_vertex_pos_y;
+            m_reco_shower_implied_dirz[i_shr] = shr_start.Z()-m_vertex_pos_z;
+
+            double norm = sqrt(pow(m_reco_shower_implied_dirx[i_shr],2)+pow(m_reco_shower_implied_diry[i_shr],2)+pow(m_reco_shower_implied_dirz[i_shr],2));
+
+            m_reco_shower_implied_dirx[i_shr] = m_reco_shower_implied_dirx[i_shr]/norm;
+            m_reco_shower_implied_diry[i_shr] = m_reco_shower_implied_diry[i_shr]/norm;
+            m_reco_shower_implied_dirz[i_shr] = m_reco_shower_implied_dirz[i_shr]/norm;
+
             m_reco_shower_theta_yz[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirz[i_shr]);
             m_reco_shower_phi_yx[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirx[i_shr]);
 
@@ -470,11 +498,11 @@ namespace single_photon
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting dq/dx plane 2"<<std::endl; 
             m_reco_shower_dQdx_plane2[i_shr] = CalcdQdxShower(shower,clusters, clusterToHitMap, 2 ); 
 
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting de/dx plane 0"<<std::endl;
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\tstarting de/dx plane 0"<<std::endl;
             m_reco_shower_dEdx_plane0[i_shr] = CalcdEdxFromdQdx(m_reco_shower_dQdx_plane0[i_shr]);
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting de/dx plane 1"<<std::endl;
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\tstarting de/dx plane 1"<<std::endl;
             m_reco_shower_dEdx_plane1[i_shr] = CalcdEdxFromdQdx(m_reco_shower_dQdx_plane1[i_shr]);
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t starting de/dx plane 2"<<std::endl;
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\tstarting de/dx plane 2"<<std::endl;
             m_reco_shower_dEdx_plane2[i_shr] = CalcdEdxFromdQdx(m_reco_shower_dQdx_plane2[i_shr]);
 
             m_reco_shower_dEdx_plane0_median[i_shr] = getMedian(m_reco_shower_dEdx_plane0[i_shr]);
@@ -491,7 +519,7 @@ namespace single_photon
             m_reco_shower_dQdx_plane2_median[i_shr] = getMedian(m_reco_shower_dQdx_plane2[i_shr]);
 
 
-            if(m_is_verbose) std::cout<<"PAR: "<<m_reco_shower_dEdx_plane0[i_shr].size()<<" "<<m_reco_shower_dEdx_plane1[i_shr].size()<<" "<<m_reco_shower_dEdx_plane2[i_shr].size()<<std::endl;
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\tPAR: "<<m_reco_shower_dEdx_plane0[i_shr].size()<<" "<<m_reco_shower_dEdx_plane1[i_shr].size()<<" "<<m_reco_shower_dEdx_plane2[i_shr].size()<<std::endl;
 
             m_reco_shower_dEdx_plane0_mean[i_shr] = std::accumulate(m_reco_shower_dEdx_plane0[i_shr].begin(), m_reco_shower_dEdx_plane0[i_shr].end(), 0.0)/((double)m_reco_shower_dEdx_plane0[i_shr].size()); 
             m_reco_shower_dEdx_plane1_mean[i_shr] = std::accumulate(m_reco_shower_dEdx_plane1[i_shr].begin(), m_reco_shower_dEdx_plane1[i_shr].end(), 0.0)/((double)m_reco_shower_dEdx_plane1[i_shr].size()); 
@@ -570,13 +598,13 @@ namespace single_photon
             int shortest_dist_to_flash_index_y=-999;
             int shortest_dist_to_flash_index_yz=-999;
 
-            if(m_is_verbose) std::cout<<" number of flashes: "<< m_reco_num_flashes<< ""<<std::endl;;
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\tnumber of flashes: "<< m_reco_num_flashes<< ""<<std::endl;;
             for(int i_flash = 0; i_flash < m_reco_num_flashes; ++i_flash) {
 
                 double const zcenter=m_reco_flash_zcenter[i_flash];
-                if(m_is_verbose) std::cout<< "flash z center:" <<m_reco_flash_zcenter[i_flash]<< ""<<std::endl;;
+                if(m_is_verbose) std::cout<< "SinglePhoton::AnalyzeShowers()\t||\tflash z center:" <<m_reco_flash_zcenter[i_flash]<< ""<<std::endl;;
                 double const ycenter=m_reco_flash_ycenter[i_flash];
-                if(m_is_verbose) std::cout<< "flash y center:" <<m_reco_flash_ycenter[i_flash]<< ""<<std::endl;;
+                if(m_is_verbose) std::cout<< "SinglePhoton::AnaluzeShowers()\t||\tflash y center:" <<m_reco_flash_ycenter[i_flash]<< ""<<std::endl;;
 
                 //z plane
                 double dist_z=DBL_MAX;

@@ -79,6 +79,7 @@ source: {
     GTruth_probability: "GTruth_probability"
     GTruth_Xsec: "GTruth_Xsec"
     GTruth_DiffXsec: "GTruth_DiffXsec"
+    GTruth_GPhaseSpace: "GTruth_GPhaseSpace"
     GTruth_vertexX: "GTruth_vertexX"
     GTruth_vertexY: "GTruth_vertexY"
     GTruth_vertexZ: "GTruth_vertexZ"

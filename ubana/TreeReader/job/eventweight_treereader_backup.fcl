@@ -278,9 +278,9 @@ treereader_eventweight: {
     genie_AGKYxF, genie_AGKYpT,
     genie_FormZone,
     genie_FermiGasModelKf, genie_FermiGasModelSf,
-    genie_IntraNukeNmfp, genie_IntraNukeNcex,
+    genie_IntraNukeNmfp, genie_IntraNukeNcex, genie_IntraNukeNel,
     genie_IntraNukeNinel, genie_IntraNukeNabs, genie_IntraNukeNpi,
-    genie_IntraNukePImfp, genie_IntraNukePIcex,
+    genie_IntraNukePImfp, genie_IntraNukePIcex, genie_IntraNukePIel,
     genie_IntraNukePIinel, genie_IntraNukePIabs, genie_IntraNukePIpi
   ]
  
@@ -345,7 +345,7 @@ treereader_eventweight: {
     parameter_list: ["NCResAxial"]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 100
+    number_of_multisims: 10
   }
 
   genie_ncresVector: {
@@ -354,7 +354,7 @@ treereader_eventweight: {
     parameter_list: ["NCResVector"]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 100
+    number_of_multisims: 10
   }
  
   genie_cohMA: {
@@ -546,7 +546,14 @@ treereader_eventweight: {
     number_of_multisims: 10
   } 
 
-
+  genie_IntraNukeNel: {
+    type: Genie
+    random_seed: 44
+    parameter_list: ["IntraNukeNel"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  } 
 
   genie_IntraNukeNinel: {
     type: Genie
@@ -593,6 +600,15 @@ treereader_eventweight: {
     number_of_multisims: 10
   }
 
+  genie_IntraNukePIel: {
+    type: Genie
+    random_seed: 50
+    parameter_list: ["IntraNukePIel"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  }
+
   genie_IntraNukePIinel: {
     type: Genie
     random_seed: 51
@@ -608,7 +624,7 @@ treereader_eventweight: {
     parameter_list: ["IntraNukePIabs"]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 100
+    number_of_multisims: 10
   }
 
   genie_IntraNukePIpi: {
@@ -631,9 +647,9 @@ treereader_eventweight: {
       "ResDecayGamma", "ResDecayTheta", "NC",
       "DISAth", "DISBth", "DISCv1u", "DISCv2u", "AGKYxF", "AGKYpT",
       "FormZone", "FermiGasModelKf",
-      "IntraNukeNmfp", "IntraNukeNcex", "IntraNukeNinel",
+      "IntraNukeNmfp", "IntraNukeNcex", "IntraNukeNel", "IntraNukeNinel",
       "IntraNukeNabs", "IntraNukeNpi", "IntraNukePImfp", "IntraNukePIcex",
-      "IntraNukePIinel", "IntraNukePIabs", "IntraNukePIpi"
+      "IntraNukePIel", "IntraNukePIinel", "IntraNukePIabs", "IntraNukePIpi"
     ]
     parameter_sigma: [
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,

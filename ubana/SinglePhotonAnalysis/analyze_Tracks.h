@@ -606,7 +606,7 @@ namespace single_photon
                 const art::Ptr<recob::Track>      track = tracks[i_trk];
 
                 if(trackToCaloMap[track].size()!=3){
-                    std::cout<<"ERROR!! ERROR!!! anab::Calorimetery vector is not of length 3!!! "<<trackToCaloMap[track].size()<<". Skipping this track!!"<<std::endl;
+                    std::cout<<"Singlephoton::Tracks\t||\tERROR!! ERROR!!! anab::Calorimetery vector is not of length 3!!! "<<trackToCaloMap[track].size()<<". Skipping this track!!"<<std::endl;
                     continue;
                 }
 

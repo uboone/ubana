@@ -337,7 +337,7 @@ namespace single_photon
 
             if (m_mctruth_is_delta_radiative==true){
                 for (unsigned int p = 0; p <  m_mctruth_exiting_photon_energy.size(); p++){
-                    std::cout<<"looking at exiting photon with energy "<<m_mctruth_exiting_photon_energy[p]<<std::endl;
+                    std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\tLooking at exiting photon with energy "<<m_mctruth_exiting_photon_energy[p]<<std::endl;
                     if ( m_mctruth_exiting_photon_energy[p] > m_exiting_photon_energy_threshold){
                         m_mctruth_is_reconstructable_1g0p = true;
 
@@ -354,7 +354,7 @@ namespace single_photon
                             m_mctruth_is_reconstructable_1g1p = true;
                             m_mctruth_is_reconstructable_1g0p = false;
                         } 
-                       std::cout<<"checking proton with energy "<<m_mctruth_exiting_proton_energy[pr]<<", is 1g1p/1g0p= "<< m_mctruth_is_reconstructable_1g1p<<"/"<< m_mctruth_is_reconstructable_1g0p<<std::endl;
+                       std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\tChecking proton with energy "<<m_mctruth_exiting_proton_energy[pr]<<", is 1g1p/1g0p= "<< m_mctruth_is_reconstructable_1g1p<<"/"<< m_mctruth_is_reconstructable_1g0p<<std::endl;
                          }//if p above threshold
                 }//for all exiting p
 
@@ -429,7 +429,7 @@ namespace single_photon
         for(size_t k = 0; k < mcParticleVector.size(); k++){
             const art::Ptr<simb::MCParticle> mcp = mcParticleVector[k];
 
-            if(false)std::cout<<k<<" Mother:"<< mcp->Mother()<<" pdgcode: "<<mcp->PdgCode()<<" trkid: "<<mcp->TrackId()<<" statuscode: "<<mcp->StatusCode()<<std::endl;
+            if(false) std::cout << k << " Mother:"<< mcp->Mother() << " pdgcode: " << mcp->PdgCode() << " trkid: " << mcp->TrackId() << " statuscode: " << mcp->StatusCode() << std::endl;
 
 
             if(mcp->PdgCode() == 111 && mcp->Mother() == 0 && mcp->NumberDaughters()==2 ){
