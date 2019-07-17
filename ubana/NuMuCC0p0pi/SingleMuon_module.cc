@@ -40,6 +40,8 @@
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
+//#include "lardataobj/AnalysisBase/PlaneIDBitsetHelperFunctions.h"
 
 #include "nusimdata/SimulationBase/simb.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -192,6 +194,7 @@ private:
   std::string                         m_calorimetryProducerLabel;
   //std::string                         m_SCEcorr_MCSmuProducerLabel;
   std::string                         Hits_TrackAssLabel;
+  std::string                         PID_TrackAssLabel;
 
   double _min_track_len;
 
@@ -223,6 +226,7 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
 
   _fiducial_volume.PrintConfig();
   Hits_TrackAssLabel = pset.get<std::string>("HitsPerTrackAssLabel");
+  PID_TrackAssLabel = pset.get<std::string>("PIDTrackAssLabel");
 }
 
 void SingleMuon::analyze(art::Event const& evt)
@@ -301,6 +305,9 @@ void SingleMuon::analyze(art::Event const& evt)
 
   //const std::vector< art::Ptr<recob::PFParticle> > &slc_PFP_v(slc_PFP_assn_v.at(SliceCollection.at(slc_id).key()));
   //art::FindManyP<recob::Slice> slc_PFP_assn_v(rawHandle_PFParticle, evt, data_label_assoSlc_);
+  
+  //PID
+  art::FindManyP<anab::ParticleID> PIDTotrackAsso(Handle_TPCtrack,evt,PID_TrackAssLabel);
 
   //std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(this_track_ptr.key());
   //BackTrackerTruthMatch backtrackertruthmatch;
@@ -520,6 +527,45 @@ void SingleMuon::analyze(art::Event const& evt)
         dQdx_pl2 = assoCal[2]->dQdx();
         resRange_pl2 = assoCal[2]->ResidualRange();
 
+        // Gain PID info of the track
+        if(!PIDTotrackAsso.isValid()){
+          throw cet::exception("[Numu0pi0p]") << "No matched PID - track information!" << std::endl;
+        }
+        auto trkPID = PIDTotrackAsso.at(daughter_Tracks.front().key());
+        if (trkPID.size() == 0){
+          std::cout << "No PID information for this selected track!" << std::endl;
+        }
+        std::vector<anab::sParticleIDAlgScores> vAlg_PID = trkPID.front()->ParticleIDAlgScores();
+        double PIDChi2_mu[3] = {-999,-999,-999};
+        double PIDChi2_p[3] = {-999,-999,-999};
+        double PIDChi2_pi[3] = {-999,-999,-999};
+        double PIDChi2_K[3] = {-999,-999,-999};
+        for(int i_Alg_PID = 0; i_Alg_PID < (int) vAlg_PID.size(); i_Alg_PID++){
+          anab::sParticleIDAlgScores Alg_PID = vAlg_PID.at(i_Alg_PID);
+          //int id_pl = UBPID::uB_getSinglePlane(Alg_PID.fPlaneID);
+          //if (id_pl<0 || id_pl>2) continue;
+          for(int id_pl = 0; id_pl < 3; id_pl++){
+            if (Alg_PID.fPlaneMask.test(id_pl) && Alg_PID.fAlgName == "Chi2"){
+               if (abs(Alg_PID.fAssumedPdg) == 13){ // muon
+                 PIDChi2_mu[id_pl] = Alg_PID.fValue;
+               }
+               if (abs(Alg_PID.fAssumedPdg) == 2212){ // proton
+                 PIDChi2_p[id_pl] = Alg_PID.fValue;
+               }
+               if (abs(Alg_PID.fAssumedPdg) == 211){ // pion
+                 PIDChi2_pi[id_pl] = Alg_PID.fValue;
+               }
+               if (abs(Alg_PID.fAssumedPdg) == 321){ // kaon
+                 PIDChi2_K[id_pl] = Alg_PID.fValue;
+               }
+            }
+          }
+        } 
+        std::cout<<"PID chi2 mu pl 0: "<<PIDChi2_mu[0]<<", pl 1: "<< PIDChi2_mu[1] << ", pl 2: "<< PIDChi2_mu[2] <<std::endl;
+        std::cout<<"PID chi2 p pl 0: "<<PIDChi2_p[0]<<", pl 1: "<< PIDChi2_p[1] << ", pl 2: "<< PIDChi2_p[2] <<std::endl;
+        std::cout<<"PID chi2 pi pl 0: "<<PIDChi2_pi[0]<<", pl 1: "<< PIDChi2_pi[1] << ", pl 2: "<< PIDChi2_pi[2] <<std::endl;
+        std::cout<<"PID chi2 K pl 0: "<<PIDChi2_K[0]<<", pl 1: "<< PIDChi2_K[1] << ", pl 2: "<< PIDChi2_K[2] <<std::endl;
+        //std::cout<<"Chi2Proton: "<< Chi2Proton <<", Kaon: "<< Chi2Kaon << ", Pion: "<< Chi2Pion<<", Muon: "<< Chi2Muon<< std::endl;
         //-- Fill TRUE info, if the track is from numu cc muon
         if(IsMC){
           std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
@@ -531,6 +577,7 @@ void SingleMuon::analyze(art::Event const& evt)
             std::cout<<"MC particle does not exist!"<<std::endl;
           }
           else{
+            std::cout<<"MC PDG: "<<MCparticle->PdgCode()<<std::endl;
             if_cosmic = false;
             if(MCparticle->PdgCode() == 13){
               if_matchMu = true;
@@ -658,91 +705,6 @@ void SingleMuon::analyze(art::Event const& evt)
 
     }
   }
-
-/*
-  //
-  for(int trk_id = 0; trk_id < ntrack; trk_id++){
-    // Back track matching
-    std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(AllTrackCollection[trk_id].key());
-    BackTrackerTruthMatch backtrackertruthmatch;
-    backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
-    auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
-    if(!MCparticle){
-      //std::cout<<"MC particle does not exist!"<<std::endl;
-    }
-    else{
-     
-      auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
-      true_mom_mu.push_back(MCparticle->P());
-      true_vtx_x.push_back(MCparticle->Vx());
-      true_vtx_y.push_back(MCparticle->Vy());
-      true_vtx_z.push_back(MCparticle->Vz());
-      true_start_x.push_back(MCparticle->Position().X());
-      true_start_y.push_back(MCparticle->Position().Y());
-      true_start_z.push_back(MCparticle->Position().Z());
-      true_end_x.push_back(MCparticle->EndPosition().X());
-      true_end_y.push_back(MCparticle->EndPosition().Y());
-      true_end_z.push_back(MCparticle->EndPosition().Z());
-      true_trk_phi.push_back(TrueTrackPos.Phi());
-      true_trk_theta.push_back(TrueTrackPos.Theta());
-      true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z()));
-      trk_pdg.push_back(MCparticle->PdgCode());
-    }
-    // Check if the track is contained or not
-    bool contained = _fiducial_volume.InFV(AllTrackCollection[trk_id]->Vertex<TVector3>(), AllTrackCollection[trk_id]->End<TVector3>());
-    trk_ifcontained.push_back(contained);
-
-    // Fill MCS fitting result
-    double bestMCS =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestMomentum();
-    double bestMCSLL =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestLogLikelihood();
-    mom_bestMCS_mu.push_back(bestMCS);
-    mom_bestMCS_ll_mu.push_back(bestMCSLL);
-    double fwdMCS =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdMomentum();
-    double fwdMCSLL =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdLogLikelihood();
-    mom_fwdMCS_mu.push_back(fwdMCS);
-    mom_fwdMCS_ll_mu.push_back(fwdMCSLL);
-    double bwdMCS =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdMomentum();
-    double bwdMCSLL =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdLogLikelihood();
-    mom_bwdMCS_mu.push_back(bwdMCS);
-    mom_bwdMCS_ll_mu.push_back(bwdMCSLL);
-   
-    //double bestMCS_SCEcorr =  SCEcorr_mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestMomentum();
-    //double bestMCSLL_SCEcorr =  SCEcorr_mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestLogLikelihood();
-    //mom_bestMCS_SCEcorr_mu.push_back(bestMCS_SCEcorr);
-    //mom_bestMCS_SCEcorr_ll_mu.push_back(bestMCSLL_SCEcorr);
-    //double fwdMCS_SCEcorr =  SCEcorr_mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdMomentum();
-    //double fwdMCSLL_SCEcorr =  SCEcorr_mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdLogLikelihood();
-    //mom_fwdMCS_SCEcorr_mu.push_back(fwdMCS_SCEcorr);
-    //mom_fwdMCS_SCEcorr_ll_mu.push_back(fwdMCSLL_SCEcorr);
-    //double bwdMCS_SCEcorr =  SCEcorr_mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdMomentum();
-    //double bwdMCSLL_SCEcorr =  SCEcorr_mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdLogLikelihood();
-    //mom_bwdMCS_SCEcorr_mu.push_back(bwdMCS_SCEcorr);
-    //mom_bwdMCS_SCEcorr_ll_mu.push_back(bwdMCSLL_SCEcorr);
-
-    // Track Length
-    double trk_len = AllTrackCollection[trk_id]->Length();
-    trk_length.push_back(trk_len);
-    // Track vertex
-    vtx_x.push_back(AllTrackCollection[trk_id]->Vertex().X());
-    vtx_y.push_back(AllTrackCollection[trk_id]->Vertex().Y());
-    vtx_z.push_back(AllTrackCollection[trk_id]->Vertex().Z());
-    start_x.push_back(AllTrackCollection[trk_id]->Start().X());
-    start_y.push_back(AllTrackCollection[trk_id]->Start().Y());
-    start_z.push_back(AllTrackCollection[trk_id]->Start().Z());
-    end_x.push_back(AllTrackCollection[trk_id]->End().X());
-    end_y.push_back(AllTrackCollection[trk_id]->End().Y());
-    end_z.push_back(AllTrackCollection[trk_id]->End().Z());
-
-    // Track angles
-    trk_phi.push_back(AllTrackCollection[trk_id]->Phi());
-    trk_theta.push_back(AllTrackCollection[trk_id]->Theta());
-
-    // Range based momentum (Give muon pdg = 13), track length in [cm] ?
-    double RangeMom = _trk_mom_calculator.GetTrackMomentum(trk_len, 13);
-    mom_Range_mu.push_back(RangeMom);
-  }
-*/
-
 
   my_event_->Fill();
 
