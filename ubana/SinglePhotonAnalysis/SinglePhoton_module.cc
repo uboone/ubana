@@ -110,7 +110,7 @@ namespace single_photon
 
     void SinglePhoton::analyze(const art::Event &evt)
     {
-        
+
         //std::cout<<"runAllPFP's = "<<m_run_all_pfps<<std::endl;
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
@@ -654,6 +654,28 @@ namespace single_photon
                 }
 
             }
+            std::cout<<"Going to grab eventweightSplines for CCQE genie fix, won't be necessary long term"<<std::endl;
+            art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw ;
+            if(    evt.getByLabel("eventweightSplines",ev_evw)){
+
+                std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
+                if(ev_evw->size() > 1) std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"<< "WARNING: eventweight slice genie fix has more than one entry\n";
+                //m_genie_spline_weight=weight_map;
+                for (auto const& x : weight_map){
+                    std::cout << x.first  // string (key)
+                        << ':' 
+                        << x.second.size() << std::endl ;
+                    if(x.second.size()==1){
+                        m_genie_spline_weight = x.second.front();
+                    }
+                }
+
+            }else{
+                std::cout<<"No data producet called eventweightSplines"<<std::endl;
+                m_genie_spline_weight =1.0;
+            }
+
+
             std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
         }
 
@@ -710,6 +732,8 @@ namespace single_photon
         vertex_tree->Branch("subrun_number", &m_subrun_number, "subrun_number/I");
         vertex_tree->Branch("event_number", &m_event_number, "event_number/I");
 
+        vertex_tree->Branch("genie_spline_weight", &m_genie_spline_weight, "genie_spline_weight/D");
+
 
         vertex_tree->Branch("test_matched_hits", &m_test_matched_hits, "test_matched_hits/I");
         // --------------------- Vertex Related variables ------------
@@ -722,7 +746,7 @@ namespace single_photon
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
 
 
-	this->CreateIsolationBranches();
+        this->CreateIsolationBranches();
 
         this->CreateSecondShowerBranches();
         // --------------------- Flash Related Variables ----------------------
@@ -807,6 +831,8 @@ namespace single_photon
         m_run_number = -99;
         m_test_matched_hits = 0;
 
+        m_genie_spline_weight = 1.0;
+
         //------------ Vertex related Variables -------------
         m_reco_vertex_size = 0;
         m_vertex_pos_x=-99999;
@@ -820,8 +846,8 @@ namespace single_photon
         m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane2=-99999;
-	
-	this->ClearIsolation();
+
+        this->ClearIsolation();
 
         this->ClearSecondShowers();
         //------------- Flash related Variables ------------------

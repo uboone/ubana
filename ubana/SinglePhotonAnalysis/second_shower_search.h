@@ -581,7 +581,7 @@ namespace single_photon
             can->cd(8);
             for(int i=0; i<3; i++){
                 TLegend * l_bot = new TLegend(0.1+i*0.25,0.1,0.1+i*0.25+0.25,0.89);
-                
+
                 TLegend * l_bot2 = new TLegend(0.1+i*0.25,0.1,0.1+i*0.25+0.25,0.89);
 
                 for(int c=0; c< num_clusters[i]+1; c++){
@@ -613,17 +613,38 @@ namespace single_photon
 
                             core->Draw("p same");
                             tmp->Draw("p same");
-                            core->Fit("pol1","Q","same",chan_min[i],chan_max[i]);
-                            core->GetFunction("pol1")->SetLineWidth(1); 
-                            core->GetFunction("pol1")->SetLineStyle(3); 
-                            core->GetFunction("pol1")->SetLineColor(g_clusters[i][c]->GetMarkerColor()); 
-                            double con = core->GetFunction("pol1")->GetParameter(0);
-                            double slope = core->GetFunction("pol1")->GetParameter(1);
 
+                            double fmax = -999;
+                            double fmin = 99999;
+                            for(int b=0; b<core->GetN(); b++){
+                                double ttx=0;
+                                double tty=0;
+                                core->GetPoint(b,ttx,tty);
+                                fmax = std::max(fmax, ttx);
+                                fmin = std::min(fmin,ttx);
+                            }
+
+                            std::cout<<"Just Before Core Fit of "<<tmp->GetN()<<" pts between "<<chan_min[i]<<" "<<chan_max[i]<<" or "<<fmin<<" "<<fmax<<std::endl;
+
+                            double con;
+                            double slope;
+                            if(fmin==fmax){
+                                slope = 0;
+                                con = fmin;
+                            }else{
+                                std::cout<<sname<<std::endl;
+                                core->Fit("pol1","Q","same",fmin,fmax);
+                                core->GetFunction("pol1")->SetLineWidth(1); 
+                                core->GetFunction("pol1")->SetLineStyle(3); 
+                                core->GetFunction("pol1")->SetLineColor(g_clusters[i][c]->GetMarkerColor()); 
+                                con = core->GetFunction("pol1")->GetParameter(0);
+                                slope = core->GetFunction("pol1")->GetParameter(1);
+
+                            }
                             //lets map (wire,tick) to a rudamentary (cm,cm);
                             //double slope2 = slope*25*0.3;
                             //double con2 = con*25;
-                                
+
                             double impact_parameter = 1e10;// fabs(slope*vertex_wire[i] +vertex_time[i]+con)/sqrt(slope*slope+1.0*1.0);
 
                             //rudimentary!
@@ -651,7 +672,7 @@ namespace single_photon
                             m_sss_candidate_max_wire.push_back(ssscorz.max_wire);
                             m_sss_candidate_mean_wire.push_back(ssscorz.mean_wire);
                             m_sss_candidate_min_dist.push_back(ssscorz.min_dist);
-                            
+
                             std::string sname2 = "#splitline{Cluster "+std::to_string(c)+"}{#splitline{Impact: "+std::to_string(impact_parameter)+"}{MinDist: "+std::to_string(ssscorz.min_dist)+"}}";
                             l_bot2->AddEntry(tmp,sname2.c_str(),"f");
                         }
@@ -693,12 +714,12 @@ namespace single_photon
 
 
             if(false){
-            	std::cout<<"SinglePhoton::SSS\t||\tDone Plotting clusters"<<std::endl;
-            	can->Update();
-            	//can->Write();
-            	can->SaveAs((print_name+".pdf").c_str(),"pdf");
-            	//f->Close();
-            	std::cout<<"SinglePhoton::SSS\t||\tPRINTING"<<std::endl;
+                std::cout<<"SinglePhoton::SSS\t||\tDone Plotting clusters"<<std::endl;
+                can->Update();
+                //can->Write();
+                can->SaveAs((print_name+".pdf").c_str(),"pdf");
+                //f->Close();
+                std::cout<<"SinglePhoton::SSS\t||\tPRINTING"<<std::endl;
             }
             //bool_make_sss_plots=false;
             delete can;
@@ -724,24 +745,24 @@ namespace single_photon
 
     TGraph* SinglePhoton::GetNearestNpts(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hitz, double vertex_wire, double vertex_tick, int Npts){
 
-         std::vector<double>t_wire;
-         std::vector<double>t_tick;
+        std::vector<double>t_wire;
+        std::vector<double>t_tick;
         // std::vector<double>t_dist;
 
-         std::vector<double>all_wire;
-         std::vector<double>all_tick;
-         std::vector<double>all_dist;
+        std::vector<double>all_wire;
+        std::vector<double>all_tick;
+        std::vector<double>all_dist;
 
 
         for(size_t h = 0; h< hitz.size(); h++){
-                auto hit = hitz[h];
-                double h_wire = (double)hit->WireID().Wire;
-                double h_tick = (double)hit->PeakTime();
- 
-                double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
-                all_wire.push_back(h_wire);   
-                all_tick.push_back(h_tick);   
-                all_dist.push_back(dd);
+            auto hit = hitz[h];
+            double h_wire = (double)hit->WireID().Wire;
+            double h_tick = (double)hit->PeakTime();
+
+            double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
+            all_wire.push_back(h_wire);   
+            all_tick.push_back(h_tick);   
+            all_dist.push_back(dd);
         }
 
         std::vector<size_t> sorted_in = sort_indexes(all_dist);
@@ -786,7 +807,7 @@ namespace single_photon
         score.mean_tick =0;
         score.max_tick =0;
         score.min_tick =1e10;
-        
+
         score.mean_wire =0;
         score.max_wire =0;
         score.min_wire =1e10;
@@ -820,7 +841,7 @@ namespace single_photon
 
             score.mean_dist_tick += fabs(h_tick-vertex_tick);
             score.mean_dist_wire += fabs(h_wire-vertex_wire);
-            
+
             //wierd dits
             double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
             score.mean_dist += dd;
@@ -847,7 +868,7 @@ namespace single_photon
 
         score.mean_tick = score.mean_tick/(double)score.n_hits;
         score.mean_wire = score.mean_wire/(double)score.n_hits;
-    
+
         score.mean_dist = score.mean_dist/(double)score.n_hits;
 
         score.mean_dist_tick = score.mean_dist_tick/(double)score.n_hits;

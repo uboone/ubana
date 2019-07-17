@@ -29,6 +29,8 @@
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/Simulation/GeneratedParticleInfo.h"
 
+#include "larsim/EventWeight/Base/MCEventWeight.h"
+
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
 
 #include "larcoreobj/SummaryData/POTSummary.h"
@@ -1170,7 +1172,8 @@ namespace single_photon
             std::vector<double> m_reco_track_pid_pida_plane2;
             std::vector<double> m_reco_track_pid_chi_plane2;
 
-
+    
+            double m_genie_spline_weight;
 
     };
 
