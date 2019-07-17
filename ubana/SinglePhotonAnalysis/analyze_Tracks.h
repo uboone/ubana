@@ -106,9 +106,18 @@ namespace single_photon
         m_sim_track_startz.clear();
         m_sim_track_trackID.clear();
 
+        // PID
+        m_reco_track_pid_bragg_likelihood_plane0.clear();
+        m_reco_track_pid_bragg_likelihood_plane1.clear();
         m_reco_track_pid_bragg_likelihood_plane2.clear();
+        m_reco_track_pid_pida_plane0.clear();
+        m_reco_track_pid_pida_plane1.clear();
         m_reco_track_pid_pida_plane2.clear();
-        m_reco_track_pid_chi_plane2.clear();
+        m_reco_track_pid_chi2_plane0.clear();
+        m_reco_track_pid_chi2_plane1.clear();
+        m_reco_track_pid_chi2_plane2.clear();
+        m_reco_track_pid_three_plane_proton_pid.clear();
+
         m_reco_track_end_to_nearest_dead_wire_plane0.clear();
         m_reco_track_end_to_nearest_dead_wire_plane1.clear();
         m_reco_track_end_to_nearest_dead_wire_plane2.clear();
@@ -227,10 +236,16 @@ namespace single_photon
         m_sim_track_trackID.resize(size);
         m_sim_track_overlay_fraction.resize(size);
 
+        m_reco_track_pid_bragg_likelihood_plane0.resize(size);
+        m_reco_track_pid_bragg_likelihood_plane1.resize(size);
         m_reco_track_pid_bragg_likelihood_plane2.resize(size);
+        m_reco_track_pid_pida_plane0.resize(size);
+        m_reco_track_pid_pida_plane1.resize(size);
         m_reco_track_pid_pida_plane2.resize(size);
-        m_reco_track_pid_chi_plane2.resize(size);
-
+        m_reco_track_pid_chi2_plane0.resize(size);
+        m_reco_track_pid_chi2_plane1.resize(size);
+        m_reco_track_pid_chi2_plane2.resize(size);
+        m_reco_track_pid_three_plane_proton_pid.resize(size);
 
         m_reco_track_end_to_nearest_dead_wire_plane0.resize(size);
         m_reco_track_end_to_nearest_dead_wire_plane1.resize(size);
@@ -338,9 +353,16 @@ namespace single_photon
 
 
 
+        vertex_tree->Branch("reco_track_pid_bragg_likelihood_plane0",&m_reco_track_pid_bragg_likelihood_plane0);
+        vertex_tree->Branch("reco_track_pid_bragg_likelihood_plane1",&m_reco_track_pid_bragg_likelihood_plane1);
         vertex_tree->Branch("reco_track_pid_bragg_likelihood_plane2",&m_reco_track_pid_bragg_likelihood_plane2);
+        vertex_tree->Branch("reco_track_pid_pida_plane0",&m_reco_track_pid_pida_plane0);
+        vertex_tree->Branch("reco_track_pid_pida_plane1",&m_reco_track_pid_pida_plane1);
         vertex_tree->Branch("reco_track_pid_pida_plane2",&m_reco_track_pid_pida_plane2);
-        vertex_tree->Branch("reco_track_pid_chi_plane2",&m_reco_track_pid_chi_plane2);
+        vertex_tree->Branch("reco_track_pid_chi2_plane0",&m_reco_track_pid_chi2_plane0);
+        vertex_tree->Branch("reco_track_pid_chi2_plane1",&m_reco_track_pid_chi2_plane1);
+        vertex_tree->Branch("reco_track_pid_chi2_plane2",&m_reco_track_pid_chi2_plane2);
+        vertex_tree->Branch("reco_track_pid_three_plane_proton_pid",&m_reco_track_pid_three_plane_proton_pid);
 
         vertex_tree->Branch("reco_track_end_to_nearest_dead_wire_plane0",&m_reco_track_end_to_nearest_dead_wire_plane0);
         vertex_tree->Branch("reco_track_end_to_nearest_dead_wire_plane1",&m_reco_track_end_to_nearest_dead_wire_plane1);
@@ -1003,42 +1025,63 @@ namespace single_photon
                 // Loop over this and get scores for algorithm of choice
                 // But first, prepare garbage values, just in case
                 std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
+                double pidScore_BL_plane0 = -999;
+                double pidScore_BL_plane1 = -999;
                 double pidScore_BL_plane2 = -999;
+                double pidScore_PIDA_plane0 = -999;
+                double pidScore_PIDA_plane1 = -999;
                 double pidScore_PIDA_plane2 = -999;
-                double pidScore_Chi_plane2 = -999;
+                double pidScore_chi2_plane0 = -999;
+                double pidScore_chi2_plane1 = -999;
+                double pidScore_chi2_plane2 = -999;
+                double pidScore_three_plane_proton = -999;
 
-                int planeid = 2;
+                //int planeid = 2;
                 for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++) {
                     anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
                     //int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
-                    ///////////******// HARD-CODING ALERT PLZ FIX LATER K THX BYE //////////////////*******
+                    int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+                    /*
                     if (planeid != 2){
                         std::cout << "[ParticleIDValidation] Not using information for plane " 
                             << planeid << " (using plane 2 calorimetry only)" << std::endl;
                         continue;
                     }
+                    */
                     if (AlgScore.fAlgName == "BraggPeakLLH" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 13){
-                        pidScore_BL_plane2 = AlgScore.fValue;
+                        if (planeid == 0) pidScore_BL_plane0 = AlgScore.fValue;
+                        if (planeid == 1) pidScore_BL_plane1 = AlgScore.fValue;
+                        if (planeid == 2) pidScore_BL_plane2 = AlgScore.fValue;
                     }
                     if (AlgScore.fAlgName == "Chi2" && anab::kVariableType(AlgScore.fVariableType) == anab::kGOF && TMath::Abs(AlgScore.fAssumedPdg) == 13){
-                        pidScore_Chi_plane2 = AlgScore.fValue;
+                        if (planeid == 0) pidScore_chi2_plane0 = AlgScore.fValue;
+                        if (planeid == 1) pidScore_chi2_plane1 = AlgScore.fValue;
+                        if (planeid == 2) pidScore_chi2_plane2 = AlgScore.fValue;
                     }
-                    if (AlgScore.fAlgName == "PIDA_mean" && anab::kVariableType(AlgScore.fVariableType) == anab::kPIDA && TMath::Abs(AlgScore.fAssumedPdg) == 13){
-                        pidScore_PIDA_plane2 = AlgScore.fValue;
+                    if (AlgScore.fAlgName == "PIDA_mean" && anab::kVariableType(AlgScore.fVariableType) == anab::kPIDA){
+                        if (planeid == 0) pidScore_PIDA_plane0 = AlgScore.fValue;
+                        if (planeid == 1) pidScore_PIDA_plane1 = AlgScore.fValue;
+                        if (planeid == 2) pidScore_PIDA_plane2 = AlgScore.fValue;
                     }
-
-
-
+                    //if (AlgScore.fAlgName == "ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 2212){
+                    if (AlgScore.fAlgName == "ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 2212 && AlgScore.fPlaneMask == UBPID::uB_SinglePlaneGetBitset(2) && anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward){
+                        pidScore_three_plane_proton = AlgScore.fValue;
+                    }
                 }
-                std::cout << "Setting pid score " << pidScore_BL_plane2 << std::endl;
+
+                m_reco_track_pid_bragg_likelihood_plane0[i_trk] = pidScore_BL_plane0;
+                m_reco_track_pid_bragg_likelihood_plane1[i_trk] = pidScore_BL_plane1;
                 m_reco_track_pid_bragg_likelihood_plane2[i_trk] = pidScore_BL_plane2;
+                m_reco_track_pid_pida_plane0[i_trk] = pidScore_PIDA_plane0;
+                m_reco_track_pid_pida_plane1[i_trk] = pidScore_PIDA_plane1;
                 m_reco_track_pid_pida_plane2[i_trk] = pidScore_PIDA_plane2;
-                m_reco_track_pid_chi_plane2[i_trk] = pidScore_Chi_plane2;
+                m_reco_track_pid_chi2_plane0[i_trk] = pidScore_chi2_plane0;
+                m_reco_track_pid_chi2_plane1[i_trk] = pidScore_chi2_plane1;
+                m_reco_track_pid_chi2_plane2[i_trk] = pidScore_chi2_plane2;
+                m_reco_track_pid_three_plane_proton_pid[i_trk] = pidScore_three_plane_proton;
 
             }
             return;
         }
-
-
 
     }

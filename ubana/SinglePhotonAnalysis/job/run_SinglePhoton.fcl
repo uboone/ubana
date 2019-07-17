@@ -7,6 +7,7 @@
 #include "config_particle_identification.fcl"
 #include "config_particle_identification_fiducialvolume.fcl"
 #include "config_particle_identification_braggalgo.fcl"
+#include "config_particle_identification_producerlabels.fcl"
 #include "shrreco3d.fcl"
 
 process_name : SinglePhoton      #The process name must NOT contain any underscores
@@ -39,7 +40,8 @@ physics: {
      # ParameterSets for zero or more producer modules
      #pidcalibration: @local::microboone_calibrationdedx
      #dedxcalibration: @local::simulation_calibration
-     #pid: @local::particleidconfig
+     pid: @local::particleidconfig
+     #pid: @local::producerlabels_mcc9
      #showerreco3dpandora : @local::ShrReco3DPandora
   }
  analyzers: {
@@ -75,10 +77,12 @@ physics: {
  filters : {
      # ParameterSets for zero or more filter modules
   }
+ pidpath : [pid]
  path0 : [  singlephoton ]
-    end_paths: [ path0 ]
+ trigger_paths : [pidpath]
+ end_paths: [ path0 ]
 
-    }
+}
 #physics.producers.showerreco3dpandora.BacktrackTag: "gaushitTruthMatch"
 #physics.producers.showerreco3dpandora.ADCtoE: [240,240,240] # e-/ADC
 #physics.producers.showerreco3dpandora.NeutrinoEvent: true
@@ -93,3 +97,7 @@ services.DetectorClocksService.InheritClockConfig:           false
 services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
 services.DetectorClocksService.TrigModuleName:               "daq"
 services.DetectorClocksService.InheritClockConfig: false
+
+# PID stuff
+physics.producers.pid.ProducerLabels.TrackLabel: "pandora"
+physics.producers.pid.ProducerLabels.CalorimetryLabel: "pandoracaliSCE"
