@@ -10,7 +10,7 @@ BackTrackerTruthTool:
 
 AssociationsTruthTool:
 {
-  tool_type:           "AssociationsTruth"
+  tool_type:           "ubana/AnalysisTree/MCTruth/AssociationsTruth"
   AssnsProducerLabels: ["gaushitTruthMatch", "crHitRemovalTruthMatch", "trajclusterTruthMatch"]
   G4ProducerLabel:     "largeant"
   MCTruthAssociations: @local::MCTruthAssociations
