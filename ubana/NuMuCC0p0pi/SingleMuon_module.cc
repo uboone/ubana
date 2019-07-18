@@ -183,6 +183,21 @@ private:
   std::vector<float> resRange_pl1; // range from a hit to the end of the selected track end
   std::vector<float> resRange_pl2; // range from a hit to the end of the selected track end
 
+  double PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
+  double PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
+  double PID_Chi2Mu_pl2; // Chi2 of muon assumption of plane 2 in PID
+  double PID_Chi2P_pl0; // Chi2 of proton assumption of plane 0 in PID
+  double PID_Chi2P_pl1; // Chi2 of proton assumption of plane 1 in PID
+  double PID_Chi2P_pl2; // Chi2 of proton assumption of plane 2 in PID
+  double PID_Chi2Pi_pl0; // Chi2 of pion assumption of plane 0 in PID
+  double PID_Chi2Pi_pl1; // Chi2 of pion assumption of plane 1 in PID
+  double PID_Chi2Pi_pl2; // Chi2 of pion assumption of plane 2 in PID
+  double PID_Chi2K_pl0; // Chi2 of kaon assumption of plane 0 in PID
+  double PID_Chi2K_pl1; // Chi2 of kaon assumption of plane 1 in PID
+  double PID_Chi2K_pl2; // Chi2 of kaon assumption of plane 2 in PID
+  int PID_Pdg; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
+  double PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
+
   bool                                IsMC;
   std::string                         m_generatorLabel;
   std::string                         m_geantLabel;
@@ -395,6 +410,10 @@ void SingleMuon::analyze(art::Event const& evt)
       }
     }
     
+    //std::cout<<"MC nu pdg: "<< MC_nupdg<<std::endl;
+    //std::cout<<"MC ccnc: "<<MC_ccnc<<std::endl;
+    //std::cout<<"MC process: "<< MCParticleCollection[i_mcp]->Process()<<std::endl;
+    //std::cout<<"MC vtx X: "<< MC_nuVtxX <<", Y: "<< MC_nuVtxY << ", Z: "<<MC_nuVtxZ<<std::endl;
     // Get Genie info on how many particles produced
     for(int i_gn = 0; i_gn < (int) GTruthCollection.size(); i_gn++){
       Genie_nNeutron_preFSI = GTruthCollection[i_gn]->fNumNeutron;
@@ -488,7 +507,8 @@ void SingleMuon::analyze(art::Event const& evt)
         auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key());
         double Trk_Length = assoCal.front()->Range();  //It is said track length in pandoracali has spatial correction       
         trk_length.push_back(Trk_Length); // track length with spatial correction
-
+   
+        //std::cout<<"Reco track length: "<< Trk_Length<<std::endl;
         // Usual case, the vertex is the single track start
         vtx_x.push_back(Trk_start_SCEcorr.X());
         vtx_y.push_back(Trk_start_SCEcorr.Y());
@@ -560,12 +580,37 @@ void SingleMuon::analyze(art::Event const& evt)
                }
             }
           }
+        }
+	PID_Chi2Mu_pl0 = PIDChi2_mu[0];
+	PID_Chi2Mu_pl1 = PIDChi2_mu[1];
+	PID_Chi2Mu_pl2 = PIDChi2_mu[2];
+        PID_Chi2P_pl0 = PIDChi2_p[0];
+        PID_Chi2P_pl1 = PIDChi2_p[1];
+        PID_Chi2P_pl2 = PIDChi2_p[2];
+        PID_Chi2Pi_pl0 = PIDChi2_pi[0];
+        PID_Chi2Pi_pl1 = PIDChi2_pi[1];
+        PID_Chi2Pi_pl2 = PIDChi2_pi[2];
+        PID_Chi2K_pl0 = PIDChi2_K[0];
+        PID_Chi2K_pl1 = PIDChi2_K[1];
+        PID_Chi2K_pl2 = PIDChi2_K[2];
+
+        std::vector<double> PIDChi2_avg (4, 0.); // It follows the order of muon, proton, pion, kaon
+        for(int id_pl = 0; id_pl < 3; id_pl++){
+          PIDChi2_avg[0] += PIDChi2_mu[id_pl];
+          PIDChi2_avg[1] += PIDChi2_p[id_pl];
+          PIDChi2_avg[2] += PIDChi2_pi[id_pl];
+          PIDChi2_avg[3] += PIDChi2_K[id_pl];
         } 
-        std::cout<<"PID chi2 mu pl 0: "<<PIDChi2_mu[0]<<", pl 1: "<< PIDChi2_mu[1] << ", pl 2: "<< PIDChi2_mu[2] <<std::endl;
-        std::cout<<"PID chi2 p pl 0: "<<PIDChi2_p[0]<<", pl 1: "<< PIDChi2_p[1] << ", pl 2: "<< PIDChi2_p[2] <<std::endl;
-        std::cout<<"PID chi2 pi pl 0: "<<PIDChi2_pi[0]<<", pl 1: "<< PIDChi2_pi[1] << ", pl 2: "<< PIDChi2_pi[2] <<std::endl;
-        std::cout<<"PID chi2 K pl 0: "<<PIDChi2_K[0]<<", pl 1: "<< PIDChi2_K[1] << ", pl 2: "<< PIDChi2_K[2] <<std::endl;
-        //std::cout<<"Chi2Proton: "<< Chi2Proton <<", Kaon: "<< Chi2Kaon << ", Pion: "<< Chi2Pion<<", Muon: "<< Chi2Muon<< std::endl;
+        for(int index = 0; index < (int) PIDChi2_avg.size(); index++){
+          PIDChi2_avg[index] = PIDChi2_avg[index] / 3; // average the Chi2 of each assumption of the 3 planes
+        }
+        PID_avg_Chi2 = *std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end());
+        int ID_PID = std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end()) - PIDChi2_avg.begin();
+        if (ID_PID == 0) PID_Pdg = 13;
+        if (ID_PID == 1) PID_Pdg = 2212;
+        if (ID_PID == 2) PID_Pdg = 211;
+        if (ID_PID == 3) PID_Pdg = 321;
+        
         //-- Fill TRUE info, if the track is from numu cc muon
         if(IsMC){
           std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
@@ -577,7 +622,9 @@ void SingleMuon::analyze(art::Event const& evt)
             std::cout<<"MC particle does not exist!"<<std::endl;
           }
           else{
-            std::cout<<"MC PDG: "<<MCparticle->PdgCode()<<std::endl;
+            //std::cout<<"MCParticle Pdg: "<< MCparticle->PdgCode() <<std::endl;
+            //auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
+            //std::cout<<"True track length: "<<sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())<<std::endl;
             if_cosmic = false;
             if(MCparticle->PdgCode() == 13){
               if_matchMu = true;
@@ -866,6 +913,21 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("resRange_pl0", &resRange_pl0);
   my_event_->Branch("resRange_pl1", &resRange_pl1);
   my_event_->Branch("resRange_pl2", &resRange_pl2);
+  
+  my_event_->Branch("PID_Chi2Mu_pl0", &PID_Chi2Mu_pl0);
+  my_event_->Branch("PID_Chi2Mu_pl1", &PID_Chi2Mu_pl1);
+  my_event_->Branch("PID_Chi2Mu_pl2", &PID_Chi2Mu_pl2);
+  my_event_->Branch("PID_Chi2P_pl0", &PID_Chi2P_pl0);
+  my_event_->Branch("PID_Chi2P_pl1", &PID_Chi2P_pl1);
+  my_event_->Branch("PID_Chi2P_pl2", &PID_Chi2P_pl2);
+  my_event_->Branch("PID_Chi2Pi_pl0", &PID_Chi2Pi_pl0);
+  my_event_->Branch("PID_Chi2Pi_pl1", &PID_Chi2Pi_pl1);
+  my_event_->Branch("PID_Chi2Pi_pl2", &PID_Chi2Pi_pl2);
+  my_event_->Branch("PID_Chi2K_pl0", &PID_Chi2K_pl0);
+  my_event_->Branch("PID_Chi2K_pl1", &PID_Chi2K_pl1);
+  my_event_->Branch("PID_Chi2K_pl2", &PID_Chi2K_pl2);
+  my_event_->Branch("PID_Pdg", &PID_Pdg);
+  my_event_->Branch("PID_avg_Chi2", &PID_avg_Chi2);
 }
 
 void SingleMuon::endSubRun(art::SubRun const &sr){
