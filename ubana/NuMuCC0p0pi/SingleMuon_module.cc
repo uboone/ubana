@@ -106,6 +106,8 @@ private:
   double MC_nuVtxX; // MCTruth nu vtx X
   double MC_nuVtxY; // MCTruth nu vtx Y
   double MC_nuVtxZ; // MCTruth nu vtx Z
+  int MC_nMuon; // Number of muon(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nElectron; // Number of eletron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nNeutron; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nProton_belowTH; // Number of proton(s) (p<200) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nProton_middle; // Number of proton(s) (200<p<300) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
@@ -119,10 +121,9 @@ private:
   int Genie_nPiPlus_preFSI;// before FSI 
   int Genie_nPiMinus_preFSI;// before FSI 
 
+  int topology;// The topology of true neutrino interaction + FSI products after Geant4
+
   std::vector<double> true_mom_mu;//True momentum of muon track in the every event
-  //std::vector<double> true_vtx_x;//True vertex of muon track (X)
-  //std::vector<double> true_vtx_y;//True vertex of muon track (Y)
-  //std::vector<double> true_vtx_z;//True vertex of muon track (Z)
   std::vector<double> true_start_x;//True start of muon track (X)
   std::vector<double> true_start_y;//True start of muon track (Y)
   std::vector<double> true_start_z;//True start of muon track (Z)
@@ -141,16 +142,6 @@ private:
 
   std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
   std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
-  //std::vector<double> mom_fwdMCS_mu;//MCS forward momentum of muon track in the every event
-  //std::vector<double> mom_fwdMCS_ll_mu;//Likelihood of MCS forward momentum of muon track in the every event
-  //std::vector<double> mom_bwdMCS_mu;//MCS backward momentum of muon track in the every event
-  //std::vector<double> mom_bwdMCS_ll_mu;//Likelihood of MCS backward momentum of muon track in the every event
- // std::vector<double> mom_bestMCS_SCEcorr_mu;//MCS best momentum with SCE correction of muon track in the every event
- // std::vector<double> mom_bestMCS_SCEcorr_ll_mu;//Likelihood of MCS best momentum with SCE correction of muon track in the every event
- // std::vector<double> mom_fwdMCS_SCEcorr_mu;//MCS forward momentum with SCE correction of muon track in the every event
- // std::vector<double> mom_fwdMCS_SCEcorr_ll_mu;//Likelihood of MCS forward momentum with SCE correction of muon track in the every event
- // std::vector<double> mom_bwdMCS_SCEcorr_mu;//MCS backward momentum with SCE correction of muon track in the every event
- // std::vector<double> mom_bwdMCS_SCEcorr_ll_mu;//Likelihood of MCS backward momentum with SCE correction of muon track in the every event
   std::vector<double> mom_Range_mu;//Range momentum of muon track in the every event
   std::vector<double> vtx_x;//Reconstructed vtx x in the every event
   std::vector<double> vtx_y;//Reconstructed vtx y in the every event
@@ -167,8 +158,6 @@ private:
   std::vector<double> trk_length;//Range momentum of muon track in the every event
   std::vector<bool> trk_ifcontained;//to check if the track is contained or not
   std::vector<bool> vtx_FV;//to check if the vertex is in FV or not
-  //int ntrack;//number of tracks in this event
-  //int nshower;//number of shower in this event
   int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
@@ -256,19 +245,16 @@ void SingleMuon::analyze(art::Event const& evt)
     // MC Truth
     art::Handle< std::vector<simb::MCTruth> > Handle_MCTruth;
     evt.getByLabel(m_generatorLabel, Handle_MCTruth);
-    //std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
     art::fill_ptr_vector(MCTruthCollection, Handle_MCTruth);
 
     // Genie Truth
     art::Handle< std::vector<simb::GTruth> > Handle_GTruth;
     evt.getByLabel(m_generatorLabel, Handle_GTruth);
-    //std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
     art::fill_ptr_vector(GTruthCollection, Handle_GTruth);
  
     // MC Particle
     art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
     evt.getByLabel(m_geantLabel, Handle_MCParticle);
-    //std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
     art::fill_ptr_vector(MCParticleCollection, Handle_MCParticle);
   }
 
@@ -288,17 +274,11 @@ void SingleMuon::analyze(art::Event const& evt)
   std::vector< art::Ptr<recob::Shower> > AllShowerCollection;
   art::fill_ptr_vector(AllShowerCollection, Handle_TPCshower);
 
-  //MCS momentum
+  //MCS momentum (the current fcl parameter has spatial correction)
   art::Handle<std::vector<recob::MCSFitResult> > Handle_mcsfitresult_mu;
   evt.getByLabel(m_MCSmuProducerLabel, Handle_mcsfitresult_mu);
   std::vector<art::Ptr<recob::MCSFitResult>> mcsfitresult_mu_v;
   art::fill_ptr_vector(mcsfitresult_mu_v, Handle_mcsfitresult_mu);
-
-//  //MCS corrected momentum
-//  art::Handle<std::vector<recob::MCSFitResult> > Handle_mcsfitresult_SCEcorr_mu;
-//  evt.getByLabel(m_SCEcorr_MCSmuProducerLabel, Handle_mcsfitresult_SCEcorr_mu);
-//  std::vector<art::Ptr<recob::MCSFitResult>> SCEcorr_mcsfitresult_mu_v;
-//  art::fill_ptr_vector(SCEcorr_mcsfitresult_mu_v, Handle_mcsfitresult_SCEcorr_mu);
 
   //Hits per track
   art::FindManyP<recob::Hit> hits_per_track(Handle_TPCtrack,evt,Hits_TrackAssLabel);
@@ -318,21 +298,8 @@ void SingleMuon::analyze(art::Event const& evt)
   //track calorimetry association 
   art::FindManyP<anab::Calorimetry> trackToCalAsso(Handle_TPCtrack, evt, m_calorimetryProducerLabel);
 
-  //const std::vector< art::Ptr<recob::PFParticle> > &slc_PFP_v(slc_PFP_assn_v.at(SliceCollection.at(slc_id).key()));
-  //art::FindManyP<recob::Slice> slc_PFP_assn_v(rawHandle_PFParticle, evt, data_label_assoSlc_);
-  
   //PID
   art::FindManyP<anab::ParticleID> PIDTotrackAsso(Handle_TPCtrack,evt,PID_TrackAssLabel);
-
-  //std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(this_track_ptr.key());
-  //BackTrackerTruthMatch backtrackertruthmatch;
-  //backtrackertruthmatch.MatchToMCParticle(hit_handle,evt,trk_hits_ptrs);
-
-  //RecoTruth recotruth;
-  //recotruth.TrackToMCParticle(evt, Handle_Hit, m_trackProducerLabel);
-
-  //ntrack = AllTrackCollection.size();
-  //nshower = AllShowerCollection.size();
 
   // Get mapping from ID to PFParticle
   std::unordered_map<size_t, art::Ptr<recob::PFParticle> > pfParticleIdMap;
@@ -363,6 +330,8 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_ccnc = -99999;
     MC_FV = false;
 
+    MC_nMuon = 0;
+    MC_nElectron = 0;
     MC_nNeutron = 0;
     MC_nProton_belowTH = 0;
     MC_nProton_middle = 0;
@@ -394,6 +363,10 @@ void SingleMuon::analyze(art::Event const& evt)
     if (MC_ccnc == 0){
       for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
         if(MCParticleCollection[i_mcp]->Process() == "primary"){
+          // muon
+          if(MCParticleCollection[i_mcp]->PdgCode() == 13) MC_nMuon++;
+          // electron
+          if(MCParticleCollection[i_mcp]->PdgCode() == 11) MC_nElectron++;
           // neutron
           if(MCParticleCollection[i_mcp]->PdgCode() == 2112) MC_nNeutron++;
           // proton
@@ -410,10 +383,6 @@ void SingleMuon::analyze(art::Event const& evt)
       }
     }
     
-    //std::cout<<"MC nu pdg: "<< MC_nupdg<<std::endl;
-    //std::cout<<"MC ccnc: "<<MC_ccnc<<std::endl;
-    //std::cout<<"MC process: "<< MCParticleCollection[i_mcp]->Process()<<std::endl;
-    //std::cout<<"MC vtx X: "<< MC_nuVtxX <<", Y: "<< MC_nuVtxY << ", Z: "<<MC_nuVtxZ<<std::endl;
     // Get Genie info on how many particles produced
     for(int i_gn = 0; i_gn < (int) GTruthCollection.size(); i_gn++){
       Genie_nNeutron_preFSI = GTruthCollection[i_gn]->fNumNeutron;
@@ -490,12 +459,9 @@ void SingleMuon::analyze(art::Event const& evt)
         Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
         Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
 
-
-        //bool trk_contained = _fiducial_volume.InFV(daughter_Tracks.front()->Vertex<TVector3>(), daughter_Tracks.front()->End<TVector3>());
         bool trk_contained = _fiducial_volume.InFV(Trk_start_SCEcorr, Trk_end_SCEcorr);
         trk_ifcontained.push_back(trk_contained);       
        
-        //bool vtx_InFV = _fiducial_volume.InFV(daughter_Tracks.front()->Vertex<TVector3>());
         bool vtx_InFV = _fiducial_volume.InFV(Trk_start_SCEcorr);
         vtx_FV.push_back(vtx_InFV);
  
@@ -508,7 +474,6 @@ void SingleMuon::analyze(art::Event const& evt)
         double Trk_Length = assoCal.front()->Range();  //It is said track length in pandoracali has spatial correction       
         trk_length.push_back(Trk_Length); // track length with spatial correction
    
-        //std::cout<<"Reco track length: "<< Trk_Length<<std::endl;
         // Usual case, the vertex is the single track start
         vtx_x.push_back(Trk_start_SCEcorr.X());
         vtx_y.push_back(Trk_start_SCEcorr.Y());
@@ -529,7 +494,6 @@ void SingleMuon::analyze(art::Event const& evt)
 
         //Calorimetry Info
         // pandoracaliSCE has E-field and spatial correction
-        //auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key()); // take the only track
         if(assoCal.size()!=3){
           throw cet::exception("[Numu0pi0p]") << "Where are the three planes for the calorimetry!" << std::endl;
         }
@@ -562,8 +526,6 @@ void SingleMuon::analyze(art::Event const& evt)
         double PIDChi2_K[3] = {-999,-999,-999};
         for(int i_Alg_PID = 0; i_Alg_PID < (int) vAlg_PID.size(); i_Alg_PID++){
           anab::sParticleIDAlgScores Alg_PID = vAlg_PID.at(i_Alg_PID);
-          //int id_pl = UBPID::uB_getSinglePlane(Alg_PID.fPlaneID);
-          //if (id_pl<0 || id_pl>2) continue;
           for(int id_pl = 0; id_pl < 3; id_pl++){
             if (Alg_PID.fPlaneMask.test(id_pl) && Alg_PID.fAlgName == "Chi2"){
                if (abs(Alg_PID.fAssumedPdg) == 13){ // muon
@@ -622,9 +584,6 @@ void SingleMuon::analyze(art::Event const& evt)
             std::cout<<"MC particle does not exist!"<<std::endl;
           }
           else{
-            //std::cout<<"MCParticle Pdg: "<< MCparticle->PdgCode() <<std::endl;
-            //auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
-            //std::cout<<"True track length: "<<sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())<<std::endl;
             if_cosmic = false;
             if(MCparticle->PdgCode() == 13){
               if_matchMu = true;
@@ -640,7 +599,7 @@ void SingleMuon::analyze(art::Event const& evt)
               true_trk_phi.push_back(TrueTrackPos.Phi());
               true_trk_theta.push_back(TrueTrackPos.Theta());
               true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
-              true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z()));
+              true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())); // An estimation of true track length
               trk_pdg.push_back(MCparticle->PdgCode());
             }
           }
@@ -694,62 +653,6 @@ void SingleMuon::analyze(art::Event const& evt)
       // Are the rest showers or ghost in the wrong positions of the family tree?
       ////////// If they are electrons? (PID maybe)
       ////////// The vertex activity, the shower vs track length, the shower vs track momentum
-      if(n_dau_tracks==1){
-        // Get track length, and do we use it later?
-        ////// Add SCE correction?
-        vTrk_len.push_back(daughter_Tracks.front()->Length());
-        // Get directional info to see if the track start is in the TPC / FV by dE/dx
-        // pandoracaliSCE has E-field and spatial correction
-        auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key()); // take the only track
-        //std::cout<<"calo size: "<< assoCal.size()<<std::endl;
-        if(assoCal.size()!=3){
-          throw cet::exception("[Numu0pi0p]") << "Where are the three planes for the calorimetry!" << std::endl;
-        }
-        int id_collection = -99;
-        for(int id_pl = 0; id_pl < 3; id_pl++){
-          if(assoCal[id_pl]->PlaneID().Plane == 2){
-            id_collection = id_pl;
-          }
-        }
-        std::cout<<"collection plane id: "<<id_collection<<std::endl;
-       // if(assoCal.empty()){
-       //   throw cet::exception("[Numu0pi0p]") << "The only track don't have corresponding calorimetry." << std::endl;
-       // }
-       // if(assoCal.size() > 1){
-       //   throw cet::exception("[Numu0pi0p]") << "The only track associates more than a set of calorimetry." << std::endl;
-       // }
-        std::vector<float> vdEdx = assoCal.front()->dEdx();
-        std::vector<float> vdQdx = assoCal.front()->dQdx();
-        std::vector<float> vresRange = assoCal.front()->ResidualRange();
-        float Trk_Length = assoCal.front()->Range();  //It is said track length in pandoracali has spatial correction
-
-        int size_dEdx = vdEdx.size();
-        int unit = size_dEdx / 4;
-        // Average 4 hits and compare 4 groups of average dEdx
-        std::vector<float> v_dEdx_seg;
-        if(size_dEdx > 16){
-          for(int i_seg = 0; i_seg < 4; i_seg++){
-
-            v_dEdx_seg.push_back(0.25 * (vdEdx[size_dEdx - unit * i_seg - 1]
-                                       + vdEdx[size_dEdx - unit * i_seg - 2]
-                                       + vdEdx[size_dEdx - unit * i_seg - 3]
-                                       + vdEdx[size_dEdx - unit * i_seg - 4]));
-          }
-          auto sorted_v_dEdx_seg = v_dEdx_seg;
-          sort(sorted_v_dEdx_seg.begin(), sorted_v_dEdx_seg.end());
-
-          //If the direction of the track is correct, dEdx_seg 1 should represent track end, so dEdx_seg1 > dEdx_seg4
-          //std::cout<<"seg1: "<<dEdx_seg1<<", seg2: "<<dEdx_seg2<<", seg3: "<<dEdx_seg3<<", seg4: "<<dEdx_seg4<<std::endl;
-          //if() 
-        }
-        std::cout<<"Spatial corrected length: "<< Trk_Length<<", raw track length: "<<daughter_Tracks.front()->Length()<<std::endl;
-        //std::cout<<"size of Range: "<< vresRange.size()<<", size of dEdx: "<<vdEdx.size()<<std::endl;
-        //for(int kk = 0; kk < size_dEdx; kk++){
-        //  std::cout<<"Residual: "<< vresRange[kk]<<", dEdx: "<< vdEdx[kk]<<std::endl;
-        //}
-      }
-
-
     }
   }
 
@@ -757,9 +660,6 @@ void SingleMuon::analyze(art::Event const& evt)
 
   if(IsMC){
     true_mom_mu.clear();
-    //true_vtx_x.clear();
-    //true_vtx_y.clear();
-    //true_vtx_z.clear();
     true_start_x.clear();
     true_start_y.clear();
     true_start_z.clear();
@@ -775,16 +675,6 @@ void SingleMuon::analyze(art::Event const& evt)
 
   mom_bestMCS_mu.clear();
   mom_bestMCS_ll_mu.clear();
-  //mom_fwdMCS_mu.clear();
-  //mom_fwdMCS_ll_mu.clear();
-  //mom_bwdMCS_mu.clear();
-  //mom_bwdMCS_ll_mu.clear();
-  //mom_bestMCS_SCEcorr_mu.clear();
-  //mom_bestMCS_SCEcorr_ll_mu.clear();
-  //mom_fwdMCS_SCEcorr_mu.clear();
-  //mom_fwdMCS_SCEcorr_ll_mu.clear();
-  //mom_bwdMCS_SCEcorr_mu.clear();
-  //mom_bwdMCS_SCEcorr_ll_mu.clear();
   mom_Range_mu.clear();
   vtx_x.clear();
   vtx_y.clear();
@@ -836,6 +726,8 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nuVtxY", &MC_nuVtxY);
     my_event_->Branch("MC_nuVtxZ", &MC_nuVtxZ);
     my_event_->Branch("MC_FV", &MC_FV);
+    my_event_->Branch("MC_nMuon", &MC_nMuon);
+    my_event_->Branch("MC_nElectron", &MC_nElectron);
     my_event_->Branch("MC_nNeutron", &MC_nNeutron);
     my_event_->Branch("MC_nProton_belowTH", &MC_nProton_belowTH);
     my_event_->Branch("MC_nProton_middle", &MC_nProton_middle);
@@ -850,9 +742,6 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("Genie_nPiMinus_preFSI", &Genie_nPiMinus_preFSI);
 
     my_event_->Branch("true_mom_mu", &true_mom_mu);
-    //my_event_->Branch("true_vtx_x", &true_vtx_x);
-    //my_event_->Branch("true_vtx_y", &true_vtx_y);
-    //my_event_->Branch("true_vtx_z", &true_vtx_z);
     my_event_->Branch("true_start_x", &true_start_x);
     my_event_->Branch("true_start_y", &true_start_y);
     my_event_->Branch("true_start_z", &true_start_z);
@@ -875,16 +764,6 @@ void SingleMuon::Initialize_event()
 
   my_event_->Branch("mom_bestMCS_mu", &mom_bestMCS_mu);
   my_event_->Branch("mom_bestMCS_ll_mu", &mom_bestMCS_ll_mu);
-  //my_event_->Branch("mom_fwdMCS_mu", &mom_fwdMCS_mu);
-  //my_event_->Branch("mom_fwdMCS_ll_mu", &mom_fwdMCS_ll_mu);
-  //my_event_->Branch("mom_bwdMCS_mu", &mom_bwdMCS_mu);
-  //my_event_->Branch("mom_bwdMCS_ll_mu", &mom_bwdMCS_ll_mu);
-  //my_event_->Branch("mom_bestMCS_SCEcorr_mu", &mom_bestMCS_SCEcorr_mu);
-  //my_event_->Branch("mom_bestMCS_SCEcorr_ll_mu", &mom_bestMCS_SCEcorr_ll_mu);
-  //my_event_->Branch("mom_fwdMCS_SCEcorr_mu", &mom_fwdMCS_SCEcorr_mu);
-  //my_event_->Branch("mom_fwdMCS_SCEcorr_ll_mu", &mom_fwdMCS_SCEcorr_ll_mu);
-  //my_event_->Branch("mom_bwdMCS_SCEcorr_mu", &mom_bwdMCS_SCEcorr_mu);
-  //my_event_->Branch("mom_bwdMCS_SCEcorr_ll_mu", &mom_bwdMCS_SCEcorr_ll_mu);
   my_event_->Branch("mom_Range_mu", &mom_Range_mu);
   my_event_->Branch("vtx_x", &vtx_x);
   my_event_->Branch("vtx_y", &vtx_y);
@@ -901,8 +780,6 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("trk_length", &trk_length);
   my_event_->Branch("trk_ifcontained", &trk_ifcontained);
   my_event_->Branch("vtx_FV", &vtx_FV);
-  //my_event_->Branch("ntrack", &ntrack);
-  //my_event_->Branch("nshower", &nshower);
 
   my_event_->Branch("dEdx_pl0", &dEdx_pl0);
   my_event_->Branch("dEdx_pl1", &dEdx_pl1);
@@ -944,7 +821,39 @@ void SingleMuon::endSubRun(art::SubRun const &sr){
   
   POTtree->Fill();
 }
-   
+
+int SingleMuon::Topology(int Nmuons, int Nelectrons, int Nprotons, int Npiplus, int Npiminus, int Npi0, int Nprotons_abTH, int Nprotons_blTH, int PDG, int CCNC,  bool ifcosmic, bool ifbeam, bool ifFV){
+  // In the current version, Proton Momentum threshold is set to be 300MeV, which should be reviewed soon
+  // 1. NuMuCC0pi0p in FV
+  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 1;
+  // 2. NuMuCC0pi1p in FV
+  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 1 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 2;
+  // 3. NuMuCC0pi2p in FV
+  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 2 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 3;
+  // 4. NuMuCC0piNp in FV
+  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH > 2 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 4; 
+  // 5. NuMuCC1pi+Xp in FV
+  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 1 && Npiminus == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 5;
+  // 6. NuMuCC1pi-Xp in FV
+  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 1 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 6;
+  // 7. NuMuCC1pi0Xp in FV
+  if (Nmouns > 0 && Npi0 == 1 && Npiplus == 0 && Npiminus == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 7;
+  // 8. NuMuCCNpiXp in FV
+  if (Nmouns > 0 && (Npi0 + Npiplus + Npiminus) > 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 8;
+  // 9. Anti NuMu CC in FV
+  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == -14) return 9;
+  // 10. Nue / Anti-Nue CC in FV
+  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && abs(PDG) == 12) return 10;
+  // 11. NC
+  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 1) return 11;
+  // 12. true neutrino vertex out of FV
+  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 0) return 12;
+  // 13. cosmic
+  if (ifcosmic == 1) return 13;
+  // 14. other
+  else return 14
+}
+
 void SingleMuon::beginJob()
 {
   // Implementation of optional member function here.
