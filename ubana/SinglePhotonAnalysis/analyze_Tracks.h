@@ -1064,8 +1064,8 @@ namespace single_photon
                         if (planeid == 1) pidScore_PIDA_plane1 = AlgScore.fValue;
                         if (planeid == 2) pidScore_PIDA_plane2 = AlgScore.fValue;
                     }
-                    //if (AlgScore.fAlgName == "ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 2212){
-                    if (AlgScore.fAlgName == "ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 2212 && AlgScore.fPlaneMask == UBPID::uB_SinglePlaneGetBitset(2) && anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward){
+                    if (AlgScore.fAlgName == "ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 2212 && AlgScore.fPlaneMask == UBPID::uB_SinglePlaneGetBitset(2) ){
+                    //if (AlgScore.fAlgName == "ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 2212 && AlgScore.fPlaneMask == UBPID::uB_SinglePlaneGetBitset(2) && anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward){
                         pidScore_three_plane_proton = AlgScore.fValue;
                     }
                 }
