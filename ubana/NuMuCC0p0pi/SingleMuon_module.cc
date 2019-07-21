@@ -78,6 +78,7 @@ public:
 
   // Selected optional functions.
   void endSubRun(art::SubRun const &sr) override;
+  int Topology(int Nmuons, int Nelectrons, int Nprotons, int Npiplus, int Npiminus, int Npi0, int Nprotons_abTH, int Nprotons_blTH, int PDG, int CCNC,  bool ifcosmic, bool ifbeam, bool ifFV);
   void beginJob() override;
   void endJob() override;
 
@@ -171,6 +172,18 @@ private:
   std::vector<float> resRange_pl0; // range from a hit to the end of the selected track end
   std::vector<float> resRange_pl1; // range from a hit to the end of the selected track end
   std::vector<float> resRange_pl2; // range from a hit to the end of the selected track end
+  float dEdx_pl0_start_half; // average dEdx of start half hits of pl 0
+  float dEdx_pl1_start_half; // average dEdx of start half hits of pl 0
+  float dEdx_pl2_start_half; // average dEdx of start half hits of pl 0
+  float dEdx_pl0_end_half; // average dEdx of end half hits of pl 0
+  float dEdx_pl1_end_half; // average dEdx of end half hits of pl 0
+  float dEdx_pl2_end_half; // average dEdx of end half hits of pl 0
+  float dEdx_pl0_start10; // average dEdx of first 10 hit of pl 0
+  float dEdx_pl1_start10; // average dEdx of first 10 hit of pl 0
+  float dEdx_pl2_start10; // average dEdx of first 10 hit of pl 0
+  float dEdx_pl0_end10; // average dEdx of end 10 hit of pl 0
+  float dEdx_pl1_end10; // average dEdx of end 10 hit of pl 0
+  float dEdx_pl2_end10; // average dEdx of end 10 hit of pl 0
 
   double PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
   double PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
@@ -499,6 +512,7 @@ void SingleMuon::analyze(art::Event const& evt)
         }
         // induction 0 = 0, induction 1 = 1, collection = 2 (Check if the plane ID is correct)
         // assoCal[id_pl]->PlaneID().Plane == 2 (collection)
+        // The vector is ordered by residual range from small to big (track end to track start)
         dEdx_pl0 = assoCal[0]->dEdx();
         dQdx_pl0 = assoCal[0]->dQdx();
         resRange_pl0 = assoCal[0]->ResidualRange();
@@ -510,6 +524,42 @@ void SingleMuon::analyze(art::Event const& evt)
         dEdx_pl2 = assoCal[2]->dEdx();
         dQdx_pl2 = assoCal[2]->dQdx();
         resRange_pl2 = assoCal[2]->ResidualRange();
+  
+        int half_size_pl0 = dEdx_pl0.size() / 2;
+        int half_size_pl1 = dEdx_pl1.size() / 2;
+        int half_size_pl2 = dEdx_pl2.size() / 2;
+        std::cout<<"dEdx size: "<< dEdx_pl0.size() <<", half size: "<<half_size_pl0<<std::endl;
+
+        dEdx_pl0_start_half = std::accumulate(dEdx_pl0.end() - half_size_pl0, dEdx_pl0.end(), 0.) / half_size_pl0;
+        dEdx_pl0_end_half = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + half_size_pl0, 0. ) / half_size_pl0;
+        dEdx_pl1_start_half = std::accumulate(dEdx_pl1.end() - half_size_pl1, dEdx_pl1.end(), 0.) / half_size_pl1;
+        dEdx_pl1_end_half = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + half_size_pl1, 0. ) / half_size_pl1;
+        dEdx_pl2_start_half = std::accumulate(dEdx_pl2.end() - half_size_pl2, dEdx_pl2.end(), 0.) / half_size_pl2;
+        dEdx_pl2_end_half = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
+        if (dEdx_pl0.size()<10) {
+          dEdx_pl0_start10 = dEdx_pl0_start_half;
+          dEdx_pl0_end10 = dEdx_pl0_end_half;
+        }
+        else{ 
+          dEdx_pl0_start10 = std::accumulate(dEdx_pl0.end() - 10, dEdx_pl0.end(), 0.) / 10.;
+          dEdx_pl0_end10 = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + 10, 0.) / 10.;
+        }
+        if (dEdx_pl1.size()<10) {
+          dEdx_pl1_start10 = dEdx_pl1_start_half;
+          dEdx_pl1_end10 = dEdx_pl1_end_half;
+        }
+        else{
+          dEdx_pl1_start10 = std::accumulate(dEdx_pl1.end() - 10, dEdx_pl1.end(), 0.) / 10.;
+          dEdx_pl1_end10 = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + 10, 0.) / 10.;
+        }
+        if (dEdx_pl2.size()<10) {
+          dEdx_pl2_start10 = dEdx_pl2_start_half;
+          dEdx_pl2_end10 = dEdx_pl2_end_half;
+        }
+        else{
+          dEdx_pl2_start10 = std::accumulate(dEdx_pl2.end() - 10, dEdx_pl2.end(), 0.) / 10.;
+          dEdx_pl2_end10 = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + 10, 0.) / 10.;
+        }
 
         // Gain PID info of the track
         if(!PIDTotrackAsso.isValid()){
@@ -790,6 +840,18 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("resRange_pl0", &resRange_pl0);
   my_event_->Branch("resRange_pl1", &resRange_pl1);
   my_event_->Branch("resRange_pl2", &resRange_pl2);
+  my_event_->Branch("dEdx_pl0_start_half", &dEdx_pl0_start_half);
+  my_event_->Branch("dEdx_pl1_start_half", &dEdx_pl1_start_half);
+  my_event_->Branch("dEdx_pl2_start_half", &dEdx_pl2_start_half);
+  my_event_->Branch("dEdx_pl0_end_half", &dEdx_pl0_end_half);
+  my_event_->Branch("dEdx_pl1_end_half", &dEdx_pl1_end_half);
+  my_event_->Branch("dEdx_pl2_end_half", &dEdx_pl2_end_half);
+  my_event_->Branch("dEdx_pl0_start10", &dEdx_pl0_start10);
+  my_event_->Branch("dEdx_pl1_start10", &dEdx_pl1_start10);
+  my_event_->Branch("dEdx_pl2_start10", &dEdx_pl2_start10);
+  my_event_->Branch("dEdx_pl0_end10", &dEdx_pl0_end10);
+  my_event_->Branch("dEdx_pl1_end10", &dEdx_pl1_end10);
+  my_event_->Branch("dEdx_pl2_end10", &dEdx_pl2_end10);
   
   my_event_->Branch("PID_Chi2Mu_pl0", &PID_Chi2Mu_pl0);
   my_event_->Branch("PID_Chi2Mu_pl1", &PID_Chi2Mu_pl1);
@@ -822,37 +884,37 @@ void SingleMuon::endSubRun(art::SubRun const &sr){
   POTtree->Fill();
 }
 
-int SingleMuon::Topology(int Nmuons, int Nelectrons, int Nprotons, int Npiplus, int Npiminus, int Npi0, int Nprotons_abTH, int Nprotons_blTH, int PDG, int CCNC,  bool ifcosmic, bool ifbeam, bool ifFV){
-  // In the current version, Proton Momentum threshold is set to be 300MeV, which should be reviewed soon
-  // 1. NuMuCC0pi0p in FV
-  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 1;
-  // 2. NuMuCC0pi1p in FV
-  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 1 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 2;
-  // 3. NuMuCC0pi2p in FV
-  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 2 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 3;
-  // 4. NuMuCC0piNp in FV
-  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH > 2 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 4; 
-  // 5. NuMuCC1pi+Xp in FV
-  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 1 && Npiminus == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 5;
-  // 6. NuMuCC1pi-Xp in FV
-  if (Nmouns > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 1 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 6;
-  // 7. NuMuCC1pi0Xp in FV
-  if (Nmouns > 0 && Npi0 == 1 && Npiplus == 0 && Npiminus == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 7;
-  // 8. NuMuCCNpiXp in FV
-  if (Nmouns > 0 && (Npi0 + Npiplus + Npiminus) > 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 8;
-  // 9. Anti NuMu CC in FV
-  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == -14) return 9;
-  // 10. Nue / Anti-Nue CC in FV
-  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && abs(PDG) == 12) return 10;
-  // 11. NC
-  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 1) return 11;
-  // 12. true neutrino vertex out of FV
-  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 0) return 12;
-  // 13. cosmic
-  if (ifcosmic == 1) return 13;
-  // 14. other
-  else return 14
-}
+//int SingleMuon::Topology(int Nmuons, int Nelectrons, int Nprotons, int Npiplus, int Npiminus, int Npi0, int Nprotons_abTH, int Nprotons_blTH, int PDG, int CCNC,  bool ifcosmic, bool ifbeam, bool ifFV){
+//  // In the current version, Proton Momentum threshold is set to be 300MeV, which should be reviewed soon
+//  // 1. NuMuCC0pi0p in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 1;
+//  // 2. NuMuCC0pi1p in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 1 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 2;
+//  // 3. NuMuCC0pi2p in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 2 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 3;
+//  // 4. NuMuCC0piNp in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH > 2 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 4; 
+//  // 5. NuMuCC1pi+Xp in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 1 && Npiminus == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 5;
+//  // 6. NuMuCC1pi-Xp in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 1 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 6;
+//  // 7. NuMuCC1pi0Xp in FV
+//  if (Nmuons > 0 && Npi0 == 1 && Npiplus == 0 && Npiminus == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 7;
+//  // 8. NuMuCCNpiXp in FV
+//  if (Nmuons > 0 && (Npi0 + Npiplus + Npiminus) > 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 8;
+//  // 9. Anti NuMu CC in FV
+//  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == -14) return 9;
+//  // 10. Nue / Anti-Nue CC in FV
+//  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && abs(PDG) == 12) return 10;
+//  // 11. NC
+//  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 1) return 11;
+//  // 12. true neutrino vertex out of FV
+//  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 0) return 12;
+//  // 13. cosmic
+//  if (ifcosmic == 1) return 13;
+//  // 14. other
+//  else return 14;
+//}
 
 void SingleMuon::beginJob()
 {
