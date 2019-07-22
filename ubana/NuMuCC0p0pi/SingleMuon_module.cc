@@ -635,23 +635,21 @@ void SingleMuon::analyze(art::Event const& evt)
           }
           else{
             if_cosmic = false;
-            if(MCparticle->PdgCode() == 13){
-              if_matchMu = true;
-
-              auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
-              true_mom_mu.push_back(MCparticle->P());
-              true_start_x.push_back(MCparticle->Position().X());
-              true_start_y.push_back(MCparticle->Position().Y());
-              true_start_z.push_back(MCparticle->Position().Z());
-              true_end_x.push_back(MCparticle->EndPosition().X());
-              true_end_y.push_back(MCparticle->EndPosition().Y());
-              true_end_z.push_back(MCparticle->EndPosition().Z());
-              true_trk_phi.push_back(TrueTrackPos.Phi());
-              true_trk_theta.push_back(TrueTrackPos.Theta());
-              true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
-              true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())); // An estimation of true track length
-              trk_pdg.push_back(MCparticle->PdgCode());
-            }
+            if(MCparticle->PdgCode() == 13) if_matchMu = true;
+            auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
+            true_mom_mu.push_back(MCparticle->P());
+            true_start_x.push_back(MCparticle->Position().X());
+            true_start_y.push_back(MCparticle->Position().Y());
+            true_start_z.push_back(MCparticle->Position().Z());
+            true_end_x.push_back(MCparticle->EndPosition().X());
+            true_end_y.push_back(MCparticle->EndPosition().Y());
+            true_end_z.push_back(MCparticle->EndPosition().Z());
+            true_trk_phi.push_back(TrueTrackPos.Phi());
+            true_trk_theta.push_back(TrueTrackPos.Theta());
+            true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
+            true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())); // An estimation of true track length
+            trk_pdg.push_back(MCparticle->PdgCode());
+            
           }
         }
       }
