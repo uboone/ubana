@@ -91,7 +91,7 @@ protected:
   lar_pandora::PFParticlesToHits m_pfp_to_hits_map; ///< A map from PFParticles to recon hits
 private:
   bool m_configured = false;
-  bool m_debug = false;
+  //bool m_debug = false;
   bool m_verbose = false;
 };
 
