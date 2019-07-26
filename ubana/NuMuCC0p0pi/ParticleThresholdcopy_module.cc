@@ -75,7 +75,6 @@ public:
   void analyze(art::Event const& evt) override;
 
   // Selected optional functions.
-  void endSubRun(art::SubRun const &sr) override;
   void beginJob() override;
   void endJob() override;
 
@@ -366,10 +365,10 @@ void ParticleThreshold::analyze(art::Event const& evt)
     mom_fwdMCS_mu.push_back(fwdMCS);
     mom_fwdMCS_ll_mu.push_back(fwdMCSLL);
 
-    double bwdMCS =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdMomentum();
-    double bwdMCSLL =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdLogLikelihood();
-    mom_bwdMCS_mu.push_back(bwdMCS);
-    mom_bwdMCS_ll_mu.push_back(bwdMCSLL);
+    double bkwdMCS =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdMomentum();
+    double bkwdMCSLL =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdLogLikelihood();
+    mom_bkwdMCS_mu.push_back(bkwdMCS);
+    mom_bkwdMCS_ll_mu.push_back(bkwdMCSLL);
 
     //auto assoCal = trackToCalAsso.at(AllTrackCollection[trk_id].key());
     //double Trk_Length = assoCal.front()->Range();  //It is said track length in pandoracali has spatial correction
@@ -611,8 +610,8 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("mom_bestMCS_ll_mu", &mom_bestMCS_ll_mu);
   my_event_->Branch("mom_fwdMCS_mu", &mom_fwdMCS_mu);
   my_event_->Branch("mom_fwdMCS_ll_mu", &mom_fwdMCS_ll_mu);
-  my_event_->Branch("mom_bwdMCS_mu", &mom_bwdMCS_mu);
-  my_event_->Branch("mom_bwdMCS_ll_mu", &mom_bwdMCS_ll_mu);
+  my_event_->Branch("mom_bkwdMCS_mu", &mom_bkwdMCS_mu);
+  my_event_->Branch("mom_bkwdMCS_ll_mu", &mom_bkwdMCS_ll_mu);
   my_event_->Branch("mom_Range_mu", &mom_Range_mu);
   my_event_->Branch("mom_range_PID", &mom_range_PID);
   my_event_->Branch("mom_range_truePDG", &mom_range_truePDG);
