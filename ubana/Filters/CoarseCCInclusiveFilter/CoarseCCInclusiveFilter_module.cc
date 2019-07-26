@@ -117,7 +117,6 @@ private:
   // cut vaules
   double NuScore_cut;
   int NuPDG_cut;
-  int startcontained_cut;
   double track_length_cut;
   double track_score_cut;
   double vrx_dist_cut;
@@ -147,7 +146,6 @@ CoarseCCInclusiveFilter::CoarseCCInclusiveFilter(fhicl::ParameterSet const & pse
     //cut variables
     NuScore_cut = pset.get<double>("NuScore_cut", 0.0);
     NuPDG_cut = pset.get<int>("NuPDG_cut", 14);
-    startcontained_cut = pset.get<int>("startcontained_cut", 0.06);
     track_length_cut = pset.get<double>("track_length_cut", 0.06);
     track_score_cut = pset.get<double>("track_score_cut", 0.06);
     vrx_dist_cut = pset.get<double>("vrx_dist_cut", 0.06);
