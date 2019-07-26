@@ -7,7 +7,7 @@ art_make(
     larcorealg_Geometry
     larcore_Geometry_Geometry_service
     larsim_Simulation
-    nutools_ParticleNavigation
+    nug4_ParticleNavigation
     lardataobj_Simulation
     lardata_Utilities
     larevt_Filters
