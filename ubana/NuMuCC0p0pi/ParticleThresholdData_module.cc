@@ -103,6 +103,8 @@ private:
   double mom_bkwdMCS_mu;//MCS backward momentum of muon track in the every event
   double mom_bkwdMCS_ll_mu;//Likelihood of MCS backward momentum of muon track in the every event
   double mom_Range_mu;//Range momentum of muon track in the every event
+  double mom_Range_p;//Range momentum of proton track in the every event
+  double mom_Range_pi;//Range momentum of pion track in the every event
   double mom_range_PID_avg;//Range momentum of tracks based on their PID particle type using 3 pls
   double mom_range_PID_pl2;//Range momentum of tracks based on their PID particle type using pl 2
   
@@ -113,6 +115,8 @@ private:
   double mom_bkwdMCS_mu_noSCE;//MCS backward momentum of muon track in the every event
   double mom_bkwdMCS_ll_mu_noSCE;//Likelihood of MCS backward momentum of muon track in the every event
   double mom_Range_mu_noSCE;//Range momentum of muon track in the every event
+  double mom_Range_p_noSCE;//Range momentum of proton track in the every event
+  double mom_Range_pi_noSCE;//Range momentum of pion track in the every event
   double mom_range_PID_avg_noSCE;//Range momentum of tracks based on their PID particle type using 3 pls
   double mom_range_PID_pl2_noSCE;//Range momentum of tracks based on their PID particle type using pl 2
 
@@ -128,7 +132,10 @@ private:
   double trk_phi;//Reconstructed track phi in the every event
   double trk_theta;//Reconstructed track theta in the every event
   double trk_costheta;//Reconstructed track cos(theta) in the every event
-  double trk_length;//Range momentum of muon track in the every event
+  double trk_length_pl0;//plane 0 length of muon track in the every event
+  double trk_length_pl1;//plane 1 length of muon track in the every event
+  double trk_length_pl2;//plane 2 length of muon track in the every event
+  double trk_length_avg;//average length of muon track over 3 planes in the every event
   double trk_length_noSCE;//Range momentum of muon track in the every event no spatial correction
   bool trk_ifcontained;//to check if the track is contained or not
   bool vtx_FV;//to check if the vertex is in FV or not
@@ -272,7 +279,75 @@ void ParticleThreshold::analyze(art::Event const& evt)
   Ntrack = AllTrackCollection.size();
   for(int trk_id = 0; trk_id < Ntrack; trk_id++){
 
-    // Gain PID info of the track
+    //---Fill in Reco information
+    // Correct the position of the track ends
+    TVector3 Trk_start = AllTrackCollection[trk_id]->Vertex<TVector3>();
+    auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
+    TVector3 Trk_start_SCEcorr;
+    Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
+    Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
+    Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
+
+    TVector3 Trk_end = AllTrackCollection[trk_id]->End<TVector3>();
+    auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
+    TVector3 Trk_end_SCEcorr;
+    Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X());
+    Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
+    Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
+
+    trk_ifcontained = _fiducial_volume.InFV(Trk_start_SCEcorr, Trk_end_SCEcorr);
+
+    vtx_FV = _fiducial_volume.InFV(Trk_start_SCEcorr);
+
+    mom_bestMCS_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestMomentum();
+    mom_bestMCS_ll_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestLogLikelihood();
+
+    mom_fwdMCS_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdMomentum();
+    mom_fwdMCS_ll_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdLogLikelihood();
+
+    mom_bkwdMCS_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdMomentum();
+    mom_bkwdMCS_ll_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdLogLikelihood();
+    
+    // track length with no SCE 
+    trk_length_noSCE = AllTrackCollection[trk_id]->Length();
+    auto assoCal = trackToCalAsso.at(AllTrackCollection[trk_id].key());
+    trk_length_pl0 = assoCal[0]->Range();  //pandoracali has spatial correction
+    trk_length_pl1 = assoCal[1]->Range();  //pandoracali has spatial correction
+    trk_length_pl2 = assoCal[2]->Range();  //pandoracali has spatial correction
+    trk_length_avg = 0;
+    int valid_pl = 0;
+    for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl){
+      if(assoCal[i_pl]->Range() > 0){
+        trk_length_avg += assoCal[i_pl]->Range();
+        valid_pl++;
+      }
+    }
+    trk_length_avg = trk_length_avg / valid_pl;
+    
+    vtx_x = Trk_start_SCEcorr.X();
+    vtx_y = Trk_start_SCEcorr.Y();
+    vtx_z = Trk_start_SCEcorr.Z();
+    start_x = Trk_start_SCEcorr.X();
+    start_y = Trk_start_SCEcorr.Y();
+    start_z = Trk_start_SCEcorr.Z();
+    end_x = Trk_end_SCEcorr.X();
+    end_y = Trk_end_SCEcorr.Y();
+    end_z = Trk_end_SCEcorr.Z();
+
+    trk_phi = AllTrackCollection[trk_id]->Phi();
+    trk_theta = AllTrackCollection[trk_id]->Theta();
+    trk_costheta = AllTrackCollection[trk_id]->Theta();
+
+    mom_Range_mu = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 13);
+    mom_Range_mu_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 13);
+ 
+    mom_Range_p = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 2212);
+    mom_Range_p_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 2212);
+
+    mom_Range_pi = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 211);
+    mom_Range_pi_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 211);
+
+    // Get PID info
     if(!PIDTotrackAsso.isValid()){
       throw cet::exception("[Numu0pi0p]") << "No matched PID - track information!" << std::endl;
     }
@@ -316,8 +391,8 @@ void ParticleThreshold::analyze(art::Event const& evt)
     PID_Chi2K_pl0 = PIDChi2_K[0];
     PID_Chi2K_pl1 = PIDChi2_K[1];
     PID_Chi2K_pl2 = PIDChi2_K[2];
-  
-    //-- Naively use the average of all planes
+
+    // Naively use all planes
     std::vector<double> PIDChi2_avg (4, 0.); // It follows the order of muon, proton, pion, kaon
     for(int id_pl = 0; id_pl < 3; id_pl++){
       PIDChi2_avg[0] += PIDChi2_mu[id_pl];
@@ -343,7 +418,7 @@ void ParticleThreshold::analyze(art::Event const& evt)
     if (ID_PID == 3) {
       PID_Pdg_allPlane = 321;
     }
-    mom_range_PID_avg = _trk_mom_calculator.GetTrackMomentum(trk_length, PID_Pdg_allPlane);
+    mom_range_PID_avg = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, PID_Pdg_allPlane);
     mom_range_PID_avg_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, PID_Pdg_allPlane);
 
     //-- Use plane 2 only
@@ -363,60 +438,9 @@ void ParticleThreshold::analyze(art::Event const& evt)
     if (ID_PID_pl2 == 3) {
       PID_Pdg_pl2 = 321;
     }
-    mom_range_PID_pl2 = _trk_mom_calculator.GetTrackMomentum(trk_length, PID_Pdg_pl2);
+    mom_range_PID_pl2 = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, PID_Pdg_pl2);
     mom_range_PID_pl2_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, PID_Pdg_pl2);
 
-    //---Fill in Reco information
-    // Correct the position of the track ends
-    TVector3 Trk_start = AllTrackCollection[trk_id]->Vertex<TVector3>();
-    auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
-    TVector3 Trk_start_SCEcorr;
-    Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
-    Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
-    Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
-
-    TVector3 Trk_end = AllTrackCollection[trk_id]->End<TVector3>();
-    auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
-    TVector3 Trk_end_SCEcorr;
-    Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X());
-    Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
-    Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
-
-    trk_ifcontained = _fiducial_volume.InFV(Trk_start_SCEcorr, Trk_end_SCEcorr);
-
-    vtx_FV = _fiducial_volume.InFV(Trk_start_SCEcorr);
-
-    mom_bestMCS_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestMomentum();
-    mom_bestMCS_ll_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestLogLikelihood();
-
-    mom_fwdMCS_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdMomentum();
-    mom_fwdMCS_ll_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdLogLikelihood();
-
-    mom_bkwdMCS_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdMomentum();
-    mom_bkwdMCS_ll_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdLogLikelihood();
-    
-    // track length with no SCE 
-    trk_length_noSCE = AllTrackCollection[trk_id]->Length();
-    auto assoCal = trackToCalAsso.at(AllTrackCollection[trk_id].key());
-    trk_length = assoCal.front()->Range();  //pandoracali has spatial correction
-    
-    vtx_x = Trk_start_SCEcorr.X();
-    vtx_y = Trk_start_SCEcorr.Y();
-    vtx_z = Trk_start_SCEcorr.Z();
-    start_x = Trk_start_SCEcorr.X();
-    start_y = Trk_start_SCEcorr.Y();
-    start_z = Trk_start_SCEcorr.Z();
-    end_x = Trk_end_SCEcorr.X();
-    end_y = Trk_end_SCEcorr.Y();
-    end_z = Trk_end_SCEcorr.Z();
-
-    trk_phi = AllTrackCollection[trk_id]->Phi();
-    trk_theta = AllTrackCollection[trk_id]->Theta();
-    trk_costheta = AllTrackCollection[trk_id]->Theta();
-
-    mom_Range_mu = _trk_mom_calculator.GetTrackMomentum(trk_length, 13);
-    mom_Range_mu_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 13);
-  
     //Get Calorimety of the track
     if(assoCal.size()!=3){
       throw cet::exception("[Numu0pi0p]") << "Where are the three planes for the calorimetry!" << std::endl;
@@ -511,6 +535,8 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("mom_bkwdMCS_mu", &mom_bkwdMCS_mu);
   my_event_->Branch("mom_bkwdMCS_ll_mu", &mom_bkwdMCS_ll_mu);
   my_event_->Branch("mom_Range_mu", &mom_Range_mu);
+  my_event_->Branch("mom_Range_p", &mom_Range_p);
+  my_event_->Branch("mom_Range_pi", &mom_Range_pi);
   my_event_->Branch("mom_range_PID_avg", &mom_range_PID_avg);
   my_event_->Branch("mom_range_PID_pl2", &mom_range_PID_pl2);
 
@@ -521,6 +547,8 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("mom_bkwdMCS_mu_noSCE", &mom_bkwdMCS_mu_noSCE);
   my_event_->Branch("mom_bkwdMCS_ll_mu_noSCE", &mom_bkwdMCS_ll_mu_noSCE);
   my_event_->Branch("mom_Range_mu_noSCE", &mom_Range_mu_noSCE);
+  my_event_->Branch("mom_Range_p_noSCE", &mom_Range_p_noSCE);
+  my_event_->Branch("mom_Range_pi_noSCE", &mom_Range_pi_noSCE);
   my_event_->Branch("mom_range_PID_avg_noSCE", &mom_range_PID_avg_noSCE);
   my_event_->Branch("mom_range_PID_pl2_noSCE", &mom_range_PID_pl2_noSCE);
 
@@ -536,7 +564,10 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("trk_phi", &trk_phi);
   my_event_->Branch("trk_theta", &trk_theta);
   my_event_->Branch("trk_costheta", &trk_costheta);
-  my_event_->Branch("trk_length", &trk_length);
+  my_event_->Branch("trk_length_pl0", &trk_length_pl0);
+  my_event_->Branch("trk_length_pl1", &trk_length_pl1);
+  my_event_->Branch("trk_length_pl2", &trk_length_pl2);
+  my_event_->Branch("trk_length_avg", &trk_length_avg);
   my_event_->Branch("trk_length_noSCE", &trk_length_noSCE);
   my_event_->Branch("trk_ifcontained", &trk_ifcontained);
   my_event_->Branch("vtx_FV", &vtx_FV);

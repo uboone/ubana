@@ -118,11 +118,15 @@ private:
   double mom_bkwdMCS_mu;//MCS backward momentum of muon track in the every event
   double mom_bkwdMCS_ll_mu;//Likelihood of MCS backward momentum of muon track in the every event
   double mom_Range_mu;//Range momentum of muon track in the every event
+  double mom_Range_p;//Range momentum of proton track in the every event
+  double mom_Range_pi;//Range momentum of pion track in the every event
   double mom_range_PID_avg;//Range momentum of tracks based on their PID particle type using 3 pls
   double mom_range_PID_pl2;//Range momentum of tracks based on their PID particle type using pl 2
   double mom_range_truePDG;//Range momentum of tracks based on their true particle type
   
   double mom_Range_mu_noSCE;//Range momentum of muon track in the every event
+  double mom_Range_p_noSCE;//Range momentum of proton track in the every event
+  double mom_Range_pi_noSCE;//Range momentum of pion track in the every event
   double mom_range_PID_avg_noSCE;//Range momentum of tracks based on their PID particle type using 3 pls
   double mom_range_PID_pl2_noSCE;//Range momentum of tracks based on their PID particle type using pl 2
   double mom_range_truePDG_noSCE;//Range momentum of tracks based on their true particle type
@@ -364,7 +368,15 @@ void ParticleThreshold::analyze(art::Event const& evt)
       trk_length_pl0 = assoCal[0]->Range();  //pandoracali has spatial correction
       trk_length_pl1 = assoCal[1]->Range();  //pandoracali has spatial correction
       trk_length_pl2 = assoCal[2]->Range();  //pandoracali has spatial correction
-      trk_length_avg = (trk_length_pl0 + trk_length_pl1 + trk_length_pl2) / 3;
+      trk_length_avg = 0;
+      int valid_pl = 0;
+      for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl){
+        if(assoCal[i_pl]->Range() > 0){
+          trk_length_avg += assoCal[i_pl]->Range();
+          valid_pl++;
+        }
+      }
+      trk_length_avg = trk_length_avg / valid_pl;
       
       vtx_x = Trk_start_SCEcorr.X();
       vtx_y = Trk_start_SCEcorr.Y();
@@ -382,7 +394,13 @@ void ParticleThreshold::analyze(art::Event const& evt)
 
       mom_Range_mu = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 13);
       mom_Range_mu_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 13);
-  
+
+      mom_Range_p = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 2212);
+      mom_Range_p_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 2212);
+
+      mom_Range_pi = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 211);
+      mom_Range_pi_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 211);
+ 
       //Get Calorimety of the track
       if(assoCal.size()!=3){
         throw cet::exception("[Numu0pi0p]") << "Where are the three planes for the calorimetry!" << std::endl;
@@ -598,11 +616,15 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("mom_bkwdMCS_mu", &mom_bkwdMCS_mu);
   my_event_->Branch("mom_bkwdMCS_ll_mu", &mom_bkwdMCS_ll_mu);
   my_event_->Branch("mom_Range_mu", &mom_Range_mu);
+  my_event_->Branch("mom_Range_p", &mom_Range_p);
+  my_event_->Branch("mom_Range_pi", &mom_Range_pi);
   my_event_->Branch("mom_range_PID_avg", &mom_range_PID_avg);
   my_event_->Branch("mom_range_PID_pl2", &mom_range_PID_pl2);
   my_event_->Branch("mom_range_truePDG", &mom_range_truePDG);
 
   my_event_->Branch("mom_Range_mu_noSCE", &mom_Range_mu_noSCE);
+  my_event_->Branch("mom_Range_p_noSCE", &mom_Range_p_noSCE);
+  my_event_->Branch("mom_Range_pi_noSCE", &mom_Range_pi_noSCE);
   my_event_->Branch("mom_range_PID_avg_noSCE", &mom_range_PID_avg_noSCE);
   my_event_->Branch("mom_range_PID_pl2_noSCE", &mom_range_PID_pl2_noSCE);
   my_event_->Branch("mom_range_truePDG_noSCE", &mom_range_truePDG_noSCE);

@@ -144,6 +144,11 @@ private:
   std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
   std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
   std::vector<double> mom_Range_mu;//Range momentum of muon track in the every event
+  std::vector<double> mom_Range_p;//Range momentum of proton track in the every event
+  std::vector<double> mom_Range_pi;//Range momentum of pion track in the every event
+  std::vector<double> mom_Range_mu_noSCE;//Range momentum of muon track in the every event
+  std::vector<double> mom_Range_p_noSCE;//Range momentum of proton track in the every event
+  std::vector<double> mom_Range_pi_noSCE;//Range momentum of pion track in the every event
   std::vector<double> vtx_x;//Reconstructed vtx x in the every event
   std::vector<double> vtx_y;//Reconstructed vtx y in the every event
   std::vector<double> vtx_z;//Reconstructed vtx z in the every event
@@ -156,7 +161,11 @@ private:
   std::vector<double> trk_phi;//Reconstructed track phi in the every event
   std::vector<double> trk_theta;//Reconstructed track theta in the every event
   std::vector<double> trk_costheta;//Reconstructed track cos(theta) in the every event
-  std::vector<double> trk_length;//Range momentum of muon track in the every event
+  std::vector<double> trk_length_pl0;//Range momentum of muon track in the every event
+  std::vector<double> trk_length_pl1;//Range momentum of muon track in the every event
+  std::vector<double> trk_length_pl2;//Range momentum of muon track in the every event
+  std::vector<double> trk_length_avg;//Range momentum of muon track in the every event
+  std::vector<double> trk_length_noSCE;//Range momentum of muon track in the every event
   std::vector<bool> trk_ifcontained;//to check if the track is contained or not
   std::vector<bool> vtx_FV;//to check if the vertex is in FV or not
   int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
@@ -483,10 +492,28 @@ void SingleMuon::analyze(art::Event const& evt)
         mom_bestMCS_mu.push_back(bestMCS);
         mom_bestMCS_ll_mu.push_back(bestMCSLL);
 
+        // Track length and range momentum
+        double Trk_length_noSCE = daughter_Tracks.front()->Length();
         auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key());
-        double Trk_Length = assoCal.front()->Range();  //It is said track length in pandoracali has spatial correction       
-        trk_length.push_back(Trk_Length); // track length with spatial correction
-   
+        double Trk_length_pl0 = assoCal[0]->Range();  //pandoracali has spatial correction
+        double Trk_length_pl1 = assoCal[1]->Range();  //pandoracali has spatial correction
+        double Trk_length_pl2 = assoCal[2]->Range();  //pandoracali has spatial correction
+        double Trk_length_avg = 0;
+        int valid_pl = 0;
+        for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl){
+          if(assoCal[i_pl]->Range() > 0){
+            trk_length_avg += assoCal[i_pl]->Range();
+            valid_pl++;
+          }
+        }
+        trk_length_avg = trk_length_avg / valid_pl;
+
+        trk_length_pl0.push_back(Trk_length_pl0); // track length with spatial correction
+        trk_length_pl1.push_back(Trk_length_pl1); // track length with spatial correction
+        trk_length_pl2.push_back(Trk_length_pl2); // track length with spatial correction
+        trk_length_avg.push_back(Trk_length_avg); // track length with spatial correction
+        trk_length_noSCE.push_back(Trk_length_noSCE);
+
         // Usual case, the vertex is the single track start
         vtx_x.push_back(Trk_start_SCEcorr.X());
         vtx_y.push_back(Trk_start_SCEcorr.Y());
@@ -502,8 +529,20 @@ void SingleMuon::analyze(art::Event const& evt)
         trk_theta.push_back(daughter_Tracks.front()->Theta());
         trk_costheta.push_back(cos(daughter_Tracks.front()->Theta()));
     
-        double RangeMom = _trk_mom_calculator.GetTrackMomentum(Trk_Length, 13);
-        mom_Range_mu.push_back(RangeMom);
+        double Mom_Range_mu = _trk_mom_calculator.GetTrackMomentum(Trk_length_pl2, 13);
+        double Mom_Range_mu_noSCE = _trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, 13);
+        mom_Range_mu.push_back(Mom_Range_mu);
+        mom_Range_mu_noSCE.push_back(Mom_Range_mu_noSCE);
+
+        double Mom_Range_p = _trk_mom_calculator.GetTrackMomentum(Trk_length_pl2, 2212);
+        double Mom_Range_p_noSCE = _trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, 2212);
+        mom_Range_p.push_back(Mom_Range_p);
+        mom_Range_p_noSCE.push_back(Mom_Range_p_noSCE);
+
+        double Mom_Range_pi = _trk_mom_calculator.GetTrackMomentum(Trk_length_pl2, 211);
+        double Mom_Range_pi_noSCE = _trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, 211);
+        mom_Range_pi.push_back(Mom_Range_pi);
+        mom_Range_pi_noSCE.push_back(Mom_Range_pi_noSCE);
 
         //Calorimetry Info
         // pandoracaliSCE has E-field and spatial correction
@@ -724,6 +763,11 @@ void SingleMuon::analyze(art::Event const& evt)
   mom_bestMCS_mu.clear();
   mom_bestMCS_ll_mu.clear();
   mom_Range_mu.clear();
+  mom_Range_mu_noSCE.clear();
+  mom_Range_p.clear();
+  mom_Range_p_noSCE.clear();
+  mom_Range_pi.clear();
+  mom_Range_pi_noSCE.clear();
   vtx_x.clear();
   vtx_y.clear();
   vtx_z.clear();
@@ -736,7 +780,11 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_phi.clear();
   trk_theta.clear();
   trk_costheta.clear();
-  trk_length.clear();
+  trk_length_pl0.clear();
+  trk_length_pl1.clear();
+  trk_length_pl2.clear();
+  trk_length_avg.clear();
+  trk_length_noSCE.clear();
   trk_ifcontained.clear();
   vtx_FV.clear();
   
@@ -813,6 +861,11 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("mom_bestMCS_mu", &mom_bestMCS_mu);
   my_event_->Branch("mom_bestMCS_ll_mu", &mom_bestMCS_ll_mu);
   my_event_->Branch("mom_Range_mu", &mom_Range_mu);
+  my_event_->Branch("mom_Range_p", &mom_Range_p);
+  my_event_->Branch("mom_Range_pi", &mom_Range_pi);
+  my_event_->Branch("mom_Range_mu_noSCE", &mom_Range_mu_noSCE);
+  my_event_->Branch("mom_Range_p_noSCE", &mom_Range_p_noSCE);
+  my_event_->Branch("mom_Range_pi_noSCE", &mom_Range_pi_noSCE);
   my_event_->Branch("vtx_x", &vtx_x);
   my_event_->Branch("vtx_y", &vtx_y);
   my_event_->Branch("vtx_z", &vtx_z);
@@ -825,7 +878,11 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("trk_phi", &trk_phi);
   my_event_->Branch("trk_theta", &trk_theta);
   my_event_->Branch("trk_costheta", &trk_costheta);
-  my_event_->Branch("trk_length", &trk_length);
+  my_event_->Branch("trk_length_pl0", &trk_length_pl0);
+  my_event_->Branch("trk_length_pl1", &trk_length_pl1);
+  my_event_->Branch("trk_length_pl2", &trk_length_pl2);
+  my_event_->Branch("trk_length_avg", &trk_length_avg);
+  my_event_->Branch("trk_length_noSCE", &trk_length_noSCE);
   my_event_->Branch("trk_ifcontained", &trk_ifcontained);
   my_event_->Branch("vtx_FV", &vtx_FV);
 
