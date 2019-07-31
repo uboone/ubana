@@ -1,7 +1,7 @@
 #include "time_memory_tracker_microboone.fcl"
 #include "services_microboone.fcl"
 
-process_name: ccnumuincproducer
+process_name: ccnumuincfilter
 
 services:{
     TFileService: {fileName: "NuCCproducer.root" }
@@ -25,14 +25,14 @@ physics:
     
     producers:
     {
-        NuCCfilter:
-        {
-            module_type: "NuCCfilter"
-        }
     }
     
     filters:
     {
+        NuCCfilter:
+        {
+            module_type: "NuCCfilter"
+        }
     }
     
     prod: [ NuCCfilter ]

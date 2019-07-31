@@ -30,7 +30,6 @@ void NuCCproducer::produce(art::Event &evt)
   }
   evt.put(std::move(T0_v));
   evt.put(std::move(pfp_t0_assn_v));
-  std::cout << "\n\n";
 }
 
 void NuCCproducer::FillReconstructed(art::Event const &evt)
@@ -196,7 +195,7 @@ bool NuCCproducer::IsContained(float x, float y, float z, const std::vector<floa
 
 bool NuCCproducer::IsMuonCandidate()
 {
-  fIsMuonCandidate = fGeneration == 1 &&
+  fIsMuonCandidate = fGeneration == 2 &&
                      m_muon_cut_trackscore < fTrackScore &&
                      m_muon_cut_vtxdistance > fVtxDistance &&
                      m_muon_cut_protonchi2 < fTrackPID_chiproton &&

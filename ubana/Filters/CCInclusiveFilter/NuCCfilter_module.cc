@@ -52,7 +52,7 @@ NuCCfilter::NuCCfilter(fhicl::ParameterSet const &p)
     : EDFilter{p}
 {
   m_pfp_producer = p.get<std::string>("pfp_producer", "pandora");
-  m_muon_producer = p.get<std::string>("muon_producer", "ccnumuincproducer");
+  m_muon_producer = p.get<std::string>("muon_producer", "NuCCproducer");
 }
 
 bool NuCCfilter::filter(art::Event &evt)
