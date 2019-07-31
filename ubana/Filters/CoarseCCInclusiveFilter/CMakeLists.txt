@@ -49,7 +49,7 @@ art_make(BASENAME_ONLY
 		     ${ROOT_BASIC_LIB_LIST}
                      ${ROOT_EG}
 		     ${Boost_SYSTEM_LIBRARY}
-                     NuCCHelpers
+                     CoarseNuCCHelpers
          )
 
 add_subdirectory(helpers)

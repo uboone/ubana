@@ -1,14 +1,16 @@
 art_make( 
           # Needed for standalone c++ helper files
           LIBRARY_NAME
-                        CoarseNuCCHelpers
+                        NuCCHelpers
           LIB_LIBRARIES 
                         larpandora_LArPandoraInterface
                         larcorealg_Geometry
                         larcore_Geometry_Geometry_service
-                        larsim_Simulation lardataobj_Simulation
+                        larsim_Simulation 
+                        lardataobj_Simulation
                         lardataobj_RecoBase
                         lardataobj_AnalysisBase
+                        larreco_RecoAlg
                         lardata_Utilities
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
