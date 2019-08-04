@@ -316,7 +316,7 @@ void ParticleThreshold::analyze(art::Event const& evt)
     trk_length_pl2 = assoCal[2]->Range();  //pandoracali has spatial correction
     trk_length_avg = 0;
     int valid_pl = 0;
-    for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl){
+    for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl++){
       if(assoCal[i_pl]->Range() > 0){
         trk_length_avg += assoCal[i_pl]->Range();
         valid_pl++;

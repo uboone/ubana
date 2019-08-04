@@ -103,6 +103,7 @@ private:
   double true_end_x;//True end of muon track (X)
   double true_end_y;//True end of muon track (Y)
   double true_end_z;//True end of muon track (Z)
+  bool true_trk_ifcontained; // True track if contained or not
   double true_trk_phi;//True phi of muon track 
   double true_trk_theta;//True theta of muon track 
   double true_trk_costheta;//True cos(theta) of muon track 
@@ -142,6 +143,8 @@ private:
   double end_z;//Reconstructed end z in the every event
   double trk_phi;//Reconstructed track phi in the every event
   double trk_theta;//Reconstructed track theta in the every event
+  double trk_theta_xz;//Reconstructed track theta xz in the every event (MCC8 calib paper definition)
+  double trk_cos_theta_xz;//Reconstructed cos track theta xz in the every event
   double trk_costheta;//Reconstructed track cos(theta) in the every event
   double trk_length_pl0;//Range momentum of muon track in the every event
   double trk_length_pl1;//Range momentum of muon track in the every event
@@ -177,15 +180,23 @@ private:
   double PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
   double PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
   double PID_Chi2Mu_pl2; // Chi2 of muon assumption of plane 2 in PID
+  double PID_Chi2Mu_3pl; // Chi2 of muon assumption of 3 planes in PID
+  
   double PID_Chi2P_pl0; // Chi2 of proton assumption of plane 0 in PID
   double PID_Chi2P_pl1; // Chi2 of proton assumption of plane 1 in PID
   double PID_Chi2P_pl2; // Chi2 of proton assumption of plane 2 in PID
+  double PID_Chi2P_3pl; // Chi2 of muon assumption of 3 planes in PID
+  
   double PID_Chi2Pi_pl0; // Chi2 of pion assumption of plane 0 in PID
   double PID_Chi2Pi_pl1; // Chi2 of pion assumption of plane 1 in PID
   double PID_Chi2Pi_pl2; // Chi2 of pion assumption of plane 2 in PID
+  double PID_Chi2Pi_3pl; // Chi2 of muon assumption of 3 planes in PID
+  
   double PID_Chi2K_pl0; // Chi2 of kaon assumption of plane 0 in PID
   double PID_Chi2K_pl1; // Chi2 of kaon assumption of plane 1 in PID
   double PID_Chi2K_pl2; // Chi2 of kaon assumption of plane 2 in PID
+  double PID_Chi2K_3pl; // Chi2 of muon assumption of 3 planes in PID
+  
   int PID_Pdg_allPlane; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
   int PID_Pdg_pl2; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
   double PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
@@ -327,6 +338,9 @@ void ParticleThreshold::analyze(art::Event const& evt)
       true_end_x = MCparticle->EndPosition().X();
       true_end_y = MCparticle->EndPosition().Y();
       true_end_z = MCparticle->EndPosition().Z();
+      TVector3 true_start(true_start_x, true_start_y, true_start_z);
+      TVector3 true_end(true_end_x, true_end_y, true_end_z);
+      true_trk_ifcontained = _fiducial_volume.InFV(true_start, true_end);
       true_trk_phi = TrueTrackPos.Phi();
       true_trk_theta = TrueTrackPos.Theta();
       true_trk_costheta = cos(TrueTrackPos.Theta());
@@ -370,7 +384,7 @@ void ParticleThreshold::analyze(art::Event const& evt)
       trk_length_pl2 = assoCal[2]->Range();  //pandoracali has spatial correction
       trk_length_avg = 0;
       int valid_pl = 0;
-      for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl){
+      for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl++){
         if(assoCal[i_pl]->Range() > 0){
           trk_length_avg += assoCal[i_pl]->Range();
           valid_pl++;
@@ -390,7 +404,7 @@ void ParticleThreshold::analyze(art::Event const& evt)
 
       trk_phi = AllTrackCollection[trk_id]->Phi();
       trk_theta = AllTrackCollection[trk_id]->Theta();
-      trk_costheta = AllTrackCollection[trk_id]->Theta();
+      trk_costheta = cos(AllTrackCollection[trk_id]->Theta());
 
       mom_Range_mu = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 13);
       mom_Range_mu_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 13);
@@ -455,19 +469,33 @@ void ParticleThreshold::analyze(art::Event const& evt)
         dEdx_pl2_end10 = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + 10, 0.) / 10.;
       }
 
-      // Gain PID info of the track
+      //--- Gain PID info of the track
       if(!PIDTotrackAsso.isValid()){
         throw cet::exception("[Numu0pi0p]") << "No matched PID - track information!" << std::endl;
       }
+      // Get projected angle wrt to the wires (docdb 23008)
+      TVector3 End_Dir = AllTrackCollection[trk_id]->EndDirection<TVector3>();
+      double theta_pl2 = std::atan2(End_Dir.Y(), End_Dir.Z()); // atan2(y,x)
+      double theta_pl1 = theta_pl2 + M_PI/3; // If plan1 is -60 degree to Y, looking from outside to the TPC
+      double theta_pl0 = theta_pl2 - M_PI/3; // If plan0 is +60 degree to Y, looking from outside to the TPC
+      int w2 = 0; int w1 = 0; int w0 = 0;
+      double sin2_pl2 = sin(theta_pl2) * sin(theta_pl2);
+      double sin2_pl1 = sin(theta_pl1) * sin(theta_pl1);
+      double sin2_pl0 = sin(theta_pl0) * sin(theta_pl0);
+      if (sin2_pl2 >= 0.5) w2 = 1;
+      if (sin2_pl1 >= 0.5) w1 = 1;
+      if (sin2_pl0 >= 0.5) w0 = 1;
+
+      // PID
       auto trkPID = PIDTotrackAsso.at(AllTrackCollection[trk_id].key());
       if (trkPID.size() == 0){
         std::cout << "No PID information for this selected track!" << std::endl;
       }
       std::vector<anab::sParticleIDAlgScores> vAlg_PID = trkPID.front()->ParticleIDAlgScores();
-      double PIDChi2_mu[3] = {-999,-999,-999};
-      double PIDChi2_p[3] = {-999,-999,-999};
-      double PIDChi2_pi[3] = {-999,-999,-999};
-      double PIDChi2_K[3] = {-999,-999,-999};
+      double PIDChi2_mu[3] = {9999,9999,9999};
+      double PIDChi2_p[3] = {9999,9999,9999};
+      double PIDChi2_pi[3] = {9999,9999,9999};
+      double PIDChi2_K[3] = {9999,9999,9999};
       for(int i_Alg_PID = 0; i_Alg_PID < (int) vAlg_PID.size(); i_Alg_PID++){
         anab::sParticleIDAlgScores Alg_PID = vAlg_PID.at(i_Alg_PID);
         for(int id_pl = 0; id_pl < 3; id_pl++){
@@ -490,28 +518,25 @@ void ParticleThreshold::analyze(art::Event const& evt)
       PID_Chi2Mu_pl0 = PIDChi2_mu[0];
       PID_Chi2Mu_pl1 = PIDChi2_mu[1];
       PID_Chi2Mu_pl2 = PIDChi2_mu[2];
+      PID_Chi2Mu_3pl = (w0 * PID_Chi2Mu_pl0 + w1 * PID_Chi2Mu_pl1 + w2 * PID_Chi2Mu_pl2) / (w0 + w1 + w2);
+      
       PID_Chi2P_pl0 = PIDChi2_p[0];
       PID_Chi2P_pl1 = PIDChi2_p[1];
       PID_Chi2P_pl2 = PIDChi2_p[2];
+      PID_Chi2P_3pl = (w0 * PID_Chi2P_pl0 + w1 * PID_Chi2P_pl1 + w2 * PID_Chi2P_pl2) / (w0 + w1 + w2);
+
       PID_Chi2Pi_pl0 = PIDChi2_pi[0];
       PID_Chi2Pi_pl1 = PIDChi2_pi[1];
       PID_Chi2Pi_pl2 = PIDChi2_pi[2];
+      PID_Chi2Pi_3pl = (w0 * PID_Chi2Pi_pl0 + w1 * PID_Chi2Pi_pl1 + w2 * PID_Chi2Pi_pl2) / (w0 + w1 + w2);
+
       PID_Chi2K_pl0 = PIDChi2_K[0];
       PID_Chi2K_pl1 = PIDChi2_K[1];
       PID_Chi2K_pl2 = PIDChi2_K[2];
+      PID_Chi2K_3pl = (w0 * PID_Chi2K_pl0 + w1 * PID_Chi2K_pl1 + w2 * PID_Chi2K_pl2) / (w0 + w1 + w2);
 
-      //-- Naively use the average of all planes
-      std::vector<double> PIDChi2_avg (4, 0.); // It follows the order of muon, proton, pion, kaon
-      for(int id_pl = 0; id_pl < 3; id_pl++){
-        PIDChi2_avg[0] += PIDChi2_mu[id_pl];
-        PIDChi2_avg[1] += PIDChi2_p[id_pl];
-        PIDChi2_avg[2] += PIDChi2_pi[id_pl];
-        PIDChi2_avg[3] += PIDChi2_K[id_pl];
-      }
-
-      for(int index = 0; index < (int) PIDChi2_avg.size(); index++){
-        PIDChi2_avg[index] = PIDChi2_avg[index] / 3; // average the Chi2 of each assumption of the 3 planes
-      }
+      //-- Get minimum Chi2 and there corresponding particle type
+      std::vector<double> PIDChi2_avg = {PID_Chi2Mu_3pl, PID_Chi2P_3pl, PID_Chi2Pi_3pl, PID_Chi2K_3pl}; // It follows the order of muon, proton, pion, kaon
       PID_avg_Chi2 = *std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end());
       int ID_PID = std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end()) - PIDChi2_avg.begin();
       if (ID_PID == 0) {
@@ -601,6 +626,7 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("true_end_x", &true_end_x);
   my_event_->Branch("true_end_y", &true_end_y);
   my_event_->Branch("true_end_z", &true_end_z);
+  my_event_->Branch("true_trk_ifcontained", &true_trk_ifcontained);
   my_event_->Branch("true_trk_phi", &true_trk_phi);
   my_event_->Branch("true_trk_theta", &true_trk_theta);
   my_event_->Branch("true_trk_costheta", &true_trk_costheta);
@@ -674,15 +700,19 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("PID_Chi2Mu_pl0", &PID_Chi2Mu_pl0);
   my_event_->Branch("PID_Chi2Mu_pl1", &PID_Chi2Mu_pl1);
   my_event_->Branch("PID_Chi2Mu_pl2", &PID_Chi2Mu_pl2);
+  my_event_->Branch("PID_Chi2Mu_3pl", &PID_Chi2Mu_3pl);
   my_event_->Branch("PID_Chi2P_pl0", &PID_Chi2P_pl0);
   my_event_->Branch("PID_Chi2P_pl1", &PID_Chi2P_pl1);
   my_event_->Branch("PID_Chi2P_pl2", &PID_Chi2P_pl2);
+  my_event_->Branch("PID_Chi2P_3pl", &PID_Chi2P_3pl);
   my_event_->Branch("PID_Chi2Pi_pl0", &PID_Chi2Pi_pl0);
   my_event_->Branch("PID_Chi2Pi_pl1", &PID_Chi2Pi_pl1);
   my_event_->Branch("PID_Chi2Pi_pl2", &PID_Chi2Pi_pl2);
+  my_event_->Branch("PID_Chi2Pi_3pl", &PID_Chi2Pi_3pl);
   my_event_->Branch("PID_Chi2K_pl0", &PID_Chi2K_pl0);
   my_event_->Branch("PID_Chi2K_pl1", &PID_Chi2K_pl1);
   my_event_->Branch("PID_Chi2K_pl2", &PID_Chi2K_pl2);
+  my_event_->Branch("PID_Chi2K_3pl", &PID_Chi2K_3pl);
   my_event_->Branch("PID_Pdg_allPlane", &PID_Pdg_allPlane);
   my_event_->Branch("PID_Pdg_pl2", &PID_Pdg_pl2);
   my_event_->Branch("PID_avg_Chi2", &PID_avg_Chi2);

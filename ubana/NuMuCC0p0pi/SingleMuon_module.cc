@@ -110,9 +110,8 @@ private:
   int MC_nMuon; // Number of muon(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nElectron; // Number of eletron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nNeutron; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_belowTH; // Number of proton(s) (p<200) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_middle; // Number of proton(s) (200<p<300) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_aboveTH; // Number of proton(s) (p > 300) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_below165; // Number of proton(s) (p<200) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_above165; // Number of proton(s) (p > 300) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPi0; // Number of pi0(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPiPlus; // Number of pi plus(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPiMinus; // Number of pi minus(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
@@ -124,18 +123,19 @@ private:
 
   int topology;// The topology of true neutrino interaction + FSI products after Geant4
 
-  std::vector<double> true_mom_mu;//True momentum of muon track in the every event
+  std::vector<double> true_mom;//True momentum of muon track in the every event
   std::vector<double> true_start_x;//True start of muon track (X)
   std::vector<double> true_start_y;//True start of muon track (Y)
   std::vector<double> true_start_z;//True start of muon track (Z)
   std::vector<double> true_end_x;//True end of muon track (X)
   std::vector<double> true_end_y;//True end of muon track (Y)
   std::vector<double> true_end_z;//True end of muon track (Z)
+  std::vector<bool> true_trk_ifcontained;//True containment of muon track 
   std::vector<double> true_trk_phi;//True phi of muon track 
   std::vector<double> true_trk_theta;//True theta of muon track 
   std::vector<double> true_trk_costheta;//True cos(theta) of muon track 
   std::vector<double> true_trk_length;//True track length (distance from the start to the end point) 
-  std::vector<double> trk_pdg;//Track pdg 
+  std::vector<double> true_trk_PDG;//Track pdg 
 
   bool if_selected; // If selected based on the reco info
   bool if_matchMu; // If the selected track matched with true muon from numu cc
@@ -143,6 +143,10 @@ private:
 
   std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
   std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
+  std::vector<double> mom_fwdMCS_mu;//MCS forward momentum of muon track in the every event
+  std::vector<double> mom_fwdMCS_ll_mu;//Likelihood of MCS forward momentum of muon track in the every event
+  std::vector<double> mom_bwdMCS_mu;//MCS backward momentum of muon track in the every event
+  std::vector<double> mom_bwdMCS_ll_mu;//Likelihood of MCS backward momentum of muon track in the every event
   std::vector<double> mom_Range_mu;//Range momentum of muon track in the every event
   std::vector<double> mom_Range_p;//Range momentum of proton track in the every event
   std::vector<double> mom_Range_pi;//Range momentum of pion track in the every event
@@ -208,6 +212,11 @@ private:
   double PID_Chi2K_pl2; // Chi2 of kaon assumption of plane 2 in PID
   int PID_Pdg; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
   double PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
+
+  bool if_fwd_MCS; // If using forward MCS direction judge
+  bool if_fwd_true; // If fwd by the reco true vertex distance
+  bool if_fwd_dEdx10; // If fwd by the reco dEdx 10 hits (should use for contained)
+  bool if_fwd_dEdxhalf; // If fwd by the reco dEdx half of the hits (should use for contained)
 
   bool                                IsMC;
   std::string                         m_generatorLabel;
@@ -355,9 +364,8 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_nMuon = 0;
     MC_nElectron = 0;
     MC_nNeutron = 0;
-    MC_nProton_belowTH = 0;
-    MC_nProton_middle = 0;
-    MC_nProton_aboveTH = 0;
+    MC_nProton_below165 = 0;
+    MC_nProton_above165 = 0;
     MC_nPi0 = 0;
     MC_nPiPlus = 0;
     MC_nPiMinus = 0;
@@ -392,9 +400,8 @@ void SingleMuon::analyze(art::Event const& evt)
           // neutron
           if(MCParticleCollection[i_mcp]->PdgCode() == 2112) MC_nNeutron++;
           // proton
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.2) MC_nProton_belowTH++;
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.2 && MCParticleCollection[i_mcp]->P() <= 0.3) MC_nProton_middle++;
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() > 0.3) MC_nProton_aboveTH++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.165) MC_nProton_below165++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() > 0.165) MC_nProton_above165++;
           // pion0
           if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
           // pion+
@@ -489,8 +496,17 @@ void SingleMuon::analyze(art::Event const& evt)
  
         double bestMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestMomentum();
         double bestMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestLogLikelihood();
+        double fwdMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->fwdMomentum();
+        double fwdMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->fwdLogLikelihood();
+        double bwdMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bwdMomentum();
+        double bwdMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bwdLogLikelihood();
+
         mom_bestMCS_mu.push_back(bestMCS);
         mom_bestMCS_ll_mu.push_back(bestMCSLL);
+        mom_fwdMCS_mu.push_back(fwdMCS);
+        mom_fwdMCS_ll_mu.push_back(fwdMCSLL);
+        mom_bwdMCS_mu.push_back(bwdMCS);
+        mom_bwdMCS_ll_mu.push_back(bwdMCSLL);
 
         // Track length and range momentum
         double Trk_length_noSCE = daughter_Tracks.front()->Length();
@@ -500,13 +516,13 @@ void SingleMuon::analyze(art::Event const& evt)
         double Trk_length_pl2 = assoCal[2]->Range();  //pandoracali has spatial correction
         double Trk_length_avg = 0;
         int valid_pl = 0;
-        for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl){
+        for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl++){
           if(assoCal[i_pl]->Range() > 0){
-            trk_length_avg += assoCal[i_pl]->Range();
+            Trk_length_avg += assoCal[i_pl]->Range();
             valid_pl++;
           }
         }
-        trk_length_avg = trk_length_avg / valid_pl;
+        Trk_length_avg = Trk_length_avg / valid_pl;
 
         trk_length_pl0.push_back(Trk_length_pl0); // track length with spatial correction
         trk_length_pl1.push_back(Trk_length_pl1); // track length with spatial correction
@@ -676,21 +692,45 @@ void SingleMuon::analyze(art::Event const& evt)
             if_cosmic = false;
             if(MCparticle->PdgCode() == 13) if_matchMu = true;
             auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
-            true_mom_mu.push_back(MCparticle->P());
+            true_mom.push_back(MCparticle->P());
             true_start_x.push_back(MCparticle->Position().X());
             true_start_y.push_back(MCparticle->Position().Y());
             true_start_z.push_back(MCparticle->Position().Z());
             true_end_x.push_back(MCparticle->EndPosition().X());
             true_end_y.push_back(MCparticle->EndPosition().Y());
             true_end_z.push_back(MCparticle->EndPosition().Z());
+            TVector3 true_start(MCparticle->Position().X(), MCparticle->Position().Y(), MCparticle->Position().Z());
+            TVector3 true_end(MCparticle->EndPosition().X(), MCparticle->EndPosition().Y(), MCparticle->EndPosition().Z());
+            true_trk_ifcontained.push_back(_fiducial_volume.InFV(true_start, true_end));
             true_trk_phi.push_back(TrueTrackPos.Phi());
             true_trk_theta.push_back(TrueTrackPos.Theta());
             true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
             true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())); // An estimation of true track length
-            trk_pdg.push_back(MCparticle->PdgCode());
+            true_trk_PDG.push_back(MCparticle->PdgCode());
             
           }
         }
+       
+        //Directional Info
+        // Check the directional info of the track by MCS
+        if (mom_bestMCS_ll_mu == mom_fwdMCS_ll_mu) if_fwd_MCS = true;
+        else if_fwd_MCS = false;
+
+        // Check the direction info of the track by dEdx
+        if (dEdx_pl2_start_half < dEdx_pl2_end_half) if_fwd_dEdxhalf = true;
+        else if_fwd_dEdxhalf = false;
+        if (dEdx_pl2_start10 < dEdx_pl2_end10) if_fwd_dEdx10 = true;
+        else if_fwd_dEdx10 = false;
+
+        if(IsMC){
+          // Check the directional info of the track by true reco vertex distance
+          TVector3 vtx(true_start_x[0], true_start_y[0], true_start_z[0]);
+          TVector3 D_start = Trk_start_SCEcorr - vtx;
+          TVector3 D_end = Trk_end_SCEcorr - vtx;
+          if (D_start.Mag() < D_end.Mag()) if_fwd_true = true;
+          else if_fwd_true = false;
+        }
+
       }
       ///////////Plan of implementation.......
       //
@@ -746,22 +786,27 @@ void SingleMuon::analyze(art::Event const& evt)
   my_event_->Fill();
 
   if(IsMC){
-    true_mom_mu.clear();
+    true_mom.clear();
     true_start_x.clear();
     true_start_y.clear();
     true_start_z.clear();
     true_end_x.clear();
     true_end_y.clear();
     true_end_z.clear();
+    true_trk_ifcontained.clear();
     true_trk_phi.clear();
     true_trk_theta.clear();
     true_trk_costheta.clear();
     true_trk_length.clear();
-    trk_pdg.clear();
+    true_trk_PDG.clear();
   }
 
   mom_bestMCS_mu.clear();
   mom_bestMCS_ll_mu.clear();
+  mom_fwdMCS_mu.clear();
+  mom_fwdMCS_ll_mu.clear();
+  mom_bwdMCS_mu.clear();
+  mom_bwdMCS_ll_mu.clear();
   mom_Range_mu.clear();
   mom_Range_mu_noSCE.clear();
   mom_Range_p.clear();
@@ -825,9 +870,8 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nMuon", &MC_nMuon);
     my_event_->Branch("MC_nElectron", &MC_nElectron);
     my_event_->Branch("MC_nNeutron", &MC_nNeutron);
-    my_event_->Branch("MC_nProton_belowTH", &MC_nProton_belowTH);
-    my_event_->Branch("MC_nProton_middle", &MC_nProton_middle);
-    my_event_->Branch("MC_nProton_aboveTH", &MC_nProton_aboveTH);
+    my_event_->Branch("MC_nProton_below165", &MC_nProton_below165);
+    my_event_->Branch("MC_nProton_above165", &MC_nProton_above165);
     my_event_->Branch("MC_nPi0", &MC_nPi0);
     my_event_->Branch("MC_nPiPlus", &MC_nPiPlus);
     my_event_->Branch("MC_nPiMinus", &MC_nPiMinus);
@@ -837,18 +881,19 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("Genie_nPiPlus_preFSI", &Genie_nPiPlus_preFSI);
     my_event_->Branch("Genie_nPiMinus_preFSI", &Genie_nPiMinus_preFSI);
 
-    my_event_->Branch("true_mom_mu", &true_mom_mu);
+    my_event_->Branch("true_mom", &true_mom);
     my_event_->Branch("true_start_x", &true_start_x);
     my_event_->Branch("true_start_y", &true_start_y);
     my_event_->Branch("true_start_z", &true_start_z);
     my_event_->Branch("true_end_x", &true_end_x);
     my_event_->Branch("true_end_y", &true_end_y);
     my_event_->Branch("true_end_z", &true_end_z);
+    my_event_->Branch("true_trk_ifcontained", &true_trk_ifcontained);
     my_event_->Branch("true_trk_phi", &true_trk_phi);
     my_event_->Branch("true_trk_theta", &true_trk_theta);
     my_event_->Branch("true_trk_costheta", &true_trk_costheta);
     my_event_->Branch("true_trk_length", &true_trk_length);
-    my_event_->Branch("trk_pdg", &trk_pdg);
+    my_event_->Branch("true_trk_PDG", &true_trk_PDG);
   }
 
   my_event_->Branch("n_dau_tracks", &n_dau_tracks);
@@ -860,6 +905,10 @@ void SingleMuon::Initialize_event()
 
   my_event_->Branch("mom_bestMCS_mu", &mom_bestMCS_mu);
   my_event_->Branch("mom_bestMCS_ll_mu", &mom_bestMCS_ll_mu);
+  my_event_->Branch("mom_fwdMCS_mu", &mom_fwdMCS_mu);
+  my_event_->Branch("mom_fwdMCS_ll_mu", &mom_fwdMCS_ll_mu);
+  my_event_->Branch("mom_bwdMCS_mu", &mom_bwdMCS_mu);
+  my_event_->Branch("mom_bwdMCS_ll_mu", &mom_bwdMCS_ll_mu);
   my_event_->Branch("mom_Range_mu", &mom_Range_mu);
   my_event_->Branch("mom_Range_p", &mom_Range_p);
   my_event_->Branch("mom_Range_pi", &mom_Range_pi);
@@ -922,6 +971,11 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("PID_Chi2K_pl2", &PID_Chi2K_pl2);
   my_event_->Branch("PID_Pdg", &PID_Pdg);
   my_event_->Branch("PID_avg_Chi2", &PID_avg_Chi2);
+
+  my_event_->Branch("if_fwd_MCS", &if_fwd_MCS);
+  my_event_->Branch("if_fwd_true", &if_fwd_true);
+  my_event_->Branch("if_fwd_dEdx10", &if_fwd_dEdx10);
+  my_event_->Branch("if_fwd_dEdxhalf", &if_fwd_dEdxhalf);
 }
 
 void SingleMuon::endSubRun(art::SubRun const &sr){
