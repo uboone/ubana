@@ -96,116 +96,126 @@ private:
   
   void Initialize_event();
   
-  double true_mom;//True momentum of muon track in the every event
-  double true_start_x;//True start of muon track (X)
-  double true_start_y;//True start of muon track (Y)
-  double true_start_z;//True start of muon track (Z)
-  double true_end_x;//True end of muon track (X)
-  double true_end_y;//True end of muon track (Y)
-  double true_end_z;//True end of muon track (Z)
-  bool true_trk_ifcontained; // True track if contained or not
-  double true_trk_phi;//True phi of muon track 
-  double true_trk_theta;//True theta of muon track 
-  double true_trk_costheta;//True cos(theta) of muon track 
-  double true_trk_length;//True track length (distance from the start to the end point) 
-  double true_trk_PDG;//Track pdg 
+  std::vector<double> All_true_PDG;//Track pdg
+  std::vector<double> All_true_mom;//True momentum of muon track in the every event
+  std::vector<double> All_true_start_x;//True start of muon track (X)
+  std::vector<double> All_true_start_y;//True start of muon track (Y)
+  std::vector<double> All_true_start_z;//True start of muon track (Z)
+  std::vector<double> All_true_end_x;//True end of muon track (X)
+  std::vector<double> All_true_end_y;//True end of muon track (Y)
+  std::vector<double> All_true_end_z;//True end of muon track (Z)
+  std::vector<bool> All_true_trk_ifcontained; // True track if contained or not
+  std::vector<bool> All_true_vtxFV; // True track start in FV or not
+ 
+  std::vector<double> true_mom;//True momentum of muon track in the every event
+  std::vector<double> true_start_x;//True start of muon track (X)
+  std::vector<double> true_start_y;//True start of muon track (Y)
+  std::vector<double> true_start_z;//True start of muon track (Z)
+  std::vector<double> true_end_x;//True end of muon track (X)
+  std::vector<double> true_end_y;//True end of muon track (Y)
+  std::vector<double> true_end_z;//True end of muon track (Z)
+  std::vector<double> true_trk_phi;//True phi of muon track 
+  std::vector<double> true_trk_theta;//True theta of muon track 
+  std::vector<double> true_trk_costheta;//True cos(theta) of muon track 
+  std::vector<double> true_trk_length;//True track length (distance from the start to the end point) 
+  std::vector<double> true_trk_PDG;//Track pdg 
+  std::vector<bool> true_trk_ifcontained; // True track if contained or not
+  std::vector<bool> true_vtxFV; // True track if contained or not
 
-  bool if_cosmic; // Check if a track is cosmic or not by if it has an associated MCParticle
+  std::vector<bool> if_cosmic; // Check if a track is cosmic or not by if it has an associated MCParticle
 
-  double mom_bestMCS_mu;//MCS best momentum of muon track in the every event
-  double mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
-  double mom_fwdMCS_mu;//MCS forward momentum of muon track in the every event
-  double mom_fwdMCS_ll_mu;//Likelihood of MCS forward momentum of muon track in the every event
-  double mom_bkwdMCS_mu;//MCS backward momentum of muon track in the every event
-  double mom_bkwdMCS_ll_mu;//Likelihood of MCS backward momentum of muon track in the every event
-  double mom_Range_mu;//Range momentum of muon track in the every event
-  double mom_Range_p;//Range momentum of proton track in the every event
-  double mom_Range_pi;//Range momentum of pion track in the every event
-  double mom_range_PID_avg;//Range momentum of tracks based on their PID particle type using 3 pls
-  double mom_range_PID_pl2;//Range momentum of tracks based on their PID particle type using pl 2
-  double mom_range_truePDG;//Range momentum of tracks based on their true particle type
+  std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
+  std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
+  std::vector<double> mom_fwdMCS_mu;//MCS forward momentum of muon track in the every event
+  std::vector<double> mom_fwdMCS_ll_mu;//Likelihood of MCS forward momentum of muon track in the every event
+  std::vector<double> mom_bkwdMCS_mu;//MCS backward momentum of muon track in the every event
+  std::vector<double> mom_bkwdMCS_ll_mu;//Likelihood of MCS backward momentum of muon track in the every event
+  std::vector<double> mom_Range_mu;//Range momentum of muon track in the every event
+  std::vector<double> mom_Range_p;//Range momentum of proton track in the every event
+  std::vector<double> mom_Range_pi;//Range momentum of pion track in the every event
+  std::vector<double> mom_range_PID_avg;//Range momentum of tracks based on their PID particle type using 3 pls
+  std::vector<double> mom_range_PID_pl2;//Range momentum of tracks based on their PID particle type using pl 2
+  std::vector<double> mom_range_truePDG;//Range momentum of tracks based on their true particle type
+  std::vector<double> mom_Range_mu_noSCE;//Range momentum of muon track in the every event
+  std::vector<double> mom_Range_p_noSCE;//Range momentum of proton track in the every event
+  std::vector<double> mom_Range_pi_noSCE;//Range momentum of pion track in the every event
+  std::vector<double> mom_range_PID_avg_noSCE;//Range momentum of tracks based on their PID particle type using 3 pls
+  std::vector<double> mom_range_PID_pl2_noSCE;//Range momentum of tracks based on their PID particle type using pl 2
+  std::vector<double> mom_range_truePDG_noSCE;//Range momentum of tracks based on their true particle type
+
+  std::vector<double> vtx_x;//Reconstructed vtx x in the every event
+  std::vector<double> vtx_y;//Reconstructed vtx y in the every event
+  std::vector<double> vtx_z;//Reconstructed vtx z in the every event
+  std::vector<double> start_x;//Reconstructed start x in the every event
+  std::vector<double> start_y;//Reconstructed start y in the every event
+  std::vector<double> start_z;//Reconstructed start z in the every event
+  std::vector<double> end_x;//Reconstructed end x in the every event
+  std::vector<double> end_y;//Reconstructed end y in the every event
+  std::vector<double> end_z;//Reconstructed end z in the every event
+  std::vector<double> trk_phi;//Reconstructed track phi in the every event
+  std::vector<double> trk_theta;//Reconstructed track theta in the every event
+  std::vector<double> trk_costheta;//Reconstructed track cos(theta) in the every event
+  std::vector<double> trk_length_pl0;//Range momentum of muon track in the every event
+  std::vector<double> trk_length_pl1;//Range momentum of muon track in the every event
+  std::vector<double> trk_length_pl2;//Range momentum of muon track in the every event
+  std::vector<double> trk_length_avg;//Range momentum of muon track in the every event
+  std::vector<double> trk_length_noSCE;//Range momentum of muon track in the every event no spatial correction
+  std::vector<bool> trk_ifcontained;//to check if the track is contained or not
+  std::vector<bool> vtx_FV;//to check if the vertex is in FV or not
   
-  double mom_Range_mu_noSCE;//Range momentum of muon track in the every event
-  double mom_Range_p_noSCE;//Range momentum of proton track in the every event
-  double mom_Range_pi_noSCE;//Range momentum of pion track in the every event
-  double mom_range_PID_avg_noSCE;//Range momentum of tracks based on their PID particle type using 3 pls
-  double mom_range_PID_pl2_noSCE;//Range momentum of tracks based on their PID particle type using pl 2
-  double mom_range_truePDG_noSCE;//Range momentum of tracks based on their true particle type
-
-  double vtx_x;//Reconstructed vtx x in the every event
-  double vtx_y;//Reconstructed vtx y in the every event
-  double vtx_z;//Reconstructed vtx z in the every event
-  double start_x;//Reconstructed start x in the every event
-  double start_y;//Reconstructed start y in the every event
-  double start_z;//Reconstructed start z in the every event
-  double end_x;//Reconstructed end x in the every event
-  double end_y;//Reconstructed end y in the every event
-  double end_z;//Reconstructed end z in the every event
-  double trk_phi;//Reconstructed track phi in the every event
-  double trk_theta;//Reconstructed track theta in the every event
-  double trk_theta_xz;//Reconstructed track theta xz in the every event (MCC8 calib paper definition)
-  double trk_cos_theta_xz;//Reconstructed cos track theta xz in the every event
-  double trk_costheta;//Reconstructed track cos(theta) in the every event
-  double trk_length_pl0;//Range momentum of muon track in the every event
-  double trk_length_pl1;//Range momentum of muon track in the every event
-  double trk_length_pl2;//Range momentum of muon track in the every event
-  double trk_length_avg;//Range momentum of muon track in the every event
-  double trk_length_noSCE;//Range momentum of muon track in the every event no spatial correction
-  bool trk_ifcontained;//to check if the track is contained or not
-  bool vtx_FV;//to check if the vertex is in FV or not
   int Ntrack; // number of tracks in this event
 
-  std::vector<float> dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
-  std::vector<float> dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
-  std::vector<float> dEdx_pl2; // dE/dx of the selected (muon) track from plane 2 (collection)
-  std::vector<float> dQdx_pl0; // dQ/dx of the selected (muon) track from plane 0 (closest to drift)
-  std::vector<float> dQdx_pl1; // dQ/dx of the selected (muon) track from plane 1
-  std::vector<float> dQdx_pl2; // dQ/dx of the selected (muon) track from plane 2 (collection)
-  std::vector<float> resRange_pl0; // range from a hit to the end of the selected track end
-  std::vector<float> resRange_pl1; // range from a hit to the end of the selected track end
-  std::vector<float> resRange_pl2; // range from a hit to the end of the selected track end
-  float dEdx_pl0_start_half; // average dEdx of start half hits of pl 0
-  float dEdx_pl1_start_half; // average dEdx of start half hits of pl 0
-  float dEdx_pl2_start_half; // average dEdx of start half hits of pl 0
-  float dEdx_pl0_end_half; // average dEdx of end half hits of pl 0
-  float dEdx_pl1_end_half; // average dEdx of end half hits of pl 0
-  float dEdx_pl2_end_half; // average dEdx of end half hits of pl 0
-  float dEdx_pl0_start10; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl1_start10; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl2_start10; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl0_end10; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl1_end10; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl2_end10; // average dEdx of end 10 hit of pl 0
+  std::vector<std::vector<float>> dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
+  std::vector<std::vector<float>> dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
+  std::vector<std::vector<float>> dEdx_pl2; // dE/dx of the selected (muon) track from plane 2 (collection)
+  std::vector<std::vector<float>> dQdx_pl0; // dQ/dx of the selected (muon) track from plane 0 (closest to drift)
+  std::vector<std::vector<float>> dQdx_pl1; // dQ/dx of the selected (muon) track from plane 1
+  std::vector<std::vector<float>> dQdx_pl2; // dQ/dx of the selected (muon) track from plane 2 (collection)
+  std::vector<std::vector<float>> resRange_pl0; // range from a hit to the end of the selected track end
+  std::vector<std::vector<float>> resRange_pl1; // range from a hit to the end of the selected track end
+  std::vector<std::vector<float>> resRange_pl2; // range from a hit to the end of the selected track end
+  std::vector<float> dEdx_pl0_start_half; // average dEdx of start half hits of pl 0
+  std::vector<float> dEdx_pl1_start_half; // average dEdx of start half hits of pl 0
+  std::vector<float> dEdx_pl2_start_half; // average dEdx of start half hits of pl 0
+  std::vector<float> dEdx_pl0_end_half; // average dEdx of end half hits of pl 0
+  std::vector<float> dEdx_pl1_end_half; // average dEdx of end half hits of pl 0
+  std::vector<float> dEdx_pl2_end_half; // average dEdx of end half hits of pl 0
+  std::vector<float> dEdx_pl0_start10; // average dEdx of first 10 hit of pl 0
+  std::vector<float> dEdx_pl1_start10; // average dEdx of first 10 hit of pl 0
+  std::vector<float> dEdx_pl2_start10; // average dEdx of first 10 hit of pl 0
+  std::vector<float> dEdx_pl0_end10; // average dEdx of end 10 hit of pl 0
+  std::vector<float> dEdx_pl1_end10; // average dEdx of end 10 hit of pl 0
+  std::vector<float> dEdx_pl2_end10; // average dEdx of end 10 hit of pl 0
 
-  double PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
-  double PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
-  double PID_Chi2Mu_pl2; // Chi2 of muon assumption of plane 2 in PID
-  double PID_Chi2Mu_3pl; // Chi2 of muon assumption of 3 planes in PID
-  
-  double PID_Chi2P_pl0; // Chi2 of proton assumption of plane 0 in PID
-  double PID_Chi2P_pl1; // Chi2 of proton assumption of plane 1 in PID
-  double PID_Chi2P_pl2; // Chi2 of proton assumption of plane 2 in PID
-  double PID_Chi2P_3pl; // Chi2 of muon assumption of 3 planes in PID
-  
-  double PID_Chi2Pi_pl0; // Chi2 of pion assumption of plane 0 in PID
-  double PID_Chi2Pi_pl1; // Chi2 of pion assumption of plane 1 in PID
-  double PID_Chi2Pi_pl2; // Chi2 of pion assumption of plane 2 in PID
-  double PID_Chi2Pi_3pl; // Chi2 of muon assumption of 3 planes in PID
-  
-  double PID_Chi2K_pl0; // Chi2 of kaon assumption of plane 0 in PID
-  double PID_Chi2K_pl1; // Chi2 of kaon assumption of plane 1 in PID
-  double PID_Chi2K_pl2; // Chi2 of kaon assumption of plane 2 in PID
-  double PID_Chi2K_3pl; // Chi2 of muon assumption of 3 planes in PID
-  
-  int PID_Pdg_allPlane; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
-  int PID_Pdg_pl2; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
-  double PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
-  double PID_pl2_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
+  std::vector<double> PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
+  std::vector<double> PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
+  std::vector<double> PID_Chi2Mu_pl2; // Chi2 of muon assumption of plane 2 in PID
+  std::vector<double> PID_Chi2Mu_3pl; // Chi2 of muon assumption of 3 planes in PID
 
-  bool if_fwd_MCS; // If using forward MCS direction judge
-  bool if_fwd_true; // If fwd by the reco true vertex distance
-  bool if_fwd_dEdx10; // If fwd by the reco dEdx 10 hits (should use for contained)
-  bool if_fwd_dEdxhalf; // If fwd by the reco dEdx half of the hits (should use for contained)
+  std::vector<double> PID_Chi2P_pl0; // Chi2 of proton assumption of plane 0 in PID
+  std::vector<double> PID_Chi2P_pl1; // Chi2 of proton assumption of plane 1 in PID
+  std::vector<double> PID_Chi2P_pl2; // Chi2 of proton assumption of plane 2 in PID
+  std::vector<double> PID_Chi2P_3pl; // Chi2 of muon assumption of 3 planes in PID
+
+  std::vector<double> PID_Chi2Pi_pl0; // Chi2 of pion assumption of plane 0 in PID
+  std::vector<double> PID_Chi2Pi_pl1; // Chi2 of pion assumption of plane 1 in PID
+  std::vector<double> PID_Chi2Pi_pl2; // Chi2 of pion assumption of plane 2 in PID
+  std::vector<double> PID_Chi2Pi_3pl; // Chi2 of muon assumption of 3 planes in PID
+
+  std::vector<double> PID_Chi2K_pl0; // Chi2 of kaon assumption of plane 0 in PID
+  std::vector<double> PID_Chi2K_pl1; // Chi2 of kaon assumption of plane 1 in PID
+  std::vector<double> PID_Chi2K_pl2; // Chi2 of kaon assumption of plane 2 in PID
+  std::vector<double> PID_Chi2K_3pl; // Chi2 of muon assumption of 3 planes in PID
+
+  std::vector<int> PID_Pdg_allPlane; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
+  std::vector<int> PID_Pdg_pl2; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
+  std::vector<double> PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
+  std::vector<double> PID_pl2_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
+
+  std::vector<bool> if_fwd_MCS; // If using forward MCS direction judge
+  std::vector<bool> if_fwd_true; // If fwd by the reco true vertex distance
+  std::vector<bool> if_fwd_dEdx10; // If fwd by the reco dEdx 10 hits (should use for contained)
+  std::vector<bool> if_fwd_dEdxhalf; // If fwd by the reco dEdx half of the hits (should use for contained)
 
   bool                                IsMC;
   std::string                         m_generatorLabel;
@@ -315,6 +325,24 @@ void ParticleThreshold::analyze(art::Event const& evt)
   //PID
   art::FindManyP<anab::ParticleID> PIDTotrackAsso(Handle_TPCtrack,evt,PID_TrackAssLabel);
 
+  //------Loop over all MCParticles
+  for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
+    All_true_PDG.push_back(MCParticleCollection[i_mcp]->PdgCode());
+    All_true_mom.push_back(MCParticleCollection[i_mcp]->P());
+    All_true_start_x.push_back(MCParticleCollection[i_mcp]->Position().X());
+    All_true_start_y.push_back(MCParticleCollection[i_mcp]->Position().Y());
+    All_true_start_z.push_back(MCParticleCollection[i_mcp]->Position().Z());
+    All_true_end_x.push_back(MCParticleCollection[i_mcp]->EndPosition().X());
+    All_true_end_y.push_back(MCParticleCollection[i_mcp]->EndPosition().Y());
+    All_true_end_z.push_back(MCParticleCollection[i_mcp]->EndPosition().Z());
+
+    TVector3 All_true_start(All_true_start_x.back(), All_true_start_y.back(), All_true_start_z.back());
+    TVector3 All_true_end(All_true_end_x.back(), All_true_end_y.back(), All_true_end_z.back());
+    All_true_trk_ifcontained.push_back(_fiducial_volume.InFV(All_true_start, All_true_end));
+ 
+    All_true_vtxFV.push_back(_fiducial_volume.InFV(All_true_start));
+  }
+
   //------Loop over all tracks
   Ntrack = AllTrackCollection.size();
   for(int trk_id = 0; trk_id < Ntrack; trk_id++){
@@ -325,27 +353,28 @@ void ParticleThreshold::analyze(art::Event const& evt)
     backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
     auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
     if(!MCparticle){
-      if_cosmic = true;
+      if_cosmic.push_back(true);
       std::cout<<"MC particle does not exist!"<<std::endl;
     }
     else{
-      if_cosmic = false;
+      if_cosmic.push_back(false);
       auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
-      true_mom = MCparticle->P();
-      true_start_x = MCparticle->Position().X();
-      true_start_y = MCparticle->Position().Y();
-      true_start_z = MCparticle->Position().Z();
-      true_end_x = MCparticle->EndPosition().X();
-      true_end_y = MCparticle->EndPosition().Y();
-      true_end_z = MCparticle->EndPosition().Z();
-      TVector3 true_start(true_start_x, true_start_y, true_start_z);
-      TVector3 true_end(true_end_x, true_end_y, true_end_z);
-      true_trk_ifcontained = _fiducial_volume.InFV(true_start, true_end);
-      true_trk_phi = TrueTrackPos.Phi();
-      true_trk_theta = TrueTrackPos.Theta();
-      true_trk_costheta = cos(TrueTrackPos.Theta());
-      true_trk_length = sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z()); // An estimation of true track length
-      true_trk_PDG = MCparticle->PdgCode();
+      true_mom.push_back(MCparticle->P());
+      true_start_x.push_back(MCparticle->Position().X());
+      true_start_y.push_back(MCparticle->Position().Y());
+      true_start_z.push_back(MCparticle->Position().Z());
+      true_end_x.push_back(MCparticle->EndPosition().X());
+      true_end_y.push_back(MCparticle->EndPosition().Y());
+      true_end_z.push_back(MCparticle->EndPosition().Z());
+      TVector3 true_start(true_start_x.back(), true_start_y.back(), true_start_z.back());
+      TVector3 true_end(true_end_x.back(), true_end_y.back(), true_end_z.back());
+      true_trk_ifcontained.push_back(_fiducial_volume.InFV(true_start, true_end));
+      true_vtxFV.push_back(_fiducial_volume.InFV(true_start));
+      true_trk_phi.push_back(TrueTrackPos.Phi());
+      true_trk_theta.push_back(TrueTrackPos.Theta());
+      true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
+      true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())); // An estimation of true track length
+      true_trk_PDG.push_back(MCparticle->PdgCode());
 
       //---Fill in Reco information
       // Correct the position of the track ends
@@ -363,57 +392,65 @@ void ParticleThreshold::analyze(art::Event const& evt)
       Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
       Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
 
-      trk_ifcontained = _fiducial_volume.InFV(Trk_start_SCEcorr, Trk_end_SCEcorr);
+      trk_ifcontained.push_back(_fiducial_volume.InFV(Trk_start_SCEcorr, Trk_end_SCEcorr));
 
-      vtx_FV = _fiducial_volume.InFV(Trk_start_SCEcorr);
+      vtx_FV.push_back(_fiducial_volume.InFV(Trk_start_SCEcorr));
 
-      mom_bestMCS_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestMomentum();
-      mom_bestMCS_ll_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestLogLikelihood();
+      mom_bestMCS_mu.push_back(mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestMomentum());
+      mom_bestMCS_ll_mu.push_back(mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bestLogLikelihood());
 
-      mom_fwdMCS_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdMomentum();
-      mom_fwdMCS_ll_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdLogLikelihood();
+      mom_fwdMCS_mu.push_back(mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdMomentum());
+      mom_fwdMCS_ll_mu.push_back(mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->fwdLogLikelihood());
 
-      mom_bkwdMCS_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdMomentum();
-      mom_bkwdMCS_ll_mu =  mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdLogLikelihood();
+      mom_bkwdMCS_mu.push_back(mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdMomentum());
+      mom_bkwdMCS_ll_mu.push_back(mcsfitresult_mu_v.at(AllTrackCollection[trk_id].key())->bwdLogLikelihood());
     
       // track length with no SCE 
-      trk_length_noSCE = AllTrackCollection[trk_id]->Length();
+      trk_length_noSCE.push_back(AllTrackCollection[trk_id]->Length());
       auto assoCal = trackToCalAsso.at(AllTrackCollection[trk_id].key());
-      trk_length_pl0 = assoCal[0]->Range();  //pandoracali has spatial correction
-      trk_length_pl1 = assoCal[1]->Range();  //pandoracali has spatial correction
-      trk_length_pl2 = assoCal[2]->Range();  //pandoracali has spatial correction
-      trk_length_avg = 0;
+      trk_length_pl0.push_back(assoCal[0]->Range());  //pandoracali has spatial correction
+      trk_length_pl1.push_back(assoCal[1]->Range());  //pandoracali has spatial correction
+      trk_length_pl2.push_back(assoCal[2]->Range());  //pandoracali has spatial correction
+      double Trk_length_avg = 0;
       int valid_pl = 0;
       for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl++){
         if(assoCal[i_pl]->Range() > 0){
-          trk_length_avg += assoCal[i_pl]->Range();
+          Trk_length_avg += assoCal[i_pl]->Range();
           valid_pl++;
         }
       }
-      trk_length_avg = trk_length_avg / valid_pl;
+      trk_length_avg.push_back(Trk_length_avg / valid_pl);
       
-      vtx_x = Trk_start_SCEcorr.X();
-      vtx_y = Trk_start_SCEcorr.Y();
-      vtx_z = Trk_start_SCEcorr.Z();
-      start_x = Trk_start_SCEcorr.X();
-      start_y = Trk_start_SCEcorr.Y();
-      start_z = Trk_start_SCEcorr.Z();
-      end_x = Trk_end_SCEcorr.X();
-      end_y = Trk_end_SCEcorr.Y();
-      end_z = Trk_end_SCEcorr.Z();
+      vtx_x.push_back(Trk_start_SCEcorr.X());
+      vtx_y.push_back(Trk_start_SCEcorr.Y());
+      vtx_z.push_back(Trk_start_SCEcorr.Z());
+      start_x.push_back(Trk_start_SCEcorr.X());
+      start_y.push_back(Trk_start_SCEcorr.Y());
+      start_z.push_back(Trk_start_SCEcorr.Z());
+      end_x.push_back(Trk_end_SCEcorr.X());
+      end_y.push_back(Trk_end_SCEcorr.Y());
+      end_z.push_back(Trk_end_SCEcorr.Z());
 
-      trk_phi = AllTrackCollection[trk_id]->Phi();
-      trk_theta = AllTrackCollection[trk_id]->Theta();
-      trk_costheta = cos(AllTrackCollection[trk_id]->Theta());
+      trk_phi.push_back(AllTrackCollection[trk_id]->Phi());
+      trk_theta.push_back(AllTrackCollection[trk_id]->Theta());
+      trk_costheta.push_back(cos(AllTrackCollection[trk_id]->Theta()));
 
-      mom_Range_mu = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 13);
-      mom_Range_mu_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 13);
-
-      mom_Range_p = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 2212);
-      mom_Range_p_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 2212);
-
-      mom_Range_pi = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, 211);
-      mom_Range_pi_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, 211);
+      if(trk_length_pl2.back() < 0){
+         mom_Range_mu.push_back(-999);
+         mom_Range_mu_noSCE.push_back(-999);
+         mom_Range_p.push_back(-999);
+         mom_Range_p_noSCE.push_back(-999);
+         mom_Range_pi.push_back(-999);
+         mom_Range_pi_noSCE.push_back(-999);
+      }
+      else{
+        mom_Range_mu.push_back(_trk_mom_calculator.GetTrackMomentum(trk_length_pl2.back(), 13));
+        mom_Range_mu_noSCE.push_back(_trk_mom_calculator.GetTrackMomentum(trk_length_noSCE.back(), 13));
+        mom_Range_p.push_back(_trk_mom_calculator.GetTrackMomentum(trk_length_pl2.back(), 2212));
+        mom_Range_p_noSCE.push_back(_trk_mom_calculator.GetTrackMomentum(trk_length_noSCE.back(), 2212));
+        mom_Range_pi.push_back(_trk_mom_calculator.GetTrackMomentum(trk_length_pl2.back(), 211));
+        mom_Range_pi_noSCE.push_back(_trk_mom_calculator.GetTrackMomentum(trk_length_noSCE.back(), 211));
+      }
  
       //Get Calorimety of the track
       if(assoCal.size()!=3){
@@ -422,51 +459,52 @@ void ParticleThreshold::analyze(art::Event const& evt)
       // induction 0 = 0, induction 1 = 1, collection = 2 (Check if the plane ID is correct)
       // assoCal[id_pl]->PlaneID().Plane == 2 (collection)
       // The vector is ordered by residual range from small to big (track end to track start)
-      dEdx_pl0 = assoCal[0]->dEdx();
-      dQdx_pl0 = assoCal[0]->dQdx();
-      resRange_pl0 = assoCal[0]->ResidualRange();
+      dEdx_pl0.push_back(assoCal[0]->dEdx());
+      dQdx_pl0.push_back(assoCal[0]->dQdx());
+      resRange_pl0.push_back(assoCal[0]->ResidualRange());
 
-      dEdx_pl1 = assoCal[1]->dEdx();
-      dQdx_pl1 = assoCal[1]->dQdx();
-      resRange_pl1 = assoCal[1]->ResidualRange();
+      dEdx_pl1.push_back(assoCal[1]->dEdx());
+      dQdx_pl1.push_back(assoCal[1]->dQdx());
+      resRange_pl1.push_back(assoCal[1]->ResidualRange());
 
-      dEdx_pl2 = assoCal[2]->dEdx();
-      dQdx_pl2 = assoCal[2]->dQdx();
-      resRange_pl2 = assoCal[2]->ResidualRange();
+      dEdx_pl2.push_back(assoCal[2]->dEdx());
+      dQdx_pl2.push_back(assoCal[2]->dQdx());
+      resRange_pl2.push_back(assoCal[2]->ResidualRange());
 
-      int half_size_pl0 = dEdx_pl0.size() / 2;
-      int half_size_pl1 = dEdx_pl1.size() / 2;
-      int half_size_pl2 = dEdx_pl2.size() / 2;
+      int half_size_pl0 = dEdx_pl0.back().size() / 2;
+      int half_size_pl1 = dEdx_pl1.back().size() / 2;
+      int half_size_pl2 = dEdx_pl2.back().size() / 2;
 
-      dEdx_pl0_start_half = std::accumulate(dEdx_pl0.end() - half_size_pl0, dEdx_pl0.end(), 0.) / half_size_pl0;
-      dEdx_pl0_end_half = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + half_size_pl0, 0. ) / half_size_pl0;
-      dEdx_pl1_start_half = std::accumulate(dEdx_pl1.end() - half_size_pl1, dEdx_pl1.end(), 0.) / half_size_pl1;
-      dEdx_pl1_end_half = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + half_size_pl1, 0. ) / half_size_pl1;
-      dEdx_pl2_start_half = std::accumulate(dEdx_pl2.end() - half_size_pl2, dEdx_pl2.end(), 0.) / half_size_pl2;
-      dEdx_pl2_end_half = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
-      if (dEdx_pl0.size()<10) {
-        dEdx_pl0_start10 = dEdx_pl0_start_half;
-        dEdx_pl0_end10 = dEdx_pl0_end_half;
+      dEdx_pl0_start_half.push_back(std::accumulate(dEdx_pl0.back().end() - half_size_pl0, dEdx_pl0.back().end(), 0.) / half_size_pl0);
+      dEdx_pl0_end_half.push_back(std::accumulate(dEdx_pl0.back().begin(), dEdx_pl0.back().begin() + half_size_pl0, 0. ) / half_size_pl0);
+      dEdx_pl1_start_half.push_back(std::accumulate(dEdx_pl1.back().end() - half_size_pl1, dEdx_pl1.back().end(), 0.) / half_size_pl1);
+      dEdx_pl1_end_half.push_back(std::accumulate(dEdx_pl1.back().begin(), dEdx_pl1.back().begin() + half_size_pl1, 0. ) / half_size_pl1);
+      dEdx_pl2_start_half.push_back(std::accumulate(dEdx_pl2.back().end() - half_size_pl2, dEdx_pl2.back().end(), 0.) / half_size_pl2);
+      dEdx_pl2_end_half.push_back(std::accumulate(dEdx_pl2.back().begin(), dEdx_pl2.back().begin() + half_size_pl2, 0. ) / half_size_pl2);
+
+      if (dEdx_pl0.back().size()<10) {
+        dEdx_pl0_start10.push_back(dEdx_pl0_start_half.back());
+        dEdx_pl0_end10.push_back(dEdx_pl0_end_half.back());
       }
       else{
-        dEdx_pl0_start10 = std::accumulate(dEdx_pl0.end() - 10, dEdx_pl0.end(), 0.) / 10.;
-        dEdx_pl0_end10 = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + 10, 0.) / 10.;
+        dEdx_pl0_start10.push_back(std::accumulate(dEdx_pl0.back().end() - 10, dEdx_pl0.back().end(), 0.) / 10.);
+        dEdx_pl0_end10.push_back(std::accumulate(dEdx_pl0.back().begin(), dEdx_pl0.back().begin() + 10, 0.) / 10.);
       }
-      if (dEdx_pl1.size()<10) {
-        dEdx_pl1_start10 = dEdx_pl1_start_half;
-        dEdx_pl1_end10 = dEdx_pl1_end_half;
-      }
-      else{
-        dEdx_pl1_start10 = std::accumulate(dEdx_pl1.end() - 10, dEdx_pl1.end(), 0.) / 10.;
-        dEdx_pl1_end10 = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + 10, 0.) / 10.;
-      }
-      if (dEdx_pl2.size()<10) {
-        dEdx_pl2_start10 = dEdx_pl2_start_half;
-        dEdx_pl2_end10 = dEdx_pl2_end_half;
+      if (dEdx_pl1.back().size()<10) {
+        dEdx_pl1_start10.push_back(dEdx_pl1_start_half.back());
+        dEdx_pl1_end10.push_back(dEdx_pl1_end_half.back());
       }
       else{
-        dEdx_pl2_start10 = std::accumulate(dEdx_pl2.end() - 10, dEdx_pl2.end(), 0.) / 10.;
-        dEdx_pl2_end10 = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + 10, 0.) / 10.;
+        dEdx_pl1_start10.push_back(std::accumulate(dEdx_pl1.back().end() - 10, dEdx_pl1.back().end(), 0.) / 10.);
+        dEdx_pl1_end10.push_back(std::accumulate(dEdx_pl1.back().begin(), dEdx_pl1.back().begin() + 10, 0.) / 10.);
+      }
+      if (dEdx_pl2.back().size()<10) {
+        dEdx_pl2_start10.push_back(dEdx_pl2_start_half.back());
+        dEdx_pl2_end10.push_back(dEdx_pl2_end_half.back());
+      }
+      else{
+        dEdx_pl2_start10.push_back(std::accumulate(dEdx_pl2.back().end() - 10, dEdx_pl2.back().end(), 0.) / 10.);
+        dEdx_pl2_end10.push_back(std::accumulate(dEdx_pl2.back().begin(), dEdx_pl2.back().begin() + 10, 0.) / 10.);
       }
 
       //--- Gain PID info of the track
@@ -492,10 +530,10 @@ void ParticleThreshold::analyze(art::Event const& evt)
         std::cout << "No PID information for this selected track!" << std::endl;
       }
       std::vector<anab::sParticleIDAlgScores> vAlg_PID = trkPID.front()->ParticleIDAlgScores();
-      double PIDChi2_mu[3] = {9999,9999,9999};
-      double PIDChi2_p[3] = {9999,9999,9999};
-      double PIDChi2_pi[3] = {9999,9999,9999};
-      double PIDChi2_K[3] = {9999,9999,9999};
+      double PIDChi2_mu[3] = {-999,-999,-999};
+      double PIDChi2_p[3] = {-999,-999,-999};
+      double PIDChi2_pi[3] = {-999,-999,-999};
+      double PIDChi2_K[3] = {-999,-999,-999};
       for(int i_Alg_PID = 0; i_Alg_PID < (int) vAlg_PID.size(); i_Alg_PID++){
         anab::sParticleIDAlgScores Alg_PID = vAlg_PID.at(i_Alg_PID);
         for(int id_pl = 0; id_pl < 3; id_pl++){
@@ -515,100 +553,252 @@ void ParticleThreshold::analyze(art::Event const& evt)
           }
         }
       }
-      PID_Chi2Mu_pl0 = PIDChi2_mu[0];
-      PID_Chi2Mu_pl1 = PIDChi2_mu[1];
-      PID_Chi2Mu_pl2 = PIDChi2_mu[2];
-      PID_Chi2Mu_3pl = (w0 * PID_Chi2Mu_pl0 + w1 * PID_Chi2Mu_pl1 + w2 * PID_Chi2Mu_pl2) / (w0 + w1 + w2);
-      
-      PID_Chi2P_pl0 = PIDChi2_p[0];
-      PID_Chi2P_pl1 = PIDChi2_p[1];
-      PID_Chi2P_pl2 = PIDChi2_p[2];
-      PID_Chi2P_3pl = (w0 * PID_Chi2P_pl0 + w1 * PID_Chi2P_pl1 + w2 * PID_Chi2P_pl2) / (w0 + w1 + w2);
+      PID_Chi2Mu_pl0.push_back(PIDChi2_mu[0]);
+      PID_Chi2Mu_pl1.push_back(PIDChi2_mu[1]);
+      PID_Chi2Mu_pl2.push_back(PIDChi2_mu[2]);
+      int ww0 = w0; int ww1 = w1; int ww2 = w2; // copy from the origin 
+      if (PIDChi2_mu[0] < 0) ww0 = 0;
+      if (PIDChi2_mu[1] < 0) ww1 = 0;
+      if (PIDChi2_mu[2] < 0) ww2 = 0;
+      if (ww0 + ww1 + ww2 == 0) PID_Chi2Mu_3pl.push_back(-999);
+      else PID_Chi2Mu_3pl.push_back((ww0 * PIDChi2_mu[0] + ww1 * PIDChi2_mu[1] + ww2 * PIDChi2_mu[2]) / (ww0 + ww1 + ww2));
 
-      PID_Chi2Pi_pl0 = PIDChi2_pi[0];
-      PID_Chi2Pi_pl1 = PIDChi2_pi[1];
-      PID_Chi2Pi_pl2 = PIDChi2_pi[2];
-      PID_Chi2Pi_3pl = (w0 * PID_Chi2Pi_pl0 + w1 * PID_Chi2Pi_pl1 + w2 * PID_Chi2Pi_pl2) / (w0 + w1 + w2);
+      PID_Chi2P_pl0.push_back(PIDChi2_p[0]);
+      PID_Chi2P_pl1.push_back(PIDChi2_p[1]);
+      PID_Chi2P_pl2.push_back(PIDChi2_p[2]);
+      ww0 = w0; ww1 = w1; ww2 = w2; // copy from the origin
+      if (PIDChi2_p[0] < 0) ww0 = 0;
+      if (PIDChi2_p[1] < 0) ww1 = 0;
+      if (PIDChi2_p[2] < 0) ww2 = 0;
+      if (ww0 + ww1 + ww2 == 0) PID_Chi2P_3pl.push_back(-999);
+      else PID_Chi2P_3pl.push_back((ww0 * PIDChi2_p[0] + ww1 * PIDChi2_p[1] + ww2 * PIDChi2_p[2]) / (ww0 + ww1 + ww2));
 
-      PID_Chi2K_pl0 = PIDChi2_K[0];
-      PID_Chi2K_pl1 = PIDChi2_K[1];
-      PID_Chi2K_pl2 = PIDChi2_K[2];
-      PID_Chi2K_3pl = (w0 * PID_Chi2K_pl0 + w1 * PID_Chi2K_pl1 + w2 * PID_Chi2K_pl2) / (w0 + w1 + w2);
+      PID_Chi2Pi_pl0.push_back(PIDChi2_pi[0]);
+      PID_Chi2Pi_pl1.push_back(PIDChi2_pi[1]);
+      PID_Chi2Pi_pl2.push_back(PIDChi2_pi[2]);
+      ww0 = w0; ww1 = w1; ww2 = w2; // copy from the origin
+      if (PIDChi2_pi[0] < 0) ww0 = 0;
+      if (PIDChi2_pi[1] < 0) ww1 = 0;
+      if (PIDChi2_pi[2] < 0) ww2 = 0;
+      if (ww0 + ww1 + ww2 == 0) PID_Chi2Pi_3pl.push_back(-999);
+      else PID_Chi2Pi_3pl.push_back((ww0 * PIDChi2_pi[0] + ww1 * PIDChi2_pi[1] + ww2 * PIDChi2_pi[2]) / (ww0 + ww1 + ww2));
+
+      PID_Chi2K_pl0.push_back(PIDChi2_K[0]);
+      PID_Chi2K_pl1.push_back(PIDChi2_K[1]);
+      PID_Chi2K_pl2.push_back(PIDChi2_K[2]);
+      ww0 = w0; ww1 = w1; ww2 = w2; // copy from the origin
+      if (PIDChi2_K[0] < 0) ww0 = 0;
+      if (PIDChi2_K[1] < 0) ww1 = 0;
+      if (PIDChi2_K[2] < 0) ww2 = 0;
+      if (ww0 + ww1 + ww2 == 0) PID_Chi2K_3pl.push_back(-999);
+      else PID_Chi2K_3pl.push_back((ww0 * PIDChi2_K[0] + ww1 * PIDChi2_K[1] + ww2 * PIDChi2_K[2]) / (ww0 + ww1 + ww2));
 
       //-- Get minimum Chi2 and there corresponding particle type
-      std::vector<double> PIDChi2_avg = {PID_Chi2Mu_3pl, PID_Chi2P_3pl, PID_Chi2Pi_3pl, PID_Chi2K_3pl}; // It follows the order of muon, proton, pion, kaon
-      PID_avg_Chi2 = *std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end());
+      std::vector<double> PIDChi2_avg;// It follows the order of muon, proton, pion, kaon
+      if (PID_Chi2Mu_3pl.back() < 0) PIDChi2_avg.push_back(9999);
+      else PIDChi2_avg.push_back(PID_Chi2Mu_3pl.back());
+      if (PID_Chi2P_3pl.back() < 0) PID_Chi2Mu_3pl.push_back(9999);
+      else PIDChi2_avg.push_back(PID_Chi2P_3pl.back());
+      if (PID_Chi2Pi_3pl.back() < 0) PIDChi2_avg.push_back(9999);
+      else PIDChi2_avg.push_back(PID_Chi2Pi_3pl.back());
+      if (PID_Chi2K_3pl.back() < 0) PIDChi2_avg.push_back(9999);
+      else PIDChi2_avg.push_back(PID_Chi2K_3pl.back());
+      
+      PID_avg_Chi2.push_back(*std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end()));
       int ID_PID = std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end()) - PIDChi2_avg.begin();
       if (ID_PID == 0) {
-        PID_Pdg_allPlane = 13;
+        PID_Pdg_allPlane.push_back(13);
       }
       if (ID_PID == 1) {
-        PID_Pdg_allPlane = 2212;
+        PID_Pdg_allPlane.push_back(2212);
       }
       if (ID_PID == 2) {
-        PID_Pdg_allPlane = 211;
+        PID_Pdg_allPlane.push_back(211);
       }
       if (ID_PID == 3) {
-        PID_Pdg_allPlane = 321; 
+        PID_Pdg_allPlane.push_back(321); 
       }
-      mom_range_PID_avg = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, PID_Pdg_allPlane);
-      mom_range_PID_avg_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, PID_Pdg_allPlane);
+      double mom_range_PID_avg_value = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2.back(), PID_Pdg_allPlane.back());
+      mom_range_PID_avg.push_back(mom_range_PID_avg_value);
+      double mom_range_PID_avg_noSCE_value = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE.back(), PID_Pdg_allPlane.back());
+      mom_range_PID_avg_noSCE.push_back(mom_range_PID_avg_noSCE_value);
 
       //-- Use plane 2 only
-      std::vector<double> PIDChi2_pl2 {PID_Chi2Mu_pl2, PID_Chi2P_pl2, PID_Chi2Pi_pl2, PID_Chi2K_pl2}; // It follows the order of muon, proton, pion, kaon
+      std::vector<double> PIDChi2_pl2;// It follows the order of muon, proton, pion, kaon
+      if (PIDChi2_mu[2] < 0) PIDChi2_pl2.push_back(9999);
+      else PIDChi2_pl2.push_back(PIDChi2_mu[2]);
+      if (PIDChi2_p[2] < 0) PIDChi2_pl2.push_back(9999);
+      else PIDChi2_pl2.push_back(PIDChi2_p[2]);
+      if (PIDChi2_pi[2] < 0) PIDChi2_pl2.push_back(9999);
+      else PIDChi2_pl2.push_back(PIDChi2_pi[2]);
+      if (PIDChi2_K[2] < 0) PIDChi2_pl2.push_back(9999);
+      else PIDChi2_pl2.push_back(PIDChi2_K[2]);
 
-      PID_pl2_Chi2 = *std::min_element(PIDChi2_pl2.begin(), PIDChi2_pl2.end());
+      PID_pl2_Chi2.push_back(*std::min_element(PIDChi2_pl2.begin(), PIDChi2_pl2.end()));
       int ID_PID_pl2 = std::min_element(PIDChi2_pl2.begin(), PIDChi2_pl2.end()) - PIDChi2_pl2.begin();
       if (ID_PID_pl2 == 0) {
-        PID_Pdg_pl2 = 13;
+        PID_Pdg_pl2.push_back(13);
       }
       if (ID_PID_pl2 == 1) {
-        PID_Pdg_pl2 = 2212;
+        PID_Pdg_pl2.push_back(2212);
       }
       if (ID_PID_pl2 == 2) {
-        PID_Pdg_pl2 = 211;
+        PID_Pdg_pl2.push_back(211);
       }
       if (ID_PID_pl2 == 3) {
-        PID_Pdg_pl2 = 321;
+        PID_Pdg_pl2.push_back(321);
       }
-      mom_range_PID_pl2 = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, PID_Pdg_pl2);
-      mom_range_PID_pl2_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, PID_Pdg_pl2);
+      double mom_range_PID_pl2_value = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2.back(), PID_Pdg_pl2.back());
+      mom_range_PID_pl2.push_back(mom_range_PID_pl2_value);
+      double mom_range_PID_pl2_noSCE_value = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE.back(), PID_Pdg_pl2.back());
+      mom_range_PID_pl2_noSCE.push_back(mom_range_PID_pl2_noSCE_value);
 
       // Momentum by their true PDG
-      mom_range_truePDG = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2, true_trk_PDG);
-      mom_range_truePDG_noSCE = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE, true_trk_PDG);
+      double mom_range_truePDG_value = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2.back(), true_trk_PDG.back());
+      mom_range_truePDG.push_back(mom_range_truePDG_value);
+      double mom_range_truePDG_noSCE_value = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE.back(), true_trk_PDG.back());
+      mom_range_truePDG_noSCE.push_back(mom_range_truePDG_noSCE_value);
 
       // Check the directional info of the track by MCS
-      if (mom_bestMCS_ll_mu == mom_fwdMCS_ll_mu) if_fwd_MCS = true;
-      else if_fwd_MCS = false;
+      if (mom_bestMCS_ll_mu.back() == mom_fwdMCS_ll_mu.back()) if_fwd_MCS.push_back(true);
+      else if_fwd_MCS.push_back(false);
 
       // Check the directional info of the track by true reco vertex distance
-      TVector3 vtx(true_start_x, true_start_y, true_start_z);
+      TVector3 vtx(true_start_x.back(), true_start_y.back(), true_start_z.back());
       TVector3 D_start = Trk_start_SCEcorr - vtx;
       TVector3 D_end = Trk_end_SCEcorr - vtx;
-      if (D_start.Mag() < D_end.Mag()) if_fwd_true = true;
-      else if_fwd_true = false;
+      if (D_start.Mag() < D_end.Mag()) if_fwd_true.push_back(true);
+      else if_fwd_true.push_back(false);
  
       // Check the direction info of the track by dEdx
-      if (dEdx_pl2_start_half < dEdx_pl2_end_half) if_fwd_dEdxhalf = true;
-      else if_fwd_dEdxhalf = false;
-      if (dEdx_pl2_start10 < dEdx_pl2_end10) if_fwd_dEdx10 = true;
-      else if_fwd_dEdx10 = false;
+      if (dEdx_pl2_start_half.back() < dEdx_pl2_end_half.back()) if_fwd_dEdxhalf.push_back(true);
+      else if_fwd_dEdxhalf.push_back(false);
+      if (dEdx_pl2_start10.back() < dEdx_pl2_end10.back()) if_fwd_dEdx10.push_back(true);
+      else if_fwd_dEdx10.push_back(false);
      
-      my_event_->Fill();
-
-      dEdx_pl0.clear();
-      dEdx_pl1.clear();
-      dEdx_pl2.clear();
-      dQdx_pl0.clear();
-      dQdx_pl1.clear();
-      dQdx_pl2.clear();
-      resRange_pl0.clear();
-      resRange_pl1.clear();
-      resRange_pl2.clear();
-
     } // MCParticle
   } // The end of track loops
+
+  my_event_->Fill();
+
+  All_true_PDG.clear();
+  All_true_mom.clear();
+  All_true_start_x.clear();
+  All_true_start_y.clear();
+  All_true_start_z.clear();
+  All_true_end_x.clear();
+  All_true_end_y.clear();
+  All_true_end_z.clear();
+  All_true_trk_ifcontained.clear();
+  All_true_vtxFV.clear();
+
+  true_mom.clear();
+  true_start_x.clear();
+  true_start_y.clear();
+  true_start_z.clear();
+  true_end_x.clear();
+  true_end_y.clear();
+  true_end_z.clear();
+  true_trk_phi.clear();
+  true_trk_theta.clear();
+  true_trk_costheta.clear();
+  true_trk_length.clear();
+  true_trk_PDG.clear();
+  true_trk_ifcontained.clear();
+  true_vtxFV.clear();
+
+  if_cosmic.clear();
+
+  mom_bestMCS_mu.clear();
+  mom_bestMCS_ll_mu.clear();
+  mom_fwdMCS_mu.clear();
+  mom_fwdMCS_ll_mu.clear();
+  mom_bkwdMCS_mu.clear();
+  mom_bkwdMCS_ll_mu.clear();
+  mom_Range_mu.clear();
+  mom_Range_p.clear();
+  mom_Range_pi.clear();
+  mom_range_PID_avg.clear();
+  mom_range_PID_pl2.clear();
+  mom_range_truePDG.clear();
+  mom_Range_mu_noSCE.clear();
+  mom_Range_p_noSCE.clear();
+  mom_Range_pi_noSCE.clear();
+  mom_range_PID_avg_noSCE.clear();
+  mom_range_PID_pl2_noSCE.clear();
+  mom_range_truePDG_noSCE.clear();
+
+  vtx_x.clear();
+  vtx_y.clear();
+  vtx_z.clear();
+  start_x.clear();
+  start_y.clear();
+  start_z.clear();
+  end_x.clear();
+  end_y.clear();
+  end_z.clear();
+  trk_phi.clear();
+  trk_theta.clear();
+  trk_costheta.clear();
+  trk_length_pl0.clear();
+  trk_length_pl1.clear();
+  trk_length_pl2.clear();
+  trk_length_noSCE.clear();
+  trk_ifcontained.clear();
+  vtx_FV.clear();
+
+  dEdx_pl0.clear();
+  dEdx_pl1.clear();
+  dEdx_pl2.clear();
+  dQdx_pl0.clear();
+  dQdx_pl1.clear();
+  dQdx_pl2.clear();
+  resRange_pl0.clear();
+  resRange_pl1.clear();
+  resRange_pl2.clear();
+
+  dEdx_pl0_start_half.clear();
+  dEdx_pl1_start_half.clear();
+  dEdx_pl2_start_half.clear();
+  dEdx_pl0_end_half.clear();
+  dEdx_pl1_end_half.clear();
+  dEdx_pl2_end_half.clear();
+  dEdx_pl0_start10.clear();
+  dEdx_pl1_start10.clear();
+  dEdx_pl2_start10.clear();
+  dEdx_pl0_end10.clear();
+  dEdx_pl1_end10.clear();
+  dEdx_pl2_end10.clear();
+
+  PID_Chi2Mu_pl0.clear();
+  PID_Chi2Mu_pl1.clear();
+  PID_Chi2Mu_pl2.clear();
+  PID_Chi2Mu_3pl.clear();
+
+  PID_Chi2P_pl0.clear();
+  PID_Chi2P_pl1.clear();
+  PID_Chi2P_pl2.clear();
+  PID_Chi2P_3pl.clear();
+
+  PID_Chi2Pi_pl0.clear();
+  PID_Chi2Pi_pl1.clear();
+  PID_Chi2Pi_pl2.clear();
+  PID_Chi2Pi_3pl.clear();
+  
+  PID_Chi2K_pl0.clear();
+  PID_Chi2K_pl1.clear();
+  PID_Chi2K_pl2.clear();
+  PID_Chi2K_3pl.clear();
+
+  PID_Pdg_allPlane.clear();
+  PID_Pdg_pl2.clear();
+  PID_avg_Chi2.clear();
+  PID_pl2_Chi2.clear();
+
+  if_fwd_MCS.clear();
+  if_fwd_true.clear();
+  if_fwd_dEdx10.clear();
+  if_fwd_dEdxhalf.clear();
 }
 
 void ParticleThreshold::Initialize_event()
@@ -619,6 +809,17 @@ void ParticleThreshold::Initialize_event()
   // Make a tree to store selection information
   my_event_ = tfs->make<TTree>("tree","tree");
 
+  my_event_->Branch("All_true_PDG", &All_true_PDG);
+  my_event_->Branch("All_true_mom", &All_true_mom);
+  my_event_->Branch("All_true_start_x", &All_true_start_x);
+  my_event_->Branch("All_true_start_y", &All_true_start_y);
+  my_event_->Branch("All_true_start_z", &All_true_start_z);
+  my_event_->Branch("All_true_end_x", &All_true_end_x);
+  my_event_->Branch("All_true_end_y", &All_true_end_y);
+  my_event_->Branch("All_true_end_z", &All_true_end_z);
+  my_event_->Branch("All_true_trk_ifcontained", &All_true_trk_ifcontained);
+  my_event_->Branch("All_true_vtxFV", &All_true_vtxFV);
+
   my_event_->Branch("true_mom", &true_mom);
   my_event_->Branch("true_start_x", &true_start_x);
   my_event_->Branch("true_start_y", &true_start_y);
@@ -626,12 +827,13 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("true_end_x", &true_end_x);
   my_event_->Branch("true_end_y", &true_end_y);
   my_event_->Branch("true_end_z", &true_end_z);
-  my_event_->Branch("true_trk_ifcontained", &true_trk_ifcontained);
   my_event_->Branch("true_trk_phi", &true_trk_phi);
   my_event_->Branch("true_trk_theta", &true_trk_theta);
   my_event_->Branch("true_trk_costheta", &true_trk_costheta);
   my_event_->Branch("true_trk_length", &true_trk_length);
   my_event_->Branch("true_trk_PDG", &true_trk_PDG);
+  my_event_->Branch("true_trk_ifcontained", &true_trk_ifcontained);
+  my_event_->Branch("true_vtxFV", &true_vtxFV);
 
   my_event_->Branch("if_cosmic", &if_cosmic);
 
