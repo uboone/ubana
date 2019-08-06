@@ -226,7 +226,7 @@ namespace single_photon
                             is_nuslice = true;
                         }
                         if(it.first == "TrackScore"){
-                            std::cout << "  - " << it.first << " = " << it.second << std::endl;
+                            std::cout << "  - "<<pfp->Self()<<" "<< it.first << " = " << it.second << std::endl;
                             PFPToTrackScoreMap[pfp] = it.second;
                         }
 

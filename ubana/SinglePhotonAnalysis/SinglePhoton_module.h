@@ -397,7 +397,9 @@ namespace single_photon
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
                     std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
-                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap );
+                    std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap,
+                    PFParticleIdMap &pfParticleMap
+                    );
 
             void ClearTracks();
             void ResizeTracks(size_t);
@@ -419,7 +421,9 @@ namespace single_photon
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap,
-                    std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap);
+                    std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
+                    PFParticleIdMap &pfParticleMap
+                    );
             void ClearShowers();
             void ResizeShowers(size_t);
             void CreateShowerBranches();
@@ -658,7 +662,7 @@ namespace single_photon
             int m_event_number;
 
             int m_test_matched_hits;
-
+            int m_reco_slice_objects;
             //------- Second shower related variables ----
             int m_sss_num_unassociated_hits;
             int m_sss_num_associated_hits;
@@ -695,7 +699,6 @@ namespace single_photon
             double m_vertex_pos_wire_p1;
 
             int m_reco_asso_showers;
-
             double m_reco_vertex_to_nearest_dead_wire_plane0;
             double m_reco_vertex_to_nearest_dead_wire_plane1;
             double m_reco_vertex_to_nearest_dead_wire_plane2;
@@ -824,6 +827,8 @@ namespace single_photon
 
             //------------ Track related Variables -------------
             int m_reco_asso_tracks;
+            std::vector<int> m_reco_track_num_daughters;
+            std::vector<double> m_reco_track_daughter_trackscore;
             std::vector<double> m_reco_track_length;
             std::vector<double> m_reco_track_dirx;
             std::vector<double> m_reco_track_diry;
@@ -842,6 +847,7 @@ namespace single_photon
             std::vector<int> m_reco_track_num_spacepoints;
             std::vector<double> m_reco_track_proton_kinetic_energy;
             std::vector<size_t>  m_reco_track_ordered_energy_index;
+            std::vector<size_t>  m_reco_track_ordered_displacement_index;
             std::vector<double> m_reco_track_spacepoint_principal0;
             std::vector<double> m_reco_track_spacepoint_principal1;
             std::vector<double> m_reco_track_spacepoint_principal2;
@@ -960,6 +966,8 @@ namespace single_photon
 
             //------------ Shower related Variables  -------------
 
+            std::vector<int> m_reco_shower_num_daughters;
+            std::vector<double> m_reco_shower_daughter_trackscore;
             std::vector<double>   m_reco_shower_startx;
             std::vector<double>   m_reco_shower_starty;
             std::vector<double>   m_reco_shower_startz;

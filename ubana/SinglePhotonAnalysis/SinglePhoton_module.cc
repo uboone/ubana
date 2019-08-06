@@ -158,7 +158,7 @@ namespace single_photon
         std::vector<int> badChannelVector = *(badChannelHandle);
 
 
-        // Collect the PFParticles from the event. This is the core!
+        //Collect the PFParticles from the event. This is the core!
         art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
         std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
         art::fill_ptr_vector(pfParticleVector,pfParticleHandle);
@@ -182,6 +182,31 @@ namespace single_photon
         PFParticleIdMap pfParticleMap;
         this->GetPFParticleIdMap(pfParticleHandle, pfParticleMap);
 
+        //Slices
+        art::ValidHandle<std::vector<recob::Slice>> const & sliceHandle  = evt.getValidHandle<std::vector<recob::Slice>>(m_pandoraLabel);
+        std::vector<art::Ptr<recob::Slice>> sliceVector;
+        art::fill_ptr_vector(sliceVector,sliceHandle);
+        //And some associations
+        art::FindManyP<recob::PFParticle> pfparticles_per_slice(sliceHandle, evt, m_pandoraLabel);
+        art::FindManyP<recob::Hit> hits_per_slice(sliceHandle, evt, m_pandoraLabel);
+
+        std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::PFParticle>> > sliceToPFParticlesMap;
+        std::map<int, std::vector<art::Ptr<recob::PFParticle>> > sliceIDToPFParticlesMap;
+        for(size_t i=0; i< sliceVector.size(); ++i){
+            auto slice = sliceVector[i];
+            sliceToPFParticlesMap[slice] =pfparticles_per_slice.at(slice.key());
+            sliceIDToPFParticlesMap[slice->ID()] = pfparticles_per_slice.at(slice.key());
+        }
+
+        std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::Hit>> > sliceToHitsMap;
+        std::map<int, std::vector<art::Ptr<recob::Hit>> > sliceIDToHitsMap;
+        for(size_t i=0; i< sliceVector.size(); ++i){
+            auto slice = sliceVector[i];
+            sliceToHitsMap[slice] =hits_per_slice.at(slice.key());
+            sliceIDToHitsMap[slice->ID()] = hits_per_slice.at(slice.key());
+        }
+
+
 
         //And some verticies.        
         art::ValidHandle<std::vector<recob::Vertex>> const & vertexHandle = evt.getValidHandle<std::vector<recob::Vertex>>(m_pandoraLabel);
@@ -203,6 +228,11 @@ namespace single_photon
         std::vector< art::Ptr<recob::PFParticle> > crParticles;
         std::vector< art::Ptr<recob::PFParticle> > nuParticles;
         this->GetFinalStatePFParticleVectors(pfParticleMap, pfParticlesToVerticesMap, crParticles, nuParticles);
+
+
+
+
+
 
         //if not running over neutrino slice only, use all pfp's in event
         if (m_run_all_pfps ==true){
@@ -236,32 +266,7 @@ namespace single_photon
              pfParticleToSliceAssnMap[pfp] =  pfPartToSliceAssoc.at(pfp.key());
              }
              */
-        //Slices
-        art::ValidHandle<std::vector<recob::Slice>> const & sliceHandle  = evt.getValidHandle<std::vector<recob::Slice>>(m_pandoraLabel);
-        std::vector<art::Ptr<recob::Slice>> sliceVector;
-        art::fill_ptr_vector(sliceVector,sliceHandle);
-
-        //And some associations
-        art::FindManyP<recob::PFParticle> pfparticles_per_slice(sliceHandle, evt, m_pandoraLabel);
-        art::FindManyP<recob::Hit> hits_per_slice(sliceHandle, evt, m_pandoraLabel);
-
-        std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::PFParticle>> > sliceToPFParticlesMap;
-        std::map<int, std::vector<art::Ptr<recob::PFParticle>> > sliceIDToPFParticlesMap;
-        for(size_t i=0; i< sliceVector.size(); ++i){
-            auto slice = sliceVector[i];
-            sliceToPFParticlesMap[slice] =pfparticles_per_slice.at(slice.key());
-            sliceIDToPFParticlesMap[slice->ID()] = pfparticles_per_slice.at(slice.key());
-        }
-
-        std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::Hit>> > sliceToHitsMap;
-        std::map<int, std::vector<art::Ptr<recob::Hit>> > sliceIDToHitsMap;
-        for(size_t i=0; i< sliceVector.size(); ++i){
-            auto slice = sliceVector[i];
-            sliceToHitsMap[slice] =hits_per_slice.at(slice.key());
-            sliceIDToHitsMap[slice->ID()] = hits_per_slice.at(slice.key());
-        }
-
-
+     
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Clusters"<<std::endl;
@@ -380,6 +385,17 @@ namespace single_photon
                 trackToPIDMap[track] = pid_per_track.at(track.key());
             }
         }
+
+
+
+
+
+
+
+
+
+
+
 
 
         //CRT 
@@ -511,12 +527,12 @@ namespace single_photon
 
         this->AnalyzeFlashes(flashVector);
         std::cout<<"start track"<<std::endl;
-        this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap);
+        this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
 
 
         if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
-        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap); 
+        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap,pfParticleMap); 
 
         // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
         // MCShower and MCTrack come from energy depositions in GEANT4
@@ -680,6 +696,88 @@ namespace single_photon
         }
 
 
+        //This is a quick check 
+
+        size_t n_neutrino_slice=0;
+        size_t n_neutrino_candidate_pfp_id=0;
+
+        for(size_t s=0; s< sliceVector.size(); s++){
+            auto slice = sliceVector[s];
+            std::vector<art::Ptr<recob::PFParticle>> pfps = sliceToPFParticlesMap[slice]; 
+
+            int primaries=0;
+            int n_dau=0;
+            int found = 0;
+            //std::cout<<"Starting a loop over "<<pfps.size()<<" pfparticles"<<std::endl;
+            for(auto &pfp: pfps){
+                //std::cout<<pfp->Self()<<" Primary: "<<pfp->IsPrimary()<<" PDG "<<pfp->PdgCode()<<" NDau: "<<pfp->NumDaughters()<<" Parent: "<<pfp->Parent()<<std::endl;
+
+                if (!pfp->IsPrimary()) continue;
+                // Check if this particle is identified as the neutrino
+                const int pdg(pfp->PdgCode());
+                const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
+                primaries++;
+                // If it is, lets get the vertex position
+                if(isNeutrino){
+                    found++;
+                    //Ok this is neutrino candidate. 
+                    
+                    std::cout<<"Found Neutrinoi Slice "<<s<<std::endl;
+                    for(auto &pfp: pfps){
+                        std::cout<<pfp->Self()<<" Primary: "<<pfp->IsPrimary()<<" PDG "<<pfp->PdgCode()<<" NDau: "<<pfp->NumDaughters()<<" Parent: "<<pfp->Parent()<<std::endl;
+                    }
+                    std::cout<<"************   Printing hierarcy "<<m_run_number<<" "<<m_subrun_number<<" "<<m_event_number<<" **************"<<std::endl;
+                    n_neutrino_candidate_pfp_id = pfp->Self();
+                    for (const size_t daughterId : pfp->Daughters()){
+                        n_dau++;
+                        auto dau = pfParticleMap[daughterId];
+                        std::cout<<"---> gen1 --->"<<daughterId<<" trkScore: "<<PFPToTrackScoreMap[dau]<<" PDG: "<<dau->PdgCode()<<" NumDau: "<<dau->NumDaughters()<<std::endl;
+                        auto tmp = dau;
+                        int n_gen = 2;
+                            for (const size_t granDaughterId : tmp->Daughters()){
+                                while(tmp->NumDaughters()>0){
+                                    for(int k=0; k< n_gen; k++){
+                                        std::cout<<"---> ";
+                                    }
+                                    auto grandau = pfParticleMap[granDaughterId];
+                                    std::cout<<"gen"<<n_gen<<"  --->"<<granDaughterId<<" trkScore: "<<PFPToTrackScoreMap[grandau]<<" PDG: "<<grandau->PdgCode()<<" NumDau: "<<grandau->NumDaughters()<<std::endl;
+                                    tmp = grandau;    
+                                    n_gen++;
+                                }
+                        }
+
+                    }
+                    std::cout<<"************   Finished hierarcy **************"<<std::endl;
+
+                }
+            }
+
+            if(found==1){
+                n_neutrino_slice = s;
+                std::cout<<"Found a neutrino slice @ slice "<<n_neutrino_slice<<" ID "<<slice->ID()<<" key "<<slice.key()<<" pdfID "<<n_neutrino_candidate_pfp_id<<std::endl;
+                std::cout<<"And there is "<<pfps.size()<<" PFParticles of which "<<primaries<<" are primary and "<<n_dau<<" are daughters of the Neutrino."<<std::endl;
+                if((int)pfps.size() > n_dau+1){
+                    std::cout<<"We're Missing Something!."<<std::endl;
+                }
+                m_reco_slice_objects = (int)pfps.size();
+            }else if(found >1){
+                throw cet::exception("DetachedVertexFinder") << "  This event contains multiple reconstructed neutrinos! Size: "<<found<<std::endl;
+            }else if(found ==0){
+
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         //---------------------- END OF LOOP, fill vertex ---------------------
@@ -745,6 +843,7 @@ namespace single_photon
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane1",&m_reco_vertex_to_nearest_dead_wire_plane1);
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
 
+        vertex_tree->Branch("reco_slice_objects", &m_reco_slice_objects, "reco_slice_objects/I");
 
         this->CreateIsolationBranches();
 
@@ -846,6 +945,9 @@ namespace single_photon
         m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane2=-99999;
+
+        m_reco_slice_objects = 0;
+
 
         this->ClearIsolation();
 

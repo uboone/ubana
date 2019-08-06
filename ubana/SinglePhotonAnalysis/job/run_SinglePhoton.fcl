@@ -20,7 +20,7 @@ source : {
 services :
 {
 #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
- TFileService: { fileName: "vertexed_singlephoton.root" }
+ TFileService: { fileName: "vertexed_singlephoton_%tc.root" }
  ExptGeoHelperInterface:    @local::standard_geometry_helper
  Geometry:                  @local::standard_geo
  LArPropertiesService:      @local::standard_properties
@@ -68,7 +68,7 @@ physics: {
        width_box : 1.
        length_box : 4.
        truthmatching_signaldef : "ncdelta"
-       runAllPFPs: "true"
+       runAllPFPs: "false"
        exiting_photon_energy: 0.02
        exiting_proton_energy: 0.978  #40Mev + proton mass 
       }

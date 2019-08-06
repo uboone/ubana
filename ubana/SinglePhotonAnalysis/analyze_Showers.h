@@ -5,6 +5,9 @@ namespace single_photon
 {
     void SinglePhoton::ClearShowers(){
         m_reco_asso_showers=0;
+                m_reco_shower_num_daughters.clear();
+        m_reco_shower_daughter_trackscore.clear();
+
         m_reco_shower_startx.clear();
         m_reco_shower_starty.clear();
         m_reco_shower_startz.clear();
@@ -130,6 +133,9 @@ namespace single_photon
     }
 
     void SinglePhoton::ResizeShowers(size_t size){
+                m_reco_shower_num_daughters.resize(size);
+        m_reco_shower_daughter_trackscore.resize(size);
+
         m_reco_shower_startx.resize(size);
         m_reco_shower_starty.resize(size);
         m_reco_shower_startz.resize(size);
@@ -262,6 +268,9 @@ namespace single_photon
 
     void SinglePhoton::CreateShowerBranches(){
         vertex_tree->Branch("reco_asso_showers",&m_reco_asso_showers,"reco_asso_showers/I");
+        vertex_tree->Branch("reco_shower_num_daughters",&m_reco_shower_num_daughters);
+        vertex_tree->Branch("reco_shower_daughter_trackscore",&m_reco_shower_daughter_trackscore);
+
         vertex_tree->Branch("reco_shower_length", &m_reco_shower_length);
         vertex_tree->Branch("reco_shower_opening_angle", &m_reco_shower_openingangle);
         vertex_tree->Branch("reco_shower_dirx", &m_reco_shower_dirx);
@@ -388,7 +397,8 @@ namespace single_photon
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
             std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap, 
-            std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap){
+            std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
+            PFParticleIdMap &pfParticleMap){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite"<<std::endl;;
 
@@ -671,6 +681,13 @@ namespace single_photon
 
 
             //end optical flash code
+
+
+            m_reco_shower_num_daughters[i_shr] = pfp->NumDaughters();
+            if(m_reco_shower_num_daughters[i_shr]>0){
+                //currently just look at 1 daughter
+                m_reco_shower_daughter_trackscore[i_shr] = PFPToTrackScoreMap[pfParticleMap[pfp->Daughters().front()]];
+            }
 
 
             //------------and finally some slice info-----------------
@@ -1151,5 +1168,9 @@ namespace single_photon
         //return the value at median index
         return median;		
     }
+
+
+
+
 
 }
