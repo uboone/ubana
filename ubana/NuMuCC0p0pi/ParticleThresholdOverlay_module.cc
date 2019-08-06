@@ -106,7 +106,15 @@ private:
   std::vector<double> All_true_end_z;//True end of muon track (Z)
   std::vector<bool> All_true_trk_ifcontained; // True track if contained or not
   std::vector<bool> All_true_vtxFV; // True track start in FV or not
- 
+  std::vector<double> All_true_trk_phi;
+  std::vector<double> All_true_trk_theta;
+  std::vector<double> All_true_trk_costheta;
+  std::vector<double> All_true_trk_theta_yz;
+  std::vector<double> All_true_trk_costheta_yz;
+  std::vector<double> All_true_trk_theta_xz;
+  std::vector<double> All_true_trk_costheta_xz;
+  std::vector<double> All_true_trk_length; 
+
   std::vector<double> true_mom;//True momentum of muon track in the every event
   std::vector<double> true_start_x;//True start of muon track (X)
   std::vector<double> true_start_y;//True start of muon track (Y)
@@ -117,6 +125,10 @@ private:
   std::vector<double> true_trk_phi;//True phi of muon track 
   std::vector<double> true_trk_theta;//True theta of muon track 
   std::vector<double> true_trk_costheta;//True cos(theta) of muon track 
+  std::vector<double> true_trk_theta_yz;
+  std::vector<double> true_trk_costheta_yz;
+  std::vector<double> true_trk_theta_xz;
+  std::vector<double> true_trk_costheta_xz;
   std::vector<double> true_trk_length;//True track length (distance from the start to the end point) 
   std::vector<double> true_trk_PDG;//Track pdg 
   std::vector<bool> true_trk_ifcontained; // True track if contained or not
@@ -162,8 +174,16 @@ private:
   std::vector<double> trk_length_noSCE;//Range momentum of muon track in the every event no spatial correction
   std::vector<bool> trk_ifcontained;//to check if the track is contained or not
   std::vector<bool> vtx_FV;//to check if the vertex is in FV or not
-  
+  std::vector<double> trk_end_theta_yz;
+  std::vector<double> trk_end_costheta_yz;
+  std::vector<double> trk_end_theta_xz;
+  std::vector<double> trk_end_costheta_xz;
+ 
   int Ntrack; // number of tracks in this event
+
+  std::vector<int> hits_dEdx_size_pl0;
+  std::vector<int> hits_dEdx_size_pl1;
+  std::vector<int> hits_dEdx_size_pl2;
 
   std::vector<std::vector<float>> dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
   std::vector<std::vector<float>> dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
@@ -327,20 +347,30 @@ void ParticleThreshold::analyze(art::Event const& evt)
 
   //------Loop over all MCParticles
   for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
-    All_true_PDG.push_back(MCParticleCollection[i_mcp]->PdgCode());
-    All_true_mom.push_back(MCParticleCollection[i_mcp]->P());
-    All_true_start_x.push_back(MCParticleCollection[i_mcp]->Position().X());
-    All_true_start_y.push_back(MCParticleCollection[i_mcp]->Position().Y());
-    All_true_start_z.push_back(MCParticleCollection[i_mcp]->Position().Z());
-    All_true_end_x.push_back(MCParticleCollection[i_mcp]->EndPosition().X());
-    All_true_end_y.push_back(MCParticleCollection[i_mcp]->EndPosition().Y());
-    All_true_end_z.push_back(MCParticleCollection[i_mcp]->EndPosition().Z());
+    auto MCP = MCParticleCollection[i_mcp];
+    auto AllTrueTrackPos = MCP->EndPosition() - MCP->Position();
+    All_true_PDG.push_back(MCP->PdgCode());
+    All_true_mom.push_back(MCP->P());
+    All_true_start_x.push_back(MCP->Position().X());
+    All_true_start_y.push_back(MCP->Position().Y());
+    All_true_start_z.push_back(MCP->Position().Z());
+    All_true_end_x.push_back(MCP->EndPosition().X());
+    All_true_end_y.push_back(MCP->EndPosition().Y());
+    All_true_end_z.push_back(MCP->EndPosition().Z());
 
     TVector3 All_true_start(All_true_start_x.back(), All_true_start_y.back(), All_true_start_z.back());
     TVector3 All_true_end(All_true_end_x.back(), All_true_end_y.back(), All_true_end_z.back());
     All_true_trk_ifcontained.push_back(_fiducial_volume.InFV(All_true_start, All_true_end));
- 
     All_true_vtxFV.push_back(_fiducial_volume.InFV(All_true_start));
+
+    All_true_trk_phi.push_back(AllTrueTrackPos.Phi());
+    All_true_trk_theta.push_back(AllTrueTrackPos.Theta());
+    All_true_trk_costheta.push_back(cos(AllTrueTrackPos.Theta()));
+    All_true_trk_theta_yz.push_back(std::atan2(AllTrueTrackPos.Y(), AllTrueTrackPos.Z()));
+    All_true_trk_costheta_yz.push_back(cos(All_true_trk_theta_yz.back()));
+    All_true_trk_theta_xz.push_back(std::atan2(AllTrueTrackPos.X(), AllTrueTrackPos.Z()));
+    All_true_trk_costheta_xz.push_back(cos(All_true_trk_theta_xz.back()));
+    All_true_trk_length.push_back(sqrt(AllTrueTrackPos.X()*AllTrueTrackPos.X() + AllTrueTrackPos.Y()*AllTrueTrackPos.Y() + AllTrueTrackPos.Z()*AllTrueTrackPos.Z())); // An estimation of true track length
   }
 
   //------Loop over all tracks
@@ -373,6 +403,10 @@ void ParticleThreshold::analyze(art::Event const& evt)
       true_trk_phi.push_back(TrueTrackPos.Phi());
       true_trk_theta.push_back(TrueTrackPos.Theta());
       true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
+      true_trk_theta_yz.push_back(std::atan2(TrueTrackPos.Y(), TrueTrackPos.Z()));
+      true_trk_costheta_yz.push_back(cos(true_trk_theta_yz.back()));
+      true_trk_theta_xz.push_back(std::atan2(TrueTrackPos.X(), TrueTrackPos.Z()));
+      true_trk_costheta_xz.push_back(cos(true_trk_theta_xz.back()));
       true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())); // An estimation of true track length
       true_trk_PDG.push_back(MCparticle->PdgCode());
 
@@ -475,6 +509,10 @@ void ParticleThreshold::analyze(art::Event const& evt)
       int half_size_pl1 = dEdx_pl1.back().size() / 2;
       int half_size_pl2 = dEdx_pl2.back().size() / 2;
 
+      hits_dEdx_size_pl0.push_back(dEdx_pl0.back().size());
+      hits_dEdx_size_pl1.push_back(dEdx_pl1.back().size());
+      hits_dEdx_size_pl2.push_back(dEdx_pl2.back().size());
+
       dEdx_pl0_start_half.push_back(std::accumulate(dEdx_pl0.back().end() - half_size_pl0, dEdx_pl0.back().end(), 0.) / half_size_pl0);
       dEdx_pl0_end_half.push_back(std::accumulate(dEdx_pl0.back().begin(), dEdx_pl0.back().begin() + half_size_pl0, 0. ) / half_size_pl0);
       dEdx_pl1_start_half.push_back(std::accumulate(dEdx_pl1.back().end() - half_size_pl1, dEdx_pl1.back().end(), 0.) / half_size_pl1);
@@ -513,7 +551,12 @@ void ParticleThreshold::analyze(art::Event const& evt)
       }
       // Get projected angle wrt to the wires (docdb 23008)
       TVector3 End_Dir = AllTrackCollection[trk_id]->EndDirection<TVector3>();
-      double theta_pl2 = std::atan2(End_Dir.Y(), End_Dir.Z()); // atan2(y,x)
+      trk_end_theta_yz.push_back(std::atan2(End_Dir.Y(), End_Dir.Z()));
+      trk_end_costheta_yz.push_back(cos(std::atan2(End_Dir.Y(), End_Dir.Z())));
+      trk_end_theta_xz.push_back(std::atan2(End_Dir.X(), End_Dir.Z()));
+      trk_end_costheta_xz.push_back(cos(std::atan2(End_Dir.X(), End_Dir.Z())));
+
+      double theta_pl2 = std::atan2(End_Dir.Z(), End_Dir.Y()); // atan2(y,x)
       double theta_pl1 = theta_pl2 + M_PI/3; // If plan1 is -60 degree to Y, looking from outside to the TPC
       double theta_pl0 = theta_pl2 - M_PI/3; // If plan0 is +60 degree to Y, looking from outside to the TPC
       int w2 = 0; int w1 = 0; int w0 = 0;
@@ -691,6 +734,14 @@ void ParticleThreshold::analyze(art::Event const& evt)
   All_true_end_z.clear();
   All_true_trk_ifcontained.clear();
   All_true_vtxFV.clear();
+  All_true_trk_phi.clear();
+  All_true_trk_theta.clear();
+  All_true_trk_costheta.clear();
+  All_true_trk_theta_yz.clear();
+  All_true_trk_costheta_yz.clear();
+  All_true_trk_theta_xz.clear();
+  All_true_trk_costheta_xz.clear();
+  All_true_trk_length.clear();
 
   true_mom.clear();
   true_start_x.clear();
@@ -702,6 +753,10 @@ void ParticleThreshold::analyze(art::Event const& evt)
   true_trk_phi.clear();
   true_trk_theta.clear();
   true_trk_costheta.clear();
+  true_trk_theta_yz.clear();
+  true_trk_costheta_yz.clear();
+  true_trk_theta_xz.clear();
+  true_trk_costheta_xz.clear();
   true_trk_length.clear();
   true_trk_PDG.clear();
   true_trk_ifcontained.clear();
@@ -746,6 +801,14 @@ void ParticleThreshold::analyze(art::Event const& evt)
   trk_length_noSCE.clear();
   trk_ifcontained.clear();
   vtx_FV.clear();
+  trk_end_theta_yz.clear();
+  trk_end_costheta_yz.clear();
+  trk_end_theta_xz.clear();
+  trk_end_costheta_xz.clear();
+
+  hits_dEdx_size_pl0.clear();
+  hits_dEdx_size_pl1.clear();
+  hits_dEdx_size_pl2.clear();
 
   dEdx_pl0.clear();
   dEdx_pl1.clear();
@@ -819,6 +882,14 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("All_true_end_z", &All_true_end_z);
   my_event_->Branch("All_true_trk_ifcontained", &All_true_trk_ifcontained);
   my_event_->Branch("All_true_vtxFV", &All_true_vtxFV);
+  my_event_->Branch("All_true_trk_phi", &All_true_trk_phi);
+  my_event_->Branch("All_true_trk_theta", &All_true_trk_theta);
+  my_event_->Branch("All_true_trk_costheta", &All_true_trk_costheta);
+  my_event_->Branch("All_true_trk_theta_yz", &All_true_trk_theta_yz);
+  my_event_->Branch("All_true_trk_costheta_yz", &All_true_trk_costheta_yz);
+  my_event_->Branch("All_true_trk_theta_xz", &All_true_trk_theta_xz);
+  my_event_->Branch("All_true_trk_costheta_xz", &All_true_trk_costheta_xz);
+  my_event_->Branch("All_true_trk_length", &All_true_trk_length);
 
   my_event_->Branch("true_mom", &true_mom);
   my_event_->Branch("true_start_x", &true_start_x);
@@ -830,6 +901,10 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("true_trk_phi", &true_trk_phi);
   my_event_->Branch("true_trk_theta", &true_trk_theta);
   my_event_->Branch("true_trk_costheta", &true_trk_costheta);
+  my_event_->Branch("true_trk_theta_yz", &true_trk_theta_yz);
+  my_event_->Branch("true_trk_costheta_yz", &true_trk_costheta_yz);
+  my_event_->Branch("true_trk_theta_xz", &true_trk_theta_xz);
+  my_event_->Branch("true_trk_costheta_xz", &true_trk_costheta_xz);
   my_event_->Branch("true_trk_length", &true_trk_length);
   my_event_->Branch("true_trk_PDG", &true_trk_PDG);
   my_event_->Branch("true_trk_ifcontained", &true_trk_ifcontained);
@@ -876,6 +951,14 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("trk_length_noSCE", &trk_length_noSCE);
   my_event_->Branch("trk_ifcontained", &trk_ifcontained);
   my_event_->Branch("vtx_FV", &vtx_FV);
+  my_event_->Branch("trk_end_theta_yz", &trk_end_theta_yz);
+  my_event_->Branch("trk_end_costheta_yz", &trk_end_costheta_yz);
+  my_event_->Branch("trk_end_theta_xz", &trk_end_theta_xz);
+  my_event_->Branch("trk_end_costheta_xz", &trk_end_costheta_xz);
+
+  my_event_->Branch("hits_dEdx_size_pl0", &hits_dEdx_size_pl0);
+  my_event_->Branch("hits_dEdx_size_pl1", &hits_dEdx_size_pl1);
+  my_event_->Branch("hits_dEdx_size_pl2", &hits_dEdx_size_pl2);
 
   my_event_->Branch("dEdx_pl0", &dEdx_pl0);
   my_event_->Branch("dEdx_pl1", &dEdx_pl1);
