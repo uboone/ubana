@@ -231,6 +231,11 @@ private:
   std::vector<int> PID_Pdg_pl2; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
   std::vector<double> PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
   std::vector<double> PID_pl2_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
+  
+  std::vector<bool> Pl0_for_PID;
+  std::vector<bool> Pl1_for_PID;
+  std::vector<bool> Pl2_for_PID;
+  std::vector<int> BestPlane_PID;
 
   std::vector<bool> if_fwd_MCS; // If using forward MCS direction judge
   std::vector<bool> if_fwd_true; // If fwd by the reco true vertex distance
@@ -505,13 +510,17 @@ void ParticleThreshold::analyze(art::Event const& evt)
       dQdx_pl2.push_back(assoCal[2]->dQdx());
       resRange_pl2.push_back(assoCal[2]->ResidualRange());
 
-      int half_size_pl0 = dEdx_pl0.back().size() / 2;
-      int half_size_pl1 = dEdx_pl1.back().size() / 2;
-      int half_size_pl2 = dEdx_pl2.back().size() / 2;
+      int Nhits_pl0 = dEdx_pl0.back().size();
+      int Nhits_pl1 = dEdx_pl1.back().size();
+      int Nhits_pl2 = dEdx_pl2.back().size();
 
-      hits_dEdx_size_pl0.push_back(dEdx_pl0.back().size());
-      hits_dEdx_size_pl1.push_back(dEdx_pl1.back().size());
-      hits_dEdx_size_pl2.push_back(dEdx_pl2.back().size());
+      int half_size_pl0 = Nhits_pl0 / 2;
+      int half_size_pl1 = Nhits_pl1 / 2;
+      int half_size_pl2 = Nhits_pl2 / 2;
+
+      hits_dEdx_size_pl0.push_back(Nhits_pl0);
+      hits_dEdx_size_pl1.push_back(Nhits_pl1);
+      hits_dEdx_size_pl2.push_back(Nhits_pl2);
 
       dEdx_pl0_start_half.push_back(std::accumulate(dEdx_pl0.back().end() - half_size_pl0, dEdx_pl0.back().end(), 0.) / half_size_pl0);
       dEdx_pl0_end_half.push_back(std::accumulate(dEdx_pl0.back().begin(), dEdx_pl0.back().begin() + half_size_pl0, 0. ) / half_size_pl0);
@@ -635,6 +644,25 @@ void ParticleThreshold::analyze(art::Event const& evt)
       if (PIDChi2_K[2] < 0) ww2 = 0;
       if (ww0 + ww1 + ww2 == 0) PID_Chi2K_3pl.push_back(-999);
       else PID_Chi2K_3pl.push_back((ww0 * PIDChi2_K[0] + ww1 * PIDChi2_K[1] + ww2 * PIDChi2_K[2]) / (ww0 + ww1 + ww2));
+
+      std::vector<int> Nhit_3pl = {Nhits_pl0, Nhits_pl1, Nhits_pl2};
+      int bestpl = std::max_element(Nhit_3pl.begin(), Nhit_3pl.end()) - Nhit_3pl.begin();
+      BestPlane_PID.push_back(bestpl);
+      if (bestpl == 0){
+        Pl0_for_PID.push_back(true);
+        Pl1_for_PID.push_back(false);
+        Pl2_for_PID.push_back(false);
+      }
+      if (bestpl == 1){
+        Pl0_for_PID.push_back(false);
+        Pl1_for_PID.push_back(true);
+        Pl2_for_PID.push_back(false);
+      }
+      if (bestpl == 2){
+        Pl0_for_PID.push_back(false);
+        Pl1_for_PID.push_back(false);
+        Pl2_for_PID.push_back(true);
+      }
 
       //-- Get minimum Chi2 and there corresponding particle type
       std::vector<double> PIDChi2_avg;// It follows the order of muon, proton, pion, kaon
@@ -858,6 +886,11 @@ void ParticleThreshold::analyze(art::Event const& evt)
   PID_avg_Chi2.clear();
   PID_pl2_Chi2.clear();
 
+  Pl0_for_PID.clear();
+  Pl1_for_PID.clear();
+  Pl2_for_PID.clear();
+  BestPlane_PID.clear();
+
   if_fwd_MCS.clear();
   if_fwd_true.clear();
   if_fwd_dEdx10.clear();
@@ -1002,6 +1035,11 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("PID_Pdg_pl2", &PID_Pdg_pl2);
   my_event_->Branch("PID_avg_Chi2", &PID_avg_Chi2);
   my_event_->Branch("PID_pl2_Chi2", &PID_pl2_Chi2);
+  
+  my_event_->Branch("Pl0_for_PID", &Pl0_for_PID);
+  my_event_->Branch("Pl1_for_PID", &Pl1_for_PID);
+  my_event_->Branch("Pl2_for_PID", &Pl2_for_PID);
+  my_event_->Branch("BestPlane_PID", &BestPlane_PID);
   
   my_event_->Branch("if_fwd_MCS", &if_fwd_MCS);
   my_event_->Branch("if_fwd_true", &if_fwd_true);
