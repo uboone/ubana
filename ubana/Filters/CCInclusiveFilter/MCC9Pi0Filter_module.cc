@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       Pi0Filter
+// Class:       MCC9Pi0Filter
 // Plugin Type: filter (art v3_01_02)
-// File:        Pi0Filter_module.cc
+// File:        MCC9Pi0Filter_module.cc
 //
 // Generated at Tue Aug  6 08:16:01 2019 by David Caratelli using cetskelgen
 // from cetlib version v3_05_01.
@@ -34,8 +34,7 @@
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardata/RecoBaseProxy/ProxyBase.h"
 
-using ProxyPfpColl_t = decltype(proxy::getCollection<std::vector<recob::PFParticle>>(
-										     std::declval<art::Event>(), std::declval<art::InputTag>(),
+using ProxyPfpColl_t = decltype(proxy::getCollection<std::vector<recob::PFParticle>>(std::declval<art::Event>(), std::declval<art::InputTag>(),
 										     proxy::withAssociated<larpandoraobj::PFParticleMetadata>(std::declval<art::InputTag>()),
 										     proxy::withAssociated<recob::Cluster>(std::declval<art::InputTag>()),
 										     proxy::withAssociated<recob::Slice>(std::declval<art::InputTag>()),
@@ -46,20 +45,20 @@ using ProxyPfpColl_t = decltype(proxy::getCollection<std::vector<recob::PFPartic
 using ProxyPfpElem_t = ProxyPfpColl_t::element_proxy_t;
 
 
-class Pi0Filter;
+class MCC9Pi0Filter;
 
 
-class Pi0Filter : public art::EDFilter {
+class MCC9Pi0Filter : public art::EDFilter {
 public:
-  explicit Pi0Filter(fhicl::ParameterSet const& p);
+  explicit MCC9Pi0Filter(fhicl::ParameterSet const& p);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
   // Plugins should not be copied or assigned.
-  Pi0Filter(Pi0Filter const&) = delete;
-  Pi0Filter(Pi0Filter&&) = delete;
-  Pi0Filter& operator=(Pi0Filter const&) = delete;
-  Pi0Filter& operator=(Pi0Filter&&) = delete;
+  MCC9Pi0Filter(MCC9Pi0Filter const&) = delete;
+  MCC9Pi0Filter(MCC9Pi0Filter&&) = delete;
+  MCC9Pi0Filter& operator=(MCC9Pi0Filter const&) = delete;
+  MCC9Pi0Filter& operator=(MCC9Pi0Filter&&) = delete;
 
   // Required functions.
   bool filter(art::Event& e) override;
@@ -108,22 +107,27 @@ private:
 
   // variables with which to apply cuts
   float _dmin, _dotmin, _trkshrscore, _e1min, _e2min, _gammadotmax;
- 
 
 };
 
 
-Pi0Filter::Pi0Filter(fhicl::ParameterSet const& p)
+MCC9Pi0Filter::MCC9Pi0Filter(fhicl::ParameterSet const& p)
   : EDFilter{p}  // ,
   // More initializers here.
 {
 
   fPANDORAproducer = p.get<art::InputTag>("PANDORAproducer");
   fSHRproducer     = p.get<art::InputTag>("SHRproducer");
+  _dmin            = p.get<float>("DMin");
+  _dotmin          = p.get<float>("DotMin");
+  _trkshrscore     = p.get<float>("TrkShrScore");
+  _e1min           = p.get<float>("E1Min");
+  _e2min           = p.get<float>("E2Min");
+  _gammadotmax     = p.get<float>("GammaDotMax");
 
 }
 
-bool Pi0Filter::filter(art::Event& e)
+bool MCC9Pi0Filter::filter(art::Event& e)
 {
 
   // grab PFParticles in event
@@ -169,7 +173,7 @@ bool Pi0Filter::filter(art::Event& e)
   
 }// end of filter function
 
-void Pi0Filter::AddDaughters(const ProxyPfpElem_t &pfp_pxy,
+void MCC9Pi0Filter::AddDaughters(const ProxyPfpElem_t &pfp_pxy,
 			     const ProxyPfpColl_t &pfp_pxy_col,
 			     std::vector<ProxyPfpElem_t> &slice_v)
 {
@@ -200,7 +204,7 @@ void Pi0Filter::AddDaughters(const ProxyPfpElem_t &pfp_pxy,
   return;
 } // AddDaughters
 
-void Pi0Filter::BuildPFPMap(const ProxyPfpColl_t &pfp_pxy_col) {
+void MCC9Pi0Filter::BuildPFPMap(const ProxyPfpColl_t &pfp_pxy_col) {
   
   _pfpmap.clear();
   
@@ -215,7 +219,7 @@ void Pi0Filter::BuildPFPMap(const ProxyPfpColl_t &pfp_pxy_col) {
 } // BuildPFPMap
 
 
-bool Pi0Filter::selectEvent(const std::vector<ProxyPfpElem_t>& pfp_pxy_v) {
+bool MCC9Pi0Filter::selectEvent(const std::vector<ProxyPfpElem_t>& pfp_pxy_v) {
   
   TVector3 nuvtx;
   Double_t xyz[3] = {};
@@ -246,7 +250,6 @@ bool Pi0Filter::selectEvent(const std::vector<ProxyPfpElem_t>& pfp_pxy_v) {
       // grab vertex
       auto vtx = pfp_pxy.get<recob::Vertex>();
       if (vtx.size() != 1) {
-	std::cout << "ERROR. Found neutrino PFP w/ != 1 associated vertices..." << std::endl;
 	return false;
       }
       
@@ -340,7 +343,7 @@ bool Pi0Filter::selectEvent(const std::vector<ProxyPfpElem_t>& pfp_pxy_v) {
   return true;
 }
 
-std::pair<double,double> Pi0Filter::VtxCompatibility(const TVector3& nuvtx, const TVector3& shrvtx, const TVector3& shrdir) {
+std::pair<double,double> MCC9Pi0Filter::VtxCompatibility(const TVector3& nuvtx, const TVector3& shrvtx, const TVector3& shrdir) {
   
   // grab shower start point and direction
   //auto shrvtx = shr->ShowerStart();
@@ -358,7 +361,7 @@ std::pair<double,double> Pi0Filter::VtxCompatibility(const TVector3& nuvtx, cons
   
 }// end of vertex compatibility
 
-float Pi0Filter::GetTrackShowerScore(const ProxyPfpElem_t &pfp_pxy)
+float MCC9Pi0Filter::GetTrackShowerScore(const ProxyPfpElem_t &pfp_pxy)
 {
   
   const auto &pfParticleMetadataList = pfp_pxy.get<larpandoraobj::PFParticleMetadata>();
@@ -384,14 +387,14 @@ float Pi0Filter::GetTrackShowerScore(const ProxyPfpElem_t &pfp_pxy)
   return 1;
 }
 
-void Pi0Filter::beginJob()
+void MCC9Pi0Filter::beginJob()
 {
   // Implementation of optional member function here.
 }
 
-void Pi0Filter::endJob()
+void MCC9Pi0Filter::endJob()
 {
   // Implementation of optional member function here.
 }
 
-DEFINE_ART_MODULE(Pi0Filter)
+DEFINE_ART_MODULE(MCC9Pi0Filter)
