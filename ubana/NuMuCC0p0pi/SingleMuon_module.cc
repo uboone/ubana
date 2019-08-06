@@ -110,11 +110,13 @@ private:
   int MC_nMuon; // Number of muon(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nElectron; // Number of eletron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nNeutron; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_below165; // Number of proton(s) (p<200) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_above165; // Number of proton(s) (p > 300) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_below235; // Number of proton(s) (p<235) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_above235; // Number of proton(s) (p > 235) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPi0; // Number of pi0(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiPlus; // Number of pi plus(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiMinus; // Number of pi minus(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiPlus_below65; // Number of pi plus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiPlus_above65; // Number of pi plus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiMinus_below65; // Number of pi minus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiMinus_above65; // Number of pi minus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int Genie_nNeutron_preFSI;// before FSI 
   int Genie_nProton_preFSI;// before FSI 
   int Genie_nPi0_preFSI;// before FSI 
@@ -130,12 +132,17 @@ private:
   std::vector<double> true_end_x;//True end of muon track (X)
   std::vector<double> true_end_y;//True end of muon track (Y)
   std::vector<double> true_end_z;//True end of muon track (Z)
-  std::vector<bool> true_trk_ifcontained;//True containment of muon track 
   std::vector<double> true_trk_phi;//True phi of muon track 
   std::vector<double> true_trk_theta;//True theta of muon track 
   std::vector<double> true_trk_costheta;//True cos(theta) of muon track 
+  std::vector<double> true_trk_theta_yz;
+  std::vector<double> true_trk_costheta_yz;
+  std::vector<double> true_trk_theta_xz;
+  std::vector<double> true_trk_costheta_xz;
   std::vector<double> true_trk_length;//True track length (distance from the start to the end point) 
   std::vector<double> true_trk_PDG;//Track pdg 
+  std::vector<bool> true_trk_ifcontained; // True track if contained or not
+  std::vector<bool> true_vtxFV; // True track if contained or not
 
   bool if_selected; // If selected based on the reco info
   bool if_matchMu; // If the selected track matched with true muon from numu cc
@@ -153,6 +160,8 @@ private:
   std::vector<double> mom_Range_mu_noSCE;//Range momentum of muon track in the every event
   std::vector<double> mom_Range_p_noSCE;//Range momentum of proton track in the every event
   std::vector<double> mom_Range_pi_noSCE;//Range momentum of pion track in the every event
+  std::vector<double> mom_range_PID_avg_noSCE;//Range momentum of tracks based on their PID particle type using 3 pls
+
   std::vector<double> vtx_x;//Reconstructed vtx x in the every event
   std::vector<double> vtx_y;//Reconstructed vtx y in the every event
   std::vector<double> vtx_z;//Reconstructed vtx z in the every event
@@ -172,9 +181,22 @@ private:
   std::vector<double> trk_length_noSCE;//Range momentum of muon track in the every event
   std::vector<bool> trk_ifcontained;//to check if the track is contained or not
   std::vector<bool> vtx_FV;//to check if the vertex is in FV or not
+  std::vector<double> trk_end_theta_yz;
+  std::vector<double> trk_end_costheta_yz;
+  std::vector<double> trk_end_theta_xz;
+  std::vector<double> trk_end_costheta_xz;
+  std::vector<double> trk_theta_yz;
+  std::vector<double> trk_costheta_yz;
+  std::vector<double> trk_theta_xz;
+  std::vector<double> trk_costheta_xz;
+
   int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
+
+  int hits_dEdx_size_pl0;
+  int hits_dEdx_size_pl1;
+  int hits_dEdx_size_pl2;
 
   std::vector<float> dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
   std::vector<float> dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
@@ -201,17 +223,36 @@ private:
   double PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
   double PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
   double PID_Chi2Mu_pl2; // Chi2 of muon assumption of plane 2 in PID
+  double PID_Chi2Mu_3pl; // Chi2 of muon assumption of 3 planes in PID 
+ 
   double PID_Chi2P_pl0; // Chi2 of proton assumption of plane 0 in PID
   double PID_Chi2P_pl1; // Chi2 of proton assumption of plane 1 in PID
   double PID_Chi2P_pl2; // Chi2 of proton assumption of plane 2 in PID
+  double PID_Chi2P_3pl; // Chi2 of proton assumption of 3 planes in PID
+
   double PID_Chi2Pi_pl0; // Chi2 of pion assumption of plane 0 in PID
   double PID_Chi2Pi_pl1; // Chi2 of pion assumption of plane 1 in PID
   double PID_Chi2Pi_pl2; // Chi2 of pion assumption of plane 2 in PID
+  double PID_Chi2Pi_3pl; // Chi2 of pion assumption of 3 planes in PID
+  
   double PID_Chi2K_pl0; // Chi2 of kaon assumption of plane 0 in PID
   double PID_Chi2K_pl1; // Chi2 of kaon assumption of plane 1 in PID
   double PID_Chi2K_pl2; // Chi2 of kaon assumption of plane 2 in PID
-  int PID_Pdg; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
+  double PID_Chi2K_3pl; // Chi2 of kaon assumption of 3 planes in PID
+
+  int PID_Pdg_3pl; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
+  int PID_Pdg_pl2;
+  int PID_Pdg_pl1;
+  int PID_Pdg_pl0;
   double PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
+  double PID_pl2_Chi2;
+  double PID_pl1_Chi2;
+  double PID_pl0_Chi2;
+
+  int BestPlane_PID;
+  bool Pl2_for_PID;
+  bool Pl1_for_PID;
+  bool Pl0_for_PID;
 
   bool if_fwd_MCS; // If using forward MCS direction judge
   bool if_fwd_true; // If fwd by the reco true vertex distance
@@ -364,11 +405,13 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_nMuon = 0;
     MC_nElectron = 0;
     MC_nNeutron = 0;
-    MC_nProton_below165 = 0;
-    MC_nProton_above165 = 0;
+    MC_nProton_below235 = 0;
+    MC_nProton_above235 = 0;
     MC_nPi0 = 0;
-    MC_nPiPlus = 0;
-    MC_nPiMinus = 0;
+    MC_nPiPlus_below65 = 0;
+    MC_nPiPlus_above65 = 0;
+    MC_nPiMinus_below65 = 0;
+    MC_nPiMinus_above65 = 0;
 
     Genie_nNeutron_preFSI = 0;
     Genie_nProton_preFSI = 0;
@@ -400,14 +443,16 @@ void SingleMuon::analyze(art::Event const& evt)
           // neutron
           if(MCParticleCollection[i_mcp]->PdgCode() == 2112) MC_nNeutron++;
           // proton
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.165) MC_nProton_below165++;
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() > 0.165) MC_nProton_above165++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.235) MC_nProton_below235++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() > 0.235) MC_nProton_above235++;
           // pion0
           if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
           // pion+
-          if(MCParticleCollection[i_mcp]->PdgCode() == 211) MC_nPiPlus++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 211 && MCParticleCollection[i_mcp]->P() < 0.065) MC_nPiPlus_below65++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 211 && MCParticleCollection[i_mcp]->P() > 0.065) MC_nPiPlus_above65++;
           // pion-
-          if(MCParticleCollection[i_mcp]->PdgCode() == -211) MC_nPiMinus++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == -211 && MCParticleCollection[i_mcp]->P() < 0.065) MC_nPiMinus_below65++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == -211 && MCParticleCollection[i_mcp]->P() > 0.065) MC_nPiMinus_above65++;
         }
       }
     }
@@ -579,12 +624,15 @@ void SingleMuon::analyze(art::Event const& evt)
         dEdx_pl2 = assoCal[2]->dEdx();
         dQdx_pl2 = assoCal[2]->dQdx();
         resRange_pl2 = assoCal[2]->ResidualRange();
+ 
+        hits_dEdx_size_pl0 = dEdx_pl0.size();
+        hits_dEdx_size_pl1 = dEdx_pl1.size();
+        hits_dEdx_size_pl2 = dEdx_pl2.size();
   
-        int half_size_pl0 = dEdx_pl0.size() / 2;
-        int half_size_pl1 = dEdx_pl1.size() / 2;
-        int half_size_pl2 = dEdx_pl2.size() / 2;
-        std::cout<<"dEdx size: "<< dEdx_pl0.size() <<", half size: "<<half_size_pl0<<std::endl;
-
+        int half_size_pl0 = hits_dEdx_size_pl0 / 2;
+        int half_size_pl1 = hits_dEdx_size_pl1 / 2;
+        int half_size_pl2 = hits_dEdx_size_pl2 / 2;
+ 
         dEdx_pl0_start_half = std::accumulate(dEdx_pl0.end() - half_size_pl0, dEdx_pl0.end(), 0.) / half_size_pl0;
         dEdx_pl0_end_half = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + half_size_pl0, 0. ) / half_size_pl0;
         dEdx_pl1_start_half = std::accumulate(dEdx_pl1.end() - half_size_pl1, dEdx_pl1.end(), 0.) / half_size_pl1;
@@ -620,6 +668,32 @@ void SingleMuon::analyze(art::Event const& evt)
         if(!PIDTotrackAsso.isValid()){
           throw cet::exception("[Numu0pi0p]") << "No matched PID - track information!" << std::endl;
         }
+        // Get projected angle wrt to the wires (docdb 23008)
+        TVector3 End_Dir = daughter_Tracks.front()->EndDirection<TVector3>();
+        trk_end_theta_yz.push_back(std::atan2(End_Dir.Y(), End_Dir.Z()));
+        trk_end_costheta_yz.push_back(cos(std::atan2(End_Dir.Y(), End_Dir.Z())));
+        trk_end_theta_xz.push_back(std::atan2(End_Dir.X(), End_Dir.Z()));
+        trk_end_costheta_xz.push_back(cos(std::atan2(End_Dir.X(), End_Dir.Z())));
+  
+        auto Trk_pos = Trk_end_SCEcorr - Trk_start_SCEcorr;
+        trk_theta_yz.push_back(std::atan2(Trk_pos.Y(), Trk_pos.Z()));
+        trk_costheta_yz.push_back(cos(std::atan2(Trk_pos.Y(), Trk_pos.Z())));
+        trk_theta_xz.push_back(std::atan2(Trk_pos.X(), Trk_pos.Z()));
+        trk_costheta_xz.push_back(cos(std::atan2(Trk_pos.X(), Trk_pos.Z())));
+
+        //double theta_pl2 = std::atan2(End_Dir.Z(), End_Dir.Y()); // atan2(y,x)
+        double theta_pl2 = std::atan2(Trk_pos.Z(), Trk_pos.Y()); // atan2(y,x)
+        double theta_pl1 = theta_pl2 + M_PI/3; // If plan1 is -60 degree to Y, looking from outside to the TPC
+        double theta_pl0 = theta_pl2 - M_PI/3; // If plan0 is +60 degree to Y, looking from outside to the TPC
+        int w2 = 0; int w1 = 0; int w0 = 0;
+        double sin2_pl2 = sin(theta_pl2) * sin(theta_pl2);
+        double sin2_pl1 = sin(theta_pl1) * sin(theta_pl1);
+        double sin2_pl0 = sin(theta_pl0) * sin(theta_pl0);
+        if (sin2_pl2 >= 0.5) w2 = 1;
+        if (sin2_pl1 >= 0.5) w1 = 1;
+        if (sin2_pl0 >= 0.5) w0 = 1;
+
+        // PID
         auto trkPID = PIDTotrackAsso.at(daughter_Tracks.front().key());
         if (trkPID.size() == 0){
           std::cout << "No PID information for this selected track!" << std::endl;
@@ -651,33 +725,135 @@ void SingleMuon::analyze(art::Event const& evt)
 	PID_Chi2Mu_pl0 = PIDChi2_mu[0];
 	PID_Chi2Mu_pl1 = PIDChi2_mu[1];
 	PID_Chi2Mu_pl2 = PIDChi2_mu[2];
+        int ww0 = w0; int ww1 = w1; int ww2 = w2; // copy from the origin
+        if (PID_Chi2Mu_pl0 < 0) ww0 = 0;
+        if (PID_Chi2Mu_pl1 < 0) ww1 = 0;
+        if (PID_Chi2Mu_pl2 < 0) ww2 = 0;
+        if (ww0 + ww1 + ww2 == 0) PID_Chi2Mu_3pl = -999;
+        else PID_Chi2Mu_3pl = (ww0 * PID_Chi2Mu_pl0 + ww1 * PID_Chi2Mu_pl1 + ww2 * PID_Chi2Mu_pl2) / (ww0 + ww1 + ww2);
+
         PID_Chi2P_pl0 = PIDChi2_p[0];
         PID_Chi2P_pl1 = PIDChi2_p[1];
         PID_Chi2P_pl2 = PIDChi2_p[2];
+        ww0 = w0; ww1 = w1; ww2 = w2; // copy from the origin
+        if (PID_Chi2P_pl0 < 0) ww0 = 0;
+        if (PID_Chi2P_pl1 < 0) ww1 = 0;
+        if (PID_Chi2P_pl2 < 0) ww2 = 0;
+        if (ww0 + ww1 + ww2 == 0) PID_Chi2P_3pl = -999;
+        else PID_Chi2P_3pl = (ww0 * PID_Chi2P_pl0 + ww1 * PID_Chi2P_pl1 + ww2 * PID_Chi2P_pl2) / (ww0 + ww1 + ww2);
+
         PID_Chi2Pi_pl0 = PIDChi2_pi[0];
         PID_Chi2Pi_pl1 = PIDChi2_pi[1];
         PID_Chi2Pi_pl2 = PIDChi2_pi[2];
+        ww0 = w0; ww1 = w1; ww2 = w2; // copy from the origin
+        if (PID_Chi2Pi_pl0 < 0) ww0 = 0;
+        if (PID_Chi2Pi_pl1 < 0) ww1 = 0;
+        if (PID_Chi2Pi_pl2 < 0) ww2 = 0;
+        if (ww0 + ww1 + ww2 == 0) PID_Chi2Pi_3pl = -999;
+        else PID_Chi2Pi_3pl = (ww0 * PID_Chi2Pi_pl0 + ww1 * PID_Chi2Pi_pl1 + ww2 * PID_Chi2Pi_pl2) / (ww0 + ww1 + ww2);
+
         PID_Chi2K_pl0 = PIDChi2_K[0];
         PID_Chi2K_pl1 = PIDChi2_K[1];
         PID_Chi2K_pl2 = PIDChi2_K[2];
+        ww0 = w0; ww1 = w1; ww2 = w2; // copy from the origin
+        if (PID_Chi2K_pl0 < 0) ww0 = 0;
+        if (PID_Chi2K_pl1 < 0) ww1 = 0;
+        if (PID_Chi2K_pl2 < 0) ww2 = 0;
+        if (ww0 + ww1 + ww2 == 0) PID_Chi2K_3pl = -999;
+        else PID_Chi2K_3pl = (ww0 * PID_Chi2K_pl0 + ww1 * PID_Chi2K_pl1 + ww2 * PID_Chi2K_pl2) / (ww0 + ww1 + ww2);
 
-        std::vector<double> PIDChi2_avg (4, 0.); // It follows the order of muon, proton, pion, kaon
-        for(int id_pl = 0; id_pl < 3; id_pl++){
-          PIDChi2_avg[0] += PIDChi2_mu[id_pl];
-          PIDChi2_avg[1] += PIDChi2_p[id_pl];
-          PIDChi2_avg[2] += PIDChi2_pi[id_pl];
-          PIDChi2_avg[3] += PIDChi2_K[id_pl];
-        } 
-        for(int index = 0; index < (int) PIDChi2_avg.size(); index++){
-          PIDChi2_avg[index] = PIDChi2_avg[index] / 3; // average the Chi2 of each assumption of the 3 planes
+        std::vector<int> Nhit_3pl = {hits_dEdx_size_pl0, hits_dEdx_size_pl1, hits_dEdx_size_pl2};
+        BestPlane_PID = std::max_element(Nhit_3pl.begin(), Nhit_3pl.end()) - Nhit_3pl.begin();
+        if (BestPlane_PID == 0){
+          Pl0_for_PID = true;
+          Pl1_for_PID = false;
+          Pl2_for_PID = false;
         }
+        if (BestPlane_PID == 1){
+          Pl0_for_PID = false;
+          Pl1_for_PID = true;
+          Pl2_for_PID = false;
+        }
+        if (BestPlane_PID == 2){
+          Pl0_for_PID = false;
+          Pl1_for_PID = false;
+          Pl2_for_PID = true;
+        }
+
+        //-- Get minimum Chi2 and there corresponding particle type
+        std::vector<double> PIDChi2_avg;// It follows the order of muon, proton, pion, kaon
+        if (PID_Chi2Mu_3pl < 0) PIDChi2_avg.push_back(9999);
+        else PIDChi2_avg.push_back(PID_Chi2Mu_3pl);
+        if (PID_Chi2P_3pl < 0) PIDChi2_avg.push_back(9999);
+        else PIDChi2_avg.push_back(PID_Chi2P_3pl);
+        if (PID_Chi2Pi_3pl < 0) PIDChi2_avg.push_back(9999);
+        else PIDChi2_avg.push_back(PID_Chi2Pi_3pl);
+        if (PID_Chi2K_3pl < 0) PIDChi2_avg.push_back(9999);
+        else PIDChi2_avg.push_back(PID_Chi2K_3pl);
+
         PID_avg_Chi2 = *std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end());
         int ID_PID = std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end()) - PIDChi2_avg.begin();
-        if (ID_PID == 0) PID_Pdg = 13;
-        if (ID_PID == 1) PID_Pdg = 2212;
-        if (ID_PID == 2) PID_Pdg = 211;
-        if (ID_PID == 3) PID_Pdg = 321;
-        
+        if (ID_PID == 0) PID_Pdg_3pl = 13;
+        if (ID_PID == 1) PID_Pdg_3pl = 2212;
+        if (ID_PID == 2) PID_Pdg_3pl = 211;
+        if (ID_PID == 3) PID_Pdg_3pl = 321;
+
+        mom_range_PID_avg_noSCE.push_back(_trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, PID_Pdg_3pl));
+       
+        // Use Plane 2
+        std::vector<double> PIDChi2_pl2;// It follows the order of muon, proton, pion, kaon
+        if (PIDChi2_mu[2] < 0) PIDChi2_pl2.push_back(9999);
+        else PIDChi2_pl2.push_back(PIDChi2_mu[2]);
+        if (PIDChi2_p[2] < 0) PIDChi2_pl2.push_back(9999);
+        else PIDChi2_pl2.push_back(PIDChi2_p[2]);
+        if (PIDChi2_pi[2] < 0) PIDChi2_pl2.push_back(9999);
+        else PIDChi2_pl2.push_back(PIDChi2_pi[2]);
+        if (PIDChi2_K[2] < 0) PIDChi2_pl2.push_back(9999);
+        else PIDChi2_pl2.push_back(PIDChi2_K[2]);
+  
+        PID_pl2_Chi2 = *std::min_element(PIDChi2_pl2.begin(), PIDChi2_pl2.end());
+        int ID_PID_pl2 = std::min_element(PIDChi2_pl2.begin(), PIDChi2_pl2.end()) - PIDChi2_pl2.begin();
+        if (ID_PID_pl2 == 0) PID_Pdg_pl2 = 13;
+        if (ID_PID_pl2 == 1) PID_Pdg_pl2 = 2212;
+        if (ID_PID_pl2 == 2) PID_Pdg_pl2 = 211;
+        if (ID_PID_pl2 == 3) PID_Pdg_pl2 = 321;
+
+        // Use plane 1
+        std::vector<double> PIDChi2_pl1;// It follows the order of muon, proton, pion, kaon
+        if (PIDChi2_mu[1] < 0) PIDChi2_pl1.push_back(9999);
+        else PIDChi2_pl1.push_back(PIDChi2_mu[1]);
+        if (PIDChi2_p[1] < 0) PIDChi2_pl1.push_back(9999);
+        else PIDChi2_pl1.push_back(PIDChi2_p[1]);
+        if (PIDChi2_pi[1] < 0) PIDChi2_pl1.push_back(9999);
+        else PIDChi2_pl1.push_back(PIDChi2_pi[1]);
+        if (PIDChi2_K[1] < 0) PIDChi2_pl1.push_back(9999);
+        else PIDChi2_pl1.push_back(PIDChi2_K[1]);
+
+        PID_pl1_Chi2 = *std::min_element(PIDChi2_pl1.begin(), PIDChi2_pl1.end());
+        int ID_PID_pl1 = std::min_element(PIDChi2_pl1.begin(), PIDChi2_pl1.end()) - PIDChi2_pl1.begin();
+        if (ID_PID_pl1 == 0) PID_Pdg_pl1 = 13;
+        if (ID_PID_pl1 == 1) PID_Pdg_pl1 = 2212;
+        if (ID_PID_pl1 == 2) PID_Pdg_pl1 = 211;
+        if (ID_PID_pl1 == 3) PID_Pdg_pl1 = 321;
+
+        // Use plane 0
+        std::vector<double> PIDChi2_pl0;// It follows the order of muon, proton, pion, kaon
+        if (PIDChi2_mu[0] < 0) PIDChi2_pl0.push_back(9999);
+        else PIDChi2_pl0.push_back(PIDChi2_mu[0]);
+        if (PIDChi2_p[0] < 0) PIDChi2_pl0.push_back(9999);
+        else PIDChi2_pl0.push_back(PIDChi2_p[0]);
+        if (PIDChi2_pi[0] < 0) PIDChi2_pl0.push_back(9999);
+        else PIDChi2_pl0.push_back(PIDChi2_pi[0]);
+        if (PIDChi2_K[0] < 0) PIDChi2_pl0.push_back(9999);
+        else PIDChi2_pl0.push_back(PIDChi2_K[0]);
+  
+        PID_pl0_Chi2 = *std::min_element(PIDChi2_pl0.begin(), PIDChi2_pl0.end());
+        int ID_PID_pl0 = std::min_element(PIDChi2_pl0.begin(), PIDChi2_pl0.end()) - PIDChi2_pl0.begin();
+        if (ID_PID_pl0 == 0) PID_Pdg_pl0 = 13;
+        if (ID_PID_pl0 == 1) PID_Pdg_pl0 = 2212;
+        if (ID_PID_pl0 == 2) PID_Pdg_pl0 = 211;
+        if (ID_PID_pl0 == 3) PID_Pdg_pl0 = 321;
+ 
         //-- Fill TRUE info, if the track is from numu cc muon
         if(IsMC){
           std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
@@ -702,9 +878,14 @@ void SingleMuon::analyze(art::Event const& evt)
             TVector3 true_start(MCparticle->Position().X(), MCparticle->Position().Y(), MCparticle->Position().Z());
             TVector3 true_end(MCparticle->EndPosition().X(), MCparticle->EndPosition().Y(), MCparticle->EndPosition().Z());
             true_trk_ifcontained.push_back(_fiducial_volume.InFV(true_start, true_end));
+            true_vtxFV.push_back(_fiducial_volume.InFV(true_start));
             true_trk_phi.push_back(TrueTrackPos.Phi());
             true_trk_theta.push_back(TrueTrackPos.Theta());
             true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
+            true_trk_theta_yz.push_back(std::atan2(TrueTrackPos.Y(), TrueTrackPos.Z()));
+            true_trk_costheta_yz.push_back(cos(true_trk_theta_yz.back()));
+            true_trk_theta_xz.push_back(std::atan2(TrueTrackPos.X(), TrueTrackPos.Z()));
+            true_trk_costheta_xz.push_back(cos(true_trk_theta_xz.back()));
             true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())); // An estimation of true track length
             true_trk_PDG.push_back(MCparticle->PdgCode());
             
@@ -793,12 +974,17 @@ void SingleMuon::analyze(art::Event const& evt)
     true_end_x.clear();
     true_end_y.clear();
     true_end_z.clear();
-    true_trk_ifcontained.clear();
     true_trk_phi.clear();
     true_trk_theta.clear();
     true_trk_costheta.clear();
+    true_trk_theta_yz.clear();
+    true_trk_costheta_yz.clear();
+    true_trk_theta_xz.clear();
+    true_trk_costheta_xz.clear();
     true_trk_length.clear();
     true_trk_PDG.clear();
+    true_trk_ifcontained.clear();
+    true_vtxFV.clear();
   }
 
   mom_bestMCS_mu.clear();
@@ -813,6 +999,8 @@ void SingleMuon::analyze(art::Event const& evt)
   mom_Range_p_noSCE.clear();
   mom_Range_pi.clear();
   mom_Range_pi_noSCE.clear();
+  mom_range_PID_avg_noSCE.clear();
+
   vtx_x.clear();
   vtx_y.clear();
   vtx_z.clear();
@@ -832,7 +1020,15 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_length_noSCE.clear();
   trk_ifcontained.clear();
   vtx_FV.clear();
-  
+  trk_end_theta_yz.clear();
+  trk_end_costheta_yz.clear();
+  trk_end_theta_xz.clear();
+  trk_end_costheta_xz.clear();
+  trk_theta_yz.clear();
+  trk_costheta_yz.clear();
+  trk_theta_xz.clear();
+  trk_costheta_xz.clear();
+
   dEdx_pl0.clear();
   dEdx_pl1.clear();
   dEdx_pl2.clear();
@@ -870,11 +1066,13 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nMuon", &MC_nMuon);
     my_event_->Branch("MC_nElectron", &MC_nElectron);
     my_event_->Branch("MC_nNeutron", &MC_nNeutron);
-    my_event_->Branch("MC_nProton_below165", &MC_nProton_below165);
-    my_event_->Branch("MC_nProton_above165", &MC_nProton_above165);
+    my_event_->Branch("MC_nProton_below235", &MC_nProton_below235);
+    my_event_->Branch("MC_nProton_above235", &MC_nProton_above235);
     my_event_->Branch("MC_nPi0", &MC_nPi0);
-    my_event_->Branch("MC_nPiPlus", &MC_nPiPlus);
-    my_event_->Branch("MC_nPiMinus", &MC_nPiMinus);
+    my_event_->Branch("MC_nPiPlus_below65", &MC_nPiPlus_below65);
+    my_event_->Branch("MC_nPiPlus_above65", &MC_nPiPlus_above65);
+    my_event_->Branch("MC_nPiMinus_below65", &MC_nPiMinus_below65);
+    my_event_->Branch("MC_nPiMinus_above65", &MC_nPiMinus_above65);
     my_event_->Branch("Genie_nNeutron_preFSI", &Genie_nNeutron_preFSI);
     my_event_->Branch("Genie_nProton_preFSI", &Genie_nProton_preFSI);
     my_event_->Branch("Genie_nPi0_preFSI", &Genie_nPi0_preFSI);
@@ -888,12 +1086,17 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("true_end_x", &true_end_x);
     my_event_->Branch("true_end_y", &true_end_y);
     my_event_->Branch("true_end_z", &true_end_z);
-    my_event_->Branch("true_trk_ifcontained", &true_trk_ifcontained);
     my_event_->Branch("true_trk_phi", &true_trk_phi);
     my_event_->Branch("true_trk_theta", &true_trk_theta);
     my_event_->Branch("true_trk_costheta", &true_trk_costheta);
+    my_event_->Branch("true_trk_theta_yz", &true_trk_theta_yz);
+    my_event_->Branch("true_trk_costheta_yz", &true_trk_costheta_yz);
+    my_event_->Branch("true_trk_theta_xz", &true_trk_theta_xz);
+    my_event_->Branch("true_trk_costheta_xz", &true_trk_costheta_xz);
     my_event_->Branch("true_trk_length", &true_trk_length);
     my_event_->Branch("true_trk_PDG", &true_trk_PDG);
+    my_event_->Branch("true_trk_ifcontained", &true_trk_ifcontained);
+    my_event_->Branch("true_vtxFV", &true_vtxFV);
   }
 
   my_event_->Branch("n_dau_tracks", &n_dau_tracks);
@@ -915,6 +1118,7 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("mom_Range_mu_noSCE", &mom_Range_mu_noSCE);
   my_event_->Branch("mom_Range_p_noSCE", &mom_Range_p_noSCE);
   my_event_->Branch("mom_Range_pi_noSCE", &mom_Range_pi_noSCE);
+  my_event_->Branch("mom_range_PID_avg_noSCE", &mom_range_PID_avg_noSCE);
   my_event_->Branch("vtx_x", &vtx_x);
   my_event_->Branch("vtx_y", &vtx_y);
   my_event_->Branch("vtx_z", &vtx_z);
@@ -960,17 +1164,33 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("PID_Chi2Mu_pl0", &PID_Chi2Mu_pl0);
   my_event_->Branch("PID_Chi2Mu_pl1", &PID_Chi2Mu_pl1);
   my_event_->Branch("PID_Chi2Mu_pl2", &PID_Chi2Mu_pl2);
+  my_event_->Branch("PID_Chi2Mu_3pl", &PID_Chi2Mu_3pl);
   my_event_->Branch("PID_Chi2P_pl0", &PID_Chi2P_pl0);
   my_event_->Branch("PID_Chi2P_pl1", &PID_Chi2P_pl1);
   my_event_->Branch("PID_Chi2P_pl2", &PID_Chi2P_pl2);
+  my_event_->Branch("PID_Chi2P_3pl", &PID_Chi2P_3pl);
   my_event_->Branch("PID_Chi2Pi_pl0", &PID_Chi2Pi_pl0);
   my_event_->Branch("PID_Chi2Pi_pl1", &PID_Chi2Pi_pl1);
   my_event_->Branch("PID_Chi2Pi_pl2", &PID_Chi2Pi_pl2);
+  my_event_->Branch("PID_Chi2Pi_3pl", &PID_Chi2Pi_3pl);
   my_event_->Branch("PID_Chi2K_pl0", &PID_Chi2K_pl0);
   my_event_->Branch("PID_Chi2K_pl1", &PID_Chi2K_pl1);
   my_event_->Branch("PID_Chi2K_pl2", &PID_Chi2K_pl2);
-  my_event_->Branch("PID_Pdg", &PID_Pdg);
+  my_event_->Branch("PID_Chi2K_3pl", &PID_Chi2K_3pl);
+
+  my_event_->Branch("PID_Pdg_3pl", &PID_Pdg_3pl);
+  my_event_->Branch("PID_Pdg_pl2", &PID_Pdg_pl2);
+  my_event_->Branch("PID_Pdg_pl1", &PID_Pdg_pl1);
+  my_event_->Branch("PID_Pdg_pl0", &PID_Pdg_pl0);
   my_event_->Branch("PID_avg_Chi2", &PID_avg_Chi2);
+  my_event_->Branch("PID_pl2_Chi2", &PID_pl2_Chi2);
+  my_event_->Branch("PID_pl1_Chi2", &PID_pl1_Chi2);
+  my_event_->Branch("PID_pl0_Chi2", &PID_pl0_Chi2);
+
+  my_event_->Branch("Pl0_for_PID", &Pl0_for_PID);
+  my_event_->Branch("Pl1_for_PID", &Pl1_for_PID);
+  my_event_->Branch("Pl2_for_PID", &Pl2_for_PID);
+  my_event_->Branch("BestPlane_PID", &BestPlane_PID);
 
   my_event_->Branch("if_fwd_MCS", &if_fwd_MCS);
   my_event_->Branch("if_fwd_true", &if_fwd_true);

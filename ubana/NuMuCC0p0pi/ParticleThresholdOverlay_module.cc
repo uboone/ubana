@@ -178,6 +178,10 @@ private:
   std::vector<double> trk_end_costheta_yz;
   std::vector<double> trk_end_theta_xz;
   std::vector<double> trk_end_costheta_xz;
+  std::vector<double> trk_theta_yz;
+  std::vector<double> trk_costheta_yz;
+  std::vector<double> trk_theta_xz;
+  std::vector<double> trk_costheta_xz;
  
   int Ntrack; // number of tracks in this event
 
@@ -229,8 +233,12 @@ private:
 
   std::vector<int> PID_Pdg_allPlane; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
   std::vector<int> PID_Pdg_pl2; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
+  std::vector<int> PID_Pdg_pl1;
+  std::vector<int> PID_Pdg_pl0;
   std::vector<double> PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
   std::vector<double> PID_pl2_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
+  std::vector<double> PID_pl1_Chi2;
+  std::vector<double> PID_pl0_Chi2;
   
   std::vector<bool> Pl0_for_PID;
   std::vector<bool> Pl1_for_PID;
@@ -243,6 +251,7 @@ private:
   std::vector<bool> if_fwd_dEdxhalf; // If fwd by the reco dEdx half of the hits (should use for contained)
 
   bool                                IsMC;
+  bool                                IfAll;
   std::string                         m_generatorLabel;
   std::string                         m_geantLabel;
   std::string                         m_pandoraLabel;
@@ -265,6 +274,7 @@ ParticleThreshold::ParticleThreshold(fhicl::ParameterSet const& pset)
   : 
   EDAnalyzer{pset},
   IsMC(pset.get<bool>("IsMC")),
+  IfAll(pset.get<bool>("IfAll")),
   m_generatorLabel(pset.get<std::string>("GeneratorLabel")),
   m_geantLabel(pset.get<std::string>("GeantLabel")),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
@@ -350,34 +360,35 @@ void ParticleThreshold::analyze(art::Event const& evt)
   //PID
   art::FindManyP<anab::ParticleID> PIDTotrackAsso(Handle_TPCtrack,evt,PID_TrackAssLabel);
 
-  //------Loop over all MCParticles
-  for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
-    auto MCP = MCParticleCollection[i_mcp];
-    auto AllTrueTrackPos = MCP->EndPosition() - MCP->Position();
-    All_true_PDG.push_back(MCP->PdgCode());
-    All_true_mom.push_back(MCP->P());
-    All_true_start_x.push_back(MCP->Position().X());
-    All_true_start_y.push_back(MCP->Position().Y());
-    All_true_start_z.push_back(MCP->Position().Z());
-    All_true_end_x.push_back(MCP->EndPosition().X());
-    All_true_end_y.push_back(MCP->EndPosition().Y());
-    All_true_end_z.push_back(MCP->EndPosition().Z());
+  if(IfAll){
+    //------Loop over all MCParticles
+    for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
+      auto MCP = MCParticleCollection[i_mcp];
+      auto AllTrueTrackPos = MCP->EndPosition() - MCP->Position();
+      All_true_PDG.push_back(MCP->PdgCode());
+      All_true_mom.push_back(MCP->P());
+      All_true_start_x.push_back(MCP->Position().X());
+      All_true_start_y.push_back(MCP->Position().Y());
+      All_true_start_z.push_back(MCP->Position().Z());
+      All_true_end_x.push_back(MCP->EndPosition().X());
+      All_true_end_y.push_back(MCP->EndPosition().Y());
+      All_true_end_z.push_back(MCP->EndPosition().Z());
 
-    TVector3 All_true_start(All_true_start_x.back(), All_true_start_y.back(), All_true_start_z.back());
-    TVector3 All_true_end(All_true_end_x.back(), All_true_end_y.back(), All_true_end_z.back());
-    All_true_trk_ifcontained.push_back(_fiducial_volume.InFV(All_true_start, All_true_end));
-    All_true_vtxFV.push_back(_fiducial_volume.InFV(All_true_start));
+      TVector3 All_true_start(All_true_start_x.back(), All_true_start_y.back(), All_true_start_z.back());
+      TVector3 All_true_end(All_true_end_x.back(), All_true_end_y.back(), All_true_end_z.back());
+      All_true_trk_ifcontained.push_back(_fiducial_volume.InFV(All_true_start, All_true_end));
+      All_true_vtxFV.push_back(_fiducial_volume.InFV(All_true_start));
 
-    All_true_trk_phi.push_back(AllTrueTrackPos.Phi());
-    All_true_trk_theta.push_back(AllTrueTrackPos.Theta());
-    All_true_trk_costheta.push_back(cos(AllTrueTrackPos.Theta()));
-    All_true_trk_theta_yz.push_back(std::atan2(AllTrueTrackPos.Y(), AllTrueTrackPos.Z()));
-    All_true_trk_costheta_yz.push_back(cos(All_true_trk_theta_yz.back()));
-    All_true_trk_theta_xz.push_back(std::atan2(AllTrueTrackPos.X(), AllTrueTrackPos.Z()));
-    All_true_trk_costheta_xz.push_back(cos(All_true_trk_theta_xz.back()));
-    All_true_trk_length.push_back(sqrt(AllTrueTrackPos.X()*AllTrueTrackPos.X() + AllTrueTrackPos.Y()*AllTrueTrackPos.Y() + AllTrueTrackPos.Z()*AllTrueTrackPos.Z())); // An estimation of true track length
+      All_true_trk_phi.push_back(AllTrueTrackPos.Phi());
+      All_true_trk_theta.push_back(AllTrueTrackPos.Theta());
+      All_true_trk_costheta.push_back(cos(AllTrueTrackPos.Theta()));
+      All_true_trk_theta_yz.push_back(std::atan2(AllTrueTrackPos.Y(), AllTrueTrackPos.Z()));
+      All_true_trk_costheta_yz.push_back(cos(All_true_trk_theta_yz.back()));
+      All_true_trk_theta_xz.push_back(std::atan2(AllTrueTrackPos.X(), AllTrueTrackPos.Z()));
+      All_true_trk_costheta_xz.push_back(cos(All_true_trk_theta_xz.back()));
+      All_true_trk_length.push_back(sqrt(AllTrueTrackPos.X()*AllTrueTrackPos.X() + AllTrueTrackPos.Y()*AllTrueTrackPos.Y() + AllTrueTrackPos.Z()*AllTrueTrackPos.Z())); // An estimation of true track length
+    }
   }
-
   //------Loop over all tracks
   Ntrack = AllTrackCollection.size();
   for(int trk_id = 0; trk_id < Ntrack; trk_id++){
@@ -565,7 +576,14 @@ void ParticleThreshold::analyze(art::Event const& evt)
       trk_end_theta_xz.push_back(std::atan2(End_Dir.X(), End_Dir.Z()));
       trk_end_costheta_xz.push_back(cos(std::atan2(End_Dir.X(), End_Dir.Z())));
 
-      double theta_pl2 = std::atan2(End_Dir.Z(), End_Dir.Y()); // atan2(y,x)
+      auto Trk_pos = Trk_end_SCEcorr - Trk_start_SCEcorr;
+      trk_theta_yz.push_back(std::atan2(Trk_pos.Y(), Trk_pos.Z()));
+      trk_costheta_yz.push_back(cos(std::atan2(Trk_pos.Y(), Trk_pos.Z())));
+      trk_theta_xz.push_back(std::atan2(Trk_pos.X(), Trk_pos.Z()));
+      trk_costheta_xz.push_back(cos(std::atan2(Trk_pos.X(), Trk_pos.Z())));
+
+      //double theta_pl2 = std::atan2(End_Dir.Z(), End_Dir.Y()); // atan2(y,x)
+      double theta_pl2 = std::atan2(Trk_pos.Z(), Trk_pos.Y()); // atan2(y,x)
       double theta_pl1 = theta_pl2 + M_PI/3; // If plan1 is -60 degree to Y, looking from outside to the TPC
       double theta_pl0 = theta_pl2 - M_PI/3; // If plan0 is +60 degree to Y, looking from outside to the TPC
       int w2 = 0; int w1 = 0; int w0 = 0;
@@ -719,6 +737,57 @@ void ParticleThreshold::analyze(art::Event const& evt)
       if (ID_PID_pl2 == 3) {
         PID_Pdg_pl2.push_back(321);
       }
+      //-- Use plane 1 only
+      std::vector<double> PIDChi2_pl1;// It follows the order of muon, proton, pion, kaon
+      if (PIDChi2_mu[1] < 0) PIDChi2_pl1.push_back(9999);
+      else PIDChi2_pl1.push_back(PIDChi2_mu[1]);
+      if (PIDChi2_p[1] < 0) PIDChi2_pl1.push_back(9999);
+      else PIDChi2_pl1.push_back(PIDChi2_p[1]);
+      if (PIDChi2_pi[1] < 0) PIDChi2_pl1.push_back(9999);
+      else PIDChi2_pl1.push_back(PIDChi2_pi[1]);
+      if (PIDChi2_K[1] < 0) PIDChi2_pl1.push_back(9999);
+      else PIDChi2_pl1.push_back(PIDChi2_K[1]);
+
+      PID_pl1_Chi2.push_back(*std::min_element(PIDChi2_pl1.begin(), PIDChi2_pl1.end()));
+      int ID_PID_pl1 = std::min_element(PIDChi2_pl1.begin(), PIDChi2_pl1.end()) - PIDChi2_pl1.begin();
+      if (ID_PID_pl1 == 0) {
+        PID_Pdg_pl1.push_back(13);
+      }
+      if (ID_PID_pl1 == 1) {
+        PID_Pdg_pl1.push_back(2212);
+      }
+      if (ID_PID_pl1 == 2) {
+        PID_Pdg_pl1.push_back(211);
+      }
+      if (ID_PID_pl1 == 3) {
+        PID_Pdg_pl1.push_back(321);
+      }
+      //-- Use plane 0 only
+      std::vector<double> PIDChi2_pl0;// It follows the order of muon, proton, pion, kaon
+      if (PIDChi2_mu[0] < 0) PIDChi2_pl0.push_back(9999);
+      else PIDChi2_pl0.push_back(PIDChi2_mu[0]);
+      if (PIDChi2_p[0] < 0) PIDChi2_pl0.push_back(9999);
+      else PIDChi2_pl0.push_back(PIDChi2_p[0]);
+      if (PIDChi2_pi[0] < 0) PIDChi2_pl0.push_back(9999);
+      else PIDChi2_pl0.push_back(PIDChi2_pi[0]);
+      if (PIDChi2_K[0] < 0) PIDChi2_pl0.push_back(9999);
+      else PIDChi2_pl0.push_back(PIDChi2_K[0]);
+
+      PID_pl0_Chi2.push_back(*std::min_element(PIDChi2_pl0.begin(), PIDChi2_pl0.end()));
+      int ID_PID_pl0 = std::min_element(PIDChi2_pl0.begin(), PIDChi2_pl0.end()) - PIDChi2_pl0.begin();
+      if (ID_PID_pl0 == 0) {
+        PID_Pdg_pl0.push_back(13);
+      }
+      if (ID_PID_pl0 == 1) {
+        PID_Pdg_pl0.push_back(2212);
+      }
+      if (ID_PID_pl0 == 2) {
+        PID_Pdg_pl0.push_back(211);
+      }
+      if (ID_PID_pl0 == 3) {
+        PID_Pdg_pl0.push_back(321);
+      }
+
       double mom_range_PID_pl2_value = _trk_mom_calculator.GetTrackMomentum(trk_length_pl2.back(), PID_Pdg_pl2.back());
       mom_range_PID_pl2.push_back(mom_range_PID_pl2_value);
       double mom_range_PID_pl2_noSCE_value = _trk_mom_calculator.GetTrackMomentum(trk_length_noSCE.back(), PID_Pdg_pl2.back());
@@ -751,26 +820,27 @@ void ParticleThreshold::analyze(art::Event const& evt)
   } // The end of track loops
 
   my_event_->Fill();
-
-  All_true_PDG.clear();
-  All_true_mom.clear();
-  All_true_start_x.clear();
-  All_true_start_y.clear();
-  All_true_start_z.clear();
-  All_true_end_x.clear();
-  All_true_end_y.clear();
-  All_true_end_z.clear();
-  All_true_trk_ifcontained.clear();
-  All_true_vtxFV.clear();
-  All_true_trk_phi.clear();
-  All_true_trk_theta.clear();
-  All_true_trk_costheta.clear();
-  All_true_trk_theta_yz.clear();
-  All_true_trk_costheta_yz.clear();
-  All_true_trk_theta_xz.clear();
-  All_true_trk_costheta_xz.clear();
-  All_true_trk_length.clear();
-
+  if(IfAll){
+    All_true_PDG.clear();
+    All_true_mom.clear();
+    All_true_start_x.clear();
+    All_true_start_y.clear();
+    All_true_start_z.clear();
+    All_true_end_x.clear();
+    All_true_end_y.clear();
+    All_true_end_z.clear();
+    All_true_trk_ifcontained.clear();
+    All_true_vtxFV.clear();
+    All_true_trk_phi.clear();
+    All_true_trk_theta.clear();
+    All_true_trk_costheta.clear();
+    All_true_trk_theta_yz.clear();
+    All_true_trk_costheta_yz.clear();
+    All_true_trk_theta_xz.clear();
+    All_true_trk_costheta_xz.clear();
+    All_true_trk_length.clear();
+  }
+ 
   true_mom.clear();
   true_start_x.clear();
   true_start_y.clear();
@@ -833,6 +903,10 @@ void ParticleThreshold::analyze(art::Event const& evt)
   trk_end_costheta_yz.clear();
   trk_end_theta_xz.clear();
   trk_end_costheta_xz.clear();
+  trk_theta_yz.clear();
+  trk_costheta_yz.clear();
+  trk_theta_xz.clear();
+  trk_costheta_xz.clear();
 
   hits_dEdx_size_pl0.clear();
   hits_dEdx_size_pl1.clear();
@@ -883,8 +957,12 @@ void ParticleThreshold::analyze(art::Event const& evt)
 
   PID_Pdg_allPlane.clear();
   PID_Pdg_pl2.clear();
+  PID_Pdg_pl1.clear();
+  PID_Pdg_pl0.clear();
   PID_avg_Chi2.clear();
   PID_pl2_Chi2.clear();
+  PID_pl1_Chi2.clear();
+  PID_pl0_Chi2.clear();
 
   Pl0_for_PID.clear();
   Pl1_for_PID.clear();
@@ -905,25 +983,26 @@ void ParticleThreshold::Initialize_event()
   // Make a tree to store selection information
   my_event_ = tfs->make<TTree>("tree","tree");
 
-  my_event_->Branch("All_true_PDG", &All_true_PDG);
-  my_event_->Branch("All_true_mom", &All_true_mom);
-  my_event_->Branch("All_true_start_x", &All_true_start_x);
-  my_event_->Branch("All_true_start_y", &All_true_start_y);
-  my_event_->Branch("All_true_start_z", &All_true_start_z);
-  my_event_->Branch("All_true_end_x", &All_true_end_x);
-  my_event_->Branch("All_true_end_y", &All_true_end_y);
-  my_event_->Branch("All_true_end_z", &All_true_end_z);
-  my_event_->Branch("All_true_trk_ifcontained", &All_true_trk_ifcontained);
-  my_event_->Branch("All_true_vtxFV", &All_true_vtxFV);
-  my_event_->Branch("All_true_trk_phi", &All_true_trk_phi);
-  my_event_->Branch("All_true_trk_theta", &All_true_trk_theta);
-  my_event_->Branch("All_true_trk_costheta", &All_true_trk_costheta);
-  my_event_->Branch("All_true_trk_theta_yz", &All_true_trk_theta_yz);
-  my_event_->Branch("All_true_trk_costheta_yz", &All_true_trk_costheta_yz);
-  my_event_->Branch("All_true_trk_theta_xz", &All_true_trk_theta_xz);
-  my_event_->Branch("All_true_trk_costheta_xz", &All_true_trk_costheta_xz);
-  my_event_->Branch("All_true_trk_length", &All_true_trk_length);
-
+  if(IfAll){
+    my_event_->Branch("All_true_PDG", &All_true_PDG);
+    my_event_->Branch("All_true_mom", &All_true_mom);
+    my_event_->Branch("All_true_start_x", &All_true_start_x);
+    my_event_->Branch("All_true_start_y", &All_true_start_y);
+    my_event_->Branch("All_true_start_z", &All_true_start_z);
+    my_event_->Branch("All_true_end_x", &All_true_end_x);
+    my_event_->Branch("All_true_end_y", &All_true_end_y);
+    my_event_->Branch("All_true_end_z", &All_true_end_z);
+    my_event_->Branch("All_true_trk_ifcontained", &All_true_trk_ifcontained);
+    my_event_->Branch("All_true_vtxFV", &All_true_vtxFV);
+    my_event_->Branch("All_true_trk_phi", &All_true_trk_phi);
+    my_event_->Branch("All_true_trk_theta", &All_true_trk_theta);
+    my_event_->Branch("All_true_trk_costheta", &All_true_trk_costheta);
+    my_event_->Branch("All_true_trk_theta_yz", &All_true_trk_theta_yz);
+    my_event_->Branch("All_true_trk_costheta_yz", &All_true_trk_costheta_yz);
+    my_event_->Branch("All_true_trk_theta_xz", &All_true_trk_theta_xz);
+    my_event_->Branch("All_true_trk_costheta_xz", &All_true_trk_costheta_xz);
+    my_event_->Branch("All_true_trk_length", &All_true_trk_length);
+  }
   my_event_->Branch("true_mom", &true_mom);
   my_event_->Branch("true_start_x", &true_start_x);
   my_event_->Branch("true_start_y", &true_start_y);
@@ -988,6 +1067,10 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("trk_end_costheta_yz", &trk_end_costheta_yz);
   my_event_->Branch("trk_end_theta_xz", &trk_end_theta_xz);
   my_event_->Branch("trk_end_costheta_xz", &trk_end_costheta_xz);
+  my_event_->Branch("trk_theta_yz", &trk_theta_yz);
+  my_event_->Branch("trk_costheta_yz", &trk_costheta_yz);
+  my_event_->Branch("trk_theta_xz", &trk_theta_xz);
+  my_event_->Branch("trk_costheta_xz", &trk_costheta_xz);
 
   my_event_->Branch("hits_dEdx_size_pl0", &hits_dEdx_size_pl0);
   my_event_->Branch("hits_dEdx_size_pl1", &hits_dEdx_size_pl1);
@@ -1031,10 +1114,15 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("PID_Chi2K_pl1", &PID_Chi2K_pl1);
   my_event_->Branch("PID_Chi2K_pl2", &PID_Chi2K_pl2);
   my_event_->Branch("PID_Chi2K_3pl", &PID_Chi2K_3pl);
+
   my_event_->Branch("PID_Pdg_allPlane", &PID_Pdg_allPlane);
   my_event_->Branch("PID_Pdg_pl2", &PID_Pdg_pl2);
+  my_event_->Branch("PID_Pdg_pl1", &PID_Pdg_pl1);
+  my_event_->Branch("PID_Pdg_pl0", &PID_Pdg_pl0);
   my_event_->Branch("PID_avg_Chi2", &PID_avg_Chi2);
   my_event_->Branch("PID_pl2_Chi2", &PID_pl2_Chi2);
+  my_event_->Branch("PID_pl1_Chi2", &PID_pl1_Chi2);
+  my_event_->Branch("PID_pl0_Chi2", &PID_pl0_Chi2);
   
   my_event_->Branch("Pl0_for_PID", &Pl0_for_PID);
   my_event_->Branch("Pl1_for_PID", &Pl1_for_PID);
