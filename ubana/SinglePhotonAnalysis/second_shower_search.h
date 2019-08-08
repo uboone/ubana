@@ -311,7 +311,7 @@ namespace single_photon
             std::vector<double> vertex_wire(3); 
 
 
-            std::vector<TGraph*> g_vertex(3);
+            std::vector<TGraph*> g_vertex(3);//the star mark
             for(int i=0; i<3; i++){
                 TPad * pader = (TPad*)can->cd(i+1);
 

@@ -79,6 +79,7 @@
 
 #include "bad_channel_matching.h"
 #include "DBSCAN.h"
+
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace single_photon
@@ -148,18 +149,27 @@ namespace single_photon
 
 
 
+
+
     /**
      *  @brief  SinglePhoton class
      */
     class SinglePhoton : public art::EDAnalyzer
     {
+	//----- VertexBuilder-------
+		double fstart_prox;
+		double fshower_prox;
+		double fcpoa_vert_prox; 
+		double fcpoa_trackend_prox;
+	//---------------------------
+
         public:
             typedef art::ValidHandle< std::vector<recob::PFParticle> > PFParticleHandle;
             typedef std::vector< art::Ptr<recob::PFParticle> > PFParticleVector;
             typedef std::vector< art::Ptr<recob::Track> > TrackVector;
             typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
             typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
-
+	
             /**
              *  @brief  Constructor
              *
@@ -232,6 +242,15 @@ namespace single_photon
              *  @param  tracks a vector to hold the associated tracks
              *  @param  showers a vector to hold the associated showers
              */
+
+
+	//---------------- BobbyVertexBuilder ------------------------
+
+			struct ObjectCandidates;
+			void CollectTracksAndShowers_v2(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap,  const art::Event &evt, struct ObjectCandidates TracksAndShowers);
+	//--------------------------------------------------
+
+
             void CollectTracksAndShowers(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap,  const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap);
 
             void FillTracksAndShowers( const std::vector< art::Ptr<recob::Track> > & associatedTracks, const std::vector< art::Ptr<recob::Shower> > & associatedShowers, const art::Ptr<recob::PFParticle> &pParticle , const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap);
@@ -688,12 +707,23 @@ int m_matched_signal_track_num = 0;
             double m_vertex_pos_wire_p0;
             double m_vertex_pos_wire_p2;
             double m_vertex_pos_wire_p1;
+			double m_bobbyvertex_pos_x;
+			double m_bobbyvertex_pos_y;
+			double m_bobbyvertex_pos_z;
+			int m_bobbyshowers;
+			int m_bobbytracks;
+			std::string m_bobbyvertexing;
 
             int m_reco_asso_showers;
 
             double m_reco_vertex_to_nearest_dead_wire_plane0;
             double m_reco_vertex_to_nearest_dead_wire_plane1;
             double m_reco_vertex_to_nearest_dead_wire_plane2;
+
+            //------------ VertexBuilder -------------
+
+			void BobbyVertexBuilder_ext(std::vector<art::Ptr<recob::Track>> & tracks,  std::vector<art::Ptr<recob::Shower>> & showers );
+			//---------------------------------------------------
 
             //added eventweight
             //-------------- EventWeight related variables -------------

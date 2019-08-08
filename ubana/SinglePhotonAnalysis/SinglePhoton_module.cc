@@ -8,7 +8,9 @@
 #include "analyze_Slice.h"
 #include "second_shower_search.h"
 #include "isolation.h"
+#include "BobbyVertexBuilder.h"
 
+#include <fstream>//read and write txt file.
 namespace single_photon
 {
 
@@ -24,6 +26,7 @@ namespace single_photon
 
     void SinglePhoton::reconfigure(fhicl::ParameterSet const &pset)
     {
+//	cout<<"\n\n\n\n\n\n Reconfigure!"<<endl;
         m_is_verbose = pset.get<bool>("Verbose",false);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
@@ -74,9 +77,13 @@ namespace single_photon
         m_truthmatching_signaldef = pset.get<std::string>("truthmatching_signaldef");
         m_pidLabel = pset.get<std::string>("ParticleIDLabel","particleid");
 
-        m_run_all_pfps = pset.get<bool>("runAllPFPs",false);
+        m_run_all_pfps = pset.get<bool>("runAllPFPs",false); //See .fcl file!
         m_exiting_photon_energy_threshold = pset.get<double>("exiting_photon_energy");
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
+
+		//------------ BobbyVertexBuilder ---------------
+		m_bobbyvertexing = pset.get<string>("BobbyVertex", "more_showers");
+		//------------ BobbyVertexBuilder ---------------
 
         rangen = new TRandom3(22);
         bool_make_sss_plots = true;
@@ -91,8 +98,8 @@ namespace single_photon
 
     //------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SinglePhoton::analyze(const art::Event &evt)
-    {
+    void SinglePhoton::analyze(const art::Event &evt)//CHECK
+    {//analyzing one event per run!
 
         //m_is_verbose = true;
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
@@ -316,17 +323,18 @@ namespace single_photon
         //At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.
         //tracks is a vector of recob::Tracks and same for showers.
         //Implicitly, tracks.size() + showers.size() =  nuParticles.size(); At this point I would like two things.
-        std::vector< art::Ptr<recob::Track> > tracks;
+        std::vector< art::Ptr<recob::Track> > tracks; //this is going to store points to all associated tracks;
         std::vector< art::Ptr<recob::Shower> > showers;
-        std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap; 
+        std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap; //give access to the PFParticle via track/shower
         std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
         //std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToAllPFParticleMap; 
         //std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToAllPFParticleMap;
 
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Tracks and Showers"<<std::endl;
 
-
-        this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
+		ObjectCandidates TracksAndShowers;
+//Keng!        this->CollectTracksAndShowers_v2(nuParticles, pfParticleMap, evt, TracksAndShowers); //This tells what showers and tracks to use.
+        this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap); //This tells what showers and tracks to use.
 
         //Track Calorimetry
         art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
@@ -363,7 +371,38 @@ namespace single_photon
             }
         }
 
+		//---------- VertexBuilder--------------
+		BobbyVertexBuilder_ext(tracks,showers);
+		
+		//Use a txt file to help extract the position.
+		std::fstream output_vertex("temp_vertex.txt",std::ios_base::in);//recored limits of boundary;
+		vector<string> everything_in_text(4);
+		for(int i = 0 ; i<2;i++){
+		output_vertex>>everything_in_text[i];//m_bobbyvertex_pos_x is stored here, but need to remove the "(".
+		}
+		vector<double> coordinates(3);
+		output_vertex>>coordinates[1]>>coordinates[2];
+		stringstream temp_text;
+		temp_text<<everything_in_text[1].erase(0,1);
+		temp_text>>coordinates[0];
+		
+		m_bobbyvertex_pos_x = coordinates[0];
+		m_bobbyvertex_pos_y = coordinates[1];
+		m_bobbyvertex_pos_z = coordinates[2];
 
+		cout<<"Vertex Coordinates found by Bobby Vertex Builder: ";
+		cout<<m_bobbyvertex_pos_x<<", ";
+		cout<<m_bobbyvertex_pos_y<<", ";
+		cout<<m_bobbyvertex_pos_z<<endl;
+		output_vertex.close();
+
+		std::fstream output_numshowertrack("temp_num_showertrack.txt",std::ios_base::in);//recored limits of boundary;
+		output_numshowertrack>>m_bobbyshowers;
+		output_numshowertrack>>m_bobbytracks;
+		output_numshowertrack.close();
+
+		//-------------------------------------
+		
         //CRT 
         /*
            if(m_has_CRT){
@@ -692,8 +731,15 @@ namespace single_photon
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane0",&m_reco_vertex_to_nearest_dead_wire_plane0);
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane1",&m_reco_vertex_to_nearest_dead_wire_plane1);
         vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
-
-
+		
+		//---------------------- BobbyVertexBuilder -----------------
+        vertex_tree->Branch("reco_bobbyvertex_x", &m_bobbyvertex_pos_x);
+        vertex_tree->Branch("reco_bobbyvertex_y", &m_bobbyvertex_pos_y);
+        vertex_tree->Branch("reco_bobbyvertex_z", &m_bobbyvertex_pos_z);
+        vertex_tree->Branch("reco_bobbyshowers", &m_bobbyshowers);
+        vertex_tree->Branch("reco_bobbytracks", &m_bobbytracks);
+		//-----------------------------------------------------------
+		
         this->CreateSecondShowerBranches();
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
@@ -785,6 +831,14 @@ namespace single_photon
         m_vertex_pos_wire_p0=-9999;
         m_vertex_pos_wire_p1=-9999;
         m_vertex_pos_wire_p2=-9999;
+
+		//---------------------- BobbyVertexBuilder -----------------
+		m_bobbyvertex_pos_x=-9999;
+		m_bobbyvertex_pos_y=-9999;
+		m_bobbyvertex_pos_z=-9999;
+        m_bobbyshowers = 0;
+        m_bobbytracks = 0;
+		//-----------------------------------------------------------
 
         m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
         m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
@@ -962,26 +1016,57 @@ namespace single_photon
 
     //------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SinglePhoton::CollectTracksAndShowers(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap, const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap)
-    {
+	/*****************************
+	 * CollectTracksAndShowers () - this associates tracks and showers to one event.
+	 *		Tracks and showers come from pfParticles.
+	 *	particles(input) - a PFParticleVector for all pfparticle address of the nuslice
+	 *	pfParticleMap(input) - a PFParticleIDMap for all pfparticle address (I think the address is stored in the *.second?).
+	 *	pfParticleHandle (input) - ???
+	 *	evt (input) - the event that we currently look at.
+	 *	tracks (modified) - a vector contains associated track pointers. 
+	 *	showers (modified) - a vector contains associated shower pointers.
+	 *	trackToNuPFParticleMap (modified) - the map btw the track and the PFParticle.
+	 *	showerToNuPFParticleMap (modified) - the map btw the shower and the PFParticle.
+	 * **************************/
 
+    void SinglePhoton::CollectTracksAndShowers(
+		const PFParticleVector &particles,
+		const PFParticleIdMap pfParticleMap, 
+		const PFParticleHandle &pfParticleHandle, 
+		const art::Event &evt, 
+		TrackVector &tracks, 
+		ShowerVector &showers,  
+		std::map< art::Ptr<recob::Track> ,  art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, 
+		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap)
+    {
 
         // Get the associations between PFParticles and tracks/showers from the event
         art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, evt, m_trackLabel);
         art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, evt, m_showerLabel);
 
-        //if running over the neutrino slice only 
-        if (m_run_all_pfps == false){ 
+        if (m_run_all_pfps == false){ // running over the neutrino slice only 
+			cout<<"d(O.O)b Looking at only neutrino slices."<<endl;
             for (const art::Ptr<recob::PFParticle> &pParticle : particles) {
+
                 const std::vector< art::Ptr<recob::Track> > associatedTracks(pfPartToTrackAssoc.at(pParticle.key()));
                 const std::vector< art::Ptr<recob::Shower> > associatedShowers(pfPartToShowerAssoc.at(pParticle.key()));
+
+			//CHECK, these ifelse do nothing yet.
+			//determine rescueing tracks or showers from other slices;
+				if(m_bobbyvertexing.compare(5,6,"shower",0,6)==0){//rescue showers from other slices
+					cout<<"Look for more showers from all slices"<<endl;
+				}else if(m_bobbyvertexing.compare(5,5,"track",0,5)==0){//rescue showers from other slices
+					cout<<"Look for more tracks from all slices"<<endl;
+				}
 
                 FillTracksAndShowers(associatedTracks, associatedShowers, pParticle,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
             }
         } else{ //if running over all slices
+			cout<<"d(O.O)b Looking at all slices."<<endl;
             std::cout<<"The total number of PFP's in the map is "<<pfParticleMap.size()<<std::endl;
             //            std::cout<<"The total number of PFP's in the vector is "<< particles.size()<<std::endl;
-            for (auto pair : pfParticleMap){
+			
+			for (auto pair : pfParticleMap){
                 const art::Ptr<recob::PFParticle> &pParticle = pair.second;
 
                 const std::vector< art::Ptr<recob::Track> > associatedTracks(pfPartToTrackAssoc.at(pParticle.key()));
@@ -995,6 +1080,16 @@ namespace single_photon
 
     }
 
+	/*****************
+	 * FillTracksAndShowers () - Add more tracks or showers to the current event 
+	 *			if a single track/shower is found.
+	 *
+	 *	The return results in:
+	 *	tracks (modified) - a new vector with one more track.
+	 *	or
+	 *	showers (modified) - a new vector with one more shower.
+	 *
+	 *****************/
     void SinglePhoton::FillTracksAndShowers( const std::vector< art::Ptr<recob::Track> > & associatedTracks, const std::vector< art::Ptr<recob::Shower> > & associatedShowers, const art::Ptr<recob::PFParticle> &pParticle , const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap)
     {
 
@@ -1017,7 +1112,7 @@ namespace single_photon
 
             tracks.push_back(associatedTracks.front());
             trackToNuPFParticleMap[tracks.back()]= pParticle;
-            //std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  associatedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
+            std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  associatedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
             return;
         }
@@ -1027,11 +1122,11 @@ namespace single_photon
         {
             showers.push_back(associatedShowers.front());
             showerToNuPFParticleMap[showers.back()] = pParticle;
-            // std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  associatedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
+            std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  associatedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
             return;
         }
-
+		//throw − A program throws an exception when a problem shows up. This is done using a throw keyword.
         throw cet::exception("SinglePhoton") << "  There were " << nTracks << " tracks and " << nShowers << " showers associated with PFParticle " << pParticle->Self();
 
     }
