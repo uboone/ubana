@@ -1,0 +1,144 @@
+# FHiCL document used to run the "driver" executable. To learn more
+#  about the FHiCL language, please look at
+#  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
+
+#include "time_memory_tracker_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+#include "reco_uboone_data_mcc9_8.fcl"
+
+process_name: ccnumufilter
+
+events_to_generate: 200
+run_number: 101
+
+services:{
+  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
+  TFileService: { fileName: "CoarseCCInclusiveFilter_%#_QP.root" }
+  TimeTracker:             @local::microboone_time_tracker
+  MemoryTracker:           @local::microboone_memory_tracker
+  RandomNumberGenerator:   {} #ART native random number generator
+  message:                 @local::microboone_message_services_prod_debug
+  FileCatalogMetadata:     @local::art_file_catalog_data
+                           @table::microboone_reco_data_services
+}
+
+services.DatabaseUtil.ShouldConnect: false
+
+services.TPCEnergyCalibService.TPCEnergyCalibProvider: @local::microboone_tpcenergycalib_provider_data
+
+### Here we try to suppress known and pointless messages
+services.message.destinations :
+{
+    STDCOUT: 
+    {
+        type:      "cout"      #tells the message service to output this destination to cout
+        threshold: "WARNING"   #tells the message service that this destination applies to WARNING and higher level messages
+        categories:
+        {
+            ChannelFilter:
+            {
+                limit:       0
+                reportEvery: 0
+            }
+            TrackStitcher:
+            {
+                limit:       0
+                reportEvery: 0
+            }
+            CRHitRemoval:
+            {
+                limit:       0
+                reportEvery: 0
+            }
+            default:
+            {
+                limit:       -1  #don't print anything at the infomsg level except the explicitly named categories
+                reportEvery: 1
+            }
+        }
+    }
+}
+
+source:
+{
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+
+} # source
+
+physics:
+{	
+  analyzers:
+  {
+  }
+  producers:
+  {
+    @table::microboone_reco_data_producers
+  }
+  filters:{
+  
+    NuCCfilter:
+     {
+      module_type: "CoarseCCInclusiveFilter"
+      pfp_producer: "pandora"
+      hitfinder_producer: "pandora"
+      
+      ########## cut variables ##########
+      #NuScore_cut : 0.087 # 0=disabled
+      NuPDG_cut : 14
+      startcontained_cut : 1
+      #track_length_cut : 20
+      #track_score_cut : 0.97
+      #vrx_dist_cut : 5
+      longest_track_cut : 1
+      #track_chi2_muon_per_track_chi2_proton : 0.12
+      #track_chi2_proton_cut : 100
+      #track_chi2_muon_cut : 20
+      
+      NuScore_cut : 0 # 0=disabled
+      track_length_cut : -20
+      track_score_cut : -0.97
+      vrx_dist_cut : 5
+      track_chi2_muon_per_track_chi2_proton : 0.065
+      track_chi2_proton_cut : 100
+      track_chi2_muon_cut : 20
+
+      vertex_start_x_cut : 9.45 # = -1.55 + 10
+      vertex_start_y_cut : -105.53 # = -115.53 + 10
+      vertex_start_z_cut : 10.1 # = 0.1 + 10
+
+      vertex_end_x_cut : 244.8 # = 254.8 - 10
+      vertex_end_y_cut : 107.47 # = 117.47 - 10
+      vertex_end_z_cut : 986.9 # = 1036.9 - 50
+      #######################################
+
+      # isData: true 
+      # hasMCNeutrino: false
+      #
+      use_genie_info: true
+
+      verbose: 1
+
+    }
+  }
+  stream1: [ out1 ]
+  filtering: [ pandoraPatRec, pandoraAllOutcomesTrack, pandoraAllOutcomesShower, pandora, pandoracalo, pandoracaloSCE, pandoracaliSCE, pandoracalipidSCE,  NuCCfilter ]
+  trigger_paths: [ filtering ]
+  
+  end_paths: [ stream1 ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_ccfilter.root"
+    SelectEvents: [ filtering ]
+    dataTier:    "reconstructed"
+    compressionLevel: 1
+    outputCommands: ["keep *_*_*_*"]
+  }
+}
+

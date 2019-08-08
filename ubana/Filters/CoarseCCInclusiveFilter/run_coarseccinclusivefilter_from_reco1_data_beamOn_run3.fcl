@@ -1,0 +1,4 @@
+#include "run_coarseccinclusivefilter_from_reco1_common.fcl"
+
+physics.producers.pandora.SliceIdTool: @local::flash_neutrino_id_tool_beamOn_run3
+
