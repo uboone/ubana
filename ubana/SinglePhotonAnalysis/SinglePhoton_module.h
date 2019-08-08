@@ -422,11 +422,16 @@ namespace single_photon
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap,
                     std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
-                    PFParticleIdMap &pfParticleMap
+                    PFParticleIdMap &pfParticleMap,
+                    std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Shower>> &PFPtoShowerReco3DMap
                     );
             void ClearShowers();
             void ResizeShowers(size_t);
             void CreateShowerBranches();
+            void AnalyzeKalmanShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
+                        std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> & pfptotrkmap,
+                        std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> & trktocalomap
+                    );
 
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
                     std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
@@ -591,7 +596,9 @@ namespace single_photon
             std::map<int,bool> bad_channel_map_fixed_mcc9;
 
             TRandom3 *rangen;
-
+            std::string m_shower3dLabel;
+            std::string m_showerKalmanLabel;
+            std::string m_showerKalmanCaloLabel;
             std::string m_pandoraLabel;         ///< The label for the pandora producer
             std::string m_trackLabel;           ///< The label for the track producer from PFParticles
             std::string m_sliceLabel;          
@@ -968,6 +975,36 @@ namespace single_photon
 
             std::vector<int> m_reco_shower_num_daughters;
             std::vector<double> m_reco_shower_daughter_trackscore;
+         
+            std::vector<int>   m_reco_shower3d_exists;
+               std::vector<double>   m_reco_shower3d_startx;
+            std::vector<double>   m_reco_shower3d_starty;
+            std::vector<double>   m_reco_shower3d_startz;
+            std::vector<double>   m_reco_shower3d_dirx;
+            std::vector<double>   m_reco_shower3d_diry;
+            std::vector<double>   m_reco_shower3d_dirz;
+            std::vector<double>   m_reco_shower3d_theta_yz;
+            std::vector<double>   m_reco_shower3d_phi_yx;
+
+            std::vector<double> m_reco_shower3d_openingangle;
+            std::vector<double> m_reco_shower3d_length;
+            std::vector<double> m_reco_shower3d_conversion_distance;
+
+            std::vector<double>   m_reco_shower3d_impact_parameter;
+            std::vector<double>    m_reco_shower3d_implied_dirx;
+            std::vector<double>     m_reco_shower3d_implied_diry;
+            std::vector<double>     m_reco_shower3d_implied_dirz;
+            
+            std::vector<double> m_reco_shower3d_energy_plane0;
+            std::vector<double> m_reco_shower3d_energy_plane1;
+            std::vector<double> m_reco_shower3d_energy_plane2;
+ 
+            std::vector<double> m_reco_shower3d_dEdx_plane0;
+            std::vector<double> m_reco_shower3d_dEdx_plane1;
+            std::vector<double> m_reco_shower3d_dEdx_plane2;
+
+
+            
             std::vector<double>   m_reco_shower_startx;
             std::vector<double>   m_reco_shower_starty;
             std::vector<double>   m_reco_shower_startz;

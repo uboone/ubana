@@ -8,6 +8,32 @@ namespace single_photon
                 m_reco_shower_num_daughters.clear();
         m_reco_shower_daughter_trackscore.clear();
 
+        m_reco_shower3d_exists.clear();
+
+        m_reco_shower3d_startx.clear();
+        m_reco_shower3d_starty.clear();
+        m_reco_shower3d_startz.clear();
+        m_reco_shower3d_dirx.clear();
+        m_reco_shower3d_diry.clear();
+        m_reco_shower3d_dirz.clear();
+        m_reco_shower3d_theta_yz.clear();
+        m_reco_shower3d_phi_yx.clear();
+        m_reco_shower3d_conversion_distance.clear();
+        m_reco_shower3d_impact_parameter.clear();
+        m_reco_shower3d_implied_dirx.clear();
+        m_reco_shower3d_implied_diry.clear();
+        m_reco_shower3d_implied_dirz.clear();
+        m_reco_shower3d_openingangle.clear();
+        m_reco_shower3d_length.clear();
+
+        m_reco_shower3d_energy_plane0.clear();
+        m_reco_shower3d_energy_plane1.clear();
+        m_reco_shower3d_energy_plane2.clear();
+        m_reco_shower3d_dEdx_plane0.clear();
+        m_reco_shower3d_dEdx_plane1.clear();
+        m_reco_shower3d_dEdx_plane2.clear();
+
+
         m_reco_shower_startx.clear();
         m_reco_shower_starty.clear();
         m_reco_shower_startz.clear();
@@ -135,6 +161,30 @@ namespace single_photon
     void SinglePhoton::ResizeShowers(size_t size){
                 m_reco_shower_num_daughters.resize(size);
         m_reco_shower_daughter_trackscore.resize(size);
+
+        m_reco_shower3d_exists.resize(size);
+        m_reco_shower3d_startx.resize(size);
+        m_reco_shower3d_starty.resize(size);
+        m_reco_shower3d_startz.resize(size);
+        m_reco_shower3d_dirx.resize(size);
+        m_reco_shower3d_diry.resize(size);
+        m_reco_shower3d_dirz.resize(size);
+        m_reco_shower3d_theta_yz.resize(size);
+        m_reco_shower3d_phi_yx.resize(size);
+        m_reco_shower3d_conversion_distance.resize(size);
+        m_reco_shower3d_openingangle.resize(size);
+        m_reco_shower3d_length.resize(size);
+        m_reco_shower3d_impact_parameter.resize(size);
+        m_reco_shower3d_implied_dirx.resize(size);
+        m_reco_shower3d_implied_diry.resize(size);
+        m_reco_shower3d_implied_dirz.resize(size);
+m_reco_shower3d_energy_plane0.resize(size);
+        m_reco_shower3d_energy_plane1.resize(size);
+        m_reco_shower3d_energy_plane2.resize(size);
+        m_reco_shower3d_dEdx_plane0.resize(size);
+        m_reco_shower3d_dEdx_plane1.resize(size);
+        m_reco_shower3d_dEdx_plane2.resize(size);
+
 
         m_reco_shower_startx.resize(size);
         m_reco_shower_starty.resize(size);
@@ -359,6 +409,34 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_trackscore", & m_reco_shower_trackscore);
 
 
+        vertex_tree->Branch("reco_shower3d_exists", &m_reco_shower3d_exists);
+        vertex_tree->Branch("reco_shower3d_length", &m_reco_shower3d_length);
+        vertex_tree->Branch("reco_shower3d_opening_angle", &m_reco_shower3d_openingangle);
+        vertex_tree->Branch("reco_shower3d_dirx", &m_reco_shower3d_dirx);
+        vertex_tree->Branch("reco_shower3d_diry", &m_reco_shower3d_diry);
+        vertex_tree->Branch("reco_shower3d_dirz", &m_reco_shower3d_dirz);
+        vertex_tree->Branch("reco_shower3d_startx", &m_reco_shower3d_startx);
+        vertex_tree->Branch("reco_shower3d_starty", &m_reco_shower3d_starty);
+        vertex_tree->Branch("reco_shower3d_startz", &m_reco_shower3d_startz);
+        vertex_tree->Branch("reco_shower3d_theta_yz",&m_reco_shower3d_theta_yz);
+        vertex_tree->Branch("reco_shower3d_phi_yx",&m_reco_shower3d_phi_yx);
+        vertex_tree->Branch("reco_shower3d_conversion_distance",& m_reco_shower3d_conversion_distance);
+        vertex_tree->Branch("reco_shower3d_impact_parameter",& m_reco_shower3d_impact_parameter);
+        vertex_tree->Branch("reco_shower3d_implied_dirx", &m_reco_shower3d_implied_dirx);
+        vertex_tree->Branch("reco_shower3d_implied_diry", &m_reco_shower3d_implied_diry);
+        vertex_tree->Branch("reco_shower3d_implied_dirz", &m_reco_shower3d_implied_dirz);
+
+        vertex_tree->Branch("reco_shower3d_energy_plane0", &m_reco_shower3d_energy_plane0);
+        vertex_tree->Branch("reco_shower3d_energy_plane1", &m_reco_shower3d_energy_plane1);
+        vertex_tree->Branch("reco_shower3d_energy_plane2", &m_reco_shower3d_energy_plane2);
+        vertex_tree->Branch("reco_shower3d_dEdx_plane0", &m_reco_shower3d_dEdx_plane0);
+        vertex_tree->Branch("reco_shower3d_dEdx_plane1", &m_reco_shower3d_dEdx_plane1);
+        vertex_tree->Branch("reco_shower3d_dEdx_plane2", &m_reco_shower3d_dEdx_plane2);
+
+
+
+
+
                 vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
                 vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
                 vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
@@ -398,7 +476,9 @@ namespace single_photon
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
             std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap, 
             std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
-            PFParticleIdMap &pfParticleMap){
+            PFParticleIdMap &pfParticleMap,
+            std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Shower>>& PFPtoShowerReco3DMap
+            ){
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite"<<std::endl;;
 
@@ -411,8 +491,19 @@ namespace single_photon
 
             const art::Ptr<recob::Shower> shower = *iter;
             const art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap[shower];
+            art::Ptr<recob::Shower> shower3d;
+            if(PFPtoShowerReco3DMap.count(pfp)==0){
+                std::cout<<"SHOWER_3D : <<ERROR!! No shower3d in map for this pfp"<<std::endl;
+                std::cout<<"Reverting to normal recob::Shower"<<std::endl;
+                m_reco_shower3d_exists[i_shr] = 0;
+                shower3d = shower;
+            }else{
+                shower3d   = PFPtoShowerReco3DMap[pfp];
+                m_reco_shower3d_exists[i_shr] = 1;
+            }
             const std::vector<art::Ptr<recob::Hit>> hits =  pfParticleToHitMap[pfp];
             const std::vector<art::Ptr<recob::Cluster>> clusters = pfParticleToClusterMap[pfp];
+            
 
             //int m_shrid = shower->ID(); This is an used variable, always -999
             double m_length = shower->Length();
@@ -421,43 +512,77 @@ namespace single_photon
             TVector3 shr_start = shower->ShowerStart();
             TVector3 shr_dir = shower->Direction();
 
+            TVector3 shr3d_start = shower3d->ShowerStart();
+            TVector3 shr3d_dir = shower3d->Direction();
+
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<" which has length: "<<m_length<<""<<std::endl;;
 
             m_reco_shower_startx[i_shr] = shr_start.X();
             m_reco_shower_starty[i_shr] = shr_start.Y();
             m_reco_shower_startz[i_shr] = shr_start.Z();
-
             m_reco_shower_dirx[i_shr] = shr_dir.X();
             m_reco_shower_diry[i_shr] = shr_dir.Y();
             m_reco_shower_dirz[i_shr] = shr_dir.Z();
-
             m_reco_shower_length[i_shr] = m_length;
             m_reco_shower_openingangle[i_shr] = m_open_angle;
 
+            m_reco_shower3d_startx[i_shr] = shr3d_start.X();
+            m_reco_shower3d_starty[i_shr] = shr3d_start.Y();
+            m_reco_shower3d_startz[i_shr] = shr3d_start.Z();
+            m_reco_shower3d_dirx[i_shr] = shr3d_dir.X();
+            m_reco_shower3d_diry[i_shr] = shr3d_dir.Y();
+            m_reco_shower3d_dirz[i_shr] = shr3d_dir.Z();
+            m_reco_shower3d_length[i_shr] = shower3d->Length();
+            m_reco_shower3d_openingangle[i_shr] = shower3d->OpenAngle();
+
+
             m_reco_shower_conversion_distance[i_shr] = sqrt( pow(shr_start.X()-m_vertex_pos_x,2)+pow(shr_start.Y()-m_vertex_pos_y,2)+ pow(shr_start.Z()-m_vertex_pos_z,2)  );
+            m_reco_shower3d_conversion_distance[i_shr] = sqrt( pow(shr3d_start.X()-m_vertex_pos_x,2)+pow(shr3d_start.Y()-m_vertex_pos_y,2)+ pow(shr3d_start.Z()-m_vertex_pos_z,2)  );
 
-            std::vector<double> ts = {shr_start.X(), shr_start.Y(), shr_start.Z()};
-            std::vector<double> te = {shr_start.X()-shr_dir.X(),shr_start.Y()-shr_dir.Y(),shr_start.Z()-shr_dir.Z()};
-            std::vector<double> tv = {m_vertex_pos_x,m_vertex_pos_y,m_vertex_pos_z};
-            m_reco_shower_impact_parameter[i_shr] = dist_line_point(ts,te,tv );
-
+            //pandroa shower
+            std::vector<double> shr_ts = {shr_start.X(), shr_start.Y(), shr_start.Z()};
+            std::vector<double> shr_te = {shr_start.X()-shr_dir.X(),shr_start.Y()-shr_dir.Y(),shr_start.Z()-shr_dir.Z()};
+            std::vector<double> shr_tv = {m_vertex_pos_x,m_vertex_pos_y,m_vertex_pos_z};
+            
+            m_reco_shower_impact_parameter[i_shr] = dist_line_point(shr_ts,shr_te,shr_tv );
             m_reco_shower_implied_dirx[i_shr] = shr_start.X()-m_vertex_pos_x;;
             m_reco_shower_implied_diry[i_shr] = shr_start.Y()-m_vertex_pos_y;
             m_reco_shower_implied_dirz[i_shr] = shr_start.Z()-m_vertex_pos_z;
 
             double norm = sqrt(pow(m_reco_shower_implied_dirx[i_shr],2)+pow(m_reco_shower_implied_diry[i_shr],2)+pow(m_reco_shower_implied_dirz[i_shr],2));
-
             m_reco_shower_implied_dirx[i_shr] = m_reco_shower_implied_dirx[i_shr]/norm;
             m_reco_shower_implied_diry[i_shr] = m_reco_shower_implied_diry[i_shr]/norm;
             m_reco_shower_implied_dirz[i_shr] = m_reco_shower_implied_dirz[i_shr]/norm;
 
+            //now 3D shower
+            std::vector<double> shr3d_ts = {shr3d_start.X(), shr3d_start.Y(), shr3d_start.Z()};
+            std::vector<double> shr3d_te = {shr3d_start.X()-shr3d_dir.X(),shr3d_start.Y()-shr3d_dir.Y(),shr3d_start.Z()-shr3d_dir.Z()};
+            std::vector<double> shr3d_tv = {m_vertex_pos_x,m_vertex_pos_y,m_vertex_pos_z};
+            
+            m_reco_shower3d_impact_parameter[i_shr] = dist_line_point(shr3d_ts,shr3d_te,shr3d_tv );
+            m_reco_shower3d_implied_dirx[i_shr] = shr3d_start.X()-m_vertex_pos_x;;
+            m_reco_shower3d_implied_diry[i_shr] = shr3d_start.Y()-m_vertex_pos_y;
+            m_reco_shower3d_implied_dirz[i_shr] = shr3d_start.Z()-m_vertex_pos_z;
+
+            double shr3d_norm = sqrt(pow(m_reco_shower3d_implied_dirx[i_shr],2)+pow(m_reco_shower3d_implied_diry[i_shr],2)+pow(m_reco_shower3d_implied_dirz[i_shr],2));
+            m_reco_shower3d_implied_dirx[i_shr] = m_reco_shower3d_implied_dirx[i_shr]/shr3d_norm;
+            m_reco_shower3d_implied_diry[i_shr] = m_reco_shower3d_implied_diry[i_shr]/shr3d_norm;
+            m_reco_shower3d_implied_dirz[i_shr] = m_reco_shower3d_implied_dirz[i_shr]/shr3d_norm;
+
+            
+
             m_reco_shower_theta_yz[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirz[i_shr]);
             m_reco_shower_phi_yx[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirx[i_shr]);
+        
+            m_reco_shower3d_theta_yz[i_shr] = atan2(m_reco_shower3d_diry[i_shr],m_reco_shower3d_dirz[i_shr]);
+            m_reco_shower3d_phi_yx[i_shr] = atan2(m_reco_shower3d_diry[i_shr],m_reco_shower3d_dirx[i_shr]);
+
 
             m_reco_shower_start_to_nearest_dead_wire_plane0[i_shr] = distanceToNearestDeadWire(0, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
             m_reco_shower_start_to_nearest_dead_wire_plane1[i_shr] = distanceToNearestDeadWire(1, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
             m_reco_shower_start_to_nearest_dead_wire_plane2[i_shr] = distanceToNearestDeadWire(2, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
 
+            
             std::vector<int> t_num(3,0);
             std::vector<int> t_numhits(3,0);
             std::vector<double> t_area(3,0.0);
@@ -484,8 +609,44 @@ namespace single_photon
             m_reco_shower_num_hits_plane1[i_shr] = t_numhits[1];
             m_reco_shower_num_hits_plane2[i_shr] = t_numhits[2];
 
-            //-------------- Calorimetry --------------------
+            //-------------- Calorimetry 3D --------------------
 
+   
+            const std::vector< double > shr3d_energy = shower3d->Energy();
+            const std::vector< double > shr3d_dEdx = shower3d->dEdx();
+            const int shr3d_bestplane = shower3d->best_plane();
+
+            std::cout<<"SHOWER3D_ENERGY: best plane: "<<shr3d_bestplane<<std::endl;
+            for(auto &en:shr3d_energy){
+                std::cout<<en<<" ";
+            }
+             if(shr3d_energy.size()==3){
+                m_reco_shower3d_energy_plane0[i_shr] = shr3d_energy[0];
+                m_reco_shower3d_energy_plane1[i_shr] = shr3d_energy[1];
+                m_reco_shower3d_energy_plane2[i_shr] = shr3d_energy[2];
+            }else{
+                m_reco_shower3d_energy_plane0[i_shr] =-99;
+                m_reco_shower3d_energy_plane1[i_shr] =-99;
+                m_reco_shower3d_energy_plane2[i_shr] =-999;
+            }
+             
+            std::cout<<std::endl<<"SHOWER3D_DEDX: "<<std::endl;
+            for(auto &dedx: shr3d_dEdx){
+                std::cout<<dedx<<" ";
+            }
+            std::cout<<std::endl;
+            if(shr3d_dEdx.size()==3){
+                m_reco_shower3d_dEdx_plane0[i_shr] = shr3d_dEdx[0];
+                m_reco_shower3d_dEdx_plane1[i_shr] = shr3d_dEdx[1];
+                m_reco_shower3d_dEdx_plane2[i_shr] = shr3d_dEdx[2];
+            }else{
+                m_reco_shower3d_dEdx_plane0[i_shr] =-99;
+                m_reco_shower3d_dEdx_plane1[i_shr] =-99;
+                m_reco_shower3d_dEdx_plane2[i_shr] =-999;
+            }
+            
+
+            //------------- calorimetry ------------
 
             m_reco_shower_energy_max[i_shr] = CalcEShower(hits);
             m_reco_shower_energy_plane0[i_shr] = CalcEShowerPlane(hits, 0);
@@ -724,6 +885,21 @@ namespace single_photon
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished."<<std::endl;;
+    }
+
+    void SinglePhoton::AnalyzeKalmanShowers( const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> &showerToPFParticleMap,                         std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> &  pfParticlesToShowerKalmanMap, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>>&  kalmanTrackToCaloMap){
+
+        for (ShowerVector::const_iterator iter = showers.begin(), iterEnd = showers.end(); iter != iterEnd; ++iter)
+        {
+
+            const art::Ptr<recob::Shower> shower = *iter;
+            const art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap[shower];
+            const art::Ptr<recob::Track> kalman = pfParticlesToShowerKalmanMap[pfp];
+            const art::Ptr<anab::Calorimetry> calo = kalmanTrackToCaloMap[kalman];
+
+                std::cout<<shower.key()<<" "<<pfp.key()<<" "<<kalman.key()<<" "<<calo.key()<<std::endl;
+        }
+        return;
     }
 
 

@@ -44,7 +44,8 @@ namespace single_photon
         m_badChannelLabel = pset.get<std::string>("BadChannelLabel","badmasks");
         // m_badChannelProducer = pset.get<std::string>("BadChannelProducer","nfspl1");
         m_badChannelProducer = pset.get<std::string>("BadChannelProducer","simnfspl1");
-
+        m_showerKalmanLabel = pset.get<std::string>("ShowerTrackFitter","pandoraKalmanTrack");
+        m_showerKalmanCaloLabel =  pset.get<std::string>("ShowerTrackFitterCalo","pandoraKalmanTrackcali");
 
         m_generatorLabel = pset.get<std::string>("GeneratorLabel","generator");
         m_mcTrackLabel = pset.get<std::string>("MCTrackLabel","mcreco");
@@ -74,6 +75,7 @@ namespace single_photon
         m_length_dqdx_box = pset.get<double>("length_box");
         m_truthmatching_signaldef = pset.get<std::string>("truthmatching_signaldef");
         m_pidLabel = pset.get<std::string>("ParticleIDLabel","particleid");
+        m_shower3dLabel = pset.get<std::string>("Shower3DLabel","shrreco3d");
 
         m_run_all_pfps = pset.get<bool>("runAllPFPs",false);
         m_exiting_photon_energy_threshold = pset.get<double>("exiting_photon_energy");
@@ -219,8 +221,41 @@ namespace single_photon
             pfParticlesToVerticesMap[pfp] =vertices_per_pfparticle.at(pfp.key());
         }
 
+        //------- 3D showers
+        art::FindOneP<recob::Shower> showerreco3D_per_pfparticle(pfParticleHandle, evt, m_shower3dLabel);
+        std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Shower>> pfParticlesToShowerReco3DMap;
+        for(size_t i=0; i< pfParticleVector.size(); ++i){
+            auto pfp = pfParticleVector[i];
+             if(!showerreco3D_per_pfparticle.at(pfp.key()).isNull()){ 
+                pfParticlesToShowerReco3DMap[pfp] =showerreco3D_per_pfparticle.at(pfp.key());
+             }
 
-        //Once we have actual verticies, lets concentrate on JUST the neutrino PFParticles for now:
+        }
+        //---------Kalman Track Showers
+        art::FindOneP<recob::Track> showerKalman_per_pfparticle(pfParticleHandle, evt, m_showerKalmanLabel);
+        std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Track>> pfParticlesToShowerKalmanMap;
+        for(size_t i=0; i< pfParticleVector.size(); ++i){
+            auto pfp = pfParticleVector[i];
+             if(!showerKalman_per_pfparticle.at(pfp.key()).isNull()){ 
+                pfParticlesToShowerKalmanMap[pfp] =showerKalman_per_pfparticle.at(pfp.key());
+             }
+        }
+        //----- kalmon Cali
+        art::ValidHandle<std::vector<recob::Track>> const & kalmanTrackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_showerKalmanLabel);
+        std::vector<art::Ptr<recob::Track>> kalmanTrackVector;
+        art::fill_ptr_vector(kalmanTrackVector,kalmanTrackHandle);
+        
+        art::FindOneP<anab::Calorimetry> cali_per_kalmantrack(kalmanTrackHandle, evt, m_showerKalmanCaloLabel);
+        std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> kalmanTrackToCaloMap;
+         for(size_t i=0; i< kalmanTrackVector.size(); ++i){
+            auto trk = kalmanTrackVector[i];
+             if(!cali_per_kalmantrack.at(trk.key()).isNull()){ 
+                kalmanTrackToCaloMap[trk] =cali_per_kalmantrack.at(trk.key());
+             }
+        }
+
+
+        // Once we have actual verticies, lets concentrate on JUST the neutrino PFParticles for now:
         //--------------------------------
         // Produce two PFParticle vectors containing final-state particles:
         // 1. Particles identified as cosmic-rays - recontructed under cosmic-hypothesis
@@ -532,7 +567,10 @@ namespace single_photon
 
 
         if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
-        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap,pfParticleMap); 
+        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap,pfParticleMap,pfParticlesToShowerReco3DMap); 
+
+        this->AnalyzeKalmanShowers(showers,showerToNuPFParticleMap,pfParticlesToShowerKalmanMap, kalmanTrackToCaloMap);
+
 
         // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
         // MCShower and MCTrack come from energy depositions in GEANT4
