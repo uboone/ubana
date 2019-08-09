@@ -430,7 +430,7 @@ namespace single_photon
             void CreateShowerBranches();
             void AnalyzeKalmanShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
                         std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> & pfptotrkmap,
-                        std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> & trktocalomap
+                        std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> & trktocalomap
                     );
 
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
@@ -1057,6 +1057,15 @@ namespace single_photon
             std::vector<bool> m_reco_shower_isclearcosmic;//true if reco shower is in a clear cosmic slice
             std::vector<bool> m_reco_shower_is_nuslice;//true if reco shower is in a clear cosmic slice
             std::vector<double> m_reco_shower_trackscore;
+
+            std::vector<double> m_reco_shower_kalman_exists;
+        std::vector<double>   m_reco_shower_kalman_median_dEdx_plane0;
+      std::vector<double>     m_reco_shower_kalman_median_dEdx_plane1;
+        std::vector<double>   m_reco_shower_kalman_median_dEdx_plane2;
+     std::vector<double>      m_reco_shower_kalman_mean_dEdx_plane0;
+       std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane1;
+       std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane2;
+
 
 
 

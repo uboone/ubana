@@ -44,8 +44,8 @@ namespace single_photon
         m_badChannelLabel = pset.get<std::string>("BadChannelLabel","badmasks");
         // m_badChannelProducer = pset.get<std::string>("BadChannelProducer","nfspl1");
         m_badChannelProducer = pset.get<std::string>("BadChannelProducer","simnfspl1");
-        m_showerKalmanLabel = pset.get<std::string>("ShowerTrackFitter","pandoraKalmanTrack");
-        m_showerKalmanCaloLabel =  pset.get<std::string>("ShowerTrackFitterCalo","pandoraKalmanTrackcali");
+        m_showerKalmanLabel = pset.get<std::string>("ShowerTrackFitter","pandoraKalmanShower");
+        m_showerKalmanCaloLabel =  pset.get<std::string>("ShowerTrackFitterCalo","pandoraKalmanShowercali");
 
         m_generatorLabel = pset.get<std::string>("GeneratorLabel","generator");
         m_mcTrackLabel = pset.get<std::string>("MCTrackLabel","mcreco");
@@ -226,8 +226,8 @@ namespace single_photon
         std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Shower>> pfParticlesToShowerReco3DMap;
         for(size_t i=0; i< pfParticleVector.size(); ++i){
             auto pfp = pfParticleVector[i];
-             if(!showerreco3D_per_pfparticle.at(pfp.key()).isNull()){ 
-                pfParticlesToShowerReco3DMap[pfp] =showerreco3D_per_pfparticle.at(pfp.key());
+             if(!showerreco3D_per_pfparticle.at(pfp.key()).isNull()){
+                pfParticlesToShowerReco3DMap[pfp] = showerreco3D_per_pfparticle.at(pfp.key());
              }
 
         }
@@ -237,19 +237,20 @@ namespace single_photon
         for(size_t i=0; i< pfParticleVector.size(); ++i){
             auto pfp = pfParticleVector[i];
              if(!showerKalman_per_pfparticle.at(pfp.key()).isNull()){ 
-                pfParticlesToShowerKalmanMap[pfp] =showerKalman_per_pfparticle.at(pfp.key());
+                 pfParticlesToShowerKalmanMap[pfp] =showerKalman_per_pfparticle.at(pfp.key());
              }
         }
+
         //----- kalmon Cali
         art::ValidHandle<std::vector<recob::Track>> const & kalmanTrackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_showerKalmanLabel);
         std::vector<art::Ptr<recob::Track>> kalmanTrackVector;
         art::fill_ptr_vector(kalmanTrackVector,kalmanTrackHandle);
         
-        art::FindOneP<anab::Calorimetry> cali_per_kalmantrack(kalmanTrackHandle, evt, m_showerKalmanCaloLabel);
-        std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>> kalmanTrackToCaloMap;
+        art::FindManyP<anab::Calorimetry> cali_per_kalmantrack(kalmanTrackHandle, evt, m_showerKalmanCaloLabel);
+        std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> kalmanTrackToCaloMap;
          for(size_t i=0; i< kalmanTrackVector.size(); ++i){
             auto trk = kalmanTrackVector[i];
-             if(!cali_per_kalmantrack.at(trk.key()).isNull()){ 
+             if(cali_per_kalmantrack.at(trk.key()).size()!=0){
                 kalmanTrackToCaloMap[trk] =cali_per_kalmantrack.at(trk.key());
              }
         }

@@ -5,7 +5,7 @@ namespace single_photon
 {
     void SinglePhoton::ClearShowers(){
         m_reco_asso_showers=0;
-                m_reco_shower_num_daughters.clear();
+        m_reco_shower_num_daughters.clear();
         m_reco_shower_daughter_trackscore.clear();
 
         m_reco_shower3d_exists.clear();
@@ -58,6 +58,14 @@ namespace single_photon
         m_reco_shower_delaunay_area_plane0.clear();
         m_reco_shower_delaunay_area_plane1.clear();
         m_reco_shower_delaunay_area_plane2.clear();
+
+        m_reco_shower_kalman_exists.clear();
+        m_reco_shower_kalman_median_dEdx_plane0.clear();
+        m_reco_shower_kalman_median_dEdx_plane1.clear();
+        m_reco_shower_kalman_median_dEdx_plane2.clear();
+        m_reco_shower_kalman_mean_dEdx_plane0.clear();
+        m_reco_shower_kalman_mean_dEdx_plane1.clear();
+        m_reco_shower_kalman_mean_dEdx_plane2.clear();
 
         m_sim_shower_energy.clear();
         m_sim_shower_matched.clear();
@@ -159,8 +167,16 @@ namespace single_photon
     }
 
     void SinglePhoton::ResizeShowers(size_t size){
-                m_reco_shower_num_daughters.resize(size);
+        m_reco_shower_num_daughters.resize(size);
         m_reco_shower_daughter_trackscore.resize(size);
+
+        m_reco_shower_kalman_exists.resize(size);
+        m_reco_shower_kalman_median_dEdx_plane0.resize(size);
+        m_reco_shower_kalman_median_dEdx_plane1.resize(size);
+        m_reco_shower_kalman_median_dEdx_plane2.resize(size);
+        m_reco_shower_kalman_mean_dEdx_plane0.resize(size);
+        m_reco_shower_kalman_mean_dEdx_plane1.resize(size);
+        m_reco_shower_kalman_mean_dEdx_plane2.resize(size);
 
         m_reco_shower3d_exists.resize(size);
         m_reco_shower3d_startx.resize(size);
@@ -178,7 +194,7 @@ namespace single_photon
         m_reco_shower3d_implied_dirx.resize(size);
         m_reco_shower3d_implied_diry.resize(size);
         m_reco_shower3d_implied_dirz.resize(size);
-m_reco_shower3d_energy_plane0.resize(size);
+        m_reco_shower3d_energy_plane0.resize(size);
         m_reco_shower3d_energy_plane1.resize(size);
         m_reco_shower3d_energy_plane2.resize(size);
         m_reco_shower3d_dEdx_plane0.resize(size);
@@ -433,41 +449,48 @@ m_reco_shower3d_energy_plane0.resize(size);
         vertex_tree->Branch("reco_shower3d_dEdx_plane1", &m_reco_shower3d_dEdx_plane1);
         vertex_tree->Branch("reco_shower3d_dEdx_plane2", &m_reco_shower3d_dEdx_plane2);
 
+        vertex_tree->Branch("reco_shower_kalman_exists",&m_reco_shower_kalman_exists);
+        vertex_tree->Branch("reco_shower_kalman_median_dEdx_plane0",&m_reco_shower_kalman_median_dEdx_plane0);
+        vertex_tree->Branch("reco_shower_kalman_median_dEdx_plane1",&m_reco_shower_kalman_median_dEdx_plane1);
+        vertex_tree->Branch("reco_shower_kalman_median_dEdx_plane2",&m_reco_shower_kalman_median_dEdx_plane2);
+        vertex_tree->Branch("reco_shower_kalman_mean_dEdx_plane0",&m_reco_shower_kalman_mean_dEdx_plane0);
+        vertex_tree->Branch("reco_shower_kalman_mean_dEdx_plane1",&m_reco_shower_kalman_mean_dEdx_plane1);
+        vertex_tree->Branch("reco_shower_kalman_mean_dEdx_plane2",&m_reco_shower_kalman_mean_dEdx_plane2);
 
 
 
 
-                vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
-                vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
-                vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
-                vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
-                vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
-                vertex_tree->Branch("sim_shower_trackID",&m_sim_shower_trackID);
-                vertex_tree->Branch("sim_shower_parent_pdg",&m_sim_shower_parent_pdg);
-                vertex_tree->Branch("sim_shower_parent_trackID",&m_sim_shower_parent_trackID);
-                vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
-                vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
-                vertex_tree->Branch("sim_shower_end_process",&m_sim_shower_end_process);
-                vertex_tree->Branch("sim_shower_start_x",&m_sim_shower_start_x);
-                vertex_tree->Branch("sim_shower_start_y",&m_sim_shower_start_y);
-                vertex_tree->Branch("sim_shower_start_z",&m_sim_shower_start_z);
-                vertex_tree->Branch("sim_shower_vertex_x",&m_sim_shower_vertex_x);
-                vertex_tree->Branch("sim_shower_vertex_y",&m_sim_shower_vertex_y);
-                vertex_tree->Branch("sim_shower_vertex_z",&m_sim_shower_vertex_z);
-                vertex_tree->Branch("sim_shower_px",&m_sim_shower_px);
-                vertex_tree->Branch("sim_shower_py",&m_sim_shower_py);
-                vertex_tree->Branch("sim_shower_pz",&m_sim_shower_pz);
+        vertex_tree->Branch("sim_shower_matched",&m_sim_shower_matched);
+        vertex_tree->Branch("sim_shower_energy",&m_sim_shower_energy);
+        vertex_tree->Branch("sim_shower_kinetic_energy",&m_sim_shower_kinetic_energy);
+        vertex_tree->Branch("sim_shower_mass",&m_sim_shower_mass);
+        vertex_tree->Branch("sim_shower_pdg",&m_sim_shower_pdg);
+        vertex_tree->Branch("sim_shower_trackID",&m_sim_shower_trackID);
+        vertex_tree->Branch("sim_shower_parent_pdg",&m_sim_shower_parent_pdg);
+        vertex_tree->Branch("sim_shower_parent_trackID",&m_sim_shower_parent_trackID);
+        vertex_tree->Branch("sim_shower_origin",&m_sim_shower_origin);
+        vertex_tree->Branch("sim_shower_process",&m_sim_shower_process);
+        vertex_tree->Branch("sim_shower_end_process",&m_sim_shower_end_process);
+        vertex_tree->Branch("sim_shower_start_x",&m_sim_shower_start_x);
+        vertex_tree->Branch("sim_shower_start_y",&m_sim_shower_start_y);
+        vertex_tree->Branch("sim_shower_start_z",&m_sim_shower_start_z);
+        vertex_tree->Branch("sim_shower_vertex_x",&m_sim_shower_vertex_x);
+        vertex_tree->Branch("sim_shower_vertex_y",&m_sim_shower_vertex_y);
+        vertex_tree->Branch("sim_shower_vertex_z",&m_sim_shower_vertex_z);
+        vertex_tree->Branch("sim_shower_px",&m_sim_shower_px);
+        vertex_tree->Branch("sim_shower_py",&m_sim_shower_py);
+        vertex_tree->Branch("sim_shower_pz",&m_sim_shower_pz);
 
-                vertex_tree->Branch("sim_shower_is_true_shower",&m_sim_shower_is_true_shower);
-                vertex_tree->Branch("sim_shower_best_matched_plane",&m_sim_shower_best_matched_plane);
-                vertex_tree->Branch("sim_shower_matched_energy_fraction_plane0",&m_sim_shower_matched_energy_fraction_plane0);
-                vertex_tree->Branch("sim_shower_matched_energy_fraction_plane1",&m_sim_shower_matched_energy_fraction_plane1);
-                vertex_tree->Branch("sim_shower_matched_energy_fraction_plane2",&m_sim_shower_matched_energy_fraction_plane2);
-                vertex_tree->Branch("sim_shower_overlay_fraction",&m_sim_shower_overlay_fraction);
-                vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
-                vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
-                vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
-                vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
+        vertex_tree->Branch("sim_shower_is_true_shower",&m_sim_shower_is_true_shower);
+        vertex_tree->Branch("sim_shower_best_matched_plane",&m_sim_shower_best_matched_plane);
+        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane0",&m_sim_shower_matched_energy_fraction_plane0);
+        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane1",&m_sim_shower_matched_energy_fraction_plane1);
+        vertex_tree->Branch("sim_shower_matched_energy_fraction_plane2",&m_sim_shower_matched_energy_fraction_plane2);
+        vertex_tree->Branch("sim_shower_overlay_fraction",&m_sim_shower_overlay_fraction);
+        vertex_tree->Branch("sim_shower_sliceId", & m_sim_shower_sliceId);
+        vertex_tree->Branch("sim_shower_nuscore", & m_sim_shower_nuscore);
+        vertex_tree->Branch("sim_shower_isclearcosmic", & m_sim_shower_isclearcosmic);
+        vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
     }
 
     void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
@@ -503,7 +526,7 @@ m_reco_shower3d_energy_plane0.resize(size);
             }
             const std::vector<art::Ptr<recob::Hit>> hits =  pfParticleToHitMap[pfp];
             const std::vector<art::Ptr<recob::Cluster>> clusters = pfParticleToClusterMap[pfp];
-            
+
 
             //int m_shrid = shower->ID(); This is an used variable, always -999
             double m_length = shower->Length();
@@ -543,7 +566,7 @@ m_reco_shower3d_energy_plane0.resize(size);
             std::vector<double> shr_ts = {shr_start.X(), shr_start.Y(), shr_start.Z()};
             std::vector<double> shr_te = {shr_start.X()-shr_dir.X(),shr_start.Y()-shr_dir.Y(),shr_start.Z()-shr_dir.Z()};
             std::vector<double> shr_tv = {m_vertex_pos_x,m_vertex_pos_y,m_vertex_pos_z};
-            
+
             m_reco_shower_impact_parameter[i_shr] = dist_line_point(shr_ts,shr_te,shr_tv );
             m_reco_shower_implied_dirx[i_shr] = shr_start.X()-m_vertex_pos_x;;
             m_reco_shower_implied_diry[i_shr] = shr_start.Y()-m_vertex_pos_y;
@@ -558,7 +581,7 @@ m_reco_shower3d_energy_plane0.resize(size);
             std::vector<double> shr3d_ts = {shr3d_start.X(), shr3d_start.Y(), shr3d_start.Z()};
             std::vector<double> shr3d_te = {shr3d_start.X()-shr3d_dir.X(),shr3d_start.Y()-shr3d_dir.Y(),shr3d_start.Z()-shr3d_dir.Z()};
             std::vector<double> shr3d_tv = {m_vertex_pos_x,m_vertex_pos_y,m_vertex_pos_z};
-            
+
             m_reco_shower3d_impact_parameter[i_shr] = dist_line_point(shr3d_ts,shr3d_te,shr3d_tv );
             m_reco_shower3d_implied_dirx[i_shr] = shr3d_start.X()-m_vertex_pos_x;;
             m_reco_shower3d_implied_diry[i_shr] = shr3d_start.Y()-m_vertex_pos_y;
@@ -569,11 +592,11 @@ m_reco_shower3d_energy_plane0.resize(size);
             m_reco_shower3d_implied_diry[i_shr] = m_reco_shower3d_implied_diry[i_shr]/shr3d_norm;
             m_reco_shower3d_implied_dirz[i_shr] = m_reco_shower3d_implied_dirz[i_shr]/shr3d_norm;
 
-            
+
 
             m_reco_shower_theta_yz[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirz[i_shr]);
             m_reco_shower_phi_yx[i_shr] = atan2(m_reco_shower_diry[i_shr],m_reco_shower_dirx[i_shr]);
-        
+
             m_reco_shower3d_theta_yz[i_shr] = atan2(m_reco_shower3d_diry[i_shr],m_reco_shower3d_dirz[i_shr]);
             m_reco_shower3d_phi_yx[i_shr] = atan2(m_reco_shower3d_diry[i_shr],m_reco_shower3d_dirx[i_shr]);
 
@@ -582,7 +605,7 @@ m_reco_shower3d_energy_plane0.resize(size);
             m_reco_shower_start_to_nearest_dead_wire_plane1[i_shr] = distanceToNearestDeadWire(1, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
             m_reco_shower_start_to_nearest_dead_wire_plane2[i_shr] = distanceToNearestDeadWire(2, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
 
-            
+
             std::vector<int> t_num(3,0);
             std::vector<int> t_numhits(3,0);
             std::vector<double> t_area(3,0.0);
@@ -611,7 +634,7 @@ m_reco_shower3d_energy_plane0.resize(size);
 
             //-------------- Calorimetry 3D --------------------
 
-   
+
             const std::vector< double > shr3d_energy = shower3d->Energy();
             const std::vector< double > shr3d_dEdx = shower3d->dEdx();
             const int shr3d_bestplane = shower3d->best_plane();
@@ -620,7 +643,7 @@ m_reco_shower3d_energy_plane0.resize(size);
             for(auto &en:shr3d_energy){
                 std::cout<<en<<" ";
             }
-             if(shr3d_energy.size()==3){
+            if(shr3d_energy.size()==3){
                 m_reco_shower3d_energy_plane0[i_shr] = shr3d_energy[0];
                 m_reco_shower3d_energy_plane1[i_shr] = shr3d_energy[1];
                 m_reco_shower3d_energy_plane2[i_shr] = shr3d_energy[2];
@@ -629,7 +652,7 @@ m_reco_shower3d_energy_plane0.resize(size);
                 m_reco_shower3d_energy_plane1[i_shr] =-99;
                 m_reco_shower3d_energy_plane2[i_shr] =-999;
             }
-             
+
             std::cout<<std::endl<<"SHOWER3D_DEDX: "<<std::endl;
             for(auto &dedx: shr3d_dEdx){
                 std::cout<<dedx<<" ";
@@ -644,7 +667,7 @@ m_reco_shower3d_energy_plane0.resize(size);
                 m_reco_shower3d_dEdx_plane1[i_shr] =-99;
                 m_reco_shower3d_dEdx_plane2[i_shr] =-999;
             }
-            
+
 
             //------------- calorimetry ------------
 
@@ -858,13 +881,13 @@ m_reco_shower3d_energy_plane0.resize(size);
             m_reco_shower_isclearcosmic[i_shr] = PFPToClearCosmicMap[pfp];
             m_reco_shower_is_nuslice[i_shr] = PFPToNuSliceMap[pfp];
             //m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
-            
+
             //std::cout<<"m_reco_shower_is_nuslice[i_shr] = "<<m_reco_shower_is_nuslice[i_shr]<<" for shr with pfp "<<pfp->Self()<<std::endl; 
 
             if ( PFPToTrackScoreMap.find(pfp) != PFPToTrackScoreMap.end() ) {
-                 m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
+                m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
             } else{
-                 m_reco_shower_trackscore[i_shr] = -999; 
+                m_reco_shower_trackscore[i_shr] = -999; 
             }
 
             if ( m_reco_shower_sliceId[i_shr] >0) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<". Pfp id = "<< pfp->Self()<<". The slice id for this shower is "<< m_reco_shower_sliceId[i_shr]<<", the neutrino score for this slice is "<< m_reco_shower_nuscore[i_shr]<<", and is_nuslice = "<<  m_reco_shower_is_nuslice[i_shr]<<". The track score is : "<< m_reco_shower_trackscore[i_shr]<<std::endl;
@@ -887,17 +910,102 @@ m_reco_shower3d_energy_plane0.resize(size);
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished."<<std::endl;;
     }
 
-    void SinglePhoton::AnalyzeKalmanShowers( const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> &showerToPFParticleMap,                         std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> &  pfParticlesToShowerKalmanMap, std::map<art::Ptr<recob::Track>,art::Ptr<anab::Calorimetry>>&  kalmanTrackToCaloMap){
+    void SinglePhoton::AnalyzeKalmanShowers( const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> &showerToPFParticleMap,                         std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> &  pfParticlesToShowerKalmanMap, std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>>&  kalmanTrackToCaloMap){
 
+        std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\tStarting to Analyze Showers ("<<showers.size()<<") via Kalman "<<std::endl;
+
+        std::vector<double> gains = {0,0,0};
+        for(int plane =0; plane < 3; plane++){
+            if (m_is_data == false &&  m_is_overlayed == false){
+                gains[plane] = m_gain_mc[plane] ;
+            } if (m_is_data == true ||  m_is_overlayed == true){
+                gains[plane] = m_gain_data[plane] ;
+            }
+        }
+
+
+        int i_shr=0;
         for (ShowerVector::const_iterator iter = showers.begin(), iterEnd = showers.end(); iter != iterEnd; ++iter)
         {
-
             const art::Ptr<recob::Shower> shower = *iter;
             const art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap[shower];
-            const art::Ptr<recob::Track> kalman = pfParticlesToShowerKalmanMap[pfp];
-            const art::Ptr<anab::Calorimetry> calo = kalmanTrackToCaloMap[kalman];
 
-                std::cout<<shower.key()<<" "<<pfp.key()<<" "<<kalman.key()<<" "<<calo.key()<<std::endl;
+            if( pfParticlesToShowerKalmanMap.count(pfp) == 0 ){
+                std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\t Warning, no match for a Kalman track for this PFP."<<std::endl;
+                continue;
+            }
+            const art::Ptr<recob::Track> kalman = pfParticlesToShowerKalmanMap[pfp];
+
+            if(kalmanTrackToCaloMap.count(kalman)==0){
+                std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\t Warning, no match for a Calo for this Kalman track."<<std::endl;
+                m_reco_shower_kalman_exists[i_shr]=0;
+                continue;
+            }
+            
+            m_reco_shower_kalman_exists[i_shr]=1;
+            const std::vector<art::Ptr<anab::Calorimetry>> calo = kalmanTrackToCaloMap[kalman];
+
+            if(calo.size()!=3){
+                std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\tERROR!! ERROR!!! anab::Calorimetery vector is not of length 3!!! "<<std::endl;
+                continue;
+            }
+            //std::cout<<"index 0 is "<<calo[0]->PlaneID()<<", 1 is "<<calo[1]->PlaneID()<<", 2 is "<<calo[2]->PlaneID()<<std::endl;
+
+            double res_range_lim = 4.0; //4cm 
+
+            for(size_t p=0; p<calo.size();p++){
+    
+                int plane = calo[p]->PlaneID().Plane;
+                if(plane<0 || plane > 3) continue;
+
+                std::vector<double> t_dEdx;
+                std::vector<double> t_res;
+
+            
+
+                for(size_t x=0; x<calo[p]->dEdx().size(); x++){
+                    double rr = calo[p]->ResidualRange().back() - calo[p]->ResidualRange()[x]; 
+                    if(rr <= res_range_lim){
+                        t_dEdx.push_back(gains[p]*m_work_function*calo[p]->dEdx()[x]*1e-6 /m_recombination_factor);
+                        //t_dQdx.push_back(*calo[p]->dQdx()[x]);
+                        t_res.push_back(rr);
+                    }
+                }
+                /*std::cout<<"KAL: plane "<<calo[p]->PlaneID()<<" En: "<<std::endl;
+                for(auto &xx: t_res) std::cout<<xx<<" ";
+                std::cout<<std::endl;
+                //for(auto &xx: t_dEdx) std::cout<<xx<<" ";
+                std::cout<<std::endl<<" dQdx: "<<std::endl;
+                //for(auto &xx: t_dQdx) std::cout<<xx<<" ";
+                std::cout<<std::endl;
+                */
+
+                double tmean = -999;
+                double tmedian = -999;
+
+
+                if(t_dEdx.size()>2) tmedian = this->getMedian(t_dEdx);
+                if(t_dEdx.size()>0) tmean = std::accumulate(t_dEdx.begin(), t_dEdx.end(), 0)/((double)t_dEdx.size());
+
+                switch(p){
+                    case 0:
+                            m_reco_shower_kalman_mean_dEdx_plane0[i_shr] = tmean ;
+                            m_reco_shower_kalman_median_dEdx_plane0[i_shr] = tmedian ;
+                            break;
+                    case 1:
+                            m_reco_shower_kalman_mean_dEdx_plane1[i_shr] = tmean;
+                            m_reco_shower_kalman_median_dEdx_plane1[i_shr] = tmedian;
+                            break;
+                    case 2:
+                            m_reco_shower_kalman_mean_dEdx_plane2[i_shr] = tmean;
+                            m_reco_shower_kalman_median_dEdx_plane2[i_shr] = tmedian;
+                            break;
+                    default:
+                            break;
+                }
+
+            }
+        i_shr++;
         }
         return;
     }
@@ -1334,13 +1442,16 @@ m_reco_shower3d_energy_plane0.resize(size);
         if (size <= 0) return NAN;
 
         //find index of median location
-        int ind;
-        if (size%2 == 0) ind = size/2;
-        else ind = size/2 + 1;
-        //std::cout<<"the median index in vector with size "<<size+1<<" and  max index "<<size<<" is "<<ind<<std::endl;
+        double median;
+        if (size%2 == 0){
+            int ind = size/2;
+            median = thisvector[ind];  
+        } else{
+            int ind1 = size/2;
+            int ind2 = size/2-1;
+            median = (thisvector[ind1]+thisvector[ind2])/2.0;
+        }
 
-        double median = thisvector[ind];
-        //std::cout<<"returning median value "<< median<<std::endl;
         //return the value at median index
         return median;		
     }
