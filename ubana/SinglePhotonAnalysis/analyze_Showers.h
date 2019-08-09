@@ -958,15 +958,15 @@ namespace single_photon
                 int plane = calo[p]->PlaneID().Plane;
                 if(plane<0 || plane > 3) continue;
 
-                std::vector<double> t_dEdx;
+                std::vector<double> t_dEdx; //in XX cm only  (4 for now)
                 std::vector<double> t_res;
-
             
 
-                for(size_t x=0; x<calo[p]->dEdx().size(); x++){
-                    double rr = calo[p]->ResidualRange().back() - calo[p]->ResidualRange()[x]; 
+                for(size_t ix=0; ix<calo[p]->ResidualRange().size(); ++ix){
+
+                    double rr = calo[p]->ResidualRange().back() - calo[p]->ResidualRange()[ix]; 
                     if(rr <= res_range_lim){
-                        t_dEdx.push_back(gains[p]*m_work_function*calo[p]->dEdx()[x]*1e-6 /m_recombination_factor);
+                        t_dEdx.push_back(gains[plane]*m_work_function*calo[p]->dQdx()[ix]*1e-6 /m_recombination_factor);
                         //t_dQdx.push_back(*calo[p]->dQdx()[x]);
                         t_res.push_back(rr);
                     }
@@ -987,7 +987,7 @@ namespace single_photon
                 if(t_dEdx.size()>2) tmedian = this->getMedian(t_dEdx);
                 if(t_dEdx.size()>0) tmean = std::accumulate(t_dEdx.begin(), t_dEdx.end(), 0)/((double)t_dEdx.size());
 
-                switch(p){
+                switch(plane){
                     case 0:
                             m_reco_shower_kalman_mean_dEdx_plane0[i_shr] = tmean ;
                             m_reco_shower_kalman_median_dEdx_plane0[i_shr] = tmedian ;
