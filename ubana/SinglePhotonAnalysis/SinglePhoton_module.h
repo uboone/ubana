@@ -1222,15 +1222,24 @@ namespace single_photon
             double _time2cm;//value modeled from David's shower code
 
             // PID-related variables
-            std::vector<double> m_reco_track_pid_bragg_likelihood_plane0;
-            std::vector<double> m_reco_track_pid_bragg_likelihood_plane1;
-            std::vector<double> m_reco_track_pid_bragg_likelihood_plane2;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_mu_plane0;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_mu_plane1;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_mu_plane2;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_p_plane0;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_p_plane1;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_p_plane2;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_mip_plane0;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_mip_plane1;
+            std::vector<double> m_reco_track_pid_bragg_likelihood_mip_plane2;
             std::vector<double> m_reco_track_pid_pida_plane0;
             std::vector<double> m_reco_track_pid_pida_plane1;
             std::vector<double> m_reco_track_pid_pida_plane2;
-            std::vector<double> m_reco_track_pid_chi2_plane0;
-            std::vector<double> m_reco_track_pid_chi2_plane1;
-            std::vector<double> m_reco_track_pid_chi2_plane2;
+            std::vector<double> m_reco_track_pid_chi2_mu_plane0;
+            std::vector<double> m_reco_track_pid_chi2_mu_plane1;
+            std::vector<double> m_reco_track_pid_chi2_mu_plane2;
+            std::vector<double> m_reco_track_pid_chi2_p_plane0;
+            std::vector<double> m_reco_track_pid_chi2_p_plane1;
+            std::vector<double> m_reco_track_pid_chi2_p_plane2;
             std::vector<double> m_reco_track_pid_three_plane_proton_pid;
 
     
