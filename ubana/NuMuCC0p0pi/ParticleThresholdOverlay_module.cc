@@ -210,6 +210,12 @@ private:
   std::vector<float> dEdx_pl0_end10; // average dEdx of end 10 hit of pl 0
   std::vector<float> dEdx_pl1_end10; // average dEdx of end 10 hit of pl 0
   std::vector<float> dEdx_pl2_end10; // average dEdx of end 10 hit of pl 0
+  std::vector<float> dEdx_pl0_start1020; // average dEdx of first 10 hit of pl 0
+  std::vector<float> dEdx_pl1_start1020; // average dEdx of first 10 hit of pl 0
+  std::vector<float> dEdx_pl2_start1020; // average dEdx of first 10 hit of pl 0
+  std::vector<float> dEdx_pl0_end1020; // average dEdx of end 10 hit of pl 0
+  std::vector<float> dEdx_pl1_end1020; // average dEdx of end 10 hit of pl 0
+  std::vector<float> dEdx_pl2_end1020; // average dEdx of end 10 hit of pl 0
 
   std::vector<double> PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
   std::vector<double> PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
@@ -248,6 +254,7 @@ private:
   std::vector<bool> if_fwd_MCS; // If using forward MCS direction judge
   std::vector<bool> if_fwd_true; // If fwd by the reco true vertex distance
   std::vector<bool> if_fwd_dEdx10; // If fwd by the reco dEdx 10 hits (should use for contained)
+  std::vector<bool> if_fwd_dEdx1020; // If fwd by the reco dEdx 10 hits (should use for contained)
   std::vector<bool> if_fwd_dEdxhalf; // If fwd by the reco dEdx half of the hits (should use for contained)
 
   bool                                IsMC;
@@ -540,6 +547,7 @@ void ParticleThreshold::analyze(art::Event const& evt)
       dEdx_pl2_start_half.push_back(std::accumulate(dEdx_pl2.back().end() - half_size_pl2, dEdx_pl2.back().end(), 0.) / half_size_pl2);
       dEdx_pl2_end_half.push_back(std::accumulate(dEdx_pl2.back().begin(), dEdx_pl2.back().begin() + half_size_pl2, 0. ) / half_size_pl2);
 
+      // dEdx_10
       if (dEdx_pl0.back().size()<10) {
         dEdx_pl0_start10.push_back(dEdx_pl0_start_half.back());
         dEdx_pl0_end10.push_back(dEdx_pl0_end_half.back());
@@ -564,6 +572,32 @@ void ParticleThreshold::analyze(art::Event const& evt)
         dEdx_pl2_start10.push_back(std::accumulate(dEdx_pl2.back().end() - 10, dEdx_pl2.back().end(), 0.) / 10.);
         dEdx_pl2_end10.push_back(std::accumulate(dEdx_pl2.back().begin(), dEdx_pl2.back().begin() + 10, 0.) / 10.);
       }
+      // dEdx_1020
+      if (dEdx_pl0.back().size()<30) {
+        dEdx_pl0_start1020.push_back(dEdx_pl0_start_half.back());
+        dEdx_pl0_end1020.push_back(dEdx_pl0_end_half.back());
+      }
+      else{
+        dEdx_pl0_start1020.push_back(std::accumulate(dEdx_pl0.back().end() - 20, dEdx_pl0.back().end() - 10, 0.) / 10.);
+        dEdx_pl0_end1020.push_back(std::accumulate(dEdx_pl0.back().begin() + 10, dEdx_pl0.back().begin() + 20, 0.) / 10.);
+      }
+      if (dEdx_pl1.back().size()<30) {
+        dEdx_pl1_start1020.push_back(dEdx_pl1_start_half.back());
+        dEdx_pl1_end1020.push_back(dEdx_pl1_end_half.back());
+      }
+      else{
+        dEdx_pl1_start1020.push_back(std::accumulate(dEdx_pl1.back().end() - 20, dEdx_pl1.back().end() - 10, 0.) / 10.);
+        dEdx_pl1_end1020.push_back(std::accumulate(dEdx_pl1.back().begin() + 10, dEdx_pl1.back().begin() + 20, 0.) / 10.);
+      }
+      if (dEdx_pl2.back().size()<30) {
+        dEdx_pl2_start1020.push_back(dEdx_pl2_start_half.back());
+        dEdx_pl2_end1020.push_back(dEdx_pl2_end_half.back());
+      }
+      else{
+        dEdx_pl2_start1020.push_back(std::accumulate(dEdx_pl2.back().end() - 20, dEdx_pl2.back().end() - 10, 0.) / 10.);
+        dEdx_pl2_end1020.push_back(std::accumulate(dEdx_pl2.back().begin() + 10, dEdx_pl2.back().begin() + 20, 0.) / 10.);
+      }
+
 
       //--- Gain PID info of the track
       if(!PIDTotrackAsso.isValid()){
@@ -663,24 +697,34 @@ void ParticleThreshold::analyze(art::Event const& evt)
       if (ww0 + ww1 + ww2 == 0) PID_Chi2K_3pl.push_back(-999);
       else PID_Chi2K_3pl.push_back((ww0 * PIDChi2_K[0] + ww1 * PIDChi2_K[1] + ww2 * PIDChi2_K[2]) / (ww0 + ww1 + ww2));
 
-      std::vector<int> Nhit_3pl = {Nhits_pl0, Nhits_pl1, Nhits_pl2};
+      std::vector<int> Nhit_3pl = {Nhits_pl0, Nhits_pl1, Nhits_pl2};//at similar condition 2> 0 > 1
       int bestpl = std::max_element(Nhit_3pl.begin(), Nhit_3pl.end()) - Nhit_3pl.begin();
-      BestPlane_PID.push_back(bestpl);
       if (bestpl == 0){
-        Pl0_for_PID.push_back(true);
-        Pl1_for_PID.push_back(false);
-        Pl2_for_PID.push_back(false);
+        if (Nhits_pl0 == Nhits_pl2){
+          bestpl = 2;
+        }
+        else{
+          Pl0_for_PID.push_back(true);
+          Pl1_for_PID.push_back(false);
+          Pl2_for_PID.push_back(false);
+        }
       }
       if (bestpl == 1){
-        Pl0_for_PID.push_back(false);
-        Pl1_for_PID.push_back(true);
-        Pl2_for_PID.push_back(false);
+        if (Nhits_pl1 == Nhits_pl2){
+          bestpl = 2;
+        }
+        else{
+          Pl0_for_PID.push_back(false);
+          Pl1_for_PID.push_back(true);
+          Pl2_for_PID.push_back(false);
+        }
       }
       if (bestpl == 2){
         Pl0_for_PID.push_back(false);
         Pl1_for_PID.push_back(false);
         Pl2_for_PID.push_back(true);
       }
+      BestPlane_PID.push_back(bestpl);
 
       //-- Get minimum Chi2 and there corresponding particle type
       std::vector<double> PIDChi2_avg;// It follows the order of muon, proton, pion, kaon
@@ -815,6 +859,8 @@ void ParticleThreshold::analyze(art::Event const& evt)
       else if_fwd_dEdxhalf.push_back(false);
       if (dEdx_pl2_start10.back() < dEdx_pl2_end10.back()) if_fwd_dEdx10.push_back(true);
       else if_fwd_dEdx10.push_back(false);
+      if (dEdx_pl2_start1020.back() < dEdx_pl2_end1020.back()) if_fwd_dEdx1020.push_back(true);
+      else if_fwd_dEdx1020.push_back(false);
      
     } // MCParticle
   } // The end of track loops
@@ -934,6 +980,12 @@ void ParticleThreshold::analyze(art::Event const& evt)
   dEdx_pl0_end10.clear();
   dEdx_pl1_end10.clear();
   dEdx_pl2_end10.clear();
+  dEdx_pl0_start1020.clear();
+  dEdx_pl1_start1020.clear();
+  dEdx_pl2_start1020.clear();
+  dEdx_pl0_end1020.clear();
+  dEdx_pl1_end1020.clear();
+  dEdx_pl2_end1020.clear();
 
   PID_Chi2Mu_pl0.clear();
   PID_Chi2Mu_pl1.clear();
@@ -972,6 +1024,7 @@ void ParticleThreshold::analyze(art::Event const& evt)
   if_fwd_MCS.clear();
   if_fwd_true.clear();
   if_fwd_dEdx10.clear();
+  if_fwd_dEdx1020.clear();
   if_fwd_dEdxhalf.clear();
 }
 
@@ -1097,6 +1150,12 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("dEdx_pl0_end10", &dEdx_pl0_end10);
   my_event_->Branch("dEdx_pl1_end10", &dEdx_pl1_end10);
   my_event_->Branch("dEdx_pl2_end10", &dEdx_pl2_end10);
+  my_event_->Branch("dEdx_pl0_start1020", &dEdx_pl0_start1020);
+  my_event_->Branch("dEdx_pl1_start1020", &dEdx_pl1_start1020);
+  my_event_->Branch("dEdx_pl2_start1020", &dEdx_pl2_start1020);
+  my_event_->Branch("dEdx_pl0_end1020", &dEdx_pl0_end1020);
+  my_event_->Branch("dEdx_pl1_end1020", &dEdx_pl1_end1020);
+  my_event_->Branch("dEdx_pl2_end1020", &dEdx_pl2_end1020);
   
   my_event_->Branch("PID_Chi2Mu_pl0", &PID_Chi2Mu_pl0);
   my_event_->Branch("PID_Chi2Mu_pl1", &PID_Chi2Mu_pl1);
@@ -1132,6 +1191,7 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("if_fwd_MCS", &if_fwd_MCS);
   my_event_->Branch("if_fwd_true", &if_fwd_true);
   my_event_->Branch("if_fwd_dEdx10", &if_fwd_dEdx10);
+  my_event_->Branch("if_fwd_dEdx1020", &if_fwd_dEdx1020);
   my_event_->Branch("if_fwd_dEdxhalf", &if_fwd_dEdxhalf);
 }
 
