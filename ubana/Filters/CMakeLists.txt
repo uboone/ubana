@@ -1,1 +1,2 @@
 add_subdirectory(CCInclusiveTruthFilter)
+add_subdirectory(CoarseCCInclusiveFilter)

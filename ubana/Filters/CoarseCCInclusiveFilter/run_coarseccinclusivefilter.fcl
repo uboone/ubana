@@ -1,0 +1,85 @@
+# FHiCL document used to run the "driver" executable. To learn more
+#  about the FHiCL language, please look at
+#  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
+
+#include "time_memory_tracker_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+
+process_name: ccnumufilter
+
+services:{
+}
+source:
+{
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+
+} # source
+
+physics:
+{	
+  analyzers:
+  {
+  }
+  producers:
+  {
+  }
+  filters:{
+  
+    NuCCfilter:
+     {
+      module_type: "CoarseCCInclusiveFilter"
+      pfp_producer: "pandora"
+      hitfinder_producer: "pandora"
+      
+      ########## cut variables ##########
+      NuScore_cut : 0 # 0=disabled
+      NuPDG_cut : 14
+      startcontained_cut : 1
+      track_length_cut : -20 # negative=disabled
+      track_score_cut : -0.97 # negative=disabled
+      vrx_dist_cut : 5
+      longest_track_cut : 1
+      track_chi2_muon_per_track_chi2_proton : 0.065 # reduced from 0.12 in tmettler's filter
+      track_chi2_proton_cut : 100
+      track_chi2_muon_cut : 20
+
+      vertex_start_x_cut : 9.45 # = -1.55 + 10
+      vertex_start_y_cut : -105.53 # = -115.53 + 10
+      vertex_start_z_cut : 10.1 # = 0.1 + 10
+
+      vertex_end_x_cut : 244.8 # = 254.8 - 10
+      vertex_end_y_cut : 107.47 # = 117.47 - 10
+      vertex_end_z_cut : 986.9 # = 1036.9 - 50
+      #######################################
+
+      # isData: true 
+      # hasMCNeutrino: false
+      #
+      use_genie_info: true
+
+      verbose: 1
+
+    }
+  }
+  stream1: [ out1 ]
+  filtering: [ NuCCfilter ]
+  trigger_paths: [ filtering ]
+  
+  end_paths: [ stream1 ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_ccfilter.root"
+    SelectEvents: [ filtering ]
+    dataTier:    "reconstructed"
+    compressionLevel: 1
+    outputCommands: ["keep *_*_*_*"]
+  }
+}
+
