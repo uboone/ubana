@@ -144,9 +144,9 @@ private:
   std::vector<bool> true_trk_ifcontained; // True track if contained or not
   std::vector<bool> true_vtxFV; // True track if contained or not
 
-  bool if_selected; // If selected based on the reco info
-  bool if_matchMu; // If the selected track matched with true muon from numu cc
-  bool if_cosmic; // Check if a track is cosmic or not by if it has an associated MCParticle
+  bool if_selected = false; // If selected based on the reco info
+  bool if_matchMu = false; // If the selected track matched with true muon from numu cc
+  bool if_cosmic = true; // Check if a track is cosmic or not by if it has an associated MCParticle
 
   std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
   std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
@@ -165,6 +165,9 @@ private:
   std::vector<double> vtx_x;//Reconstructed vtx x in the every event
   std::vector<double> vtx_y;//Reconstructed vtx y in the every event
   std::vector<double> vtx_z;//Reconstructed vtx z in the every event
+  std::vector<double> vtx_x_MCS;//Reconstructed vtx x in the every event
+  std::vector<double> vtx_y_MCS;//Reconstructed vtx y in the every event
+  std::vector<double> vtx_z_MCS;//Reconstructed vtx z in the every event
   std::vector<double> start_x;//Reconstructed start x in the every event
   std::vector<double> start_y;//Reconstructed start y in the every event
   std::vector<double> start_z;//Reconstructed start z in the every event
@@ -174,6 +177,9 @@ private:
   std::vector<double> trk_phi;//Reconstructed track phi in the every event
   std::vector<double> trk_theta;//Reconstructed track theta in the every event
   std::vector<double> trk_costheta;//Reconstructed track cos(theta) in the every event
+  std::vector<double> trk_phi_MCS;//Reconstructed track phi in the every event
+  std::vector<double> trk_theta_MCS;//Reconstructed track theta in the every event
+  std::vector<double> trk_costheta_MCS;//Reconstructed track cos(theta) in the every event
   std::vector<double> trk_length_pl0;//Range momentum of muon track in the every event
   std::vector<double> trk_length_pl1;//Range momentum of muon track in the every event
   std::vector<double> trk_length_pl2;//Range momentum of muon track in the every event
@@ -181,6 +187,7 @@ private:
   std::vector<double> trk_length_noSCE;//Range momentum of muon track in the every event
   std::vector<bool> trk_ifcontained;//to check if the track is contained or not
   std::vector<bool> vtx_FV;//to check if the vertex is in FV or not
+  std::vector<bool> vtx_MCS_FV;//to check if the vertex is in FV or not
   std::vector<double> trk_end_theta_yz;
   std::vector<double> trk_end_costheta_yz;
   std::vector<double> trk_end_theta_xz;
@@ -219,6 +226,12 @@ private:
   float dEdx_pl0_end10; // average dEdx of end 10 hit of pl 0
   float dEdx_pl1_end10; // average dEdx of end 10 hit of pl 0
   float dEdx_pl2_end10; // average dEdx of end 10 hit of pl 0
+  float dEdx_pl0_start1020; // average dEdx of first 10 hit of pl 0
+  float dEdx_pl1_start1020; // average dEdx of first 10 hit of pl 0
+  float dEdx_pl2_start1020; // average dEdx of first 10 hit of pl 0
+  float dEdx_pl0_end1020; // average dEdx of end 10 hit of pl 0
+  float dEdx_pl1_end1020; // average dEdx of end 10 hit of pl 0
+  float dEdx_pl2_end1020; // average dEdx of end 10 hit of pl 0
 
   double PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
   double PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
@@ -257,6 +270,7 @@ private:
   bool if_fwd_MCS; // If using forward MCS direction judge
   bool if_fwd_true; // If fwd by the reco true vertex distance
   bool if_fwd_dEdx10; // If fwd by the reco dEdx 10 hits (should use for contained)
+  bool if_fwd_dEdx1020; // If fwd by the reco dEdx 10 hits (should use for contained)
   bool if_fwd_dEdxhalf; // If fwd by the reco dEdx half of the hits (should use for contained)
 
   bool                                IsMC;
@@ -508,9 +522,9 @@ void SingleMuon::analyze(art::Event const& evt)
       //number of tracks and showers
       n_dau_tracks = daughter_Tracks.size();
       n_dau_showers = daughter_Showers.size();
-      if_cosmic = true;
-      if_matchMu = false;
-      if_selected = false;
+      //if_cosmic = true;
+      //if_matchMu = false;
+      //if_selected = false;
 
       //Todo: temperary version
       // Selection and Fill in Info
@@ -639,6 +653,7 @@ void SingleMuon::analyze(art::Event const& evt)
         dEdx_pl1_end_half = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + half_size_pl1, 0. ) / half_size_pl1;
         dEdx_pl2_start_half = std::accumulate(dEdx_pl2.end() - half_size_pl2, dEdx_pl2.end(), 0.) / half_size_pl2;
         dEdx_pl2_end_half = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
+        // dEdx_10
         if (dEdx_pl0.size()<10) {
           dEdx_pl0_start10 = dEdx_pl0_start_half;
           dEdx_pl0_end10 = dEdx_pl0_end_half;
@@ -662,6 +677,31 @@ void SingleMuon::analyze(art::Event const& evt)
         else{
           dEdx_pl2_start10 = std::accumulate(dEdx_pl2.end() - 10, dEdx_pl2.end(), 0.) / 10.;
           dEdx_pl2_end10 = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + 10, 0.) / 10.;
+        }
+        // dEdx_1020
+        if (dEdx_pl0.size()<30) {
+          dEdx_pl0_start1020 = dEdx_pl0_start_half;
+          dEdx_pl0_end1020 = dEdx_pl0_end_half;
+        }
+        else{
+          dEdx_pl0_start1020 = std::accumulate(dEdx_pl0.end() - 20, dEdx_pl0.end() - 10, 0.) / 10.;
+          dEdx_pl0_end1020 = std::accumulate(dEdx_pl0.begin() + 10, dEdx_pl0.begin() + 20, 0.) / 10.;
+        }
+        if (dEdx_pl1.size()<30) {
+          dEdx_pl1_start1020 = dEdx_pl1_start_half;
+          dEdx_pl1_end1020 = dEdx_pl1_end_half;
+        }
+        else{
+          dEdx_pl1_start1020 = std::accumulate(dEdx_pl1.end() - 20, dEdx_pl1.end() - 10, 0.) / 10.;
+          dEdx_pl1_end1020 = std::accumulate(dEdx_pl1.begin() + 10, dEdx_pl1.begin() + 20, 0.) / 10.;
+        }
+        if (dEdx_pl2.size()<30) {
+          dEdx_pl2_start1020 = dEdx_pl2_start_half;
+          dEdx_pl2_end1020 = dEdx_pl2_end_half;
+        }
+        else{
+          dEdx_pl2_start1020 = std::accumulate(dEdx_pl2.end() - 20, dEdx_pl2.end() - 10, 0.) / 10.;
+          dEdx_pl2_end1020 = std::accumulate(dEdx_pl2.begin() + 10, dEdx_pl2.begin() + 20, 0.) / 10.;
         }
 
         // Gain PID info of the track
@@ -902,6 +942,8 @@ void SingleMuon::analyze(art::Event const& evt)
         else if_fwd_dEdxhalf = false;
         if (dEdx_pl2_start10 < dEdx_pl2_end10) if_fwd_dEdx10 = true;
         else if_fwd_dEdx10 = false;
+        if (dEdx_pl2_start1020 < dEdx_pl2_end1020) if_fwd_dEdx1020 = true;
+        else if_fwd_dEdx1020 = false;
 
         if(IsMC){
           // Check the directional info of the track by true reco vertex distance
@@ -912,6 +954,29 @@ void SingleMuon::analyze(art::Event const& evt)
           else if_fwd_true = false;
         }
 
+        if(if_fwd_MCS){
+          vtx_x_MCS.push_back(vtx_x.back());
+          vtx_y_MCS.push_back(vtx_y.back());
+          vtx_z_MCS.push_back(vtx_z.back());
+  
+          vtx_MCS_FV.push_back(vtx_FV.back());
+       
+          trk_phi_MCS.push_back(trk_phi.back());
+          trk_theta_MCS.push_back(trk_theta.back());
+          trk_costheta_MCS.push_back(trk_costheta.back());
+        }
+        else{
+          vtx_x_MCS.push_back(end_x.back());
+          vtx_y_MCS.push_back(end_y.back());
+          vtx_z_MCS.push_back(end_z.back());
+
+          TVector3 vtx_MCS(end_x.back(), end_y.back(), end_z.back());          
+          vtx_MCS_FV.push_back(_fiducial_volume.InFV(vtx_MCS));
+
+          trk_phi_MCS.push_back(M_PI + trk_phi.back());
+          trk_theta_MCS.push_back(M_PI + trk_theta.back());
+          trk_costheta_MCS.push_back(cos(trk_theta_MCS.back()));
+        }
       }
       ///////////Plan of implementation.......
       //
@@ -966,6 +1031,10 @@ void SingleMuon::analyze(art::Event const& evt)
 
   my_event_->Fill();
 
+  if_cosmic = true;
+  if_matchMu = false;
+  if_selected = false;
+
   if(IsMC){
     true_mom.clear();
     true_start_x.clear();
@@ -1004,6 +1073,9 @@ void SingleMuon::analyze(art::Event const& evt)
   vtx_x.clear();
   vtx_y.clear();
   vtx_z.clear();
+  vtx_x_MCS.clear();
+  vtx_y_MCS.clear();
+  vtx_z_MCS.clear();
   start_x.clear();
   start_y.clear();
   start_z.clear();
@@ -1013,6 +1085,9 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_phi.clear();
   trk_theta.clear();
   trk_costheta.clear();
+  trk_phi_MCS.clear();
+  trk_theta_MCS.clear();
+  trk_costheta_MCS.clear();
   trk_length_pl0.clear();
   trk_length_pl1.clear();
   trk_length_pl2.clear();
@@ -1020,6 +1095,7 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_length_noSCE.clear();
   trk_ifcontained.clear();
   vtx_FV.clear();
+  vtx_MCS_FV.clear();
   trk_end_theta_yz.clear();
   trk_end_costheta_yz.clear();
   trk_end_theta_xz.clear();
@@ -1122,6 +1198,9 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("vtx_x", &vtx_x);
   my_event_->Branch("vtx_y", &vtx_y);
   my_event_->Branch("vtx_z", &vtx_z);
+  my_event_->Branch("vtx_x_MCS", &vtx_x_MCS);
+  my_event_->Branch("vtx_y_MCS", &vtx_y_MCS);
+  my_event_->Branch("vtx_z_MCS", &vtx_z_MCS);
   my_event_->Branch("start_x", &start_x);
   my_event_->Branch("start_y", &start_y);
   my_event_->Branch("start_z", &start_z);
@@ -1131,6 +1210,9 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("trk_phi", &trk_phi);
   my_event_->Branch("trk_theta", &trk_theta);
   my_event_->Branch("trk_costheta", &trk_costheta);
+  my_event_->Branch("trk_phi_MCS", &trk_phi_MCS);
+  my_event_->Branch("trk_theta_MCS", &trk_theta_MCS);
+  my_event_->Branch("trk_costheta_MCS", &trk_costheta_MCS);
   my_event_->Branch("trk_length_pl0", &trk_length_pl0);
   my_event_->Branch("trk_length_pl1", &trk_length_pl1);
   my_event_->Branch("trk_length_pl2", &trk_length_pl2);
@@ -1138,6 +1220,11 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("trk_length_noSCE", &trk_length_noSCE);
   my_event_->Branch("trk_ifcontained", &trk_ifcontained);
   my_event_->Branch("vtx_FV", &vtx_FV);
+  my_event_->Branch("vtx_MCS_FV", &vtx_MCS_FV);
+
+  my_event_->Branch("hits_dEdx_size_pl0", &hits_dEdx_size_pl0);
+  my_event_->Branch("hits_dEdx_size_pl1", &hits_dEdx_size_pl1);
+  my_event_->Branch("hits_dEdx_size_pl2", &hits_dEdx_size_pl2);
 
   my_event_->Branch("dEdx_pl0", &dEdx_pl0);
   my_event_->Branch("dEdx_pl1", &dEdx_pl1);
@@ -1160,6 +1247,12 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("dEdx_pl0_end10", &dEdx_pl0_end10);
   my_event_->Branch("dEdx_pl1_end10", &dEdx_pl1_end10);
   my_event_->Branch("dEdx_pl2_end10", &dEdx_pl2_end10);
+  my_event_->Branch("dEdx_pl0_start1020", &dEdx_pl0_start1020);
+  my_event_->Branch("dEdx_pl1_start1020", &dEdx_pl1_start1020);
+  my_event_->Branch("dEdx_pl2_start1020", &dEdx_pl2_start1020);
+  my_event_->Branch("dEdx_pl0_end1020", &dEdx_pl0_end1020);
+  my_event_->Branch("dEdx_pl1_end1020", &dEdx_pl1_end1020);
+  my_event_->Branch("dEdx_pl2_end1020", &dEdx_pl2_end1020);
   
   my_event_->Branch("PID_Chi2Mu_pl0", &PID_Chi2Mu_pl0);
   my_event_->Branch("PID_Chi2Mu_pl1", &PID_Chi2Mu_pl1);
@@ -1195,6 +1288,7 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("if_fwd_MCS", &if_fwd_MCS);
   my_event_->Branch("if_fwd_true", &if_fwd_true);
   my_event_->Branch("if_fwd_dEdx10", &if_fwd_dEdx10);
+  my_event_->Branch("if_fwd_dEdx1020", &if_fwd_dEdx1020);
   my_event_->Branch("if_fwd_dEdxhalf", &if_fwd_dEdxhalf);
 }
 
