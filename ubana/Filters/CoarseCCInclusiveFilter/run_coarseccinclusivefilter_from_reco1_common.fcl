@@ -14,7 +14,6 @@ run_number: 101
 
 services:{
   scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
-  TFileService: { fileName: "CoarseCCInclusiveFilter_%#_QP.root" }
   TimeTracker:             @local::microboone_time_tracker
   MemoryTracker:           @local::microboone_memory_tracker
   RandomNumberGenerator:   {} #ART native random number generator
@@ -25,7 +24,6 @@ services:{
 
 services.DatabaseUtil.ShouldConnect: false
 
-services.TPCEnergyCalibService.TPCEnergyCalibProvider: @local::microboone_tpcenergycalib_provider_data
 
 ### Here we try to suppress known and pointless messages
 services.message.destinations :
@@ -85,22 +83,14 @@ physics:
       hitfinder_producer: "pandora"
       
       ########## cut variables ##########
-      #NuScore_cut : 0.087 # 0=disabled
+      NuScore_cut : 0 # 0=disabled
       NuPDG_cut : 14
       startcontained_cut : 1
-      #track_length_cut : 20
-      #track_score_cut : 0.97
-      #vrx_dist_cut : 5
-      longest_track_cut : 1
-      #track_chi2_muon_per_track_chi2_proton : 0.12
-      #track_chi2_proton_cut : 100
-      #track_chi2_muon_cut : 20
-      
-      NuScore_cut : 0 # 0=disabled
-      track_length_cut : -20
-      track_score_cut : -0.97
+      track_length_cut : -20 # negative=disabled
+      track_score_cut : -0.97 # negative=disabled
       vrx_dist_cut : 5
-      track_chi2_muon_per_track_chi2_proton : 0.065
+      longest_track_cut : 1
+      track_chi2_muon_per_track_chi2_proton : 0.065 # reduced from 0.12 in tmettler's filter
       track_chi2_proton_cut : 100
       track_chi2_muon_cut : 20
 
@@ -138,7 +128,7 @@ outputs:
     SelectEvents: [ filtering ]
     dataTier:    "reconstructed"
     compressionLevel: 1
-    outputCommands: ["keep *_*_*_*"]
+    outputCommands: ["keep *_*_*_*", "drop *_*_*_ccnumufilter"]
   }
 }
 

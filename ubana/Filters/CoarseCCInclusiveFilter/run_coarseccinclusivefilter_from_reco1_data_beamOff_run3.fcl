@@ -1,3 +1,5 @@
 #include "run_coarseccinclusivefilter_from_reco1_common.fcl"
 
+services.TPCEnergyCalibService.TPCEnergyCalibProvider: @local::microboone_tpcenergycalib_provider_data
+
 physics.producers.pandora.SliceIdTool: @local::flash_neutrino_id_tool_beamOff_run3
