@@ -77,7 +77,7 @@ public:
   
   bool GetReconstructed(art::Event const &evt);
   bool GetMuon(const art::Ptr<recob::PFParticle> &pfp,
-                       const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle,
+                       //const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle,
                        const art::FindManyP<anab::ParticleID> &trackPIDAssn);
   void clearEvent();
 
@@ -203,7 +203,7 @@ bool CoarseCCInclusiveFilter::GetReconstructed(art::Event const &evt)
   // get information of downstream tracks
   larpandora.CollectTracks(evt, m_pfp_producer, pftracks, particlesToTracks);
   art::ValidHandle<std::vector<recob::Track>> trackHandle = evt.getValidHandle<std::vector<recob::Track> >(m_pfp_producer);
-  const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle = evt.getValidHandle<std::vector<recob::MCSFitResult>>("pandoraMCSMu");
+  //const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle = evt.getValidHandle<std::vector<recob::MCSFitResult>>("pandoraMCSMu");
   const art::FindManyP<anab::ParticleID> trackPIDAssn(trackHandle, evt, "pandoracalipidSCE");
   if (!trackPIDAssn.isValid()){
     //return false;
@@ -250,7 +250,9 @@ bool CoarseCCInclusiveFilter::GetReconstructed(art::Event const &evt)
     pfp_counter++;
   }
   if(muon_pfp_key!=-1){ //check if there was any track like pfp in the downstream 
-    if (!GetMuon(pfdaughters.at(muon_pfp_key), MCSMu_handle, trackPIDAssn)){ // check if muon candidate fullfills all the requirements
+    if (!GetMuon(pfdaughters.at(muon_pfp_key), 
+          //MCSMu_handle,
+          trackPIDAssn)){ // check if muon candidate fullfills all the requirements
       return false;
     }
     return true; // found muon candidate, all cuts fullfilled, take this event
@@ -261,7 +263,7 @@ bool CoarseCCInclusiveFilter::GetReconstructed(art::Event const &evt)
 }
 
 bool CoarseCCInclusiveFilter::GetMuon(const art::Ptr<recob::PFParticle> &pfp,
-                         const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle,
+                         //const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle,
                          const art::FindManyP<anab::ParticleID> &trackPIDAssn){
   //check the track score value
   const larpandoraobj::PFParticleMetadata::PropertiesMap &pfp_properties = particlesToMetadata.at(pfp).front()->GetPropertiesMap();
