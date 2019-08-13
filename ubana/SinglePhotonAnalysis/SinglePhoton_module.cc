@@ -10,10 +10,12 @@
 #include "isolation.h"
 #include "BobbyVertexBuilder.h"
 
+
 #include <fstream>//read and write txt file.
 namespace single_photon
 {
 
+	//constructor
     SinglePhoton::SinglePhoton(fhicl::ParameterSet const &pset) : art::EDAnalyzer(pset)
     {
         this->reconfigure(pset);
@@ -372,34 +374,50 @@ namespace single_photon
         }
 
 		//---------- VertexBuilder--------------
-		BobbyVertexBuilder_ext(tracks,showers);
-		
+		ParticleAssociations const & bobby_particle_associations = BobbyVertexBuilder_ext(tracks,showers);
+	for(size_t const nth_associations : bobby_particle_associations.GetSelectedAssociations()) {//Loop over all associations, which is a vector
+		ParticleAssociation const & particle_associated = bobby_particle_associations.GetAssociations().at(nth_associations);//grab the "pn"th association;
+		geoalgo::Point_t const & reco_vertex = particle_associated.GetRecoVertex();//Grab the vertec of the "pn"th association.
+
 		//Use a txt file to help extract the position.
-		std::fstream output_vertex("temp_vertex.txt",std::ios_base::in);//recored limits of boundary;
-		vector<string> everything_in_text(4);
-		for(int i = 0 ; i<2;i++){
-		output_vertex>>everything_in_text[i];//m_bobbyvertex_pos_x is stored here, but need to remove the "(".
-		}
-		vector<double> coordinates(3);
-		output_vertex>>coordinates[1]>>coordinates[2];
-		stringstream temp_text;
-		temp_text<<everything_in_text[1].erase(0,1);
-		temp_text>>coordinates[0];
+//		std::fstream output_vertex("temp_vertex.txt",std::ios_base::in);//recored limits of boundary;
+//		vector<string> everything_in_text(4);
+//		for(int i = 0 ; i<2;i++){
+//		output_vertex>>everything_in_text[i];//m_bobbyvertex_pos_x is stored here, but need to remove the "(".
+//		}
+//		vector<double> coordinates(3);
+//		output_vertex>>coordinates[1]>>coordinates[2];
+//		stringstream temp_text;
+//		temp_text<<everything_in_text[1].erase(0,1);
+//		temp_text>>coordinates[0];
 		
-		m_bobbyvertex_pos_x = coordinates[0];
-		m_bobbyvertex_pos_y = coordinates[1];
-		m_bobbyvertex_pos_z = coordinates[2];
+		m_bobbyvertex_pos_x = reco_vertex.at(0);
+		m_bobbyvertex_pos_y = reco_vertex.at(1);
+		m_bobbyvertex_pos_z = reco_vertex.at(2);
 
 		cout<<"Vertex Coordinates found by Bobby Vertex Builder: ";
 		cout<<m_bobbyvertex_pos_x<<", ";
 		cout<<m_bobbyvertex_pos_y<<", ";
 		cout<<m_bobbyvertex_pos_z<<endl;
-		output_vertex.close();
+//		output_vertex.close();
+		
+		DetectorObjects const & detos = bobby_particle_associations.GetDetectorObjects();
+		m_bobbytracks = 0;
+		m_bobbyshowers = 0;
+		
+		for(size_t const n : particle_associated.GetObjectIndices()) {
 
-		std::fstream output_numshowertrack("temp_num_showertrack.txt",std::ios_base::in);//recored limits of boundary;
-		output_numshowertrack>>m_bobbyshowers;
-		output_numshowertrack>>m_bobbytracks;
-		output_numshowertrack.close();
+			if(detos.GetRecoType(n) == detos.ftrack_reco_type) {
+				++m_bobbytracks;
+			}
+			if(detos.GetRecoType(n) == detos.fshower_reco_type) {
+				++m_bobbyshowers;
+			}
+		}
+//		std::fstream output_numshowertrack("temp_num_showertrack.txt",std::ios_base::in);//recored limits of boundary;
+//		output_numshowertrack>>m_bobbyshowers;
+//		output_numshowertrack>>m_bobbytracks;
+//		output_numshowertrack.close();
 
 		//-------------------------------------
 		
@@ -681,6 +699,7 @@ namespace single_photon
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 
+	}
     }
 
 

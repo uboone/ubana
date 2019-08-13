@@ -3,14 +3,15 @@
 #ifndef PARTICLEASSOCIATIONS_H
 #define PARTICLEASSOCIATIONS_H
 
+#include "../SinglePhoton_module.h"
 #include "DetectorObjects.h"
 #include <fstream>//read and write txt file.
 
-
+namespace single_photon{
 class ParticleAssociations;
 
 
-class ParticleAssociation {
+class ParticleAssociation{
   
   friend ParticleAssociations;
 
@@ -71,8 +72,9 @@ public:
 };
 
 
-class ParticleAssociations {
+class ParticleAssociations{
 
+  friend class SinglePhoton;//OK~ now SinglePhoton can use things in this class!
   DetectorObjects fdetos;//here introduces the DetectorObjects.h
 
   std::vector<ParticleAssociation> fassociations;
@@ -189,7 +191,7 @@ void ParticleAssociation::PrintAssociation() const {
 
 
 ParticleAssociations::ParticleAssociations() :
-  fverbose(false){}
+  fverbose(false){}//DAMN, : fverbose(false) was misunderstood as the constructor in SinglePhoton..
 
 
 void ParticleAssociations::Reset() {
@@ -480,24 +482,28 @@ void ParticleAssociations::GetShowerAssociations() {
 		for(size_t const s : pa.GetObjectIndices()) {
 			if(fverbose) std::cout << "\t\tObject index: " << s << "\n";
 			if(fdetos.GetRecoType(s) == fdetos.fshower_reco_type) {//fdetos is detector objects
-				temp_num_showers++;//Keng
+//				temp_num_showers++;//Keng
 				if(fverbose) std::cout << "\t\tis shower\n";
 
 
 				asso_shower = true;
 				break;
-			}else{
-				temp_num_tracks++;//Keng
 			}
+//			}else{
+//				temp_num_tracks++;//Keng
+//			}
 		}
 		if(asso_shower) {
 			pa_map.emplace(pa.GetRecoVertex().at(2), i);//
 		}
 	}
 
-	std::ofstream save_shower("temp_num_showertrack.txt");//recored limits of boundary;
-	save_shower<< temp_num_showers <<" "<< temp_num_tracks<<std::endl;
-	save_shower.close();
+//	std::ofstream save_shower("temp_num_showertrack.txt");//recored limits of boundary;
+//
+////	m_bobbyshowers = temp_num_showers;
+//
+//	save_shower<< temp_num_showers <<" "<< temp_num_tracks<<std::endl;
+//	save_shower.close();
 
 	if(fverbose) std::cout << "Loop over filled map\n";
 
@@ -556,7 +562,7 @@ void ParticleAssociations::DeleteAssociation(size_t const s) {
     
 }
 */
-
+}
 
 
 #endif

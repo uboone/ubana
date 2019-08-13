@@ -21,6 +21,7 @@
 
 using namespace std;
 
+namespace single_photon{
 struct VertexBuilderTree {
 
 	TTree * ftree;
@@ -236,14 +237,15 @@ void VertexBuilder::AssociateTracks(ParticleAssociations & pas) {//Group tracks
 		size_t last_id = pn.end()->first;
 		for(auto p : pn){//pn contains points of both ends of all tracks.
 			if(last_id != p.first) {//p is the point from pn.
-				//THIS GIVE VERTEX COORDINATES!
+				//THIS GIVE VERTEX COORDINATES? 
+				////CHECK: This is different from the result from GetRecoVertex(); the latter one is believed to be the BobbyVertex.
 				std::cout <<"Vertex:"<< p.first << " with coordinates "<< *p.second<<"; ";
-				//how can I get p.second??
+				//how can I get p.second?? A: use GetRecoVertex() function in the ParticleAssociations.h
 
-				std::ofstream save_vertex("temp_vertex.txt");//recored limits of boundary;
-				save_vertex<< *p.second<<std::endl;
-				save_vertex.close();
-
+//				std::ofstream save_vertex("temp_vertex.txt");//recored limits of boundary;
+//				save_vertex<< *p.second<<std::endl;
+//				save_vertex.close();
+//
 			}
 			else{
 				std::cout << "(same last_id) " << *p.second<<"; ";
@@ -1044,7 +1046,7 @@ void VertexBuilder::Run(ParticleAssociations & pas) {//Analysis the tracks & sho
   pas.NodeCheck();
 
 }
-
+}
 
 
 #endif

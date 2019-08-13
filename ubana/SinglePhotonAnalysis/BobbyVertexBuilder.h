@@ -80,7 +80,7 @@ namespace single_photon
 	 *
 	 * **************************/
 
-	void SinglePhoton::BobbyVertexBuilder_ext(std::vector<art::Ptr<recob::Track>> & tracks,  std::vector<art::Ptr<recob::Shower>> & showers ){
+	ParticleAssociations SinglePhoton::BobbyVertexBuilder_ext(std::vector<art::Ptr<recob::Track>> & tracks,  std::vector<art::Ptr<recob::Shower>> & showers ){
 		bool fverbose = true;
 
 		//PUT THIS FUNCTION INSIDE SINGLEPHOTON_MODULE.h
@@ -123,6 +123,17 @@ namespace single_photon
 		cout<<"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*\n"<<endl;
 
 		vbuilder.Run(candidates);
+		
+		//CHECK
+		//Use candidates to fill in vertex position
+//		geoalgo::Point_t const & reco_vertex = (candidates.GetAssociations().at(0))GetRecoVertex(); //am I getting the correct candidates?
+//
+//		std::ofstream save_vertex("temp_vertex.txt");//recored limits of boundary;
+//		save_vertex << reco_vertex.at(0)<<" ";
+//		save_vertex << reco_vertex.at(1)<<" ";
+//		save_vertex << reco_vertex.at(2)<<" ";
+//		save_vertex.close();
+
 		//Vertex position are named: (reco_bobbyvertex_x, reco_bobbyvertex_y, reco_bobbyvertex_z);
 		//Number of showers/tracks are named: reco_bobbyshowers and reco_bobbytracks.
 
@@ -133,7 +144,8 @@ namespace single_photon
 		cout<<"\n/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*"<<endl;
 		cout<<"Bobby Revertexing is finished."<<endl;
 		cout<<"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*\n"<<endl;
-
+		
+		return candidates;
 
 	}
 }

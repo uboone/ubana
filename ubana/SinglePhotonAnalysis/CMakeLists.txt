@@ -1,4 +1,4 @@
-link_libraries( -L$ENV{BOOST_LIB} -lboost_system -lboost_filesystem -L${CMAKE_CURRENT_SOURCE_DIR}/VertexBuilder)
+link_libraries( -L$ENV{BOOST_LIB} -lboost_system -lboost_filesystem) #-L${CMAKE_CURRENT_SOURCE_DIR}/VertexBuilder)
 
 
 art_make( BASENAME_ONLY

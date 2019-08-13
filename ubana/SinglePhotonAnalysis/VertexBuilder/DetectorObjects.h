@@ -15,6 +15,9 @@
 #include "ubcore/LLBasicTool/GeoAlgo/GeoAlgo.h"
 #include "ubcore/LLBasicTool/GeoAlgo/GeoAABox.h"
 
+#include "../SinglePhoton_module.h"
+
+namespace single_photon{
 struct DetectorObject {
 
   size_t const fid;
@@ -63,6 +66,7 @@ struct Shower : public DetectorObject {
 
 class DetectorObjects {
 
+	friend class SinglePhoton;
   std::map<size_t, DetectorObject *> fobject_m;
   std::vector<size_t> ftrack_index_v;
   std::vector<size_t> fshower_index_v;
@@ -307,5 +311,6 @@ size_t DetectorObjects::GetShowerIndexFromOriginalIndex(size_t const i) const {
 
   return om_it->second;
 
+}
 }
 #endif

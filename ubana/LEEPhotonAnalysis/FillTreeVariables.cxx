@@ -1870,8 +1870,8 @@ void FillTreeVariables::FillVertexTree(art::Event const & e,
   art::ValidHandle<std::vector<recob::Shower>> const & ev_s = e.getValidHandle<std::vector<recob::Shower>>(fshower_producer);
 
   DetectorObjects const & detos = pas.GetDetectorObjects();
-  ParticleAssociation const & pa = pas.GetAssociations().at(pn);
-  geoalgo::Point_t const & reco_vertex = pa.GetRecoVertex();
+  ParticleAssociation const & pa = pas.GetAssociations().at(pn);//grab the "pn"th association;
+  geoalgo::Point_t const & reco_vertex = pa.GetRecoVertex();//Grab the vertec of the "pn"th association.
 
   reco_nuvertx = reco_vertex.at(0);
   reco_nuverty = reco_vertex.at(1);
@@ -2156,7 +2156,7 @@ void FillTreeVariables::Fill(art::Event const & e,
   }
 
   number_of_selected_vertices_cut = 0;
-  for(size_t const pn : pas.GetSelectedAssociations()) {
+  for(size_t const pn : pas.GetSelectedAssociations()) {//Loop over all associations, which is a vector
     FillVertexTree(e, pas, pn, delta_rad_mct_index, delta_mcshower_index, delta_mctrack_index);
   } 
 

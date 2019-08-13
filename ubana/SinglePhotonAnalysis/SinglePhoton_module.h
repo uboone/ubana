@@ -79,6 +79,7 @@
 
 #include "bad_channel_matching.h"
 #include "DBSCAN.h"
+#include "VertexBuilder/ParticleAssociations.h"
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -206,7 +207,7 @@ namespace single_photon
 
             void beginSubRun(art::SubRun const & sr);
 
-        private:
+        protected: //allow inheritance class to use following variables.
             void ClearVertex();
             /**
              *  @brief  Produce a mapping from PFParticle ID to the art ptr to the PFParticle itself for fast navigation
@@ -569,7 +570,7 @@ namespace single_photon
             std::vector<int> m_matched_signal_track_tracks_in_slice;
             std::vector<int> m_matched_signal_track_showers_in_slice;
 
-int m_matched_signal_track_num = 0;   
+			int m_matched_signal_track_num = 0;   
 
             //int m_matched_signal_total_num_slices;
 
@@ -714,6 +715,7 @@ int m_matched_signal_track_num = 0;
 			int m_bobbytracks;
 			std::string m_bobbyvertexing;
 
+
             int m_reco_asso_showers;
 
             double m_reco_vertex_to_nearest_dead_wire_plane0;
@@ -722,7 +724,7 @@ int m_matched_signal_track_num = 0;
 
             //------------ VertexBuilder -------------
 
-			void BobbyVertexBuilder_ext(std::vector<art::Ptr<recob::Track>> & tracks,  std::vector<art::Ptr<recob::Shower>> & showers );
+			ParticleAssociations BobbyVertexBuilder_ext(std::vector<art::Ptr<recob::Track>> & tracks,  std::vector<art::Ptr<recob::Shower>> & showers );
 			//---------------------------------------------------
 
             //added eventweight
