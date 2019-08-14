@@ -470,8 +470,8 @@ void ParticleAssociations::GetShowerAssociations() {
 
 	std::multimap<double, size_t> pa_map;//Partical Association Map; it maps vertex index to the vertex's z-coordinate respectiely.
 
-	int temp_num_showers = 0;
-	int temp_num_tracks = 0;
+//	int temp_num_showers = 0;
+//	int temp_num_tracks = 0;
 
 	if(fverbose) std::cout << "Number of particle associations: " << fassociations.size() << "\n";
 
