@@ -14,6 +14,37 @@
 #include <fstream>//read and write txt file.
 namespace single_photon
 {
+	//gadget: construct a Vector form a Handle;
+	//template <typename T>
+	//struct calc_return {
+	//  using type = T;
+	//  };
+
+	//  template <class T>
+	//  typename calc_return<T>::type divide(T number)
+	//  {
+	//     return number/10;
+	//	 }
+	template <typename Reco_Object>
+		struct temp{ 
+			using type1 = std::vector<art::Ptr<Reco_Object>>;
+			using type2 = art::ValidHandle<std::vector<Reco_Object>>;
+			using type3 = std::vector<Reco_Object>;
+		};
+
+	template <class Reco_Object>
+		typename temp<Reco_Object>::type1 HandleToVector(Reco_Object ref_type, const art::Event &evt, std::string &label){
+
+			typename temp<Reco_Object>::type2 const & Handle = evt.getValidHandle<typename temp<Reco_Object>::type3>(label);
+			typename temp<Reco_Object>::type1 Vector;
+			art::fill_ptr_vector(Vector,Handle);
+			return Vector;
+		}
+
+		//art::ValidHandle<std::vector<recob::OpFlash>> const & flashHandle  = evt.getValidHandle<std::vector<recob::OpFlash>>(m_flashLabel);
+		//std::vector<art::Ptr<recob::OpFlash>> flashVector;
+		//art::fill_ptr_vector(flashVector,flashHandle);
+
 
 	//constructor
     SinglePhoton::SinglePhoton(fhicl::ParameterSet const &pset) : art::EDAnalyzer(pset)
@@ -127,11 +158,27 @@ namespace single_photon
 		//
 		// And then later we just write pseudo-independant code assuming you have every objecets you want (see analyze_Tracks.h) and assume you have access to everything. 
 
+		
+		//Use xxxVector to replace all xxxHandle! Keng, make a small gadget for this process later.
+		//Through Handle, we have the mean connected to multiple objects, 
+		//	such as pfParticles, Vertex, Metadata, spacepoints, etc.
+		//	xxxVector provide direct access to the object, xxx;
+		//	xxxToyyyMap provide additional reference (a map) to the object, yyy, through xxx.
+		
+		/* preset a xxxVector for object, labeled as T; then the function should follow the type T to harvest the handle.
+		usage:
+		std::vector<art::Ptr<recob::T> TVector;
+		TVector = HandleToVector(evt, label);
+		*/
 
 		// Collect all the hits. We will need these. Lets grab both the handle as well as a vector of art::Ptr as I like both. 
-		art::ValidHandle<std::vector<recob::Hit>> const & hitHandle = evt.getValidHandle<std::vector<recob::Hit>>(m_hitfinderLabel); 
-		std::vector<art::Ptr<recob::Hit>> hitVector;
-		art::fill_ptr_vector(hitVector,hitHandle);
+		//art::ValidHandle<std::vector<recob::Hit>> const & hitHandle = evt.getValidHandle<std::vector<recob::Hit>>(m_hitfinderLabel); 
+		//std::vector<art::Ptr<recob::Hit>> hitVector;
+		//art::fill_ptr_vector(hitVector,hitHandle);
+
+		art::ValidHandle<std::vector<recob::Hit>> const & hitHandle = evt.getValidHandle<std::vector<recob::Hit>>(m_hitfinderLabel); //yea, this should be gone;
+		recob::Hit dummy_hit;//This is to specify the template;
+		std::vector<art::Ptr<recob::Hit>> hitVector = HandleToVector(dummy_hit, evt, m_hitfinderLabel);
 
 		//Lets do "THE EXACT SAME STUFF" for Optical Flashes
 		art::ValidHandle<std::vector<recob::OpFlash>> const & flashHandle  = evt.getValidHandle<std::vector<recob::OpFlash>>(m_flashLabel);
@@ -184,17 +231,17 @@ namespace single_photon
 		std::vector<art::Ptr<recob::Vertex>> vertexVector;
 		art::fill_ptr_vector(vertexVector,vertexHandle);
 
+		//add new association
 		art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
 		std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap;
 
 		art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  m_pandoraLabel);
 		std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap;
 		for(size_t i=0; i< pfParticleVector.size(); ++i){
-			auto pfp = pfParticleVector[i];
+			const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
 			pfParticlesToVerticesMap[pfp] =vertices_per_pfparticle.at(pfp.key());
 
 		//add the associaton between PFP and metadata, this is important to look at the slices and scores
-			const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
 			pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
 		}
 
@@ -216,7 +263,7 @@ namespace single_photon
 		if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Spacepoints"<<std::endl;
 		//Look, here is a map that I just forced myself rather than build using helpers. Not that different is it. But for somereason I only use PFParticles.. huh,
 		//Spacepoint associaitions
-		art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
+		art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);//FindManyP (handle, datacontainer, Tag)
 		std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>> > pfParticleToSpacePointsMap;
 		for(size_t i=0; i< nuParticles.size(); ++i){
 			const art::Ptr<recob::PFParticle> pfp = nuParticles[i];
@@ -1057,7 +1104,7 @@ namespace single_photon
 
         // Link the PFParticlesHandle to tracks/showers
         art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, evt, m_trackLabel);
-        art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, evt, m_showerLabel);
+        art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, evt, m_showerLabel);//link pfParticle to Shower;
 
         if (m_run_all_pfps == false){ // running over the neutrino slice only 
 			cout<<"d(O.O)b Looking at only neutrino slices."<<endl;
