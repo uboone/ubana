@@ -26,6 +26,7 @@
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireError
 #include "larcore/Geometry/Geometry.h"
 
 
