@@ -27,6 +27,7 @@
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcorealg/Geometry/Exceptions.h"
 
 
 #include "TH1F.h"
