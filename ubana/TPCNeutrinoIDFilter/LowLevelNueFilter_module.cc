@@ -28,6 +28,7 @@
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireError
 #include "larcore/Geometry/Geometry.h"
+#include "larcorealg/Geometry/Exceptions.h"
 
 
 #include "TH1F.h"

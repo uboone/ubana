@@ -13,6 +13,7 @@
 #define Lifetime_Module
 
 // LArSoft includes
+#include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/GeometryUtilities.h"
 #include "larsim/Simulation/LArG4Parameters.h"
