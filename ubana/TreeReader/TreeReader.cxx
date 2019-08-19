@@ -31,6 +31,8 @@
 #include "NTupleInterface.h"
 #include "cetlib_except/exception.h"
 
+#include <iostream>
+
 namespace uboone {
 
 TreeReader::TreeReader(fhicl::ParameterSet const& ps, 
@@ -100,6 +102,7 @@ void TreeReader::readFile(std::string const &name, art::FileBlock* &fb) {
     iface->SetDLMode(fDLMode);
     iface->SetRootFile(fInputFile, fTreeName, fBranchDef);
     fInterface = iface;
+
   }
   else {
     throw cet::exception(__PRETTY_FUNCTION__)
@@ -111,7 +114,7 @@ void TreeReader::readFile(std::string const &name, art::FileBlock* &fb) {
   std::cout << "Run = " << fInterface->GetRun() << std::endl;
   fPOT += fInterface->GetPOT();
 }
-
+ 
 
 bool TreeReader::readNext(art::RunPrincipal* const&,
                           art::SubRunPrincipal* const&,
@@ -126,6 +129,10 @@ bool TreeReader::readNext(art::RunPrincipal* const&,
     mf::LogInfo(__FUNCTION__)
       << "Attempting to read event: " << fEventCounter << std::endl;
   }
+
+  std::cout << "Run = " << fInterface->GetRun2() << std::endl;
+  std::cout << "SubRun = " << fInterface->GetSubRun() << std::endl;
+  std::cout << "Event = " << fInterface->GetEvent() << std::endl;
 
   std::unique_ptr<std::vector<simb::MCFlux> > mcfluxvec(new std::vector<simb::MCFlux>);
   std::unique_ptr<std::vector<simb::MCTruth> > mctruthvec(new std::vector<simb::MCTruth>);
@@ -162,6 +169,7 @@ bool TreeReader::readNext(art::RunPrincipal* const&,
   else if (fInputType == "ntuple") {
     mcfluxvec->push_back(flux);
     mctruthvec->push_back(mctruth);
+
     gtruthvec->push_back(gtruth);
   }
   else {
@@ -169,6 +177,7 @@ bool TreeReader::readNext(art::RunPrincipal* const&,
       << "Ntuple format " << fInputType << " not supported" << std::endl;
   }
 
+  std::cout<<"event counter"<<fEventCounter<<std::endl;
   fEventCounter++;
   fEntry++;
 
@@ -197,6 +206,14 @@ bool TreeReader::readNext(art::RunPrincipal* const&,
 
   outE = fSourceHelper->makeEventPrincipal(
     fCurrentSubRunID.run(), fCurrentSubRunID.subRun(), fEventCounter, tstamp);
+  //adding read out info
+  /*
+  std::cout<<"run "<<fCurrentSubRunID.run()<<std::endl;
+  std::cout<<"subrun "<<fCurrentSubRunID.subRun()<<std::endl;
+  std::cout<<"event number?"<<fEventCounter<<std::endl;
+  */
+  //std::cout<<"tstamp"<<tstamp<<std::endl;
+  
 
   // Put products in the event.
   if (fInputType == "gsimple") {
