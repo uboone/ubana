@@ -33,6 +33,14 @@ public:
 
   /** Get the run number (for the first entry in the tree). */
   const int GetRun() { return fRun; }
+  const int GetRun2() { return -99; }
+
+    /** Get the current run number. */
+  const int GetSubRun() { return -99; }
+
+      /** Get the current run number. */
+  const int GetEvent() { return -99; }
+
 
   /** Get the POT from the tree. */
   const float GetPOT() { return fPOT; }

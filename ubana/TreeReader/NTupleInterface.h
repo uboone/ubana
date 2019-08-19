@@ -37,6 +37,14 @@ public:
   /** Get the current run number. */
   const int GetRun() { return fRun; }
 
+  const int GetRun2() { return run; }
+
+    /** Get the current run number. */
+  const int GetSubRun() { return subrun; }
+
+      /** Get the current run number. */
+  const int GetEvent() { return event; }
+
   /** Get the POT count. */
   const float GetPOT() { return fPOT; }
 

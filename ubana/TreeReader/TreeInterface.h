@@ -55,6 +55,9 @@ public:
 
   /** Get the run number (for the first entry in the tree). */
   virtual const int GetRun() = 0;
+  virtual const int GetRun2() = 0;
+  virtual const int GetSubRun() = 0;
+  virtual const int GetEvent() = 0;
 
   /** Get the neutrino position for the current entry. */
   virtual const TLorentzVector GetNuPosition() = 0;
