@@ -158,10 +158,12 @@ namespace single_photon
     class SinglePhoton : public art::EDAnalyzer
     {
 	//----- VertexBuilder-------
-		double fstart_prox;
-		double fshower_prox;
-		double fcpoa_vert_prox; 
-		double fcpoa_trackend_prox;
+	//set limit here, refered to the internal note;
+		const double fstart_prox = 4;
+		const double fshower_prox = 10;
+		const double fcpoa_vert_prox = 10; 
+		const double fcpoa_trackend_prox = 5;
+		friend class ObjectCandidates;
 	//---------------------------
 
         public:
@@ -247,8 +249,16 @@ namespace single_photon
 
 	//---------------- BobbyVertexBuilder ------------------------
 
-			struct ObjectCandidates;
-			void CollectTracksAndShowers_v2(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap,  const art::Event &evt, struct ObjectCandidates TracksAndShowers);
+			/*************************
+			 * CollectTrackAndShowrs_v2 - go through pandora_object inside
+			 *	an event, and filter out proper tracks/showers for 
+			 *	vertexing.
+			 *
+			 *ObjectCandidates (input/modified) contains maps and 
+			 *	collections of pandora_objejcts that need to be modified.
+			 * ***********************/
+
+			void CollectTracksAndShowers_v2(const art::Event &evt, class ObjectCandidates &package);
 	//--------------------------------------------------
 
 
@@ -713,7 +723,7 @@ namespace single_photon
 			double m_bobbyvertex_pos_z;
 			int m_bobbyshowers;
 			int m_bobbytracks;
-			std::string m_bobbyvertexing;
+			bool m_bobbyvertexing_more;
 
 
             int m_reco_asso_showers;
