@@ -5,7 +5,7 @@
 process_name: MCC9Pi0Filter
 
 services:{
-    TFileService: {fileName: "NuCCproducer.root" }
+    TFileService: {fileName: "pi0filter.root" }
     @table::microboone_services_reco
     DetectorClocksService:    @local::microboone_detectorclocks
 }
@@ -37,8 +37,10 @@ physics:
     stream: [ out1 ]
 
     trigger_paths: [ prod ]
-    end_paths: [ stream ]
+    end_paths: [ ] #stream ]
 }
+
+physics.filters.mcc9pi0filter.IsData: true
 
 outputs:
 {
