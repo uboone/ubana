@@ -92,6 +92,15 @@ dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
   // Addition to account for LY scaling
   fScaleLY      = p.get< bool > ("ScaleLY",false);
 
+
+  std::vector<int> tmpvec = p.get< std::vector<int> >("IgnoreChannelList",std::vector<int>());
+  fIgnoreChannelList = std::set<int>(tmpvec.begin(),tmpvec.end());
+
+}
+
+bool dl::DLPMTPreCuts::filter(art::Event & e)
+{
+  
   // if we are to scale by the LY, adjust fPEThreshold appropriately
   if (fScaleLY == true) {
     
@@ -117,14 +126,6 @@ dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
     std::cout << "scaling now is " << fPEThreshold << std::endl;
   }
 
-  std::vector<int> tmpvec = p.get< std::vector<int> >("IgnoreChannelList",std::vector<int>());
-  fIgnoreChannelList = std::set<int>(tmpvec.begin(),tmpvec.end());
-
-}
-
-bool dl::DLPMTPreCuts::filter(art::Event & e)
-{
-  
   // Implementation of required member function here.
   art::Handle< std::vector<recob::OpHit> > ophitHandle;
   e.getByLabel( fOpHitProducer, ophitHandle );
