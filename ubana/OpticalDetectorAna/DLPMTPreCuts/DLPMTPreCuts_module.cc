@@ -165,7 +165,7 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
       e.put(std::move(ubopfilter_obj));
     }
   
-  if ( beamPEinfo[0]>fPEThreshold && vetoPEinfo[0]<fPEThresholdScaled && maxfrac < fPMTMaxFrac )
+  if ( beamPEinfo[0]>fPEThresholdScaled && vetoPEinfo[0]<fPEThresholdScaled && maxfrac < fPMTMaxFrac )
     return true;
   
   return false;  
