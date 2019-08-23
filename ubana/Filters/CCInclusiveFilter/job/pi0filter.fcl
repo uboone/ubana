@@ -6,11 +6,11 @@ mcc9pi0selection: {
     SHRproducer: "shrreco3d"
     MCTproducer: "generator"
     MCPproducer: "largeant"
-    Data: false
-    RMin: 2.0
-    DotMin: 0.6
-    TrkShrScore: 0.8
-    E1Min: 40
+    IsData: false
+    RMin: 3.0
+    DotMin: 0.8
+    TrkShrScore: 0.75
+    E1Min: 50
     E2Min: 20
     GammaDotMax: 0.94
 }
