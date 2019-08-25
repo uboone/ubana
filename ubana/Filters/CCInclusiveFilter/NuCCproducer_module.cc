@@ -55,7 +55,6 @@ void NuCCproducer::FillReconstructed(art::Event const &evt)
   fNu_PDG = pfnu->PdgCode();
 
   const std::vector<art::Ptr<anab::T0>> T0_flashchi_v = nuFlashScoreAsso.at(pfnu.key());
-  std::cout << "[NuCC::FillReconstructed] neutrino flash chi2: " << T0_flashchi_v.size() << std::endl;
   if (T0_flashchi_v.size() == 1)
   {
     fNu_FlashChi2 = T0_flashchi_v.at(0)->TriggerConfidence();
@@ -102,7 +101,6 @@ void NuCCproducer::FillReconstructed(art::Event const &evt)
       if (pfp_properties.at("IsClearCosmic") && pfp->IsPrimary())
       {
         const std::vector<art::Ptr<anab::T0>> T0_v = nuFlashScoreAsso.at(pfp.key());
-        std::cout << "[NuCC::FillReconstructed] obvious cosmic flash chi2: " << T0_v.size() << std::endl;
         if (T0_v.size() == 1)
         {
           if (fBestObviousCosmic_FlashChi2 > T0_v.at(0)->TriggerConfidence())

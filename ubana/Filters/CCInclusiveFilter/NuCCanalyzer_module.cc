@@ -114,7 +114,7 @@ void NuCCanalyzer::FillReconstructed(art::Event const &evt)
                                     m_vtx_fid_x_end, m_vtx_fid_y_end, m_vtx_fid_z_end};
     fNu_Contained = IsContained(fNu_Vx, fNu_Vy, fNu_Vz, fid_vtx_v);
 
-    if (m_hasMCNeutrino)
+    if (!m_isData)
     {
       fTrueNu_VtxDistance = pandoraInterfaceHelper.Distance3D(fTrueNu_VxSce, fTrueNu_VySce, fTrueNu_VzSce, fNu_Vx, fNu_Vy, fNu_Vz);
     }
@@ -375,93 +375,88 @@ bool NuCCanalyzer::MatchDaughter(art::Event const &evt, const art::Ptr<recob::PF
     std::cout << "[NuCCanalyzer::MatchDaughter] Generation 4 particle is not matched." << std::endl;
     return false;
   }
-
-  if (m_hasMCNeutrino)
+ 
+  // Is this MC particle neutrino?
+  const art::Ptr<simb::MCTruth> mctruth = pandoraInterfaceHelper.TrackIDToMCTruth(evt, m_geant_producer, matched_mcp->TrackId());
+  if (mctruth->Origin() == simb::kBeamNeutrino)
   {
-    // Is this MC particle neutrino?
-    const art::Ptr<simb::MCTruth> mctruth = pandoraInterfaceHelper.TrackIDToMCTruth(evt, m_geant_producer, matched_mcp->TrackId());
-    if (mctruth->Origin() == simb::kBeamNeutrino)
-    {
-      fMatchedNeutrino = true;
-    }
-    else
-    {
-      fMatchedNeutrino = false;
-      fCosmicMatched = true;
-    }
-
-    fTruePDG = matched_mcp->PdgCode();
-    fTrueHitFraction = matchedHitFraction;
-    fTrueEnergy = matched_mcp->E();
-    fTrueVx = matched_mcp->Vx();
-    fTrueVy = matched_mcp->Vy();
-    fTrueVz = matched_mcp->Vz();
-    fTruePx = matched_mcp->Px();
-    fTruePy = matched_mcp->Py();
-    fTruePz = matched_mcp->Pz();
-    fTrueLength = (matched_mcp->Position().Vect() - matched_mcp->EndPosition().Vect()).Mag();
-
-    pandoraInterfaceHelper.SCE(fTrueVx, fTrueVy, fTrueVz, matched_mcp->T(),
-                               fTrueVxSce, fTrueVySce, fTrueVzSce);
-    std::cout << "[NuCCanalyzer::MatchDaughter] Daughter matched with PDG: " << fTruePDG << ", hit purity: " << matchedHitFraction << std::endl;
+    fMatchedNeutrino = true;
   }
+  else
+  {
+    fMatchedNeutrino = false;
+    fCosmicMatched = true;
+  }
+
+  fTruePDG = matched_mcp->PdgCode();
+  fTrueHitFraction = matchedHitFraction;
+  fTrueEnergy = matched_mcp->E();
+  fTrueVx = matched_mcp->Vx();
+  fTrueVy = matched_mcp->Vy();
+  fTrueVz = matched_mcp->Vz();
+  fTruePx = matched_mcp->Px();
+  fTruePy = matched_mcp->Py();
+  fTruePz = matched_mcp->Pz();
+  fTrueLength = (matched_mcp->Position().Vect() - matched_mcp->EndPosition().Vect()).Mag();
+
+  pandoraInterfaceHelper.SCE(fTrueVx, fTrueVy, fTrueVz, matched_mcp->T(),
+                              fTrueVxSce, fTrueVySce, fTrueVzSce);
+  std::cout << "[NuCCanalyzer::MatchDaughter] Daughter matched with PDG: " << fTruePDG << ", hit purity: " << matchedHitFraction << std::endl;
+
   return true;
 }
 
 void NuCCanalyzer::FillTrueNu(art::Event const &evt)
 {
-  if (m_hasMCNeutrino)
+  auto const &generator_handle = evt.getValidHandle<std::vector<simb::MCTruth>>("generator");
+  auto const &generator(*generator_handle);
+  fNumNu = generator.size();
+  std::cout << "[NuCCanalyzer::FillTrueNu] True neutrinos found: " << fNumNu;
+  if (generator.size() > 0)
   {
-    auto const &generator_handle = evt.getValidHandle<std::vector<simb::MCTruth>>("generator");
-    auto const &generator(*generator_handle);
-    fNumNu = generator.size();
-    std::cout << "[NuCCanalyzer::FillTrueNu] True neutrinos found: " << fNumNu;
-    if (generator.size() > 0)
+    if (generator.front().Origin() != simb::kBeamNeutrino)
     {
-      if (generator.front().Origin() != simb::kBeamNeutrino)
-      {
-        std::cout << "[NuCCanalyzer::FillTrueNu] Origin of generator particle is not kBeamNeutrino." << std::endl;
-        return;
-      }
-      const simb::MCNeutrino &mcnu = generator.front().GetNeutrino();
-
-      fTrueNu_InteractionType = mcnu.Mode();
-      fTrueNu_CCNC = mcnu.CCNC();
-      fTrueNu_PDG = mcnu.Nu().PdgCode();
-      fTrueNu_Energy = mcnu.Nu().E();
-      fTrueNu_Px = mcnu.Nu().Px();
-      fTrueNu_Py = mcnu.Nu().Py();
-      fTrueNu_Pz = mcnu.Nu().Pz();
-      fTrueNu_LeptonEnergy = mcnu.Lepton().E();
-      fTrueNu_LeptonPx = mcnu.Lepton().Px();
-      fTrueNu_LeptonPy = mcnu.Lepton().Py();
-      fTrueNu_LeptonPz = mcnu.Lepton().Pz();
-      fTrueNu_LeptonTheta = mcnu.Theta();
-      fTrueNu_Time = mcnu.Nu().T();
-      fTrueNu_Vx = mcnu.Nu().Vx();
-      fTrueNu_Vy = mcnu.Nu().Vy();
-      fTrueNu_Vz = mcnu.Nu().Vz();
-      pandoraInterfaceHelper.SCE(fTrueNu_Vx, fTrueNu_Vy, fTrueNu_Vz, fTrueNu_Time,
-                                 fTrueNu_VxSce, fTrueNu_VySce, fTrueNu_VzSce);
-      std::cout << ", CCNC: " << fTrueNu_CCNC << ", PDG: " << fTrueNu_PDG << ", E: " << fTrueNu_Energy << ", z-vertex: " << fTrueNu_Vz << std::endl;
+      std::cout << "[NuCCanalyzer::FillTrueNu] Origin of generator particle is not kBeamNeutrino." << std::endl;
+      return;
     }
+    const simb::MCNeutrino &mcnu = generator.front().GetNeutrino();
 
-    lar_pandora::MCParticleVector mcparticles;
-    larpandora.CollectMCParticles(evt, m_geant_producer, mcparticles);
+    fTrueNu_InteractionType = mcnu.Mode();
+    fTrueNu_CCNC = mcnu.CCNC();
+    fTrueNu_PDG = mcnu.Nu().PdgCode();
+    fTrueNu_Energy = mcnu.Nu().E();
+    fTrueNu_Px = mcnu.Nu().Px();
+    fTrueNu_Py = mcnu.Nu().Py();
+    fTrueNu_Pz = mcnu.Nu().Pz();
+    fTrueNu_LeptonEnergy = mcnu.Lepton().E();
+    fTrueNu_LeptonPx = mcnu.Lepton().Px();
+    fTrueNu_LeptonPy = mcnu.Lepton().Py();
+    fTrueNu_LeptonPz = mcnu.Lepton().Pz();
+    fTrueNu_LeptonTheta = mcnu.Theta();
+    fTrueNu_Time = mcnu.Nu().T();
+    fTrueNu_Vx = mcnu.Nu().Vx();
+    fTrueNu_Vy = mcnu.Nu().Vy();
+    fTrueNu_Vz = mcnu.Nu().Vz();
+    pandoraInterfaceHelper.SCE(fTrueNu_Vx, fTrueNu_Vy, fTrueNu_Vz, fTrueNu_Time,
+                                fTrueNu_VxSce, fTrueNu_VySce, fTrueNu_VzSce);
+    std::cout << ", CCNC: " << fTrueNu_CCNC << ", PDG: " << fTrueNu_PDG << ", E: " << fTrueNu_Energy << ", z-vertex: " << fTrueNu_Vz << std::endl;
+  }
 
-    for (auto const &mcparticle : mcparticles)
+  lar_pandora::MCParticleVector mcparticles;
+  larpandora.CollectMCParticles(evt, m_geant_producer, mcparticles);
+
+  for (auto const &mcparticle : mcparticles)
+  {
+    if (!(mcparticle->Process() == "primary" &&
+          mcparticle->T() != 0 &&
+          mcparticle->StatusCode() == 1))
+      continue;
+
+    const art::Ptr<simb::MCTruth> mc_truth = pandoraInterfaceHelper.TrackIDToMCTruth(evt, m_geant_producer, mcparticle->TrackId());
+    if (mc_truth->Origin() == simb::kBeamNeutrino)
     {
-      if (!(mcparticle->Process() == "primary" &&
-            mcparticle->T() != 0 &&
-            mcparticle->StatusCode() == 1))
-        continue;
-
-      const art::Ptr<simb::MCTruth> mc_truth = pandoraInterfaceHelper.TrackIDToMCTruth(evt, m_geant_producer, mcparticle->TrackId());
-      if (mc_truth->Origin() == simb::kBeamNeutrino)
-      {
-        fTrueNu_DaughterE.push_back(mcparticle->E());
-        fTrueNu_DaughterPDG.push_back(mcparticle->PdgCode());
-      }
+      fTrueNu_DaughterE.push_back(mcparticle->E());
+      fTrueNu_DaughterPDG.push_back(mcparticle->PdgCode());
     }
   }
 }

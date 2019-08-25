@@ -155,7 +155,6 @@ private:
     float m_vtx_fid_z_end;
     float m_pfp_start_border;
 
-    bool m_hasMCNeutrino;
     bool m_isData;
 
     float m_muon_cut_trackscore;
@@ -308,7 +307,7 @@ private:
 
 void NuCCanalyzer::reconfigure(fhicl::ParameterSet const &p)
 {
-    m_pfp_producer = p.get<std::string>("pfp_producer", "pandoraConsolidated");
+    m_pfp_producer = p.get<std::string>("pfp_producer", "pandora");
     m_hitfinder_producer = p.get<std::string>("hitfinder_producer", "gaushit");
     m_geant_producer = p.get<std::string>("geant_producer", "largeant");
     m_hit_mcp_producer = p.get<std::string>("hit_mcp_producer", "gaushitTruthMatch");
@@ -323,7 +322,6 @@ void NuCCanalyzer::reconfigure(fhicl::ParameterSet const &p)
     m_pfp_start_border = p.get<float>("pfp_start_border", 10);
 
     m_isData = p.get<bool>("is_data", false);
-    m_hasMCNeutrino = p.get<bool>("has_MC_neutrino", false);
 
     m_muon_cut_trackscore  = p.get<float>("muon_cut_trackscore", 0.8);
     m_muon_cut_vtxdistance  = p.get<float>("muon_cut_vtxdistance", 4.0);
@@ -352,7 +350,6 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
     std::cout << "[NuCC constructor] Checking set-up" << std::endl;
     std::cout << "[NuCC constructor] pfp_producer: " << m_pfp_producer << std::endl;
     std::cout << "[NuCC constructor] is_data: " << m_isData << std::endl;
-    std::cout << "[NuCC constructor] has_MC_neutrino: " << m_hasMCNeutrino << std::endl;
 
     //// Tree for every event
     fEventTree = tfs->make<TTree>("Event", "Event Tree");
@@ -384,7 +381,7 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
     fEventTree->Branch("nu_mu_cc_selected", &fIsNuMuCC, "nu_mu_cc_selected/O");
 
 
-    if (m_hasMCNeutrino && !m_isData)
+    if (!m_isData)
     {
         fEventTree->Branch("num_neutrinos", &fNumNu, "num_neutrinos/i");
         fEventTree->Branch("mc_nu_vx", &fTrueNu_Vx, "mc_nu_vx/F");

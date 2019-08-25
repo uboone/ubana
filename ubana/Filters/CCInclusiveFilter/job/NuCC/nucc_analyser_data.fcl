@@ -1,0 +1,3 @@
+#include "nucc_analyser_common.fcl"
+
+physics.analyzers.NuCCAnalyser.is_data: true
