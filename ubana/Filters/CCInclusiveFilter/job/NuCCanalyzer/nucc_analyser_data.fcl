@@ -1,0 +1,61 @@
+#include "nucc_analyser_common.fcl"
+
+physics:
+{
+
+ producers:
+ {
+     # Track/Shower 
+    pandoraAllOutcomesTrack:          @local::pandoraAllOutcomesTrack
+    pandoraAllOutcomesShower:         @local::pandoraAllOutcomesShower
+    
+    # CRT reco
+    #crthitcorr:                       @local::crtdatahitcorr
+    #crttzero:                         @local::crttzero
+    #trackmatch:                       @local::trackmatch
+    
+    # SliceID
+    pandoraSliceId:                   @local::pandora_flash_event_building
+    
+    # MCS momentum
+    pandoraMCSMu:                     @local::pandoraMCSMu
+    
+    # Clorimetry and PID
+    pandoracaloSCE:                   @local::pandoracaloSCE
+    pandoracaliSCE:                   @local::pandoracaliSCE
+    pandoracalipidSCE:                @local::pandoracalipidSCE
+    
+    # Shower Reco module
+    shrreco3d:                        @local::ShrReco3DPandora
+    
+    #bnbcrttag:                        @local::crtinbeam
+ }
+ 
+ analyzers: 
+ {
+    nuCCAnalyser:                    @local::nucc_analyser
+ }
+
+ prod: [pandoraAllOutcomesTrack,
+        pandoraAllOutcomesShower,
+        #crthitcorr, 
+        #crttzero, 
+        #trackmatch, 
+        pandoraSliceId,
+        pandoraMCSMu,
+        pandoracaloSCE,
+        pandoracaliSCE,
+        pandoracalipidSCE,
+        shrreco3d]
+        
+ ana:  [nuCCAnalyser]
+
+ trigger_paths: [ prod ]
+ end_paths: [ ana ]
+
+}
+#physics.producers.crthitcorr.CrtHitsIn_Label1: "merger"
+
+physics.producers.pandoraSliceId.SliceIdTool: @local::flash_neutrino_id_tool_data
+physics.analyzers.nuCCAnalyser.has_MC_neutrino: false
+physics.analyzers.nuCCAnalyser.is_data: true

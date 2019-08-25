@@ -1,0 +1,66 @@
+#include "nucc_analyser_common.fcl"
+
+physics:
+{
+
+ producers:
+ {
+    # Track/Shower 
+    pandoraAllOutcomesTrack:          @local::pandoraAllOutcomesTrack
+    pandoraAllOutcomesShower:         @local::pandoraAllOutcomesShower
+
+    # CRT reco
+    #crtsimhitcorr:                    @local::crtsimhitcorr
+    #crthitcorr:                       @local::crtdatahitcorr
+    #crttzero:                         @local::crttzero
+    #trackmatch:                       @local::trackmatch
+    
+    # SliceID
+    pandoraSliceId:                   @local::pandora_flash_event_building
+    
+    # MCS momentum
+    pandoraMCSMu:                     @local::pandoraMCSMu
+    
+    # Clorimetry and PID
+    pandoracaloSCE:                   @local::pandoracaloSCE
+    pandoracaliSCE:                   @local::pandoracaliSCE
+    pandoracalipidSCE:                @local::pandoracalipidSCE
+    
+    # Shower Reco module
+    shrreco3d:                        @local::ShrReco3DPandora
+ }
+ 
+ analyzers: 
+ {
+    nuCCAnalyser:                    @local::nucc_analyser
+ }
+
+ prod: [pandoraAllOutcomesTrack,
+        pandoraAllOutcomesShower,
+        #crtsimhitcorr, 
+        #crthitcorr, 
+        #crttzero, 
+        #trackmatch, 
+        pandoraSliceId,
+        pandoraMCSMu,
+        pandoracaloSCE,
+        pandoracaliSCE,
+        pandoracalipidSCE,
+        shrreco3d]
+        
+ ana:  [nuCCAnalyser]
+
+ trigger_paths: [ prod ]
+ end_paths: [ ana ]
+
+}
+
+#physics.producers.crthitcorr.CrtHitsIn_Label1: "crtsimhitcorr"
+
+physics.producers.pandoraSliceId.SliceIdTool: @local::flash_neutrino_id_tool_overlay
+physics.producers.pandoraSliceId.SliceIdTool.ShouldWriteToFile: true
+
+
+physics.producers.shrreco3d.ADCtoE: [245,252,248.2] # e-/ADC
+physics.analyzers.nuCCAnalyser.is_data:                                     false
+physics.analyzers.nuCCAnalyser.has_MC_neutrino:                             true
