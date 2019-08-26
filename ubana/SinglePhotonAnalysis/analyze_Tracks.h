@@ -309,7 +309,7 @@ namespace single_photon
         vertex_tree->Branch("reco_track_proton_kinetic_energy", &m_reco_track_proton_kinetic_energy);
         vertex_tree->Branch("reco_track_ordered_energy_index", &m_reco_track_ordered_energy_index);
         vertex_tree->Branch("reco_track_ordered_displacement_index", &m_reco_track_ordered_displacement_index);
-        vertex_tree->Branch("it", &m_reco_track_ordered_displacement_index);
+        vertex_tree->Branch("i_trk", &m_reco_track_ordered_displacement_index);
 
         vertex_tree->Branch("reco_track_spacepoint_principal0",&m_reco_track_spacepoint_principal0);
         vertex_tree->Branch("reco_track_spacepoint_principal1",&m_reco_track_spacepoint_principal1);

@@ -372,6 +372,7 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_plane2_nhits",&m_reco_shower_plane2_nhits);
 
         vertex_tree->Branch("reco_shower_ordered_energy_index",&m_reco_shower_ordered_energy_index);
+        vertex_tree->Branch("i_shr",&m_reco_shower_ordered_energy_index);
         vertex_tree->Branch("reco_shower_dQdx_plane0",&m_reco_shower_dQdx_plane0);
         vertex_tree->Branch("reco_shower_dQdx_plane1",&m_reco_shower_dQdx_plane1);
         vertex_tree->Branch("reco_shower_dQdx_plane2",&m_reco_shower_dQdx_plane2);
@@ -611,14 +612,14 @@ namespace single_photon
             std::vector<double> t_area(3,0.0);
 
             //Right, this basically loops over all hits in all planes and for each plane forms the Delaunay triangilization of it and calculates the 2D area inscribed by the convex hull
-            //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Starting Delaunay Triangleization"<<std::endl;;
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Starting Delaunay Triangleization"<<std::endl;;
 
             auto start = std::chrono::high_resolution_clock::now();
             this->delaunay_hit_wrapper(hits, t_numhits, t_num, t_area);
 
             auto finish = std::chrono::high_resolution_clock::now();
             auto microseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start);
-            //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles"<<std::endl;;
+            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles"<<std::endl;;
 
             m_reco_shower_delaunay_num_triangles_plane0[i_shr] = t_num[0];
             m_reco_shower_delaunay_num_triangles_plane1[i_shr] = t_num[1];
@@ -906,7 +907,6 @@ namespace single_photon
 
 
 
-
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished."<<std::endl;;
     }
 
@@ -951,7 +951,7 @@ namespace single_photon
             }
             //std::cout<<"index 0 is "<<calo[0]->PlaneID()<<", 1 is "<<calo[1]->PlaneID()<<", 2 is "<<calo[2]->PlaneID()<<std::endl;
 
-            double res_range_lim = 4.0; //4cm 
+            double res_range_lim = m_length_dqdx_box; //4cm 
 
             for(size_t p=0; p<calo.size();p++){
     
@@ -1090,11 +1090,11 @@ namespace single_photon
 
     }
 
-    double SinglePhoton::CalcEShowerPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){    
+    double SinglePhoton::CalcEShowerPlane(const std::vector<art::Ptr<recob::Hit>>& hits, int this_plane){    
         double energy = 0.;
 
         //for each hit in the shower
-        for (art::Ptr<recob::Hit> thishitptr : hits){
+        for (auto &thishitptr : hits){
             //check the plane
             int plane= thishitptr->View();
 
@@ -1112,13 +1112,13 @@ namespace single_photon
 
     }
 
-    double SinglePhoton::CalcEShower(std::vector<art::Ptr<recob::Hit>> hits){    
+    double SinglePhoton::CalcEShower(const std::vector<art::Ptr<recob::Hit>> &hits){    
         double energy[3] = {0., 0., 0.};
 
         //std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t Looking at shower with "<<hits.size() <<" hits on all planes"<<std::endl;
 
         //for each hit in the shower
-        for (art::Ptr<recob::Hit> thishitptr : hits){
+        for (auto &thishitptr : hits){
             //check the plane
             int plane= thishitptr->View();
 
