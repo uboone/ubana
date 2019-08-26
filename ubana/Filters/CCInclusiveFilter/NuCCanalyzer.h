@@ -376,6 +376,7 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
     fEventTree->Branch("nu_vz", &fNu_Vz, "nu_vz/F");
     fEventTree->Branch("nu_contained", &fNu_Contained, "nu_contained/O");
     fEventTree->Branch("nu_pdg", &fNu_PDG, "nu_pdg/I");
+    fEventTree->Branch("nu_score", &fNu_Score, "nu_score/F");
     fEventTree->Branch("nu_flash_chi2", &fNu_FlashChi2, "nu_flash_chi2/F");
     fEventTree->Branch("obvious_cosmic_chi2", &fBestObviousCosmic_FlashChi2, "obvious_cosmic_chi2/F");
     fEventTree->Branch("nu_mu_cc_selected", &fIsNuMuCC, "nu_mu_cc_selected/O");
