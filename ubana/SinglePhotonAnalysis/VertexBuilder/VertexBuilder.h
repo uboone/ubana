@@ -575,7 +575,7 @@ void VertexBuilder::AssociateShowers(ParticleAssociations & pas) {
 
 			if(fverbose) std::cout << "\t\tyes\n";
 
-			size_t association_index = SIZE_MAX;
+			size_t association_index = SIZE_MAX;//a large number;
 			double best_association_dist = fcpoa_vert_prox;
 
 			if(fverbose)
@@ -601,7 +601,7 @@ void VertexBuilder::AssociateShowers(ParticleAssociations & pas) {
 					if(fverbose)
 						std::cout << "\t\t\t\tyes\n";
 
-					association_index = i;
+					association_index = i;//get the index of association that gives the best association distance.
 					best_association_dist = dist;
 
 				}
@@ -1007,7 +1007,7 @@ void VertexBuilder::AddLoneShowers(ParticleAssociations & pas) {
 
 }
 
-
+// Fill the TTree with vertex info.
 void VertexBuilder::FillVBT(ParticleAssociations & pas) {
 
   fvbt->ftrack_number = fdetos->GetTrackIndices().size();
@@ -1025,6 +1025,7 @@ void VertexBuilder::Run(ParticleAssociations & pas) {//Analysis the tracks & sho
 
   if(fverbose) std::cout << "Associate tracks\n";
   AssociateTracks(pas);
+  //fvbt is the object, it means.. if the object is not empty, do something.
   if(fvbt) fvbt->fassociation_track_number = pas.GetAssociations().size();
   if(fverbose) std::cout << "Associate showers\n";
   AssociateShowers(pas);
@@ -1038,7 +1039,7 @@ void VertexBuilder::Run(ParticleAssociations & pas) {//Analysis the tracks & sho
   pas.GetShowerAssociations();
   if(fvbt) fvbt->fassociation_final_number = pas.GetSelectedAssociations().size();
 
-  if(fvbt) {
+  if(fvbt) {//after the association is finished (found the vertex), fill in in the tree.
     if(fverbose) std::cout << "Fill VBT\n";
     FillVBT(pas);
   }

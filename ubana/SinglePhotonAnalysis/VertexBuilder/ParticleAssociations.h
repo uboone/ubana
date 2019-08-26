@@ -7,23 +7,32 @@
 #include "DetectorObjects.h"
 #include <fstream>//read and write txt file.
 
+
+//what does f in fxxxx  mean ????
+
 namespace single_photon{
 class ParticleAssociations;
 
 
-class ParticleAssociation{
-  
+class ParticleAssociation{//Yes, it is with and without s!
+	//private   
   friend ParticleAssociations;
 
+  // this is a collection of indices and vertices,
+  // appended in the AddShower1() function in this class.
+  // Their elements come from AddShower() function in the class ParticleAssociations
   std::vector<size_t> findices;
   std::vector<geoalgo::Point_t> fvertices;
+
+
   geoalgo::Point_t fvertex;
   double fgoodness;
   
   std::multimap<size_t, size_t> fconnected_associations;
   
 public:
-  
+//Constructor, for internal used only, I guess.
+// indices (input) - to label 
   ParticleAssociation(std::vector<size_t> const & indices,
 		      std::vector<geoalgo::Point_t> const & vertices,
 		      geoalgo::Point_t const & vertex,
@@ -32,8 +41,9 @@ public:
   void AddConnection(size_t const i, size_t const n) {
     fconnected_associations.emplace(i, n);
   }
-  
-  void AddShower(size_t const n, geoalgo::Point_t const & vert) {
+	//Note: this is not for adding pandora_object.. 
+	// 2-argument function;
+  void AddShower1(size_t const n, geoalgo::Point_t const & vert) {
     findices.push_back(n);
     fvertices.push_back(vert);
   }
@@ -89,7 +99,7 @@ public:
 
   ParticleAssociations();
 
-  DetectorObjects & GetDetectorObjects() {return fdetos;}
+  DetectorObjects & GetDetectorObjects() {return fdetos;}//gives out the DetectorObjects.
   DetectorObjects const & GetDetectorObjects() const {return fdetos;}
 
   void Reset();
@@ -99,9 +109,19 @@ public:
 		      geoalgo::Point_t const & vertex,
 		      double const goodness = 0);
     
+
+  /*************************
+   *
+   * AddShower() - 
+   * index - this is only for the fassociation_index_vec; 
+   *	I guess, this is to append the nth association.
+   * n - this coud be the index (ID) for a pandora_object.
+   * vert - a pandora vertex.
+   *
+   * ***********************/
   void AddShower(size_t const index,
 		 size_t const n,
-		 geoalgo::Point_t const & vert);
+		 geoalgo::Point_t const & vert);//used 
 
   std::vector<ParticleAssociation> const & GetAssociations() const {
     return fassociations;
@@ -154,7 +174,7 @@ public:
 
 
 
-//HEADER FILE ARE ABOVE
+//THE HEADER FILE IS THE ABOVE
 
 
 
@@ -188,6 +208,8 @@ void ParticleAssociation::PrintAssociation() const {
     std::cout << "Association index: " << pair.first << " object index: " << pair.second << std::endl;
   
 }
+
+
 
 
 ParticleAssociations::ParticleAssociations() :
@@ -256,6 +278,7 @@ void ParticleAssociations::AddShower(size_t const index,
     return;
   }
   
+  //Dont know why consruct a ParticleAssociation here..
   ParticleAssociation & association = fassociations.at(index);
   std::vector<size_t> const & group = association.GetObjectIndices();
   
@@ -264,10 +287,11 @@ void ParticleAssociations::AddShower(size_t const index,
     return;
   }
   
-  fobject_index_v.push_back(n);
   fassociation_index_vec.push_back(index);
+
+  fobject_index_v.push_back(n);
   
-  association.AddShower(n, vert);
+  association.AddShower1(n, vert);//this is for single association; Only Here, the 2nd and 3rd argument from the AddShower();
 
   fdetos.SetAssociated(n);
   

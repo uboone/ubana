@@ -258,7 +258,7 @@ namespace single_photon
 			 *	collections of pandora_objejcts that need to be modified.
 			 * ***********************/
 
-			void CollectTracksAndShowers_v2(const art::Event &evt, class ObjectCandidates &package);
+			void CollectTracksAndShowers_v2(const art::Event &evt, class ObjectCandidates &package, int run_count);
 	//--------------------------------------------------
 
 
@@ -734,7 +734,7 @@ namespace single_photon
 
             //------------ VertexBuilder -------------
 
-			ParticleAssociations BobbyVertexBuilder_ext(std::vector<art::Ptr<recob::Track>> & tracks,  std::vector<art::Ptr<recob::Shower>> & showers );
+			ParticleAssociations BobbyVertexBuilder_ext(class ObjectCandidates &package);
 			//---------------------------------------------------
 
             //added eventweight

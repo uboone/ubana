@@ -71,6 +71,9 @@ namespace single_photon
 		std::vector< art::Ptr<recob::Track> >							collected_tracks;
 		std::vector< art::Ptr<recob::Shower> >							collected_showers;
 
+//		std::vector< art::Ptr<recob::PFParticle> >						backup_PFParticles;
+		std::vector< art::Ptr<recob::Track> >							backup_tracks; //These two backup_objects are used to search for additional objects.
+		std::vector< art::Ptr<recob::Shower> >							backup_showers; 
 		//Pairs that connect PFParticle to sliceID.
 		std::vector<std::pair<art::Ptr<recob::PFParticle>,int>>			primaryPFPSliceIdVec;
 		
@@ -115,8 +118,13 @@ namespace single_photon
 
 	void SinglePhoton::CollectTracksAndShowers_v2(
 			const art::Event &evt,
-			class ObjectCandidates &package){
-		cout<<"CHECK! Get in CollectTracksAndShowers_v2 over!\n\n\n"<<endl;
+			class ObjectCandidates &package,
+			int run_count){
+		if(run_count>2){//Um.. something goes wrong if this is true
+			mf::LogDebug("SinglePhoton") << "  It seems that we loop the VertexBuilder too much.\n";
+		}
+
+//		cout<<"CHECK! Get in CollectTracksAndShowers_v2 over!\n\n\n"<<endl;
 		//the following function labels objects with sliceID and tell
 		//	if the slice is nu_slice or not.
 		this->AnalyzeSlices(
@@ -129,37 +137,30 @@ namespace single_photon
 				package.PFPToNuSliceMap, 
 				package.PFPToTrackScoreMap);
 		
-		cout<<"CHECK! AnalyzeSlices pass over!\n\n\n"<<endl;
+//		cout<<"CHECK! AnalyzeSlices pass over!\n\n\n"<<endl;
 		//set up what particles to look at
 		std::vector< art::Ptr<recob::PFParticle> > candidate_particles;
 
-		if(m_run_all_pfps){//Include all PFParticles
-
-			cout<<"d(O.O)b Looking at all slices."<<endl;
-			//determine what tracks or showers to be rescued from other slices;
-			for(std::pair<const long unsigned int, art::Ptr<recob::PFParticle> > pair : package.PFParticleMap){
-				
-                const art::Ptr<recob::PFParticle> &pParticle = pair.second;
-
-				if(!m_bobbyvertexing_more || (package.PFPToClearCosmicMap[pParticle] < 1/*This means most nu-like slice&& package.PFPToNuSliceMap[pParticle]*/) ){
-				//consider the pfParticle if it is not clear cosmic or we dont want more objects (for vertexing).
-				candidate_particles.push_back(pParticle);
-				}
-			}
-
-		}else{//Include PFParticles in the selected nu_slice
+		if(m_run_all_pfps){
+			cout<<"d(O.O)b Looking at all slices. ";
+		}else{
 			cout<<"d(O.O)b Looking at only the most neutrino-like slice."<<endl;
-			candidate_particles = package.particles;
 		}
+		//we dont need the run_all_particle boolean, because it is considered under package.particles;
+		candidate_particles = package.particles;//CHECK, always vertex the most nu-like slice.
 
 		if(candidate_particles.size() == 0){
 			mf::LogDebug("SinglePhoton") << "  No PFParticles can be considered for vertexing.\n";
 		}
 
-		//look into the candidate PFParticles and add them to tracks or showers;
+		std::vector< art::Ptr<recob::Track> >		cosmic_tracks;//yea,, I think all PFParticles should include them;
+		std::vector< art::Ptr<recob::Shower> >		cosmic_showers;
+		std::vector< art::Ptr<recob::Track> >		wanted_tracks;//yea,, I think all PFParticles should include them;
+		std::vector< art::Ptr<recob::Shower> >		wanted_showers;
+
 		for(const art::Ptr<recob::PFParticle> &pParticle : candidate_particles){ //candidate_particles are determined in above if-else statement.
 
-		cout<<"CHECK! Inside the pfParticles, over!"<<endl;
+//		cout<<"CHECK! Inside the pfParticles, over!"<<endl;
 			
 			//pfParticleHandle is from recob::PFParticle on m_pandoraLabel;
 			//pfParticleToTrackAssoc is a FindManyP<reco::Track> from <pfParticleHandle, evt,m_trackLabel)
@@ -170,46 +171,140 @@ namespace single_photon
 			const std::vector< art::Ptr<recob::Track> > ToBeAddedTracks((package.PFParticleAsATrack)->at(pParticle.key()));
 			const std::vector< art::Ptr<recob::Shower> > ToBeAddedShowers((package.PFParticleAsAShower)->at(pParticle.key()));
 				
-		//CHECK Idk why this works..
-//			art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);//This is useful for FindManyP< reco::Track/Shower>
-//			FillTracksAndShowers(ToBeAddedTracks,ToBeAddedShowers, pParticle,  pfParticleHandle, evt, package.collected_tracks, package.collected_showers, package.trackToNuPFParticleMap, package.showerToNuPFParticleMap);
-//			FillTracksAndShowers_v2(ToBeAddedTracks,ToBeAddedShowers, pParticle, evt, package);
-		cout<<"??? FIllTracksAndShowers works!!"<<endl;
-
 			const unsigned int nTracks(ToBeAddedTracks.size());
 			const unsigned int nShowers(ToBeAddedShowers.size());
 
 			//Check if we can add a track/a shower that is identified from a PFParticle.
-		cout<<"CHECK! # of tracks/showers are ready, over!"<<endl;
+//		cout<<"CHECK! # of tracks/showers are ready, over!"<<endl;
 			if(nTracks + nShowers == 0){//Um... the PFParticle is not identified as track or shower;
-		cout<<"00"<<endl;
+//		cout<<"00"<<endl;
 				mf::LogDebug("SinglePhoton") << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << "\n";
 			} else if(nTracks + nShowers > 1){
-		cout<<"11"<<endl;
+//		cout<<"11"<<endl;
 				//Check, do I need throw??
 				throw cet::exception("SinglePhoton") << "  There were " << nTracks << " tracks and " << nShowers << " showers associated with PFParticle " << pParticle->Self();
 				
 			//Ok, if going through the below if-elses, it means we have a shower/ a track!
 			} else if( nTracks == 1){ //Add a Track
-				
-		cout<<"10"<<endl;
-				(package.collected_tracks).push_back(ToBeAddedTracks.front());
-				(package.trackToNuPFParticleMap)[(package.collected_tracks).back()]= pParticle;
+
+//				cout<<"10"<<endl;
+				if(package.PFPToClearCosmicMap[pParticle] == 1){//add cosmic PFParticle;
+					(cosmic_tracks).push_back(ToBeAddedTracks.front());
+					(package.trackToNuPFParticleMap)[(cosmic_tracks).back()]= pParticle;
+
+				}else if(m_bobbyvertexing_more && !(package.PFPToNuSliceMap[pParticle])){//we want more particles that is not in the most nu-like slice;
+					(package.backup_tracks).push_back(ToBeAddedTracks.front());
+					(package.trackToNuPFParticleMap)[(package.backup_tracks).back()]= pParticle;
+
+				}else{//not cosmic; in most nu-like slice; record it;
+					(wanted_tracks).push_back(ToBeAddedTracks.front());
+					(package.trackToNuPFParticleMap)[(wanted_tracks).back()]= pParticle;
+				}
 				std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  ToBeAddedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
 			} else if( nShowers == 1){ //Add a Shower
-		cout<<"01"<<endl;
+//				cout<<"01"<<endl;
+				if(package.PFPToClearCosmicMap[pParticle] == 1){//add cosmic PFParticle;
+					(cosmic_showers).push_back(ToBeAddedShowers.front());
+					(package.showerToNuPFParticleMap)[(cosmic_showers).back()]= pParticle;
 
-				(package.collected_showers).push_back(ToBeAddedShowers.front());
-				(package.showerToNuPFParticleMap)[(package.collected_showers).back()] = pParticle;
+				}else if(m_bobbyvertexing_more && !(package.PFPToNuSliceMap[pParticle])){//we want more particles that is not in the most nu-like slice;
+					(package.backup_showers).push_back(ToBeAddedShowers.front());
+					(package.showerToNuPFParticleMap)[(package.backup_showers).back()]= pParticle;
+
+				}else{//not cosmic; in most nu-like slice; record it;
+					(wanted_showers).push_back(ToBeAddedShowers.front());
+					(package.showerToNuPFParticleMap)[(wanted_showers).back()] = pParticle;
+				}
 				std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  ToBeAddedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 			}
 
-		//repeat this loop another PFParticle in the candidate_particles.
+			//repeat this loop for another PFParticle in the candidate_particles.
 		}
+		package.collected_showers.clear();//dont know if these help;
+		package.collected_tracks.clear();
+		switch (run_count)
+		{
+			case 1:
+				cout<<"\n\n Load objects form other nu slices!"<<endl;
+				(package.collected_showers).reserve(package.backup_showers.size()+wanted_tracks.size());
+				(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
+				(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
+				//ok, same for tracks
+				(package.collected_tracks).reserve(package.backup_tracks.size()+wanted_tracks.size());
+				(package.collected_tracks).insert((package.collected_tracks).end(), package.backup_tracks.begin(), package.backup_tracks.end());
+				(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
+
+				break;
+
+			case 2:
+				cout<<"\n\n Load objects form other nu slices and cosmic slices!"<<endl;
+
+				(package.collected_showers).reserve(cosmic_showers.size()+package.backup_showers.size()+wanted_tracks.size());
+				(package.collected_showers).insert((package.collected_showers).end(), cosmic_showers.begin(), cosmic_showers.end());
+				(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
+				(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
+				//ok, same for tracks
+				(package.collected_tracks).reserve(cosmic_tracks.size()+package.backup_tracks.size()+wanted_tracks.size());
+				(package.collected_tracks).insert((package.collected_tracks).end(), cosmic_tracks.begin(), cosmic_tracks.end());
+				(package.collected_tracks).insert((package.collected_tracks).end(), package.backup_tracks.begin(), package.backup_tracks.end());
+				(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
+				break;
+
+			default://actually only case 0 allowed here;
+				cout<<"\n\n Load objects form the selected nu slice!"<<endl;
+				package.collected_showers = wanted_showers;
+				package.collected_tracks = wanted_tracks;
+		}
+/*
+		if(m_bobbyvertexing_more){//Include all PFParticles
+			cout<<"Oh! You want to run on Nu particles, but with more objects from other possible slices."<<endl;
+			cout<<"Note: here only record PFParticles and do nothing different to looking at the most neutrino-like slice."<<endl;
+			package.collected_showers = wanted_showers;
+			package.collected_tracks = wanted_tracks;
+		} else{
+			cout<<" Ok, actually you want all PFParticles; Here you go!"<<endl;
+			(package.collected_showers).reserve(cosmic_showers.size()+package.backup_showers.size()+wanted_tracks.size());
+			(package.collected_showers).insert((package.collected_showers).end(), cosmic_showers.begin(), cosmic_showers.end());
+			(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
+			(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
+			//ok, same for tracks
+			(package.collected_tracks).reserve(cosmic_tracks.size()+package.backup_tracks.size()+wanted_tracks.size());
+			(package.collected_tracks).insert((package.collected_tracks).end(), cosmic_tracks.begin(), cosmic_tracks.end());
+			(package.collected_tracks).insert((package.collected_tracks).end(), package.backup_tracks.begin(), package.backup_tracks.end());
+			(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
+		}
+*/
+
 	}
 
 
+	/***************************
+	 *
+	 * ReconsiderMoreCandidates() - add more showers and tracks candidates into current vertex.
+	 *
+	 * ***************************
+
+	void ReconsiderMoreCandidates(ParticleAssociations &candidates, class ObjectCandidates &package){
+
+	// Ingredients:
+		package.backup_showers;
+		package.backup_tracks;
+		vector<double> current_vertex = {candidates.GetRecoVertex().at(0), candidates.GetRecoVertex().at(1), candidates.GetRecoVertex().at(2)};//get the vertex position;
+
+		//GetRecoVertex()
+		//fvertex, geoalgo::Point_t in class ParticleAssociation
+		//
+		// fassociations a vector of ParticleAssociation class, run under AddAssociation()
+		//
+
+	//I think I need to do this:
+		pas.GetDetectorObjects().AddShowers(package.backup_showers);//load tracks
+		pas.GetDetectorObjects().AddTracks(package.backup_tracks);//load showers
+		AssociateTracks(pas);//this is the code for associating the tracks, see 1027 at VertexBuilder.h
+		AssociateShowers(pas);//this is the code for associating the showers
+	}*/
+	
 
 	/****************************
 	 *
@@ -217,13 +312,12 @@ namespace single_photon
 	 *
 	 * **************************/
 
-	ParticleAssociations SinglePhoton::BobbyVertexBuilder_ext(std::vector<art::Ptr<recob::Track>> & tracks,  std::vector<art::Ptr<recob::Shower>> & showers ){
+	ParticleAssociations SinglePhoton::BobbyVertexBuilder_ext(class ObjectCandidates &package){
 		bool fverbose = true;
 
 		//PUT THIS FUNCTION INSIDE SINGLEPHOTON_MODULE.h
 		VertexBuilder vbuilder;// definition. it was named vb
 		ParticleAssociations candidates;// definition. it was named pas
-
 
 
 		vbuilder.SetVerbose(fverbose);
@@ -250,18 +344,19 @@ namespace single_photon
 		//Object inside an object cause the problem, i.e. 
 		//ParticleAssociations cannot link to DetectorOBjects;
 		//CHekced: Members are identified; but the reference is not defined
-		cout<<"Number of Showers: "<<showers.size()<<endl;
-		cout<<"Number of Tracks: "<<tracks.size()<<endl;
-		candidates.GetDetectorObjects().AddShowers(showers);//load tracks
-		candidates.GetDetectorObjects().AddTracks(tracks);//load showers
+		cout<<"Number of Showers: "<<(package.collected_showers).size()<<endl;
+		cout<<"Number of Tracks: "<<(package.collected_tracks).size()<<endl;
+		candidates.GetDetectorObjects().AddShowers(package.collected_showers);//load tracks
+		candidates.GetDetectorObjects().AddTracks(package.collected_tracks);//load showers
 
 		cout<<"\n/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*"<<endl;
 		cout<<"Finish loading tracks and showers! Start Revertexing."<<endl;
 		cout<<"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*\n"<<endl;
 
-		vbuilder.Run(candidates);
 
+		vbuilder.Run(candidates);//here deals with the candidates and find the vertex.
 
+	
 		cout<<"\n/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*"<<endl;
 		cout<<"Bobby Revertexing is finished. Now start to fill in the TTree."<<endl;
 		cout<<"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*\n"<<endl;

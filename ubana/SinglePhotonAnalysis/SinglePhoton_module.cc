@@ -121,7 +121,7 @@ namespace single_photon
 
     //------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SinglePhoton::analyze(const art::Event &evt)//CHECK
+    void SinglePhoton::analyze(const art::Event &evt)
 	{//analyzing one event per run!
 
 		//m_is_verbose = true;
@@ -403,7 +403,7 @@ namespace single_photon
         art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, evt, m_showerLabel);
 
 
-	cout<<"CHECK! create object\n\n\n\n"<<endl;
+//	cout<<"CHECK! create object\n\n\n\n"<<endl;
 		//Make an object and pack up stuffs we need.
 		ObjectCandidates packed_objects;
 		packed_objects.particles				= nuParticles;//no cosmic ray PFParticles
@@ -427,7 +427,10 @@ namespace single_photon
 		packed_objects.PFParticleAsAShower		= &pfPartToShowerAssoc;
 		//Oooohu, here we go!
 
-		this->CollectTracksAndShowers_v2(evt, packed_objects); //This tells what showers and tracks to use.
+		int run_count = 0;
+
+redo_event:
+		this->CollectTracksAndShowers_v2(evt, packed_objects, run_count); //This tells what showers and tracks to use.
 //		this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap); //This tells what showers and tracks to use.
 		//this->AnalyzeSlices(pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
 
@@ -467,9 +470,8 @@ namespace single_photon
 		}
 
 		//---------- VertexBuilder--------------
-		//ParticleAssociations const & bobby_particle_associations = BobbyVertexBuilder_ext(tracks,showers);
 		//use the new ObjectCandidate class for variables.
-		ParticleAssociations const & bobby_particle_associations = BobbyVertexBuilder_ext(packed_objects.collected_tracks,packed_objects.collected_showers);
+		ParticleAssociations const & bobby_particle_associations = BobbyVertexBuilder_ext(packed_objects);
 		//introduce a for loop for all particle associations identified by Bobby's VertexBuilder
 		for(size_t const nth_associations : bobby_particle_associations.GetSelectedAssociations()) {//Loop over all associations, which is a vector
 			std::cout<<"Filling in Bobby's Vertex info."<<std::endl;
@@ -501,6 +503,12 @@ namespace single_photon
 			}
 			cout<<"# of showers: "<<m_bobbyshowers<<endl;
 			cout<<"# of tracks : "<<m_bobbytracks<<endl;
+
+			if( m_bobbyshowers + m_bobbytracks == 2 && run_count < 3 && m_bobbyvertexing_more ){//go with 0,1,2
+			run_count++;
+			cout<<"Need more objects. Now run the "<<run_count<<" time the vertexing."<<endl;
+			goto redo_event;
+			}
 
 			std::cout<<"Got Bobby's info.!"<<std::endl;
 
@@ -1050,6 +1058,11 @@ namespace single_photon
     }
 
 
+	/***********************
+	 *
+	 * GetFinalStatePFParticleVectors() - fill in crParticles and nuParticles.
+	 *
+	 * *********************/
     void SinglePhoton::GetFinalStatePFParticleVectors(const PFParticleIdMap &pfParticleMap, const lar_pandora::PFParticlesToVertices &pfParticlesToVerticesMap, PFParticleVector &crParticles, PFParticleVector &nuParticles )
     {
 
