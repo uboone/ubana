@@ -534,15 +534,16 @@ bool NuCCanalyzer::IsContained(float x, float y, float z, const std::vector<floa
 }
 
 bool NuCCanalyzer::IsMuonCandidate()
-{
-  fIsMuonCandidate = m_muon_cut_trackscore < fTrackScore &&
-                     m_muon_cut_vtxdistance > fVtxDistance && 
-                     m_muon_cut_protonchi2 > fTrackPID_chiproton &&
-                     m_muon_cut_muonchi2 < fTrackPID_chimuon && 
-                     m_muon_cut_protonchi2 > fTrackPID_chiproton &&
-                     m_muon_cut_chiratio > (fTrackPID_chiproton/fTrackPID_chimuon);
-
-  return fIsMuonCandidate;
+{ 
+    fIsMuonCandidate = fGeneration == 2 &&
+                     m_muon_cut_trackscore < fTrackScore &&
+                     m_muon_cut_vtxdistance > fVtxDistance &&
+                     m_muon_cut_protonchi2 < fTrackPID_chiproton &&
+                     m_muon_cut_muonchi2 > fTrackPID_chimuon &&
+                     m_muon_cut_length < fTrackLength &&
+                     m_muon_cut_chiratio < (fTrackPID_chiproton / fTrackPID_chimuon);
+                     
+     return fIsMuonCandidate;
 }
 
 bool NuCCanalyzer::IsNuMuCC(art::Event const &evt)
