@@ -80,6 +80,7 @@
 #include <sys/stat.h>
 
 #include "bad_channel_matching.h"
+#include "sssVeto_BDT.class.h"
 #include "DBSCAN.h"
 //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -729,6 +730,8 @@ class cluster {
 
             int m_sss_num_candidates;
 
+             ReadBDT * sssVetov1;
+
             std::vector<int> m_sss_candidate_num_hits;
             std::vector<int> m_sss_candidate_num_wires;
             std::vector<int>  m_sss_candidate_num_ticks;
@@ -736,6 +739,7 @@ class cluster {
             std::vector<double> m_sss_candidate_PCA;
             std::vector<double> m_sss_candidate_impact_parameter;
             std::vector<double> m_sss_candidate_fit_slope;
+            std::vector<double> m_sss_candidate_veto_score;
             std::vector<double> m_sss_candidate_fit_constant;
             std::vector<double>  m_sss_candidate_mean_tick;
             std::vector<double> m_sss_candidate_max_tick;
@@ -746,7 +750,7 @@ class cluster {
             std::vector<double> m_sss_candidate_min_dist;
             std::vector<double> m_sss_candidate_energy;
             std::vector<double> m_sss_candidate_angle_to_shower;
-       
+            std::vector<double> m_sss_candidate_closest_neighbour;
             std::vector<int>   m_sss_candidate_matched;
        std::vector<int>       m_sss_candidate_pdg;
       std::vector<int>        m_sss_candidate_parent_pdg;

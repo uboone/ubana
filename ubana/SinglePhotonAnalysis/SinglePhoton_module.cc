@@ -104,6 +104,9 @@ namespace single_photon
                 exit(0);
             }
         }
+ 
+                std::vector<std::string> inputVars = { "sss_candidate_num_hits", "sss_candidate_num_wires", "sss_candidate_num_ticks", "sss_candidate_PCA", "log10(sss_candidate_impact_parameter)", "log10(sss_candidate_min_dist)", "sss_candidate_impact_parameter/sss_candidate_min_dist", "sss_candidate_energy", "sss_candidate_angle_to_shower", "sss_reco_shower_energy", "sss_candidate_energy/sss_reco_shower_energy", "sss_candidate_fit_slope", "sss_candidate_fit_constant", "sss_candidate_plane" };
+                sssVetov1 = new ReadBDT(inputVars);
 
 
     }
