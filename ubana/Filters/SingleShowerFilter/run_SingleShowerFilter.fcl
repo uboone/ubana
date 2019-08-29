@@ -1,0 +1,57 @@
+# FHiCL document used to run the "driver" executable. To learn more
+#  about the FHiCL language, please look at
+#  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
+
+#include "time_memory_tracker_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+
+process_name: singleshowerfilter
+
+services:{
+}
+source:
+{
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+
+} # source
+
+physics:
+{	
+  analyzers:
+  {
+  }
+  producers:
+  {
+  }
+  filters:{
+  
+    SingleShowerFilter:
+     {
+      module_type: "SingleShowerFilter"
+      PFP_producer: "pandora"
+      ShowerScoreCut : 0.5
+      NumShowerCut: 1
+      }
+  }
+  stream1: [ out1 ]
+  filtering: [ SingleShowerFilter ]
+  trigger_paths: [ filtering ]
+  
+  end_paths: [ stream1 ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_SingleShowerFilter.root"
+    SelectEvents: [ filtering ]
+    dataTier:    "reconstructed"
+    compressionLevel: 1
+    outputCommands: ["keep *_*_*_*"]
+  }
+}
+
