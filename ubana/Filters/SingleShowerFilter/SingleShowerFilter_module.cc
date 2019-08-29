@@ -193,14 +193,14 @@ bool SingleShowerFilter::filter(art::Event & evt)
             //       If this is not the case please handle accordingly
             if (!nuParticles.empty())
             {
-                throw cet::exception("SinglePhoton") << "  This event contains multiple reconstructed neutrinos!";
+                throw cet::exception("SingleShowerFilter") << "  This event contains multiple reconstructed neutrinos!";
             }
 
             // Add the daughters of the neutrino PFParticle to the nuPFParticles vector
             for (const size_t daughterId : pParticle->Daughters())
             {
                 if (pfParticleMap.find(daughterId) == pfParticleMap.end())
-                    throw cet::exception("SinglePhoton") << "  Invalid PFParticle collection!";
+                    throw cet::exception("SingleShowerFilter") << "  Invalid PFParticle collection!";
 
                 nuParticles.push_back(pfParticleMap.at(daughterId));
             }
