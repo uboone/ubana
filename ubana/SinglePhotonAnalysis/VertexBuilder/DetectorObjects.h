@@ -23,7 +23,7 @@ struct DetectorObject {
   size_t const fid;
   size_t const foriginal_index;
   int const freco_type;
-  bool fis_associated;
+  bool fis_associated;//true when an object is associated.
   
   DetectorObject(size_t const id, size_t const original_index, int const reco_type) :
     fid(id),

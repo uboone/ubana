@@ -163,7 +163,7 @@ namespace single_photon
 		const double fshower_prox = 10;
 		const double fcpoa_vert_prox = 10; 
 		const double fcpoa_trackend_prox = 5;
-		friend class ObjectCandidates;
+		friend class Atlas;
 	//---------------------------
 
         public:
@@ -254,11 +254,11 @@ namespace single_photon
 			 *	an event, and filter out proper tracks/showers for 
 			 *	vertexing.
 			 *
-			 *ObjectCandidates (input/modified) contains maps and 
+			 *Atlas (input/modified) contains maps and 
 			 *	collections of pandora_objejcts that need to be modified.
 			 * ***********************/
 
-			void CollectTracksAndShowers_v2(const art::Event &evt, class ObjectCandidates &package, int run_count);
+			void CollectTracksAndShowers_v2(const art::Event &evt, class Atlas &package, int run_count);
 	//--------------------------------------------------
 
 
@@ -734,7 +734,7 @@ namespace single_photon
 
             //------------ VertexBuilder -------------
 
-			ParticleAssociations BobbyVertexBuilder_ext(class ObjectCandidates &package);
+			ParticleAssociations BobbyVertexBuilder_ext(class Atlas &package);
 			//---------------------------------------------------
 
             //added eventweight

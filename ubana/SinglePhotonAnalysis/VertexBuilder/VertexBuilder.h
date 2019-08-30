@@ -30,9 +30,9 @@ struct VertexBuilderTree {
 	int fevent_number;
 	int ftrack_number;
 	int fshower_number;
-	int fassociation_track_number;
-	int fassociation_shower_number;
-	int fassociation_final_number;
+	int fassociation_track_number; //number of track associations;
+	int fassociation_shower_number; //number of shower associations;
+	int fassociation_final_number; //number of total associations;
 
 	VertexBuilderTree() :
 		ftree(nullptr){}
@@ -62,10 +62,10 @@ class VertexBuilder {
 
 	size_t fobject_id;
 
-	double fstart_prox;
-	double fshower_prox;
-	double fcpoa_vert_prox; 
-	double fcpoa_trackend_prox;
+	double fstart_prox;//the maximum track proximity threshold (in cm)
+	double fshower_prox;//the maximum shower proximity threshold (in cm)
+	double fcpoa_vert_prox;//the maximum distance btw shower start to the cloest approach (in cm); 
+	double fcpoa_trackend_prox;//the maximum distance btw mid point of impact parameter of shower to the vertex (in cm);
 
 	DetectorObjects const * fdetos;
 
@@ -73,26 +73,51 @@ class VertexBuilder {
 
 	bool fverbose;
 
-	void CheckSetVariables();
+	void CheckSetVariables();// exit if the criteria are not set.
 
 	void Erase(std::multimap<size_t, geoalgo::Point_t const *> & pn,
 			std::multimap<size_t, geoalgo::Point_t const *>::iterator const best_it,
 			geoalgo::Point_t const & sv);
 
+	/*****************************
+	 *
+	 * AssociateTracks() - this associates tracks to either end points of other tracks
+	 *	whose are nearby.
+	 *
+	 * ***************************/
 	void AssociateTracks(ParticleAssociations & pas);
 	double FindClosestApproach(const geoalgo::HalfLine_t & shr1,
 			const geoalgo::HalfLine_t & shr2,
 			geoalgo::Point_t & vtx) const;
+
+	/*****************************
+	 *
+	 * AssociateShowers() - Run after AssociateTracks(); 
+	 *	this associates showers to either end points of a track
+	 *	that is considered to be from the same vertex.
+	 *
+	 * ***************************/
 	void AssociateShowers(ParticleAssociations & pas);
+
+
 	void AddLoneTracks(ParticleAssociations & pas);
 	void AddLoneShowers(ParticleAssociations & pas);
+
+
+	/*****************************
+	 *
+	 * AssociateShowers() - Run after AssociateTracks(); 
+	 *	this associates showers to either end points of a track
+	 *	that is considered to be from the same vertex.
+	 *
+	 * ***************************/
 	void FillVBT(ParticleAssociations & pas);
 
 	public:
 
 	VertexBuilder();
 
-	void SetVerbose(bool const verbose = true) {
+	void SetVerbose(bool const verbose = true) {//allow output info. to the terminal
 		fverbose = verbose;
 	}
 
@@ -124,13 +149,14 @@ class VertexBuilder {
 		fcpoa_trackend_prox = cpoa_trackend_prox;
 	}
 
-	void SetVBT(VertexBuilderTree * vbt) {fvbt = vbt;}
+//	void SetVBT(VertexBuilderTree * vbt) {fvbt = vbt;}
 
 	//  void AddTracks(art::ValidHandle<std::vector<recob::Track>> const & ev_t);
 	//  void AddShowers(art::ValidHandle<std::vector<recob::Shower>> const & ev_s);
-	void AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t);
-	void AddShowers(std::vector<art::Ptr<recob::Shower>> const & ev_t);
-
+//	void AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t);
+//	void AddShowers(std::vector<art::Ptr<recob::Shower>> const & ev_t);
+	
+	// The main code is here; it calls up all the necessary process.
 	void Run(ParticleAssociations & pas);
 
 };
@@ -178,31 +204,31 @@ VertexBuilder::VertexBuilder() :
 void VertexBuilder::CheckSetVariables() { //this was initialized 
 
   if(fstart_prox == -1) {//It start_prox was not previously defined, exit.
-    std::cout << "fstart_prox not set\n";
+    std::cout << "fstart_prox, the maximum track proximity threshold, is not set\n";
     exit(1);
-  } 
+  }
 
   if(fshower_prox == -1) {
-    std::cout << "fshower_prox not set\n";
+    std::cout << "fshower_prox, the maximum shower proximity threshold, is  not set\n";
     exit(1);
-  } 
+  }
 
   if(fcpoa_vert_prox == -1) {
-    std::cout << "fcpoa_vert_prox not set\n";
+    std::cout << "fcpoa_vert_prox, the maximum distance btw shower start to the cloest approach, is not set\n";
     exit(1);
-  } 
+  }
 
   if(fcpoa_trackend_prox == -1) {
-    std::cout << "fcpoa_trackend_prox not set\n";
+    std::cout << "fcpoa_trackend_prox, the maximum distance btw mid point of impact parameter of shower to the vertex, is not set\n";
     exit(1);
-  } 
+  }
 
 }
 
 
 void VertexBuilder::Erase(std::multimap<size_t, geoalgo::Point_t const *> & pn,
 			  std::multimap<size_t, geoalgo::Point_t const *>::iterator const best_it,
-			  geoalgo::Point_t const & sv) {//Remove point-candidate that has been analyzed.
+			  geoalgo::Point_t const & sv) {//Remove candidates that have been analyzed.
 
   size_t const index = best_it->first;
   pn.erase(best_it);
@@ -950,17 +976,19 @@ void VertexBuilder::AssociateShowers(ParticleAssociations & pas) {
 
 
 void VertexBuilder::AddLoneTracks(ParticleAssociations & pas) {
-
+	//fdetos, detectorobjects
   for(size_t const gn : fdetos->GetTrackIndices()) {
+  //goes over recob::track index, gn
+	
+	//Track is a struct defined in DetectorObjects.h
+    Track const & t = fdetos->GetTrack(gn);//t is track
 
-    Track const & t = fdetos->GetTrack(gn);
-
-    if(t.fis_associated) continue;
+    if(t.fis_associated) continue;//this will jump to the end of the loop and goes with next gn; triger this when the track is associated.
 
     geoalgo::Point_t const * track_end = nullptr;
     double zmin = 2000;
 
-    geoalgo::Point_t const & front = t.ftrajectory.front();
+    geoalgo::Point_t const & front = t.ftrajectory.front();//end points of the track?
     if(front.at(2) < zmin) {
       track_end = &front;
       zmin = front.at(2);
@@ -1023,14 +1051,17 @@ void VertexBuilder::Run(ParticleAssociations & pas) {//Analysis the tracks & sho
 
   fdetos = &pas.GetDetectorObjects();
 
+//Make two associations, for tracks and showers.
   if(fverbose) std::cout << "Associate tracks\n";
   AssociateTracks(pas);
   //fvbt is the object, it means.. if the object is not empty, do something.
   if(fvbt) fvbt->fassociation_track_number = pas.GetAssociations().size();
   if(fverbose) std::cout << "Associate showers\n";
   AssociateShowers(pas);
+
   if(fvbt) fvbt->fassociation_shower_number = pas.GetAssociations().size();
 
+//CHECK, repeat for long objects?
   if(fverbose) std::cout << "Add lone tracks\n";
   AddLoneTracks(pas);
   if(fverbose) std::cout << "Add lone showers\n";
@@ -1040,8 +1071,8 @@ void VertexBuilder::Run(ParticleAssociations & pas) {//Analysis the tracks & sho
   if(fvbt) fvbt->fassociation_final_number = pas.GetSelectedAssociations().size();
 
   if(fvbt) {//after the association is finished (found the vertex), fill in in the tree.
-    if(fverbose) std::cout << "Fill VBT\n";
-    FillVBT(pas);
+	  if(fverbose) std::cout << "Fill VBT\n";
+	  FillVBT(pas);
   }
 
   pas.NodeCheck();

@@ -9,6 +9,7 @@
 #include "second_shower_search.h"
 #include "isolation.h"
 #include "BobbyVertexBuilder.h"
+#include "Atlas.h"
 
 using namespace std;
 
@@ -405,16 +406,18 @@ namespace single_photon
 
 //	cout<<"CHECK! create object\n\n\n\n"<<endl;
 		//Make an object and pack up stuffs we need.
-		ObjectCandidates packed_objects;
+		Atlas packed_objects(evt, {m_trackLabel, m_showerLabel});
 		packed_objects.particles				= nuParticles;//no cosmic ray PFParticles
-		packed_objects.all_tracks				= trackVector;
-		packed_objects.all_showers				= showerVector;
+//		packed_objects.all_tracks				= trackVector;
+//		packed_objects.all_showers				= showerVector;
 
 		packed_objects.collected_tracks			= tracks;
 		packed_objects.collected_showers		= showers;
-		packed_objects.primaryPFPSliceIdVec		= primaryPFPSliceIdVec;
-		packed_objects.trackToNuPFParticleMap	= trackToNuPFParticleMap;
-		packed_objects.showerToNuPFParticleMap	= showerToNuPFParticleMap;
+
+//these maps are empty by default
+//		packed_objects.primaryPFPSliceIdVec		= primaryPFPSliceIdVec;
+//		packed_objects.trackToNuPFParticleMap	= trackToNuPFParticleMap;
+//		packed_objects.showerToNuPFParticleMap	= showerToNuPFParticleMap;
 		packed_objects.PFParticleMap			= pfParticleMap;
 		packed_objects.sliceIdToNuScoreMap		= sliceIdToNuScoreMap;
 		packed_objects.PFPToClearCosmicMap		= PFPToClearCosmicMap;
@@ -473,8 +476,9 @@ redo_event:
 		//use the new ObjectCandidate class for variables.
 		ParticleAssociations const & bobby_particle_associations = BobbyVertexBuilder_ext(packed_objects);
 		//introduce a for loop for all particle associations identified by Bobby's VertexBuilder
+		//CHECK, I think no trees for the no-association case.
 		for(size_t const nth_associations : bobby_particle_associations.GetSelectedAssociations()) {//Loop over all associations, which is a vector
-			std::cout<<"Filling in Bobby's Vertex info."<<std::endl;
+			std::cout<<"Filling in Bobby's Vertex info. "<<bobby_particle_associations.GetSelectedAssociations().size()<<" Vertex candidates here."<<std::endl;
 			ParticleAssociation const & particle_associated = bobby_particle_associations.GetAssociations().at(nth_associations);//grab the "pn"th association;
 			geoalgo::Point_t const & reco_vertex = particle_associated.GetRecoVertex();//Grab the vertec of the "pn"th association.
 
@@ -1069,6 +1073,7 @@ redo_event:
         int found = 0;
         int primaries = 0;
         int full = 0;
+		//everything from the pfParticleMap, and look inside the element one by one.
         for (PFParticleIdMap::const_iterator it = pfParticleMap.begin(); it != pfParticleMap.end(); ++it)
         {
             const art::Ptr<recob::PFParticle> pParticle(it->second);
@@ -1088,11 +1093,7 @@ redo_event:
                 found++;
                 this->GetVertex(pfParticlesToVerticesMap, pParticle );
 
-            }
-
-            // All non-neutrino primary particles are reconstructed under the cosmic hypothesis
-            if (!isNeutrino)
-            {
+            } else{ // All non-neutrino primary particles are reconstructed under the cosmic hypothesis
                 crParticles.push_back(pParticle);
                 continue;
             }

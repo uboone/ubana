@@ -4,6 +4,7 @@
 #define __BOBBYVERTEXBUILDER_H__
 
 #include "SinglePhoton_module.h"
+#include "Atlas.h"
 
 //---VertexBuilder---
 #include "VertexBuilder/VertexBuilder.h"
@@ -33,76 +34,6 @@ using namespace std;
 
 namespace single_photon
 {
-		/***************
-	 * A class that designed for storing addresses for all associated (to an event) tracks, showers, 
-	 *		and their cooresponding PFParticles.
-	 *	evt (input) - the event that we currently look at.
-	 *	tracks (modified) - a vector contains associated track pointers. 
-	 *	showers (modified) - a vector contains associated shower pointers.
-	 *	trackToNuPFParticleMap (modified) - the map btw the track and the PFParticle.
-	 *	showerToNuPFParticleMap (modified) - the map btw the shower and the PFParticle.
-	 * *************/
-
-//	typedef std::vector< art::Ptr<recob::PFParticle> > PFParticleVector;
-//	typedef std::vector< art::Ptr<recob::Track> > TrackVector;
-//	typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
-//	typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
-	class ObjectCandidates{//Initialize this with event address;
-//		art::Event event;//dont care what event we are looking at.
-		friend class SinglePhoton;//private as default
-
-//		protected:
-//		art::Event evt;
-//		art::ValidHandle< std::vector<recob::PFParticle> > PFParticleHandle;
-
-		public:
-		//Constructor
-		ObjectCandidates();
-//		ObjectCandidates(const art::Event &evt);
-
-//		~ObjectCandidates(){};
-//		//main stuffs that we feed into the vertex builder.
-		std::vector< art::Ptr<recob::PFParticle> >						particles;
-		std::vector< art::Ptr<recob::Track> >							all_tracks;
-		std::vector< art::Ptr<recob::Shower> >							all_showers;
-
-		//Collections of tracks/showers that to be fed into the vertex builder, 
-		//	it is different from the track/shower map.
-		std::vector< art::Ptr<recob::Track> >							collected_tracks;
-		std::vector< art::Ptr<recob::Shower> >							collected_showers;
-
-//		std::vector< art::Ptr<recob::PFParticle> >						backup_PFParticles;
-		std::vector< art::Ptr<recob::Track> >							backup_tracks; //These two backup_objects are used to search for additional objects.
-		std::vector< art::Ptr<recob::Shower> >							backup_showers; 
-		//Pairs that connect PFParticle to sliceID.
-		std::vector<std::pair<art::Ptr<recob::PFParticle>,int>>			primaryPFPSliceIdVec;
-		
-		//Maps for more pandora objects.
-		std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>	trackToNuPFParticleMap;
-		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
-		std::map< size_t, art::Ptr<recob::PFParticle>>					PFParticleMap;
-		std::map<int, double>											sliceIdToNuScoreMap;
-		std::map<art::Ptr<recob::PFParticle>,bool>						PFPToClearCosmicMap;
-		std::map<art::Ptr<recob::PFParticle>, int> 						PFPToSliceIdMap;
-		std::map<art::Ptr<recob::PFParticle>,bool> 						PFPToNuSliceMap;
-		std::map<art::Ptr<recob::PFParticle>,double>					PFPToTrackScoreMap;
-		std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > PFParticleToMetadataMap;
-
-		//FindManyP's!
-		//specially for the number of coorresponding recob (pandora_objects) to a PFParticle;
-		// exp: PFParticleIsATrack[particles.key()] gives the vector that containts all 
-		//		cooresponding tracks;
-		art::FindManyP< recob::Track	>*								PFParticleAsATrack;
-		art::FindManyP< recob::Shower	>*								PFParticleAsAShower;
-//		art::FindManyP< recob::Track	> PFParticleAsATrack(PFParticleHandle, evt, m_trackLabel);
-//		art::FindManyP< recob::Shower	> PFParticleAsAShower(PFParticleHandle, evt, m_showerLabel);
-	};
-		//Constructor
-		ObjectCandidates::ObjectCandidates(){}
-		//Overloaded Constructor
-//		ObjectCandidates::ObjectCandidates(const art::Event &evt){
-//			const PFParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);//This is useful for FindManyP< reco::Track/Shower>
-//		}
 
 	/*****************************
 	 * CollectTracksAndShowers () - this associates tracks and showers to one event.
@@ -113,12 +44,12 @@ namespace single_photon
 	 *
 	 *
 	 *	UPGRADE! Everything but the event
-	 *		are packed to the ObjectCandidates in v2;
+	 *		are packed to the Atlas in v2;
 	 * **************************/
 
 	void SinglePhoton::CollectTracksAndShowers_v2(
 			const art::Event &evt,
-			class ObjectCandidates &package,
+			class Atlas &package,
 			int run_count){
 		if(run_count>2){//Um.. something goes wrong if this is true
 			mf::LogDebug("SinglePhoton") << "  It seems that we loop the VertexBuilder too much.\n";
@@ -166,29 +97,29 @@ namespace single_photon
 			//pfParticleToTrackAssoc is a FindManyP<reco::Track> from <pfParticleHandle, evt,m_trackLabel)
 			//associatedTracks is a copy of pfPartToTrackAssoc.at(pParticle.key()));
 			//nTracks = associatedTracks.size()
-			
+
 			//Make a copy of vectors we need, lazy as I am~
 			const std::vector< art::Ptr<recob::Track> > ToBeAddedTracks((package.PFParticleAsATrack)->at(pParticle.key()));
 			const std::vector< art::Ptr<recob::Shower> > ToBeAddedShowers((package.PFParticleAsAShower)->at(pParticle.key()));
-				
+
 			const unsigned int nTracks(ToBeAddedTracks.size());
 			const unsigned int nShowers(ToBeAddedShowers.size());
 
 			//Check if we can add a track/a shower that is identified from a PFParticle.
 //		cout<<"CHECK! # of tracks/showers are ready, over!"<<endl;
-			if(nTracks + nShowers == 0){//Um... the PFParticle is not identified as track or shower;
+			if( nTracks + nShowers == 0 ){//Um... the PFParticle is not identified as track or shower;
 //		cout<<"00"<<endl;
 				mf::LogDebug("SinglePhoton") << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << "\n";
-			} else if(nTracks + nShowers > 1){
+			}else if( nTracks + nShowers > 1 ){
 //		cout<<"11"<<endl;
 				//Check, do I need throw??
 				throw cet::exception("SinglePhoton") << "  There were " << nTracks << " tracks and " << nShowers << " showers associated with PFParticle " << pParticle->Self();
 				
 			//Ok, if going through the below if-elses, it means we have a shower/ a track!
-			} else if( nTracks == 1){ //Add a Track
+			}else if( nTracks == 1 ){ //Add a Track
 
 //				cout<<"10"<<endl;
-				if(package.PFPToClearCosmicMap[pParticle] == 1){//add cosmic PFParticle;
+				if( package.PFPToClearCosmicMap[pParticle] == 1 ){//add cosmic PFParticle;
 					(cosmic_tracks).push_back(ToBeAddedTracks.front());
 					(package.trackToNuPFParticleMap)[(cosmic_tracks).back()]= pParticle;
 
@@ -202,13 +133,13 @@ namespace single_photon
 				}
 				std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  ToBeAddedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
-			} else if( nShowers == 1){ //Add a Shower
+			}else if( nShowers == 1 ){ //Add a Shower
 //				cout<<"01"<<endl;
-				if(package.PFPToClearCosmicMap[pParticle] == 1){//add cosmic PFParticle;
+				if( package.PFPToClearCosmicMap[pParticle] == 1 ){//add cosmic PFParticle;
 					(cosmic_showers).push_back(ToBeAddedShowers.front());
 					(package.showerToNuPFParticleMap)[(cosmic_showers).back()]= pParticle;
 
-				}else if(m_bobbyvertexing_more && !(package.PFPToNuSliceMap[pParticle])){//we want more particles that is not in the most nu-like slice;
+				}else if( m_bobbyvertexing_more && !(package.PFPToNuSliceMap[pParticle]) ){//we want more particles that is not in the most nu-like slice;
 					(package.backup_showers).push_back(ToBeAddedShowers.front());
 					(package.showerToNuPFParticleMap)[(package.backup_showers).back()]= pParticle;
 
@@ -221,6 +152,7 @@ namespace single_photon
 
 			//repeat this loop for another PFParticle in the candidate_particles.
 		}
+
 		package.collected_showers.clear();//dont know if these help;
 		package.collected_tracks.clear();
 		switch (run_count)
@@ -252,10 +184,12 @@ namespace single_photon
 				break;
 
 			default://actually only case 0 allowed here;
+
 				cout<<"\n\n Load objects form the selected nu slice!"<<endl;
 				package.collected_showers = wanted_showers;
 				package.collected_tracks = wanted_tracks;
 		}
+
 /*
 		if(m_bobbyvertexing_more){//Include all PFParticles
 			cout<<"Oh! You want to run on Nu particles, but with more objects from other possible slices."<<endl;
@@ -285,7 +219,7 @@ namespace single_photon
 	 *
 	 * ***************************
 
-	void ReconsiderMoreCandidates(ParticleAssociations &candidates, class ObjectCandidates &package){
+	void ReconsiderMoreCandidates(ParticleAssociations &candidates, class Atlas &package){
 
 	// Ingredients:
 		package.backup_showers;
@@ -304,7 +238,7 @@ namespace single_photon
 		AssociateTracks(pas);//this is the code for associating the tracks, see 1027 at VertexBuilder.h
 		AssociateShowers(pas);//this is the code for associating the showers
 	}*/
-	
+
 
 	/****************************
 	 *
@@ -312,7 +246,7 @@ namespace single_photon
 	 *
 	 * **************************/
 
-	ParticleAssociations SinglePhoton::BobbyVertexBuilder_ext(class ObjectCandidates &package){
+	ParticleAssociations SinglePhoton::BobbyVertexBuilder_ext(class Atlas &package){
 		bool fverbose = true;
 
 		//PUT THIS FUNCTION INSIDE SINGLEPHOTON_MODULE.h
@@ -335,9 +269,9 @@ namespace single_photon
 		vbuilder.SetMaximumShowerIP(fshower_prox);
 		vbuilder.CPOAToVert(fcpoa_vert_prox);
 		vbuilder.SetMaximumTrackEndProx(fcpoa_trackend_prox);
-		//
+
 		//		if(fvbuildert.ftree) vbuilder.SetVBT(&fvbuildert);
-		//
+
 		candidates.SetVerbose(fverbose);
 
 		if(fverbose) std::cout << "\n\nRun vertex builder with: \n";
@@ -356,7 +290,7 @@ namespace single_photon
 
 		vbuilder.Run(candidates);//here deals with the candidates and find the vertex.
 
-	
+
 		cout<<"\n/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*"<<endl;
 		cout<<"Bobby Revertexing is finished. Now start to fill in the TTree."<<endl;
 		cout<<"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*\n"<<endl;

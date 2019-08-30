@@ -7,6 +7,7 @@
 #include "DetectorObjects.h"
 #include <fstream>//read and write txt file.
 
+using namespace std;
 
 //what does f in fxxxx  mean ????
 
@@ -91,7 +92,7 @@ class ParticleAssociations{
   std::vector<size_t> fobject_index_v;
   std::vector<size_t> fassociation_index_vec;
   std::vector<size_t> fignore_association_vec;
-  std::vector<size_t> fselected_associations;
+  std::vector<size_t> fselected_associations;//Indices of selected associations (candidate vertice). Done under GetShowerAssociations()
 
   bool fverbose;
 
@@ -137,12 +138,18 @@ public:
 
   std::vector<size_t> GetAssociationIndicesFromObject(size_t const n);
 
-  void IgnoreAssociation(size_t const n) {
+  void IgnoreAssociation(size_t const n) {//CHECK, when do we use IgnoreAssociation??
+	cout<<"\n\n\n\n CHECK Here is where I use the IgnoreAssociation"<<endl;
     fignore_association_vec.push_back(n);
   }
-  bool Ignore(size_t const i) const;
+//  bool Ignore(size_t const i) const;
   //bool HandleLoop(std::vector<size_t> const & previously_considered);
   void IgnoreThis(size_t const to_ignore, size_t const connected_index, std::vector<size_t> & previously_considered);
+
+
+  /*********************
+   *
+   * ******************************/
   void IgnoreAssociationsConnectedTo(size_t const i);
 
   void ClearIgnored() {
@@ -321,14 +328,20 @@ std::vector<size_t> ParticleAssociations::GetAssociationIndicesFromObject(size_t
   
 }
 
-
+/*CHECK
 bool ParticleAssociations::Ignore(size_t const i) const {
   auto const sk_it =
-    std::find(fignore_association_vec.begin(), fignore_association_vec.end(), i);
-  if(sk_it == fignore_association_vec.end()) return false;
-  else return true;
+    std::find(fignore_association_vec.begin(), fignore_association_vec.end(), i);//return the iterator who points to the number i.
+  if(sk_it == fignore_association_vec.end()) {
+		cout<<" Ok.. Ignore() is going to return false CHECK)"<<endl;
+		//Null==Null??
+	  return false; //it seems like this will never be truth.
+  }
+  else{
+	  return true;
+  }
 }
-
+*/
 
 /*
 bool ParticleAssociations::HandleLoop(std::vector<size_t> const & previously_considered) {
@@ -367,6 +380,7 @@ void ParticleAssociations::IgnoreThis(size_t const to_ignore, size_t const conne
   }
 
 }
+
 
 
 void ParticleAssociations::IgnoreAssociationsConnectedTo(size_t const i) {
@@ -513,9 +527,6 @@ void ParticleAssociations::GetShowerAssociations() {
 				asso_shower = true;
 				break;
 			}
-//			}else{
-//				temp_num_tracks++;//Keng
-//			}
 		}
 		if(asso_shower) {
 			pa_map.emplace(pa.GetRecoVertex().at(2), i);//
@@ -529,13 +540,34 @@ void ParticleAssociations::GetShowerAssociations() {
 //	save_shower<< temp_num_showers <<" "<< temp_num_tracks<<std::endl;
 //	save_shower.close();
 
+/* the old if-else condition;
+bool ParticleAssociations::Ignore(size_t const i) const {
+  auto const sk_it =
+    std::find(fignore_association_vec.begin(), fignore_association_vec.end(), i);//return the iterator who points to the number i.
+  if(sk_it == fignore_association_vec.end()) {
+		cout<<" Ok.. Ignore() is going to return false CHECK)"<<endl;
+		//Null==Null??
+	  return false; //it seems like this will never be truth.
+  }
+  else{
+	  return true;
+  }
+}
+ */
 	if(fverbose) std::cout << "Loop over filled map\n";
 
 	for(std::pair<double, size_t> const & p : pa_map) {
 		if(fverbose) std::cout << "\tAssociation: " << p.second << " " << "z-position: " << p.first << "\n"; 
-		if(Ignore(p.second)) continue;
+
+		auto const sk_it = std::find(fignore_association_vec.begin(), fignore_association_vec.end(), p.second);//return the iterator who points to the number i.
+		if( sk_it != fignore_association_vec.end() ){ //Ignore(the association index)
+			cout<<"Ignore(p.second) is true"<<endl;
+			continue;//proceed when the Ignore() gives false; it means sk_it == fignore_association_vec.end();
+		}
+		//if sk_it is not the last fignore_associatino_vec, then do the follwoing
+		cout<<"CHECK I do Have a list to ignore "<<fignore_association_vec.size()<<endl;
 		IgnoreAssociationsConnectedTo(p.second);
-		fselected_associations.push_back(p.second);
+		fselected_associations.push_back(p.second);//CHECK, here is where we select the vertex.
 	}
 
 	if(fverbose) std::cout << "ClearIgnored\n";
