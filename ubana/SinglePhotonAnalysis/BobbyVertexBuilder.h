@@ -60,7 +60,7 @@ namespace single_photon
 		//	if the slice is nu_slice or not.
 		this->AnalyzeSlices(
 				package.PFParticleToMetadataMap, 
-				package.PFParticleMap,  
+				package.IDToPFParticleMap,  
 				package.primaryPFPSliceIdVec, 
 				package.sliceIdToNuScoreMap, 
 				package.PFPToClearCosmicMap, 
