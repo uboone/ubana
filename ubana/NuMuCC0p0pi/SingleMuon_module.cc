@@ -654,7 +654,7 @@ void SingleMuon::analyze(art::Event const& evt)
         dEdx_pl2_start_half = std::accumulate(dEdx_pl2.end() - half_size_pl2, dEdx_pl2.end(), 0.) / half_size_pl2;
         dEdx_pl2_end_half = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
         // dEdx_10
-        if (dEdx_pl0.size()<10) {
+        if (dEdx_pl0.size()<=10) {
           dEdx_pl0_start10 = dEdx_pl0_start_half;
           dEdx_pl0_end10 = dEdx_pl0_end_half;
         }
@@ -662,7 +662,7 @@ void SingleMuon::analyze(art::Event const& evt)
           dEdx_pl0_start10 = std::accumulate(dEdx_pl0.end() - 10, dEdx_pl0.end(), 0.) / 10.;
           dEdx_pl0_end10 = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + 10, 0.) / 10.;
         }
-        if (dEdx_pl1.size()<10) {
+        if (dEdx_pl1.size()<=10) {
           dEdx_pl1_start10 = dEdx_pl1_start_half;
           dEdx_pl1_end10 = dEdx_pl1_end_half;
         }
@@ -670,7 +670,7 @@ void SingleMuon::analyze(art::Event const& evt)
           dEdx_pl1_start10 = std::accumulate(dEdx_pl1.end() - 10, dEdx_pl1.end(), 0.) / 10.;
           dEdx_pl1_end10 = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + 10, 0.) / 10.;
         }
-        if (dEdx_pl2.size()<10) {
+        if (dEdx_pl2.size()<=10) {
           dEdx_pl2_start10 = dEdx_pl2_start_half;
           dEdx_pl2_end10 = dEdx_pl2_end_half;
         }
@@ -679,7 +679,7 @@ void SingleMuon::analyze(art::Event const& evt)
           dEdx_pl2_end10 = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + 10, 0.) / 10.;
         }
         // dEdx_1020
-        if (dEdx_pl0.size()<30) {
+        if (dEdx_pl0.size()<=30) {
           dEdx_pl0_start1020 = dEdx_pl0_start_half;
           dEdx_pl0_end1020 = dEdx_pl0_end_half;
         }
@@ -687,7 +687,7 @@ void SingleMuon::analyze(art::Event const& evt)
           dEdx_pl0_start1020 = std::accumulate(dEdx_pl0.end() - 20, dEdx_pl0.end() - 10, 0.) / 10.;
           dEdx_pl0_end1020 = std::accumulate(dEdx_pl0.begin() + 10, dEdx_pl0.begin() + 20, 0.) / 10.;
         }
-        if (dEdx_pl1.size()<30) {
+        if (dEdx_pl1.size()<=30) {
           dEdx_pl1_start1020 = dEdx_pl1_start_half;
           dEdx_pl1_end1020 = dEdx_pl1_end_half;
         }
@@ -695,7 +695,7 @@ void SingleMuon::analyze(art::Event const& evt)
           dEdx_pl1_start1020 = std::accumulate(dEdx_pl1.end() - 20, dEdx_pl1.end() - 10, 0.) / 10.;
           dEdx_pl1_end1020 = std::accumulate(dEdx_pl1.begin() + 10, dEdx_pl1.begin() + 20, 0.) / 10.;
         }
-        if (dEdx_pl2.size()<30) {
+        if (dEdx_pl2.size()<=30) {
           dEdx_pl2_start1020 = dEdx_pl2_start_half;
           dEdx_pl2_end1020 = dEdx_pl2_end_half;
         }
