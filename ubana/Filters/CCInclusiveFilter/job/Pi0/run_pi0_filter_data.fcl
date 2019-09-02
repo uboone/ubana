@@ -1,0 +1,56 @@
+#include "pi0filter.fcl"
+#include "time_memory_tracker_microboone.fcl"
+#include "services_microboone.fcl"
+
+process_name: MCC9Pi0Filter
+
+services:{
+    TFileService: {fileName: "pi0filter.root" }
+    @table::microboone_services_reco
+    DetectorClocksService:    @local::microboone_detectorclocks
+}
+
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -0.400e3
+
+source:
+{
+    module_type: RootInput
+}
+
+physics:
+{	
+    analyzers:
+    {
+    }
+    
+    producers:
+    {
+    }
+    
+    filters:
+    {
+        mcc9pi0filter: @local::mcc9pi0selection
+    }
+    
+    prod: [ mcc9pi0filter ]
+    stream: [ out1 ]
+
+    trigger_paths: [ prod ]
+    end_paths: [ ] #stream ]
+}
+
+physics.filters.mcc9pi0filter.IsData: true
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_numuccfilter.root"
+    SelectEvents: [ prod ]
+    dataTier:    "reconstructed"
+    compressionLevel: 1
+  }
+}
+

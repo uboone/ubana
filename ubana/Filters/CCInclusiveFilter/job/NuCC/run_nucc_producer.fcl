@@ -1,0 +1,56 @@
+#include "time_memory_tracker_microboone.fcl"
+#include "services_microboone.fcl"
+
+process_name: ccnumuincproducer
+
+services:{
+    TFileService: {fileName: "NuCCproducer.root" }
+    @table::microboone_services_reco
+    DetectorClocksService:    @local::microboone_detectorclocks
+}
+
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -0.400e3
+
+source:
+{
+    module_type: RootInput
+}
+
+physics:
+{	
+    analyzers:
+    {
+    }
+    
+    producers:
+    {
+        NuCCproducer:
+        {
+            module_type: "NuCCproducer"
+        }
+    }
+    
+    filters:
+    {
+    }
+    
+    prod: [ NuCCproducer ]
+    stream: [ out1 ]
+
+    trigger_paths: [ prod ]
+    end_paths: [ stream ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_numuccfilter.root"
+    SelectEvents: []
+    dataTier:    "reconstructed"
+    compressionLevel: 1
+  }
+}
+
