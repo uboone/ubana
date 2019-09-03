@@ -1,4 +1,4 @@
-#include "pi0filter.fcl"
+#include "microboone_pi0filter.fcl"
 #include "time_memory_tracker_microboone.fcl"
 #include "services_microboone.fcl"
 
