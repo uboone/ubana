@@ -29,6 +29,8 @@
 //#include "TF1.h"
 //#include "TEllipse.h"
 
+//the following is not working yet
+//#include <curses.h> //Use LINES and COLS to get the dimensions of the screen
 
 using namespace std;
 
@@ -36,15 +38,18 @@ namespace single_photon
 {
 
 	/*****************************
-	 * CollectTracksAndShowers () - this associates tracks and showers to one event.
-	 *		Tracks and showers come from pfParticles.
-	 *	particles(input) - a std::vector< art::Ptr<recob::PFParticle> > for all pfparticle address of the nuslice
-	 *	pfParticleMap(input) - a std::map< size_t, art::Ptr<recob::PFParticle>> for all pfparticle address (I think the address is stored in the *.second?).
-	 *	pfParticleHandle (input) - ???
+	 * CollectTracksAndShowers_v2() - Fill in package.collected_showers and
+	 *	package.collected_tracks based on the run_count.
 	 *
+	 *  packahe (to be modified) - contains all vectors and maps that are
+	 *		needed to access pandora_objects; it will be modified as
+	 *		the code runs.
 	 *
-	 *	UPGRADE! Everything but the event
-	 *		are packed to the Atlas in v2;
+	 *	run_count (input) - has values 0,1,2; each number indicates differnt collections of slices: 
+	 *		0 - selected nu_slice; 
+	 *		1 - not-selected nu_slices; 
+	 *		2 - cosmic slices (non-nu_slices). 
+	 *
 	 * **************************/
 
 	void SinglePhoton::CollectTracksAndShowers_v2(
@@ -58,15 +63,6 @@ namespace single_photon
 //		cout<<"CHECK! Get in CollectTracksAndShowers_v2 over!\n\n\n"<<endl;
 		//the following function labels objects with sliceID and tell
 		//	if the slice is nu_slice or not.
-		this->AnalyzeSlices(
-				package.PFParticleToMetadataMap, 
-				package.IDToPFParticleMap,  
-				package.primaryPFPSliceIdVec, 
-				package.sliceIdToNuScoreMap, 
-				package.PFPToClearCosmicMap, 
-				package.PFPToSliceIdMap, 
-				package.PFPToNuSliceMap, 
-				package.PFPToTrackScoreMap);
 		
 //		cout<<"CHECK! AnalyzeSlices pass over!\n\n\n"<<endl;
 		//set up what particles to look at
@@ -153,13 +149,13 @@ namespace single_photon
 			//repeat this loop for another PFParticle in the candidate_particles.
 		}
 
-		package.collected_showers.clear();//dont know if these help;
+		package.collected_showers.clear();//no need these, but they dont hurt;
 		package.collected_tracks.clear();
 		switch (run_count)
 		{
 			case 1:
 				cout<<"\n\n Load objects form other nu slices!"<<endl;
-				(package.collected_showers).reserve(package.backup_showers.size()+wanted_tracks.size());
+				(package.collected_showers).reserve( package.backup_showers.size() + wanted_tracks.size());
 				(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
 				(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
 				//ok, same for tracks
@@ -172,12 +168,12 @@ namespace single_photon
 			case 2:
 				cout<<"\n\n Load objects form other nu slices and cosmic slices!"<<endl;
 
-				(package.collected_showers).reserve(cosmic_showers.size()+package.backup_showers.size()+wanted_tracks.size());
+				(package.collected_showers).reserve( cosmic_showers.size() + package.backup_showers.size() + wanted_tracks.size());
 				(package.collected_showers).insert((package.collected_showers).end(), cosmic_showers.begin(), cosmic_showers.end());
 				(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
 				(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
 				//ok, same for tracks
-				(package.collected_tracks).reserve(cosmic_tracks.size()+package.backup_tracks.size()+wanted_tracks.size());
+				(package.collected_tracks).reserve( cosmic_tracks.size() + package.backup_tracks.size() + wanted_tracks.size());
 				(package.collected_tracks).insert((package.collected_tracks).end(), cosmic_tracks.begin(), cosmic_tracks.end());
 				(package.collected_tracks).insert((package.collected_tracks).end(), package.backup_tracks.begin(), package.backup_tracks.end());
 				(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
@@ -190,26 +186,6 @@ namespace single_photon
 				package.collected_tracks = wanted_tracks;
 		}
 
-/*
-		if(m_bobbyvertexing_more){//Include all PFParticles
-			cout<<"Oh! You want to run on Nu particles, but with more objects from other possible slices."<<endl;
-			cout<<"Note: here only record PFParticles and do nothing different to looking at the most neutrino-like slice."<<endl;
-			package.collected_showers = wanted_showers;
-			package.collected_tracks = wanted_tracks;
-		} else{
-			cout<<" Ok, actually you want all PFParticles; Here you go!"<<endl;
-			(package.collected_showers).reserve(cosmic_showers.size()+package.backup_showers.size()+wanted_tracks.size());
-			(package.collected_showers).insert((package.collected_showers).end(), cosmic_showers.begin(), cosmic_showers.end());
-			(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
-			(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
-			//ok, same for tracks
-			(package.collected_tracks).reserve(cosmic_tracks.size()+package.backup_tracks.size()+wanted_tracks.size());
-			(package.collected_tracks).insert((package.collected_tracks).end(), cosmic_tracks.begin(), cosmic_tracks.end());
-			(package.collected_tracks).insert((package.collected_tracks).end(), package.backup_tracks.begin(), package.backup_tracks.end());
-			(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
-		}
-*/
-
 	}
 
 
@@ -219,7 +195,7 @@ namespace single_photon
 	 *
 	 * ***************************
 
-	void ReconsiderMoreCandidates(ParticleAssociations &candidates, class Atlas &package){
+	void ReconsiderMoreCandidates(ParticleAssociations_all &candidates, class Atlas &package){
 
 	// Ingredients:
 		package.backup_showers;
@@ -246,12 +222,15 @@ namespace single_photon
 	 *
 	 * **************************/
 
-	ParticleAssociations SinglePhoton::BobbyVertexBuilder_ext(class Atlas &package){
+	ParticleAssociations_all SinglePhoton::BobbyVertexBuilder_ext(class Atlas &package){
 		bool fverbose = true;
+
+//		initscr();//initialize the COLS and LINES for the screen size
+		int screen_width = 86;//ncurses::COLS;//get the width of the screen!
 
 		//PUT THIS FUNCTION INSIDE SINGLEPHOTON_MODULE.h
 		VertexBuilder vbuilder;// definition. it was named vb
-		ParticleAssociations candidates;// definition. it was named pas
+		ParticleAssociations_all candidates;// definition. it was named pas
 
 
 		vbuilder.SetVerbose(fverbose);
@@ -276,25 +255,49 @@ namespace single_photon
 
 		if(fverbose) std::cout << "\n\nRun vertex builder with: \n";
 		//Object inside an object cause the problem, i.e. 
-		//ParticleAssociations cannot link to DetectorOBjects;
+		//ParticleAssociations_all cannot link to DetectorOBjects;
 		//CHekced: Members are identified; but the reference is not defined
 		cout<<"Number of Showers: "<<(package.collected_showers).size()<<endl;
 		cout<<"Number of Tracks: "<<(package.collected_tracks).size()<<endl;
 		candidates.GetDetectorObjects().AddShowers(package.collected_showers);//load tracks
 		candidates.GetDetectorObjects().AddTracks(package.collected_tracks);//load showers
 
-		cout<<"\n/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*"<<endl;
-		cout<<"Finish loading tracks and showers! Start Revertexing."<<endl;
-		cout<<"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*\n"<<endl;
+		cout<<endl;//print out 
+		for(int i = 0 ; i < screen_width/2 ;i++)
+			cout<<"/*";
+		cout<<"\nFinish loading tracks and showers! Start Revertexing."<<endl;
+		for(int i = 0 ; i < screen_width/2 ;i++)
+			cout<<"/*";
+		cout<<"\n"<<endl;
 
 
 		vbuilder.Run(candidates);//here deals with the candidates and find the vertex.
 
 
-		cout<<"\n/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*"<<endl;
-		cout<<"Bobby Revertexing is finished. Now start to fill in the TTree."<<endl;
-		cout<<"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*\n"<<endl;
-		
+
+		cout<<endl;//print out 
+		for(int i = 0 ; i < screen_width/2 ;i++)
+			cout<<"/*";
+		cout<<"\nBobby Revertexing is finished. Now start to fill in the TTree."<<endl;
+		for(int i = 0 ; i < screen_width/2 ;i++)
+			cout<<"/*";
+		cout<<endl;
+		cout<<"  Some outputs from the ParticleAssociations_all"<<endl;	
+
+		candidates.PrintAssociations_all();
+
+		cout<<endl;//print out 
+		for(int i = 0 ; i < screen_width/2 ;i++)
+			cout<<"/*";
+		cout<<"\n"<<endl;
+
+		candidates.PrintNodes();
+
+		cout<<endl;//print out 
+		for(int i = 0 ; i < screen_width/2 ;i++)
+			cout<<"/*";
+		cout<<"\n"<<endl;
+
 		return candidates;//and fill in the vertexed file (tree) in the SinglePhoton_module.cc
 
 	}

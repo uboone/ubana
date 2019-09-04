@@ -18,10 +18,11 @@
 #include "../SinglePhoton_module.h"
 
 namespace single_photon{
+//DetectorObject is a container for labeling tracks and showers with IDs, and for each track/shower, the corresponding details are also stored.
 struct DetectorObject {
 
-  size_t const fid;
-  size_t const foriginal_index;
+  size_t const fid;//track/shower IDs
+  size_t const foriginal_index;//PFParticle IDs, IDToPFParticleMap[fid].first?;
   int const freco_type;
   bool fis_associated;//true when an object is associated.
   
@@ -63,26 +64,26 @@ struct Shower : public DetectorObject {
   
 };
 
-
-class DetectorObjects {
+//collectinos of the DetectorObject??
+class DetectorObjects_all {
 
 	friend class SinglePhoton;
-  std::map<size_t, DetectorObject *> fobject_m;
+  std::map<size_t, DetectorObject *> fobject_m;//index , DetectorObject
   std::vector<size_t> ftrack_index_v;
   std::vector<size_t> fshower_index_v;
   size_t fobject_id;
 
-  std::map<size_t, size_t> foriginal_track_index_m;
-  std::map<size_t, size_t> foriginal_shower_index_m;
+//  std::map<size_t, size_t> foriginal_track_index_m;
+//  std::map<size_t, size_t> foriginal_shower_index_m;
 
 public:
 
   int const ftrack_reco_type;
   int const fshower_reco_type;
 
-  DetectorObjects();
+  DetectorObjects_all();
 
-  ~DetectorObjects() {
+  ~DetectorObjects_all() {
     for(std::pair<size_t, DetectorObject *> const & p : fobject_m) delete p.second;
   }
 
@@ -93,6 +94,15 @@ public:
 
   void SetAssociated(size_t const i);
   
+  /*******
+   *
+   * Return the freco_type of an fobject_m whose index is i.
+   *
+   *	fobject_m is a map <index, DetectorObject>
+   *	freco_type - 2 for track, and 1 for shower;
+   *
+   *
+   * ******/
   int GetRecoType(size_t const i) const;
   std::vector<size_t> const & GetTrackIndices() const {return ftrack_index_v;}
   std::vector<size_t> const & GetShowerIndices() const {return fshower_index_v;}
@@ -105,8 +115,8 @@ public:
   Shower & GetShower(size_t const i);
   Shower const & GetShower(size_t const i) const;
   
-  size_t GetTrackIndexFromOriginalIndex(size_t const i) const;
-  size_t GetShowerIndexFromOriginalIndex(size_t const i) const;
+//  size_t GetTrackIndexFromOriginalIndex(size_t const i) const;
+//  size_t GetShowerIndexFromOriginalIndex(size_t const i) const;
 
 };
 
@@ -120,7 +130,7 @@ public:
 
 
 
-//HEADER FILE ARE ABOVE
+//THE HEADER FILE IS THE ABOVE
 
 
 
@@ -129,38 +139,38 @@ public:
 
 
 
-DetectorObjects::DetectorObjects() :
+DetectorObjects_all::DetectorObjects_all() :
   fobject_id(0),
   ftrack_reco_type(2),
   fshower_reco_type(1){}
 
 
-//void DetectorObjects::AddTracks(art::ValidHandle<std::vector<recob::Track>> const & ev_t,
-//DetectorObjects::AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t,
+//void DetectorObjects_all::AddTracks(art::ValidHandle<std::vector<recob::Track>> const & ev_t,
+//DetectorObjects_all::AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t,
 //				bool const track_original_indices) {
-void DetectorObjects::AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t, bool const track_original_indices){
+void DetectorObjects_all::AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t, bool const track_original_indices){
   for(size_t i = 0; i < ev_t.size(); ++i) {
     recob::Track const & t = *(ev_t.at(i));
     fobject_m.emplace(fobject_id, new Track(fobject_id, i, ftrack_reco_type, t)); 
     ftrack_index_v.push_back(fobject_id);
-    if(track_original_indices) foriginal_track_index_m.emplace(i, fobject_id);
+//    if(track_original_indices) foriginal_track_index_m.emplace(i, fobject_id);
     ++fobject_id;
   }
 }
 
-//void DetectorObjects::AddShowers(art::ValidHandle<std::vector<recob::Shower>> const & ev_s,
-void DetectorObjects::AddShowers(std::vector<art::Ptr<recob::Shower>> const & ev_s, bool const track_original_indices) {
+//void DetectorObjects_all::AddShowers(art::ValidHandle<std::vector<recob::Shower>> const & ev_s,
+void DetectorObjects_all::AddShowers(std::vector<art::Ptr<recob::Shower>> const & ev_s, bool const track_original_indices) {
   for(size_t i = 0; i < ev_s.size(); ++i) {
     recob::Shower const & s = *(ev_s.at(i));
     fobject_m.emplace(fobject_id, new Shower(fobject_id, i, fshower_reco_type, s));
     fshower_index_v.push_back(fobject_id);
-    if(track_original_indices) foriginal_shower_index_m.emplace(i, fobject_id);
+//    if(track_original_indices) foriginal_shower_index_m.emplace(i, fobject_id);
     ++fobject_id;
   }
 }  
 
 
-void DetectorObjects::SetAssociated(size_t const i) {
+void DetectorObjects_all::SetAssociated(size_t const i) {
 
   auto om_it = fobject_m.find(i);
   
@@ -174,7 +184,7 @@ void DetectorObjects::SetAssociated(size_t const i) {
 }
 
 
-int DetectorObjects::GetRecoType(size_t const i) const {
+int DetectorObjects_all::GetRecoType(size_t const i) const {
 
   auto const om_it = fobject_m.find(i);
   
@@ -188,7 +198,7 @@ int DetectorObjects::GetRecoType(size_t const i) const {
 }
 
 
-DetectorObject const & DetectorObjects::GetDetectorObject(size_t const i) const {
+DetectorObject const & DetectorObjects_all::GetDetectorObject(size_t const i) const {
 
   auto const om_it = fobject_m.find(i);
   
@@ -202,7 +212,7 @@ DetectorObject const & DetectorObjects::GetDetectorObject(size_t const i) const 
 }
 
 
-Track & DetectorObjects::GetTrack(size_t const i) {
+Track & DetectorObjects_all::GetTrack(size_t const i) {
   
   auto const om_it = fobject_m.find(i);
   
@@ -223,7 +233,7 @@ Track & DetectorObjects::GetTrack(size_t const i) {
 }
 
 
-Track const & DetectorObjects::GetTrack(size_t const i) const {
+Track const & DetectorObjects_all::GetTrack(size_t const i) const {
   
   auto const om_it = fobject_m.find(i);
   
@@ -244,7 +254,7 @@ Track const & DetectorObjects::GetTrack(size_t const i) const {
 }
 
 
-Shower & DetectorObjects::GetShower(size_t const i) {
+Shower & DetectorObjects_all::GetShower(size_t const i) {
   
   auto const om_it = fobject_m.find(i);
   
@@ -265,7 +275,7 @@ Shower & DetectorObjects::GetShower(size_t const i) {
 }
 
 
-Shower const & DetectorObjects::GetShower(size_t const i) const {
+Shower const & DetectorObjects_all::GetShower(size_t const i) const {
   
   auto const om_it = fobject_m.find(i);
   
@@ -286,31 +296,31 @@ Shower const & DetectorObjects::GetShower(size_t const i) const {
 }
 
 
-size_t DetectorObjects::GetTrackIndexFromOriginalIndex(size_t const i) const {
-
-  auto om_it = foriginal_track_index_m.find(i);
-  
-  if(om_it == foriginal_track_index_m.end()) {
-    std::cout << __PRETTY_FUNCTION__ << "\nCould not find object associated to original index: " << i << std::endl;
-    exit(1);
-  }
-
-  return om_it->second;
-
-}
-
-
-size_t DetectorObjects::GetShowerIndexFromOriginalIndex(size_t const i) const {
-
-  auto om_it = foriginal_shower_index_m.find(i);
-  
-  if(om_it == foriginal_shower_index_m.end()) {
-    std::cout << __PRETTY_FUNCTION__ << "\nCould not find object associated to original index: " << i << std::endl;
-    exit(1);
-  }
-
-  return om_it->second;
-
-}
+//size_t DetectorObjects_all::GetTrackIndexFromOriginalIndex(size_t const i) const {
+//
+//  auto om_it = foriginal_track_index_m.find(i);
+//  
+//  if(om_it == foriginal_track_index_m.end()) {
+//    std::cout << __PRETTY_FUNCTION__ << "\nCould not find object associated to original index: " << i << std::endl;
+//    exit(1);
+//  }
+//
+//  return om_it->second;
+//
+//}
+//
+//
+//size_t DetectorObjects_all::GetShowerIndexFromOriginalIndex(size_t const i) const {
+//
+//  auto om_it = foriginal_shower_index_m.find(i);
+//  
+//  if(om_it == foriginal_shower_index_m.end()) {
+//    std::cout << __PRETTY_FUNCTION__ << "\nCould not find object associated to original index: " << i << std::endl;
+//    exit(1);
+//  }
+//
+//  return om_it->second;
+//
+//}
 }
 #endif

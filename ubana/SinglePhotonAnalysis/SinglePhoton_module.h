@@ -734,7 +734,7 @@ namespace single_photon
 
             //------------ VertexBuilder -------------
 
-			ParticleAssociations BobbyVertexBuilder_ext(class Atlas &package);
+			ParticleAssociations_all BobbyVertexBuilder_ext(class Atlas &package);
 			//---------------------------------------------------
 
             //added eventweight

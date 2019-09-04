@@ -15,7 +15,7 @@
 	from the artObjects? (values from the raw root file)
  *
  *class VertexBuilder: it contains functions for determining the vertex of objects
-	assigned by the class ParticleAssociations.
+	assigned by the class ParticleAssociations_all.
  *
  *********************/
 
@@ -67,7 +67,7 @@ class VertexBuilder {
 	double fcpoa_vert_prox;//the maximum distance btw shower start to the cloest approach (in cm); 
 	double fcpoa_trackend_prox;//the maximum distance btw mid point of impact parameter of shower to the vertex (in cm);
 
-	DetectorObjects const * fdetos;
+	DetectorObjects_all const * fdetos;
 
 	VertexBuilderTree * fvbt;
 
@@ -85,7 +85,7 @@ class VertexBuilder {
 	 *	whose are nearby.
 	 *
 	 * ***************************/
-	void AssociateTracks(ParticleAssociations & pas);
+	void AssociateTracks(ParticleAssociations_all & pas);
 	double FindClosestApproach(const geoalgo::HalfLine_t & shr1,
 			const geoalgo::HalfLine_t & shr2,
 			geoalgo::Point_t & vtx) const;
@@ -97,11 +97,11 @@ class VertexBuilder {
 	 *	that is considered to be from the same vertex.
 	 *
 	 * ***************************/
-	void AssociateShowers(ParticleAssociations & pas);
+	void AssociateShowers(ParticleAssociations_all & pas);
 
 
-	void AddLoneTracks(ParticleAssociations & pas);
-	void AddLoneShowers(ParticleAssociations & pas);
+	void AddLoneTracks(ParticleAssociations_all & pas);
+	void AddLoneShowers(ParticleAssociations_all & pas);
 
 
 	/*****************************
@@ -111,7 +111,7 @@ class VertexBuilder {
 	 *	that is considered to be from the same vertex.
 	 *
 	 * ***************************/
-	void FillVBT(ParticleAssociations & pas);
+	void FillVBT(ParticleAssociations_all & pas);
 
 	public:
 
@@ -157,7 +157,7 @@ class VertexBuilder {
 //	void AddShowers(std::vector<art::Ptr<recob::Shower>> const & ev_t);
 	
 	// The main code is here; it calls up all the necessary process.
-	void Run(ParticleAssociations & pas);
+	void Run(ParticleAssociations_all & pas);
 
 };
 
@@ -244,150 +244,174 @@ void VertexBuilder::Erase(std::multimap<size_t, geoalgo::Point_t const *> & pn,
 }
 
 
-void VertexBuilder::AssociateTracks(ParticleAssociations & pas) {//Group tracks
-
+void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tracks
+	int screen_width = 86;
   std::multimap<size_t, geoalgo::Point_t const *> pn;//This maps an # to a pointer to the track start/end points
+  /* Structure of pn:
+   *	Iterator Key	Value	
+   *	0		Key[0]	value1
+   *	1		Key[0]	value2
+   *	2		Key[1]	valuea
+   *	3		Key[1]	valueb
+   *	.
+   *	.
+   *	.
+   *	example of calling first row:
+   *	pn.begin(), pn[0].first, pn[0].second
+   */
 
-  for(size_t const i : fdetos->GetTrackIndices()) {//load up tracks into pn. fdetos=DetectorObject
+	//#1 load up tracks to pn: 1 id for 2 end points;
+  for(size_t const i : fdetos->GetTrackIndices()) {
 
     Track const & t = fdetos->GetTrack(i);
     pn.emplace(t.fid, &t.ftrajectory.front());
     pn.emplace(t.fid, &t.ftrajectory.back());
-
+	/* appended map of one of this loop:
+	 * < track_id, {track beginning point, track ending point}>
+	 *
+	 */
   }
 
   if(fverbose) {
-    std::cout << "Track pn size: " << pn.size() << "\n";
+    std::cout << "Number of track end points to be considered: " << pn.size() << "\n\n";
 
 	if(pn.size()) {
-		size_t last_id = pn.end()->first;
-		for(auto p : pn){//pn contains points of both ends of all tracks.
-			if(last_id != p.first) {//p is the point from pn.
-				//THIS GIVE VERTEX COORDINATES? 
-				////CHECK: This is different from the result from GetRecoVertex(); the latter one is believed to be the BobbyVertex.
-				std::cout <<"Vertex:"<< p.first << " with coordinates "<< *p.second<<"; ";
-				//how can I get p.second?? A: use GetRecoVertex() function in the ParticleAssociations.h
+		//Print the title
+		cout<<setw(9)<<right<<"Track ID ";
+		cout<<setw(15)<<left<<"| Track Length ";
+		cout<<setw(37)<<left<<"| Track End Point Coordinates (x,y,z) [cm] from Pandora"<<endl;
+		for(int i = 0; i<screen_width; i++) 
+			cout<<"-";
+		cout<<endl;
+//CHECK, Keng disables the last_id..
+//		size_t last_id = pn.end()->first;//last track's index
+		for(auto p : pn){
+//			if(last_id != p.first) {
+				cout<<setw(9)<<left<< p.first<<"| ";//Index
+//				std::cout <<"Vertex:"<< p.first << " with coordinates "<< *p.second<<"; ";
+				//how can I get p.second?? A: use GetRecoVertex() function in the ParticleAssociations_all.h
+//			} else{//if this last_id = p.first
+//				cout<<setw(12)<<left<<" "<<"| ";//No Index
+				//std::cout << " The last track: " << *p.second<<"; ";
+//			}
+			cout<<setw(13)<<left<<fdetos->GetTrack(p.first).ftrajectory.Length();//Track Length
+			//ftrajectory is the obejct in art library
+			cout<<"| "<<*p.second<<endl;//Coordinates
+//			cout<<"The length of the track: ";
 
-//				std::ofstream save_vertex("temp_vertex.txt");//recored limits of boundary;
-//				save_vertex<< *p.second<<std::endl;
-//				save_vertex.close();
-//
-			}
-			else{
-				std::cout << "(same last_id) " << *p.second<<"; ";
-			}
-			cout<<"The length of the track: ";
-			std::cout << fdetos->GetTrack(p.first).ftrajectory.Length();//ftrajectory is the obejct in art library
-			cout<<endl;
-			last_id = p.first;
+//			last_id = p.first;
 		}
-		std::cout << "\n";
+		for(int i = 0; i<screen_width; i++) 
+			cout<<"-";
+		cout<<"\n\n Start to associate tracks"<<endl;
 	}
   }
 
-  if(fverbose) std::cout << "wloop, pn.size() == " << pn.size() << std::endl;
 
+  //#2 evaluate all loaded end points of tracks.
   while(pn.size() > 1) {//while there are tracks to be evaluated, loop them and check for association.
 
+	  auto best_match = pn.end(); //best match (iterator) is assumed to be the iterator of the last track;
+	  auto best_candidate = best_match; //best candidate;
+
+	  double best_dist = fstart_prox;//Max. track proximity threshold (t_max)
 	  if(fverbose)
-		  std::cout <<  "\twloop start, pn.size() == " << pn.size() << std::endl;
+		  std::cout <<  "\tNumber of track end points to be considered:" << pn.size() << std::endl;
 
-	  auto best_m = pn.end(); //best match candidate is assumed to be the last track;
-	  auto best_c = best_m;
 
-	  double best_dist = fstart_prox;
+//	  if(fverbose)
+//		  std::cout << "\tFind the two closest vertices, pn.size() == "
+//			  << pn.size() << std::endl;
 
-	  if(fverbose)
-		  std::cout << "\tFind the two closest vertices, pn.size() == "
-			  << pn.size() << std::endl;
+	  for(auto match_this = pn.begin(); match_this != pn.end(); ++match_this) {//iterator to indicate the point we are evaluating
 
-	  for(auto m_it = pn.begin(); m_it != pn.end(); ++m_it) {//match iterator
+//		  if(fverbose)
+//			  std::cout << "\t\tMain loop start\n";
+
+//		  size_t const mid = match_this->first;
+//		  geoalgo::Point_t const * mvert = match_this->second;
 
 		  if(fverbose)
-			  std::cout << "\t\tMain loop start\n";
+			  std::cout << "\t\tLooking at track with ID: " << match_this->first << std::endl;
 
-		  size_t const mid = m_it->first;
-		  geoalgo::Point_t const * mvert = m_it->second;
-
-		  if(fverbose)
-			  std::cout << "\t\tMain object id: " << mid << std::endl;
-
-		  for(auto c_it = pn.begin(); c_it != pn.end(); ++c_it) {
+		  for(auto compare_this = pn.begin(); compare_this != pn.end(); ++compare_this) {
 
 			  if(fverbose)
-				  std::cout << "\t\t\tComparison object id: " << c_it->first;
+				  std::cout << "\t\t\tComparing the track with ID: " << compare_this->first;
 
-			  if(c_it->first == mid) {
+			  if(compare_this->first == match_this->first) {
 				  if(fverbose)
-					  std::cout << " Skip\n";
+					  std::cout << ". Same track! Skip\n";
 				  continue;
 			  }
 
-			  double const dist = c_it->second->Dist(*mvert);
+			  double const dist = compare_this->second->Dist(*match_this->second);//distance between match_this point to compare_this point;
 
 			  if(fverbose)
-				  std::cout << " dist: " << dist << " best_dist: "
+				  std::cout << ". Distance btw them: " << dist << " while the shortest distance is: "
 					  << best_dist << std::endl;
 
 			  if(dist < best_dist) {
 				  if(fverbose)
-					  std::cout << "\t\t\t\tAccepted\n";	
-				  best_m = m_it;
-				  best_c = c_it;
+					  std::cout << "\t\t\t\tTake this track! Update the best point!\n";	
+				  best_match = match_this;
+				  best_candidate = compare_this;
 				  best_dist = dist;
 			  }
 
 		  }
 
-		  if(fverbose)
-			  std::cout << "\t\tMain loop end\n";
-
 	  }
 
-	  if(best_m == pn.end()) {
+	  if(best_match == pn.end()) {
 		  if(fverbose)
-			  std::cout << "\tNo match found, ending\n";
+			  std::cout << "\tNo more track to be considered. Finish!\n";
 		  return;
 	  }
+//at this moment, we have:
+//	best_match - the iterator of an end-point of one track
+//	best_candidate - the iterator of an end-point of another track
+//	best_dist - the cloest distance between these two points
 
-	  std::vector<size_t> vc;
-	  vc.push_back(best_m->first);
-	  vc.push_back(best_c->first);
+//CHECK, the above code find the points that are close enough, but is the below going to find the vertex?
+	  std::vector<size_t> iterators;
+	  iterators.push_back(best_match->first);
+	  iterators.push_back(best_candidate->first);
 
-	  std::vector<geoalgo::Point_t> vcp;
-	  vcp.push_back(*best_m->second);
-	  vcp.push_back(*best_c->second);
+	  std::vector<geoalgo::Point_t> points;
+	  points.push_back(*best_match->second);
+	  points.push_back(*best_candidate->second);
 
-	  geoalgo::Sphere s(falgo.boundingSphere(vcp));
+	  geoalgo::Sphere sphere(falgo.boundingSphere(points));//falgo is an GeoAlgo object
 
-	  Erase(pn, best_m, s.Center());
-	  Erase(pn, best_c, s.Center());
+	  Erase(pn, best_match, sphere.Center());//remove the points when used for further evaluation.
+	  Erase(pn, best_candidate, sphere.Center());
 
 	  if(fverbose)
-		  std::cout << "\tAttempt to add objects to sphere\n";
+		  std::cout << "\n\tAdd more objects to the sphere around the best track end point\n";
 
-	  do {
+	  do {//have to break to leave.
 
 		  auto best_o = pn.end();//best object to add;
-		  double sbest_dist = fstart_prox;
+		  double sbest_dist = fstart_prox;//Max. track proximity threshold (t_max)
 
-		  geoalgo::Point_t const & sv = s.Center();
+		  geoalgo::Point_t const & sphere_center = sphere.Center();
 
 		  if(fverbose)
-			  std::cout << "\t\tFind distance between vertices and sphere centre, pn.size == " << pn.size() << std::endl;
+			  std::cout << "\t\tFind the distance between vertices and sphere centre; number of track end points to be considered: " << pn.size() << std::endl;
 
-		  for(auto o_it = pn.begin(); o_it != pn.end(); ++o_it) {
+		  for(auto this_iterator = pn.begin(); this_iterator != pn.end(); ++this_iterator) {
 
 			  if(fverbose)
-				  std::cout << "\t\t\tobject id: " << o_it->first;
+				  std::cout << "\t\t\tLooking at track with ID: " << this_iterator->first;
 
-			  if(std::find(vc.begin(), vc.end(), o_it->first) != vc.end()) {
+			  if(std::find(iterators.begin(), iterators.end(), this_iterator->first) != iterators.end()) {
 				  if(fverbose)
-					  std::cout << " Skip\n";
+					  std::cout << " This is not the last track?(CHECK) Skip\n";
 				  continue;
 			  }
 
-			  double const dist = o_it->second->Dist(sv);
+			  double const dist = this_iterator->second->Dist(sphere_center);
 
 			  if(fverbose)
 				  std::cout << " dist: " << dist << " sbest_dist: "
@@ -395,8 +419,8 @@ void VertexBuilder::AssociateTracks(ParticleAssociations & pas) {//Group tracks
 
 			  if(dist < sbest_dist) {
 				  if(fverbose)
-					  std::cout << "\t\t\t\tAccepted\n";
-				  best_o = o_it;
+					  std::cout << "\t\t\t\tTake this track. Update the best distance!\n";
+				  best_o = this_iterator;
 				  sbest_dist = dist;
 			  }
 
@@ -408,16 +432,16 @@ void VertexBuilder::AssociateTracks(ParticleAssociations & pas) {//Group tracks
 			  break;
 		  }
 
-		  vc.push_back(best_o->first);
-		  vcp.push_back(*best_o->second);
+		  iterators.push_back(best_o->first);
+		  points.push_back(*best_o->second);
 
 		  Erase(pn, best_o, *best_o->second);
 
-		  //s = algo.boundingSphere(vcp);
+		  //s = algo.boundingSphere(points);
 
 	  } while(true);//if false, then it only loop once;
-
-	  pas.AddAssociation(vc, vcp, s.Center(), falgo.boundingSphere(vcp).Radius());
+							//points - point objects that contains positions;
+	  pas.AddAssociation(iterators, points, sphere.Center(), falgo.boundingSphere(points).Radius());
 
   }
 
@@ -447,7 +471,7 @@ double VertexBuilder::FindClosestApproach(const geoalgo::HalfLine_t & shr1,
 }
 
 
-void VertexBuilder::AssociateShowers(ParticleAssociations & pas) {
+void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 
 	std::map<size_t, Shower const *> shower_map;
 
@@ -975,8 +999,8 @@ void VertexBuilder::AssociateShowers(ParticleAssociations & pas) {
 }
 
 
-void VertexBuilder::AddLoneTracks(ParticleAssociations & pas) {
-	//fdetos, detectorobjects
+void VertexBuilder::AddLoneTracks(ParticleAssociations_all & pas) {
+	//fdetos, detectorobjects_all
   for(size_t const gn : fdetos->GetTrackIndices()) {
   //goes over recob::track index, gn
 	
@@ -986,10 +1010,10 @@ void VertexBuilder::AddLoneTracks(ParticleAssociations & pas) {
     if(t.fis_associated) continue;//this will jump to the end of the loop and goes with next gn; triger this when the track is associated.
 
     geoalgo::Point_t const * track_end = nullptr;
-    double zmin = 2000;
+    double zmin = 2000;//the unit .. 2000 cm??? it doesnt matter though; it changes after first if-else
 
-    geoalgo::Point_t const & front = t.ftrajectory.front();//end points of the track?
-    if(front.at(2) < zmin) {
+    geoalgo::Point_t const & front = t.ftrajectory.front();//first point along the trajectory.
+    if(front.at(2) < zmin) {//first point's z coordinate compared to zmin
       track_end = &front;
       zmin = front.at(2);
     }
@@ -1007,16 +1031,15 @@ void VertexBuilder::AddLoneTracks(ParticleAssociations & pas) {
 			 geoalgo::Sphere(*track_end, 0).Center(),
 			 0);
 
-    }
-
-    else std::cout << "Warning: No track end pointer\n";
-
+	} else{
+		std::cout << "Warning: No track end pointer\n";
+	}
   }
 
 }
 
 
-void VertexBuilder::AddLoneShowers(ParticleAssociations & pas) {
+void VertexBuilder::AddLoneShowers(ParticleAssociations_all & pas) {
 
   for(size_t const gn : fdetos->GetShowerIndices()) {
 
@@ -1036,7 +1059,7 @@ void VertexBuilder::AddLoneShowers(ParticleAssociations & pas) {
 }
 
 // Fill the TTree with vertex info.
-void VertexBuilder::FillVBT(ParticleAssociations & pas) {
+void VertexBuilder::FillVBT(ParticleAssociations_all & pas) {
 
   fvbt->ftrack_number = fdetos->GetTrackIndices().size();
   fvbt->fshower_number = fdetos->GetShowerIndices().size();
@@ -1045,29 +1068,31 @@ void VertexBuilder::FillVBT(ParticleAssociations & pas) {
 }
 
 
-void VertexBuilder::Run(ParticleAssociations & pas) {//Analysis the tracks & showers objects.
+void VertexBuilder::Run(ParticleAssociations_all & pas) {//Analysis the tracks & showers objects.
 
   CheckSetVariables();//Variables are set in SinglePhoton_module.cc.
 
   fdetos = &pas.GetDetectorObjects();
 
 //Make two associations, for tracks and showers.
-  if(fverbose) std::cout << "Associate tracks\n";
-  AssociateTracks(pas);
+  if(fverbose) std::cout << ">>>>> Associate tracks\n";
+  AssociateTracks(pas);//select associated candidates for tracks
   //fvbt is the object, it means.. if the object is not empty, do something.
   if(fvbt) fvbt->fassociation_track_number = pas.GetAssociations().size();
-  if(fverbose) std::cout << "Associate showers\n";
-  AssociateShowers(pas);
+  if(fverbose) std::cout << "\n>>>> Associate showers\n";
+  AssociateShowers(pas);//select associated candidates for showers
 
   if(fvbt) fvbt->fassociation_shower_number = pas.GetAssociations().size();
 
-//CHECK, repeat for long objects?
-  if(fverbose) std::cout << "Add lone tracks\n";
+//CHECK, repeat for long objects? Add them into consideration even if they are not associated to a vertex?
+  if(fverbose) std::cout << ">>>> Add lone tracks\n";
   AddLoneTracks(pas);
-  if(fverbose) std::cout << "Add lone showers\n";
+  if(fverbose) std::cout << ">>>> Add lone showers\n";
   AddLoneShowers(pas);
-  if(fverbose) std::cout << "Get shower associations\n";
-  pas.GetShowerAssociations();
+
+  if(fverbose) std::cout << ">>>> Get shower associations\n";
+  pas.GetShowerAssociations();//CHECK
+
   if(fvbt) fvbt->fassociation_final_number = pas.GetSelectedAssociations().size();
 
   if(fvbt) {//after the association is finished (found the vertex), fill in in the tree.

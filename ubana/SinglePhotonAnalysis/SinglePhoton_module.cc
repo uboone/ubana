@@ -416,8 +416,8 @@ namespace single_photon
 //		packed_objects.all_tracks				= trackVector;
 //		packed_objects.all_showers				= showerVector;
 
-		packed_objects.collected_tracks			= tracks;
-		packed_objects.collected_showers		= showers;
+//		packed_objects.collected_tracks			= tracks;
+//		packed_objects.collected_showers		= showers;
 
 //these maps are empty by default
 //		packed_objects.primaryPFPSliceIdVec		= primaryPFPSliceIdVec;
@@ -442,6 +442,16 @@ namespace single_photon
 		int run_count = 0;
 
 redo_event:
+		this->AnalyzeSlices(
+				packed_objects.PFParticleToMetadataMap, 
+				packed_objects.IDToPFParticleMap,  
+				packed_objects.primaryPFPSliceIdVec, 
+				packed_objects.sliceIdToNuScoreMap, 
+				packed_objects.PFPToClearCosmicMap, 
+				packed_objects.PFPToSliceIdMap, 
+				packed_objects.PFPToNuSliceMap, 
+				packed_objects.PFPToTrackScoreMap);
+
 		this->CollectTracksAndShowers_v2(evt, packed_objects, run_count); //This tells what showers and tracks to use.
 //		this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap); //This tells what showers and tracks to use.
 		//this->AnalyzeSlices(pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
@@ -483,7 +493,7 @@ redo_event:
 
 		//---------- VertexBuilder--------------
 		//use the new ObjectCandidate class for variables.
-		ParticleAssociations const & bobby_particle_associations = BobbyVertexBuilder_ext(packed_objects);
+		ParticleAssociations_all const & bobby_particle_associations = BobbyVertexBuilder_ext(packed_objects);
 		//introduce a for loop for all particle associations identified by Bobby's VertexBuilder
 		//CHECK, I think no trees for the no-association case.
 		for(size_t const nth_associations : bobby_particle_associations.GetSelectedAssociations()) {//Loop over all associations, which is a vector
@@ -501,7 +511,7 @@ redo_event:
 			cout<<m_bobbyvertex_pos_z<<endl;
 
 			//not do the # of tracks/showers;
-			DetectorObjects const & detos = bobby_particle_associations.GetDetectorObjects();
+			DetectorObjects_all const & detos = bobby_particle_associations.GetDetectorObjects();
 			m_bobbytracks = 0;
 			m_bobbyshowers = 0;
 
@@ -517,7 +527,7 @@ redo_event:
 			cout<<"# of showers: "<<m_bobbyshowers<<endl;
 			cout<<"# of tracks : "<<m_bobbytracks<<endl;
 
-			if( m_bobbyshowers + m_bobbytracks == 2 && run_count < 3 && m_bobbyvertexing_more ){//go with 0,1,2
+			if( m_run_all_pfps &&m_bobbyshowers + m_bobbytracks == 0 && run_count < 3 && m_bobbyvertexing_more ){//go with 0,1,2
 			run_count++;
 			cout<<"Need more objects. Now run the "<<run_count<<" time the vertexing."<<endl;
 			goto redo_event;

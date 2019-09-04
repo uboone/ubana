@@ -12,16 +12,16 @@ using namespace std;
 //what does f in fxxxx  mean ????
 
 namespace single_photon{
-class ParticleAssociations;
+class ParticleAssociations_all;
 
-
+//This is for a single candidate vertex.
 class ParticleAssociation{//Yes, it is with and without s!
 	//private   
-  friend ParticleAssociations;
+  friend ParticleAssociations_all;
 
   // this is a collection of indices and vertices,
   // appended in the AddShower1() function in this class.
-  // Their elements come from AddShower() function in the class ParticleAssociations
+  // Their elements come from AddShower() function in the class ParticleAssociations_all
   std::vector<size_t> findices;
   std::vector<geoalgo::Point_t> fvertices;
 
@@ -43,6 +43,7 @@ public:
     fconnected_associations.emplace(i, n);
   }
 	//Note: this is not for adding pandora_object.. 
+	//this adds the vertex candidates;
 	// 2-argument function;
   void AddShower1(size_t const n, geoalgo::Point_t const & vert) {
     findices.push_back(n);
@@ -78,19 +79,25 @@ public:
     return fconnected_associations;
   }
   
+  /************
+   *
+   * Print out association indices, vertex, and goodness, and connections?
+   *
+   * *********/
   void PrintAssociation() const;
   
 };
 
 
-class ParticleAssociations{
+//This is the final collection that we want.
+class ParticleAssociations_all{
 
   friend class SinglePhoton;//OK~ now SinglePhoton can use things in this class!
-  DetectorObjects fdetos;//here introduces the DetectorObjects.h
+  DetectorObjects_all fdetos;//here introduces the DetectorObjects.h
 
   std::vector<ParticleAssociation> fassociations;
-  std::vector<size_t> fobject_index_v;
-  std::vector<size_t> fassociation_index_vec;
+  std::vector<size_t> fobject_index_v;//indices for pandora_objects?
+  std::vector<size_t> fassociation_index_vec;//0,1,2,3... to indicates candidate vertices;
   std::vector<size_t> fignore_association_vec;
   std::vector<size_t> fselected_associations;//Indices of selected associations (candidate vertice). Done under GetShowerAssociations()
 
@@ -98,13 +105,19 @@ class ParticleAssociations{
 
 public:
 
-  ParticleAssociations();
+  ParticleAssociations_all();
 
-  DetectorObjects & GetDetectorObjects() {return fdetos;}//gives out the DetectorObjects.
-  DetectorObjects const & GetDetectorObjects() const {return fdetos;}
+  DetectorObjects_all & GetDetectorObjects() {return fdetos;}//gives out the DetectorObjects_all.
+  DetectorObjects_all const & GetDetectorObjects() const {return fdetos;}
 
   void Reset();
 
+  /*************
+   *
+   * nodes mean the index of the points, such as 
+   *	beginning and end points of a track.
+   *
+   * ************/
   void AddAssociation(std::vector<size_t> const & nodes,
 		      std::vector<geoalgo::Point_t> const & vertices,
 		      geoalgo::Point_t const & vertex,
@@ -155,8 +168,24 @@ public:
   void ClearIgnored() {
     fignore_association_vec.clear();
   }
+	
 
-  void PrintAssociations() const;
+
+	//Some utility functions are listed below. They are not the cores of the code.
+
+	
+  /******************
+   *
+   * Print out each associations, further detail is taken care in PrintAssociation();
+   *
+   * ****************/
+  void PrintAssociations_all() const;
+
+ /******************
+   *
+   * Print out particular (the nth) associations, further detail is taken care in PrintAssociation();
+   *
+   * ****************/
   void PrintAssociations(std::vector<size_t> const & associations_to_print) const;
 
   void PrintNodes() const;
@@ -165,6 +194,12 @@ public:
 
   void NodeCheck();
 
+  /***************
+   *
+   * GetShowerAssociations() - the main contribution
+   *	is to determine the vector fselected_associations.
+   *
+   * ************/
   void GetShowerAssociations();
 
   std::vector<size_t> & GetSelectedAssociations() {return fselected_associations;}
@@ -204,26 +239,27 @@ ParticleAssociation::ParticleAssociation(std::vector<size_t> const & indices,
 
 void ParticleAssociation::PrintAssociation() const {
   
-  for(size_t i = 0; i < findices.size(); ++i)
-    std::cout << "Object index: " << findices.at(i) << std::endl;
-  
-  std::cout << "\nVertex: " << fvertex << ", goodness: "
-	    << fgoodness << std::endl;
-  
-  std::cout << "\nConnections:\n";
-  for(std::pair<size_t, size_t> const & pair : fconnected_associations) 
-    std::cout << "Association index: " << pair.first << " object index: " << pair.second << std::endl;
-  
+	for(size_t i = 0; i < findices.size(); ++i){
+		std::cout << "Object index: " << findices.at(i) << std::endl;
+	}
+
+	std::cout << "\nVertex: " << fvertex << ", goodness: ";
+	std::cout << fgoodness << std::endl;
+
+	std::cout << "\nConnections:\n";
+	for(std::pair<size_t, size_t> const & pair : fconnected_associations){
+		std::cout << "Association index: " << pair.first << " object index: " << pair.second << std::endl;
+	}
 }
 
 
 
 
-ParticleAssociations::ParticleAssociations() :
+ParticleAssociations_all::ParticleAssociations_all() :
   fverbose(false){}//DAMN, : fverbose(false) was misunderstood as the constructor in SinglePhoton..
 
 
-void ParticleAssociations::Reset() {
+void ParticleAssociations_all::Reset() {
 
   fassociations.clear();
   fobject_index_v.clear();
@@ -232,7 +268,7 @@ void ParticleAssociations::Reset() {
 }
 
 
-void ParticleAssociations::AddAssociation(std::vector<size_t> const & nodes,
+void ParticleAssociations_all::AddAssociation(std::vector<size_t> const & nodes,
 					  std::vector<geoalgo::Point_t> const & vertices,
 					  geoalgo::Point_t const & vertex,
 					  Double_t const goodness) {
@@ -245,23 +281,23 @@ void ParticleAssociations::AddAssociation(std::vector<size_t> const & nodes,
     
     auto const nv_itb = fobject_index_v.begin();
     auto const nv_ite = fobject_index_v.end();
-    
-    for(auto nv_it = nv_itb; nv_it != nv_ite; ++nv_it) {
-      
-      nv_it = std::find(nv_it, nv_ite, n);
-      
-      if(nv_it != nv_ite) {
-	
-	size_t const index = fassociation_index_vec.at(nv_it - nv_itb);
-	
-	fassociations.at(index).AddConnection(pos, n);
-	fassociations.at(pos).AddConnection(index, n);
-	
-      }
-      
-      else break;
-      
-    }
+
+	for(auto nv_it = nv_itb; nv_it != nv_ite; ++nv_it) {
+
+		nv_it = std::find(nv_it, nv_ite, n);
+
+		if(nv_it != nv_ite) {
+
+			size_t const index = fassociation_index_vec.at(nv_it - nv_itb);
+
+			fassociations.at(index).AddConnection(pos, n);
+			fassociations.at(pos).AddConnection(index, n);
+
+		} else{ 
+			break;
+		}
+
+	}
     
     fobject_index_v.push_back(n);
     fassociation_index_vec.push_back(pos);
@@ -276,7 +312,7 @@ void ParticleAssociations::AddAssociation(std::vector<size_t> const & nodes,
 }
 
 
-void ParticleAssociations::AddShower(size_t const index,
+void ParticleAssociations_all::AddShower(size_t const index,
 				     size_t const n,
 				     geoalgo::Point_t const & vert) {
   
@@ -305,7 +341,7 @@ void ParticleAssociations::AddShower(size_t const index,
 }
 
 
-std::vector<size_t> ParticleAssociations::GetAssociationIndicesFromObject(size_t const n) {
+std::vector<size_t> ParticleAssociations_all::GetAssociationIndicesFromObject(size_t const n) {
 
   auto const nv_itb = fobject_index_v.begin();
   auto const nv_ite = fobject_index_v.end();
@@ -329,7 +365,7 @@ std::vector<size_t> ParticleAssociations::GetAssociationIndicesFromObject(size_t
 }
 
 /*CHECK
-bool ParticleAssociations::Ignore(size_t const i) const {
+bool ParticleAssociations_all::Ignore(size_t const i) const {
   auto const sk_it =
     std::find(fignore_association_vec.begin(), fignore_association_vec.end(), i);//return the iterator who points to the number i.
   if(sk_it == fignore_association_vec.end()) {
@@ -344,7 +380,7 @@ bool ParticleAssociations::Ignore(size_t const i) const {
 */
 
 /*
-bool ParticleAssociations::HandleLoop(std::vector<size_t> const & previously_considered) {
+bool ParticleAssociations_all::HandleLoop(std::vector<size_t> const & previously_considered) {
 
   if(fverbose) std::cout << "Handle loop\n";
 
@@ -366,7 +402,7 @@ bool ParticleAssociations::HandleLoop(std::vector<size_t> const & previously_con
 */
 
 
-void ParticleAssociations::IgnoreThis(size_t const to_ignore, size_t const connected_index, std::vector<size_t> & previously_considered) {
+void ParticleAssociations_all::IgnoreThis(size_t const to_ignore, size_t const connected_index, std::vector<size_t> & previously_considered) {
 
   if(std::find(previously_considered.begin(), previously_considered.end(), to_ignore) != previously_considered.end()) return;
   
@@ -383,7 +419,7 @@ void ParticleAssociations::IgnoreThis(size_t const to_ignore, size_t const conne
 
 
 
-void ParticleAssociations::IgnoreAssociationsConnectedTo(size_t const i) {
+void ParticleAssociations_all::IgnoreAssociationsConnectedTo(size_t const i) {
   
   ParticleAssociation const & pa = fassociations.at(i);
   
@@ -395,9 +431,9 @@ void ParticleAssociations::IgnoreAssociationsConnectedTo(size_t const i) {
 }
 
 
-void ParticleAssociations::PrintAssociations() const {
+void ParticleAssociations_all::PrintAssociations_all() const {
 
-  std::cout << "----------------------------------------\n\n";
+  std::cout << "--------------Report all the Particle Association Result--------------------------\n\n";
   
   for(size_t i = 0; i < fassociations.size(); ++i) {
  
@@ -414,7 +450,7 @@ void ParticleAssociations::PrintAssociations() const {
 }
 
 
-void ParticleAssociations::PrintAssociations(std::vector<size_t> const & associations_to_print) const {
+void ParticleAssociations_all::PrintAssociations(std::vector<size_t> const & associations_to_print) const {
 
   std::cout << "----------------------------------------\n\n";
   
@@ -435,7 +471,7 @@ void ParticleAssociations::PrintAssociations(std::vector<size_t> const & associa
 }
 
 
-void ParticleAssociations::PrintNodes() const  {
+void ParticleAssociations_all::PrintNodes() const  {
   
   std::cout << "Nodes:\n";
   
@@ -446,7 +482,7 @@ void ParticleAssociations::PrintNodes() const  {
 }
 
 
-void ParticleAssociations::Test() const {
+void ParticleAssociations_all::Test() const {
 
   for(ParticleAssociation const & pae : fassociations) {
     
@@ -477,7 +513,7 @@ void ParticleAssociations::Test() const {
 }
 
 
-void ParticleAssociations::NodeCheck() {
+void ParticleAssociations_all::NodeCheck() {
 
   std::vector<size_t> nodes;
 
@@ -491,7 +527,7 @@ void ParticleAssociations::NodeCheck() {
     size_t const s = nodes.at(i);
     if(s == 0) continue;
 
-    DetectorObject const & deto = fdetos.GetDetectorObject(i);
+    DetectorObject const & deto = fdetos.GetDetectorObject(i);//Singuar used once;
 
     if(deto.freco_type == fdetos.ftrack_reco_type && s > 2)
       std::cout << "track > 2 entries: " << s << std::endl;
@@ -503,23 +539,23 @@ void ParticleAssociations::NodeCheck() {
 }
 
 
-void ParticleAssociations::GetShowerAssociations() {
+void ParticleAssociations_all::GetShowerAssociations() {
 	if(fverbose) std::cout << "GetShowerAssociations\n";
 
 	std::multimap<double, size_t> pa_map;//Partical Association Map; it maps vertex index to the vertex's z-coordinate respectiely.
 
-//	int temp_num_showers = 0;
-//	int temp_num_tracks = 0;
-
 	if(fverbose) std::cout << "Number of particle associations: " << fassociations.size() << "\n";
 
 	for(size_t i = 0; i < fassociations.size(); ++i) {
+		cout<<"CHECK! Associartions size is "<<fassociations.size()<<endl;
 		if(fverbose) std::cout << "\tAssociation: " << i << "\n";
 		ParticleAssociation const & pa = fassociations.at(i); //the ith associated particle (vertex)
 		bool asso_shower = false;
 		for(size_t const s : pa.GetObjectIndices()) {
 			if(fverbose) std::cout << "\t\tObject index: " << s << "\n";
+
 			if(fdetos.GetRecoType(s) == fdetos.fshower_reco_type) {//fdetos is detector objects
+			//if find an DetectorObject that is shower, then asso_shower become true, and add it to the pa_map.
 //				temp_num_showers++;//Keng
 				if(fverbose) std::cout << "\t\tis shower\n";
 
@@ -529,40 +565,24 @@ void ParticleAssociations::GetShowerAssociations() {
 			}
 		}
 		if(asso_shower) {
+			cout<<"Add a shower vertex to the associations!"<<endl;
 			pa_map.emplace(pa.GetRecoVertex().at(2), i);//
 		}
 	}
 
-//	std::ofstream save_shower("temp_num_showertrack.txt");//recored limits of boundary;
-//
-////	m_bobbyshowers = temp_num_showers;
-//
-//	save_shower<< temp_num_showers <<" "<< temp_num_tracks<<std::endl;
-//	save_shower.close();
-
-/* the old if-else condition;
-bool ParticleAssociations::Ignore(size_t const i) const {
-  auto const sk_it =
-    std::find(fignore_association_vec.begin(), fignore_association_vec.end(), i);//return the iterator who points to the number i.
-  if(sk_it == fignore_association_vec.end()) {
-		cout<<" Ok.. Ignore() is going to return false CHECK)"<<endl;
-		//Null==Null??
-	  return false; //it seems like this will never be truth.
-  }
-  else{
-	  return true;
-  }
-}
- */
 	if(fverbose) std::cout << "Loop over filled map\n";
 
 	for(std::pair<double, size_t> const & p : pa_map) {
-		if(fverbose) std::cout << "\tAssociation: " << p.second << " " << "z-position: " << p.first << "\n"; 
+	//p is a pair <z-position, index of DetectorObject (a shower)>
+
+		if(fverbose) std::cout << "\tAssociation: " << p.second << " " << "z-position (of a shower): " << p.first << "\n"; 
 
 		auto const sk_it = std::find(fignore_association_vec.begin(), fignore_association_vec.end(), p.second);//return the iterator who points to the number i.
-		if( sk_it != fignore_association_vec.end() ){ //Ignore(the association index)
+		//CHECK, use IgnoreAssociation(sk_it) to ignore an association;?
+		//CHECK  dont know what is happenning here!
+		if( sk_it != fignore_association_vec.end() ){ //Ignore(the association index), initially empty, which NULL can pass through;
 			cout<<"Ignore(p.second) is true"<<endl;
-			continue;//proceed when the Ignore() gives false; it means sk_it == fignore_association_vec.end();
+			continue;
 		}
 		//if sk_it is not the last fignore_associatino_vec, then do the follwoing
 		cout<<"CHECK I do Have a list to ignore "<<fignore_association_vec.size()<<endl;
@@ -578,7 +598,7 @@ bool ParticleAssociations::Ignore(size_t const i) const {
 
 
 /*
-void ParticleAssociations::DeleteAssociation(size_t const s) {
+void ParticleAssociations_all::DeleteAssociation(size_t const s) {
   
   if(fverbose) {
     std::cout << "Delete association " << s << "\nDelete other association connections to this association\n";
@@ -600,11 +620,11 @@ void ParticleAssociations::DeleteAssociation(size_t const s) {
     considered_connected_associations.push_back(p.first);
   }
 
-  if(fverbose) std::cout << "Delete association in ParticleAssociations vector\n";
+  if(fverbose) std::cout << "Delete association in ParticleAssociations_all vector\n";
 
   fassociations.erase(fassociations.begin()+s);
 
-  if(fverbose) std::cout << "Delete ParticleAssociations bookeeping of association and object indices\n";
+  if(fverbose) std::cout << "Delete ParticleAssociations_all bookeeping of association and object indices\n";
 
   auto av_it = std::find(fassociation_index_vec.begin(), fassociation_index_vec.end(), s);
   while(av_it != fassociation_index_vec.end()) {
