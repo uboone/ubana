@@ -12,7 +12,7 @@
 namespace single_photon
 {
 
-    SinglePhoton::SinglePhoton(fhicl::ParameterSet const &pset) : art::EDAnalyzer(pset)
+    SinglePhoton::SinglePhoton(fhicl::ParameterSet const &pset) : art::EDFilter(pset)
     {
         this->reconfigure(pset);
         theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -108,7 +108,7 @@ namespace single_photon
 
     //------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SinglePhoton::analyze(const art::Event &evt)
+    bool SinglePhoton::filter(art::Event &evt)
     {
 
         //std::cout<<"runAllPFP's = "<<m_run_all_pfps<<std::endl;
@@ -172,7 +172,7 @@ namespace single_photon
         if (!pfParticleHandle.isValid())
         {
             mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
-            return;
+            return false;
         }
 
 
@@ -353,7 +353,7 @@ namespace single_photon
         if (!calo_per_track.isValid())
         {
             mf::LogDebug("SinglePhoton") << "  Failed to get Assns between recob::Track and anab::Calorimetry.\n";
-            return;
+            return false;
         }
         for(size_t i=0; i< tracks.size(); ++i){
             if(calo_per_track.at(tracks[i].key()).size() ==0){
@@ -688,6 +688,8 @@ namespace single_photon
         ncdelta_slice_tree->Fill();
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
+
+	return Pi0PreselectionFilter();
 
     }
 
@@ -1336,5 +1338,20 @@ namespace single_photon
 
     }
 
+  bool SinglePhoton::Pi0PreselectionFilter()
+  {
+    
+    if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
+    if(m_vertex_pos_y < -112. || m_vertex_pos_x > 112.) return false;
+    if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1033.) return false;
+
+    if(m_reco_asso_showers<2) return false;
+    if(m_reco_asso_tracks<1) return false;
+
+    if(m_reco_shower_conversion_distance.size()<2) return false;
+    if(m_reco_shower_conversion_distance[0]<1. || m_reco_shower_conversion_distance[1]<1.) return false;
+    
+    return true;
+  }
 
 } //namespace

@@ -2,7 +2,7 @@
 #define SINGLE_PHOTON_ANALYSIS
 
 #include "art/Framework/Core/ModuleMacros.h"
-#include "art/Framework/Core/EDAnalyzer.h"
+#include "art/Framework/Core/EDFilter.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Principal/Handle.h"
@@ -153,7 +153,7 @@ namespace single_photon
     /**
      *  @brief  SinglePhoton class
      */
-    class SinglePhoton : public art::EDAnalyzer
+    class SinglePhoton : public art::EDFilter
     {
         public:
             typedef art::ValidHandle< std::vector<recob::PFParticle> > PFParticleHandle;
@@ -181,7 +181,7 @@ namespace single_photon
              *
              *  @param  evt the art event to analyze
              */
-            void analyze(const art::Event &evt);
+            bool filter(art::Event &evt);
 
             /**
              *  @brief  Begin the job, setting up !
@@ -1191,6 +1191,7 @@ namespace single_photon
     
             double m_genie_spline_weight;
 
+	    bool Pi0PreselectionFilter();
     };
 
     DEFINE_ART_MODULE(SinglePhoton)
