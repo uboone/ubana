@@ -55,7 +55,7 @@ physics: {
   }
  pathana : [pid , singlephotonana] #path for analysis
 
- trigger_paths : [path0]
+ trigger_paths : [pathana]
  end_paths: [ ]
 
 }
