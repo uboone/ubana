@@ -1342,13 +1342,14 @@ namespace single_photon
   {
     
     if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
-    if(m_vertex_pos_y < -112. || m_vertex_pos_x > 112.) return false;
-    if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1033.) return false;
+    if(m_vertex_pos_y < -112. || m_vertex_pos_y > 112.) return false;
+    if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1031.8) return false;
 
-    if(m_reco_asso_showers<2) return false;
-    if(m_reco_asso_tracks<1) return false;
+    if(m_reco_asso_showers!=2) return false;
+    if(m_reco_asso_tracks!=1) return false;
+    if(m_reco_vertex_size<1) return false;
 
-    if(m_reco_shower_conversion_distance.size()<2) return false;
+    if(m_reco_shower_conversion_distance.size()!=2) return false;
     if(m_reco_shower_conversion_distance[0]<1. || m_reco_shower_conversion_distance[1]<1.) return false;
     
     return true;
