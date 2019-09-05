@@ -614,6 +614,8 @@ namespace single_photon
             bool m_is_overlayed;
             bool m_run_all_pfps;
             bool m_has_CRT;
+	    bool m_fill_trees;
+	    bool m_run_pi0_filter;
 
             std::ofstream out_stream;
 

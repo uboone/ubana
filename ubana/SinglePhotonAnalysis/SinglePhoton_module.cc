@@ -31,6 +31,9 @@ namespace single_photon
         m_is_data = pset.get<bool>("isData",false);
         m_is_overlayed = pset.get<bool>("isOverlayed",false);
 
+	m_fill_trees = pset.get<bool>("FillTrees",true);
+	m_run_pi0_filter = pset.get<bool>("RunPi0Filter",false);
+
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
         m_sliceLabel = pset.get<std::string>("SliceLabel","pandora");
@@ -172,7 +175,10 @@ namespace single_photon
         if (!pfParticleHandle.isValid())
         {
             mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
-            return false;
+	    if(m_run_pi0_filter)
+	      return false;
+	    else
+	      return true;
         }
 
 
@@ -353,7 +359,10 @@ namespace single_photon
         if (!calo_per_track.isValid())
         {
             mf::LogDebug("SinglePhoton") << "  Failed to get Assns between recob::Track and anab::Calorimetry.\n";
-            return false;
+	    if(m_run_pi0_filter)
+	      return false;
+	    else
+	      return true;
         }
         for(size_t i=0; i< tracks.size(); ++i){
             if(calo_per_track.at(tracks[i].key()).size() ==0){
@@ -684,13 +693,17 @@ namespace single_photon
 
         //---------------------- END OF LOOP, fill vertex ---------------------
 
-        vertex_tree->Fill();
-        ncdelta_slice_tree->Fill();
+	if(m_fill_trees){
+	  vertex_tree->Fill();
+	  ncdelta_slice_tree->Fill();
+	}
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 
-	return Pi0PreselectionFilter();
+	if(m_run_pi0_filter)
+	  return Pi0PreselectionFilter();
 
+	return true;
     }
 
 
