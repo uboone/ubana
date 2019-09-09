@@ -124,6 +124,7 @@ private:
   int Genie_nPiMinus_preFSI;// before FSI 
 
   int topology;// The topology of true neutrino interaction + FSI products after Geant4
+  double flash_matching_chi2; //Chi2 of flash matching in each neutrino slice
 
   std::vector<double> true_mom;//True momentum of muon track in the every event
   std::vector<double> true_start_x;//True start of muon track (X)
@@ -277,6 +278,7 @@ private:
   std::string                         m_generatorLabel;
   std::string                         m_geantLabel;
   std::string                         m_pandoraLabel;
+  std::string                         m_T0ProducerLabel;
   std::string                         m_hitProducerLabel;
   std::string                         m_trackProducerLabel;
   std::string                         m_showerProducerLabel;
@@ -299,6 +301,7 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   m_generatorLabel(pset.get<std::string>("GeneratorLabel")),
   m_geantLabel(pset.get<std::string>("GeantLabel")),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
+  m_T0ProducerLabel(pset.get<std::string>("T0ProducerLabel")),
   m_hitProducerLabel(pset.get<std::string>("HitProducerLabel")),
   m_trackProducerLabel(pset.get<std::string>("TrackProducerLabel")),
   m_showerProducerLabel(pset.get<std::string>("ShowerProducerLabel")),
@@ -374,6 +377,9 @@ void SingleMuon::analyze(art::Event const& evt)
   evt.getByLabel(m_pandoraLabel, Handle_pfParticle);
   std::vector<art::Ptr<recob::PFParticle>> pfParticle_v;
   art::fill_ptr_vector(pfParticle_v, Handle_pfParticle);
+
+  // pfp t0 association (to get flash_matching chi2 score)
+  art::FindMany<anab::T0> pfpToT0Asso(Handle_pfParticle, evt, m_T0ProducerLabel);
 
   //pfp track association
   art::FindManyP<recob::Track> pfpToTrackAsso(Handle_pfParticle, evt, m_trackProducerLabel);
@@ -516,6 +522,17 @@ void SingleMuon::analyze(art::Event const& evt)
           if(assoTrack.empty() && assoShower.empty()){
             Ghost_PDG.push_back(dau_pfp->PdgCode());
           }
+
+          // Add flash-matching chi2
+          //if(assoTrack.size()==1 && assoShower.size()==0){
+            auto flash_matching_T0 = pfpToT0Asso.at(dau_pfp.key());
+
+            std::cout<<"size flash_matching_T0: "<<flash_matching_T0.size()<<std::endl;
+            if(flash_matching_T0.size() == 1){
+              flash_matching_chi2 = flash_matching_T0.front()->TriggerConfidence();
+              std::cout<<"flash_matching chi2: "<<flash_matching_chi2<<std::endl;
+            }
+          //}
         } // finish looping of pfp
       }
      
@@ -1056,6 +1073,11 @@ void SingleMuon::analyze(art::Event const& evt)
     true_vtxFV.clear();
   }
 
+  daughter_Tracks.clear();
+  daughter_Showers.clear();
+  Track_PDG.clear();
+  Shower_PDG.clear();
+
   mom_bestMCS_mu.clear();
   mom_bestMCS_ll_mu.clear();
   mom_fwdMCS_mu.clear();
@@ -1177,6 +1199,8 @@ void SingleMuon::Initialize_event()
 
   my_event_->Branch("n_dau_tracks", &n_dau_tracks);
   my_event_->Branch("n_dau_showers", &n_dau_showers);
+  
+  my_event_->Branch("flash_matching_chi2", &flash_matching_chi2);
 
   my_event_->Branch("if_cosmic", &if_cosmic);
   my_event_->Branch("if_matchMu", &if_matchMu);
