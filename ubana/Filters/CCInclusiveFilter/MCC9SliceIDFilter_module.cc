@@ -80,7 +80,7 @@ private:
 
   // Declare member data here.
 
-  bool endSubRun(art::SubRun &subrun);
+  bool endSubRun(art::SubRun &subrun) override;
 
   /**
    * @brief function to builf a map linking PFParticle index to Self() attribute

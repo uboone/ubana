@@ -455,11 +455,11 @@ namespace single_photon
             //Right, this basically loops over all hits in all planes and for each plane forms the Delaunay triangilization of it and calculates the 2D area inscribed by the convex hull
             //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Starting Delaunay Triangleization"<<std::endl;;
 
-            auto start = std::chrono::high_resolution_clock::now();
+            //auto start = std::chrono::high_resolution_clock::now();
             this->delaunay_hit_wrapper(hits, t_numhits, t_num, t_area);
 
-            auto finish = std::chrono::high_resolution_clock::now();
-            auto microseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start);
+            //auto finish = std::chrono::high_resolution_clock::now();
+            //auto microseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start);
             //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles"<<std::endl;;
 
             m_reco_shower_delaunay_num_triangles_plane0[i_shr] = t_num[0];

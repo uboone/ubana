@@ -108,7 +108,7 @@ private:
 
   void SaveTruth(art::Event const &e);
 
-  bool endSubRun(art::SubRun &subrun);
+  bool endSubRun(art::SubRun &subrun) override;
 
   void ResetTTree();
 
@@ -149,14 +149,14 @@ private:
   int _nelec;                            /**< is there a final-state electron from the neutrino? [1=yes 0=no] */
   float _elec_e;                         /**< energy, purity, completeness. */
   int _npi0;                             /**< how many pi0s are there? */
-  int _pi0;                              /**< is there a final-state pi0 from the neutrino? [1=yes 0=no] */
+  //int _pi0;                              /**< is there a final-state pi0 from the neutrino? [1=yes 0=no] */
   float _pi0_e;                          /**< energy, purity, completeness. */
   int _nneutron;                         /**< how many neutrons are there? */
   int _nproton;                          /**< how many protons are there? */
-  int _proton;                           /**< is there a final-state proton from the neutrino? [1=yes 0=no] */
+  //int _proton;                           /**< is there a final-state proton from the neutrino? [1=yes 0=no] */
   float _proton_e;                       /**< energy, purity, completeness. */
   int _npion;                            /**< how many pions are there? */
-  int _pion;                             /**< is there a final-state charged pion from the neutrino? [1=yes 0=no] */
+  //int _pion;                             /**< is there a final-state charged pion from the neutrino? [1=yes 0=no] */
   float _pion_e;                         /**< energy, purity, completeness. */
 
   TTree *_subrun_tree;

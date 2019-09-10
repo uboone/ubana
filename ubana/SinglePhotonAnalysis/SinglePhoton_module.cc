@@ -887,7 +887,7 @@ namespace single_photon
     }
 
 
-    void SinglePhoton::beginSubRun(art::SubRun const & sr) {
+    bool SinglePhoton::beginSubRun(art::SubRun& sr) {
 
         if(m_potLabel != ""){
             if(m_potLabel == "generator"){
@@ -901,6 +901,8 @@ namespace single_photon
                 }
             }
         }
+
+	return true;
 
     }
 
