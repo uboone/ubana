@@ -9,7 +9,6 @@
 #include "config_particle_identification_braggalgo.fcl"
 #include "config_particle_identification_producerlabels.fcl"
 #include "shrreco3d.fcl"
-
 #include "microboone_singlephoton.fcl"
 
 process_name : SinglePhoton      #The process name must NOT contain any underscores
@@ -38,15 +37,6 @@ outputs: {
 }
 
 physics: {
-
- producers : {
-     # ParameterSets for zero or more producer modules
-     #pidcalibration: @local::microboone_calibrationdedx
-     #dedxcalibration: @local::simulation_calibration
-     pid: @local::particleidconfig
-     #pid: @local::producerlabels_mcc9
-     #showerreco3dpandora : @local::ShrReco3DPandora
-  }
 
  analyzers: {}
  filters : {

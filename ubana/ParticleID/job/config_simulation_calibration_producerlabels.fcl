@@ -93,5 +93,14 @@ cs_producerlabels_mcc8_UBXSec_calib_simcalib_data:
 
 }
 
+cs_producerlabels_mcc9_calib_dedxcalib:
+{
+  # producer label names
+  TrackLabel       : "pandora"
+  CalorimetryLabel : "pandoracalo"
+  PFParticleLabel  : "pandora"
+}
+
+
 
 END_PROLOG

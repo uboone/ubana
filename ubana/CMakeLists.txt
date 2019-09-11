@@ -5,6 +5,7 @@ add_subdirectory(CosmicTagging)
 add_subdirectory(Filters)
 add_subdirectory(HitAnalysis)
 add_subdirectory(LEEPhotonAnalysis)
+add_subdirectory(SinglePhotonAnalysis)
 add_subdirectory(LLApp)
 add_subdirectory(MicroBooNEWireCell)
 add_subdirectory(OpticalDetectorAna)
@@ -16,4 +17,9 @@ add_subdirectory(HSNAnalysis)
 add_subdirectory(XGBoost)
 add_subdirectory(NCElastic)
 add_subdirectory(ParticleID)
+<<<<<<< HEAD
 add_subdirectory(SinglePhotonAnalysis)
+=======
+add_subdirectory(TreeReader)
+add_subdirectory(Arborist)
+>>>>>>> origin/feature/markross_SinglePhotonMCC9

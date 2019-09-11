@@ -886,18 +886,18 @@ namespace single_photon
             principal->AddRow(&tmp_pts[0]);
         }
         principal->MakePrincipals();
-        principal->Print();
+        //principal->Print();
 
         TVectorD * eigenval = (TVectorD*) principal->GetEigenValues();
-        TMatrixD * eigenvec = (TMatrixD*) principal->GetEigenVectors();
+        //TMatrixD * eigenvec = (TMatrixD*) principal->GetEigenVectors();
         TMatrixD * covar = (TMatrixD*) principal->GetCovarianceMatrix();
 
         score.pca_0 = (*eigenval)(0);
         score.pca_1 = (*eigenval)(1);
 
-        (*eigenvec).Print();
-        (*covar).Print();
-        std::cout<<"SinglePhoton::SSS\t||\tEigen: "<<score.pca_0<<" "<<score.pca_1<<std::endl;
+        //(*eigenvec).Print();
+        //(*covar).Print();
+        //std::cout<<"SinglePhoton::SSS\t||\tEigen: "<<score.pca_0<<" "<<score.pca_1<<std::endl;
 
         score.pca_theta = atan((*covar)[0][0]/(*covar)[0][1])*180.0/3.14159;
 
