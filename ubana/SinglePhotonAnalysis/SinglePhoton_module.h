@@ -81,6 +81,7 @@
 #include <sys/stat.h>
 
 #include "bad_channel_matching.h"
+#include "sssVeto_BDT.class.h"
 #include "DBSCAN.h"
 //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -124,6 +125,10 @@ namespace single_photon
         double max_tick;
         double min_tick;
 
+        double close_tick;
+        double close_wire;
+        double angle;//w.r.t shower primary
+
         double impact_parameter;
 
         double max_dist_tick;
@@ -148,6 +153,45 @@ namespace single_photon
 
         sss_score(int ip, int cl): plane(ip), cluster_label(cl){};
     };
+
+class cluster {
+
+    public:
+    
+    cluster(int ID, int plane, std::vector<std::vector<double>> &pts, std::vector<art::Ptr<recob::Hit>> &hits) :f_ID(ID), f_plane(plane), f_pts(pts), f_hits(hits) {
+
+        f_npts = f_pts.size();
+        if(pts.size() != hits.size()){
+            std::cerr<<"seaviewer::cluster, input hits and pts not alligned"<<std::endl;
+        }
+        std::vector<double> wires(f_npts);
+        std::vector<double> ticks(f_npts);
+        for(int p =0; p< f_npts; ++p){
+            wires[p]=f_pts[p][0];
+            ticks[p]=f_pts[p][1];
+        }
+        TGraph af_graph(f_npts,&wires[0],&ticks[0]);
+        f_graph = af_graph;
+
+    };
+
+    int getID() {return f_ID;}
+    int getN() {return f_npts;}
+    int getPlane(){ return f_plane;}
+    TGraph * getGraph(){ return &f_graph;}
+    std::vector<art::Ptr<recob::Hit>>  getHits(){return f_hits;}
+    int setSSScore(sss_score & scorein){ f_SSScore = &scorein; return 0;}
+    sss_score * getSSScore(){return f_SSScore;}
+    private:
+ 
+    int f_ID;
+    int f_npts;
+    int f_plane;
+    std::vector<std::vector<double>> f_pts;
+    std::vector<art::Ptr<recob::Hit>> f_hits;
+    TGraph f_graph;
+    sss_score *f_SSScore;
+};
 
 
 
@@ -250,9 +294,9 @@ namespace single_photon
              *
              *
              * */
-            double CalcEShower(std::vector<art::Ptr<recob::Hit>> hits);
+            double CalcEShower(const std::vector<art::Ptr<recob::Hit>> &hits);
 
-            double CalcEShowerPlane(std::vector<art::Ptr<recob::Hit>> hits, int plane);
+            double CalcEShowerPlane(const std::vector<art::Ptr<recob::Hit>>& hits, int plane);
 
             int getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane);
 
@@ -363,11 +407,21 @@ namespace single_photon
 
             void CreateSecondShowerBranches();
 
-            void SecondShowerSearch(
-                    const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
-                    const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
-                    const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
-                    const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap);
+    void SecondShowerSearch(
+            const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
+            const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
+            const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
+            const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap,
+             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
+            std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
+            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
+
+        std::vector<double>SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
+            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
+            std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
+            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
 
 
 
@@ -679,6 +733,8 @@ namespace single_photon
 
             int m_sss_num_candidates;
 
+             ReadBDT * sssVetov1;
+
             std::vector<int> m_sss_candidate_num_hits;
             std::vector<int> m_sss_candidate_num_wires;
             std::vector<int>  m_sss_candidate_num_ticks;
@@ -686,6 +742,7 @@ namespace single_photon
             std::vector<double> m_sss_candidate_PCA;
             std::vector<double> m_sss_candidate_impact_parameter;
             std::vector<double> m_sss_candidate_fit_slope;
+            std::vector<double> m_sss_candidate_veto_score;
             std::vector<double> m_sss_candidate_fit_constant;
             std::vector<double>  m_sss_candidate_mean_tick;
             std::vector<double> m_sss_candidate_max_tick;
@@ -694,7 +751,14 @@ namespace single_photon
             std::vector<double> m_sss_candidate_max_wire;
             std::vector<double> m_sss_candidate_mean_wire;
             std::vector<double> m_sss_candidate_min_dist;
-
+            std::vector<double> m_sss_candidate_energy;
+            std::vector<double> m_sss_candidate_angle_to_shower;
+            std::vector<double> m_sss_candidate_closest_neighbour;
+            std::vector<int>   m_sss_candidate_matched;
+       std::vector<int>       m_sss_candidate_pdg;
+      std::vector<int>        m_sss_candidate_parent_pdg;
+          std::vector<int>    m_sss_candidate_trackid;
+       std::vector<double>       m_sss_candidate_overlay_fraction;
 
             bool bool_make_sss_plots;
 

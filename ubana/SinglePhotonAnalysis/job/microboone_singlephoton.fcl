@@ -32,7 +32,7 @@ singlephoton_analyzer:{
     }
 
 singlephoton_filter: @local::singlephoton_analyzer
-singlephoton_filter.FillTrees: false
+singlephoton_filter.FillTrees: true
 singlephoton_filter.RunPi0Filter: true
 
 END_PROLOG
