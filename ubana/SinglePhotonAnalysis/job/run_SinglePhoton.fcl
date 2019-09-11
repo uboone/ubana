@@ -9,6 +9,7 @@
 #include "config_particle_identification_braggalgo.fcl"
 #include "config_particle_identification_producerlabels.fcl"
 #include "shrreco3d.fcl"
+
 #include "microboone_singlephoton.fcl"
 
 process_name : SinglePhoton      #The process name must NOT contain any underscores
@@ -21,7 +22,7 @@ source : {
 services :
 {
     #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
-    TFileService: { fileName: "vertexed_singlephoton.root" }
+    TFileService: { fileName: "vertexed_singlephoton_%tc.root" }
     ExptGeoHelperInterface:    @local::standard_geometry_helper
     Geometry:                  @local::standard_geo
     LArPropertiesService:      @local::standard_properties
@@ -38,12 +39,22 @@ outputs: {
 
 physics: {
 
+ producers : {
+     # ParameterSets for zero or more producer modules
+     #pidcalibration: @local::microboone_calibrationdedx
+     #dedxcalibration: @local::simulation_calibration
+     pid: @local::particleidconfig
+     #pid: @local::producerlabels_mcc9
+     #showerreco3dpandora : @local::ShrReco3DPandora
+  }
+
  analyzers: {}
  filters : {
-        singlephotonfil: @local::singlephoton_filter   #run in filtering mode
-        singlephotonana: @local::singlephoton_analyzer #run in analyzing mode
+#singlephotonfil: @local::singlephoton_filter   #run in filtering mode
+        singlephotonana: @local::singlephoton_filter   #run in filtering mode
+#singlephotonana: @local::singlephoton_analyzer #run in analyzing mode
   }
- pathana : [pid , singlephotonana] #path for analysis
+    pathana : [pid , singlephotonana] #path for analysis
 
  trigger_paths : [pathana]
  end_paths: [ ]
