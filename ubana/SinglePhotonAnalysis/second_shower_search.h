@@ -773,8 +773,6 @@ namespace single_photon
                                 m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
 
 
-
-
                             }
 
 

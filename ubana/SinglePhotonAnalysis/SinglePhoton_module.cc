@@ -728,6 +728,14 @@ namespace single_photon
 
 
             std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
+        }else{
+
+            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> * tmp_mcparticles_per_hit = NULL;
+            std::vector<art::Ptr<simb::MCParticle>> tmp_matchedMCParticleVector;
+            
+            this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,*tmp_mcparticles_per_hit, tmp_matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+
+
         }
 
         //Second Shower Search-Pandora style
