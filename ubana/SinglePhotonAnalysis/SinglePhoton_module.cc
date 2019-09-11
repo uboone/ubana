@@ -707,8 +707,6 @@ namespace single_photon
     }
 
 
-
-
     //-------------------------------------------------------------------------------------------
 
     void SinglePhoton::endJob()
@@ -717,6 +715,7 @@ namespace single_photon
             out_stream.close();
         }
         pot_tree->Fill();
+        std::cout<<"YARP: "<<m_pot_count<<std::endl;
     }
 
     //-------------------------------------------------------------------------------------------
