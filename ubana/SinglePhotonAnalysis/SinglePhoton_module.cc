@@ -125,7 +125,7 @@ namespace single_photon
     void SinglePhoton::analyze(const art::Event &evt)
 	{//analyzing one event per run! CHECK, how to add more vertex here?
 
-		//m_is_verbose = true;
+//		m_is_verbose = true;
 		std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 		std::cout<<"SinglePhoton::analyze()\t||\t On entry: "<<m_number_of_events<<std::endl;
 
@@ -510,9 +510,6 @@ redo_event:
 			ParticleAssociation const & particle_associated = bobby_particle_associations.GetAssociations().at(nth_associations);//grab the "pn"th association;
 			geoalgo::Point_t const & reco_vertex = particle_associated.GetRecoVertex();//Grab the vertec of the "pn"th association.
 
-//			m_bobbyvertex_pos_x = reco_vertex.at(0);
-//			m_bobbyvertex_pos_y = reco_vertex.at(1);
-//			m_bobbyvertex_pos_z = reco_vertex.at(2);
 			bobby_x.push_back( reco_vertex.at(0));
 			bobby_y.push_back( reco_vertex.at(1));
 			bobby_z.push_back( reco_vertex.at(2));
@@ -670,21 +667,21 @@ redo_event:
 			this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap);
 
 			//----------------- VertexBuilder -----------------
-			int best_fit_index = 0;
-			double best_vertex_dist = SIZE_MAX;//the distance between bobby vertex and pandora vertex
-			for( int index = 0; ; index++){
+			double best_vertex_dist = SIZE_MAX;
+
+			for( size_t index = 0; index< bobby_x.size() ; index++){
 				double temp_dist =  pow(m_vertex_pos_x - bobby_x[index],2) + pow(m_vertex_pos_y - bobby_y[index],2)+ pow(m_vertex_pos_z - bobby_z[index],2);
 
-				if(temp_dist < best_vertex_dist){
-					best_fit_index = index;
-					best_vertex_dist = temp_dist;	
+				if(temp_dist < best_vertex_dist){//update when find a closer vertex to the pandora vertex.
+					cout<<"Bobby vertex is updated.\n\n\n\n\n"<<endl;
+					best_vertex_dist = temp_dist;
+					m_bobbyvertex_pos_x = bobby_x[index];
+					m_bobbyvertex_pos_y = bobby_y[index];
+					m_bobbyvertex_pos_z = bobby_z[index];
+					m_bobbytracks =  bobby_tracks[index];
+					m_bobbyshowers = bobby_showers[index];
 				}
 			}
-			m_bobbyvertex_pos_x = bobby_x[best_fit_index];
-			m_bobbyvertex_pos_y = bobby_y[best_fit_index];
-			m_bobbyvertex_pos_z = bobby_z[best_fit_index];
-			m_bobbytracks =  bobby_tracks[best_fit_index];
-			m_bobbyshowers = bobby_showers[best_fit_index];
 
 			if( m_run_all_pfps &&m_bobbytracks + m_bobbyshowers < 2&& run_count < 2 && m_bobbyvertexing_more ){//repeat with 0,1
 				run_count++;
