@@ -169,8 +169,8 @@ void NuCCanalyzer::FillReconstructed(art::Event const &evt)
 }
 
 bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
-                         const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle,
-                         const art::FindManyP<anab::ParticleID> &trackPIDAssn)
+                                 const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle,
+                                 const art::FindManyP<anab::ParticleID> &trackPIDAssn)
 {
   clearDaughter();
   const lar_pandora::ClusterVector cluster_vec = particlesToClusters.at(pfp);
@@ -225,6 +225,26 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
   const larpandoraobj::PFParticleMetadata::PropertiesMap &pfp_properties = particlesToMetadata.at(pfp).front()->GetPropertiesMap();
   fTrackScore = pfp_properties.at("TrackScore");
   fVtxDistance = pandoraInterfaceHelper.Distance3D(fVx, fVy, fVz, fNu_Vx, fNu_Vy, fNu_Vz);
+
+  // Hierarchy info
+  fGeneration = larpandora.GetGeneration(particleMap, pfp);
+  if (fNumPrimaryDaughters < fNumDaughters)
+  {
+    if (particleMap.at(pfp->Parent())->PdgCode() == 13)
+    {
+      fIsTrackDaughter = true;
+    }
+    if (pfp->NumDaughters())
+    {
+      for (const int daughter_id : pfp->Daughters())
+      {
+        if (particleMap.at(daughter_id)->PdgCode() == 11)
+        {
+          fHasShowerDaughter = true;
+        }
+      }
+    }
+  }
 
   // Track-like fields
   if (particlesToTracks.find(pfp) != particlesToTracks.end())
@@ -307,25 +327,6 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
     }
   }
 
-  // Hierarchy info
-  fGeneration = larpandora.GetGeneration(particleMap, pfp);
-  if (fNumPrimaryDaughters < fNumDaughters)
-  {
-    if (particleMap.at(pfp->Parent())->PdgCode() == 13)
-    {
-      fIsTrackDaughter = true;
-    }
-    if (pfp->NumDaughters())
-    {
-      for (const int daughter_id : pfp->Daughters())
-      {
-        if (particleMap.at(daughter_id)->PdgCode() == 11)
-        {
-          fHasShowerDaughter = true;
-        }
-      }
-    }
-  }
   std::cout << "[NuCCanalyzer::FillDaughters] Trackscore: " << fTrackScore << ", Generation: " << fGeneration;
   std::cout << ", vtx distance: " << fVtxDistance << std::endl;
   std::cout << "[NuCCanalyzer::FillDaughters] U Plane: Hits:" << fNhitsU << ", Energy: " << fCaloU << ", dedx hits: " << fDedxHitsU << ", dedx: " << fDedxU << ", pitch: " << fDedxPitchU << std::endl;
@@ -375,7 +376,7 @@ bool NuCCanalyzer::MatchDaughter(art::Event const &evt, const art::Ptr<recob::PF
     std::cout << "[NuCCanalyzer::MatchDaughter] Generation 4 particle is not matched." << std::endl;
     return false;
   }
- 
+
   // Is this MC particle neutrino?
   const art::Ptr<simb::MCTruth> mctruth = pandoraInterfaceHelper.TrackIDToMCTruth(evt, m_geant_producer, matched_mcp->TrackId());
   if (mctruth->Origin() == simb::kBeamNeutrino)
@@ -400,7 +401,7 @@ bool NuCCanalyzer::MatchDaughter(art::Event const &evt, const art::Ptr<recob::PF
   fTrueLength = (matched_mcp->Position().Vect() - matched_mcp->EndPosition().Vect()).Mag();
 
   pandoraInterfaceHelper.SCE(fTrueVx, fTrueVy, fTrueVz, matched_mcp->T(),
-                              fTrueVxSce, fTrueVySce, fTrueVzSce);
+                             fTrueVxSce, fTrueVySce, fTrueVzSce);
   std::cout << "[NuCCanalyzer::MatchDaughter] Daughter matched with PDG: " << fTruePDG << ", hit purity: " << matchedHitFraction << std::endl;
 
   return true;
@@ -438,7 +439,7 @@ void NuCCanalyzer::FillTrueNu(art::Event const &evt)
     fTrueNu_Vy = mcnu.Nu().Vy();
     fTrueNu_Vz = mcnu.Nu().Vz();
     pandoraInterfaceHelper.SCE(fTrueNu_Vx, fTrueNu_Vy, fTrueNu_Vz, fTrueNu_Time,
-                                fTrueNu_VxSce, fTrueNu_VySce, fTrueNu_VzSce);
+                               fTrueNu_VxSce, fTrueNu_VySce, fTrueNu_VzSce);
     std::cout << ", CCNC: " << fTrueNu_CCNC << ", PDG: " << fTrueNu_PDG << ", E: " << fTrueNu_Energy << ", z-vertex: " << fTrueNu_Vz << std::endl;
   }
 
@@ -534,16 +535,16 @@ bool NuCCanalyzer::IsContained(float x, float y, float z, const std::vector<floa
 }
 
 bool NuCCanalyzer::IsMuonCandidate()
-{ 
-    fIsMuonCandidate = fGeneration == 2 &&
+{
+  fIsMuonCandidate = fGeneration == 2 &&
                      m_muon_cut_trackscore < fTrackScore &&
                      m_muon_cut_vtxdistance > fVtxDistance &&
                      m_muon_cut_protonchi2 < fTrackPID_chiproton &&
                      m_muon_cut_muonchi2 > fTrackPID_chimuon &&
                      m_muon_cut_length < fTrackLength &&
                      m_muon_cut_chiratio < (fTrackPID_chiproton / fTrackPID_chimuon);
-                     
-     return fIsMuonCandidate;
+
+  return fIsMuonCandidate;
 }
 
 bool NuCCanalyzer::IsNuMuCC(art::Event const &evt)
@@ -562,5 +563,5 @@ bool NuCCanalyzer::IsNuMuCC(art::Event const &evt)
       return true;
     }
   }
-  return false;  
+  return false;
 }

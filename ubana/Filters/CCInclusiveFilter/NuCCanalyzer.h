@@ -375,6 +375,7 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
     fEventTree->Branch("nu_vy", &fNu_Vy, "nu_vy/F");
     fEventTree->Branch("nu_vz", &fNu_Vz, "nu_vz/F");
     fEventTree->Branch("nu_contained", &fNu_Contained, "nu_contained/O");
+    fEventTree->Branch("daughters_start_contained", &fDaughtersStartContained, "daughters_start_contained/O");
     fEventTree->Branch("nu_pdg", &fNu_PDG, "nu_pdg/I");
     fEventTree->Branch("nu_score", &fNu_Score, "nu_score/F");
     fEventTree->Branch("nu_flash_chi2", &fNu_FlashChi2, "nu_flash_chi2/F");
