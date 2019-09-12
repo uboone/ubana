@@ -730,9 +730,7 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 							pas.GetAssociationIndicesFromObject(best_track);//iterator that gives the best_track inside pas;
 						switch(index_positions.size()){
 							case 0://not an end point is associated to a candidate vertex;
-								{
-									cout<<"\n\n\n\n\n\n\n\n\nCHECK, this is impossible, if this happens come visist L734 in VertexBuilder.h.\n\n\n\n\n\n\n\n\n\n\n\n"<<endl;
-									exit(0);
+								{//this is possible. OMG CHECK, this might mean the track is not an associated one.
 									if(fverbose) {
 										std::cout << "\t\t\t\tFail, create a new candiate vertex\n";
 										if(best_tp == nullptr) std::cout << "The track-end point does not exist!\n";//tp = track point

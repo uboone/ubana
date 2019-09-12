@@ -391,8 +391,6 @@ namespace single_photon
 		//At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.
 		//tracks is a vector of recob::Tracks and same for showers.
 		//Implicitly, tracks.size() + showers.size() =  nuParticles.size(); At this point I would like two things.
-		std::vector< art::Ptr<recob::Track> > tracks; //this is going to store points to all associated tracks;
-		std::vector< art::Ptr<recob::Shower> > showers;
 		std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap; //give access to the PFParticle via track/shower
 		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
 		//std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToAllPFParticleMap; 
@@ -457,6 +455,8 @@ redo_event:
 				object_container.PFPToTrackScoreMap);
 
 		this->CollectTracksAndShowers_v2(evt, object_container, run_count); //This tells what showers and tracks to use.
+		std::vector< art::Ptr<recob::Track> > tracks = object_container.collected_tracks; //this is going to store points to all associated tracks;
+		std::vector< art::Ptr<recob::Shower> > showers = object_container.collected_showers;
 //		tracks = object_container.collected_tracks;
 //		showers = object_container.collected_showers;
 //		this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap); //This tells what showers and tracks to use.
@@ -498,16 +498,24 @@ redo_event:
 		//---------- VertexBuilder--------------
 		//use the new ObjectCandidate class for variables.
 		ParticleAssociations_all const & bobby_particle_associations = BobbyVertexBuilder_ext(object_container);
+		vector< double >  bobby_x;
+		vector< double >  bobby_y;
+		vector< double >  bobby_z;
+		vector< double >  bobby_tracks;
+		vector< double >  bobby_showers;
+
 		//introduce a for loop for all particle associations identified by Bobby's VertexBuilder
-		//CHECK, I think no trees for the no-association case.
 		for(size_t const nth_associations : bobby_particle_associations.GetSelectedAssociations()) {//Loop over all associations, which is a vector
 			std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.GetSelectedAssociations().size()<<" Vertex candidates."<<std::endl;
 			ParticleAssociation const & particle_associated = bobby_particle_associations.GetAssociations().at(nth_associations);//grab the "pn"th association;
 			geoalgo::Point_t const & reco_vertex = particle_associated.GetRecoVertex();//Grab the vertec of the "pn"th association.
 
-			m_bobbyvertex_pos_x = reco_vertex.at(0);
-			m_bobbyvertex_pos_y = reco_vertex.at(1);
-			m_bobbyvertex_pos_z = reco_vertex.at(2);
+//			m_bobbyvertex_pos_x = reco_vertex.at(0);
+//			m_bobbyvertex_pos_y = reco_vertex.at(1);
+//			m_bobbyvertex_pos_z = reco_vertex.at(2);
+			bobby_x.push_back( reco_vertex.at(0));
+			bobby_y.push_back( reco_vertex.at(1));
+			bobby_z.push_back( reco_vertex.at(2));
 
 			cout<<"Vertex Coordinates found by Bobby Vertex Builder: ";
 			cout<<m_bobbyvertex_pos_x<<", ";
@@ -516,27 +524,26 @@ redo_event:
 
 			//calculate the # of tracks/showers;
 			DetectorObjects_all const & detos = bobby_particle_associations.GetDetectorObjects();
-			m_bobbytracks = 0, m_bobbyshowers = 0;
+			double temp_num_tracks = 0;
+			double temp_num_showers = 0;
 
 			for(size_t const n : particle_associated.GetObjectIndices()) {
 
 				if(detos.GetRecoType(n) == detos.ftrack_reco_type) {
-					++m_bobbytracks;
+					++temp_num_tracks;
 				}
 				if(detos.GetRecoType(n) == detos.fshower_reco_type) {
-					++m_bobbyshowers;
+					++temp_num_showers;
 				}
 			}
-			cout<<"# of showers: "<<m_bobbyshowers<<endl;
-			cout<<"# of tracks : "<<m_bobbytracks<<endl;
+			cout<<"# of showers: "<<temp_num_showers<<endl;
+			cout<<"# of tracks : "<<temp_num_tracks<<endl;
 
-			if( m_run_all_pfps &&m_bobbyshowers + m_bobbytracks < 2&& run_count < 2 && m_bobbyvertexing_more ){//repeat with 0,1
-				run_count++;
-				cout<<"Need more objects. Now run the "<<run_count<<" time the vertexing."<<endl;
-				goto redo_event;
-			}
 
+			bobby_tracks.push_back(temp_num_tracks);
+			bobby_showers.push_back(temp_num_showers);
 			std::cout<<"Got Bobby's info.!\n"<<std::endl;
+		}
 
 			//-------------------------------------
 
@@ -658,8 +665,34 @@ redo_event:
 			}
 
 			this->AnalyzeFlashes(flashVector);
+
 			std::cout<<"start track"<<std::endl;
 			this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap);
+
+			//----------------- VertexBuilder -----------------
+			int best_fit_index = 0;
+			double best_vertex_dist = SIZE_MAX;//the distance between bobby vertex and pandora vertex
+			for( int index = 0; ; index++){
+				double temp_dist =  pow(m_vertex_pos_x - bobby_x[index],2) + pow(m_vertex_pos_y - bobby_y[index],2)+ pow(m_vertex_pos_z - bobby_z[index],2);
+
+				if(temp_dist < best_vertex_dist){
+					best_fit_index = index;
+					best_vertex_dist = temp_dist;	
+				}
+			}
+			m_bobbyvertex_pos_x = bobby_x[best_fit_index];
+			m_bobbyvertex_pos_y = bobby_y[best_fit_index];
+			m_bobbyvertex_pos_z = bobby_z[best_fit_index];
+			m_bobbytracks =  bobby_tracks[best_fit_index];
+			m_bobbyshowers = bobby_showers[best_fit_index];
+
+			if( m_run_all_pfps &&m_bobbytracks + m_bobbyshowers < 2&& run_count < 2 && m_bobbyvertexing_more ){//repeat with 0,1
+				run_count++;
+				cout<<"Need more objects. Now run the "<<run_count<<" time the vertexing."<<endl;
+				goto redo_event;
+			}
+			//----------------------------------------------------
+			
 			this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
 
 
@@ -808,7 +841,6 @@ redo_event:
 
 			std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 
-		}
 	}
 
 
@@ -1302,7 +1334,8 @@ redo_event:
         double xOffset = theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)+scecorr.X();
         double yOffset = scecorr.Y();
         double zOffset = scecorr.Z();
-        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6;
+        corrected[0]=kx - scecorr.X() + xOffset + 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
+//        corrected[0]=(kx+xOffset)*(1.114/1.098) - 0.6;
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
 
