@@ -8,9 +8,14 @@ process_name: ccnumuincproduceranalyser
 services:{
     TFileService: {fileName: "NuCCanalyser.root" }
     @table::microboone_services_reco
+    SpaceCharge:              @local::microboone_spacecharge
     DetectorClocksService:    @local::microboone_detectorclocks
 }
 
+# Configuration
+services.SpaceCharge.EnableCorrSCE:       true
+services.SpaceCharge.EnableSimEfieldSCE:  true
+services.SpaceCharge.EnableSimSpatialSCE: true
 services.DetectorClocksService.InheritClockConfig: false
 services.DetectorClocksService.TriggerOffsetTPC: -0.400e3
 
