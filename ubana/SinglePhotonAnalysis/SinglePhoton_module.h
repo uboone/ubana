@@ -241,7 +241,7 @@ class cluster {
             void endJob();
 
 
-            void beginSubRun(art::SubRun const & sr);
+            bool beginSubRun(art::SubRun const & sr);
 
         private:
             void ClearVertex();

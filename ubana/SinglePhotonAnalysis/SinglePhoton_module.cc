@@ -1042,21 +1042,23 @@ namespace single_photon
     }
 
 
-    void SinglePhoton::beginSubRun(art::SubRun const & sr) {
+    bool SinglePhoton::beginSubRun(art::SubRun const & sr) {
 
+        std::cout<<"YARPSubRun "<<m_potLabel<<" "<<m_pot_count<<std::endl;
         if(m_potLabel != ""){
             if(m_potLabel == "generator"){
                 double this_pot =  sr.getValidHandle<sumdata::POTSummary>(m_potLabel)->totgoodpot;
                 m_pot_count += this_pot;
-                std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<std::endl;
+                std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
             }else{
                 art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR875;
                 if (sr.getByLabel("beamdata","bnbETOR875",potSummaryHandlebnbETOR875)){
                     m_pot_count += potSummaryHandlebnbETOR875->totpot;
+                    std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<potSummaryHandlebnbETOR875->totpot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
                 }
             }
         }
-
+    return true;
     }
 
 
