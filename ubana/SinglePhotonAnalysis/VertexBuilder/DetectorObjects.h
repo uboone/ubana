@@ -148,7 +148,9 @@ DetectorObjects_all::DetectorObjects_all() :
 //void DetectorObjects_all::AddTracks(art::ValidHandle<std::vector<recob::Track>> const & ev_t,
 //DetectorObjects_all::AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t,
 //				bool const track_original_indices) {
-void DetectorObjects_all::AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t, bool const track_original_indices){
+void DetectorObjects_all::AddTracks(
+	std::vector<art::Ptr<recob::Track>> const & ev_t, 
+	bool const track_original_indices){
   for(size_t i = 0; i < ev_t.size(); ++i) {
     recob::Track const & t = *(ev_t.at(i));
     fobject_m.emplace(fobject_id, new Track(fobject_id, i, ftrack_reco_type, t)); 

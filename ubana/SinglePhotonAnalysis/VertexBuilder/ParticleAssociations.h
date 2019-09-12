@@ -114,15 +114,25 @@ public:
 
   /*************
    *
-   * nodes mean the index of the points, such as 
-   *	beginning and end points of a track.
+   * AddAssociation() - evaluate all end points of tracks and identify
+   *	those are close to each others; form a bounding sphere that 
+   *	includes those end points. The last two arguments are to save the 
+   *	info. of that bounding sphere.
+   *
+   * nodes - Track IDs.
+   * vertices - end points of tracks.
+   * vertex - center of the bounding sphere that includes all 
+   *	track end points as indicated in the vertices.
+   * goodness - the radius of the bounding sphere. (0 for this function?)
    *
    * ************/
-  void AddAssociation(std::vector<size_t> const & nodes,
-		      std::vector<geoalgo::Point_t> const & vertices,
-		      geoalgo::Point_t const & vertex,
-		      double const goodness = 0);
-    
+
+  void AddAssociation(
+		  std::vector<size_t> const & nodes,
+		  std::vector<geoalgo::Point_t> const & vertices,
+		  geoalgo::Point_t const & vertex,
+		  double const goodness = 0);
+
 
   /*************************
    *
@@ -149,6 +159,14 @@ public:
     return fassociation_index_vec;
   }
 
+/*
+ *
+ * GetAssociationIndicesFromObject() - gives all iterators, who can locate
+ *		the element in fobject_index_v that gives the value n. This gives
+ *		the collection of iterators that can be used to locate object with 
+ *		ID, n, among the particle associations.
+ *
+ */
   std::vector<size_t> GetAssociationIndicesFromObject(size_t const n);
 
   void IgnoreAssociation(size_t const n) {//CHECK, when do we use IgnoreAssociation??
@@ -268,10 +286,11 @@ void ParticleAssociations_all::Reset() {
 }
 
 
-void ParticleAssociations_all::AddAssociation(std::vector<size_t> const & nodes,
-					  std::vector<geoalgo::Point_t> const & vertices,
-					  geoalgo::Point_t const & vertex,
-					  Double_t const goodness) {
+void ParticleAssociations_all::AddAssociation(
+		std::vector<size_t> const & nodes,
+		std::vector<geoalgo::Point_t> const & vertices,
+		geoalgo::Point_t const & vertex,
+		Double_t const goodness) {
   
   fassociations.push_back(ParticleAssociation(nodes, vertices, vertex, goodness));
   
@@ -547,7 +566,6 @@ void ParticleAssociations_all::GetShowerAssociations() {
 	if(fverbose) std::cout << "Number of particle associations: " << fassociations.size() << "\n";
 
 	for(size_t i = 0; i < fassociations.size(); ++i) {
-		cout<<"CHECK! Associartions size is "<<fassociations.size()<<endl;
 		if(fverbose) std::cout << "\tAssociation: " << i << "\n";
 		ParticleAssociation const & pa = fassociations.at(i); //the ith associated particle (vertex)
 		bool asso_shower = false;
@@ -570,7 +588,7 @@ void ParticleAssociations_all::GetShowerAssociations() {
 		}
 	}
 
-	if(fverbose) std::cout << "Loop over filled map\n";
+	if(fverbose) std::cout << "Loop over filled map, with size : "<<pa_map.size()<<endl;
 
 	for(std::pair<double, size_t> const & p : pa_map) {
 	//p is a pair <z-position, index of DetectorObject (a shower)>

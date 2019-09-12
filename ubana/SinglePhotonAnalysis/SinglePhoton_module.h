@@ -159,10 +159,6 @@ namespace single_photon
     {
 	//----- VertexBuilder-------
 	//set limit here, refered to the internal note;
-		const double fstart_prox = 4;
-		const double fshower_prox = 10;
-		const double fcpoa_vert_prox = 10; 
-		const double fcpoa_trackend_prox = 5;
 		friend class Atlas;
 	//---------------------------
 

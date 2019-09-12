@@ -71,7 +71,7 @@ namespace single_photon
 		if(m_run_all_pfps){
 			cout<<"d(O.O)b Looking at all slices. ";
 		}else{
-			cout<<"d(O.O)b Looking at only the most neutrino-like slice."<<endl;
+			cout<<"d(O.O)b Not looking at all slices."<<endl;
 		}
 		//we dont need the run_all_particle boolean, because it is considered under package.particles;
 		candidate_particles = package.particles;//CHECK, always vertex the most nu-like slice.
@@ -80,10 +80,12 @@ namespace single_photon
 			mf::LogDebug("SinglePhoton") << "  No PFParticles can be considered for vertexing.\n";
 		}
 
-		std::vector< art::Ptr<recob::Track> >		cosmic_tracks;//yea,, I think all PFParticles should include them;
-		std::vector< art::Ptr<recob::Shower> >		cosmic_showers;
-		std::vector< art::Ptr<recob::Track> >		wanted_tracks;//yea,, I think all PFParticles should include them;
-		std::vector< art::Ptr<recob::Shower> >		wanted_showers;
+		std::vector< art::Ptr<recob::Track> >	cosmic_tracks;//cosmic_* are useless for now..
+		std::vector< art::Ptr<recob::Shower> >	cosmic_showers;
+		std::vector< art::Ptr<recob::Track> >	wanted_tracks;
+		std::vector< art::Ptr<recob::Shower> >	wanted_showers;
+		std::vector< art::Ptr<recob::Track> >	backup_tracks;
+		std::vector< art::Ptr<recob::Shower> >	backup_showers;
 
 		for(const art::Ptr<recob::PFParticle> &pParticle : candidate_particles){ //candidate_particles are determined in above if-else statement.
 
@@ -94,6 +96,10 @@ namespace single_photon
 			//associatedTracks is a copy of pfPartToTrackAssoc.at(pParticle.key()));
 			//nTracks = associatedTracks.size()
 
+			//Getting rid of PFParticleAsATrack..
+			//(package.PFParticleAsATrack).at(pParticle.key()) gives # of tracks;
+			//art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, evt, m_trackLabel);
+			
 			//Make a copy of vectors we need, lazy as I am~
 			const std::vector< art::Ptr<recob::Track> > ToBeAddedTracks((package.PFParticleAsATrack)->at(pParticle.key()));
 			const std::vector< art::Ptr<recob::Shower> > ToBeAddedShowers((package.PFParticleAsAShower)->at(pParticle.key()));
@@ -119,14 +125,15 @@ namespace single_photon
 					(cosmic_tracks).push_back(ToBeAddedTracks.front());
 					(package.trackToNuPFParticleMap)[(cosmic_tracks).back()]= pParticle;
 
-				}else if(m_bobbyvertexing_more && !(package.PFPToNuSliceMap[pParticle])){//we want more particles that is not in the most nu-like slice;
-					(package.backup_tracks).push_back(ToBeAddedTracks.front());
-					(package.trackToNuPFParticleMap)[(package.backup_tracks).back()]= pParticle;
+				}else if(!(package.PFPToNuSliceMap[pParticle])){//add other nu-like PFParticle;
+					(backup_tracks).push_back(ToBeAddedTracks.front());
+					(package.trackToNuPFParticleMap)[(backup_tracks).back()]= pParticle;
 
-				}else{//not cosmic; in most nu-like slice; record it;
+				}else{//add selected nu-slice particle.
 					(wanted_tracks).push_back(ToBeAddedTracks.front());
 					(package.trackToNuPFParticleMap)[(wanted_tracks).back()]= pParticle;
 				}
+
 				std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  ToBeAddedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
 			}else if( nShowers == 1 ){ //Add a Shower
@@ -135,14 +142,15 @@ namespace single_photon
 					(cosmic_showers).push_back(ToBeAddedShowers.front());
 					(package.showerToNuPFParticleMap)[(cosmic_showers).back()]= pParticle;
 
-				}else if( m_bobbyvertexing_more && !(package.PFPToNuSliceMap[pParticle]) ){//we want more particles that is not in the most nu-like slice;
-					(package.backup_showers).push_back(ToBeAddedShowers.front());
-					(package.showerToNuPFParticleMap)[(package.backup_showers).back()]= pParticle;
+				}else if(!(package.PFPToNuSliceMap[pParticle]) ){//add other nu-like PFParticle
+					(backup_showers).push_back(ToBeAddedShowers.front());
+					(package.showerToNuPFParticleMap)[(backup_showers).back()]= pParticle;
 
-				}else{//not cosmic; in most nu-like slice; record it;
+				}else{//add selected nu-slice particle
 					(wanted_showers).push_back(ToBeAddedShowers.front());
 					(package.showerToNuPFParticleMap)[(wanted_showers).back()] = pParticle;
 				}
+
 				std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  ToBeAddedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 			}
 
@@ -151,33 +159,44 @@ namespace single_photon
 
 		package.collected_showers.clear();//no need these, but they dont hurt;
 		package.collected_tracks.clear();
+
+		//run_count = 3;//CHECK
+
 		switch (run_count)
 		{
 			case 1:
 				cout<<"\n\n Load objects form other nu slices!"<<endl;
-				(package.collected_showers).reserve( package.backup_showers.size() + wanted_tracks.size());
-				(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
+				(package.collected_showers).reserve( backup_showers.size() + wanted_tracks.size());
+				(package.collected_showers).insert((package.collected_showers).end(), backup_showers.begin(), backup_showers.end());
 				(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
 				//ok, same for tracks
-				(package.collected_tracks).reserve(package.backup_tracks.size()+wanted_tracks.size());
-				(package.collected_tracks).insert((package.collected_tracks).end(), package.backup_tracks.begin(), package.backup_tracks.end());
+				(package.collected_tracks).reserve(backup_tracks.size()+wanted_tracks.size());
+				(package.collected_tracks).insert((package.collected_tracks).end(), backup_tracks.begin(), backup_tracks.end());
 				(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
 
 				break;
 
-			case 2:
-				cout<<"\n\n Load objects form other nu slices and cosmic slices!"<<endl;
+//			case 2:
+//				cout<<"\n\n Load objects form other nu slices and cosmic slices!"<<endl;
+//
+//				(package.collected_showers).reserve( cosmic_showers.size() + package.backup_showers.size() + wanted_tracks.size());
+//				(package.collected_showers).insert((package.collected_showers).end(), cosmic_showers.begin(), cosmic_showers.end());
+//				(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
+//				(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
+//				//ok, same for tracks
+//				(package.collected_tracks).reserve( cosmic_tracks.size() + package.backup_tracks.size() + wanted_tracks.size());
+//				(package.collected_tracks).insert((package.collected_tracks).end(), cosmic_tracks.begin(), cosmic_tracks.end());
+//				(package.collected_tracks).insert((package.collected_tracks).end(), package.backup_tracks.begin(), package.backup_tracks.end());
+//				(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
+//				break;
 
-				(package.collected_showers).reserve( cosmic_showers.size() + package.backup_showers.size() + wanted_tracks.size());
-				(package.collected_showers).insert((package.collected_showers).end(), cosmic_showers.begin(), cosmic_showers.end());
-				(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
-				(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
-				//ok, same for tracks
-				(package.collected_tracks).reserve( cosmic_tracks.size() + package.backup_tracks.size() + wanted_tracks.size());
-				(package.collected_tracks).insert((package.collected_tracks).end(), cosmic_tracks.begin(), cosmic_tracks.end());
-				(package.collected_tracks).insert((package.collected_tracks).end(), package.backup_tracks.begin(), package.backup_tracks.end());
-				(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
+			case 3://CHECK, not using this?
+				cout<<"\n\n Only backup Nuslices! CHECK IAM MESSING THIS UP"<<endl;
+
+				package.collected_showers = backup_showers;
+				package.collected_tracks = backup_tracks;
 				break;
+
 
 			default://actually only case 0 allowed here;
 
@@ -227,73 +246,67 @@ namespace single_photon
 
 //		initscr();//initialize the COLS and LINES for the screen size
 		int screen_width = 86;//ncurses::COLS;//get the width of the screen!
+		
+		//Initialize criteria for vertexing,  unit: cm.
+		double start_prox = 4;//Max. track proximity threshold (t_max)
+		double shower_prox = 10;//Max. shower proximity threshold (s_max)
+		double cpoa_vert_prox = 10;//Max. distance btw shower start & cloest approach (dp_max)
+		double cpoa_trackend_prox = 5;//Max. distance btw midway point of impact parameter to a potential vertex (a_max)
 
-		//PUT THIS FUNCTION INSIDE SINGLEPHOTON_MODULE.h
-		VertexBuilder vbuilder;// definition. it was named vb
-		ParticleAssociations_all candidates;// definition. it was named pas
-
-
-		vbuilder.SetVerbose(fverbose);
-		//to get info. of the following variables, see VertexBuilder.h
-		//for associating tracks
-		if(fverbose){	
+		if(fverbose){//Over view of the inputs
 			cout<<"Transfering creteria from SinglePhoton class to VertexBuilder class:"<<endl;
-			cout<<right<<setw(82)<<" Max. track proximity threshold (t_max)= "<<fstart_prox<<endl;
-			cout<<right<<setw(82)<<" Max. shower proximity threshold (s_max)= "<<fshower_prox<<endl;
-			cout<<right<<setw(82)<<" Max. distance btw shower start & cloest approach (dp_max)= "<<fcpoa_vert_prox<<endl;
-			cout<<right<<setw(82)<<" Max. distance btw midway point of impact parameter to a potential vertex (a_max)= "<<fcpoa_trackend_prox<<endl;
+
+			std::cout << "\n\nRun vertex builder with: \n";
+			cout<<"Number of shower candidates: "<<(package.collected_showers).size()<<endl;
+			cout<<"Number of track candidates : "<<(package.collected_tracks).size()<<endl;
+
+			cout<<endl;//print out 
+			for(int i = 0 ; i < screen_width/2 ;i++)
+				cout<<"/*";
+			cout<<"\nFinish loading tracks and showers! Start Revertexing."<<endl;
+			for(int i = 0 ; i < screen_width/2 ;i++)
+				cout<<"/*";
+			cout<<"\n"<<endl;
 		}
-		vbuilder.SetMaximumTrackEndProximity(fstart_prox);//Set the maximum track proximity threshold (in cm)		
-		//for associating showers (this include connection to tracks)
-		vbuilder.SetMaximumShowerIP(fshower_prox);
-		vbuilder.CPOAToVert(fcpoa_vert_prox);
-		vbuilder.SetMaximumTrackEndProx(fcpoa_trackend_prox);
+		
+		//Declear two classes to kick off vertexing
+		VertexBuilder vbuilder;//it was named vb
+		ParticleAssociations_all candidates;// it was named pas
+
+		//Initialize creteria for reconstruction.
+		vbuilder.SetVerbose(fverbose);
+		vbuilder.SetParameters({start_prox, shower_prox, cpoa_vert_prox, cpoa_trackend_prox});
 
 		//		if(fvbuildert.ftree) vbuilder.SetVBT(&fvbuildert);
 
-		candidates.SetVerbose(fverbose);
 
-		if(fverbose) std::cout << "\n\nRun vertex builder with: \n";
-		//Object inside an object cause the problem, i.e. 
-		//ParticleAssociations_all cannot link to DetectorOBjects;
-		//CHekced: Members are identified; but the reference is not defined
-		cout<<"Number of Showers: "<<(package.collected_showers).size()<<endl;
-		cout<<"Number of Tracks: "<<(package.collected_tracks).size()<<endl;
+		candidates.SetVerbose(fverbose);
 		candidates.GetDetectorObjects().AddShowers(package.collected_showers);//load tracks
 		candidates.GetDetectorObjects().AddTracks(package.collected_tracks);//load showers
-
-		cout<<endl;//print out 
-		for(int i = 0 ; i < screen_width/2 ;i++)
-			cout<<"/*";
-		cout<<"\nFinish loading tracks and showers! Start Revertexing."<<endl;
-		for(int i = 0 ; i < screen_width/2 ;i++)
-			cout<<"/*";
-		cout<<"\n"<<endl;
 
 
 		vbuilder.Run(candidates);//here deals with the candidates and find the vertex.
 
 
-
-		cout<<endl;//print out 
+		cout<<endl;//printout 
 		for(int i = 0 ; i < screen_width/2 ;i++)
 			cout<<"/*";
 		cout<<"\nBobby Revertexing is finished. Now start to fill in the TTree."<<endl;
 		for(int i = 0 ; i < screen_width/2 ;i++)
 			cout<<"/*";
 		cout<<endl;
-		cout<<"  Some outputs from the ParticleAssociations_all"<<endl;	
+		cout<<" Reports from the ParticleAssociations_all"<<endl;	
 
 		candidates.PrintAssociations_all();
 
-		cout<<endl;//print out 
+		cout<<endl;//printout 
 		for(int i = 0 ; i < screen_width/2 ;i++)
 			cout<<"/*";
 		cout<<"\n"<<endl;
 
 		candidates.PrintNodes();
 
-		cout<<endl;//print out 
+		cout<<endl;//printout 
 		for(int i = 0 ; i < screen_width/2 ;i++)
 			cout<<"/*";
 		cout<<"\n"<<endl;

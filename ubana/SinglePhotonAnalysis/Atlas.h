@@ -3,27 +3,28 @@
 
 #include "SinglePhoton_module.h"
 
+/*
+ * Purpose of this header file, get the skeleton of all the maps and
+ *	leave the contents to be filled inside the actual functions in
+ *	other  header files.
+ *
+ */
+
 namespace single_photon
 {		/***************
 	 * A class that designed for storing addresses for all associated (to an event) tracks, showers, 
 	 *		and their cooresponding PFParticles.
 	 *	evt (input) - the event that we currently look at.
-	 *	tracks (modified) - a vector contains associated track pointers. 
-	 *	showers (modified) - a vector contains associated shower pointers.
-	 *	trackToNuPFParticleMap (modified) - the map btw the track and the PFParticle.
-	 *	showerToNuPFParticleMap (modified) - the map btw the shower and the PFParticle.
 	 * *************/
 
 //	typedef std::vector< art::Ptr<recob::PFParticle> > PFParticleVector;
 //	typedef std::vector< art::Ptr<recob::Track> > TrackVector;
 //	typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
 //	typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
+
 	class Atlas{//Initialize this with event address;
 		friend class SinglePhoton;//private as default
 
-//		protected:
-//		art::Event evt;
-//		art::ValidHandle< std::vector<recob::PFParticle> > PFParticleHandle;
 		public:
 		//Constructor
 		Atlas();//this might be useless;
@@ -33,44 +34,51 @@ namespace single_photon
 
 //		~Atlas(){};
 //		//main stuffs that we feed into the vertex builder.
-		std::vector< art::Ptr<recob::PFParticle> >						particles;//this is loaded depends on the option m_run_all_pfps, configurable in the .fcl file.
 
-
+/*
+ * The constructor takes care of the following basic recob objects.
+ *
+ */
 		//the following recob objects are created through the overflow constructor 1 (see above);
-		std::vector< art::Ptr<recob::Track> >							all_tracks;
-		std::vector< art::Ptr<recob::Shower> >							all_showers;
-		std::vector< art::Ptr<recob::Hit> >							all_hits;
-		std::vector< art::Ptr<recob::OpFlash> >							all_opflashes;
-		std::vector< art::Ptr<recob::Cluster> >							all_clusters;
+		std::vector< art::Ptr<recob::PFParticle> >	particles;//this is loaded depends on the option m_run_all_pfps, configurable in the .fcl file.
+		std::vector< art::Ptr<recob::Track> >		all_tracks;
+		std::vector< art::Ptr<recob::Shower> >		all_showers;
+		std::vector< art::Ptr<recob::Hit> >			all_hits;
+		std::vector< art::Ptr<recob::OpFlash> >		all_opflashes;
+		std::vector< art::Ptr<recob::Cluster> >		all_clusters;
+
+/*
+ * The overflow constructor 1 takes care of the following maps.
+ *
+ */
+		std::map< size_t, art::Ptr<recob::PFParticle>>	IDToPFParticleMap;
+//		std::map< art::Ptr<recob::PFParticle, size_t>>	PFParticleToIDMap;//This makse more consistant, but it needs works!
+		std::map< art::Ptr<recob::PFParticle> , std::vector<art::Ptr<recob::Vertex>> > PFParticlesToVerticesMap;//old name pfParticlesToVerticesMap;
+		std::map< art::Ptr<recob::PFParticle> , std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > PFParticleToMetadataMap;//old name pfParticleToMetadataMap;
+		std::map< art::Ptr<recob::PFParticle> , std::vector<art::Ptr<recob::SpacePoint>> > PFParticleToSpacePointsMap;
+		std::map< art::Ptr<recob::PFParticle> , std::vector<art::Ptr<recob::Cluster>> > PFParticleToClustersMap;
+		std::map< art::Ptr<recob::Cluster>	  , std::vector<art::Ptr<recob::Hit>> > ClusterToHitsMap;
 
 
-		//Collections of tracks/showers that to be fed into the vertex builder, initially empty and it is filled from the CollectTracksAndShowers_v2() in BobbyVertexBuilder.h
-		//	it is different from the track/shower map.
+/*
+ * Initially empty variables to be filled from other parts of the code.
+ *
+ */
+//The followings are taken care by the CollectTracksAndShowers_v2() in BobbyVertexBuilder.h
 		std::vector< art::Ptr<recob::Track> >							collected_tracks;
 		std::vector< art::Ptr<recob::Shower> >							collected_showers;
-
-//		std::vector< art::Ptr<recob::PFParticle> >						backup_PFParticles;
-		std::vector< art::Ptr<recob::Track> >							backup_tracks; //These two backup_objects are used to search for additional objects.
-		std::vector< art::Ptr<recob::Shower> >							backup_showers; 
-
-
-		//Maps constructed in the constructor of this class.
-		std::map< size_t, art::Ptr<recob::PFParticle>>					IDToPFParticleMap;
-		std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > PFParticlesToVerticesMap;//old name pfParticlesToVerticesMap;
-		std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > PFParticleToMetadataMap;//old name pfParticleToMetadataMap;
-		std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>> > PFParticleToSpacePointsMap;
-
-
 		//Maps for more pandora objects.
-		std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>	trackToNuPFParticleMap;
+		std::map< art::Ptr<recob::Track>  , art::Ptr<recob::PFParticle>>	trackToNuPFParticleMap;
 		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
+
+//The followings are taken care by the AnalyzeSlices() in analyze_Slice.h
 		std::map<int, double>											sliceIdToNuScoreMap;
 		//Pairs that connect PFParticle to sliceID.
 		std::vector<std::pair<art::Ptr<recob::PFParticle>,int>>			primaryPFPSliceIdVec;
-		std::map<art::Ptr<recob::PFParticle>,bool>						PFPToClearCosmicMap;
-		std::map<art::Ptr<recob::PFParticle>, int> 						PFPToSliceIdMap;
-		std::map<art::Ptr<recob::PFParticle>,bool> 						PFPToNuSliceMap;
-		std::map<art::Ptr<recob::PFParticle>,double>					PFPToTrackScoreMap;
+		std::map< art::Ptr<recob::PFParticle>, int> 						PFPToSliceIdMap;
+		std::map< art::Ptr<recob::PFParticle>, bool>						PFPToClearCosmicMap;
+		std::map< art::Ptr<recob::PFParticle>, bool> 						PFPToNuSliceMap;
+		std::map< art::Ptr<recob::PFParticle>, double>					PFPToTrackScoreMap;
 
 		//FindManyP's!
 		//specially for the number of coorresponding recob (pandora_objects) to a PFParticle;
@@ -157,16 +165,18 @@ namespace single_photon
 
 
 		//CREATE maps!
-		//Ingredient 1: all PFParticles; I temporary define it here for mapping purpose;
+		//Ingredient 1: Handles and  all PFParticles; I temporary define it here for mapping purpose;
 		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(labels[4]);//This is useful for FindManyP< reco::Track/Shower>
 		recob::PFParticle dummy_PFParticle;
 		std::vector<art::Ptr<recob::PFParticle>> all_pfparticles = HandleToVector(dummy_PFParticle, evt, labels[4]);
+		art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(labels[4]);
 		
 		//Ingredient 2: FindManyPs; these will be gone when construction finished
 		art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  labels[4]);
 		art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, evt, labels[4]);
 		art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, labels[4]);
-
+		art::FindManyP<recob::Cluster> clusters_per_pfparticle(pfParticleHandle, evt, labels[4]);
+		art::FindManyP<recob::Hit> hits_per_cluster(clusterHandle, evt, labels[4]);
 /* CANT do these here, because they will be gone when the construction is finished.
  *      art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, evt, labels[0]);
         art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, evt, labels[1]);
@@ -181,6 +191,12 @@ namespace single_photon
 			PFParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
 			IDToPFParticleMap[pfp->Self()] = pfp;
 			PFParticleToSpacePointsMap[pfp] = spacePoints_per_pfparticle.at(pfp.key());
+			PFParticleToClustersMap[pfp] = clusters_per_pfparticle.at(pfp.key());
+		}
+		//other maps not on pfParticles;
+		for(size_t i=0; i< all_clusters.size(); ++i){
+			auto cluster = all_clusters[i];
+			ClusterToHitsMap[cluster] = hits_per_cluster.at(cluster.key());
 		}
 	}
 
