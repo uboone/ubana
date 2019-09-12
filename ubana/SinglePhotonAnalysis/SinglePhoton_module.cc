@@ -867,7 +867,6 @@ namespace single_photon
             out_stream.close();
         }
         pot_tree->Fill();
-        std::cout<<"YARP: "<<m_pot_count<<std::endl;
     }
 
     //-------------------------------------------------------------------------------------------
@@ -1042,9 +1041,8 @@ namespace single_photon
     }
 
 
-    bool SinglePhoton::beginSubRun(art::SubRun const & sr) {
+    bool SinglePhoton::beginSubRun(art::SubRun & sr){
 
-        std::cout<<"YARPSubRun "<<m_potLabel<<" "<<m_pot_count<<std::endl;
         if(m_potLabel != ""){
             if(m_potLabel == "generator"){
                 double this_pot =  sr.getValidHandle<sumdata::POTSummary>(m_potLabel)->totgoodpot;
