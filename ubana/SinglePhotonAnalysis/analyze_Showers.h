@@ -1048,14 +1048,12 @@ namespace single_photon
 
 
             // some kalman averaging
-            
             double tmp_kal_2 = m_reco_shower_kalman_median_dEdx_plane2[i_shr];
             double tmp_kal_1 = m_reco_shower_kalman_median_dEdx_plane1[i_shr];
             double tmp_kal_0 = m_reco_shower_kalman_median_dEdx_plane0[i_shr];
-
-            double wei_0 = m_reco_shower_angle_wrt_wires_plane0[i_shr];
-            double wei_1 = m_reco_shower_angle_wrt_wires_plane1[i_shr];
-            double wei_2 = 15.0*m_reco_shower_angle_wrt_wires_plane2[i_shr];
+            double wei_0 = fabs(cos(m_reco_shower_angle_wrt_wires_plane0[i_shr]));
+            double wei_1 = fabs(cos(m_reco_shower_angle_wrt_wires_plane1[i_shr]));
+            double wei_2 = 15.0*fabs(cos(m_reco_shower_angle_wrt_wires_plane2[i_shr]));
             
             if(tmp_kal_2!=tmp_kal_2 || tmp_kal_2==0.0){
                 tmp_kal_2 = 0;
@@ -1366,8 +1364,8 @@ namespace single_photon
         double cos_theta =  getCoswrtWires(shower_dir, wire_dir);
 
         double theta = acos(cos_theta);
-         return abs(theta);
-        //return abs(M_PI/2 - theta);
+        // return abs(theta);
+        return abs(M_PI/2 - theta);
 
     }
 
