@@ -253,7 +253,7 @@ private:
     bool fHasShowerDaughter;
     bool fIsTrackDaughter;
     float fVx, fVy, fVz;
-    float fStartContained;
+    bool fStartContained;
     float fVtxDistance;
     uint fNhitsU, fNhitsV, fNhitsY;
     float fCaloU, fCaloV, fCaloY;
