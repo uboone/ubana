@@ -63,6 +63,7 @@ namespace single_photon
         m_reco_shower_kalman_median_dEdx_plane0.clear();
         m_reco_shower_kalman_median_dEdx_plane1.clear();
         m_reco_shower_kalman_median_dEdx_plane2.clear();
+        m_reco_shower_kalman_median_dEdx_allplane.clear();
         m_reco_shower_kalman_mean_dEdx_plane0.clear();
         m_reco_shower_kalman_mean_dEdx_plane1.clear();
         m_reco_shower_kalman_mean_dEdx_plane2.clear();
@@ -174,6 +175,7 @@ namespace single_photon
         m_reco_shower_kalman_median_dEdx_plane0.resize(size);
         m_reco_shower_kalman_median_dEdx_plane1.resize(size);
         m_reco_shower_kalman_median_dEdx_plane2.resize(size);
+        m_reco_shower_kalman_median_dEdx_allplane.resize(size);
         m_reco_shower_kalman_mean_dEdx_plane0.resize(size);
         m_reco_shower_kalman_mean_dEdx_plane1.resize(size);
         m_reco_shower_kalman_mean_dEdx_plane2.resize(size);
@@ -451,12 +453,14 @@ namespace single_photon
         vertex_tree->Branch("reco_shower3d_dEdx_plane2", &m_reco_shower3d_dEdx_plane2);
 
         vertex_tree->Branch("reco_shower_kalman_exists",&m_reco_shower_kalman_exists);
-        vertex_tree->Branch("reco_shower_kalman_median_dEdx_plane0",&m_reco_shower_kalman_median_dEdx_plane0);
-        vertex_tree->Branch("reco_shower_kalman_median_dEdx_plane1",&m_reco_shower_kalman_median_dEdx_plane1);
-        vertex_tree->Branch("reco_shower_kalman_median_dEdx_plane2",&m_reco_shower_kalman_median_dEdx_plane2);
-        vertex_tree->Branch("reco_shower_kalman_mean_dEdx_plane0",&m_reco_shower_kalman_mean_dEdx_plane0);
-        vertex_tree->Branch("reco_shower_kalman_mean_dEdx_plane1",&m_reco_shower_kalman_mean_dEdx_plane1);
-        vertex_tree->Branch("reco_shower_kalman_mean_dEdx_plane2",&m_reco_shower_kalman_mean_dEdx_plane2);
+        vertex_tree->Branch("reco_shower_kalman_dEdx_plane0_median",&m_reco_shower_kalman_median_dEdx_plane0);
+        vertex_tree->Branch("reco_shower_kalman_dEdx_plane1_median",&m_reco_shower_kalman_median_dEdx_plane1);
+        vertex_tree->Branch("reco_shower_kalman_dEdx_plane2_median",&m_reco_shower_kalman_median_dEdx_plane2);
+        vertex_tree->Branch("reco_shower_kalman_dEdx_allplane_median",&m_reco_shower_kalman_median_dEdx_allplane);
+
+        vertex_tree->Branch("reco_shower_kalman_dEdx_plane0_mean",&m_reco_shower_kalman_mean_dEdx_plane0);
+        vertex_tree->Branch("reco_shower_kalman_dEdx_plane1_mean",&m_reco_shower_kalman_mean_dEdx_plane1);
+        vertex_tree->Branch("reco_shower_kalman_dEdx_plane2_mean",&m_reco_shower_kalman_mean_dEdx_plane2);
 
 
 
@@ -910,7 +914,7 @@ namespace single_photon
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished."<<std::endl;;
     }
 
-    void SinglePhoton::AnalyzeKalmanShowers( const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> &showerToPFParticleMap,                         std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> &  pfParticlesToShowerKalmanMap, std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>>&  kalmanTrackToCaloMap){
+    void SinglePhoton::AnalyzeKalmanShowers( const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> &showerToPFParticleMap,                         std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> &  pfParticlesToShowerKalmanMap, std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>>&  kalmanTrackToCaloMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap){
 
         std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\tStarting to Analyze Showers ("<<showers.size()<<") via Kalman "<<std::endl;
 
@@ -929,6 +933,7 @@ namespace single_photon
         {
             const art::Ptr<recob::Shower> shower = *iter;
             const art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap[shower];
+            std::vector<art::Ptr<recob::Hit>> hitz = pfParticleToHitMap[pfp];
 
             if( pfParticlesToShowerKalmanMap.count(pfp) == 0 ){
                 std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\t Warning, no match for a Kalman track for this PFP."<<std::endl;
@@ -980,11 +985,11 @@ namespace single_photon
                 std::cout<<std::endl;
                 */
 
-                double tmean = -999;
-                double tmedian = -999;
+                double tmean = NAN;
+                double tmedian = NAN;
 
 
-                if(t_dEdx.size()>2) tmedian = this->getMedian(t_dEdx);
+                if(t_dEdx.size()>0) tmedian = this->getMedian(t_dEdx);
                 if(t_dEdx.size()>0) tmean = std::accumulate(t_dEdx.begin(), t_dEdx.end(), 0)/((double)t_dEdx.size());
 
                 switch(plane){
@@ -1004,7 +1009,75 @@ namespace single_photon
                             break;
                 }
 
+
+                const std::vector< anab::Point_t >  kal_pts = calo[p]->XYZ();   
+                double circle = 1.0;//in cm
+                std::vector<double> pts_within;
+                std::vector<double> pts_x;
+
+                for(size_t ix=0; ix<kal_pts.size(); ++ix){
+                    //std::cout<<"KAL: "<<kal_pts[ix].X()<<" "<<kal_pts[ix].Y()<<" "<<kal_pts[ix].Z()<<std::endl;
+                    pts_within.push_back(0);   
+                    pts_x.push_back(calo[p]->ResidualRange().back()-calo[p]->ResidualRange()[ix]);
+
+                    double wire = (double)calcWire(kal_pts[ix].Y(), kal_pts[ix].Z(), plane, m_TPC, m_Cryostat, *geom);
+                    double time = calcTime(kal_pts[ix].X(), plane, m_TPC,m_Cryostat, *theDetector);
+
+                    //loop over all hits  
+                    for(auto &hit: hitz){
+                        if(plane != hit->View())continue;
+                        double this_w = (double)hit->WireID().Wire;
+                        double this_t = (double)hit->PeakTime();
+                        double dist = sqrt(pow(wire*0.3-this_w*0.3,2)+pow(time/25.0-this_t/25.0,2));
+                        if(dist<=circle) pts_within.back()++;
+                    }
+                    //std::cout<<"KAL "<<ix<<" "<<pts_within.back()<<" "<<calo[p]->ResidualRange().back()-calo[p]->ResidualRange()[ix]<<std::endl;
+                }
+                if(false && pts_x.size()>2){
+                TCanvas *c = new TCanvas();
+                c->cd();
+               
+                TGraph *g  = new TGraph(pts_x.size(), &pts_x[0], &pts_within[0]);
+                g->SetLineColor(kRed);
+                g->SetLineWidth(2);
+                g->Draw("alp");
+                g->SetTitle(("kal_"+std::to_string(plane)+"_"+std::to_string(i_shr)+"_"+std::to_string(m_event_number) +".pdf").c_str());
+                c->SaveAs(("kal_"+std::to_string(plane)+"_"+std::to_string(i_shr)+"_"+std::to_string(m_event_number) +".pdf").c_str(),"pdf");
+                }
             }
+
+
+            // some kalman averaging
+            
+            double tmp_kal_2 = m_reco_shower_kalman_median_dEdx_plane2[i_shr];
+            double tmp_kal_1 = m_reco_shower_kalman_median_dEdx_plane1[i_shr];
+            double tmp_kal_0 = m_reco_shower_kalman_median_dEdx_plane0[i_shr];
+
+            double wei_0 = m_reco_shower_angle_wrt_wires_plane0[i_shr];
+            double wei_1 = m_reco_shower_angle_wrt_wires_plane1[i_shr];
+            double wei_2 = 15.0*m_reco_shower_angle_wrt_wires_plane2[i_shr];
+            
+            if(tmp_kal_2!=tmp_kal_2 || tmp_kal_2==0.0){
+                tmp_kal_2 = 0;
+                wei_2 = 0.0;
+            }
+            if(tmp_kal_1!=tmp_kal_1 || tmp_kal_1 ==0.0){
+                tmp_kal_1 = 0;
+                wei_1 = 0.0;
+            }
+            if(tmp_kal_0!=tmp_kal_0 || tmp_kal_0 ==0.0){
+                tmp_kal_0 = 0;
+                wei_0 = 0.0;
+            }
+            double kal_norm = wei_0+wei_1+wei_2;
+
+            if(kal_norm!=0.0){
+                m_reco_shower_kalman_median_dEdx_allplane[i_shr] = (tmp_kal_2*wei_2+tmp_kal_1*wei_1+tmp_kal_0*wei_0)/(kal_norm);
+            }else{
+                m_reco_shower_kalman_median_dEdx_allplane[i_shr] = NAN;
+            }
+
+
         i_shr++;
         }
         return;
@@ -1293,8 +1366,8 @@ namespace single_photon
         double cos_theta =  getCoswrtWires(shower_dir, wire_dir);
 
         double theta = acos(cos_theta);
-        // return abs(theta);
-        return abs(M_PI/2 - theta);
+         return abs(theta);
+        //return abs(M_PI/2 - theta);
 
     }
 
@@ -1436,10 +1509,14 @@ namespace single_photon
     }
 
     double SinglePhoton::getMedian(std::vector<double> thisvector){
+        //So return median if odd, average of median in even, if size==0, return the point. 
+        
         //here the size corresponds to the max index
+                
         int size = thisvector.size() - 1;
         //if no entries, return nonsense value
-        if (size <= 0) return NAN;
+        if (size < 0) return NAN;
+        if (size==0) return thisvector[size];
 
         //find index of median location
         double median;

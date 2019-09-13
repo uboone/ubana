@@ -61,6 +61,7 @@
 // Helper function for PID stuff
 #include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
+#include "TCanvas.h"
 #include "TTree.h"
 #include "TFile.h"
 #include "TGraph.h"
@@ -484,7 +485,8 @@ class cluster {
             void CreateShowerBranches();
             void AnalyzeKalmanShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
                         std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> & pfptotrkmap,
-                        std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> & trktocalomap
+                        std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> & trktocalomap,
+                        std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap
                     );
 
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
@@ -1126,6 +1128,7 @@ class cluster {
         std::vector<double>   m_reco_shower_kalman_median_dEdx_plane0;
       std::vector<double>     m_reco_shower_kalman_median_dEdx_plane1;
         std::vector<double>   m_reco_shower_kalman_median_dEdx_plane2;
+        std::vector<double>   m_reco_shower_kalman_median_dEdx_allplane;
      std::vector<double>      m_reco_shower_kalman_mean_dEdx_plane0;
        std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane1;
        std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane2;

@@ -807,7 +807,8 @@ namespace single_photon
 
                 for(int l=0; l< m_sss_num_candidates; l++){
 
-                    std::vector<double> thisvars = { (double)m_sss_candidate_num_hits[l], (double)m_sss_candidate_num_wires[l], (double)m_sss_candidate_num_ticks[l], (double)m_sss_candidate_PCA[l], log10((double)m_sss_candidate_impact_parameter[l]), log10((double)m_sss_candidate_min_dist[l]), (double)m_sss_candidate_impact_parameter[l]/(double)m_sss_candidate_min_dist[l], (double)m_sss_candidate_energy[l], (double)m_sss_candidate_angle_to_shower[l], m_reco_shower_energy_max[l], (double)m_sss_candidate_energy[l]/m_reco_shower_energy_max[0], (double)m_sss_candidate_fit_slope[l], (double)m_sss_candidate_fit_constant[l], (double)m_sss_candidate_plane[l] };
+                    std::vector<double> thisvars = { (double)m_sss_candidate_num_hits[l], (double)m_sss_candidate_num_wires[l], (double)m_sss_candidate_num_ticks[l], (double)m_sss_candidate_PCA[l], log10((double)m_sss_candidate_impact_parameter[l]), log10((double)m_sss_candidate_min_dist[l]), (double)m_sss_candidate_impact_parameter[l]/(double)m_sss_candidate_min_dist[l], (double)m_sss_candidate_energy[l]*0.001, cos((double)m_sss_candidate_angle_to_shower[l]), (double)m_sss_candidate_fit_slope[l], (double)m_sss_candidate_fit_constant[l], (double)m_sss_candidate_plane[l],m_reco_shower_energy_max[0]*0.001,  2*0.001*0.001*m_sss_candidate_energy[l]*m_reco_shower_energy_max[0]*(1.0-cos(m_sss_candidate_angle_to_shower[l])) , log10(2*0.001*0.001*m_sss_candidate_energy[l]*m_reco_shower_energy_max[0]*(1.0-cos(m_sss_candidate_angle_to_shower[l]))),m_sss_candidate_energy[l]/m_reco_shower_energy_max[0], (double)m_sss_candidate_closest_neighbour[l] };
+                    
 
                     double score = sssVetov1->GetMvaValue(thisvars);
                     m_sss_candidate_veto_score.push_back(score);
