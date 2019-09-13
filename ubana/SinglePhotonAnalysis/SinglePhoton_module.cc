@@ -15,26 +15,26 @@ using namespace std;
 
 namespace single_photon
 {
-	//gadget: construct a Vector form a Handle;
-	template <typename Reco_Object>//A helper template that allows you to make compliated types.
-		struct temp{ 
-			using type1 = std::vector<art::Ptr<Reco_Object>>;
-			using type2 = art::ValidHandle<std::vector<Reco_Object>>;
-			using type3 = std::vector<Reco_Object>;
-		};
-
-	template <class Reco_Object>                         //ref_type is only used to identify the template.
-		typename temp<Reco_Object>::type1 HandleToVector(Reco_Object ref_type, const art::Event &evt, std::string &label){
-
-			typename temp<Reco_Object>::type2 const & Handle = evt.getValidHandle<typename temp<Reco_Object>::type3>(label);
-			typename temp<Reco_Object>::type1 Vector;
-			art::fill_ptr_vector(Vector,Handle);
-			return Vector;
-		}
-
-		//art::ValidHandle<std::vector<recob::OpFlash>> const & flashHandle  = evt.getValidHandle<std::vector<recob::OpFlash>>(m_flashLabel);
-		//std::vector<art::Ptr<recob::OpFlash>> flashVector;
-		//art::fill_ptr_vector(flashVector,flashHandle);
+////	//gadget: construct a Vector form a Handle;
+//	template <typename Reco_Object>//A helper template that allows you to make compliated types.
+//		struct temp{ 
+//			using type1 = std::vector<art::Ptr<Reco_Object>>;
+//			using type2 = art::ValidHandle<std::vector<Reco_Object>>;
+//			using type3 = std::vector<Reco_Object>;
+//		};
+//
+//	template <class Reco_Object>                         //ref_type is only used to identify the template.
+//		typename temp<Reco_Object>::type1 HandleToVector(Reco_Object ref_type, const art::Event &evt, std::string &label){
+//
+//			typename temp<Reco_Object>::type2 const & Handle = evt.getValidHandle<typename temp<Reco_Object>::type3>(label);
+//			typename temp<Reco_Object>::type1 Vector;
+//			art::fill_ptr_vector(Vector,Handle);
+//			return Vector;
+//		}
+//
+//		//art::ValidHandle<std::vector<recob::OpFlash>> const & flashHandle  = evt.getValidHandle<std::vector<recob::OpFlash>>(m_flashLabel);
+//		//std::vector<art::Ptr<recob::OpFlash>> flashVector;
+//		//art::fill_ptr_vector(flashVector,flashHandle);
 
 
 	//constructor
@@ -125,7 +125,7 @@ namespace single_photon
     void SinglePhoton::analyze(const art::Event &evt)
 	{//analyzing one event per run! CHECK, how to add more vertex here?
 
-//		m_is_verbose = true;
+		m_is_verbose = true;
 		std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 		std::cout<<"SinglePhoton::analyze()\t||\t On entry: "<<m_number_of_events<<std::endl;
 
@@ -149,46 +149,6 @@ namespace single_photon
 		//
 		// And then later we just write pseudo-independant code assuming you have every objecets you want (see analyze_Tracks.h) and assume you have access to everything. 
 
-		
-		//Use xxxVector to replace all xxxHandle! Keng, make a small gadget for this process later.
-		//Through Handle, we have the mean connected to multiple objects, 
-		//	such as pfParticles, Vertex, Metadata, spacepoints, etc.
-		//	xxxVector provide direct access to the object, xxx;
-		//	xxxToyyyMap provide additional reference (a map) to the object, yyy, through xxx.
-		//	Add ID for each pfParticles and their associated objects.
-		
-		/* preset a xxxVector for object, labeled as T; then the function should follow the type T to harvest the handle.
-		usage:
-		std::vector<art::Ptr<recob::T> TVector;
-		TVector = HandleToVector(evt, label);
-		*/
-
-		// Collect all the hits. We will need these. Lets grab both the handle as well as a vector of art::Ptr as I like both. 
-		//art::ValidHandle<std::vector<recob::Hit>> const & hitHandle = evt.getValidHandle<std::vector<recob::Hit>>(m_hitfinderLabel); 
-		//std::vector<art::Ptr<recob::Hit>> hitVector;
-		//art::fill_ptr_vector(hitVector,hitHandle);
-
-		//Keng: included in atlas
-		art::ValidHandle<std::vector<recob::Hit>> const & hitHandle = evt.getValidHandle<std::vector<recob::Hit>>(m_hitfinderLabel); //yea, this should be gone;
-		recob::Hit dummy_hit;//This is to specify the template;
-		std::vector<art::Ptr<recob::Hit>> hitVector = HandleToVector(dummy_hit, evt, m_hitfinderLabel);
-
-		//Lets do "THE EXACT SAME STUFF" for Optical Flashes
-//		art::ValidHandle<std::vector<recob::OpFlash>> const & flashHandle  = evt.getValidHandle<std::vector<recob::OpFlash>>(m_flashLabel);
-		//Keng, included in atlas
-		recob::OpFlash dummy_OpFlash;
-		std::vector<art::Ptr<recob::OpFlash>> flashVector = HandleToVector(dummy_OpFlash, evt, m_flashLabel);
-//		art::fill_ptr_vector(flashVector,flashHandle);
-
-		//Keng: included in atlas
-		art::ValidHandle<std::vector<recob::Track>> const & trackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_trackLabel);
-		recob::Track dummy_Track;
-		std::vector<art::Ptr<recob::Track>> trackVector = HandleToVector(dummy_Track, evt, m_trackLabel);
-//		art::fill_ptr_vector(trackVector,trackHandle);
-
-		//Keng: included in atlas
-		recob::Shower dummy_Shower;
-		std::vector<art::Ptr<recob::Shower>> showerVector = HandleToVector(dummy_Shower, evt, m_showerLabel);
 
 		//BadChannels
 		art::Handle<std::vector<int> > badChannelHandle;
@@ -196,64 +156,30 @@ namespace single_photon
 		std::vector<int> badChannelVector = *(badChannelHandle);
 
 
-		// Collect the PFParticles from the event. This is the core!
-		//Keng: included in atlas
-		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);//This is useful for FindManyP< reco::Track/Shower>
-		recob::PFParticle dummy_PFParticle;
-		std::vector<art::Ptr<recob::PFParticle>> pfParticleVector = HandleToVector(dummy_PFParticle, evt, m_pandoraLabel);
-//		art::fill_ptr_vector(pfParticleVector,pfParticleHandle);
-
-
-		//get the cluster handle for the dQ/dx calc
-		//Keng: included in atlas
-//		art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(m_pandoraLabel);
-//		recob::Cluster dummy_Cluster;
-//		std::vector< art::Ptr<recob::Cluster> > clusterVector = HandleToVector(dummy_Cluster, evt, m_pandoraLabel);
-//		art::fill_ptr_vector(clusterVector,clusterHandle);
-	//	for(size_t i=0; i< clusterVector.size(); ++i){
-	//		auto cluster = clusterVector[i];
-	//		clusterToHitsMap[cluster] = hits_per_cluster.at(cluster.key());
-	//	}
-
-		//So a cross check
-		if (!pfParticleHandle.isValid())
-		{
-			mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
-			return;
-		}
-
-
-
-		//This is another pandora helper. I don't like PFParticle ID lookups but I guess lets keep for now;
-		// Produce a map of the PFParticle IDs for fast navigation through the hierarchy
-//		PFParticleIdMap pfParticleMap;
-//		this->GetPFParticleIdMap(pfParticleHandle, pfParticleMap);
-
 
 		//And some verticies.        
 		art::ValidHandle<std::vector<recob::Vertex>> const & vertexHandle = evt.getValidHandle<std::vector<recob::Vertex>>(m_pandoraLabel);
 		std::vector<art::Ptr<recob::Vertex>> vertexVector;
 		art::fill_ptr_vector(vertexVector,vertexHandle);
 
-		//add new association
-		art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
-//		std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap;
-
-		art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  m_pandoraLabel);
-//		std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap;
-//		for(size_t i=0; i< pfParticleVector.size(); ++i){
-//			const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
-//			pfParticlesToVerticesMap[pfp] =vertices_per_pfparticle.at(pfp.key());
-//
-//		//add the associaton between PFP and metadata, this is important to look at the slices and scores
-//			pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
-//		}
-
+	
 		//Here comes the Atlas!
 		Atlas object_container(evt, {m_trackLabel, m_showerLabel, m_hitfinderLabel, m_flashLabel, m_pandoraLabel});
 		
+		//still need these handls for now;
+		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);//This is useful for FindManyP< reco::Track/Shower>
+		art::ValidHandle<std::vector<recob::Hit>> const & hitHandle = evt.getValidHandle<std::vector<recob::Hit>>(m_hitfinderLabel); //yea, this should be gone;
+		art::ValidHandle<std::vector<recob::Track>> const & trackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_trackLabel);
+		std::vector<art::Ptr<recob::OpFlash>> flashVector = object_container.all_opflashes;
+
+		//add new FindManyP
+		art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
+		art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  m_pandoraLabel);
+	
 		//Get back to original structure;
 		//typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
+		std::vector<art::Ptr<recob::PFParticle>> pfParticleVector = object_container.all_pfparticles;
+		std::vector<art::Ptr<recob::Hit>> hitVector = object_container.all_hits;
 		PFParticleIdMap pfParticleMap = object_container.IDToPFParticleMap;
 		std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Vertex>> > pfParticlesToVerticesMap = object_container.PFParticlesToVerticesMap;
 		std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap = object_container.PFParticleToMetadataMap;
@@ -391,22 +317,18 @@ namespace single_photon
 		//At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.
 		//tracks is a vector of recob::Tracks and same for showers.
 		//Implicitly, tracks.size() + showers.size() =  nuParticles.size(); At this point I would like two things.
-		std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap; //give access to the PFParticle via track/shower
-		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
-		//std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToAllPFParticleMap; 
-		//std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToAllPFParticleMap;
 
 		if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Tracks and Showers"<<std::endl;
 		
 		//these are all filled in analyze slice
-			std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
-			std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> primaryPFPSliceIdVec; //stores a pair of only the primary PFP's in the event and the slice ind
-			std::map<int, double> sliceIdToNuScoreMap; //map between a slice Id and neutrino score
-			std::map<art::Ptr<recob::PFParticle>, bool> PFPToClearCosmicMap; //returns true for clear cosmic, false otherwise
-			std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap; //returns the slice id for all PFP's
-			std::map<art::Ptr<recob::PFParticle>,bool> PFPToNuSliceMap;
-			std::map<art::Ptr<recob::PFParticle>,double> PFPToTrackScoreMap;
-			std::map<int, int> sliceIdToNumPFPsMap;
+//		std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+		std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> primaryPFPSliceIdVec; //stores a pair of only the primary PFP's in the event and the slice ind
+		std::map<int, double> sliceIdToNuScoreMap; //map between a slice Id and neutrino score
+		std::map<art::Ptr<recob::PFParticle>, bool> PFPToClearCosmicMap; //returns true for clear cosmic, false otherwise
+		std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap; //returns the slice id for all PFP's
+		std::map<art::Ptr<recob::PFParticle>,bool> PFPToNuSliceMap;
+		std::map<art::Ptr<recob::PFParticle>,double> PFPToTrackScoreMap;
+		std::map<int, int> sliceIdToNumPFPsMap;
 		//above are all filled in analyze slice
 
 		//Need the following to identify a PFParticle is a track or a shower;
@@ -416,28 +338,10 @@ namespace single_photon
 //	cout<<"CHECK! create object\n\n\n\n"<<endl;
 		//Make an object and pack up stuffs we need.
 		object_container.particles				= nuParticles;//no cosmic ray PFParticles
-//		object_container.all_tracks				= trackVector;
-//		object_container.all_showers				= showerVector;
 
-//		object_container.collected_tracks			= tracks;
-//		object_container.collected_showers		= showers;
-
-//these maps are empty by default
-//		object_container.primaryPFPSliceIdVec		= primaryPFPSliceIdVec;
-//		object_container.trackToNuPFParticleMap	= trackToNuPFParticleMap;
-//		object_container.showerToNuPFParticleMap	= showerToNuPFParticleMap;
-//		object_container.IDToPFParticleMap			= pfParticleMap;
-//		object_container.sliceIdToNuScoreMap		= sliceIdToNuScoreMap;
-//		object_container.PFPToClearCosmicMap		= PFPToClearCosmicMap;
-//		object_container.PFPToSliceIdMap			= PFPToSliceIdMap;
-//		object_container.PFPToNuSliceMap			= PFPToNuSliceMap;
-//		object_container.PFPToTrackScoreMap		= PFPToTrackScoreMap;
-//		object_container.PFParticleToMetadataMap	= pfParticleToMetadataMap;
-
-
-	  //The following 4 lines are going to be transferred to atlas;
-      art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, evt, m_trackLabel);
-	  art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, evt, m_showerLabel);
+		//The following 4 lines are going to be transferred to atlas;
+		art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, evt, m_trackLabel);
+		art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, evt, m_showerLabel);
 		object_container.PFParticleAsATrack		= &pfPartToTrackAssoc;
 		object_container.PFParticleAsAShower		= &pfPartToShowerAssoc;
 		//Oooohu, here we go!
@@ -455,12 +359,10 @@ redo_event:
 				object_container.PFPToTrackScoreMap);
 
 		this->CollectTracksAndShowers_v2(evt, object_container, run_count); //This tells what showers and tracks to use.
-		std::vector< art::Ptr<recob::Track> > tracks = object_container.collected_tracks; //this is going to store points to all associated tracks;
-		std::vector< art::Ptr<recob::Shower> > showers = object_container.collected_showers;
-//		tracks = object_container.collected_tracks;
-//		showers = object_container.collected_showers;
-//		this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap); //This tells what showers and tracks to use.
-		//this->AnalyzeSlices(pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
+		std::vector< art::Ptr<recob::Track> > tracks = object_container.collected_tracks;
+		std::vector< art::Ptr<recob::Shower> > showers = object_container.collected_showers;//CHECK has trouble loading showers
+		std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap = object_container.trackToNuPFParticleMap; //give access to the PFParticle via track/shower
+		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap = object_container.showerToNuPFParticleMap;
 
 		//Track Calorimetry
 		art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
@@ -501,8 +403,8 @@ redo_event:
 		vector< double >  bobby_x;
 		vector< double >  bobby_y;
 		vector< double >  bobby_z;
-		vector< double >  bobby_tracks;
-		vector< double >  bobby_showers;
+		vector< int >  bobby_tracks;
+		vector< int >  bobby_showers;
 
 		//introduce a for loop for all particle associations identified by Bobby's VertexBuilder
 		for(size_t const nth_associations : bobby_particle_associations.GetSelectedAssociations()) {//Loop over all associations, which is a vector
@@ -521,8 +423,8 @@ redo_event:
 
 			//calculate the # of tracks/showers;
 			DetectorObjects_all const & detos = bobby_particle_associations.GetDetectorObjects();
-			double temp_num_tracks = 0;
-			double temp_num_showers = 0;
+			int temp_num_tracks = 0;
+			int temp_num_showers = 0;
 
 			for(size_t const n : particle_associated.GetObjectIndices()) {
 
@@ -683,7 +585,7 @@ redo_event:
 				}
 			}
 
-			if( m_run_all_pfps &&m_bobbytracks + m_bobbyshowers < 2&& run_count < 2 && m_bobbyvertexing_more ){//repeat with 0,1
+			if( m_run_all_pfps && m_bobbyvertexing_more &&m_bobbytracks + m_bobbyshowers < 2&& run_count < 2 ){//repeat with 0,1
 				run_count++;
 				cout<<"Need more objects. Now run the "<<run_count<<" time the vertexing."<<endl;
 				goto redo_event;
@@ -833,7 +735,7 @@ redo_event:
 
 			//---------------------- END OF LOOP, fill vertex ---------------------
 
-			vertex_tree->Fill();//how to move to next tree?
+			vertex_tree->Fill();
 			ncdelta_slice_tree->Fill();
 
 			std::cout<<"---------------------------------------------------------------------------------"<<std::endl;

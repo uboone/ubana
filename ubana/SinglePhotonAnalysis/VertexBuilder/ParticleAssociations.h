@@ -452,7 +452,7 @@ void ParticleAssociations_all::IgnoreAssociationsConnectedTo(size_t const i) {
 
 void ParticleAssociations_all::PrintAssociations_all() const {
 
-  std::cout << "--------------Report all the Particle Association Result--------------------------\n\n";
+  std::cout << "\n\n--------------Report all the Particle Association Result--------------------------\n\n";
   
   for(size_t i = 0; i < fassociations.size(); ++i) {
  

@@ -41,10 +41,12 @@ namespace single_photon
  */
 		//the following recob objects are created through the overflow constructor 1 (see above);
 		std::vector< art::Ptr<recob::PFParticle> >	particles;//this is loaded depends on the option m_run_all_pfps, configurable in the .fcl file.
+		std::vector< art::Ptr<recob::PFParticle> >	all_pfparticles;
 		std::vector< art::Ptr<recob::Track> >		all_tracks;
 		std::vector< art::Ptr<recob::Shower> >		all_showers;
 		std::vector< art::Ptr<recob::Hit> >			all_hits;
 		std::vector< art::Ptr<recob::OpFlash> >		all_opflashes;
+		//get the cluster handle for the dQ/dx calc
 		std::vector< art::Ptr<recob::Cluster> >		all_clusters;
 
 /*
@@ -148,9 +150,10 @@ namespace single_photon
 
 		//PREPARE some recob objects;
 		//vector<string> labels = {m_trackLabel, m_showerLabel, m_hitfinderLabel, m_flashLabel, m_pandoraLabel}
+		recob::PFParticle dummy_PFParticle;
+		all_pfparticles = HandleToVector(dummy_PFParticle, evt, labels[4]);
 		recob::Track dummy_track;//This is to specify the template;
 		all_tracks = HandleToVector(dummy_track, evt, labels[0]);//m_trackLabel
-
 		recob::Shower dummy_shower;//This is to specify the template;
 		all_showers = HandleToVector(dummy_shower, evt, labels[1]);//m_showerLabel
 		recob::Hit	dummy_hit;
@@ -162,15 +165,18 @@ namespace single_photon
 		recob::Cluster	dummy_cluster;
 		all_clusters = HandleToVector(dummy_cluster, evt, labels[4]);//m_pandoraLabel
 
-
-
 		//CREATE maps!
-		//Ingredient 1: Handles and  all PFParticles; I temporary define it here for mapping purpose;
+		//Ingredient 1: Handles; I temporary define it here for mapping purpose;
 		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(labels[4]);//This is useful for FindManyP< reco::Track/Shower>
-		recob::PFParticle dummy_PFParticle;
-		std::vector<art::Ptr<recob::PFParticle>> all_pfparticles = HandleToVector(dummy_PFParticle, evt, labels[4]);
 		art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(labels[4]);
-		
+		//a cross check
+		if (!pfParticleHandle.isValid())
+		{
+			mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
+			return;
+		}
+
+	
 		//Ingredient 2: FindManyPs; these will be gone when construction finished
 		art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  labels[4]);
 		art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, evt, labels[4]);

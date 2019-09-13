@@ -48,7 +48,7 @@ namespace single_photon
 	 *	run_count (input) - has values 0,1,2; each number indicates differnt collections of slices: 
 	 *		0 - selected nu_slice; 
 	 *		1 - not-selected nu_slices; 
-	 *		2 - cosmic slices (non-nu_slices). 
+	 *		2 - cosmic slices (non-nu_slices).  NOT DOING THIS
 	 *
 	 * **************************/
 
@@ -56,17 +56,11 @@ namespace single_photon
 			const art::Event &evt,
 			class Atlas &package,
 			int run_count){
-		if(run_count>2){//Um.. something goes wrong if this is true
+		if(run_count>1){//Um.. something goes wrong if this is true
 			mf::LogDebug("SinglePhoton") << "  It seems that we loop the VertexBuilder too much.\n";
 		}
 
-//		cout<<"CHECK! Get in CollectTracksAndShowers_v2 over!\n\n\n"<<endl;
-		//the following function labels objects with sliceID and tell
-		//	if the slice is nu_slice or not.
-		
-//		cout<<"CHECK! AnalyzeSlices pass over!\n\n\n"<<endl;
-		//set up what particles to look at
-		std::vector< art::Ptr<recob::PFParticle> > candidate_particles;
+		std::vector< art::Ptr<recob::PFParticle> > candidate_particles(package.particles);//CHECK, always vertex the most nu-like slice.
 
 		if(m_run_all_pfps){
 			cout<<"d(O.O)b Looking at all slices. ";
@@ -74,33 +68,17 @@ namespace single_photon
 			cout<<"d(O.O)b Not looking at all slices."<<endl;
 		}
 		//we dont need the run_all_particle boolean, because it is considered under package.particles;
-		candidate_particles = package.particles;//CHECK, always vertex the most nu-like slice.
 
 		if(candidate_particles.size() == 0){
 			mf::LogDebug("SinglePhoton") << "  No PFParticles can be considered for vertexing.\n";
 		}
 
-		std::vector< art::Ptr<recob::Track> >	cosmic_tracks;//cosmic_* are useless for now..
-		std::vector< art::Ptr<recob::Shower> >	cosmic_showers;
 		std::vector< art::Ptr<recob::Track> >	wanted_tracks;
 		std::vector< art::Ptr<recob::Shower> >	wanted_showers;
 		std::vector< art::Ptr<recob::Track> >	backup_tracks;
 		std::vector< art::Ptr<recob::Shower> >	backup_showers;
 
 		for(const art::Ptr<recob::PFParticle> &pParticle : candidate_particles){ //candidate_particles are determined in above if-else statement.
-
-//		cout<<"CHECK! Inside the pfParticles, over!"<<endl;
-			
-			//pfParticleHandle is from recob::PFParticle on m_pandoraLabel;
-			//pfParticleToTrackAssoc is a FindManyP<reco::Track> from <pfParticleHandle, evt,m_trackLabel)
-			//associatedTracks is a copy of pfPartToTrackAssoc.at(pParticle.key()));
-			//nTracks = associatedTracks.size()
-
-			//Getting rid of PFParticleAsATrack..
-			//(package.PFParticleAsATrack).at(pParticle.key()) gives # of tracks;
-			//art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, evt, m_trackLabel);
-			
-			//Make a copy of vectors we need, lazy as I am~
 			const std::vector< art::Ptr<recob::Track> > ToBeAddedTracks((package.PFParticleAsATrack)->at(pParticle.key()));
 			const std::vector< art::Ptr<recob::Shower> > ToBeAddedShowers((package.PFParticleAsAShower)->at(pParticle.key()));
 
@@ -108,24 +86,18 @@ namespace single_photon
 			const unsigned int nShowers(ToBeAddedShowers.size());
 
 			//Check if we can add a track/a shower that is identified from a PFParticle.
-//		cout<<"CHECK! # of tracks/showers are ready, over!"<<endl;
+			//		cout<<"CHECK! # of tracks/showers are ready, over!"<<endl;
+			//		cout<<nTracks<<endl;
+			//		cout<<nShowers<<endl;
 			if( nTracks + nShowers == 0 ){//Um... the PFParticle is not identified as track or shower;
-//		cout<<"00"<<endl;
 				mf::LogDebug("SinglePhoton") << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << "\n";
 			}else if( nTracks + nShowers > 1 ){
-//		cout<<"11"<<endl;
 				//Check, do I need throw??
 				throw cet::exception("SinglePhoton") << "  There were " << nTracks << " tracks and " << nShowers << " showers associated with PFParticle " << pParticle->Self();
-				
-			//Ok, if going through the below if-elses, it means we have a shower/ a track!
+				//Ok, if going through the below if-elses, it means we have a shower/ a track!
+
 			}else if( nTracks == 1 ){ //Add a Track
-
-//				cout<<"10"<<endl;
-				if( package.PFPToClearCosmicMap[pParticle] == 1 ){//add cosmic PFParticle;
-					(cosmic_tracks).push_back(ToBeAddedTracks.front());
-					(package.trackToNuPFParticleMap)[(cosmic_tracks).back()]= pParticle;
-
-				}else if(!(package.PFPToNuSliceMap[pParticle])){//add other nu-like PFParticle;
+				if(!(package.PFPToNuSliceMap[pParticle])){//add other nu-like PFParticle;
 					(backup_tracks).push_back(ToBeAddedTracks.front());
 					(package.trackToNuPFParticleMap)[(backup_tracks).back()]= pParticle;
 
@@ -137,12 +109,7 @@ namespace single_photon
 				std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  ToBeAddedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
 			}else if( nShowers == 1 ){ //Add a Shower
-//				cout<<"01"<<endl;
-				if( package.PFPToClearCosmicMap[pParticle] == 1 ){//add cosmic PFParticle;
-					(cosmic_showers).push_back(ToBeAddedShowers.front());
-					(package.showerToNuPFParticleMap)[(cosmic_showers).back()]= pParticle;
-
-				}else if(!(package.PFPToNuSliceMap[pParticle]) ){//add other nu-like PFParticle
+				if(!(package.PFPToNuSliceMap[pParticle]) ){//add other nu-like PFParticle
 					(backup_showers).push_back(ToBeAddedShowers.front());
 					(package.showerToNuPFParticleMap)[(backup_showers).back()]= pParticle;
 
@@ -152,18 +119,19 @@ namespace single_photon
 				}
 
 				std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  ToBeAddedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
-			}
-
-			//repeat this loop for another PFParticle in the candidate_particles.
+			} //repeat this loop for another PFParticle in the candidate_particles.
 		}
 
 		package.collected_showers.clear();//no need these, but they dont hurt;
 		package.collected_tracks.clear();
 
-		//run_count = 3;//CHECK
-
 		switch (run_count)
 		{
+			case 0://actually only case 0 allowed here;
+				cout<<"\n\n Load objects form the selected nu slice!"<<endl;
+				package.collected_showers = wanted_showers;
+				package.collected_tracks = wanted_tracks;
+				break;
 			case 1:
 				cout<<"\n\n Load objects form other nu slices!"<<endl;
 				(package.collected_showers).reserve( backup_showers.size() + wanted_tracks.size());
@@ -173,38 +141,15 @@ namespace single_photon
 				(package.collected_tracks).reserve(backup_tracks.size()+wanted_tracks.size());
 				(package.collected_tracks).insert((package.collected_tracks).end(), backup_tracks.begin(), backup_tracks.end());
 				(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
-
 				break;
 
-//			case 2:
-//				cout<<"\n\n Load objects form other nu slices and cosmic slices!"<<endl;
-//
-//				(package.collected_showers).reserve( cosmic_showers.size() + package.backup_showers.size() + wanted_tracks.size());
-//				(package.collected_showers).insert((package.collected_showers).end(), cosmic_showers.begin(), cosmic_showers.end());
-//				(package.collected_showers).insert((package.collected_showers).end(), package.backup_showers.begin(), package.backup_showers.end());
-//				(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
-//				//ok, same for tracks
-//				(package.collected_tracks).reserve( cosmic_tracks.size() + package.backup_tracks.size() + wanted_tracks.size());
-//				(package.collected_tracks).insert((package.collected_tracks).end(), cosmic_tracks.begin(), cosmic_tracks.end());
-//				(package.collected_tracks).insert((package.collected_tracks).end(), package.backup_tracks.begin(), package.backup_tracks.end());
-//				(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
-//				break;
-
-			case 3://CHECK, not using this?
+			case 3://CHECK, this is for testing purpose.
 				cout<<"\n\n Only backup Nuslices! CHECK IAM MESSING THIS UP"<<endl;
-
 				package.collected_showers = backup_showers;
 				package.collected_tracks = backup_tracks;
-				break;
-
-
-			default://actually only case 0 allowed here;
-
-				cout<<"\n\n Load objects form the selected nu slice!"<<endl;
-				package.collected_showers = wanted_showers;
-				package.collected_tracks = wanted_tracks;
 		}
-
+				cout<<"Showers: "<<package.collected_showers.size()<<endl;
+				cout<<"Tracks: "<<package.collected_tracks.size()<<endl;
 	}
 
 
@@ -254,8 +199,6 @@ namespace single_photon
 		double cpoa_trackend_prox = 5;//Max. distance btw midway point of impact parameter to a potential vertex (a_max)
 
 		if(fverbose){//Over view of the inputs
-			cout<<"Transfering creteria from SinglePhoton class to VertexBuilder class:"<<endl;
-
 			std::cout << "\n\nRun vertex builder with: \n";
 			cout<<"Number of shower candidates: "<<(package.collected_showers).size()<<endl;
 			cout<<"Number of track candidates : "<<(package.collected_tracks).size()<<endl;
