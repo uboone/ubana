@@ -216,10 +216,16 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
   fVy = pfp_vtx.Y();
   fVz = pfp_vtx.Z();
   std::vector<float> pfp_start_fid_v(6, m_pfp_start_border);
+
+  // There is a bug here!S
   fStartContained = IsContained(fVx, fVy, fVz, pfp_start_fid_v);
   if (!fStartContained)
   {
     fDaughtersStartContained = false;
+    std::cout << "[Wouter] not contained?" << std::endl;
+  }
+  else{
+    std::cout << "[Wouter] contained?" << std::endl;
   }
 
   const larpandoraobj::PFParticleMetadata::PropertiesMap &pfp_properties = particlesToMetadata.at(pfp).front()->GetPropertiesMap();

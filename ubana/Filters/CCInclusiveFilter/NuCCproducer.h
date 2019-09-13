@@ -156,7 +156,7 @@ private:
   uint fGeneration;
   float fTrackScore;
   float fVx, fVy, fVz;
-  float fStartContained;
+  bool fStartContained;
   float fVtxDistance;
   // Track info
   float fTrackLength;
