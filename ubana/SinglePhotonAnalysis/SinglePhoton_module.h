@@ -21,6 +21,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/OpFlash.h"
+#include "ubobj/CRT/CRTHit.hh"
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/MCBase/MCShower.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
@@ -673,6 +674,7 @@ namespace single_photon
             std::string m_mcShowerLabel;
             std::string m_pidLabel;            ///< For PID stuff
             std::string m_CRTTzeroLabel;
+            std::string m_CRTHitProducer;
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
             bool m_is_verbose;

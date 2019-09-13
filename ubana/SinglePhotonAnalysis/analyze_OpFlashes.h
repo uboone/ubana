@@ -127,10 +127,14 @@ namespace single_photon
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeFlashes()\t||\t Finished. There was "<<flash_size<<" flashes with: "<<m_reco_num_flashes_in_beamgate<<" in the beamgate defined by: "<<m_beamgate_flash_start<<" <-> "<<m_beamgate_flash_end<<std::endl;
 
-    }
+        //fill these values only for events that have CRT information - run3 G and later
+        //code taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter_module.cc
+        if(m_runCRT){
 
-    //fill these values only for events that have CRT information - run3 G and later
-    //code taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter_module.cc 
+        } 
+
+
+    }
 
 
 }

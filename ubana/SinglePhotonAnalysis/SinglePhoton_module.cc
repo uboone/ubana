@@ -57,6 +57,8 @@ namespace single_photon
 
         m_CRTTzeroLabel = pset.get<std::string>("CRTTzeroLabel","crttzero");
         m_runCRT = pset.get<bool>("runCRT",false);
+        m_CRTHitProducer = pset.get<std::string>("CRTHitProducer", "crthitcorr");
+
 
         //Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.005);
@@ -429,14 +431,6 @@ namespace single_photon
 
 
 
-
-
-
-
-
-
-
-
         //CRT 
         /*
            if(m_has_CRT){
@@ -553,10 +547,15 @@ namespace single_photon
 
         //this->GetPFPsPerSlice( PFPToSliceIdMap,sliceIdToNumPFPsMap );
 
-
-
+        //if CRT info, get CRT hits
+        art::Handle<std::vector<crt::CRTHit>> crthit_h; //only filled when there are hits, otherwise empty 
+        if(m_runCRT){
+            evt.getByLabel(m_CRTHitProducer, crthit_h);
+            std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
+         }
 
         this->AnalyzeFlashes(flashVector);
+        
         std::cout<<"start track"<<std::endl;
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
