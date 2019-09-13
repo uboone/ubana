@@ -56,7 +56,7 @@ namespace single_photon
 
 
         m_CRTTzeroLabel = pset.get<std::string>("CRTTzeroLabel","crttzero");
-        m_has_CRT = pset.get<bool>("hasCRT",true);
+        m_runCRT = pset.get<bool>("runCRT",false);
 
         //Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.005);

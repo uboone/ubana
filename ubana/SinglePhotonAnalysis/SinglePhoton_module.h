@@ -154,44 +154,44 @@ namespace single_photon
         sss_score(int ip, int cl): plane(ip), cluster_label(cl){};
     };
 
-class cluster {
+    class cluster {
 
-    public:
-    
-    cluster(int ID, int plane, std::vector<std::vector<double>> &pts, std::vector<art::Ptr<recob::Hit>> &hits) :f_ID(ID), f_plane(plane), f_pts(pts), f_hits(hits) {
+        public:
 
-        f_npts = f_pts.size();
-        if(pts.size() != hits.size()){
-            std::cerr<<"seaviewer::cluster, input hits and pts not alligned"<<std::endl;
-        }
-        std::vector<double> wires(f_npts);
-        std::vector<double> ticks(f_npts);
-        for(int p =0; p< f_npts; ++p){
-            wires[p]=f_pts[p][0];
-            ticks[p]=f_pts[p][1];
-        }
-        TGraph af_graph(f_npts,&wires[0],&ticks[0]);
-        f_graph = af_graph;
+            cluster(int ID, int plane, std::vector<std::vector<double>> &pts, std::vector<art::Ptr<recob::Hit>> &hits) :f_ID(ID), f_plane(plane), f_pts(pts), f_hits(hits) {
 
+                f_npts = f_pts.size();
+                if(pts.size() != hits.size()){
+                    std::cerr<<"seaviewer::cluster, input hits and pts not alligned"<<std::endl;
+                }
+                std::vector<double> wires(f_npts);
+                std::vector<double> ticks(f_npts);
+                for(int p =0; p< f_npts; ++p){
+                    wires[p]=f_pts[p][0];
+                    ticks[p]=f_pts[p][1];
+                }
+                TGraph af_graph(f_npts,&wires[0],&ticks[0]);
+                f_graph = af_graph;
+
+            };
+
+            int getID() {return f_ID;}
+            int getN() {return f_npts;}
+            int getPlane(){ return f_plane;}
+            TGraph * getGraph(){ return &f_graph;}
+            std::vector<art::Ptr<recob::Hit>>  getHits(){return f_hits;}
+            int setSSScore(sss_score & scorein){ f_SSScore = &scorein; return 0;}
+            sss_score * getSSScore(){return f_SSScore;}
+        private:
+
+            int f_ID;
+            int f_npts;
+            int f_plane;
+            std::vector<std::vector<double>> f_pts;
+            std::vector<art::Ptr<recob::Hit>> f_hits;
+            TGraph f_graph;
+            sss_score *f_SSScore;
     };
-
-    int getID() {return f_ID;}
-    int getN() {return f_npts;}
-    int getPlane(){ return f_plane;}
-    TGraph * getGraph(){ return &f_graph;}
-    std::vector<art::Ptr<recob::Hit>>  getHits(){return f_hits;}
-    int setSSScore(sss_score & scorein){ f_SSScore = &scorein; return 0;}
-    sss_score * getSSScore(){return f_SSScore;}
-    private:
- 
-    int f_ID;
-    int f_npts;
-    int f_plane;
-    std::vector<std::vector<double>> f_pts;
-    std::vector<art::Ptr<recob::Hit>> f_hits;
-    TGraph f_graph;
-    sss_score *f_SSScore;
-};
 
 
 
@@ -407,21 +407,21 @@ class cluster {
 
             void CreateSecondShowerBranches();
 
-    void SecondShowerSearch(
-            const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
-            const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
-            const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
-            const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap,
-             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
-            std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
-            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
+            void SecondShowerSearch(
+                    const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
+                    const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
+                    const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
+                    const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap,
+                    art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
+                    std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
+                    std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+                    std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
 
-        std::vector<double>SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
-            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
-            std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
-            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
+            std::vector<double>SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
+                    art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
+                    std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
+                    std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+                    std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
 
 
 
@@ -484,9 +484,9 @@ class cluster {
             void ResizeShowers(size_t);
             void CreateShowerBranches();
             void AnalyzeKalmanShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
-                        std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> & pfptotrkmap,
-                        std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> & trktocalomap,
-                        std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap
+                    std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> & pfptotrkmap,
+                    std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> & trktocalomap,
+                    std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap
                     );
 
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
@@ -680,7 +680,7 @@ class cluster {
             bool m_is_data;
             bool m_is_overlayed;
             bool m_run_all_pfps;
-            bool m_has_CRT;
+            bool m_runCRT;
 
             std::ofstream out_stream;
 
@@ -732,7 +732,7 @@ class cluster {
 
             int m_sss_num_candidates;
 
-             ReadBDT * sssVetov1;
+            ReadBDT * sssVetov1;
 
             std::vector<int> m_sss_candidate_num_hits;
             std::vector<int> m_sss_candidate_num_wires;
@@ -754,10 +754,10 @@ class cluster {
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
             std::vector<int>   m_sss_candidate_matched;
-       std::vector<int>       m_sss_candidate_pdg;
-      std::vector<int>        m_sss_candidate_parent_pdg;
-          std::vector<int>    m_sss_candidate_trackid;
-       std::vector<double>       m_sss_candidate_overlay_fraction;
+            std::vector<int>       m_sss_candidate_pdg;
+            std::vector<int>        m_sss_candidate_parent_pdg;
+            std::vector<int>    m_sss_candidate_trackid;
+            std::vector<double>       m_sss_candidate_overlay_fraction;
 
             bool bool_make_sss_plots;
 
@@ -897,6 +897,24 @@ class cluster {
 
             double m_beamgate_flash_start;
             double m_beamgate_flash_end;
+
+
+            //----------- CRT related variables -----------------
+            //fields storing information about the CRT hit closest to the flash
+            double m_CRT_min_hit_time;
+            double m_CRT_min_hit_PE;
+            double m_CRT_min_hit_x;
+            double m_CRT_min_hit_y;
+            double m_CRT_min_hit_z;
+
+            //Fields storing information about all CRT hits in event
+            std::vector<double> m_CRT_hits_time;
+            std::vector<double> m_CRT_hits_PE;
+            std::vector<double> m_CRT_hits_x;
+            std::vector<double> m_CRT_hits_y;
+            std::vector<double> m_CRT_hits_z;
+
+            double m_CRT_dt; //time between flash and nearest CRT hit
 
             //------------ Track related Variables -------------
             int m_reco_asso_tracks;
@@ -1041,9 +1059,9 @@ class cluster {
 
             std::vector<int> m_reco_shower_num_daughters;
             std::vector<double> m_reco_shower_daughter_trackscore;
-         
+
             std::vector<int>   m_reco_shower3d_exists;
-               std::vector<double>   m_reco_shower3d_startx;
+            std::vector<double>   m_reco_shower3d_startx;
             std::vector<double>   m_reco_shower3d_starty;
             std::vector<double>   m_reco_shower3d_startz;
             std::vector<double>   m_reco_shower3d_dirx;
@@ -1060,17 +1078,17 @@ class cluster {
             std::vector<double>    m_reco_shower3d_implied_dirx;
             std::vector<double>     m_reco_shower3d_implied_diry;
             std::vector<double>     m_reco_shower3d_implied_dirz;
-            
+
             std::vector<double> m_reco_shower3d_energy_plane0;
             std::vector<double> m_reco_shower3d_energy_plane1;
             std::vector<double> m_reco_shower3d_energy_plane2;
- 
+
             std::vector<double> m_reco_shower3d_dEdx_plane0;
             std::vector<double> m_reco_shower3d_dEdx_plane1;
             std::vector<double> m_reco_shower3d_dEdx_plane2;
 
 
-            
+
             std::vector<double>   m_reco_shower_startx;
             std::vector<double>   m_reco_shower_starty;
             std::vector<double>   m_reco_shower_startz;
@@ -1125,13 +1143,13 @@ class cluster {
             std::vector<double> m_reco_shower_trackscore;
 
             std::vector<double> m_reco_shower_kalman_exists;
-        std::vector<double>   m_reco_shower_kalman_median_dEdx_plane0;
-      std::vector<double>     m_reco_shower_kalman_median_dEdx_plane1;
-        std::vector<double>   m_reco_shower_kalman_median_dEdx_plane2;
-        std::vector<double>   m_reco_shower_kalman_median_dEdx_allplane;
-     std::vector<double>      m_reco_shower_kalman_mean_dEdx_plane0;
-       std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane1;
-       std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane2;
+            std::vector<double>   m_reco_shower_kalman_median_dEdx_plane0;
+            std::vector<double>     m_reco_shower_kalman_median_dEdx_plane1;
+            std::vector<double>   m_reco_shower_kalman_median_dEdx_plane2;
+            std::vector<double>   m_reco_shower_kalman_median_dEdx_allplane;
+            std::vector<double>      m_reco_shower_kalman_mean_dEdx_plane0;
+            std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane1;
+            std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane2;
 
 
 
@@ -1309,7 +1327,7 @@ class cluster {
             std::vector<double> m_reco_track_pid_chi2_p_plane2;
             std::vector<double> m_reco_track_pid_three_plane_proton_pid;
 
-    
+
             double m_genie_spline_weight;
 
     };

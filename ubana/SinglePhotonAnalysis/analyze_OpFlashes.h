@@ -18,6 +18,18 @@ namespace single_photon
         m_reco_flash_time_in_beamgate.clear();
         m_reco_flash_ycenter_in_beamgate.clear();
         m_reco_flash_zcenter_in_beamgate.clear();
+        m_CRT_min_hit_time = -999;
+        m_CRT_min_hit_PE = -999;
+        m_CRT_min_hit_x = -999;
+        m_CRT_min_hit_y = -999;
+        m_CRT_min_hit_z = -999;
+        m_CRT_hits_time.clear();
+        m_CRT_hits_PE.clear();
+        m_CRT_hits_x.clear(); 
+        m_CRT_hits_y.clear();
+        m_CRT_hits_z.clear();
+        m_CRT_dt = -999;
+
     }
 
     void SinglePhoton::ResizeFlashes(size_t size){
@@ -34,6 +46,12 @@ namespace single_photon
         m_reco_flash_time_in_beamgate.resize(size);
         m_reco_flash_ycenter_in_beamgate.resize(size);
         m_reco_flash_zcenter_in_beamgate.resize(size);
+        m_CRT_hits_time.resize(size);
+        m_CRT_hits_PE.resize(size);
+        m_CRT_hits_x.resize(size); 
+        m_CRT_hits_y.resize(size);
+        m_CRT_hits_z.resize(size);
+
     }
 
 
@@ -55,6 +73,19 @@ namespace single_photon
         vertex_tree->Branch("reco_flash_time_in_beamgate", &m_reco_flash_time_in_beamgate);
         vertex_tree->Branch("reco_flash_ycenter_in_beamgate",&m_reco_flash_ycenter_in_beamgate);
         vertex_tree->Branch("reco_flash_zcenter_in_beamgate",&m_reco_flash_zcenter_in_beamgate);
+
+        vertex_tree->Branch("CRT_min_hit_time",&m_CRT_min_hit_time,"CRT_min_hit_time/D");
+        vertex_tree->Branch("CRT_min_hit_PE",&m_CRT_min_hit_PE,"CRT_min_hit_PE/D");
+        vertex_tree->Branch("CRT_min_hit_x",&m_CRT_min_hit_x,"CRT_min_hit_x/D");
+        vertex_tree->Branch("CRT_min_hit_y",&m_CRT_min_hit_y,"CRT_min_hit_y/D");
+        vertex_tree->Branch("CRT_min_hit_z",&m_CRT_min_hit_z,"CRT_min_hit_z/D");
+
+        vertex_tree->Branch("CRT_hits_time",&m_CRT_hits_time);
+        vertex_tree->Branch("CRT_hits_PE",&m_CRT_hits_PE);
+        vertex_tree->Branch("CRT_hits_x",&m_CRT_hits_x);
+        vertex_tree->Branch("CRT_hits_y",&m_CRT_hits_y);
+        vertex_tree->Branch("CRT_hits_z",&m_CRT_hits_z);
+
     }
 
 
@@ -91,12 +122,15 @@ namespace single_photon
             }
 
 
-            
+
         }
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeFlashes()\t||\t Finished. There was "<<flash_size<<" flashes with: "<<m_reco_num_flashes_in_beamgate<<" in the beamgate defined by: "<<m_beamgate_flash_start<<" <-> "<<m_beamgate_flash_end<<std::endl;
 
     }
+
+    //fill these values only for events that have CRT information - run3 G and later
+    //code taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter_module.cc 
 
 
 }
