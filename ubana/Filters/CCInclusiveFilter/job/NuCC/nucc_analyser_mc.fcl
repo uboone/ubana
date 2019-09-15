@@ -1,0 +1,7 @@
+#include "nucc_analyser_data.fcl"
+
+physics.analyzers.NuCCanalyzer.is_data: false
+
+#Splines (requires v17)
+physics.producers.eventweightSplines: @local::microboone_eventweight_justSplines
+physics.prod: [ eventweightSplines, NuCCproducer]

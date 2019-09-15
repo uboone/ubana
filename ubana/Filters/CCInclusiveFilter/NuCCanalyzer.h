@@ -34,6 +34,7 @@
 
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larsim/EventWeight/Base/MCEventWeight.h"
 
 
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -203,6 +204,7 @@ private:
     TTree *fEventTree;
     uint fRun, fSubrun, fEvent;
     UInt_t fTimeHigh, fTimeLow;
+    float fEventWeight;
     uint fNumPfp;
     // MC neutrino info
     uint fNumNu; // number of MC neutrinos in event, only one gets saved!
@@ -356,6 +358,7 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
     fEventTree->Branch("event", &fEvent, "event/i");
     fEventTree->Branch("run", &fRun, "run/i");
     fEventTree->Branch("subrun", &fSubrun, "subrun/i");
+    fEventTree->Branch("event_weight", &fEventWeight, "event_weight/F");
     fEventTree->Branch("evt_time_sec", &fTimeHigh, "evt_time_sec/i");
     fEventTree->Branch("evt_time_nsec", &fTimeLow, "evt_time_nsec/i");
     fEventTree->Branch("numpfp", &fNumPfp, "numpfp/i");
@@ -498,6 +501,7 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
 
 void NuCCanalyzer::clearEvent()
 {
+    fEventWeight = 1;
     fNu_PDG = 0; // if 0, no neutrinocandidate was found, only look at truth information.
     fDaughtersStored = true;
     fCosmicMatched = false;

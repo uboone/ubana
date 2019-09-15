@@ -25,6 +25,26 @@ void NuCCanalyzer::analyze(art::Event const &evt)
   fTimeLow = evtTime.timeLow();
   std::cout << "[NuCCanalyzer::analyze]: Run " << fRun << ", Subrun " << fSubrun << ", Event " << fEvent << std::endl;
 
+  // Event weight:
+  if (!m_isData)
+  {
+    art::InputTag eventweight_tag("eventweightSplines");
+    art::Handle<std::vector<evwgh::MCEventWeight>> eventweights_handle;
+    if (evt.getByLabel(eventweight_tag, eventweights_handle))
+    {
+      std::vector<art::Ptr<evwgh::MCEventWeight>> eventweights;
+      art::fill_ptr_vector(eventweights, eventweights_handle);
+      std::map<std::string, std::vector<double>> evtwgt_map = eventweights.at(0)->fWeight;
+      const std::vector<double> &weights = evtwgt_map.at("splines_general_Spline");
+      fEventWeight = weights.front();
+      std::cout << "[NuCCanalyzer::analyze]: Event Weight:  " << fEventWeight << std::endl;
+    }
+    else
+    {
+      std::cout << "[NuCCanalyzer::analyze]: Failed obtaining eventweight" << std::endl;
+    }
+  }
+
   larpandora.CollectPFParticleMetadata(evt, m_pfp_producer, pfparticles, particlesToMetadata);
   larpandora.BuildPFParticleMap(pfparticles, particleMap);
 
@@ -222,10 +242,6 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
   if (!fStartContained)
   {
     fDaughtersStartContained = false;
-    std::cout << "[Wouter] not contained?" << std::endl;
-  }
-  else{
-    std::cout << "[Wouter] contained?" << std::endl;
   }
 
   const larpandoraobj::PFParticleMetadata::PropertiesMap &pfp_properties = particlesToMetadata.at(pfp).front()->GetPropertiesMap();
