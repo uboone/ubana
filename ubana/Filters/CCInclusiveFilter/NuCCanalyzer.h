@@ -199,6 +199,8 @@ private:
     lar_pandora::PFParticlesToMCParticles matchedParticles;
     std::set<art::Ptr<simb::MCParticle>> matchedMCParticles;
     std::map<art::Ptr<recob::PFParticle>, float> matchedHitFractions;
+    std::map<art::Ptr<recob::PFParticle>, uint> matchedHits;
+    uint m_total_mc_hits = 0;
 
     //// Tree for every event
     TTree *fEventTree;
@@ -234,6 +236,10 @@ private:
     uint fNu_NhitsU, fNu_NhitsV, fNu_NhitsY;
     float fNu_CaloU, fNu_CaloV, fNu_CaloY;
     uint fNu_NSpacepoints;
+    uint fNu_totalHits;
+    uint fMatchedHits;
+    float fMCHitsFraction;
+    float fClusteredHitCompleteness;
     float fNu_FlashChi2;
     float fBestObviousCosmic_FlashChi2;
     uint fNumPrimaryDaughters;
@@ -365,6 +371,7 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
     fEventTree->Branch("hitsU", &fNu_NhitsU, "hitsU/i");
     fEventTree->Branch("hitsV", &fNu_NhitsV, "hitsV/i");
     fEventTree->Branch("hitsY", &fNu_NhitsY, "hitsY/i");
+    fEventTree->Branch("total_hits", &fNu_totalHits, "total_hits/i");
     fEventTree->Branch("caloU", &fNu_CaloU, "caloU/F");
     fEventTree->Branch("caloV", &fNu_CaloV, "caloV/F");
     fEventTree->Branch("caloY", &fNu_CaloY, "caloY/F");
@@ -411,6 +418,8 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
         fEventTree->Branch("mc_nu_vtx_distance", &fTrueNu_VtxDistance, "mc_nu_vtx_distance/F");
         fEventTree->Branch("num_matched_daughters", &fNumMatchedDaughters, "num_matched_daughters/i");
         fEventTree->Branch("cosmic_matched", &fCosmicMatched, "cosmic_matched/O");
+        fEventTree->Branch("clustered_hit_completeness", &fClusteredHitCompleteness, "clustered_hit_completeness/F");
+        fEventTree->Branch("matched_hit_fraction", &fMCHitsFraction, "matched_hit_fraction/F");
 
         fEventTree->Branch("mc_nu_daughter_matched", "std::vector< bool >", &fTrueNu_DaughterMatched);
         fEventTree->Branch("mc_nu_daughter_pdg", "std::vector< int >", &fTrueNu_DaughterPDG);
@@ -517,6 +526,8 @@ void NuCCanalyzer::clearEvent()
     fNu_CaloV = 0;
     fNu_CaloY = 0;
     fNu_NSpacepoints = 0;
+    fNu_totalHits = 0;
+    fMatchedHits = 0;
     fNumNu = 0;
     fNu_FlashChi2 = 0;
     fBestObviousCosmic_FlashChi2 = 0;
@@ -542,6 +553,7 @@ void NuCCanalyzer::clearEvent()
 
     matchedParticles.clear();
     matchedHitFractions.clear();
+    matchedHits.clear();
     matchedMCParticles.clear();
 
     m_muon_candidates.clear();
