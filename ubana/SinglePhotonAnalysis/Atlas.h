@@ -190,7 +190,7 @@ namespace single_photon
 		PFParticleAsAShower = &pfPartToShowerAssoc;//record this to the atlas
 */		
 		//make maps here;
-		for(size_t i=0; i< all_pfparticles.size(); ++i){//old name pfParticleVector, 0~52 in the test sample
+		for(size_t i=0; i< all_pfparticles.size(); ++i){
 			const art::Ptr<recob::PFParticle> pfp = all_pfparticles[i];
 			PFParticlesToVerticesMap[pfp] = vertices_per_pfparticle.at(pfp.key());//old name: pfParticlesToVerticesMap;
 

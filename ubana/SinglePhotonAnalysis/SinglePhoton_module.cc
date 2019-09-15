@@ -15,28 +15,6 @@ using namespace std;
 
 namespace single_photon
 {
-////	//gadget: construct a Vector form a Handle;
-//	template <typename Reco_Object>//A helper template that allows you to make compliated types.
-//		struct temp{ 
-//			using type1 = std::vector<art::Ptr<Reco_Object>>;
-//			using type2 = art::ValidHandle<std::vector<Reco_Object>>;
-//			using type3 = std::vector<Reco_Object>;
-//		};
-//
-//	template <class Reco_Object>                         //ref_type is only used to identify the template.
-//		typename temp<Reco_Object>::type1 HandleToVector(Reco_Object ref_type, const art::Event &evt, std::string &label){
-//
-//			typename temp<Reco_Object>::type2 const & Handle = evt.getValidHandle<typename temp<Reco_Object>::type3>(label);
-//			typename temp<Reco_Object>::type1 Vector;
-//			art::fill_ptr_vector(Vector,Handle);
-//			return Vector;
-//		}
-//
-//		//art::ValidHandle<std::vector<recob::OpFlash>> const & flashHandle  = evt.getValidHandle<std::vector<recob::OpFlash>>(m_flashLabel);
-//		//std::vector<art::Ptr<recob::OpFlash>> flashVector;
-//		//art::fill_ptr_vector(flashVector,flashHandle);
-
-
 	//constructor
     SinglePhoton::SinglePhoton(fhicl::ParameterSet const &pset) : art::EDAnalyzer(pset)
     {
