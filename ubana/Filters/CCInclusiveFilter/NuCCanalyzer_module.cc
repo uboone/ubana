@@ -68,7 +68,7 @@ void NuCCanalyzer::analyze(art::Event const &evt)
         FillTrueNuDaughters(evt);
       }
       FillReconstructed(evt);
-      // After all the fields are filled, do the selection and create association.
+      // After all the fields are filled, do the selection.
       fIsNuMuCC = IsNuMuCC(evt);
     }
   }
@@ -161,6 +161,13 @@ void NuCCanalyzer::FillReconstructed(art::Event const &evt)
       }
     }
   }
+  // Purity Completeness approximations:
+  std::cout << "[NuCCanalyzer::FillReconstructed] Total MC hits in event: " << m_total_mc_hits << std::endl;
+  std::cout << "[NuCCanalyzer::FillReconstructed] Total MC hits in nu pfps: " << fMatchedHits << std::endl;
+  std::cout << "[NuCCanalyzer::FillReconstructed] Total hits in nu pfps: " << fNu_totalHits << std::endl;
+  fMCHitsFraction = (float)fMatchedHits / fNu_totalHits;
+  fClusteredHitCompleteness = (float)fMatchedHits / m_total_mc_hits;
+  std::cout << "[NuCCanalyzer::FillReconstructed] Completeness: " << fClusteredHitCompleteness << " Purity: " << fMCHitsFraction << std::endl;
 
   // Store the obvious cosmic with the lowest score:
   fBestObviousCosmic_FlashChi2 = std::numeric_limits<float>::max();
@@ -185,7 +192,7 @@ void NuCCanalyzer::FillReconstructed(art::Event const &evt)
       }
     }
   }
-  std::cout << "[NuCCanalyzer::FillReconstructed] fNu_FlashChi2 / fBestObviousCosmic_FlashChi2: " << fNu_FlashChi2 / fBestObviousCosmic_FlashChi2 << std::endl;
+  //std::cout << "[NuCCanalyzer::FillReconstructed] fNu_FlashChi2 / fBestObviousCosmic_FlashChi2: " << fNu_FlashChi2 / fBestObviousCosmic_FlashChi2 << std::endl;
 }
 
 bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
@@ -206,6 +213,7 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
   fNu_NhitsU += fNhitsU;
   fNu_NhitsV += fNhitsV;
   fNu_NhitsY += fNhitsY;
+  fNu_totalHits += (fNhitsU + fNhitsV + fNhitsY);
   fNu_CaloU += fCaloU;
   fNu_CaloV += fCaloV;
   fNu_CaloY += fCaloY;
@@ -375,6 +383,7 @@ bool NuCCanalyzer::MatchDaughter(art::Event const &evt, const art::Ptr<recob::PF
     }
     matched_mcp = matchedParticles.at(pfp);
     matchedHitFraction = matchedHitFractions.at(pfp);
+    fMatchedHits += matchedHits.at(pfp); // only for direct daughters
   }
   else if (fGeneration == 3)
   {
@@ -523,8 +532,8 @@ void NuCCanalyzer::FillTrueNuDaughters(art::Event const &evt)
 
 void NuCCanalyzer::FillReconTruthMatching(art::Event const &evt)
 {
-  pandoraInterfaceHelper.Configure(evt, m_pfp_producer, m_pfp_producer, m_hitfinder_producer, m_geant_producer, m_hit_mcp_producer);
-  pandoraInterfaceHelper.GetRecoToTrueMatches(matchedParticles, matchedHitFractions);
+  m_total_mc_hits = pandoraInterfaceHelper.Configure(evt, m_pfp_producer, m_pfp_producer, m_hitfinder_producer, m_geant_producer, m_hit_mcp_producer);
+  pandoraInterfaceHelper.GetRecoToTrueMatches(matchedParticles, matchedHitFractions, matchedHits);
   std::cout << "[NuCCanalyzer::FillReconTruthMatching] ";
   std::cout << "Number of PFPparticles in event: " << pfparticles.size() << std::endl;
   for (auto it = matchedParticles.begin(); it != matchedParticles.end(); ++it)
