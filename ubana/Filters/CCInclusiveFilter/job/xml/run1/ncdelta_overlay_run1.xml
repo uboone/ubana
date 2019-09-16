@@ -27,7 +27,7 @@
 
     <!--  Project stages  -->
     <stage name="nucc">
-        <fcl>nucc_analyser_common.fcl</fcl>
+        <fcl>nucc_analyser_mc.fcl</fcl>
         <outdir>/pnfs/uboone/scratch/users/&user;/&version;/&name;</outdir>
         <logdir>/pnfs/uboone/scratch/users/&user;/log/&version;/&name;</logdir>
         <workdir>/pnfs/uboone/scratch/users/&user;/work/&version;/&name;</workdir>

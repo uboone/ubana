@@ -165,12 +165,6 @@ private:
     float m_muon_cut_chiratio;
     float m_muon_cut_length;
 
-    float m_event_cut_flashchi2;
-    float m_event_cut_nuscore_soft;
-    float m_event_cut_nuscore_hard;
-    float m_event_cut_flashchi2_ratio;
-    float m_event_cut_length;
-
     PandoraInterfaceHelper pandoraInterfaceHelper;
     EnergyHelper energyHelper;
     TrackHelper trackHelper;
@@ -213,6 +207,13 @@ private:
     int fTrueNu_InteractionType;
     int fTrueNu_CCNC;
     int fTrueNu_PDG;
+    int fTrueNu_Target;
+    int fTrueNu_HitNuc;
+    int fTrueNu_HitQuark;
+    float fTrueNu_W;
+    float fTrueNu_X;
+    float fTrueNu_Y;
+    float fTrueNu_QSqr;
     float fTrueNu_Energy;
     float fTrueNu_LeptonPx, fTrueNu_LeptonPy, fTrueNu_LeptonPz;
     float fTrueNu_LeptonEnergy;
@@ -331,18 +332,12 @@ void NuCCanalyzer::reconfigure(fhicl::ParameterSet const &p)
 
     m_isData = p.get<bool>("is_data", false);
 
-    m_muon_cut_trackscore  = p.get<float>("muon_cut_trackscore", 0.8);
+    m_muon_cut_trackscore  = p.get<float>("muon_cut_trackscore", 0.85);
     m_muon_cut_vtxdistance  = p.get<float>("muon_cut_vtxdistance", 4.0);
     m_muon_cut_protonchi2 = p.get<float>("muon_cut_protonchi2", 60);
     m_muon_cut_muonchi2 = p.get<float>("muon_cut_muonchi2", 30);
     m_muon_cut_chiratio = p.get<float>("muon_cut_chiratio", 7);
     m_muon_cut_length = p.get<float>("muon_cut_length", 5);
-
-    m_event_cut_flashchi2 = p.get<float>("event_cut_flashchi2", 10);
-    m_event_cut_nuscore_soft = p.get<float>("event_cut_nuscore_soft", 0.25);
-    m_event_cut_nuscore_hard = p.get<float>("event_cut_nuscore_hard", 0.06);
-    m_event_cut_flashchi2_ratio = p.get<float>("event_cut_flashchi2_ratio", 5);
-    m_event_cut_length = p.get<float>("event_cut_length", 20);
 
     energyHelper.reconfigure(p);
 }
@@ -395,6 +390,15 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
 
     if (!m_isData)
     {
+
+            int fTrueNu_Target;
+    int fTrueNu_HitNuc;
+    int fTrueNu_HitQuark;
+    float fTrueNu_W;
+    float fTrueNu_X;
+    float fTrueNu_Y;
+    float fTrueNu_QSqr;
+
         fEventTree->Branch("num_neutrinos", &fNumNu, "num_neutrinos/i");
         fEventTree->Branch("mc_nu_vx", &fTrueNu_Vx, "mc_nu_vx/F");
         fEventTree->Branch("mc_nu_vy", &fTrueNu_Vy, "mc_nu_vy/F");
@@ -414,6 +418,13 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
         fEventTree->Branch("mc_nu_time", &fTrueNu_Time, "mc_nu_time/F");
         fEventTree->Branch("mc_nu_pdg", &fTrueNu_PDG, "mc_nu_pdg/I");
         fEventTree->Branch("mc_nu_interaction_type", &fTrueNu_InteractionType, "mc_nu_interaction_type/I");
+        fEventTree->Branch("mc_nu_target", &fTrueNu_Target, "mc_nu_target/I");
+        fEventTree->Branch("mc_nu_hitnuc", &fTrueNu_HitNuc, "mc_nu_hitnuc/I");
+        fEventTree->Branch("mc_nu_hitquark", &fTrueNu_HitQuark, "mc_nu_hitquark/I");
+        fEventTree->Branch("mc_nu_w", &fTrueNu_W, "mc_nu_w/F");
+        fEventTree->Branch("mc_nu_x", &fTrueNu_X, "mc_nu_x/F");
+        fEventTree->Branch("mc_nu_y", &fTrueNu_Y, "mc_nu_y/F");
+        fEventTree->Branch("mc_nu_qsqr", &fTrueNu_QSqr, "mc_nu_qsqr/F");
         fEventTree->Branch("mc_nu_ccnc", &fTrueNu_CCNC, "mc_nu_ccnc/O");
         fEventTree->Branch("mc_nu_vtx_distance", &fTrueNu_VtxDistance, "mc_nu_vtx_distance/F");
         fEventTree->Branch("num_matched_daughters", &fNumMatchedDaughters, "num_matched_daughters/i");
