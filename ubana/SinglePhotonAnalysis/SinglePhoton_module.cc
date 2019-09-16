@@ -555,12 +555,15 @@ namespace single_photon
         //if CRT info, get CRT hits
         art::Handle<std::vector<crt::CRTHit>> crthit_h; //only filled when there are hits, otherwise empty
         art::Handle<raw::DAQHeaderTimeUBooNE> rawHandle_DAQHeader;
-        evt.getByLabel(m_DAQHeaderProducer, rawHandle_DAQHeader);
-        raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
-        art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
-        double evt_timeGPS_nsec = evtTimeGPS.timeLow(); 
+        double evt_timeGPS_nsec = -999 ;
         if(m_runCRT){
+            evt.getByLabel(m_DAQHeaderProducer, rawHandle_DAQHeader);
+
             evt.getByLabel(m_CRTHitProducer, crthit_h);
+            raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
+            art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
+            evt_timeGPS_nsec = evtTimeGPS.timeLow(); 
+
             std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
         }
 
