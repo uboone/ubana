@@ -146,7 +146,7 @@ namespace single_photon
                 //   double _crt_time_temp = ((crthit_h->at(j).ts0_ns - evt_timeGPS_nsec + m_DTOffset) / 1000.);
 
                 // Fill the vector variables.
-                m_CRT_hits_time.push_back(crthit_h->at(j).ts0_ns);
+                m_CRT_hits_time.push_back(crthit_h->at(j).ts0_ns_corr);
 
                 m_CRT_hits_PE.push_back(crthit_h->at(j).peshit);
                 m_CRT_hits_x.push_back(crthit_h->at(j).x_pos);
