@@ -59,8 +59,6 @@ namespace single_photon
         m_runCRT = pset.get<bool>("runCRT",false);
         m_CRTHitProducer = pset.get<std::string>("CRTHitProducer", "crthitcorr");
 
-        m_DTOffset = pset.get<double>("DTOffset" , 68600.); //us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
-
         //Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.005);
         m_track_calo_max_dEdx = pset.get<double>("Max_dEdx", 30);
@@ -550,15 +548,13 @@ namespace single_photon
 
         //if CRT info, get CRT hits
         art::Handle<std::vector<crt::CRTHit>> crthit_h; //only filled when there are hits, otherwise empty
-        raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
-        art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
-        double evt_timeGPS_nsec = evtTimeGPS.timeLow(); 
+
         if(m_runCRT){
             evt.getByLabel(m_CRTHitProducer, crthit_h);
             std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
         }
 
-        this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec);
+        this->AnalyzeFlashes(flashVector, crthit_h);
 
         std::cout<<"start track"<<std::endl;
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
