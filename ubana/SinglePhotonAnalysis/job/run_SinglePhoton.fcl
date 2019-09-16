@@ -71,7 +71,10 @@ physics: {
        runAllPFPs: "false"
        exiting_photon_energy: 0.02
        exiting_proton_energy: 0.978  #40Mev + proton mass
-       runCRT: "true" 
+       runCRT: "false"
+       DTOffset: 68600.0 #us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+       Resolution: 1.0 #same as above
+       DAQHeaderProducer: "daq" #ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
       }
 
   }

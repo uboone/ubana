@@ -683,7 +683,9 @@ namespace single_photon
             bool m_is_overlayed;
             bool m_run_all_pfps;
             bool m_runCRT;
-
+            double m_DTOffset;
+            double  m_Resolution;
+            std::string  m_DAQHeaderProducer;
             std::ofstream out_stream;
 
             double m_exiting_photon_energy_threshold ;
