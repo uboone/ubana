@@ -455,6 +455,15 @@ void NuCCanalyzer::FillTrueNu(art::Event const &evt)
 
     fTrueNu_InteractionType = mcnu.Mode();
     fTrueNu_CCNC = mcnu.CCNC();
+    fTrueNu_Target = mcnu.Target();
+    fTrueNu_HitNuc = mcnu.HitNuc();
+    fTrueNu_HitQuark = mcnu.HitQuark();
+    fTrueNu_W = mcnu.W();
+    fTrueNu_X = mcnu.X();
+    fTrueNu_Y = mcnu.Y();
+    fTrueNu_QSqr = mcnu.QSqr();
+    fTrueNu_LeptonTheta = mcnu.Theta();
+
     fTrueNu_PDG = mcnu.Nu().PdgCode();
     fTrueNu_Energy = mcnu.Nu().E();
     fTrueNu_Px = mcnu.Nu().Px();
@@ -464,7 +473,6 @@ void NuCCanalyzer::FillTrueNu(art::Event const &evt)
     fTrueNu_LeptonPx = mcnu.Lepton().Px();
     fTrueNu_LeptonPy = mcnu.Lepton().Py();
     fTrueNu_LeptonPz = mcnu.Lepton().Pz();
-    fTrueNu_LeptonTheta = mcnu.Theta();
     fTrueNu_Time = mcnu.Nu().T();
     fTrueNu_Vx = mcnu.Nu().Vx();
     fTrueNu_Vy = mcnu.Nu().Vy();

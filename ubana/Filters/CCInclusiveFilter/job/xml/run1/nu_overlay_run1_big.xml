@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!DOCTYPE project [
-<!ENTITY name "nucc_nue_overlay_run1_mcc9">
+<!ENTITY name "nucc_nu_overlay_run1_big_mcc9">
 <!ENTITY version "v08_00_00_20">
 <!ENTITY qualifier "e17:prof">
-<!ENTITY dataset "prodgenie_bnb_intrinsic_nue_uboone_overlay_mcc9.1_run1_reco2">
+<!ENTITY dataset "prodgenie_bnb_nu_uboone_overlay_mcc9.1_run1_reco2">
 <!ENTITY user "wvdp">
 ]>
 
@@ -33,7 +33,7 @@
         <workdir>/pnfs/uboone/scratch/users/&user;/work/&version;/&name;</workdir>
         <bookdir>/uboone/data/users/&user;/book/&version;/&name;</bookdir>>
         <inputdef>&dataset;</inputdef>
-        <numjobs>51</numjobs>
+        <numjobs>200</numjobs>
         <disk>10GB</disk>
         <memory>1900</memory>
         <maxfilesperjob>100</maxfilesperjob>

@@ -15,7 +15,7 @@ microboone_nucc_producer:
   vtx_fid_z_end: 50
   pfp_start_border: 10
 
-  muon_cut_trackscore: 0.8
+  muon_cut_trackscore: 0.85
   muon_cut_vtxdistance: 4.0
   muon_cut_protonchi2: 60
   muon_cut_chiratio: 7
