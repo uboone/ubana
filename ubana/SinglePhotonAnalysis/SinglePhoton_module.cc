@@ -60,6 +60,10 @@ namespace single_photon
         m_CRTHitProducer = pset.get<std::string>("CRTHitProducer", "crthitcorr");
 
         m_DTOffset = pset.get<double>("DTOffset" , 68600.); //us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+        m_Resolution = pset.get<double>("Resolution" ,  1.0); //us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+        m_DAQHeaderProducer = pset.get<std::string>("DAQHeaderProducer" ,  "daq");
+
+
 
         //Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.005);
@@ -550,6 +554,8 @@ namespace single_photon
 
         //if CRT info, get CRT hits
         art::Handle<std::vector<crt::CRTHit>> crthit_h; //only filled when there are hits, otherwise empty
+        art::Handle<raw::DAQHeaderTimeUBooNE> rawHandle_DAQHeader;
+        evt.getByLabel(m_DAQHeaderProducer, rawHandle_DAQHeader);
         raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
         art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
         double evt_timeGPS_nsec = evtTimeGPS.timeLow(); 
