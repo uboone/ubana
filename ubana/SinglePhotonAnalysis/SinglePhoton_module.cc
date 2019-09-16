@@ -1048,10 +1048,6 @@ redo_event:
         }
         std::cout<<"SinglePhoton::GetFinalStatePFParticleVectors()\t||\t Found "<<primaries<<" primary PFParticles (out of "<<full<<") of which: "<<found<<" were neutrinos."<<std::endl;
         m_reco_vertex_size = found;
-
-
-
-
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
