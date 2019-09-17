@@ -21,7 +21,6 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/OpFlash.h"
-#include "ubobj/CRT/CRTHit.hh"
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/MCBase/MCShower.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
@@ -84,6 +83,8 @@
 #include "bad_channel_matching.h"
 #include "sssVeto_BDT.class.h"
 #include "DBSCAN.h"
+#include "VertexBuilder/ParticleAssociations.h"
+
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace single_photon
@@ -155,44 +156,46 @@ namespace single_photon
         sss_score(int ip, int cl): plane(ip), cluster_label(cl){};
     };
 
-    class cluster {
+class cluster {
 
-        public:
+    public:
+    
+    cluster(int ID, int plane, std::vector<std::vector<double>> &pts, std::vector<art::Ptr<recob::Hit>> &hits) :f_ID(ID), f_plane(plane), f_pts(pts), f_hits(hits) {
 
-            cluster(int ID, int plane, std::vector<std::vector<double>> &pts, std::vector<art::Ptr<recob::Hit>> &hits) :f_ID(ID), f_plane(plane), f_pts(pts), f_hits(hits) {
+        f_npts = f_pts.size();
+        if(pts.size() != hits.size()){
+            std::cerr<<"seaviewer::cluster, input hits and pts not alligned"<<std::endl;
+        }
+        std::vector<double> wires(f_npts);
+        std::vector<double> ticks(f_npts);
+        for(int p =0; p< f_npts; ++p){
+            wires[p]=f_pts[p][0];
+            ticks[p]=f_pts[p][1];
+        }
+        TGraph af_graph(f_npts,&wires[0],&ticks[0]);
+        f_graph = af_graph;
 
-                f_npts = f_pts.size();
-                if(pts.size() != hits.size()){
-                    std::cerr<<"seaviewer::cluster, input hits and pts not alligned"<<std::endl;
-                }
-                std::vector<double> wires(f_npts);
-                std::vector<double> ticks(f_npts);
-                for(int p =0; p< f_npts; ++p){
-                    wires[p]=f_pts[p][0];
-                    ticks[p]=f_pts[p][1];
-                }
-                TGraph af_graph(f_npts,&wires[0],&ticks[0]);
-                f_graph = af_graph;
-
-            };
-
-            int getID() {return f_ID;}
-            int getN() {return f_npts;}
-            int getPlane(){ return f_plane;}
-            TGraph * getGraph(){ return &f_graph;}
-            std::vector<art::Ptr<recob::Hit>>  getHits(){return f_hits;}
-            int setSSScore(sss_score & scorein){ f_SSScore = &scorein; return 0;}
-            sss_score * getSSScore(){return f_SSScore;}
-        private:
-
-            int f_ID;
-            int f_npts;
-            int f_plane;
-            std::vector<std::vector<double>> f_pts;
-            std::vector<art::Ptr<recob::Hit>> f_hits;
-            TGraph f_graph;
-            sss_score *f_SSScore;
     };
+
+    int getID() {return f_ID;}
+    int getN() {return f_npts;}
+    int getPlane(){ return f_plane;}
+    TGraph * getGraph(){ return &f_graph;}
+    std::vector<art::Ptr<recob::Hit>>  getHits(){return f_hits;}
+    int setSSScore(sss_score & scorein){ f_SSScore = &scorein; return 0;}
+    sss_score * getSSScore(){return f_SSScore;}
+    private:
+ 
+    int f_ID;
+    int f_npts;
+    int f_plane;
+    std::vector<std::vector<double>> f_pts;
+    std::vector<art::Ptr<recob::Hit>> f_hits;
+    TGraph f_graph;
+    sss_score *f_SSScore;
+};
+
+
 
 
 
@@ -201,13 +204,18 @@ namespace single_photon
      */
     class SinglePhoton : public art::EDAnalyzer
     {
+	//----- VertexBuilder-------
+	//set limit here, refered to the internal note;
+		friend class Atlas;
+	//---------------------------
+
         public:
             typedef art::ValidHandle< std::vector<recob::PFParticle> > PFParticleHandle;
             typedef std::vector< art::Ptr<recob::PFParticle> > PFParticleVector;
             typedef std::vector< art::Ptr<recob::Track> > TrackVector;
             typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
             typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
-
+	
             /**
              *  @brief  Constructor
              *
@@ -244,7 +252,7 @@ namespace single_photon
 
             void beginSubRun(art::SubRun const & sr);
 
-        private:
+        protected: //allow inheritance class to use following variables.
             void ClearVertex();
             /**
              *  @brief  Produce a mapping from PFParticle ID to the art ptr to the PFParticle itself for fast navigation
@@ -280,6 +288,23 @@ namespace single_photon
              *  @param  tracks a vector to hold the associated tracks
              *  @param  showers a vector to hold the associated showers
              */
+
+
+	//---------------- BobbyVertexBuilder ------------------------
+
+			/*************************
+			 * CollectTrackAndShowrs_v2 - go through pandora_object inside
+			 *	an event, and filter out proper tracks/showers for 
+			 *	vertexing.
+			 *
+			 *Atlas (input/modified) contains maps and 
+			 *	collections of pandora_objejcts that need to be modified.
+			 * ***********************/
+
+			void CollectTracksAndShowers_v2(const art::Event &evt, class Atlas &package, int run_count);
+	//--------------------------------------------------
+
+
             void CollectTracksAndShowers(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap,  const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap);
 
             void FillTracksAndShowers( const std::vector< art::Ptr<recob::Track> > & associatedTracks, const std::vector< art::Ptr<recob::Shower> > & associatedShowers, const art::Ptr<recob::PFParticle> &pParticle , const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap);
@@ -408,21 +433,21 @@ namespace single_photon
 
             void CreateSecondShowerBranches();
 
-            void SecondShowerSearch(
-                    const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
-                    const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
-                    const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
-                    const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap,
-                    art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
-                    std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
-                    std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-                    std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
+    void SecondShowerSearch(
+            const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
+            const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
+            const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
+            const std::map<art::Ptr<recob::PFParticle>, int> & pfParticleToSliceIDMap, const std::map<int, std::vector<art::Ptr<recob::Hit>>>& sliceIDToHitsMap,
+             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
+            std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
+            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
 
-            std::vector<double>SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
-                    art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
-                    std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
-                    std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-                    std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
+        std::vector<double>SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
+            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
+            std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
+            std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
+            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
 
 
 
@@ -443,7 +468,7 @@ namespace single_photon
 
 
             //----------------  Flashes ----------------------------
-            void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h);
+            void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes);
             void ClearFlashes();
             void ResizeFlashes(size_t);
             void CreateFlashBranches();
@@ -485,9 +510,9 @@ namespace single_photon
             void ResizeShowers(size_t);
             void CreateShowerBranches();
             void AnalyzeKalmanShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
-                    std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> & pfptotrkmap,
-                    std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> & trktocalomap,
-                    std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap
+                        std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> & pfptotrkmap,
+                        std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> & trktocalomap,
+                        std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap
                     );
 
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
@@ -618,7 +643,7 @@ namespace single_photon
             std::vector<int> m_matched_signal_track_tracks_in_slice;
             std::vector<int> m_matched_signal_track_showers_in_slice;
 
-            int m_matched_signal_track_num = 0;   
+            int m_matched_signal_track_num = 0;
 
             //int m_matched_signal_total_num_slices;
 
@@ -674,7 +699,6 @@ namespace single_photon
             std::string m_mcShowerLabel;
             std::string m_pidLabel;            ///< For PID stuff
             std::string m_CRTTzeroLabel;
-            std::string m_CRTHitProducer;
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
             bool m_is_verbose;
@@ -682,10 +706,8 @@ namespace single_photon
             bool m_is_data;
             bool m_is_overlayed;
             bool m_run_all_pfps;
-            bool m_runCRT;
-            double m_DTOffset;
-            double  m_Resolution;
-            std::string  m_DAQHeaderProducer;
+            bool m_has_CRT;
+
             std::ofstream out_stream;
 
             double m_exiting_photon_energy_threshold ;
@@ -736,7 +758,7 @@ namespace single_photon
 
             int m_sss_num_candidates;
 
-            ReadBDT * sssVetov1;
+             ReadBDT * sssVetov1;
 
             std::vector<int> m_sss_candidate_num_hits;
             std::vector<int> m_sss_candidate_num_wires;
@@ -758,10 +780,10 @@ namespace single_photon
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
             std::vector<int>   m_sss_candidate_matched;
-            std::vector<int>       m_sss_candidate_pdg;
-            std::vector<int>        m_sss_candidate_parent_pdg;
-            std::vector<int>    m_sss_candidate_trackid;
-            std::vector<double>       m_sss_candidate_overlay_fraction;
+       std::vector<int>       m_sss_candidate_pdg;
+      std::vector<int>        m_sss_candidate_parent_pdg;
+          std::vector<int>    m_sss_candidate_trackid;
+       std::vector<double>       m_sss_candidate_overlay_fraction;
 
             bool bool_make_sss_plots;
 
@@ -774,11 +796,28 @@ namespace single_photon
             double m_vertex_pos_wire_p0;
             double m_vertex_pos_wire_p2;
             double m_vertex_pos_wire_p1;
+			double m_bobbyvertex_pos_x;
+			double m_bobbyvertex_pos_y;
+			double m_bobbyvertex_pos_z;
+			std::vector<double> m_bobbyvertex_pos_xv;
+			std::vector<double> m_bobbyvertex_pos_yv;
+			std::vector<double> m_bobbyvertex_pos_zv;
+			int m_bobbyshowers;
+			int m_bobbytracks;
+			std::vector<int> m_bobbyshowersv;
+			std::vector<int> m_bobbytracksv;
+			bool m_bobbyvertexing_more;
+
 
             int m_reco_asso_showers;
             double m_reco_vertex_to_nearest_dead_wire_plane0;
             double m_reco_vertex_to_nearest_dead_wire_plane1;
             double m_reco_vertex_to_nearest_dead_wire_plane2;
+
+            //------------ VertexBuilder -------------
+
+			ParticleAssociations_all BobbyVertexBuilder_ext(class Atlas &package);
+			//---------------------------------------------------
 
             //added eventweight
             //-------------- EventWeight related variables -------------
@@ -901,24 +940,6 @@ namespace single_photon
 
             double m_beamgate_flash_start;
             double m_beamgate_flash_end;
-
-
-            //----------- CRT related variables -----------------
-            //fields storing information about the CRT hit closest to the flash
-            double m_CRT_min_hit_time;
-            double m_CRT_min_hit_PE;
-            double m_CRT_min_hit_x;
-            double m_CRT_min_hit_y;
-            double m_CRT_min_hit_z;
-
-            //Fields storing information about all CRT hits in event
-            std::vector<double> m_CRT_hits_time;
-            std::vector<double> m_CRT_hits_PE;
-            std::vector<double> m_CRT_hits_x;
-            std::vector<double> m_CRT_hits_y;
-            std::vector<double> m_CRT_hits_z;
-
-            double m_CRT_dt; //time between flash and nearest CRT hit
 
             //------------ Track related Variables -------------
             int m_reco_asso_tracks;
@@ -1063,9 +1084,9 @@ namespace single_photon
 
             std::vector<int> m_reco_shower_num_daughters;
             std::vector<double> m_reco_shower_daughter_trackscore;
-
+         
             std::vector<int>   m_reco_shower3d_exists;
-            std::vector<double>   m_reco_shower3d_startx;
+               std::vector<double>   m_reco_shower3d_startx;
             std::vector<double>   m_reco_shower3d_starty;
             std::vector<double>   m_reco_shower3d_startz;
             std::vector<double>   m_reco_shower3d_dirx;
@@ -1082,17 +1103,17 @@ namespace single_photon
             std::vector<double>    m_reco_shower3d_implied_dirx;
             std::vector<double>     m_reco_shower3d_implied_diry;
             std::vector<double>     m_reco_shower3d_implied_dirz;
-
+            
             std::vector<double> m_reco_shower3d_energy_plane0;
             std::vector<double> m_reco_shower3d_energy_plane1;
             std::vector<double> m_reco_shower3d_energy_plane2;
-
+ 
             std::vector<double> m_reco_shower3d_dEdx_plane0;
             std::vector<double> m_reco_shower3d_dEdx_plane1;
             std::vector<double> m_reco_shower3d_dEdx_plane2;
 
 
-
+            
             std::vector<double>   m_reco_shower_startx;
             std::vector<double>   m_reco_shower_starty;
             std::vector<double>   m_reco_shower_startz;
@@ -1147,13 +1168,13 @@ namespace single_photon
             std::vector<double> m_reco_shower_trackscore;
 
             std::vector<double> m_reco_shower_kalman_exists;
-            std::vector<double>   m_reco_shower_kalman_median_dEdx_plane0;
-            std::vector<double>     m_reco_shower_kalman_median_dEdx_plane1;
-            std::vector<double>   m_reco_shower_kalman_median_dEdx_plane2;
-            std::vector<double>   m_reco_shower_kalman_median_dEdx_allplane;
-            std::vector<double>      m_reco_shower_kalman_mean_dEdx_plane0;
-            std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane1;
-            std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane2;
+        std::vector<double>   m_reco_shower_kalman_median_dEdx_plane0;
+      std::vector<double>     m_reco_shower_kalman_median_dEdx_plane1;
+        std::vector<double>   m_reco_shower_kalman_median_dEdx_plane2;
+        std::vector<double>   m_reco_shower_kalman_median_dEdx_allplane;
+     std::vector<double>      m_reco_shower_kalman_mean_dEdx_plane0;
+       std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane1;
+       std::vector<double>    m_reco_shower_kalman_mean_dEdx_plane2;
 
 
 
@@ -1331,7 +1352,7 @@ namespace single_photon
             std::vector<double> m_reco_track_pid_chi2_p_plane2;
             std::vector<double> m_reco_track_pid_three_plane_proton_pid;
 
-
+    
             double m_genie_spline_weight;
 
     };

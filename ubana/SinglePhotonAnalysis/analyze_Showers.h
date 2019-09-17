@@ -520,7 +520,7 @@ namespace single_photon
             const art::Ptr<recob::Shower> shower = *iter;
             const art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap[shower];
             art::Ptr<recob::Shower> shower3d;
-            if(PFPtoShowerReco3DMap.count(pfp)==0){
+            if(PFPtoShowerReco3DMap.count(pfp) == 0){
                 std::cout<<"SHOWER_3D : <<ERROR!! No shower3d in map for this pfp"<<std::endl;
                 std::cout<<"Reverting to normal recob::Shower"<<std::endl;
                 m_reco_shower3d_exists[i_shr] = 0;
@@ -936,13 +936,17 @@ namespace single_photon
             std::vector<art::Ptr<recob::Hit>> hitz = pfParticleToHitMap[pfp];
 
             if( pfParticlesToShowerKalmanMap.count(pfp) == 0 ){
+			if(m_is_verbose){
                 std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\t Warning, no match for a Kalman track for this PFP."<<std::endl;
+}
                 continue;
             }
             const art::Ptr<recob::Track> kalman = pfParticlesToShowerKalmanMap[pfp];
 
-            if(kalmanTrackToCaloMap.count(kalman)==0){
-                std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\t Warning, no match for a Calo for this Kalman track."<<std::endl;
+			if(kalmanTrackToCaloMap.count(kalman)==0){
+				if(m_is_verbose){
+					std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\t Warning, no match for a Calo for this Kalman track."<<std::endl;
+				}
                 m_reco_shower_kalman_exists[i_shr]=0;
                 continue;
             }

@@ -68,13 +68,10 @@ physics: {
        width_box : 1.
        length_box : 4.
        truthmatching_signaldef : "ncdelta"
-       runAllPFPs: "false"
+       runAllPFPs: "false" 
+	   BobbyVertex_more_object:  "false" #true: include all nu_slice or not if runAllPFPs is also true;
        exiting_photon_energy: 0.02
-       exiting_proton_energy: 0.978  #40Mev + proton mass
-       runCRT: "false"
-       DTOffset: 68600.0 #us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
-       Resolution: 1.0 #same as above
-       DAQHeaderProducer: "daq" #ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+       exiting_proton_energy: 0.978  #40Mev + proton mass 
       }
 
   }

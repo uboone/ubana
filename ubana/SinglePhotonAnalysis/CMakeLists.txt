@@ -1,4 +1,5 @@
-link_libraries( -L$ENV{BOOST_LIB} -lboost_system -lboost_filesystem)
+link_libraries( -L$ENV{BOOST_LIB} -lboost_system -lboost_filesystem) #-L${CMAKE_CURRENT_SOURCE_DIR}/VertexBuilder)
+
 
 art_make( BASENAME_ONLY
           LIB_LIBRARIES
@@ -55,7 +56,8 @@ art_make( BASENAME_ONLY
 			larpandora_LArPandoraInterface
             SignalShapingServiceMicroBooNE_service
 			nusimdata_SimulationBase
-			ubana_LEEPhotonAnalysis
+#			ubana_LEEPhotonAnalysis
+#			ubana_SinglePhotonAnalysis
 			${UB_DATA_TYPES}
 			${Boost_SERIALIZATION_LIBRARY}
                         nutools_RandomUtils_NuRandomService_service
@@ -74,9 +76,16 @@ art_make( BASENAME_ONLY
 			cetlib cetlib_except
                         ${CLHEP}
                         ${ROOT_BASIC_LIB_LIST}
-                        ${ROOT_GEOM} )
+                        ${ROOT_GEOM} 
+#				SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR}/VertexBuilder	
+						)
                       
 add_subdirectory(job)
+#add_subdirectory(VertexBuilder)#Tell CMake to look into the directory
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/VertexBuilder)
+#link_directories(${CMAKE_CURRENT_SOURCE_DIR}/VertexBuilder)
+##target_link_libraries(lar VertexBuilder)
+
 install_headers()
 install_fhicl()
 install_source()
