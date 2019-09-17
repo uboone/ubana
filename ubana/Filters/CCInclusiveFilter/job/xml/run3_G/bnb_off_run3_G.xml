@@ -3,7 +3,7 @@
 <!ENTITY name "nucc_off_data_run3_G_mcc9">
 <!ENTITY version "v08_00_00_20">
 <!ENTITY qualifier "e17:prof">
-<!ENTITY dataset "data_extbnb_mcc9.1_v08_00_00_22_reco2_G1_dev_reco2">
+<!ENTITY dataset "data_extbnb_mcc9.1_v08_00_00_20_reco2_G1_dev_reco2">
 <!ENTITY user "wvdp">
 ]>
 
@@ -33,7 +33,7 @@
         <workdir>/pnfs/uboone/scratch/users/&user;/work/&version;/&name;</workdir>
         <bookdir>/uboone/data/users/&user;/book/&version;/&name;</bookdir>>
         <inputdef>&dataset;</inputdef>
-        <numjobs>16</numjobs>
+        <numjobs>19</numjobs>
         <disk>10GB</disk>
         <memory>1900</memory>
         <maxfilesperjob>200</maxfilesperjob>
