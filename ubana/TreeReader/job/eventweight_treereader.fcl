@@ -265,7 +265,9 @@ treereader_eventweight: {
   ##########################################################
 
   weight_functions_genie: [
-    genie_qema,  genie_ncelAxial, genie_ncelEta, genie_ccresAxial, genie_ccresVector,
+    genie_qema,
+    genie_ncelAxial, genie_ncelEta,
+    genie_ccresAxial, genie_ccresVector,
     genie_ncresAxial, genie_ncresVector,
     genie_cohMA, genie_cohR0,
     genie_NonResRvp1pi, genie_NonResRvbarp1pi,
@@ -275,12 +277,14 @@ treereader_eventweight: {
     genie_DISAth, genie_DISBth, genie_DISCv1u, genie_DISCv2u,
     genie_AGKYxF, genie_AGKYpT,
     genie_FormZone,
-    genie_FermiGasModelKf, genie_FermiGasModelSf
+    genie_FermiGasModelKf, genie_FermiGasModelSf,
+    genie_IntraNukeNmfp, genie_IntraNukeNcex,
+    genie_IntraNukeNinel, genie_IntraNukeNabs, genie_IntraNukeNpi,
+    genie_IntraNukePImfp, genie_IntraNukePIcex,
+    genie_IntraNukePIinel, genie_IntraNukePIabs, genie_IntraNukePIpi
   ]
  
-
- 
-   genie_qema: {
+  genie_qema: {
     type: Genie
     random_seed: 15
     parameter_list: ["QEMA"] 
@@ -289,7 +293,8 @@ treereader_eventweight: {
     number_of_multisims: 10
   }
 
-   genie_ncelAxial: {
+
+  genie_ncelAxial: {
     type: Genie
     random_seed: 17
     parameter_list: ["NCELaxial"]
@@ -306,7 +311,8 @@ treereader_eventweight: {
     mode: multisim
     number_of_multisims: 10
   }
-  
+
+
   genie_ccresAxial: {
     type: Genie
     random_seed: 19
@@ -315,7 +321,7 @@ treereader_eventweight: {
     mode: multisim
     number_of_multisims: 10 
   }
-  
+
   genie_ccresVector: {
     type: Genie
     random_seed: 20
@@ -324,14 +330,14 @@ treereader_eventweight: {
     mode: multisim
     number_of_multisims: 10
   }
-  
+
   genie_ncresAxial: {
     type: Genie
     random_seed: 21
     parameter_list: ["NCResAxial"]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 400
+    number_of_multisims: 100
   }
 
   genie_ncresVector: {
@@ -478,15 +484,6 @@ treereader_eventweight: {
     number_of_multisims: 10
   }
 
-  genie_FormZone: {
-    type: Genie
-    random_seed: 39
-    parameter_list: ["FormZone"]
-    parameter_sigma: [ 1 ]
-    mode: multisim
-    number_of_multisims: 10
-  }
-
   genie_AGKYpT: {
     type: Genie
     random_seed: 38
@@ -496,6 +493,14 @@ treereader_eventweight: {
     number_of_multisims: 10
   }
 
+  genie_FormZone: {
+    type: Genie
+    random_seed: 39
+    parameter_list: ["FormZone"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  }
 
   genie_FermiGasModelKf: {
     type: Genie
@@ -515,6 +520,98 @@ treereader_eventweight: {
     number_of_multisims: 10
   }
 
+  genie_IntraNukeNmfp: {
+    type: Genie
+    random_seed: 42
+    parameter_list: ["IntraNukeNmfp"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  }
+
+  genie_IntraNukeNcex: {
+    type: Genie
+    random_seed: 43
+    parameter_list: ["IntraNukeNcex"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  } 
+
+
+
+  genie_IntraNukeNinel: {
+    type: Genie
+    random_seed: 45
+    parameter_list: ["IntraNukeNinel"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  } 
+
+  genie_IntraNukeNabs: {
+    type: Genie
+    random_seed: 46
+    parameter_list: ["IntraNukeNabs"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  } 
+
+  genie_IntraNukeNpi: {
+    type: Genie
+    random_seed: 47
+    parameter_list: ["IntraNukeNpi"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  } 
+
+  genie_IntraNukePImfp: {
+    type: Genie
+    random_seed: 48
+    parameter_list: ["IntraNukePImfp"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  } 
+
+  genie_IntraNukePIcex: {
+    type: Genie
+    random_seed: 49
+    parameter_list: ["IntraNukePIcex"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  }
+
+  genie_IntraNukePIinel: {
+    type: Genie
+    random_seed: 51
+    parameter_list: ["IntraNukePIinel"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  }.fcl
+
+  
+    genie_IntraNukePIabs: {
+    type: Genie
+    random_seed: 52
+    parameter_list: ["IntraNukePIabs"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  } 
+
+  genie_IntraNukePIpi: {
+    type: Genie
+    random_seed: 53
+    parameter_list: ["IntraNukePIpi"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  }
  
   # Single function to reweight all GENIE parameters at once
   genie_all: {
@@ -526,7 +623,10 @@ treereader_eventweight: {
       "NonResRvp1pi", "NonResRvbarp1pi", "NonResRvp2pi", "NonResRvbarp2pi",
       "ResDecayGamma", "ResDecayTheta", "NC",
       "DISAth", "DISBth", "DISCv1u", "DISCv2u", "AGKYxF", "AGKYpT",
-      "FormZone", "FermiGasModelKf"
+      "FormZone", "FermiGasModelKf",
+      "IntraNukeNmfp", "IntraNukeNcex", "IntraNukeNinel",
+      "IntraNukeNabs", "IntraNukeNpi", "IntraNukePImfp", "IntraNukePIcex",
+      "IntraNukePIinel", "IntraNukePIpi"
     ]
     parameter_sigma: [
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
