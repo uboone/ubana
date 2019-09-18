@@ -213,6 +213,10 @@ wcls: {
               #scaleMC_perplane:   '[0.0040, 0.0043, 0.0040]'
               scaleMC_perplane: @local::microboone_calorimetryalgmcc84mc_CalAreaConstantsWCLS
               scaleDATA_perplane: @local::microboone_calorimetryalgmcc84data_CalAreaConstantsWCLS
+
+        // Electron lifetime
+        ElectronLifetime: 1000 // unit: ms, configured in the jsonnet file
+        ELifetimeCorrection: false // or true; using lifetime database
       	  }
       }
    }
