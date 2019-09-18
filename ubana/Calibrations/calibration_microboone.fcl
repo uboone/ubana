@@ -34,6 +34,7 @@ microboone_calibrationdedx :
     ModBoxB:                 0.212
     CorrectSCE:              false
     ForceUnity:              true
+    ELifetimeCorrection:     true
 }
 
 microboone_calibrationdedx_data :        @local::microboone_calibrationdedx
