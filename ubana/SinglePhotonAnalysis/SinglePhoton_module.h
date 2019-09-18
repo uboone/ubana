@@ -301,7 +301,7 @@ class cluster {
 			 *	collections of pandora_objejcts that need to be modified.
 			 * ***********************/
 
-			void CollectTracksAndShowers_v2(const art::Event &evt, class Atlas &package, int run_count);
+			void CollectTracksAndShowers_v2(const art::Event &evt, class Atlas &package);
 	//--------------------------------------------------
 
 
@@ -816,7 +816,7 @@ class cluster {
 
             //------------ VertexBuilder -------------
 
-			ParticleAssociations_all BobbyVertexBuilder_ext(class Atlas &package);
+			ParticleAssociations_all BobbyVertexBuilder_ext(class Atlas &package, bool more_objects);
 			//---------------------------------------------------
 
             //added eventweight

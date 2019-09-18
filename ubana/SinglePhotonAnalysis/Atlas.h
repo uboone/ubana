@@ -48,7 +48,8 @@ namespace single_photon
 		std::vector< art::Ptr<recob::OpFlash> >		all_opflashes;
 		//get the cluster handle for the dQ/dx calc
 		std::vector< art::Ptr<recob::Cluster> >		all_clusters;
-        std::vector<art::Ptr<recob::Track>> kalmanTrackVector;
+        std::vector<art::Ptr<recob::Track>>			kalmanTrackVector;
+		std::vector<art::Ptr<recob::Slice>>			sliceVector;
 
 /*
  * The overflow constructor 1 takes care of the following maps.
@@ -64,14 +65,20 @@ namespace single_photon
         std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Shower>> PFParticlesToShowerReco3DMap;
         std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Track>> PFParticlesToShowerKalmanMap;
         std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> kalmanTrackToCaloMap;
+		std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::PFParticle>> > sliceToPFParticlesMap;
+		std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::Hit>> > sliceToHitsMap;
+		std::map<int, std::vector<art::Ptr<recob::PFParticle>> > sliceIDToPFParticlesMap;
+		std::map<int, std::vector<art::Ptr<recob::Hit>> > sliceIDToHitsMap;
 
 /*
  * Initially empty variables to be filled from other parts of the code.
  *
  */
 //The followings are taken care by the CollectTracksAndShowers_v2() in BobbyVertexBuilder.h
-		std::vector< art::Ptr<recob::Track> >							collected_tracks;
-		std::vector< art::Ptr<recob::Shower> >							collected_showers;
+		std::vector< art::Ptr<recob::Track> >							selected_tracks;
+		std::vector< art::Ptr<recob::Shower> >							selected_showers;
+		std::vector< art::Ptr<recob::Track> >							more_tracks;
+		std::vector< art::Ptr<recob::Shower> >							more_showers;
 		//Maps for more pandora objects.
 		std::map< art::Ptr<recob::Track>  , art::Ptr<recob::PFParticle>>	trackToNuPFParticleMap;
 		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
@@ -170,11 +177,14 @@ namespace single_photon
 		recob::Cluster	dummy_cluster;
 		all_clusters = HandleToVector(dummy_cluster, evt, labels[4]);//m_pandoraLabel
 
+		recob::Slice dummy_slice;
+		sliceVector = HandleToVector(dummy_slice, evt, labels[4]);
 		//CREATE maps!
 		//Ingredient 1: Handles; I temporary define it here for mapping purpose;
 		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(labels[4]);//This is useful for FindManyP< reco::Track/Shower>
 		art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(labels[4]);
         art::ValidHandle<std::vector<recob::Track>> const & kalmanTrackHandle  = evt.getValidHandle<std::vector<recob::Track>>(labels[6]);
+		art::ValidHandle<std::vector<recob::Slice>> const & sliceHandle  = evt.getValidHandle<std::vector<recob::Slice>>(labels[4]);
 		//a cross check
 		if (!pfParticleHandle.isValid())
 		{
@@ -192,6 +202,8 @@ namespace single_photon
         art::FindOneP<recob::Shower> showerreco3D_per_pfparticle(pfParticleHandle, evt, labels[5]);
         art::FindOneP<recob::Track> showerKalman_per_pfparticle(pfParticleHandle, evt, labels[6]);
         art::FindManyP<anab::Calorimetry> cali_per_kalmantrack(kalmanTrackHandle, evt, labels[7]);
+		art::FindManyP<recob::PFParticle> pfparticles_per_slice(sliceHandle, evt, labels[4]);
+		art::FindManyP<recob::Hit> hits_per_slice(sliceHandle, evt, labels[4]);
 		
 		//make maps here;
 		for(size_t i=0; i< all_pfparticles.size(); ++i){
@@ -224,6 +236,14 @@ namespace single_photon
 			if(cali_per_kalmantrack.at(trk.key()).size()!=0){
 				kalmanTrackToCaloMap[trk] =cali_per_kalmantrack.at(trk.key());
 			}
+		}
+
+		for(size_t i=0; i< sliceVector.size(); ++i){
+			auto slice = sliceVector[i];
+			sliceToPFParticlesMap[slice] = pfparticles_per_slice.at(slice.key());
+			sliceIDToPFParticlesMap[slice->ID()] = pfparticles_per_slice.at(slice.key());
+			sliceToHitsMap[slice] =hits_per_slice.at(slice.key());
+			sliceIDToHitsMap[slice->ID()] = hits_per_slice.at(slice.key());
 		}
 
 

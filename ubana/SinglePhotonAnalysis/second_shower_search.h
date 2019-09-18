@@ -99,7 +99,6 @@ namespace single_photon
 
 
 
-		std::cout<<"CHECK!"<<endl;
         int total_track_hits =0;
         int total_shower_hits =0;
         int nu_slice_id = -999;
@@ -113,24 +112,20 @@ namespace single_photon
         std::vector< std::map<size_t, std::vector<art::Ptr<recob::Hit>>>> v_newClusterToHitsMap(3);//one for each plane
 
         for(size_t t =0; t< tracks.size(); t++){
-		std::cout<<"CHECK2!"<<endl;
             art::Ptr<recob::Track> track = tracks[t];
-		std::cout<<"CHECK3!"<<endl;
             art::Ptr<recob::PFParticle> pfp = trackToPFParticleMap[track];
-		std::cout<<"CHECK4!"<<endl;
             int sliceid = pfParticleToSliceIDMap.at(pfp);
+		std::cout<<"CHECK1! in second_shower_search.h"<<endl;
             auto slicehits = sliceIDToHitsMap.at(sliceid);
+		std::cout<<"CHECK2!"<<endl;
             auto trackhits = pfParticleToHitsMap.at(pfp);
 
             std::cout<<"SinglePhoton::SSS\t||\ttrack "<<t<<" is in slice "<<sliceid<<" which has "<<slicehits.size()<<" hits. This track has  "<<trackhits.size()<<" of them. "<<std::endl;
-		std::cout<<"CHECK5!"<<endl;
             total_track_hits+=trackhits.size();
-		std::cout<<"CHECK6!"<<endl;
             if(nu_slice_id !=  sliceid && nu_slice_id != -999){
                 std::cout<<"ERROR!! In Second Shower Search, the neutrino slice ID changed? this: "<<sliceid<<", last: "<<nu_slice_id<<std::endl;
                 exit(EXIT_FAILURE);
             }   
-		std::cout<<"CHECK6!"<<endl;
             nu_slice_id = sliceid;
 
 

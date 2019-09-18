@@ -38,13 +38,13 @@ namespace single_photon
 {
 
 	/*****************************
-	 * CollectTracksAndShowers_v2() - Fill in package.collected_showers and
-	 *	package.collected_tracks based on the run_count.
+	 * CollectTracksAndShowers_v2() - Fill in package.selected_showers and
+	 *	package.selected_tracks as well as other nu-like objects (more_tracks/showers)
 	 *
 	 *  packahe (to be modified) - contains all vectors and maps that are
 	 *		needed to access pandora_objects; it will be modified as
 	 *		the code runs.
-	 *
+	 *  //not using run_count here now;
 	 *	run_count (input) - has values 0,1,2; each number indicates differnt collections of slices: 
 	 *		0 - selected nu_slice; 
 	 *		1 - not-selected nu_slices; 
@@ -54,11 +54,11 @@ namespace single_photon
 
 	void SinglePhoton::CollectTracksAndShowers_v2(
 			const art::Event &evt,
-			class Atlas &package,
-			int run_count){
-		if(run_count>1){//Um.. something goes wrong if this is true
-			mf::LogDebug("SinglePhoton") << "  It seems that we loop the VertexBuilder too much.\n";
-		}
+			class Atlas &package){
+		//			int run_count){
+		//		if(run_count>1){//Um.. something goes wrong if this is true
+		//			mf::LogDebug("SinglePhoton") << "  It seems that we loop the VertexBuilder too much.\n";
+		//		}
 
 		std::vector< art::Ptr<recob::PFParticle> > candidate_particles(package.particles);//CHECK, always vertex the most nu-like slice.
 
@@ -73,10 +73,6 @@ namespace single_photon
 			mf::LogDebug("SinglePhoton") << "  No PFParticles can be considered for vertexing.\n";
 		}
 
-		std::vector< art::Ptr<recob::Track> >	wanted_tracks;
-		std::vector< art::Ptr<recob::Shower> >	wanted_showers;
-		std::vector< art::Ptr<recob::Track> >	backup_tracks;
-		std::vector< art::Ptr<recob::Shower> >	backup_showers;
 
 		for(const art::Ptr<recob::PFParticle> &pParticle : candidate_particles){ //candidate_particles are determined in above if-else statement.
 			const std::vector< art::Ptr<recob::Track> > ToBeAddedTracks((package.PFParticleAsATrack)->at(pParticle.key()));
@@ -97,60 +93,59 @@ namespace single_photon
 				//Ok, if going through the below if-elses, it means we have a shower/ a track!
 
 			}else if( nTracks == 1 ){ //Add a Track
-				if(!(package.PFPToNuSliceMap[pParticle])){//add other nu-like PFParticle;
-					(backup_tracks).push_back(ToBeAddedTracks.front());
-					(package.trackToNuPFParticleMap)[(backup_tracks).back()]= pParticle;
+				if(package.PFPToNuSliceMap[pParticle]){//add the package.selected nu_slice particle;
+					(package.selected_tracks).push_back(ToBeAddedTracks.front());
+					(package.trackToNuPFParticleMap)[(package.selected_tracks).back()]= pParticle;
 
-				}else{//add selected nu-slice particle.
-					(wanted_tracks).push_back(ToBeAddedTracks.front());
-					(package.trackToNuPFParticleMap)[(wanted_tracks).back()]= pParticle;
+				}else{//add other nu-like PFParticle;
+					(package.more_tracks).push_back(ToBeAddedTracks.front());
+					(package.trackToNuPFParticleMap)[(package.more_tracks).back()]= pParticle;
 				}
 
 				if(m_is_verbose)std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  ToBeAddedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
 			}else if( nShowers == 1 ){ //Add a Shower
-				if(!(package.PFPToNuSliceMap[pParticle]) ){//add other nu-like PFParticle
-					(backup_showers).push_back(ToBeAddedShowers.front());
-					(package.showerToNuPFParticleMap)[(backup_showers).back()]= pParticle;
-
-				}else{//add selected nu-slice particle
-					(wanted_showers).push_back(ToBeAddedShowers.front());
-					(package.showerToNuPFParticleMap)[(wanted_showers).back()] = pParticle;
+				if(package.PFPToNuSliceMap[pParticle]) {//add the package.selected nu_slice particle;
+					(package.selected_showers).push_back(ToBeAddedShowers.front());
+					(package.showerToNuPFParticleMap)[(package.selected_showers).back()] = pParticle;
+				}else{//add other nu-like PFParticle
+					(package.more_showers).push_back(ToBeAddedShowers.front());
+					(package.showerToNuPFParticleMap)[(package.more_showers).back()]= pParticle;
 				}
 
 				if(m_is_verbose)std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  ToBeAddedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 			} //repeat this loop for another PFParticle in the candidate_particles.
 		}
-
-		package.collected_showers.clear();//no need these, but they dont hurt;
-		package.collected_tracks.clear();
-
-		switch (run_count)
-		{
-			case 0://actually only case 0 allowed here;
-				cout<<"\n\n Load objects form the selected nu slice!"<<endl;
-				package.collected_showers = wanted_showers;
-				package.collected_tracks = wanted_tracks;
-				break;
-			case 1:
-				cout<<"\n\n Load objects form other nu slices!"<<endl;
-				(package.collected_showers).reserve( backup_showers.size() + wanted_tracks.size());
-				(package.collected_showers).insert((package.collected_showers).end(), backup_showers.begin(), backup_showers.end());
-				(package.collected_showers).insert((package.collected_showers).end(), wanted_showers.begin(), wanted_showers.end());
-				//ok, same for tracks
-				(package.collected_tracks).reserve(backup_tracks.size()+wanted_tracks.size());
-				(package.collected_tracks).insert((package.collected_tracks).end(), backup_tracks.begin(), backup_tracks.end());
-				(package.collected_tracks).insert((package.collected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
-				break;
-
-			case 3://CHECK, this is for testing purpose.
-				cout<<"\n\n Only backup Nuslices! CHECK IAM MESSING THIS UP"<<endl;
-				package.collected_showers = backup_showers;
-				package.collected_tracks = backup_tracks;
-		}
-				cout<<"Showers: "<<package.collected_showers.size()<<endl;
-				cout<<"Tracks: "<<package.collected_tracks.size()<<endl;
 	}
+//		package.selected_showers.clear();//no need these, but they dont hurt;
+//		package.selected_tracks.clear();
+//
+//		switch (run_count)
+//		{
+//			case 0://actually only case 0 allowed here;
+//				cout<<"\n\n Load objects form the selected nu slice!"<<endl;
+//				package.selected_showers = wanted_showers;
+//				package.selected_tracks = wanted_tracks;
+//				break;
+//			case 1:
+//				cout<<"\n\n Load objects form other nu slices!"<<endl;
+//				(package.selected_showers).reserve( more_showers.size() + wanted_tracks.size());
+//				(package.selected_showers).insert((package.selected_showers).end(), more_showers.begin(), more_showers.end());
+//				(package.selected_showers).insert((package.selected_showers).end(), wanted_showers.begin(), wanted_showers.end());
+//				//ok, same for tracks
+//				(package.selected_tracks).reserve(more_tracks.size()+wanted_tracks.size());
+//				(package.selected_tracks).insert((package.selected_tracks).end(), more_tracks.begin(), more_tracks.end());
+//				(package.selected_tracks).insert((package.selected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
+//				break;
+//
+//			case 3://CHECK, this is for testing purpose.
+//				cout<<"\n\n Only more Nuslices! CHECK IAM MESSING THIS UP"<<endl;
+//				package.selected_showers = more_showers;
+//				package.selected_tracks = more_tracks;
+//		}
+//				cout<<"Showers: "<<package.selected_showers.size()<<endl;
+//				cout<<"Tracks: "<<package.selected_tracks.size()<<endl;
+//	}
 
 
 	/***************************
@@ -162,8 +157,8 @@ namespace single_photon
 	void ReconsiderMoreCandidates(ParticleAssociations_all &candidates, class Atlas &package){
 
 	// Ingredients:
-		package.backup_showers;
-		package.backup_tracks;
+		package.more_showers;
+		package.more_tracks;
 		vector<double> current_vertex = {candidates.GetRecoVertex().at(0), candidates.GetRecoVertex().at(1), candidates.GetRecoVertex().at(2)};//get the vertex position;
 
 		//GetRecoVertex()
@@ -173,8 +168,8 @@ namespace single_photon
 		//
 
 	//I think I need to do this:
-		pas.GetDetectorObjects().AddShowers(package.backup_showers);//load tracks
-		pas.GetDetectorObjects().AddTracks(package.backup_tracks);//load showers
+		pas.GetDetectorObjects().AddShowers(package.more_showers);//load tracks
+		pas.GetDetectorObjects().AddTracks(package.more_tracks);//load showers
 		AssociateTracks(pas);//this is the code for associating the tracks, see 1027 at VertexBuilder.h
 		AssociateShowers(pas);//this is the code for associating the showers
 	}*/
@@ -186,7 +181,7 @@ namespace single_photon
 	 *
 	 * **************************/
 
-	ParticleAssociations_all SinglePhoton::BobbyVertexBuilder_ext(class Atlas &package){
+	ParticleAssociations_all SinglePhoton::BobbyVertexBuilder_ext(class Atlas &package, bool more_objects){
 		bool fverbose = m_is_verbose;
 
 //		initscr();//initialize the COLS and LINES for the screen size
@@ -200,8 +195,8 @@ namespace single_photon
 
 		if(fverbose){//Over view of the inputs
 			std::cout << "\n\nRun vertex builder with: \n";
-			cout<<"Number of shower candidates: "<<(package.collected_showers).size()<<endl;
-			cout<<"Number of track candidates : "<<(package.collected_tracks).size()<<endl;
+			cout<<"Number of shower candidates: "<<(package.selected_showers).size()<<endl;
+			cout<<"Number of track candidates : "<<(package.selected_tracks).size()<<endl;
 
 			cout<<endl;//print out 
 			for(int i = 0 ; i < screen_width/2 ;i++)
@@ -224,8 +219,13 @@ namespace single_photon
 
 
 		candidates.SetVerbose(fverbose);
-		candidates.GetDetectorObjects().AddShowers(package.collected_showers);//load tracks
-		candidates.GetDetectorObjects().AddTracks(package.collected_tracks);//load showers
+		candidates.GetDetectorObjects().AddShowers(package.selected_showers);//load tracks
+		candidates.GetDetectorObjects().AddTracks(package.selected_tracks);//load showers
+		if(more_objects){//CHECK, now just load it without checking bobby result
+		candidates.GetDetectorObjects().AddShowers(package.more_showers);//load tracks
+		candidates.GetDetectorObjects().AddTracks(package.more_tracks);//load showers
+		}
+
 
 
 		vbuilder.Run(candidates);//here deals with the candidates and find the vertex.
