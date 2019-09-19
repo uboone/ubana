@@ -75,7 +75,7 @@ namespace single_photon
         vertex_tree->Branch("reco_flash_zcenter_in_beamgate",&m_reco_flash_zcenter_in_beamgate);
 
         vertex_tree->Branch("CRT_dt",& m_CRT_dt," CRT_dt/D");
-       
+
         vertex_tree->Branch("CRT_min_hit_time",&m_CRT_min_hit_time,"CRT_min_hit_time/D");
         vertex_tree->Branch("CRT_min_hit_PE",&m_CRT_min_hit_PE,"CRT_min_hit_PE/D");
         vertex_tree->Branch("CRT_min_hit_x",&m_CRT_min_hit_x,"CRT_min_hit_x/D");
@@ -91,7 +91,9 @@ namespace single_photon
     }
 
 
-    void SinglePhoton::AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes, art::Handle<std::vector<crt::CRTHit>> crthit_h){
+    void SinglePhoton::AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes, art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec){
+
+        //  void SinglePhoton::AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes, art::Handle<std::vector<crt::CRTHit>> crthit_h){
 
         size_t flash_size = flashes.size();
         m_reco_num_flashes = flash_size;
@@ -137,7 +139,7 @@ namespace single_photon
                 int  _nCRThits_in_event = crthit_h->size();
 
                 double _dt_abs   = 100000.0;
-              //  double  _within_resolution = 0;
+                //  double  _within_resolution = 0;
                 double _beam_flash_time  =  m_reco_flash_time_in_beamgate[0];
 
                 // Loop over the CRT hits.
@@ -190,4 +192,4 @@ namespace single_photon
     }//analyze flashes
 
 
-}
+    }

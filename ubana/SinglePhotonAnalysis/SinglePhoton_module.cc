@@ -565,7 +565,8 @@ namespace single_photon
             std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
         }
 
-        this->AnalyzeFlashes(flashVector, crthit_h);
+        this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec);
+        //   this->AnalyzeFlashes(flashVector, crthit_h);
 
         std::cout<<"start track"<<std::endl;
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
