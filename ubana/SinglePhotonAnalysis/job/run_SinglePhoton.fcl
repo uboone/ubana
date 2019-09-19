@@ -50,9 +50,8 @@ physics: {
 
  analyzers: {}
  filters : {
-#singlephotonfil: @local::singlephoton_filter   #run in filtering mode
+        #singlephotonfil: @local::singlephoton_filter   #run in filtering mode
         singlephotonana: @local::singlephoton_filter   #run in filtering mode
-#singlephotonana: @local::singlephoton_analyzer #run in analyzing mode
   }
     pathana : [pid , singlephotonana] #path for analysis
 
