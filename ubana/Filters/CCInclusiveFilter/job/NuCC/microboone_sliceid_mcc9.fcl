@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+microboone_sliceid_filter:
+{
+  module_type: "MCC9SliceIDFilter"
+  PANDORAproducer: "pandora"
+}
+
+END_PROLOG

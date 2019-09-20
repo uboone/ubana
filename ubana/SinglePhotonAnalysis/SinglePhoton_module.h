@@ -230,20 +230,20 @@ namespace single_photon
              *
              *  @param  evt the art event to analyze
              */
-            bool filter(art::Event &evt);
+            bool filter(art::Event &evt) override;
 
             /**
              *  @brief  Begin the job, setting up !
              *
              */
-            void beginJob();
+            void beginJob() override;
 
             /**
              *  @brief  End the job, setting down !
              *
              */
-            void endJob();
-            bool beginSubRun(art::SubRun & sr);
+            void endJob() override;
+            bool beginSubRun(art::SubRun& sr) override;
 
         private:
             void ClearVertex();

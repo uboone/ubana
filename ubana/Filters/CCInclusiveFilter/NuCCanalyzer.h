@@ -137,7 +137,7 @@ public:
     bool IsContained(float x, float y, float z, const std::vector<float> &borders) const;
 
 
-    void endSubRun(const art::SubRun &subrun);
+    void endSubRun(const art::SubRun &subrun) override;
 
 private:
     // Fields needed for the analyser
