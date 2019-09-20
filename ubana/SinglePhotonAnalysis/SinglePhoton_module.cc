@@ -33,6 +33,8 @@ namespace single_photon
 
         m_fill_trees = pset.get<bool>("FillTrees",true);
         m_run_pi0_filter = pset.get<bool>("RunPi0Filter",false);
+    
+        if(m_run_pi0_filter) m_is_data = true;// If running in filter mode, treat all as data
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
