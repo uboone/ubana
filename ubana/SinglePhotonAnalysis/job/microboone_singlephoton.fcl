@@ -40,5 +40,7 @@ singlephoton_analyzer:{
 singlephoton_filter: @local::singlephoton_analyzer
 singlephoton_filter.FillTrees: false
 singlephoton_filter.RunPi0Filter: true
+singlephoton_filter.isData: true
+singlephoton_filter.usePID: false
 
 END_PROLOG

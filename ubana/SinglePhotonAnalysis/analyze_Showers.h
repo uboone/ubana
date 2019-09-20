@@ -522,8 +522,8 @@ namespace single_photon
 
             art::Ptr<recob::Shower> shower3d;
             if(PFPtoShowerReco3DMap.count(pfp)==0){
-                std::cout<<"SHOWER_3D : <<ERROR!! No shower3d in map for this pfp"<<std::endl;
-                std::cout<<"Reverting to normal recob::Shower"<<std::endl;
+                //std::cout<<"SHOWER_3D : <<ERROR!! No shower3d in map for this pfp"<<std::endl;
+                //std::cout<<"Reverting to normal recob::Shower"<<std::endl;
                 m_reco_shower3d_exists[i_shr] = 0;
                 shower3d = shower;
             }else{
@@ -640,12 +640,12 @@ namespace single_photon
 
             const std::vector< double > shr3d_energy = shower3d->Energy();
             const std::vector< double > shr3d_dEdx = shower3d->dEdx();
-            const int shr3d_bestplane = shower3d->best_plane();
+            //const int shr3d_bestplane = shower3d->best_plane();
 
-            std::cout<<"SHOWER3D_ENERGY: best plane: "<<shr3d_bestplane<<std::endl;
-            for(auto &en:shr3d_energy){
-                std::cout<<en<<" ";
-            }
+ //           std::cout<<"SHOWER3D_ENERGY: best plane: "<<shr3d_bestplane<<std::endl;
+            //for(auto &en:shr3d_energy){
+            //    std::cout<<en<<" ";
+            //}
             if(shr3d_energy.size()==3){
                 m_reco_shower3d_energy_plane0[i_shr] = shr3d_energy[0];
                 m_reco_shower3d_energy_plane1[i_shr] = shr3d_energy[1];
@@ -656,10 +656,10 @@ namespace single_photon
                 m_reco_shower3d_energy_plane2[i_shr] =-999;
             }
 
-            std::cout<<std::endl<<"SHOWER3D_DEDX: "<<std::endl;
-            for(auto &dedx: shr3d_dEdx){
-                std::cout<<dedx<<" ";
-            }
+   //         std::cout<<std::endl<<"SHOWER3D_DEDX: "<<std::endl;
+            //for(auto &dedx: shr3d_dEdx){
+            //    std::cout<<dedx<<" ";
+            //}
             std::cout<<std::endl;
             if(shr3d_dEdx.size()==3){
                 m_reco_shower3d_dEdx_plane0[i_shr] = shr3d_dEdx[0];
