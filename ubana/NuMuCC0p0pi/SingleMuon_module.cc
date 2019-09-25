@@ -492,6 +492,14 @@ void SingleMuon::analyze(art::Event const& evt)
     auto pfp = pfParticle_v[i];
     if(pfp->IsPrimary() && pfp->PdgCode() == 14){
       n_pfp_nuDaughters = pfp->NumDaughters();
+
+      // Get Neutrino slice flash matching score (chi2)
+      auto flash_matching_T0 = pfpToT0Asso.at(pfp.key());
+
+      if(flash_matching_T0.size() == 1){
+        flash_matching_chi2 = flash_matching_T0.front()->TriggerConfidence();
+      }
+
       // For CC0pi0p, we only consider the case with the number of neutrino daughters less than 4
       if(n_pfp_nuDaughters < 4){
         // Get the pointer for the daughters of the neutrino
@@ -522,17 +530,6 @@ void SingleMuon::analyze(art::Event const& evt)
           if(assoTrack.empty() && assoShower.empty()){
             Ghost_PDG.push_back(dau_pfp->PdgCode());
           }
-
-          // Add flash-matching chi2
-          //if(assoTrack.size()==1 && assoShower.size()==0){
-            auto flash_matching_T0 = pfpToT0Asso.at(dau_pfp.key());
-
-            std::cout<<"size flash_matching_T0: "<<flash_matching_T0.size()<<std::endl;
-            if(flash_matching_T0.size() == 1){
-              flash_matching_chi2 = flash_matching_T0.front()->TriggerConfidence();
-              std::cout<<"flash_matching chi2: "<<flash_matching_chi2<<std::endl;
-            }
-          //}
         } // finish looping of pfp
       }
      
