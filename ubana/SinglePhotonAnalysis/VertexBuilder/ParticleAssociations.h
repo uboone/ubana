@@ -559,56 +559,87 @@ void ParticleAssociations_all::NodeCheck() {
 
 
 void ParticleAssociations_all::GetShowerAssociations() {
-	if(fverbose) std::cout << "GetShowerAssociations\n";
+//	if(fverbose) std::cout << "GetShowerAssociations\n";
 
+	int screen_width = 86;
 	std::multimap<double, size_t> pa_map;//Partical Association Map; it maps vertex index to the vertex's z-coordinate respectiely.
 
-	if(fverbose) std::cout << "Number of particle associations: " << fassociations.size() << "\n";
+
+  if(fverbose) {
+	  std::cout << "Number of particle associations (candidate vertices): " << fassociations.size() << "\n\n";
+
+		//Print the title
+		cout<<setw(15)<<right<<"Association ID ";
+		cout<<setw(15)<<left<<"| with Tracks ID";
+		cout<<setw(20)<<left<<"| with Showers ID";
+		cout<<setw(18)<<left<<"| Radius of Vertex";
+		cout<<"| Vertex Coordinates (x,y,z) [cm]"<<endl;
+
+		for(int i = 0; i<screen_width; i++) 
+			cout<<"-";
+		cout<<endl;
+  }
 
 	for(size_t i = 0; i < fassociations.size(); ++i) {
-		if(fverbose) std::cout << "\tAssociation: " << i << "\n";
-		ParticleAssociation const & pa = fassociations.at(i); //the ith associated particle (vertex)
-		bool asso_shower = false;
-		for(size_t const s : pa.GetObjectIndices()) {
-			if(fverbose) std::cout << "\t\tObject index: " << s << "\n";
+		cout<<setw(15)<<i<<"| ";//Association ID
+		string trackids("N/A");
+		string showerids("");
+		bool add_once = true;
+		for(size_t const s:(fassociations.at(i)).GetObjectIndices()){
+			if(fdetos.GetRecoType(s) == fdetos.fshower_reco_type){
+			//only add vertex that has shower. if break is applied and only do emplace  here;
 
-			if(fdetos.GetRecoType(s) == fdetos.fshower_reco_type) {//fdetos is detector objects
-			//if find an DetectorObject that is shower, then asso_shower become true, and add it to the pa_map.
-//				temp_num_showers++;//Keng
-				if(fverbose) std::cout << "\t\tis shower\n";
-
-
-				asso_shower = true;
-				break;
+				showerids.append(to_string(s) + " ");
+			if(add_once){//add "i" vertex candidate and bring along all objects;
+			pa_map.emplace((fassociations.at(i)).GetRecoVertex().at(2), i);
+			add_once = false;
+			}
+//				break;
+			}else{
+				if(trackids=="N/A"){
+					trackids = "";
+				}
+				trackids.append(to_string(s) + " ");
 			}
 		}
-		if(asso_shower) {
-			cout<<"Add a shower vertex to the associations!"<<endl;
-			pa_map.emplace(pa.GetRecoVertex().at(2), i);//
-		}
-	}
 
-	if(fverbose) std::cout << "Loop over filled map, with size : "<<pa_map.size()<<endl;
+		if(fverbose){
+			cout<<setw(14)<<trackids;//Track ID
+			cout<<"| "<<setw(18);
+
+			if(showerids.length()>0){//Shower ID
+				string temp_showeroutput = showerids+"(take this)";
+				cout<<temp_showeroutput;
+			}else{
+				cout<<"N/A (delete this)";
+			};
+
+			cout<<"| "<<setw(16)<<left<<fassociations.at(i).fgoodness;//Coodtinate
+			cout<<"| "<<fassociations.at(i).fvertex<<endl;
+		}
+
+	}
+//	return;//skip the following part? Keng CHECK!
+	if(fverbose) std::cout << "\nNumber of vertices to be examinated: "<<pa_map.size()<<endl;
+	cout<<"Keep all vertices (that with shower) for now."<<endl;
 
 	for(std::pair<double, size_t> const & p : pa_map) {
 	//p is a pair <z-position, index of DetectorObject (a shower)>
 
-		if(fverbose) std::cout << "\tAssociation: " << p.second << " " << "z-position (of a shower): " << p.first << "\n"; 
+//		if(fverbose) std::cout << "\tAssociation: " << p.second << " " << "z-position (of a shower): " << p.first << "\n"; 
 
-		auto const sk_it = std::find(fignore_association_vec.begin(), fignore_association_vec.end(), p.second);//return the iterator who points to the number i.
-		//CHECK, use IgnoreAssociation(sk_it) to ignore an association;?
-		//CHECK  dont know what is happenning here!
-		if( sk_it != fignore_association_vec.end() ){ //Ignore(the association index), initially empty, which NULL can pass through;
-			cout<<"Ignore(p.second) is true"<<endl;
-			continue;
-		}
-		//if sk_it is not the last fignore_associatino_vec, then do the follwoing
-		cout<<"CHECK I do Have a list to ignore "<<fignore_association_vec.size()<<endl;
-		IgnoreAssociationsConnectedTo(p.second);
+//		auto const sk_it = std::find(fignore_association_vec.begin(), fignore_association_vec.end(), p.second);//return the iterator who points to the number i.
+//		if( sk_it != fignore_association_vec.end() ){ //Ignore(the association index), initially empty, which NULL can pass through;
+//			cout<<"Ignore(p.second) is true"<<endl;
+//			continue;
+//		}
+//		//if sk_it is not the last fignore_associatino_vec, then do the follwoing
+//		cout<<"CHECK I do Have a list to ignore "<<fignore_association_vec.size()<<endl;
+//		IgnoreAssociationsConnectedTo(p.second);
 		fselected_associations.push_back(p.second);//CHECK, here is where we select the vertex.
 	}
 
-	if(fverbose) std::cout << "ClearIgnored\n";
+//	if(fverbose) std::cout << "ClearIgnored\n";
 
 	ClearIgnored();
 

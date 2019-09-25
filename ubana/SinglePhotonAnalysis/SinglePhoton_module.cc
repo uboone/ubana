@@ -125,7 +125,7 @@ namespace single_photon
     void SinglePhoton::analyze(const art::Event &evt)
 	{//analyzing one event per run! CHECK, how to add more vertex here?
 
-		m_is_verbose = false;
+		m_is_verbose = true;
 		std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 		std::cout<<"SinglePhoton::analyze()\t||\t On entry: "<<m_number_of_events<<std::endl;
 
@@ -309,6 +309,9 @@ namespace single_photon
 		//introduce a for loop for all particle associations identified by Bobby's VertexBuilder
 		std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.GetSelectedAssociations().size()<<" Vertex candidates."<<std::endl;
 		bool reset_bobbyvertex = true;
+		if(bobby_particle_associations.GetSelectedAssociations().size()==0){
+		cout<<"No vertex is reconstructed."<<endl;
+		}
 		for(size_t const nth_associations : bobby_particle_associations.GetSelectedAssociations()) {//Loop over all associations, which is a vector
 			ParticleAssociation const & particle_associated = bobby_particle_associations.GetAssociations().at(nth_associations);//grab the "pn"th association;
 			geoalgo::Point_t const & reco_vertex = particle_associated.GetRecoVertex();//Grab the vertec of the "pn"th association.
@@ -327,9 +330,9 @@ namespace single_photon
 			m_bobbyvertex_pos_zv.push_back( reco_vertex.at(2));
 
 			cout<<"Vertex Coordinates found by Bobby Vertex Builder: ";
-			cout<<m_bobbyvertex_pos_x<<", ";
-			cout<<m_bobbyvertex_pos_y<<", ";
-			cout<<m_bobbyvertex_pos_z<<endl;
+			cout<<reco_vertex.at(0)<<", ";
+			cout<<reco_vertex.at(1)<<", ";
+			cout<<reco_vertex.at(2)<<endl;
 
 			//calculate the # of tracks/showers;
 			DetectorObjects_all const & detos = bobby_particle_associations.GetDetectorObjects();

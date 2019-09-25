@@ -194,9 +194,9 @@ namespace single_photon
 		double cpoa_trackend_prox = 5;//Max. distance btw midway point of impact parameter to a potential vertex (a_max)
 
 		if(fverbose){//Over view of the inputs
-			std::cout << "\n\nRun vertex builder with: \n";
-			cout<<"Number of shower candidates: "<<(package.selected_showers).size()<<endl;
-			cout<<"Number of track candidates : "<<(package.selected_tracks).size()<<endl;
+			std::cout << "\n\nRun vertex builder with: ";
+			cout<<(package.selected_showers).size()<<" shower candidates and "<<endl;
+			cout<<(package.selected_tracks).size()<<" track candidates."<<endl;
 
 			cout<<endl;//print out 
 			for(int i = 0 ; i < screen_width/2 ;i++)

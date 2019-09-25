@@ -308,7 +308,7 @@ namespace single_photon
 
             //store original pfp and it's slice id
             if(slice_id < 0 ){
-                if(m_is_verbose)std::cout<<"no matching slice found for this PFP with primary id "<<parent_pfp->Self()<<std::endl;
+//CHECK                if(m_is_verbose)std::cout<<"no matching slice found for this PFP with primary id "<<parent_pfp->Self()<<std::endl;
             } else {
                 // allPFPSliceIdVec[i] = std::pair(start_pfp,slice_id);
                 allPFPSliceIdVec.push_back(std::pair(start_pfp,slice_id));

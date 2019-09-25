@@ -263,8 +263,14 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
   for(size_t const i : fdetos->GetTrackIndices()) {
 
     Track const & t = fdetos->GetTrack(i);
-    pn.emplace(t.fid, &t.ftrajectory.front());//track ID and point;
-    pn.emplace(t.fid, &t.ftrajectory.back());
+	geoalgo::Vector ref_point(1,1,1);//use this to pick valid end points; i.e. kill (-999,-999,-999)
+
+	if(t.ftrajectory.front().Dot(ref_point) > -2996){
+		pn.emplace(t.fid, &t.ftrajectory.front());//track ID and point;
+	}
+	if(t.ftrajectory.back().Dot(ref_point) > -2996){
+		pn.emplace(t.fid, &t.ftrajectory.back());
+	}
 	/* appended map of one of this loop:
 	 * < track_id, {track beginning point, track ending point}>
 	 *
@@ -349,8 +355,8 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
 			  if(fverbose)
 				  std::cout << ". Distance btw them: " << dist << " while the shortest distance is: "
 					  << best_dist << std::endl;
-
-			  if(dist < best_dist && dist > 0) {
+				if(dist==0) std::cout<<" Reject this point."<<endl;
+			  if(dist < best_dist) {
 				  if(fverbose)
 					  std::cout << "\t\t\t\tTake this track! Update the best point!\n";	
 				  best_match = match_this;
@@ -416,7 +422,7 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
 				  std::cout << " dist: " << dist << " sbest_dist: "
 					  << sbest_dist << std::endl;
 
-			  if(dist < sbest_dist && dist > 0) {
+			  if(dist < sbest_dist) {
 				  if(fverbose)
 					  std::cout << "\t\t\t\tTake this track. Update the best distance!\n";
 				  best_o = this_iterator;
@@ -444,7 +450,7 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
 	  pas.AddAssociation(track_IDs, points, sphere.Center(), falgo.boundingSphere(points).Radius());
 	  
 	  if(fverbose){
-		  cout<<"Add "<<track_IDs.size()<<" tracks into association with ";
+		  cout<<"Add #"<<track_IDs.size()<<" tracks into association with ";
 		  cout<<"vertex candidate: (";
 		  cout<<falgo.boundingSphere(points).Center().at(0)<<",";
 		  cout<<falgo.boundingSphere(points).Center().at(1)<<",";
@@ -483,6 +489,8 @@ double VertexBuilder::FindClosestApproach(
 
 void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 
+	int screen_width = 86;
+
 	std::map<size_t, Shower const *> shower_map;
 
 	for(size_t const i : fdetos->GetShowerIndices()) { 
@@ -493,8 +501,32 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 
 	while(shower_map.size()) {
 
-		if(fverbose)
-			std::cout << "\tNumber of shower to be evaluated: " << shower_map.size() << std::endl;
+  if(fverbose) {
+    std::cout << "Number of showers to be considered: " << shower_map.size() << "\n\n";
+
+	if(shower_map.size()) {
+		//Print the title
+		cout<<setw(10)<<right<<"Shower ID ";
+		cout<<setw(36)<<left<<"| Shower Direction from Pandora";
+		cout<<setw(37)<<left<<"| Shower Start Point Coordinates (x,y,z) [cm] from Pandora"<<endl;
+		for(int i = 0; i<screen_width; i++) 
+			cout<<"-";
+		cout<<endl;
+
+		for(auto const &c : shower_map){
+				cout<<setw(10)<<left<< c.first<<"| ";//Index
+			cout<<left<<c.second->fcone.Dir();//Shower Direction
+			cout<<" | "<<c.second->fcone.Start()<<endl;//Coordinates
+		}
+		for(int i = 0; i<screen_width; i++) 
+			cout<<"-";
+		cout<<"\n\n Start to associate showers"<<endl;
+	}
+  }
+
+
+//		if(fverbose)
+//			std::cout << "\tNumber of shower to be evaluated: " << shower_map.size() << std::endl;
 
 		size_t best_shower_id = SIZE_MAX;
 		size_t best_other_id = SIZE_MAX;
@@ -531,7 +563,7 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 				//update temp_vert as the mid point of these two points that gives the shortest distance.
 
 				if(fverbose)
-					std::cout << "\t\t\tCompare dist of shower bkw-projections, " << dist << ", and the shortest-dist so far, "
+					std::cout << "\t\t\tCompare dist of shower bkw-projections, " << dist << ", and the shortest-dist so far is "
 						<< best_dist << ".\n";
 
 				double temp_dist = best_dist;//fshower_prox now is temp_dist
@@ -569,7 +601,7 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 								dont_care));//this is along the backward projection
 
 				if(fverbose)
-					std::cout << "\t\t\tCompare the impact parameter to the track, " << dist << ", and the shortest_dist so far, "
+					std::cout << "\t\t\tCompare the impact parameter to the track, " << dist << ", and the shortest_dist so far is "
 						<< best_dist << ".\n";
 
 				if(dist < best_dist) {
@@ -622,8 +654,8 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 		//it normally ends up with a shower with a small distance to another shower/track/vertex candidate
 
 
-		if(fverbose) std::cout << "\tA brief report after evaluating all showers:\n"
-			<< "\tThe shortest_dist to other objects: " << best_dist << ", which is required to be not further than"
+		if(fverbose) std::cout << "\n\tA brief report after evaluating all showers:\n"
+			<< "\tThe shortest_dist to other objects: " << best_dist << ", which is required to be not further than "
 				<< fshower_prox << "\n";
 
 		if(best_dist >= fshower_prox) {//ds>=s_{max}
