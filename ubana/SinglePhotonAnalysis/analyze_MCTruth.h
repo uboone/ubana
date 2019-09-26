@@ -195,7 +195,7 @@ namespace single_photon
                                 m_mctruth_exiting_photon_energy.push_back(par.E());
 
                             }
-                            std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Photon "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and photon energy "<<par.E()<<std::endl;
+                         if(m_is_verbose)   std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Photon "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and photon energy "<<par.E()<<std::endl;
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
                             const  simb::MCParticle mother = truth->GetParticle(par.Mother());
@@ -234,7 +234,7 @@ namespace single_photon
                             }
 
 
-                            std::cout<<"SingleProton::AnalyzeMCTruths()\t||\t Proton "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and proton energy "<<par.E()<<std::endl;
+                         if(m_is_verbose)   std::cout<<"SingleProton::AnalyzeMCTruths()\t||\t Proton "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and proton energy "<<par.E()<<std::endl;
 
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
@@ -251,7 +251,7 @@ namespace single_photon
                         {
 
                             m_mctruth_num_exiting_neutrons++;
-                            std::cout<<"SingleProton::AnalyzeMCTruths()\t||\t Neutron "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and neutron energy "<<par.E()<<std::endl;
+                      if(m_is_verbose)      std::cout<<"SingleProton::AnalyzeMCTruths()\t||\t Neutron "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and neutron energy "<<par.E()<<std::endl;
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
                             const  simb::MCParticle mother = truth->GetParticle(par.Mother());
@@ -277,7 +277,7 @@ namespace single_photon
                         if(par.StatusCode() == 1){ 
                             m_mctruth_num_exiting_delta0++;
                             m_mctruth_exiting_delta0_num_daughters.push_back(par.NumberDaughters());
-                            std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Delta0 "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with "<<m_mctruth_exiting_delta0_num_daughters.back()<<" daughters. StatusCode "<<par.StatusCode()<<std::endl;
+                         if(m_is_verbose)   std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Delta0 "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with "<<m_mctruth_exiting_delta0_num_daughters.back()<<" daughters. StatusCode "<<par.StatusCode()<<std::endl;
                         }
                         break;
                     default:
@@ -294,7 +294,7 @@ namespace single_photon
 
 
 
-            std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t This event is ";
+              std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t This event is ";
             if(tmp_n_photons_from_delta==1 && tmp_n_protons_from_delta==1){
                 m_mctruth_delta_radiative_1g1p_or_1g1n = 1;
                 std::cout<<"a 1g1p delta radiative event"<<std::endl;
@@ -386,17 +386,19 @@ namespace single_photon
             for(int p =0; p < m_mctruth_num_exiting_protons; ++p){
                 const simb::MCParticle mother = truth->GetParticle(m_mctruth_exiting_proton_mother_trackID[p]);
 
-                std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t -- proton ("<<m_mctruth_exiting_proton_trackID[p]<<") of status_code 1.. "<<std::endl;
-                std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t ---- with mother "<<mother.PdgCode()<<" ("<<m_mctruth_exiting_proton_mother_trackID[p]<<") status_code "<<mother.StatusCode()<<std::endl;
+                if(m_is_verbose){
+                    std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t -- proton ("<<m_mctruth_exiting_proton_trackID[p]<<") of status_code 1.. "<<std::endl;
+                    std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t ---- with mother "<<mother.PdgCode()<<" ("<<m_mctruth_exiting_proton_mother_trackID[p]<<") status_code "<<mother.StatusCode()<<std::endl;
+                }
                 simb::MCParticle nth_mother = mother;
                 int n_generation = 2;
 
                 while(nth_mother.StatusCode() != 0){
 
                     nth_mother = truth->GetParticle(nth_mother.Mother()); 
-                    std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t ---- and "<<n_generation<<"-mother "<<nth_mother.PdgCode()<<" ("<<nth_mother.TrackId()<<") and status_code "<<nth_mother.StatusCode()<<std::endl;
+                    if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t ---- and "<<n_generation<<"-mother "<<nth_mother.PdgCode()<<" ("<<nth_mother.TrackId()<<") and status_code "<<nth_mother.StatusCode()<<std::endl;
                     if(is_delta_map.count(nth_mother.PdgCode())>0 && nth_mother.StatusCode()==3){
-                        std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t ------ Defintely From a Delta Decay! : "<<is_delta_map[nth_mother.PdgCode()]<<std::endl;
+                       if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t ------ Defintely From a Delta Decay! : "<<is_delta_map[nth_mother.PdgCode()]<<std::endl;
                         m_mctruth_exiting_proton_from_delta_decay[p] = 1;
                     } 
                     n_generation++;

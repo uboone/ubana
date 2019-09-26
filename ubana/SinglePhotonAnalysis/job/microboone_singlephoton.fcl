@@ -15,13 +15,13 @@ singlephoton_analyzer:{
 
     FillTrees: true
     RunPi0Filter: false
-    
+ 
     usePID:         "true" 
     work_function: 23
     recombination_factor: 0.62
     #gain : 197
-    gain_mc: [245, 252, 239.5] #from DocDB 18982 gain calibration for MCC9 and DocDB 20227 from 6/19
-    gain_data: [232, 249, 247.4] #see above docdb
+    gain_mc: [235.5, 249.7, 237.6] #DocDB 20227-v7 using dE/dx calibration method for all planes, updated on 9/13/19
+    gain_data: [230.3, 237.6, 243.7] #see above docdb
     wire_spacing : 0.3 
     width_box : 1.
     length_box : 4.
@@ -29,10 +29,18 @@ singlephoton_analyzer:{
     runAllPFPs: "false"
     exiting_photon_energy: 0.02
     exiting_proton_energy: 0.978  #40Mev + proton mass 
+
+    runCRT: "false"
+    DTOffset: 68600.0 #us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+    Resolution: 1.0 #same as above
+    DAQHeaderProducer: "daq" #ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+
     }
 
 singlephoton_filter: @local::singlephoton_analyzer
 singlephoton_filter.FillTrees: false
 singlephoton_filter.RunPi0Filter: true
+singlephoton_filter.isData: true
+singlephoton_filter.usePID: false
 
 END_PROLOG

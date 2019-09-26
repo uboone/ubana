@@ -31,11 +31,21 @@ services :
     @table::microboone_services
 }
 
-outputs: {
-    #  optionalout: { module_type: RootOutput
-    #                fileName: "output_file.root"
-    #               fastCloning: false }
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_NCpi0filter.root"
+    SelectEvents: [ filtering ]
+    dataTier:    "reconstructed"
+    compressionLevel: 1
+    outputCommands: ["keep *_*_*_*"]
+  }
 }
+
+
+
 
 physics: {
 
@@ -50,15 +60,19 @@ physics: {
 
  analyzers: {}
  filters : {
-        #singlephotonfil: @local::singlephoton_filter   #run in filtering mode
-        singlephotonana: @local::singlephoton_filter   #run in filtering mode
+        singlephotonfil: @local::singlephoton_filter   #run in filtering mode
+        #singlephotonana: @local::singlephoton_analyzer #run in analyzing mode
   }
-    pathana : [pid , singlephotonana] #path for analysis
 
- trigger_paths : [pathana]
- end_paths: [ ]
+  stream1: [ out1 ]
+  filtering: [pid, singlephotonfil ]
+ 
+  trigger_paths: [ filtering ]
+  end_paths: [ stream1 ]
 
 }
+
+
 #physics.producers.showerreco3dpandora.BacktrackTag: "gaushitTruthMatch"
 #physics.producers.showerreco3dpandora.ADCtoE: [240,240,240] # e-/ADC
 #physics.producers.showerreco3dpandora.NeutrinoEvent: true

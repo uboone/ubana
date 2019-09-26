@@ -1,25 +1,26 @@
 link_libraries( -L$ENV{BOOST_LIB} -lboost_system -lboost_filesystem)
 
+
 art_make( BASENAME_ONLY
-
-	  EXCLUDE
-			plotMV4.C
-			plotsupimp.C
-
           LIB_LIBRARIES
 			ubraw_RawData
 			ubobj_Trigger
-                        larcorealg_Geometry
-                        larcore_Geometry_Geometry_service
+            larcorealg_Geometry
+            larcore_Geometry_Geometry_service
 			ubana_BasicTool_GeoAlgo
-                        lardata_Utilities
-                        larevt_Filters
-                        lardataobj_RawData
+            lardata_Utilities
+            larevt_Filters
+            larpandoraobj
+            lardataobj_RawData
 			lardataobj_RecoBase
+            lardataobj_MCBase
 			larcoreobj_SummaryData
 			larsim_MCCheater_BackTrackerService_service
 			larsim_MCCheater_ParticleInventoryService_service
 			larpandora_LArPandoraInterface
+            ${PANDORASDK}
+            ${PANDORAMONITORING}
+            LArPandoraContent 
 			nusimdata_SimulationBase
 			${UB_DATA_TYPES}
 			${Boost_SERIALIZATION_LIBRARY}
@@ -34,11 +35,12 @@ art_make( BASENAME_ONLY
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
+                        
                         ${FHICLCPP}
 			cetlib cetlib_except
                         ${CLHEP}
                         ${ROOT_BASIC_LIB_LIST}
-
+                        ${ROOT_GEOM} 
           MODULE_LIBRARIES
 			ubraw_RawData
                         larcorealg_Geometry
@@ -48,9 +50,11 @@ art_make( BASENAME_ONLY
                         larevt_Filters
                         lardataobj_RawData
 			lardataobj_RecoBase
-			larcoreobj_SummaryData	
+            lardataobj_MCBase
+            larcoreobj_SummaryData	
 			larsim_MCCheater_BackTrackerService_service
 			larpandora_LArPandoraInterface
+            SignalShapingServiceMicroBooNE_service
 			nusimdata_SimulationBase
 			ubana_LEEPhotonAnalysis
 			${UB_DATA_TYPES}
@@ -66,14 +70,13 @@ art_make( BASENAME_ONLY
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
+                        
                         ${FHICLCPP}
 			cetlib cetlib_except
                         ${CLHEP}
                         ${ROOT_BASIC_LIB_LIST}
-        )
-
-add_subdirectory(job)
-
+                        ${ROOT_GEOM} )
+                      
 install_headers()
 install_fhicl()
 install_source()
