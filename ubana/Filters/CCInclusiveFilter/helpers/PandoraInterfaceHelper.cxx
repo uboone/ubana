@@ -8,7 +8,7 @@ PandoraInterfaceHelper::PandoraInterfaceHelper()
   m_configured = false;
 }
 
-void PandoraInterfaceHelper::Configure(art::Event const &e,
+uint PandoraInterfaceHelper::Configure(art::Event const &e,
                                        std::string m_pfp_producer,
                                        std::string m_spacepoint_producer,
                                        std::string m_hitfinder_producer,
@@ -145,6 +145,7 @@ void PandoraInterfaceHelper::Configure(art::Event const &e,
   // std::cout << "hit_to_mcps_map size " << hit_to_mcps_map.size() << std::endl;
 
   m_configured = true;
+  return m_hit_to_mcps_map.size();
 }
 
 art::Ptr<simb::MCTruth> PandoraInterfaceHelper::TrackIDToMCTruth(art::Event const &e, std::string m_geant_producer, int geant_track_id)
@@ -167,7 +168,8 @@ art::Ptr<simb::MCTruth> PandoraInterfaceHelper::TrackIDToMCTruth(art::Event cons
 }
 
 void PandoraInterfaceHelper::GetRecoToTrueMatches(lar_pandora::PFParticlesToMCParticles &matchedParticles,
-                                                  std::map<art::Ptr<recob::PFParticle>, float> &matchedHitFractions)
+                                                  std::map<art::Ptr<recob::PFParticle>, float> &matchedHitFractions,
+                                                  std::map<art::Ptr<recob::PFParticle>, uint> &matchedHits)
 {
   bool m_debug = false;
 
@@ -184,6 +186,7 @@ void PandoraInterfaceHelper::GetRecoToTrueMatches(lar_pandora::PFParticlesToMCPa
     // The PFParticle
     const art::Ptr<recob::PFParticle> recoParticle = iter1.first;
     float hitsFractionMax = 0; // The fraction of hits of the reco particle matched with the dominant true particle.
+    uint hitsMC = 0;
 
     if (m_debug)
       std::cout << "[PandoraInterfaceHelper::GetRecoToTrueMatches] Looking at PFP with ID " << recoParticle->Self() << std::endl;
@@ -200,9 +203,10 @@ void PandoraInterfaceHelper::GetRecoToTrueMatches(lar_pandora::PFParticlesToMCPa
     {
       // Find the MCParticle that share this same hit (if any)
       auto iter3 = m_hit_to_mcps_map.find(hit);
-      if (m_hit_to_mcps_map.end() == iter3)
+      if (m_hit_to_mcps_map.end() == iter3){
         continue;
-
+      }
+      hitsMC++;
       // If exists, get the MCParticle
       const art::Ptr<simb::MCParticle> trueParticle = iter3->second;
 
@@ -236,6 +240,7 @@ void PandoraInterfaceHelper::GetRecoToTrueMatches(lar_pandora::PFParticlesToMCPa
       // Emplace into the output map
       matchedParticles[recoParticle] = trueParticle;
       matchedHitFractions[recoParticle] = hitsFractionMax;
+      matchedHits[recoParticle] = hitsMC;
       std::cout << "[PandoraInterfaceHelper::GetRecoToTrueMatches] hitsFractionMax: " << hitsFractionMax << std::endl;
     }
 

@@ -25,6 +25,26 @@ void NuCCanalyzer::analyze(art::Event const &evt)
   fTimeLow = evtTime.timeLow();
   std::cout << "[NuCCanalyzer::analyze]: Run " << fRun << ", Subrun " << fSubrun << ", Event " << fEvent << std::endl;
 
+  // Event weight:
+  if (!m_isData)
+  {
+    art::InputTag eventweight_tag("eventweightSplines");
+    art::Handle<std::vector<evwgh::MCEventWeight>> eventweights_handle;
+    if (evt.getByLabel(eventweight_tag, eventweights_handle))
+    {
+      std::vector<art::Ptr<evwgh::MCEventWeight>> eventweights;
+      art::fill_ptr_vector(eventweights, eventweights_handle);
+      std::map<std::string, std::vector<double>> evtwgt_map = eventweights.at(0)->fWeight;
+      const std::vector<double> &weights = evtwgt_map.at("splines_general_Spline");
+      fEventWeight = weights.front();
+      std::cout << "[NuCCanalyzer::analyze]: Event Weight:  " << fEventWeight << std::endl;
+    }
+    else
+    {
+      std::cout << "[NuCCanalyzer::analyze]: Failed obtaining eventweight" << std::endl;
+    }
+  }
+
   larpandora.CollectPFParticleMetadata(evt, m_pfp_producer, pfparticles, particlesToMetadata);
   larpandora.BuildPFParticleMap(pfparticles, particleMap);
 
@@ -48,7 +68,7 @@ void NuCCanalyzer::analyze(art::Event const &evt)
         FillTrueNuDaughters(evt);
       }
       FillReconstructed(evt);
-      // After all the fields are filled, do the selection and create association.
+      // After all the fields are filled, do the selection.
       fIsNuMuCC = IsNuMuCC(evt);
     }
   }
@@ -141,6 +161,13 @@ void NuCCanalyzer::FillReconstructed(art::Event const &evt)
       }
     }
   }
+  // Purity Completeness approximations:
+  std::cout << "[NuCCanalyzer::FillReconstructed] Total MC hits in event: " << m_total_mc_hits << std::endl;
+  std::cout << "[NuCCanalyzer::FillReconstructed] Total MC hits in nu pfps: " << fMatchedHits << std::endl;
+  std::cout << "[NuCCanalyzer::FillReconstructed] Total hits in nu pfps: " << fNu_totalHits << std::endl;
+  fMCHitsFraction = (float)fMatchedHits / fNu_totalHits;
+  fClusteredHitCompleteness = (float)fMatchedHits / m_total_mc_hits;
+  std::cout << "[NuCCanalyzer::FillReconstructed] Completeness: " << fClusteredHitCompleteness << " Purity: " << fMCHitsFraction << std::endl;
 
   // Store the obvious cosmic with the lowest score:
   fBestObviousCosmic_FlashChi2 = std::numeric_limits<float>::max();
@@ -165,12 +192,12 @@ void NuCCanalyzer::FillReconstructed(art::Event const &evt)
       }
     }
   }
-  std::cout << "[NuCCanalyzer::FillReconstructed] fNu_FlashChi2 / fBestObviousCosmic_FlashChi2: " << fNu_FlashChi2 / fBestObviousCosmic_FlashChi2 << std::endl;
+  //std::cout << "[NuCCanalyzer::FillReconstructed] fNu_FlashChi2 / fBestObviousCosmic_FlashChi2: " << fNu_FlashChi2 / fBestObviousCosmic_FlashChi2 << std::endl;
 }
 
 bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
-                         const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle,
-                         const art::FindManyP<anab::ParticleID> &trackPIDAssn)
+                                 const art::ValidHandle<std::vector<recob::MCSFitResult>> &MCSMu_handle,
+                                 const art::FindManyP<anab::ParticleID> &trackPIDAssn)
 {
   clearDaughter();
   const lar_pandora::ClusterVector cluster_vec = particlesToClusters.at(pfp);
@@ -186,6 +213,7 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
   fNu_NhitsU += fNhitsU;
   fNu_NhitsV += fNhitsV;
   fNu_NhitsY += fNhitsY;
+  fNu_totalHits += (fNhitsU + fNhitsV + fNhitsY);
   fNu_CaloU += fCaloU;
   fNu_CaloV += fCaloV;
   fNu_CaloY += fCaloY;
@@ -216,6 +244,8 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
   fVy = pfp_vtx.Y();
   fVz = pfp_vtx.Z();
   std::vector<float> pfp_start_fid_v(6, m_pfp_start_border);
+
+  // There is a bug here!S
   fStartContained = IsContained(fVx, fVy, fVz, pfp_start_fid_v);
   if (!fStartContained)
   {
@@ -225,6 +255,26 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
   const larpandoraobj::PFParticleMetadata::PropertiesMap &pfp_properties = particlesToMetadata.at(pfp).front()->GetPropertiesMap();
   fTrackScore = pfp_properties.at("TrackScore");
   fVtxDistance = pandoraInterfaceHelper.Distance3D(fVx, fVy, fVz, fNu_Vx, fNu_Vy, fNu_Vz);
+
+  // Hierarchy info
+  fGeneration = larpandora.GetGeneration(particleMap, pfp);
+  if (fNumPrimaryDaughters < fNumDaughters)
+  {
+    if (particleMap.at(pfp->Parent())->PdgCode() == 13)
+    {
+      fIsTrackDaughter = true;
+    }
+    if (pfp->NumDaughters())
+    {
+      for (const int daughter_id : pfp->Daughters())
+      {
+        if (particleMap.at(daughter_id)->PdgCode() == 11)
+        {
+          fHasShowerDaughter = true;
+        }
+      }
+    }
+  }
 
   // Track-like fields
   if (particlesToTracks.find(pfp) != particlesToTracks.end())
@@ -307,25 +357,6 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
     }
   }
 
-  // Hierarchy info
-  fGeneration = larpandora.GetGeneration(particleMap, pfp);
-  if (fNumPrimaryDaughters < fNumDaughters)
-  {
-    if (particleMap.at(pfp->Parent())->PdgCode() == 13)
-    {
-      fIsTrackDaughter = true;
-    }
-    if (pfp->NumDaughters())
-    {
-      for (const int daughter_id : pfp->Daughters())
-      {
-        if (particleMap.at(daughter_id)->PdgCode() == 11)
-        {
-          fHasShowerDaughter = true;
-        }
-      }
-    }
-  }
   std::cout << "[NuCCanalyzer::FillDaughters] Trackscore: " << fTrackScore << ", Generation: " << fGeneration;
   std::cout << ", vtx distance: " << fVtxDistance << std::endl;
   std::cout << "[NuCCanalyzer::FillDaughters] U Plane: Hits:" << fNhitsU << ", Energy: " << fCaloU << ", dedx hits: " << fDedxHitsU << ", dedx: " << fDedxU << ", pitch: " << fDedxPitchU << std::endl;
@@ -352,6 +383,7 @@ bool NuCCanalyzer::MatchDaughter(art::Event const &evt, const art::Ptr<recob::PF
     }
     matched_mcp = matchedParticles.at(pfp);
     matchedHitFraction = matchedHitFractions.at(pfp);
+    fMatchedHits += matchedHits.at(pfp); // only for direct daughters
   }
   else if (fGeneration == 3)
   {
@@ -375,7 +407,7 @@ bool NuCCanalyzer::MatchDaughter(art::Event const &evt, const art::Ptr<recob::PF
     std::cout << "[NuCCanalyzer::MatchDaughter] Generation 4 particle is not matched." << std::endl;
     return false;
   }
- 
+
   // Is this MC particle neutrino?
   const art::Ptr<simb::MCTruth> mctruth = pandoraInterfaceHelper.TrackIDToMCTruth(evt, m_geant_producer, matched_mcp->TrackId());
   if (mctruth->Origin() == simb::kBeamNeutrino)
@@ -400,7 +432,7 @@ bool NuCCanalyzer::MatchDaughter(art::Event const &evt, const art::Ptr<recob::PF
   fTrueLength = (matched_mcp->Position().Vect() - matched_mcp->EndPosition().Vect()).Mag();
 
   pandoraInterfaceHelper.SCE(fTrueVx, fTrueVy, fTrueVz, matched_mcp->T(),
-                              fTrueVxSce, fTrueVySce, fTrueVzSce);
+                             fTrueVxSce, fTrueVySce, fTrueVzSce);
   std::cout << "[NuCCanalyzer::MatchDaughter] Daughter matched with PDG: " << fTruePDG << ", hit purity: " << matchedHitFraction << std::endl;
 
   return true;
@@ -423,6 +455,15 @@ void NuCCanalyzer::FillTrueNu(art::Event const &evt)
 
     fTrueNu_InteractionType = mcnu.Mode();
     fTrueNu_CCNC = mcnu.CCNC();
+    fTrueNu_Target = mcnu.Target();
+    fTrueNu_HitNuc = mcnu.HitNuc();
+    fTrueNu_HitQuark = mcnu.HitQuark();
+    fTrueNu_W = mcnu.W();
+    fTrueNu_X = mcnu.X();
+    fTrueNu_Y = mcnu.Y();
+    fTrueNu_QSqr = mcnu.QSqr();
+    fTrueNu_LeptonTheta = mcnu.Theta();
+
     fTrueNu_PDG = mcnu.Nu().PdgCode();
     fTrueNu_Energy = mcnu.Nu().E();
     fTrueNu_Px = mcnu.Nu().Px();
@@ -432,13 +473,12 @@ void NuCCanalyzer::FillTrueNu(art::Event const &evt)
     fTrueNu_LeptonPx = mcnu.Lepton().Px();
     fTrueNu_LeptonPy = mcnu.Lepton().Py();
     fTrueNu_LeptonPz = mcnu.Lepton().Pz();
-    fTrueNu_LeptonTheta = mcnu.Theta();
     fTrueNu_Time = mcnu.Nu().T();
     fTrueNu_Vx = mcnu.Nu().Vx();
     fTrueNu_Vy = mcnu.Nu().Vy();
     fTrueNu_Vz = mcnu.Nu().Vz();
     pandoraInterfaceHelper.SCE(fTrueNu_Vx, fTrueNu_Vy, fTrueNu_Vz, fTrueNu_Time,
-                                fTrueNu_VxSce, fTrueNu_VySce, fTrueNu_VzSce);
+                               fTrueNu_VxSce, fTrueNu_VySce, fTrueNu_VzSce);
     std::cout << ", CCNC: " << fTrueNu_CCNC << ", PDG: " << fTrueNu_PDG << ", E: " << fTrueNu_Energy << ", z-vertex: " << fTrueNu_Vz << std::endl;
   }
 
@@ -500,8 +540,8 @@ void NuCCanalyzer::FillTrueNuDaughters(art::Event const &evt)
 
 void NuCCanalyzer::FillReconTruthMatching(art::Event const &evt)
 {
-  pandoraInterfaceHelper.Configure(evt, m_pfp_producer, m_pfp_producer, m_hitfinder_producer, m_geant_producer, m_hit_mcp_producer);
-  pandoraInterfaceHelper.GetRecoToTrueMatches(matchedParticles, matchedHitFractions);
+  m_total_mc_hits = pandoraInterfaceHelper.Configure(evt, m_pfp_producer, m_pfp_producer, m_hitfinder_producer, m_geant_producer, m_hit_mcp_producer);
+  pandoraInterfaceHelper.GetRecoToTrueMatches(matchedParticles, matchedHitFractions, matchedHits);
   std::cout << "[NuCCanalyzer::FillReconTruthMatching] ";
   std::cout << "Number of PFPparticles in event: " << pfparticles.size() << std::endl;
   for (auto it = matchedParticles.begin(); it != matchedParticles.end(); ++it)
@@ -534,16 +574,16 @@ bool NuCCanalyzer::IsContained(float x, float y, float z, const std::vector<floa
 }
 
 bool NuCCanalyzer::IsMuonCandidate()
-{ 
-    fIsMuonCandidate = fGeneration == 2 &&
+{
+  fIsMuonCandidate = fGeneration == 2 &&
                      m_muon_cut_trackscore < fTrackScore &&
                      m_muon_cut_vtxdistance > fVtxDistance &&
                      m_muon_cut_protonchi2 < fTrackPID_chiproton &&
                      m_muon_cut_muonchi2 > fTrackPID_chimuon &&
                      m_muon_cut_length < fTrackLength &&
                      m_muon_cut_chiratio < (fTrackPID_chiproton / fTrackPID_chimuon);
-                     
-     return fIsMuonCandidate;
+
+  return fIsMuonCandidate;
 }
 
 bool NuCCanalyzer::IsNuMuCC(art::Event const &evt)
@@ -562,5 +602,5 @@ bool NuCCanalyzer::IsNuMuCC(art::Event const &evt)
       return true;
     }
   }
-  return false;  
+  return false;
 }

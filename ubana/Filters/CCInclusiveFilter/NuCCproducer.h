@@ -156,7 +156,7 @@ private:
   uint fGeneration;
   float fTrackScore;
   float fVx, fVy, fVz;
-  float fStartContained;
+  bool fStartContained;
   float fVtxDistance;
   // Track info
   float fTrackLength;
@@ -178,7 +178,7 @@ void NuCCproducer::reconfigure(fhicl::ParameterSet const &p)
   m_vtx_fid_z_end = p.get<float>("vtx_fid_z_end", 50);
   m_pfp_start_border = p.get<float>("pfp_start_border", 10);
 
-  m_muon_cut_trackscore = p.get<float>("muon_cut_trackscore", 0.8);
+  m_muon_cut_trackscore = p.get<float>("muon_cut_trackscore", 0.85);
   m_muon_cut_vtxdistance = p.get<float>("muon_cut_vtxdistance", 4.0);
   m_muon_cut_protonchi2 = p.get<float>("muon_cut_protonchi2", 60);
   m_muon_cut_muonchi2 = p.get<float>("muon_cut_muonchi2", 30);
