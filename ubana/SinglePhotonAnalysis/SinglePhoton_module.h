@@ -815,6 +815,10 @@ class cluster {
             double m_reco_vertex_to_nearest_dead_wire_plane2;
 
             //------------ VertexBuilder -------------
+			vector <double> m_dist_tt;//track&track, start_prox
+			vector <double> m_dist_sx;//shower&anything, shower_prox
+			vector <double> m_dist_st;//shower&track, cpoa_vert_prox
+			vector <double> m_dist_sst;//shower&shower&track, cpoa_trackend_prox
 
 			ParticleAssociations_all BobbyVertexBuilder_ext(class Atlas &package, bool more_objects);
 			//---------------------------------------------------

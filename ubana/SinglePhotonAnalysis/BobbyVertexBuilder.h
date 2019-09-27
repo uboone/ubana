@@ -190,7 +190,7 @@ namespace single_photon
 		//Initialize criteria for vertexing,  unit: cm.
 		double start_prox = 4;//Max. track proximity threshold (t_max)
 		double shower_prox = 10;//Max. shower proximity threshold (s_max)
-		double cpoa_vert_prox = 10;//Max. distance btw shower start & cloest approach (dp_max)
+		double cpoa_vert_prox = 10;//Max. distance btw shower start & cloest approach (dp_max), when no vertex, look at shower bkw projection and track distance
 		double cpoa_trackend_prox = 5;//Max. distance btw midway point of impact parameter to a potential vertex (a_max)
 
 		if(fverbose){//Over view of the inputs
@@ -254,7 +254,24 @@ namespace single_photon
 			cout<<"/*";
 		cout<<"\n"<<endl;
 
-		return candidates;//and fill in the vertexed file (tree) in the SinglePhoton_module.cc
+		if(vbuilder.f_dist_tt[0]<999){
+		m_dist_tt = vbuilder.f_dist_tt;
+		}
+		if(vbuilder.f_dist_sx[0]<999){
+		m_dist_sx = vbuilder.f_dist_sx;
+		}
+
+		if(vbuilder.f_dist_st[0]<999){
+		m_dist_st = vbuilder.f_dist_st;
+		}
+
+		if(vbuilder.f_dist_sst[0]<999){
+		m_dist_sst = vbuilder.f_dist_sst;
+		}
+
+
+
+			return candidates;//and fill in the vertexed file (tree) in the SinglePhoton_module.cc
 
 	}
 }

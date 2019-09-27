@@ -832,6 +832,10 @@ namespace single_photon
         vertex_tree->Branch("reco_bobbyvertex_zv", &m_bobbyvertex_pos_zv);
         vertex_tree->Branch("reco_bobbytracksv", &m_bobbytracksv);
         vertex_tree->Branch("reco_bobbyshowersv", &m_bobbyshowersv);
+		vertex_tree->Branch("parameter_dist_tt",&m_dist_tt);
+		vertex_tree->Branch("parameter_dist_sx",&m_dist_sx);
+		vertex_tree->Branch("parameter_dist_st",&m_dist_st);
+		vertex_tree->Branch("parameter_dist_sst",&m_dist_sst);
 		//-----------------------------------------------------------
 		
         vertex_tree->Branch("reco_slice_objects", &m_reco_slice_objects, "reco_slice_objects/I");
@@ -944,6 +948,10 @@ namespace single_photon
 		m_bobbyvertex_pos_zv={-9999};
         m_bobbyshowersv = {0};
         m_bobbytracksv = {0};
+		m_dist_tt = {999};
+		m_dist_sx = {999};
+		m_dist_st = {999};
+		m_dist_sst ={999};
 		//-----------------------------------------------------------
 
         m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
