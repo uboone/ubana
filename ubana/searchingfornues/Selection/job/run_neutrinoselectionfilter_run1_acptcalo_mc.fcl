@@ -7,7 +7,7 @@ physics.filters.nuselection.AnalysisTools.calorimetry.Backtrack: true
 #physics.filters.nuselection.IsData: false
 
     
-physics.producers.mcreco: @local::standard_mcreco
+#physics.producers.mcreco: @local::standard_mcreco
 
 physics.producers.mcreco.MCParticleLabel: "largeant"
 physics.producers.mcreco.SimChannelLabel: "ionization" # "driftWC:simpleSC"
