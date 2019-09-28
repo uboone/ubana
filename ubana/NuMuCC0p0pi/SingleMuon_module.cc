@@ -453,7 +453,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
     // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
     // Not necessary all the Genie particles go through the geant4 stage?
-    if (MC_ccnc == 0){
+    if (MC_ccnc == 0 && MC_nupdg == 14 && MC_beamNeutrino == true){
       for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
         if(MCParticleCollection[i_mcp]->Process() == "primary"){
           // muon
