@@ -225,8 +225,9 @@ wcls: {
 	      DiffusionLongitudinal: 6.4  // unit: cm^2/s, configured in the jsonnet file
 	      DiffusionTransverse:   9.8  // unit: cm^2/s, configured in the jsonnet file
 
-	      // Electron lifetime
-	      ElectronLifetime: 1000  // unit: ms, configured in the jsonnet file
+              // Electron lifetime
+              ElectronLifetime: 1000 // unit: ms, configured in the jsonnet file
+              ELifetimeCorrection: false // or true; using lifetime database
       	  }
       }
    }

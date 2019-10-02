@@ -61,7 +61,7 @@ private:
   int fWinEndTick;
   int fVetoStartTick;
   int fVetoEndTick;
-  float fPEThreshold;    
+  float fPEThreshold, fPEThresholdScaled;    
   float fPMTMaxFrac;
   bool  fStoreOpticalFilterObj;
 
@@ -91,7 +91,17 @@ dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
 
   // Addition to account for LY scaling
   fScaleLY      = p.get< bool > ("ScaleLY",false);
+  fPEThresholdScaled = fPEThreshold;
 
+
+  std::vector<int> tmpvec = p.get< std::vector<int> >("IgnoreChannelList",std::vector<int>());
+  fIgnoreChannelList = std::set<int>(tmpvec.begin(),tmpvec.end());
+
+}
+
+bool dl::DLPMTPreCuts::filter(art::Event & e)
+{
+  
   // if we are to scale by the LY, adjust fPEThreshold appropriately
   if (fScaleLY == true) {
     
@@ -112,19 +122,11 @@ dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
     
     scaling /= nfactors;
 
-    fPEThreshold *= scaling;
+    fPEThresholdScaled = fPEThreshold * scaling;
     
-    std::cout << "scaling now is " << fPEThreshold << std::endl;
+    std::cout << "scaling now is " << fPEThresholdScaled << std::endl;
   }
 
-  std::vector<int> tmpvec = p.get< std::vector<int> >("IgnoreChannelList",std::vector<int>());
-  fIgnoreChannelList = std::set<int>(tmpvec.begin(),tmpvec.end());
-
-}
-
-bool dl::DLPMTPreCuts::filter(art::Event & e)
-{
-  
   // Implementation of required member function here.
   art::Handle< std::vector<recob::OpHit> > ophitHandle;
   e.getByLabel( fOpHitProducer, ophitHandle );
@@ -149,8 +151,8 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
   std::vector<float> flashbins = m_algo.MakeTimeBin( ophit_peaktime_v, ophit_pe_v, fBinTickWidth, fWinStartTick, fWinEndTick );
   std::vector<float> vetobins  = m_algo.MakeTimeBin( ophit_peaktime_v, ophit_pe_v, fBinTickWidth, fVetoStartTick, fVetoEndTick );
   
-  std::vector<float> beamPEinfo = m_algo.GetTotalPE( fPEThreshold , flashbins );
-  std::vector<float> vetoPEinfo = m_algo.GetTotalPE( fPEThreshold , vetobins );
+  std::vector<float> beamPEinfo = m_algo.GetTotalPE( fPEThresholdScaled , flashbins );
+  std::vector<float> vetoPEinfo = m_algo.GetTotalPE( fPEThresholdScaled , vetobins );
   
   float maxfrac     = m_algo.PMTMaxFrac( ophit_peaktime_v, ophit_pe_v, ophit_femch_v, beamPEinfo, fBinTickWidth,  fWinStartTick);
 
@@ -163,7 +165,7 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
       e.put(std::move(ubopfilter_obj));
     }
   
-  if ( beamPEinfo[0]>fPEThreshold && vetoPEinfo[0]<fPEThreshold && maxfrac < fPMTMaxFrac )
+  if ( beamPEinfo[0]>fPEThresholdScaled && vetoPEinfo[0]<fPEThresholdScaled && maxfrac < fPMTMaxFrac )
     return true;
   
   return false;  

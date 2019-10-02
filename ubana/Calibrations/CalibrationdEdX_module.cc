@@ -25,6 +25,8 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "ubevt/Database/TPCEnergyCalib/TPCEnergyCalibService.h"
 #include "ubevt/Database/TPCEnergyCalib/TPCEnergyCalibProvider.h"
+#include "ubevt/Database/UbooneElectronLifetimeProvider.h"
+#include "ubevt/Database/UbooneElectronLifetimeService.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
 
 #include "larevt/SpaceCharge/SpaceCharge.h"
@@ -76,6 +78,7 @@ private:
   bool fSCE;
 
   bool fForceUnity;
+  bool fELifetimeCorrection;
 
   //histograms for calibration
   std::vector<TH2F*> hCorr_YZ;
@@ -101,6 +104,7 @@ ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
   , fModBoxB               (p.get< double >("ModBoxB")) 
   , fSCE                   (p.get< bool> ("CorrectSCE"))
   , fForceUnity            (p.get< bool> ("ForceUnity"))
+  , fELifetimeCorrection   (p.get< bool> ("ELifetimeCorrection"))
 {
   // Call appropriate produces<>() functions here.
   if (fCorr_YZ.size()!=3 || fCorr_X.size()!=3){
@@ -121,7 +125,11 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
   //handle to tpc energy calibration provider
   const lariov::TPCEnergyCalibProvider& energyCalibProvider
     = art::ServiceHandle<lariov::TPCEnergyCalibService>()->GetProvider();
-    
+
+  //handle to electron lifetime calibration provider
+  const lariov::UBElectronLifetimeProvider& elifetimeCalibProvider
+    = art::ServiceHandle<lariov::UBElectronLifetimeService>()->GetProvider();
+
   //Spacecharge services provider 
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
 
@@ -206,6 +214,8 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
         for (size_t j = 0; j<vdQdx.size(); ++j){
 	  float yzcorrection = energyCalibProvider.YZdqdxCorrection(planeID.Plane, vXYZ[j].Y(), vXYZ[j].Z());
 	  float xcorrection  = energyCalibProvider.XdqdxCorrection(planeID.Plane, vXYZ[j].X());
+    float elifetime  = elifetimeCalibProvider.Lifetime(); // [ms]
+    float driftvelocity = detprop->DriftVelocity(); // [cm/us]
        	  if (!yzcorrection) yzcorrection = 1.0;
 	  if (!xcorrection) xcorrection = 1.0;
 	  
@@ -224,7 +234,9 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
 	  }*/
 
 	  if(fForceUnity){ xcorrection = 1;}
-	  
+
+    if(fELifetimeCorrection) { xcorrection = exp( (vXYZ[j].X()) / (elifetime * driftvelocity * 1000.0)); }
+
           vdQdx[j] = yzcorrection*xcorrection*vdQdx[j];
           /*
           //set time to be trgger time so we don't do lifetime correction
