@@ -188,10 +188,10 @@ namespace single_photon
 		int screen_width = 86;//ncurses::COLS;//get the width of the screen!
 		
 		//Initialize criteria for vertexing,  unit: cm.
-		double start_prox = 4;//Max. track proximity threshold (t_max)
-		double shower_prox = 10;//Max. shower proximity threshold (s_max)
-		double cpoa_vert_prox = 10;//Max. distance btw shower start & cloest approach (dp_max), when no vertex, look at shower bkw projection and track distance
-		double cpoa_trackend_prox = 5;//Max. distance btw midway point of impact parameter to a potential vertex (a_max)
+		double start_prox = 8;//Max. track proximity threshold (t_max)
+		double shower_prox = 15;//Max. shower proximity threshold (s_max)
+		double cpoa_vert_prox = 13;//Max. distance btw shower start & cloest approach (dp_max), when no vertex, look at shower bkw projection and track distance
+		double cpoa_trackend_prox = 18;//Max. distance btw midway point of impact parameter to a potential vertex (a_max)
 
 		if(fverbose){//Over view of the inputs
 			std::cout << "\n\nRun vertex builder with: ";
