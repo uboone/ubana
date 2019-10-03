@@ -56,20 +56,20 @@
 #include "BackTrackerTruthMatch.h"
 #include "RecoTruthMCParticle.h"
 
-class ParticleThreshold;
+class CCthreshold;
 
 
-class ParticleThreshold : public art::EDAnalyzer {
+class CCthreshold : public art::EDAnalyzer {
 public:
-  explicit ParticleThreshold(fhicl::ParameterSet const& p);
+  explicit CCthreshold(fhicl::ParameterSet const& p);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
   // Plugins should not be copied or assigned.
-  ParticleThreshold(ParticleThreshold const&) = delete;
-  ParticleThreshold(ParticleThreshold&&) = delete;
-  ParticleThreshold& operator=(ParticleThreshold const&) = delete;
-  ParticleThreshold& operator=(ParticleThreshold&&) = delete;
+  CCthreshold(CCthreshold const&) = delete;
+  CCthreshold(CCthreshold&&) = delete;
+  CCthreshold& operator=(CCthreshold const&) = delete;
+  CCthreshold& operator=(CCthreshold&&) = delete;
 
   // Required functions.
   void analyze(art::Event const& evt) override;
@@ -160,7 +160,7 @@ private:
 };
 
 
-ParticleThreshold::ParticleThreshold(fhicl::ParameterSet const& pset)
+CCthreshold::CCthreshold(fhicl::ParameterSet const& pset)
   : 
   EDAnalyzer{pset},
   m_generatorLabel(pset.get<std::string>("GeneratorLabel")),
@@ -186,7 +186,7 @@ ParticleThreshold::ParticleThreshold(fhicl::ParameterSet const& pset)
   PID_TrackAssLabel = pset.get<std::string>("PIDTrackAssLabel");
 }
 
-void ParticleThreshold::analyze(art::Event const& evt)
+void CCthreshold::analyze(art::Event const& evt)
 {
 
   //// Get necessary handles
@@ -375,7 +375,7 @@ void ParticleThreshold::analyze(art::Event const& evt)
 
 }
 
-void ParticleThreshold::Initialize_event()
+void CCthreshold::Initialize_event()
 {
   // Implementation of optional member function here.
   std::cout << "Initialize variables and histograms for root tree output" << std::endl;
@@ -424,15 +424,15 @@ void ParticleThreshold::Initialize_event()
 }
 
 
-void ParticleThreshold::beginJob()
+void CCthreshold::beginJob()
 {
   // Implementation of optional member function here.
   Initialize_event();
 }
 
-void ParticleThreshold::endJob()
+void CCthreshold::endJob()
 {
   // Implementation of optional member function here.
 }
 
-DEFINE_ART_MODULE(ParticleThreshold)
+DEFINE_ART_MODULE(CCthreshold)
