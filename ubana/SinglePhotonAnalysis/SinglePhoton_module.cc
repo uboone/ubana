@@ -576,6 +576,11 @@ namespace single_photon
 				//end
 
 
+            std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
+        }
+
+        this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec);
+        //   this->AnalyzeFlashes(flashVector, crthit_h);
 
 				this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters,  MCParticleToTrackIdMap);
 

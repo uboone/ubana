@@ -48,6 +48,8 @@
 
 #include "larcore/Geometry/Geometry.h"
 
+#include "ubobj/RawData/DAQHeaderTimeUBooNE.h"
+
 #include "canvas/Utilities/ensurePointer.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindMany.h"
@@ -468,7 +470,9 @@ class cluster {
 
 
             //----------------  Flashes ----------------------------
-            void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes);
+			void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec);
+                     
+          //  void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h);
             void ClearFlashes();
             void ResizeFlashes(size_t);
             void CreateFlashBranches();
