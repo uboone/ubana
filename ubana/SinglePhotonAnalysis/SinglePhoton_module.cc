@@ -61,9 +61,14 @@ namespace single_photon
 
 
         m_CRTTzeroLabel = pset.get<std::string>("CRTTzeroLabel","crttzero");
-        m_has_CRT = pset.get<bool>("hasCRT",true);
+		m_runCRT = pset.get<bool>("runCRT",false);
+		m_CRTHitProducer = pset.get<std::string>("CRTHitProducer", "crthitcorr");
 
-        //Some track calorimetry parameters
+		m_DTOffset = pset.get<double>("DTOffset" , 68600.); //us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+		m_Resolution = pset.get<double>("Resolution" ,  1.0); //us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+		m_DAQHeaderProducer = pset.get<std::string>("DAQHeaderProducer" ,  "daq");
+
+		//Some track calorimetry parameters
         m_track_calo_min_dEdx = pset.get<double>("Min_dEdx",0.005);
         m_track_calo_max_dEdx = pset.get<double>("Max_dEdx", 30);
         m_track_calo_min_dEdx_hits = pset.get<double>("Min_dEdx_hits",5); //might be good?
