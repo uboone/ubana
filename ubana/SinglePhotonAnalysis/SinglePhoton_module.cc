@@ -251,6 +251,59 @@ namespace single_photon
 
 		}//for each pfp
 
+        //      Test ground for some slice stuff
+        std::cout<<"SliceTest: there are "<<sliceVector.size()<<" slices in this event"<<std::endl;
+        for(size_t s =0; s<sliceVector.size(); s++){
+            auto slice = sliceVector[s];
+            auto pfps = sliceToPFParticlesMap[slice]; 
+
+            std::cout<<"SliceTest: On Slice "<<s<<" it has "<<pfps.size()<<" pfparticles"<<std::endl;
+            std::vector<float> nu_scores;
+            bool isSelectedSlice = false;
+            int primaries = 0;
+            int primary_pdg = 0;
+
+            for(auto &pfp: pfps){
+                std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> metadatas = pfParticleToMetadataMap[pfp];
+                for(auto &meta: metadatas){
+                    std::map<std::string, float> propertiesmap  = meta->GetPropertiesMap();
+                    //for each of the things in the list
+                    if(propertiesmap.count("NuScore")==1){
+                        nu_scores.push_back(propertiesmap["NuScore"]);
+                    }
+                    if(propertiesmap.count("IsNeutrino")==1){
+                       isSelectedSlice = true; 
+                    }
+                }
+
+                if (pfp->IsPrimary()) {
+                    primaries++;
+                    primary_pdg = (pfp->PdgCode());    
+                }
+                /*if (!pfp->IsPrimary()) continue;
+                // Check if this particle is identified as the neutrino
+                const int pdg(pfp->PdgCode());
+                const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
+                if(isNeutrino){
+                    isSelectedSlice = true; 
+                }*/
+            }
+
+            if(nu_scores.size()>0){
+                double mean  = std::accumulate(nu_scores.begin(), nu_scores.end(), 0.0)/(double)nu_scores.size();
+                if(mean!=nu_scores.front()){
+                    std::cout<<"ERROR! Somehow the pfp's in this slice have different nu-scores? IMpossible."<<std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                std::cout<<"SliceTest: -- and has a nu_score of "<<nu_scores.front()<<std::endl;
+                std::cout<<"SliceTest: -- with "<<primaries<<" primaries: pdg last: "<<primary_pdg<<std::endl;
+            }else{
+                std::cout<<"SliceTest: -- and does not have a nu_score of. "<<std::endl;
+            }
+            if(isSelectedSlice) std::cout<<"SliceTest: -- -- And is the Selected Neutrino Slice"<<std::endl;
+
+        }
+
 
 
 
@@ -520,9 +573,24 @@ namespace single_photon
 			}
 
 
+			
+			//if CRT info, get CRT hits
+			art::Handle<std::vector<crt::CRTHit>> crthit_h; //only filled when there are hits, otherwise empty
+			art::Handle<raw::DAQHeaderTimeUBooNE> rawHandle_DAQHeader;
+			double evt_timeGPS_nsec = -999 ;
+			if(m_runCRT){
+				evt.getByLabel(m_DAQHeaderProducer, rawHandle_DAQHeader);
 
+				evt.getByLabel(m_CRTHitProducer, crthit_h);
+				raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
+				art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
+				evt_timeGPS_nsec = evtTimeGPS.timeLow();
 
-			this->AnalyzeFlashes(flashVector);
+					std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
+			}
+
+        this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec);
+        //   this->AnalyzeFlashes(flashVector, crthit_h);
 
 			std::cout<<"start track"<<std::endl;
 			this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
@@ -576,16 +644,6 @@ namespace single_photon
 					}
 
 				}
-				std::cout<<"TEST: matched "<<m_test_matched_hits<<std::endl;
-
-				//end
-
-
-            std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
-        }
-
-        this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec);
-        //   this->AnalyzeFlashes(flashVector, crthit_h);
 
 				this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters,  MCParticleToTrackIdMap);
 
@@ -641,8 +699,8 @@ namespace single_photon
 				std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
             //this one was for testing, leaving out for now
             // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
-			cout<<"CHECK<broken??"<<endl;
-           this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+				if(m_is_verbose)std::cout<<"Starting SecondShowerSearch"<<std::endl;
+				this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
 
             std::cout<<"filling info in ncdelta slice tree"<<std::endl;
             this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
@@ -695,7 +753,7 @@ namespace single_photon
 
         //This is a quick check 
 
-        size_t n_neutrino_slice=0;
+		size_t n_neutrino_slice=0;
         size_t n_neutrino_candidate_pfp_id=0;
 
         for(size_t s=0; s< sliceVector.size(); s++){
@@ -766,12 +824,12 @@ namespace single_photon
         }
 
 
-        //---------------------- END OF LOOP, fill vertex ---------------------
+		//---------------------- END OF LOOP, fill vertex ---------------------
 
-			vertex_tree->Fill();
-			ncdelta_slice_tree->Fill();
+		vertex_tree->Fill();
+		ncdelta_slice_tree->Fill();
 
-			std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
+		std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 
 	}
 
