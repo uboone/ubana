@@ -273,6 +273,18 @@ void ParticleThreshold::analyze(art::Event const& evt)
 
   NCosmic = trk_theta.size();
   my_event_->Fill();
+  start_x.clear();
+  start_y.clear();
+  start_z.clear();
+  end_x.clear();
+  end_y.clear();
+  end_z.clear();
+  trk_phi.clear();
+  trk_theta.clear();
+  trk_costheta.clear();
+  trk_length_noSCE.clear();
+  trk_ifcontained.clear();
+  vtx_FV.clear(); 
 }
 
 void ParticleThreshold::Initialize_event()
