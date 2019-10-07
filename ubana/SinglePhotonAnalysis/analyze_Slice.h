@@ -336,6 +336,7 @@ namespace single_photon
         /*
          * store stuff in the output tree
          */
+
         m_reco_slice_num = nuscore_slices.size();//the number of slices also corresponds to the number of neutrino scores
 
         //currently this is junk, just a placeholder
@@ -347,6 +348,7 @@ namespace single_photon
         m_reco_slice_num_pfps = sliceIdToNumPFPsvec; //the total number of PFP's per slice
         m_reco_slice_num_showers; //the subset of PFP's that are showers
         m_reco_slice_num_tracks;
+        
         */
 
 

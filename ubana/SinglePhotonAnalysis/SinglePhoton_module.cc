@@ -147,6 +147,9 @@ namespace single_photon
         // And then later we just write pseudo-independant code assuming you have every objecets you want (see analyze_Tracks.h) and assume you have access to everything. 
 
 
+        //TODO: if we make these class members, we can access them in the pseudo-indepenant code without passing messy maps.
+
+
         // Collect all the hits. We will need these. Lets grab both the handle as well as a vector of art::Ptr as I like both. 
         art::ValidHandle<std::vector<recob::Hit>> const & hitHandle = evt.getValidHandle<std::vector<recob::Hit>>(m_hitfinderLabel); 
         std::vector<art::Ptr<recob::Hit>> hitVector;
@@ -167,17 +170,10 @@ namespace single_photon
         evt.getByLabel(m_badChannelProducer, m_badChannelLabel, badChannelHandle);
         std::vector<int> badChannelVector = *(badChannelHandle);
 
-
         //Collect the PFParticles from the event. This is the core!
         art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
         std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
         art::fill_ptr_vector(pfParticleVector,pfParticleHandle);
-
-        //get the cluster handle for the dQ/dx calc
-        art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(m_pandoraLabel);
-        std::vector< art::Ptr<recob::Cluster> > clusterVector;
-        art::fill_ptr_vector(clusterVector,clusterHandle);
-
         //So a cross check
         if (!pfParticleHandle.isValid())
         {
@@ -185,7 +181,10 @@ namespace single_photon
             return;
         }
 
-
+        //get the cluster handle for the dQ/dx calc
+        art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(m_pandoraLabel);
+        std::vector< art::Ptr<recob::Cluster> > clusterVector;
+        art::fill_ptr_vector(clusterVector,clusterHandle);
 
         //This is another pandora helper. I don't like PFParticle ID lookups but I guess lets keep for now;
         // Produce a map of the PFParticle IDs for fast navigation through the hierarchy
@@ -263,7 +262,6 @@ namespace single_photon
             }
         }
 
-
         // Once we have actual verticies, lets concentrate on JUST the neutrino PFParticles for now:
         //--------------------------------
         // Produce two PFParticle vectors containing final-state particles:
@@ -276,15 +274,12 @@ namespace single_photon
 
 
 
-
-
         //if not running over neutrino slice only, use all pfp's in event
         if (m_run_all_pfps ==true){
             nuParticles = pfParticleVector;
         }
 
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Spacepoints"<<std::endl;
-        //Look, here is a map that I just forced myself rather than build using helpers. Not that different is it. But for somereason I only use PFParticles.. huh,
         //Spacepoint associaitions
         art::FindManyP<recob::SpacePoint> spacePoints_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
         std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>> > pfParticleToSpacePointsMap;
@@ -294,7 +289,6 @@ namespace single_photon
         }
 
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get PandoraMetadata"<<std::endl;
-
         //add the associaton between PFP and metadata, this is important to look at the slices and scores
         art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  m_pandoraLabel);
         std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap;
@@ -303,19 +297,8 @@ namespace single_photon
             pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
         }
 
-        /*   art::FindManyP<recob::Slice > pfPartToSliceAssoc(pfParticleHandle, evt,  m_pandoraLabel);
-             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Slice>> > pfParticleToSliceAssnMap;
-             for(size_t i=0; i< pfParticleVector.size(); ++i){
-             const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
-             pfParticleToSliceAssnMap[pfp] =  pfPartToSliceAssoc.at(pfp.key());
-             }
-             */
-
-
-
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Clusters"<<std::endl;
-
-        //Get a map between the PFP's and the clusters. Although Mark isn't a fan of clusters, they're imporant for the shower dQ/dx
+        //Get a map between the PFP's and the clusters  they're imporant for the shower dQ/dx
         //Also need a map between clusters and hits
         art::FindManyP<recob::Cluster> clusters_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
         art::FindManyP<recob::Hit> hits_per_cluster(clusterHandle, evt, m_pandoraLabel);
@@ -333,13 +316,9 @@ namespace single_photon
             auto cluster = clusterVector[i];
             clusterToHitsMap[cluster] = hits_per_cluster.at(cluster.key());
         }
-
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Build hits to PFP Maps"<<std::endl;
 
-
-
         //taking out the Larpandora helper functions here because they don't match to non-neutrino slice hits for some reason
-
         //OK Here we build two IMPORTANT maps for the analysis, (a) given a PFParticle get a vector of hits..
         //and (b) given a single hit, get the PFParticle it is in (MARK: is it only one? always? RE-MARK: Yes)
         std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Hit>> > pfParticleToHitsMap;
@@ -379,464 +358,507 @@ namespace single_photon
 
 
 
-        // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino
-        //At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.
-        //tracks is a vector of recob::Tracks and same for showers.
-        //Implicitly, tracks.size() + showers.size() =  nuParticles.size(); At this point I would like two things.
-        std::vector< art::Ptr<recob::Track> > tracks;
-        std::vector< art::Ptr<recob::Shower> > showers;
-        std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap; 
-        std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
-        //std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToAllPFParticleMap; 
-        //std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToAllPFParticleMap;
-
-        if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Tracks and Showers"<<std::endl;
-
-
-        this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
-
-        //Track Calorimetry
-        art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
-        std::map<art::Ptr<recob::Track>, std::vector<art::Ptr<anab::Calorimetry>> > trackToCalorimetryMap;
-        //So a cross check
-        if (!calo_per_track.isValid())
-        {
-            mf::LogDebug("SinglePhoton") << "  Failed to get Assns between recob::Track and anab::Calorimetry.\n";
-            return;
-        }
-        for(size_t i=0; i< tracks.size(); ++i){
-            if(calo_per_track.at(tracks[i].key()).size() ==0){
-                std::cerr<<"Track Calorimetry Breaking!  the vector of calo_per_track is of length 0 at this track."<<std::endl;
-            }
-
-            size_t calo_size = calo_per_track.at(tracks[i].key()).size();
-            //std::cout<<"Track Calo from producer: "<<m_caloLabel<<" has "<<calo_size<<" anab::Calorimetry objects associaed."<<std::endl;
-            trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key());
-            for(size_t k=0; k<calo_size; k++){
-                //std::cout<<"Calo "<<k<<" PlaneID: "<<calo_per_track.at(tracks[i].key())[k]->PlaneID()<<std::endl;
-            }
-        }
-
-
-
-        art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
-        std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
-
-        if(m_use_PID_algorithms){
-            // Build a map to get PID from PFParticles, then call PID collection function
-            for(size_t i=0; i< tracks.size(); ++i){
-                art::Ptr<recob::Track> track = tracks[i];
-                trackToPIDMap[track] = pid_per_track.at(track.key());
-            }
-        }
-
-
-
-
-
-        //CRT 
-        /*
-           if(m_has_CRT){
-           art::ValidHandle<std::vector<crt::CRTTzero>> const & crtHandle  = evt.getValidHandle<std::vector<crt::CRTTzero>>(m_CRTTzeroLabel);
-           std::vector<art::Ptr<crt::CRTTzero>> crtVector;
-           art::fill_ptr_vector(crtVector,crtHandle);
-           }
-           */
-
-
-        //**********************************************************************************************/
-        //**********************************************************************************************/
-        //---------------------------------- MC TRUTH Data Only---------------------------
-        //**********************************************************************************************/
-        //**********************************************************************************************/
-
-        //Get the MCtruth handles and vectors
-        std::vector<art::Ptr<simb::MCTruth>> mcTruthVector;
-        std::vector<art::Ptr<simb::MCParticle>> mcParticleVector;
-
-        //Then build a map from MCparticles to Hits and vice versa
-        std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  mcParticleToHitsMap;
-        std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  hitToMCParticleMap;
-
-
-        //Apparrently a MCParticle doesn't know its origin (thanks Andy!)
-        //I would also like a map from MCparticle to MCtruth and then I will be done.  and Vice Versa
-        //Note which map is which!       //First  is one-to-many.         //Second is one-to-one
-        std::map< art::Ptr<simb::MCTruth>,    std::vector<art::Ptr<simb::MCParticle>>>  MCTruthToMCParticlesMap;
-        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>                  MCParticleToMCTruthMap;
-        std::map<int, art::Ptr<simb::MCParticle> >                                     MCParticleToTrackIdMap;
-
-        std::vector<art::Ptr<sim::MCTrack>> mcTrackVector;
-        std::vector<art::Ptr<sim::MCShower>> mcShowerVector;
-
-        std::vector<art::Ptr<simb::MCParticle>> matchedMCParticleVector;
-        std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > trackToMCParticleMap;
-        std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > showerToMCParticleMap;
-
-        //Given a simb::MCParticle we would like a map to either a sim::MCTrack or sim::MCShower
-        std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCTrack> > MCParticleToMCTrackMap;
-        std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCShower> > MCParticleToMCShowerMap;
-
-
-        //**********************************************************************************************/
-        //**********************************************************************************************/
-        //Some event based properties
-
-        m_number_of_events++;
-
-        m_run_number = evt.run();
-        m_subrun_number = evt.subRun();
-        m_event_number = evt.id().event();
-
-        if(vertexVector.size()>0){
-            m_number_of_vertices++;
-        }
-
-
-        //and now get the simb::MCparticle to both MCtrack and MCshower maps (just for the MCparticles matched ok).
-
-        badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
-
-        if(m_is_verbose){
-            std::cout << "SinglePhoton::analyze()\t||\t Consolidated event summary:" << "\n";
-            std::cout << "SinglePhoton::analyze()\t||\t - Number of primary cosmic-ray PFParticles   : " << crParticles.size() << "\n";
-            std::cout << "SinglePhoton::analyze()\t||\t - Number of neutrino final-state PFParticles : " << nuParticles.size() << "\n";
-            std::cout << "SinglePhoton::analyze()\t||\t    ... of which are track-like   : " << tracks.size() << "\n";
-            std::cout << "SinglePhoton::analyze()\t||\t    ... of which are showers-like : " << showers.size() << "\n";
-        }
-
-        //these are all filled in analyze slice
-        std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
-        std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> primaryPFPSliceIdVec; //stores a pair of only the primary PFP's in the event and the slice ind
-        std::map<int, double> sliceIdToNuScoreMap; //map between a slice Id and neutrino score
-        std::map<art::Ptr<recob::PFParticle>, bool> PFPToClearCosmicMap; //returns true for clear cosmic, false otherwise
-        std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap; //returns the slice id for all PFP's
-        std::map<art::Ptr<recob::PFParticle>,bool> PFPToNuSliceMap;
-        std::map<art::Ptr<recob::PFParticle>,double> PFPToTrackScoreMap;
-        std::map<int, int> sliceIdToNumPFPsMap;
-        std::cout<<"SinglePhoton::analyze::AnalyzeSlice()\t||\t Starting"<<std::endl;
-
-        this->AnalyzeSlices(pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
-        //std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
-        std::cout<<"SinglePhoton::analyze\t||\tthe number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
-        std::cout<<"SinglePhoton::analyze\t||\tthe number of PFP's stored in the PFPToSliceIdMap is "<<PFPToSliceIdMap.size()<<std::endl;
-        if (PFPToSliceIdMap.size() < 1){
-            std::cout<<"ERROR, not storing PFP's in PFPToSliceIdMap"<<std::endl;
-        }
-
-        for (auto pair:PFPToNuSliceMap){
-            auto pfp = pair.first;
-            auto is_nuslice = pair.second;
-            if (is_nuslice){
-                std::cout<<"pfp in nuslice "<<pfp->Self()<<std::endl;
-            }
-
-        }
-
-        for (auto pair:sliceIDToPFParticlesMap){ 
-            std::vector<art::Ptr<recob::PFParticle>> pfp_vec = pair.second;
-            int slice_id = pair.first;
-            //if (slice_vec[0]->Slice() != PFPToSliceIdMap[pfp] )
-            for(auto pfp: pfp_vec){
-                if (slice_id != PFPToSliceIdMap[pfp] && PFPToSliceIdMap[pfp]>=0){
-                    std::cout<<"sliceIDToPFParticlesMap[slice->ID()] for pfp "<<pfp->Self()<<" is slice "<< slice_id<< "but PFPToSliceIdMap[pfp] = "<<PFPToSliceIdMap[pfp]<<std::endl;
-                }
-            }
-
-        }
-
-
-
-
-        //this->GetPFPsPerSlice( PFPToSliceIdMap,sliceIdToNumPFPsMap );
-
-        //if CRT info, get CRT hits
-        art::Handle<std::vector<crt::CRTHit>> crthit_h; //only filled when there are hits, otherwise empty
-        art::Handle<raw::DAQHeaderTimeUBooNE> rawHandle_DAQHeader;
-        double evt_timeGPS_nsec = -999 ;
-        if(m_runCRT){
-            evt.getByLabel(m_DAQHeaderProducer, rawHandle_DAQHeader);
-
-            evt.getByLabel(m_CRTHitProducer, crthit_h);
-            raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
-            art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
-            evt_timeGPS_nsec = evtTimeGPS.timeLow(); 
-
-            std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
-        }
-
-        this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec);
-        //   this->AnalyzeFlashes(flashVector, crthit_h);
-
-        std::cout<<"start track"<<std::endl;
-        this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
-        this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
-
-
-        if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
-        this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap,pfParticleMap,pfParticlesToShowerReco3DMap); 
-
-        this->AnalyzeKalmanShowers(showers,showerToNuPFParticleMap,pfParticlesToShowerKalmanMap, kalmanTrackToCaloMap, pfParticleToHitsMap);
-
-
-        // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
-        // MCShower and MCTrack come from energy depositions in GEANT4
-        if(!m_is_data){
-
-            art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle= evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
-            art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
-
-            art::ValidHandle<std::vector<simb::MCParticle>> const & mcParticleHandle= evt.getValidHandle<std::vector<simb::MCParticle>>(m_geantModuleLabel);
-            art::fill_ptr_vector(mcParticleVector,mcParticleHandle);
-
-
-
-
-            //testbed(mcParticleVector,evt);
-
-            /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
-                    for(size_t j=0;j< mcParticleVector.size();j++){
-                    const art::Ptr<simb::MCParticle> mcp = mcParticleVector[j];
-                    std::cout<<"PARG: "<<j<<" trackid: "<<mcp->TrackId()<<" key: "<<mcp.key()<<std::endl;
-                    crap_map[mcp->TrackId()] = mcParticleVector[mcp.key()];
-                    }
-                    */
-
-            //Get the MCParticles (move to do this ourselves later)
-            this->CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap, MCParticleToTrackIdMap);
-
-            //OK lets get all set up with sim::MCTrack and sim::MCShower .
-
-            //   art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
-            // art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
-            //  art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
-            //  art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
-
-            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
-
-
-            //mcc9 march miniretreat fix
-            std::vector<art::Ptr<simb::MCParticle>> particle_vec; //vector of all MCParticles associated with a given hit in the reco PFP
-            std::vector<anab::BackTrackerHitMatchingData const *> match_vec; //vector of some backtracker thing
-
-            m_test_matched_hits = 0;
-
-            for(size_t j=0; j<hitVector.size();j++){
-                const art::Ptr<recob::Hit> hit = hitVector[j];
-
-                particle_vec.clear(); match_vec.clear(); //only store per hit
-
-                mcparticles_per_hit.get(hit.key(), particle_vec, match_vec);
-
-                if(particle_vec.size() > 0){
-                    m_test_matched_hits++;
-                }
-
-            }
-            std::cout<<"TEST: matched "<<m_test_matched_hits<<std::endl;
-
-            //end
-
-
-
-            this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters,  MCParticleToTrackIdMap);
-
-            std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::track"<<std::endl;
-            std::vector<double> trk_overlay_vec = recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector);
-
-
-            std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
-            this->showerRecoMCmatching(showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap);
-
-
-            //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-
-            //looking at metadata
-            //std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
-            /*std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
-              std::cout<<"SinglePhoton\t||\t Analyze Metadata"<<std::endl;
-              this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec);
-              std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
-              if (showers.size()>0){
-              std::cout<<"the shower at 0 is in slice "<<this->GetShowerSlice(showers[0], showerToNuPFParticleMap, allPFPSliceIdVec)<<std::endl;
-              }
-
-              this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap);
-
-              for(auto & track: tracks){
-              std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
-              }*/
-
-            //  perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
-            // perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
-            //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
-
-
-            //for(auto & shower: showers){
-            //    auto mp = showerToMCParticleMap[shower];
-            //    std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
-            //}
-
-
-
-
-            this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector, MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,trk_overlay_vec);
-
-
-
-            //Obsolete function
-            //this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
-            this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
-            this->AnalyzeEventWeight(evt);
-
-            //added since last time?
-            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
-
-            /*   std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
-                 std::map<int, std::vector<art::Ptr<recob::PFParticle>>> sliceIdToPFPMap; //this is an alternative, stores all the PFP's but organized by slice ID
-                 >>>>>>> 37870fe8094e854e1661be2442637aaaeea236c9
-                 std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
-                 this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec, sliceIdToPFPMap);
-                 std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
-                 if (showers.size()>0){
-                 std::cout<<"the shower at 0 is in slice "<<this->GetShowerSlice(showers[0], showerToNuPFParticleMap, allPFPSliceIdVec)<<std::endl;
-                 }
-                 */
-
-            //this one was for testing, leaving out for now
-            // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
-            this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-
-            std::cout<<"filling info in ncdelta slice tree"<<std::endl;
-            this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
-
-            if (m_print_out_event){
-                if (m_matched_signal_shower_num != 1 || m_matched_signal_track_num != 1){
-                    out_stream <<"run subrunevent "<<m_run_number<<" "<<m_subrun_number<<" "<<m_event_number<<"\n";
-                }
-
-            }
-            std::cout<<"Going to grab eventweightSplines for CCQE genie fix, won't be necessary long term"<<std::endl;
-            art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw ;
-            if(    evt.getByLabel("eventweightSplines",ev_evw)){
-
-                std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
-                if(ev_evw->size() > 1) std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"<< "WARNING: eventweight slice genie fix has more than one entry\n";
-                //m_genie_spline_weight=weight_map;
-                for (auto const& x : weight_map){
-                    std::cout << x.first  // string (key)
-                        << ':' 
-                        << x.second.size() << std::endl ;
-                    if(x.second.size()==1){
-                        m_genie_spline_weight = x.second.front();
-                    }
-                }
-
-            }else{
-                std::cout<<"No data producet called eventweightSplines"<<std::endl;
-                m_genie_spline_weight =1.0;
-            }
-
-
-            std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
-        }else{
-
-            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> * tmp_mcparticles_per_hit = NULL;
-            std::vector<art::Ptr<simb::MCParticle>> tmp_matchedMCParticleVector;
-
-            this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,*tmp_mcparticles_per_hit, tmp_matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-
-
-        }
-
-        //Second Shower Search-Pandora style
-        if(!m_run_all_pfps){
-            if(!m_is_data) {
-                //        this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-            }else{
-                //                this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,NULL,NULL,NULL,NULL);
-            }
-
-            //Isolation
-            this-> IsolationStudy(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
-        }
-
-
-        //This is a quick check 
-
-        size_t n_neutrino_slice=0;
-        size_t n_neutrino_candidate_pfp_id=0;
-
-        for(size_t s=0; s< sliceVector.size(); s++){
+        //      Test ground for some slice stuff
+        std::cout<<"SliceTest: there are "<<sliceVector.size()<<" slices in this event"<<std::endl;
+        for(size_t s =0; s<sliceVector.size(); s++){
             auto slice = sliceVector[s];
-            std::vector<art::Ptr<recob::PFParticle>> pfps = sliceToPFParticlesMap[slice]; 
+            auto pfps = sliceToPFParticlesMap[slice]; 
 
-            int primaries=0;
-            int n_dau=0;
-            int found = 0;
-            //std::cout<<"Starting a loop over "<<pfps.size()<<" pfparticles"<<std::endl;
+            std::cout<<"SliceTest: On Slice "<<s<<" it has "<<pfps.size()<<" pfparticles"<<std::endl;
+            std::vector<float> nu_scores;
+            bool isSelectedSlice = false;
+            int primaries = 0;
+            int primary_pdg = 0;
+
             for(auto &pfp: pfps){
-                //std::cout<<pfp->Self()<<" Primary: "<<pfp->IsPrimary()<<" PDG "<<pfp->PdgCode()<<" NDau: "<<pfp->NumDaughters()<<" Parent: "<<pfp->Parent()<<std::endl;
+                std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> metadatas = pfParticleToMetadataMap[pfp];
+                for(auto &meta: metadatas){
+                    std::map<std::string, float> propertiesmap  = meta->GetPropertiesMap();
+                    //for each of the things in the list
+                    if(propertiesmap.count("NuScore")==1){
+                        nu_scores.push_back(propertiesmap["NuScore"]);
+                    }
+                    if(propertiesmap.count("IsNeutrino")==1){
+                       isSelectedSlice = true; 
+                    }
+                }
 
-                if (!pfp->IsPrimary()) continue;
+                if (pfp->IsPrimary()) {
+                    primaries++;
+                    primary_pdg = (pfp->PdgCode());    
+                }
+                /*if (!pfp->IsPrimary()) continue;
                 // Check if this particle is identified as the neutrino
                 const int pdg(pfp->PdgCode());
                 const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
-                primaries++;
-                // If it is, lets get the vertex position
                 if(isNeutrino){
-                    found++;
-                    //Ok this is neutrino candidate. 
-
-                    std::cout<<"Found Neutrinoi Slice "<<s<<std::endl;
-                    for(auto &pfp: pfps){
-                        std::cout<<pfp->Self()<<" Primary: "<<pfp->IsPrimary()<<" PDG "<<pfp->PdgCode()<<" NDau: "<<pfp->NumDaughters()<<" Parent: "<<pfp->Parent()<<std::endl;
-                    }
-                    std::cout<<"************   Printing hierarcy "<<m_run_number<<" "<<m_subrun_number<<" "<<m_event_number<<" **************"<<std::endl;
-                    n_neutrino_candidate_pfp_id = pfp->Self();
-                    for (const size_t daughterId : pfp->Daughters()){
-                        n_dau++;
-                        auto dau = pfParticleMap[daughterId];
-                        std::cout<<"---> gen1 --->"<<daughterId<<" trkScore: "<<PFPToTrackScoreMap[dau]<<" PDG: "<<dau->PdgCode()<<" NumDau: "<<dau->NumDaughters()<<std::endl;
-                        auto tmp = dau;
-                        int n_gen = 2;
-                        for (const size_t granDaughterId : tmp->Daughters()){
-                            while(tmp->NumDaughters()>0 && n_gen < 4){
-                                for(int k=0; k< n_gen; k++){
-                                    std::cout<<"---> ";
-                                }
-                                auto grandau = pfParticleMap[granDaughterId];
-                                std::cout<<"gen"<<n_gen<<"  --->"<<granDaughterId<<" trkScore: "<<PFPToTrackScoreMap[grandau]<<" PDG: "<<grandau->PdgCode()<<" NumDau: "<<grandau->NumDaughters()<<std::endl;
-                                tmp = grandau;    
-                                n_gen++;
-                            }
-                            if(n_gen >=4) break;
-                        }
-
-                    }
-                    std::cout<<"************   Finished hierarcy **************"<<std::endl;
-
-                }
+                    isSelectedSlice = true; 
+                }*/
             }
 
-            if(found==1){
-                n_neutrino_slice = s;
-                std::cout<<"Found a neutrino slice @ slice "<<n_neutrino_slice<<" ID "<<slice->ID()<<" key "<<slice.key()<<" pdfID "<<n_neutrino_candidate_pfp_id<<std::endl;
-                std::cout<<"And there is "<<pfps.size()<<" PFParticles of which "<<primaries<<" are primary and "<<n_dau<<" are daughters of the Neutrino."<<std::endl;
-                if((int)pfps.size() > n_dau+1){
-                    std::cout<<"We're Missing Something!."<<std::endl;
+            if(nu_scores.size()>0){
+                double mean  = std::accumulate(nu_scores.begin(), nu_scores.end(), 0.0)/(double)nu_scores.size();
+                if(mean!=nu_scores.front()){
+                    std::cout<<"ERROR! Somehow the pfp's in this slice have different nu-scores? IMpossible."<<std::endl;
+                    exit(EXIT_FAILURE);
                 }
-                m_reco_slice_objects = (int)pfps.size();
-            }else if(found >1){
-                throw cet::exception("DetachedVertexFinder") << "  This event contains multiple reconstructed neutrinos! Size: "<<found<<std::endl;
-            }else if(found ==0){
-
+                std::cout<<"SliceTest: -- and has a nu_score of "<<nu_scores.front()<<std::endl;
+                std::cout<<"SliceTest: -- with "<<primaries<<" primaries: pdg last: "<<primary_pdg<<std::endl;
+            }else{
+                std::cout<<"SliceTest: -- and does not have a nu_score of. "<<std::endl;
             }
+            if(isSelectedSlice) std::cout<<"SliceTest: -- -- And is the Selected Neutrino Slice"<<std::endl;
+
         }
 
 
 
 
+        //OK here we will loop over all slices, most of the time JUST the neutrino slice. 
+
+        {
+
+
+
+
+
+            // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino
+            //At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.
+            //tracks is a vector of recob::Tracks and same for showers.
+            //Implicitly, tracks.size() + showers.size() =  nuParticles.size(); At this point I would like two things.
+            std::vector< art::Ptr<recob::Track> > tracks;
+            std::vector< art::Ptr<recob::Shower> > showers;
+            std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap; 
+            std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
+
+            if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Tracks and Showers"<<std::endl;
+            this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
+
+
+            //Track Calorimetry
+            art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
+            std::map<art::Ptr<recob::Track>, std::vector<art::Ptr<anab::Calorimetry>> > trackToCalorimetryMap;
+            //So a cross check
+            if (!calo_per_track.isValid())
+            {
+                mf::LogDebug("SinglePhoton") << "  Failed to get Assns between recob::Track and anab::Calorimetry.\n";
+                return;
+            }
+            for(size_t i=0; i< tracks.size(); ++i){
+                if(calo_per_track.at(tracks[i].key()).size() ==0){
+                    std::cerr<<"Track Calorimetry Breaking!  the vector of calo_per_track is of length 0 at this track."<<std::endl;
+                }
+
+                size_t calo_size = calo_per_track.at(tracks[i].key()).size();
+                //std::cout<<"Track Calo from producer: "<<m_caloLabel<<" has "<<calo_size<<" anab::Calorimetry objects associaed."<<std::endl;
+                trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key());
+                for(size_t k=0; k<calo_size; k++){
+                    //std::cout<<"Calo "<<k<<" PlaneID: "<<calo_per_track.at(tracks[i].key())[k]->PlaneID()<<std::endl;
+                }
+            }
+
+            art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, evt, m_pidLabel);
+            std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
+            if(m_use_PID_algorithms){
+                // Build a map to get PID from PFParticles, then call PID collection function
+                for(size_t i=0; i< tracks.size(); ++i){
+                    art::Ptr<recob::Track> track = tracks[i];
+                    trackToPIDMap[track] = pid_per_track.at(track.key());
+                }
+            }
+
+
+
+
+
+            //
+
+
+
+
+            //**********************************************************************************************/
+            //**********************************************************************************************/
+            //---------------------------------- MC TRUTH, MC Only---------------------------
+            //**********************************************************************************************/
+            //**********************************************************************************************/
+
+            //Get the MCtruth handles and vectors
+            std::vector<art::Ptr<simb::MCTruth>> mcTruthVector;
+            std::vector<art::Ptr<simb::MCParticle>> mcParticleVector;
+
+            //Then build a map from MCparticles to Hits and vice versa
+            std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  mcParticleToHitsMap;
+            std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  hitToMCParticleMap;
+
+            //Apparrently a MCParticle doesn't know its origin (thanks Andy!)
+            //I would also like a map from MCparticle to MCtruth and then I will be done.  and Vice Versa
+            //Note which map is which!       //First  is one-to-many.         //Second is one-to-one
+            std::map< art::Ptr<simb::MCTruth>,    std::vector<art::Ptr<simb::MCParticle>>>  MCTruthToMCParticlesMap;
+            std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>                  MCParticleToMCTruthMap;
+            std::map<int, art::Ptr<simb::MCParticle> >                                     MCParticleToTrackIdMap;
+
+            std::vector<art::Ptr<sim::MCTrack>> mcTrackVector;
+            std::vector<art::Ptr<sim::MCShower>> mcShowerVector;
+
+            std::vector<art::Ptr<simb::MCParticle>> matchedMCParticleVector;
+            std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > trackToMCParticleMap;
+            std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > showerToMCParticleMap;
+
+            //Given a simb::MCParticle we would like a map to either a sim::MCTrack or sim::MCShower
+            std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCTrack> > MCParticleToMCTrackMap;
+            std::map< art::Ptr<simb::MCParticle>, art::Ptr<sim::MCShower> > MCParticleToMCShowerMap;
+
+
+            //**********************************************************************************************/
+            //**********************************************************************************************/
+            //Some event based properties
+
+            m_number_of_events++;
+
+            m_run_number = evt.run();
+            m_subrun_number = evt.subRun();
+            m_event_number = evt.id().event();
+
+            if(vertexVector.size()>0){
+                m_number_of_vertices++;
+            }
+
+            //and now get the simb::MCparticle to both MCtrack and MCshower maps (just for the MCparticles matched ok).
+            badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
+
+            if(m_is_verbose){
+                std::cout << "SinglePhoton::analyze()\t||\t Consolidated event summary:" << "\n";
+                std::cout << "SinglePhoton::analyze()\t||\t - Number of primary cosmic-ray PFParticles   : " << crParticles.size() << "\n";
+                std::cout << "SinglePhoton::analyze()\t||\t - Number of neutrino final-state PFParticles : " << nuParticles.size() << "\n";
+                std::cout << "SinglePhoton::analyze()\t||\t    ... of which are track-like   : " << tracks.size() << "\n";
+                std::cout << "SinglePhoton::analyze()\t||\t    ... of which are showers-like : " << showers.size() << "\n";
+            }
+
+            //these are all filled in analyze slice
+            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+            std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> primaryPFPSliceIdVec; //stores a pair of only the primary PFP's in the event and the slice ind
+            std::map<int, double> sliceIdToNuScoreMap; //map between a slice Id and neutrino score
+            std::map<art::Ptr<recob::PFParticle>, bool> PFPToClearCosmicMap; //returns true for clear cosmic, false otherwise
+            std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap; //returns the slice id for all PFP's
+            std::map<art::Ptr<recob::PFParticle>,bool> PFPToNuSliceMap;
+            std::map<art::Ptr<recob::PFParticle>,double> PFPToTrackScoreMap;
+            std::map<int, int> sliceIdToNumPFPsMap;
+            std::cout<<"SinglePhoton::analyze::AnalyzeSlice()\t||\t Starting"<<std::endl;
+
+            this->AnalyzeSlices(pfParticleToMetadataMap, pfParticleMap,  primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap, PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap);
+            //std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
+            std::cout<<"SinglePhoton::analyze\t||\tthe number of PPF's with stored clear cosmic info is "<<PFPToClearCosmicMap.size()<<std::endl;
+            std::cout<<"SinglePhoton::analyze\t||\tthe number of PFP's stored in the PFPToSliceIdMap is "<<PFPToSliceIdMap.size()<<std::endl;
+            if (PFPToSliceIdMap.size() < 1){
+                std::cout<<"ERROR, not storing PFP's in PFPToSliceIdMap"<<std::endl;
+            }
+
+            for (auto pair:PFPToNuSliceMap){
+                auto pfp = pair.first;
+                auto is_nuslice = pair.second;
+                if (is_nuslice){
+                    std::cout<<"pfp in nuslice "<<pfp->Self()<<std::endl;
+                }
+
+            }
+
+            for (auto pair:sliceIDToPFParticlesMap){ 
+                std::vector<art::Ptr<recob::PFParticle>> pfp_vec = pair.second;
+                int slice_id = pair.first;
+                //if (slice_vec[0]->Slice() != PFPToSliceIdMap[pfp] )
+                for(auto pfp: pfp_vec){
+                    if (slice_id != PFPToSliceIdMap[pfp] && PFPToSliceIdMap[pfp]>=0){
+                        std::cout<<"sliceIDToPFParticlesMap[slice->ID()] for pfp "<<pfp->Self()<<" is slice "<< slice_id<< "but PFPToSliceIdMap[pfp] = "<<PFPToSliceIdMap[pfp]<<std::endl;
+                    }
+                }
+
+            }
+
+
+
+            //if CRT info, get CRT hits
+            art::Handle<std::vector<crt::CRTHit>> crthit_h; //only filled when there are hits, otherwise empty
+            art::Handle<raw::DAQHeaderTimeUBooNE> rawHandle_DAQHeader;
+            double evt_timeGPS_nsec = -999 ;
+            if(m_runCRT){
+                evt.getByLabel(m_DAQHeaderProducer, rawHandle_DAQHeader);
+
+                evt.getByLabel(m_CRTHitProducer, crthit_h);
+                raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
+                art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
+                evt_timeGPS_nsec = evtTimeGPS.timeLow(); 
+
+                std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
+            }
+
+            this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec);
+            //   this->AnalyzeFlashes(flashVector, crthit_h);
+
+            std::cout<<"start track"<<std::endl;
+            this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
+            this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
+
+
+            if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
+            this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap,pfParticleMap,pfParticlesToShowerReco3DMap); 
+            this->AnalyzeKalmanShowers(showers,showerToNuPFParticleMap,pfParticlesToShowerKalmanMap, kalmanTrackToCaloMap, pfParticleToHitsMap);
+
+
+            // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
+            // MCShower and MCTrack come from energy depositions in GEANT4
+            if(!m_is_data){
+
+                art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle= evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
+                art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
+
+                art::ValidHandle<std::vector<simb::MCParticle>> const & mcParticleHandle= evt.getValidHandle<std::vector<simb::MCParticle>>(m_geantModuleLabel);
+                art::fill_ptr_vector(mcParticleVector,mcParticleHandle);
+
+
+
+
+                //testbed(mcParticleVector,evt);
+
+                /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
+                        for(size_t j=0;j< mcParticleVector.size();j++){
+                        const art::Ptr<simb::MCParticle> mcp = mcParticleVector[j];
+                        std::cout<<"PARG: "<<j<<" trackid: "<<mcp->TrackId()<<" key: "<<mcp.key()<<std::endl;
+                        crap_map[mcp->TrackId()] = mcParticleVector[mcp.key()];
+                        }
+                        */
+
+                //Get the MCParticles (move to do this ourselves later)
+                this->CollectMCParticles(evt, m_geantModuleLabel, MCTruthToMCParticlesMap, MCParticleToMCTruthMap, MCParticleToTrackIdMap);
+
+                //OK lets get all set up with sim::MCTrack and sim::MCShower .
+
+                //   art::ValidHandle<std::vector<sim::MCTrack>> const & mcTrackHandle  = evt.getValidHandle<std::vector<sim::MCTrack>>(m_mcTrackLabel);
+                // art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
+                //  art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
+                //  art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
+
+                art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
+
+
+                //mcc9 march miniretreat fix
+                std::vector<art::Ptr<simb::MCParticle>> particle_vec; //vector of all MCParticles associated with a given hit in the reco PFP
+                std::vector<anab::BackTrackerHitMatchingData const *> match_vec; //vector of some backtracker thing
+
+                m_test_matched_hits = 0;
+
+                for(size_t j=0; j<hitVector.size();j++){
+                    const art::Ptr<recob::Hit> hit = hitVector[j];
+
+                    particle_vec.clear(); match_vec.clear(); //only store per hit
+
+                    mcparticles_per_hit.get(hit.key(), particle_vec, match_vec);
+
+                    if(particle_vec.size() > 0){
+                        m_test_matched_hits++;
+                    }
+
+                }
+
+
+                this->BuildMCParticleHitMaps(evt, m_geantModuleLabel, hitVector,  mcParticleToHitsMap, hitToMCParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters,  MCParticleToTrackIdMap);
+
+                std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::track"<<std::endl;
+                std::vector<double> trk_overlay_vec = recoMCmatching<art::Ptr<recob::Track>>( tracks, trackToMCParticleMap, trackToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector);
+
+
+                std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
+                this->showerRecoMCmatching(showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap);
+
+
+                //photoNuclearTesting(matchedMCParticleVector);
+
+
+
+                //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+
+                //looking at metadata
+                //std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
+                /*std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+                  std::cout<<"SinglePhoton\t||\t Analyze Metadata"<<std::endl;
+                  this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec);
+                  std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
+                  if (showers.size()>0){
+                  std::cout<<"the shower at 0 is in slice "<<this->GetShowerSlice(showers[0], showerToNuPFParticleMap, allPFPSliceIdVec)<<std::endl;
+                  }
+
+                  this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap);
+
+                  for(auto & track: tracks){
+                  std::cout<<"CHECKTRACK 0: "<<trackToMCParticleMap.count(track)<<std::endl;
+                  }*/
+
+                //  perfectRecoMatching<art::Ptr<sim::MCTrack>>(matchedMCParticleVector, mcTrackVector, MCParticleToMCTrackMap);
+                // perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
+                //OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
+
+
+                //for(auto & shower: showers){
+                //    auto mp = showerToMCParticleMap[shower];
+                //    std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
+                //}
+
+
+
+                this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector, MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,trk_overlay_vec);
+
+
+                //Obsolete function
+                //this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
+                this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
+
+                if(m_is_verbose)std::cout<<"Starting AnalyzeEventWeight"<<std::endl;
+                this->AnalyzeEventWeight(evt);
+
+                //added since last time?
+                std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+
+                /*   std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+                     std::map<int, std::vector<art::Ptr<recob::PFParticle>>> sliceIdToPFPMap; //this is an alternative, stores all the PFP's but organized by slice ID
+                     >>>>>>> 37870fe8094e854e1661be2442637aaaeea236c9
+                     std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
+                     this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec, sliceIdToPFPMap);
+                     std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
+                     if (showers.size()>0){
+                     std::cout<<"the shower at 0 is in slice "<<this->GetShowerSlice(showers[0], showerToNuPFParticleMap, allPFPSliceIdVec)<<std::endl;
+                     }
+                     */
+
+                //this one was for testing, leaving out for now
+                // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
+                if(m_is_verbose)std::cout<<"Starting SecondShowerSearch"<<std::endl;
+                this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+
+                std::cout<<"filling info in ncdelta slice tree"<<std::endl;
+                this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
+
+                if (m_print_out_event){
+                    if (m_matched_signal_shower_num != 1 || m_matched_signal_track_num != 1){
+                        out_stream <<"run subrunevent "<<m_run_number<<" "<<m_subrun_number<<" "<<m_event_number<<"\n";
+                    }
+
+                }
+                std::cout<<"Going to grab eventweightSplines for CCQE genie fix, won't be necessary long term"<<std::endl;
+                art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw ;
+                if(    evt.getByLabel("eventweightSplines",ev_evw)){
+
+                    std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
+                    if(ev_evw->size() > 1) std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"<< "WARNING: eventweight slice genie fix has more than one entry\n";
+                    //m_genie_spline_weight=weight_map;
+                    for (auto const& x : weight_map){
+                        std::cout << x.first  // string (key)
+                            << ':' 
+                            << x.second.size() << std::endl ;
+                        if(x.second.size()==1){
+                            m_genie_spline_weight = x.second.front();
+                        }
+                    }
+
+                }else{
+                    std::cout<<"No data producet called eventweightSplines"<<std::endl;
+                    m_genie_spline_weight =1.0;
+                }
+
+
+                std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
+            }else{
+
+                art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> * tmp_mcparticles_per_hit = NULL;
+                std::vector<art::Ptr<simb::MCParticle>> tmp_matchedMCParticleVector;
+
+                this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,*tmp_mcparticles_per_hit, tmp_matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+
+
+            }
+
+            //Second Shower Search-Pandora style
+            if(!m_run_all_pfps){
+                if(!m_is_data) {
+                    //        this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+                }else{
+                    //                this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,NULL,NULL,NULL,NULL);
+                }
+
+                //Isolation
+                this-> IsolationStudy(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
+            }
+
+
+            //This is a quick check 
+
+            size_t n_neutrino_slice=0;
+            size_t n_neutrino_candidate_pfp_id=0;
+
+            for(size_t s=0; s< sliceVector.size(); s++){
+                auto slice = sliceVector[s];
+                std::vector<art::Ptr<recob::PFParticle>> pfps = sliceToPFParticlesMap[slice]; 
+
+                int primaries=0;
+                int n_dau=0;
+                int found = 0;
+                //std::cout<<"Starting a loop over "<<pfps.size()<<" pfparticles"<<std::endl;
+                for(auto &pfp: pfps){
+                    //std::cout<<pfp->Self()<<" Primary: "<<pfp->IsPrimary()<<" PDG "<<pfp->PdgCode()<<" NDau: "<<pfp->NumDaughters()<<" Parent: "<<pfp->Parent()<<std::endl;
+
+                    if (!pfp->IsPrimary()) continue;
+                    // Check if this particle is identified as the neutrino
+                    const int pdg(pfp->PdgCode());
+                    const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
+                    primaries++;
+                    // If it is, lets get the vertex position
+                    if(isNeutrino){
+                        found++;
+                        //Ok this is neutrino candidate. 
+
+                        std::cout<<"Found Neutrinoi Slice "<<s<<std::endl;
+                        for(auto &pfp: pfps){
+                            std::cout<<pfp->Self()<<" Primary: "<<pfp->IsPrimary()<<" PDG "<<pfp->PdgCode()<<" NDau: "<<pfp->NumDaughters()<<" Parent: "<<pfp->Parent()<<std::endl;
+                        }
+                        std::cout<<"************   Printing hierarcy "<<m_run_number<<" "<<m_subrun_number<<" "<<m_event_number<<" **************"<<std::endl;
+                        n_neutrino_candidate_pfp_id = pfp->Self();
+                        for (const size_t daughterId : pfp->Daughters()){
+                            n_dau++;
+                            auto dau = pfParticleMap[daughterId];
+                            std::cout<<"---> gen1 --->"<<daughterId<<" trkScore: "<<PFPToTrackScoreMap[dau]<<" PDG: "<<dau->PdgCode()<<" NumDau: "<<dau->NumDaughters()<<std::endl;
+                            auto tmp = dau;
+                            int n_gen = 2;
+                            for (const size_t granDaughterId : tmp->Daughters()){
+                                while(tmp->NumDaughters()>0 && n_gen < 4){
+                                    for(int k=0; k< n_gen; k++){
+                                        std::cout<<"---> ";
+                                    }
+                                    auto grandau = pfParticleMap[granDaughterId];
+                                    std::cout<<"gen"<<n_gen<<"  --->"<<granDaughterId<<" trkScore: "<<PFPToTrackScoreMap[grandau]<<" PDG: "<<grandau->PdgCode()<<" NumDau: "<<grandau->NumDaughters()<<std::endl;
+                                    tmp = grandau;    
+                                    n_gen++;
+                                }
+                                if(n_gen >=4) break;
+                            }
+
+                        }
+                        std::cout<<"************   Finished hierarcy **************"<<std::endl;
+
+                    }
+                }
+
+                if(found==1){
+                    n_neutrino_slice = s;
+                    std::cout<<"Found a neutrino slice @ slice "<<n_neutrino_slice<<" ID "<<slice->ID()<<" key "<<slice.key()<<" pdfID "<<n_neutrino_candidate_pfp_id<<std::endl;
+                    std::cout<<"And there is "<<pfps.size()<<" PFParticles of which "<<primaries<<" are primary and "<<n_dau<<" are daughters of the Neutrino."<<std::endl;
+                    if((int)pfps.size() > n_dau+1){
+                        std::cout<<"We're Missing Something!."<<std::endl;
+                    }
+                    m_reco_slice_objects = (int)pfps.size();
+                }else if(found >1){
+                    throw cet::exception("DetachedVertexFinder") << "  This event contains multiple reconstructed neutrinos! Size: "<<found<<std::endl;
+                }else if(found ==0){
+
+                }
+            }
 
 
 
@@ -846,10 +868,14 @@ namespace single_photon
 
 
 
+            //---------------------- END OF LOOP, fill vertex ---------------------
 
-        //---------------------- END OF LOOP, fill vertex ---------------------
+            vertex_tree->Fill();
 
-        vertex_tree->Fill();
+            this->ClearVertex();
+        }//loop over slices of interest
+
+
         ncdelta_slice_tree->Fill();
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
@@ -1045,13 +1071,19 @@ namespace single_photon
 
         if(m_potLabel != ""){
             if(m_potLabel == "generator"){
-                double this_pot =  sr.getValidHandle<sumdata::POTSummary>(m_potLabel)->totgoodpot;
-                m_pot_count += this_pot;
-                std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<std::endl;
+               
+                art::Handle<sumdata::POTSummary> gen_pot_hand;
+                if(sr.getByLabel(m_potLabel,gen_pot_hand)){
+                    double this_pot =  gen_pot_hand->totgoodpot;
+                    m_pot_count += this_pot;
+                    std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
+                }
             }else{
+
                 art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR875;
                 if (sr.getByLabel("beamdata","bnbETOR875",potSummaryHandlebnbETOR875)){
                     m_pot_count += potSummaryHandlebnbETOR875->totpot;
+                    std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<potSummaryHandlebnbETOR875->totpot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
                 }
             }
         }
