@@ -770,6 +770,25 @@ namespace single_photon
         }
 
 
+int    SinglePhoton::photoNuclearTesting(std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector){
+
+
+    for(auto &mcp: mcParticleVector){
+            int pdg = mcp->PdgCode();
+            std::string end_process  = mcp->EndProcess();
+            int status =  mcp->StatusCode()         ; 
+
+
+            if(pdg==22){
+                std::cout<<"PHOTO: "<<status<<" "<<end_process<<std::endl;
+            }
+    }
+
+
+    return 0;
+
+}
+
     /*
        void testbed( std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector, const art::Event &evt){
 

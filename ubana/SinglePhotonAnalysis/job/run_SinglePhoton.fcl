@@ -43,7 +43,7 @@ physics: {
      # ParameterSets for zero or more producer modules
      #pidcalibration: @local::microboone_calibrationdedx
      #dedxcalibration: @local::simulation_calibration
-     pid: @local::particleidconfig
+     #pid: @local::particleidconfig
      #pid: @local::producerlabels_mcc9
      #showerreco3dpandora : @local::ShrReco3DPandora
   }
@@ -51,9 +51,9 @@ physics: {
  analyzers: {}
  filters : {
         #singlephotonfil: @local::singlephoton_filter   #run in filtering mode
-        singlephotonana: @local::singlephoton_filter   #run in filtering mode
+        singlephotonana: @local::singlephoton_analyzer   #run in ana mode
   }
-    pathana : [pid , singlephotonana] #path for analysis
+    pathana : [singlephotonana] #path for analysis
 
  trigger_paths : [pathana]
  end_paths: [ ]
@@ -74,6 +74,3 @@ services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
 services.DetectorClocksService.TrigModuleName:               "daq"
 services.DetectorClocksService.InheritClockConfig: false
 
-# PID stuff
-physics.producers.pid.ProducerLabels.TrackLabel: "pandora"
-physics.producers.pid.ProducerLabels.CalorimetryLabel: "pandoracaliSCE"

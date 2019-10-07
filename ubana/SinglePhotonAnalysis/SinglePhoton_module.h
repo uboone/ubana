@@ -510,6 +510,7 @@ namespace single_photon
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap);
 
 
+                int   photoNuclearTesting(std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector);
 
 
             //---------------- MCTruths ----------------------------
@@ -1221,6 +1222,22 @@ namespace single_photon
             int m_mctruth_num_daughter_particles;
             std::vector<int> m_mctruth_daughters_pdg;
             std::vector<double> m_mctruth_daughters_E;
+
+        std::vector<int> m_mctruth_daughters_status_code;
+        std::vector<int> m_mctruth_daughters_trackID;
+        std::vector<int> m_mctruth_daughters_mother_trackID;
+        std::vector<double> m_mctruth_daughters_px;
+        std::vector<double> m_mctruth_daughters_py;
+        std::vector<double> m_mctruth_daughters_pz;
+        std::vector<double> m_mctruth_daughters_startx;
+        std::vector<double> m_mctruth_daughters_starty;
+        std::vector<double> m_mctruth_daughters_startz;
+        std::vector<double> m_mctruth_daughters_time;
+        std::vector<double> m_mctruth_daughters_endx;
+        std::vector<double> m_mctruth_daughters_endy;
+        std::vector<double> m_mctruth_daughters_endz;
+        std::vector<double> m_mctruth_daughters_endtime;
+
 
             int     m_mctruth_num_exiting_photons ;
             int      m_mctruth_num_exiting_protons ;

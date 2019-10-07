@@ -1099,6 +1099,7 @@ namespace single_photon
 
                 //int planeid = 2;
                 for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++) {
+
                     anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
                     //int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
                     int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
