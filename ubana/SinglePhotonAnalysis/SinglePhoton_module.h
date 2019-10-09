@@ -803,6 +803,13 @@ namespace single_photon
 		double m_vertex_pos_wire_p0;
 		double m_vertex_pos_wire_p2;
 		double m_vertex_pos_wire_p1;
+
+		int m_reco_asso_showers;
+		double m_reco_vertex_to_nearest_dead_wire_plane0;
+		double m_reco_vertex_to_nearest_dead_wire_plane1;
+		double m_reco_vertex_to_nearest_dead_wire_plane2;
+
+		//------------ VertexBuilder -------------
 		double m_bobbyvertex_pos_x;
 		double m_bobbyvertex_pos_y;
 		double m_bobbyvertex_pos_z;
@@ -813,15 +820,12 @@ namespace single_photon
 		int m_bobbytracks;
 		std::vector<int> m_bobbyshowersv;
 		std::vector<int> m_bobbytracksv;
+		std::vector<std::vector<int>> m_bobbyshowerindices;
+	//std::vector<std::vector<int>> m_bobbyshowersv_parent_pdg;
+		std::vector<std::vector<int>> m_bobbytrackindices;
 		bool m_bobbyvertexing_more;
 
 
-		int m_reco_asso_showers;
-		double m_reco_vertex_to_nearest_dead_wire_plane0;
-		double m_reco_vertex_to_nearest_dead_wire_plane1;
-		double m_reco_vertex_to_nearest_dead_wire_plane2;
-
-		//------------ VertexBuilder -------------
 		vector <double> m_dist_tt;//track&track, start_prox
 		vector <double> m_dist_sx;//shower&anything, shower_prox
 		vector <double> m_dist_st;//shower&track, cpoa_vert_prox

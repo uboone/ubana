@@ -288,7 +288,7 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
 	}
 
 	if(fverbose) {
-		std::cout << "STEP I: Load " << pn.size() << " track end points for evaluation.\n\n";
+		std::cout << "STEP I: Load " << pn.size() << " track end points to be evaluated.\n\n";
 
 		if(pn.size()) {//Print the title
 			cout<<setw(9)<<right<<"Track ID ";
@@ -305,7 +305,7 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
 			}
 			for(int i = 0; i<screen_width; i++) 
 				cout<<"-";
-			cout<<"\n\nSTEP II: Look for vertex candidate among tracks:"<<endl;
+			cout<<"\n\nSTEP II: Look for a candidate vertex among tracks:"<<endl;
 		}
 	}
 
@@ -341,9 +341,7 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
 				}
 				f_dist_tt.push_back(dist);
 
-				if(fverbose)
-					std::cout << "distance btw them: " << dist << ", the shortest: "
-						<< best_dist << std::endl;
+				if(fverbose) std::cout << "distance btw them: " << dist << ", the shortest: "<< best_dist << std::endl;
 				//				if(dist==0) std::cout<<" Reject this point."<<endl;
 				if(dist < best_dist) {
 					if(fverbose)
@@ -380,7 +378,11 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
 
 		//#3 add more tracks around the vertex candidate
 		if(fverbose){
-			std::cout << "\n\nSTEP III: Add tracks around the best track (ID: "<< best_match->first<<") end point." <<endl;
+			std::cout << "\n\nSTEP III: Add tracks around the vertex candidate. ";
+			std::cout << "ID: "<< best_match->first<<" at (";
+			cout<<falgo.boundingSphere(points).Center().at(0)<<",";
+			cout<<falgo.boundingSphere(points).Center().at(1)<<",";
+			cout<<falgo.boundingSphere(points).Center().at(2)<<")"<<endl;
 		}
 
 		do {//have to break to leave.
@@ -390,14 +392,14 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
 			geoalgo::Point_t const & sphere_center = sphere.Center();//this sets the candidate vertex;
 
 			if(fverbose)
-				std::cout << "\tFind the distance between vertices and sphere centre; number of track end points to be considered: " << pn.size() << std::endl;
+				std::cout << "\t"<< pn.size()<<" track end points to be considered: "<<endl;
 
 			for(auto this_iterator = pn.begin(); this_iterator != pn.end(); ++this_iterator) {
 
 				double const dist = this_iterator->second->Dist(sphere_center);
 				if(fverbose){
 					std::cout << "\t\tTrack (ID: " << this_iterator->first<< ") end point ";
-					std::cout << "is at distant: " << dist << " sbest_dist: " << sbest_dist << std::endl;
+					std::cout << "is at distant: " << dist << " maximum allowed distance: " << sbest_dist << std::endl;
 				}
 
 				if(std::find(track_IDs.begin(), track_IDs.end(), this_iterator->first) != track_IDs.end()) {
@@ -408,7 +410,7 @@ void VertexBuilder::AssociateTracks(ParticleAssociations_all & pas) {//Group tra
 
 				if(dist < sbest_dist) {//when find a close track end point, attch it to the candidate vertex.
 					if(fverbose)
-						std::cout << "\t\t\tTake this track. Update the best distance!\n";
+						std::cout << "\t\t\tTake this track. Update the shortest distance!\n";
 					best_o = this_iterator;
 					sbest_dist = dist;
 				}
@@ -474,7 +476,7 @@ double VertexBuilder::FindClosestApproach(
 
 
 void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
-		
+
 	//for creterias, cr1=10, cr2, cr3..
 	//#1 load showers
 	//#2 find precandidate
@@ -516,35 +518,38 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 				}
 				for(int i = 0; i<screen_width; i++) 
 					cout<<"-";
-				cout<<"\n\n STEP II:Look for vertex candidates among showers."<<endl;
+				cout<<"\n\nSTEP II: Look for a precandidate vertex between a shower to other showers/tracks/candidate vertices."<<endl;
+				cout<<"Note: 'bkw point' means the point along the shower backward projection that gives the shortest distance to other objects."<<endl;
 			}
 		}
 
-  //#2 find precandidate among shower;
+		if(fverbose)	std::cout << "\tRemain "<< shower_map.size()<<" showers to be evaluated: "<<endl;
 		size_t best_shower_id = SIZE_MAX;
 		size_t best_other_id = SIZE_MAX;
 		size_t index = SIZE_MAX;//updated when the vertex candidate is associated as the last action.
-		bool addedToAnPas = false;//true means a shower is attached to a vertex candidate.
+		bool AddShowerToVertex = false;//true means a shower is attached to a vertex candidate.
 
-		Double_t best_dist = fshower_prox;//save the fshower_prox
+		Double_t best_dist = fshower_prox;//save the fshower_prox, distance form shower to shower/track/candidate vertex
 		geoalgo::Point_t best_vert(2000, 2000, 2000);
-		
-		//#1 find precandidate vertex for any showers (shower or track)
-//		for(auto const & c : shower_map) {//look at each shower candidate, 
+
+		//#2 find precandidate vertex for any showers to 1) other showers, 2) tracks, and 3) candidate vertex.
 		for(auto this_iterator = shower_map.begin(); this_iterator != shower_map.end(); ++ this_iterator) {//look at each shower candidate, 
 
-			if(fverbose)
-				std::cout << "\t\tLook at the shower (ID: " << this_iterator->first <<")"<< std::endl;
+			//#2.1 shower to shower
+			if(fverbose){
+				std::cout << "\t\tShower (ID: " << this_iterator->first <<")"<< std::endl;
+				std::cout << "\t\t\t Compare to other showers:"<<std::endl;
+			}
 
 			geoalgo::Point_t const & c_start = this_iterator->second->fcone.Start();
 			geoalgo::Vector_t const & c_dir = this_iterator->second->fcone.Dir();
 
-		for(auto that_iterator = std::next(this_iterator); that_iterator != shower_map.end(); ++ that_iterator) {//look at each shower candidate, 
-//			for(auto const & c2 : shower_map) {//compare showers
-				if(fverbose) std::cout << "\t\t\tCompare to a shower (ID: " << that_iterator->first <<")"<< std::endl;
+			for(auto that_iterator = std::next(this_iterator); that_iterator != shower_map.end(); ++ that_iterator) {//look at each shower candidate, 
+
+				if(fverbose) std::cout << "\t\t\t Shower (ID: " << that_iterator->first <<") ";
 
 				if( that_iterator->first == this_iterator->first) {
-					if(fverbose) std::cout << "\t\t\t\tSame shower, skip\n";
+					if(fverbose) std::cout << "is the same shower, skip (CHECK)\n";
 					continue;
 				}
 				geoalgo::Point_t temp_vert;
@@ -559,30 +564,35 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 				//update temp_vert as the mid point of these two points that gives the shortest distance.
 
 				if(fverbose)
-					std::cout << "\t\t\tCompare dist of shower bkw-projections, " << dist << ", and the shortest-dist so far is "
+					std::cout << "has bkw-projection distant to the current shower's bkw-projection, " << dist << ", and the shortest-dist so far is "
 						<< best_dist << ".\n";
 
 				double temp_dist = best_dist;//fshower_prox now is temp_dist
 
 				if(dist < temp_dist) {//min. impact parameter < max shower proximity threshold
 
-					if(fverbose) std::cout << "\t\t\t\tUpdate the shortest-dist and the precandidate vertex!\n";
+					if(fverbose) std::cout << "\t\t\t\t>>Take their mid point as the candidate vertex and update the shortest-dist!\n";
 
 					best_shower_id = this_iterator->first;
 					best_other_id = that_iterator->first;
 					best_vert = temp_vert;
 					best_dist = dist;
 					index = SIZE_MAX;
-					addedToAnPas = false;
+					AddShowerToVertex = false;
 				}
 			}
 
-			if(fverbose) std::cout << "\t\t >>Finish comparing showers to the shower with ID: "<<this_iterator->first<<endl;
+			//			if(fverbose) std::cout << "\t\t >>Finish comparing showers to the shower with ID: "<<this_iterator->first<<endl;
+			if(fverbose){ 
+				std::cout << "\t\t\t Finish comparison between shower and shower;\n"<<endl;
+				std::cout << "\t\t\t Compare to tracks:"<<std::endl;
+			}
 
+			//#2.2 shower to track
 			for(size_t const i : fdetos->GetTrackIndices()) {//compare tracks
 
 				if(fverbose)
-					std::cout << "\t\t\tCompare to a track with ID: " << i << std::endl;
+					std::cout << "\t\t\t Track (ID: " << i <<") ";
 
 				Track const & t = fdetos->GetTrack(i);
 
@@ -602,35 +612,37 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 				f_dist_sx.push_back(dist);
 
 				if(fverbose)
-					std::cout << "\t\t\tCompare the impact parameter to the track, " << dist << ", and the shortest_dist so far is "
-						<< best_dist << ".\n";
+					std::cout << "is distant to the bkw point, " << dist << ", and the shortest_dist so far is " << best_dist << ".\n";
 
 				if(dist < best_dist) {
 
-					if(fverbose) std::cout << "\t\t\t\tUpdate the shortest-dist and the precandidate vertex!\n";
-
+					if(fverbose) std::cout << "\t\t\t\t>>Take the bkw point as the precandidate vertex and update the shortest-dist!\n";
 					best_shower_id = this_iterator->first;
 					best_other_id = i;
 					best_vert = temp_vert;
 					best_dist = dist;
 					index  = SIZE_MAX;
-					addedToAnPas = false;
+					AddShowerToVertex = false;
 				}
 			}
 
-			if(fverbose) std::cout << "\t\t >>Finish comparing tracks to the shower with ID: "<<this_iterator->first<<endl;
+			//if(fverbose) std::cout << "\t\t >>Finish comparing tracks to the shower with ID: "<<this_iterator->first<<endl;
+			if(fverbose) {
+				std::cout << "\t\t\t Finish comparison between shower and track;\n"<<endl;
+				std::cout << "\t\t\t Compare to candidate vertex:"<<std::endl;
+			}
 
+			//#2.3 shower to vertex candidate
 			for(size_t i = 0; i < associations.size(); ++i) {//compare vertex candidates
 
 				if(fverbose)
-					std::cout << "\t\t\tCompare the impact parameter to the vertex candidate with ID: "
-						<< i << std::endl;
+					std::cout << "\t\t\t Vertex candidate vertex (ID: "<< i << " ) ";
 
 				ParticleAssociation const & pa = associations.at(i);
 
 				double dist = sqrt(falgo.SqDist(
-								pa.GetRecoVertex(),
-								geoalgo::HalfLine(c_start, c_dir*-1)));
+							pa.GetRecoVertex(),
+							geoalgo::HalfLine(c_start, c_dir*-1)));
 
 				if(first_time){
 					f_dist_sx.erase(f_dist_sx.begin());
@@ -638,404 +650,446 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 				}
 				f_dist_sx.push_back(dist);
 
-				if(fverbose)
-					std::cout << "\t\t\tCompare the impact parameter to the vertex candidate, " << dist << ", and the shortesest-dist so far, "
-						<< best_dist << ".\n";
+				if(fverbose) std::cout << "is distant to the bkw point, " << dist << ", and the shortest_dist so far is "<< best_dist<<".\n";
 
 				if(dist < best_dist) {
 
-					if(fverbose) std::cout << "\t\t\t\tUpdate the shortest-dist and the precandidate vertex!\n";
+					if(fverbose) std::cout << "\t\t\t\t>>Take this candidate vertex as the precandidate vertex and update the shortest-dist!\n";
 
 					best_shower_id = this_iterator->first;
 					best_other_id = SIZE_MAX;//shower matches no shower nor track.
 					best_vert = falgo.ClosestPt(pa.GetRecoVertex(), this_iterator->second->fcone);//c.second->fcone is a Trajectory_t
 					best_dist = dist;
 					index = i;//the ith association
-					addedToAnPas = true;
+					AddShowerToVertex = true;
 				}
 			}
-
-			if(fverbose) std::cout << "\t\t >>Finish comparing vertex candidates to the shower with ID: "<<this_iterator->first<<endl;
-
+			if(fverbose) std::cout << "\t\t\t Finish comparison between shower and candidate vertex; \n"<<endl;
 		}// >>Finish looking at all showers with other showers, tracks, and vertex candidates.
 		//it normally ends up with a shower with a small distance to another shower/track/vertex candidate
 
-
-		if(fverbose) std::cout << "\n\tA brief report after evaluating all showers:\n"
-			<< "\tThe shortest_dist to other objects: " << best_dist << ", which is required to be not further than "
-				<< fshower_prox << "\n";
-
-		if(best_dist >= fshower_prox) {//ds>=s_{max}
-			if(fverbose) std::cout << "\t\tFail to satisfy the above condition, NO shower is going to be considered.\n";
-			return;
-		} else{
-			if(fverbose) std::cout << "\t\tNext is to see if the found precandidate vertex qualified to be a vertex candidate.\n";
+		//#3 precandidate vertex promotion
+		if(fverbose){
+			cout << "STEP III: Promote the precandidate vertex."<<endl;
+			std::cout << "The shortest_dist btw the bkw point to other showers/tracks/candidate vertex is " << best_dist<<","<<endl; 
 		}
 
-//		if(fverbose) std::cout << "\tbest_shower_id: " << best_shower_id
-//			<< " best_dist: " << best_dist
-//				<< "\n\tindex: " << index << " == -1 ?\n";
+		if(best_dist >= fshower_prox) {//ds>=s_{max}
+			if(fverbose) std::cout << "\twhich is larger than "<<fshower_prox<< ", so no shower can be added to any vertex.\n";
+			return;
+		} else{
+			if(fverbose) std::cout << "\twhich is smaller than "<<fshower_prox<< ", so attempt promoting this precandidate vertex.\n";
+		}
+
+		//#3 Promote precandidate to candidate vertex, if it is 
+		//		1) candidate vertex already, promote it directly
+		//		2) shower or track, then create a candidate vertex if needed.
 		
-		//#2 see if the precandidate be qualified as a vertex candidate
-		if(addedToAnPas) { //the cloest object to the shower is a vertex candidate, so includes it into that vertex candidate (pas)
-
+		if(AddShowerToVertex) {
+		//#3.1 Precandidate vertex is a candidate vertex, add it and look at next shower;
+			if(fverbose) std::cout << "\t\tThe precandidate vertex is a candidate vertex. Take it."<<endl;
 			pas.AddShower(index, best_shower_id, best_vert);
+			shower_map.erase(best_shower_id);
+			continue;
+		}
+		std::cout << "\t\tThe precandidate vertex is:\n";
 
-		} else{//the cloest object to the shower is a shower or a track, rather than a vertex candidate; 
-		//the following determine whether to add this shower to a current vertex candidate with or without other objects,
-		//	or just create a new vertex candidate for it.
+		//#3.2 The precandidate vertex is not a candidate vertex, but it can be
+		//		1) from a shower and possibly promoted to candiate vertex.
+		//		2) from a track and possibly promoted to candiate vertex.
+		switch( fdetos->GetRecoType(best_other_id) ){
+			case 1://#3.2.1 shower that gives the precandidate vertex; if no candidate vertex is found nearby, create one
+				{//			if(reco_type == fdetos->fshower_reco_type) {}//the case of the shower associated to a shower
+					//check for nearby candidagte vertex
+					size_t association_index = SIZE_MAX;//a large number;
+					double best_association_dist = fcpoa_vert_prox;//dist between precandidate vertex and candidate vertex
+					bool found_candidate_vertex = false;
 
-			size_t association_index = SIZE_MAX;//a large number;
-			double best_association_dist = fcpoa_vert_prox;
-
-			if(fverbose) {
-				std::cout << "\t\tCheck if we can connect the to an existent vertex candidate. ";
-				std::cout << "Number of vertex candidates to be considered: " << associations.size() << std::endl;
-			}
-
-			for(size_t i = 0; i < associations.size(); ++i) {//find the cloest candidate vertex to the precandidate vertex
-
-
-				double const dist = best_vert.Dist(associations.at(i).GetRecoVertex());
-				if(first_time_2){
-					f_dist_st.erase(f_dist_st.begin());
-					first_time_2 = false;
-				}
-				f_dist_st.push_back(dist);
-
-				if(fverbose){
-					std::cout << "\t\t\tVertex candidate with ID: " << i << std::endl;
-					std::cout << ", whose distance to the new precandidate vertex : " << dist
-						<< "; compare this distance to the shortest_association_dist: "
-						<< best_association_dist << std::endl;
-				}
-				if(dist < best_association_dist) {//<fcpoa_vert_prox, Max. distance btw shower start & cloest approach (dp_max);
-
-					if(fverbose)
-						std::cout << "\t\t\t\tThe shortest_association_dist is updated.\n";
-
-					association_index = i;//get the index of association that gives the best association distance.
-					best_association_dist = dist;
-
-				}
-			}
-			
-			//get the type (shower/track) of object that is cloest to the shower that we are currently looking at
-			int const reco_type = fdetos->GetRecoType(best_other_id); //2 for track or 1 for shower;
-
-			if(fverbose) std::cout << "\t\tThe precandidate is obtained from the shower with:\n";
-
-			if(reco_type == fdetos->fshower_reco_type) {//the case of the shower associated to a shower
-
-				if(fverbose)
-					std::cout << "\t\t\ta shower\n"
-						<< "\t\t\tCompare the shortest_association_dist, "<< best_association_dist
-						<< ", which is required to be less than "
-						<< fcpoa_vert_prox << ".\n";//max. shower projection distance;
-
-				if(best_association_dist < fcpoa_vert_prox) {//this is a yes when the precandidate vertex is close to a candidate vertex
-					if(fverbose) std::cout << "\t\t\t\tPass; promote the precandidate connecting two showers as a vertex candidate: "
-						<< association_index << std::endl;
-					pas.AddShower(association_index, best_shower_id, best_vert);
-					pas.AddShower(association_index, best_other_id, best_vert);
-
-				} else{//no candidate vertex around the precandidate vertex, then look for track endpoints instead.
-
-					size_t best_track = SIZE_MAX;
-					geoalgo::Point_t const * best_tp = nullptr;
-					geoalgo::Point_t const * best_other_tp = nullptr;
-					double best_showerp_dist = fcpoa_vert_prox;
-
-					for(size_t const i : fdetos->GetTrackIndices()) {//look at all tracks;
-
-						geoalgo::Trajectory const & t = fdetos->GetTrack(i).ftrajectory;
-
-						//look at two end points of a track, and see if one of them is close to the precandidate vertex
-						double const trackend_dist = t.back().Dist(best_vert);
-						if(trackend_dist < best_showerp_dist) {
-							best_track = i;
-							best_tp = &t.back();
-							best_other_tp = &t.front();
-							best_showerp_dist = trackend_dist;
-						}
-						double const trackstart_dist = t.front().Dist(best_vert);
-						if(trackstart_dist < best_showerp_dist) {
-							best_track = i;
-							best_tp = &t.front();
-							best_other_tp = &t.back();
-							best_showerp_dist = trackstart_dist;
-						}
-
+					if(fverbose) {
+						std::cout << "\t\tA shower bkw point;"<<endl;
+						std::cout << "\t\tSearch for a nearby candidate vertex among "<< associations.size()<< " existent candidate vertices:" <<endl;
 					}
 
-					if(best_showerp_dist < fcpoa_vert_prox) {//it means at least one track end points has been used to connect the precandidate vertex
+					for(size_t i = 0; i < associations.size(); ++i) {
+						double const dist = best_vert.Dist(associations.at(i).GetRecoVertex());
+						if(first_time_2){
+							f_dist_st.erase(f_dist_st.begin());
+							first_time_2 = false;
+						}
+						f_dist_st.push_back(dist);
 
-						std::vector<size_t> const & index_positions =
-							pas.GetAssociationIndicesFromObject(best_track);//iterator that gives the best_track inside pas;
-						switch(index_positions.size()){
-							case 0://not an end point is associated to a candidate vertex;
-								{//this is possible. OMG CHECK, this might mean the track is not an associated one.
-									if(fverbose) {
-										std::cout << "\t\t\t\tFail, create a new candiate vertex\n";
-										if(best_tp == nullptr) std::cout << "The track-end point does not exist!\n";//tp = track point
+						if(fverbose){
+							std::cout << "\t\t\tVertex candidate (ID: " << i <<") with distant "<< dist;
+							std::cout<< ", and the shortest_dist so far is " << best_association_dist << std::endl;
+						}
+
+						if(dist < best_association_dist) {//<fcpoa_vert_prox, Max. distance btw shower start & cloest approach (dp_max);
+							if(fverbose)
+								std::cout << "\t\t\t\t>>Find a nearby candidate vertex, update the shortest_dist.\n";
+
+							association_index = i;//get the index of association that gives the best association distance.
+							best_association_dist = dist;
+							found_candidate_vertex = true;
+						}
+					}
+					if(fverbose) std::cout << "\t\t\t Finish candidate vertex search.\n"<<endl;
+
+
+					if(fverbose){
+						//							<< "Compare the shortest_association_dist, "<< best_association_dist
+						//							<< ", which is required to be less than "
+						//							<< fcpoa_vert_prox << ".\n";//max. shower projection distance;
+					}
+
+					//if(best_association_dist >= fcpoa_vert_prox){} //this is a yes when the precandidate vertex is close to a candidate vertex
+					if(found_candidate_vertex){//candidate vertex is nearby
+
+						if(fverbose) {
+							std::cout << "\t\t\t\t>>Find a candidate vertex (ID: "<< association_index; 
+							std::cout<<") near the bkw point, so add both showers (ID: ";
+							std::cout<<best_shower_id<<" "<<best_other_id<<") to that candidate vertex."<< std::endl;
+						}
+						pas.AddShower(association_index, best_shower_id, best_vert);
+						pas.AddShower(association_index, best_other_id, best_vert);
+
+					} else{//Take the candidate vertex
+						if(fverbose) std::cout << "\t\tSearch for nearby track end point:"<<endl;
+
+						size_t best_track = SIZE_MAX;
+						geoalgo::Point_t const * best_tp = nullptr;
+						geoalgo::Point_t const * best_other_tp = nullptr;
+						double best_showerp_dist = fcpoa_vert_prox;
+						bool promote_the_precandidate = false;
+
+						for(size_t const i : fdetos->GetTrackIndices()) {//look at all tracks;
+
+							geoalgo::Trajectory const & t = fdetos->GetTrack(i).ftrajectory;
+							//look at two end points of a track, and see if one of them is close to the precandidate vertex
+							double const trackend_dist = t.back().Dist(best_vert);
+							if(fverbose){
+								std::cout << "\t\t\tStart point from the track (ID: " << i <<"): ";
+								std::cout << "distance btw them: " << trackend_dist << ", the shortest: "<< best_showerp_dist << std::endl;
+							}
+							if(trackend_dist < best_showerp_dist) {
+
+								best_track = i;
+								best_tp = &t.back();
+								best_other_tp = &t.front();
+								best_showerp_dist = trackend_dist;
+								promote_the_precandidate = true;
+								if(fverbose) std::cout << "\t\t\t\t>>Take this track end point as the closest!\n\n";	
+							}
+
+							double const trackstart_dist = t.front().Dist(best_vert);
+
+							if(fverbose){
+								std::cout << "\t\t\tEnd point from the track (ID: " << i <<"): ";
+								std::cout << "distance btw them: " << trackstart_dist << ", the shortest: "<< best_showerp_dist << std::endl;
+							}
+							if(trackstart_dist < best_showerp_dist) {
+								best_track = i;
+								best_tp = &t.front();
+								best_other_tp = &t.back();
+								best_showerp_dist = trackstart_dist;
+								promote_the_precandidate = true;
+								if(fverbose) std::cout << "\t\t\t\t>>Take this track end point as the closest!\n\n";	
+							}
+							
+						}
+						if(fverbose) std::cout << "\t\t\t Finish nearby track end point search.\n"<<endl;
+
+						if(promote_the_precandidate) {//it means at least one track end points is close to the precandidate vertex
+
+							std::vector<size_t> const & index_positions =
+								pas.GetAssociationIndicesFromObject(best_track);//iterator that gives the best_track inside pas;
+							switch(index_positions.size()){
+								case 0://no track end point is found from the candidate vertices;
+									{
+										if(fverbose) {
+											std::cout << "\t\t\t\t>>This is a new track! Create a candidate vertex from ";
+											std::cout<<" the mid point btw the bkw point and track end point.\n";
+											if(best_tp == nullptr) std::cout << "The track-end point does not exist!\n";//tp = track point
+										}
+
+										std::vector<size_t> objects;
+										objects.push_back(best_shower_id);//a shower
+										objects.push_back(best_other_id);//other shower 
+										objects.push_back(best_track);//the new track
+										std::vector<geoalgo::Point_t> verts(2, best_vert);//best_vert is the bkw point (of 2 showers);
+
+										verts.push_back(*best_tp);
+										pas.AddAssociation(objects,
+												verts,
+												geoalgo::Sphere(*best_tp, best_dist).Center(),//bounding sphere
+												best_dist);//"goodness"
 									}
+									break;
+								case 1://1 end point is found from the candidate vertices;
+									{
+										size_t const index =
+											pas.GetAssociationIndices().at(index_positions.front());
 
-									std::vector<size_t> objects;
+										geoalgo::Point_t const & added_point =
+											associations.at(index).GetVertexFromNode(best_track);//add the vertex candidate (obtained from two track end points) from pas;
+
+										double const point_dist = added_point.Dist(*best_tp);//bounding sphere radius, distance btw track end point and vertex candidate;
+										double const otherpoint_dist = added_point.Dist(*best_other_tp);//same as above, but with the other track end point;
+
+										if(otherpoint_dist < point_dist) {//another end point is cloeser than the chosen one;
+
+											if(associations.at(index).GetRecoVertex().
+													Dist(*best_tp) < fstart_prox) {//mid point of both showers, track end point, and candidate are nearby.
+												//if the vertex candidate is close enough to the track end point,
+												//		then we add both showers (the track was already associated) to this candidate vertex;
+												pas.AddShower(index, best_shower_id, best_vert);
+												pas.AddShower(index, best_other_id, best_vert);
+
+											} else {//the candidate vertex is far away from the track end point, 
+												//		then make a new candidate vertex for these 2 showers and the track;
+												if(fverbose) {
+													std::cout << "\t\t\t\t>>This is a new track! Create a candidate vertex from ";
+													std::cout<<" the mid point btw the bkw point and track end point.\n";
+													if(best_tp == nullptr) std::cout << "The track-end point does not exist!\n";//tp = track point
+												}
+
+												std::vector<size_t> showers;
+												showers.push_back(best_shower_id);
+												showers.push_back(best_other_id);
+												showers.push_back(best_track);
+												std::vector<geoalgo::Point_t> verts(2, best_vert);
+												verts.push_back(*best_tp);
+												pas.AddAssociation(showers,
+														verts,
+														geoalgo::Sphere(*best_tp, best_dist).Center(),
+														best_dist);
+											}
+										} else {//this is cloesd enought; associate both showers to the candidate vertex
+											pas.AddShower(index, best_shower_id, best_vert);
+											pas.AddShower(index, best_other_id, best_vert);
+										}
+									}
+									break;
+								case 2://2 end points are found from the candidate vertices;
+									{//for the track end point that is closer to the candidate vertex, 
+										//		add associate both showers respecting to that end point to the candidate vertex.
+										size_t const indexa =
+											pas.GetAssociationIndices().at(index_positions.front());
+										double dista = 
+											associations.at(indexa).GetRecoVertex().Dist(best_vert);
+
+										size_t const indexb =
+											pas.GetAssociationIndices().at(index_positions.back());   
+										double distb = 
+											associations.at(indexb).GetRecoVertex().Dist(best_vert);
+
+										if(dista < distb) {
+											pas.AddShower(indexa, best_shower_id, best_vert);
+											pas.AddShower(indexa, best_other_id, best_vert);
+										} else {
+											pas.AddShower(indexb, best_shower_id, best_vert);      
+											pas.AddShower(indexb, best_other_id, best_vert);
+										}
+									}
+									break;
+								default: {
+											 cout<<"WARNING, if you see this line, it means you find more than two end points on a track."<<endl;	
+											 cout<<__FILE__<<" at line "<<__LINE__<<endl;
+								}
+							}
+						} else {//no track end points are near the precandidate vertex
+							//	if(fverbose) std::cout << "\t\t\t\t>>promote the precandidate connecting two showers as a vertex candidate: ";
+
+							std::vector<size_t> showers;
+							showers.push_back(best_shower_id);
+							showers.push_back(best_other_id);
+							std::vector<geoalgo::Point_t> verts(2, best_vert);
+							geoalgo::Point_t temp_vert2 = geoalgo::Sphere(best_vert, best_dist).Center();
+							pas.AddAssociation(showers,
+									verts,
+									//geoalgo::Sphere(best_vert, best_dist).Center(),
+									temp_vert2,
+									best_dist);
+
+							if(fverbose) {
+								std::cout << "\t\t\t\t>>No candidate vertex or track end points near the bkw point,"<<endl;
+								std::cout<<"\t\t\t\t   so add both showers (ID: ";
+								std::cout<<best_shower_id<<" "<<best_other_id<<") to a new candidate vertex: (";
+								cout<<temp_vert2.at(0)<<",";
+								cout<<temp_vert2.at(1)<<",";
+								cout<<temp_vert2.at(2)<<")"<<endl;
+							}
+						}
+					} 
+
+					//					if(fverbose)	std::cout << "\t\t\t >>Finish comparing to the shower with ID: " << best_other_id << std::endl;
+					shower_map.erase(best_other_id);//When a shower is analyzed, eliminate it;
+				}
+				break;
+
+				//#3.2.2. the prevertex candidate is from a track.
+			case 2://track
+				{
+
+					//			{} else if(reco_type == fdetos->ftrack_reco_type) {}//the case that the precandidate vertex associates the shower to a track
+					//if(fverbose) std::cout << "\t\tThe precandidate is obtained from the shower with:\n";
+
+					if(fverbose) std::cout << "\t\tA track end point\n";
+
+					geoalgo::Trajectory const & t = fdetos->GetTrack(best_other_id).ftrajectory;
+
+					double best_trackend_dist = t.front().Dist(best_vert);
+					geoalgo::Point_t const * point = &t.front();
+					geoalgo::Point_t const * otherpoint = &t.back();
+
+					double const trackend_dist = t.back().Dist(best_vert);
+
+					if(first_time_3){
+						f_dist_sst.erase(f_dist_sst.begin());
+						first_time_3 = false;
+					}
+					f_dist_sst.push_back(trackend_dist);
+					if(trackend_dist < best_trackend_dist) {//compare edges of q track to best_vert point distance
+						//update the best if t.back() is the cloest to the best_vert
+						best_trackend_dist = trackend_dist;
+						point = &t.back();
+						otherpoint = &t.front();
+					}
+
+					if(fverbose)
+						std::cout << "\t\t\tbest_trackend_dist: "
+							<< best_trackend_dist
+							<< " < fcpoa_vert_prox: "
+							<< fcpoa_vert_prox << " ?\n";
+
+					if(best_trackend_dist < fcpoa_trackend_prox) {
+
+						std::vector<size_t> const index_positions =
+							pas.GetAssociationIndicesFromObject(best_other_id);
+						//this helps to find the object with best_other_id as value
+						// in the pas.
+
+						if(fverbose)
+							std::cout << "\t\t\t\tyes\n"
+								<< "\t\t\t\tindex_positions.size(): "
+								<< index_positions.size() << std::endl;
+
+						std::vector<size_t> objects;
+						std::vector<geoalgo::Point_t> verts;
+
+						switch(index_positions.size()){
+							case 0://the track has not been added to the pas;
+								{
+									if(fverbose)
+										std::cout << "\t\t\t\t\tsize 0\n";
+
 									objects.push_back(best_shower_id);
 									objects.push_back(best_other_id);
-									objects.push_back(best_track);
-									std::vector<geoalgo::Point_t> verts(2, best_vert);//mid-point of two showers;
-
-									verts.push_back(*best_tp);
+									verts.push_back(best_vert);
+									verts.push_back(*point);
 									pas.AddAssociation(objects,
 											verts,
-											geoalgo::Sphere(*best_tp, best_dist).Center(),//bounding sphere
-											best_dist);//"goodness"
+											geoalgo::Sphere(*point, best_dist).Center(),
+											best_dist);
 								}
 								break;
-							case 1://1 end point is associated to a candidate vertex;
+							case 1://the track has 1 end point added to the pas;
 								{
+									if(fverbose)
+										std::cout << "\t\t\t\t\tsize 1\n";
+
 									size_t const index =
 										pas.GetAssociationIndices().at(index_positions.front());
 
 									geoalgo::Point_t const & added_point =
-										associations.at(index).GetVertexFromNode(best_track);//add the vertex candidate (obtained from two track end points) from pas;
+										associations.at(index).GetVertexFromNode(best_other_id);
 
-									double const point_dist = added_point.Dist(*best_tp);//bounding sphere radius, distance btw track end point and vertex candidate;
-									double const otherpoint_dist = added_point.Dist(*best_other_tp);//same as above, but with the other track end point;
+									double const point_dist = added_point.Dist(*point);
+									double const otherpoint_dist = added_point.Dist(*otherpoint);
 
-									if(otherpoint_dist < point_dist) {//another end point is cloeser than the chosen one;
+									if(fverbose)
+										std::cout << "\t\t\t\t\totherpoint_dist: "
+											<< otherpoint_dist
+											<< " < point_dist: "
+											<< point_dist << " ?\n";
+
+									if(otherpoint_dist < point_dist) {
+
+										if(fverbose)
+											std::cout << "\t\t\t\t\t\tyes\n"
+												<< "\t\t\t\t\t\tcenter_point_dist: "
+												<< associations.at(index).GetRecoVertex().Dist(*point)
+												<< " < fstart_prox: " << fstart_prox << " ?\n";
 
 										if(associations.at(index).GetRecoVertex().
-												Dist(*best_tp) < fstart_prox) {//mid point of both showers, track end point, and candidate are nearby.
-												//if the vertex candidate is close enough to the track end point,
-												//		then we add both showers (the track was already associated) to this candidate vertex;
+												Dist(*point) < fstart_prox) {
+											if(fverbose) std::cout << "\t\t\t\t\t\t\tyes\n";
 											pas.AddShower(index, best_shower_id, best_vert);
-											pas.AddShower(index, best_other_id, best_vert);
+										} else {
 
-										} else {//the candidate vertex is far away from the track end point, 
-												//		then make a new candidate vertex for these 2 showers and the track;
-											if(fverbose) {
-												std::cout << "\t\t\t\tFail, create a new candiate vertex\n";
-												if(best_tp == nullptr) std::cout << "The track-end point does not exist!\n";//tp = track point
-											}
-
-											std::vector<size_t> showers;
-											showers.push_back(best_shower_id);
-											showers.push_back(best_other_id);
-											showers.push_back(best_track);
-											std::vector<geoalgo::Point_t> verts(2, best_vert);
-											verts.push_back(*best_tp);
-											pas.AddAssociation(showers,
+											objects.push_back(best_shower_id);
+											objects.push_back(best_other_id);
+											//		std::vector<geoalgo::Point_t> verts;
+											verts.push_back(best_vert);
+											verts.push_back(*point);
+											pas.AddAssociation(objects,
 													verts,
-													geoalgo::Sphere(*best_tp, best_dist).Center(),
-													best_dist);
+													geoalgo::Sphere(*point, best_dist).Center(),
+													best_dist);      
 										}
-									} else {//this is cloesd enought; associate both showers to the candidate vertex
-										pas.AddShower(index, best_shower_id, best_vert);
-										pas.AddShower(index, best_other_id, best_vert);
+									} else{
+
+										if(fverbose)
+											std::cout << "\t\t\t\t\t\tno\n"
+												<< "\t\t\t\t\t\tadd id: " << best_shower_id
+												<< " to association: " << index << std::endl;
+
+										pas.AddShower(index, best_shower_id, best_vert); 
 									}
 								}
 								break;
-							case 2://2 end points are associated to a candidate vertex;
-								{//for the track end point that is closer to the candidate vertex, 
-								//		add associate both showers respecting to that end point to the candidate vertex.
+							case 2://the track is inside the pas twice
+								{
+									if(fverbose)
+										std::cout << "\t\t\t\t\tsize 2\n";
+
 									size_t const indexa =
 										pas.GetAssociationIndices().at(index_positions.front());
 									double dista = 
 										associations.at(indexa).GetRecoVertex().Dist(best_vert);
 
-									size_t const indexb =
-										pas.GetAssociationIndices().at(index_positions.back());   
+									size_t const indexb = pas.GetAssociationIndices().at(index_positions.back());   
 									double distb = 
 										associations.at(indexb).GetRecoVertex().Dist(best_vert);
 
 									if(dista < distb) {
-										pas.AddShower(indexa, best_shower_id, best_vert);
-										pas.AddShower(indexa, best_other_id, best_vert);
+										pas.AddShower(indexa,
+												best_shower_id,
+												best_vert);
 									} else {
-										pas.AddShower(indexb, best_shower_id, best_vert);      
-										pas.AddShower(indexb, best_other_id, best_vert);
+										pas.AddShower(indexb,
+												best_shower_id,
+												best_vert);
 									}
 								}
 								break;
-							default: {}
+							default:
+								std::cout << "Warning: more than two indices found, node: "
+									<< best_other_id << std::endl;
 						}
-					} else {//no track end points are near the precandidate vertex
-						//Only add the (smallest impact parameter) point along shower bkw projection to the vertex candidate.
-						std::vector<size_t> showers;
-						showers.push_back(best_shower_id);
-						showers.push_back(best_other_id);
-						std::vector<geoalgo::Point_t> verts(2, best_vert);
-						pas.AddAssociation(showers,
-								verts,
-								geoalgo::Sphere(best_vert, best_dist).Center(),
-								best_dist);
+					} else {
+
+						if(fverbose) std::cout << "\t\t\t\tno\n";
+
+						pas.GetDetectorObjects().SetAssociated(best_shower_id);
 					}
 				}
-
-				if(fverbose)
-					std::cout << "\t\t\t >>Finish comparing to the shower with ID: " << best_other_id << std::endl;
-
-				shower_map.erase(best_other_id);//When a shower is analyzed, eliminate it;
-
-			} else if(reco_type == fdetos->ftrack_reco_type) {//the case that the precandidate vertex associates the shower to a track
-			//if(fverbose) std::cout << "\t\tThe precandidate is obtained from the shower with:\n";
-
-				if(fverbose) std::cout << "\t\t\ta track\n";
-
-				geoalgo::Trajectory const & t = fdetos->GetTrack(best_other_id).ftrajectory;
-
-				double best_trackend_dist = t.front().Dist(best_vert);
-				geoalgo::Point_t const * point = &t.front();
-				geoalgo::Point_t const * otherpoint = &t.back();
-
-				double const trackend_dist = t.back().Dist(best_vert);
-
-				if(first_time_3){
-					f_dist_sst.erase(f_dist_sst.begin());
-					first_time_3 = false;
-				}
-				f_dist_sst.push_back(trackend_dist);
-				if(trackend_dist < best_trackend_dist) {//compare edges of q track to best_vert point distance
-				//update the best if t.back() is the cloest to the best_vert
-					best_trackend_dist = trackend_dist;
-					point = &t.back();
-					otherpoint = &t.front();
-				}
-
-				if(fverbose)
-					std::cout << "\t\t\tbest_trackend_dist: "
-						<< best_trackend_dist
-						<< " < fcpoa_vert_prox: "
-						<< fcpoa_vert_prox << " ?\n";
-
-				if(best_trackend_dist < fcpoa_trackend_prox) {
-
-					std::vector<size_t> const index_positions =
-						pas.GetAssociationIndicesFromObject(best_other_id);
-					//this helps to find the object with best_other_id as value
-					// in the pas.
-
-					if(fverbose)
-						std::cout << "\t\t\t\tyes\n"
-							<< "\t\t\t\tindex_positions.size(): "
-							<< index_positions.size() << std::endl;
-
-					std::vector<size_t> objects;
-					std::vector<geoalgo::Point_t> verts;
-
-					switch(index_positions.size()){
-						case 0://the track has not been added to the pas;
-							{
-								if(fverbose)
-									std::cout << "\t\t\t\t\tsize 0\n";
-
-								objects.push_back(best_shower_id);
-								objects.push_back(best_other_id);
-								verts.push_back(best_vert);
-								verts.push_back(*point);
-								pas.AddAssociation(objects,
-										verts,
-										geoalgo::Sphere(*point, best_dist).Center(),
-										best_dist);
-							}
-							break;
-						case 1://the track has 1 end point added to the pas;
-							{
-								if(fverbose)
-									std::cout << "\t\t\t\t\tsize 1\n";
-
-								size_t const index =
-									pas.GetAssociationIndices().at(index_positions.front());
-
-								geoalgo::Point_t const & added_point =
-									associations.at(index).GetVertexFromNode(best_other_id);
-
-								double const point_dist = added_point.Dist(*point);
-								double const otherpoint_dist = added_point.Dist(*otherpoint);
-
-								if(fverbose)
-									std::cout << "\t\t\t\t\totherpoint_dist: "
-										<< otherpoint_dist
-										<< " < point_dist: "
-										<< point_dist << " ?\n";
-
-								if(otherpoint_dist < point_dist) {
-
-									if(fverbose)
-										std::cout << "\t\t\t\t\t\tyes\n"
-											<< "\t\t\t\t\t\tcenter_point_dist: "
-											<< associations.at(index).GetRecoVertex().Dist(*point)
-											<< " < fstart_prox: " << fstart_prox << " ?\n";
-
-									if(associations.at(index).GetRecoVertex().
-											Dist(*point) < fstart_prox) {
-										if(fverbose) std::cout << "\t\t\t\t\t\t\tyes\n";
-										pas.AddShower(index, best_shower_id, best_vert);
-									} else {
-
-										objects.push_back(best_shower_id);
-										objects.push_back(best_other_id);
-										//		std::vector<geoalgo::Point_t> verts;
-										verts.push_back(best_vert);
-										verts.push_back(*point);
-										pas.AddAssociation(objects,
-												verts,
-												geoalgo::Sphere(*point, best_dist).Center(),
-												best_dist);      
-									}
-								} else{
-
-									if(fverbose)
-										std::cout << "\t\t\t\t\t\tno\n"
-											<< "\t\t\t\t\t\tadd id: " << best_shower_id
-											<< " to association: " << index << std::endl;
-
-									pas.AddShower(index, best_shower_id, best_vert); 
-								}
-							}
-							break;
-						case 2://the track is inside the pas twice
-							{
-								if(fverbose)
-									std::cout << "\t\t\t\t\tsize 2\n";
-
-								size_t const indexa =
-									pas.GetAssociationIndices().at(index_positions.front());
-								double dista = 
-									associations.at(indexa).GetRecoVertex().Dist(best_vert);
-
-								size_t const indexb = pas.GetAssociationIndices().at(index_positions.back());   
-								double distb = 
-									associations.at(indexb).GetRecoVertex().Dist(best_vert);
-
-								if(dista < distb) {
-									pas.AddShower(indexa,
-											best_shower_id,
-											best_vert);
-								} else {
-									pas.AddShower(indexb,
-											best_shower_id,
-											best_vert);
-								}
-							}
-							break;
-						default:
-							std::cout << "Warning: more than two indices found, node: "
-								<< best_other_id << std::endl;
+				break;
+			default:{
+						cout<<"If you see this line, it means you find an object that is neither track nor shower."<<endl;	
+						cout<<__FILE__<<" at line "<<__LINE__<<endl;
 					}
-				} else {
-
-					if(fverbose) std::cout << "\t\t\t\tno\n";
-
-					pas.GetDetectorObjects().SetAssociated(best_shower_id);
-				}
-			}
 		}
-
 		shower_map.erase(best_shower_id);
-
 	}
 
 }
@@ -1117,23 +1171,23 @@ void VertexBuilder::Run(ParticleAssociations_all & pas) {//Analysis the tracks &
   fdetos = &pas.GetDetectorObjects();//initialize an empty object;
 
 //Make two associations, for tracks and showers.
-  if(fverbose) std::cout << ">>>>> Associate tracks\n";
+  if(fverbose) std::cout << ">>>>> Associate tracks\n"<<endl;
 
   AssociateTracks(pas);//Gives candidate vertex from tracks.
 
   //fvbt is the object, it means.. if the object is not empty, do something.
 //  if(fvbt) fvbt->fassociation_track_number = pas.GetAssociations().size();
 
-  if(fverbose) std::cout << "\n>>>> Associate showers\n";
+  if(fverbose) std::cout << "\n>>>> Associate showers\n"<<endl;
 
   AssociateShowers(pas);//select associated candidates for showers
 
 //if(fvbt) fvbt->fassociation_shower_number = pas.GetAssociations().size();
 
 //CHECK, repeat for long objects? Add them into consideration even if they are not associated to a vertex?
-  if(fverbose) std::cout << ">>>> Add lone tracks\n";
+  if(fverbose) std::cout << ">>>> Add lone tracks\n"<<endl;
   AddLoneTracks(pas);
-  if(fverbose) std::cout << ">>>> Add lone showers\n";
+  if(fverbose) std::cout << ">>>> Add lone showers\n"<<endl;
   AddLoneShowers(pas);
 
   if(fverbose) std::cout << ">>>> Get shower associations\n";

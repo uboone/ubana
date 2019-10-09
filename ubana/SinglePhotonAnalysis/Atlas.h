@@ -83,6 +83,9 @@ namespace single_photon
 		std::map< art::Ptr<recob::Track>  , art::Ptr<recob::PFParticle>>	trackToNuPFParticleMap;
 		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
 
+		//Maps for simb objects;
+		std::map<int, art::Ptr<simb::MCParticle>> MCParticleToTrackIdMap;
+
 //The followings are taken care by the AnalyzeSlices() in analyze_Slice.h
 		std::map<int, double>											sliceIdToNuScoreMap;
 		//Pairs that connect PFParticle to sliceID.
@@ -191,7 +194,7 @@ namespace single_photon
 			mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
 			return;
 		}
-
+;
 	
 		//Ingredient 2: FindManyPs; these will be gone when construction finished
 		art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  labels[4]);

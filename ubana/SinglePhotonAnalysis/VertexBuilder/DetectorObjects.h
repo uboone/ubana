@@ -78,8 +78,8 @@ class DetectorObjects_all {
 
 public:
 
-  int const ftrack_reco_type;
-  int const fshower_reco_type;
+  int const ftrack_reco_type;//default value as 1
+  int const fshower_reco_type;//default value as 2
 
   DetectorObjects_all();
 
