@@ -21,6 +21,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 
+#include "ubobj/CRT/CRTHit.hh"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -57,6 +58,7 @@
 #include "FiducialVolume.h"
 #include "BackTrackerTruthMatch.h"
 #include "RecoTruthMCParticle.h"
+#include "BrokenTrack.h"
 
 class SingleMuon;
 
@@ -145,9 +147,15 @@ private:
   std::vector<bool> true_trk_ifcontained; // True track if contained or not
   std::vector<bool> true_vtxFV; // True track if contained or not
 
+  bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
+  bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
+
   bool if_selected = false; // If selected based on the reco info
   bool if_matchMu = false; // If the selected track matched with true muon from numu cc
   bool if_cosmic = true; // Check if a track is cosmic or not by if it has an associated MCParticle
+
+  bool if_broken = false; // if find broken track
+  bool if_newTrkThroughGoing = false; // if the new track is through going
 
   std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
   std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
@@ -187,6 +195,7 @@ private:
   std::vector<double> trk_length_avg;//Range momentum of muon track in the every event
   std::vector<double> trk_length_noSCE;//Range momentum of muon track in the every event
   std::vector<bool> trk_ifcontained;//to check if the track is contained or not
+  std::vector<bool> trk_OutOfTime;//to check if either of the track end is out of X boundary
   std::vector<bool> vtx_FV;//to check if the vertex is in FV or not
   std::vector<bool> vtx_MCS_FV;//to check if the vertex is in FV or not
   std::vector<double> trk_end_theta_yz;
@@ -197,6 +206,9 @@ private:
   std::vector<double> trk_costheta_yz;
   std::vector<double> trk_theta_xz;
   std::vector<double> trk_costheta_xz;
+
+  std::vector<bool> old_trk_ifcontained;//to check if the track is contained or not
+  std::vector<bool> old_vtx_FV;//to check if the vertex is in FV or not
 
   int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
@@ -275,6 +287,7 @@ private:
   bool if_fwd_dEdxhalf; // If fwd by the reco dEdx half of the hits (should use for contained)
 
   bool                                IsMC;
+  bool                                UsingCRT;
   std::string                         m_generatorLabel;
   std::string                         m_geantLabel;
   std::string                         m_pandoraLabel;
@@ -284,9 +297,10 @@ private:
   std::string                         m_showerProducerLabel;
   std::string                         m_MCSmuProducerLabel;
   std::string                         m_calorimetryProducerLabel;
-  //std::string                         m_SCEcorr_MCSmuProducerLabel;
   std::string                         Hits_TrackAssLabel;
   std::string                         PID_TrackAssLabel;
+  std::string                         m_CRTVetoLabel;
+  std::string                         m_FlashLabel;
 
   double _min_track_len;
 
@@ -298,6 +312,7 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   : 
   EDAnalyzer{pset},
   IsMC(pset.get<bool>("IsMC")),
+  UsingCRT(pset.get<bool>("UsingCRT")),
   m_generatorLabel(pset.get<std::string>("GeneratorLabel")),
   m_geantLabel(pset.get<std::string>("GeantLabel")),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
@@ -307,7 +322,8 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   m_showerProducerLabel(pset.get<std::string>("ShowerProducerLabel")),
   m_MCSmuProducerLabel(pset.get<std::string>("MCSmuProducerLabel")),
   m_calorimetryProducerLabel(pset.get<std::string>("calorimetryProducerLabel")),
-  //m_SCEcorr_MCSmuProducerLabel(pset.get<std::string>("SCEcorr_MCSmuProducerLabel")),
+  m_CRTVetoLabel(pset.get<std::string>("CRTVetoLabel")),
+  m_FlashLabel(pset.get<std::string>("FlashLabel")),
   _min_track_len{pset.get<double>("MinTrackLength", 0.1)},
   _trk_mom_calculator{_min_track_len}
 {
@@ -329,6 +345,7 @@ void SingleMuon::analyze(art::Event const& evt)
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
   std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
   std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
+  //art::FindMany<crt::CRTHit> CRThitFlashAsso;
 
   if(IsMC){
     // MC Truth
@@ -378,6 +395,21 @@ void SingleMuon::analyze(art::Event const& evt)
   std::vector<art::Ptr<recob::PFParticle>> pfParticle_v;
   art::fill_ptr_vector(pfParticle_v, Handle_pfParticle);
 
+  // Flash Collection
+  art::Handle< std::vector<recob::OpFlash> > Handle_opflash;
+  evt.getByLabel(m_FlashLabel, Handle_opflash);
+  std::vector<art::Ptr<recob::OpFlash>> flash_v;
+  art::fill_ptr_vector(flash_v, Handle_opflash);
+
+  //if(UsingCRT){
+  //  // CRT Hit - Flash association
+  //  CRThitFlashAsso(Handle_opflash, evt, m_CRTVetoLabel);
+  //  //art::FindMany<crt::CRTHit> CRThitFlashAsso(Handle_opflash, evt, m_CRTVetoLabel);
+  //}
+
+  // CRT Hit - Flash association
+  art::FindMany<crt::CRTHit> CRThitFlashAsso(Handle_opflash, evt, m_CRTVetoLabel);
+  
   // pfp t0 association (to get flash_matching chi2 score)
   art::FindMany<anab::T0> pfpToT0Asso(Handle_pfParticle, evt, m_T0ProducerLabel);
 
@@ -536,13 +568,23 @@ void SingleMuon::analyze(art::Event const& evt)
       //number of tracks and showers
       n_dau_tracks = daughter_Tracks.size();
       n_dau_showers = daughter_Showers.size();
-      //if_cosmic = true;
-      //if_matchMu = false;
-      //if_selected = false;
 
       //Todo: temperary version
       // Selection and Fill in Info
       if(n_dau_tracks == 1 && n_dau_showers == 0){
+
+        if(UsingCRT){
+          if(flash_v.size() > 0){
+            for(int i_fl = 0; i_fl < (int) flash_v.size(); i_fl++){
+              auto CRT_hit = CRThitFlashAsso.at(flash_v[i_fl].key());
+              if(CRT_hit.size() == 1){
+                evt_CRTveto = true;
+                if(CRT_hit.front()->peshit > 100) evt_CRTveto_100 = true;
+              } // if CRT veto
+            } // loop over flash(es)
+          } // if flash exists
+        } // Using CRT
+
         //-- Fill RECO track info (in the naive version this is selected)
         if_selected = true;
 
@@ -561,12 +603,39 @@ void SingleMuon::analyze(art::Event const& evt)
         Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
         Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
 
+        //-- if either of the track end is out of the time, label them 
+        if(Trk_start_SCEcorr.X() < 0 || Trk_start_SCEcorr.X() > 2. * geo->DetHalfWidth() || Trk_end_SCEcorr.X() < 0 || Trk_end_SCEcorr.X() > 2. * geo->DetHalfWidth()) trk_OutOfTime.push_back(true);
+        else trk_OutOfTime.push_back(false);
+
         bool trk_contained = _fiducial_volume.InFV(Trk_start_SCEcorr, Trk_end_SCEcorr);
-        trk_ifcontained.push_back(trk_contained);       
+        old_trk_ifcontained.push_back(trk_contained);       
        
         bool vtx_InFV = _fiducial_volume.InFV(Trk_start_SCEcorr);
-        vtx_FV.push_back(vtx_InFV);
- 
+        old_vtx_FV.push_back(vtx_InFV);
+
+        //-- Preliminary broken track searching (For the moment, only support 2 track merging)
+        BrokenTrack brokentrack;
+        brokentrack.MatchTracks(daughter_Tracks.front(), AllTrackCollection);
+        if(brokentrack.NewTrk()){
+          if_broken = true;
+          TVector3 trk_end1 = brokentrack.TrkEnd1();
+          TVector3 trk_end2 = brokentrack.TrkEnd2();
+
+          trk_ifcontained.push_back(_fiducial_volume.InFV(trk_end1, trk_end2));
+          
+          if(!_fiducial_volume.InFV(trk_end1) && !_fiducial_volume.InFV(trk_end2)){ 
+            vtx_FV.push_back(false);
+            if_newTrkThroughGoing = true;
+            std::cout<<"trk_end1_ X: "<< trk_end1.X()<<", Y: "<<trk_end1.Y()<<", Z: "<<trk_end1.Z()<<std::endl;
+            std::cout<<"trk_end2_ X: "<< trk_end2.X()<<", Y: "<<trk_end2.Y()<<", Z: "<<trk_end2.Z()<<std::endl;
+          }
+          else vtx_FV.push_back(vtx_InFV);
+        } 
+        else{
+          trk_ifcontained.push_back(trk_contained);
+          vtx_FV.push_back(vtx_InFV);
+        }
+
         double bestMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestMomentum();
         double bestMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestLogLikelihood();
         double fwdMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->fwdMomentum();
@@ -1045,9 +1114,14 @@ void SingleMuon::analyze(art::Event const& evt)
 
   my_event_->Fill();
 
+  evt_CRTveto = false;
+  evt_CRTveto_100 = false;
+
   if_cosmic = true;
   if_matchMu = false;
   if_selected = false;
+  if_broken = false;
+  if_newTrkThroughGoing = false;
 
   if(IsMC){
     true_mom.clear();
@@ -1113,6 +1187,7 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_length_avg.clear();
   trk_length_noSCE.clear();
   trk_ifcontained.clear();
+  trk_OutOfTime.clear();
   vtx_FV.clear();
   vtx_MCS_FV.clear();
   trk_end_theta_yz.clear();
@@ -1123,6 +1198,9 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_costheta_yz.clear();
   trk_theta_xz.clear();
   trk_costheta_xz.clear();
+  
+  old_trk_ifcontained.clear();
+  old_vtx_FV.clear();
 
   dEdx_pl0.clear();
   dEdx_pl1.clear();
@@ -1199,9 +1277,14 @@ void SingleMuon::Initialize_event()
   
   my_event_->Branch("flash_matching_chi2", &flash_matching_chi2);
 
+  my_event_->Branch("evt_CRTveto", &evt_CRTveto);
+  my_event_->Branch("evt_CRTveto_100", &evt_CRTveto_100);
+
   my_event_->Branch("if_cosmic", &if_cosmic);
   my_event_->Branch("if_matchMu", &if_matchMu);
   my_event_->Branch("if_selected", &if_selected);
+  my_event_->Branch("if_broken", &if_broken);
+  my_event_->Branch("if_newTrkThroughGoing", &if_newTrkThroughGoing);
 
   my_event_->Branch("mom_bestMCS_mu", &mom_bestMCS_mu);
   my_event_->Branch("mom_bestMCS_ll_mu", &mom_bestMCS_ll_mu);
@@ -1240,8 +1323,12 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("trk_length_avg", &trk_length_avg);
   my_event_->Branch("trk_length_noSCE", &trk_length_noSCE);
   my_event_->Branch("trk_ifcontained", &trk_ifcontained);
+  my_event_->Branch("trk_OutOfTime", &trk_OutOfTime);
   my_event_->Branch("vtx_FV", &vtx_FV);
   my_event_->Branch("vtx_MCS_FV", &vtx_MCS_FV);
+
+  my_event_->Branch("old_vtx_FV", &old_vtx_FV);
+  my_event_->Branch("old_trk_ifcontained", &old_trk_ifcontained);
 
   my_event_->Branch("hits_dEdx_size_pl0", &hits_dEdx_size_pl0);
   my_event_->Branch("hits_dEdx_size_pl1", &hits_dEdx_size_pl1);
