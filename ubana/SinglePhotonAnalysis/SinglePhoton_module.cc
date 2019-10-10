@@ -1410,8 +1410,7 @@ namespace single_photon
 		std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,
 		std::map< art::Ptr<simb::MCParticle>, 
 		art::Ptr<simb::MCTruth>> &particlesToTruth, 
-		std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap)
-    {
+		std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap){
 
         //    if (evt.isRealData())
         //      throw cet::exception("LArPandora") << " PandoraCollector::CollectMCParticles --- Trying to access MC truth from real data ";
