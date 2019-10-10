@@ -820,9 +820,10 @@ namespace single_photon
 		int m_bobbytracks;
 		std::vector<int> m_bobbyshowersv;
 		std::vector<int> m_bobbytracksv;
-		std::vector<std::vector<int>> m_bobbyshowerindices;
+		std::vector<int> m_bobbyphotonshower;
+		std::vector<int> m_bobbypi0daughter;
+		std::vector<int> m_bobbyprotontrack;
 	//std::vector<std::vector<int>> m_bobbyshowersv_parent_pdg;
-		std::vector<std::vector<int>> m_bobbytrackindices;
 		bool m_bobbyvertexing_more;
 
 

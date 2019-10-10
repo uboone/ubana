@@ -80,20 +80,25 @@ namespace single_photon
 		std::vector< art::Ptr<recob::Track> >							more_tracks;
 		std::vector< art::Ptr<recob::Shower> >							more_showers;
 		//Maps for more pandora objects.
-		std::map< art::Ptr<recob::Track>  , art::Ptr<recob::PFParticle>>	trackToNuPFParticleMap;
+		std::map< art::Ptr<recob::Track>  , art::Ptr<recob::PFParticle>> trackToNuPFParticleMap;
 		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
-
-		//Maps for simb objects;
-		std::map<int, art::Ptr<simb::MCParticle>> MCParticleToTrackIdMap;
 
 //The followings are taken care by the AnalyzeSlices() in analyze_Slice.h
 		std::map<int, double>											sliceIdToNuScoreMap;
 		//Pairs that connect PFParticle to sliceID.
 		std::vector<std::pair<art::Ptr<recob::PFParticle>,int>>			primaryPFPSliceIdVec;
-		std::map< art::Ptr<recob::PFParticle>, int> 						PFPToSliceIdMap;
-		std::map< art::Ptr<recob::PFParticle>, bool>						PFPToClearCosmicMap;
-		std::map< art::Ptr<recob::PFParticle>, bool> 						PFPToNuSliceMap;
+		std::map< art::Ptr<recob::PFParticle>, int> 					PFPToSliceIdMap;
+		std::map< art::Ptr<recob::PFParticle>, bool>					PFPToClearCosmicMap;
+		std::map< art::Ptr<recob::PFParticle>, bool> 					PFPToNuSliceMap;
 		std::map< art::Ptr<recob::PFParticle>, double>					PFPToTrackScoreMap;
+
+		//Maps for simb objects; Filled in the RecoMCTracks() in analyze_Tracks.h / RecoMCShowers() in analyze_Showers.h
+		std::vector<art::Ptr<simb::MCParticle>>										matchedMCParticleVector;
+		std::map<int, art::Ptr<simb::MCParticle>>									MCParticleToTrackIdMap;
+		std::map< art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> >				showerToMCParticleMap;
+		std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> MCTruthToMCParticlesMap;
+		std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              MCParticleToMCTruthMap;
+
 
 		//FindManyP's!
 		//specially for the number of coorresponding recob (pandora_objects) to a PFParticle;
