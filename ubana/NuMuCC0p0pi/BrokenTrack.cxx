@@ -37,9 +37,14 @@ void BrokenTrack::MatchTracks(art::Ptr<recob::Track>& ThisTrack, std::vector< ar
  
   //Initialize
   newTrk = false;
-  trk_end1 = Trk_start_SCEcorr;
-  trk_end2 = Trk_end_SCEcorr;
-   
+  Nr_mergedTrk = 1;
+  trk_temp_end1 = Trk_start_SCEcorr;
+  trk_temp_end2 = Trk_end_SCEcorr;
+  trk_temp_length = (Trk_start_SCEcorr - Trk_end_SCEcorr).Mag();
+ 
+  std::cout<<"Trk_start X: "<< trk_temp_end1.X()<<", Y: "<< trk_temp_end1.Y()<<", Z: "<<trk_temp_end1.Z()<<std::endl;
+  std::cout<<"Trk_end X: "<< trk_temp_end2.X()<<", Y: "<< trk_temp_end2.Y()<<", Z: "<<trk_temp_end2.Z()<<std::endl;  
+
   // For the moment, this part only supports two track merging
   for(int i_trk = 0; i_trk < (int) TrackCollection.size(); i_trk++){
     if (TrackCollection[i_trk] != ThisTrack){
@@ -91,53 +96,106 @@ void BrokenTrack::MatchTracks(art::Ptr<recob::Track>& ThisTrack, std::vector< ar
       if(dis_Rs < 30 && dis_Re < 30 && abs(cosA) >= 0.86602540 && overlap == false){
 
         newTrk = true;
+        Nr_mergedTrk++;
 
+        std::cout<<"Number of merged track: "<< Nr_mergedTrk<<std::endl;
         std::vector<double> dis;
 
-        dis.push_back((Trk_start_SCEcorr - Rolling_Trk_start_SCEcorr).Mag()); // S_RS
-        dis.push_back((Trk_start_SCEcorr - Rolling_Trk_end_SCEcorr).Mag()); //S_RE
-        dis.push_back((Trk_end_SCEcorr - Rolling_Trk_start_SCEcorr).Mag()); //E_RS
-        dis.push_back((Trk_end_SCEcorr - Rolling_Trk_end_SCEcorr).Mag()); //E_RE
+//        dis.push_back((Trk_start_SCEcorr - Rolling_Trk_start_SCEcorr).Mag()); // S_RS
+//        dis.push_back((Trk_start_SCEcorr - Rolling_Trk_end_SCEcorr).Mag()); //S_RE
+//        dis.push_back((Trk_end_SCEcorr - Rolling_Trk_start_SCEcorr).Mag()); //E_RS
+//        dis.push_back((Trk_end_SCEcorr - Rolling_Trk_end_SCEcorr).Mag()); //E_RE
+//
+//        std::cout<<"start_Rstart: "<< dis[0]<<"; start_Rend: "<< dis[1]<<"; end_Rstart: "<< dis[2]<<"; end_Rend: "<< dis[3]<<std::endl;
+//
+//        std::cout<<"The max distance: "<< *std::max_element(dis.begin(), dis.end())<<std::endl;
+//        int Max = std::distance(dis.begin(), std::max_element(dis.begin(), dis.end()));
+//        std::cout<<"Max: "<<Max<<std::endl;
+//        //int Max = std::max_element(dis.begin(), dis.end() - dis.begin());
+//
+//        if(Max == 0){
+//          trk_temp_end1 = Trk_start_SCEcorr;
+//          trk_temp_end2 = Rolling_Trk_start_SCEcorr;
+//
+//          trk_end1 = Trk_start_SCEcorr;
+//          trk_end2 = Rolling_Trk_start_SCEcorr;
+//        }
+//        if(Max == 1){
+//          trk_end1 = Trk_start_SCEcorr;
+//          trk_end2 = Rolling_Trk_end_SCEcorr;
+//        }
+//        if(Max == 2){
+//          trk_end1 = Trk_end_SCEcorr;
+//          trk_end2 = Rolling_Trk_start_SCEcorr;
+//        }
+//        if(Max == 3){
+//          trk_end1 = Trk_end_SCEcorr;
+//          trk_end2 = Rolling_Trk_end_SCEcorr;
+//        }
+
+
+
+        //---------
+        dis.push_back((trk_temp_end1 - Rolling_Trk_start_SCEcorr).Mag()); // S_RS
+        dis.push_back((trk_temp_end1 - Rolling_Trk_end_SCEcorr).Mag()); //S_RE
+        dis.push_back((trk_temp_end2 - Rolling_Trk_start_SCEcorr).Mag()); //E_RS
+        dis.push_back((trk_temp_end2 - Rolling_Trk_end_SCEcorr).Mag()); //E_RE
 
         std::cout<<"start_Rstart: "<< dis[0]<<"; start_Rend: "<< dis[1]<<"; end_Rstart: "<< dis[2]<<"; end_Rend: "<< dis[3]<<std::endl;
 
+        trk_temp_length = *std::max_element(dis.begin(), dis.end());
         std::cout<<"The max distance: "<< *std::max_element(dis.begin(), dis.end())<<std::endl;
-        //std::cout<<"The index of max distance: "<< std::max_element(dis.begin(), dis.end() - dis.begin())<<std::endl;
-        int Max = std::distance(dis.begin(), std::max_element(dis.begin(), dis.end()));
-        std::cout<<"Max: "<<Max<<std::endl;
-        //int Max = std::max_element(dis.begin(), dis.end() - dis.begin());
 
-        if(Max == 0){
-          trk_end1 = Trk_start_SCEcorr;
-          trk_end2 = Rolling_Trk_start_SCEcorr;
-//          if(!_fiducial_volume.InFV(Trk_start_SCEcorr) && !_fiducial_volume.InFV(Rolling_Trk_start_SCEcorr)) newTrk_FV = false;
-//          newTrk_contained = _fiducial_volume.InFV(Trk_start_SCEcorr, Rolling_Trk_start_SCEcorr);
+        if (*std::max_element(dis.begin(), dis.end()) > trk_temp_length){
+
+          trk_temp_length = *std::max_element(dis.begin(), dis.end());
+
+          int Max = std::distance(dis.begin(), std::max_element(dis.begin(), dis.end()));
+          std::cout<<"Max: "<<Max<<std::endl;
+
+          if(Max == 0){
+            trk_temp_end1 = trk_temp_end1;
+            trk_temp_end2 = Rolling_Trk_start_SCEcorr;
+          }
+          if(Max == 1){
+            trk_temp_end1 = trk_temp_end1;
+            trk_temp_end2 = Rolling_Trk_end_SCEcorr;
+          }
+          if(Max == 2){
+            trk_temp_end1 = trk_temp_end2;
+            trk_temp_end2 = Rolling_Trk_start_SCEcorr;
+          }
+          if(Max == 3){
+            trk_temp_end1 = trk_temp_end2;
+            trk_temp_end2 = Rolling_Trk_end_SCEcorr;
+          }
+          std::cout<<"temp end1 X: "<< trk_temp_end1.X()<<", Y: "<< trk_temp_end1.Y()<<", Z: "<<trk_temp_end1.Z()<<std::endl;
+          std::cout<<"temp end2 X: "<< trk_temp_end2.X()<<", Y: "<< trk_temp_end2.Y()<<", Z: "<<trk_temp_end2.Z()<<std::endl;
         }
-        if(Max == 1){
-          trk_end1 = Trk_start_SCEcorr;
-          trk_end2 = Rolling_Trk_end_SCEcorr;
-//          if(!_fiducial_volume.InFV(Trk_start_SCEcorr) && !_fiducial_volume.InFV(Rolling_Trk_end_SCEcorr)) newTrk_FV = false;
-//          newTrk_contained = _fiducial_volume.InFV(Trk_start_SCEcorr, Rolling_Trk_end_SCEcorr);
-        }
-        if(Max == 2){
-          trk_end1 = Trk_end_SCEcorr;
-          trk_end2 = Rolling_Trk_start_SCEcorr;
-//          if(!_fiducial_volume.InFV(Trk_end_SCEcorr) && !_fiducial_volume.InFV(Rolling_Trk_start_SCEcorr)) newTrk_FV = false;
-//          newTrk_contained = _fiducial_volume.InFV(Trk_end_SCEcorr, Rolling_Trk_start_SCEcorr);
-        }
-        if(Max == 3){
-          trk_end1 = Trk_end_SCEcorr;
-          trk_end2 = Rolling_Trk_end_SCEcorr;
-//          if(!_fiducial_volume.InFV(Trk_end_SCEcorr) && !_fiducial_volume.InFV(Rolling_Trk_end_SCEcorr)) newTrk_FV = false;
-//          newTrk_contained = _fiducial_volume.InFV(Trk_end_SCEcorr, Rolling_Trk_end_SCEcorr);
-        }
+
       } // matched tracks (assume it's only two...)
     } // not itself
   } // loop all the tracks in this event
+
+  trk_end1 = trk_temp_end1;
+  trk_end2 = trk_temp_end2;
+  trk_length = trk_temp_length;
+
+  std::cout<<"trk end1 X: "<< trk_temp_end1.X()<<", Y: "<< trk_temp_end1.Y()<<", Z: "<<trk_temp_end1.Z()<<std::endl;
+  std::cout<<"trk end2 X: "<< trk_temp_end2.X()<<", Y: "<< trk_temp_end2.Y()<<", Z: "<<trk_temp_end2.Z()<<std::endl;
+
 } // function
 
 bool BrokenTrack::NewTrk(){
   return newTrk;
+}
+
+int BrokenTrack::NumberMergedTracks(){
+  return Nr_mergedTrk;
+}
+
+double BrokenTrack::TrkLen(){
+  return trk_length;
 }
 
 TVector3 BrokenTrack::TrkEnd1(){

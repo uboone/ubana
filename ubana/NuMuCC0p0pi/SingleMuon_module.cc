@@ -156,6 +156,8 @@ private:
 
   bool if_broken = false; // if find broken track
   bool if_newTrkThroughGoing = false; // if the new track is through going
+  std::vector<double> trk_broken_len;// length of the merged broken track (distance of two furtherest track ends)
+  std::vector<int> trk_broken_nr_merged;// number of broken tracks merged in
 
   std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
   std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
@@ -618,6 +620,9 @@ void SingleMuon::analyze(art::Event const& evt)
         brokentrack.MatchTracks(daughter_Tracks.front(), AllTrackCollection);
         if(brokentrack.NewTrk()){
           if_broken = true;
+          trk_broken_len.push_back(brokentrack.TrkLen());
+          trk_broken_nr_merged.push_back(brokentrack.NumberMergedTracks());
+
           TVector3 trk_end1 = brokentrack.TrkEnd1();
           TVector3 trk_end2 = brokentrack.TrkEnd2();
 
@@ -1149,6 +1154,9 @@ void SingleMuon::analyze(art::Event const& evt)
   Track_PDG.clear();
   Shower_PDG.clear();
 
+  trk_broken_len.clear();
+  trk_broken_nr_merged.clear();
+
   mom_bestMCS_mu.clear();
   mom_bestMCS_ll_mu.clear();
   mom_fwdMCS_mu.clear();
@@ -1285,6 +1293,9 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("if_selected", &if_selected);
   my_event_->Branch("if_broken", &if_broken);
   my_event_->Branch("if_newTrkThroughGoing", &if_newTrkThroughGoing);
+
+  my_event_->Branch("trk_broken_len", &trk_broken_len);
+  my_event_->Branch("trk_broken_nr_merged", &trk_broken_nr_merged);
 
   my_event_->Branch("mom_bestMCS_mu", &mom_bestMCS_mu);
   my_event_->Branch("mom_bestMCS_ll_mu", &mom_bestMCS_ll_mu);

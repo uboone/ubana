@@ -57,6 +57,9 @@ class BrokenTrack {
           void MatchTracks(art::Ptr<recob::Track>& ThisTrack, std::vector< art::Ptr<recob::Track>>& TrackCollection);
 
           bool NewTrk();
+          int NumberMergedTracks();
+ 
+          double TrkLen();
 
           TVector3 TrkEnd1();
           TVector3 TrkEnd2();
@@ -72,7 +75,15 @@ class BrokenTrack {
           TVector3 trk_end1;
           TVector3 trk_end2;
 
+          double trk_length;
+
+          TVector3 trk_temp_end1;
+          TVector3 trk_temp_end2;
+
+          double trk_temp_length;
+          
           bool newTrk;
+          int Nr_mergedTrk;
           //bool newTrk_FV;           
           //bool newTrk_contained;           
 };
