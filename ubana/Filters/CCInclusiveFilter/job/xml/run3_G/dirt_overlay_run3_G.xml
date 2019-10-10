@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!DOCTYPE project [
-<!ENTITY name "nucc_nu_overlay_run1_mcc9">
+<!ENTITY name "nucc_dirt_overlay_run3_G_mcc9">
 <!ENTITY version "v08_00_00_20">
 <!ENTITY qualifier "e17:prof">
-<!ENTITY dataset "prodgenie_bnb_nu_uboone_overlay_mcc9.1_post_LY_run1_reco2">
+<!ENTITY dataset "prodgenie_bnb_dirt_overlay_run3_G_mcc9.1_v08_00_00_22_reco2">
 <!ENTITY user "wvdp">
 ]>
 
@@ -22,18 +22,18 @@
     <larsoft>
         <tag>&version;</tag>
         <qual>&qualifier;</qual>
-        <local>/pnfs/uboone/resilient/users/&user;/submission/ubc_v8_0_0_20_26Aug.tar</local>
+        <local>/pnfs/uboone/resilient/users/&user;/submission/ubc_v8_0_0_20_27Aug.tar</local>
     </larsoft>
 
     <!--  Project stages  -->
     <stage name="nucc">
-        <fcl>nucc_analyser_common.fcl</fcl>
+        <fcl>nucc_analyser_mc.fcl</fcl>
         <outdir>/pnfs/uboone/scratch/users/&user;/&version;/&name;</outdir>
         <logdir>/pnfs/uboone/scratch/users/&user;/log/&version;/&name;</logdir>
         <workdir>/pnfs/uboone/scratch/users/&user;/work/&version;/&name;</workdir>
         <bookdir>/uboone/data/users/&user;/book/&version;/&name;</bookdir>>
         <inputdef>&dataset;</inputdef>
-        <numjobs>48</numjobs>
+        <numjobs>21</numjobs>
         <disk>10GB</disk>
         <memory>1900</memory>
         <maxfilesperjob>100</maxfilesperjob>

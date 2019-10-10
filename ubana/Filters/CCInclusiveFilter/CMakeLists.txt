@@ -15,6 +15,7 @@ art_make(
                     lardataobj_AnalysisBase
                     lardata_Utilities
                     nusimdata_SimulationBase
+                    larsim_EventWeight_Base
                     ${ART_FRAMEWORK_CORE}
                     ${ART_FRAMEWORK_PRINCIPAL}
                     ${ART_FRAMEWORK_SERVICES_REGISTRY}

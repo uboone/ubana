@@ -22,7 +22,7 @@ source : {
 services :
 {
     #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
-    TFileService: { fileName: "vertexed_singlephoton.root" }
+    TFileService: { fileName: "vertexed_singlephoton_%tc.root" }
     ExptGeoHelperInterface:    @local::standard_geometry_helper
     Geometry:                  @local::standard_geo
     LArPropertiesService:      @local::standard_properties
@@ -50,10 +50,10 @@ physics: {
 
  analyzers: {}
  filters : {
-        singlephotonfil: @local::singlephoton_filter   #run in filtering mode
-        singlephotonana: @local::singlephoton_analyzer #run in analyzing mode
+        #singlephotonfil: @local::singlephoton_filter   #run in filtering mode
+        singlephotonana: @local::singlephoton_filter   #run in filtering mode
   }
- pathana : [pid , singlephotonana] #path for analysis
+    pathana : [pid , singlephotonana] #path for analysis
 
  trigger_paths : [pathana]
  end_paths: [ ]

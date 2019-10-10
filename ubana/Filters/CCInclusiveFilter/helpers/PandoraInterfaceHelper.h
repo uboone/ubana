@@ -41,7 +41,8 @@ public:
     *  @param matchedParticles the output matches between reconstructed and true particles
     */
   void GetRecoToTrueMatches(lar_pandora::PFParticlesToMCParticles &matchedParticles,
-                            std::map<art::Ptr<recob::PFParticle>, float> &matchedHitFractions);
+                            std::map<art::Ptr<recob::PFParticle>, float> &matchedHitFractions,
+                            std::map<art::Ptr<recob::PFParticle>, uint> &matchedHits);
 
   /**
      *  @brief Configure function parameters (call this function first)
@@ -51,8 +52,9 @@ public:
      *  @param m_spacepoint_producer the SpacePoint producer label
      *  @param m_hitfinder_producer the Hit producer label
      *  @param m_geant_producer The Geant4 producer label
+     *  @return the size of the matched mc hits in the event
      */
-  void Configure(art::Event const &e,
+  uint Configure(art::Event const &e,
                  std::string m_pfp_producer,
                  std::string m_spacepoint_producer,
                  std::string m_hitfinder_producer,

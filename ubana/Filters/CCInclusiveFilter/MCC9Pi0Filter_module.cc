@@ -532,6 +532,10 @@ void MCC9Pi0Filter::SaveTruth(art::Event const &e)
   _ccnc = neutrino.CCNC();
   _interaction = neutrino.Mode();
   _nu_pdg = nu.PdgCode();
+  _nu_e = -1;
+  if ( (nu.Trajectory().size() == 0) || (lep.Trajectory().size() == 0) )
+    return;
+
   _nu_e = nu.Trajectory().E(0);
   _lep_e = lep.Trajectory().E(0);
   _vtx_x = nu.EndX();

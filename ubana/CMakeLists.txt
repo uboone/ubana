@@ -17,3 +17,7 @@ add_subdirectory(XGBoost)
 add_subdirectory(NCElastic)
 add_subdirectory(ParticleID)
 add_subdirectory(SinglePhotonAnalysis)
+add_subdirectory(TreeReader)
+add_subdirectory(Arborist)
+add_subdirectory(searchingfornues)
+

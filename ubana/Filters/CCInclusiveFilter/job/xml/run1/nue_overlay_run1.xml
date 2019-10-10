@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!DOCTYPE project [
-<!ENTITY name "nucc_dirt_overlay_run1_mcc9">
+<!ENTITY name "nucc_nue_overlay_run1_mcc9">
 <!ENTITY version "v08_00_00_20">
 <!ENTITY qualifier "e17:prof">
-<!ENTITY dataset "prodgenie_bnb_dirt_overlay_run1_mcc9.1_v08_00_00_16_reco2">
+<!ENTITY dataset "prodgenie_bnb_intrinsic_nue_uboone_overlay_mcc9.1_run1_reco2">
 <!ENTITY user "wvdp">
 ]>
 
@@ -27,13 +27,13 @@
 
     <!--  Project stages  -->
     <stage name="nucc">
-        <fcl>nucc_analyser_common.fcl</fcl>
+        <fcl>nucc_analyser_mc.fcl</fcl>
         <outdir>/pnfs/uboone/scratch/users/&user;/&version;/&name;</outdir>
         <logdir>/pnfs/uboone/scratch/users/&user;/log/&version;/&name;</logdir>
         <workdir>/pnfs/uboone/scratch/users/&user;/work/&version;/&name;</workdir>
         <bookdir>/uboone/data/users/&user;/book/&version;/&name;</bookdir>>
         <inputdef>&dataset;</inputdef>
-        <numjobs>25</numjobs>
+        <numjobs>51</numjobs>
         <disk>10GB</disk>
         <memory>1900</memory>
         <maxfilesperjob>100</maxfilesperjob>

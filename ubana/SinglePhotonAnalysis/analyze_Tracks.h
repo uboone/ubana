@@ -11,6 +11,8 @@ namespace single_photon
     void SinglePhoton::ClearTracks(){
         m_reco_asso_tracks=0;
         m_reco_track_length.clear();
+        m_reco_track_num_daughters.clear();
+        m_reco_track_daughter_trackscore.clear();
         m_reco_track_dirx.clear();
         m_reco_track_diry.clear();
         m_reco_track_dirz.clear();
@@ -28,6 +30,7 @@ namespace single_photon
         m_reco_track_num_spacepoints.clear();
         m_reco_track_proton_kinetic_energy.clear();
         m_reco_track_ordered_energy_index.clear();
+        m_reco_track_ordered_displacement_index.clear();
 
         m_reco_track_spacepoint_principal0.clear();
         m_reco_track_spacepoint_principal1.clear();
@@ -149,6 +152,9 @@ namespace single_photon
     void SinglePhoton::ResizeTracks(size_t size){
         m_reco_track_length.resize(size);
         m_reco_track_dirx.resize(size);
+        m_reco_track_num_daughters.resize(size);
+        m_reco_track_daughter_trackscore.resize(size);
+        
         m_reco_track_diry.resize(size);
         m_reco_track_dirz.resize(size);
         m_reco_track_endx.resize(size);
@@ -162,6 +168,7 @@ namespace single_photon
         m_reco_track_num_spacepoints.resize(size);
         m_reco_track_proton_kinetic_energy.resize(size);
         m_reco_track_ordered_energy_index.resize(size);
+        m_reco_track_ordered_displacement_index.resize(size);
 
 
         m_reco_track_spacepoint_principal0.resize(size);
@@ -282,6 +289,8 @@ namespace single_photon
 
     void SinglePhoton::CreateTrackBranches(){
         vertex_tree->Branch("reco_asso_tracks",&m_reco_asso_tracks,"reco_asso_tracks/I");
+        vertex_tree->Branch("reco_track_num_daughters",&m_reco_track_num_daughters);
+        vertex_tree->Branch("reco_track_daughter_trackscore",&m_reco_track_daughter_trackscore);
         vertex_tree->Branch("reco_track_displacement", &m_reco_track_length);
         vertex_tree->Branch("reco_track_dirx", &m_reco_track_dirx);
         vertex_tree->Branch("reco_track_diry", &m_reco_track_diry);
@@ -300,6 +309,8 @@ namespace single_photon
         vertex_tree->Branch("reco_track_num_spacepoints", &m_reco_track_num_spacepoints);
         vertex_tree->Branch("reco_track_proton_kinetic_energy", &m_reco_track_proton_kinetic_energy);
         vertex_tree->Branch("reco_track_ordered_energy_index", &m_reco_track_ordered_energy_index);
+        vertex_tree->Branch("reco_track_ordered_displacement_index", &m_reco_track_ordered_displacement_index);
+        vertex_tree->Branch("i_trk", &m_reco_track_ordered_displacement_index);
 
         vertex_tree->Branch("reco_track_spacepoint_principal0",&m_reco_track_spacepoint_principal0);
         vertex_tree->Branch("reco_track_spacepoint_principal1",&m_reco_track_spacepoint_principal1);
@@ -434,7 +445,8 @@ namespace single_photon
             std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int> &PFPToSliceIdMap,
             std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
-            std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap){
+            std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap,
+            PFParticleIdMap &pfParticleMap){
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Starting recob::Track analysis"<<std::endl;;
@@ -517,7 +529,13 @@ namespace single_photon
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Completed PCA analysis of track. Primary componant: "<<m_reco_track_spacepoint_principal0.back()<<""<<std::endl;;
 
             //range based energy calculation assuming
-            m_reco_track_proton_kinetic_energy[i_trk] = proton_length2energy_tgraph.Eval(m_length)/1000.0; 
+
+            if(!m_run_pi0_filter){
+                m_reco_track_proton_kinetic_energy[i_trk] = proton_length2energy_tgraph.Eval(m_length)/1000.0; 
+            }else{
+                m_reco_track_proton_kinetic_energy[i_trk] = -9999;
+            }
+
             if(m_length == 0.0) m_reco_track_proton_kinetic_energy[i_trk]=0.0;
 
             // Dead Wire Approximity
@@ -533,6 +551,11 @@ namespace single_photon
            // std::cout<<"is nuslice for track with pfp "<<pfp->Self()<<" is: "<<PFPToNuSliceMap[pfp]<<std::endl;
             m_reco_track_is_nuslice[i_trk] = PFPToNuSliceMap[pfp];
 
+            m_reco_track_num_daughters[i_trk] = pfp->NumDaughters();
+            if(m_reco_track_num_daughters[i_trk]>0){
+                //currently just look at 1 daughter
+                m_reco_track_daughter_trackscore[i_trk] = PFPToTrackScoreMap[pfParticleMap[pfp->Daughters().front()]];
+            }
 
 
           //  m_reco_track_trackscore[i_trk] = PFPToTrackScoreMap[pfp];
@@ -560,6 +583,7 @@ namespace single_photon
 
         //Lets sort and order the showers
         m_reco_track_ordered_energy_index = sort_indexes(m_reco_track_proton_kinetic_energy);
+        m_reco_track_ordered_displacement_index = sort_indexes(m_reco_track_length);
 
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Finished."<<std::endl;;
