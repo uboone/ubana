@@ -112,8 +112,8 @@ private:
   int MC_nMuon; // Number of muon(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nElectron; // Number of eletron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nNeutron; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_below235; // Number of proton(s) (p<235) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_above235; // Number of proton(s) (p > 235) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_below255; // Number of proton(s) (p<255) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_above255; // Number of proton(s) (p >= 255) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPi0; // Number of pi0(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPiPlus_below65; // Number of pi plus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPiPlus_above65; // Number of pi plus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
@@ -459,8 +459,8 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_nMuon = 0;
     MC_nElectron = 0;
     MC_nNeutron = 0;
-    MC_nProton_below235 = 0;
-    MC_nProton_above235 = 0;
+    MC_nProton_below255 = 0;
+    MC_nProton_above255 = 0;
     MC_nPi0 = 0;
     MC_nPiPlus_below65 = 0;
     MC_nPiPlus_above65 = 0;
@@ -497,8 +497,8 @@ void SingleMuon::analyze(art::Event const& evt)
           // neutron
           if(MCParticleCollection[i_mcp]->PdgCode() == 2112) MC_nNeutron++;
           // proton
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.235) MC_nProton_below235++;
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() > 0.235) MC_nProton_above235++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.255) MC_nProton_below255++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.255) MC_nProton_above255++;
           // pion0
           if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
           // pion+
@@ -1247,8 +1247,8 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nMuon", &MC_nMuon);
     my_event_->Branch("MC_nElectron", &MC_nElectron);
     my_event_->Branch("MC_nNeutron", &MC_nNeutron);
-    my_event_->Branch("MC_nProton_below235", &MC_nProton_below235);
-    my_event_->Branch("MC_nProton_above235", &MC_nProton_above235);
+    my_event_->Branch("MC_nProton_below255", &MC_nProton_below255);
+    my_event_->Branch("MC_nProton_above255", &MC_nProton_above255);
     my_event_->Branch("MC_nPi0", &MC_nPi0);
     my_event_->Branch("MC_nPiPlus_below65", &MC_nPiPlus_below65);
     my_event_->Branch("MC_nPiPlus_above65", &MC_nPiPlus_above65);
