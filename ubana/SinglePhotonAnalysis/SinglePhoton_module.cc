@@ -353,8 +353,18 @@ namespace single_photon
 				object_container.PFPToTrackScoreMap);
 
 		this->CollectTracksAndShowers_v2(evt, object_container); //This tells what showers and tracks to use.
-		std::vector< art::Ptr<recob::Track> > tracks = object_container.selected_tracks;
-		std::vector< art::Ptr<recob::Shower> > showers = object_container.selected_showers;//CHECK has trouble loading showers
+		std::vector< art::Ptr<recob::Track> > tracks;
+		tracks.reserve( object_container.selected_tracks.size() + object_container.more_tracks.size() );
+		tracks.insert( tracks.end(), object_container.selected_tracks.begin(), object_container.selected_tracks.end() );
+		tracks.insert( tracks.end(), object_container.more_tracks.begin(), object_container.more_tracks.end() );
+
+		std::vector< art::Ptr<recob::Shower> > showers;
+		showers.reserve( object_container.selected_showers.size() + object_container.more_showers.size() );
+		showers.insert( showers.end(), object_container.selected_showers.begin(), object_container.selected_showers.end() );
+		showers.insert( showers.end(), object_container.more_showers.begin(), object_container.more_showers.end() );
+
+
+
 //		std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap = object_container.trackToNuPFParticleMap; //give access to the PFParticle via track/shower
 //		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap = object_container.showerToNuPFParticleMap;
 
@@ -453,10 +463,13 @@ namespace single_photon
 
 		//---------- VertexBuilder--------------
 		//use the new the new class for variables and vertexing.
-		ParticleAssociations_all const & bobby_particle_associations = BobbyVertexBuilder_ext(object_container, m_bobbyvertexing_more );
-
+//		ParticleAssociations_all const & bobby_particle_associations = BobbyVertexBuilder_ext(object_container, m_bobbyvertexing_more );
+			BobbyVertexBuilder_ext(object_container, m_bobbyvertexing_more );
 		//introduce a for loop for all particle associations identified by Bobby's VertexBuilder
-		std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.GetSelectedAssociations().size()<<" Vertex candidates."<<std::endl;
+
+/*CHECK
+
+std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.GetSelectedAssociations().size()<<" Vertex candidates."<<std::endl;
 		bool reset_bobbyvertex = true;
 		if(bobby_particle_associations.GetSelectedAssociations().size()==0){
 		cout<<"No vertex is reconstructed."<<endl;
@@ -519,20 +532,6 @@ namespace single_photon
 							get_a_pi0daughter++;
 						}
 					}
-
-					//for(auto it = object_container.showerToMCParticleMap.begin(); it != object_container.showerToMCParticleMap.end();it++){
-					//	if((size_t)it->first->ID() ==  n){
-					//		m_bobbypi0daughter.push_back(it->second->PdgCode());
-					//		if(it->second->PdgCode() == 22){
-					//			get_a_photon++;
-					//		}
-					//		art::Ptr<simb::MCParticle> amother = object_container.MCParticleToTrackIdMap[it->second->Mother()];
-					//		if(amother){}else{continue;}//sometime Mother is unknown..
-					//		if(amother->PdgCode() == 111){
-					//			get_a_pi0daughter++;
-					//		}
-					//	}
-					//}
 				}
 			}
 			cout<<"# of showers: "<<temp_num_showers<<endl;
@@ -570,6 +569,8 @@ namespace single_photon
 //			}
 
 			std::cout<<"Got Bobby's info.!\n"<<std::endl;
+*/
+
 			//----------------------------------------------------
 			//Track Calorimetry
 		art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);

@@ -832,7 +832,7 @@ namespace single_photon
 		vector <double> m_dist_st;//shower&track, cpoa_vert_prox
 		vector <double> m_dist_sst;//shower&shower&track, cpoa_trackend_prox
 
-		ParticleAssociations_all BobbyVertexBuilder_ext(class Atlas &package, bool more_objects);
+		void BobbyVertexBuilder_ext(class Atlas &package, bool more_objects);
 		//---------------------------------------------------
 
 		//added eventweight

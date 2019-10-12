@@ -55,10 +55,6 @@ namespace single_photon
 	void SinglePhoton::CollectTracksAndShowers_v2(
 			const art::Event &evt,
 			class Atlas &package){
-		//			int run_count){
-		//		if(run_count>1){//Um.. something goes wrong if this is true
-		//			mf::LogDebug("SinglePhoton") << "  It seems that we loop the VertexBuilder too much.\n";
-		//		}
 
 		std::vector< art::Ptr<recob::PFParticle> > candidate_particles(package.particles);//CHECK, always vertex the most nu-like slice.
 
@@ -81,10 +77,6 @@ namespace single_photon
 			const unsigned int nTracks(ToBeAddedTracks.size());
 			const unsigned int nShowers(ToBeAddedShowers.size());
 
-			//Check if we can add a track/a shower that is identified from a PFParticle.
-			//		cout<<"CHECK! # of tracks/showers are ready, over!"<<endl;
-			//		cout<<nTracks<<endl;
-			//		cout<<nShowers<<endl;
 			if( nTracks + nShowers == 0 ){//Um... the PFParticle is not identified as track or shower;
 				mf::LogDebug("SinglePhoton") << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << "\n";
 			}else if( nTracks + nShowers > 1 ){
@@ -117,62 +109,6 @@ namespace single_photon
 			} //repeat this loop for another PFParticle in the candidate_particles.
 		}
 	}
-//		package.selected_showers.clear();//no need these, but they dont hurt;
-//		package.selected_tracks.clear();
-//
-//		switch (run_count)
-//		{
-//			case 0://actually only case 0 allowed here;
-//				cout<<"\n\n Load objects form the selected nu slice!"<<endl;
-//				package.selected_showers = wanted_showers;
-//				package.selected_tracks = wanted_tracks;
-//				break;
-//			case 1:
-//				cout<<"\n\n Load objects form other nu slices!"<<endl;
-//				(package.selected_showers).reserve( more_showers.size() + wanted_tracks.size());
-//				(package.selected_showers).insert((package.selected_showers).end(), more_showers.begin(), more_showers.end());
-//				(package.selected_showers).insert((package.selected_showers).end(), wanted_showers.begin(), wanted_showers.end());
-//				//ok, same for tracks
-//				(package.selected_tracks).reserve(more_tracks.size()+wanted_tracks.size());
-//				(package.selected_tracks).insert((package.selected_tracks).end(), more_tracks.begin(), more_tracks.end());
-//				(package.selected_tracks).insert((package.selected_tracks).end(), wanted_tracks.begin(), wanted_tracks.end());
-//				break;
-//
-//			case 3://CHECK, this is for testing purpose.
-//				cout<<"\n\n Only more Nuslices! CHECK IAM MESSING THIS UP"<<endl;
-//				package.selected_showers = more_showers;
-//				package.selected_tracks = more_tracks;
-//		}
-//				cout<<"Showers: "<<package.selected_showers.size()<<endl;
-//				cout<<"Tracks: "<<package.selected_tracks.size()<<endl;
-//	}
-
-
-	/***************************
-	 *
-	 * ReconsiderMoreCandidates() - add more showers and tracks candidates into current vertex.
-	 *
-	 * ***************************
-
-	void ReconsiderMoreCandidates(ParticleAssociations_all &candidates, class Atlas &package){
-
-	// Ingredients:
-		package.more_showers;
-		package.more_tracks;
-		vector<double> current_vertex = {candidates.GetRecoVertex().at(0), candidates.GetRecoVertex().at(1), candidates.GetRecoVertex().at(2)};//get the vertex position;
-
-		//GetRecoVertex()
-		//fvertex, geoalgo::Point_t in class ParticleAssociation
-		//
-		// fassociations a vector of ParticleAssociation class, run under AddAssociation()
-		//
-
-	//I think I need to do this:
-		pas.GetDetectorObjects().AddShowers(package.more_showers);//load tracks
-		pas.GetDetectorObjects().AddTracks(package.more_tracks);//load showers
-		AssociateTracks(pas);//this is the code for associating the tracks, see 1027 at VertexBuilder.h
-		AssociateShowers(pas);//this is the code for associating the showers
-	}*/
 
 
 	/****************************
@@ -181,7 +117,7 @@ namespace single_photon
 	 *
 	 * **************************/
 
-	ParticleAssociations_all SinglePhoton::BobbyVertexBuilder_ext(class Atlas &package, bool more_objects){
+	void SinglePhoton::BobbyVertexBuilder_ext(class Atlas &package, bool more_objects){
 		bool fverbose = m_is_verbose;
 
 //		initscr();//initialize the COLS and LINES for the screen size
@@ -215,19 +151,33 @@ namespace single_photon
 		vbuilder.SetVerbose(fverbose);
 		vbuilder.SetParameters({start_prox, shower_prox, cpoa_vert_prox, cpoa_trackend_prox});
 
+
+		candidates.SetVerbose(fverbose);
 		//		if(fvbuildert.ftree) vbuilder.SetVBT(&fvbuildert);
 
 
-		candidates.SetVerbose(fverbose);
-		candidates.GetDetectorObjects().AddShowers(package.selected_showers);//load tracks
-		candidates.GetDetectorObjects().AddTracks(package.selected_tracks);//load showers
+//regroup tracks and showers info.
+		std::vector< art::Ptr<recob::Track> > use_tracks;
+		std::vector< art::Ptr<recob::Shower> > use_showers;
+
 		if(more_objects){//CHECK, now just load it without checking bobby result
-		//MERGE vector first; dont Addshowers/Tracks twice! otherwise will mess up the indices
-		candidates.GetDetectorObjects().AddShowers(package.more_showers);//load tracks
-		candidates.GetDetectorObjects().AddTracks(package.more_tracks);//load showers
+			//MERGE vector first; dont Addshowers/Tracks twice! otherwise will mess up the indices
+			use_tracks.reserve( package.selected_tracks.size() + package.more_tracks.size() );
+			use_tracks.insert( use_tracks.end(), package.selected_tracks.begin(), package.selected_tracks.end() );
+			use_tracks.insert( use_tracks.end(), package.more_tracks.begin(), package.more_tracks.end() );
+
+			use_showers.reserve( package.selected_showers.size() + package.more_showers.size() );
+			use_showers.insert( use_showers.end(), package.selected_showers.begin(), package.selected_showers.end() );
+			use_showers.insert( use_showers.end(), package.more_showers.begin(), package.more_showers.end() );
+		} else{
+			use_tracks = package.selected_tracks;
+			use_showers = package.selected_showers;
+
 		}
 
-
+		candidates.GetDetectorObjects().AddShowers(use_showers);//load tracks
+		candidates.GetDetectorObjects().AddTracks( use_tracks);//load showers
+//finish loading tracks and showers.
 
 		vbuilder.Run(candidates);//here deals with the candidates and find the vertex.
 
@@ -256,23 +206,124 @@ namespace single_photon
 		cout<<"\n"<<endl;
 
 		if(vbuilder.f_dist_tt[0]<999){
-		m_dist_tt = vbuilder.f_dist_tt;
+			m_dist_tt = vbuilder.f_dist_tt;
 		}
 		if(vbuilder.f_dist_sx[0]<999){
-		m_dist_sx = vbuilder.f_dist_sx;
+			m_dist_sx = vbuilder.f_dist_sx;
 		}
 
 		if(vbuilder.f_dist_st[0]<999){
-		m_dist_st = vbuilder.f_dist_st;
+			m_dist_st = vbuilder.f_dist_st;
 		}
 
 		if(vbuilder.f_dist_sst[0]<999){
-		m_dist_sst = vbuilder.f_dist_sst;
+			m_dist_sst = vbuilder.f_dist_sst;
 		}
 
 
+		
+std::cout<<"Filling in Bobby's Vertex info. with "<<candidates.GetSelectedAssociations().size()<<" Vertex candidates."<<std::endl;
+		bool reset_bobbyvertex = true;
+		if(candidates.GetSelectedAssociations().size()==0){
+		cout<<"No vertex is reconstructed."<<endl;
+		}
 
-			return candidates;//and fill in the vertexed file (tree) in the SinglePhoton_module.cc
+		for(size_t const nth_associations : candidates.GetSelectedAssociations()) {//Loop over all associations, which is a vector
+			ParticleAssociation const & particle_associated = candidates.GetAssociations().at(nth_associations);//grab the "pn"th association;
+			geoalgo::Point_t const & reco_vertex = particle_associated.GetRecoVertex();//Grab the vertec of the "pn"th association.
+			if(reset_bobbyvertex){
+				m_bobbyvertex_pos_xv.clear();
+				m_bobbyvertex_pos_yv.clear();
+				m_bobbyvertex_pos_zv.clear();
+				m_bobbytracksv.clear();
+				m_bobbyshowersv.clear();
+
+				m_bobbyprotontrack.clear();
+				m_bobbyphotonshower.clear();
+				m_bobbypi0daughter.clear();
+				reset_bobbyvertex = false;
+			}
+
+			m_bobbyvertex_pos_xv.push_back( reco_vertex.at(0));
+			m_bobbyvertex_pos_yv.push_back( reco_vertex.at(1));
+			m_bobbyvertex_pos_zv.push_back( reco_vertex.at(2));
+
+			cout<<"Vertex Coordinates found by Bobby Vertex Builder: ";
+			cout<<reco_vertex.at(0)<<", ";
+			cout<<reco_vertex.at(1)<<", ";
+			cout<<reco_vertex.at(2)<<endl;
+
+			//calculate the # of tracks/showers;
+			DetectorObjects_all const & detos = candidates.GetDetectorObjects();
+			int temp_num_tracks = 0;
+			int temp_num_showers = 0;
+			
+			int get_a_proton = 0;
+			int get_a_photon = 0;
+			int get_a_pi0daughter = 0;
+			for(size_t const n : particle_associated.GetObjectIndices()) {
+				if(detos.GetRecoType(n) == detos.ftrack_reco_type) {
+					++temp_num_tracks;
+					
+					int trackindex = detos.GetTrackIndexFromObjectIndex(n);
+					art::Ptr<simb::MCParticle> temp_MCtrack = package.trackToMCParticleMap.find(use_tracks[trackindex])->second;
+					if(temp_MCtrack->PdgCode()==2212){
+						get_a_proton++;
+					}
+				}
+				if(detos.GetRecoType(n) == detos.fshower_reco_type) {
+
+					++temp_num_showers;
+					int showerindex = detos.GetShowerIndexFromObjectIndex(n);//CHECK
+					art::Ptr<simb::MCParticle> temp_MCshower = package.showerToMCParticleMap.find(use_showers[showerindex])->second;
+					if(temp_MCshower->PdgCode()==22){
+						get_a_photon++;
+					}
+					art::Ptr<simb::MCParticle> amother = package.MCParticleToTrackIdMap[temp_MCshower->Mother()];
+					if(amother){//sometime Mother is unknown..
+						if(amother->PdgCode() == 111){
+							get_a_pi0daughter++;
+						}
+					}
+				}
+			}
+			cout<<"# of showers: "<<temp_num_showers<<endl;
+			cout<<"# of tracks : "<<temp_num_tracks<<endl;
+
+			m_bobbytracksv.push_back(temp_num_tracks);
+			m_bobbyshowersv.push_back(temp_num_showers);
+
+			m_bobbyprotontrack.push_back(get_a_proton);
+			m_bobbyphotonshower.push_back(get_a_photon);
+			m_bobbypi0daughter.push_back(get_a_pi0daughter);
+		}
+
+//			double best_vertex_dist = SIZE_MAX;
+			for( size_t index = 0; index< m_bobbyvertex_pos_xv.size() ; index++){
+//				double temp_dist =  pow(m_vertex_pos_x - m_bobbyvertex_pos_xv[index],2) + pow(m_vertex_pos_y - m_bobbyvertex_pos_yv[index],2)+ pow(m_vertex_pos_z - m_bobbyvertex_pos_zv[index],2);
+
+//				if(temp_dist < best_vertex_dist){}//update when find a closer vertex to the pandora vertex.
+				if((m_bobbyshowersv[index] > 0 && m_bobbytracksv[index] > 0)|| index == 0){
+				//	best_vertex_dist = temp_dist;
+					
+					m_bobbyvertex_pos_x = m_bobbyvertex_pos_xv[index];
+					m_bobbyvertex_pos_y = m_bobbyvertex_pos_yv[index];
+					m_bobbyvertex_pos_z = m_bobbyvertex_pos_zv[index];
+					m_bobbytracks =  m_bobbytracksv[index];
+					m_bobbyshowers = m_bobbyshowersv[index];
+					break;
+				}
+			}
+
+//			if( m_run_all_pfps && m_bobbyvertexing_more &&m_bobbytracks + m_bobbyshowers < 2&& run_count < 2 ){//repeat with 0,1
+//				run_count++;
+//				cout<<"Need more objects. Now run the "<<run_count<<" time the vertexing."<<endl;
+//				goto redo_event;
+//			}
+
+			std::cout<<"Got Bobby's info.!\n"<<std::endl;
+
+//			return candidates;//and fill in the vertexed file (tree) in the SinglePhoton_module.cc
 
 	}
 }
