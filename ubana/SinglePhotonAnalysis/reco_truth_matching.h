@@ -6,7 +6,8 @@ namespace single_photon
 {
 
     //recoMCmatching but specifically for recob::showers
-    std::vector<double> SinglePhoton::showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
+    std::vector<double> SinglePhoton::showerRecoMCmatching(
+			std::vector<art::Ptr<recob::Shower>>& objectVector,
             std::map<art::Ptr<recob::Shower>,art::Ptr<simb::MCParticle>>& objectToMCParticleMap,
             std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& objectToPFParticleMap,
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> >& pfParticleToHitsMap,

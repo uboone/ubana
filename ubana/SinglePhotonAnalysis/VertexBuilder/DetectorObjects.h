@@ -73,8 +73,8 @@ class DetectorObjects_all {
   std::vector<size_t> fshower_index_v;
   size_t fobject_id;
 
-//  std::map<size_t, size_t> foriginal_track_index_m;
-//  std::map<size_t, size_t> foriginal_shower_index_m;
+  std::map<size_t, size_t> foriginal_track_index_m;
+  std::map<size_t, size_t> foriginal_shower_index_m;
 
 public:
 
@@ -115,8 +115,8 @@ public:
   Shower & GetShower(size_t const i);
   Shower const & GetShower(size_t const i) const;
   
-//  size_t GetTrackIndexFromOriginalIndex(size_t const i) const;
-//  size_t GetShowerIndexFromOriginalIndex(size_t const i) const;
+  size_t GetTrackIndexFromObjectIndex(size_t const i) const;
+  size_t GetShowerIndexFromObjectIndex(size_t const i) const;
 
 };
 
@@ -155,7 +155,7 @@ void DetectorObjects_all::AddTracks(
     recob::Track const & t = *(ev_t.at(i));
     fobject_m.emplace(fobject_id, new Track(fobject_id, i, ftrack_reco_type, t)); 
     ftrack_index_v.push_back(fobject_id);
-//    if(track_original_indices) foriginal_track_index_m.emplace(i, fobject_id);
+    if(track_original_indices) foriginal_track_index_m.emplace(i, fobject_id);
     ++fobject_id;
   }
 }
@@ -166,7 +166,7 @@ void DetectorObjects_all::AddShowers(std::vector<art::Ptr<recob::Shower>> const 
     recob::Shower const & s = *(ev_s.at(i));
     fobject_m.emplace(fobject_id, new Shower(fobject_id, i, fshower_reco_type, s));
     fshower_index_v.push_back(fobject_id);
-//    if(track_original_indices) foriginal_shower_index_m.emplace(i, fobject_id);
+    if(track_original_indices) foriginal_shower_index_m.emplace(i, fobject_id);
     ++fobject_id;
   }
 }  
@@ -298,8 +298,8 @@ Shower const & DetectorObjects_all::GetShower(size_t const i) const {
 }
 
 
-//size_t DetectorObjects_all::GetTrackIndexFromOriginalIndex(size_t const i) const {
-//
+size_t DetectorObjects_all::GetTrackIndexFromObjectIndex(size_t const i) const {
+
 //  auto om_it = foriginal_track_index_m.find(i);
 //  
 //  if(om_it == foriginal_track_index_m.end()) {
@@ -308,21 +308,34 @@ Shower const & DetectorObjects_all::GetShower(size_t const i) const {
 //  }
 //
 //  return om_it->second;
-//
-//}
-//
-//
-//size_t DetectorObjects_all::GetShowerIndexFromOriginalIndex(size_t const i) const {
-//
+	for(auto it = foriginal_track_index_m.begin(); it != foriginal_track_index_m.end(); ++ it){
+		if(it->second == i) return it->first;
+	}
+	return foriginal_track_index_m.begin()->first;
+	std::cout << __PRETTY_FUNCTION__ << "\nCould not find object associated to original index: " << i << std::endl;
+	exit(1);
+
+}
+
+
+size_t DetectorObjects_all::GetShowerIndexFromObjectIndex(size_t const i) const {
+
 //  auto om_it = foriginal_shower_index_m.find(i);
-//  
+  
 //  if(om_it == foriginal_shower_index_m.end()) {
 //    std::cout << __PRETTY_FUNCTION__ << "\nCould not find object associated to original index: " << i << std::endl;
 //    exit(1);
 //  }
 //
 //  return om_it->second;
-//
-//}
+	for(auto it = foriginal_shower_index_m.begin(); it != foriginal_shower_index_m.end(); ++ it){
+		if(it->second == i) return it->first;
+	}
+	return foriginal_shower_index_m.begin()->first;
+	std::cout << __PRETTY_FUNCTION__ << "\nCould not find object associated to original index: " << i << std::endl;
+	exit(1);
+
+
+}
 }
 #endif

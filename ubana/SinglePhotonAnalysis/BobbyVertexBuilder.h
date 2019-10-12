@@ -222,6 +222,7 @@ namespace single_photon
 		candidates.GetDetectorObjects().AddShowers(package.selected_showers);//load tracks
 		candidates.GetDetectorObjects().AddTracks(package.selected_tracks);//load showers
 		if(more_objects){//CHECK, now just load it without checking bobby result
+		//MERGE vector first; dont Addshowers/Tracks twice! otherwise will mess up the indices
 		candidates.GetDetectorObjects().AddShowers(package.more_showers);//load tracks
 		candidates.GetDetectorObjects().AddTracks(package.more_tracks);//load showers
 		}

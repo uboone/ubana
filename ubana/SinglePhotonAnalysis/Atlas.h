@@ -92,12 +92,19 @@ namespace single_photon
 		std::map< art::Ptr<recob::PFParticle>, bool> 					PFPToNuSliceMap;
 		std::map< art::Ptr<recob::PFParticle>, double>					PFPToTrackScoreMap;
 
-		//Maps for simb objects; Filled in the RecoMCTracks() in analyze_Tracks.h / RecoMCShowers() in analyze_Showers.h
-		std::vector<art::Ptr<simb::MCParticle>>										matchedMCParticleVector;
+//Maps for simb objects; for MC sample, not applied to data
+
+		//Filled in the CollectMCParticles() in Singlephoton_module.cc
 		std::map<int, art::Ptr<simb::MCParticle>>									MCParticleToTrackIdMap;
-		std::map< art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> >				showerToMCParticleMap;
 		std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> MCTruthToMCParticlesMap;
 		std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              MCParticleToMCTruthMap;
+
+		//Filled in the showerRecoMCmatching() in reco_truth_matching.h
+		std::vector<art::Ptr<simb::MCParticle>>										matchedMCParticleVector;
+		std::map< art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> >				showerToMCParticleMap;
+
+		//Filled in the RecoMCTracks() in analyze_Tracks.h
+		std::map< art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> >				trackToMCParticleMap;
 
 
 		//FindManyP's!
