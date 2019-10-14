@@ -164,11 +164,13 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
 												   total_beam_PE,total_veto_PE));
       e.put(std::move(ubopfilter_obj));
     }
+
+  return true;
   
-  if ( beamPEinfo[0]>fPEThresholdScaled && vetoPEinfo[0]<fPEThresholdScaled && maxfrac < fPMTMaxFrac )
-    return true;
+  //if ( beamPEinfo[0]>fPEThresholdScaled && vetoPEinfo[0]<fPEThresholdScaled && maxfrac < fPMTMaxFrac )
+  // return true;
   
-  return false;  
+  //return false;  
 }
 
 DEFINE_ART_MODULE(dl::DLPMTPreCuts)

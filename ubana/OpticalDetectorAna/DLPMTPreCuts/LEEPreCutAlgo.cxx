@@ -5,6 +5,7 @@
 // C++
 #include <algorithm>
 #include <utility>
+#include <iostream>
 
 namespace leeprecuts {
 
@@ -105,27 +106,61 @@ namespace leeprecuts {
     bool flashFound = false;
     std::vector<float> PEinfo;
     std::vector<float> flashBins;
+    std::vector<float> getting_max_flash;
+    //std::cout<<"NEW FLASHES ENTRIES"<<std::endl;
 
     for (unsigned int i=0; i<flashes.size(); i++) {
-
+      //std::cout<<i<<" "<<flashes[i]<<" flashes values"<<std::endl;
       if (flashes[i] > coincThresh && flashFound == true) {
 	flashBins.push_back(i);
 	totPE+=flashes[i];
+
+	//	std::cout<<i<<" "<<"I PASSED WITH TRUE"<<std::endl;
       }
 
       if (flashes[i] < coincThresh && flashFound == true) {
-	break;
+	//	std::cout<<i<<" "<<"I DIDNT PASS WITH TRUE"<<std::endl;
+	//set totPE to new vector
+	//totPE+=flashes[i];
+	getting_max_flash.push_back(totPE);
+	totPE=0.;
+	flashFound = false;
+	//	break;
       }
 
       if (flashes[i] > coincThresh && flashFound == false) {
 	totPE+=flashes[i];
 	flashBins.push_back(i);
 	flashFound = true;
+	//	std::cout<<i<<" "<<"I PASSED WITH FALSE"<<std::endl;
+      }
+
+      if(flashes[i] < coincThresh && flashFound == false){
+	//	std::cout<<i<<" "<<"IM UNDER COINCTHRESH AND HAVE NO FLASH"<<std::endl;
       }
 
     }
 
-    PEinfo.push_back(totPE);
+    // if we exit the loop still in a flash -> fill the last flash
+    if (flashFound == true) 
+      getting_max_flash.push_back(totPE);
+    
+    
+    getting_max_flash.push_back(0.);
+    //find max and push that value back thanks
+    float max_flash_element =0.;
+    // std::cout<<"gonna find the max element now"<<std::endl;
+    /*
+    std::cout << "myvector contains:";
+    for (unsigned klo=0; klo<getting_max_flash.size(); ++klo)
+      std::cout << ' ' << getting_max_flash[klo];
+    std::cout << '\n';
+    */
+
+    max_flash_element = *max_element(getting_max_flash.begin(),getting_max_flash.end());
+    //std::cout<<max_flash_element<<" this is the value of the maximum"<<std::endl;
+    PEinfo.push_back(max_flash_element);
+    // PEinfo.push_back(totPE);
     for (unsigned int i=0; i < flashBins.size(); i++) {
       PEinfo.push_back(flashBins[i]);
     }
