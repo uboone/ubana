@@ -14,6 +14,7 @@ art_make( BASENAME_ONLY
                    BackTrack
                    BrokenTrack
                    RecoTruth
+                   Topology
                    ubobj_UBXSec
                    ubobj_Trigger
                    HitCosmicTag_Base 
@@ -72,6 +73,7 @@ art_make( BASENAME_ONLY
                    BackTrack
                    BrokenTrack
                    RecoTruth
+                   Topology
                    ubobj_UBXSec
 		   ubobj_Trigger
                    HitCosmicTag_Base
@@ -219,6 +221,16 @@ art_make_library(
        ${ROOT_GEOM}
        ${Boost_FILESYSTEM_LIBRARY}
        ${Boost_SYSTEM_LIBRARY}
+       cetlib cetlib_except
+
+)
+
+art_make_library(
+   LIBRARY_NAME
+       Topology
+   SOURCE
+       Topology.cxx
+   LIBRARIES
        cetlib cetlib_except
 
 )

@@ -59,6 +59,7 @@
 #include "BackTrackerTruthMatch.h"
 #include "RecoTruthMCParticle.h"
 #include "BrokenTrack.h"
+#include "Topology.h"
 
 class SingleMuon;
 
@@ -80,7 +81,6 @@ public:
 
   // Selected optional functions.
   void endSubRun(art::SubRun const &sr) override;
-  int Topology(int Nmuons, int Nelectrons, int Nprotons, int Npiplus, int Npiminus, int Npi0, int Nprotons_abTH, int Nprotons_blTH, int PDG, int CCNC,  bool ifcosmic, bool ifbeam, bool ifFV);
   void beginJob() override;
   void endJob() override;
 
@@ -119,13 +119,17 @@ private:
   int MC_nPiPlus_above65; // Number of pi plus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPiMinus_below65; // Number of pi minus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPiMinus_above65; // Number of pi minus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  std::vector<int> MC_Primary_PDG; // PDG of neutrino daughters
+  std::vector<double> MC_Primary_Mom; // Momemtum of neutrino daughters
+
   int Genie_nNeutron_preFSI;// before FSI 
   int Genie_nProton_preFSI;// before FSI 
   int Genie_nPi0_preFSI;// before FSI 
   int Genie_nPiPlus_preFSI;// before FSI 
   int Genie_nPiMinus_preFSI;// before FSI 
 
-  int topology;// The topology of true neutrino interaction + FSI products after Geant4
+  int TopologyType;// The topology of true neutrino interaction + FSI products after Geant4
+
   double flash_matching_chi2; //Chi2 of flash matching in each neutrino slice
 
   std::vector<double> true_mom;//True momentum of muon track in the every event
@@ -490,6 +494,10 @@ void SingleMuon::analyze(art::Event const& evt)
     if (MC_ccnc == 0 && MC_nupdg == 14 && MC_beamNeutrino == true){
       for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
         if(MCParticleCollection[i_mcp]->Process() == "primary"){
+          // PDG and momemtum of neutrino daughters
+          MC_Primary_PDG.push_back(MCParticleCollection[i_mcp]->PdgCode());
+          MC_Primary_Mom.push_back(MCParticleCollection[i_mcp]->P());
+
           // muon
           if(MCParticleCollection[i_mcp]->PdgCode() == 13) MC_nMuon++;
           // electron
@@ -503,13 +511,16 @@ void SingleMuon::analyze(art::Event const& evt)
           if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
           // pion+
           if(MCParticleCollection[i_mcp]->PdgCode() == 211 && MCParticleCollection[i_mcp]->P() < 0.065) MC_nPiPlus_below65++;
-          if(MCParticleCollection[i_mcp]->PdgCode() == 211 && MCParticleCollection[i_mcp]->P() > 0.065) MC_nPiPlus_above65++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 211 && MCParticleCollection[i_mcp]->P() >= 0.065) MC_nPiPlus_above65++;
           // pion-
           if(MCParticleCollection[i_mcp]->PdgCode() == -211 && MCParticleCollection[i_mcp]->P() < 0.065) MC_nPiMinus_below65++;
-          if(MCParticleCollection[i_mcp]->PdgCode() == -211 && MCParticleCollection[i_mcp]->P() > 0.065) MC_nPiMinus_above65++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == -211 && MCParticleCollection[i_mcp]->P() >= 0.065) MC_nPiMinus_above65++;
         }
       }
     }
+ 
+    Topology topology;
+    TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above255, MC_nProton_below255, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
     
     // Get Genie info on how many particles produced
     for(int i_gn = 0; i_gn < (int) GTruthCollection.size(); i_gn++){
@@ -1129,6 +1140,8 @@ void SingleMuon::analyze(art::Event const& evt)
   if_newTrkThroughGoing = false;
 
   if(IsMC){
+    MC_Primary_PDG.clear();
+    MC_Primary_Mom.clear();
     true_mom.clear();
     true_start_x.clear();
     true_start_y.clear();
@@ -1237,6 +1250,7 @@ void SingleMuon::Initialize_event()
   my_event_ = tfs->make<TTree>("tree","tree");
   
   if(IsMC){
+    my_event_->Branch("TopologyType", &TopologyType);
     my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
     my_event_->Branch("MC_nupdg", &MC_nupdg);
     my_event_->Branch("MC_ccnc", &MC_ccnc);
@@ -1254,6 +1268,8 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nPiPlus_above65", &MC_nPiPlus_above65);
     my_event_->Branch("MC_nPiMinus_below65", &MC_nPiMinus_below65);
     my_event_->Branch("MC_nPiMinus_above65", &MC_nPiMinus_above65);
+    my_event_->Branch("MC_Primary_PDG", &MC_Primary_PDG);
+    my_event_->Branch("MC_Primary_Mom", &MC_Primary_Mom);
     my_event_->Branch("Genie_nNeutron_preFSI", &Genie_nNeutron_preFSI);
     my_event_->Branch("Genie_nProton_preFSI", &Genie_nProton_preFSI);
     my_event_->Branch("Genie_nPi0_preFSI", &Genie_nPi0_preFSI);
