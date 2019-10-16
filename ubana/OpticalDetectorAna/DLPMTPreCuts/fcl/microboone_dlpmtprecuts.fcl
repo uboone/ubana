@@ -49,7 +49,7 @@ microboone_common_op_precut_numi_mc: {
   OpHitProducer: "ophit"
   BinTickWidth: 6
   WinStartTick: 300. 
-  WinEndTick: 928.
+  WinEndTick: 1050.
   PEThreshold: 20.0
   VetoStartTick: 170.
   VetoEndTick: 300.
@@ -62,8 +62,8 @@ microboone_common_op_precut_numi: {
 
   OpHitProducer: "ophit"
   BinTickWidth: 6
-  WinStartTick:	364.
-  WinEndTick: 992.
+  WinStartTick:	300.
+  WinEndTick: 1050.
   PEThreshold: 20.0
   VetoStartTick: 234.
   VetoEndTick: 364.
@@ -76,8 +76,8 @@ microboone_common_op_precut_numi_ext: {
 
   OpHitProducer: "ophit"
   BinTickWidth: 6
-  WinStartTick: 387.
-  WinEndTick: 1015.
+  WinStartTick: 323.
+  WinEndTick: 1073.
   PEThreshold: 20.0
   VetoStartTick: 257. 
   VetoEndTick: 387.
