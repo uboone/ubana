@@ -477,7 +477,10 @@ namespace single_photon
 		void CreateFlashBranches();
 
 		//----------------  Tracks ----------------------------
-		void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
+		void AnalyzeTracks(
+		Atlas& package,	
+		geoalgo::Point_t pvertex,
+		const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
 				std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
 				std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
 				std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
@@ -500,7 +503,10 @@ namespace single_photon
 
 		//----------------  Showers ----------------------------
 
-		void AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap,std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > & clusterToHitMap,
+		void AnalyzeShowers(
+		Atlas &package,	
+		geoalgo::Point_t pvertex,
+		const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap,std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap, std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > & clusterToHitMap,
 				std::map<int, double> &sliceIdToNuScoreMap,
 				std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
 				std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
@@ -820,10 +826,15 @@ namespace single_photon
 		int m_bobbytracks;
 		std::vector<int> m_bobbyshowersv;
 		std::vector<int> m_bobbytracksv;
-		std::vector<int> m_bobbyphotonshower;
-		std::vector<int> m_bobbypi0daughter;
-		std::vector<int> m_bobbyprotontrack;
-	//std::vector<std::vector<int>> m_bobbyshowersv_parent_pdg;
+		std::vector<double> m_bobbyvertexradiusv;
+		double m_bobbyvertexradius;
+
+		int m_bobbyphotonshower;
+		int m_bobbypi0daughter;
+		int m_bobbyprotontrack;
+		std::vector<int> m_bobbyphotonshowerv;
+		std::vector<int> m_bobbypi0daughterv;
+		std::vector<int> m_bobbyprotontrackv;
 		bool m_bobbyvertexing_more;
 
 

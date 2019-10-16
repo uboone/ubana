@@ -2,12 +2,11 @@
 #include "TPrincipal.h"
 #include "TVectorD.h"
 #include "TruncMean.h"
+#include "Atlas.h"
 
 
 namespace single_photon
 {
-
-
     void SinglePhoton::ClearTracks(){
         m_reco_asso_tracks=0;
         m_reco_track_num_daughters.clear();
@@ -144,8 +143,6 @@ namespace single_photon
         m_sim_track_sliceId.clear();
         m_sim_track_nuscore.clear();
         m_sim_track_isclearcosmic.clear();
-
-
     }
 
     void SinglePhoton::ResizeTracks(size_t size){
@@ -153,7 +150,7 @@ namespace single_photon
         m_reco_track_dirx.resize(size);
         m_reco_track_num_daughters.resize(size);
         m_reco_track_daughter_trackscore.resize(size);
-        
+
         m_reco_track_diry.resize(size);
         m_reco_track_dirz.resize(size);
         m_reco_track_endx.resize(size);
@@ -436,7 +433,10 @@ namespace single_photon
 
 
 
-    void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
+    void SinglePhoton::AnalyzeTracks(
+			Atlas& package,	
+			geoalgo::Point_t pvertex,
+			const std::vector<art::Ptr<recob::Track>>& tracks,
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap,
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap, 
             std::map<int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap,
@@ -450,7 +450,8 @@ namespace single_photon
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Starting recob::Track analysis"<<std::endl;;
 
-        m_reco_asso_tracks = tracks.size();
+        //m_reco_asso_tracks = tracks.size();
+        m_reco_asso_tracks = package.selected_tracks.size();//KENG BobbyVertexBuilder
         int i_trk=0;
 
 
@@ -460,13 +461,12 @@ namespace single_photon
         //const double adc2eV(5.2e-3);
         // const double adc2eW(5.4e-3);
 
-
         //    const double tau(theDetector->ElectronLifetime());
 
 
         for (TrackVector::const_iterator iter = tracks.begin(), iterEnd = tracks.end(); iter != iterEnd; ++iter)
         {
-
+			
             const art::Ptr<recob::Track> track = *iter;
             const art::Ptr<recob::PFParticle> pfp = trackToNuPFParticleMap[track];
             const std::vector< art::Ptr<recob::SpacePoint> > trk_spacepoints = pfParticleToSpacePointsMap[pfp];
@@ -544,6 +544,25 @@ namespace single_photon
             //std::cout<<"checking track nuslice"<<std::endl;
            // std::cout<<"is nuslice for track with pfp "<<pfp->Self()<<" is: "<<PFPToNuSliceMap[pfp]<<std::endl;
             m_reco_track_is_nuslice[i_trk] = PFPToNuSliceMap[pfp];
+
+			//BobbyVertexBuilder 
+			int which_is_closer = 9999;
+			if(!m_reco_track_is_nuslice[i_trk]){//if not nuslice, change the distance:
+			geoalgo::Point_t tkbegin(m_reco_track_startx[i_trk],
+					m_reco_track_starty[i_trk],	
+					m_reco_track_startz[i_trk]);
+
+			geoalgo::Point_t tkend(m_reco_track_endx[i_trk],
+					m_reco_track_endy[i_trk],	
+					m_reco_track_endz[i_trk]);
+
+			which_is_closer = min(pvertex.Dist(tkbegin),pvertex.Dist(tkend));
+//			std::cout<<"Tracks to NuSlice: "<<pvertex.Dist(tkbegin)<<" vs "<<pvertex.Dist(tkend)<<"\n\n\n";
+			}
+			package.trackToDistMap.emplace(track,which_is_closer);
+
+			//--------- End of BB
+
 
             m_reco_track_num_daughters[i_trk] = pfp->NumDaughters();
             if(m_reco_track_num_daughters[i_trk]>0){

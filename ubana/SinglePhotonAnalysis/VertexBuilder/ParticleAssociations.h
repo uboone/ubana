@@ -343,9 +343,9 @@ void ParticleAssociations_all::AddShower(size_t const index,
   //Dont know why consruct a ParticleAssociation here..
   ParticleAssociation & association = fassociations.at(index);
   std::vector<size_t> const & group = association.GetObjectIndices();
-  
+	 
   if(std::find(group.begin(), group.end(), n) != group.end()) {
-    std::cout << "Object ID: " << n << " already added\n";
+//    std::cout << "Object ID: " << n << " already added\n";
     return;
   }
   
@@ -546,12 +546,13 @@ void ParticleAssociations_all::NodeCheck() {
     size_t const s = nodes.at(i);
     if(s == 0) continue;
 
-    DetectorObject const & deto = fdetos.GetDetectorObject(i);//Singuar used once;
-
-    if(deto.freco_type == fdetos.ftrack_reco_type && s > 2)
-      std::cout << "track > 2 entries: " << s << std::endl;
-    if(deto.freco_type == fdetos.fshower_reco_type && s > 1)
-      std::cout << "shower > 1 entries: " << s << std::endl;
+	DetectorObject const & deto = fdetos.GetDetectorObject(i);//Singuar used once;
+	if(fverbose){
+		if(deto.freco_type == fdetos.ftrack_reco_type && s > 2)
+			std::cout << "track > 2 entries: " << s << std::endl;
+		if(deto.freco_type == fdetos.fshower_reco_type && s > 1)
+			std::cout << "shower > 1 entries: " << s << std::endl;
+	}
 
   }
   
@@ -581,7 +582,7 @@ void ParticleAssociations_all::GetShowerAssociations() {
   }
 
 	for(size_t i = 0; i < fassociations.size(); ++i) {
-		cout<<setw(15)<<i<<"| ";//Association ID
+	if(fverbose) cout<<setw(15)<<i<<"| ";//Association ID
 		string trackids("N/A");
 		string showerids("");
 		bool add_once = true;
@@ -620,8 +621,9 @@ void ParticleAssociations_all::GetShowerAssociations() {
 
 	}
 //	return;//skip the following part? Keng CHECK!
-	if(fverbose) std::cout << "\nNumber of vertices to be examinated: "<<pa_map.size()<<endl;
+	if(fverbose){ std::cout << "\nNumber of vertices to be examinated: "<<pa_map.size()<<endl;
 	cout<<"Keep all vertices (that with shower) for now."<<endl;
+	}
 
 	for(std::pair<double, size_t> const & p : pa_map) {
 	//p is a pair <z-position, index of DetectorObject (a shower)>

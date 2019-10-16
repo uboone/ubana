@@ -692,7 +692,7 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 			shower_map.erase(best_shower_id);
 			continue;
 		}
-		std::cout << "\t\tThe precandidate vertex is:\n";
+		if(fverbose)std::cout << "\t\tThe precandidate vertex is:\n";
 
 		//#3.2 The precandidate vertex is not a candidate vertex, but it can be
 		//		1) from a shower and possibly promoted to candiate vertex.
@@ -1194,7 +1194,7 @@ void VertexBuilder::Run(ParticleAssociations_all & pas) {//Analysis the tracks &
   pas.GetShowerAssociations();//CHECK
 
   if(fvbt) fvbt->fassociation_final_number = pas.GetSelectedAssociations().size();
-  cout<<"\n\n # of Vertex found: "<<pas.GetSelectedAssociations().size()<<endl;
+  if(fverbose)cout<<"\n\n # of Vertex found: "<<pas.GetSelectedAssociations().size()<<endl;
 
   if(fvbt) {//after the association is finished (found the vertex), fill in in the tree.
 	  if(fverbose) std::cout << "Fill VBT\n";

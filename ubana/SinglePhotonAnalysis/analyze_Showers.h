@@ -498,7 +498,10 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
     }
 
-    void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
+    void SinglePhoton::AnalyzeShowers(
+			Atlas& package,	
+			geoalgo::Point_t pvertex,
+	const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
             std::map<int, double>& sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
@@ -510,7 +513,8 @@ namespace single_photon
 
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Begininning recob::Shower analysis suite"<<std::endl;;
 
-        m_reco_asso_showers=showers.size();
+//        m_reco_asso_showers=showers.size();
+		m_reco_asso_showers = package.selected_showers.size();//KENG BobbyVertexBuilder
         int i_shr = 0;
         this->ResizeShowers(m_reco_asso_showers);
 
@@ -562,7 +566,7 @@ namespace single_photon
             m_reco_shower3d_dirz[i_shr] = shr3d_dir.Z();
             m_reco_shower3d_length[i_shr] = shower3d->Length();
             m_reco_shower3d_openingangle[i_shr] = shower3d->OpenAngle();
-
+			//
 
             m_reco_shower_conversion_distance[i_shr] = sqrt( pow(shr_start.X()-m_vertex_pos_x,2)+pow(shr_start.Y()-m_vertex_pos_y,2)+ pow(shr_start.Z()-m_vertex_pos_z,2)  );
             m_reco_shower3d_conversion_distance[i_shr] = sqrt( pow(shr3d_start.X()-m_vertex_pos_x,2)+pow(shr3d_start.Y()-m_vertex_pos_y,2)+ pow(shr3d_start.Z()-m_vertex_pos_z,2)  );
@@ -886,6 +890,20 @@ namespace single_photon
             m_reco_shower_isclearcosmic[i_shr] = PFPToClearCosmicMap[pfp];
             m_reco_shower_is_nuslice[i_shr] = PFPToNuSliceMap[pfp];
             //m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
+
+			//BobbyVertexBuilder 
+			int shower_to_nuslice_dist = 9999;
+			if(!m_reco_shower_is_nuslice[i_shr]){
+			geoalgo::Point_t sh(m_reco_shower_startx[i_shr],
+					m_reco_shower_starty[i_shr],	
+					m_reco_shower_startz[i_shr]);//start point of shower
+					shower_to_nuslice_dist = pvertex.Dist(sh);
+			}
+			package.showerToDistMap.emplace(shower,shower_to_nuslice_dist);
+
+			//--------- End of BB
+
+
 
             //std::cout<<"m_reco_shower_is_nuslice[i_shr] = "<<m_reco_shower_is_nuslice[i_shr]<<" for shr with pfp "<<pfp->Self()<<std::endl; 
 

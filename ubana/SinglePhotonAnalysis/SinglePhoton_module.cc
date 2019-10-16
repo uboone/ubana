@@ -322,7 +322,7 @@ namespace single_photon
 //		std::map<art::Ptr<recob::PFParticle>, int> PFPToSliceIdMap; //returns the slice id for all PFP's
 //		std::map<art::Ptr<recob::PFParticle>,bool> PFPToNuSliceMap;
 //		std::map<art::Ptr<recob::PFParticle>,double> PFPToTrackScoreMap;
-		std::map<int, int> sliceIdToNumPFPsMap;
+//		std::map<int, int> sliceIdToNumPFPsMap;
 		//above are all filled in analyze slice
 
 		//Need the following to identify a PFParticle is a track or a shower;
@@ -351,7 +351,7 @@ namespace single_photon
 				object_container.PFPToSliceIdMap, 
 				object_container.PFPToNuSliceMap, 
 				object_container.PFPToTrackScoreMap);
-
+		
 		this->CollectTracksAndShowers_v2(evt, object_container); //This tells what showers and tracks to use.
 		std::vector< art::Ptr<recob::Track> > tracks;
 		tracks.reserve( object_container.selected_tracks.size() + object_container.more_tracks.size() );
@@ -365,106 +365,114 @@ namespace single_photon
 
 
 
-//		std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap = object_container.trackToNuPFParticleMap; //give access to the PFParticle via track/shower
-//		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap = object_container.showerToNuPFParticleMap;
+		//		std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap = object_container.trackToNuPFParticleMap; //give access to the PFParticle via track/shower
+		//		std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap = object_container.showerToNuPFParticleMap;
 
-//		std::map<int, art::Ptr<simb::MCParticle>> MCParticleToTrackIdMap = object_container.MCParticleToTrackIdMap;
+		//		std::map<int, art::Ptr<simb::MCParticle>> MCParticleToTrackIdMap = object_container.MCParticleToTrackIdMap;
 
-			this->AnalyzeTracks(
-					tracks,
-					object_container.trackToNuPFParticleMap,
-					pfParticleToSpacePointsMap,
-					object_container.MCParticleToTrackIdMap,//disabled
-					object_container.sliceIdToNuScoreMap,
-					object_container.PFPToClearCosmicMap,
-					object_container.PFPToSliceIdMap,  
-					object_container.PFPToTrackScoreMap,
-					object_container.PFPToNuSliceMap,
-					pfParticleMap);
+		//m_vertex_pos_x / y/ z are ready to be used now;
 
-			this->AnalyzeShowers(
-					showers,
-					object_container.showerToNuPFParticleMap,
-					pfParticleToHitsMap, 
-					pfParticleToClustersMap, 
-					object_container.ClusterToHitsMap,
-					object_container.sliceIdToNuScoreMap, 
-					object_container.PFPToClearCosmicMap,
-					object_container.PFPToSliceIdMap, 
-					object_container.PFPToNuSliceMap, 
-					object_container.PFPToTrackScoreMap,
-					pfParticleMap,
-					object_container.PFParticlesToShowerReco3DMap); 
+		 geoalgo::Point_t pvertex(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z);
+		//use object_container.trackToDistMap/showerToDistMap;
+		this->AnalyzeTracks(
+				object_container,
+				pvertex,
+				tracks,
+				object_container.trackToNuPFParticleMap,
+				pfParticleToSpacePointsMap,
+				object_container.MCParticleToTrackIdMap,//disabled
+				object_container.sliceIdToNuScoreMap,
+				object_container.PFPToClearCosmicMap,
+				object_container.PFPToSliceIdMap,  
+				object_container.PFPToTrackScoreMap,
+				object_container.PFPToNuSliceMap,
+				pfParticleMap);
 
-//Borrow the following from MCTruth
-				art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
+		this->AnalyzeShowers(
+				object_container,
+				pvertex,
+				showers,
+				object_container.showerToNuPFParticleMap,
+				pfParticleToHitsMap, 
+				pfParticleToClustersMap, 
+				object_container.ClusterToHitsMap,
+				object_container.sliceIdToNuScoreMap, 
+				object_container.PFPToClearCosmicMap,
+				object_container.PFPToSliceIdMap, 
+				object_container.PFPToNuSliceMap, 
+				object_container.PFPToTrackScoreMap,
+				pfParticleMap,
+				object_container.PFParticlesToShowerReco3DMap); 
+
+		//Borrow the following from MCTruth
+		art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
 
-				//mcc9 march miniretreat fix
-				std::vector<art::Ptr<simb::MCParticle>> particle_vec; //vector of all MCParticles associated with a given hit in the reco PFP
-				std::vector<anab::BackTrackerHitMatchingData const *> match_vec; //vector of some backtracker thing
+		//mcc9 march miniretreat fix
+		std::vector<art::Ptr<simb::MCParticle>> particle_vec; //vector of all MCParticles associated with a given hit in the reco PFP
+		std::vector<anab::BackTrackerHitMatchingData const *> match_vec; //vector of some backtracker thing
 
-				m_test_matched_hits = 0;
+		m_test_matched_hits = 0;
 
-				for(size_t j=0; j<hitVector.size();j++){
-					const art::Ptr<recob::Hit> hit = hitVector[j];
+		for(size_t j=0; j<hitVector.size();j++){
+			const art::Ptr<recob::Hit> hit = hitVector[j];
 
-					particle_vec.clear(); match_vec.clear(); //only store per hit
+			particle_vec.clear(); match_vec.clear(); //only store per hit
 
-					mcparticles_per_hit.get(hit.key(), particle_vec, match_vec);
+			mcparticles_per_hit.get(hit.key(), particle_vec, match_vec);
 
-					if(particle_vec.size() > 0){
-						m_test_matched_hits++;
-					}
+			if(particle_vec.size() > 0){
+				m_test_matched_hits++;
+			}
 
-				}
+		}
 
-			this->CollectMCParticles(
+		this->CollectMCParticles(
 				evt, 
 				m_geantModuleLabel, 
 				object_container.MCTruthToMCParticlesMap, 
 				object_container.MCParticleToMCTruthMap, 
 				object_container.MCParticleToTrackIdMap);//created here;
 
-			this->showerRecoMCmatching(
-					showers,
-					object_container.showerToMCParticleMap, //created here
-					object_container.showerToNuPFParticleMap, 
-					pfParticleToHitsMap, 
-					mcparticles_per_hit, //see above
-					object_container.matchedMCParticleVector, //created here
-					pfParticleMap,  
-					object_container.MCParticleToTrackIdMap,  //input
-					object_container.sliceIdToNuScoreMap, 
-					object_container.PFPToClearCosmicMap, 
-					object_container.PFPToSliceIdMap, 
-					object_container.PFPToNuSliceMap);
+		this->showerRecoMCmatching(
+				showers,
+				object_container.showerToMCParticleMap, //created here
+				object_container.showerToNuPFParticleMap, 
+				pfParticleToHitsMap, 
+				mcparticles_per_hit, //see above
+				object_container.matchedMCParticleVector, //created here
+				pfParticleMap,  
+				object_container.MCParticleToTrackIdMap,  //input
+				object_container.sliceIdToNuScoreMap, 
+				object_container.PFPToClearCosmicMap, 
+				object_container.PFPToSliceIdMap, 
+				object_container.PFPToNuSliceMap);
 
-			std::vector<double> trk_overlay_vec = recoMCmatching<art::Ptr<recob::Track>>( 
-					tracks, 
-					object_container.trackToMCParticleMap, 
-					object_container.trackToNuPFParticleMap, 
-					pfParticleToHitsMap, 
-					mcparticles_per_hit, 
-					object_container.matchedMCParticleVector);
+		std::vector<double> trk_overlay_vec = recoMCmatching<art::Ptr<recob::Track>>( 
+				tracks, 
+				object_container.trackToMCParticleMap, 
+				object_container.trackToNuPFParticleMap, 
+				pfParticleToHitsMap, 
+				mcparticles_per_hit, 
+				object_container.matchedMCParticleVector);
 
-			this->RecoMCTracks(
-					tracks,
-					object_container.trackToNuPFParticleMap,
-					object_container.trackToMCParticleMap,
-					object_container.MCParticleToMCTruthMap,
-					object_container.matchedMCParticleVector, 
-					//mcParticleVector,
-					object_container.MCParticleToTrackIdMap,
-					object_container.sliceIdToNuScoreMap,
-					object_container.PFPToClearCosmicMap,
-					object_container.PFPToSliceIdMap,trk_overlay_vec);
-//-------------------------------
+		this->RecoMCTracks(
+				tracks,
+				object_container.trackToNuPFParticleMap,
+				object_container.trackToMCParticleMap,
+				object_container.MCParticleToMCTruthMap,
+				object_container.matchedMCParticleVector, 
+				//mcParticleVector,
+				object_container.MCParticleToTrackIdMap,
+				object_container.sliceIdToNuScoreMap,
+				object_container.PFPToClearCosmicMap,
+				object_container.PFPToSliceIdMap,trk_overlay_vec);
+		//-------------------------------
 
 		//---------- VertexBuilder--------------
 		//use the new the new class for variables and vertexing.
-//		ParticleAssociations_all const & bobby_particle_associations = BobbyVertexBuilder_ext(object_container, m_bobbyvertexing_more );
-			BobbyVertexBuilder_ext(object_container, m_bobbyvertexing_more );
+		//		ParticleAssociations_all const & bobby_particle_associations = BobbyVertexBuilder_ext(object_container, m_bobbyvertexing_more );
+		BobbyVertexBuilder_ext(object_container, m_bobbyvertexing_more );
 		//introduce a for loop for all particle associations identified by Bobby's VertexBuilder
 
 /*CHECK
@@ -836,7 +844,7 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
             //this one was for testing, leaving out for now
             // this->FindSignalSlice( m_truthmatching_signaldef, object_container.MCParticleToTrackIdMap, object_container.showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, object_container.trackToNuPFParticleMap, trackToMCParticleMap);
 				if(m_is_verbose)std::cout<<"Starting SecondShowerSearch"<<std::endl;
-				this->SecondShowerSearch(tracks,  object_container.trackToNuPFParticleMap, showers, object_container.showerToNuPFParticleMap, pfParticleToHitsMap, object_container.PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, object_container.matchedMCParticleVector, pfParticleMap,  object_container.MCParticleToTrackIdMap);
+//				this->SecondShowerSearch(tracks,  object_container.trackToNuPFParticleMap, showers, object_container.showerToNuPFParticleMap, pfParticleToHitsMap, object_container.PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, object_container.matchedMCParticleVector, pfParticleMap,  object_container.MCParticleToTrackIdMap);
 
             std::cout<<"filling info in ncdelta slice tree"<<std::endl;
             this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, object_container.MCParticleToTrackIdMap, object_container.showerToNuPFParticleMap , allPFPSliceIdVec, object_container.showerToMCParticleMap, object_container.trackToNuPFParticleMap, object_container.trackToMCParticleMap,  object_container.PFPToSliceIdMap);
@@ -1035,11 +1043,18 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
         vertex_tree->Branch("reco_bobbyvertex_yv", &m_bobbyvertex_pos_yv);
         vertex_tree->Branch("reco_bobbyvertex_zv", &m_bobbyvertex_pos_zv);
         vertex_tree->Branch("reco_bobbytracksv", &m_bobbytracksv);
-        vertex_tree->Branch("reco_bobbyshowersv", &m_bobbyshowersv);
-        vertex_tree->Branch("reco_bobbyprotontrack", &m_bobbyprotontrack);
-      vertex_tree->Branch("reco_bobbyphotonshower", &m_bobbyphotonshower);
-      vertex_tree->Branch("reco_bobbypi0daughter", &m_bobbyphotonshower);
-//        vertex_tree->Branch("mctruth_bobbyshowersv_parent_pdg", &m_bobbyshowersv_parent_pdg);
+		vertex_tree->Branch("reco_bobbyshowersv", &m_bobbyshowersv);
+		vertex_tree->Branch("reco_bobbyvertexradiusv", &m_bobbyvertexradiusv);
+		vertex_tree->Branch("reco_bobbyvertexradius", &m_bobbyvertexradius);
+		vertex_tree->Branch("mctruth_bobbyprotontrackv", &m_bobbyprotontrackv);
+		vertex_tree->Branch("mctruth_bobbyphotonshowerv", &m_bobbyphotonshowerv);
+		vertex_tree->Branch("mctruth_bobbypi0daughterv", &m_bobbyphotonshowerv);
+//		vertex_tree->Branch("mctruth_bobbyshower_parent_pdgv", &m_bobbyshower_parent_pdgv);
+		vertex_tree->Branch("mctruth_bobbyprotontrack", &m_bobbyprotontrack);
+		vertex_tree->Branch("mctruth_bobbyphotonshower", &m_bobbyphotonshower);
+		vertex_tree->Branch("mctruth_bobbypi0daughter", &m_bobbyphotonshower);
+//		vertex_tree->Branch("mctruth_bobbyshower_parent_pdg", &m_bobbyshower_parent_pdg);
+
 		vertex_tree->Branch("parameter_dist_tt",&m_dist_tt);
 		vertex_tree->Branch("parameter_dist_sx",&m_dist_sx);
 		vertex_tree->Branch("parameter_dist_st",&m_dist_st);
@@ -1151,14 +1166,19 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		m_bobbyvertex_pos_z=-9999;
         m_bobbyshowers = 0;
         m_bobbytracks = 0;
+		m_bobbyvertexradiusv = {999};
+		m_bobbyvertexradius = 999;
 		m_bobbyvertex_pos_xv={-9999};
 		m_bobbyvertex_pos_yv={-9999};
 		m_bobbyvertex_pos_zv={-9999};
         m_bobbyshowersv = {0};
         m_bobbytracksv = {0};
-		m_bobbyprotontrack = {0};
-		m_bobbyphotonshower = {0};
-		m_bobbypi0daughter = {0};
+		m_bobbyprotontrackv = {0};
+		m_bobbyphotonshowerv = {0};
+		m_bobbypi0daughterv = {0};
+		m_bobbyprotontrack = 0;
+		m_bobbyphotonshower = 0;
+		m_bobbypi0daughter = 0;
 		m_dist_tt = {999};
 		m_dist_sx = {999};
 		m_dist_st = {999};

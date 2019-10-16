@@ -69,7 +69,7 @@ physics: {
        length_box : 4.
        truthmatching_signaldef : "ncdelta"
        runAllPFPs: "false"
-	   BobbyVertex_more_object:  "false" #true: include all nu_slice or not if runAllPFPs is also true;
+	   BobbyVertex_more_object:  "true" #true: include all nu_slice or not if runAllPFPs is also true;
        exiting_photon_energy: 0.02
        exiting_proton_energy: 0.978  #40Mev + proton mass 
       }
