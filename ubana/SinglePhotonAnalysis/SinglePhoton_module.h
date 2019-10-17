@@ -1237,6 +1237,8 @@ namespace single_photon
         std::vector<double> m_mctruth_daughters_endy;
         std::vector<double> m_mctruth_daughters_endz;
         std::vector<double> m_mctruth_daughters_endtime;
+        std::vector<std::string> m_mctruth_daughters_process;
+        std::vector<std::string> m_mctruth_daughters_end_process;
 
 
             int     m_mctruth_num_exiting_photons ;

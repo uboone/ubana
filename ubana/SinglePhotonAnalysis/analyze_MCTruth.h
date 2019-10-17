@@ -33,6 +33,8 @@ namespace single_photon
         m_mctruth_daughters_endy.clear();
         m_mctruth_daughters_endz.clear();
         m_mctruth_daughters_endtime.clear();
+        m_mctruth_daughters_process.clear();
+        m_mctruth_daughters_end_process.clear();
 
 
         m_mctruth_is_delta_radiative = 0;
@@ -97,6 +99,8 @@ namespace single_photon
         m_mctruth_daughters_endy.resize(size);
         m_mctruth_daughters_endz.resize(size);
         m_mctruth_daughters_endtime.resize(size);
+        m_mctruth_daughters_end_process.resize(size);
+        m_mctruth_daughters_process.resize(size);
 
     }
 
@@ -135,6 +139,8 @@ namespace single_photon
         vertex_tree->Branch("mctruth_daughters_endy",&m_mctruth_daughters_endy);
         vertex_tree->Branch("mctruth_daughters_endz",&m_mctruth_daughters_endz);
         vertex_tree->Branch("mctruth_daughters_endtime",&m_mctruth_daughters_endtime);
+        vertex_tree->Branch("mctruth_daughters_process",&m_mctruth_daughters_process);
+        vertex_tree->Branch("mctruth_daughters_end_process",&m_mctruth_daughters_end_process);
 
 
 
@@ -253,18 +259,19 @@ namespace single_photon
                 m_mctruth_daughters_status_code[j] = par.StatusCode();
                 m_mctruth_daughters_trackID[j] = par.TrackId();
                 m_mctruth_daughters_mother_trackID[j] = par.Mother();
-                m_mctruth_daughters_px.push_back(par.Px());
-                m_mctruth_daughters_py.push_back(par.Py());
-                m_mctruth_daughters_pz.push_back(par.Pz());
-                m_mctruth_daughters_startx.push_back(par.Vx());
-                m_mctruth_daughters_starty.push_back(par.Vy());
-                m_mctruth_daughters_startz.push_back(par.Vz());
-                m_mctruth_daughters_time.push_back(par.T());
-                m_mctruth_daughters_endx.push_back(par.EndX());
-                m_mctruth_daughters_endy.push_back(par.EndY());
-                m_mctruth_daughters_endz.push_back(par.EndZ());
-                m_mctruth_daughters_endtime.push_back(par.EndT());
-
+                m_mctruth_daughters_px[i] = par.Px();
+                m_mctruth_daughters_py[i] = par.Py();
+                m_mctruth_daughters_pz[i] = par.Pz();
+                m_mctruth_daughters_startx[i] = par.Vx();
+                m_mctruth_daughters_starty[i] = par.Vy();
+                m_mctruth_daughters_startz[i] = par.Vz();
+                m_mctruth_daughters_time[i] = par.T();
+                m_mctruth_daughters_endx[i] = par.EndX();
+                m_mctruth_daughters_endy[i] = par.EndY();
+                m_mctruth_daughters_endz[i] = par.EndZ();
+                m_mctruth_daughters_endtime[i] = par.EndT();
+                m_mctruth_daughters_process[i] = par.Process();
+                m_mctruth_daughters_end_process[i] = par.EndProcess();
 
 
                 switch(m_mctruth_daughters_pdg[j]){
