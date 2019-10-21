@@ -1,0 +1,53 @@
+#include "services_microboone.fcl"
+#include "largeantmodules_microboone.fcl"
+#include "time_memory_tracker_microboone.fcl"
+#include "photpropservices.fcl"
+
+process_name: RunVisibilityMapVariator 
+
+services: {
+  scheduler: { defaultExceptions: false }
+  TimeTracker: {} 
+  MemoryTracker: @local::microboone_memory_tracker
+  RandomNumberGenerator: {}
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  @table::microboone_g4_services
+}
+
+source: {
+  module_type: RootInput
+  maxEvents: 10
+  saveMemoryObjectThreshold: 0
+}
+
+physics: {
+  analyzers: {
+    variator: {
+      module_type: "VisibilityMapVariator"
+      #EDepModuleLabels: [ "variator:Other", "variator:TPCActive" ]
+      #DoSlowComponent: true
+      #RiseTimeFast: -1.0
+      #RiseTimeSlow: -1.0
+    }
+  }
+
+  simulate: [ variator ]
+  #stream1: [ out1 ]
+  end_paths: [ simulate ]
+  #end_paths: [ stream1 ]
+}
+
+outputs: {
+#  out1: {
+#    module_type: RootOutput
+#    fileName:    "%ifb_%tc_photprop.root"
+#    dataTier:    "simulated"
+#    saveMemoryObjectThreshold: 0
+#    compressionLevel: 1
+#    fastCloning: false
+#  }
+}
+
+services.PhotonVisibilityService.LibraryFile: "PhotonPropagation/LibraryData/uboone_photon_library_v6_70kV.root"
+services.DetectorClocksService.InheritClockConfig:                      false
+services.DetectorClocksService.TriggerOffsetTPC:                       -400 # MC bnb neutrinos
