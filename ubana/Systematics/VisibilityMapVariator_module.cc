@@ -26,8 +26,10 @@
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
-#include "larsim/PhotonPropagation/PhotonVisibilityService.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larsim/PhotonPropagation/PhotonVisibilityService.h"
+//#include "larsim/LArG4/OpFastScintillation.hh"
+//#include "larsim/LArG4/OpDetPhotonTable.h"
 
 #include "TString.h"
 #include "TTree.h"
@@ -123,10 +125,12 @@ namespace phot{
     t->Reset();
     t->SetBranchAddress("Visibility", &newVis);
 
-    art::ServiceHandle<phot::PhotonVisibilityService const> pvs; 
-    //for(size_t iopc = 0; iopc != pvs->NOpChannels(); iopc++)
+    art::ServiceHandle<PhotonVisibilityService> pvs;
+    //art::ServiceHandle<phot::PhotonVisibilityService const> pvs; 
+    //auto const nOpChannels = pvs->NOpChannels();
     for(size_t iopc = 0; iopc != 32; iopc++)
     {
+       unsigned int opdet = iopc; //TODO change to real mapping 
        for(int ivox = 0; ivox != pvs->GetVoxelDef().GetNVoxels(); ivox++)
        {
           std::vector<int> coor  = pvs->GetVoxelDef().GetVoxelCoords(ivox);
@@ -136,7 +140,35 @@ namespace phot{
           xyz[2] = fZmin+((fZmax - fZmin)/steps.Z())*coor[2];
 
           float const vis = pvs->GetVisibility(xyz,ivox,true);
-          newVis = vis*10;
+          newVis = vis;
+
+	  //Attenuation length correction
+	  double distance = pvs->DistanceToOpDet(xyz,opdet);
+	  double la = 1.; //absorption length TODO add real value
+	  newVis = newVis * exp(-1.*distance / la);
+
+	  //Gaisser-Hillas correction for Rayleigh scattering distance and angular dependence
+	  /*double costheta = pvs->SolidAngleFactor(xyz,opdet);
+	  double theta = acos(costheta)*180./CLHEP::pi;
+	  double j = theta / 10; // angular bin width = 10
+	  double fYactive_corner = (fYmax - fYmin)/2;
+          double fZactive_corner = (fZmax - fZmin)/2;
+          double fReference_to_corner = sqrt(pow(fYactive_corner,2) + pow(fZactive_corner,2));
+	  double z_to_corner = abs(xyz[2] - fZactive_corner) - fZactive_corner;
+    	  double y_to_corner = abs(xyz[1]) - fYactive_corner;
+    	  double distance_to_corner = sqrt(y_to_corner*y_to_corner + z_to_corner*z_to_corner);// in the ph-cathode plane
+	  std::vector<double> fborder_corr;
+	  std::vector<std::vector<double> > fGHvuvpars;
+          double fradius;
+	  pvs->LoadGHForVUVCorrection(fGHvuvpars, fborder_corr, fradius);
+          double pars_ini_[4] = {fGHvuvpars[0][j] + fborder_corr[0] * (distance_to_corner - fReference_to_corner),
+                                 fGHvuvpars[1][j] + fborder_corr[1] * (distance_to_corner - fReference_to_corner),
+                                 fGHvuvpars[2][j],
+                                 fGHvuvpars[3][j]};
+          double GH_correction = Gaisser_Hillas(distance, pars_ini_);
+          double hits_rec = gRandom->Poisson( GH_correction*hits_geo/cosine );
+	  newVis = newVis * costheta;
+	  */
           t->Fill();
        } 
     }
