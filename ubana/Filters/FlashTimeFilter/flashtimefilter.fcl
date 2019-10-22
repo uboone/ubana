@@ -1,0 +1,16 @@
+BEGIN_PROLOG
+
+
+standard_flash_time_filter:
+{
+#   module_type:          "ubana/Filters/FlashTimeFilter"
+   module_type:          "FlashTimeFilter"
+
+  InputModuleName: "pmtreadout:OpdetCosmicHighGain" 
+  WFcount: 1 
+  WFTimeStart: 4100.0  # in us
+  WFTimeEnd: 5000.0   #  in us 
+     
+}
+
+END_PROLOG
