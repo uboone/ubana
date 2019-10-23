@@ -33,11 +33,13 @@ microboone_calorimetryalgdata.CalAreaConstants: [ 7.93e-3, 5.98e-3, 7.8e-3 ]
 #microboone_calorimetryalgdata.CaloLifeTimeForm: 1
 microboone_calodata:                  @local::standard_calodata
 microboone_calodata.CaloAlg:          @local::microboone_calorimetryalgdata
+microboone_calodata.NotOnTrackZcut: -100.0
 
 microboone_calomc:                    @local::standard_calomc
 microboone_calomc.CaloAlg:            @local::microboone_calorimetryalgmc
 microboone_calomc.CaloAlg.CaloUseModBox: true
 microboone_calomc.UseArea: true
+microboone_calomc.NotOnTrackZcut: -100.0
 
 microboone_calorimetryalgmcc84mc:                          @local::standard_calorimetryalgmc
 #microboone_calorimetryalgmcc84mc.CalAreaConstants:         [ 0.00518279, 0.00507506, 0.00507669 ] # MCC8
