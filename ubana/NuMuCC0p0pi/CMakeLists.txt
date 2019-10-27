@@ -15,6 +15,7 @@ art_make( BASENAME_ONLY
                    BrokenTrack
                    RecoTruth
                    Topology
+                   PID
                    ubobj_UBXSec
                    ubobj_Trigger
                    HitCosmicTag_Base 
@@ -74,6 +75,7 @@ art_make( BASENAME_ONLY
                    BrokenTrack
                    RecoTruth
                    Topology
+                   PID
                    ubobj_UBXSec
 		   ubobj_Trigger
                    HitCosmicTag_Base
@@ -231,6 +233,30 @@ art_make_library(
    SOURCE
        Topology.cxx
    LIBRARIES
+       cetlib cetlib_except
+
+)
+
+art_make_library(
+   LIBRARY_NAME
+       PID
+   SOURCE
+       PID.cxx
+   LIBRARIES
+       lardataobj_RawData
+       larcorealg_Geometry
+       larcore_Geometry_Geometry_service
+       art_Persistency_Common canvas
+       art_Persistency_Provenance canvas
+       art_Utilities canvas
+       lardataobj_RecoBase
+       lardataobj_AnalysisBase
+       lardata_Utilities
+       larpandora_LarPandoraEventBuilding
+       LArPandoraContent
+       larpandora_LArPandoraInterface
+       nusimdata_SimulationBase
+       LArPandoraContent
        cetlib cetlib_except
 
 )

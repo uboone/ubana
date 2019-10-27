@@ -22,7 +22,6 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 
 #include "ubobj/CRT/CRTHit.hh"
-#include "ubobj/RawData/DAQHeaderTimeUBooNE.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -61,7 +60,6 @@
 #include "RecoTruthMCParticle.h"
 #include "BrokenTrack.h"
 #include "Topology.h"
-#include "PID.h"
 
 class SingleMuon;
 
@@ -124,9 +122,6 @@ private:
   std::vector<int> MC_Primary_PDG; // PDG of neutrino daughters
   std::vector<double> MC_Primary_Mom; // Momemtum of neutrino daughters
 
-  double Genie_Q2;
-  double Genie_q2;
-  double Genie_W;
   int Genie_nNeutron_preFSI;// before FSI 
   int Genie_nProton_preFSI;// before FSI 
   int Genie_nPi0_preFSI;// before FSI 
@@ -158,10 +153,6 @@ private:
 
   bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
   bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
-  std::vector<double> crthit_PE; // The photonelectrons of CRT hits which are in beam window
-  std::vector<double> crthit_plane; // Plane of CRT hits
-  std::vector<double> crthit_time; // Time of CRT hits
-  int Nr_crthit; // Number of CRT hits in 
 
   bool if_selected = false; // If selected based on the reco info
   bool if_matchMu = false; // If the selected track matched with true muon from numu cc
@@ -305,11 +296,6 @@ private:
 
   bool                                IsMC;
   bool                                UsingCRT;
-  double                              fBeamStart;
-  double                              fBeamEnd;
-  double                              fDTOffset;
-  double                              fDTOffset_overlay;
-  std::string                         m_DAQHeaderProducer;
   std::string                         m_generatorLabel;
   std::string                         m_geantLabel;
   std::string                         m_pandoraLabel;
@@ -322,7 +308,6 @@ private:
   std::string                         Hits_TrackAssLabel;
   std::string                         PID_TrackAssLabel;
   std::string                         m_CRTVetoLabel;
-  std::string                         m_CRTHitLabel;
   std::string                         m_FlashLabel;
 
   double _min_track_len;
@@ -336,11 +321,6 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   EDAnalyzer{pset},
   IsMC(pset.get<bool>("IsMC")),
   UsingCRT(pset.get<bool>("UsingCRT")),
-  fBeamStart(pset.get<double>("BeamStart")),
-  fBeamEnd(pset.get<double>("BeamEnd")),
-  fDTOffset(pset.get<double>("DTOffset")),
-  fDTOffset_overlay(pset.get<double>("DTOffset_overlay")),
-  m_DAQHeaderProducer(pset.get<std::string>("DAQHeaderProducer")),
   m_generatorLabel(pset.get<std::string>("GeneratorLabel")),
   m_geantLabel(pset.get<std::string>("GeantLabel")),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
@@ -351,7 +331,6 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   m_MCSmuProducerLabel(pset.get<std::string>("MCSmuProducerLabel")),
   m_calorimetryProducerLabel(pset.get<std::string>("calorimetryProducerLabel")),
   m_CRTVetoLabel(pset.get<std::string>("CRTVetoLabel")),
-  m_CRTHitLabel(pset.get<std::string>("CRTHitProducer")),
   m_FlashLabel(pset.get<std::string>("FlashLabel")),
   _min_track_len{pset.get<double>("MinTrackLength", 0.1)},
   _trk_mom_calculator{_min_track_len}
@@ -374,6 +353,7 @@ void SingleMuon::analyze(art::Event const& evt)
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
   std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
   std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
+  //art::FindMany<crt::CRTHit> CRThitFlashAsso;
 
   if(IsMC){
     // MC Truth
@@ -429,16 +409,11 @@ void SingleMuon::analyze(art::Event const& evt)
   std::vector<art::Ptr<recob::OpFlash>> flash_v;
   art::fill_ptr_vector(flash_v, Handle_opflash);
 
-  // DAQ
-  art::Handle<raw::DAQHeaderTimeUBooNE> rawHandle_DAQHeader;
-  evt.getByLabel(m_DAQHeaderProducer, rawHandle_DAQHeader);
-
-  // CRT
-  art::Handle<std::vector<crt::CRTHit>> Handle_crthit;
-  evt.getByLabel(m_CRTHitLabel, Handle_crthit);
-  std::vector<art::Ptr<crt::CRTHit>> crthit_v;
-  art::fill_ptr_vector(crthit_v, Handle_crthit);
-  Nr_crthit = 0;
+  //if(UsingCRT){
+  //  // CRT Hit - Flash association
+  //  CRThitFlashAsso(Handle_opflash, evt, m_CRTVetoLabel);
+  //  //art::FindMany<crt::CRTHit> CRThitFlashAsso(Handle_opflash, evt, m_CRTVetoLabel);
+  //}
 
   // CRT Hit - Flash association
   art::FindMany<crt::CRTHit> CRThitFlashAsso(Handle_opflash, evt, m_CRTVetoLabel);
@@ -504,7 +479,7 @@ void SingleMuon::analyze(art::Event const& evt)
     Genie_nPiPlus_preFSI = 0;
     Genie_nPiMinus_preFSI = 0;
     
-    for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
+    for(int i_mc = 0; i_mc < (int) MCTruthCollection.size(); i_mc++){
       if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) MC_beamNeutrino = true;
       MC_nupdg = MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode();
       MC_ccnc = MCTruthCollection[i_mc]->GetNeutrino().CCNC();
@@ -519,7 +494,7 @@ void SingleMuon::analyze(art::Event const& evt)
     // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
     // Not necessary all the Genie particles go through the geant4 stage?
     if (MC_ccnc == 0 && MC_nupdg == 14 && MC_beamNeutrino == true){
-      for(unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
+      for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
         if(MCParticleCollection[i_mcp]->Process() == "primary"){
           // PDG and momemtum of neutrino daughters
           MC_Primary_PDG.push_back(MCParticleCollection[i_mcp]->PdgCode());
@@ -550,10 +525,7 @@ void SingleMuon::analyze(art::Event const& evt)
     TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above255, MC_nProton_below255, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
     
     // Get Genie info on how many particles produced
-    for(unsigned int i_gn = 0; i_gn < GTruthCollection.size(); i_gn++){
-      Genie_Q2 = GTruthCollection[i_gn]->fgQ2;
-      Genie_q2 = GTruthCollection[i_gn]->fgq2;
-      Genie_W = GTruthCollection[i_gn]->fgW;
+    for(int i_gn = 0; i_gn < (int) GTruthCollection.size(); i_gn++){
       Genie_nNeutron_preFSI = GTruthCollection[i_gn]->fNumNeutron;
       Genie_nProton_preFSI = GTruthCollection[i_gn]->fNumProton;
       Genie_nPi0_preFSI = GTruthCollection[i_gn]->fNumPi0;
@@ -563,7 +535,7 @@ void SingleMuon::analyze(art::Event const& evt)
   }
 
   //-------- Get Reco neutrino (pfparticle)
-  for(unsigned int i = 0; i < pfParticle_v.size(); i++){
+  for(int i = 0; i < (int) pfParticle_v.size(); i++){
     auto pfp = pfParticle_v[i];
     if(pfp->IsPrimary() && pfp->PdgCode() == 14){
       n_pfp_nuDaughters = pfp->NumDaughters();
@@ -578,7 +550,7 @@ void SingleMuon::analyze(art::Event const& evt)
       // For CC0pi0p, we only consider the case with the number of neutrino daughters less than 4
       if(n_pfp_nuDaughters < 4){
         // Get the pointer for the daughters of the neutrino
-        for(int j = 0; j < n_pfp_nuDaughters; j++){
+        for(int j = 0; j< n_pfp_nuDaughters; j++){
           auto Iterator = pfParticleIdMap.find(pfp->Daughters().at(j));
           auto dau_pfp = Iterator->second;
           NeutrinoDaughters.push_back(dau_pfp);
@@ -617,49 +589,16 @@ void SingleMuon::analyze(art::Event const& evt)
       if(n_dau_tracks == 1 && n_dau_showers == 0){
 
         if(UsingCRT){
-          // For contained (Veto if there is any CRT hit in beam window)
           if(flash_v.size() > 0){
-            for(unsigned int i_fl = 0; i_fl < flash_v.size(); i_fl++){
+            for(int i_fl = 0; i_fl < (int) flash_v.size(); i_fl++){
               auto CRT_hit = CRThitFlashAsso.at(flash_v[i_fl].key());
+              std::cout<<"CRT_hit.size(): "<< CRT_hit.size()<<std::endl;
               if(CRT_hit.size() == 1){
                 evt_CRTveto = true;
                 if(CRT_hit.front()->peshit > 100) evt_CRTveto_100 = true;
               } // if CRT veto
             } // loop over flash(es)
           } // if flash exists
-
-          // For exiting (Veto if there are more than one CRT hits in beam wnidow) and potentially contained
-          if(evt_CRTveto){
-            // overlay is also basically data, using ts0
-            double evt_timeGPS_nsec = 0.;
-            if(!rawHandle_DAQHeader.isValid()) {
-               std::cout << "Could not locate DAQ header." << std::endl;
-             }
-            raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
-            art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
-            evt_timeGPS_nsec = evtTimeGPS.timeLow();
-            for (unsigned int i_crt = 0; i_crt < crthit_v.size(); i_crt ++){
-              // figure out what plane this hit comes from
-              // 3 -> top, 0 -> bottom, 1 -> anode, 2 -> cathode
-              double crt_time;
-              if(IsMC) crt_time = ((crthit_v[i_crt]->ts0_ns - evt_timeGPS_nsec + fDTOffset_overlay) / 1000.);
-              if(!IsMC) crt_time = ((crthit_v[i_crt]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.);
-              //if(IsMC) crt_time = crthit_v[i_crt]->ts1_ns / 1000.; 
-              // Use ts0 for everything except mc
-              //crthit_ts1_.push_back(((double)CRTHitCollection.at(i).ts1_ns + fHardDelay_)/1000.0);
-              //fHardDelay_ = 40000
-    
-              if(crt_time >= fBeamStart && crt_time <= fBeamEnd){
-                crthit_PE.push_back(crthit_v[i_crt]->peshit);
-                crthit_plane.push_back(crthit_v[i_crt]->plane);
-                crthit_time.push_back(crt_time);
-                Nr_crthit++;
-              } // If CRT hit in Beam window
-            } // CRT hit loop
-            if(Nr_crthit != (int) crthit_time.size()) {
-              std::cout << "[CRT] Something is wrong" << std::endl;
-            }
-          }
         } // Using CRT
 
         //-- Fill RECO track info (in the naive version this is selected)
@@ -738,7 +677,7 @@ void SingleMuon::analyze(art::Event const& evt)
         double Trk_length_pl2 = assoCal[2]->Range();  //pandoracali has spatial correction
         double Trk_length_avg = 0;
         int valid_pl = 0;
-        for (unsigned int i_pl = 0; i_pl < assoCal.size(); i_pl++){
+        for (int i_pl = 0; i_pl < (int) assoCal.size(); i_pl++){
           if(assoCal[i_pl]->Range() > 0){
             Trk_length_avg += assoCal[i_pl]->Range();
             valid_pl++;
@@ -870,45 +809,195 @@ void SingleMuon::analyze(art::Event const& evt)
         dEdx_pl2_1020_ratio = dEdx_pl2_end1020 / (dEdx_pl2_end1020 + dEdx_pl2_start1020);
 
         // Gain PID info of the track
-        PID pid;
-        pid.Chi2(PIDTotrackAsso,daughter_Tracks.front(), Trk_start_SCEcorr, Trk_end_SCEcorr,hits_dEdx_size_pl0, hits_dEdx_size_pl1, hits_dEdx_size_pl2);
-        PID_Chi2Mu_pl0 = pid.PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
-        PID_Chi2Mu_pl1 = pid.PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
-        PID_Chi2Mu_pl2 = pid.PID_Chi2Mu_pl2; // Chi2 of muon assumption of plane 2 in PID
-        PID_Chi2Mu_3pl = pid.PID_Chi2Mu_3pl; // Chi2 of muon assumption of 3 planes in PID
+        if(!PIDTotrackAsso.isValid()){
+          throw cet::exception("[Numu0pi0p]") << "No matched PID - track information!" << std::endl;
+        }
+        // Get projected angle wrt to the wires (docdb 23008)
+        TVector3 End_Dir = daughter_Tracks.front()->EndDirection<TVector3>();
+        trk_end_theta_yz.push_back(std::atan2(End_Dir.Y(), End_Dir.Z()));
+        trk_end_costheta_yz.push_back(cos(std::atan2(End_Dir.Y(), End_Dir.Z())));
+        trk_end_theta_xz.push_back(std::atan2(End_Dir.X(), End_Dir.Z()));
+        trk_end_costheta_xz.push_back(cos(std::atan2(End_Dir.X(), End_Dir.Z())));
+  
+        auto Trk_pos = Trk_end_SCEcorr - Trk_start_SCEcorr;
+        trk_theta_yz.push_back(std::atan2(Trk_pos.Y(), Trk_pos.Z()));
+        trk_costheta_yz.push_back(cos(std::atan2(Trk_pos.Y(), Trk_pos.Z())));
+        trk_theta_xz.push_back(std::atan2(Trk_pos.X(), Trk_pos.Z()));
+        trk_costheta_xz.push_back(cos(std::atan2(Trk_pos.X(), Trk_pos.Z())));
 
-        PID_Chi2P_pl0 = pid.PID_Chi2P_pl0; // Chi2 of proton assumption of plane 0 in PID
-        PID_Chi2P_pl1 = pid.PID_Chi2P_pl1; // Chi2 of proton assumption of plane 1 in PID
-        PID_Chi2P_pl2 = pid.PID_Chi2P_pl2; // Chi2 of proton assumption of plane 2 in PID
-        PID_Chi2P_3pl = pid.PID_Chi2P_3pl; // Chi2 of proton assumption of 3 planes in PID
+        //double theta_pl2 = std::atan2(End_Dir.Z(), End_Dir.Y()); // atan2(y,x)
+        double theta_pl2 = std::atan2(Trk_pos.Z(), Trk_pos.Y()); // atan2(y,x)
+        double theta_pl1 = theta_pl2 + M_PI/3; // If plan1 is -60 degree to Y, looking from outside to the TPC
+        double theta_pl0 = theta_pl2 - M_PI/3; // If plan0 is +60 degree to Y, looking from outside to the TPC
+        int w2 = 0; int w1 = 0; int w0 = 0;
+        double sin2_pl2 = sin(theta_pl2) * sin(theta_pl2);
+        double sin2_pl1 = sin(theta_pl1) * sin(theta_pl1);
+        double sin2_pl0 = sin(theta_pl0) * sin(theta_pl0);
+        if (sin2_pl2 >= 0.5) w2 = 1;
+        if (sin2_pl1 >= 0.5) w1 = 1;
+        if (sin2_pl0 >= 0.5) w0 = 1;
 
-        PID_Chi2Pi_pl0 = pid.PID_Chi2Pi_pl0; // Chi2 of pion assumption of plane 0 in PID
-        PID_Chi2Pi_pl1 = pid.PID_Chi2Pi_pl1; // Chi2 of pion assumption of plane 1 in PID
-        PID_Chi2Pi_pl2 = pid.PID_Chi2Pi_pl2; // Chi2 of pion assumption of plane 2 in PID
-        PID_Chi2Pi_3pl = pid.PID_Chi2Pi_3pl; // Chi2 of pion assumption of 3 planes in PID
+        // PID
+        auto trkPID = PIDTotrackAsso.at(daughter_Tracks.front().key());
+        if (trkPID.size() == 0){
+          std::cout << "No PID information for this selected track!" << std::endl;
+        }
+        std::vector<anab::sParticleIDAlgScores> vAlg_PID = trkPID.front()->ParticleIDAlgScores();
+        double PIDChi2_mu[3] = {-999,-999,-999};
+        double PIDChi2_p[3] = {-999,-999,-999};
+        double PIDChi2_pi[3] = {-999,-999,-999};
+        double PIDChi2_K[3] = {-999,-999,-999};
+        for(int i_Alg_PID = 0; i_Alg_PID < (int) vAlg_PID.size(); i_Alg_PID++){
+          anab::sParticleIDAlgScores Alg_PID = vAlg_PID.at(i_Alg_PID);
+          for(int id_pl = 0; id_pl < 3; id_pl++){
+            if (Alg_PID.fPlaneMask.test(id_pl) && Alg_PID.fAlgName == "Chi2"){
+               if (abs(Alg_PID.fAssumedPdg) == 13){ // muon
+                 PIDChi2_mu[id_pl] = Alg_PID.fValue;
+               }
+               if (abs(Alg_PID.fAssumedPdg) == 2212){ // proton
+                 PIDChi2_p[id_pl] = Alg_PID.fValue;
+               }
+               if (abs(Alg_PID.fAssumedPdg) == 211){ // pion
+                 PIDChi2_pi[id_pl] = Alg_PID.fValue;
+               }
+               if (abs(Alg_PID.fAssumedPdg) == 321){ // kaon
+                 PIDChi2_K[id_pl] = Alg_PID.fValue;
+               }
+            }
+          }
+        }
+	PID_Chi2Mu_pl0 = PIDChi2_mu[0];
+	PID_Chi2Mu_pl1 = PIDChi2_mu[1];
+	PID_Chi2Mu_pl2 = PIDChi2_mu[2];
+        int ww0 = w0; int ww1 = w1; int ww2 = w2; // copy from the origin
+        if (PID_Chi2Mu_pl0 < 0) ww0 = 0;
+        if (PID_Chi2Mu_pl1 < 0) ww1 = 0;
+        if (PID_Chi2Mu_pl2 < 0) ww2 = 0;
+        if (ww0 + ww1 + ww2 == 0) PID_Chi2Mu_3pl = -999;
+        else PID_Chi2Mu_3pl = (ww0 * PID_Chi2Mu_pl0 + ww1 * PID_Chi2Mu_pl1 + ww2 * PID_Chi2Mu_pl2) / (ww0 + ww1 + ww2);
 
-        PID_Chi2K_pl0 = pid.PID_Chi2K_pl0; // Chi2 of kaon assumption of plane 0 in PID
-        PID_Chi2K_pl1 = pid.PID_Chi2K_pl1; // Chi2 of kaon assumption of plane 1 in PID
-        PID_Chi2K_pl2 = pid.PID_Chi2K_pl2; // Chi2 of kaon assumption of plane 2 in PID
-        PID_Chi2K_3pl = pid.PID_Chi2K_3pl; // Chi2 of kaon assumption of 3 planes in PID
+        PID_Chi2P_pl0 = PIDChi2_p[0];
+        PID_Chi2P_pl1 = PIDChi2_p[1];
+        PID_Chi2P_pl2 = PIDChi2_p[2];
+        ww0 = w0; ww1 = w1; ww2 = w2; // copy from the origin
+        if (PID_Chi2P_pl0 < 0) ww0 = 0;
+        if (PID_Chi2P_pl1 < 0) ww1 = 0;
+        if (PID_Chi2P_pl2 < 0) ww2 = 0;
+        if (ww0 + ww1 + ww2 == 0) PID_Chi2P_3pl = -999;
+        else PID_Chi2P_3pl = (ww0 * PID_Chi2P_pl0 + ww1 * PID_Chi2P_pl1 + ww2 * PID_Chi2P_pl2) / (ww0 + ww1 + ww2);
 
-        PID_avg_Chi2 = pid.PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
-        PID_pl2_Chi2 = pid.PID_pl2_Chi2;
-        PID_pl1_Chi2 = pid.PID_pl1_Chi2;
-        PID_pl0_Chi2 = pid.PID_pl0_Chi2;
+        PID_Chi2Pi_pl0 = PIDChi2_pi[0];
+        PID_Chi2Pi_pl1 = PIDChi2_pi[1];
+        PID_Chi2Pi_pl2 = PIDChi2_pi[2];
+        ww0 = w0; ww1 = w1; ww2 = w2; // copy from the origin
+        if (PID_Chi2Pi_pl0 < 0) ww0 = 0;
+        if (PID_Chi2Pi_pl1 < 0) ww1 = 0;
+        if (PID_Chi2Pi_pl2 < 0) ww2 = 0;
+        if (ww0 + ww1 + ww2 == 0) PID_Chi2Pi_3pl = -999;
+        else PID_Chi2Pi_3pl = (ww0 * PID_Chi2Pi_pl0 + ww1 * PID_Chi2Pi_pl1 + ww2 * PID_Chi2Pi_pl2) / (ww0 + ww1 + ww2);
 
-        BestPlane_PID = pid.BestPlane_PID;
-        Pl2_for_PID = pid.Pl2_for_PID;
-        Pl1_for_PID = pid.Pl1_for_PID;
-        Pl0_for_PID = pid.Pl0_for_PID;
+        PID_Chi2K_pl0 = PIDChi2_K[0];
+        PID_Chi2K_pl1 = PIDChi2_K[1];
+        PID_Chi2K_pl2 = PIDChi2_K[2];
+        ww0 = w0; ww1 = w1; ww2 = w2; // copy from the origin
+        if (PID_Chi2K_pl0 < 0) ww0 = 0;
+        if (PID_Chi2K_pl1 < 0) ww1 = 0;
+        if (PID_Chi2K_pl2 < 0) ww2 = 0;
+        if (ww0 + ww1 + ww2 == 0) PID_Chi2K_3pl = -999;
+        else PID_Chi2K_3pl = (ww0 * PID_Chi2K_pl0 + ww1 * PID_Chi2K_pl1 + ww2 * PID_Chi2K_pl2) / (ww0 + ww1 + ww2);
 
-        PID_Pdg_3pl = pid.PID_Pdg_3pl; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
-        PID_Pdg_pl2 = pid.PID_Pdg_pl2;
-        PID_Pdg_pl1 = pid.PID_Pdg_pl1;
-        PID_Pdg_pl0 = pid.PID_Pdg_pl0;
+        std::vector<int> Nhit_3pl = {hits_dEdx_size_pl0, hits_dEdx_size_pl1, hits_dEdx_size_pl2};
+        BestPlane_PID = std::max_element(Nhit_3pl.begin(), Nhit_3pl.end()) - Nhit_3pl.begin();
+        if (BestPlane_PID == 0){
+          Pl0_for_PID = true;
+          Pl1_for_PID = false;
+          Pl2_for_PID = false;
+        }
+        if (BestPlane_PID == 1){
+          Pl0_for_PID = false;
+          Pl1_for_PID = true;
+          Pl2_for_PID = false;
+        }
+        if (BestPlane_PID == 2){
+          Pl0_for_PID = false;
+          Pl1_for_PID = false;
+          Pl2_for_PID = true;
+        }
+
+        //-- Get minimum Chi2 and there corresponding particle type
+        std::vector<double> PIDChi2_avg;// It follows the order of muon, proton, pion, kaon
+        if (PID_Chi2Mu_3pl < 0) PIDChi2_avg.push_back(9999);
+        else PIDChi2_avg.push_back(PID_Chi2Mu_3pl);
+        if (PID_Chi2P_3pl < 0) PIDChi2_avg.push_back(9999);
+        else PIDChi2_avg.push_back(PID_Chi2P_3pl);
+        if (PID_Chi2Pi_3pl < 0) PIDChi2_avg.push_back(9999);
+        else PIDChi2_avg.push_back(PID_Chi2Pi_3pl);
+        if (PID_Chi2K_3pl < 0) PIDChi2_avg.push_back(9999);
+        else PIDChi2_avg.push_back(PID_Chi2K_3pl);
+
+        PID_avg_Chi2 = *std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end());
+        int ID_PID = std::min_element(PIDChi2_avg.begin(), PIDChi2_avg.end()) - PIDChi2_avg.begin();
+        if (ID_PID == 0) PID_Pdg_3pl = 13;
+        if (ID_PID == 1) PID_Pdg_3pl = 2212;
+        if (ID_PID == 2) PID_Pdg_3pl = 211;
+        if (ID_PID == 3) PID_Pdg_3pl = 321;
 
         mom_range_PID_avg_noSCE.push_back(_trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, PID_Pdg_3pl));
+       
+        // Use Plane 2
+        std::vector<double> PIDChi2_pl2;// It follows the order of muon, proton, pion, kaon
+        if (PIDChi2_mu[2] < 0) PIDChi2_pl2.push_back(9999);
+        else PIDChi2_pl2.push_back(PIDChi2_mu[2]);
+        if (PIDChi2_p[2] < 0) PIDChi2_pl2.push_back(9999);
+        else PIDChi2_pl2.push_back(PIDChi2_p[2]);
+        if (PIDChi2_pi[2] < 0) PIDChi2_pl2.push_back(9999);
+        else PIDChi2_pl2.push_back(PIDChi2_pi[2]);
+        if (PIDChi2_K[2] < 0) PIDChi2_pl2.push_back(9999);
+        else PIDChi2_pl2.push_back(PIDChi2_K[2]);
+  
+        PID_pl2_Chi2 = *std::min_element(PIDChi2_pl2.begin(), PIDChi2_pl2.end());
+        int ID_PID_pl2 = std::min_element(PIDChi2_pl2.begin(), PIDChi2_pl2.end()) - PIDChi2_pl2.begin();
+        if (ID_PID_pl2 == 0) PID_Pdg_pl2 = 13;
+        if (ID_PID_pl2 == 1) PID_Pdg_pl2 = 2212;
+        if (ID_PID_pl2 == 2) PID_Pdg_pl2 = 211;
+        if (ID_PID_pl2 == 3) PID_Pdg_pl2 = 321;
 
+        // Use plane 1
+        std::vector<double> PIDChi2_pl1;// It follows the order of muon, proton, pion, kaon
+        if (PIDChi2_mu[1] < 0) PIDChi2_pl1.push_back(9999);
+        else PIDChi2_pl1.push_back(PIDChi2_mu[1]);
+        if (PIDChi2_p[1] < 0) PIDChi2_pl1.push_back(9999);
+        else PIDChi2_pl1.push_back(PIDChi2_p[1]);
+        if (PIDChi2_pi[1] < 0) PIDChi2_pl1.push_back(9999);
+        else PIDChi2_pl1.push_back(PIDChi2_pi[1]);
+        if (PIDChi2_K[1] < 0) PIDChi2_pl1.push_back(9999);
+        else PIDChi2_pl1.push_back(PIDChi2_K[1]);
+
+        PID_pl1_Chi2 = *std::min_element(PIDChi2_pl1.begin(), PIDChi2_pl1.end());
+        int ID_PID_pl1 = std::min_element(PIDChi2_pl1.begin(), PIDChi2_pl1.end()) - PIDChi2_pl1.begin();
+        if (ID_PID_pl1 == 0) PID_Pdg_pl1 = 13;
+        if (ID_PID_pl1 == 1) PID_Pdg_pl1 = 2212;
+        if (ID_PID_pl1 == 2) PID_Pdg_pl1 = 211;
+        if (ID_PID_pl1 == 3) PID_Pdg_pl1 = 321;
+
+        // Use plane 0
+        std::vector<double> PIDChi2_pl0;// It follows the order of muon, proton, pion, kaon
+        if (PIDChi2_mu[0] < 0) PIDChi2_pl0.push_back(9999);
+        else PIDChi2_pl0.push_back(PIDChi2_mu[0]);
+        if (PIDChi2_p[0] < 0) PIDChi2_pl0.push_back(9999);
+        else PIDChi2_pl0.push_back(PIDChi2_p[0]);
+        if (PIDChi2_pi[0] < 0) PIDChi2_pl0.push_back(9999);
+        else PIDChi2_pl0.push_back(PIDChi2_pi[0]);
+        if (PIDChi2_K[0] < 0) PIDChi2_pl0.push_back(9999);
+        else PIDChi2_pl0.push_back(PIDChi2_K[0]);
+  
+        PID_pl0_Chi2 = *std::min_element(PIDChi2_pl0.begin(), PIDChi2_pl0.end());
+        int ID_PID_pl0 = std::min_element(PIDChi2_pl0.begin(), PIDChi2_pl0.end()) - PIDChi2_pl0.begin();
+        if (ID_PID_pl0 == 0) PID_Pdg_pl0 = 13;
+        if (ID_PID_pl0 == 1) PID_Pdg_pl0 = 2212;
+        if (ID_PID_pl0 == 2) PID_Pdg_pl0 = 211;
+        if (ID_PID_pl0 == 3) PID_Pdg_pl0 = 321;
+ 
         //-- Fill TRUE info, if the track is from numu cc muon
         if(IsMC){
           std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
@@ -993,7 +1082,6 @@ void SingleMuon::analyze(art::Event const& evt)
           trk_costheta_MCS.push_back(cos(trk_theta_MCS.back()));
         }
       }
-      
       ///////////Plan of implementation.......
       //
       //////1 track + 0 shower
@@ -1077,12 +1165,6 @@ void SingleMuon::analyze(art::Event const& evt)
     true_trk_PDG.clear();
     true_trk_ifcontained.clear();
     true_vtxFV.clear();
-  }
-
-  if(UsingCRT){
-    crthit_PE.clear();
-    crthit_plane.clear();
-    crthit_time.clear();
   }
 
   daughter_Tracks.clear();
@@ -1193,10 +1275,6 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nPiMinus_above65", &MC_nPiMinus_above65);
     my_event_->Branch("MC_Primary_PDG", &MC_Primary_PDG);
     my_event_->Branch("MC_Primary_Mom", &MC_Primary_Mom);
-
-    my_event_->Branch("Genie_Q2", &Genie_Q2);
-    my_event_->Branch("Genie_q2", &Genie_q2);
-    my_event_->Branch("Genie_W", &Genie_W);
     my_event_->Branch("Genie_nNeutron_preFSI", &Genie_nNeutron_preFSI);
     my_event_->Branch("Genie_nProton_preFSI", &Genie_nProton_preFSI);
     my_event_->Branch("Genie_nPi0_preFSI", &Genie_nPi0_preFSI);
@@ -1230,10 +1308,6 @@ void SingleMuon::Initialize_event()
 
   my_event_->Branch("evt_CRTveto", &evt_CRTveto);
   my_event_->Branch("evt_CRTveto_100", &evt_CRTveto_100);
-  my_event_->Branch("crthit_PE", &crthit_PE);
-  my_event_->Branch("crthit_plane", &crthit_plane);
-  my_event_->Branch("crthit_time", &crthit_time);
-  my_event_->Branch("Nr_crthit", &Nr_crthit);
 
   my_event_->Branch("if_cosmic", &if_cosmic);
   my_event_->Branch("if_matchMu", &if_matchMu);
@@ -1375,6 +1449,37 @@ void SingleMuon::endSubRun(art::SubRun const &sr){
   POTtree->Fill();
 }
 
+//int SingleMuon::Topology(int Nmuons, int Nelectrons, int Nprotons, int Npiplus, int Npiminus, int Npi0, int Nprotons_abTH, int Nprotons_blTH, int PDG, int CCNC,  bool ifcosmic, bool ifbeam, bool ifFV){
+//  // In the current version, Proton Momentum threshold is set to be 300MeV, which should be reviewed soon
+//  // 1. NuMuCC0pi0p in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 1;
+//  // 2. NuMuCC0pi1p in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 1 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 2;
+//  // 3. NuMuCC0pi2p in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH == 2 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 3;
+//  // 4. NuMuCC0piNp in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 0 && Nprotons_abTH > 2 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 4; 
+//  // 5. NuMuCC1pi+Xp in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 1 && Npiminus == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 5;
+//  // 6. NuMuCC1pi-Xp in FV
+//  if (Nmuons > 0 && Npi0 == 0 && Npiplus == 0 && Npiminus == 1 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 6;
+//  // 7. NuMuCC1pi0Xp in FV
+//  if (Nmuons > 0 && Npi0 == 1 && Npiplus == 0 && Npiminus == 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 7;
+//  // 8. NuMuCCNpiXp in FV
+//  if (Nmuons > 0 && (Npi0 + Npiplus + Npiminus) > 0 && ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == 14) return 8;
+//  // 9. Anti NuMu CC in FV
+//  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && PDG == -14) return 9;
+//  // 10. Nue / Anti-Nue CC in FV
+//  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 0 && abs(PDG) == 12) return 10;
+//  // 11. NC
+//  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 1 && CCNC = 1) return 11;
+//  // 12. true neutrino vertex out of FV
+//  if (ifcosmic == 0 && ifbeam == 1 && ifFV == 0) return 12;
+//  // 13. cosmic
+//  if (ifcosmic == 1) return 13;
+//  // 14. other
+//  else return 14;
+//}
 
 void SingleMuon::beginJob()
 {

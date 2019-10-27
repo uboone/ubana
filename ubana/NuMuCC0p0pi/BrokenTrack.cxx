@@ -42,8 +42,8 @@ void BrokenTrack::MatchTracks(art::Ptr<recob::Track>& ThisTrack, std::vector< ar
   trk_temp_end2 = Trk_end_SCEcorr;
   trk_temp_length = (Trk_start_SCEcorr - Trk_end_SCEcorr).Mag();
  
-  std::cout<<"Trk_start X: "<< trk_temp_end1.X()<<", Y: "<< trk_temp_end1.Y()<<", Z: "<<trk_temp_end1.Z()<<std::endl;
-  std::cout<<"Trk_end X: "<< trk_temp_end2.X()<<", Y: "<< trk_temp_end2.Y()<<", Z: "<<trk_temp_end2.Z()<<std::endl;  
+  //std::cout<<"Trk_start X: "<< trk_temp_end1.X()<<", Y: "<< trk_temp_end1.Y()<<", Z: "<<trk_temp_end1.Z()<<std::endl;
+  //std::cout<<"Trk_end X: "<< trk_temp_end2.X()<<", Y: "<< trk_temp_end2.Y()<<", Z: "<<trk_temp_end2.Z()<<std::endl;  
 
   // For the moment, this part only supports two track merging
   for(int i_trk = 0; i_trk < (int) TrackCollection.size(); i_trk++){
@@ -141,17 +141,17 @@ void BrokenTrack::MatchTracks(art::Ptr<recob::Track>& ThisTrack, std::vector< ar
         dis.push_back((trk_temp_end2 - Rolling_Trk_start_SCEcorr).Mag()); //E_RS
         dis.push_back((trk_temp_end2 - Rolling_Trk_end_SCEcorr).Mag()); //E_RE
 
-        std::cout<<"start_Rstart: "<< dis[0]<<"; start_Rend: "<< dis[1]<<"; end_Rstart: "<< dis[2]<<"; end_Rend: "<< dis[3]<<std::endl;
+        //std::cout<<"start_Rstart: "<< dis[0]<<"; start_Rend: "<< dis[1]<<"; end_Rstart: "<< dis[2]<<"; end_Rend: "<< dis[3]<<std::endl;
 
         trk_temp_length = *std::max_element(dis.begin(), dis.end());
-        std::cout<<"The max distance: "<< *std::max_element(dis.begin(), dis.end())<<std::endl;
+        //std::cout<<"The max distance: "<< *std::max_element(dis.begin(), dis.end())<<std::endl;
 
         if (*std::max_element(dis.begin(), dis.end()) > trk_temp_length){
 
           trk_temp_length = *std::max_element(dis.begin(), dis.end());
 
           int Max = std::distance(dis.begin(), std::max_element(dis.begin(), dis.end()));
-          std::cout<<"Max: "<<Max<<std::endl;
+          //std::cout<<"Max: "<<Max<<std::endl;
 
           if(Max == 0){
             trk_temp_end1 = trk_temp_end1;
@@ -169,8 +169,8 @@ void BrokenTrack::MatchTracks(art::Ptr<recob::Track>& ThisTrack, std::vector< ar
             trk_temp_end1 = trk_temp_end2;
             trk_temp_end2 = Rolling_Trk_end_SCEcorr;
           }
-          std::cout<<"temp end1 X: "<< trk_temp_end1.X()<<", Y: "<< trk_temp_end1.Y()<<", Z: "<<trk_temp_end1.Z()<<std::endl;
-          std::cout<<"temp end2 X: "<< trk_temp_end2.X()<<", Y: "<< trk_temp_end2.Y()<<", Z: "<<trk_temp_end2.Z()<<std::endl;
+          //std::cout<<"temp end1 X: "<< trk_temp_end1.X()<<", Y: "<< trk_temp_end1.Y()<<", Z: "<<trk_temp_end1.Z()<<std::endl;
+          //std::cout<<"temp end2 X: "<< trk_temp_end2.X()<<", Y: "<< trk_temp_end2.Y()<<", Z: "<<trk_temp_end2.Z()<<std::endl;
         }
 
       } // matched tracks (assume it's only two...)
@@ -181,8 +181,8 @@ void BrokenTrack::MatchTracks(art::Ptr<recob::Track>& ThisTrack, std::vector< ar
   trk_end2 = trk_temp_end2;
   trk_length = trk_temp_length;
 
-  std::cout<<"trk end1 X: "<< trk_temp_end1.X()<<", Y: "<< trk_temp_end1.Y()<<", Z: "<<trk_temp_end1.Z()<<std::endl;
-  std::cout<<"trk end2 X: "<< trk_temp_end2.X()<<", Y: "<< trk_temp_end2.Y()<<", Z: "<<trk_temp_end2.Z()<<std::endl;
+  //std::cout<<"trk end1 X: "<< trk_temp_end1.X()<<", Y: "<< trk_temp_end1.Y()<<", Z: "<<trk_temp_end1.Z()<<std::endl;
+  //std::cout<<"trk end2 X: "<< trk_temp_end2.X()<<", Y: "<< trk_temp_end2.Y()<<", Z: "<<trk_temp_end2.Z()<<std::endl;
 
 } // function
 
