@@ -169,7 +169,7 @@ namespace single_photon
 
 	
 		//HERE COMES THE Atlas!!!
-		Atlas object_container(evt, {m_trackLabel, m_showerLabel, m_hitfinderLabel, m_flashLabel, m_pandoraLabel,m_shower3dLabel,m_showerKalmanLabel,m_showerKalmanCaloLabel});
+		Atlas object_container(evt, {m_trackLabel, m_showerLabel, m_hitfinderLabel, m_flashLabel, m_pandoraLabel,m_shower3dLabel,m_showerKalmanLabel,m_showerKalmanCaloLabel, m_generatorLabel, m_geantModuleLabel}, m_is_data);
 		
 		//still need these handls for now;
 		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);//This is useful for FindManyP< reco::Track/Shower>
@@ -1176,9 +1176,11 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		m_bobbyprotontrackv = {0};
 		m_bobbyphotonshowerv = {0};
 		m_bobbypi0daughterv = {0};
+		m_bobbydeltaraddaughterv = {0};
 		m_bobbyprotontrack = 0;
 		m_bobbyphotonshower = 0;
 		m_bobbypi0daughter = 0;
+		m_bobbydeltaraddaughter = 0;
 		m_dist_tt = {999};
 		m_dist_sx = {999};
 		m_dist_st = {999};

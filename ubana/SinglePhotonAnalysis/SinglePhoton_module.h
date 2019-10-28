@@ -831,9 +831,11 @@ namespace single_photon
 
 		int m_bobbyphotonshower;
 		int m_bobbypi0daughter;
+		int m_bobbydeltaraddaughter;
 		int m_bobbyprotontrack;
 		std::vector<int> m_bobbyphotonshowerv;
 		std::vector<int> m_bobbypi0daughterv;
+		std::vector<int> m_bobbydeltaraddaughterv;
 		std::vector<int> m_bobbyprotontrackv;
 		bool m_bobbyvertexing_more;
 

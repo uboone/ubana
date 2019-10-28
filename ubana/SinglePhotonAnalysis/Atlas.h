@@ -30,7 +30,8 @@ namespace single_photon
 		Atlas();//this might be useless;
 		//Overflow constructor 1;
 		Atlas( const art::Event &evt,
-			std::vector< std::string > labels);//this initialize vectors and maps below
+			std::vector< std::string > labels,
+			bool is_data);//this initialize vectors and maps below
 
 //		~Atlas(){};
 //		//main stuffs that we feed into the vertex builder.
@@ -50,6 +51,10 @@ namespace single_photon
 		std::vector< art::Ptr<recob::Cluster> >		all_clusters;
         std::vector<art::Ptr<recob::Track>>			kalmanTrackVector;
 		std::vector<art::Ptr<recob::Slice>>			sliceVector;
+
+		//MCTruth (only initialized when the sample is not data)
+		std::vector<art::Ptr<simb::MCTruth>>   mcTruthVector;
+		std::vector<art::Ptr<simb::MCParticle>> matchedMCParticleVector;
 
 /*
  * The overflow constructor 1 takes care of the following maps.
@@ -77,7 +82,7 @@ namespace single_photon
 //The followings are taken care by the CollectTracksAndShowers_v2() in BobbyVertexBuilder.h
 		std::vector< art::Ptr<recob::Track> >							selected_tracks;
 		std::vector< art::Ptr<recob::Shower> >							selected_showers;
-		std::vector< art::Ptr<recob::Track> >							more_tracks;
+		std::vector< art::Ptr<recob::Track> >							more_tracks;//non-cosmic objects, but not selected nu objects.
 		std::vector< art::Ptr<recob::Shower> >							more_showers;
 		//Maps for more pandora objects.
 		std::map< art::Ptr<recob::Track>  , art::Ptr<recob::PFParticle>> trackToNuPFParticleMap;
@@ -103,7 +108,7 @@ namespace single_photon
 		std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              MCParticleToMCTruthMap;
 
 		//Filled in the showerRecoMCmatching() in reco_truth_matching.h
-		std::vector<art::Ptr<simb::MCParticle>>										matchedMCParticleVector;
+//		std::vector<art::Ptr<simb::MCParticle>>										matchedMCParticleVector;
 		std::map< art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> >				showerToMCParticleMap;
 
 		//Filled in the RecoMCTracks() in analyze_Tracks.h
@@ -174,10 +179,11 @@ namespace single_photon
 	Atlas::Atlas (){}
 	//Overloaded Constructor, initialize the essential variables
 	Atlas::Atlas ( const art::Event &evt,
-				std::vector<std::string > labels){
+				std::vector<std::string > labels,
+				bool is_data){
 
 		//PREPARE some recob objects;
-		//vector<string> labels = {m_trackLabel, m_showerLabel, m_hitfinderLabel, m_flashLabel, m_pandoraLabel,m_shower3dLabel,m_showerKalmanLabel,m_showerKalmanCaloLabel}
+		//vector<string> labels = {m_trackLabel, m_showerLabel, m_hitfinderLabel, m_flashLabel, m_pandoraLabel,m_shower3dLabel,m_showerKalmanLabel,m_showerKalmanCaloLabel,m_generatorLabel, m_geantModuleLabel}
 		recob::PFParticle dummy_PFParticle;
 		all_pfparticles = HandleToVector(dummy_PFParticle, evt, labels[4]);
 		recob::Track dummy_track;//This is to specify the template;
@@ -197,6 +203,14 @@ namespace single_photon
 
 		recob::Slice dummy_slice;
 		sliceVector = HandleToVector(dummy_slice, evt, labels[4]);
+		
+		if(!is_data){
+			//MCTruth Handle
+			simb::MCTruth dummy_geant; //for Geant info.
+			mcTruthVector = HandleToVector(dummy_geant, evt, labels[8]);
+			simb::MCParticle dummy_genie; //for Genie info.
+			matchedMCParticleVector = HandleToVector(dummy_genie, evt, labels[9]);
+		}
 		//CREATE maps!
 		//Ingredient 1: Handles; I temporary define it here for mapping purpose;
 		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(labels[4]);//This is useful for FindManyP< reco::Track/Shower>

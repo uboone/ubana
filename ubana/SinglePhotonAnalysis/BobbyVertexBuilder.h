@@ -332,6 +332,7 @@ namespace single_photon
 		std::vector<double> tem_bobbyvertex_pos_zv;
 		std::vector<int> 	tem_bobbyphotonshowerv;
 		std::vector<int> 	tem_bobbypi0daughterv;
+		std::vector<int> 	tem_bobbydeltaraddaughterv;
 		std::vector<int> 	tem_bobbyprotontrackv;
 		double min_bobbyvertexradius = 999;
 		size_t min_index = 0;
@@ -350,6 +351,7 @@ namespace single_photon
 				m_bobbyprotontrackv.clear();
 				m_bobbyphotonshowerv.clear();
 				m_bobbypi0daughterv.clear();
+				m_bobbydeltaraddaughterv.clear();
 				m_bobbyvertexradiusv.clear();
 				reset_bobbyvertex = false;
 			}
@@ -371,31 +373,55 @@ namespace single_photon
 			int get_a_proton = 0;
 			int get_a_photon = 0;
 			int get_a_pi0daughter = 0;
+			int get_a_deltaraddaughter = 0;
 			for(size_t const n : particle_associated.GetObjectIndices()) {
-				if(detos.GetRecoType(n) == detos.ftrack_reco_type) {
+				int index;
+				art::Ptr<simb::MCParticle> temp_mcp;
+
+				if(detos.GetRecoType(n) == detos.ftrack_reco_type) {//it is a track
+					cout<<"A track"<<endl;
 					++temp_num_tracks;
-
-					int trackindex = detos.GetTrackIndexFromObjectIndex(n);
-					art::Ptr<simb::MCParticle> temp_MCtrack = package.trackToMCParticleMap.find(use_tracks[trackindex])->second;
-					if(temp_MCtrack->PdgCode()==2212){
-						get_a_proton++;
-					}
+					index = detos.GetTrackIndexFromObjectIndex(n);
+					temp_mcp = package.trackToMCParticleMap.find(use_tracks[index])->second;
 				}
-				if(detos.GetRecoType(n) == detos.fshower_reco_type) {
 
+				if(detos.GetRecoType(n) == detos.fshower_reco_type) {//it is a shower
 					++temp_num_showers;
-					int showerindex = detos.GetShowerIndexFromObjectIndex(n);//CHECK
-					art::Ptr<simb::MCParticle> temp_MCshower = package.showerToMCParticleMap.find(use_showers[showerindex])->second;
-					if(temp_MCshower->PdgCode()==22){
-						get_a_photon++;
-					}
-					art::Ptr<simb::MCParticle> amother = package.MCParticleToTrackIdMap[temp_MCshower->Mother()];
-					if(amother){//sometime Mother is unknown..
-						if(amother->PdgCode() == 111){
-							get_a_pi0daughter++;
-						}
-					}
+					cout<<"A shower"<<endl;
+					index = detos.GetShowerIndexFromObjectIndex(n);
+					temp_mcp = package.showerToMCParticleMap.find(use_showers[index])->second;
 				}
+				//identify shower/track MCTruth info.
+				cout<<"CHECK PARTICLE PdgCode "<<temp_mcp->PdgCode()<<endl;
+				switch (temp_mcp->PdgCode()){
+					case 2212:
+						get_a_proton++;
+						break;
+					case 22:
+						get_a_photon++;
+				}
+				//identify the ancestor!
+
+				/*CHECK
+				//MCParticleToAncestorMap - Match MCParticle to the original MCParticle, status=0 (primary)
+				art::Ptr<simb::MCParticle> amother = package.MCParticleToAncestorMap[temp_mcp->Mother()];
+				if(amother){//sometime Mother is unknown
+					cout<<"CHECK "<<amother->PdgCode()<<endl;
+					sMCTruth info. to get parent ID||   m_mctruth_exiting_photon_mother_trackID0
+						witch (amother->PdgCode()){
+							case 111:
+								get_a_pi0daughter++;
+						}
+					break;
+					case 2224:
+					case 2214:
+					case 1114:
+					case 2114:
+					get_a_deltaraddaughter++;
+					break;
+				}
+				
+				*/
 				m_bobbyvertexradius = particle_associated.GetGoodness();
 				//mark down the smallest radius;
 				if(m_bobbyvertexradius < min_bobbyvertexradius){
@@ -413,6 +439,7 @@ namespace single_photon
 			tem_bobbyprotontrackv.push_back(get_a_proton);
 			tem_bobbyphotonshowerv.push_back(get_a_photon);
 			tem_bobbypi0daughterv.push_back(get_a_pi0daughter);
+			tem_bobbydeltaraddaughterv.push_back(get_a_deltaraddaughter);
 
 			m_bobbyvertexradiusv.push_back(m_bobbyvertexradius);
 		}
@@ -426,6 +453,7 @@ namespace single_photon
 		m_bobbyprotontrackv  = tem_bobbyprotontrackv;
 		m_bobbyphotonshowerv = tem_bobbyphotonshowerv;
 		m_bobbypi0daughterv  = tem_bobbypi0daughterv;
+		m_bobbydeltaraddaughterv  = tem_bobbydeltaraddaughterv;
 		m_bobbytracksv = tem_bobbytracksv;
         m_bobbyshowersv= tem_bobbyshowersv;
 
