@@ -9,7 +9,7 @@
 #include "config_particle_identification_braggalgo.fcl"
 #include "config_particle_identification_producerlabels.fcl"
 #include "shrreco3d.fcl"
-
+#include "reco_uboone_mcc9_8.fcl"
 #include "microboone_singlephoton.fcl"
 
 process_name : SinglePhoton      #The process name must NOT contain any underscores
@@ -46,15 +46,14 @@ physics: {
      #pid: @local::particleidconfig
      #pid: @local::producerlabels_mcc9
      #showerreco3dpandora : @local::ShrReco3DPandora
-  }
-
+     allShr: @local::microboone_pandoraShowerCreation
+ }
  analyzers: {}
  filters : {
         #singlephotonfil: @local::singlephoton_filter   #run in filtering mode
         singlephotonana: @local::singlephoton_analyzer   #run in ana mode
-  }
-    pathana : [singlephotonana] #path for analysis
-
+ }
+ pathana : [allShr,singlephotonana] #path for analysis
  trigger_paths : [pathana]
  end_paths: [ ]
 
@@ -62,6 +61,8 @@ physics: {
 #physics.producers.showerreco3dpandora.BacktrackTag: "gaushitTruthMatch"
 #physics.producers.showerreco3dpandora.ADCtoE: [240,240,240] # e-/ADC
 #physics.producers.showerreco3dpandora.NeutrinoEvent: true
+
+physics.producers.allShr.PFParticleLabel: "pandoraPatRec:allOutcomes"
 
 services.SpaceCharge.EnableCorrSCE: true
 services.SpaceCharge.EnableSimEfieldSCE: true

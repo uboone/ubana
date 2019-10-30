@@ -6,7 +6,7 @@ namespace single_photon
 {
 
     //recoMCmatching but specifically for recob::showers
-    std::vector<double> SinglePhoton::showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
+    void SinglePhoton::showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
             std::map<art::Ptr<recob::Shower>,art::Ptr<simb::MCParticle>>& objectToMCParticleMap,
             std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& objectToPFParticleMap,
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> >& pfParticleToHitsMap,
@@ -22,13 +22,15 @@ namespace single_photon
         std::vector<double> vec_fraction_matched;
         std::map<std::string,bool> map_is_shower_process = {{"compt",true},{"FastScintillation",true},{"eBrem",true},{"phot",true},{"eIoni",true},{"conv",true},{"annihil",true}};
         bool reco_verbose = false;
-
+        
+        if(reco_verbose) std::cout<<"Strting "<<objectVector.size()<<" things"<<std::endl;
 
         //for each recob::track/shower in the event
         for(size_t i=0; i<objectVector.size();++i){
             auto object = objectVector[i];
 
             //get the associated reco PFP
+            if(reco_verbose)std::cout<<"We have "<<objectToPFParticleMap.count(object)<<" matches in map"<<std::endl;
             const art::Ptr<recob::PFParticle> pfp = objectToPFParticleMap[object];
 
             if (reco_verbose) std::cout<<"SinglePhoton::recoMC()\t||\t looking for a shower match to pfp "<< pfp->Self()<<" which is in slice "<<  PFPToSliceIdMap[pfp]<<std::endl;
@@ -563,7 +565,7 @@ namespace single_photon
 
         }//end vector loop.
 
-        return {0};
+        return ;
     }//end showerRecoMCmatching
 
 

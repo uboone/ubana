@@ -602,15 +602,12 @@ namespace single_photon
             ){
 
 
-        if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite"<<std::endl;;
+        //if(m_is_verbose)           
+            std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite on: "<<tracks.size()<<" tracks."<<std::endl;
 
         int i_trk = 0;
-        //for (TrackVector::const_iterator iter = tracks.begin(), iterEnd = tracks.end(); iter != iterEnd; ++iter)
-        for(size_t k =0; k< tracks.size();++k)    
 
-        {
-
-            //   const art::Ptr<recob::Track> track = *iter;
+        for(size_t k =0; k< tracks.size();++k){
             const art::Ptr<recob::Track> track = tracks[k];
             m_sim_track_matched[i_trk] = 0;
 
@@ -623,7 +620,6 @@ namespace single_photon
 
                 std::vector<double> corrected(3);
                 this->spacecharge_correction(mcparticle, corrected);
-
 
                 m_sim_track_matched[i_trk] = 1;
                 m_sim_track_energy[i_trk] = mcparticle->E();
@@ -642,28 +638,20 @@ namespace single_photon
                 m_sim_track_nuscore[i_trk] = sliceIdToNuScoreMap[ m_sim_track_sliceId[i_trk]] ;
                 m_sim_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp]; 
 
-                // if(mcparticle->TrackId() != 0){
-                // }
-                //std::cout<<"looking for mother with track id "<<mcparticle->Mother()<<std::endl;
 
                 if(mcparticle->Mother()>=(int)mcParticleVector.size()){
-                    //if (MCParticleToTrackIdMap[mcparticle->Mother()].isNull()){   
                     m_sim_track_parent_pdg[i_trk] = -1;
                 }else{
                     m_sim_track_parent_pdg[i_trk] = mcParticleVector[mcparticle->Mother()]->PdgCode();
-                    // m_sim_track_parent_pdg[i_trk] = MCParticleToTrackIdMap[mcparticle->Mother()]->PdgCode();
                 }
 
-                //std::cout<<"the sim track id is "<<m_sim_track_trackID[i_trk]<<" and the pdg is "<<  m_sim_track_pdg[i_trk]<<" with parent pdg  "<<  m_sim_track_parent_pdg[i_trk]<<std::endl;
-                //if( m_sim_track_parent_pdg[i_trk] != -999){
-                //    std::cout <<" and the parent track id "<<  mcparticle->Mother() <<std::endl;
-                // }
 
 
                 }
                 i_trk++;
             }
 
+         return;
         }
 
 

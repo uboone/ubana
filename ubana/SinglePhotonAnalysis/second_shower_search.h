@@ -808,7 +808,7 @@ namespace single_photon
                 for(int l=0; l< m_sss_num_candidates; l++){
 
                     std::vector<double> thisvars = { (double)m_sss_candidate_num_hits[l], (double)m_sss_candidate_num_wires[l], (double)m_sss_candidate_num_ticks[l], (double)m_sss_candidate_PCA[l], log10((double)m_sss_candidate_impact_parameter[l]), log10((double)m_sss_candidate_min_dist[l]), (double)m_sss_candidate_impact_parameter[l]/(double)m_sss_candidate_min_dist[l], (double)m_sss_candidate_energy[l]*0.001, cos((double)m_sss_candidate_angle_to_shower[l]), (double)m_sss_candidate_fit_slope[l], (double)m_sss_candidate_fit_constant[l], (double)m_sss_candidate_plane[l],m_reco_shower_energy_max[0]*0.001,  2*0.001*0.001*m_sss_candidate_energy[l]*m_reco_shower_energy_max[0]*(1.0-cos(m_sss_candidate_angle_to_shower[l])) , log10(2*0.001*0.001*m_sss_candidate_energy[l]*m_reco_shower_energy_max[0]*(1.0-cos(m_sss_candidate_angle_to_shower[l]))),m_sss_candidate_energy[l]/m_reco_shower_energy_max[0], (double)m_sss_candidate_closest_neighbour[l] };
-                    
+
 
                     double score = sssVetov1->GetMvaValue(thisvars);
                     m_sss_candidate_veto_score.push_back(score);
@@ -1373,5 +1373,161 @@ namespace single_photon
 
         return ans;
     }//end sss matching;
+
+
+
+
+
+
+    //************************************************ Shower Search Slice Second SSS3D ********** /
+
+    void SinglePhoton::ClearSecondShowers3D(){
+
+        m_sss3d_num_showers = 0;
+        m_sss3d_shower_start_x.clear();
+        m_sss3d_shower_start_y.clear();
+        m_sss3d_shower_start_z.clear();
+        m_sss3d_shower_dir_x.clear();
+        m_sss3d_shower_dir_y.clear();
+        m_sss3d_shower_dir_z.clear();
+        m_sss3d_shower_length.clear();
+        m_sss3d_shower_conversion_dist.clear();
+        m_sss3d_shower_invariant_mass.clear();
+        m_sss3d_shower_implied_invariant_mass.clear();
+        m_sss3d_shower_impact_parameter.clear();
+        m_sss3d_shower_energy_max.clear();
+        m_sss3d_shower_score.clear();
+        m_sss3d_shower_ioc_ratio.clear();
+    }
+
+
+    void SinglePhoton::CreateSecondShowerBranches3D(){
+        vertex_tree->Branch("sss3d_num_showers",&m_sss3d_num_showers,"sss3d_num_showers/I");
+
+        vertex_tree->Branch("sss3d_shower_start_x",&m_sss3d_shower_start_x);
+        vertex_tree->Branch("sss3d_shower_start_y",&m_sss3d_shower_start_y);
+        vertex_tree->Branch("sss3d_shower_start_z",&m_sss3d_shower_start_z);
+        vertex_tree->Branch("sss3d_shower_dir_x",&m_sss3d_shower_dir_x);
+        vertex_tree->Branch("sss3d_shower_dir_y",&m_sss3d_shower_dir_y);
+        vertex_tree->Branch("sss3d_shower_dir_z",&m_sss3d_shower_dir_z);
+
+        vertex_tree->Branch("sss3d_shower_length",&m_sss3d_shower_length);
+        vertex_tree->Branch("sss3d_shower_conversion_dist",&m_sss3d_shower_conversion_dist);
+        vertex_tree->Branch("sss3d_shower_invariant_mass",&m_sss3d_shower_invariant_mass);
+        vertex_tree->Branch("sss3d_shower_implied_invariant_mass",&m_sss3d_shower_implied_invariant_mass);
+        vertex_tree->Branch("sss3d_shower_impact_parameter",&m_sss3d_shower_impact_parameter);
+        vertex_tree->Branch("sss3d_shower_ioc_ratio",&m_sss3d_shower_ioc_ratio);
+        vertex_tree->Branch("sss3d_shower_energy_max",&m_sss3d_shower_energy_max);
+
+        vertex_tree->Branch("sss3d_shower_score",&m_sss3d_shower_score);
+    }
+
+
+    void SinglePhoton::SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>,  art::Ptr<recob::PFParticle>> & NormalTrackToPFParticleMap, art::Event const & evt){
+
+        std::string sss3dlabel = "allShr";//"pandoraAllOutcomesShower"
+        double max_conv_dist = 80.0;
+
+        art::ValidHandle<std::vector<recob::Shower>> const & allShowerHandle  = evt.getValidHandle<std::vector<recob::Shower>>(sss3dlabel);
+        std::vector<art::Ptr<recob::Shower>> allShowerVector;
+        art::fill_ptr_vector(allShowerVector,allShowerHandle);
+        std::cout<<"We have "<<showers.size()<<" showers in primary slice and "<<allShowerVector.size()<<" in full event."<<std::endl;
+
+        art::FindManyP<recob::Hit> hits_per_shower(allShowerHandle, evt, sss3dlabel);
+        std::map<art::Ptr<recob::Shower>, std::vector<art::Ptr<recob::Hit>> > showerToHitsMap;
+        for(size_t i=0; i< allShowerVector.size(); ++i){
+            showerToHitsMap[allShowerVector[i]] = hits_per_shower.at(allShowerVector[i].key());
+        }
+
+        art::FindOneP<recob::PFParticle> pfparticle_per_shower(allShowerHandle, evt, sss3dlabel);
+        std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle> > showerToPFParticleMap;
+        for(size_t i=0; i< allShowerVector.size(); ++i){
+            showerToPFParticleMap[allShowerVector[i]] = pfparticle_per_shower.at(allShowerVector[i].key());
+        }
+
+        art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
+        art::FindOneP<recob::Slice> slice_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
+
+         size_t n_all_shr = allShowerVector.size();
+        m_sss3d_num_showers = (int)n_all_shr-showers.size();
+
+
+        if(showers.size()==0) return;
+
+        auto primary_shower = showers.front();
+
+        std::cout<<"PandoraAllOutcomesShower has "<<n_all_shr<<" Showers in total. "<<std::endl;
+        for(auto &shr: allShowerVector){
+            //lets look at 3D distance to "vertex"
+            double dist = sqrt(pow(m_vertex_pos_x - shr->ShowerStart().X(),2)+pow(m_vertex_pos_y - shr->ShowerStart().Y(),2)+pow(m_vertex_pos_z - shr->ShowerStart().Z(),2) );
+            if(dist>max_conv_dist) continue;
+
+            //if(slice_per_pfparticle.at(showerToPFParticleMap[shr].key()).isNull()) std::cout<<"Its Null"<<std::endl;
+            //const art::Ptr<recob::Slice> slice = slice_per_pfparticle.at(showerToPFParticleMap[shr].key());
+
+            //std::cout<<shr.key()<<" Length "<<shr->Length()<<" Dist "<<dist<<" Impact: "<<impact_paramater_shr(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z, shr)<<" pfp key: "<<showerToPFParticleMap[shr].key()<<" Self "<<showerToPFParticleMap[shr]->Self()<<std::endl;//" slice "<<slice->ID()<<std::endl;
+
+            //OK we need to "remove" the  showers that are neutrino showers as well as those that are the "track"
+
+            bool is_matched = false;
+
+            for(auto &s: showers){
+                //const art::Ptr<recob::Slice> s_slice = slice_per_pfparticle.at(NormalShowerToPFParticleMap[s].key());   
+                //std::cout<<s.key()<<"shr is in slice "<<s_slice->ID()<<std::endl;
+                if(showerToPFParticleMap[shr]->Self()== NormalShowerToPFParticleMap[s]->Self()){
+                    //std::cout<<"Its a match!"<<std::endl;
+                    is_matched = true;
+                }
+            }
+
+            for(auto &s: tracks){
+                //const art::Ptr<recob::Slice> s_slice = slice_per_pfparticle.at(NormalTrackToPFParticleMap[s].key());   
+                //std::cout<<s.key()<<"trk is in slice "<<s_slice->ID()<<std::endl;
+                if(showerToPFParticleMap[shr]->Self()== NormalTrackToPFParticleMap[s]->Self()){
+                    //std::cout<<"Its a match!"<<std::endl;
+                    is_matched = true;
+                }
+            }
+
+            if(is_matched) 
+            {
+               // std::cout<<"matched and continuing"<<std::endl; 
+                continue;
+            }
+           
+            double senergy = this->CalcEShower(showerToHitsMap[shr]); 
+            double invar = implied_invar_mass(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z,  primary_shower, m_reco_shower_energy_max[0], shr, senergy);
+            double implied_invar = invar_mass(primary_shower, m_reco_shower_energy_max[0], shr, senergy) ;
+            double shr_score = 0.5; //need pfp and metadata to get score, and might give slice! (This will be harder..) but on reflection, kinda important. PCA spread might be a good rplacement.
+
+
+            m_sss3d_shower_start_x.push_back(shr->ShowerStart().X());
+            m_sss3d_shower_start_y.push_back(shr->ShowerStart().Y());
+            m_sss3d_shower_start_z.push_back(shr->ShowerStart().Z());
+            m_sss3d_shower_dir_x.push_back(shr->Direction().X());
+            m_sss3d_shower_dir_y.push_back(shr->Direction().Y());
+            m_sss3d_shower_dir_z.push_back(shr->Direction().Z());
+            m_sss3d_shower_length.push_back(shr->Length());
+            m_sss3d_shower_conversion_dist.push_back(dist);
+            m_sss3d_shower_invariant_mass.push_back(invar);
+            m_sss3d_shower_implied_invariant_mass.push_back(implied_invar);
+
+            double imp = impact_paramater_shr(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z, shr);
+            m_sss3d_shower_impact_parameter.push_back(imp);
+
+            if(dist!=0) {
+                m_sss3d_shower_ioc_ratio.push_back(imp/dist);
+            }else{
+                m_sss3d_shower_ioc_ratio.push_back(0);
+            
+            }
+            m_sss3d_shower_energy_max.push_back(senergy);// 
+            m_sss3d_shower_score.push_back(shr_score);
+
+        }   
+
+        return;
+    }
+
 
 }

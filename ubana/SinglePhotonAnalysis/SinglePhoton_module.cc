@@ -682,10 +682,6 @@ namespace single_photon
 
                 //photoNuclearTesting(matchedMCParticleVector);
 
-
-
-                //showerRecoMCmatching( showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-
                 //looking at metadata
                 //std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
                 /*std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
@@ -712,13 +708,11 @@ namespace single_photon
                 //    std::cout<<"CHECKSHOWER: count trackmap: "<<MCParticleToMCTrackMap.count(mp)<<" "<< MCParticleToMCShowerMap.count(mp)<<std::endl;
                 //}
 
-
-
+                std::cout<<"Starting outside RecoMCTracks "<<std::endl;
                 this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector, MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,trk_overlay_vec);
 
-
                 //Obsolete function
-                //this->RecoMCShowers(showers, showerToNuPFParticleMap, showerToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector);
+                std::cout<<"Starting outside AnalyzeMCTruths "<<std::endl;
                 this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
 
                 if(m_is_verbose)std::cout<<"Starting AnalyzeEventWeight"<<std::endl;
@@ -795,6 +789,23 @@ namespace single_photon
             //Isolation
 
             //This is a quick check 
+
+
+
+
+            // PandoraAllOutComes
+            //if( showers.size()>0){
+            if(true){
+                std::cout<<"------------ Shower3D --------------"<<std::endl;
+                /*for(auto &s : showers){
+                    std::cout<<"shower pfp key : "<<showerToNuPFParticleMap[s].key()<<" self: "<<showerToNuPFParticleMap[s]->Self()<<std::endl;
+                }
+                for(auto &s : tracks){
+                    std::cout<<"track pfp key : "<<trackToNuPFParticleMap[s].key()<<" self: "<<trackToNuPFParticleMap[s]->Self()<<std::endl;
+                }*/
+
+                this->SecondShowerSearch3D(showers, showerToNuPFParticleMap, tracks,trackToNuPFParticleMap,evt);
+            }        
 
             size_t n_neutrino_slice=0;
             size_t n_neutrino_candidate_pfp_id=0;
@@ -956,6 +967,7 @@ namespace single_photon
         this->CreateIsolationBranches();
 
         this->CreateSecondShowerBranches();
+        this->CreateSecondShowerBranches3D();
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
 
@@ -1063,6 +1075,7 @@ namespace single_photon
         this->ClearIsolation();
 
         this->ClearSecondShowers();
+        this->ClearSecondShowers3D();
         //------------- Flash related Variables ------------------
         this->ClearFlashes();
 

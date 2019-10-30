@@ -92,6 +92,56 @@
 namespace single_photon
 {
 
+   double impact_paramater_shr(double x, double y, double z, art::Ptr<recob::Shower> & shr){
+
+       std::vector<double> vert = {x,y,z}; 
+       std::vector<double> start = {shr->ShowerStart().X(), shr->ShowerStart().Y(),shr->ShowerStart().Z()};
+       std::vector<double> abit = {shr->ShowerStart().X() + shr->Direction().X(),  shr->ShowerStart().Y()+shr->Direction().Y(),  shr->ShowerStart().Z()+shr->Direction().Z()};
+
+       return dist_line_point(start, abit, vert);
+
+   }
+
+   double  implied_invar_mass(double vx, double vy, double vz, art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
+        
+       double s1x = s1->ShowerStart().X()-vx;
+       double s1y = s1->ShowerStart().Y()-vy;
+       double s1z = s1->ShowerStart().Z()-vz;
+       double norm1  = sqrt(pow(s1x,2)+pow(s1y,2)+pow(s1z,2));
+       s1x = s1x/norm1;
+       s1y = s1y/norm1;
+       s1z = s1z/norm1;
+
+       double s2x = s2->ShowerStart().X()-vx;
+       double s2y = s2->ShowerStart().Y()-vy;
+       double s2z = s2->ShowerStart().Z()-vz;
+       double norm2  = sqrt(pow(s2x,2)+pow(s2y,2)+pow(s2z,2));
+       s2x = s2x/norm2;
+       s2y = s2y/norm2;
+       s2z = s2z/norm2;
+
+       return sqrt(2.0*E1*E2*(1.0-(s1x*s2x+s1y*s2y+s1z*s2z)));
+
+
+   }
+
+   double  invar_mass(art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
+        
+       double s1x = s1->Direction().X();
+       double s1y = s1->Direction().Y();
+       double s1z = s1->Direction().Z();
+
+       double s2x = s2->Direction().X();
+       double s2y = s2->Direction().Y();
+       double s2z = s2->Direction().Z();
+
+       return sqrt(2.0*E1*E2*(1.0-(s1x*s2x+s1y*s2y+s1z*s2z)));
+
+   }
+
+
+
+
     template <typename T>
         std::vector<size_t> sort_indexes(const std::vector<T> &v) {
 
@@ -406,8 +456,13 @@ namespace single_photon
             //---------------- SecondShower----
             void ClearSecondShowers();
             void ResizeSecondShowers(size_t size);
-
             void CreateSecondShowerBranches();
+
+            void ClearSecondShowers3D();
+            void CreateSecondShowerBranches3D();
+
+            void SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & normaltrkmap,art::Event const & evt);
+
 
             void SecondShowerSearch(
                     const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
@@ -496,7 +551,7 @@ namespace single_photon
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
                     std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
 
-            std::vector<double> showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
+            void showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<simb::MCParticle>>& objectToMCParticleMap,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& objectToPFParticleMap,
                     std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> >& pfParticleToHitsMap,
@@ -770,6 +825,22 @@ namespace single_photon
             std::vector<int>        m_sss_candidate_parent_pdg;
             std::vector<int>    m_sss_candidate_trackid;
             std::vector<double>       m_sss_candidate_overlay_fraction;
+
+            int m_sss3d_num_showers;
+            std::vector<double> m_sss3d_shower_start_x;
+            std::vector<double> m_sss3d_shower_start_y;
+            std::vector<double> m_sss3d_shower_start_z;
+            std::vector<double> m_sss3d_shower_dir_x;
+            std::vector<double> m_sss3d_shower_dir_y;
+            std::vector<double> m_sss3d_shower_dir_z;
+            std::vector<double> m_sss3d_shower_length;
+            std::vector<double> m_sss3d_shower_conversion_dist;
+            std::vector<double> m_sss3d_shower_invariant_mass;
+            std::vector<double> m_sss3d_shower_implied_invariant_mass;
+            std::vector<double> m_sss3d_shower_impact_parameter;
+            std::vector<double> m_sss3d_shower_ioc_ratio;
+            std::vector<double> m_sss3d_shower_energy_max;
+            std::vector<double> m_sss3d_shower_score;
 
             bool bool_make_sss_plots;
 
@@ -1280,7 +1351,13 @@ namespace single_photon
             std::vector<double>        m_mctruth_exiting_pi0_pz;
 
             double m_mctruth_pi0_leading_photon_energy;
+            std::string m_mctruth_pi0_leading_photon_end_process;
             double m_mctruth_pi0_subleading_photon_energy;
+            std::string m_mctruth_pi0_subleading_photon_end_process;
+            std::vector<double> m_mctruth_pi0_subleading_photon_end;
+            std::vector<double> m_mctruth_pi0_subleading_photon_start;
+            std::vector<double> m_mctruth_pi0_leading_photon_end;
+            std::vector<double> m_mctruth_pi0_leading_photon_start;
 
             std::string  m_truthmatching_signaldef;
 
