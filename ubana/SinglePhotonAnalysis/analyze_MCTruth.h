@@ -10,6 +10,7 @@ namespace single_photon
         m_mctruth_nu_vertex_x = -9999;
         m_mctruth_nu_vertex_y = -9999;
         m_mctruth_nu_vertex_z = -9999;
+        m_mctruth_reco_vertex_dist = -9999;
         m_mctruth_ccnc = -99;
         m_mctruth_qsqr = -99;
         m_mctruth_nu_E = -99;
@@ -121,6 +122,7 @@ namespace single_photon
         vertex_tree->Branch("mctruth_nu_vertex_x",&m_mctruth_nu_vertex_x);
         vertex_tree->Branch("mctruth_nu_vertex_y",&m_mctruth_nu_vertex_y);
         vertex_tree->Branch("mctruth_nu_vertex_z",&m_mctruth_nu_vertex_z);
+        vertex_tree->Branch("mctruth_reco_vertex_dist",&m_mctruth_reco_vertex_dist);
 
         vertex_tree->Branch("mctruth_lepton_pdg",&m_mctruth_lepton_pdg);
         vertex_tree->Branch("mctruth_lepton_E",&m_mctruth_lepton_E);
@@ -249,6 +251,7 @@ namespace single_photon
                 m_mctruth_nu_vertex_x = corrected[0];
                 m_mctruth_nu_vertex_y = corrected[1];
                 m_mctruth_nu_vertex_z = corrected[2];
+                m_mctruth_reco_vertex_dist = sqrt(pow (m_mctruth_nu_vertex_x-m_reco_vertex_x,2)+pow (m_mctruth_nu_vertex_y-m_reco_vertex_y,2)+pow (m_mctruth_nu_vertex_z-m_reco_vertex_z,2));
             
             }
 
