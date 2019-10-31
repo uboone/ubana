@@ -350,8 +350,9 @@ namespace single_photon
   m_gtruth_fs_had_syst_p4_y = gTruth->fFShadSystP4.Y();
   m_gtruth_fs_had_syst_p4_z = gTruth->fFShadSystP4.Z();
   m_gtruth_fs_had_syst_p4_E = gTruth->fFShadSystP4.E();
-  
-  eventweight_tree->Fill();
+ 
+  //moved to inside singlphoontmodule.cc for filter reasons
+  //eventweight_tree->Fill();
   std::cout<<"SinglePhoton::AnalyzeEventWeight-eventweight_tree filled"<<std::endl;
   }
 }

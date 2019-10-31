@@ -519,10 +519,11 @@ namespace single_photon
 
             const art::Ptr<recob::Shower> shower = *iter;
             const art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap[shower];
+
             art::Ptr<recob::Shower> shower3d;
             if(PFPtoShowerReco3DMap.count(pfp)==0){
-                std::cout<<"SHOWER_3D : <<ERROR!! No shower3d in map for this pfp"<<std::endl;
-                std::cout<<"Reverting to normal recob::Shower"<<std::endl;
+                //std::cout<<"SHOWER_3D : <<ERROR!! No shower3d in map for this pfp"<<std::endl;
+                //std::cout<<"Reverting to normal recob::Shower"<<std::endl;
                 m_reco_shower3d_exists[i_shr] = 0;
                 shower3d = shower;
             }else{
@@ -609,8 +610,6 @@ namespace single_photon
             m_reco_shower_start_to_nearest_dead_wire_plane0[i_shr] = distanceToNearestDeadWire(0, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
             m_reco_shower_start_to_nearest_dead_wire_plane1[i_shr] = distanceToNearestDeadWire(1, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
             m_reco_shower_start_to_nearest_dead_wire_plane2[i_shr] = distanceToNearestDeadWire(2, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
-
-
             std::vector<int> t_num(3,0);
             std::vector<int> t_numhits(3,0);
             std::vector<double> t_area(3,0.0);
@@ -618,12 +617,12 @@ namespace single_photon
             //Right, this basically loops over all hits in all planes and for each plane forms the Delaunay triangilization of it and calculates the 2D area inscribed by the convex hull
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Starting Delaunay Triangleization"<<std::endl;;
 
-            auto start = std::chrono::high_resolution_clock::now();
+            //auto start = std::chrono::high_resolution_clock::now();
             this->delaunay_hit_wrapper(hits, t_numhits, t_num, t_area);
 
-            auto finish = std::chrono::high_resolution_clock::now();
-            auto microseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start);
-            if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles"<<std::endl;;
+            //auto finish = std::chrono::high_resolution_clock::now();
+            //auto microseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish-start);
+            //if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished Delaunay Triangleization. It took "<< microseconds.count() << "ms and found "<<t_num[0]+t_num[1]+t_num[2]<<" triangles"<<std::endl;;
 
             m_reco_shower_delaunay_num_triangles_plane0[i_shr] = t_num[0];
             m_reco_shower_delaunay_num_triangles_plane1[i_shr] = t_num[1];
@@ -636,18 +635,17 @@ namespace single_photon
             m_reco_shower_num_hits_plane0[i_shr] = t_numhits[0];
             m_reco_shower_num_hits_plane1[i_shr] = t_numhits[1];
             m_reco_shower_num_hits_plane2[i_shr] = t_numhits[2];
-
             //-------------- Calorimetry 3D --------------------
 
 
             const std::vector< double > shr3d_energy = shower3d->Energy();
             const std::vector< double > shr3d_dEdx = shower3d->dEdx();
-            const int shr3d_bestplane = shower3d->best_plane();
+            //const int shr3d_bestplane = shower3d->best_plane();
 
-            std::cout<<"SHOWER3D_ENERGY: best plane: "<<shr3d_bestplane<<std::endl;
-            for(auto &en:shr3d_energy){
-                std::cout<<en<<" ";
-            }
+ //           std::cout<<"SHOWER3D_ENERGY: best plane: "<<shr3d_bestplane<<std::endl;
+            //for(auto &en:shr3d_energy){
+            //    std::cout<<en<<" ";
+            //}
             if(shr3d_energy.size()==3){
                 m_reco_shower3d_energy_plane0[i_shr] = shr3d_energy[0];
                 m_reco_shower3d_energy_plane1[i_shr] = shr3d_energy[1];
@@ -658,10 +656,10 @@ namespace single_photon
                 m_reco_shower3d_energy_plane2[i_shr] =-999;
             }
 
-            std::cout<<std::endl<<"SHOWER3D_DEDX: "<<std::endl;
-            for(auto &dedx: shr3d_dEdx){
-                std::cout<<dedx<<" ";
-            }
+   //         std::cout<<std::endl<<"SHOWER3D_DEDX: "<<std::endl;
+            //for(auto &dedx: shr3d_dEdx){
+            //    std::cout<<dedx<<" ";
+            //}
             std::cout<<std::endl;
             if(shr3d_dEdx.size()==3){
                 m_reco_shower3d_dEdx_plane0[i_shr] = shr3d_dEdx[0];
@@ -886,7 +884,6 @@ namespace single_photon
             m_reco_shower_isclearcosmic[i_shr] = PFPToClearCosmicMap[pfp];
             m_reco_shower_is_nuslice[i_shr] = PFPToNuSliceMap[pfp];
             //m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
-
             //std::cout<<"m_reco_shower_is_nuslice[i_shr] = "<<m_reco_shower_is_nuslice[i_shr]<<" for shr with pfp "<<pfp->Self()<<std::endl; 
 
             if ( PFPToTrackScoreMap.find(pfp) != PFPToTrackScoreMap.end() ) {
@@ -1532,9 +1529,5 @@ namespace single_photon
         //return the value at median index
         return median;		
     }
-
-
-
-
 
 }

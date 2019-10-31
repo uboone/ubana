@@ -2,6 +2,7 @@
 #define SINGLE_PHOTON_ANALYSIS
 
 #include "art/Framework/Core/ModuleMacros.h"
+#include "art/Framework/Core/EDFilter.h"
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/SubRun.h"
@@ -201,7 +202,7 @@ namespace single_photon
     /**
      *  @brief  SinglePhoton class
      */
-    class SinglePhoton : public art::EDAnalyzer
+    class SinglePhoton : public art::EDFilter
     {
         public:
             typedef art::ValidHandle< std::vector<recob::PFParticle> > PFParticleHandle;
@@ -229,22 +230,20 @@ namespace single_photon
              *
              *  @param  evt the art event to analyze
              */
-            void analyze(const art::Event &evt);
+            bool filter(art::Event &evt) override;
 
             /**
              *  @brief  Begin the job, setting up !
              *
              */
-            void beginJob();
+            void beginJob() override;
 
             /**
              *  @brief  End the job, setting down !
              *
              */
-            void endJob();
-
-
-            void beginSubRun(art::SubRun const & sr);
+            void endJob() override;
+            bool beginSubRun(art::SubRun& sr) override;
 
         private:
             void ClearVertex();
@@ -686,6 +685,10 @@ namespace single_photon
             bool m_is_data;
             bool m_is_overlayed;
             bool m_run_all_pfps;
+            bool m_has_CRT;
+            bool m_fill_trees;
+            bool m_run_pi0_filter;
+
             bool m_runCRT;
             double m_DTOffset;
             double  m_Resolution;
@@ -780,6 +783,7 @@ namespace single_photon
             double m_vertex_pos_wire_p1;
 
             int m_reco_asso_showers;
+
             double m_reco_vertex_to_nearest_dead_wire_plane0;
             double m_reco_vertex_to_nearest_dead_wire_plane1;
             double m_reco_vertex_to_nearest_dead_wire_plane2;
@@ -1338,6 +1342,7 @@ namespace single_photon
 
             double m_genie_spline_weight;
 
+            bool Pi0PreselectionFilter();
     };
 
     DEFINE_ART_MODULE(SinglePhoton)

@@ -26,7 +26,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/GTruth.h"
 
-#include "ubana/ubana/TreeReader/TreeReader.h"
+#include "ubana/TreeReader/TreeReader.h"
 #include "GSimpleInterface.h"
 #include "NTupleInterface.h"
 #include "cetlib_except/exception.h"

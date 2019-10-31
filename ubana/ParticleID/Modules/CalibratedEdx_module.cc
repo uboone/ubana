@@ -36,12 +36,6 @@
 
 #include "TRandom3.h"
 
-// Single photon includes
-#include "lardataobj/RecoBase/PFParticle.h"
-#include "lardataobj/RecoBase/PFParticleMetadata.h"
-#include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
-#include "Pandora/PdgTable.h"
-
 #include <memory>
 
 namespace UBPID{
@@ -58,9 +52,6 @@ class UBPID::CalibratedEdx : public art::EDProducer {
     CalibratedEdx & operator = (UBPID::CalibratedEdx const &) = delete;
     CalibratedEdx & operator = (UBPID::CalibratedEdx &&) = delete;
 
-    // For single photon stuff
-    typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
-
     // Required functions.
     void produce(art::Event & e) override;
 
@@ -69,7 +60,6 @@ class UBPID::CalibratedEdx : public art::EDProducer {
     // Declare member data here.
     std::string fCaloLabel;
     std::string fTrackLabel;
-    std::string fPFParticleLabel;
 
     bool fIsSimSmear;
     bool fIsSetSeed;
@@ -96,7 +86,6 @@ UBPID::CalibratedEdx::CalibratedEdx(fhicl::ParameterSet const & p)
 
   fCaloLabel = p_labels.get< std::string > ("CalorimetryLabel");
   fTrackLabel = p_labels.get< std::string > ("TrackLabel");
-  fPFParticleLabel = p_labels.get< std::string > ("PFParticleLabel");
   fIsSimSmear = p.get< bool > ("IsSimulationSmearing");
   fSimGausSmearWidth = p.get< std::vector<double> > ("SimulationGausSmearWidth");
   fIsSetSeed = p.get< bool > ("IsSetSeed");
@@ -167,115 +156,7 @@ void UBPID::CalibratedEdx::produce(art::Event & e)
   // calorimetry object...
   art::FindManyP<anab::Calorimetry> caloFromTracks(trackHandle, e, fCaloLabel);
 
-  ////// Determine if track is in neutrino slice /////////
-  //
-  // First, get PFParticle handle
-  art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = e.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleLabel);
-  std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
-  art::fill_ptr_vector(pfParticleVector, pfParticleHandle);
-
-  if (!pfParticleHandle.isValid() ) {
-      std::cout << "[CalibratedEdx] Bad PFParticle handle" << std::endl;
-      return;
-  }
-
-  // Create PFParicle map
-  PFParticleIdMap pfParticleMap;
-
-  for (unsigned int i = 0; i < pfParticleHandle->size(); ++i) {
-    const art::Ptr<recob::PFParticle> pParticle(pfParticleHandle, i);
-    if (!pfParticleMap.insert(PFParticleIdMap::value_type(pParticle->Self(), pParticle)).second) {
-        std::cout << "[CalibratedEdx] Coudln't get PFParticleIdMap" << std::endl;
-        return;
-    }   
-  }
-
-  // Separate PFParticles into cosmic and neutrino-induced
-  std::vector< art::Ptr<recob::PFParticle> > crParticles;
-  std::vector< art::Ptr<recob::PFParticle> > nuParticles;
-
-  for (PFParticleIdMap::const_iterator it = pfParticleMap.begin(); it != pfParticleMap.end(); ++it) {
-        const art::Ptr<recob::PFParticle> pParticle(it->second);
-
-        // Only look for primary particles
-        if (!pParticle->IsPrimary()) continue;
-
-        // Check if this particle is identified as the neutrino
-        const int pdg(pParticle->PdgCode());
-        const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
-
-
-        // If it is, lets get the vertex position
-        /*
-        if(isNeutrino){
-            this->GetVertex(pfParticlesToVerticesMap, pParticle );
-
-        }
-        */
-
-        // All non-neutrino primary particles are reconstructed under the cosmic hypothesis
-        if (!isNeutrino)
-        {
-            crParticles.push_back(pParticle);
-            continue;
-        }
-
-        // ATTN. We are filling nuParticles under the assumption that there is only one reconstructed neutrino identified per event.
-        //       If this is not the case please handle accordingly
-        if (!nuParticles.empty())
-        {
-            //throw cet::exception("SinglePhoton") << "  This event contains multiple reconstructed neutrinos!";
-            std::cerr << "[CalibratedEdx] Exception" << std::endl;
-        }
-
-        // Add the daughters of the neutrino PFParticle to the nuPFParticles vector
-        for (const size_t daughterId : pParticle->Daughters())
-        {
-            if (pfParticleMap.find(daughterId) == pfParticleMap.end())
-                //throw cet::exception("SinglePhoton") << "  Invalid PFParticle collection!";
-                std::cerr << "[CalibratedEdx] Exception" << std::endl;
-
-            nuParticles.push_back(pfParticleMap.at(daughterId));
-        }
-    }
-
-    std::cout << "[CalibratedEdx] NuParticles: " << nuParticles.size() << std::endl;
-    std::cout << "[CalibratedEdx] CrParticles: " << crParticles.size() << std::endl;
-
-    // Get PFP <-> Track associations
-    art::FindOneP< recob::PFParticle > pfParticlePerTrack(trackHandle, e, fPFParticleLabel);
-    art::FindOneP< recob::Track > trackPerPFParticle(pfParticleHandle, e, fTrackLabel);
-    std::map< art::Ptr<recob::Track>, art::Ptr<recob::PFParticle> > trackToPFParticleMap;
-    std::map< art::Ptr<recob::PFParticle>, art::Ptr<recob::Track> > pfParticleToTrackMap;
-
-    // Fill track -> pfparticle map
-    for (size_t i = 0; i < trackCollection.size(); i++) {
-        art::Ptr<recob::Track> thisTrack = trackCollection.at(i);
-        trackToPFParticleMap[thisTrack] = pfParticlePerTrack.at(thisTrack.key());
-    }
-
-    // Fill pfparticle -> track map
-    for (size_t i = 0; i < pfParticleVector.size(); i++) {
-        art::Ptr<recob::PFParticle> thisPFP = pfParticleVector.at(i);
-        pfParticleToTrackMap[thisPFP] = trackPerPFParticle.at(thisPFP.key());
-    }
-
-    // Find neutrino tracks in neutrino slice
-    std::vector< art::Ptr<recob::Track> > nuTrackCollection;
-    for (art::Ptr<recob::Track> track : trackCollection) {
-        art::Ptr<recob::PFParticle> pfp = trackToPFParticleMap[track];
-        for (art::Ptr<recob::PFParticle> &p : nuParticles ) {
-            if (pfp == p) {
-                std::cout << "[CalibratedeDx] Found pfp in nu slice" << std::endl;
-                nuTrackCollection.push_back(pfParticleToTrackMap[p]);
-                //isNu = true;
-            }
-        }
-    }
-  
-  //bool isNu = false;
-  //for (auto& track : trackCollection){
-  for (art::Ptr<recob::Track> track : nuTrackCollection){
+  for (auto& track : trackCollection){
 
     if (!caloFromTracks.isValid()){
       std::cout << "[CalibratedEdx] Calorimetry<->Track associations are not valid for this track. Skipping." << std::endl;
