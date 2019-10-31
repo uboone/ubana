@@ -46,34 +46,14 @@ physics: {
      pid: @local::particleidconfig
      #pid: @local::producerlabels_mcc9
      #showerreco3dpandora : @local::ShrReco3DPandora
-  
-
-      usePID:         "true" 
-       work_function: 23
-       recombination_factor: 0.62
-       #gain : 197
-       gain_mc: [235.5, 249.7, 237.6] #DocDB 20227-v7 using dE/dx calibration method for all planes, updated on 9/13/19
-       gain_data: [230.3, 237.6, 243.7] #see above docdb
-       wire_spacing : 0.3 
-       width_box : 1.
-       length_box : 4.
-       truthmatching_signaldef : "ncdelta"
-       runAllPFPs: "false"
-       exiting_photon_energy: 0.02
-       exiting_proton_energy: 0.978  #40Mev + proton mass
-       runCRT: "true"
-       DTOffset: 68600.0 #us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
-       Resolution: 1.0 #same as above
-       DAQHeaderProducer: "daq" #ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
-      }
-
+ 
   }
 
 analyzers: {}
 
 filters : {
         #singlephotonfil: @local::singlephoton_filter   #run in filtering mode
-        singlephotonana: @local::singlephoton_filter   #run in filtering mode
+        singlephotonana: @local::singlephoton_analyzer  #run in filtering mode
   }
     pathana : [pid , singlephotonana] #path for analysis
 
