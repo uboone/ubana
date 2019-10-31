@@ -776,6 +776,7 @@ namespace single_photon
             double m_width_dqdx_box;
             double m_length_dqdx_box;
 
+            TTree* run_subrun_tree;
             TTree* pot_tree;
             TTree* vertex_tree;
             TTree* eventweight_tree;
@@ -786,6 +787,9 @@ namespace single_photon
             double m_pot_count;
             int m_number_of_vertices;
 
+            int m_run;
+            int m_subrun;
+            
             //------------ Event Related Variables -------------
             int m_run_number;
             int m_subrun_number;

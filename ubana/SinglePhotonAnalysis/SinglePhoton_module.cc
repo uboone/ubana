@@ -934,12 +934,19 @@ namespace single_photon
         pot_tree = tfs->make<TTree>("pot_tree", "pot_tree");
         eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
         ncdelta_slice_tree = tfs->make<TTree>("ncdelta_slice_tree", "ncdelta_slice_tree");
+        run_subrun_tree = tfs->make<TTree>("run_subrun_tree","run_subrun_tree");
 
+        //run_subrun_tree
+        m_run = 0;
+        m_subrun = 0;
+        run_subrun_tree->Branch("run",&m_run,"run/I");
+        run_subrun_tree->Branch("subrun",&m_subrun,"subrun/I");
 
         // --------------------- POT Releated variables -----------------
         m_number_of_events = 0;
         m_number_of_vertices = 0;
         m_pot_count=0;
+        
         pot_tree->Branch("number_of_events",&m_number_of_events,"number_of_events/I");
         pot_tree->Branch("number_of_vertices",&m_number_of_vertices,"number_of_vertices/I");
         pot_tree->Branch("POT",&m_pot_count,"POT/D");
@@ -1099,6 +1106,11 @@ namespace single_photon
 
 
     bool SinglePhoton::beginSubRun(art::SubRun& sr) {
+
+        m_run = sr.run();
+        m_subrun = sr.subRun();
+    
+        run_subrun_tree->Fill();
 
         if(m_potLabel != ""){
             if(m_potLabel == "generator"){
