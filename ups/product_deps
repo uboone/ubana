@@ -34,7 +34,7 @@ ubreco                  v08_33_00
 ubraw                   v08_33_00
 larana                  v08_10_18
 larpandora              v08_07_22
-cetbuildtools	        v7_12_01	-	only_for_build
+cetbuildtools	        v7_14_00	-	only_for_build
 end_product_list
 
 qualifier      ubreco         ubraw          larana         larpandora     
