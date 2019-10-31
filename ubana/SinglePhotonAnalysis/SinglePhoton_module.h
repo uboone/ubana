@@ -1100,6 +1100,7 @@ namespace single_photon
             std::vector<double> m_reco_track_nuscore; //the neutrino score of the slice containing the reco track
             std::vector<bool> m_reco_track_isclearcosmic;//true if reco track is in a clear cosmic slice
             std::vector<double> m_reco_track_trackscore;
+            std::vector<int> m_reco_track_pfparticle_pdg;
             std::vector<bool> m_reco_track_is_nuslice;
 
 
@@ -1229,6 +1230,7 @@ namespace single_photon
             std::vector<bool> m_reco_shower_isclearcosmic;//true if reco shower is in a clear cosmic slice
             std::vector<bool> m_reco_shower_is_nuslice;//true if reco shower is in a clear cosmic slice
             std::vector<double> m_reco_shower_trackscore;
+            std::vector<double> m_reco_shower_pfparticle_pdg;
 
             std::vector<double> m_reco_shower_kalman_exists;
             std::vector<double>   m_reco_shower_kalman_median_dEdx_plane0;
