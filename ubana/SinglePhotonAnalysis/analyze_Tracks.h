@@ -10,6 +10,7 @@ namespace single_photon
 
     void SinglePhoton::ClearTracks(){
         m_reco_asso_tracks=0;
+        m_reco_track_length.clear();
         m_reco_track_num_daughters.clear();
         m_reco_track_daughter_trackscore.clear();
         m_reco_track_dirx.clear();
@@ -528,7 +529,13 @@ namespace single_photon
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Completed PCA analysis of track. Primary componant: "<<m_reco_track_spacepoint_principal0.back()<<""<<std::endl;;
 
             //range based energy calculation assuming
-            m_reco_track_proton_kinetic_energy[i_trk] = proton_length2energy_tgraph.Eval(m_length)/1000.0; 
+
+            if(!m_run_pi0_filter){
+                m_reco_track_proton_kinetic_energy[i_trk] = proton_length2energy_tgraph.Eval(m_length)/1000.0; 
+            }else{
+                m_reco_track_proton_kinetic_energy[i_trk] = -9999;
+            }
+
             if(m_length == 0.0) m_reco_track_proton_kinetic_energy[i_trk]=0.0;
 
             // Dead Wire Approximity

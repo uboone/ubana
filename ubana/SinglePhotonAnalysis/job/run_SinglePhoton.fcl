@@ -10,32 +10,35 @@
 #include "config_particle_identification_producerlabels.fcl"
 #include "shrreco3d.fcl"
 
+#include "microboone_singlephoton.fcl"
+
 process_name : SinglePhoton      #The process name must NOT contain any underscores
 
 source : {
- module_type : RootInput
+    module_type : RootInput
     maxEvents   : -1
-    }
+}
 
 services :
 {
-#  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
- TFileService: { fileName: "vertexed_singlephoton_%tc.root" }
- ExptGeoHelperInterface:    @local::standard_geometry_helper
- Geometry:                  @local::standard_geo
- LArPropertiesService:      @local::standard_properties
- DetectorClocksService:     @local::standard_detectorclocks
- DetectorPropertiesService: @local::standard_detproperties
- @table::microboone_services
+    #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
+    TFileService: { fileName: "vertexed_singlephoton_%tc.root" }
+    ExptGeoHelperInterface:    @local::standard_geometry_helper
+    Geometry:                  @local::standard_geo
+    LArPropertiesService:      @local::standard_properties
+    DetectorClocksService:     @local::standard_detectorclocks
+    DetectorPropertiesService: @local::standard_detproperties
+    @table::microboone_services
 }
 
 outputs: {
-#  optionalout: { module_type: RootOutput
-#                fileName: "output_file.root"
-#               fastCloning: false }
+    #  optionalout: { module_type: RootOutput
+    #                fileName: "output_file.root"
+    #               fastCloning: false }
 }
 
 physics: {
+
  producers : {
      # ParameterSets for zero or more producer modules
      #pidcalibration: @local::microboone_calibrationdedx
@@ -43,22 +46,9 @@ physics: {
      pid: @local::particleidconfig
      #pid: @local::producerlabels_mcc9
      #showerreco3dpandora : @local::ShrReco3DPandora
-  }
- analyzers: {
-     # ParameterSets for zero or more analyzer modules
-  singlephoton: { 
-     module_type:    SinglePhoton
-	   PandoraLabel:   "pandora"
-	   TrackLabel:     "pandora"
-	   ShowerLabel:    "pandora"
-     #ShowerLabel: "showerreco3dpandora"
-	   ParticleIDLabel:"pid"
-       CaloLabel:      "pandoracaliSCE"
-       FlashLabel:     "simpleFlashBeam"
-       POTLabel:       "generator"
-       input_param:    "optional" 
+  
 
-       usePID:         "true" 
+      usePID:         "true" 
        work_function: 23
        recombination_factor: 0.62
        #gain : 197
@@ -78,13 +68,17 @@ physics: {
       }
 
   }
- filters : {
-     # ParameterSets for zero or more filter modules
+
+analyzers: {}
+
+filters : {
+        #singlephotonfil: @local::singlephoton_filter   #run in filtering mode
+        singlephotonana: @local::singlephoton_filter   #run in filtering mode
   }
- pidpath : [pid]
- path0 : [  singlephoton ]
- trigger_paths : [pidpath]
- end_paths: [ path0 ]
+    pathana : [pid , singlephotonana] #path for analysis
+
+ trigger_paths : [pathana]
+ end_paths: [ ]
 
 }
 #physics.producers.showerreco3dpandora.BacktrackTag: "gaushitTruthMatch"

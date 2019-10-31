@@ -1,7 +1,7 @@
 art_make( 
           # Needed for standalone c++ helper files
           LIBRARY_NAME
-                        NuCCHelpers
+                        CoarseNuCCHelpers
           LIB_LIBRARIES 
                         larpandora_LArPandoraInterface
                         larcorealg_Geometry

@@ -12,7 +12,7 @@
 namespace single_photon
 {
 
-    SinglePhoton::SinglePhoton(fhicl::ParameterSet const &pset) : art::EDAnalyzer(pset)
+    SinglePhoton::SinglePhoton(fhicl::ParameterSet const &pset) : art::EDFilter(pset)
     {
         this->reconfigure(pset);
         theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -30,6 +30,11 @@ namespace single_photon
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
         m_is_data = pset.get<bool>("isData",false);
         m_is_overlayed = pset.get<bool>("isOverlayed",false);
+
+        m_fill_trees = pset.get<bool>("FillTrees",true);
+        m_run_pi0_filter = pset.get<bool>("RunPi0Filter",false);
+    
+        if(m_run_pi0_filter) m_is_data = true;// If running in filter mode, treat all as data
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
@@ -118,7 +123,7 @@ namespace single_photon
 
     //------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SinglePhoton::analyze(const art::Event &evt)
+    bool SinglePhoton::filter(art::Event &evt)
     {
 
         //std::cout<<"runAllPFP's = "<<m_run_all_pfps<<std::endl;
@@ -164,8 +169,10 @@ namespace single_photon
 
         //BadChannels
         art::Handle<std::vector<int> > badChannelHandle;
-        evt.getByLabel(m_badChannelProducer, m_badChannelLabel, badChannelHandle);
-        std::vector<int> badChannelVector = *(badChannelHandle);
+        std::vector<int> badChannelVector;
+        if(evt.getByLabel(m_badChannelProducer, m_badChannelLabel, badChannelHandle)){
+            badChannelVector            = *(badChannelHandle);
+        }
 
 
         //Collect the PFParticles from the event. This is the core!
@@ -182,7 +189,10 @@ namespace single_photon
         if (!pfParticleHandle.isValid())
         {
             mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
-            return;
+            if(m_run_pi0_filter)
+                return false;
+            else
+                return true;
         }
 
 
@@ -312,7 +322,6 @@ namespace single_photon
              */
 
 
-
         if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Clusters"<<std::endl;
 
         //Get a map between the PFP's and the clusters. Although Mark isn't a fan of clusters, they're imporant for the shower dQ/dx
@@ -402,7 +411,10 @@ namespace single_photon
         if (!calo_per_track.isValid())
         {
             mf::LogDebug("SinglePhoton") << "  Failed to get Assns between recob::Track and anab::Calorimetry.\n";
-            return;
+            if(m_run_pi0_filter)
+                return false;
+            else
+                return true;
         }
         for(size_t i=0; i< tracks.size(); ++i){
             if(calo_per_track.at(tracks[i].key()).size() ==0){
@@ -429,9 +441,6 @@ namespace single_photon
                 trackToPIDMap[track] = pid_per_track.at(track.key());
             }
         }
-
-
-
 
 
         //CRT 
@@ -495,7 +504,7 @@ namespace single_photon
 
         //and now get the simb::MCparticle to both MCtrack and MCshower maps (just for the MCparticles matched ok).
 
-        badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
+        if(!m_run_pi0_filter) badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
 
         if(m_is_verbose){
             std::cout << "SinglePhoton::analyze()\t||\t Consolidated event summary:" << "\n";
@@ -524,14 +533,16 @@ namespace single_photon
             std::cout<<"ERROR, not storing PFP's in PFPToSliceIdMap"<<std::endl;
         }
 
+        /*
         for (auto pair:PFPToNuSliceMap){
             auto pfp = pair.first;
             auto is_nuslice = pair.second;
             if (is_nuslice){
-                std::cout<<"pfp in nuslice "<<pfp->Self()<<std::endl;
+               // std::cout<<"pfp in nuslice "<<pfp->Self()<<std::endl;
             }
 
         }
+        */
 
         for (auto pair:sliceIDToPFParticlesMap){ 
             std::vector<art::Ptr<recob::PFParticle>> pfp_vec = pair.second;
@@ -568,7 +579,6 @@ namespace single_photon
         this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec);
         //   this->AnalyzeFlashes(flashVector, crthit_h);
 
-        std::cout<<"start track"<<std::endl;
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
 
@@ -633,7 +643,6 @@ namespace single_photon
                 }
 
             }
-            std::cout<<"TEST: matched "<<m_test_matched_hits<<std::endl;
 
             //end
 
@@ -694,7 +703,6 @@ namespace single_photon
 
             /*   std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
                  std::map<int, std::vector<art::Ptr<recob::PFParticle>>> sliceIdToPFPMap; //this is an alternative, stores all the PFP's but organized by slice ID
-                 >>>>>>> 37870fe8094e854e1661be2442637aaaeea236c9
                  std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
                  this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec, sliceIdToPFPMap);
                  std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
@@ -705,7 +713,9 @@ namespace single_photon
 
             //this one was for testing, leaving out for now
             // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
-            this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+            if(!m_run_pi0_filter){
+                this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+            }
 
             std::cout<<"filling info in ncdelta slice tree"<<std::endl;
             this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
@@ -744,7 +754,7 @@ namespace single_photon
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> * tmp_mcparticles_per_hit = NULL;
             std::vector<art::Ptr<simb::MCParticle>> tmp_matchedMCParticleVector;
 
-            this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,*tmp_mcparticles_per_hit, tmp_matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+            if(!m_run_pi0_filter) this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,*tmp_mcparticles_per_hit, tmp_matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
 
 
         }
@@ -758,7 +768,7 @@ namespace single_photon
             }
 
             //Isolation
-            this-> IsolationStudy(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
+            if(! m_run_pi0_filter)   this-> IsolationStudy(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
         }
 
 
@@ -848,11 +858,25 @@ namespace single_photon
 
 
         //---------------------- END OF LOOP, fill vertex ---------------------
+        bool filter_pass = Pi0PreselectionFilter();
+        if(m_fill_trees){
+            if (filter_pass && m_run_pi0_filter){
+                vertex_tree->Fill();
+                ncdelta_slice_tree->Fill();
+                eventweight_tree->Fill();
 
-        vertex_tree->Fill();
-        ncdelta_slice_tree->Fill();
+            }else if(!m_run_pi0_filter){
+                vertex_tree->Fill();
+                ncdelta_slice_tree->Fill();
+                eventweight_tree->Fill();
+            }
+        }
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
+
+        if(m_run_pi0_filter)  return filter_pass;
+
+        return true;
 
     }
 
@@ -928,15 +952,17 @@ namespace single_photon
         TFile *fileconv;
         struct stat buffer;   
 
-        if(stat("proton_conversion.root", &buffer) == 0){
-            fileconv = new TFile("proton_conversion.root", "read");
-        }else{
-            fileconv = new TFile((gpvm_location+"proton_conversion.root").c_str(), "read");
-        }
+        if(!m_run_pi0_filter){
+            if(stat("proton_conversion.root", &buffer) == 0){
+                fileconv = new TFile("proton_conversion.root", "read");
+            }else{
+                 fileconv = new TFile((gpvm_location+"proton_conversion.root").c_str(), "read");
+            }
 
-        proton_length2energy_tgraph = *(TGraph*)fileconv->Get("Graph");
-        proton_length2energy_tgraph.GetMean();
-        fileconv->Close();
+            proton_length2energy_tgraph = *(TGraph*)fileconv->Get("Graph");
+            proton_length2energy_tgraph.GetMean();
+            fileconv->Close();
+        }
 
         // --------------------- Shower Related variables ------------
         this->CreateShowerBranches();
@@ -958,28 +984,29 @@ namespace single_photon
 
         std::string bad_channel_file = "MCC9_channel_list.txt";
 
-        if(stat(bad_channel_file.c_str(), &buffer) != 0){
-            bad_channel_file = gpvm_location+bad_channel_file;
-        }
-
-        std::ifstream bc_file(bad_channel_file);
-
-        if (bc_file.is_open())
-        {
-            std::string line;
-            while ( getline (bc_file,line) )
-            {
-                std::vector<int> res;
-                std::istringstream iss(line);
-                for(std::string s; iss >> s; )
-                    res.push_back( std::stof(s));
-
-                std::pair<int,int> t(res[0],res[1]);
-                bad_channel_list_fixed_mcc9.push_back(t);
+        if(!m_run_pi0_filter){
+            if(stat(bad_channel_file.c_str(), &buffer) != 0){
+                bad_channel_file = gpvm_location+bad_channel_file;
             }
-            bc_file.close();
-        }
 
+            std::ifstream bc_file(bad_channel_file);
+
+            if (bc_file.is_open())
+            {
+                std::string line;
+                while ( getline (bc_file,line) )
+                {
+                    std::vector<int> res;
+                    std::istringstream iss(line);
+                    for(std::string s; iss >> s; )
+                        res.push_back( std::stof(s));
+
+                    std::pair<int,int> t(res[0],res[1]);
+                    bad_channel_list_fixed_mcc9.push_back(t);
+                }
+                bc_file.close();
+            }
+        }
 
         std::cout<<"SinglePhoton \t||\t beginJob() is complete"<<std::endl;
 
@@ -1041,20 +1068,28 @@ namespace single_photon
     }
 
 
-    void SinglePhoton::beginSubRun(art::SubRun const & sr) {
+    bool SinglePhoton::beginSubRun(art::SubRun& sr) {
 
         if(m_potLabel != ""){
             if(m_potLabel == "generator"){
-                double this_pot =  sr.getValidHandle<sumdata::POTSummary>(m_potLabel)->totgoodpot;
-                m_pot_count += this_pot;
-                std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<std::endl;
+               
+                art::Handle<sumdata::POTSummary> gen_pot_hand;
+                if(sr.getByLabel(m_potLabel,gen_pot_hand)){
+                    double this_pot =  gen_pot_hand->totgoodpot;
+                    m_pot_count += this_pot;
+                    std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
+                }
             }else{
+
                 art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR875;
                 if (sr.getByLabel("beamdata","bnbETOR875",potSummaryHandlebnbETOR875)){
                     m_pot_count += potSummaryHandlebnbETOR875->totpot;
+                    std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<potSummaryHandlebnbETOR875->totpot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
                 }
             }
         }
+
+	return true;
 
     }
 
@@ -1097,10 +1132,11 @@ namespace single_photon
                 m_vertex_pos_y = xyz[1];
                 m_vertex_pos_z = xyz[2];
 
-                m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-                m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-                m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-
+                if(!m_run_pi0_filter){
+                    m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                    m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                    m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                }
 
             }else{
                 std::cout << " Error: vertexVector associated with this particle is empty " << "\n";
@@ -1499,5 +1535,21 @@ namespace single_photon
 
     }
 
+    bool SinglePhoton::Pi0PreselectionFilter()
+    {
+
+        if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
+        if(m_vertex_pos_y < -112. || m_vertex_pos_y > 112.) return false;
+        if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1031.8) return false;
+
+        if(m_reco_asso_showers!=2) return false;
+        if(m_reco_asso_tracks!=1) return false;
+        if(m_reco_vertex_size<1) return false;
+
+        if(m_reco_shower_conversion_distance.size()!=2) return false;
+        if(m_reco_shower_conversion_distance[0]<1. || m_reco_shower_conversion_distance[1]<1.) return false;
+
+        return true;
+    }
 
 } //namespace

@@ -192,7 +192,7 @@ private:
   int GTruth_IsCharm_int;
   double GTruth_gX;
   double GTruth_gY;
-  double GTruth_gZ;
+  //double GTruth_gZ; //not used, is this an mistake?
   double GTruth_gT;
   double GTruth_gW;
   double GTruth_gQ2;
