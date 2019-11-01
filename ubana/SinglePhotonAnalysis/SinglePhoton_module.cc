@@ -61,6 +61,7 @@ namespace single_photon
 
 
         m_CRTTzeroLabel = pset.get<std::string>("CRTTzeroLabel","crttzero");
+        m_CRTVetoLabel = pset.get<std::string>("CRTVetoLabel","crtveto");
         m_runCRT = pset.get<bool>("runCRT",false);
         m_CRTHitProducer = pset.get<std::string>("CRTHitProducer", "crthitcorr");
 
@@ -589,6 +590,17 @@ namespace single_photon
 
 
             //if CRT info, get CRT hits
+        
+          //  art::FindManyP<crt::CRTHit> crtveto_per_flash(flashHandle, evt,   m_CRTVetoLabel);
+            std::map<art::Ptr<recob::OpFlash>, std::vector< art::Ptr<crt::CRTHit>>> crtvetoToFlashMap;
+            if(m_runCRT){
+                art::FindManyP<crt::CRTHit> crtveto_per_flash(flashHandle, evt,   m_CRTVetoLabel);
+                for(size_t i=0; i< flashVector.size(); ++i){
+                     crtvetoToFlashMap[flashVector[i]] = crtveto_per_flash.at(flashVector[i].key());
+                }
+            }
+
+
             art::Handle<std::vector<crt::CRTHit>> crthit_h; //only filled when there are hits, otherwise empty
             art::Handle<raw::DAQHeaderTimeUBooNE> rawHandle_DAQHeader;
             double evt_timeGPS_nsec = -999 ;
@@ -603,7 +615,7 @@ namespace single_photon
                 std::cout<<"SinglePhoton::analyze \t||\t Got CRT hits"<<std::endl;
             }
 
-            this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec);
+            this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec, crtvetoToFlashMap);
             //   this->AnalyzeFlashes(flashVector, crthit_h);
 
             std::cout<<"start track"<<std::endl;

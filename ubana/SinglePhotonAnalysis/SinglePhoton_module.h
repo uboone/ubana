@@ -499,7 +499,7 @@ namespace single_photon
 
 
             //----------------  Flashes ----------------------------
-                void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec);
+                void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec,  std::map<art::Ptr<recob::OpFlash>, std::vector< art::Ptr<crt::CRTHit>>> crtvetoToFlashMap);
                      
           //  void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h);
             void ClearFlashes();
@@ -732,6 +732,7 @@ namespace single_photon
             std::string m_mcTrackLabel;
             std::string m_mcShowerLabel;
             std::string m_pidLabel;            ///< For PID stuff
+            std::string m_CRTVetoLabel;
             std::string m_CRTTzeroLabel;
             std::string m_CRTHitProducer;
             bool m_use_PID_algorithms;
@@ -988,6 +989,10 @@ namespace single_photon
 
 
             //----------- CRT related variables -----------------
+        
+            //for crt hits from the CRT veto product
+            int m_CRT_veto_nhits; 
+          
             //fields storing information about the CRT hit closest to the flash
             double m_CRT_min_hit_time;
             double m_CRT_min_hit_PE;

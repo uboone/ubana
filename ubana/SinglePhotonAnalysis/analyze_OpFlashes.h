@@ -18,6 +18,7 @@ namespace single_photon
         m_reco_flash_time_in_beamgate.clear();
         m_reco_flash_ycenter_in_beamgate.clear();
         m_reco_flash_zcenter_in_beamgate.clear();
+        m_CRT_veto_nhits = -999;
         m_CRT_min_hit_time = -999;
         m_CRT_min_hit_PE = -999;
         m_CRT_min_hit_x = -999;
@@ -75,7 +76,9 @@ namespace single_photon
         vertex_tree->Branch("reco_flash_zcenter_in_beamgate",&m_reco_flash_zcenter_in_beamgate);
 
         vertex_tree->Branch("CRT_dt",& m_CRT_dt," CRT_dt/D");
-
+        
+        vertex_tree->Branch("CRT_veto_nhits",&m_CRT_veto_nhits,"CRT_veto_nhits/I");
+        
         vertex_tree->Branch("CRT_min_hit_time",&m_CRT_min_hit_time,"CRT_min_hit_time/D");
         vertex_tree->Branch("CRT_min_hit_PE",&m_CRT_min_hit_PE,"CRT_min_hit_PE/D");
         vertex_tree->Branch("CRT_min_hit_x",&m_CRT_min_hit_x,"CRT_min_hit_x/D");
@@ -91,9 +94,21 @@ namespace single_photon
     }
 
 
-    void SinglePhoton::AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes, art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec){
+    void SinglePhoton::AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes, art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec,  std::map<art::Ptr<recob::OpFlash>, std::vector< art::Ptr<crt::CRTHit>>> crtvetoToFlashMap){
 
         //  void SinglePhoton::AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes, art::Handle<std::vector<crt::CRTHit>> crthit_h){
+
+        for(auto pair: crtvetoToFlashMap){
+            std::cout<<"for flash at time "<< pair.first->Time()<<" has "<< pair.second.size() << " associated  CRT hits "<<std::endl;
+            if(pair.second.size() > 0){
+                for (auto hit: pair.second){
+                std::cout<<"---- associated CRT hit at time "<<hit->ts0_ns/1000. <<" with PE "<<hit->peshit<<std::endl;
+
+                }
+
+            }
+            m_CRT_veto_nhits =  pair.second.size();//save the number of associated CRT veto hits
+        }
 
         size_t flash_size = flashes.size();
         m_reco_num_flashes = flash_size;
