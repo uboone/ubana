@@ -251,7 +251,7 @@ namespace single_photon
                 m_mctruth_nu_vertex_x = corrected[0];
                 m_mctruth_nu_vertex_y = corrected[1];
                 m_mctruth_nu_vertex_z = corrected[2];
-                m_mctruth_reco_vertex_dist = sqrt(pow (m_mctruth_nu_vertex_x-m_reco_vertex_x,2)+pow (m_mctruth_nu_vertex_y-m_reco_vertex_y,2)+pow (m_mctruth_nu_vertex_z-m_reco_vertex_z,2));
+                m_mctruth_reco_vertex_dist = sqrt(pow (m_mctruth_nu_vertex_x-m_vertex_pos_x,2)+pow (m_mctruth_nu_vertex_y-m_vertex_pos_y,2)+pow (m_mctruth_nu_vertex_z-m_vertex_pos_z,2));
             
             }
 
