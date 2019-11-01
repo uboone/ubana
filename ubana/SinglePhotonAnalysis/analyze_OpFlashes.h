@@ -74,11 +74,11 @@ namespace single_photon
         vertex_tree->Branch("reco_flash_time_in_beamgate", &m_reco_flash_time_in_beamgate);
         vertex_tree->Branch("reco_flash_ycenter_in_beamgate",&m_reco_flash_ycenter_in_beamgate);
         vertex_tree->Branch("reco_flash_zcenter_in_beamgate",&m_reco_flash_zcenter_in_beamgate);
+        vertex_tree->Branch("CRT_veto_nhits",&m_CRT_veto_nhits,"CRT_veto_nhits/I");
+
 
         vertex_tree->Branch("CRT_dt",& m_CRT_dt," CRT_dt/D");
-        
-        vertex_tree->Branch("CRT_veto_nhits",&m_CRT_veto_nhits,"CRT_veto_nhits/I");
-        
+
         vertex_tree->Branch("CRT_min_hit_time",&m_CRT_min_hit_time,"CRT_min_hit_time/D");
         vertex_tree->Branch("CRT_min_hit_PE",&m_CRT_min_hit_PE,"CRT_min_hit_PE/D");
         vertex_tree->Branch("CRT_min_hit_x",&m_CRT_min_hit_x,"CRT_min_hit_x/D");
@@ -102,7 +102,7 @@ namespace single_photon
             std::cout<<"for flash at time "<< pair.first->Time()<<" has "<< pair.second.size() << " associated  CRT hits "<<std::endl;
             if(pair.second.size() > 0){
                 for (auto hit: pair.second){
-                std::cout<<"---- associated CRT hit at time "<<hit->ts0_ns/1000. <<" with PE "<<hit->peshit<<std::endl;
+                    std::cout<<"---- associated CRT hit at time "<<hit->ts0_ns/1000. <<" with PE "<<hit->peshit<<std::endl;
 
                 }
 
