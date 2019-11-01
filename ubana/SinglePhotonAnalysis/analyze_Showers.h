@@ -164,6 +164,7 @@ namespace single_photon
         m_reco_shower_isclearcosmic.clear();
         m_reco_shower_is_nuslice.clear();
         m_reco_shower_trackscore.clear();
+        m_reco_shower_pfparticle_pdg.clear();
 
     }
 
@@ -295,6 +296,7 @@ namespace single_photon
         m_reco_shower_isclearcosmic.resize(size);
         m_reco_shower_is_nuslice.resize(size);
         m_reco_shower_trackscore.resize(size);
+        m_reco_shower_pfparticle_pdg.resize(size);
 
 
         m_sim_shower_energy.resize(size);
@@ -426,6 +428,7 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_isclearcosmic",& m_reco_shower_isclearcosmic);
         vertex_tree->Branch("reco_shower_is_nuslice", & m_reco_shower_is_nuslice);
         vertex_tree->Branch("reco_shower_trackscore", & m_reco_shower_trackscore);
+        vertex_tree->Branch("reco_shower_pfparticle_pdg", & m_reco_shower_pfparticle_pdg);
 
 
         vertex_tree->Branch("reco_shower3d_exists", &m_reco_shower3d_exists);
@@ -888,8 +891,10 @@ namespace single_photon
 
             if ( PFPToTrackScoreMap.find(pfp) != PFPToTrackScoreMap.end() ) {
                 m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
+                m_reco_shower_pfparticle_pdg[i_shr] = pfp->PdgCode();
             } else{
                 m_reco_shower_trackscore[i_shr] = -999; 
+                m_reco_shower_pfparticle_pdg[i_shr] = -999;
             }
 
             if ( m_reco_shower_sliceId[i_shr] >0) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<". Pfp id = "<< pfp->Self()<<". The slice id for this shower is "<< m_reco_shower_sliceId[i_shr]<<", the neutrino score for this slice is "<< m_reco_shower_nuscore[i_shr]<<", and is_nuslice = "<<  m_reco_shower_is_nuslice[i_shr]<<". The track score is : "<< m_reco_shower_trackscore[i_shr]<<std::endl;

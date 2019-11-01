@@ -138,6 +138,7 @@ namespace single_photon
         m_reco_track_nuscore.clear();
         m_reco_track_isclearcosmic.clear();
         m_reco_track_trackscore.clear();
+        m_reco_track_pfparticle_pdg.clear();
         m_reco_track_is_nuslice.clear();
 
 
@@ -280,6 +281,7 @@ namespace single_photon
         m_reco_track_nuscore.resize(size);
         m_reco_track_isclearcosmic.resize(size);
         m_reco_track_trackscore.resize(size);
+        m_reco_track_pfparticle_pdg.resize(size);
         m_reco_track_is_nuslice.resize(size);
 
         m_sim_track_sliceId.resize(size);
@@ -410,6 +412,7 @@ namespace single_photon
         vertex_tree->Branch("reco_track_nuscore",& m_reco_track_nuscore);
         vertex_tree->Branch("reco_track_isclearcosmic",& m_reco_track_isclearcosmic);
         vertex_tree->Branch("reco_track_trackscore",& m_reco_track_trackscore);
+        vertex_tree->Branch("reco_track_pfparticle_pdg",& m_reco_track_pfparticle_pdg);
         vertex_tree->Branch("reco_track_is_nuslice",& m_reco_track_is_nuslice);
 
         vertex_tree->Branch("sim_track_matched",&m_sim_track_matched);
@@ -561,8 +564,10 @@ namespace single_photon
           //  m_reco_track_trackscore[i_trk] = PFPToTrackScoreMap[pfp];
             if ( PFPToTrackScoreMap.find(pfp) != PFPToTrackScoreMap.end() ) {
                 m_reco_track_trackscore[i_trk] = PFPToTrackScoreMap[pfp];
+                m_reco_track_pfparticle_pdg[i_trk] = pfp->PdgCode();
             } else{
                 m_reco_track_trackscore[i_trk] = -999; 
+                m_reco_track_pfparticle_pdg[i_trk] = -999; 
             }
 
             //A loop over the trajectory points
