@@ -33,7 +33,9 @@ namespace single_photon
 			std::vector< std::string > labels,
 			bool is_data);//this initialize vectors and maps below
 
-//		~Atlas(){};
+//		~Atlas(){
+//			MCParticleToTrackIdMap.clear();
+//		};
 //		//main stuffs that we feed into the vertex builder.
 
 /*
@@ -102,10 +104,13 @@ namespace single_photon
 
 //Maps for simb objects; for MC sample, not applied to data
 
-		//Filled in the CollectMCParticles() in Singlephoton_module.cc
+	
+		//Filled in the CollectMCParticles_v2() in Singlephoton_module.cc
 		std::map<int, art::Ptr<simb::MCParticle>>									MCParticleToTrackIdMap;
 		std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> MCTruthToMCParticlesMap;
 		std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              MCParticleToMCTruthMap;
+		std::multimap< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCParticle>>              MCParticleToAncestorMap;
+		std::map< art::Ptr<simb::MCParticle>, int>            AncestorToPdgMap;//2214 - delta+; 2114 - delta0; -999 - others.
 
 		//Filled in the showerRecoMCmatching() in reco_truth_matching.h
 //		std::vector<art::Ptr<simb::MCParticle>>										matchedMCParticleVector;

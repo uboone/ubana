@@ -9,6 +9,8 @@
 //---VertexBuilder---
 #include "VertexBuilder/VertexBuilder.h"
 #include "VertexBuilder/ParticleAssociations.h" 
+//#include "larsim/MCCheater/ParticleInventoryService.h"
+
 //#include "VertexBuilder/DetectorObjects.h"
 //
 //#include "VertexQuality.h"
@@ -109,6 +111,179 @@ namespace single_photon
 			} //repeat this loop for another PFParticle in the candidate_particles.
 		}
 	}
+	
+
+
+
+    void SinglePhoton::CollectMCParticles_v2(
+		const art::Event &evt, 
+		class Atlas & package){
+		bool debug_message = false;
+
+        art::Handle< std::vector< simb::MCParticle>  > theParticles;
+        evt.getByLabel(m_geantModuleLabel, theParticles);
+
+        if (!theParticles.isValid())
+        {
+            mf::LogDebug("LArPandora") << "  Failed to find MC particles... " << std::endl;
+            return;
+        }
+        else
+        {
+            mf::LogDebug("LArPandora") << "  Found: " << theParticles->size() << " MC particles " << std::endl;
+        }
+
+        art::FindOneP<simb::MCTruth> theTruthAssns(theParticles, evt, m_geantModuleLabel);
+		package.MCParticleToTrackIdMap.clear();
+
+		int num_of_mothers = 0;
+		for (unsigned int i = 0, iEnd = theParticles->size(); i < iEnd; ++i){//theParticles are pointers to all MCParticles.
+			//theTruthAssns are MCTruth with geantModuleLabel
+			const art::Ptr<simb::MCParticle> particle(theParticles, i);
+			const art::Ptr<simb::MCTruth> truth(theTruthAssns.at(i));
+
+			package.MCTruthToMCParticlesMap[truth].push_back(particle);
+			package.MCParticleToMCTruthMap[particle] = truth;//truth ->GetParticles() will give a bunch of particles that has not been linked.
+			package.MCParticleToTrackIdMap[particle->TrackId()] = particle;
+
+			//---------- Find out MCParticles that will lead to the ancestors, i.e. particles produced by Genie
+			art::Ptr<simb::MCParticle> temp_mc = particle;
+			//			int temindex=0;
+			if(debug_message){
+				std::cout<<"\nNew MCParticle "<<i+1<<"th, with size"<<package.matchedMCParticleVector.size();
+				std::cout<<"Looking at Track ID:"<<temp_mc->TrackId()<<std::endl; //gives the id of the MCParticle
+			}
+			//			//Id is not continuous OMG..
+			while(true){//search for ancestor; initial state - 0; other state - 1; https://internal.dunescience.org/doxygen/namespacegenie.html#a05cd2ccc34b3e3a9e88bdd335f990118
+				int mothersId = temp_mc->Mother();
+				if(debug_message){
+					std::cout<<"SinglePhoton::CollectMCParticles() \t||\t Track ID:"<<setw(5)<<temp_mc->TrackId(); //gives the id of the MCParticle
+					std::cout<<" Mother ID:"<<setw(5)<<mothersId; //gives the id of the MCParticle
+					std::cout<<" Status Code:"<<setw(5)<<temp_mc->StatusCode(); //gives the id of the MCParticle
+				}
+				if(mothersId == 0 && temp_mc == particle){
+					num_of_mothers++;
+					if(debug_message) cout<<"Count mother"<<endl;
+					break;
+				}else{
+				//	std::cout<<" Update MC to ID:"<<mothersId<<std::endl; //gives the id of the MCParticle
+					if(package.MCParticleToTrackIdMap.find(mothersId)==package.MCParticleToTrackIdMap.end()){//not found,
+						if(debug_message)cout<<"MCParticle's mother is not found"<<endl;
+						break;
+					}else{
+						temp_mc = package.MCParticleToTrackIdMap.find(mothersId)->second;
+					}
+				}
+			}
+			//----------- num_of_mothers gives # of MCParticles that has mother() as 0. -------------
+
+			package.MCParticleToAncestorMap.emplace(particle,temp_mc);
+		}
+
+		//determine whether mothers are delta radiative products by
+		//	comparing energy sum.
+
+		std::vector< art::Ptr< simb::MCParticle>> temp_MCPmother;
+		std::vector< art::Ptr< simb::MCTruth>> temp_MCTruth;
+		std::map< pair<size_t, size_t>, double >  ParticlesEnergySum;//pair up two MCParticles and sum up their energy
+
+
+		for( int i = 0; i < num_of_mothers; i++ ){//collect MCParticle candidates
+			art::Ptr<simb::MCParticle> check_mcp0 = package.matchedMCParticleVector[i];
+			switch(check_mcp0->PdgCode()){
+				case 22://gamma
+				case 2112://neutron
+				case 2212://proton
+					temp_MCPmother.push_back(check_mcp0);
+					break;
+				default://not adding others
+				{}
+			}
+		}
+
+		for(size_t i = 0; i < temp_MCPmother.size(); i++){//fillin ParticlesEnergySum. from the selected simb::MCParticle, temp_MCPmother
+			package.AncestorToPdgMap[temp_MCPmother[i]] = temp_MCPmother[i]->PdgCode();//default ancestor pdg is -999, which means nothing;
+
+			for(size_t j = 1; j < temp_MCPmother.size() - i; j++){
+			double total_energy = temp_MCPmother[i]->E() + temp_MCPmother[i+j]->E();
+			pair<size_t,size_t> mcparticles(i,j);
+			if(debug_message){
+				cout<<"Pair up "<<i<<" with "<<temp_MCPmother[i]->PdgCode();
+				cout<<" and "<<j<<" with "<<temp_MCPmother[j]->PdgCode()<<endl;
+			}
+
+			ParticlesEnergySum[mcparticles] = total_energy;
+			}
+		}
+
+		double delta_energy;
+		int temp_pdgcode = -999;//record delta pdg code;
+		int expected_pdg = 0;
+		int check_counter = 0;
+		pair<size_t, size_t> want_this_pair; 
+
+		for(size_t i = 0; i<package.mcTruthVector.size(); i++){
+			for(int j = 0; j<package.mcTruthVector[i]->NParticles(); j++){
+				//collect MCTruth candidate;
+				simb::MCParticle check_mct = package.mcTruthVector[i]->GetParticle(j);
+				switch(check_mct.PdgCode()){//hopefully only one delta;
+					case 2224://delta++ (not likely)
+					case 1114://delta- (not likely)
+					case 2214://delta+
+						expected_pdg = 2212 + 22;//proton & gamma;
+
+					case 2114://delta0
+						{
+							if(expected_pdg ==0){
+								expected_pdg = 2112 + 22;//proton & gamma;
+							}
+
+							delta_energy = check_mct.E();
+							temp_pdgcode = check_mct.PdgCode();
+							double resolution = 0.0005;
+							while(resolution > 0.00005){	
+								check_counter = 0;
+								for(auto const & [this_pair, this_energy] : ParticlesEnergySum){
+									art::Ptr<simb::MCParticle> mcp1 = temp_MCPmother[this_pair.first];
+									art::Ptr<simb::MCParticle> mcp2 = temp_MCPmother[this_pair.second];
+									if(debug_message){
+										cout<<"delta Energy "<<delta_energy<<" and combined energy "<<this_energy;
+										cout<<" Code "<< mcp1->PdgCode()<< " and Code "<<mcp2->PdgCode()<<endl;
+									}
+									if( abs(this_energy - delta_energy)< resolution ){
+									if(debug_message)	cout<<"Energy matched!"<<endl;
+										int check_pdgcode = mcp1->PdgCode()+mcp2->PdgCode();
+										if(check_pdgcode == expected_pdg){
+											if(debug_message) cout<<"PdgCode matched!"<<endl;
+											want_this_pair = this_pair;
+											check_counter++;
+											break;
+										}else{
+											if(debug_message) cout<<"PdgCode not matched!"<<check_pdgcode<<" with "<<expected_pdg<<endl;
+										}
+									}
+								}
+								resolution = resolution/10;
+								if(check_counter==1) break;
+							}
+							break;
+						}
+					default:{}//not adding others
+				}
+			}
+		}
+		package.AncestorToPdgMap[package.matchedMCParticleVector[want_this_pair.first]] = temp_pdgcode;//map the delta pdg to the ANcestorToPdgMap;
+		package.AncestorToPdgMap[package.matchedMCParticleVector[want_this_pair.second]] = temp_pdgcode;//map the delta pdg to the ANcestorToPdgMap;
+
+		if(check_counter>1){
+			cout<<"More than 1 delta or 1 gamma in genie? Check ";
+			cout<<__FILE__<<" at "<<__LINE__<<endl;
+			exit(1);
+		}
+			//----------------
+
+        std::cout<<"SinglePhoton::CollectMCParticles() \t||\t the number of MCParticles in the event is "<<theParticles->size()<<std::endl;
+    }
 
 
 	/****************************
@@ -382,7 +557,7 @@ namespace single_photon
 					cout<<"A track"<<endl;
 					++temp_num_tracks;
 					index = detos.GetTrackIndexFromObjectIndex(n);
-					temp_mcp = package.trackToMCParticleMap.find(use_tracks[index])->second;
+					temp_mcp = package.trackToMCParticleMap.find(use_tracks[index])->second;//CHECK THIS
 				}
 
 				if(detos.GetRecoType(n) == detos.fshower_reco_type) {//it is a shower
@@ -401,27 +576,19 @@ namespace single_photon
 						get_a_photon++;
 				}
 				//identify the ancestor!
-
-				/*CHECK
-				//MCParticleToAncestorMap - Match MCParticle to the original MCParticle, status=0 (primary)
-				art::Ptr<simb::MCParticle> amother = package.MCParticleToAncestorMap[temp_mcp->Mother()];
-				if(amother){//sometime Mother is unknown
-					cout<<"CHECK "<<amother->PdgCode()<<endl;
-					sMCTruth info. to get parent ID||   m_mctruth_exiting_photon_mother_trackID0
-						witch (amother->PdgCode()){
-							case 111:
-								get_a_pi0daughter++;
-						}
-					break;
-					case 2224:
+				switch( package.AncestorToPdgMap.find(temp_mcp)->second){
 					case 2214:
-					case 1114:
 					case 2114:
-					get_a_deltaraddaughter++;
-					break;
+						cout<<"Parent is delta"<<endl;
+						get_a_deltaraddaughter++;
+						break;
+					case 111:
+						cout<<"Parent is pi0"<<endl;
+						get_a_pi0daughter++;
+						break;
+					default:{}
 				}
-				
-				*/
+
 				m_bobbyvertexradius = particle_associated.GetGoodness();
 				//mark down the smallest radius;
 				if(m_bobbyvertexradius < min_bobbyvertexradius){

@@ -427,14 +427,15 @@ namespace single_photon
 
 		}
 
-		this->CollectMCParticles(
-				evt, 
-				m_geantModuleLabel, 
-				object_container.MCTruthToMCParticlesMap, 
-				object_container.MCParticleToMCTruthMap, 
-				object_container.MCParticleToTrackIdMap);//created here;
+		this->CollectMCParticles_v2(evt, object_container);
+//		this->CollectMCParticles(
+//				evt, 
+//				m_geantModuleLabel, 
+//				object_container.MCTruthToMCParticlesMap, 
+//				object_container.MCParticleToMCTruthMap, 
+//				object_container.MCParticleToTrackIdMap);//created here;
 
-		this->showerRecoMCmatching(
+		this->showerRecoMCmatching(//Shower MCTruth here?
 				showers,
 				object_container.showerToMCParticleMap, //created here
 				object_container.showerToNuPFParticleMap, 
@@ -456,8 +457,9 @@ namespace single_photon
 				mcparticles_per_hit, 
 				object_container.matchedMCParticleVector);
 
-		this->RecoMCTracks(
+		this->RecoMCTracks(//Find Track MCTruth here?
 				tracks,
+				object_container,
 				object_container.trackToNuPFParticleMap,
 				object_container.trackToMCParticleMap,
 				object_container.MCParticleToMCTruthMap,
@@ -466,7 +468,8 @@ namespace single_photon
 				object_container.MCParticleToTrackIdMap,
 				object_container.sliceIdToNuScoreMap,
 				object_container.PFPToClearCosmicMap,
-				object_container.PFPToSliceIdMap,trk_overlay_vec);
+				object_container.PFPToSliceIdMap,
+				trk_overlay_vec);
 		//-------------------------------
 
 		//---------- VertexBuilder--------------
@@ -1046,13 +1049,16 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		vertex_tree->Branch("reco_bobbyshowersv", &m_bobbyshowersv);
 		vertex_tree->Branch("reco_bobbyvertexradiusv", &m_bobbyvertexradiusv);
 		vertex_tree->Branch("reco_bobbyvertexradius", &m_bobbyvertexradius);
+		//MCTruth Matrching;
 		vertex_tree->Branch("mctruth_bobbyprotontrackv", &m_bobbyprotontrackv);
 		vertex_tree->Branch("mctruth_bobbyphotonshowerv", &m_bobbyphotonshowerv);
 		vertex_tree->Branch("mctruth_bobbypi0daughterv", &m_bobbyphotonshowerv);
+		vertex_tree->Branch("mctruth_bobbydeltadaughterv", &m_bobbyphotonshowerv);
 //		vertex_tree->Branch("mctruth_bobbyshower_parent_pdgv", &m_bobbyshower_parent_pdgv);
 		vertex_tree->Branch("mctruth_bobbyprotontrack", &m_bobbyprotontrack);
 		vertex_tree->Branch("mctruth_bobbyphotonshower", &m_bobbyphotonshower);
 		vertex_tree->Branch("mctruth_bobbypi0daughter", &m_bobbyphotonshower);
+		vertex_tree->Branch("mctruth_bobbydeltadaughter", &m_bobbyphotonshower);
 //		vertex_tree->Branch("mctruth_bobbyshower_parent_pdg", &m_bobbyshower_parent_pdg);
 
 		vertex_tree->Branch("parameter_dist_tt",&m_dist_tt);
@@ -1527,7 +1533,7 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 
     void SinglePhoton::CollectMCParticles(
 		const art::Event &evt, 
-		const std::string &label, 
+		const std::string &label, //m_geantModuleLabel
 		std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,
 		std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> &particlesToTruth, 
 		std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap){
@@ -1551,7 +1557,8 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
         art::FindOneP<simb::MCTruth> theTruthAssns(theParticles, evt, label);
 
         for (unsigned int i = 0, iEnd = theParticles->size(); i < iEnd; ++i)
-        {
+        {//theParticles are pointers to all MCParticles.
+		//theTruthAssns are MCTruth with geantModuleLabel
             const art::Ptr<simb::MCParticle> particle(theParticles, i);
             const art::Ptr<simb::MCTruth> truth(theTruthAssns.at(i));
 

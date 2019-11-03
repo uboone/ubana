@@ -602,7 +602,9 @@ namespace single_photon
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Finished."<<std::endl;;
     }
 
-    void SinglePhoton::RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  
+    void SinglePhoton::RecoMCTracks(
+			const std::vector<art::Ptr<recob::Track>>& tracks,
+			Atlas &package,//fill in the MCParticleToAncestorMap Here;
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap, 
             std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
@@ -614,21 +616,38 @@ namespace single_photon
             std::vector<double> & vfrac
             ){
 
-
-        if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite"<<std::endl;;
+		if(m_is_verbose){ std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite"<<std::endl;;
+			//---------- Prints out for MCTruth info.
+			std::cout<<"Overview: # of MCTruth "<<package.mcTruthVector.size();
+			std::cout<<"; # of MCParticle "<<package.matchedMCParticleVector.size()<<std::endl;
+			for(size_t i = 0; i<package.matchedMCParticleVector.size(); i++){
+//				std::cout<<"Truth?: "<<package.MCParticleToMCTruthMap.find(package.matchedMCParticleVector[i])->second->PdgCode();
+				if(package.matchedMCParticleVector[i]->Mother()==0){
+				std::cout<<" TrackId: "<<package.matchedMCParticleVector[i]->TrackId();
+				std::cout<<" Pdg: "<<package.matchedMCParticleVector[i]->PdgCode();
+				std::cout<<" Mother: "<<package.matchedMCParticleVector[i]->Mother();
+				std::cout<<" Energy: "<<package.matchedMCParticleVector[i]->E();
+				std::cout<<" Status: "<<package.matchedMCParticleVector[i]->StatusCode()<<std::endl;
+				}
+			}
+			std::cout<<"OK, MCTruth!"<<std::endl;
+			for(size_t i = 0; i<package.mcTruthVector.size(); i++){
+				for(int j = 0; j<package.mcTruthVector[i]->NParticles(); j++){
+					std::cout<<"MCTruth->GetParticle's PdgCode: "<<package.mcTruthVector[i]->GetParticle(j).PdgCode();
+					std::cout<<" Energy: "<<package.mcTruthVector[i]->GetParticle(j).E()<<std::endl;
+				}
+			}
+		//--------------------
+		}
 
         int i_trk = 0;
         //for (TrackVector::const_iterator iter = tracks.begin(), iterEnd = tracks.end(); iter != iterEnd; ++iter)
-        for(size_t k =0; k< tracks.size();++k)    
-
-        {
-
+        for(size_t k =0; k< tracks.size();++k){
             //   const art::Ptr<recob::Track> track = *iter;
             const art::Ptr<recob::Track> track = tracks[k];
             m_sim_track_matched[i_trk] = 0;
 
             if(trackToMCParticleMap.count(track)>0){
-
                 const art::Ptr<simb::MCParticle> mcparticle = trackToMCParticleMap[track];
                 std::cout<<"count2: "<<MCParticleToMCTruthMap.count(mcparticle)<<std::endl;
                 const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
@@ -636,7 +655,6 @@ namespace single_photon
 
                 std::vector<double> corrected(3);
                 this->spacecharge_correction(mcparticle, corrected);
-
 
                 m_sim_track_matched[i_trk] = 1;
                 m_sim_track_energy[i_trk] = mcparticle->E();
@@ -660,24 +678,45 @@ namespace single_photon
                 //std::cout<<"looking for mother with track id "<<mcparticle->Mother()<<std::endl;
 
                 if(mcparticle->Mother()>=(int)mcParticleVector.size()){
-                    //if (MCParticleToTrackIdMap[mcparticle->Mother()].isNull()){   
+                    //if (MCParticleToTrackIdMap[mcparticle->Mother()].isNull()){}
                     m_sim_track_parent_pdg[i_trk] = -1;
                 }else{
                     m_sim_track_parent_pdg[i_trk] = mcParticleVector[mcparticle->Mother()]->PdgCode();
                     // m_sim_track_parent_pdg[i_trk] = MCParticleToTrackIdMap[mcparticle->Mother()]->PdgCode();
                 }
 
+				//---- Request by BobbyVertexBuilder -----
+				
+                art::Ptr<simb::MCParticle> temp_mc = mcparticle;
+				while(false){//search for ancestor; initial state - 0; other state - 1; https://internal.dunescience.org/doxygen/namespacegenie.html#a05cd2ccc34b3e3a9e88bdd335f990118
+				std::cout<<"Mother ID:"<<temp_mc->Mother()<<std::endl; //gives the id of the MCParticle
+				std::cout<<"Track ID:"<<temp_mc->TrackId()<<std::endl; //gives the id of the MCParticle
+				std::cout<<"Status Code:"<<temp_mc->StatusCode()<<std::endl; //gives the id of the MCParticle
+				temp_mc = package.matchedMCParticleVector[temp_mc->Mother()];
+//				temp_mc = package.MCParticleToTrackIdMap.find(temp_mc->Mother())->second;
+				}
+//CHECK			std::cout<<"Ancestor PdgCode: "<<temp_mc->PdgCode()<<endl;
+				package.MCParticleToAncestorMap.emplace(mcparticle,temp_mc);
+				for(auto mctruth_particle : package.mcTruthVector){
+				std::cout<<"# of MCTruth "<<mctruth_particle->NParticles()<<std::endl;
+//					if(mctruth_particle->GetParticle[0] == temp_mc){
+//						std::cout<<"Match the ancestor to MCTruth!"<<std::endl;
+//						package.MCParticleToAncestorMap.emplace(mcparticle,temp_mc);
+//						break;
+//					}
+//					std::cout<<"Bruth... It is not "<<mctruth_particle->GetParticle[0]->PdgCode()<<std::endl;
+				}
+
+				//------ End of VB --------------
+
                 //std::cout<<"the sim track id is "<<m_sim_track_trackID[i_trk]<<" and the pdg is "<<  m_sim_track_pdg[i_trk]<<" with parent pdg  "<<  m_sim_track_parent_pdg[i_trk]<<std::endl;
                 //if( m_sim_track_parent_pdg[i_trk] != -999){
                 //    std::cout <<" and the parent track id "<<  mcparticle->Mother() <<std::endl;
                 // }
-
-
-                }
-                i_trk++;
-            }
-
-        }
+			}
+			i_trk++;
+		}
+	}
 
 
 

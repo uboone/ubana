@@ -303,6 +303,7 @@ namespace single_photon
 		 * ***********************/
 
 		void CollectTracksAndShowers_v2(const art::Event &evt, class Atlas &package);
+		void CollectMCParticles_v2(const art::Event &evt, class Atlas & package);
 		//--------------------------------------------------
 
 
@@ -492,7 +493,10 @@ namespace single_photon
 		void ResizeTracks(size_t);
 		void CreateTrackBranches();
 		void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>, std::vector<art::Ptr<anab::Calorimetry>>> &trackToCaloMap);
-		void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap, 
+		void RecoMCTracks(
+		const std::vector<art::Ptr<recob::Track>>& tracks,  
+		Atlas &package,
+		std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap, 
 				std::map<int, double>& sliceIdToNuScoreMap,
 				std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
 				std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
