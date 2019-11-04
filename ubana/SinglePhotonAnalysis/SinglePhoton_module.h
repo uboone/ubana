@@ -991,7 +991,8 @@ namespace single_photon
             //----------- CRT related variables -----------------
         
             //for crt hits from the CRT veto product
-            int m_CRT_veto_nhits; 
+            int m_CRT_veto_nhits;
+            std::vector<double> m_CRT_veto_hit_PE; 
           
             //fields storing information about the CRT hit closest to the flash
             double m_CRT_min_hit_time;
