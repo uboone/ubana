@@ -242,7 +242,6 @@ namespace single_photon
                 if(m_is_verbose) std::cout<<"Getting pdg lepton"<<std::endl;
                 m_mctruth_lepton_E = truth->GetNeutrino().Lepton().E();
                 if(m_is_verbose) std::cout<<"Getting lepton E"<<std::endl;
-
             
                 if(m_is_verbose) std::cout<<"Getting SC corrected vertex position"<<std::endl;
                 std::vector<double> corrected(3);
