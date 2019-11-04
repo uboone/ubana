@@ -53,7 +53,7 @@ physics: {
         #singlephotonfil: @local::singlephoton_filter   #run in filtering mode
         singlephotonana: @local::singlephoton_analyzer   #run in ana mode
  }
- pathana : [allShr,singlephotonana] #path for analysis
+ pathana : [allShr, singlephotonana] #path for analysis
  trigger_paths : [pathana]
  end_paths: [ ]
 

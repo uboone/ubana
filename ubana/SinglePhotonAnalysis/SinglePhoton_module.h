@@ -846,6 +846,8 @@ namespace single_photon
             std::vector<double> m_sss3d_shower_ioc_ratio;
             std::vector<double> m_sss3d_shower_energy_max;
             std::vector<double> m_sss3d_shower_score;
+            std::vector<int> m_sss3d_slice_nu;
+            std::vector<int> m_sss3d_slice_clear_cosmic;
 
             bool bool_make_sss_plots;
 

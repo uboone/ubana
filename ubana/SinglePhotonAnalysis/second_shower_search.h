@@ -1397,6 +1397,8 @@ namespace single_photon
         m_sss3d_shower_impact_parameter.clear();
         m_sss3d_shower_energy_max.clear();
         m_sss3d_shower_score.clear();
+        m_sss3d_slice_nu.clear();
+        m_sss3d_slice_clear_cosmic.clear();
         m_sss3d_shower_ioc_ratio.clear();
     }
 
@@ -1418,12 +1420,13 @@ namespace single_photon
         vertex_tree->Branch("sss3d_shower_impact_parameter",&m_sss3d_shower_impact_parameter);
         vertex_tree->Branch("sss3d_shower_ioc_ratio",&m_sss3d_shower_ioc_ratio);
         vertex_tree->Branch("sss3d_shower_energy_max",&m_sss3d_shower_energy_max);
-
         vertex_tree->Branch("sss3d_shower_score",&m_sss3d_shower_score);
+        //vertex_tree->Branch("sss3d_slice_nu",&m_sss3d_slice_nu);
+        //vertex_tree->Branch("sss3d_slice_clear_cosmic",&m_sss3d_slice_clear_cosmic);
     }
 
 
-    void SinglePhoton::SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>,  art::Ptr<recob::PFParticle>> & NormalTrackToPFParticleMap, art::Event const & evt){
+    void SinglePhoton::SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>,  art::Ptr<recob::PFParticle>> & NormalTrackToPFParticleMap, art::Event const & evt ){
 
         std::string sss3dlabel = "allShr";//"pandoraAllOutcomesShower"
         double max_conv_dist = 80.0;
@@ -1445,12 +1448,15 @@ namespace single_photon
             showerToPFParticleMap[allShowerVector[i]] = pfparticle_per_shower.at(allShowerVector[i].key());
         }
 
-        art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
-        art::FindOneP<recob::Slice> slice_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
+        art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>("pandora");//""pandoraPatRec:allOutcomes");
+        std::vector<art::Ptr<recob::PFParticle>> allPFParticleVector;
+        art::fill_ptr_vector(allPFParticleVector,pfParticleHandle);
 
-         size_t n_all_shr = allShowerVector.size();
+        //art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  "pandora");//PatRec:allOutcomes");
+        //pfPartToMetadataAssoc.at(pfp.key());
+
+        size_t n_all_shr = allShowerVector.size();
         m_sss3d_num_showers = (int)n_all_shr-showers.size();
-
 
         if(showers.size()==0) return;
 
@@ -1458,14 +1464,40 @@ namespace single_photon
 
         std::cout<<"PandoraAllOutcomesShower has "<<n_all_shr<<" Showers in total. "<<std::endl;
         for(auto &shr: allShowerVector){
-            //lets look at 3D distance to "vertex"
+            //lets look at 3D distance to "vertex", and only go further with things that are within 80cm [default]
             double dist = sqrt(pow(m_vertex_pos_x - shr->ShowerStart().X(),2)+pow(m_vertex_pos_y - shr->ShowerStart().Y(),2)+pow(m_vertex_pos_z - shr->ShowerStart().Z(),2) );
             if(dist>max_conv_dist) continue;
 
-            //if(slice_per_pfparticle.at(showerToPFParticleMap[shr].key()).isNull()) std::cout<<"Its Null"<<std::endl;
-            //const art::Ptr<recob::Slice> slice = slice_per_pfparticle.at(showerToPFParticleMap[shr].key());
+            auto pfp = showerToPFParticleMap[shr];  
+            //for(auto &prr: allPFParticleVector){
+            //        std::cout<<pfp->Self()<<" "<<pfp.key()<<" "<<prr->Self()<<" "<<prr.key()<<std::endl;
+            //}
 
-            //std::cout<<shr.key()<<" Length "<<shr->Length()<<" Dist "<<dist<<" Impact: "<<impact_paramater_shr(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z, shr)<<" pfp key: "<<showerToPFParticleMap[shr].key()<<" Self "<<showerToPFParticleMap[shr]->Self()<<std::endl;//" slice "<<slice->ID()<<std::endl;
+            //What are we intested in learning
+            std::vector<std::string> interested = {"IsClearCosmic","TrackScore","NuScore","IsNeutrino","SliceIndex"};
+           
+            /*
+            std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> metadatas = pfPartToMetadataAssoc.at(pfp.key());
+            for(auto &meta: metadatas){
+                  std::map<std::string, float> propertiesmap  = meta->GetPropertiesMap();
+
+                  for (auto it:propertiesmap ){
+                    std::cout<<it.first<<" "<<it.second<<" ";
+                  }
+                  std::cout<<std::endl;
+                  
+                  //for each of the things in the list
+                  for(auto &s: interested){
+                    if(propertiesmap.count(s)==1){
+                        std::cout<<" "<<s<<" :  "<<propertiesmap[s]<<" ";
+                    }else{
+                        std::cout<<" NO "<<s<<" . ";
+                    }
+                  }
+            }
+            */
+
+            //std::cout<<shr.key()<<" Length "<<shr->Length()<<" Dist "<<dist<<" Impact: "<<impact_paramater_shr(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z, shr)<<" pfp key: "<<showerToPFParticleMap[shr].key()<<" Self "<<showerToPFParticleMap[shr]->Self()<<std::endl;
 
             //OK we need to "remove" the  showers that are neutrino showers as well as those that are the "track"
 
@@ -1474,7 +1506,7 @@ namespace single_photon
             for(auto &s: showers){
                 //const art::Ptr<recob::Slice> s_slice = slice_per_pfparticle.at(NormalShowerToPFParticleMap[s].key());   
                 //std::cout<<s.key()<<"shr is in slice "<<s_slice->ID()<<std::endl;
-                if(showerToPFParticleMap[shr]->Self()== NormalShowerToPFParticleMap[s]->Self()){
+                if(s->ShowerStart().X() == shr->ShowerStart().X() || pfp->Self()== NormalShowerToPFParticleMap[s]->Self()){
                     //std::cout<<"Its a match!"<<std::endl;
                     is_matched = true;
                 }
@@ -1483,7 +1515,7 @@ namespace single_photon
             for(auto &s: tracks){
                 //const art::Ptr<recob::Slice> s_slice = slice_per_pfparticle.at(NormalTrackToPFParticleMap[s].key());   
                 //std::cout<<s.key()<<"trk is in slice "<<s_slice->ID()<<std::endl;
-                if(showerToPFParticleMap[shr]->Self()== NormalTrackToPFParticleMap[s]->Self()){
+                if(pfp->Self()== NormalTrackToPFParticleMap[s]->Self()){
                     //std::cout<<"Its a match!"<<std::endl;
                     is_matched = true;
                 }
@@ -1498,7 +1530,9 @@ namespace single_photon
             double senergy = this->CalcEShower(showerToHitsMap[shr]); 
             double invar = implied_invar_mass(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z,  primary_shower, m_reco_shower_energy_max[0], shr, senergy);
             double implied_invar = invar_mass(primary_shower, m_reco_shower_energy_max[0], shr, senergy) ;
-            double shr_score = 0.5; //need pfp and metadata to get score, and might give slice! (This will be harder..) but on reflection, kinda important. PCA spread might be a good rplacement.
+            double shr_score = 0.0; //need pfp and metadata to get score, and might give slice! (This will be harder..) but on reflection, kinda important. PCA spread might be a good rplacement.
+            int is_clear_cosmic_slice = 0 ;
+            int is_nu_slice = 0;
 
 
             m_sss3d_shower_start_x.push_back(shr->ShowerStart().X());
@@ -1511,7 +1545,6 @@ namespace single_photon
             m_sss3d_shower_conversion_dist.push_back(dist);
             m_sss3d_shower_invariant_mass.push_back(invar);
             m_sss3d_shower_implied_invariant_mass.push_back(implied_invar);
-
             double imp = impact_paramater_shr(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z, shr);
             m_sss3d_shower_impact_parameter.push_back(imp);
 
@@ -1523,7 +1556,8 @@ namespace single_photon
             }
             m_sss3d_shower_energy_max.push_back(senergy);// 
             m_sss3d_shower_score.push_back(shr_score);
-
+            m_sss3d_slice_clear_cosmic.push_back(is_clear_cosmic_slice);
+            m_sss3d_slice_nu.push_back(is_nu_slice);
         }   
 
         return;
