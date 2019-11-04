@@ -74,7 +74,8 @@ namespace single_photon
         m_mctruth_pi0_leading_photon_start = {-9999,-9999,-9999};
         m_mctruth_pi0_subleading_photon_end = {-9999,-9999,-9999};
         m_mctruth_pi0_subleading_photon_start = {-9999,-9999,-9999};
-
+        m_mctruth_pi0_leading_photon_exiting_TPC = -999;
+        m_mctruth_pi0_subleading_photon_exiting_TPC = -999;
 
         m_mctruth_exiting_delta0_num_daughters.clear();
 
@@ -187,13 +188,15 @@ namespace single_photon
         vertex_tree->Branch("mctruth_num_reconstructable_protons",&m_mctruth_num_reconstructable_protons);
 
         vertex_tree->Branch("mctruth_pi0_leading_photon_energy",&m_mctruth_pi0_leading_photon_energy);
-        vertex_tree->Branch("mctruth_pi0_subleading_photon_energy",&m_mctruth_pi0_subleading_photon_energy);
         vertex_tree->Branch("mctruth_pi0_leading_photon_end_process",&m_mctruth_pi0_leading_photon_end_process);
-        vertex_tree->Branch("mctruth_pi0_subleading_photon_end_process",&m_mctruth_pi0_subleading_photon_end_process);
         vertex_tree->Branch("mctruth_pi0_leading_photon_start",&m_mctruth_pi0_leading_photon_start);
         vertex_tree->Branch("mctruth_pi0_leading_photon_end",&m_mctruth_pi0_leading_photon_end);
+        vertex_tree->Branch("mctruth_pi0_leading_photon_exiting_TPC",&m_mctruth_pi0_leading_photon_exiting_TPC);
+        vertex_tree->Branch("mctruth_pi0_subleading_photon_energy",&m_mctruth_pi0_subleading_photon_energy);
+        vertex_tree->Branch("mctruth_pi0_subleading_photon_end_process",&m_mctruth_pi0_subleading_photon_end_process);
         vertex_tree->Branch("mctruth_pi0_subleading_photon_start",&m_mctruth_pi0_subleading_photon_start);
         vertex_tree->Branch("mctruth_pi0_subleading_photon_end",&m_mctruth_pi0_subleading_photon_end);
+        vertex_tree->Branch("mctruth_pi0_subleading_photon_exiting_TPC",&m_mctruth_pi0_subleading_photon_exiting_TPC);
 
 
         vertex_tree->Branch("mctruth_exiting_pi0_E",&m_mctruth_exiting_pi0_E);
@@ -584,7 +587,8 @@ namespace single_photon
                         std::cout<<"Post2 "<<dd->PdgCode()<<" "<<dd->TrackId()<<" "<<dd->StatusCode()<<" "<<dd->EndProcess()<<" "<<dd->E()<<std::endl;
                 }
                 
-               
+                bool exit1 = this->isInTPCActive(corrected_1_end);
+                bool exit2 = this->isInTPCActive(corrected_2_end);
 
                 if(e2<e1){
                     m_mctruth_pi0_leading_photon_energy = e1;
@@ -595,6 +599,8 @@ namespace single_photon
                     m_mctruth_pi0_leading_photon_end = corrected_1_end;
                     m_mctruth_pi0_subleading_photon_start = corrected_2_start;
                     m_mctruth_pi0_subleading_photon_end = corrected_2_end;
+                    m_mctruth_pi0_subleading_photon_exiting_TPC =exit1; 
+                    m_mctruth_pi0_leading_photon_exiting_TPC = exit2;
 
                 }else{
                     m_mctruth_pi0_leading_photon_energy = e2;
@@ -605,7 +611,8 @@ namespace single_photon
                     m_mctruth_pi0_leading_photon_end = corrected_2_end;
                     m_mctruth_pi0_subleading_photon_start = corrected_1_start;
                     m_mctruth_pi0_subleading_photon_end = corrected_1_end;
-
+                    m_mctruth_pi0_subleading_photon_exiting_TPC = exit2;
+                    m_mctruth_pi0_leading_photon_exiting_TPC = exit1;
 
                 }
 

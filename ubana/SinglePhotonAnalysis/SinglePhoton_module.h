@@ -567,6 +567,14 @@ namespace single_photon
 
                 int   photoNuclearTesting(std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector);
 
+            // ------------ Fid Volume ------------------------- //
+            double m_tpc_active_x_low;
+            double m_tpc_active_x_high;
+            double m_tpc_active_y_low;
+            double m_tpc_active_y_high;
+            double m_tpc_active_z_low ;
+            double m_tpc_active_z_high;
+            bool isInTPCActive(std::vector<double>);
 
             //---------------- MCTruths ----------------------------
 
@@ -1372,6 +1380,8 @@ namespace single_photon
             std::vector<double> m_mctruth_pi0_subleading_photon_start;
             std::vector<double> m_mctruth_pi0_leading_photon_end;
             std::vector<double> m_mctruth_pi0_leading_photon_start;
+            std::vector<int>    m_mctruth_pi0_leading_photon_exiting_TPC;
+            std::vector<int>    m_mctruth_pi0_subleading_photon_exiting_TPC;
 
             std::string  m_truthmatching_signaldef;
 

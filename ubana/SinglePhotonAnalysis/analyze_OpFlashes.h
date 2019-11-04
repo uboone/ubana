@@ -74,23 +74,19 @@ namespace single_photon
         vertex_tree->Branch("reco_flash_time_in_beamgate", &m_reco_flash_time_in_beamgate);
         vertex_tree->Branch("reco_flash_ycenter_in_beamgate",&m_reco_flash_ycenter_in_beamgate);
         vertex_tree->Branch("reco_flash_zcenter_in_beamgate",&m_reco_flash_zcenter_in_beamgate);
+        
         vertex_tree->Branch("CRT_veto_nhits",&m_CRT_veto_nhits,"CRT_veto_nhits/I");
-
-
         vertex_tree->Branch("CRT_dt",& m_CRT_dt," CRT_dt/D");
-
         vertex_tree->Branch("CRT_min_hit_time",&m_CRT_min_hit_time,"CRT_min_hit_time/D");
         vertex_tree->Branch("CRT_min_hit_PE",&m_CRT_min_hit_PE,"CRT_min_hit_PE/D");
         vertex_tree->Branch("CRT_min_hit_x",&m_CRT_min_hit_x,"CRT_min_hit_x/D");
         vertex_tree->Branch("CRT_min_hit_y",&m_CRT_min_hit_y,"CRT_min_hit_y/D");
         vertex_tree->Branch("CRT_min_hit_z",&m_CRT_min_hit_z,"CRT_min_hit_z/D");
-
         vertex_tree->Branch("CRT_hits_time",&m_CRT_hits_time);
         vertex_tree->Branch("CRT_hits_PE",&m_CRT_hits_PE);
         vertex_tree->Branch("CRT_hits_x",&m_CRT_hits_x);
         vertex_tree->Branch("CRT_hits_y",&m_CRT_hits_y);
         vertex_tree->Branch("CRT_hits_z",&m_CRT_hits_z);
-
     }
 
 

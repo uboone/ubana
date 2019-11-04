@@ -92,6 +92,15 @@ namespace single_photon
         m_exiting_photon_energy_threshold = pset.get<double>("exiting_photon_energy");
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
 
+        m_tpc_active_x_low = 0.0;
+        m_tpc_active_x_high = 256.35;
+        m_tpc_active_y_low = -116.5;
+        m_tpc_active_y_high = -116.5;
+        m_tpc_active_z_low = 0.0;
+        m_tpc_active_z_high = 1036.8;
+
+
+
         rangen = new TRandom3(22);
         bool_make_sss_plots = true;
 
@@ -1605,5 +1614,13 @@ namespace single_photon
 
         return true;
     }
+
+    bool SinglePhoton::isInTPCActive(std::vector<double> & vec){
+
+        return (vec[0]<m_tpc_active_bound_x_low || vec[0]>m_tpc_active_bound_x_high || vec[1]<m_tpc_active_bound_y_low || vec[1]>m_tpc_active_bound_y_high || vec[2]< m_tpc_active_bound_z_low || vec[2]>m_tpc_active_bound_z_high  );
+
+    }
+
+
 
 } //namespace
