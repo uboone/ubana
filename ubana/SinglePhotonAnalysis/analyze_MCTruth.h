@@ -587,8 +587,8 @@ namespace single_photon
                         std::cout<<"Post2 "<<dd->PdgCode()<<" "<<dd->TrackId()<<" "<<dd->StatusCode()<<" "<<dd->EndProcess()<<" "<<dd->E()<<std::endl;
                 }
                 
-                bool exit1 = this->isInTPCActive(corrected_1_end);
-                bool exit2 = this->isInTPCActive(corrected_2_end);
+                int exit1 = this->isInTPCActive(corrected_1_end);
+                int exit2 = this->isInTPCActive(corrected_2_end);
 
                 if(e2<e1){
                     m_mctruth_pi0_leading_photon_energy = e1;

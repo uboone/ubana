@@ -92,52 +92,52 @@
 namespace single_photon
 {
 
-   double impact_paramater_shr(double x, double y, double z, art::Ptr<recob::Shower> & shr){
+    double impact_paramater_shr(double x, double y, double z, art::Ptr<recob::Shower> & shr){
 
-       std::vector<double> vert = {x,y,z}; 
-       std::vector<double> start = {shr->ShowerStart().X(), shr->ShowerStart().Y(),shr->ShowerStart().Z()};
-       std::vector<double> abit = {shr->ShowerStart().X() + shr->Direction().X(),  shr->ShowerStart().Y()+shr->Direction().Y(),  shr->ShowerStart().Z()+shr->Direction().Z()};
+        std::vector<double> vert = {x,y,z}; 
+        std::vector<double> start = {shr->ShowerStart().X(), shr->ShowerStart().Y(),shr->ShowerStart().Z()};
+        std::vector<double> abit = {shr->ShowerStart().X() + shr->Direction().X(),  shr->ShowerStart().Y()+shr->Direction().Y(),  shr->ShowerStart().Z()+shr->Direction().Z()};
 
-       return dist_line_point(start, abit, vert);
+        return dist_line_point(start, abit, vert);
 
-   }
+    }
 
-   double  implied_invar_mass(double vx, double vy, double vz, art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
-        
-       double s1x = s1->ShowerStart().X()-vx;
-       double s1y = s1->ShowerStart().Y()-vy;
-       double s1z = s1->ShowerStart().Z()-vz;
-       double norm1  = sqrt(pow(s1x,2)+pow(s1y,2)+pow(s1z,2));
-       s1x = s1x/norm1;
-       s1y = s1y/norm1;
-       s1z = s1z/norm1;
+    double  implied_invar_mass(double vx, double vy, double vz, art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
 
-       double s2x = s2->ShowerStart().X()-vx;
-       double s2y = s2->ShowerStart().Y()-vy;
-       double s2z = s2->ShowerStart().Z()-vz;
-       double norm2  = sqrt(pow(s2x,2)+pow(s2y,2)+pow(s2z,2));
-       s2x = s2x/norm2;
-       s2y = s2y/norm2;
-       s2z = s2z/norm2;
+        double s1x = s1->ShowerStart().X()-vx;
+        double s1y = s1->ShowerStart().Y()-vy;
+        double s1z = s1->ShowerStart().Z()-vz;
+        double norm1  = sqrt(pow(s1x,2)+pow(s1y,2)+pow(s1z,2));
+        s1x = s1x/norm1;
+        s1y = s1y/norm1;
+        s1z = s1z/norm1;
 
-       return sqrt(2.0*E1*E2*(1.0-(s1x*s2x+s1y*s2y+s1z*s2z)));
+        double s2x = s2->ShowerStart().X()-vx;
+        double s2y = s2->ShowerStart().Y()-vy;
+        double s2z = s2->ShowerStart().Z()-vz;
+        double norm2  = sqrt(pow(s2x,2)+pow(s2y,2)+pow(s2z,2));
+        s2x = s2x/norm2;
+        s2y = s2y/norm2;
+        s2z = s2z/norm2;
+
+        return sqrt(2.0*E1*E2*(1.0-(s1x*s2x+s1y*s2y+s1z*s2z)));
 
 
-   }
+    }
 
-   double  invar_mass(art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
-        
-       double s1x = s1->Direction().X();
-       double s1y = s1->Direction().Y();
-       double s1z = s1->Direction().Z();
+    double  invar_mass(art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
 
-       double s2x = s2->Direction().X();
-       double s2y = s2->Direction().Y();
-       double s2z = s2->Direction().Z();
+        double s1x = s1->Direction().X();
+        double s1y = s1->Direction().Y();
+        double s1z = s1->Direction().Z();
 
-       return sqrt(2.0*E1*E2*(1.0-(s1x*s2x+s1y*s2y+s1z*s2z)));
+        double s2x = s2->Direction().X();
+        double s2y = s2->Direction().Y();
+        double s2z = s2->Direction().Z();
 
-   }
+        return sqrt(2.0*E1*E2*(1.0-(s1x*s2x+s1y*s2y+s1z*s2z)));
+
+    }
 
 
 
@@ -499,9 +499,9 @@ namespace single_photon
 
 
             //----------------  Flashes ----------------------------
-                void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec,  std::map<art::Ptr<recob::OpFlash>, std::vector< art::Ptr<crt::CRTHit>>> crtvetoToFlashMap);
-                     
-          //  void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h);
+            void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec,  std::map<art::Ptr<recob::OpFlash>, std::vector< art::Ptr<crt::CRTHit>>> crtvetoToFlashMap);
+
+            //  void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h);
             void ClearFlashes();
             void ResizeFlashes(size_t);
             void CreateFlashBranches();
@@ -565,7 +565,7 @@ namespace single_photon
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap);
 
 
-                int   photoNuclearTesting(std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector);
+            int   photoNuclearTesting(std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector);
 
             // ------------ Fid Volume ------------------------- //
             double m_tpc_active_x_low;
@@ -574,7 +574,7 @@ namespace single_photon
             double m_tpc_active_y_high;
             double m_tpc_active_z_low ;
             double m_tpc_active_z_high;
-            bool isInTPCActive(std::vector<double>);
+            int isInTPCActive(std::vector<double>&);
 
             //---------------- MCTruths ----------------------------
 
@@ -798,7 +798,7 @@ namespace single_photon
 
             int m_run;
             int m_subrun;
-            
+
             //------------ Event Related Variables -------------
             int m_run_number;
             int m_subrun_number;
@@ -999,10 +999,10 @@ namespace single_photon
 
 
             //----------- CRT related variables -----------------
-        
+
             //for crt hits from the CRT veto product
             int m_CRT_veto_nhits; 
-          
+
             //fields storing information about the CRT hit closest to the flash
             double m_CRT_min_hit_time;
             double m_CRT_min_hit_PE;
@@ -1316,22 +1316,22 @@ namespace single_photon
             std::vector<int> m_mctruth_daughters_pdg;
             std::vector<double> m_mctruth_daughters_E;
 
-        std::vector<int> m_mctruth_daughters_status_code;
-        std::vector<int> m_mctruth_daughters_trackID;
-        std::vector<int> m_mctruth_daughters_mother_trackID;
-        std::vector<double> m_mctruth_daughters_px;
-        std::vector<double> m_mctruth_daughters_py;
-        std::vector<double> m_mctruth_daughters_pz;
-        std::vector<double> m_mctruth_daughters_startx;
-        std::vector<double> m_mctruth_daughters_starty;
-        std::vector<double> m_mctruth_daughters_startz;
-        std::vector<double> m_mctruth_daughters_time;
-        std::vector<double> m_mctruth_daughters_endx;
-        std::vector<double> m_mctruth_daughters_endy;
-        std::vector<double> m_mctruth_daughters_endz;
-        std::vector<double> m_mctruth_daughters_endtime;
-        std::vector<std::string> m_mctruth_daughters_process;
-        std::vector<std::string> m_mctruth_daughters_end_process;
+            std::vector<int> m_mctruth_daughters_status_code;
+            std::vector<int> m_mctruth_daughters_trackID;
+            std::vector<int> m_mctruth_daughters_mother_trackID;
+            std::vector<double> m_mctruth_daughters_px;
+            std::vector<double> m_mctruth_daughters_py;
+            std::vector<double> m_mctruth_daughters_pz;
+            std::vector<double> m_mctruth_daughters_startx;
+            std::vector<double> m_mctruth_daughters_starty;
+            std::vector<double> m_mctruth_daughters_startz;
+            std::vector<double> m_mctruth_daughters_time;
+            std::vector<double> m_mctruth_daughters_endx;
+            std::vector<double> m_mctruth_daughters_endy;
+            std::vector<double> m_mctruth_daughters_endz;
+            std::vector<double> m_mctruth_daughters_endtime;
+            std::vector<std::string> m_mctruth_daughters_process;
+            std::vector<std::string> m_mctruth_daughters_end_process;
 
 
             int     m_mctruth_num_exiting_photons ;
@@ -1380,8 +1380,8 @@ namespace single_photon
             std::vector<double> m_mctruth_pi0_subleading_photon_start;
             std::vector<double> m_mctruth_pi0_leading_photon_end;
             std::vector<double> m_mctruth_pi0_leading_photon_start;
-            std::vector<int>    m_mctruth_pi0_leading_photon_exiting_TPC;
-            std::vector<int>    m_mctruth_pi0_subleading_photon_exiting_TPC;
+            int    m_mctruth_pi0_leading_photon_exiting_TPC;
+            int    m_mctruth_pi0_subleading_photon_exiting_TPC;
 
             std::string  m_truthmatching_signaldef;
 
@@ -1458,7 +1458,6 @@ namespace single_photon
             std::vector<double> m_reco_track_pid_chi2_p_plane1;
             std::vector<double> m_reco_track_pid_chi2_p_plane2;
             std::vector<double> m_reco_track_pid_three_plane_proton_pid;
-
 
             double m_genie_spline_weight;
 
