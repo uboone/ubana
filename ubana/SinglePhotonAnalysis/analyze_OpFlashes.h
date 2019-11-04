@@ -19,6 +19,7 @@ namespace single_photon
         m_reco_flash_ycenter_in_beamgate.clear();
         m_reco_flash_zcenter_in_beamgate.clear();
         m_CRT_veto_nhits = -999;
+        m_CRT_veto_hit_PE.clear();
         m_CRT_min_hit_time = -999;
         m_CRT_min_hit_PE = -999;
         m_CRT_min_hit_x = -999;
@@ -47,6 +48,8 @@ namespace single_photon
         m_reco_flash_time_in_beamgate.resize(size);
         m_reco_flash_ycenter_in_beamgate.resize(size);
         m_reco_flash_zcenter_in_beamgate.resize(size);
+        m_CRT_veto_hit_PE.resize(size);
+
         m_CRT_hits_time.resize(size);
         m_CRT_hits_PE.resize(size);
         m_CRT_hits_x.resize(size); 
@@ -75,6 +78,7 @@ namespace single_photon
         vertex_tree->Branch("reco_flash_ycenter_in_beamgate",&m_reco_flash_ycenter_in_beamgate);
         vertex_tree->Branch("reco_flash_zcenter_in_beamgate",&m_reco_flash_zcenter_in_beamgate);
         vertex_tree->Branch("CRT_veto_nhits",&m_CRT_veto_nhits,"CRT_veto_nhits/I");
+        vertex_tree->Branch("CRT_veto_hit_PE",&m_CRT_veto_hit_PE);
 
 
         vertex_tree->Branch("CRT_dt",& m_CRT_dt," CRT_dt/D");
@@ -98,12 +102,13 @@ namespace single_photon
 
         //  void SinglePhoton::AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes, art::Handle<std::vector<crt::CRTHit>> crthit_h){
 
-        for(auto pair: crtvetoToFlashMap){
+      
+         for(auto pair: crtvetoToFlashMap){
             std::cout<<"for flash at time "<< pair.first->Time()<<" has "<< pair.second.size() << " associated  CRT hits "<<std::endl;
             if(pair.second.size() > 0){
                 for (auto hit: pair.second){
                     std::cout<<"---- associated CRT hit at time "<<hit->ts0_ns/1000. <<" with PE "<<hit->peshit<<std::endl;
-
+                    m_CRT_veto_hit_PE.push_back(hit->peshit);
                 }
 
             }
