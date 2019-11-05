@@ -155,7 +155,6 @@ namespace single_photon
                 associated_hits.push_back(h);
             }
 
-
         }
 
         std::cout<<"SinglePhoton::SSS\t||\tSo in total we have "<<total_shower_hits<<" shower hits and "<<total_track_hits<<" track hits"<<" assocaedHits total: "<<associated_hits.size()<<std::endl;
@@ -169,8 +168,6 @@ namespace single_photon
                 std::cout<<"ERROR!! Number of unassociated hits is negative, i.e: num_associated: "<<m_sss_num_associated_hits<<" and total slice hits: "<<sliceIDToHitsMap.at(nu_slice_id).size()<<std::endl;
                 exit(EXIT_FAILURE);
             }
-
-
 
 
             std::vector<art::Ptr<recob::Hit>> slicehits = sliceIDToHitsMap.at(nu_slice_id);
@@ -704,7 +701,6 @@ namespace single_photon
                                 core->GetFunction("pol1")->SetLineColor(g_clusters[i][c]->GetMarkerColor()); 
                                 con = core->GetFunction("pol1")->GetParameter(0);
                                 slope = core->GetFunction("pol1")->GetParameter(1);
-
                             }
                             //lets map (wire,tick) to a rudamentary (cm,cm);
                             //double slope2 = slope*25*0.3;
@@ -718,7 +714,6 @@ namespace single_photon
                                 double dist = sqrt(pow(k*0.3-vertex_wire[i]*0.3,2)+pow(y/25.0-vertex_time[i]/25.0,2));
                                 impact_parameter = std::min(impact_parameter,dist);
                             }
-
 
                             //Lets assume its potining back to the "vertex" and calculate a kinda_angle w.r.t to the shower
                             //vertex_wire[i] vertex_tick[i] (already calcuated)
@@ -765,14 +760,12 @@ namespace single_photon
                                 m_sss_candidate_overlay_fraction.push_back(-1);
 
                             }else{
-                                auto ssmatched = this->SecondShowerMatching( hitz, mcparticles_per_hit, mcParticleVector, pfParticleIdMap,  MCParticleToTrackIdMap);
+                                auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleIdMap,  MCParticleToTrackIdMap);
                                 m_sss_candidate_matched.push_back(ssmatched[0]);
                                 m_sss_candidate_pdg.push_back(ssmatched[1]);
                                 m_sss_candidate_parent_pdg.push_back(ssmatched[2]);
                                 m_sss_candidate_trackid.push_back(ssmatched[3]);
                                 m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
-
-
                             }
 
 
@@ -785,25 +778,18 @@ namespace single_photon
 
                 //Some time matching
 
+                
                 //Closest neightor
-
                 for(int l=0; l< m_sss_num_candidates; l++){
                     int this_p = m_sss_candidate_plane[l];
                     double close = 1e10;                        
                     for(int m=0; m< m_sss_num_candidates;m++){
                         if(this_p == m_sss_candidate_plane[m]) continue;
-
                         double dup = fabs(m_sss_candidate_mean_tick[l] - m_sss_candidate_mean_tick[m]);
-
                         close = std::min(dup,close);
-
                     }
-
                     m_sss_candidate_closest_neighbour.push_back(close);
-
                 }
-
-
 
                 for(int l=0; l< m_sss_num_candidates; l++){
 
@@ -1171,11 +1157,9 @@ namespace single_photon
                 }else{
                     map_asso_mcparticles_energy[particle_vec[i_p]][which_plane] += match_vec[i_p]->energy;
                 }
-
                 //add the energy of the back tracked hit to the total energy for the PFP
                 tote += match_vec[i_p]->energy; //calculate total energy deposited
                 total_energy_on_plane[which_plane]+=match_vec[i_p]->energy;
-
 
                 //want the MCParticle with the max total energy summed from the back tracker hit energy from hits in PFP
                 //TODO: this part will change once the parts below are fully implemented
@@ -1185,7 +1169,6 @@ namespace single_photon
                     found_a_match = true;//will be false for showers from overlay
                 }
             }//end loop over particles per hit
-
 
         }
         if(found_a_match){
@@ -1350,7 +1333,6 @@ namespace single_photon
                 std::cout<<"SinglePhoton::recoMC()\t||\t It represents "<<marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][l]/total_energy_on_plane[l]*100.0<<"% of the energy on plane: "<<l<<" which is "<<total_energy_on_plane[l] <<std::endl;
             }
         }
-
 
 
         if(reco_verbose) std::cout<<"---------------------------- L2-------------------------------"<<std::endl;

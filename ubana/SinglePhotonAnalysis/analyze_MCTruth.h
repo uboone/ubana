@@ -207,9 +207,7 @@ namespace single_photon
 
     void SinglePhoton::AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector , std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector){
         m_mctruth_num = mcTruthVector.size();
-        this->ResizeMCTruths(m_mctruth_num);
-
-
+        
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Starting to analyze "<<m_mctruth_num<<" simb::MCTruth's."<<std::endl;
         if(m_mctruth_num >1){
             std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t WARNING There is more than 1 MCTruth neutrino interaction. Just running over the first simb::MCTruth."<<std::endl;
@@ -281,19 +279,19 @@ namespace single_photon
                 m_mctruth_daughters_status_code[j] = par.StatusCode();
                 m_mctruth_daughters_trackID[j] = par.TrackId();
                 m_mctruth_daughters_mother_trackID[j] = par.Mother();
-                m_mctruth_daughters_px[i] = par.Px();
-                m_mctruth_daughters_py[i] = par.Py();
-                m_mctruth_daughters_pz[i] = par.Pz();
-                m_mctruth_daughters_startx[i] = par.Vx();
-                m_mctruth_daughters_starty[i] = par.Vy();
-                m_mctruth_daughters_startz[i] = par.Vz();
-                m_mctruth_daughters_time[i] = par.T();
-                m_mctruth_daughters_endx[i] = par.EndX();
-                m_mctruth_daughters_endy[i] = par.EndY();
-                m_mctruth_daughters_endz[i] = par.EndZ();
-                m_mctruth_daughters_endtime[i] = par.EndT();
-                m_mctruth_daughters_process[i] = par.Process();
-                m_mctruth_daughters_end_process[i] = par.EndProcess();
+                m_mctruth_daughters_px[j] = par.Px();
+                m_mctruth_daughters_py[j] = par.Py();
+                m_mctruth_daughters_pz[j] = par.Pz();
+                m_mctruth_daughters_startx[j] = par.Vx();
+                m_mctruth_daughters_starty[j] = par.Vy();
+                m_mctruth_daughters_startz[j] = par.Vz();
+                m_mctruth_daughters_time[j] = par.T();
+                m_mctruth_daughters_endx[j] = par.EndX();
+                m_mctruth_daughters_endy[j] = par.EndY();
+                m_mctruth_daughters_endz[j] = par.EndZ();
+                m_mctruth_daughters_endtime[j] = par.EndT();
+                m_mctruth_daughters_process[j] = par.Process();
+                m_mctruth_daughters_end_process[j] = par.EndProcess();
 
 
                 switch(m_mctruth_daughters_pdg[j]){
