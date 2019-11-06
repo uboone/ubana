@@ -82,7 +82,7 @@ TPCNeutrinoID::TPCNeutrinoID(fhicl::ParameterSet const & pset) : EDProducer{pset
 
     // We are a producer, say so here
     //produces<std::vector<recob::Track> >();
-    fNeutrinoIDPtr->produces(this);
+    fNeutrinoIDPtr->produces(producesCollector());
 
     // Report.
     mf::LogInfo("TPCNeutrinoID") << "TPCNeutrinoID instantiated\n";

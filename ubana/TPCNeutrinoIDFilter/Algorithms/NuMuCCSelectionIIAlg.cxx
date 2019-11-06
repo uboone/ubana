@@ -41,7 +41,6 @@
 namespace neutrinoid {
 
 NuMuCCSelectionIIAlg::NuMuCCSelectionIIAlg(fhicl::ParameterSet const &pset) :
-    fMyProducerModule(0),
     fGeometry(lar::providerFrom<geo::Geometry>()),
     fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
 {
@@ -155,11 +154,10 @@ void NuMuCCSelectionIIAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs)
     return;
 }
     
-void NuMuCCSelectionIIAlg::produces(art::EDProducer* owner)
+void NuMuCCSelectionIIAlg::produces(art::ProducesCollector& producesCollector)
 {
-    fMyProducerModule = owner;
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
+    producesCollector.produces< art::Assns<recob::Vertex, recob::Track> >();
+    producesCollector.produces< art::Assns<recob::Vertex, recob::PFParticle> >();
 }
 
     
@@ -695,7 +693,7 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
     if (ivtx!=-1 && itrk!=-1){
       if (fDebug) std::cout<<ivtx<<" "<<itrk<<std::endl;
       //outputfile[isample]<<run<<" "<<subrun<<" "<<event<<" "<<ivtx<<" "<<trkindex[ivtx][itrk]<<" "<<trkindex[ivtx].size()<<std::endl;
-      util::CreateAssn(*fMyProducerModule, evt, tracklist[itrk], vtxlist[ivtx], *vertexTrackAssociations);
+      util::CreateAssn(evt, tracklist[itrk], vtxlist[ivtx], *vertexTrackAssociations);
     }
     
     // Add associations to event.
