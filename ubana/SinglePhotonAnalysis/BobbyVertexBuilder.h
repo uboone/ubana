@@ -592,6 +592,14 @@ namespace single_photon
 			std::vector <int> get_a_track_daughter_pdg;
 			std::vector <int> get_a_shower_daughter_pdg;
 
+			for(auto const & [a,b]:package.trackToMCParticleMap){
+				cout<<a->StartMomentum()<<" "<<b->TrackId()<<endl;
+			}
+			cout<<" GAPPP- ---"<<endl;
+			for(auto const & [a,b]:package.showerToMCParticleMap){
+				cout<<a->ID()<<" "<<b->TrackId()<<endl;
+			}
+
 			for(size_t const n : particle_associated.GetObjectIndices()) {
 				int index;
 				art::Ptr<simb::MCParticle> temp_mcp;
@@ -600,7 +608,10 @@ namespace single_photon
 					cout<<"A track"<<endl;
 					++temp_num_tracks;
 					index = detos.GetTrackIndexFromObjectIndex(n);
+
+				cout<<"CHECK 0 "<<__LINE__<<"Do "<<use_tracks[index]->StartMomentum()<<endl;
 					temp_mcp = package.trackToMCParticleMap.find(use_tracks[index])->second;//CHECK THIS
+				cout<<"CHECK 0 "<<__LINE__<<endl;
 					get_a_track_daughter_pdg.push_back(temp_mcp->PdgCode());
 				}
 
@@ -619,6 +630,9 @@ namespace single_photon
 						break;
 					case 22:
 						get_a_photon++;
+						break;
+					default:
+					{}
 				}
 				//identify the ancestor!
 				switch( package.AncestorToPdgMap.find(temp_mcp)->second){
@@ -643,6 +657,7 @@ namespace single_photon
 				}
 				temp_counter++;
 			}
+			cout<<"Reconstruct a vertex with "<<endl;
 			cout<<temp_num_showers<<" showers, ";
 			cout<<temp_num_tracks<<" tracks."<<endl;
 

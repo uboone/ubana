@@ -1,6 +1,9 @@
 #include "SinglePhoton_module.h"
 #include "reco_truth_matching.h"
 
+//BUG: m_reco_asso_showers limit the size of vectors under analyzeTracks();
+//Solution: m_reco_asso_showers -> showers.size()
+
 namespace single_photon
 {
     void SinglePhoton::ClearShowers(){
@@ -501,10 +504,14 @@ namespace single_photon
     void SinglePhoton::AnalyzeShowers(
 			Atlas& package,	
 			geoalgo::Point_t pvertex,
-	const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
-            std::map<int, double>& sliceIdToNuScoreMap,
-            std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
-            std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
+			const std::vector<art::Ptr<recob::Shower>>& showers,  
+			std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, 
+			std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, 
+			std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,
+			std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
+			std::map<int, double>& sliceIdToNuScoreMap,
+			std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
+			std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
             std::map<art::Ptr<recob::PFParticle>,bool> &PFPToNuSliceMap, 
             std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
             PFParticleIdMap &pfParticleMap,
@@ -516,7 +523,8 @@ namespace single_photon
 //        m_reco_asso_showers=showers.size();
 		m_reco_asso_showers = package.selected_showers.size();//KENG BobbyVertexBuilder
         int i_shr = 0;
-        this->ResizeShowers(m_reco_asso_showers);
+//        this->ResizeShowers(m_reco_asso_showers);
+        this->ResizeShowers(showers.size());
 
         for (ShowerVector::const_iterator iter = showers.begin(), iterEnd = showers.end(); iter != iterEnd; ++iter)
         {

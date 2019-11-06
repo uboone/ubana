@@ -3,6 +3,8 @@
 #include "TVectorD.h"
 #include "TruncMean.h"
 #include "Atlas.h"
+//BUG: m_reco_asso_tracks limit the size of vectors under analyzeTracks();
+//Solution: m_reco_asso_tracks -> tracks.size()
 
 
 namespace single_photon
@@ -455,7 +457,9 @@ namespace single_photon
         int i_trk=0;
 
 
-        this->ResizeTracks(m_reco_asso_tracks);
+//        this->ResizeTracks(m_reco_asso_tracks);
+//KENG, Yes! DONT USE m_reco_asso_track, because we are going to fill in more than that!
+        this->ResizeTracks(tracks.size());
 
         //const double adc2eU(5.1e-3);
         //const double adc2eV(5.2e-3);
@@ -540,6 +544,7 @@ namespace single_photon
             m_reco_track_sliceId[i_trk] = PFPToSliceIdMap[pfp];
 
             m_reco_track_nuscore[i_trk] = sliceIdToNuScoreMap[ m_reco_track_sliceId[i_trk]] ;
+
 
             m_reco_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp];
 
