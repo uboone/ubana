@@ -649,7 +649,7 @@ namespace single_photon
 
         int i_trk = 0;
         //for (TrackVector::const_iterator iter = tracks.begin(), iterEnd = tracks.end(); iter != iterEnd; ++iter)
-        for(size_t k =0; k< tracks.size();++k){
+		for(size_t k =0; k< tracks.size();++k){
             //   const art::Ptr<recob::Track> track = *iter;
             const art::Ptr<recob::Track> track = tracks[k];
             m_sim_track_matched[i_trk] = 0;

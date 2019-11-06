@@ -1,6 +1,8 @@
 #ifndef __ATLAS_H__
 #define __ATLAS_H__
 
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "SinglePhoton_module.h"
 
 /*
@@ -59,7 +61,7 @@ namespace single_photon
 		std::vector<art::Ptr<simb::MCParticle>> matchedMCParticleVector;
 
 /*
- * The overflow constructor 1 takes care of the following maps.
+ * The overload constructor 1 takes care of the following maps.
  *
  */
 		std::map< size_t, art::Ptr<recob::PFParticle>>	IDToPFParticleMap;
@@ -182,7 +184,7 @@ namespace single_photon
 
 	//Constructor
 	Atlas::Atlas (){}
-	//Overloaded Constructor, initialize the essential variables
+	//Overloaded Constructor 1, initialize the essential variables
 	Atlas::Atlas ( const art::Event &evt,
 				std::vector<std::string > labels,
 				bool is_data){
@@ -213,6 +215,7 @@ namespace single_photon
 			//MCTruth Handle
 			simb::MCTruth dummy_geant; //for Geant info.
 			mcTruthVector = HandleToVector(dummy_geant, evt, labels[8]);
+
 			simb::MCParticle dummy_genie; //for Genie info.
 			matchedMCParticleVector = HandleToVector(dummy_genie, evt, labels[9]);
 		}
@@ -283,6 +286,84 @@ namespace single_photon
 			sliceIDToHitsMap[slice->ID()] = hits_per_slice.at(slice.key());
 		}
 
+//------- trackToMCParticleMap --------
+//		if(!is_data){
+//			//Fill in trackToMCParticleMap;
+//			//https://indico.fnal.gov/event/20453/session/6/contribution/4/material/slides/0.pdf
+//			//BackTrackerService and ParticleInventoryService
+//			art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+//			art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+//			//Get tracks
+//			art::Handle< std::vector<recob::Track> > trackListHandle;
+//			std::vector<art::Ptr<recob::Track> > tracklist;
+//			if (evt.getByLabel(labels[0],trackListHandle)) art::fill_ptr_vector(tracklist, trackListHandle);
+//			//Get hit-track association
+//			art::FindManyP<recob::Hit> fmth(trackListHandle, evt, labels[0]);
+//			//Loop over all tracks
+//			for(size_t i=0; i<tracklist.size();++i){ 
+//				if (fmth.isValid()){
+//					// Find true track for each reconstructed track
+//					int TrackID = 0;
+//					//Get all hits associated with the track 
+//					std::vector< art::Ptr<recob::Hit> > allHits = fmth.at(i);
+//					std::map<int,double> trkide;
+//					cout<<"Size of hits "<<allHits.size()<<endl;
+//					for(size_t h = 0; h < allHits.size(); ++h){ 
+//						art::Ptr<recob::Hit> hit = allHits[h]; 
+//						//TrackIDE saves the energy deposition for each Geant particle ID
+//						std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
+//						cout<<"Size of TrackIDs "<<TrackIDs.size()<<endl;
+//						for(size_t e = 0; e < TrackIDs.size(); ++e){ 
+//						trkide[TrackIDs[e].trackID] += TrackIDs[e].energy;
+//						}
+//					}
+//					// Work out which IDE despoited the most charge in the hit if there was more than one.
+//					double maxe = -1;
+//					double tote = 0;
+//					for (std::map<int,double>::iterator ii = trkide.begin(); ii!=trkide.end(); ++ii){
+//							cout<<"Possible IDs "<<ii->first<<endl;
+//						tote += ii->second;
+//						if ((ii->second)>maxe){
+//							TrackID = ii->first; //TrackID maxe = ii->second; //Energy
+//						} }
+//					// Now have trackID, so get PdG code.
+//					
+//				//	const simb::MCParticle *particle = pi_serv->TrackIdToParticle_P(TrackID);
+//
+//					cout<<"Ptr::MCP CHECK "<<TrackID;//NO working, TrackID is always 0;
+//					
+//				//	if(particle){
+//					for(const art::Ptr<simb::MCParticle> mcp : matchedMCParticleVector){
+//						//cout<<"Match ID "<<mcp->TrackId()<<endl;
+//						if(mcp->TrackId() == TrackID){ cout<<"Yes"<<endl;}
+//						else{ cout<<"NO"<<endl;}
+//					}
+//				//	}
+//					cout<<"Ptr::MCP CHECK Finished"<<endl;
+//
+////				 	trackToMCParticleMap.emplace(tracklist[i], particle);
+////					if (particle){
+////						std::cout<<"Pdgcode = "<<particle-
+////							>PdgCode()<<std::endl; }
+//				} 
+//			}
+//		}
+//	//CHECK
+//		std::vector<simb::MCParticle const *> allhit_particle_vec;
+//		std::vector<anab::BackTrackerHitMatchingData const *> allhit_match_vec;
+//		std::vector<std::unordered_map<int, double>> allhit_trkide(3);
+//
+//		for (size_t i = 0; i < hitlist.size(); ++i) {
+//			art::Ptr<recob::Hit> hit = hitlist[i];
+//			allhit_particle_vec.clear();
+//			allhit_match_vec.clear();
+//			particles_per_hit.get(hit.key(), allhit_particle_vec, allhit_match_vec);
+//			for (size_t i_p = 0; i_p < allhit_particle_vec.size(); ++i_p) {
+//				allhit_trkide[hit->WireID().Plane][pi_serv->TrackIdToEveTrackId(allhit_particle_vec.at(i_p)->TrackId())] += allhit_match_vec[i_p]->energy; // match_vec[i_p]->numElectrons;
+//			}
+//		} // end of loop hitlist i
+
+//-------------------
 
 	}
 //		//3D Showers

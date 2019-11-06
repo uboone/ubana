@@ -595,7 +595,7 @@ namespace single_photon
 			for(auto const & [a,b]:package.trackToMCParticleMap){
 				cout<<a->StartMomentum()<<" "<<b->TrackId()<<endl;
 			}
-			cout<<" GAPPP- ---"<<endl;
+			cout<<"CHECK GAPPP- ---"<<endl;
 			for(auto const & [a,b]:package.showerToMCParticleMap){
 				cout<<a->ID()<<" "<<b->TrackId()<<endl;
 			}

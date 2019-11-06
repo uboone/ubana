@@ -53,6 +53,7 @@ art_make( BASENAME_ONLY
             lardataobj_MCBase
             larcoreobj_SummaryData	
 			larsim_MCCheater_BackTrackerService_service
+			larsim_MCCheater_ParticleInventoryService_service
 			larpandora_LArPandoraInterface
             SignalShapingServiceMicroBooNE_service
 			nusimdata_SimulationBase

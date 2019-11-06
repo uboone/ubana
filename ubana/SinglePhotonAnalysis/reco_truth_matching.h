@@ -354,11 +354,10 @@ namespace single_photon
                 //if(reco_verbose)  std::cout<<"SinglePhoton::recoMC()\t||\t The `BEST` mother is a "<<marks_mother_vector[best_mother_index]->PdgCode()<<" at "<<best_mother_index<<" on plane: "<<best_mother_plane<<std::endl;
                 std::cout<<"SinglePhoton::recoMC()\t||\t The `BEST` mother is a "<<marks_mother_vector[best_mother_index]->PdgCode()<<" at "<<best_mother_index<<" on plane: "<<best_mother_plane<<std::endl;
                 for(int l=0; l<3; l++){
-                    std::cout<<"SinglePhoton::recoMC()\t||\t It represents "<<marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][l]/total_energy_on_plane[l]*100.0<<"% of the energy on plane: "<<l<<" which is "<<total_energy_on_plane[l] <<std::endl;
+                    std::cout<<"SinglePhoton::recoMC()\t||\t It represents "<<marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][l]/total_energy_on_plane[l]*100.0;
+					std::cout<<"% of the energy on plane: "<<l<<" which is "<<total_energy_on_plane[l] <<std::endl;
                 }
             }
-
-
 
             if(reco_verbose) std::cout<<"---------------------------- L2-------------------------------"<<std::endl;
             const art::Ptr<simb::MCParticle> match = marks_mother_vector[best_mother_index];
@@ -389,7 +388,6 @@ namespace single_photon
                 m_sim_shower_parent_pdg[i] = match_mother->PdgCode();
                 m_sim_shower_parent_trackID[i] = match_mother->TrackId();
             }
-
 
 
             m_sim_shower_matched[i] = 1;

@@ -1134,7 +1134,6 @@ namespace single_photon
             if(showerToMCParticleMap.count(shower) > 0){
 
 
-
                 const art::Ptr<simb::MCParticle> mcparticle = showerToMCParticleMap[shower];
                 const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
 

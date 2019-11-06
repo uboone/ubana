@@ -372,39 +372,6 @@ namespace single_photon
 
 		//m_vertex_pos_x / y/ z are ready to be used now;
 
-		 geoalgo::Point_t pvertex(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z);
-		//use object_container.trackToDistMap/showerToDistMap;
-		this->AnalyzeTracks(
-				object_container,
-				pvertex,
-				tracks,
-				object_container.trackToNuPFParticleMap,
-				pfParticleToSpacePointsMap,
-				object_container.MCParticleToTrackIdMap,//disabled
-				object_container.sliceIdToNuScoreMap,
-				object_container.PFPToClearCosmicMap,
-				object_container.PFPToSliceIdMap,
-				object_container.PFPToTrackScoreMap,
-				object_container.PFPToNuSliceMap,
-				pfParticleMap);
-		cout<<"CHECK"<<__LINE__<<endl;
-
-		this->AnalyzeShowers(
-				object_container,
-				pvertex,
-				showers,
-				object_container.showerToNuPFParticleMap,
-				pfParticleToHitsMap, 
-				pfParticleToClustersMap, 
-				object_container.ClusterToHitsMap,
-				object_container.sliceIdToNuScoreMap, 
-				object_container.PFPToClearCosmicMap,
-				object_container.PFPToSliceIdMap, 
-				object_container.PFPToNuSliceMap, 
-				object_container.PFPToTrackScoreMap,
-				pfParticleMap,
-				object_container.PFParticlesToShowerReco3DMap); 
-
 		//Borrow the following from MCTruth
 		art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
@@ -436,6 +403,9 @@ namespace single_photon
 //				object_container.MCParticleToMCTruthMap, 
 //				object_container.MCParticleToTrackIdMap);//created here;
 
+		this->ResizeShowers(showers.size());
+		this->ResizeTracks(tracks.size());
+
 		this->showerRecoMCmatching(//Shower MCTruth here?
 				showers,
 				object_container.showerToMCParticleMap, //created here
@@ -452,7 +422,7 @@ namespace single_photon
 
 		std::vector<double> trk_overlay_vec = recoMCmatching<art::Ptr<recob::Track>>( 
 				tracks, 
-				object_container.trackToMCParticleMap, 
+				object_container.trackToMCParticleMap, //created here
 				object_container.trackToNuPFParticleMap, 
 				pfParticleToHitsMap, 
 				mcparticles_per_hit, 
@@ -472,6 +442,39 @@ namespace single_photon
 				object_container.PFPToSliceIdMap,
 				trk_overlay_vec);
 		//-------------------------------
+		 geoalgo::Point_t pvertex(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z);
+		//use object_container.trackToDistMap/showerToDistMap;
+		this->AnalyzeTracks(
+				object_container,
+				pvertex,
+				tracks,
+				object_container.trackToNuPFParticleMap,
+				pfParticleToSpacePointsMap,
+				object_container.MCParticleToTrackIdMap,//disabled
+				object_container.sliceIdToNuScoreMap,
+				object_container.PFPToClearCosmicMap,
+				object_container.PFPToSliceIdMap,
+				object_container.PFPToTrackScoreMap,
+				object_container.PFPToNuSliceMap,
+				pfParticleMap);
+
+		this->AnalyzeShowers(
+				object_container,
+				pvertex,
+				showers,
+				object_container.showerToNuPFParticleMap,
+				pfParticleToHitsMap, 
+				pfParticleToClustersMap, 
+				object_container.ClusterToHitsMap,
+				object_container.sliceIdToNuScoreMap, 
+				object_container.PFPToClearCosmicMap,
+				object_container.PFPToSliceIdMap, 
+				object_container.PFPToNuSliceMap, 
+				object_container.PFPToTrackScoreMap,
+				pfParticleMap,
+				object_container.PFParticlesToShowerReco3DMap); 
+
+
 
 		//---------- VertexBuilder--------------
 		//use the new the new class for variables and vertexing.
