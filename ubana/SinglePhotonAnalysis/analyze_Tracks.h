@@ -618,26 +618,26 @@ namespace single_photon
 
 		if(m_is_verbose){ std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite"<<std::endl;;
 			//---------- Prints out for MCTruth info.
-			std::cout<<"Overview: # of MCTruth "<<package.mcTruthVector.size();
-			std::cout<<"; # of MCParticle "<<package.matchedMCParticleVector.size()<<std::endl;
-			for(size_t i = 0; i<package.matchedMCParticleVector.size(); i++){
-//				std::cout<<"Truth?: "<<package.MCParticleToMCTruthMap.find(package.matchedMCParticleVector[i])->second->PdgCode();
-				if(package.matchedMCParticleVector[i]->Mother()==0){
-				std::cout<<" TrackId: "<<package.matchedMCParticleVector[i]->TrackId();
-				std::cout<<" Pdg: "<<package.matchedMCParticleVector[i]->PdgCode();
-				std::cout<<" Mother: "<<package.matchedMCParticleVector[i]->Mother();
-				std::cout<<" Energy: "<<package.matchedMCParticleVector[i]->E();
-				std::cout<<" Status: "<<package.matchedMCParticleVector[i]->StatusCode()<<std::endl;
-				}
-			}
-			std::cout<<"OK, MCTruth!"<<std::endl;
-			for(size_t i = 0; i<package.mcTruthVector.size(); i++){
-				for(int j = 0; j<package.mcTruthVector[i]->NParticles(); j++){
-					std::cout<<"MCTruth->GetParticle's PdgCode: "<<package.mcTruthVector[i]->GetParticle(j).PdgCode();
-					std::cout<<" Energy: "<<package.mcTruthVector[i]->GetParticle(j).E()<<std::endl;
-				}
-			}
-		//--------------------
+//			std::cout<<"Overview: # of MCTruth "<<package.mcTruthVector.size();
+//			std::cout<<"; # of MCParticle "<<package.matchedMCParticleVector.size()<<std::endl;
+//			for(size_t i = 0; i<package.matchedMCParticleVector.size(); i++){
+////				std::cout<<"Truth?: "<<package.MCParticleToMCTruthMap.find(package.matchedMCParticleVector[i])->second->PdgCode();
+//				if(package.matchedMCParticleVector[i]->Mother()==0){
+//				std::cout<<" TrackId: "<<package.matchedMCParticleVector[i]->TrackId();
+//				std::cout<<" Pdg: "<<package.matchedMCParticleVector[i]->PdgCode();
+//				std::cout<<" Mother: "<<package.matchedMCParticleVector[i]->Mother();
+//				std::cout<<" Energy: "<<package.matchedMCParticleVector[i]->E();
+//				std::cout<<" Status: "<<package.matchedMCParticleVector[i]->StatusCode()<<std::endl;
+//				}
+//			}
+//			std::cout<<"OK, MCTruth!"<<std::endl;
+//			for(size_t i = 0; i<package.mcTruthVector.size(); i++){
+//				for(int j = 0; j<package.mcTruthVector[i]->NParticles(); j++){
+//					std::cout<<"MCTruth->GetParticle's PdgCode: "<<package.mcTruthVector[i]->GetParticle(j).PdgCode();
+//					std::cout<<" Energy: "<<package.mcTruthVector[i]->GetParticle(j).E()<<std::endl;
+//				}
+//			}
+//		//--------------------
 		}
 
         int i_trk = 0;
@@ -685,27 +685,27 @@ namespace single_photon
                     // m_sim_track_parent_pdg[i_trk] = MCParticleToTrackIdMap[mcparticle->Mother()]->PdgCode();
                 }
 
-				//---- Request by BobbyVertexBuilder -----
-				
-                art::Ptr<simb::MCParticle> temp_mc = mcparticle;
-				while(false){//search for ancestor; initial state - 0; other state - 1; https://internal.dunescience.org/doxygen/namespacegenie.html#a05cd2ccc34b3e3a9e88bdd335f990118
-				std::cout<<"Mother ID:"<<temp_mc->Mother()<<std::endl; //gives the id of the MCParticle
-				std::cout<<"Track ID:"<<temp_mc->TrackId()<<std::endl; //gives the id of the MCParticle
-				std::cout<<"Status Code:"<<temp_mc->StatusCode()<<std::endl; //gives the id of the MCParticle
-				temp_mc = package.matchedMCParticleVector[temp_mc->Mother()];
-//				temp_mc = package.MCParticleToTrackIdMap.find(temp_mc->Mother())->second;
-				}
-//CHECK			std::cout<<"Ancestor PdgCode: "<<temp_mc->PdgCode()<<endl;
-				package.MCParticleToAncestorMap.emplace(mcparticle,temp_mc);
-				for(auto mctruth_particle : package.mcTruthVector){
-				std::cout<<"# of MCTruth "<<mctruth_particle->NParticles()<<std::endl;
-//					if(mctruth_particle->GetParticle[0] == temp_mc){
-//						std::cout<<"Match the ancestor to MCTruth!"<<std::endl;
-//						package.MCParticleToAncestorMap.emplace(mcparticle,temp_mc);
-//						break;
-//					}
-//					std::cout<<"Bruth... It is not "<<mctruth_particle->GetParticle[0]->PdgCode()<<std::endl;
-				}
+//				//---- Request by BobbyVertexBuilder -----
+//				
+//                art::Ptr<simb::MCParticle> temp_mc = mcparticle;
+//				while(false){//search for ancestor; initial state - 0; other state - 1; https://internal.dunescience.org/doxygen/namespacegenie.html#a05cd2ccc34b3e3a9e88bdd335f990118
+//				std::cout<<"Mother ID:"<<temp_mc->Mother()<<std::endl; //gives the id of the MCParticle
+//				std::cout<<"Track ID:"<<temp_mc->TrackId()<<std::endl; //gives the id of the MCParticle
+//				std::cout<<"Status Code:"<<temp_mc->StatusCode()<<std::endl; //gives the id of the MCParticle
+//				temp_mc = package.matchedMCParticleVector[temp_mc->Mother()];
+////				temp_mc = package.MCParticleToTrackIdMap.find(temp_mc->Mother())->second;
+//				}
+////CHECK			std::cout<<"Ancestor PdgCode: "<<temp_mc->PdgCode()<<endl;
+//				package.MCParticleToAncestorMap.emplace(mcparticle,temp_mc);
+//				for(auto mctruth_particle : package.mcTruthVector){
+//				std::cout<<"# of MCTruth "<<mctruth_particle->NParticles()<<std::endl;
+////					if(mctruth_particle->GetParticle[0] == temp_mc){
+////						std::cout<<"Match the ancestor to MCTruth!"<<std::endl;
+////						package.MCParticleToAncestorMap.emplace(mcparticle,temp_mc);
+////						break;
+////					}
+////					std::cout<<"Bruth... It is not "<<mctruth_particle->GetParticle[0]->PdgCode()<<std::endl;
+//				}
 
 				//------ End of VB --------------
 

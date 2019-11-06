@@ -128,7 +128,7 @@ namespace single_photon
     //------------------------------------------------------------------------------------------------------------------------------------------
 
     void SinglePhoton::analyze(const art::Event &evt)
-	{//analyzing one event per run! CHECK, how to add more vertex here?
+	{//analyzing one event per run! 
 
 		m_is_verbose = true;
 		std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
@@ -1052,14 +1052,17 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		//MCTruth Matrching;
 		vertex_tree->Branch("mctruth_bobbyprotontrackv", &m_bobbyprotontrackv);
 		vertex_tree->Branch("mctruth_bobbyphotonshowerv", &m_bobbyphotonshowerv);
-		vertex_tree->Branch("mctruth_bobbypi0daughterv", &m_bobbyphotonshowerv);
-		vertex_tree->Branch("mctruth_bobbydeltadaughterv", &m_bobbyphotonshowerv);
-//		vertex_tree->Branch("mctruth_bobbyshower_parent_pdgv", &m_bobbyshower_parent_pdgv);
+		vertex_tree->Branch("mctruth_bobbypi0daughterv", &m_bobbypi0daughterv);
+		vertex_tree->Branch("mctruth_bobbydeltaraddaughterv", &m_bobbydeltaraddaughterv);
+		vertex_tree->Branch("mctruth_bobbyotherdaughterv", &m_bobbyotherdaughterv);
+//		vertex_tree->Branch("mctruth_bobbytrackdaughter_pdg", & m_bobbytrackdaughter_pdg);
+//		vertex_tree->Branch("mctruth_bobbyshowerdaughter_pdg", & m_bobbyshowerdaughter_pdg);
+
 		vertex_tree->Branch("mctruth_bobbyprotontrack", &m_bobbyprotontrack);
 		vertex_tree->Branch("mctruth_bobbyphotonshower", &m_bobbyphotonshower);
-		vertex_tree->Branch("mctruth_bobbypi0daughter", &m_bobbyphotonshower);
-		vertex_tree->Branch("mctruth_bobbydeltadaughter", &m_bobbyphotonshower);
-//		vertex_tree->Branch("mctruth_bobbyshower_parent_pdg", &m_bobbyshower_parent_pdg);
+		vertex_tree->Branch("mctruth_bobbypi0daughter", &m_bobbypi0daughter);
+		vertex_tree->Branch("mctruth_bobbyotherdaughter", &m_bobbyotherdaughter);
+		vertex_tree->Branch("mctruth_bobbydeltaraddaughter", &m_bobbydeltaraddaughter);
 
 		vertex_tree->Branch("parameter_dist_tt",&m_dist_tt);
 		vertex_tree->Branch("parameter_dist_sx",&m_dist_sx);
@@ -1183,9 +1186,14 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		m_bobbyphotonshowerv = {0};
 		m_bobbypi0daughterv = {0};
 		m_bobbydeltaraddaughterv = {0};
+		m_bobbyotherdaughterv = {0};
+		m_bobbytrackdaughter_pdg = {-999};
+		m_bobbyshowerdaughter_pdg = {-999};
+
 		m_bobbyprotontrack = 0;
 		m_bobbyphotonshower = 0;
 		m_bobbypi0daughter = 0;
+		m_bobbyotherdaughter = 0;
 		m_bobbydeltaraddaughter = 0;
 		m_dist_tt = {999};
 		m_dist_sx = {999};
@@ -1309,7 +1317,6 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
             {
                 throw cet::exception("SinglePhoton") << "  Unable to get PFParticle ID map, the input PFParticle collection has repeat IDs!";
             }
-			cout<<"CHECK2::::: "<<pParticle->Self()<<endl;
         }
     }
 
