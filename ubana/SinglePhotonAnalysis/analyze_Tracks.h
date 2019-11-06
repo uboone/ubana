@@ -538,7 +538,9 @@ namespace single_photon
             m_reco_track_end_to_nearest_dead_wire_plane2[i_trk] = distanceToNearestDeadWire(2, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
 
             m_reco_track_sliceId[i_trk] = PFPToSliceIdMap[pfp];
+
             m_reco_track_nuscore[i_trk] = sliceIdToNuScoreMap[ m_reco_track_sliceId[i_trk]] ;
+
             m_reco_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp];
 
             //std::cout<<"checking track nuslice"<<std::endl;

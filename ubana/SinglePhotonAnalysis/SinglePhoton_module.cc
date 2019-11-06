@@ -383,10 +383,11 @@ namespace single_photon
 				object_container.MCParticleToTrackIdMap,//disabled
 				object_container.sliceIdToNuScoreMap,
 				object_container.PFPToClearCosmicMap,
-				object_container.PFPToSliceIdMap,  
+				object_container.PFPToSliceIdMap,
 				object_container.PFPToTrackScoreMap,
 				object_container.PFPToNuSliceMap,
 				pfParticleMap);
+		cout<<"CHECK"<<__LINE__<<endl;
 
 		this->AnalyzeShowers(
 				object_container,

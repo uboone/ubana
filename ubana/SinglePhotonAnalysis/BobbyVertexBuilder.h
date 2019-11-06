@@ -111,8 +111,6 @@ namespace single_photon
 			} //repeat this loop for another PFParticle in the candidate_particles.
 		}
 	}
-	
-
 
 
     void SinglePhoton::CollectMCParticles_v2(
@@ -355,7 +353,7 @@ namespace single_photon
 
 		//		if(fvbuildert.ftree) vbuilder.SetVBT(&fvbuildert);
 		//prepare parameters for pre-check # of tracks and showers;
-		std::vector< art::Ptr<recob::Track> > use_tracks(package.selected_tracks);
+		std::vector< art::Ptr<recob::Track> > use_tracks(package.selected_tracks);//CHECK all tracks
 		std::vector< art::Ptr<recob::Shower> > use_showers(package.selected_showers);
 		auto trackmap = package.trackToDistMap;
 		auto showermap = package.showerToDistMap;
@@ -365,7 +363,8 @@ namespace single_photon
 		std::vector<int> 	tem_bobbytracksv;
 		double nearby_vertex_dist = 0;
 		double temp_max_value = 200;//objects that is too far..
-		bool successful_vertex = false;
+		bool successful_vertex = true;//true, do them all together; false, do them by step;
+		bool one_for_all = true;//true, means load more_tracks/showers all at once; sucessful_vertex has to be true to make it work;
 		std::vector< int > target_topo = {1,1};//{1,2}<->1s2t signal;
 		bool reset_bobbyvertex = true;
 		int loop_tracker = 1;
@@ -517,25 +516,22 @@ namespace single_photon
 		//				cout<<"/*";
 		//			cout<<"\n"<<endl;
 
-		if(vbuilder.f_dist_tt[0]<999){
-			m_dist_tt = vbuilder.f_dist_tt;
-		}
-
-		if(vbuilder.f_dist_sx[0]<999){
-			m_dist_sx = vbuilder.f_dist_sx;
-		}
-
-		if(vbuilder.f_dist_st[0]<999){
-			m_dist_st = vbuilder.f_dist_st;
-		}
-
-		if(vbuilder.f_dist_sst[0]<999){
-			m_dist_sst = vbuilder.f_dist_sst;
-		}
-
-		candidates.GetDetectorObjects().AddShowers(use_showers);//load tracks
-		candidates.GetDetectorObjects().AddTracks( use_tracks);//load showers
+		candidates.GetDetectorObjects().AddShowers(use_showers);//load showers
+		if(more_objects && one_for_all) candidates.GetDetectorObjects().AddShowers(package.more_showers);//load more showers
+		candidates.GetDetectorObjects().AddTracks( use_tracks);//load tracks
+		cout<<"ADD TRACKS:"<<use_tracks.size()<<endl;
+		if(more_objects && one_for_all) candidates.GetDetectorObjects().AddTracks( package.more_tracks);//load more tracks
+		cout<<"ADD TRACKS:"<<package.more_tracks.size()<<endl;
 		vbuilder.Run(candidates);//here deals with the candidates_copy and find the vertex.
+
+		m_dist_tt = vbuilder.f_dist_tt;
+
+		m_dist_sx = vbuilder.f_dist_sx;
+
+		m_dist_st = vbuilder.f_dist_st;
+
+		m_dist_sst = vbuilder.f_dist_sst;
+
 
 		//temporary varaibles
 		std::vector<double> tem_bobbyvertex_pos_xv;
