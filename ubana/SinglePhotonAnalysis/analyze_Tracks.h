@@ -656,7 +656,7 @@ namespace single_photon
 
             if(trackToMCParticleMap.count(track)>0){
                 const art::Ptr<simb::MCParticle> mcparticle = trackToMCParticleMap[track];
-                std::cout<<"count2: "<<MCParticleToMCTruthMap.count(mcparticle)<<std::endl;
+//                std::cout<<"count2: "<<MCParticleToMCTruthMap.count(mcparticle)<<std::endl;
                 const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
                 const art::Ptr<recob::PFParticle> pfp = trackToPFParticleMap[track];
 

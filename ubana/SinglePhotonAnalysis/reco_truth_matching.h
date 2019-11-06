@@ -27,6 +27,7 @@ namespace single_photon
 
         //for each recob::track/shower in the event
         for(size_t i=0; i<objectVector.size();++i){
+//		cout<<"# of Shower Objects under consideration "<< objectVector.size()<<endl;
             auto object = objectVector[i];
 
             //get the associated reco PFP
@@ -82,7 +83,7 @@ namespace single_photon
 
             //energy for an MCParticle that comprises the most energy when sum over associated hits in PFP
             //total energy of the reco PFP taken from the sum of the hits associated to an MCParticle
-            double maxe=-1, tote=0;                
+            double maxe=-1, tote=0;
 
             std::vector<double> total_energy_on_plane = {0.0,0.0,0.0};
             //simb::MCParticle const * best_matched_mcparticle = NULL; //pointer for the particle match we will calculate
@@ -166,6 +167,7 @@ namespace single_photon
 
 
             if(n_associated_mcparticle_hits == 0){
+			if(reco_verbose) cout<<"It is OVERLAY!!"<<endl;
                 //This will only occur if the whole recob::PFParticle is PURELY associated with an overlay object
                 found_a_match =false;
                 if(!found_a_match){
@@ -418,6 +420,7 @@ namespace single_photon
             m_sim_shower_overlay_fraction[i] = fraction_num_hits_overlay;
 
             mcParticleVector.push_back(match);
+			cout<<"Mapped shower to MC "<<object->ID()<<" to "<<mcParticleVector.back()->TrackId()<<endl;
             objectToMCParticleMap[object] = mcParticleVector.back();
 
             m_sim_shower_sliceId[i] = PFPToSliceIdMap[pfp];
@@ -436,132 +439,8 @@ namespace single_photon
             //  if (m_sim_shower_pdg[i]==22){
           if (reco_verbose)  std::cout<<"looking at pfp "<< pfp->Self()<<" with is matched to true particle with pdg  m_sim_shower_pdg[i]= "<<  m_sim_shower_pdg[i]<< ". is_nuslice = "<< m_sim_shower_is_nuslice[i]<<" in slice "<< m_sim_shower_sliceId[i]<<". The matched energy for this shower from mark's mother particle with pdg "<<marks_mother_vector[best_mother_index]->PdgCode()<< " is "<<m_sim_shower_matched_energy_fraction_plane0[i]<<"/"<<m_sim_shower_matched_energy_fraction_plane1[i]<<"/" <<m_sim_shower_matched_energy_fraction_plane2[i]<<std::endl;
            // std::cout<<"The best plane is "<< best_mother_plane<<std::endl;
-
             //  }
-
-
-
-
-
-
-            //OLD OLD OLD
-
-            /*
-             *
-             *For each source particle in the event, follow down through daughters to accumulate all the particles below the mother in the parent tree
-             *
-             */
-
-
-
-            /*
-
-            //for each source mother particle, if it's a photon, follow the chain and sum the hits
-            std::vector<std::vector<int>> mother_contributing_MCP; //stores all the MCP's in the chain for all mothers-> this can probably be modified to only store ones which contribute to the reco shower
-            std::vector<int> all_contributing_MCP; //all the MCP's in the chain for this mother
-
-            //for each of the mother particles
-            for(auto pair: mother_MCP_map){
-            all_contributing_MCP.clear();
-            art::Ptr<simb::MCParticle> particle = pair.second;//get the mother MCP
-            all_contributing_MCP.push_back(pair.first);//save the MCP track id 
-            int numDaughters = -1;//the number of daughters for the current generation
-            std::vector<int> current_ids; //the track id's for the current generation
-            std::vector<int> next_ids;//the track id's for the next generation (daughters of current generatiob)
-
-            //std::cout<<"starting from mother particle at head of chain with pdg code "<<particle->PdgCode()<<" and track id "<<pair.first<<std::endl;
-
-            numDaughters = particle->NumberDaughters();//start with the number of daughters for the mother mother particle
-
-            //std::cout<<"this particle has "<<numDaughters<<" daughters"<<std::endl;
-
-            //for each of the particles in the first daughter generation
-            for(int i = 0; i < numDaughters; i++){
-            int id = particle->Daughter(i); //get the track id of the MCP
-            current_ids.push_back(id);//save the id to the list of the current generation
-            all_contributing_MCP.push_back(id);//save it to the list of all of the MCP's in the chain
-            }
-
-
-            //while there are more generations of daughter particles (not at the end of the chain)
-            while(numDaughters>0){
-            //for each MCP in the current generation
-            for(int id:current_ids){
-            //get the particle and check it's valid
-            art::Ptr<simb::MCParticle> particle = MCParticleToTrackIdMap[id];
-            if (particle.isNull()) continue;
-
-            //get the number of daughters
-            int n = particle->NumberDaughters();
-
-            //loop over the daughters
-            for (int i = 0; i < n; i++){
-            int daughterId = particle->Daughter(i);
-
-            //save daughters to list of all contributing mcps
-            all_contributing_MCP.push_back(daughterId);
-
-            //add daughters to list for next gen
-            next_ids.push_back(daughterId);
-
-            }   
-            }
-
-            numDaughters = current_ids.size(); //update the number of daughters in the next generation
-
-            //std::cout<<"num daughters after this generation is "<<numDaughters<<std::endl;
-
-            current_ids = next_ids; //update the track id's to the next generation
-            next_ids.clear(); //clear the list for the next next generation
-            }//while there are further daughters
-
-
-            //save the vector of MCP's from this mother
-            mother_contributing_MCP.push_back(all_contributing_MCP);
-            }//for each mother mother particle
-
-            std::cout<<"SinglePhoton::recoMC()\t||\t all candidate MCParticles number is "<<all_contributing_MCP.size()<<std::endl;
-
-            //
-            //Compare the list of all of the MCP's from the mother MCP(s) and the list of all MCP's which contribute to the reco shower
-            //
-
-
-            std::vector<int> count_vec(mother_contributing_MCP.size()); //stores the number of MCP's in the chain from each mother which match to the reco shower
-            std::vector<double> energy_contributing_MCP(mother_contributing_MCP.size()); //the total energy of all the MCP's in the chain from the mother which contribute to the shower
-            //for each MCP from the chain of mother mother particle and daughters, check how much it overlaps with the MCP's that contribute to the shower
-            for (unsigned int i = 0; i< mother_contributing_MCP.size(); i++){
-                std::vector<int> mcp_vec =  mother_contributing_MCP[i];
-                int count = 0;     
-
-                std::cout<<"SinglePhoton::recoMC()\t||\t on mother_contributing_MCP: "<<i<<std::endl;
-
-                for (int track_id:mcp_vec){
-                    //check if it's in the map of MCP's in the reco shower
-                    auto iter = objide.find(track_id);
-                    if (iter != objide.end()){
-                        count++;//count the number of MCP
-
-                        //add the energy to the total for this chain
-                        energy_contributing_MCP[i] += objide[track_id];
-                    }//if the MCP contributes to the shower
-
-                }//for each MCP in the chain from this mother
-                count_vec[i] = count;
-            }//for each mother/source MCP
-
-
-            if(count_vec.size()>0){
-                //check the total number of contributing MCP
-                std::cout<<"SinglePhoton::recoMC()\t||\t the number of MCP associated with the first mother mother particle that also deposit hits in the recob::shower is "<<count_vec[0]<<" and the summed energy is "<<energy_contributing_MCP[0]<<std::endl;  
-            }else{
-                std::cout<<"SinglePhoton::recoMC()\t||\t Well this failed then."<<std::endl;
-            }
-
-            */
-
-        }//end vector loop.
-
+		}//end vector loop.
         return {0};
     }//end showerRecoMCmatching
 

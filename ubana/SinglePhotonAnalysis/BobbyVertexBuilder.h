@@ -326,7 +326,8 @@ namespace single_photon
 	 * **************************/
 
 	void SinglePhoton::BobbyVertexBuilder_ext(class Atlas &package, bool more_objects){
-		bool fverbose = m_is_verbose;
+		bool fverbose =false;// m_is_verbose;
+		//CHECK
 
 //		initscr();//initialize the COLS and LINES for the screen size
 		int screen_width = 86;//ncurses::COLS;//get the width of the screen!
@@ -355,6 +356,8 @@ namespace single_photon
 		//prepare parameters for pre-check # of tracks and showers;
 		std::vector< art::Ptr<recob::Track> > use_tracks(package.selected_tracks);//CHECK all tracks
 		std::vector< art::Ptr<recob::Shower> > use_showers(package.selected_showers);
+
+
 		auto trackmap = package.trackToDistMap;
 		auto showermap = package.showerToDistMap;
 //		cout<<"CHECK SIZE "<<package.trackToDistMap.size()<<endl;
@@ -370,6 +373,15 @@ namespace single_photon
 		int loop_tracker = 1;
 		int max_loops = 4;//consider all objects within temp_max_value distance after the 4th loop.
 	
+		//update objects?
+		if(more_objects && one_for_all) {
+			for (auto object : package.more_tracks){
+				use_tracks.push_back(object);
+			}
+			for (auto object : package.more_showers){
+				use_showers.push_back(object);
+			}
+		}
 		//sort out values of both maps first
 		vector<double> all_dist;
 		for (auto it:trackmap){
@@ -517,11 +529,7 @@ namespace single_photon
 		//			cout<<"\n"<<endl;
 
 		candidates.GetDetectorObjects().AddShowers(use_showers);//load showers
-		if(more_objects && one_for_all) candidates.GetDetectorObjects().AddShowers(package.more_showers);//load more showers
 		candidates.GetDetectorObjects().AddTracks( use_tracks);//load tracks
-		cout<<"ADD TRACKS:"<<use_tracks.size()<<endl;
-		if(more_objects && one_for_all) candidates.GetDetectorObjects().AddTracks( package.more_tracks);//load more tracks
-		cout<<"ADD TRACKS:"<<package.more_tracks.size()<<endl;
 		vbuilder.Run(candidates);//here deals with the candidates_copy and find the vertex.
 
 		m_dist_tt = vbuilder.f_dist_tt;
@@ -592,35 +600,51 @@ namespace single_photon
 			std::vector <int> get_a_track_daughter_pdg;
 			std::vector <int> get_a_shower_daughter_pdg;
 
-			for(auto const & [a,b]:package.trackToMCParticleMap){
-				cout<<a->StartMomentum()<<" "<<b->TrackId()<<endl;
-			}
-			cout<<"CHECK GAPPP- ---"<<endl;
-			for(auto const & [a,b]:package.showerToMCParticleMap){
-				cout<<a->ID()<<" "<<b->TrackId()<<endl;
-			}
+//			for(auto const & [a,b]:package.trackToMCParticleMap){
+//				cout<<a->StartMomentum()<<" "<<b->TrackId()<<endl;
+//			}
+//
+//			for(auto const & [a,b]:package.showerToMCParticleMap){
+//				cout<<a->ID()<<" "<<b->TrackId()<<endl;
+//			}
 
 			for(size_t const n : particle_associated.GetObjectIndices()) {
 				int index;
 				art::Ptr<simb::MCParticle> temp_mcp;
+
+				m_bobbyvertexradius = particle_associated.GetGoodness();
+				//mark down the smallest radius;
+				if(m_bobbyvertexradius < min_bobbyvertexradius){
+					min_bobbyvertexradius = m_bobbyvertexradius;
+					min_index = temp_counter;
+				}
 
 				if(detos.GetRecoType(n) == detos.ftrack_reco_type) {//it is a track
 					cout<<"A track"<<endl;
 					++temp_num_tracks;
 					index = detos.GetTrackIndexFromObjectIndex(n);
 
-				cout<<"CHECK 0 "<<__LINE__<<"Do "<<use_tracks[index]->StartMomentum()<<endl;
-					temp_mcp = package.trackToMCParticleMap.find(use_tracks[index])->second;//CHECK THIS
-				cout<<"CHECK 0 "<<__LINE__<<endl;
-					get_a_track_daughter_pdg.push_back(temp_mcp->PdgCode());
+					if(package.trackToMCParticleMap.find(use_tracks[index])==package.trackToMCParticleMap.end()){
+						get_a_track_daughter_pdg.push_back(-999);
+						continue;
+					}else{ //Overlays!
+						temp_mcp = package.trackToMCParticleMap.find(use_tracks[index])->second;//CHECK THIS
+						get_a_track_daughter_pdg.push_back(temp_mcp->PdgCode());
+					}
+
 				}
 
 				if(detos.GetRecoType(n) == detos.fshower_reco_type) {//it is a shower
 					cout<<"A shower"<<endl;
 					++temp_num_showers;
 					index = detos.GetShowerIndexFromObjectIndex(n);
-					temp_mcp = package.showerToMCParticleMap.find(use_showers[index])->second;
-					get_a_shower_daughter_pdg.push_back(temp_mcp->PdgCode());
+					if(package.showerToMCParticleMap.find(use_showers[index])==package.showerToMCParticleMap.end()){
+						get_a_shower_daughter_pdg.push_back(-999);
+						continue;
+					}else { //Overlays!
+						temp_mcp = package.showerToMCParticleMap.find(use_showers[index])->second;
+						get_a_shower_daughter_pdg.push_back(temp_mcp->PdgCode());
+					}
 				}
 				//identify shower/track MCTruth info.
 				if(m_is_verbose)cout<<"CHECK PARTICLE PdgCode "<<temp_mcp->PdgCode()<<endl;
@@ -649,12 +673,6 @@ namespace single_photon
 						get_a_otherdaughter++;
 				}
 
-				m_bobbyvertexradius = particle_associated.GetGoodness();
-				//mark down the smallest radius;
-				if(m_bobbyvertexradius < min_bobbyvertexradius){
-					min_bobbyvertexradius = m_bobbyvertexradius;
-					min_index = temp_counter;
-				}
 				temp_counter++;
 			}
 			cout<<"Reconstruct a vertex with "<<endl;

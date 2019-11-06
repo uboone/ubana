@@ -394,6 +394,39 @@ namespace single_photon
 			}
 
 		}
+		 geoalgo::Point_t pvertex(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z);
+		//use object_container.trackToDistMap/showerToDistMap;
+		this->AnalyzeTracks(
+				object_container,
+				pvertex,
+				tracks,
+				object_container.trackToNuPFParticleMap,
+				pfParticleToSpacePointsMap,
+				object_container.MCParticleToTrackIdMap,//disabled
+				object_container.sliceIdToNuScoreMap,
+				object_container.PFPToClearCosmicMap,
+				object_container.PFPToSliceIdMap,
+				object_container.PFPToTrackScoreMap,
+				object_container.PFPToNuSliceMap,
+				pfParticleMap);
+
+		this->AnalyzeShowers(
+				object_container,
+				pvertex,
+				showers,
+				object_container.showerToNuPFParticleMap,
+				pfParticleToHitsMap, 
+				pfParticleToClustersMap, 
+				object_container.ClusterToHitsMap,
+				object_container.sliceIdToNuScoreMap, 
+				object_container.PFPToClearCosmicMap,
+				object_container.PFPToSliceIdMap, 
+				object_container.PFPToNuSliceMap, 
+				object_container.PFPToTrackScoreMap,
+				pfParticleMap,
+				object_container.PFParticlesToShowerReco3DMap); 
+
+		if(!m_is_data){
 
 		this->CollectMCParticles_v2(evt, object_container);
 //		this->CollectMCParticles(
@@ -441,39 +474,8 @@ namespace single_photon
 				object_container.PFPToClearCosmicMap,
 				object_container.PFPToSliceIdMap,
 				trk_overlay_vec);
+		}
 		//-------------------------------
-		 geoalgo::Point_t pvertex(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z);
-		//use object_container.trackToDistMap/showerToDistMap;
-		this->AnalyzeTracks(
-				object_container,
-				pvertex,
-				tracks,
-				object_container.trackToNuPFParticleMap,
-				pfParticleToSpacePointsMap,
-				object_container.MCParticleToTrackIdMap,//disabled
-				object_container.sliceIdToNuScoreMap,
-				object_container.PFPToClearCosmicMap,
-				object_container.PFPToSliceIdMap,
-				object_container.PFPToTrackScoreMap,
-				object_container.PFPToNuSliceMap,
-				pfParticleMap);
-
-		this->AnalyzeShowers(
-				object_container,
-				pvertex,
-				showers,
-				object_container.showerToNuPFParticleMap,
-				pfParticleToHitsMap, 
-				pfParticleToClustersMap, 
-				object_container.ClusterToHitsMap,
-				object_container.sliceIdToNuScoreMap, 
-				object_container.PFPToClearCosmicMap,
-				object_container.PFPToSliceIdMap, 
-				object_container.PFPToNuSliceMap, 
-				object_container.PFPToTrackScoreMap,
-				pfParticleMap,
-				object_container.PFParticlesToShowerReco3DMap); 
-
 
 
 		//---------- VertexBuilder--------------
