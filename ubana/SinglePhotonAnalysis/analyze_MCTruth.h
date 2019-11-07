@@ -302,7 +302,6 @@ namespace single_photon
                                 m_mctruth_exiting_photon_mother_trackID.push_back(par.Mother());
                                 m_mctruth_exiting_photon_trackID.push_back(par.TrackId());
                                 m_mctruth_exiting_photon_energy.push_back(par.E());
-
                             }
                          if(m_is_verbose)   std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Photon "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and photon energy "<<par.E()<<std::endl;
 
@@ -585,7 +584,9 @@ namespace single_photon
                         std::cout<<"Post2 "<<dd->PdgCode()<<" "<<dd->TrackId()<<" "<<dd->StatusCode()<<" "<<dd->EndProcess()<<" "<<dd->E()<<std::endl;
                 }
                 
+                std::cout<<"ISIN: "<<corrected_1_end[0]<<" "<<corrected_1_end[1]<<" "<<corrected_1_end[2]<<std::endl;
                 int exit1 = this->isInTPCActive(corrected_1_end);
+                std::cout<<"RES: "<<exit1<<std::endl; 
                 int exit2 = this->isInTPCActive(corrected_2_end);
 
                 if(e2<e1){

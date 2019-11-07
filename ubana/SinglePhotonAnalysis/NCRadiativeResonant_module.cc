@@ -177,7 +177,7 @@ bool NCRadiativeResonant::filter(art::Event & e) {
     std::vector<size_t> in_nucleus_photons;
     for(size_t const s : exiting_photon_parents) {
       simb::MCParticle const & mcp = mct.GetParticle(s);
-      if(abs(mcp.PdgCode()) != 2114 && abs(mcp.PdgCode()) != 2214) {
+      if(abs(mcp.PdgCode()) != 2114 && abs(mcp.PdgCode()) != 2214 ) {
 	if(ftree) FillTree(e, i, mcp.PdgCode(), true);
     std::cout<<"YES: "<<mcp.PdgCode()<<std::endl;
 	return true;

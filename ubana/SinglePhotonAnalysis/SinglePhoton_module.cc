@@ -59,7 +59,6 @@ namespace single_photon
         m_backtrackerLabel = pset.get<std::string>("BackTrackerModule","gaushitTruthMatch");
         m_hitMCParticleAssnsLabel = pset.get<std::string>("HitMCParticleAssnLabel","gaushitTruthMatch");
 
-
         m_CRTTzeroLabel = pset.get<std::string>("CRTTzeroLabel","crttzero");
         m_CRTVetoLabel = pset.get<std::string>("CRTVetoLabel","crtveto");
         m_runCRT = pset.get<bool>("runCRT",false);
@@ -95,7 +94,7 @@ namespace single_photon
         m_tpc_active_x_low = 0.0;
         m_tpc_active_x_high = 256.35;
         m_tpc_active_y_low = -116.5;
-        m_tpc_active_y_high = -116.5;
+        m_tpc_active_y_high = 116.5;
         m_tpc_active_z_low = 0.0;
         m_tpc_active_z_high = 1036.8;
 
@@ -344,9 +343,10 @@ namespace single_photon
         //OK Here we build two IMPORTANT maps for the analysis, (a) given a PFParticle get a vector of hits..
         //and (b) given a single hit, get the PFParticle it is in (MARK: is it only one? always? RE-MARK: Yes)
         std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Hit>> > pfParticleToHitsMap;
-        //        std::map<art::Ptr<recob::Hit>, art::Ptr<recob::PFParticle>>                hitToPFParticleMap;
+        //std::map<art::Ptr<recob::Hit>, art::Ptr<recob::PFParticle>>                hitToPFParticleMap;
         //Using a pandora helper here, but to be honest we should probably just build using normal associations so keep independant if pssoble
-        // lar_pandora::LArPandoraHelper::BuildPFParticleHitMaps(evt, m_pandoraLabel, pfParticleToHitsMap, hitToPFParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
+        //lar_pandora::LArPandoraHelper::BuildPFParticleHitMaps(evt, m_pandoraLabel, pfParticleToHitsMap, hitToPFParticleMap, lar_pandora::LArPandoraHelper::kAddDaughters);
+
 
         //use pfp->cluster and cluster->hit to build pfp->hit map
         //for each PFP
@@ -457,8 +457,6 @@ namespace single_photon
 
             if(m_is_verbose) std::cout<<"SinglePhoton::analyze() \t||\t Get Tracks and Showers"<<std::endl;
             this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
-
-
 
             //Track Calorimetry
             art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
@@ -1616,8 +1614,12 @@ namespace single_photon
         }
 
         int SinglePhoton::isInTPCActive(std::vector<double> & vec){
+            
+            bool is_x = (vec[0] > m_tpc_active_x_low && vec[0]< m_tpc_active_x_high );
 
-            return (vec[0]<m_tpc_active_x_low || vec[0]>m_tpc_active_x_high || vec[1]<m_tpc_active_y_low || vec[1]>m_tpc_active_y_high || vec[2]< m_tpc_active_z_low || vec[2]>m_tpc_active_z_high  );
+            bool is_y = (vec[1] > m_tpc_active_y_low && vec[1]< m_tpc_active_y_high);
+            bool is_z = (vec[2] > m_tpc_active_z_low && vec[2]<m_tpc_active_z_high );
+            return ( (is_x && is_y && is_z) ? 1 : 0  );
 
         }
 
