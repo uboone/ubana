@@ -277,10 +277,9 @@ treereader_eventweight: {
     genie_DISAth, genie_DISBth, genie_DISCv1u, genie_DISCv2u,
     genie_AGKYxF, genie_AGKYpT,
     genie_FormZone,
-    genie_FermiGasModelKf, genie_FermiGasModelSf,
     genie_IntraNukeNmfp, genie_IntraNukeNcex,
     genie_IntraNukeNinel, genie_IntraNukeNabs, genie_IntraNukeNpi,
-    genie_IntraNukePImfp, genie_IntraNukePIcex,
+    genie_IntraNukePImfp, genie_IntraNukePIcex,  
     genie_IntraNukePIinel, genie_IntraNukePIabs, genie_IntraNukePIpi
   ]
  
@@ -337,7 +336,7 @@ treereader_eventweight: {
     parameter_list: ["NCResAxial"]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 100
+    number_of_multisims: 400
   }
 
   genie_ncresVector: {
@@ -538,6 +537,15 @@ treereader_eventweight: {
     number_of_multisims: 10
   } 
 
+   genie_IntraNukeNel: {
+    type: Genie
+    random_seed: 44
+    parameter_list: ["IntraNukeNel"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  } 
+
 
 
   genie_IntraNukeNinel: {
@@ -585,6 +593,16 @@ treereader_eventweight: {
     number_of_multisims: 10
   }
 
+   genie_IntraNukePIel: {
+    type: Genie
+    random_seed: 50
+    parameter_list: ["IntraNukePIel"]
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 10
+  }
+
+
   genie_IntraNukePIinel: {
     type: Genie
     random_seed: 51
@@ -592,7 +610,7 @@ treereader_eventweight: {
     parameter_sigma: [ 1 ]
     mode: multisim
     number_of_multisims: 10
-  }.fcl
+  }
 
   
     genie_IntraNukePIabs: {
@@ -614,26 +632,38 @@ treereader_eventweight: {
   }
  
   # Single function to reweight all GENIE parameters at once
+  #number_params=32
   genie_all: {
     type: Genie
-    random_seed: 100
+    random_seed: 258
     parameter_list: [
-      "QEMA", "NCELaxial", "NCELeta", "CCResAxial", "CCResVector",
-      "NCResAxial", "NCResVector", "CohMA", "CohR0",
-      "NonResRvp1pi", "NonResRvbarp1pi", "NonResRvp2pi", "NonResRvbarp2pi",
-      "ResDecayGamma", "ResDecayTheta", "NC",
-      "DISAth", "DISBth", "DISCv1u", "DISCv2u", "AGKYxF", "AGKYpT",
-      "FormZone", "FermiGasModelKf",
-      "IntraNukeNmfp", "IntraNukeNcex", "IntraNukeNinel",
-      "IntraNukeNabs", "IntraNukeNpi", "IntraNukePImfp", "IntraNukePIcex",
-      "IntraNukePIinel", "IntraNukePIpi"
+    "NCELaxial",
+    "CCResAxial", "CCResVector",
+    "NCResAxial", "NCResVector",
+      "CohMA", "CohR0",
+      "NonResRvp1pi", "NonResRvbarp1pi",
+      "NonResRvp2pi", "NonResRvbarp2pi",
+      "ResDecayGamma", "ResDecayEta","ResDecayTheta", 
+      "NC",
+      "DISAth", "DISBth", "DISCv1u", "DISCv2u", 
+      "AGKYxF", "AGKYpT",
+      "FormZone",
+      "IntraNukeNmfp", "IntraNukeNcex", 
+      "IntraNukeNinel", "IntraNukeNabs", "IntraNukeNpi", 
+      "IntraNukePImfp", "IntraNukePIcex",
+      "IntraNukePIinel", "IntraNukePIabs", "IntraNukePIpi"
     ]
     parameter_sigma: [
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+      1, 1 ,1, 1, 1, 
+      1, 1, 1, 1, 1, 
+      1, 1, 1, 1, 1, 
+      1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 
+      1, 1, 1, 1, 1, 
+      1, 1
     ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 100
   }
 }
  
@@ -642,7 +672,7 @@ treereader_eventweight: {
 ##########################################################
 
 treereader_eventweight.weight_functions: [
-  @sequence::treereader_eventweight.weight_functions_beam,
+ @sequence::treereader_eventweight.weight_functions_beam,
   @sequence::treereader_eventweight.weight_functions_genie
 ]
  
