@@ -427,6 +427,8 @@ namespace single_photon
         vertex_tree->Branch("sim_track_startx",&m_sim_track_startx);
         vertex_tree->Branch("sim_track_starty",&m_sim_track_starty);
         vertex_tree->Branch("sim_track_startz",&m_sim_track_startz);
+        vertex_tree->Branch("sim_track_trackID",&m_sim_track_trackID);
+
 
         vertex_tree->Branch("sim_track_sliceId",& m_sim_track_sliceId);
         vertex_tree->Branch("sim_track_nuscore",& m_sim_track_nuscore);
