@@ -716,6 +716,7 @@ namespace single_photon
 			bool first_time = true;
 			int temp_sliceid = 0;
 
+
 			std::vector <int> get_a_track_daughter_pdg;
 			std::vector <int> get_a_shower_daughter_pdg;
 			bool find_MC = true;
