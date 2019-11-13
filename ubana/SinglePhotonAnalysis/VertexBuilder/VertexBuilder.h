@@ -498,7 +498,7 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 
 	std::vector<ParticleAssociation> const & associations = pas.GetAssociations();//Load vertex candidates, that contains vertices, radius of the vertex (bounding phere)
 
-	while(shower_map.size()) {
+	while(shower_map.size()>0) {
 		if(fverbose) {
 			std::cout << "STEP I: Load " << shower_map.size() << " showers for evaluation.\n\n";
 

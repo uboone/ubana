@@ -566,7 +566,7 @@ void ParticleAssociations_all::GetShowerAssociations() {
 	std::multimap<double, size_t> pa_map;//Partical Association Map; it maps vertex index to the vertex's z-coordinate respectiely.
 
 
-  if(fverbose) {
+  if(fverbose&&fassociations.size()>0) {
 	  std::cout << "Number of particle associations (candidate vertices): " << fassociations.size() << "\n\n";
 
 		//Print the title
@@ -621,8 +621,11 @@ void ParticleAssociations_all::GetShowerAssociations() {
 
 	}
 //	return;//skip the following part? Keng CHECK!
-	if(fverbose){ std::cout << "\nNumber of vertices to be examinated: "<<pa_map.size()<<endl;
-	cout<<"Keep all vertices (that with shower) for now."<<endl;
+	if(fverbose){ 
+		cout<<"SinglePhoton::BobbyVertexBuilder() \t||\t "<<endl;
+		std::cout << "\nNumber of vertices to be examinated: "<<pa_map.size()<<endl;
+		cout<<"SinglePhoton::BobbyVertexBuilder() \t||\t "<<endl;
+		cout<<"Keep all vertices (that with shower) for now."<<endl;
 	}
 
 	for(std::pair<double, size_t> const & p : pa_map) {

@@ -533,8 +533,10 @@ namespace single_photon
             const art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap[shower];
             art::Ptr<recob::Shower> shower3d;
             if(PFPtoShowerReco3DMap.count(pfp) == 0){
+				if(false){//Keng, CHECK, has turn this off.
                 std::cout<<"SHOWER_3D : <<ERROR!! No shower3d in map for this pfp"<<std::endl;
                 std::cout<<"Reverting to normal recob::Shower"<<std::endl;
+				}
                 m_reco_shower3d_exists[i_shr] = 0;
                 shower3d = shower;
             }else{

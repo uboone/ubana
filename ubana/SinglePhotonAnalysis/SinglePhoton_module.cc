@@ -396,6 +396,7 @@ namespace single_photon
 		}
 		 geoalgo::Point_t pvertex(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z);
 		//use object_container.trackToDistMap/showerToDistMap;
+		m_is_verbose = false;
 		this->AnalyzeTracks(
 				object_container,
 				pvertex,
@@ -425,6 +426,7 @@ namespace single_photon
 				object_container.PFPToTrackScoreMap,
 				pfParticleMap,
 				object_container.PFParticlesToShowerReco3DMap); 
+		m_is_verbose = true;
 
 		if(!m_is_data){
 
@@ -481,7 +483,7 @@ namespace single_photon
 		//---------- VertexBuilder--------------
 		//use the new the new class for variables and vertexing.
 		//		ParticleAssociations_all const & bobby_particle_associations = BobbyVertexBuilder_ext(object_container, m_bobbyvertexing_more );
-		BobbyVertexBuilder_ext(object_container, m_bobbyvertexing_more );
+		BobbyVertexBuilder(object_container, m_bobbyvertexing_more );
 		//introduce a for loop for all particle associations identified by Bobby's VertexBuilder
 
 /*CHECK
@@ -1056,6 +1058,7 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		vertex_tree->Branch("reco_bobbyvertexradiusv", &m_bobbyvertexradiusv);
 		vertex_tree->Branch("reco_bobbyvertexradius", &m_bobbyvertexradius);
 		//MCTruth Matrching;
+		vertex_tree->Branch("mctruth_bobbysameslicev", &m_bobbysameslicev);
 		vertex_tree->Branch("mctruth_bobbyprotontrackv", &m_bobbyprotontrackv);
 		vertex_tree->Branch("mctruth_bobbyphotonshowerv", &m_bobbyphotonshowerv);
 		vertex_tree->Branch("mctruth_bobbypi0daughterv", &m_bobbypi0daughterv);
@@ -1186,6 +1189,8 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		m_bobbyvertex_pos_xv={-9999};
 		m_bobbyvertex_pos_yv={-9999};
 		m_bobbyvertex_pos_zv={-9999};
+
+		m_bobbysameslicev = {true};
         m_bobbyshowersv = {0};
         m_bobbytracksv = {0};
 		m_bobbyprotontrackv = {0};

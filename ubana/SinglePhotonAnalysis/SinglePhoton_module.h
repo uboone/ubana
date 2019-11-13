@@ -838,6 +838,7 @@ namespace single_photon
 		int m_bobbydeltaraddaughter;
 		int m_bobbyotherdaughter;
 		int m_bobbyprotontrack;
+		std::vector<bool> m_bobbysameslicev;
 		std::vector<int> m_bobbyphotonshowerv;
 		std::vector<int> m_bobbypi0daughterv;
 		std::vector<int> m_bobbydeltaraddaughterv;
@@ -854,7 +855,7 @@ namespace single_photon
 		vector <double> m_dist_st;//shower&track, cpoa_vert_prox
 		vector <double> m_dist_sst;//shower&shower&track, cpoa_trackend_prox
 
-		void BobbyVertexBuilder_ext(class Atlas &package, bool more_objects);
+		void BobbyVertexBuilder(class Atlas &package, bool more_objects);
 		//---------------------------------------------------
 
 		//added eventweight
