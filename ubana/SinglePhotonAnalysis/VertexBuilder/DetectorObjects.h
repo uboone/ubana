@@ -71,9 +71,9 @@ class DetectorObjects_all {
   std::map<size_t, DetectorObject *> fobject_m;//index , DetectorObject
   std::vector<size_t> ftrack_index_v;
   std::vector<size_t> fshower_index_v;
-  size_t fobject_id;
+  size_t fobject_id;//global index of input objects, combined with tracks and showers, i.e. {tracks,showers}
 
-  std::map<size_t, size_t> foriginal_track_index_m;
+  std::map<size_t, size_t> foriginal_track_index_m;//first is index for {tracks}, second is for the mix from {tracks,showers}
   std::map<size_t, size_t> foriginal_shower_index_m;
 
 public:
@@ -89,8 +89,8 @@ public:
 
 //  void AddTracks(art::ValidHandle<std::vector<recob::Track>> const & ev_t, bool const track_original_indices = false);
 //  void AddShowers(art::ValidHandle<std::vector<recob::Shower>> const & ev_s, bool const track_original_indices = false);
-  void AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t, bool const track_original_indices = false);
-  void AddShowers(std::vector<art::Ptr<recob::Shower>> const & ev_s, bool const track_original_indices = false);
+  void AddTracks(std::vector<art::Ptr<recob::Track>> const & ev_t, bool const track_original_indices = true);
+  void AddShowers(std::vector<art::Ptr<recob::Shower>> const & ev_s, bool const track_original_indices = true);
 
   void SetAssociated(size_t const i);
   

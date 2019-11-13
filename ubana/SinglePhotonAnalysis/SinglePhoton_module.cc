@@ -1062,8 +1062,12 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		vertex_tree->Branch("mctruth_bobbyprotontrackv", &m_bobbyprotontrackv);
 		vertex_tree->Branch("mctruth_bobbyphotonshowerv", &m_bobbyphotonshowerv);
 		vertex_tree->Branch("mctruth_bobbypi0daughterv", &m_bobbypi0daughterv);
-		vertex_tree->Branch("mctruth_bobbydeltaraddaughterv", &m_bobbydeltaraddaughterv);
+		vertex_tree->Branch("mctruth_bobbydeltaradppdaughterv", &m_bobbydeltaradppdaughterv);
+		vertex_tree->Branch("mctruth_bobbydeltaradmdaughterv", &m_bobbydeltaradmdaughterv);
+		vertex_tree->Branch("mctruth_bobbydeltaradpdaughterv", &m_bobbydeltaradpdaughterv);
+		vertex_tree->Branch("mctruth_bobbydeltarad0daughterv", &m_bobbydeltarad0daughterv);
 		vertex_tree->Branch("mctruth_bobbyotherdaughterv", &m_bobbyotherdaughterv);
+		vertex_tree->Branch("mctruth_bobbyoverlayv", &m_bobbyoverlayv);
 //		vertex_tree->Branch("mctruth_bobbytrackdaughter_pdg", & m_bobbytrackdaughter_pdg);
 //		vertex_tree->Branch("mctruth_bobbyshowerdaughter_pdg", & m_bobbyshowerdaughter_pdg);
 
@@ -1071,7 +1075,11 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		vertex_tree->Branch("mctruth_bobbyphotonshower", &m_bobbyphotonshower);
 		vertex_tree->Branch("mctruth_bobbypi0daughter", &m_bobbypi0daughter);
 		vertex_tree->Branch("mctruth_bobbyotherdaughter", &m_bobbyotherdaughter);
-		vertex_tree->Branch("mctruth_bobbydeltaraddaughter", &m_bobbydeltaraddaughter);
+		vertex_tree->Branch("mctruth_bobbyoverlay", &m_bobbyoverlay);
+		vertex_tree->Branch("mctruth_bobbydeltaradppdaughter", &m_bobbydeltaradppdaughter);
+		vertex_tree->Branch("mctruth_bobbydeltaradpdaughter", &m_bobbydeltaradpdaughter);
+		vertex_tree->Branch("mctruth_bobbydeltaradmdaughter", &m_bobbydeltaradmdaughter);
+		vertex_tree->Branch("mctruth_bobbydeltarad0daughter", &m_bobbydeltarad0daughter);
 
 		vertex_tree->Branch("parameter_dist_tt",&m_dist_tt);
 		vertex_tree->Branch("parameter_dist_sx",&m_dist_sx);
@@ -1196,8 +1204,12 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		m_bobbyprotontrackv = {0};
 		m_bobbyphotonshowerv = {0};
 		m_bobbypi0daughterv = {0};
-		m_bobbydeltaraddaughterv = {0};
+		m_bobbydeltaradppdaughterv = {0};
+		m_bobbydeltaradmdaughterv = {0};
+		m_bobbydeltaradpdaughterv = {0};
+		m_bobbydeltarad0daughterv = {0};
 		m_bobbyotherdaughterv = {0};
+		m_bobbyoverlayv = {0};
 		m_bobbytrackdaughter_pdg = {-999};
 		m_bobbyshowerdaughter_pdg = {-999};
 
@@ -1205,7 +1217,11 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 		m_bobbyphotonshower = 0;
 		m_bobbypi0daughter = 0;
 		m_bobbyotherdaughter = 0;
-		m_bobbydeltaraddaughter = 0;
+		m_bobbyoverlay = 0;
+		m_bobbydeltaradppdaughter = 0;
+		m_bobbydeltaradmdaughter = 0;
+		m_bobbydeltaradpdaughter = 0;
+		m_bobbydeltarad0daughter = 0;
 		m_dist_tt = {999};
 		m_dist_sx = {999};
 		m_dist_st = {999};

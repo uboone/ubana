@@ -835,14 +835,22 @@ namespace single_photon
 
 		int m_bobbyphotonshower;
 		int m_bobbypi0daughter;
-		int m_bobbydeltaraddaughter;
+		int m_bobbydeltaradppdaughter;
+		int m_bobbydeltaradmdaughter;
+		int m_bobbydeltaradpdaughter;
+		int m_bobbydeltarad0daughter;
 		int m_bobbyotherdaughter;
+		int m_bobbyoverlay;
 		int m_bobbyprotontrack;
 		std::vector<bool> m_bobbysameslicev;
 		std::vector<int> m_bobbyphotonshowerv;
 		std::vector<int> m_bobbypi0daughterv;
-		std::vector<int> m_bobbydeltaraddaughterv;
+		std::vector<int> m_bobbydeltaradppdaughterv;
+		std::vector<int> m_bobbydeltaradpdaughterv;
+		std::vector<int> m_bobbydeltaradmdaughterv;
+		std::vector<int> m_bobbydeltarad0daughterv;
 		std::vector<int> m_bobbyotherdaughterv;
+		std::vector<int> m_bobbyoverlayv;
 		std::vector<int> m_bobbyprotontrackv;
 		std::vector<int> m_bobbytrackdaughter_pdg;
 		std::vector<int> m_bobbyshowerdaughter_pdg;

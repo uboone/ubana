@@ -184,10 +184,9 @@ namespace single_photon
 
 			while(false){//true, search for ancestor; false, not search for ancestor by tracing all the way up
 				int mothersId = temp_mc->Mother();
-				//				if(debug_message && mothersId == 0 && temp_mc == particle){
-				//				}
+
+				package.AncestorToPdgMap[particle] = temp_mc->PdgCode();
 				if(mothersId == 0){
-					package.AncestorToPdgMap[particle] = temp_mc->PdgCode();//default ancestor pdg is -999, which means nothing;
 					if(temp_mc==particle){//this is the first generation of particle from geant
 						num_of_mothers++;
 						if(debug_message){ 
@@ -210,7 +209,7 @@ namespace single_photon
 				}
 			}
 
-				package.MCParticleToAncestorMap.emplace(particle,temp_mc);
+			package.MCParticleToAncestorMap.emplace(particle,temp_mc);
 
 		}
 		//				if(mothersId == 0 && temp_mc == particle){
@@ -356,7 +355,7 @@ namespace single_photon
 		}
 
 		if(debug_message){
-			cout<<"Take a look at the AncestorMap"<<endl;
+			cout<<"Take a look at the AncestorMap size:"<<package.AncestorToPdgMap.size()<<endl;
 			for(int i = 0; i<screen_width; i++) 
 				cout<<"-";
 			cout<<endl;
@@ -377,10 +376,10 @@ namespace single_photon
 
 			package.AncestorToPdgMap[this_mcp] = ancestor_pdg;
 			if(debug_message){
-			cout<<setw(10)<<this_mcp->TrackId();
-			cout<<" "<<setw(12)<<left<<this_mcp->PdgCode()<<" |";
-			cout<<setw(15)<<mother_mcp->TrackId();
-			cout<<" "<<setw(5)<<left<<this_iterator.second<<endl;
+				cout<<setw(10)<<this_mcp->TrackId();
+				cout<<" "<<setw(12)<<left<<this_mcp->PdgCode()<<" |";
+				cout<<setw(15)<<mother_mcp->TrackId();
+				cout<<" "<<setw(5)<<left<<this_iterator.second<<endl;
 			}
 		}
 		if(debug_message){
@@ -633,8 +632,12 @@ namespace single_photon
 		std::vector<double> tem_bobbyvertex_pos_zv;
 		std::vector<int> 	tem_bobbyphotonshowerv;
 		std::vector<int> 	tem_bobbypi0daughterv;
-		std::vector<int> 	tem_bobbydeltaraddaughterv;
+		std::vector<int> 	tem_bobbydeltaradppdaughterv;
+		std::vector<int> 	tem_bobbydeltaradmdaughterv;
+		std::vector<int> 	tem_bobbydeltaradpdaughterv;
+		std::vector<int> 	tem_bobbydeltarad0daughterv;
 		std::vector<int> 	tem_bobbyotherdaughterv;
+		std::vector<int> 	tem_bobbyoverlayv;
 		std::vector<int> 	tem_bobbyprotontrackv;
 		std::vector<bool>	tem_same_slicev;
 
@@ -671,8 +674,12 @@ namespace single_photon
 				m_bobbyprotontrackv.clear();
 				m_bobbyphotonshowerv.clear();
 				m_bobbypi0daughterv.clear();
-				m_bobbydeltaraddaughterv.clear();
+				m_bobbydeltaradppdaughterv.clear();
+				m_bobbydeltaradmdaughterv.clear();
+				m_bobbydeltaradpdaughterv.clear();
+				m_bobbydeltarad0daughterv.clear();
 				m_bobbyotherdaughterv.clear();
+				m_bobbyoverlayv.clear();
 				m_bobbyvertexradiusv.clear();
 				m_bobbytrackdaughter_pdg.clear();
 				m_bobbyshowerdaughter_pdg.clear();
@@ -699,8 +706,12 @@ namespace single_photon
 			int get_a_proton = 0;
 			int get_a_photon = 0;
 			int get_a_pi0daughter = 0;
-			int get_a_deltaraddaughter = 0;
+			int get_a_deltaradppdaughter = 0;
+			int get_a_deltaradmdaughter = 0;
+			int get_a_deltaradpdaughter = 0;
+			int get_a_deltarad0daughter = 0;
 			int get_a_otherdaughter = 0;
+			int get_a_overlay = 0;
 			bool same_slice = true;
 			bool first_time = true;
 			int temp_sliceid = 0;
@@ -721,9 +732,9 @@ namespace single_photon
 				}
 
 				if(detos.GetRecoType(n) == detos.ftrack_reco_type) {//it is a track
-					if(debug_message)cout<<"A track ";
 					++temp_num_tracks;
 					index = detos.GetTrackIndexFromObjectIndex(n);
+					if(debug_message)cout<<"A track "<< n <<" feed-in order "<<index;
 					//---same slice check---
 					art::Ptr<recob::PFParticle> tempp = package.trackToNuPFParticleMap.find(use_tracks[index])->second;	
 					for(auto const &[a,b]:package.sliceIDToPFParticlesMap){
@@ -745,6 +756,7 @@ namespace single_photon
 						//Overlays!
 						get_a_track_daughter_pdg.push_back(-999);
 						if(debug_message) cout<<" No match to any MCParticles."<<endl;
+						get_a_overlay++;
 						find_MC = false;
 						continue;
 					}else{ 
@@ -754,10 +766,10 @@ namespace single_photon
 				}
 
 				if(detos.GetRecoType(n) == detos.fshower_reco_type) {//it is a shower
-					if(debug_message) cout<<"A shower ";
 
 					++temp_num_showers;
 					index = detos.GetShowerIndexFromObjectIndex(n);
+					if(debug_message) cout<<"A shower index "<< n <<" feed-in order "<<index;
 					//--------- same slice check --------
 					art::Ptr<recob::PFParticle> tempp = package.showerToNuPFParticleMap.find(use_showers[index])->second;	
 					for(auto const &[a,b]:package.sliceIDToPFParticlesMap){
@@ -778,6 +790,7 @@ namespace single_photon
 						//Overlays!
 						get_a_shower_daughter_pdg.push_back(-999);
 						if(debug_message) cout<<" No match to any MCParticles."<<endl;
+						get_a_overlay++;
 						find_MC = false;
 						continue;
 					}else { 
@@ -786,7 +799,7 @@ namespace single_photon
 					}
 				}
 				//identify shower/track MCTruth info.
-				if(debug_message) cout<<" PdgCode "<<temp_mcp->PdgCode()<<endl;
+				if(debug_message) cout<<" TrackId "<<temp_mcp->TrackId()<<" PdgCode "<<temp_mcp->PdgCode();
 				switch (temp_mcp->PdgCode()){
 					case 2212:
 						get_a_proton++;
@@ -798,27 +811,41 @@ namespace single_photon
 						break;
 				}
 				//identify the ancestor!
+				if(debug_message) cout<<" Ancestor PdgCode "<<package.AncestorToPdgMap.find(temp_mcp)->second;
 				switch( package.AncestorToPdgMap.find(temp_mcp)->second){
-					case 2214:
-					case 2114:
-						if(debug_message) cout<<"It is from delta";
-						get_a_deltaraddaughter++;
+				//second+ generation MCParticles lose connection to the ancestor, because I didnt trace all the way up in the AncestorToPdgMap;
+					case 2224://delta++
+						if(debug_message) cout<<" from delta++"<<endl;
+						get_a_deltaradppdaughter++;
+						break;
+					case 1114://delta- (not likely)
+						if(debug_message) cout<<" from delta-"<<endl;
+						get_a_deltaradmdaughter++;
+						break;
+					case 2214://delta+
+						if(debug_message) cout<<" from delta+"<<endl;
+						get_a_deltaradpdaughter++;
+						break;
+					case 2114://delta0
+						if(debug_message) cout<<" from delta0"<<endl;
+						get_a_deltarad0daughter++;
 						break;
 					case 111:
-						if(debug_message) cout<<"It is from pi0";
+						if(debug_message) cout<<" from pi0"<<endl;
 						get_a_pi0daughter++;
 						break;
 					default:
 						get_a_otherdaughter++;
+						if(debug_message) cout<<" from other"<<endl;
 						break;
 				}
 
 				temp_counter++;
 			}
-			if(find_MC&debug_message) cout<<"MC is found!CEHCK"<<endl;
+			if(find_MC&debug_message) cout<<" All MC, no overlays!"<<endl;
 			if(fverbose){
 				std::cout<<"SinglePhoton::BobbyVertexBuilder() \t||\t";
-				cout<<"Reconstruct a vertex with ";
+				cout<<"Summary: reconstruct a vertex with ";
 				cout<<temp_num_showers<<" showers, ";
 				cout<<temp_num_tracks<<" tracks. Vertex radius ";
 				cout<<min_bobbyvertexradius;
@@ -826,9 +853,9 @@ namespace single_photon
 
 			if(debug_message){
 				if(same_slice){
-					cout<<"In the same Slice"<<endl;
+					cout<<" In the same Slice"<<endl;
 				}else{
-					cout<<"Not in the same Slice"<<endl;
+					cout<<" Not in the same Slice"<<endl;
 				}
 			}
 			tem_same_slicev.push_back(same_slice);
@@ -838,8 +865,12 @@ namespace single_photon
 			tem_bobbyprotontrackv.push_back(get_a_proton);
 			tem_bobbyphotonshowerv.push_back(get_a_photon);
 			tem_bobbypi0daughterv.push_back(get_a_pi0daughter);
-			tem_bobbydeltaraddaughterv.push_back(get_a_deltaraddaughter);
+			tem_bobbydeltaradppdaughterv.push_back(get_a_deltaradppdaughter);
+			tem_bobbydeltaradmdaughterv.push_back(get_a_deltaradmdaughter);
+			tem_bobbydeltaradpdaughterv.push_back(get_a_deltaradpdaughter);
+			tem_bobbydeltarad0daughterv.push_back(get_a_deltarad0daughter);
 			tem_bobbyotherdaughterv.push_back(get_a_otherdaughter);
+			tem_bobbyoverlayv.push_back(get_a_overlay);
 			//	CHECK, need to figure out how to push vector into a vector<vector>
 			//			tem_track_daughter_pdgv.push_back(get_a_track_daughter_pdg);
 			tem_shower_daughter_pdgv.push_back(get_a_shower_daughter_pdg);
@@ -856,8 +887,12 @@ namespace single_photon
 		m_bobbyprotontrackv  = tem_bobbyprotontrackv;
 		m_bobbyphotonshowerv = tem_bobbyphotonshowerv;
 		m_bobbypi0daughterv  = tem_bobbypi0daughterv;
-		m_bobbydeltaraddaughterv  = tem_bobbydeltaraddaughterv;
+		m_bobbydeltaradppdaughterv  = tem_bobbydeltaradppdaughterv;
+		m_bobbydeltaradmdaughterv  = tem_bobbydeltaradmdaughterv;
+		m_bobbydeltaradpdaughterv  = tem_bobbydeltaradpdaughterv;
+		m_bobbydeltarad0daughterv  = tem_bobbydeltarad0daughterv;
 		m_bobbyotherdaughterv  = tem_bobbyotherdaughterv;
+		m_bobbyoverlayv  = tem_bobbyoverlayv;
 		m_bobbytracksv = tem_bobbytracksv;
 		m_bobbyshowersv= tem_bobbyshowersv;
 
@@ -876,8 +911,12 @@ namespace single_photon
 			m_bobbyshowers = m_bobbyshowersv[min_index];
 			m_bobbyphotonshower = m_bobbyphotonshowerv[min_index];
 			m_bobbypi0daughter = m_bobbypi0daughterv[min_index];
-			m_bobbydeltaraddaughter = m_bobbydeltaraddaughterv[min_index];
+			m_bobbydeltaradppdaughter = m_bobbydeltaradppdaughterv[min_index];
+			m_bobbydeltaradmdaughter = m_bobbydeltaradmdaughterv[min_index];
+			m_bobbydeltaradpdaughter = m_bobbydeltaradpdaughterv[min_index];
+			m_bobbydeltarad0daughter = m_bobbydeltarad0daughterv[min_index];
 			m_bobbyotherdaughter = m_bobbyotherdaughterv[min_index];
+			m_bobbyoverlay = m_bobbyoverlayv[min_index];
 			m_bobbyprotontrack = m_bobbyprotontrackv[min_index];
 			//				m_bobbytrackdaughter_pdg = tem_track_daughter_pdgv[min_index];
 			//				m_bobbyshowerdaughter_pdg = tem_shower_daughter_pdgv[min_index];

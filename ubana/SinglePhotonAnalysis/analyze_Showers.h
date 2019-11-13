@@ -660,7 +660,7 @@ namespace single_photon
 
             std::cout<<"SHOWER3D_ENERGY: best plane: "<<shr3d_bestplane<<std::endl;
             for(auto &en:shr3d_energy){
-                std::cout<<en<<" ";
+if(false)               std::cout<<en<<" ";
             }
             if(shr3d_energy.size()==3){
                 m_reco_shower3d_energy_plane0[i_shr] = shr3d_energy[0];
@@ -672,11 +672,11 @@ namespace single_photon
                 m_reco_shower3d_energy_plane2[i_shr] =-999;
             }
 
-            std::cout<<std::endl<<"SHOWER3D_DEDX: "<<std::endl;
+ if(false)           std::cout<<std::endl<<"SHOWER3D_DEDX: "<<std::endl;
             for(auto &dedx: shr3d_dEdx){
-                std::cout<<dedx<<" ";
+ if(false)               std::cout<<dedx<<" ";
             }
-            std::cout<<std::endl;
+
             if(shr3d_dEdx.size()==3){
                 m_reco_shower3d_dEdx_plane0[i_shr] = shr3d_dEdx[0];
                 m_reco_shower3d_dEdx_plane1[i_shr] = shr3d_dEdx[1];
@@ -924,9 +924,6 @@ namespace single_photon
             }
 
             if ( m_reco_shower_sliceId[i_shr] >0) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<". Pfp id = "<< pfp->Self()<<". The slice id for this shower is "<< m_reco_shower_sliceId[i_shr]<<", the neutrino score for this slice is "<< m_reco_shower_nuscore[i_shr]<<", and is_nuslice = "<<  m_reco_shower_is_nuslice[i_shr]<<". The track score is : "<< m_reco_shower_trackscore[i_shr]<<std::endl;
-
-
-
 
 
             i_shr++;
