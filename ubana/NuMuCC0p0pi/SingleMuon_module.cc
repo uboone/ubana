@@ -108,6 +108,7 @@ private:
   bool MC_FV; // MCTruth vertex in FV = true, out of FV = false
   int MC_ccnc; // MCTruth cc = 0 or nc = 1
   int MC_nupdg; // MCTruth nupdg; numu = 14, nue = 12
+  double MC_nu_E; // MCTruth nu energy
   double MC_nuVtxX; // MCTruth nu vtx X
   double MC_nuVtxY; // MCTruth nu vtx Y
   double MC_nuVtxZ; // MCTruth nu vtx Z
@@ -123,6 +124,8 @@ private:
   int MC_nPiMinus_above65; // Number of pi minus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   std::vector<int> MC_Primary_PDG; // PDG of neutrino daughters
   std::vector<double> MC_Primary_Mom; // Momemtum of neutrino daughters
+
+  std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
 
   double Genie_Q2;
   double Genie_q2;
@@ -225,6 +228,7 @@ private:
   std::vector<bool> old_trk_ifcontained;//to check if the track is contained or not
   std::vector<bool> old_vtx_FV;//to check if the vertex is in FV or not
 
+  std::vector<int> v_sanity_check;
   int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
@@ -242,6 +246,20 @@ private:
   std::vector<float> resRange_pl0; // range from a hit to the end of the selected track end
   std::vector<float> resRange_pl1; // range from a hit to the end of the selected track end
   std::vector<float> resRange_pl2; // range from a hit to the end of the selected track end
+  std::vector<float> pitch_pl0;
+  std::vector<float> pitch_pl1;
+  std::vector<float> pitch_pl2;
+
+  std::vector<float> reverse_dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
+  std::vector<float> reverse_dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
+  std::vector<float> reverse_dEdx_pl2; // dE/dx of the selected (muon) track from plane 2 (collection)
+  std::vector<float> reverse_dQdx_pl0; // dQ/dx of the selected (muon) track from plane 0 (closest to drift)
+  std::vector<float> reverse_dQdx_pl1; // dQ/dx of the selected (muon) track from plane 1
+  std::vector<float> reverse_dQdx_pl2; // dQ/dx of the selected (muon) track from plane 2 (collection)
+  std::vector<float> reverse_resRange_pl0; // range from a hit to the end of the selected track end
+  std::vector<float> reverse_resRange_pl1; // range from a hit to the end of the selected track end
+  std::vector<float> reverse_resRange_pl2; // range from a hit to the end of the selected track end
+
   float dEdx_pl0_start_half; // average dEdx of start half hits of pl 0
   float dEdx_pl1_start_half; // average dEdx of start half hits of pl 0
   float dEdx_pl2_start_half; // average dEdx of start half hits of pl 0
@@ -473,7 +491,7 @@ void SingleMuon::analyze(art::Event const& evt)
   std::vector<art::Ptr<recob::Shower> > daughter_Showers;
   std::vector<int> Track_PDG; // The oder follows daughter_Tracks
   std::vector<int> Shower_PDG; // The oder follows daughter_Showers
-  std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
+  //std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
   std::vector<float> vTrk_len;
 
   //Constants
@@ -509,6 +527,7 @@ void SingleMuon::analyze(art::Event const& evt)
       MC_nupdg = MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode();
       MC_ccnc = MCTruthCollection[i_mc]->GetNeutrino().CCNC();
 
+      MC_nu_E = MCTruthCollection[i_mc]->GetNeutrino().Nu().E();
       MC_nuVtxX = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vx();
       MC_nuVtxY = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vy();
       MC_nuVtxZ = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vz();
@@ -579,6 +598,7 @@ void SingleMuon::analyze(art::Event const& evt)
       if(n_pfp_nuDaughters < 4){
         // Get the pointer for the daughters of the neutrino
         for(int j = 0; j < n_pfp_nuDaughters; j++){
+          int sanity_check = 0;
           auto Iterator = pfParticleIdMap.find(pfp->Daughters().at(j));
           auto dau_pfp = Iterator->second;
           NeutrinoDaughters.push_back(dau_pfp);
@@ -587,6 +607,7 @@ void SingleMuon::analyze(art::Event const& evt)
           if(assoTrack.size()==1){
             daughter_Tracks.push_back(assoTrack.front());
             Track_PDG.push_back(dau_pfp->PdgCode());
+            sanity_check++;
           }
           if(assoTrack.size()>1){
             throw cet::exception("[Numu0pi0p]") << "PFParticle has >1 track!" << std::endl;
@@ -596,6 +617,7 @@ void SingleMuon::analyze(art::Event const& evt)
           if(assoShower.size()==1){
             daughter_Showers.push_back(assoShower.front());
             Shower_PDG.push_back(dau_pfp->PdgCode());
+            sanity_check++;
           }
           if(assoShower.size()>1){
             throw cet::exception("[Numu0pi0p]") << "PFParticle has >1 shower!" << std::endl;
@@ -605,6 +627,7 @@ void SingleMuon::analyze(art::Event const& evt)
           if(assoTrack.empty() && assoShower.empty()){
             Ghost_PDG.push_back(dau_pfp->PdgCode());
           }
+          v_sanity_check.push_back(sanity_check);
         } // finish looping of pfp
       }
      
@@ -793,15 +816,43 @@ void SingleMuon::analyze(art::Event const& evt)
         dEdx_pl0 = assoCal[0]->dEdx();
         dQdx_pl0 = assoCal[0]->dQdx();
         resRange_pl0 = assoCal[0]->ResidualRange();
+        pitch_pl0 = assoCal[0]->TrkPitchVec();
 
+        reverse_dEdx_pl0 = dEdx_pl0;
+        reverse_dQdx_pl0 = dQdx_pl0;
+        reverse_resRange_pl0 = resRange_pl0;
+        std::reverse(reverse_dEdx_pl0.begin(), reverse_dEdx_pl0.end());
+        std::reverse(reverse_dQdx_pl0.begin(), reverse_dQdx_pl0.end());
+        std::reverse(reverse_resRange_pl0.begin(), reverse_resRange_pl0.end());
+        for(auto& element : reverse_resRange_pl0) element = Trk_length_pl0 - element;
+        //std::for_each(reverse_resRange_pl0.begin(), reverse_resRange_pl0.end(), [Trk_length_pl0](float &ele){ ele = Trk_length_pl0 - ele; });
+ 
         dEdx_pl1 = assoCal[1]->dEdx();
         dQdx_pl1 = assoCal[1]->dQdx();
         resRange_pl1 = assoCal[1]->ResidualRange();
+        pitch_pl1 = assoCal[1]->TrkPitchVec();
+
+        reverse_dEdx_pl1 = dEdx_pl1;
+        reverse_dQdx_pl1 = dQdx_pl1;
+        reverse_resRange_pl1 = resRange_pl1;
+        std::reverse(reverse_dEdx_pl1.begin(), reverse_dEdx_pl1.end());
+        std::reverse(reverse_dQdx_pl1.begin(), reverse_dQdx_pl1.end());
+        std::reverse(reverse_resRange_pl1.begin(), reverse_resRange_pl1.end());
+        for(auto& element : reverse_resRange_pl1) element = Trk_length_pl1 - element;
 
         dEdx_pl2 = assoCal[2]->dEdx();
         dQdx_pl2 = assoCal[2]->dQdx();
         resRange_pl2 = assoCal[2]->ResidualRange();
- 
+        pitch_pl2 = assoCal[2]->TrkPitchVec();
+
+        reverse_dEdx_pl2 = dEdx_pl2;
+        reverse_dQdx_pl2 = dQdx_pl2;
+        reverse_resRange_pl2 = resRange_pl2;
+        std::reverse(reverse_dEdx_pl2.begin(), reverse_dEdx_pl2.end());
+        std::reverse(reverse_dQdx_pl2.begin(), reverse_dQdx_pl2.end());
+        std::reverse(reverse_resRange_pl2.begin(), reverse_resRange_pl2.end());
+        for(auto& element : reverse_resRange_pl2) element = Trk_length_pl2 - element;
+
         hits_dEdx_size_pl0 = dEdx_pl0.size();
         hits_dEdx_size_pl1 = dEdx_pl1.size();
         hits_dEdx_size_pl2 = dEdx_pl2.size();
@@ -1059,6 +1110,7 @@ void SingleMuon::analyze(art::Event const& evt)
   if(IsMC){
     MC_Primary_PDG.clear();
     MC_Primary_Mom.clear();
+    Ghost_PDG.clear();
     true_mom.clear();
     true_start_x.clear();
     true_start_y.clear();
@@ -1085,10 +1137,12 @@ void SingleMuon::analyze(art::Event const& evt)
     crthit_time.clear();
   }
 
+  v_sanity_check.clear();
   daughter_Tracks.clear();
   daughter_Showers.clear();
   Track_PDG.clear();
   Shower_PDG.clear();
+  Ghost_PDG.clear();
 
   trk_broken_len.clear();
   trk_broken_nr_merged.clear();
@@ -1155,6 +1209,20 @@ void SingleMuon::analyze(art::Event const& evt)
   resRange_pl0.clear();
   resRange_pl1.clear();
   resRange_pl2.clear();
+  pitch_pl0.clear();
+  pitch_pl1.clear();
+  pitch_pl2.clear();
+
+  reverse_dEdx_pl0.clear();
+  reverse_dEdx_pl1.clear();
+  reverse_dEdx_pl2.clear();
+  reverse_dQdx_pl0.clear();
+  reverse_dQdx_pl1.clear();
+  reverse_dQdx_pl2.clear();
+  reverse_resRange_pl0.clear();
+  reverse_resRange_pl1.clear();
+  reverse_resRange_pl2.clear();
+
 }
 
 void SingleMuon::Initialize_event()
@@ -1177,6 +1245,7 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
     my_event_->Branch("MC_nupdg", &MC_nupdg);
     my_event_->Branch("MC_ccnc", &MC_ccnc);
+    my_event_->Branch("MC_nu_E", &MC_nu_E);
     my_event_->Branch("MC_nuVtxX", &MC_nuVtxX);
     my_event_->Branch("MC_nuVtxY", &MC_nuVtxY);
     my_event_->Branch("MC_nuVtxZ", &MC_nuVtxZ);
@@ -1193,6 +1262,7 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nPiMinus_above65", &MC_nPiMinus_above65);
     my_event_->Branch("MC_Primary_PDG", &MC_Primary_PDG);
     my_event_->Branch("MC_Primary_Mom", &MC_Primary_Mom);
+    my_event_->Branch("Ghost_PDG", &Ghost_PDG);
 
     my_event_->Branch("Genie_Q2", &Genie_Q2);
     my_event_->Branch("Genie_q2", &Genie_q2);
@@ -1223,6 +1293,8 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("true_vtxFV", &true_vtxFV);
   }
 
+  my_event_->Branch("v_sanity_check", &v_sanity_check);
+  my_event_->Branch("n_pfp_nuDaughters", &n_pfp_nuDaughters);
   my_event_->Branch("n_dau_tracks", &n_dau_tracks);
   my_event_->Branch("n_dau_showers", &n_dau_showers);
   
@@ -1301,6 +1373,20 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("resRange_pl0", &resRange_pl0);
   my_event_->Branch("resRange_pl1", &resRange_pl1);
   my_event_->Branch("resRange_pl2", &resRange_pl2);
+  my_event_->Branch("pitch_pl0", &pitch_pl0);
+  my_event_->Branch("pitch_pl1", &pitch_pl1);
+  my_event_->Branch("pitch_pl2", &pitch_pl2);
+
+  my_event_->Branch("reverse_dEdx_pl0", &reverse_dEdx_pl0);
+  my_event_->Branch("reverse_dEdx_pl1", &reverse_dEdx_pl1);
+  my_event_->Branch("reverse_dEdx_pl2", &reverse_dEdx_pl2);
+  my_event_->Branch("reverse_dQdx_pl0", &reverse_dQdx_pl0);
+  my_event_->Branch("reverse_dQdx_pl1", &reverse_dQdx_pl1);
+  my_event_->Branch("reverse_dQdx_pl2", &reverse_dQdx_pl2);
+  my_event_->Branch("reverse_resRange_pl0", &reverse_resRange_pl0);
+  my_event_->Branch("reverse_resRange_pl1", &reverse_resRange_pl1);
+  my_event_->Branch("reverse_resRange_pl2", &reverse_resRange_pl2);
+
   my_event_->Branch("dEdx_pl0_start_half", &dEdx_pl0_start_half);
   my_event_->Branch("dEdx_pl1_start_half", &dEdx_pl1_start_half);
   my_event_->Branch("dEdx_pl2_start_half", &dEdx_pl2_start_half);
