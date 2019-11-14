@@ -36,7 +36,7 @@
 
 namespace neutrinoid {
 
-TrackPairPlusVertexAlg::TrackPairPlusVertexAlg(fhicl::ParameterSet const &pset) : fMyProducerModule(0)
+TrackPairPlusVertexAlg::TrackPairPlusVertexAlg(fhicl::ParameterSet const &pset)
 {
     this->reconfigure(pset);
     
@@ -77,10 +77,9 @@ void TrackPairPlusVertexAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs
     return;
 }
     
-void TrackPairPlusVertexAlg::produces(art::EDProducer* owner)
+void TrackPairPlusVertexAlg::produces(art::ProducesCollector& collector)
 {
-    fMyProducerModule = owner;
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
+    collector.produces< art::Assns<recob::Vertex, recob::Track> >();
 }
 
     
@@ -241,7 +240,7 @@ bool TrackPairPlusVertexAlg::findNeutrinoCandidates(art::Event & event) const
         if (bestDistance < fNeutrinoVtxTrackDistCut)
         {
             // Make an association between the best vertex and the matching tracks
-            util::CreateAssn(*fMyProducerModule, event, bestVertexVec[0], bestTrackVec, *vertexTrackAssociations);
+            util::CreateAssn(event, bestVertexVec[0], bestTrackVec, *vertexTrackAssociations);
         }
     }
     

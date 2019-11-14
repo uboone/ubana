@@ -21,7 +21,6 @@
 namespace neutrinoid {
 
 ModNuMuCCInclusiveAlg::ModNuMuCCInclusiveAlg(fhicl::ParameterSet const &pset) :
-        fMyProducerModule(0),
         fGeometry(lar::providerFrom<geo::Geometry>()),
         fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
 {
@@ -72,11 +71,10 @@ void ModNuMuCCInclusiveAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs)
     return;
 }
 
-void ModNuMuCCInclusiveAlg::produces(art::EDProducer* owner)
+void ModNuMuCCInclusiveAlg::produces(art::ProducesCollector& collector)
 {
-    fMyProducerModule = owner;
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
+    collector.produces< art::Assns<recob::Vertex, recob::Track> >();
+    collector.produces< art::Assns<recob::Vertex, recob::PFParticle> >();
 }
 
 
@@ -287,14 +285,14 @@ for (const auto& opFlash : flashlist)
                 if (TrackCandLength>fMinTrackLen && trackFlashFlag && trackContainedFlag)
                 {
                     // Make an association between the best vertex and the matching tracks
-                    util::CreateAssn(*fMyProducerModule, event, track, vertex, *vertexTrackAssociations);
+                    util::CreateAssn(event, track, vertex, *vertexTrackAssociations);
 
                     // Find the associated PFParticle
                     std::vector<art::Ptr<recob::PFParticle>> pfParticleVec = trackToPFPartAssns.at(track.key());
 
                     if (!pfParticleVec.empty())
                     {
-                        util::CreateAssn(*fMyProducerModule, event, pfParticleVec[0], vertex, *vertexPFParticleAssociations);
+                        util::CreateAssn(event, pfParticleVec[0], vertex, *vertexPFParticleAssociations);
                     }
                 }
             }
