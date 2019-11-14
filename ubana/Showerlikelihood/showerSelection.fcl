@@ -1,0 +1,69 @@
+#include "services_microboone.fcl"
+#include "messageservice.fcl"
+#include "mctruthmatching_uboone.fcl"
+##include "mctruthassociations_uboone.fcl"
+
+process_name: ShowerSelection
+
+services:
+{
+  TFileService: {fileName: "ShowerSelection.root"}
+  @table::microboone_simulation_services
+  @table::microboone_services
+  BackTrackerService:                       @local::microboone_backtrackerservice
+  ParticleInventoryService:                 @local::standard_particleinventoryservice
+  //Geometry:                                 @local::standard_geo
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents: 10
+}
+
+physics:
+{
+  analyzers: 
+  {
+    ShowerSelection: 
+    {
+      module_type: "ShowerSelection"
+      MCTruthModuleLabel: "generator"
+      HitModuleLabel:      "gaushit"
+      SliceModuleLabel:    "pandora"
+      PFParticleModuleLabel:          "pandora"
+      PFParticleSliceAssnsModuleLabel: "pandora"
+      PFParticleShowerAssnsModuleLabel: "shrreco3d"
+      ShowerModuleLabel: "pandora"
+      HitMatchingDataModuleLabel: "gaushitTruthMatch"
+      FidVolCutX:          10.0
+      FidVolCutY:          10.0
+      FidVolCutZ:          30.0
+      SaveOnlyLargestShowerPerSlice:   false # true: only save the largest shower in a slice; false: save all showers in a slice
+    }
+  }
+
+  analysis: [ShowerSelection]
+  end_paths: [analysis]
+}
+
+services.DetectorClocksService.InheritClockConfig: false
+services.ParticleInventoryService.ParticleInventory.OverrideRealData: true # for using Particle Inventory, i.e., in overlay data
+#services.ParticleInventoryService.ParticleInventory.EveIdCalculator: "EveIdCalculator"
+# SCE correction
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+services.SpaceCharge.EnableCalEfieldSCE: true
+services.SpaceCharge.EnableCalSpatialSCE: true
+services.SpaceCharge.EnableCorrSCE: true
+services.SpaceCharge.EnableSimEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_fwd_Jan18.root"
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+services.SpaceCharge.service_provider: "SpaceChargeServiceMicroBooNE"
+
+
+
+
+
+
+

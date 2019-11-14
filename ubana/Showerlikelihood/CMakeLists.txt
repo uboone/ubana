@@ -7,7 +7,10 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            larsim_MCCheater_BackTrackerService_service
                            larsim_MCCheater_ParticleInventoryService_service
                            lardataobj_RawData
+                           larreco_RecoAlg
+                           larreco_Calorimetry
                            larevt_CalibrationDBI_Providers
+                           nusimdata_SimulationBase
                            nurandom_RandomUtils_NuRandomService_service
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
