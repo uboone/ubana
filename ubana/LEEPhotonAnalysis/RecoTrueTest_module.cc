@@ -73,7 +73,7 @@ class xsecAna::RecoTrueTest : public art::EDProducer {
 };
 
 
-xsecAna::RecoTrueTest::RecoTrueTest(fhicl::ParameterSet const & p) {
+xsecAna::RecoTrueTest::RecoTrueTest(fhicl::ParameterSet const & p) : EDProducer{p} {
 
 	_pfp_producer                   = p.get<std::string>("PFParticleProducer");
 	_hitfinderLabel                 = p.get<std::string>("HitProducer");

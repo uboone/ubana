@@ -16,8 +16,8 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include <memory>
@@ -89,7 +89,7 @@ private:
 
 
 MuCSTrackFinder::MuCSTrackFinder(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
   _track_producer          = p.get<std::string>("TrackProducer");

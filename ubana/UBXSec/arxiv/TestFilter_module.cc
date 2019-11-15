@@ -45,7 +45,7 @@ private:
 
 
 TestFilter::TestFilter(fhicl::ParameterSet const & p)
-// :
+  : EDFilter{p}
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.

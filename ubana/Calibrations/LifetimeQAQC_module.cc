@@ -11,6 +11,7 @@
 #define LifetimeQAQC_Module
 
 // LArSoft includes
+#include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/GeometryUtilities.h"
 #include "larsim/Simulation/LArG4Parameters.h"
@@ -18,6 +19,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+#include "larcore/Geometry/Geometry.h" // geo::Geometry
 //#include "larsim/MCCheater/BackTracker.h" //I find no use of the backtracker in this module. Removing include
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
@@ -29,8 +31,8 @@
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "canvas/Persistency/Common/FindMany.h"
 #include "canvas/Persistency/Common/FindManyP.h"

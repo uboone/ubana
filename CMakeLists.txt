@@ -34,9 +34,13 @@ cet_cmake_env()
 cet_set_compiler_flags(DIAGS CAUTIOUS
   WERROR
   NO_UNDEFINED
+<<<<<<< HEAD
   ALLOW_DEPRECATIONS
   EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs -Wno-expansion-to-defined 
   #-Wno-error=unused-variable 
+=======
+  EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs -Wno-expansion-to-defined
+>>>>>>> origin
 )
 
 
@@ -58,15 +62,31 @@ find_ups_product( larcorealg )
 find_ups_product( larcoreobj )
 find_ups_product( lardataobj )
 find_ups_product( lardataalg )
+<<<<<<< HEAD
+=======
+find_ups_product( lardata )
+find_ups_product( cetbuildtools )
+>>>>>>> origin
 find_ups_boost( )
 find_ups_product( canvas )
 find_ups_product( ubraw v1_00_00 )
+<<<<<<< HEAD
 find_ups_product( nutools )
 find_ups_product( pandora v02_00_00 )
 find_ups_product( larpandora v1_00_00 )
 find_ups_product( larpandoracontent v02_04_00 )
 find_ups_product( cetbuildtools v4_09_00 )
 find_ups_product( postgresql v9_1_5 )
+=======
+find_ups_product( larana v1_00_00 )
+find_ups_product( larpandora v1_00_00 )
+find_ups_product( art v1_00_00 )
+find_ups_product(art_root_io)
+find_ups_product( larcore )
+find_ups_product( nutools )
+find_ups_product(nug4)
+find_ups_product( nurandom )
+>>>>>>> origin
 find_ups_product( eigen )
 find_ups_product( ubevt )
 find_ups_product( ubobj )

@@ -2,7 +2,11 @@
 
 # The *parent* line must the first non-commented line and defines this product and version
 # The version must be of the form vxx_yy_zz (e.g. v01_02_03)
+<<<<<<< HEAD
 parent ubana v08_00_00_19
+=======
+parent ubana v08_35_01
+>>>>>>> origin
 
 defaultqual e17
 
@@ -30,6 +34,7 @@ table_fragment_end
 # Add the dependent product and version
 
 product                 version
+<<<<<<< HEAD
 ubreco                  v08_00_00_19
 ubraw                   v08_00_00_15
 ubevt                   v08_00_00_19
@@ -48,6 +53,24 @@ e15:prof       e15:prof       e15:prof  e15:prof     e15:prof       e15:prof
 e17:debug      e17:debug      e17:debug e17:debug     e17:debug      e17:debug
 e17:opt        e17:opt        e17:opt   e17:opt     e17:opt        e17:opt
 e17:prof       e17:prof       e17:prof  e17:prof     e17:prof       e17:prof
+=======
+ubreco                  v08_35_01
+ubraw                   v08_35_01
+larana                  v08_12_01
+larpandora              v08_07_25
+cetbuildtools	        v7_14_00	-	only_for_build
+end_product_list
+
+qualifier      ubreco         ubraw          larana         larpandora     
+c2:py3:debug   c2:py3:debug   c2:py3:debug   c2:py3:debug   c2:py3:debug       
+c2:py3:prof    c2:py3:prof    c2:py3:prof    c2:py3:prof    c2:py3:prof        
+e17:py3:debug  e17:py3:debug  e17:py3:debug  e17:py3:debug  e17:py3:debug
+e17:py3:prof   e17:py3:prof   e17:py3:prof   e17:py3:prof   e17:py3:prof
+c2:debug       c2:debug       c2:debug       c2:debug       c2:debug       
+c2:prof        c2:prof        c2:prof        c2:prof        c2:prof        
+e17:debug      e17:debug      e17:debug      e17:debug      e17:debug
+e17:prof       e17:prof       e17:prof       e17:prof       e17:prof
+>>>>>>> origin
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:

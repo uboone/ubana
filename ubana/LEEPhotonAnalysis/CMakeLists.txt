@@ -23,13 +23,13 @@ art_make( BASENAME_ONLY
 			nusimdata_SimulationBase
 			${UB_DATA_TYPES}
 			${Boost_SERIALIZATION_LIBRARY}
-                        nutools_RandomUtils_NuRandomService_service
+                        nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         art_Persistency_Common canvas
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
@@ -55,13 +55,13 @@ art_make( BASENAME_ONLY
 			ubana_LEEPhotonAnalysis
 			${UB_DATA_TYPES}
 			${Boost_SERIALIZATION_LIBRARY}
-                        nutools_RandomUtils_NuRandomService_service
+                        nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         art_Persistency_Common canvas
                         art_Persistency_Provenance canvas
                         art_Utilities canvas

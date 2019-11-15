@@ -17,8 +17,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "lardataobj/RecoBase/PFParticle.h"
@@ -116,7 +116,7 @@ private:
 };
 
 
-NeutrinoFlashMatch::NeutrinoFlashMatch(fhicl::ParameterSet const & p)
+NeutrinoFlashMatch::NeutrinoFlashMatch(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _pfp_producer            = p.get<std::string>("PFParticleModule",      "pandoraNu");
   _track_producer          = p.get<std::string>("TrackModule",           "pandoraNu");

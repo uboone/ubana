@@ -12,7 +12,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindOneP.h"
@@ -26,7 +26,9 @@
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireError
 #include "larcore/Geometry/Geometry.h"
+#include "larcorealg/Geometry/Exceptions.h"
 
 
 #include "TH1F.h"

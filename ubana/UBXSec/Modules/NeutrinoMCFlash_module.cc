@@ -79,7 +79,7 @@ private:
 };
 
 
-NeutrinoMCFlash::NeutrinoMCFlash(fhicl::ParameterSet const & p)
+NeutrinoMCFlash::NeutrinoMCFlash(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _mctruth_label = p.get<std::string>("MCTruthProduct", "generator");
   _trigger_label = p.get<std::string>("TriggerProduct", "triggersim");

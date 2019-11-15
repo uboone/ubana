@@ -4,12 +4,14 @@ set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpa
 link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
 
 art_make( BASENAME_ONLY
-    	  LIBRARY_NAME     ubana_CosmicTagging_CosmicTaggingAlgorithms
+    	  LIBRARY_NAME     ubana_SelectionTool_OpT0FinderAlgorithms
 	  LIB_LIBRARIES
                 	  larsim_PhotonPropagation
 			  larsim_PhotonPropagation_PhotonVisibilityService_service
+			  larcorealg_Geometry
 			  ubana_BasicTool_GeoAlgo
-			  ubreco_SelectionTool_OpT0FinderBase
+			  ubana_SelectionTool_OpT0FinderBase
+			  ubobj_Trigger
                           UBOpReadoutMap_service
   		          ${ART_FRAMEWORK_CORE}
    		          ${ART_FRAMEWORK_PRINCIPAL}
@@ -17,9 +19,9 @@ art_make( BASENAME_ONLY
                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
    		          ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
      		          ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-     		          ${ART_PERSISTENCY_COMMON}
-                          ${ART_PERSISTENCY_PROVENANCE}
-                          ${ART_UTILITIES}
+			  art_Persistency_Common canvas
+			  art_Persistency_Provenance canvas
+			  art_Utilities canvas
                           ${ROOT_BASIC_LIB_LIST}
                           ${FHICLCPP}
                           cetlib cetlib_except

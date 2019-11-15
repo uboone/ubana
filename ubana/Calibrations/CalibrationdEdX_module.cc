@@ -90,7 +90,8 @@ private:
 
 
 ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
-  : fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
+  : EDProducer(p)
+  , fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
   , fCalorimetryModuleLabel(p.get< std::string >("CalorimetryModuleLabel"))
   , fCalibrationFileName   (p.get< std::string >("CalibrationFileName"))
   , fCorr_YZ               (p.get< std::vector<std::string> >("Corr_YZ"))

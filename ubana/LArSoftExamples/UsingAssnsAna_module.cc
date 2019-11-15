@@ -46,7 +46,7 @@
 // been any re-organisation of header files.
 
 // ART includes
-#include "art/Framework/Services/Optional/TFileService.h" // used for ROOT file
+#include "art_root_io/TFileService.h" // used for ROOT file
 #include "canvas/Persistency/Common/FindManyP.h" // used for assns
 
 // LArSoft includes
