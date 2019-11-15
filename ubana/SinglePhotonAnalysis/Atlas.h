@@ -78,7 +78,6 @@ namespace single_photon
 		std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::Hit>> > sliceToHitsMap;
 		std::map<int, std::vector<art::Ptr<recob::PFParticle>> > sliceIDToPFParticlesMap;
 		std::map<int, std::vector<art::Ptr<recob::Hit>> > sliceIDToHitsMap;
-
 /*
  * Initially empty variables to be filled from other parts of the code.
  *
@@ -231,7 +230,7 @@ namespace single_photon
 			mf::LogDebug("SinglePhoton") << "  Failed to find the PFParticles.\n";
 			return;
 		}
-;
+
 	
 		//Ingredient 2: FindManyPs; these will be gone when construction finished
 		art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, evt,  labels[4]);

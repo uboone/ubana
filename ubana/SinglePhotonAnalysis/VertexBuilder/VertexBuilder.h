@@ -146,7 +146,6 @@ class VertexBuilder {
 	 f_dist_st.push_back(999);//shower&track, cpoa_vert_prox
 	 f_dist_sst.push_back(999);//shower&shower&track, cpoa_trackend_prox
 
-
 		if(fverbose){
 			cout<<right<<setw(82)<<" Max. track proximity threshold (t_max)= "<<fstart_prox<<endl;
 			cout<<right<<setw(82)<<" Max. shower proximity threshold (s_max)= "<<fshower_prox<<endl;
@@ -593,7 +592,6 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 
 				if(fverbose)
 					std::cout << "\t\t\t Track (ID: " << i <<") ";
-
 				Track const & t = fdetos->GetTrack(i);
 
 				geoalgo::Point_t dont_care;
@@ -605,6 +603,7 @@ void VertexBuilder::AssociateShowers(ParticleAssociations_all & pas) {
 									c_dir*-1),
 								temp_vert,//this point will be changed along the track; id does not matter what value it is.
 								dont_care));//this is along the backward projection
+
 				if(first_time){
 					f_dist_sx.erase(f_dist_sx.begin());
 					first_time = false;

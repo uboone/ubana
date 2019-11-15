@@ -170,7 +170,7 @@ namespace single_photon
 	
 		//HERE COMES THE Atlas!!!
 		Atlas object_container(evt, {m_trackLabel, m_showerLabel, m_hitfinderLabel, m_flashLabel, m_pandoraLabel,m_shower3dLabel,m_showerKalmanLabel,m_showerKalmanCaloLabel, m_generatorLabel, m_geantModuleLabel}, m_is_data);
-		
+	
 		//still need these handls for now;
 		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);//This is useful for FindManyP< reco::Track/Shower>
 		art::ValidHandle<std::vector<recob::Hit>> const & hitHandle = evt.getValidHandle<std::vector<recob::Hit>>(m_hitfinderLabel); //yea, this should be gone;
@@ -202,8 +202,6 @@ namespace single_photon
 		std::map<int, std::vector<art::Ptr<recob::Hit>> > sliceIDToHitsMap = object_container.sliceIDToHitsMap;
 		std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > pfParticleToClustersMap = object_container.PFParticleToClustersMap;
 //		std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > clusterToHitsMap = object_container.ClusterToHitsMap;
-
-
 		//Once we have actual verticies, lets concentrate on JUST the neutrino PFParticles for now:
 		//--------------------------------
 		// Produce two PFParticle vectors containing final-state particles:
@@ -217,7 +215,6 @@ namespace single_photon
 		if (m_run_all_pfps){
 			nuParticles = pfParticleVector;
 		}
-
 
 		//taking out the Larpandora helper functions here because they don't match to non-neutrino slice hits for some reason
 
@@ -831,6 +828,13 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 				// perfectRecoMatching<art::Ptr<sim::MCShower>>(matchedMCParticleVector, mcShowerVector, MCParticleToMCShowerMap);
 				//OK a really wierd bug in which by accessing the map here in line 355, everything breaks.. but commenting it out is OK
 
+			if(m_is_verbose){
+				std::cout << "SinglePhoton::analyze()\t||\t Consolidated event summary:" << "\n";
+				std::cout << "SinglePhoton::analyze()\t||\t - Number of primary cosmic-ray PFParticles   : " << crParticles.size() << "\n";
+				std::cout << "SinglePhoton::analyze()\t||\t - Number of neutrino final-state PFParticles : " << nuParticles.size() << "\n";
+				std::cout << "SinglePhoton::analyze()\t||\t    ... of which are track-like   : " << tracks.size() << "\n";
+				std::cout << "SinglePhoton::analyze()\t||\t    ... of which are showers-like : " << showers.size() << "\n";
+			}
 
 				//for(auto & shower: showers){
 				//    auto mp = showerToMCParticleMap[shower];
@@ -887,6 +891,9 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
                 m_genie_spline_weight =1.0;
             }
 
+				//Isolation
+				this-> IsolationStudy(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
+			}
 
             std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
         }else{
@@ -896,7 +903,8 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
             
             this->SecondShowerSearch(tracks,  object_container.trackToNuPFParticleMap, showers, object_container.showerToNuPFParticleMap, pfParticleToHitsMap, object_container.PFPToSliceIdMap, sliceIDToHitsMap,*tmp_mcparticles_per_hit, tmp_matchedMCParticleVector, pfParticleMap,  object_container.MCParticleToTrackIdMap);
 
-
+			//----------------- VertexBuilder -----------------
+			double best_vertex_dist = SIZE_MAX;
         }
 
         //Second Shower Search-Pandora style
@@ -977,7 +985,6 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
 
             }
         }
-
 
 		//---------------------- END OF LOOP, fill vertex ---------------------
 
@@ -1344,6 +1351,7 @@ std::cout<<"Filling in Bobby's Vertex info. with "<<bobby_particle_associations.
             {
                 throw cet::exception("SinglePhoton") << "  Unable to get PFParticle ID map, the input PFParticle collection has repeat IDs!";
             }
+			cout<<"CHECK2::::: "<<pParticle->Self()<<endl;
         }
     }
 

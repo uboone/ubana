@@ -117,7 +117,6 @@ public:
   
   size_t GetTrackIndexFromObjectIndex(size_t const i) const;
   size_t GetShowerIndexFromObjectIndex(size_t const i) const;
-
 };
 
 
