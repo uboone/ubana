@@ -6,6 +6,7 @@
 #include "analyze_MCTruth.h"
 #include "analyze_EventWeight.h"
 #include "analyze_Slice.h"
+#include "fiducial_volume.h"
 #include "second_shower_search.h"
 #include "isolation.h"
 
@@ -91,14 +92,7 @@ namespace single_photon
         m_exiting_photon_energy_threshold = pset.get<double>("exiting_photon_energy");
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
 
-        m_tpc_active_x_low = 0.0;
-        m_tpc_active_x_high = 256.35;
-        m_tpc_active_y_low = -116.5;
-        m_tpc_active_y_high = 116.5;
-        m_tpc_active_z_low = 0.0;
-        m_tpc_active_z_high = 1036.8;
-
-
+        this->setTPCGeom(); 
 
         rangen = new TRandom3(22);
         bool_make_sss_plots = true;
@@ -984,6 +978,9 @@ namespace single_photon
             vertex_tree->Branch("reco_vertex_x", &m_vertex_pos_x);
             vertex_tree->Branch("reco_vertex_y", &m_vertex_pos_y);
             vertex_tree->Branch("reco_vertex_z", &m_vertex_pos_z);
+            vertex_tree->Branch("reco_vertex_in_SCB", &m_reco_vertex_in_SCB);
+            vertex_tree->Branch("reco_vertex_dist_to_SCB",&m_reco_vertex_dist_to_SCB);
+            vertex_tree->Branch("reco_vertex_dist_to_active_TPC",&m_reco_vertex_dist_to_active_TPC);
             vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane0",&m_reco_vertex_to_nearest_dead_wire_plane0);
             vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane1",&m_reco_vertex_to_nearest_dead_wire_plane1);
             vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
@@ -1090,6 +1087,9 @@ namespace single_photon
             m_vertex_pos_wire_p0=-9999;
             m_vertex_pos_wire_p1=-9999;
             m_vertex_pos_wire_p2=-9999;
+            m_reco_vertex_in_SCB = -9999;
+            m_reco_vertex_dist_to_SCB = -9999;
+            m_reco_vertex_dist_to_active_TPC= -9999;
 
             m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
             m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
@@ -1192,6 +1192,9 @@ namespace single_photon
                     m_vertex_pos_x = xyz[0];
                     m_vertex_pos_y = xyz[1];
                     m_vertex_pos_z = xyz[2];
+                    std::vector<double> tmp = {xyz[0],xyz[1],xyz[2]};
+                    m_reco_vertex_in_SCB = this->distToSCB(m_reco_vertex_dist_to_SCB,tmp);
+                    m_reco_vertex_dist_to_active_TPC = this->distToTPCActive(tmp);
 
                     if(!m_run_pi0_filter){
                         m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
@@ -1611,16 +1614,6 @@ namespace single_photon
             if(m_reco_shower_conversion_distance[0]<1. || m_reco_shower_conversion_distance[1]<1.) return false;
 
             return true;
-        }
-
-        int SinglePhoton::isInTPCActive(std::vector<double> & vec){
-            
-            bool is_x = (vec[0] > m_tpc_active_x_low && vec[0]< m_tpc_active_x_high );
-
-            bool is_y = (vec[1] > m_tpc_active_y_low && vec[1]< m_tpc_active_y_high);
-            bool is_z = (vec[2] > m_tpc_active_z_low && vec[2]<m_tpc_active_z_high );
-            return ( (is_x && is_y && is_z) ? 1 : 0  );
-
         }
 
 

@@ -72,6 +72,7 @@
 #include "TGraph2D.h"
 #include "TGraphDelaunay.h"
 #include "TRandom3.h"
+#include "TGeoPolygon.h"
 
 #include "Pandora/PdgTable.h"
 #include <chrono>
@@ -351,6 +352,7 @@ namespace single_photon
             double CalcEShowerPlane(const std::vector<art::Ptr<recob::Hit>>& hits, int plane);
 
             int getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane);
+            double getMeanHitWidthPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane);
 
 
             /**
@@ -567,14 +569,43 @@ namespace single_photon
 
             int   photoNuclearTesting(std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector);
 
-            // ------------ Fid Volume ------------------------- //
+            // ------------ Fid Volume and SCB------------------------- //
             double m_tpc_active_x_low;
             double m_tpc_active_x_high;
             double m_tpc_active_y_low;
             double m_tpc_active_y_high;
             double m_tpc_active_z_low ;
             double m_tpc_active_z_high;
+
+            double m_SCB_YX_TOP_y1_array;
+            std::vector<double> m_SCB_YX_TOP_x1_array;
+            std::vector<double> m_SCB_YX_TOP_y2_array;
+            double  m_SCB_YX_TOP_x2_array;
+            double m_SCB_YX_BOT_y1_array;
+            std::vector<double> m_SCB_YX_BOT_x1_array;
+            std::vector<double> m_SCB_YX_BOT_y2_array;
+            double m_SCB_YX_BOT_x2_array;
+
+            double m_SCB_ZX_Up_z1_array ;
+            double m_SCB_ZX_Up_x1_array ;
+            double m_SCB_ZX_Up_z2_array ;
+            double m_SCB_ZX_Up_x2_array ;
+
+            double m_SCB_ZX_Dw_z1_array;
+            std::vector<double> m_SCB_ZX_Dw_x1_array;
+            std::vector<double> m_SCB_ZX_Dw_z2_array;
+            double m_SCB_ZX_Dw_x2_array;
+
+
             int isInTPCActive(std::vector<double>&);
+            int isInTPCActive(double cut,std::vector<double>&);
+            double distToTPCActive(std::vector<double>&vec);
+            
+            int isInSCB(std::vector<double>&);
+            int isInSCB(double cut,std::vector<double>&);
+            int distToSCB(double & dist, std::vector<double> &vec);
+            int setTPCGeom();
+            bool loadSCB_YX(std::vector<TGeoPolygon*>&zpolygons);
 
             //---------------- MCTruths ----------------------------
 
@@ -868,6 +899,10 @@ namespace single_photon
             double m_vertex_pos_wire_p0;
             double m_vertex_pos_wire_p2;
             double m_vertex_pos_wire_p1;
+            int m_reco_vertex_in_SCB;
+            double m_reco_vertex_dist_to_SCB;
+            double m_reco_vertex_dist_to_active_TPC;
+
 
             int m_reco_asso_showers;
 
@@ -1003,7 +1038,7 @@ namespace single_photon
             //for crt hits from the CRT veto product
             int m_CRT_veto_nhits;
             std::vector<double> m_CRT_veto_hit_PE; 
-          
+
             //fields storing information about the CRT hit closest to the flash
             double m_CRT_min_hit_time;
             double m_CRT_min_hit_PE;
@@ -1034,6 +1069,13 @@ namespace single_photon
             std::vector<double> m_reco_track_endx;
             std::vector<double> m_reco_track_endy;
             std::vector<double> m_reco_track_endz;
+            std::vector<double> m_reco_track_end_dist_to_active_TPC;
+            std::vector<double> m_reco_track_start_dist_to_active_TPC;
+            std::vector<double> m_reco_track_end_dist_to_SCB;
+            std::vector<double> m_reco_track_start_dist_to_SCB;
+            std::vector<int> m_reco_track_end_in_SCB;
+            std::vector<int> m_reco_track_start_in_SCB;
+
             std::vector<double>   m_reco_track_theta_yz;
             std::vector<double>   m_reco_track_phi_yx;
 
@@ -1197,6 +1239,10 @@ namespace single_photon
             std::vector<double>   m_reco_shower_startx;
             std::vector<double>   m_reco_shower_starty;
             std::vector<double>   m_reco_shower_startz;
+            std::vector<double> m_reco_shower_start_dist_to_active_TPC;
+            std::vector<double> m_reco_shower_start_dist_to_SCB;
+            std::vector<int> m_reco_shower_start_in_SCB;
+
             std::vector<double>   m_reco_shower_dirx;
             std::vector<double>   m_reco_shower_diry;
             std::vector<double>   m_reco_shower_dirz;
@@ -1399,6 +1445,11 @@ namespace single_photon
             std::vector<double> m_reco_shower_plane0_nhits;
             std::vector<double> m_reco_shower_plane1_nhits;
             std::vector<double> m_reco_shower_plane2_nhits;
+
+            std::vector<double> m_reco_shower_plane0_meanRMS;
+            std::vector<double> m_reco_shower_plane1_meanRMS;
+            std::vector<double> m_reco_shower_plane2_meanRMS;
+
 
 
             std::vector<size_t>  m_reco_shower_ordered_energy_index;

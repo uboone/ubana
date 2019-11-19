@@ -22,6 +22,12 @@ namespace single_photon
         m_reco_track_endx.clear();
         m_reco_track_endy.clear();
         m_reco_track_endz.clear();
+        m_reco_track_end_dist_to_active_TPC.clear();
+        m_reco_track_start_dist_to_active_TPC.clear();
+        m_reco_track_end_dist_to_SCB.clear();
+        m_reco_track_start_dist_to_SCB.clear();
+        m_reco_track_end_in_SCB.clear();
+        m_reco_track_start_in_SCB.clear();
 
         m_reco_track_theta_yz.clear();
         m_reco_track_phi_yx.clear();
@@ -161,6 +167,13 @@ namespace single_photon
         m_reco_track_endx.resize(size);
         m_reco_track_endy.resize(size);
         m_reco_track_endz.resize(size);
+        m_reco_track_end_dist_to_active_TPC.resize(size);
+        m_reco_track_start_dist_to_active_TPC.resize(size);
+        m_reco_track_end_dist_to_SCB.resize(size);
+        m_reco_track_start_dist_to_SCB.resize(size);
+        m_reco_track_end_in_SCB.resize(size);
+        m_reco_track_start_in_SCB.resize(size);
+
 
         m_reco_track_startx.resize(size);
         m_reco_track_starty.resize(size);
@@ -300,9 +313,17 @@ namespace single_photon
         vertex_tree->Branch("reco_track_startx", &m_reco_track_startx);
         vertex_tree->Branch("reco_track_starty", &m_reco_track_starty);
         vertex_tree->Branch("reco_track_startz", &m_reco_track_startz);
+        
         vertex_tree->Branch("reco_track_endx", &m_reco_track_endx);
         vertex_tree->Branch("reco_track_endy", &m_reco_track_endy);
         vertex_tree->Branch("reco_track_endz", &m_reco_track_endz);
+        vertex_tree->Branch("reco_track_end_dist_to_active_TPC", &m_reco_track_end_dist_to_active_TPC);
+        vertex_tree->Branch("reco_track_start_dist_to_active_TPC", &m_reco_track_start_dist_to_active_TPC);
+        vertex_tree->Branch("reco_track_end_dist_to_SCB", &m_reco_track_end_dist_to_SCB);
+        vertex_tree->Branch("reco_track_start_dist_to_SCB", &m_reco_track_start_dist_to_SCB);
+        vertex_tree->Branch("reco_track_end_in_SCB", &m_reco_track_end_in_SCB);
+        vertex_tree->Branch("reco_track_start_in_SCB", &m_reco_track_start_in_SCB);
+
 
         vertex_tree->Branch("reco_track_theta_yz", &m_reco_track_theta_yz);
         vertex_tree->Branch("reco_track_phi_yx", &m_reco_track_phi_yx);
@@ -429,7 +450,6 @@ namespace single_photon
         vertex_tree->Branch("sim_track_startz",&m_sim_track_startz);
         vertex_tree->Branch("sim_track_trackID",&m_sim_track_trackID);
 
-
         vertex_tree->Branch("sim_track_sliceId",& m_sim_track_sliceId);
         vertex_tree->Branch("sim_track_nuscore",& m_sim_track_nuscore);
         vertex_tree->Branch("sim_track_isclearcosmic",& m_sim_track_isclearcosmic);
@@ -498,6 +518,16 @@ namespace single_photon
             m_reco_track_endx[i_trk] = track->End().X();   
             m_reco_track_endy[i_trk]= track->End().Y();   
             m_reco_track_endz[i_trk]= track->End().Z();   
+            
+            std::vector<double> hend = {m_reco_track_endx[i_trk],m_reco_track_endy[i_trk],m_reco_track_endz[i_trk]};
+            std::vector<double> hstart = {m_reco_track_startx[i_trk],m_reco_track_starty[i_trk],m_reco_track_startz[i_trk]};
+
+            m_reco_track_end_dist_to_active_TPC[i_trk] = distToTPCActive(hend);
+            m_reco_track_start_dist_to_active_TPC[i_trk] = distToTPCActive(hstart);
+
+            m_reco_track_end_in_SCB[i_trk] = this->distToSCB(m_reco_track_end_dist_to_SCB[i_trk],hend);
+            m_reco_track_start_in_SCB[i_trk] = this->distToSCB(m_reco_track_start_dist_to_SCB[i_trk],hstart);
+
 
             m_reco_track_theta_yz[i_trk] = atan2(m_reco_track_diry[i_trk],m_reco_track_dirz[i_trk]);
             m_reco_track_phi_yx[i_trk] = atan2(m_reco_track_diry[i_trk],m_reco_track_dirx[i_trk]);
