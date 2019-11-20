@@ -619,7 +619,7 @@ void SingleMuon::analyze(art::Event const& evt)
     Topology topology;
     TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above255, MC_nProton_below255, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
     if(TopologyType == 1){
-      cos_ang_muon_proton = (muonDir * ProtonDir) / (muonDir.Mag() * ProtongDir.Mag());
+      cos_ang_muon_proton = (MuonDir * ProtonDir) / (MuonDir.Mag() * ProtonDir.Mag());
       std::cout<<"cos_ang_muon_proton: "<< cos_ang_muon_proton<<std::endl;
     }    
     // Get Genie info on how many particles produced
