@@ -53,7 +53,7 @@ public:
      *  @brief Each algorithm may have different objects it wants "produced" so use this to
      *         let the top level producer module "know" what it is outputting
      */
-    virtual void produces(art::EDProducer*);
+    virtual void produces(art::ProducesCollector&);
 
     /**
      *  @brief Given the list of hits this will search for candidate Seed objects and return them
@@ -74,8 +74,6 @@ private:
     
     TH1D*                      fMaxDistHists;            ///< maximum distance all triangles
     TH1D*                      fBestMaxDistHists;        ///< best max dist
-    
-    art::EDProducer*           fMyProducerModule;        ///< The producer module driving us
     
     /// @{
     /**

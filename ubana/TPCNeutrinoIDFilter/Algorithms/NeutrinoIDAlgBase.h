@@ -21,7 +21,7 @@
 // foward declaration for producers
 namespace art
 {
-    class EDProducer;
+    class ProducesCollector;
     class Event;
 }
 
@@ -42,7 +42,7 @@ public:
      *  @brief Each algorithm may have different objects it wants "produced" so use this to 
      *         let the top level producer module "know" what it is outputting
      */
-    virtual void produces(art::EDProducer*) = 0;
+    virtual void produces(art::ProducesCollector&) = 0;
     
     /**
      *  @brief Allow call at owner module's "beginJob" phase

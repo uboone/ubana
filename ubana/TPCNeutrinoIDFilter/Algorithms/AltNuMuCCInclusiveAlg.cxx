@@ -73,7 +73,6 @@ enum class TH2DLabels : size_t
 };
 
 AltNuMuCCInclusiveAlg::AltNuMuCCInclusiveAlg(fhicl::ParameterSet const &pset) :
-    fMyProducerModule(0),
     fGeometry(lar::providerFrom<geo::Geometry>()),
     fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>()),
     fClocks(lar::providerFrom<detinfo::DetectorClocksService>())
@@ -155,11 +154,10 @@ void AltNuMuCCInclusiveAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs)
     return;
 }
     
-void AltNuMuCCInclusiveAlg::produces(art::EDProducer* owner)
+void AltNuMuCCInclusiveAlg::produces(art::ProducesCollector& collector)
 {
-    fMyProducerModule = owner;
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
+    collector.produces< art::Assns<recob::Vertex, recob::Track> >();
+    collector.produces< art::Assns<recob::Vertex, recob::PFParticle> >();
 }
 
     
@@ -438,8 +436,8 @@ bool AltNuMuCCInclusiveAlg::findNeutrinoCandidates(art::Event & event) const
                     if (trackVtxDoca < fMaxTrackDoca && trackVtxArcLen < fMaxTrackArcLen && projLength > fMinTrackLen && inFidVolStart && trackEndCheck)
                     {
                         nTrackMatchGood++;
-                        util::CreateAssn(*fMyProducerModule, event, track,      primaryVertexVec[0], *vertexTrackAssociations);
-                        util::CreateAssn(*fMyProducerModule, event, pfParticle, primaryVertexVec[0], *vertexPFParticleAssociations);
+                        util::CreateAssn(event, track,      primaryVertexVec[0], *vertexTrackAssociations);
+                        util::CreateAssn(event, pfParticle, primaryVertexVec[0], *vertexPFParticleAssociations);
                     }
                 }
             }
