@@ -43,7 +43,12 @@
 #include "larcorealg/Geometry/geo_vectors_utils.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
+#include "lardataobj/RecoBase/Vertex.h"
 //#include "lardataobj/AnalysisBase/PlaneIDBitsetHelperFunctions.h"
+
+#include "larsim/EventWeight/Base/MCEventWeight.h"
+#include "larsim/EventWeight/Base/MCEventWeight.h"
+#include "larsim/EventWeight/Base/WeightManager.h"
 
 #include "nusimdata/SimulationBase/simb.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -103,6 +108,8 @@ private:
   TTree * my_event_;
   
   void Initialize_event();
+
+  double EventWeight; // Spine reweight using Steven's tool  
   
   bool MC_beamNeutrino; // MCTruth beam origin
   bool MC_FV; // MCTruth vertex in FV = true, out of FV = false
@@ -124,6 +131,7 @@ private:
   int MC_nPiMinus_above65; // Number of pi minus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   std::vector<int> MC_Primary_PDG; // PDG of neutrino daughters
   std::vector<double> MC_Primary_Mom; // Momemtum of neutrino daughters
+  std::vector<double> MC_proton_true_Mom_above255; // Momentum of proton above 255 MeV
 
   std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
 
@@ -137,6 +145,7 @@ private:
   int Genie_nPiMinus_preFSI;// before FSI 
 
   int TopologyType;// The topology of true neutrino interaction + FSI products after Geant4
+  double cos_ang_muon_proton; // cosine of the angle in between muon and proton
 
   double flash_matching_chi2; //Chi2 of flash matching in each neutrino slice
 
@@ -158,6 +167,9 @@ private:
   std::vector<double> true_trk_PDG;//Track pdg 
   std::vector<bool> true_trk_ifcontained; // True track if contained or not
   std::vector<bool> true_vtxFV; // True track if contained or not
+
+  std::vector<double> reco_MC_dist_vtx; // Distance of reco - MC vertex w/ SCE correction
+  std::vector<double> reco_MC_dist_vtx_noSCE; // Distance of reco - MC vertex w/o SCE correction
 
   bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
   bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
@@ -188,6 +200,8 @@ private:
   std::vector<double> mom_Range_p_noSCE;//Range momentum of proton track in the every event
   std::vector<double> mom_Range_pi_noSCE;//Range momentum of pion track in the every event
   std::vector<double> mom_range_PID_avg_noSCE;//Range momentum of tracks based on their PID particle type using 3 pls
+  std::vector<double> missing_PT_MCS;// missing transverse momentum P*sin(theta)
+  std::vector<double> missing_PT_range;// missing transverse momentum
 
   std::vector<double> vtx_x;//Reconstructed vtx x in the every event
   std::vector<double> vtx_y;//Reconstructed vtx y in the every event
@@ -195,6 +209,12 @@ private:
   std::vector<double> vtx_x_MCS;//Reconstructed vtx x in the every event
   std::vector<double> vtx_y_MCS;//Reconstructed vtx y in the every event
   std::vector<double> vtx_z_MCS;//Reconstructed vtx z in the every event
+  std::vector<double> start_x_noSCE;//Reconstructed start x in the every event
+  std::vector<double> start_y_noSCE;//Reconstructed start y in the every event
+  std::vector<double> start_z_noSCE;//Reconstructed start z in the every event
+  std::vector<double> end_x_noSCE;//Reconstructed end x in the every event
+  std::vector<double> end_y_noSCE;//Reconstructed end y in the every event
+  std::vector<double> end_z_noSCE;//Reconstructed end z in the every event
   std::vector<double> start_x;//Reconstructed start x in the every event
   std::vector<double> start_y;//Reconstructed start y in the every event
   std::vector<double> start_z;//Reconstructed start z in the every event
@@ -392,6 +412,7 @@ void SingleMuon::analyze(art::Event const& evt)
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
   std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
   std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
+  std::vector<art::Ptr<evwgh::MCEventWeight> > WeightCollection;
 
   if(IsMC){
     // MC Truth
@@ -408,6 +429,18 @@ void SingleMuon::analyze(art::Event const& evt)
     art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
     evt.getByLabel(m_geantLabel, Handle_MCParticle);
     art::fill_ptr_vector(MCParticleCollection, Handle_MCParticle);
+
+    // Reweight
+    art::Handle< std::vector<evwgh::MCEventWeight> > Handle_Weight;
+    if(evt.getByLabel("eventweight4to4aFix", Handle_Weight)){
+      art::fill_ptr_vector(WeightCollection, Handle_Weight);
+      std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(0)->fWeight;
+      const std::vector<double> &weights = evtwgt_map.at("splines_general_Spline");
+      EventWeight = weights.front();
+    }
+    else{
+      EventWeight = 1;
+    }
   }
 
   // Hit
@@ -458,6 +491,9 @@ void SingleMuon::analyze(art::Event const& evt)
   art::fill_ptr_vector(crthit_v, Handle_crthit);
   Nr_crthit = 0;
 
+  // Vertex - PFP association
+  art::FindMany<recob::Vertex> pfpToVtxAsso(Handle_pfParticle, evt, m_pandoraLabel);
+
   // CRT Hit - Flash association
   art::FindMany<crt::CRTHit> CRThitFlashAsso(Handle_opflash, evt, m_CRTVetoLabel);
   
@@ -494,6 +530,12 @@ void SingleMuon::analyze(art::Event const& evt)
   //std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
   std::vector<float> vTrk_len;
 
+  TVector3 true_nuVtx; // useful to calculate the distance to the true vtx
+  TVector3 Trk_start;
+  TVector3 Trk_end;
+  TVector3 Trk_start_SCEcorr; 
+  TVector3 Trk_end_SCEcorr;
+ 
   //Constants
   const simb::Origin_t Neutrino_Origin = simb::kBeamNeutrino;
 
@@ -531,12 +573,14 @@ void SingleMuon::analyze(art::Event const& evt)
       MC_nuVtxX = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vx();
       MC_nuVtxY = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vy();
       MC_nuVtxZ = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vz();
-      TVector3 true_nuVtx(MC_nuVtxX, MC_nuVtxY, MC_nuVtxZ);
+      true_nuVtx.SetXYZ(MC_nuVtxX, MC_nuVtxY, MC_nuVtxZ);
       MC_FV = _fiducial_volume.InFV(true_nuVtx);
     }
 
     // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
     // Not necessary all the Genie particles go through the geant4 stage?
+    TVector3 MuonDir;
+    TVector3 ProtonDir;
     if (MC_ccnc == 0 && MC_nupdg == 14 && MC_beamNeutrino == true){
       for(unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
         if(MCParticleCollection[i_mcp]->Process() == "primary"){
@@ -545,14 +589,21 @@ void SingleMuon::analyze(art::Event const& evt)
           MC_Primary_Mom.push_back(MCParticleCollection[i_mcp]->P());
 
           // muon
-          if(MCParticleCollection[i_mcp]->PdgCode() == 13) MC_nMuon++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 13){
+            MC_nMuon++;
+            MuonDir.SetXYZ(MCParticleCollection[i_mcp]->Px(), MCParticleCollection[i_mcp]->Py(),MCParticleCollection[i_mcp]->Pz());
+          } 
           // electron
           if(MCParticleCollection[i_mcp]->PdgCode() == 11) MC_nElectron++;
           // neutron
           if(MCParticleCollection[i_mcp]->PdgCode() == 2112) MC_nNeutron++;
           // proton
           if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.255) MC_nProton_below255++;
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.255) MC_nProton_above255++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.255) {
+            MC_nProton_above255++; 
+            MC_proton_true_Mom_above255.push_back(MCParticleCollection[i_mcp]->P());
+            ProtonDir.SetXYZ(MCParticleCollection[i_mcp]->Px(), MCParticleCollection[i_mcp]->Py(),MCParticleCollection[i_mcp]->Pz());
+          }
           // pion0
           if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
           // pion+
@@ -567,7 +618,10 @@ void SingleMuon::analyze(art::Event const& evt)
  
     Topology topology;
     TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above255, MC_nProton_below255, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
-    
+    if(TopologyType == 1){
+      cos_ang_muon_proton = (muonDir * ProtonDir) / (muonDir.Mag() * ProtongDir.Mag());
+      std::cout<<"cos_ang_muon_proton: "<< cos_ang_muon_proton<<std::endl;
+    }    
     // Get Genie info on how many particles produced
     for(unsigned int i_gn = 0; i_gn < GTruthCollection.size(); i_gn++){
       Genie_Q2 = GTruthCollection[i_gn]->fgQ2;
@@ -688,17 +742,29 @@ void SingleMuon::analyze(art::Event const& evt)
         //-- Fill RECO track info (in the naive version this is selected)
         if_selected = true;
 
+        //// Vertex of the neutrino or the neutrino daughter
+        //auto assoVtx_nu = pfpToVtxAsso.at(pfp.key()); // vector
+        //if(assoVtx_nu.size()==1){
+        //  auto vtx_nu = assoVtx_nu.front()->position();
+        //  std::cout<<"assoVtx_nu X: "<<vtx_nu.X()<<", "<<vtx_nu.Y()<<", "<<vtx_nu.Z()<<std::endl;
+        //} 
+
+        //auto assoVtx_nu_dau = pfpToVtxAsso.at(daughter_Tracks.front().key()); // vector
+        //if(assoVtx_nu_dau.size()==1){
+        //  auto vtx_nu_dau = assoVtx_nu_dau.front()->position();
+        //  std::cout<<"assoVtx_nu_dau X: "<<vtx_nu_dau.X()<<", "<<vtx_nu_dau.Y()<<", "<<vtx_nu_dau.Z()<<std::endl;
+        //}
+
         // Add spatial correction to the track start and end
-        TVector3 Trk_start = daughter_Tracks.front()->Vertex<TVector3>();
+        Trk_start = daughter_Tracks.front()->Vertex<TVector3>();
+        //std::cout<<"Trk_start X: "<<Trk_start[0]<<", "<<Trk_start[1]<<", "<<Trk_start[2]<<std::endl;
         auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
-        TVector3 Trk_start_SCEcorr;
         Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
         Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
         Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
 
-        TVector3 Trk_end = daughter_Tracks.front()->End<TVector3>();
+        Trk_end = daughter_Tracks.front()->End<TVector3>();
         auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
-        TVector3 Trk_end_SCEcorr;
         Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X());
         Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
         Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
@@ -785,6 +851,12 @@ void SingleMuon::analyze(art::Event const& evt)
         end_x.push_back(Trk_end_SCEcorr.X());
         end_y.push_back(Trk_end_SCEcorr.Y());
         end_z.push_back(Trk_end_SCEcorr.Z());
+        start_x_noSCE.push_back(Trk_start.X());
+        start_y_noSCE.push_back(Trk_start.Y());
+        start_z_noSCE.push_back(Trk_start.Z());
+        end_x_noSCE.push_back(Trk_end.X());
+        end_y_noSCE.push_back(Trk_end.Y());
+        end_z_noSCE.push_back(Trk_end.Z());
         
         trk_phi.push_back(daughter_Tracks.front()->Phi());
         trk_theta.push_back(daughter_Tracks.front()->Theta());
@@ -804,6 +876,12 @@ void SingleMuon::analyze(art::Event const& evt)
         double Mom_Range_pi_noSCE = _trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, 211);
         mom_Range_pi.push_back(Mom_Range_pi);
         mom_Range_pi_noSCE.push_back(Mom_Range_pi_noSCE);
+
+        //Missing PT
+        missing_PT_range.push_back(Mom_Range_mu_noSCE * sin(daughter_Tracks.front()->Theta()));
+        missing_PT_MCS.push_back(bestMCS * sin(daughter_Tracks.front()->Theta()));
+        std::cout<<"range mom: "<< Mom_Range_mu_noSCE <<", missing PT range: "<< missing_PT_range.back()<<std::endl;
+        std::cout<<"MCS mom: "<< bestMCS <<", missing PT MCS: "<< missing_PT_MCS.back()<<std::endl;
 
         //Calorimetry Info
         // pandoracaliSCE has E-field and spatial correction
@@ -973,7 +1051,8 @@ void SingleMuon::analyze(art::Event const& evt)
           else{
             if_cosmic = false;
             if(MCparticle->PdgCode() == 13) if_matchMu = true;
-            auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
+            //auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
+            TVector3 TrueTrackPos(MCparticle->Px(), MCparticle->Py(), MCparticle->Pz());// The initial momentum represent the angle of true track
             true_mom.push_back(MCparticle->P());
             true_start_x.push_back(MCparticle->Position().X());
             true_start_y.push_back(MCparticle->Position().Y());
@@ -996,6 +1075,8 @@ void SingleMuon::analyze(art::Event const& evt)
             true_trk_PDG.push_back(MCparticle->PdgCode());
             
           }
+          reco_MC_dist_vtx.push_back((true_nuVtx - Trk_start_SCEcorr).Mag());
+          reco_MC_dist_vtx_noSCE.push_back((true_nuVtx - Trk_start).Mag());
         }
        
         //Directional Info
@@ -1110,6 +1191,7 @@ void SingleMuon::analyze(art::Event const& evt)
   if(IsMC){
     MC_Primary_PDG.clear();
     MC_Primary_Mom.clear();
+    MC_proton_true_Mom_above255.clear();
     Ghost_PDG.clear();
     true_mom.clear();
     true_start_x.clear();
@@ -1129,6 +1211,8 @@ void SingleMuon::analyze(art::Event const& evt)
     true_trk_PDG.clear();
     true_trk_ifcontained.clear();
     true_vtxFV.clear();
+    reco_MC_dist_vtx.clear();
+    reco_MC_dist_vtx_noSCE.clear();
   }
 
   if(UsingCRT){
@@ -1160,6 +1244,8 @@ void SingleMuon::analyze(art::Event const& evt)
   mom_Range_pi.clear();
   mom_Range_pi_noSCE.clear();
   mom_range_PID_avg_noSCE.clear();
+  missing_PT_range.clear();
+  missing_PT_MCS.clear();
 
   vtx_x.clear();
   vtx_y.clear();
@@ -1173,6 +1259,12 @@ void SingleMuon::analyze(art::Event const& evt)
   end_x.clear();
   end_y.clear();
   end_z.clear();
+  start_x_noSCE.clear();
+  start_y_noSCE.clear();
+  start_z_noSCE.clear();
+  end_x_noSCE.clear();
+  end_y_noSCE.clear();
+  end_z_noSCE.clear();
   trk_phi.clear();
   trk_theta.clear();
   trk_costheta.clear();
@@ -1241,7 +1333,9 @@ void SingleMuon::Initialize_event()
   my_event_ = tfs->make<TTree>("tree","tree");
   
   if(IsMC){
+    my_event_->Branch("EventWeight", &EventWeight);
     my_event_->Branch("TopologyType", &TopologyType);
+    my_event_->Branch("cos_ang_muon_proton", &cos_ang_muon_proton);
     my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
     my_event_->Branch("MC_nupdg", &MC_nupdg);
     my_event_->Branch("MC_ccnc", &MC_ccnc);
@@ -1262,6 +1356,7 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nPiMinus_above65", &MC_nPiMinus_above65);
     my_event_->Branch("MC_Primary_PDG", &MC_Primary_PDG);
     my_event_->Branch("MC_Primary_Mom", &MC_Primary_Mom);
+    my_event_->Branch("MC_proton_true_Mom_above255", &MC_proton_true_Mom_above255);
     my_event_->Branch("Ghost_PDG", &Ghost_PDG);
 
     my_event_->Branch("Genie_Q2", &Genie_Q2);
@@ -1291,6 +1386,9 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("true_trk_PDG", &true_trk_PDG);
     my_event_->Branch("true_trk_ifcontained", &true_trk_ifcontained);
     my_event_->Branch("true_vtxFV", &true_vtxFV);
+
+    my_event_->Branch("reco_MC_dist_vtx", &reco_MC_dist_vtx);
+    my_event_->Branch("reco_MC_dist_vtx_noSCE", &reco_MC_dist_vtx_noSCE);
   }
 
   my_event_->Branch("v_sanity_check", &v_sanity_check);
@@ -1329,6 +1427,8 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("mom_Range_p_noSCE", &mom_Range_p_noSCE);
   my_event_->Branch("mom_Range_pi_noSCE", &mom_Range_pi_noSCE);
   my_event_->Branch("mom_range_PID_avg_noSCE", &mom_range_PID_avg_noSCE);
+  my_event_->Branch("missing_PT_range", &missing_PT_range);
+  my_event_->Branch("missing_PT_MCS", &missing_PT_MCS);
   my_event_->Branch("vtx_x", &vtx_x);
   my_event_->Branch("vtx_y", &vtx_y);
   my_event_->Branch("vtx_z", &vtx_z);
@@ -1341,6 +1441,12 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("end_x", &end_x);
   my_event_->Branch("end_y", &end_y);
   my_event_->Branch("end_z", &end_z);
+  my_event_->Branch("start_x_noSCE", &start_x_noSCE);
+  my_event_->Branch("start_y_noSCE", &start_y_noSCE);
+  my_event_->Branch("start_z_noSCE", &start_z_noSCE);
+  my_event_->Branch("end_x_noSCE", &end_x_noSCE);
+  my_event_->Branch("end_y_noSCE", &end_y_noSCE);
+  my_event_->Branch("end_z_noSCE", &end_z_noSCE);
   my_event_->Branch("trk_phi", &trk_phi);
   my_event_->Branch("trk_theta", &trk_theta);
   my_event_->Branch("trk_costheta", &trk_costheta);
