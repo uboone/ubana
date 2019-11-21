@@ -50,7 +50,7 @@ public:
      *  @brief Each algorithm may have different objects it wants "produced" so use this to
      *         let the top level producer module "know" what it is outputting
      */
-    virtual void produces(art::EDProducer*);
+    virtual void produces(art::ProducesCollector&);
 
     /**
      *  @brief Given the list of hits this will search for candidate Seed objects and return them
@@ -81,8 +81,6 @@ private:
     size_t                     fMinCandidateClusters;    ///< Minimum candidate clusters to proceed
     float                      fMaximumDistance;         ///< Maximum distance between 2 clusters
     float                      fMaximumTime;             ///< Maximum time beteween 2 clusters
-    
-    art::EDProducer*           fMyProducerModule;        ///< The producer module driving us
     
     /// @{
     /**
