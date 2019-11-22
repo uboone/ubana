@@ -3,6 +3,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            larsim_Simulation nug4_ParticleNavigation
                            lardataobj_Simulation
                            lardata_Utilities
+                           lardataobj_RecoBase
                            larevt_Filters
                            larsim_MCCheater_BackTrackerService_service
                            larsim_MCCheater_ParticleInventoryService_service
