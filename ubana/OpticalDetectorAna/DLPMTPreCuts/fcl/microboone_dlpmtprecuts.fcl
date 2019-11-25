@@ -65,8 +65,8 @@ microboone_common_op_precut_numi: {
   WinStartTick:	300.
   WinEndTick: 1050.
   PEThreshold: 20.0
-  VetoStartTick: 234.
-  VetoEndTick: 364.
+  VetoStartTick: 170.
+  VetoEndTick: 300.
   PMTMaxFrac: 2.0 #disable this
 
 }
@@ -79,8 +79,8 @@ microboone_common_op_precut_numi_ext: {
   WinStartTick: 323.
   WinEndTick: 1073.
   PEThreshold: 20.0
-  VetoStartTick: 257. 
-  VetoEndTick: 387.
+  VetoStartTick: 193. 
+  VetoEndTick: 323.
   PMTMaxFrac: 2.0 #disable this
 
 }
