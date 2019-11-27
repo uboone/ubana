@@ -796,9 +796,6 @@ void ShowerTemplateMaker::showerProfile(std::vector< art::Ptr<recob::Hit> >shhit
       cout << "-----cryostat: " << cryostat << endl;
       cout << "-----tpc: " << tpc << endl;
     }
-
-    // todo: rethink about: sometime the reconstructed vertex is not right, skip upstream hits;
-    //if (hitGlobalWire <= shVertexWire) continue;
    
     double wirePitch = geom->WirePitch(shhits[i]->WireID());
     double tickToDist = detprop->DriftVelocity(detprop->Efield(),detprop->Temperature()); // [cm/us]
@@ -1320,17 +1317,27 @@ void ShowerTemplateMaker::analyze(art::Event const& e)
             // shower hits
             std::vector<art::Ptr<recob::Hit>> sh_hits = fmshhits.at(showers[k].key());
             cout << "sh_hits.size(): " << sh_hits.size() << endl;
+            std::vector<int> shHitsCountVec(3, 0);
             std::vector<double> shHitsVec (3, 0.);
             for (size_t ihit = 0; ihit < sh_hits.size(); ++ihit) {
               art::Ptr<recob::Hit> hit = sh_hits[ihit];
-              if (hit->WireID().Plane == 2) shHitsVec[2] += hit->Integral();
-              else if (hit->WireID().Plane == 1) shHitsVec[1] += hit->Integral();
-              else if (hit->WireID().Plane == 0) shHitsVec[0] += hit->Integral();
+              if (hit->WireID().Plane == 2) {
+                shHitsCountVec[2] += 1;
+                shHitsVec[2] += hit->Integral();
+              }
+              else if (hit->WireID().Plane == 1) {
+                shHitsCountVec[1] += 1;
+                shHitsVec[1] += hit->Integral();
+              }
+              else if (hit->WireID().Plane == 0) {
+                shHitsCountVec[0] += 1;
+                shHitsVec[0] += hit->Integral();
+              }
             }
             
             // we require hits on collection plane and at least on one of the induction plane
             // todo: rethink about if using "charge == 0" is ok, may switch to number of hits 
-            if ( shHitsVec[2] == 0 || (shHitsVec[0]+shHitsVec[1] == 0) ) continue;
+            if ( shHitsCountVec[2] == 0 || (shHitsCountVec[0]+shHitsCountVec[1] == 0) ) continue;
 
             //double k_sh_energy = showers[k]->Energy().at(2);
             double k_sh_energy = shHitsVec[2]*fADCtoE[2]/fRecombination*23.6e-6; //[MeV]
