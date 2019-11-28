@@ -17,6 +17,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -29,6 +30,9 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+
+// ROOT includes
+#include "TTree.h"
 
 class PFPProfile;
 
@@ -47,6 +51,9 @@ public:
   // Required functions.
   void analyze(art::Event const& e) override;
 
+  // Selected optional functions.
+  void beginJob() override;
+
 private:
 
   void project(const double& x0, 
@@ -57,6 +64,17 @@ private:
                const double& y, 
                double& xp, 
                double& yp);
+
+  void reset();
+
+  // TTree
+  TTree *fEventTree;
+  
+  // event information
+  int event;
+  int run;
+  int subrun;
+  
 };
 
 
@@ -69,6 +87,13 @@ PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
 
 void PFPProfile::analyze(art::Event const& e)
 {
+
+  reset();
+
+  run = e.run();
+  subrun = e.subRun();
+  event = e.id().event();
+  
    // Get all pfparticles
   art::Handle < std::vector < recob::PFParticle > > pfpListHandle;
   std::vector < art::Ptr < recob::PFParticle > > pfpList;
@@ -232,6 +257,7 @@ void PFPProfile::analyze(art::Event const& e)
       }
     }
   }
+  fEventTree->Fill();
 }
 
 void PFPProfile::project(const double& x0, 
@@ -259,4 +285,21 @@ void PFPProfile::project(const double& x0,
   }
 }
 
+void PFPProfile::beginJob(){
+
+  art::ServiceHandle<art::TFileService> tfs;
+  fEventTree = tfs->make<TTree>("Event", "Event");
+  fEventTree->Branch("event", &event, "event/I");
+  fEventTree->Branch("run", &run, "run/I");
+  fEventTree->Branch("subrun", &subrun, "subrun/I");
+
+}
+
+void PFPProfile::reset() {
+
+  run = -99999;
+  subrun = -99999;
+  event = -99999;
+
+}
 DEFINE_ART_MODULE(PFPProfile)

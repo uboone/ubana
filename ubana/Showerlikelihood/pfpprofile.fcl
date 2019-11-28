@@ -24,13 +24,13 @@ physics:
 {
     analyzers: 
     {
-        pfpprofile: 
+        profile: 
         {
             module_type: "PFPProfile"
         }
     }
     
-    analysis: [pfpprofile]
+    analysis: [profile]
     end_paths: [analysis]
 }
 
