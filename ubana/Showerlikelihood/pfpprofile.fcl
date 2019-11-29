@@ -7,7 +7,7 @@ process_name: ShowerSelection
 
 services:
 {
-  TFileService: {fileName: "ShowerSelection.root"}
+  TFileService: {fileName: "Profile.root"}
   @table::microboone_simulation_services
   @table::microboone_services
   BackTrackerService:                       @local::microboone_backtrackerservice

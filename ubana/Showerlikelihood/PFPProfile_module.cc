@@ -34,6 +34,9 @@
 // ROOT includes
 #include "TTree.h"
 
+constexpr int kNplanes = 3;      //number of wire planes
+constexpr int kMaxPFPs = 1000;   //maximum number of PFParticles
+
 class PFPProfile;
 
 class PFPProfile : public art::EDAnalyzer {
@@ -74,7 +77,15 @@ private:
   int event;
   int run;
   int subrun;
-  
+
+  int npfps;
+  float LongProf[kMaxPFPs][3][100];
+  float TranProf[kMaxPFPs][3][16];
+  float TotalCharge[kMaxPFPs][3];
+  int pfpid[kMaxPFPs];
+  int trkid[kMaxPFPs];
+  int shwid[kMaxPFPs];
+
 };
 
 
@@ -132,7 +143,11 @@ void PFPProfile::analyze(art::Event const& e)
   tickToDist *= 1.e-3 * detprop->SamplingRate(); // 1e-3 is conversion of 1/us to 1/ns  
 
   // Loop over all pfparticles
+  npfps = 0;
   for (const auto& pfp : pfpList){
+
+    if (npfps >= kMaxPFPs) continue;
+    pfpid[npfps] = pfp.key();
 
     // Find the vertex and direction of the pfparticle
     double vtx[3] = {0,0,0};
@@ -150,12 +165,13 @@ void PFPProfile::analyze(art::Event const& e)
         dir[0] = tracks[0]->StartDirection().X();
         dir[1] = tracks[0]->StartDirection().Y();
         dir[2] = tracks[0]->StartDirection().Z();
-
+        
+        trkid[npfps] = tracks[0].key();
         foundvtxdir = true;
       }
     }
     // If no track is found, check showers
-    else if (fmspfp.isValid()){
+    if (!foundvtxdir && fmspfp.isValid()){
       auto const& showers = fmspfp.at(pfp.key());
       if (!showers.empty()){
         vtx[0] = showers[0]->ShowerStart().X();
@@ -166,11 +182,12 @@ void PFPProfile::analyze(art::Event const& e)
         dir[1] = showers[0]->Direction().Y();
         dir[2] = showers[0]->Direction().Z();
         
+        shwid[npfps] = showers[0].key();
         foundvtxdir = true;
       }
     }
 
-    if (foundvtxdir){
+    if (foundvtxdir){// foundvtxdir
       // Get hits on each plane
       std::vector<std::vector<art::Ptr<recob::Hit>>> allhits(3);
       if (fmcpfp.isValid()){
@@ -188,6 +205,7 @@ void PFPProfile::analyze(art::Event const& e)
           }
         }
       }
+
       // Loop over all planes
       for (unsigned short pl = 0; pl <geom->Nplanes(); ++pl){
         if (allhits[pl].empty()) continue; //no hits on this plane
@@ -252,11 +270,22 @@ void PFPProfile::analyze(art::Event const& e)
                               (hity[i]-y0)*(hity[i]-y0)+
                               (hitz[i]-z0)*(hitz[i]-z0));
           double Tdist = hitdist[i];
-          std::cout<<pfp.key()<<" "<<pl<<" "<<Ldist<<" "<<Tdist<<" "<<hitcharge[i]<<std::endl;
+          //if (pfp.key()==0) std::cout<<pfp.key()<<" "<<pl<<" "<<Ldist<<" "<<Tdist<<" "<<hitcharge[i]<<std::endl;
+          int iL = int(Ldist/(14./4.)); //0.25 radiation length
+          int iT = int(Tdist/0.5);     //0.5 cm
+          //std::cout<<npfps<<" "<<pl<<" "<<Ldist<<" "<<iL<<" "<<hitcharge[i]<<std::endl;
+          //std::cout<<npfps<<" "<<pl<<" "<<Tdist<<" "<<iT<<" "<<hitcharge[i]<<std::endl;
+          if (iL>=0 && iL<100) LongProf[npfps][pl][iL] += hitcharge[i];
+          if (iT>=0 && iT<16)  TranProf[npfps][pl][iT] += hitcharge[i];
+          TotalCharge[npfps][pl] += hitcharge[i];
         }
       }
+      ++ npfps;
+    } // if foundvtxdir
+    else{
+      std::cout<<"Could not find vertex and direction."<<std::endl;
     }
-  }
+  }// loop over pfps
   fEventTree->Fill();
 }
 
@@ -292,6 +321,13 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("event", &event, "event/I");
   fEventTree->Branch("run", &run, "run/I");
   fEventTree->Branch("subrun", &subrun, "subrun/I");
+  fEventTree->Branch("npfps", &npfps,"npfps/I");
+  fEventTree->Branch("pfpid", pfpid, "pfpid[npfps]/I");
+  fEventTree->Branch("trkid", trkid, "trkid[npfps]/I");
+  fEventTree->Branch("shwid", shwid, "shwid[npfps]/I");
+  fEventTree->Branch("TotalCharge", TotalCharge, "TotalCharge[npfps][3]/F");
+  fEventTree->Branch("LongProf", LongProf, "LongProf[npfps][3][100]/F");
+  fEventTree->Branch("TranProf", TranProf, "TranProf[npfps][3][16]/F");
 
 }
 
@@ -300,6 +336,18 @@ void PFPProfile::reset() {
   run = -99999;
   subrun = -99999;
   event = -99999;
-
+  
+  npfps = -99999;
+  for (size_t i = 0; i<kMaxPFPs; ++i){
+    pfpid[i] = -1;
+    trkid[i] = -1;
+    shwid[i] = -1;
+    for (size_t j = 0; j<3; ++j){
+      TotalCharge[i][j] = 0;
+      for (size_t k = 0; k<100; ++k) LongProf[i][j][k] = 0;
+      for (size_t k = 0; k<16; ++k) TranProf[i][j][k] = 0;
+    }
+  }
 }
+
 DEFINE_ART_MODULE(PFPProfile)
