@@ -490,7 +490,7 @@ bool ShowerTemplateMaker::insideFV( double vertex[3] ) {
 
   if (x >= fFidVolXmin && x <= fFidVolXmax &&
       y >= fFidVolYmin && y <= fFidVolYmax &&
-      x >= fFidVolZmin && z <= fFidVolZmax) {
+      z >= fFidVolZmin && z <= fFidVolZmax) {
     return true;
   }
   else {
