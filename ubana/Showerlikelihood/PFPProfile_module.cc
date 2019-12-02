@@ -46,6 +46,9 @@
 
 using namespace std;
 
+constexpr int kNplanes = 3;      //number of wire planes
+constexpr int kMaxPFPs = 1000;   //maximum number of PFParticles
+
 class PFPProfile;
 
 class PFPProfile : public art::EDAnalyzer {
@@ -62,7 +65,10 @@ public:
 
   // Required functions.
   void analyze(art::Event const& e) override;
-  
+
+  // Selected optional functions.
+  void beginJob() override;
+
 private:
 
   // user's defined functions
@@ -74,33 +80,24 @@ private:
                const double& y, 
                double& xp, 
                double& yp);
-  void beginJob();
-  void makeDataProducts();
-  bool insideFV(double vertex[3]);
+
   void reset();
-
-  // fcl: Configuration
-  bool fFVCutOnRecon; // true: use recon; false: use truth
-  float fFidVolCutX;
-  float fFidVolCutY;
-  float fFidVolCutZ;
-
-  // Fiducial Volume variables
-  float fFidVolXmin;
-  float fFidVolXmax;
-  float fFidVolYmin;
-  float fFidVolYmax;
-  float fFidVolZmin;
-  float fFidVolZmax;
 
   // TTree
   TTree *fEventTree;
- 
+  
   // event information
   int event;
   int run;
   int subrun;
 
+  int npfps;
+  float LongProf[kMaxPFPs][3][100];
+  float TranProf[kMaxPFPs][3][16];
+  float TotalCharge[kMaxPFPs][3];
+  int pfpid[kMaxPFPs];
+  int trkid[kMaxPFPs];
+  int shwid[kMaxPFPs];
 
 };
 
@@ -110,83 +107,18 @@ PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
   // More initializers here.
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
-  fFVCutOnRecon       = p.get<bool>("FVCutOnRecon");
-  fFidVolCutX         = p.get<float>("FidVolCutX");
-  fFidVolCutY         = p.get<float>("FidVolCutY");
-  fFidVolCutZ         = p.get<float>("FidVolCutZ");
-
-  this->makeDataProducts();
-}
-
-void PFPProfile::makeDataProducts() {
-  art::ServiceHandle<art::TFileService> tfs;
-
-  // fEventTree
-  fEventTree = tfs->make<TTree>("Event", "Event");
-  fEventTree->Branch("event", &event, "event/I");
-  fEventTree->Branch("run", &run, "run/I");
-  fEventTree->Branch("subrun", &subrun, "subrun/I");
-
-}
-
-void PFPProfile::beginJob() {
-  mf::LogInfo("PFPProfile") << ".... begin of job ...." << endl; 
-
-  auto const* geo = lar::providerFrom<geo::Geometry>();
-  double minX = 1e9; // [cm]
-  double maxX = -1e9;
-  double minY = 1e9;
-  double maxY = -1e9;
-  double minZ = 1e9;
-  double maxZ = -1e9;
-
-  for (size_t i = 0; i<geo->NTPC(); ++i){
-    double local[3] = {0.,0.,0.};
-    double world[3] = {0.,0.,0.};
-    const geo::TPCGeo &tpc = geo->TPC(i);
-    tpc.LocalToWorld(local,world);
-
-    if (minX > world[0] - geo->DetHalfWidth(i))  minX = world[0]-geo->DetHalfWidth(i);
-    if (maxX < world[0] + geo->DetHalfWidth(i))  maxX = world[0]+geo->DetHalfWidth(i);
-    if (minY > world[1] - geo->DetHalfHeight(i)) minY = world[1]-geo->DetHalfHeight(i);
-    if (maxY < world[1] + geo->DetHalfHeight(i)) maxY = world[1]+geo->DetHalfHeight(i);
-    if (minZ > world[2] - geo->DetLength(i)/2.)  minZ = world[2]-geo->DetLength(i)/2.;
-    if (maxZ < world[2] + geo->DetLength(i)/2.)  maxZ = world[2]+geo->DetLength(i)/2.;
-  }
-
-  fFidVolXmin = minX + fFidVolCutX;
-  fFidVolXmax = maxX - fFidVolCutX;
-  fFidVolYmin = minY + fFidVolCutY;
-  fFidVolYmax = maxY - fFidVolCutY;
-  fFidVolZmin = minZ + fFidVolCutZ;
-  fFidVolZmax = maxZ - 2 * fFidVolCutZ; // for downstream z, use a cut of 60 cm away from edge
-
-  cout << "\n....Fiducial Volume (length unit: cm):\n" << "\t" << fFidVolXmin << "\t< x <\t" << fFidVolXmax << "\n\t" << fFidVolYmin << "\t< y <\t" << fFidVolYmax << "\n\t" << fFidVolZmin << "\t< z <\t" << fFidVolZmax << "\n" << endl;
-}
-
-bool PFPProfile::insideFV( double vertex[3]) { 
-  if ( vertex[0] >= fFidVolXmin && vertex[0] <= fFidVolXmax && 
-       vertex[1] >= fFidVolYmin && vertex[1] <= fFidVolYmax &&
-       vertex[2] >= fFidVolZmin && vertex[2] <= fFidVolZmax ) {
-    return true;
-  }
-  else {
-    return false;
-  }
 }
 
 void PFPProfile::analyze(art::Event const& e)
 {
-   reset();
 
-   run = e.run();
-   subrun = e.subRun();
-   event = e.id().event();
-  
-   //cout << "e.isRealData(): " << e.isRealData() << endl;
-  
+  reset();
 
-  // Get all pfparticles
+  run = e.run();
+  subrun = e.subRun();
+  event = e.id().event();
+  
+   // Get all pfparticles
   art::Handle < std::vector < recob::PFParticle > > pfpListHandle;
   std::vector < art::Ptr < recob::PFParticle > > pfpList;
   if (e.getByLabel("pandora", pfpListHandle)) {
@@ -224,7 +156,11 @@ void PFPProfile::analyze(art::Event const& e)
   tickToDist *= 1.e-3 * detprop->SamplingRate(); // 1e-3 is conversion of 1/us to 1/ns  
 
   // Loop over all pfparticles
+  npfps = 0;
   for (const auto& pfp : pfpList){
+
+    if (npfps >= kMaxPFPs) continue;
+    pfpid[npfps] = pfp.key();
 
     // Find the vertex and direction of the pfparticle
     double vtx[3] = {0,0,0};
@@ -242,12 +178,13 @@ void PFPProfile::analyze(art::Event const& e)
         dir[0] = tracks[0]->StartDirection().X();
         dir[1] = tracks[0]->StartDirection().Y();
         dir[2] = tracks[0]->StartDirection().Z();
-
+        
+        trkid[npfps] = tracks[0].key();
         foundvtxdir = true;
       }
     }
     // If no track is found, check showers
-    else if (fmspfp.isValid()){
+    if (!foundvtxdir && fmspfp.isValid()){
       auto const& showers = fmspfp.at(pfp.key());
       if (!showers.empty()){
         vtx[0] = showers[0]->ShowerStart().X();
@@ -258,11 +195,12 @@ void PFPProfile::analyze(art::Event const& e)
         dir[1] = showers[0]->Direction().Y();
         dir[2] = showers[0]->Direction().Z();
         
+        shwid[npfps] = showers[0].key();
         foundvtxdir = true;
       }
     }
 
-    if (foundvtxdir){
+    if (foundvtxdir){// foundvtxdir
       // Get hits on each plane
       std::vector<std::vector<art::Ptr<recob::Hit>>> allhits(3);
       if (fmcpfp.isValid()){
@@ -280,6 +218,7 @@ void PFPProfile::analyze(art::Event const& e)
           }
         }
       }
+
       // Loop over all planes
       for (unsigned short pl = 0; pl <geom->Nplanes(); ++pl){
         if (allhits[pl].empty()) continue; //no hits on this plane
@@ -344,12 +283,27 @@ void PFPProfile::analyze(art::Event const& e)
                               (hity[i]-y0)*(hity[i]-y0)+
                               (hitz[i]-z0)*(hitz[i]-z0));
           double Tdist = hitdist[i];
-          std::cout<<pfp.key()<<" "<<pl<<" "<<Ldist<<" "<<Tdist<<" "<<hitcharge[i]<<std::endl;
+          //if (pfp.key()==0) std::cout<<pfp.key()<<" "<<pl<<" "<<Ldist<<" "<<Tdist<<" "<<hitcharge[i]<<std::endl;
+          int iL = int(Ldist/(14./4.)); //0.25 radiation length
+          int iT = int(Tdist/0.5);     //0.5 cm
+          //std::cout<<npfps<<" "<<pl<<" "<<Ldist<<" "<<iL<<" "<<hitcharge[i]<<std::endl;
+          //std::cout<<npfps<<" "<<pl<<" "<<Tdist<<" "<<iT<<" "<<hitcharge[i]<<std::endl;
+          if (iL>=0 && iL<100) LongProf[npfps][pl][iL] += hitcharge[i];
+          if (iT>=0 && iT<16)  TranProf[npfps][pl][iT] += hitcharge[i];
+          TotalCharge[npfps][pl] += hitcharge[i];
         }
       }
+      ++ npfps;
+    } // if foundvtxdir
+    else{
+      std::cout<<"Could not find vertex and direction."<<std::endl;
     }
+<<<<<<< HEAD
   }
 
+=======
+  }// loop over pfps
+>>>>>>> 0a4df60cb7c1edd854d5d51ded77d215314b4bc2
   fEventTree->Fill();
 }
 
@@ -378,11 +332,40 @@ void PFPProfile::project(const double& x0,
   }
 }
 
+void PFPProfile::beginJob(){
+
+  art::ServiceHandle<art::TFileService> tfs;
+  fEventTree = tfs->make<TTree>("Event", "Event");
+  fEventTree->Branch("event", &event, "event/I");
+  fEventTree->Branch("run", &run, "run/I");
+  fEventTree->Branch("subrun", &subrun, "subrun/I");
+  fEventTree->Branch("npfps", &npfps,"npfps/I");
+  fEventTree->Branch("pfpid", pfpid, "pfpid[npfps]/I");
+  fEventTree->Branch("trkid", trkid, "trkid[npfps]/I");
+  fEventTree->Branch("shwid", shwid, "shwid[npfps]/I");
+  fEventTree->Branch("TotalCharge", TotalCharge, "TotalCharge[npfps][3]/F");
+  fEventTree->Branch("LongProf", LongProf, "LongProf[npfps][3][100]/F");
+  fEventTree->Branch("TranProf", TranProf, "TranProf[npfps][3][16]/F");
+
+}
+
 void PFPProfile::reset() {
+
   run = -99999;
   subrun = -99999;
   event = -99999;
+  
+  npfps = -99999;
+  for (size_t i = 0; i<kMaxPFPs; ++i){
+    pfpid[i] = -1;
+    trkid[i] = -1;
+    shwid[i] = -1;
+    for (size_t j = 0; j<3; ++j){
+      TotalCharge[i][j] = 0;
+      for (size_t k = 0; k<100; ++k) LongProf[i][j][k] = 0;
+      for (size_t k = 0; k<16; ++k) TranProf[i][j][k] = 0;
+    }
+  }
 }
-
 
 DEFINE_ART_MODULE(PFPProfile)

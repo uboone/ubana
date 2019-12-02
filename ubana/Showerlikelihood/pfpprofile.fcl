@@ -7,7 +7,7 @@ process_name: ShowerSelection
 
 services:
 {
-  TFileService: {fileName: "PFPProfile.root"}
+  TFileService: {fileName: "Profile.root"}
   @table::microboone_simulation_services
   @table::microboone_services
   BackTrackerService:                       @local::microboone_backtrackerservice
@@ -22,20 +22,16 @@ source:
 
 physics:
 {
-  analyzers: 
-  {
-    pfpprofile: 
+    analyzers: 
     {
-      module_type:   "PFPProfile"
-      FVCutOnRecon:  false # true: FV cut on reconstructed vertex; false: FV cut on true vertex 
-      FidVolCutX:    10.0
-      FidVolCutY:    10.0
-      FidVolCutZ:    30.0
+        profile: 
+        {
+            module_type: "PFPProfile"
+        }
     }
-  }
-
-analysis: [pfpprofile]
-            end_paths: [analysis]
+    
+    analysis: [profile]
+    end_paths: [analysis]
 }
 
 services.DetectorPropertiesService.NumberTimeSamples:        6400
