@@ -298,12 +298,7 @@ void PFPProfile::analyze(art::Event const& e)
     else{
       std::cout<<"Could not find vertex and direction."<<std::endl;
     }
-<<<<<<< HEAD
-  }
-
-=======
   }// loop over pfps
->>>>>>> 0a4df60cb7c1edd854d5d51ded77d215314b4bc2
   fEventTree->Fill();
 }
 
