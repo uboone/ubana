@@ -7,7 +7,7 @@ process_name: ShowerSelection
 
 services:
 {
-  TFileService: {fileName: "ShowerSelection.root"}
+  TFileService: {fileName: "PFPProfile.root"}
   @table::microboone_simulation_services
   @table::microboone_services
   BackTrackerService:                       @local::microboone_backtrackerservice
@@ -22,16 +22,20 @@ source:
 
 physics:
 {
-    analyzers: 
+  analyzers: 
+  {
+    pfpprofile: 
     {
-        pfpprofile: 
-        {
-            module_type: "PFPProfile"
-        }
+      module_type:   "PFPProfile"
+      FVCutOnRecon:  false # true: FV cut on reconstructed vertex; false: FV cut on true vertex 
+      FidVolCutX:    10.0
+      FidVolCutY:    10.0
+      FidVolCutZ:    30.0
     }
-    
-    analysis: [pfpprofile]
-    end_paths: [analysis]
+  }
+
+analysis: [pfpprofile]
+            end_paths: [analysis]
 }
 
 services.DetectorPropertiesService.NumberTimeSamples:        6400
@@ -50,6 +54,7 @@ services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
 #services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_fwd_Jan18.root"
 #services.SpaceCharge.RepresentationType: "Voxelized_TH3"
 #services.SpaceCharge.service_provider: "SpaceChargeServiceMicroBooNE"
+
 
 
 

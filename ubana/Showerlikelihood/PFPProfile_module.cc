@@ -11,12 +11,15 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+// art include
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -29,6 +32,19 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+
+// ROOT include
+#include "TFile.h"
+#include "TTree.h"
+#include "TDirectory.h"
+#include "TH1.h"
+#include "TH3.h"
+#include "TProfile.h"
+#include "TProfile2D.h"
+#include <TROOT.h>
+#include <TStyle.h>
+
+using namespace std;
 
 class PFPProfile;
 
@@ -46,9 +62,10 @@ public:
 
   // Required functions.
   void analyze(art::Event const& e) override;
-
+  
 private:
 
+  // user's defined functions
   void project(const double& x0, 
                const double& y0, 
                const double& x1, 
@@ -57,6 +74,34 @@ private:
                const double& y, 
                double& xp, 
                double& yp);
+  void beginJob();
+  void makeDataProducts();
+  bool insideFV(double vertex[3]);
+  void reset();
+
+  // fcl: Configuration
+  bool fFVCutOnRecon; // true: use recon; false: use truth
+  float fFidVolCutX;
+  float fFidVolCutY;
+  float fFidVolCutZ;
+
+  // Fiducial Volume variables
+  float fFidVolXmin;
+  float fFidVolXmax;
+  float fFidVolYmin;
+  float fFidVolYmax;
+  float fFidVolZmin;
+  float fFidVolZmax;
+
+  // TTree
+  TTree *fEventTree;
+ 
+  // event information
+  int event;
+  int run;
+  int subrun;
+
+
 };
 
 
@@ -65,18 +110,90 @@ PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
   // More initializers here.
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
+  fFVCutOnRecon       = p.get<bool>("FVCutOnRecon");
+  fFidVolCutX         = p.get<float>("FidVolCutX");
+  fFidVolCutY         = p.get<float>("FidVolCutY");
+  fFidVolCutZ         = p.get<float>("FidVolCutZ");
+
+  this->makeDataProducts();
+}
+
+void PFPProfile::makeDataProducts() {
+  art::ServiceHandle<art::TFileService> tfs;
+
+  // fEventTree
+  fEventTree = tfs->make<TTree>("Event", "Event");
+  fEventTree->Branch("event", &event, "event/I");
+  fEventTree->Branch("run", &run, "run/I");
+  fEventTree->Branch("subrun", &subrun, "subrun/I");
+
+}
+
+void PFPProfile::beginJob() {
+  mf::LogInfo("PFPProfile") << ".... begin of job ...." << endl; 
+
+  auto const* geo = lar::providerFrom<geo::Geometry>();
+  double minX = 1e9; // [cm]
+  double maxX = -1e9;
+  double minY = 1e9;
+  double maxY = -1e9;
+  double minZ = 1e9;
+  double maxZ = -1e9;
+
+  for (size_t i = 0; i<geo->NTPC(); ++i){
+    double local[3] = {0.,0.,0.};
+    double world[3] = {0.,0.,0.};
+    const geo::TPCGeo &tpc = geo->TPC(i);
+    tpc.LocalToWorld(local,world);
+
+    if (minX > world[0] - geo->DetHalfWidth(i))  minX = world[0]-geo->DetHalfWidth(i);
+    if (maxX < world[0] + geo->DetHalfWidth(i))  maxX = world[0]+geo->DetHalfWidth(i);
+    if (minY > world[1] - geo->DetHalfHeight(i)) minY = world[1]-geo->DetHalfHeight(i);
+    if (maxY < world[1] + geo->DetHalfHeight(i)) maxY = world[1]+geo->DetHalfHeight(i);
+    if (minZ > world[2] - geo->DetLength(i)/2.)  minZ = world[2]-geo->DetLength(i)/2.;
+    if (maxZ < world[2] + geo->DetLength(i)/2.)  maxZ = world[2]+geo->DetLength(i)/2.;
+  }
+
+  fFidVolXmin = minX + fFidVolCutX;
+  fFidVolXmax = maxX - fFidVolCutX;
+  fFidVolYmin = minY + fFidVolCutY;
+  fFidVolYmax = maxY - fFidVolCutY;
+  fFidVolZmin = minZ + fFidVolCutZ;
+  fFidVolZmax = maxZ - 2 * fFidVolCutZ; // for downstream z, use a cut of 60 cm away from edge
+
+  cout << "\n....Fiducial Volume (length unit: cm):\n" << "\t" << fFidVolXmin << "\t< x <\t" << fFidVolXmax << "\n\t" << fFidVolYmin << "\t< y <\t" << fFidVolYmax << "\n\t" << fFidVolZmin << "\t< z <\t" << fFidVolZmax << "\n" << endl;
+}
+
+bool PFPProfile::insideFV( double vertex[3]) { 
+  if ( vertex[0] >= fFidVolXmin && vertex[0] <= fFidVolXmax && 
+       vertex[1] >= fFidVolYmin && vertex[1] <= fFidVolYmax &&
+       vertex[2] >= fFidVolZmin && vertex[2] <= fFidVolZmax ) {
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 void PFPProfile::analyze(art::Event const& e)
 {
-   // Get all pfparticles
+   reset();
+
+   run = e.run();
+   subrun = e.subRun();
+   event = e.id().event();
+  
+   //cout << "e.isRealData(): " << e.isRealData() << endl;
+  
+
+  // Get all pfparticles
   art::Handle < std::vector < recob::PFParticle > > pfpListHandle;
   std::vector < art::Ptr < recob::PFParticle > > pfpList;
   if (e.getByLabel("pandora", pfpListHandle)) {
     art::fill_ptr_vector(pfpList, pfpListHandle);
   }
 
-   // Get all clusters
+  // Get all clusters
   art::Handle < std::vector < recob::Cluster > > cluListHandle;
   std::vector < art::Ptr < recob::Cluster > > cluList;
   if (e.getByLabel("pandora", cluListHandle)) {
@@ -232,6 +349,8 @@ void PFPProfile::analyze(art::Event const& e)
       }
     }
   }
+
+  fEventTree->Fill();
 }
 
 void PFPProfile::project(const double& x0, 
@@ -258,5 +377,12 @@ void PFPProfile::project(const double& x0,
     yp = (m * m * y + m * x + b) / (m * m + 1);
   }
 }
+
+void PFPProfile::reset() {
+  run = -99999;
+  subrun = -99999;
+  event = -99999;
+}
+
 
 DEFINE_ART_MODULE(PFPProfile)
