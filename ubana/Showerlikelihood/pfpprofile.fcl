@@ -22,16 +22,17 @@ source:
 
 physics:
 {
-    analyzers: 
+  analyzers: 
+  {
+    profile: 
     {
-        profile: 
-        {
-            module_type: "PFPProfile"
-        }
+      module_type: "PFPProfile"
+      UseMCInfo  : true
     }
-    
-    analysis: [profile]
-    end_paths: [analysis]
+  }
+  
+  analysis: [profile]
+  end_paths: [analysis]
 }
 
 services.DetectorPropertiesService.NumberTimeSamples:        6400

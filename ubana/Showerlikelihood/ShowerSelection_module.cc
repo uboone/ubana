@@ -565,7 +565,7 @@ void ShowerSelection::analyze(art::Event const& e)
       ccnc_truth = nu.CCNC(); // CCNC = 0 stands for CC; CCNC = 1 strands for NC
 
       const TLorentzVector& vertex =neutrino.Position(0);
-      vertex.GetXYZT(nuVertex_truth); // for vertex, nuVertex_truth[3] is set to 0
+      vertex.GetXYZT(nuVertex_truth); 
 
       const TLorentzVector& nu_momentum = nu.Nu().Momentum(0);
       nu_momentum.GetXYZT(nuMomentum_truth);

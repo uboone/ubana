@@ -25,6 +25,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
+#include "larsim/MCCheater/BackTrackerService.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -32,6 +34,9 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 
 // ROOT include
 #include "TFile.h"
@@ -83,6 +88,9 @@ private:
 
   void reset();
 
+  // configuration from fcl
+  bool fUseMCInfo;
+
   // TTree
   TTree *fEventTree;
   
@@ -90,6 +98,16 @@ private:
   int event;
   int run;
   int subrun;
+
+  // MCTruth
+  int nuPDG_truth;
+  int leptonPDG_truth;
+  double leptonEnergy_truth; // [GeV]
+  int ccnc_truth;
+  double nuVertex_truth[4];
+  double nuMomentum_truth[4]; // neutrino incoming momentum [GeV]
+  double nuEnergy_truth; // neutrino incoming energy [GeV]
+
 
   int npfps;
   float LongProf[kMaxPFPs][3][100];
@@ -107,6 +125,7 @@ PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
   // More initializers here.
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
+  fUseMCInfo = p.get<bool>("UseMCInfo");
 }
 
 void PFPProfile::analyze(art::Event const& e)
@@ -117,8 +136,15 @@ void PFPProfile::analyze(art::Event const& e)
   run = e.run();
   subrun = e.subRun();
   event = e.id().event();
-  
-   // Get all pfparticles
+ 
+  // Get mctruth
+  art::Handle< std::vector< simb::MCTruth > > mctruthListHandle;
+  std::vector< art::Ptr< simb::MCTruth > > mctruthList;
+  if (e.getByLabel("generator", mctruthListHandle)) {
+    art::fill_ptr_vector(mctruthList, mctruthListHandle);
+  }
+
+  // Get all pfparticles
   art::Handle < std::vector < recob::PFParticle > > pfpListHandle;
   std::vector < art::Ptr < recob::PFParticle > > pfpList;
   if (e.getByLabel("pandora", pfpListHandle)) {
@@ -150,6 +176,38 @@ void PFPProfile::analyze(art::Event const& e)
 
   // Get DetectorPropertiesService
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+
+  // MCInfo
+  if (fUseMCInfo) {
+    // mctruth
+    for (size_t i = 0; i < mctruthList.size(); ++i) {
+      art::Ptr<simb::MCTruth> mctruth = mctruthList[i];
+      if (mctruth->NeutrinoSet()) {
+        simb::MCNeutrino nu = mctruth->GetNeutrino();
+        simb::MCParticle neutrino = nu.Nu(); // incoming neutrino
+        simb::MCParticle lepton = nu.Lepton(); // outgoing lepton
+
+        nuPDG_truth = neutrino.PdgCode();
+        leptonPDG_truth = lepton.PdgCode();
+        leptonEnergy_truth = lepton.E(); // [GeV]
+        ccnc_truth = nu.CCNC(); // 0: CC; 1: NC
+
+        const TLorentzVector & vertex = neutrino.Position(0);
+        vertex.GetXYZT(nuVertex_truth); 
+        
+        const TLorentzVector & nu_momentum = neutrino.Momentum(0);
+        nu_momentum.GetXYZT(nuMomentum_truth);
+        nuEnergy_truth = nuMomentum_truth[3];
+
+        for (int i = 0; i < 4; i++) {
+          cout << "nuVertex_truth[" << i << "]: " << nuVertex_truth[i] << endl;
+          cout << "nuMomentum_truth[" << i << "]: " << nuMomentum_truth[i] << endl;
+        }
+      }
+    }
+  } // end of if (fUseMCInfo)
+  
+
 
   // Conversion factor from tick to distance
   double tickToDist = detprop->DriftVelocity(detprop->Efield(),detprop->Temperature());
@@ -334,6 +392,15 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("event", &event, "event/I");
   fEventTree->Branch("run", &run, "run/I");
   fEventTree->Branch("subrun", &subrun, "subrun/I");
+
+  fEventTree->Branch("nuPDG_truth", &nuPDG_truth, "nuPDG_truth/I");
+  fEventTree->Branch("leptonPDG_truth", &leptonPDG_truth, "leptonPDG_truth/I");
+  fEventTree->Branch("leptonEnergy_truth", &leptonEnergy_truth, "leptonEnergy_truth/D");
+  fEventTree->Branch("ccnc_truth", &ccnc_truth, "ccnc_truth/I");
+  fEventTree->Branch("nuVertex_truth", &nuVertex_truth, "nuVertex_truth[4]/D");
+  fEventTree->Branch("nuMomentum_truth", &nuMomentum_truth, "nuMomentum_truth[4]/D");
+  fEventTree->Branch("nuEnergy_truth", &nuEnergy_truth, "nuEnergy_truth/D");
+
   fEventTree->Branch("npfps", &npfps,"npfps/I");
   fEventTree->Branch("pfpid", pfpid, "pfpid[npfps]/I");
   fEventTree->Branch("trkid", trkid, "trkid[npfps]/I");
