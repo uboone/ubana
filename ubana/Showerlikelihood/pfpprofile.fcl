@@ -39,7 +39,9 @@ services.DetectorPropertiesService.NumberTimeSamples:        6400
 services.DetectorPropertiesService.ReadOutWindowSize:        6400
 services.DetectorClocksService.InheritClockConfig:           false
 services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
-#services.ParticleInventoryService.ParticleInventory.OverrideRealData: true # for using Particle Inventory, i.e., in overlay data
+
+services.ParticleInventoryService.ParticleInventory.OverrideRealData: true # for using Particle Inventory, i.e., get MCParticle list in overlay data 
+
 ##services.ParticleInventoryService.ParticleInventory.EveIdCalculator: "EveIdCalculator"
 ## SCE correction
 #services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"

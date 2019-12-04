@@ -24,9 +24,11 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "canvas/Persistency/Common/FindMany.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -107,7 +109,7 @@ private:
   double nuVertex_truth[4];
   double nuMomentum_truth[4]; // neutrino incoming momentum [GeV]
   double nuEnergy_truth; // neutrino incoming energy [GeV]
-
+  int MC_lepton_ID; // primary lepton TrackId
 
   int npfps;
   float LongProf[kMaxPFPs][3][100];
@@ -144,6 +146,13 @@ void PFPProfile::analyze(art::Event const& e)
     art::fill_ptr_vector(mctruthList, mctruthListHandle);
   }
 
+  // Get all hits
+  art::Handle< std::vector<recob::Hit> > hitListHandle;
+  std::vector< art::Ptr<recob::Hit> > hitList;
+  if(e.getByLabel("gaushit",hitListHandle)){
+    art::fill_ptr_vector(hitList, hitListHandle);
+  }
+
   // Get all pfparticles
   art::Handle < std::vector < recob::PFParticle > > pfpListHandle;
   std::vector < art::Ptr < recob::PFParticle > > pfpList;
@@ -158,6 +167,8 @@ void PFPProfile::analyze(art::Event const& e)
     art::fill_ptr_vector(cluList, cluListHandle);
   }
 
+  // Get MCParticle-hit association
+  art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitListHandle, e, "gaushitTruthMatch");
 
   // Get Track-PFParticle association
   art::FindManyP<recob::Track> fmtpfp(pfpListHandle, e, "pandora");
@@ -177,10 +188,16 @@ void PFPProfile::analyze(art::Event const& e)
   // Get DetectorPropertiesService
   auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
+  // Get ParticleInventoryService
+  art::ServiceHandle<cheat::ParticleInventoryService> piserv;
+
   // MCInfo
   if (fUseMCInfo) {
-    // mctruth
+    if (mctruthList.size() > 1) {
+      std::cout << "Warning:  mctruthList.size() = " << mctruthList.size() << "; more than one mctruth in the event" << std::endl;
+    }
     for (size_t i = 0; i < mctruthList.size(); ++i) {
+      // mctruth: generator
       art::Ptr<simb::MCTruth> mctruth = mctruthList[i];
       if (mctruth->NeutrinoSet()) {
         simb::MCNeutrino nu = mctruth->GetNeutrino();
@@ -198,13 +215,39 @@ void PFPProfile::analyze(art::Event const& e)
         const TLorentzVector & nu_momentum = neutrino.Momentum(0);
         nu_momentum.GetXYZT(nuMomentum_truth);
         nuEnergy_truth = nuMomentum_truth[3];
+      }
 
-        for (int i = 0; i < 4; i++) {
-          cout << "nuVertex_truth[" << i << "]: " << nuVertex_truth[i] << endl;
-          cout << "nuMomentum_truth[" << i << "]: " << nuMomentum_truth[i] << endl;
+      // mcparticle: Geant4
+      const sim::ParticleList& plist = piserv->ParticleList();
+      for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar) {
+        simb::MCParticle *particle = 0;
+        particle = ipar->second;
+        auto & truth = piserv->ParticleToMCTruth_P(particle);
+        // primary lepton
+        if (truth->Origin() == simb::kBeamNeutrino
+            && particle->Mother() == 0
+            && std::abs(particle->PdgCode()) >= 11
+            && std::abs(particle->PdgCode()) <= 16 ) {
+          MC_lepton_ID = particle->TrackId();
+          break;
         }
       }
-    }
+
+      // hit information
+      std::vector<simb::MCParticle const *> hit_particle_vec;
+      std::vector<anab::BackTrackerHitMatchingData const *> hit_match_vec;
+      std::vector<std::unordered_map<int, double>> hit_trkide(3);
+      for (size_t i = 0; i < hitList.size(); ++i) {
+        art::Ptr<recob::Hit> hit = hitList[i];
+        hit_particle_vec.clear();
+        hit_match_vec.clear();
+        particles_per_hit.get(hit.key(), hit_particle_vec, hit_match_vec);
+        for (size_t i_p = 0; i_p < hit_particle_vec.size(); ++i_p) {
+          hit_trkide[hit->WireID().Plane][piserv->TrackIdToEveTrackId(hit_particle_vec.at(i_p)->TrackId())] += hit_match_vec[i_p]->energy; // energy deposited by ionization by this track ID [MeV] 
+        }
+      }
+
+    } // end of for mctruthList.size() i; in principle only one mctruch each simulated event
   } // end of if (fUseMCInfo)
   
 
@@ -417,6 +460,8 @@ void PFPProfile::reset() {
   subrun = -99999;
   event = -99999;
   
+  MC_lepton_ID = -1;
+
   npfps = -99999;
   for (size_t i = 0; i<kMaxPFPs; ++i){
     pfpid[i] = -1;

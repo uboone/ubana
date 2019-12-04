@@ -1224,11 +1224,7 @@ void ShowerTemplateMaker::analyze(art::Event const& e)
   // Note: generator level MCPartilceList is different from Geant4 level MCParticleList.  MCParticleList(Geant4) contains all particles in MCParticleList(generator) but their the indexes (TrackIds) are different.
   simb::MCParticle *MC_lepton = NULL; // Geant4 level
   const sim::ParticleList& plist = pi_serv->ParticleList();
-  //ideally one event is corresponding to one mctruth
-  cout << "plist.size():" << plist.size() << endl;
-  if (plist.size() != 1) {
-    cout << "Warning: this event contains more than one mctruth" << endl;
-  }
+
   int testCountPrimarylepton = 0;
   for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar) {
     simb::MCParticle *particle = 0;
@@ -1243,7 +1239,7 @@ void ShowerTemplateMaker::analyze(art::Event const& e)
         MC_lepton = particle;
         testCountPrimarylepton += 1;
       }
-      else if (std::abs(particle->PdgCode()) >= 11 && std::abs(particle->PdgCode()) <= 16) {
+      else if (std::abs(particle->PdgCode()) > 11 && std::abs(particle->PdgCode()) <= 16) {
         MC_lepton_ID = particle->TrackId();
         MC_lepton = particle;
         testCountPrimarylepton += 1;
@@ -1374,6 +1370,8 @@ void ShowerTemplateMaker::reset() {
   run = -99999;
   subrun = -99999;
   event = -99999;
+
+  MC_lepton_ID = -1;
 
   // clear the vectors
   slice_id.clear();
