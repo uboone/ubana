@@ -26,8 +26,16 @@ physics:
   {
     profile: 
     {
-      module_type: "PFPProfile"
-      UseMCInfo  : true
+      module_type:    "PFPProfile"
+      UseMCInfo  :    true
+      FVCutOnRecon:   false
+      FidVolCutX:     10.0
+      FidVolCutY:     10.0
+      FidVolCutZ:     30.0
+      ADCtoE:         [232,249,243.7]
+      Recombination:  0.6
+      ShowerCutPurity:      0.7
+      ShowerCutCompleteness: 0.7
     }
   }
   

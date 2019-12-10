@@ -75,6 +75,7 @@ public:
 
   // Selected optional functions.
   void beginJob() override;
+  bool insideFV(double vertex[3]);
 
 private:
 
@@ -92,6 +93,23 @@ private:
 
   // configuration from fcl
   bool fUseMCInfo;
+  bool fFVCutOnRecon; // true: use recon; false: use MC
+  float fFidVolCutX;
+  float fFidVolCutY;
+  float fFidVolCutZ;
+  std::vector<double> fADCtoE; // calibration constants
+  double fRecombination;
+  float fShowerCutPurity;
+  float fShowerCutCompleteness;
+
+  // Fiducial volume
+  float fFidVolXmin;
+  float fFidVolXmax;
+  float fFidVolYmin;
+  float fFidVolYmax;
+  float fFidVolZmin;
+  float fFidVolZmax;
+
 
   // TTree
   TTree *fEventTree;
@@ -118,6 +136,13 @@ private:
   int pfpid[kMaxPFPs];
   int trkid[kMaxPFPs];
   int shwid[kMaxPFPs];
+  int pfppdg[kMaxPFPs]; // from PdgCode() funciton of PFParticle
+  int pfppdg_truth[kMaxPFPs]; // from matching hits and MCParticle
+  double pfpenergy_MC[kMaxPFPs]; // pfp particle's kinetic energy [MeV]
+  double pfpcharge[kMaxPFPs][3];
+  double pfpenergy_Recon[kMaxPFPs][3];
+  double pfppurity[kMaxPFPs];
+  double pfpcompleteness[kMaxPFPs];
 
 };
 
@@ -128,6 +153,14 @@ PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
   fUseMCInfo = p.get<bool>("UseMCInfo");
+  fFVCutOnRecon       = p.get<bool>("FVCutOnRecon");
+  fFidVolCutX         = p.get<float>("FidVolCutX");
+  fFidVolCutY         = p.get<float>("FidVolCutY");
+  fFidVolCutZ         = p.get<float>("FidVolCutZ");
+  fADCtoE = p.get<std::vector<double>>("ADCtoE");
+  fRecombination = p.get<double>("Recombination");
+  fShowerCutPurity    = p.get<float>("ShowerCutPurity");
+  fShowerCutCompleteness = p.get<float>("ShowerCutCompleteness");
 }
 
 void PFPProfile::analyze(art::Event const& e)
@@ -191,6 +224,9 @@ void PFPProfile::analyze(art::Event const& e)
   // Get ParticleInventoryService
   art::ServiceHandle<cheat::ParticleInventoryService> piserv;
 
+  // hits-MCParticle
+  std::vector<std::unordered_map<int, double>> hit_trkide(3);
+
   // MCInfo
   if (fUseMCInfo) {
     if (mctruthList.size() > 1) {
@@ -215,6 +251,18 @@ void PFPProfile::analyze(art::Event const& e)
         const TLorentzVector & nu_momentum = neutrino.Momentum(0);
         nu_momentum.GetXYZT(nuMomentum_truth);
         nuEnergy_truth = nuMomentum_truth[3];
+
+        if (!fFVCutOnRecon) {
+          double check_vertex[3];
+          check_vertex[0] = nuVertex_truth[0];
+          check_vertex[1] = nuVertex_truth[1];
+          check_vertex[2] = nuVertex_truth[2];
+
+          if (!insideFV(check_vertex)) {
+            cout << "\n **** Interaction is NOT inside the Fiducial Volume. RETURN ****" << endl;
+            return;
+          }
+        }
       }
 
       // mcparticle: Geant4
@@ -236,7 +284,8 @@ void PFPProfile::analyze(art::Event const& e)
       // hit information
       std::vector<simb::MCParticle const *> hit_particle_vec;
       std::vector<anab::BackTrackerHitMatchingData const *> hit_match_vec;
-      std::vector<std::unordered_map<int, double>> hit_trkide(3);
+      //std::vector<std::unordered_map<int, double>> hit_trkide(3);
+      hit_trkide.clear();
       for (size_t i = 0; i < hitList.size(); ++i) {
         art::Ptr<recob::Hit> hit = hitList[i];
         hit_particle_vec.clear();
@@ -251,7 +300,6 @@ void PFPProfile::analyze(art::Event const& e)
   } // end of if (fUseMCInfo)
   
 
-
   // Conversion factor from tick to distance
   double tickToDist = detprop->DriftVelocity(detprop->Efield(),detprop->Temperature());
   tickToDist *= 1.e-3 * detprop->SamplingRate(); // 1e-3 is conversion of 1/us to 1/ns  
@@ -262,7 +310,8 @@ void PFPProfile::analyze(art::Event const& e)
 
     if (npfps >= kMaxPFPs) continue;
     pfpid[npfps] = pfp.key();
-
+    pfppdg[npfps] = pfp->PdgCode();
+    //cout << "pfp->PdgCode(): " << pfppdg[npfps] << endl;
     // Find the vertex and direction of the pfparticle
     double vtx[3] = {0,0,0};
     double dir[3] = {0,0,0};
@@ -302,6 +351,12 @@ void PFPProfile::analyze(art::Event const& e)
     }
 
     if (foundvtxdir){// foundvtxdir
+      if (fFVCutOnRecon) {
+        if (!insideFV(vtx)) {
+          cout << "\n **** Interaction is NOT inside the Fiducial Volume. RETURN ****" << endl;
+          return;
+        }
+      }
       // Get hits on each plane
       std::vector<std::vector<art::Ptr<recob::Hit>>> allhits(3);
       if (fmcpfp.isValid()){
@@ -319,6 +374,60 @@ void PFPProfile::analyze(art::Event const& e)
           }
         }
       }
+      
+      // todo: add restriction on how many hits on the selected plane(s).
+
+      // Associate a particle to pfp by considering hits on all planes
+      if (fUseMCInfo) {
+        std::vector<simb::MCParticle const *> particle_vec;
+        std::vector<anab::BackTrackerHitMatchingData const *> match_vec;
+        std::unordered_map<int, double> pfphit_trkide;
+        
+        for (size_t p = 0; p < 3; p++) {
+          for (size_t ihit = 0; ihit < allhits[p].size(); ihit++) {
+            pfpcharge[npfps][p] += allhits[p][ihit]->Integral();
+            particle_vec.clear();
+            match_vec.clear();
+            particles_per_hit.get(allhits[p][ihit].key(), particle_vec, match_vec);
+            for (size_t i_p = 0; i_p < particle_vec.size(); ++i_p) {
+              if (piserv->TrackIdToEveTrackId(particle_vec.at(i_p)->TrackId())) {
+                pfphit_trkide[piserv->TrackIdToEveTrackId(particle_vec.at(i_p)->TrackId())] += match_vec[i_p]->energy;
+              }
+            }
+          }
+        }
+
+        int pfp_trackID = 0;
+        double pfp_particle_E = 0; // pfp energy on all planes from the "particle"
+        double pfp_total_E = 0; // pfp energy on all planes
+        for (auto const & p_trkide : pfphit_trkide) {
+          pfp_total_E += p_trkide.second;
+          if (p_trkide.second > pfp_particle_E) {
+            pfp_particle_E = p_trkide.second;
+            pfp_trackID = p_trkide.first;
+          }
+        }
+      
+        for (size_t p = 0; p < 3; p++) {
+          pfpenergy_Recon[npfps][p] = pfpcharge[npfps][p]*fADCtoE[p]/fRecombination*23.6e-6; // [MeV] 
+        }
+
+        if (pfp_trackID) {
+          if (piserv->TrackIdToParticle_P(pfp_trackID)) {
+            const simb::MCParticle* pfp_particle = piserv->TrackIdToParticle_P(pfp_trackID);
+            pfppdg_truth[npfps] = pfp_particle->PdgCode();
+            //cout << "pfppdg_truth: " << pfppdg_truth[npfps] << endl;
+            pfpenergy_MC[npfps] = (pfp_particle->E() - pfp_particle->Mass())*1000.0; // kinetic energy [MeV]
+            double particle_total_E = hit_trkide[0][pfp_trackID] + hit_trkide[1][pfp_trackID] + hit_trkide[2][pfp_trackID];
+            if (pfp_particle_E) {
+              pfppurity[npfps] = pfp_particle_E / pfp_total_E;       
+              if (particle_total_E) {
+                pfpcompleteness[npfps] = pfp_particle_E / particle_total_E;
+              }
+            }
+          }
+        }
+      } // end of fUseMCInfo
 
       // Loop over all planes
       for (unsigned short pl = 0; pl <geom->Nplanes(); ++pl){
@@ -448,10 +557,57 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("pfpid", pfpid, "pfpid[npfps]/I");
   fEventTree->Branch("trkid", trkid, "trkid[npfps]/I");
   fEventTree->Branch("shwid", shwid, "shwid[npfps]/I");
+  fEventTree->Branch("pfppdg", pfppdg, "pfppdg[npfps]/I");
+  fEventTree->Branch("pfppdg_truth", pfppdg_truth, "pfppdg_truth[npfps]/I");
+  //fEventTree->Branch("pfpcharge", pfpcharge, "pfpcharge[npfps][3]/D");
+  fEventTree->Branch("pfpenergy_MC", pfpenergy_MC, "pfpenergy_MC[npfps]/D");
+  fEventTree->Branch("pfpenergy_Recon", pfpenergy_Recon, "pfpenergy_Recon[npfps][3]/D");
+  fEventTree->Branch("pfppurity", pfppurity, "pfppurity[npfps]/D");
+  fEventTree->Branch("pfpcompleteness", pfpcompleteness, "pfpcompleteness[npfps]/D");
   fEventTree->Branch("TotalCharge", TotalCharge, "TotalCharge[npfps][3]/F");
   fEventTree->Branch("LongProf", LongProf, "LongProf[npfps][3][100]/F");
   fEventTree->Branch("TranProf", TranProf, "TranProf[npfps][3][16]/F");
 
+  // Get the FV cut information
+  auto const* geo = lar::providerFrom<geo::Geometry>();
+  double minX = 1e9; // [cm]
+  double maxX = -1e9;
+  double minY = 1e9;
+  double maxY = -1e9;
+  double minZ = 1e9;
+  double maxZ = -1e9;
+
+  for (size_t i = 0; i<geo->NTPC(); ++i){
+    double local[3] = {0.,0.,0.};
+    double world[3] = {0.,0.,0.};
+    const geo::TPCGeo &tpc = geo->TPC(i);
+    tpc.LocalToWorld(local,world);
+
+    if (minX > world[0] - geo->DetHalfWidth(i))  minX = world[0]-geo->DetHalfWidth(i);
+    if (maxX < world[0] + geo->DetHalfWidth(i))  maxX = world[0]+geo->DetHalfWidth(i);
+    if (minY > world[1] - geo->DetHalfHeight(i)) minY = world[1]-geo->DetHalfHeight(i);
+    if (maxY < world[1] + geo->DetHalfHeight(i)) maxY = world[1]+geo->DetHalfHeight(i);
+    if (minZ > world[2] - geo->DetLength(i)/2.)  minZ = world[2]-geo->DetLength(i)/2.;
+    if (maxZ < world[2] + geo->DetLength(i)/2.)  maxZ = world[2]+geo->DetLength(i)/2.;
+  }
+
+  fFidVolXmin = minX + fFidVolCutX;
+  fFidVolXmax = maxX - fFidVolCutX;
+  fFidVolYmin = minY + fFidVolCutY;
+  fFidVolYmax = maxY - fFidVolCutY;
+  fFidVolZmin = minZ + fFidVolCutZ;
+  fFidVolZmax = maxZ - 2 * fFidVolCutZ; // for downstream z, use a cut of 60 cm away from edge
+}
+
+bool PFPProfile::insideFV( double vertex[3]) {
+  if ( vertex[0] >= fFidVolXmin && vertex[0] <= fFidVolXmax &&
+      vertex[1] >= fFidVolYmin && vertex[1] <= fFidVolYmax &&
+      vertex[2] >= fFidVolZmin && vertex[2] <= fFidVolZmax ) {
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 void PFPProfile::reset() {
@@ -460,15 +616,22 @@ void PFPProfile::reset() {
   subrun = -99999;
   event = -99999;
   
-  MC_lepton_ID = -1;
+  MC_lepton_ID = 0;
 
   npfps = -99999;
   for (size_t i = 0; i<kMaxPFPs; ++i){
     pfpid[i] = -1;
     trkid[i] = -1;
     shwid[i] = -1;
+    pfppdg[i] = -1;
+    pfppdg_truth[i] = -1;
+    pfpenergy_MC[i] = 0;
+    pfppurity[i] = -1.0;
+    pfpcompleteness[i] = -1.0;
     for (size_t j = 0; j<3; ++j){
       TotalCharge[i][j] = 0;
+      pfpcharge[i][j] = 0;
+      pfpenergy_Recon[i][j] = 0;
       for (size_t k = 0; k<100; ++k) LongProf[i][j][k] = 0;
       for (size_t k = 0; k<16; ++k) TranProf[i][j][k] = 0;
     }
