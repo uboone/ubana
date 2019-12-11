@@ -110,7 +110,6 @@ private:
   float fFidVolZmin;
   float fFidVolZmax;
 
-
   // TTree
   TTree *fEventTree;
   
@@ -129,6 +128,7 @@ private:
   double nuEnergy_truth; // neutrino incoming energy [GeV]
   int MC_lepton_ID; // primary lepton TrackId
 
+  // PFP
   int npfps;
   float LongProf[kMaxPFPs][3][100];
   float TranProf[kMaxPFPs][3][16];
@@ -136,11 +136,15 @@ private:
   int pfpid[kMaxPFPs];
   int trkid[kMaxPFPs];
   int shwid[kMaxPFPs];
+  double pfpvertex_recon[kMaxPFPs][3];
+  double pfpvertex_truth[kMaxPFPs][3]; // from the pfp particle
+  double pfpdir_recon[kMaxPFPs][3];
+  double pfpdir_truth[kMaxPFPs][3]; // from the pfp particle
   int pfppdg[kMaxPFPs]; // from PdgCode() funciton of PFParticle
   int pfppdg_truth[kMaxPFPs]; // from matching hits and MCParticle
-  double pfpenergy_MC[kMaxPFPs]; // pfp particle's kinetic energy [MeV]
+  double pfpenergy_mc[kMaxPFPs]; // pfp particle's kinetic energy [MeV]
   double pfpcharge[kMaxPFPs][3];
-  double pfpenergy_Recon[kMaxPFPs][3];
+  double pfpenergy_recon[kMaxPFPs][3]; // for three planes
   double pfppurity[kMaxPFPs];
   double pfpcompleteness[kMaxPFPs];
 
@@ -357,6 +361,11 @@ void PFPProfile::analyze(art::Event const& e)
           return;
         }
       }
+      // Save reconstructed vertex and direction
+      for (int xyz = 0; xyz < 3; xyz++) {
+        pfpvertex_recon[npfps][xyz] = vtx[xyz];
+        pfpdir_recon[npfps][xyz] = dir[xyz];
+      }
       // Get hits on each plane
       std::vector<std::vector<art::Ptr<recob::Hit>>> allhits(3);
       if (fmcpfp.isValid()){
@@ -409,15 +418,21 @@ void PFPProfile::analyze(art::Event const& e)
         }
       
         for (size_t p = 0; p < 3; p++) {
-          pfpenergy_Recon[npfps][p] = pfpcharge[npfps][p]*fADCtoE[p]/fRecombination*23.6e-6; // [MeV] 
+          pfpenergy_recon[npfps][p] = pfpcharge[npfps][p]*fADCtoE[p]/fRecombination*23.6e-6; // [MeV] 
         }
 
         if (pfp_trackID) {
           if (piserv->TrackIdToParticle_P(pfp_trackID)) {
             const simb::MCParticle* pfp_particle = piserv->TrackIdToParticle_P(pfp_trackID);
             pfppdg_truth[npfps] = pfp_particle->PdgCode();
-            //cout << "pfppdg_truth: " << pfppdg_truth[npfps] << endl;
-            pfpenergy_MC[npfps] = (pfp_particle->E() - pfp_particle->Mass())*1000.0; // kinetic energy [MeV]
+            pfpvertex_truth[npfps][0] = pfp_particle->Vx();
+            pfpvertex_truth[npfps][1] = pfp_particle->Vy();
+            pfpvertex_truth[npfps][2] = pfp_particle->Vz();
+            double momentum = std::sqrt(pfp_particle->Px()*pfp_particle->Px() + pfp_particle->Py()*pfp_particle->Py() + pfp_particle->Pz()*pfp_particle->Pz());
+            pfpdir_truth[npfps][0] = pfp_particle->Px() / momentum;
+            pfpdir_truth[npfps][1] = pfp_particle->Py() / momentum;
+            pfpdir_truth[npfps][2] = pfp_particle->Pz() / momentum;
+            pfpenergy_mc[npfps] = (pfp_particle->E() - pfp_particle->Mass())*1000.0; // kinetic energy [MeV]
             double particle_total_E = hit_trkide[0][pfp_trackID] + hit_trkide[1][pfp_trackID] + hit_trkide[2][pfp_trackID];
             if (pfp_particle_E) {
               pfppurity[npfps] = pfp_particle_E / pfp_total_E;       
@@ -559,9 +574,13 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("shwid", shwid, "shwid[npfps]/I");
   fEventTree->Branch("pfppdg", pfppdg, "pfppdg[npfps]/I");
   fEventTree->Branch("pfppdg_truth", pfppdg_truth, "pfppdg_truth[npfps]/I");
+  fEventTree->Branch("pfpvertex_recon", pfpvertex_recon, "pfpvertex_recon[npfps][3]/D");
+  fEventTree->Branch("pfpvertex_truth", pfpvertex_truth, "pfpvertex_truth[npfps][3]/D");
+  fEventTree->Branch("pfpdir_recon", pfpdir_recon, "pfpdir_recon[npfps][3]/D");
+  fEventTree->Branch("pfpdir_truth", pfpdir_truth, "pfpdir_truth[npfps][3]/D");
   //fEventTree->Branch("pfpcharge", pfpcharge, "pfpcharge[npfps][3]/D");
-  fEventTree->Branch("pfpenergy_MC", pfpenergy_MC, "pfpenergy_MC[npfps]/D");
-  fEventTree->Branch("pfpenergy_Recon", pfpenergy_Recon, "pfpenergy_Recon[npfps][3]/D");
+  fEventTree->Branch("pfpenergy_mc", pfpenergy_mc, "pfpenergy_mc[npfps]/D");
+  fEventTree->Branch("pfpenergy_recon", pfpenergy_recon, "pfpenergy_recon[npfps][3]/D");
   fEventTree->Branch("pfppurity", pfppurity, "pfppurity[npfps]/D");
   fEventTree->Branch("pfpcompleteness", pfpcompleteness, "pfpcompleteness[npfps]/D");
   fEventTree->Branch("TotalCharge", TotalCharge, "TotalCharge[npfps][3]/F");
@@ -625,13 +644,17 @@ void PFPProfile::reset() {
     shwid[i] = -1;
     pfppdg[i] = -1;
     pfppdg_truth[i] = -1;
-    pfpenergy_MC[i] = 0;
+    pfpenergy_mc[i] = 0;
     pfppurity[i] = -1.0;
     pfpcompleteness[i] = -1.0;
     for (size_t j = 0; j<3; ++j){
+      pfpvertex_recon[i][j] = -99999.0;
+      pfpvertex_truth[i][j] = -99999.0;
+      pfpdir_recon[i][j] = -99999.0;
+      pfpdir_truth[i][j] = -99999.0;
       TotalCharge[i][j] = 0;
       pfpcharge[i][j] = 0;
-      pfpenergy_Recon[i][j] = 0;
+      pfpenergy_recon[i][j] = 0;
       for (size_t k = 0; k<100; ++k) LongProf[i][j][k] = 0;
       for (size_t k = 0; k<16; ++k) TranProf[i][j][k] = 0;
     }

@@ -421,7 +421,7 @@ void ShowerSelection::saveShowerInformation(art::Ptr<recob::Shower> myShower, ar
       cout << "sh_particle->Mother(): " << sh_particle->Mother() << endl;
 
       // apply SCE corrections to MC vertex
-      auto sce_offset = SCE->GetPosOffsets(geo::Point_t(sh_particle->Vx(),sh_particle->Vy(),sh_particle->Vx()));
+      auto sce_offset = SCE->GetPosOffsets(geo::Point_t(sh_particle->Vx(),sh_particle->Vy(),sh_particle->Vz()));
 
       sh_vertexMC_x.push_back(sh_particle->Vx() - sce_offset.X() + xtimeoffset + 0.6);
       // The 0.6 cm term accounts for the different coordinate center between WC (Y wires) and LArSoft (U wires)
