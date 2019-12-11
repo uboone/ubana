@@ -115,6 +115,7 @@ private:
   bool MC_FV; // MCTruth vertex in FV = true, out of FV = false
   int MC_ccnc; // MCTruth cc = 0 or nc = 1
   int MC_nupdg; // MCTruth nupdg; numu = 14, nue = 12
+  int MC_int_mode; // https://nusoft.fnal.gov/larsoft/doxsvn/html/MCNeutrino_8h_source.html
   double MC_nu_E; // MCTruth nu energy
   double MC_nuVtxX; // MCTruth nu vtx X
   double MC_nuVtxY; // MCTruth nu vtx Y
@@ -132,6 +133,9 @@ private:
   std::vector<int> MC_Primary_PDG; // PDG of neutrino daughters
   std::vector<double> MC_Primary_Mom; // Momemtum of neutrino daughters
   std::vector<double> MC_proton_true_Mom_above255; // Momentum of proton above 255 MeV
+  std::vector<double> MC_muon_true_Mom; // True Momentum of muon
+  std::vector<double> MC_muon_true_cos_theta; // True cos theta of muon
+  std::vector<double> MC_muon_true_phi; // True phi of muon
 
   std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
 
@@ -146,6 +150,10 @@ private:
 
   int TopologyType;// The topology of true neutrino interaction + FSI products after Geant4
   double cos_ang_muon_proton; // cosine of the angle in between muon and proton
+  double dist_muon_proton; // distance between muon start and proton start
+  double len_Muon_0pi0p; // length of true muon
+  double len_Muon_0pi1p; // length of true muon
+  double len_Proton_0pi1p; // length of true proton
 
   double flash_matching_chi2; //Chi2 of flash matching in each neutrino slice
 
@@ -171,6 +179,17 @@ private:
   std::vector<double> reco_MC_dist_vtx; // Distance of reco - MC vertex w/ SCE correction
   std::vector<double> reco_MC_dist_vtx_noSCE; // Distance of reco - MC vertex w/o SCE correction
 
+  int nr_granddau_shw;
+  int nr_granddau_trk;
+  int nr_granddau;
+  std::vector<int> MC_granddau_pdg;
+
+  double flash_YCenter;
+  double flash_YWidth;
+  double flash_ZCenter;
+  double flash_ZWidth;
+  double flash_TotalPE;
+
   bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
   bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
   std::vector<double> crthit_PE; // The photonelectrons of CRT hits which are in beam window
@@ -181,6 +200,7 @@ private:
   bool if_selected = false; // If selected based on the reco info
   bool if_matchMu = false; // If the selected track matched with true muon from numu cc
   bool if_cosmic = true; // Check if a track is cosmic or not by if it has an associated MCParticle
+  bool if_trk_CRT_out_Beam = false; // Check if a track matches with out of beam CRT hit(s)
 
   bool if_broken = false; // if find broken track
   bool if_newTrkThroughGoing = false; // if the new track is through going
@@ -286,6 +306,12 @@ private:
   float dEdx_pl0_end_half; // average dEdx of end half hits of pl 0
   float dEdx_pl1_end_half; // average dEdx of end half hits of pl 0
   float dEdx_pl2_end_half; // average dEdx of end half hits of pl 0
+  float dEdx_pl0_start5; // average dEdx of first 5 hit of pl 0
+  float dEdx_pl1_start5; // average dEdx of first 5 hit of pl 0
+  float dEdx_pl2_start5; // average dEdx of first 5 hit of pl 0
+  float dEdx_pl0_end5; // average dEdx of end 5 hit of pl 0
+  float dEdx_pl1_end5; // average dEdx of end 5 hit of pl 0
+  float dEdx_pl2_end5; // average dEdx of end 5 hit of pl 0
   float dEdx_pl0_start10; // average dEdx of first 10 hit of pl 0
   float dEdx_pl1_start10; // average dEdx of first 10 hit of pl 0
   float dEdx_pl2_start10; // average dEdx of first 10 hit of pl 0
@@ -300,6 +326,8 @@ private:
   float dEdx_pl2_end1020; // average dEdx of end 10 hit of pl 0
 
   float dEdx_pl2_1020_ratio; // dEdx_pl2_end1020/(dEdx_pl2_end1020 + dEdx_pl2_start1020)
+  float dEdx_pl2_10_ratio; // dEdx_pl2_end10/(dEdx_pl2_end10 + dEdx_pl2_start10)
+  float dEdx_pl2_5_ratio; // dEdx_pl2_end5/(dEdx_pl2_end5 + dEdx_pl2_start5)
 
   double PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
   double PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
@@ -359,6 +387,7 @@ private:
   std::string                         m_calorimetryProducerLabel;
   std::string                         Hits_TrackAssLabel;
   std::string                         PID_TrackAssLabel;
+  std::string                         CRT_TrackAssLabel;
   std::string                         m_CRTVetoLabel;
   std::string                         m_CRTHitLabel;
   std::string                         m_FlashLabel;
@@ -403,6 +432,7 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   _fiducial_volume.PrintConfig();
   Hits_TrackAssLabel = pset.get<std::string>("HitsPerTrackAssLabel");
   PID_TrackAssLabel = pset.get<std::string>("PIDTrackAssLabel");
+  CRT_TrackAssLabel = pset.get<std::string>("CRTTrackAssLabel");
 }
 
 void SingleMuon::analyze(art::Event const& evt)
@@ -512,6 +542,9 @@ void SingleMuon::analyze(art::Event const& evt)
   //PID
   art::FindManyP<anab::ParticleID> PIDTotrackAsso(Handle_TPCtrack,evt,PID_TrackAssLabel);
 
+  // CRT Hit Track association
+  art::FindManyP<crt::CRTHit> CRTToTrackAsso(Handle_TPCtrack,evt,CRT_TrackAssLabel);
+
   // Get mapping from ID to PFParticle
   std::unordered_map<size_t, art::Ptr<recob::PFParticle> > pfParticleIdMap;
   for (unsigned int i = 0; i < Handle_pfParticle->size(); ++i){
@@ -566,6 +599,7 @@ void SingleMuon::analyze(art::Event const& evt)
     
     for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
       if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) MC_beamNeutrino = true;
+      MC_int_mode = MCTruthCollection[i_mc]->GetNeutrino().Mode();
       MC_nupdg = MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode();
       MC_ccnc = MCTruthCollection[i_mc]->GetNeutrino().CCNC();
 
@@ -581,6 +615,10 @@ void SingleMuon::analyze(art::Event const& evt)
     // Not necessary all the Genie particles go through the geant4 stage?
     TVector3 MuonDir;
     TVector3 ProtonDir;
+    TVector3 MuonStart;
+    TVector3 ProtonStart;
+    TVector3 MuonEnd;
+    TVector3 ProtonEnd;
     if (MC_ccnc == 0 && MC_nupdg == 14 && MC_beamNeutrino == true){
       for(unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
         if(MCParticleCollection[i_mcp]->Process() == "primary"){
@@ -591,7 +629,12 @@ void SingleMuon::analyze(art::Event const& evt)
           // muon
           if(MCParticleCollection[i_mcp]->PdgCode() == 13){
             MC_nMuon++;
+            MC_muon_true_Mom.push_back(MCParticleCollection[i_mcp]->P());
             MuonDir.SetXYZ(MCParticleCollection[i_mcp]->Px(), MCParticleCollection[i_mcp]->Py(),MCParticleCollection[i_mcp]->Pz());
+            MuonStart.SetXYZ(MCParticleCollection[i_mcp]->Vx(), MCParticleCollection[i_mcp]->Vy(),MCParticleCollection[i_mcp]->Vz());
+            MuonEnd.SetXYZ(MCParticleCollection[i_mcp]->EndX(), MCParticleCollection[i_mcp]->EndY(),MCParticleCollection[i_mcp]->EndZ());
+            MC_muon_true_cos_theta.push_back(cos((MuonEnd - MuonStart).Theta()));
+            MC_muon_true_phi.push_back((MuonEnd - MuonStart).Phi());
           } 
           // electron
           if(MCParticleCollection[i_mcp]->PdgCode() == 11) MC_nElectron++;
@@ -603,6 +646,8 @@ void SingleMuon::analyze(art::Event const& evt)
             MC_nProton_above255++; 
             MC_proton_true_Mom_above255.push_back(MCParticleCollection[i_mcp]->P());
             ProtonDir.SetXYZ(MCParticleCollection[i_mcp]->Px(), MCParticleCollection[i_mcp]->Py(),MCParticleCollection[i_mcp]->Pz());
+            ProtonStart.SetXYZ(MCParticleCollection[i_mcp]->Vx(), MCParticleCollection[i_mcp]->Vy(),MCParticleCollection[i_mcp]->Vz());
+            ProtonEnd.SetXYZ(MCParticleCollection[i_mcp]->EndX(), MCParticleCollection[i_mcp]->EndY(),MCParticleCollection[i_mcp]->EndZ());
           }
           // pion0
           if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
@@ -619,8 +664,14 @@ void SingleMuon::analyze(art::Event const& evt)
     Topology topology;
     TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above255, MC_nProton_below255, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
     if(TopologyType == 1){
+      len_Muon_0pi0p = (MuonStart - MuonEnd).Mag();
+    }
+    // If it is cc0pi1p then there should be only information of 1p
+    if(TopologyType == 2){
       cos_ang_muon_proton = (MuonDir * ProtonDir) / (MuonDir.Mag() * ProtonDir.Mag());
-      std::cout<<"cos_ang_muon_proton: "<< cos_ang_muon_proton<<std::endl;
+      dist_muon_proton = (MuonStart - ProtonStart).Mag();
+      len_Muon_0pi1p = (MuonStart - MuonEnd).Mag();
+      len_Proton_0pi1p = (ProtonStart - ProtonEnd).Mag();
     }    
     // Get Genie info on how many particles produced
     for(unsigned int i_gn = 0; i_gn < GTruthCollection.size(); i_gn++){
@@ -693,7 +744,76 @@ void SingleMuon::analyze(art::Event const& evt)
       // Selection and Fill in Info
       if(n_dau_tracks == 1 && n_dau_showers == 0){
 
+        // The daughter of the pfparticle which corresponds to 1 primary track
+        // In case there are more than one primary pfparticle when 1 track + 0 shower (primary) precent
+        for (unsigned int i_trk_dau = 0; i_trk_dau < NeutrinoDaughters.size(); i_trk_dau++){
+          nr_granddau += NeutrinoDaughters[i_trk_dau]->NumDaughters();
+          for(int i_granddau = 0; i_granddau < NeutrinoDaughters[i_trk_dau]->NumDaughters(); i_granddau++){
+       
+            auto Iterator_granddau = pfParticleIdMap.find(NeutrinoDaughters[i_trk_dau]->Daughters().at(i_granddau));
+            auto pfp_granddau = Iterator_granddau->second;
+   
+            // Track Association
+            auto asso_granddau_track = pfpToTrackAsso.at(pfp_granddau.key());
+            if(asso_granddau_track.size()>0){
+              nr_granddau_trk += asso_granddau_track.size(); // inclusive number of granddaughters as tracks
+              for (unsigned int i_granddau_trk = 0; i_granddau_trk < asso_granddau_track.size(); i_granddau_trk++){
+                if(IsMC){
+                  std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(asso_granddau_track[i_granddau_trk].key());
+                  BackTrackerTruthMatch backtrackertruthmatch;
+                  backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
+                  auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
+                  if(MCparticle){
+                    // MC_granddau_pdg stores all granddaughters of all the primary pfparticle(s)
+                    MC_granddau_pdg.push_back(MCparticle->PdgCode());
+                  }
+                }
+              }
+            }
+        
+            // Shower Association
+            auto asso_granddau_shower = pfpToShowerAsso.at(pfp_granddau.key());
+            if(asso_granddau_shower.size()>0){
+              nr_granddau_shw += asso_granddau_shower.size();// inclusive number of granddaughters as showers
+            }
+          }
+        }
+        // OpFlash related information
+        if(flash_v.size() == 1){
+          flash_YCenter = flash_v[0]->YCenter();         
+          flash_YWidth = flash_v[0]->YWidth();         
+          flash_ZCenter = flash_v[0]->ZCenter();         
+          flash_ZWidth = flash_v[0]->ZWidth();         
+          flash_TotalPE = flash_v[0]->TotalPE();         
+        }
+
+        // CRT related information
         if(UsingCRT){
+          double evt_timeGPS_nsec = 0.;
+          if(!rawHandle_DAQHeader.isValid()) {
+             std::cout << "Could not locate DAQ header." << std::endl;
+           }
+          raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
+          art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
+          evt_timeGPS_nsec = evtTimeGPS.timeLow();
+
+          // If a track is associated to a CRT hit which is outside of beam window, exclude them (For both contained and exiting)
+          auto Track_CRThit = CRTToTrackAsso.at(daughter_Tracks.front().key()); 
+          if(Track_CRThit.size() > 0){
+            for(unsigned int i_trk_hit = 0; i_trk_hit < Track_CRThit.size(); i_trk_hit++){
+              double trk_crt_time;
+              if(IsMC) {
+                trk_crt_time = ((Track_CRThit[i_trk_hit]->ts0_ns - evt_timeGPS_nsec + fDTOffset_overlay) / 1000.);
+              }
+              if(!IsMC) { 
+                trk_crt_time = ((Track_CRThit[i_trk_hit]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.);
+              }      
+              if(trk_crt_time < fBeamStart || trk_crt_time > fBeamEnd){
+                if_trk_CRT_out_Beam = true;
+              } // If matched CRT hit out of Beam window
+            }
+          }
+
           // For contained (Veto if there is any CRT hit in beam window)
           if(flash_v.size() > 0){
             for(unsigned int i_fl = 0; i_fl < flash_v.size(); i_fl++){
@@ -708,13 +828,6 @@ void SingleMuon::analyze(art::Event const& evt)
           // For exiting (Veto if there are more than one CRT hits in beam wnidow) and potentially contained
           if(evt_CRTveto){
             // overlay is also basically data, using ts0
-            double evt_timeGPS_nsec = 0.;
-            if(!rawHandle_DAQHeader.isValid()) {
-               std::cout << "Could not locate DAQ header." << std::endl;
-             }
-            raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
-            art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
-            evt_timeGPS_nsec = evtTimeGPS.timeLow();
             for (unsigned int i_crt = 0; i_crt < crthit_v.size(); i_crt ++){
               // figure out what plane this hit comes from
               // 3 -> top, 0 -> bottom, 1 -> anode, 2 -> cathode
@@ -880,8 +993,6 @@ void SingleMuon::analyze(art::Event const& evt)
         //Missing PT
         missing_PT_range.push_back(Mom_Range_mu_noSCE * sin(daughter_Tracks.front()->Theta()));
         missing_PT_MCS.push_back(bestMCS * sin(daughter_Tracks.front()->Theta()));
-        std::cout<<"range mom: "<< Mom_Range_mu_noSCE <<", missing PT range: "<< missing_PT_range.back()<<std::endl;
-        std::cout<<"MCS mom: "<< bestMCS <<", missing PT MCS: "<< missing_PT_MCS.back()<<std::endl;
 
         //Calorimetry Info
         // pandoracaliSCE has E-field and spatial correction
@@ -945,6 +1056,31 @@ void SingleMuon::analyze(art::Event const& evt)
         dEdx_pl1_end_half = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + half_size_pl1, 0. ) / half_size_pl1;
         dEdx_pl2_start_half = std::accumulate(dEdx_pl2.end() - half_size_pl2, dEdx_pl2.end(), 0.) / half_size_pl2;
         dEdx_pl2_end_half = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
+        // dEdx_5
+        if (dEdx_pl0.size()<=5) {
+          dEdx_pl0_start5 = dEdx_pl0_start_half;
+          dEdx_pl0_end5 = dEdx_pl0_end_half;
+        }
+        else{
+          dEdx_pl0_start5 = std::accumulate(dEdx_pl0.end() - 5, dEdx_pl0.end(), 0.) / 5.;
+          dEdx_pl0_end5 = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + 5, 0.) / 5.;
+        }
+        if (dEdx_pl1.size()<=5) {
+          dEdx_pl1_start5 = dEdx_pl1_start_half;
+          dEdx_pl1_end5 = dEdx_pl1_end_half;
+        }
+        else{
+          dEdx_pl1_start5 = std::accumulate(dEdx_pl1.end() - 5, dEdx_pl1.end(), 0.) / 5.;
+          dEdx_pl1_end5 = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + 5, 0.) / 5.;
+        }
+        if (dEdx_pl2.size()<=5) {
+          dEdx_pl2_start5 = dEdx_pl2_start_half;
+          dEdx_pl2_end5 = dEdx_pl2_end_half;
+        }
+        else{
+          dEdx_pl2_start5 = std::accumulate(dEdx_pl2.end() - 5, dEdx_pl2.end(), 0.) / 5.;
+          dEdx_pl2_end5 = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + 5, 0.) / 5.;
+        }
         // dEdx_10
         if (dEdx_pl0.size()<=10) {
           dEdx_pl0_start10 = dEdx_pl0_start_half;
@@ -997,6 +1133,8 @@ void SingleMuon::analyze(art::Event const& evt)
         }
 
         dEdx_pl2_1020_ratio = dEdx_pl2_end1020 / (dEdx_pl2_end1020 + dEdx_pl2_start1020);
+        dEdx_pl2_10_ratio = dEdx_pl2_end10 / (dEdx_pl2_end10 + dEdx_pl2_start10);
+        dEdx_pl2_5_ratio = dEdx_pl2_end5 / (dEdx_pl2_end5 + dEdx_pl2_start5);
 
         // Gain PID info of the track
         PID pid;
@@ -1071,7 +1209,7 @@ void SingleMuon::analyze(art::Event const& evt)
             true_trk_costheta_yz.push_back(cos(true_trk_theta_yz.back()));
             true_trk_theta_xz.push_back(std::atan2(TrueTrackPos.X(), TrueTrackPos.Z()));
             true_trk_costheta_xz.push_back(cos(true_trk_theta_xz.back()));
-            true_trk_length.push_back(sqrt(TrueTrackPos.X()*TrueTrackPos.X() + TrueTrackPos.Y()*TrueTrackPos.Y() + TrueTrackPos.Z()*TrueTrackPos.Z())); // An estimation of true track length
+            true_trk_length.push_back((true_start - true_end).Mag()); // An estimation of true track length
             true_trk_PDG.push_back(MCparticle->PdgCode());
             
           }
@@ -1179,12 +1317,18 @@ void SingleMuon::analyze(art::Event const& evt)
 
   my_event_->Fill();
 
+  nr_granddau_shw = 0;
+  nr_granddau_trk = 0;
+  nr_granddau = 0;
+  MC_granddau_pdg.clear();
+
   evt_CRTveto = false;
   evt_CRTveto_100 = false;
 
   if_cosmic = true;
   if_matchMu = false;
   if_selected = false;
+  if_trk_CRT_out_Beam = false;
   if_broken = false;
   if_newTrkThroughGoing = false;
 
@@ -1192,6 +1336,9 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_Primary_PDG.clear();
     MC_Primary_Mom.clear();
     MC_proton_true_Mom_above255.clear();
+    MC_muon_true_Mom.clear();
+    MC_muon_true_cos_theta.clear();
+    MC_muon_true_phi.clear();
     Ghost_PDG.clear();
     true_mom.clear();
     true_start_x.clear();
@@ -1336,7 +1483,12 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("EventWeight", &EventWeight);
     my_event_->Branch("TopologyType", &TopologyType);
     my_event_->Branch("cos_ang_muon_proton", &cos_ang_muon_proton);
+    my_event_->Branch("dist_muon_proton", &dist_muon_proton);
+    my_event_->Branch("len_Muon_0pi0p", &len_Muon_0pi0p);
+    my_event_->Branch("len_Muon_0pi1p", &len_Muon_0pi1p);
+    my_event_->Branch("len_Proton_0pi1p", &len_Proton_0pi1p);
     my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
+    my_event_->Branch("MC_int_mode", &MC_int_mode);
     my_event_->Branch("MC_nupdg", &MC_nupdg);
     my_event_->Branch("MC_ccnc", &MC_ccnc);
     my_event_->Branch("MC_nu_E", &MC_nu_E);
@@ -1357,6 +1509,9 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_Primary_PDG", &MC_Primary_PDG);
     my_event_->Branch("MC_Primary_Mom", &MC_Primary_Mom);
     my_event_->Branch("MC_proton_true_Mom_above255", &MC_proton_true_Mom_above255);
+    my_event_->Branch("MC_muon_true_Mom", &MC_muon_true_Mom);
+    my_event_->Branch("MC_muon_true_cos_theta", &MC_muon_true_cos_theta);
+    my_event_->Branch("MC_muon_true_phi", &MC_muon_true_phi);
     my_event_->Branch("Ghost_PDG", &Ghost_PDG);
 
     my_event_->Branch("Genie_Q2", &Genie_Q2);
@@ -1367,6 +1522,8 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("Genie_nPi0_preFSI", &Genie_nPi0_preFSI);
     my_event_->Branch("Genie_nPiPlus_preFSI", &Genie_nPiPlus_preFSI);
     my_event_->Branch("Genie_nPiMinus_preFSI", &Genie_nPiMinus_preFSI);
+
+    my_event_->Branch("MC_granddau_pdg", &MC_granddau_pdg);
 
     my_event_->Branch("true_mom", &true_mom);
     my_event_->Branch("true_start_x", &true_start_x);
@@ -1390,11 +1547,20 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("reco_MC_dist_vtx", &reco_MC_dist_vtx);
     my_event_->Branch("reco_MC_dist_vtx_noSCE", &reco_MC_dist_vtx_noSCE);
   }
+  my_event_->Branch("flash_YCenter", &flash_YCenter);
+  my_event_->Branch("flash_YWidth", &flash_YWidth);
+  my_event_->Branch("flash_ZCenter", &flash_ZCenter);
+  my_event_->Branch("flash_ZWidth", &flash_ZWidth);
+  my_event_->Branch("flash_TotalPE", &flash_TotalPE);
 
   my_event_->Branch("v_sanity_check", &v_sanity_check);
   my_event_->Branch("n_pfp_nuDaughters", &n_pfp_nuDaughters);
   my_event_->Branch("n_dau_tracks", &n_dau_tracks);
   my_event_->Branch("n_dau_showers", &n_dau_showers);
+  
+  my_event_->Branch("nr_granddau_shw", &nr_granddau_shw);
+  my_event_->Branch("nr_granddau_trk", &nr_granddau_trk);
+  my_event_->Branch("nr_granddau", &nr_granddau);
   
   my_event_->Branch("flash_matching_chi2", &flash_matching_chi2);
 
@@ -1408,6 +1574,7 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("if_cosmic", &if_cosmic);
   my_event_->Branch("if_matchMu", &if_matchMu);
   my_event_->Branch("if_selected", &if_selected);
+  my_event_->Branch("if_trk_CRT_out_Beam", &if_trk_CRT_out_Beam);
   my_event_->Branch("if_broken", &if_broken);
   my_event_->Branch("if_newTrkThroughGoing", &if_newTrkThroughGoing);
 
@@ -1499,6 +1666,12 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("dEdx_pl0_end_half", &dEdx_pl0_end_half);
   my_event_->Branch("dEdx_pl1_end_half", &dEdx_pl1_end_half);
   my_event_->Branch("dEdx_pl2_end_half", &dEdx_pl2_end_half);
+  my_event_->Branch("dEdx_pl0_start5", &dEdx_pl0_start5);
+  my_event_->Branch("dEdx_pl1_start5", &dEdx_pl1_start5);
+  my_event_->Branch("dEdx_pl2_start5", &dEdx_pl2_start5);
+  my_event_->Branch("dEdx_pl0_end5", &dEdx_pl0_end5);
+  my_event_->Branch("dEdx_pl1_end5", &dEdx_pl1_end5);
+  my_event_->Branch("dEdx_pl2_end5", &dEdx_pl2_end5);
   my_event_->Branch("dEdx_pl0_start10", &dEdx_pl0_start10);
   my_event_->Branch("dEdx_pl1_start10", &dEdx_pl1_start10);
   my_event_->Branch("dEdx_pl2_start10", &dEdx_pl2_start10);
@@ -1513,6 +1686,8 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("dEdx_pl2_end1020", &dEdx_pl2_end1020);
   
   my_event_->Branch("dEdx_pl2_1020_ratio", &dEdx_pl2_1020_ratio);
+  my_event_->Branch("dEdx_pl2_10_ratio", &dEdx_pl2_10_ratio);
+  my_event_->Branch("dEdx_pl2_5_ratio", &dEdx_pl2_5_ratio);
   
   my_event_->Branch("PID_Chi2Mu_pl0", &PID_Chi2Mu_pl0);
   my_event_->Branch("PID_Chi2Mu_pl1", &PID_Chi2Mu_pl1);
@@ -1549,6 +1724,9 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("if_fwd_true", &if_fwd_true);
   my_event_->Branch("if_fwd_dEdx10", &if_fwd_dEdx10);
   my_event_->Branch("if_fwd_dEdx1020", &if_fwd_dEdx1020);
+  my_event_->Branch("dEdx_pl2_1020_ratio", &dEdx_pl2_1020_ratio);
+  my_event_->Branch("dEdx_pl2_10_ratio", &dEdx_pl2_10_ratio);
+  my_event_->Branch("dEdx_pl2_5_ratio", &dEdx_pl2_5_ratio);
   my_event_->Branch("if_fwd_dEdxhalf", &if_fwd_dEdxhalf);
 }
 
