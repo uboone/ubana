@@ -33,6 +33,9 @@ namespace neutrinoid
 class NeutrinoIDAlgBase
 {
 public:
+
+    virtual ~NeutrinoIDAlgBase() = default;
+
     /**
      *  @brief Require that a handler is definied in case the algorithm control parameters are to be reset
      */

@@ -1,4 +1,4 @@
-# This @product_deps@ file defines dependencies for this package. 
+# This @product_deps@ file defines dependencies for this package.
 
 # The *parent* line must the first non-commented line and defines this product and version
 # The version must be of the form vxx_yy_zz (e.g. v01_02_03)
@@ -10,7 +10,7 @@ defaultqual e17
 # be used only if your product does not conform to the defaults.
 # Format: directory_type directory_path directory_name
 #   where directory_type is one of incdir, libdir, or bindir
-#   where directory_path is one of product_dir, fq_dir and - 
+#   where directory_path is one of product_dir, fq_dir and -
 # Defaults:
 # incdir  product_dir  include
 # fcldir  product_dir  fcl
@@ -37,13 +37,21 @@ larpandora              v08_08_03
 cetbuildtools	        v7_14_00	-	only_for_build
 end_product_list
 
-qualifier      ubreco         ubraw          larana         larpandora     
-c2:py3:debug   c2:py3:debug   c2:py3:debug   c2:py3:debug   c2:py3:debug       
-c2:py3:prof    c2:py3:prof    c2:py3:prof    c2:py3:prof    c2:py3:prof        
+qualifier      ubreco         ubraw          larana         larpandora
+c7:py3:debug   c7:py3:debug   c7:py3:debug   c7:py3:debug   c7:py3:debug
+c7:py3:prof    c7:py3:prof    c7:py3:prof    c7:py3:prof    c7:py3:prof
+c7:debug       c7:debug       c7:debug       c7:debug       c7:debug
+c7:prof        c7:prof        c7:prof        c7:prof        c7:prof
+c2:py3:debug   c2:py3:debug   c2:py3:debug   c2:py3:debug   c2:py3:debug
+c2:py3:prof    c2:py3:prof    c2:py3:prof    c2:py3:prof    c2:py3:prof
+c2:debug       c2:debug       c2:debug       c2:debug       c2:debug
+c2:prof        c2:prof        c2:prof        c2:prof        c2:prof
+e19:py3:debug  e19:py3:debug  e19:py3:debug  e19:py3:debug  e19:py3:debug
+e19:py3:prof   e19:py3:prof   e19:py3:prof   e19:py3:prof   e19:py3:prof
+e19:debug      e19:debug      e19:debug      e19:debug      e19:debug
+e19:prof       e19:prof       e19:prof       e19:prof       e19:prof
 e17:py3:debug  e17:py3:debug  e17:py3:debug  e17:py3:debug  e17:py3:debug
 e17:py3:prof   e17:py3:prof   e17:py3:prof   e17:py3:prof   e17:py3:prof
-c2:debug       c2:debug       c2:debug       c2:debug       c2:debug       
-c2:prof        c2:prof        c2:prof        c2:prof        c2:prof        
 e17:debug      e17:debug      e17:debug      e17:debug      e17:debug
 e17:prof       e17:prof       e17:prof       e17:prof       e17:prof
 end_qualifier_list
