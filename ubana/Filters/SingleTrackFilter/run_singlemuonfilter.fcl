@@ -1,0 +1,64 @@
+#include "time_memory_tracker_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+
+process_name: singletrackfilter
+
+services:{
+}
+source:
+{
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+
+} # source
+
+physics:
+{	
+  analyzers:
+  {
+  }
+  producers:
+  {
+  }
+  filters:{
+  
+    STfilter:
+     {
+      module_type: "SingleTrackFilter"
+      pfp_producer: "pandora"
+      hitfinder_producer: "pandora"
+      flash_producer: "simpleFlashBeam" 
+      DoMuon: true
+      DoProton: false
+      nuPDG : 14
+      NTrack : 1
+      NShower : 0 
+      StartX : 0
+      StartY : -116.5
+      StartZ : 0
+      EndX : 256.35
+      EndY : 116.5
+      EndZ : 1036.8
+    }
+  }
+  stream1: [ out1 ]
+  filtering: [ STfilter ]
+  trigger_paths: [ filtering ]
+  
+  end_paths: [ stream1 ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_SingleMuon.root"
+    SelectEvents: [ filtering ]
+    dataTier:    "reconstructed"
+    compressionLevel: 1
+    outputCommands: ["keep *_*_*_*"]
+  }
+}
+
