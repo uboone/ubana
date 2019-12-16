@@ -55,29 +55,43 @@ private:
   art::ServiceHandle< art::TFileService > tfs;
 
   art::InputTag fEventWeightInputTag;
+  std::string fSplineBugFixLabel;
+  std::string fTunedCentralValueLabel;
+  std::string fLEESignalLabel;
 
   TTree* eventweight_tree;
   int run;
   int subrun;
   int event;
-  std::map<std::string, std::vector<double>> fmcweight;
+  double fSplineBugFixWeight;
+  double fTunedCentralValueWeight;
+  double fCombinedCentralValueWeight;
+  double fLEESignalWeight;
+  std::map<std::string, std::vector<double>> fEventWeightMap;
 
 };
 
 
 Arborist::Arborist(fhicl::ParameterSet const& p)
   : EDAnalyzer{p},
-  fEventWeightInputTag(p.get<art::InputTag>("EventWeightInputTag"))
+  fEventWeightInputTag(p.get<art::InputTag>("EventWeightInputTag")),
+  fSplineBugFixLabel(p.get<std::string>("SplineBugFixLabel")),
+  fTunedCentralValueLabel(p.get<std::string>("TunedCentralValueLabel")),
+  fLEESignalLabel(p.get<std::string>("LEESignalLabel"))
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
 }
 void Arborist::beginJob()
 {
  eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
- eventweight_tree->Branch("mcweight", "std::map<std::string, std::vector<double>>",&fmcweight);
  eventweight_tree->Branch("run", &run);
  eventweight_tree->Branch("subrun", &subrun);
  eventweight_tree->Branch("event", &event);
+ eventweight_tree->Branch("spline_weight", &fSplineBugFixWeight);
+ eventweight_tree->Branch("ub_tune_weight", &fTunedCentralValueWeight);
+ eventweight_tree->Branch("comb_cv_weight", &fCombinedCentralValueWeight);
+ eventweight_tree->Branch("lee_weight", &fLEESignalWeight);
+ eventweight_tree->Branch("mcweight", "std::map<std::string, std::vector<double>>", &fEventWeightMap);
 }
 
 void Arborist::resetVariables()
@@ -85,7 +99,11 @@ void Arborist::resetVariables()
   run = -1;
   subrun = -1;
   event = -1;
-  fmcweight.clear();
+  fSplineBugFixWeight = -1.;
+  fTunedCentralValueWeight = -1.;
+  fCombinedCentralValueWeight = -1.;
+  fLEESignalWeight = -1.;
+  fEventWeightMap.clear();
 }
 
 void Arborist::FillEventWeights(art::Event const & e){
@@ -97,20 +115,41 @@ void Arborist::FillEventWeights(art::Event const & e){
     std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
 	      << "WARNING: eventweight has more than one entry\n";
   }
-  fmcweight=weight_map;
- 
+
+  for ( auto evweight_it = weight_map.begin(); evweight_it != weight_map.end(); evweight_it++ ) {
+    std::cout << evweight_it->first << std::endl;
+  }
+
+  fEventWeightMap = weight_map;
+  
+  if ( weight_map.find(fSplineBugFixLabel) != weight_map.end() ) {
+    fSplineBugFixWeight = weight_map.find(fSplineBugFixLabel)->second[0];
+    fEventWeightMap.erase(fSplineBugFixLabel);
+  }
+  if ( weight_map.find(fTunedCentralValueLabel) != weight_map.end() ) {
+    fTunedCentralValueWeight = weight_map.find(fTunedCentralValueLabel)->second[0];
+    fEventWeightMap.erase(fTunedCentralValueLabel);
+  }
+  if ( weight_map.find(fLEESignalLabel) != weight_map.end() ) {
+    fLEESignalWeight = weight_map.find(fLEESignalLabel)->second[0];
+    fEventWeightMap.erase(fLEESignalLabel);
+  }
+
+  if ( weight_map.find(fSplineBugFixLabel) != weight_map.end() && weight_map.find(fTunedCentralValueLabel) != weight_map.end() )
+    fCombinedCentralValueWeight = fSplineBugFixWeight * fTunedCentralValueWeight;
+  
 }
 void Arborist::analyze(art::Event const& e)
 {
   resetVariables();
+
   run = e.run();
   subrun = e.subRun();
   event = e.event();
 
   FillEventWeights(e);
+  
   eventweight_tree->Fill();
-
-  // Implementation of required member function here.
 }
 
 DEFINE_ART_MODULE(Arborist)
