@@ -66,6 +66,8 @@ void pfpprofile_ana::Loop()
     // if (Cut(ientry) < 0) continue;
     
     for (int i = 0; i< npfps; ++i){
+      if (pfppurity[i] < cut_purity || pfpcompleteness[i] < cut_completeness) continue;
+
       for (int p=0; p<3; p++) {
         if (p != 2) continue;
 
@@ -85,10 +87,6 @@ void pfpprofile_ana::Loop()
             }
           }
           
-          if (index_energy == -1 || index_particle == -1) {
-            cout << "index_particle: " << index_particle << endl;
-            cout << "index_energy: " << index_energy << endl;
-          }
           for (int j=0; j<nbin_longdist; j++) {
             hlong->Fill(hlong->GetBinCenter(j+1), LongProf[i][p][j]);
             if (index_energy != -1) hprofile[index_particle][index_energy][0]->Fill(hlong->GetBinCenter(j+1), LongProf[i][p][j]);
