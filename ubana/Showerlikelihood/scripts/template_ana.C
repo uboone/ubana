@@ -1,4 +1,4 @@
-#define ana_cxx
+#define template_ana_cxx
 #include "ana.h"
 #include <TH2.h>
 #include <TStyle.h>
