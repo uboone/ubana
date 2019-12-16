@@ -17,6 +17,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCFlux.h"
 // ART includes
 #include "art/Framework/Services/Optional/TFileService.h" // used for ROOT file
 #include "canvas/Persistency/Common/FindManyP.h" // used for assns
@@ -47,6 +49,7 @@ public:
   // Required functions.
   void analyze(art::Event const& e) override;
   void beginJob() override;
+  void FillTruthInfo(art::Event const & e);
   void FillEventWeights(art::Event const & e);
   void resetVariables();
 
@@ -63,6 +66,9 @@ private:
   int run;
   int subrun;
   int event;
+  int fNeutrinoPDGCode;
+  double fTrueNeutrinoEnergy;
+  double fTrueNeutrinoBaseline;
   double fSplineBugFixWeight;
   double fTunedCentralValueWeight;
   double fCombinedCentralValueWeight;
@@ -87,6 +93,9 @@ void Arborist::beginJob()
  eventweight_tree->Branch("run", &run);
  eventweight_tree->Branch("subrun", &subrun);
  eventweight_tree->Branch("event", &event);
+ eventweight_tree->Branch("nu_pdg", &fNeutrinoPDGCode);
+ eventweight_tree->Branch("true_nu_energy", &fTrueNeutrinoEnergy);
+ eventweight_tree->Branch("true_nu_L", &fTrueNeutrinoBaseline);
  eventweight_tree->Branch("spline_weight", &fSplineBugFixWeight);
  eventweight_tree->Branch("ub_tune_weight", &fTunedCentralValueWeight);
  eventweight_tree->Branch("comb_cv_weight", &fCombinedCentralValueWeight);
@@ -99,11 +108,29 @@ void Arborist::resetVariables()
   run = -1;
   subrun = -1;
   event = -1;
+  fNeutrinoPDGCode = 0;
+  fTrueNeutrinoEnergy = -1.;
+  fTrueNeutrinoBaseline = -1.;
   fSplineBugFixWeight = -1.;
   fTunedCentralValueWeight = -1.;
   fCombinedCentralValueWeight = -1.;
   fLEESignalWeight = -1.;
   fEventWeightMap.clear();
+}
+
+void Arborist::FillTruthInfo(art::Event const & e) {
+
+  art::ValidHandle<std::vector<simb::MCTruth>> const & ev_mctruth = 
+    e.getValidHandle<std::vector<simb::MCTruth>>("generator");
+
+  fNeutrinoPDGCode = ev_mctruth->front().GetNeutrino().Nu().PdgCode();
+  fTrueNeutrinoEnergy = ev_mctruth->front().GetNeutrino().Nu().E();
+
+  art::ValidHandle<std::vector<simb::MCFlux>> const & ev_mcflux = 
+    e.getValidHandle<std::vector<simb::MCFlux>>("generator");
+
+  fTrueNeutrinoBaseline = ev_mcflux->front().fdk2gen + ev_mcflux->front().fgen2vtx;
+
 }
 
 void Arborist::FillEventWeights(art::Event const & e){
@@ -116,9 +143,11 @@ void Arborist::FillEventWeights(art::Event const & e){
 	      << "WARNING: eventweight has more than one entry\n";
   }
 
+  /*
   for ( auto evweight_it = weight_map.begin(); evweight_it != weight_map.end(); evweight_it++ ) {
     std::cout << evweight_it->first << std::endl;
   }
+  */
 
   fEventWeightMap = weight_map;
   
@@ -147,6 +176,7 @@ void Arborist::analyze(art::Event const& e)
   subrun = e.subRun();
   event = e.event();
 
+  FillTruthInfo(e);
   FillEventWeights(e);
   
   eventweight_tree->Fill();
