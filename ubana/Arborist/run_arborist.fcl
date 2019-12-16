@@ -26,8 +26,8 @@ physics:
     {
       # this is the name of the module you want to run
       module_type: Arborist
-
-
+      
+      EventWeightInputTag: "eventweight4to4aFix"
     }
 
   }

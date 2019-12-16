@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       UsingHandlesAna
+// Class:       Arborist
 // Plugin Type: analyzer (art v3_01_02)
-// File:        UsingHandlesAna_module.cc
+// File:        Arborist_module.cc
 //
 // Generated at Mon Mar 18 11:32:48 2019 by Gray Yarbrough using cetskelgen
 // from cetlib version v3_05_01.
@@ -52,20 +52,22 @@ public:
 
 
 private:
-  int run;
-  int sub_run;
-  int event;
   art::ServiceHandle< art::TFileService > tfs;
+
+  art::InputTag fEventWeightInputTag;
+
+  TTree* eventweight_tree;
+  int run;
+  int subrun;
+  int event;
   std::map<std::string, std::vector<double>> fmcweight;
-   TTree* eventweight_tree;
-  // Declare member data here.
 
 };
 
 
 Arborist::Arborist(fhicl::ParameterSet const& p)
-  : EDAnalyzer{p}  // ,
-  // More initializers here.
+  : EDAnalyzer{p},
+  fEventWeightInputTag(p.get<art::InputTag>("EventWeightInputTag"))
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
 }
@@ -74,22 +76,21 @@ void Arborist::beginJob()
  eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
  eventweight_tree->Branch("mcweight", "std::map<std::string, std::vector<double>>",&fmcweight);
  eventweight_tree->Branch("run", &run);
- eventweight_tree->Branch("sub_run", &sub_run);
+ eventweight_tree->Branch("subrun", &subrun);
  eventweight_tree->Branch("event", &event);
- 
 }
 
 void Arborist::resetVariables()
 {
   run = -1;
-  sub_run = -1;
+  subrun = -1;
   event = -1;
   fmcweight.clear();
 }
 
 void Arborist::FillEventWeights(art::Event const & e){
   art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw =
-    e.getValidHandle<std::vector<evwgh::MCEventWeight>>("mcweight");
+    e.getValidHandle<std::vector<evwgh::MCEventWeight>>(fEventWeightInputTag);
 
   std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
   if(ev_evw->size() > 1) {
@@ -103,7 +104,7 @@ void Arborist::analyze(art::Event const& e)
 {
   resetVariables();
   run = e.run();
-  sub_run = e.subRun();
+  subrun = e.subRun();
   event = e.event();
 
   FillEventWeights(e);
