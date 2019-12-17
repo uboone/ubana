@@ -98,9 +98,9 @@ void Arborist::beginJob()
  eventweight_tree->Branch("true_nu_L", &fTrueNeutrinoBaseline);
  eventweight_tree->Branch("spline_weight", &fSplineBugFixWeight);
  eventweight_tree->Branch("ub_tune_weight", &fTunedCentralValueWeight);
- eventweight_tree->Branch("comb_cv_weight", &fCombinedCentralValueWeight);
+ eventweight_tree->Branch("xsec_corr_weight", &fCombinedCentralValueWeight);
  eventweight_tree->Branch("lee_weight", &fLEESignalWeight);
- eventweight_tree->Branch("mcweight", "std::map<std::string, std::vector<double>>", &fEventWeightMap);
+ eventweight_tree->Branch("sys_weights", "std::map<std::string, std::vector<double>>", &fEventWeightMap);
 }
 
 void Arborist::resetVariables()
