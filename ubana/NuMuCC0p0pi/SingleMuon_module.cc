@@ -183,6 +183,8 @@ private:
   int nr_granddau_trk;
   int nr_granddau;
   std::vector<int> MC_granddau_pdg;
+  std::vector<double> granddau_trk_len;
+  std::vector<double> granddau_shw_len;
 
   double flash_YCenter;
   double flash_YWidth;
@@ -196,11 +198,12 @@ private:
   std::vector<double> crthit_plane; // Plane of CRT hits
   std::vector<double> crthit_time; // Time of CRT hits
   int Nr_crthit; // Number of CRT hits in 
+  double trk_crt_time = -999;// The CRT time of the hit which matched to the track
+  bool if_trk_CRT_out_Beam = false; // Check if a track matches with out of beam CRT hit(s)
 
   bool if_selected = false; // If selected based on the reco info
   bool if_matchMu = false; // If the selected track matched with true muon from numu cc
   bool if_cosmic = true; // Check if a track is cosmic or not by if it has an associated MCParticle
-  bool if_trk_CRT_out_Beam = false; // Check if a track matches with out of beam CRT hit(s)
 
   bool if_broken = false; // if find broken track
   bool if_newTrkThroughGoing = false; // if the new track is through going
@@ -749,7 +752,6 @@ void SingleMuon::analyze(art::Event const& evt)
         for (unsigned int i_trk_dau = 0; i_trk_dau < NeutrinoDaughters.size(); i_trk_dau++){
           nr_granddau += NeutrinoDaughters[i_trk_dau]->NumDaughters();
           for(int i_granddau = 0; i_granddau < NeutrinoDaughters[i_trk_dau]->NumDaughters(); i_granddau++){
-       
             auto Iterator_granddau = pfParticleIdMap.find(NeutrinoDaughters[i_trk_dau]->Daughters().at(i_granddau));
             auto pfp_granddau = Iterator_granddau->second;
    
@@ -758,6 +760,7 @@ void SingleMuon::analyze(art::Event const& evt)
             if(asso_granddau_track.size()>0){
               nr_granddau_trk += asso_granddau_track.size(); // inclusive number of granddaughters as tracks
               for (unsigned int i_granddau_trk = 0; i_granddau_trk < asso_granddau_track.size(); i_granddau_trk++){
+                granddau_trk_len.push_back(asso_granddau_track[i_granddau_trk]>Length()); 
                 if(IsMC){
                   std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(asso_granddau_track[i_granddau_trk].key());
                   BackTrackerTruthMatch backtrackertruthmatch;
@@ -774,7 +777,10 @@ void SingleMuon::analyze(art::Event const& evt)
             // Shower Association
             auto asso_granddau_shower = pfpToShowerAsso.at(pfp_granddau.key());
             if(asso_granddau_shower.size()>0){
-              nr_granddau_shw += asso_granddau_shower.size();// inclusive number of granddaughters as showers
+              nr_granddau_shw += asso_granddau_shower.size();// inclusive number of granddaughters as showers      
+              for (unsigned int i_granddau_shw = 0; i_granddau_shw < asso_granddau_shower.size(); i_granddau_shw++){
+                granddau_shw_len.push_back(asso_granddau_shower[i_granddau_shw]>Length()); 
+              }
             }
           }
         }
@@ -801,7 +807,6 @@ void SingleMuon::analyze(art::Event const& evt)
           auto Track_CRThit = CRTToTrackAsso.at(daughter_Tracks.front().key()); 
           if(Track_CRThit.size() > 0){
             for(unsigned int i_trk_hit = 0; i_trk_hit < Track_CRThit.size(); i_trk_hit++){
-              double trk_crt_time;
               if(IsMC) {
                 trk_crt_time = ((Track_CRThit[i_trk_hit]->ts0_ns - evt_timeGPS_nsec + fDTOffset_overlay) / 1000.);
               }
@@ -1131,6 +1136,31 @@ void SingleMuon::analyze(art::Event const& evt)
           dEdx_pl2_start1020 = std::accumulate(dEdx_pl2.end() - 20, dEdx_pl2.end() - 10, 0.) / 10.;
           dEdx_pl2_end1020 = std::accumulate(dEdx_pl2.begin() + 10, dEdx_pl2.begin() + 20, 0.) / 10.;
         }
+        // dEdx_515
+        if (dEdx_pl0.size()<=30) {
+          dEdx_pl0_start1020 = dEdx_pl0_start_half;
+          dEdx_pl0_end1020 = dEdx_pl0_end_half;
+        }
+        else{
+          dEdx_pl0_start1020 = std::accumulate(dEdx_pl0.end() - 20, dEdx_pl0.end() - 10, 0.) / 10.;
+          dEdx_pl0_end1020 = std::accumulate(dEdx_pl0.begin() + 10, dEdx_pl0.begin() + 20, 0.) / 10.;
+        }
+        if (dEdx_pl1.size()<=30) {
+          dEdx_pl1_start1020 = dEdx_pl1_start_half;
+          dEdx_pl1_end1020 = dEdx_pl1_end_half;
+        }
+        else{
+          dEdx_pl1_start1020 = std::accumulate(dEdx_pl1.end() - 20, dEdx_pl1.end() - 10, 0.) / 10.;
+          dEdx_pl1_end1020 = std::accumulate(dEdx_pl1.begin() + 10, dEdx_pl1.begin() + 20, 0.) / 10.;
+        }
+        if (dEdx_pl2.size()<=30) {
+          dEdx_pl2_start1020 = dEdx_pl2_start_half;
+          dEdx_pl2_end1020 = dEdx_pl2_end_half;
+        }
+        else{
+          dEdx_pl2_start1020 = std::accumulate(dEdx_pl2.end() - 20, dEdx_pl2.end() - 10, 0.) / 10.;
+          dEdx_pl2_end1020 = std::accumulate(dEdx_pl2.begin() + 10, dEdx_pl2.begin() + 20, 0.) / 10.;
+        }
 
         dEdx_pl2_1020_ratio = dEdx_pl2_end1020 / (dEdx_pl2_end1020 + dEdx_pl2_start1020);
         dEdx_pl2_10_ratio = dEdx_pl2_end10 / (dEdx_pl2_end10 + dEdx_pl2_start10);
@@ -1321,9 +1351,12 @@ void SingleMuon::analyze(art::Event const& evt)
   nr_granddau_trk = 0;
   nr_granddau = 0;
   MC_granddau_pdg.clear();
+  granddau_trk_len.clear();
+  granddau_shw_len.clear();
 
   evt_CRTveto = false;
   evt_CRTveto_100 = false;
+  trk_crt_time = -999;
 
   if_cosmic = true;
   if_matchMu = false;
@@ -1561,6 +1594,8 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("nr_granddau_shw", &nr_granddau_shw);
   my_event_->Branch("nr_granddau_trk", &nr_granddau_trk);
   my_event_->Branch("nr_granddau", &nr_granddau);
+  my_event_->Branch("granddau_trk_len", &granddau_trk_len);
+  my_event_->Branch("granddau_shw_len", &granddau_shw_len);
   
   my_event_->Branch("flash_matching_chi2", &flash_matching_chi2);
 
@@ -1570,6 +1605,7 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("crthit_plane", &crthit_plane);
   my_event_->Branch("crthit_time", &crthit_time);
   my_event_->Branch("Nr_crthit", &Nr_crthit);
+  my_event_->Branch("trk_crt_time", &trk_crt_time);
 
   my_event_->Branch("if_cosmic", &if_cosmic);
   my_event_->Branch("if_matchMu", &if_matchMu);
