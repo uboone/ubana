@@ -124,7 +124,7 @@ void Arborist::FillTruthInfo(art::Event const & e) {
     e.getValidHandle<std::vector<simb::MCTruth>>("generator");
 
   fNeutrinoPDGCode = ev_mctruth->front().GetNeutrino().Nu().PdgCode();
-  fTrueNeutrinoEnergy = ev_mctruth->front().GetNeutrino().Nu().E();
+  fTrueNeutrinoEnergy = ev_mctruth->front().GetNeutrino().Nu().E() * 1000.;  // convert from GeV to MeV
 
   art::ValidHandle<std::vector<simb::MCFlux>> const & ev_mcflux = 
     e.getValidHandle<std::vector<simb::MCFlux>>("generator");
