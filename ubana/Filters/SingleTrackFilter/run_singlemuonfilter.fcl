@@ -34,12 +34,19 @@ physics:
       nuPDG : 14
       NTrack : 1
       NShower : 0 
-      StartX : 0
-      StartY : -116.5
-      StartZ : 0
-      EndX : 256.35
-      EndY : 116.5
-      EndZ : 1036.8
+      StartX : 5
+      StartY : -111.5
+      StartZ : 5
+      EndX : 251.35
+      EndY : 111.5
+      EndZ : 1031.8
+
+      #StartX : 0
+      #StartY : -116.5
+      #StartZ : 0
+      #EndX : 256.35
+      #EndY : 116.5
+      #EndZ : 1036.8
     }
   }
   stream1: [ out1 ]

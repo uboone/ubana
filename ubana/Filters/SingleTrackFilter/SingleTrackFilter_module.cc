@@ -256,7 +256,7 @@ std::cout<<"start filtering...."<<std::endl;
           _nu_n_pfp=daughterIDs.size();
 	  _n_track = 0;
 	  _n_shower = 0;
-	  // count number of tracks and showers in neutrino slice
+	  // count number of tracks and showers as neutrino daughter in neutrino slice
 	  for(int j = 0; j< _nu_n_pfp; j++)
 	    {
 	   
@@ -333,7 +333,13 @@ std::cout<<"start filtering...."<<std::endl;
 	    
 	    }//end of single track info
 	  
-	  if(m_muon) GetNeutrinoSliceMuonCandidate(_nu_PDG,_nu_vtxx,_nu_vtxy,_nu_vtxz, _n_track, _n_shower);
+	  if(m_muon)
+            { 
+              if(GetNeutrinoSliceMuonCandidate(_nu_PDG,_nu_vtxx,_nu_vtxy,_nu_vtxz, _n_track, _n_shower))
+                { return true;}
+              else
+                { return false;}
+            }
 	  if(m_proton)
 	    {
 	      if(_debug) 
@@ -352,13 +358,17 @@ std::cout<<"start filtering...."<<std::endl;
 		  std::cout<<" pid: "<<_p_chi2_p_2<<std::endl;
 		}
 	      if(GetNeutrinoSliceProtonCandidate(_nu_PDG, _n_track, _n_shower, _p_startx,_p_starty,_p_startz,_p_endx,_p_endy,_p_endz,_p_length,_p_chi2_p_2)) return true;
-	    }
-	}//end of neutrino slice
-      else //for non-neutrino slice protons
-	{
-	  std::cout<<"non-neutrino"<<std::endl;
-	  if(m_proton && GetNonNeutrinoSliceProtonCandidate(e)) return true;
-	}// end of non-neutrino slice protons
+//	   }//end of neutrino slice
+              else //for non-neutrino slice protons
+	        {
+	          std::cout<<"non-neutrino"<<std::endl;
+	          if(m_proton && GetNonNeutrinoSliceProtonCandidate(e)) return true;
+	        }// end of non-neutrino slice protons
+    
+            } // end of proton session
+       
+        } // end of pfneutrino == 1
+     
     }//end of pfparticle.size>0
   
   return false;
@@ -383,18 +393,18 @@ bool  SingleTrackFilter::GetNeutrinoSliceMuonCandidate(int nuPDG,float vtxx,floa
 bool  SingleTrackFilter::GetNeutrinoSliceProtonCandidate(int nuPDG, int n_trk,int n_shwr, float p_startx, float p_starty, float p_startz, float p_endx, float p_endy, float p_endz, float p_length, float pid)
 {
    if(abs(nuPDG) != m_nu_PDG) return false;
-   if (p_startx < m_start_x) return false;
-   if (p_startx > m_end_x) return false;
-   if (p_starty < m_start_y) return false;
-   if (p_starty > m_end_y) return false;
-   if (p_startz < m_start_z) return false;
-   if (p_startz > m_end_z) return false;
-   if (p_endx < m_start_x) return false;
-   if (p_endx > m_end_x) return false;
-   if (p_endy < m_start_y) return false;
-   if (p_endy > m_end_y) return false;
-   if (p_endz < m_start_z) return false;
-   if (p_endz > m_end_z) return false;
+   if (p_startx < m_p_start_x) return false;
+   if (p_startx > m_p_end_x) return false;
+   if (p_starty < m_p_start_y) return false;
+   if (p_starty > m_p_end_y) return false;
+   if (p_startz < m_p_start_z) return false;
+   if (p_startz > m_p_end_z) return false;
+   if (p_endx < m_p_start_x) return false;
+   if (p_endx > m_p_end_x) return false;
+   if (p_endy < m_p_start_y) return false;
+   if (p_endy > m_p_end_y) return false;
+   if (p_endz < m_p_start_z) return false;
+   if (p_endz > m_p_end_z) return false;
    if (p_length < m_p_length_min) return false;
   if (p_length > m_p_length_max) return false;
    if (pid > m_p_chi2_p_2) return false;
