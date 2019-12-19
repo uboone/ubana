@@ -186,17 +186,17 @@ SingleTrackFilter::SingleTrackFilter(fhicl::ParameterSet const & pset) :
     m_start_x = pset.get<double>("StartX", -9999);
     m_start_y = pset.get<double>("StartY", -9999);
     m_start_z = pset.get<double>("StartZ", -9999);
-    m_end_x = pset.get<double>("Endx", 9999);
-    m_end_y = pset.get<double>("Endy", 9999);
-    m_end_z = pset.get<double>("Endz", 9999);
+    m_end_x = pset.get<double>("EndX", 9999);
+    m_end_y = pset.get<double>("EndY", 9999);
+    m_end_z = pset.get<double>("EndZ", 9999);
 
     //for protons
     m_p_start_x = pset.get<double>("ProtonStartX", -9999);
     m_p_start_y = pset.get<double>("ProtonStartY", -9999);
     m_p_start_z = pset.get<double>("ProtonStartZ", -9999);
-    m_p_end_x = pset.get<double>("ProtonEndx", 9999);
-    m_p_end_y = pset.get<double>("ProtonEndy", 9999);
-    m_p_end_z = pset.get<double>("ProtonEndz", 9999);
+    m_p_end_x = pset.get<double>("ProtonEndX", 9999);
+    m_p_end_y = pset.get<double>("ProtonEndY", 9999);
+    m_p_end_z = pset.get<double>("ProtonEndZ", 9999);
     m_p_length_min = pset.get<double>("ProtonLengthMin", 9999);
     m_p_length_max = pset.get<double>("ProtonLengthMax", 9999);
     m_p_chi2_p_2 = pset.get<double>("ProtonChi2", -9999);
@@ -337,7 +337,7 @@ std::cout<<"start filtering...."<<std::endl;
             { 
               if(GetNeutrinoSliceMuonCandidate(_nu_PDG,_nu_vtxx,_nu_vtxy,_nu_vtxz, _n_track, _n_shower))
                 { return true;}
-              else
+              if(!GetNeutrinoSliceMuonCandidate(_nu_PDG,_nu_vtxx,_nu_vtxy,_nu_vtxz, _n_track, _n_shower))
                 { return false;}
             }
 	  if(m_proton)
