@@ -657,6 +657,7 @@ void ShowerTemplateMaker::saveShowerInformation(art::Ptr<recob::Shower> myShower
 
 
   // to find the shower particle, we usually use hits on all planee; same thing for purity and completeness
+  // www.....todo... use TrackIdToParticle_P instead of TrackIdToMotherParticle_P
   if (pi_serv->TrackIdToMotherParticle_P(shhit_trackID) && sh_total_Q[2] > 0) {
     cout << "shhit_trackID: " << shhit_trackID << endl;
     cout << "pi_serv->TrackIdToMotherParticle_P(shhit_trackID)->PdgCode(): " << pi_serv->TrackIdToMotherParticle_P(shhit_trackID)->PdgCode() << endl;
@@ -857,7 +858,7 @@ void ShowerTemplateMaker::showerProfile(std::vector< art::Ptr<recob::Hit> >shhit
 
   cout << "shpdg: " << shpdg << endl;
   
-  // primary electron
+  // primary electron: // todo: check primary e
   if ( abs(shpdg) == 11 && sh_hasPrimary_e.back() == 1 ) {
     cout << "event: " << event << endl;
     cout << "run: " <<run << endl;

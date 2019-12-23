@@ -29,7 +29,7 @@ physics:
       module_type:    "PFPProfile"
       UseMCInfo  :    true
       FVCutOnRecon:   false
-      FidVolCutX:     10.0
+      FidVolCutX:     15.0
       FidVolCutY:     10.0
       FidVolCutZ:     30.0
       ADCtoE:         [232,249,243.7]
