@@ -1,0 +1,47 @@
+<!-- Project details -->
+<!DOCTYPE project [
+<!ENTITY release "v08_00_00_14">
+<!ENTITY name "flashneutrinoid">
+<!ENTITY user "kduffy">
+<!ENTITY version "v08_00_00_14">
+]>
+
+<project name="&name;">
+
+  <!-- Group -->
+  <group>uboone</group>
+
+  <!-- Project size (numevents is an upper limit) -->
+  <numevents>50000</numevents>
+  <numjobs>250</numjobs>
+
+  <!-- Where to look for fcl files (in addition to $FHICL_FILE_PATH) -->
+  <!-- fcldir>/pnfs/uboone/persistent/users/ddevitt/fcl/</fcldir -->
+
+  <!-- Batch OS -->
+  <os>SL6</os>
+
+  <!-- Larsoft information -->
+  <larsoft>
+    <!-- <tag>&release;</tag>
+    <qual>e17:prof</qual> -->
+    <local>/pnfs/uboone/resilient/users/kduffy/tars/stopmutagger.tar</local>
+  </larsoft>
+
+  <!-- Stages -->
+  <stage name = "BNBOverlay">
+     <maxfilesperjob>6</maxfilesperjob>
+     <inputdef>prodgenie_bnb_nu_uboone_overlay_mcc9_postCSU_v08_00_00_12_run1_reco2</inputdef> <!-- contains 19810 files -->
+     <recurdef>kduffy_prodgenie_bnb_nu_uboone_overlay_mcc9_postCSU_v08_00_00_12_run1_reco2_recur5</recurdef>
+     <recurtype>snapshot</recurtype>
+     <recurlimit>1500</recurlimit>
+     <fcl>slicetool_analyser_overlay.fcl</fcl>
+     <outdir>/pnfs/uboone/scratch/users/kduffy/StopMuTagger/&version;/BNBOverlay/</outdir>
+     <logdir>/pnfs/uboone/scratch/users/kduffy/StopMuTagger/&version;/BNBOverlay/</logdir>
+     <workdir>/pnfs/uboone/resilient/users/kduffy/StopMuTagger/work/&version;/BNBOverlay/</workdir>
+     <bookdir>/uboone/data/users/kduffy/StopMuTagger/book/&version;/BNBOverlay/</bookdir>
+     <schema>root</schema>
+     <!-- requested memory, in MB -->
+     <memory>5000</memory>
+  </stage>
+</project>

@@ -1,0 +1,38 @@
+#include "services_microboone.fcl"
+#include "messageservice.fcl"
+#include "time_memory_tracker_microboone.fcl"
+#include "FlatTreeMakerPDStyle.fcl"
+
+process_name: g4rwtflattree
+
+services:
+{
+
+    TFileService:  {fileName: "g4rwt_flattree.root"}
+    TimeTracker:   @local::microboone_time_tracker
+    MemoryTracker: @local::microboone_memory_tracker
+                   @table::microboone_simulation_services
+
+} # services
+
+source:
+{
+
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+  fileNames : [ "/pnfs/uboone/overlay/uboone/reconstructed/prod_v08_00_00_17/prodgenie_bnb_nu_uboone_overlay_det_var_run1_mcc9.1/CV_reco2/PhysicsRun-2016_7_30_15_59_46-0007008-01425_20160805T063904_ext_unbiased_20160805T141318_merged_gen_20190712T171503_g4_detsim_mix_r1a_r1b_postdlmctrut_c057b713-3a06-47c3-b524-023324f657c0.root" , "/pnfs/uboone/overlay/uboone/reconstructed/prod_v08_00_00_17/prodgenie_bnb_nu_uboone_overlay_det_var_run1_mcc9.1/CV_reco2/PhysicsRun-2016_7_30_21_55_44-0007010-00029_20160805T155046_ext_unbiased_20160806T134429_merged_gen_20190712T162439_g4_detsim_mix_r1a_r1b_postdlmctrut_5dfaf9c3-3299-4084-9948-075ab2cafa75.root" , "/pnfs/uboone/overlay/uboone/reconstructed/prod_v08_00_00_17/prodgenie_bnb_nu_uboone_overlay_det_var_run1_mcc9.1/CV_reco2/PhysicsRun-2016_8_1_0_44_46-0007017-00758_20160809T101503_ext_unbiased_20160809T134740_merged_gen_20190712T170819_g4_detsim_mix_r1a_r1b_postdlmctruth_r1c_postwcct_postdlmc_20190717T074913_reco2.root" , "/pnfs/uboone/overlay/uboone/reconstructed/prod_v08_00_00_17/prodgenie_bnb_nu_uboone_overlay_det_var_run1_mcc9.1/CV_reco2/PhysicsRun-2016_7_31_13_21_2-0007013-00219_20160807T001324_ext_unbiased_20160808T172206_merged_gen_20190712T162932_g4_detsim_mix_r1a_r1b_postdlmctruth_40716923-a172-48ab-9b0d-cd8cc77daebb.root" , "/pnfs/uboone/overlay/uboone/reconstructed/prod_v08_00_00_17/prodgenie_bnb_nu_uboone_overlay_det_var_run1_mcc9.1/CV_reco2/PhysicsRun-2016_8_2_0_1_38-0007022-00107_20160810T223215_ext_unbiased_20160811T181440_merged_gen_20190712T173451_g4_detsim_mix_r1a_r1b_postdlmctruth_r1c_postwcct_postdlmc_20190717T075327_reco2.root" , "/pnfs/uboone/overlay/uboone/reconstructed/prod_v08_00_00_17/prodgenie_bnb_nu_uboone_overlay_det_var_run1_mcc9.1/CV_reco2/PhysicsRun-2016_7_30_15_59_46-0007008-00485_20160805T035038_ext_unbiased_20160805T103801_merged_gen_20190712T173548_g4_detsim_mix_r1a_r1b_postdlmctrut_4be43527-b843-48e5-a556-221a9e89da52.root" ]
+}
+
+physics:
+{
+    analyzers:
+    {
+        flattree: @local::flattree_maker
+    }
+
+    analysis: [ flattree ]
+    end_paths: [ analysis ]
+}
+
+
+services.DetectorClocksService.InheritClockConfig: false

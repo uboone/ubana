@@ -1,0 +1,7 @@
+BEGIN_PROLOG
+flattree_maker: {
+  module_type:  "FlatTreeMakerPDStyle"
+  GeneratorTag: "largeant"
+  Verbose:      true
+}
+END_PROLOG
