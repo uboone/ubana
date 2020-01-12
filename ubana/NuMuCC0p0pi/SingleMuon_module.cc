@@ -44,6 +44,8 @@
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardataobj/RecoBase/Vertex.h"
+#include "lardataobj/RecoBase/Slice.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
 //#include "lardataobj/AnalysisBase/PlaneIDBitsetHelperFunctions.h"
 
 #include "larsim/EventWeight/Base/MCEventWeight.h"
@@ -226,9 +228,18 @@ private:
   std::vector<double> missing_PT_MCS;// missing transverse momentum P*sin(theta)
   std::vector<double> missing_PT_range;// missing transverse momentum
 
-  std::vector<double> vtx_x;//Reconstructed vtx x in the every event
-  std::vector<double> vtx_y;//Reconstructed vtx y in the every event
-  std::vector<double> vtx_z;//Reconstructed vtx z in the every event
+  std::vector<double> vtx_x;//Reconstructed track vtx x in the every event
+  std::vector<double> vtx_y;//Reconstructed track vtx y in the every event
+  std::vector<double> vtx_z;//Reconstructed track vtx z in the every event
+
+  std::vector<double> trk_start_x;//Reconstructed track start x in the every event
+  std::vector<double> trk_start_y;//Reconstructed track start y in the every event
+  std::vector<double> trk_start_z;//Reconstructed track start z in the every event
+  //std::vector<double> nu_vtx_x;//Reconstructed neutrino pfp vtx x in the every event
+  //std::vector<double> nu_vtx_y;//Reconstructed neutrino pfp vtx y in the every event
+  //std::vector<double> nu_vtx_z;//Reconstructed neutrino pfp vtx z in the every event
+  std::vector<double> vtx_start_dist;// Distance of track vertex and track start
+
   std::vector<double> vtx_x_MCS;//Reconstructed vtx x in the every event
   std::vector<double> vtx_y_MCS;//Reconstructed vtx y in the every event
   std::vector<double> vtx_z_MCS;//Reconstructed vtx z in the every event
@@ -276,6 +287,11 @@ private:
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
 
+  std::vector<double> charge_std_bin0; // the multiplication of charge in bin 0 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  std::vector<double> charge_std_bin1; // the multiplication of charge in bin 1 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  std::vector<double> charge_std_bin6; // the multiplication of charge in bin 6 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  std::vector<double> charge_std_bin7; // the multiplication of charge in bin 7 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+ 
   int hits_dEdx_size_pl0;
   int hits_dEdx_size_pl1;
   int hits_dEdx_size_pl2;
@@ -476,6 +492,18 @@ void SingleMuon::analyze(art::Event const& evt)
     }
   }
 
+  // Slice
+  art::Handle<std::vector<recob::Slice> > Handle_Slice;
+  evt.getByLabel(m_pandoraLabel, Handle_Slice);
+  //std::vector< art::Ptr<recob::Slice> > AllSliceCollection;
+  //art::fill_ptr_vector(AllSliceCollection, Handle_Slice);
+
+  //// SpacePoint
+  //art::Handle<std::vector<recob::SpacePoint> > Handle_SpacePoint;
+  //evt.getByLabel(m_pandoraLabel, Handle_SpacePoint);
+  //std::vector< art::Ptr<recob::SpacePoint> > AllSpacePointCollection;
+  //art::fill_ptr_vector(AllSpacePointCollection, Handle_SpacePoint);
+
   // Hit
   art::Handle<std::vector<recob::Hit> > Handle_Hit;
   evt.getByLabel(m_hitProducerLabel, Handle_Hit);
@@ -548,6 +576,15 @@ void SingleMuon::analyze(art::Event const& evt)
   // CRT Hit Track association
   art::FindManyP<crt::CRTHit> CRTToTrackAsso(Handle_TPCtrack,evt,CRT_TrackAssLabel);
 
+  // Slice PFP association
+  art::FindManyP<recob::Slice> SliceToPFPAsso(Handle_pfParticle, evt, m_pandoraLabel);
+
+  // Hit Slice association
+  art::FindManyP<recob::Hit> HitToSliceAsso(Handle_Slice, evt, m_pandoraLabel);
+
+  // SpacePoint Hit association
+  art::FindManyP<recob::SpacePoint> SpacePointToHitAsso(Handle_Hit, evt, m_pandoraLabel);
+
   // Get mapping from ID to PFParticle
   std::unordered_map<size_t, art::Ptr<recob::PFParticle> > pfParticleIdMap;
   for (unsigned int i = 0; i < Handle_pfParticle->size(); ++i){
@@ -567,8 +604,10 @@ void SingleMuon::analyze(art::Event const& evt)
   std::vector<float> vTrk_len;
 
   TVector3 true_nuVtx; // useful to calculate the distance to the true vtx
+  TVector3 Trk_vtx;
   TVector3 Trk_start;
   TVector3 Trk_end;
+  TVector3 Trk_vtx_SCEcorr;
   TVector3 Trk_start_SCEcorr; 
   TVector3 Trk_end_SCEcorr;
  
@@ -747,6 +786,26 @@ void SingleMuon::analyze(art::Event const& evt)
       // Selection and Fill in Info
       if(n_dau_tracks == 1 && n_dau_showers == 0){
 
+//        std::cout<<"n_dau_tracks: "<<n_dau_tracks<<", n_dau_showers: "<< n_dau_showers<<std::endl;
+//        // Charge Linearity
+//        auto assoSlice = SliceToPFPAsso.at(pfp.key()); // vector
+//        if(assoSlice.size()==1){
+//          std::cout<<"Neutrino Slice "<<std::endl;
+//        }
+//        else if(assoSlice.size() > 1){
+//          std::cout<<"More slices to one neutrino!";
+//        }
+//        auto assoHits = HitToSliceAsso.at(assoSlice.front().key()); 
+//        for (unsigned int i_hit = 0; i_hit < assoHits.size(); i_hit++){
+//          auto assoSpacePoints = SpacePointToHitAsso.at(assoHits[i_hit].key());
+//          if(assoSpacePoints.size()==1){
+//            std::cout<<"space point x: "<< assoSpacePoints.front()->XYZ()[0]<<", y: "<< assoSpacePoints.front()->XYZ()[1] <<", z: "<< assoSpacePoints.front()->XYZ()[2]<<std::endl;
+//          }
+//          else if(assoSpacePoints.size()>1){
+//            std::cout<<"number of space points: "<< assoSpacePoints.size()<<std::endl;
+//          }
+//        }     
+
         // The daughter of the pfparticle which corresponds to 1 primary track
         // In case there are more than one primary pfparticle when 1 track + 0 shower (primary) precent
         for (unsigned int i_trk_dau = 0; i_trk_dau < NeutrinoDaughters.size(); i_trk_dau++){
@@ -760,7 +819,7 @@ void SingleMuon::analyze(art::Event const& evt)
             if(asso_granddau_track.size()>0){
               nr_granddau_trk += asso_granddau_track.size(); // inclusive number of granddaughters as tracks
               for (unsigned int i_granddau_trk = 0; i_granddau_trk < asso_granddau_track.size(); i_granddau_trk++){
-                granddau_trk_len.push_back(asso_granddau_track[i_granddau_trk]>Length()); 
+                granddau_trk_len.push_back(asso_granddau_track[i_granddau_trk]->Length()); 
                 if(IsMC){
                   std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(asso_granddau_track[i_granddau_trk].key());
                   BackTrackerTruthMatch backtrackertruthmatch;
@@ -779,7 +838,7 @@ void SingleMuon::analyze(art::Event const& evt)
             if(asso_granddau_shower.size()>0){
               nr_granddau_shw += asso_granddau_shower.size();// inclusive number of granddaughters as showers      
               for (unsigned int i_granddau_shw = 0; i_granddau_shw < asso_granddau_shower.size(); i_granddau_shw++){
-                granddau_shw_len.push_back(asso_granddau_shower[i_granddau_shw]>Length()); 
+                granddau_shw_len.push_back(asso_granddau_shower[i_granddau_shw]->Length()); 
               }
             }
           }
@@ -874,8 +933,13 @@ void SingleMuon::analyze(art::Event const& evt)
         //}
 
         // Add spatial correction to the track start and end
-        Trk_start = daughter_Tracks.front()->Vertex<TVector3>();
-        //std::cout<<"Trk_start X: "<<Trk_start[0]<<", "<<Trk_start[1]<<", "<<Trk_start[2]<<std::endl;
+        Trk_vtx = daughter_Tracks.front()->Vertex<TVector3>();
+        auto Trk_vtx_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_vtx.X(), Trk_vtx.Y(), Trk_vtx.Z()));
+        Trk_vtx_SCEcorr.SetX(Trk_vtx.X() - Trk_vtx_offset.X());
+        Trk_vtx_SCEcorr.SetY(Trk_vtx.Y() + Trk_vtx_offset.Y());
+        Trk_vtx_SCEcorr.SetZ(Trk_vtx.Z() + Trk_vtx_offset.Z());
+
+        Trk_start = daughter_Tracks.front()->Start<TVector3>();
         auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
         Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
         Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
@@ -960,9 +1024,14 @@ void SingleMuon::analyze(art::Event const& evt)
         trk_length_noSCE.push_back(Trk_length_noSCE);
 
         // Usual case, the vertex is the single track start
-        vtx_x.push_back(Trk_start_SCEcorr.X());
-        vtx_y.push_back(Trk_start_SCEcorr.Y());
-        vtx_z.push_back(Trk_start_SCEcorr.Z());
+        vtx_x.push_back(Trk_vtx_SCEcorr.X());//track_vtx
+        vtx_y.push_back(Trk_vtx_SCEcorr.Y());
+        vtx_z.push_back(Trk_vtx_SCEcorr.Z());
+        trk_start_x.push_back(Trk_start_SCEcorr.X());//track_start
+        trk_start_y.push_back(Trk_start_SCEcorr.Y());
+        trk_start_z.push_back(Trk_start_SCEcorr.Z());
+        vtx_start_dist.push_back((Trk_vtx_SCEcorr - Trk_start_SCEcorr).Mag());
+
         start_x.push_back(Trk_start_SCEcorr.X());
         start_y.push_back(Trk_start_SCEcorr.Y());
         start_z.push_back(Trk_start_SCEcorr.Z());
@@ -1000,6 +1069,52 @@ void SingleMuon::analyze(art::Event const& evt)
         missing_PT_MCS.push_back(bestMCS * sin(daughter_Tracks.front()->Theta()));
 
         //Calorimetry Info
+
+        // Charge Linearity
+        double radius = (Trk_start_SCEcorr - Trk_end_SCEcorr).Mag();
+        double sec = radius / 8;
+        double charge_sec[8] = {0};
+        int nr_charge[8] = {0};
+        // divide the sphere into [8] sections
+        auto assoSlice = SliceToPFPAsso.at(pfp.key()); // vector
+        //if(assoSlice.size()==1){
+        //  std::cout<<"Neutrino Slice "<<std::endl;
+        //}
+        //else if(assoSlice.size() > 1){
+        //  std::cout<<"More slices to one neutrino!";
+        //}
+        auto assoHits = HitToSliceAsso.at(assoSlice.front().key());
+        for (unsigned int i_hit = 0; i_hit < assoHits.size(); i_hit++){
+          auto assoSpacePoints = SpacePointToHitAsso.at(assoHits[i_hit].key());
+          if(assoSpacePoints.size()==1){
+            TVector3 SP = (TVector3)assoSpacePoints.front()->XYZ();
+            for(unsigned int i_sec = 0; i_sec < 8; i_sec++){
+              if((SP - Trk_start_SCEcorr).Mag() < sec * (i_sec + 1) && (SP - Trk_start_SCEcorr).Mag() >= sec * i_sec){
+                charge_sec[i_sec] += assoHits[i_hit]->Integral()/100;     
+                nr_charge[i_sec]++;
+              }
+            }
+          }
+          else if(assoSpacePoints.size()>1){
+            std::cout<<"Number of space points: "<< assoSpacePoints.size()<<", which exceeds the normal quota."<<std::endl;
+          }
+        } // Finish loop the associated hits in the neutrino slice
+        double avg = 0;
+        double stddev = 0;
+        for(int n = 0; n < 8; n++){
+          avg += charge_sec[n];
+        }
+        avg = avg / 8;
+        for(int n = 0; n < 8; n++){
+          stddev = stddev + (charge_sec[n] - avg) * (charge_sec[n] - avg); 
+        }
+        stddev = sqrt(1./8 * stddev);
+
+        charge_std_bin0.push_back((charge_sec[0] - avg) / stddev);
+        charge_std_bin1.push_back((charge_sec[1] - avg) / stddev);
+        charge_std_bin6.push_back((charge_sec[6] - avg) / stddev);
+        charge_std_bin7.push_back((charge_sec[7] - avg) / stddev);
+
         // pandoracaliSCE has E-field and spatial correction
         if(assoCal.size()!=3){
           throw cet::exception("[Numu0pi0p]") << "Where are the three planes for the calorimetry!" << std::endl;
@@ -1294,54 +1409,6 @@ void SingleMuon::analyze(art::Event const& evt)
         }
       }
       
-      ///////////Plan of implementation.......
-      //
-      //////1 track + 0 shower
-      // What is the direction of the track? (dE/dx ramp up for bragg peak, MCS likelihood, vertex activity? If there's any daughter of the track? What are the daughters?)
-      // If the vertex is out the TPC, cosmic.
-      // If the vertex is in the TPC, can it be broken track? CRT info? nearby track?
-      // Is this track actually an integration of different tracks (dE/dx discontinuity)
-      // If yes, are the two tracks going same direction? (Is it a daughter of muon)
-      // Is it or are they muon-like from PID?
-      /////If at least one of them is muon-like, futher investigation!
-      //
-      //////1 track + 1 shower
-      // Is the shower michel electron like (low energy < 60 MeV?)?
-      // Is the track muon-like?
-      // What is the direction? Similar checks as the previous (1 track + 0 shower) case..
-      //// Only process to next step if this topology is from a muon decay to michel electron which makes a shower and the muon has a vertex in the TPC FV
-      //
-      ///////1 track + 2 shower
-      // What is the energy of the showers? assuming large shower can only comes from neutrino interaction..which is not my topology
-      // If it's weirdly low energy..check the track following the procedure above..Determine vertix position!
-      //
-      //
-      //////2 tracks + 0 shower
-      // Check the colinearity of the 2 tracks? 
-      // If colinear, are they the same particle or not? Where's the vertex
-      // If not colinear, Is one of them muon-like? The other electron-like (daughter of muon)? Or do they like cosmic coincidence?
-      //
-      /////2 tracks + 1 shower
-      // Check what's the shower energy?
-      // If the shower has weirdly low energy, perform the above procedures to check if it worth to investigate further
-      // If yes, check the shower position wrt the position of tracks..
-      //
-      ///// 3 tracks
-      // Check the colinearity of all three of them and either two of them.
-      // If there's at least a pair of colinear tracks, check the domenancy of the pair tracks and one track.
-      // This could be cosmic coincidence. Check if it’s actually two tracks which one of them is cosmic
-      //                        
-      ///// 4 tracks
-      // Is this actually cosmic coincidence…. Actually two tracks cross like four tracks? And one is neutrino induced muon and the other is cosmic induced muon?
-      //
-      ///////////////
-
-      // If there's only one track, is it muon?
-      // What is the direction? 
-      /////////// (select if it's a muon) PID needed here
-      // Are the rest showers or ghost in the wrong positions of the family tree?
-      ////////// If they are electrons? (PID maybe)
-      ////////// The vertex activity, the shower vs track length, the shower vs track momentum
     }
   }
 
@@ -1430,6 +1497,15 @@ void SingleMuon::analyze(art::Event const& evt)
   vtx_x.clear();
   vtx_y.clear();
   vtx_z.clear();
+ 
+  vtx_start_dist.clear();
+  trk_start_x.clear();
+  trk_start_y.clear();
+  trk_start_z.clear();
+  //nu_vtx_x.clear();
+  //nu_vtx_y.clear();
+  //nu_vtx_z.clear();
+
   vtx_x_MCS.clear();
   vtx_y_MCS.clear();
   vtx_z_MCS.clear();
@@ -1471,6 +1547,11 @@ void SingleMuon::analyze(art::Event const& evt)
   
   old_trk_ifcontained.clear();
   old_vtx_FV.clear();
+
+  charge_std_bin0.clear();
+  charge_std_bin1.clear();
+  charge_std_bin6.clear();
+  charge_std_bin7.clear();
 
   dEdx_pl0.clear();
   dEdx_pl1.clear();
@@ -1635,6 +1716,13 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("vtx_x", &vtx_x);
   my_event_->Branch("vtx_y", &vtx_y);
   my_event_->Branch("vtx_z", &vtx_z);
+  my_event_->Branch("vtx_start_dist", &vtx_start_dist);
+  my_event_->Branch("trk_start_x", &trk_start_x);
+  my_event_->Branch("trk_start_y", &trk_start_y);
+  my_event_->Branch("trk_start_z", &trk_start_z);
+  //my_event_->Branch("nu_vtx_x", &nu_vtx_x);
+  //my_event_->Branch("nu_vtx_y", &nu_vtx_y);
+  //my_event_->Branch("nu_vtx_z", &nu_vtx_z);
   my_event_->Branch("vtx_x_MCS", &vtx_x_MCS);
   my_event_->Branch("vtx_y_MCS", &vtx_y_MCS);
   my_event_->Branch("vtx_z_MCS", &vtx_z_MCS);
@@ -1672,6 +1760,11 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("hits_dEdx_size_pl0", &hits_dEdx_size_pl0);
   my_event_->Branch("hits_dEdx_size_pl1", &hits_dEdx_size_pl1);
   my_event_->Branch("hits_dEdx_size_pl2", &hits_dEdx_size_pl2);
+
+  my_event_->Branch("charge_std_bin0", &charge_std_bin0);
+  my_event_->Branch("charge_std_bin1", &charge_std_bin1);
+  my_event_->Branch("charge_std_bin6", &charge_std_bin6);
+  my_event_->Branch("charge_std_bin7", &charge_std_bin7);
 
   my_event_->Branch("dEdx_pl0", &dEdx_pl0);
   my_event_->Branch("dEdx_pl1", &dEdx_pl1);
