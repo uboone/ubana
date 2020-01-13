@@ -20,7 +20,12 @@ treereader_eventweight: {
   ## Maintainer: J. Zennamo (jzennamo@uchicago.edu)
   ##
   ##########################################################
- 
+  genie_central_values: {
+    MaCCQE: 7.55 # GENIE knob setting, gives Ma = 1.18 GeV
+    RPA_CCQE: 0.4 # 0 --> Nieves CCQE default, 1 --> RPA off
+    NormCCMEC: 0.52 # GENIE knob setting, gives scaling factor of 1.26
+    XSecShape_CCMEC: 0.22 # 0 --> Nieves CCMEC default, 1 --> GENIE empirical
+  }
   weight_functions_beam: [
     horncurrent, expskin,
     piplus, piminus, kplus, kzero, kminus,
@@ -265,23 +270,7 @@ treereader_eventweight: {
   ##########################################################
 
   weight_functions_genie: [
-    genie_qema, genie_qevec,
-    genie_ncelAxial, genie_ncelEta,
-    genie_ccresAxial, genie_ccresVector,
-    genie_ncresAxial, genie_ncresVector,
-    genie_cohMA, genie_cohR0,
-    genie_NonResRvp1pi, genie_NonResRvbarp1pi,
-    genie_NonResRvp2pi, genie_NonResRvbarp2pi,
-    genie_ResDecayGamma, genie_ResDecayEta, genie_ResDecayTheta,
-    genie_NC,
-    genie_DISAth, genie_DISBth, genie_DISCv1u, genie_DISCv2u,
-    genie_AGKYxF, genie_AGKYpT,
-    genie_FormZone,
-    genie_FermiGasModelKf, genie_FermiGasModelSf,
-    genie_IntraNukeNmfp, genie_IntraNukeNcex,
-    genie_IntraNukeNinel, genie_IntraNukeNabs, genie_IntraNukeNpi,
-    genie_IntraNukePImfp, genie_IntraNukePIcex,
-    genie_IntraNukePIinel, genie_IntraNukePIabs, genie_IntraNukePIpi
+      TunedCentralValue
   ]
  
   genie_qema: {
@@ -618,7 +607,23 @@ treereader_eventweight: {
     parameter_sigma: [ 1 ]
     mode: multisim
     number_of_multisims: 10
+}
+      #Single function that applies all weights needed to obtain
+  # a new tuned central value
+  # NOTE: For samples generated with GENIE v3.0.4 splines, the
+  # spline weight to convert v3.0.4 --> v3.0.4a cross sections
+  # still needs to be applied as well.
+  TunedCentralValue: {
+    type: Genie
+    random_seed: 99
+    parameter_list: [ "MaCCQE", "RPA_CCQE", "NormCCMEC", "XSecShape_CCMEC" ]
+    # Dummy sigmas (central values are specified in EventWeight module configuration
+    # to ensure consistency across all weight calculators)
+    parameter_sigma: [ 1, 1, 1, 1 ]
+    mode: central_value
+    number_of_multisims: 1
   }
+  
  
   # Single function to reweight all GENIE parameters at once
   genie_all: {
@@ -642,6 +647,18 @@ treereader_eventweight: {
     mode: multisim
     number_of_multisims: 10
   }
+
+  weight_functions_spline: [
+    splines_general
+  ]
+
+  splines_general: {
+    type: Spline
+    new_splines_file: "systematics/splines/splines_CCQE_v304a_G18_10a_02_11a.xml"
+    check_old_xsec: false
+    new_tune: "G18_10a_02_11a"
+    number_of_multisims: 1 # Unused. More than one doesn't make sense for this calculator
+  }
 }
  
 ##########################################################
@@ -649,8 +666,8 @@ treereader_eventweight: {
 ##########################################################
 
 treereader_eventweight.weight_functions: [
-  @sequence::treereader_eventweight.weight_functions_beam,
-  @sequence::treereader_eventweight.weight_functions_genie
+  @sequence::treereader_eventweight.weight_functions_genie 
+  #@sequence::treereader_eventweight.weight_functions_spline
 ]
  
 END_PROLOG

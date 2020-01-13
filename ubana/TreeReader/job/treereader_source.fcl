@@ -19,7 +19,7 @@ source: {
   skipEvents: 0
   maxEvents: -1
   inputType: "ntuple"
-  treeName: "singlephoton/eventweight_tree"
+  treeName: "singlephotonana/eventweight_tree"
   dataProductName: "TreeReader"
   branches: {
     run: "run"
@@ -108,6 +108,7 @@ source: {
     GTruth_HitNucP4y: "GTruth_HitNucP4y"
     GTruth_HitNucP4z: "GTruth_HitNucP4z"
     GTruth_HitNucP4E: "GTruth_HitNucP4E"
+    GTruth_HitNucPos: "GTruth_HitNucPos"	
     GTruth_FShadSystP4x: "GTruth_FShadSystP4x"
     GTruth_FShadSystP4y: "GTruth_FShadSystP4y"
     GTruth_FShadSystP4z: "GTruth_FShadSystP4z"
@@ -118,7 +119,7 @@ source: {
 outputs: {
  out1: {
    module_type: RootOutput
-   fileName: "treereader_%tc_eventweight.root"
+   fileName: "treereader__%ifb_%tc.root"
    compressionLevel: 1
    dataTier: "simulated"
   }

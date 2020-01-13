@@ -171,6 +171,12 @@ private:
   bool GTruth_IsSeaQuark;
   int GTruth_IsSeaQuark_int;
   int GTruth_tgtPDG;
+  int GTruth_tgtZ;
+  int GTruth_tgtA;
+  double GTruth_tgtP4x;
+  double GTruth_tgtP4y;
+  double GTruth_tgtP4z;
+  double GTruth_tgtP4E;
   double GTruth_weight;
   double GTruth_probability;
   double GTruth_Xsec;
@@ -205,6 +211,7 @@ private:
   double GTruth_HitNucP4y;
   double GTruth_HitNucP4z;
   double GTruth_HitNucP4E;
+  double GTruth_HitNucPos;
   double GTruth_FShadSystP4x;
   double GTruth_FShadSystP4y;
   double GTruth_FShadSystP4z;
