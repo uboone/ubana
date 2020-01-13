@@ -196,6 +196,11 @@ private:
   int GTruth_NumNeutron;
   bool GTruth_IsCharm;
   int GTruth_IsCharm_int;
+  bool GTruth_IsStrange;
+  int GTruth_IsStrange_int;
+  int GTruth_StrangeHadronPDG;
+  int GTruth_CharmHadronPDG;
+  int GTruth_DecayMode;
   double GTruth_gX;
   double GTruth_gY;
   //double GTruth_gZ; //not used, is this an mistake?

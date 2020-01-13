@@ -106,11 +106,14 @@ void NTupleInterface::SetRootFile(TFile* inputFile, TString treeName, fhicl::Par
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_Gscatter").c_str()                 , &GTruth_Gscatter);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_Gint").c_str()                     , &GTruth_Gint);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_ResNum").c_str()                   , &GTruth_ResNum);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_DecayMode").c_str()                   , &GTruth_DecayMode);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumPiPlus").c_str()                , &GTruth_NumPiPlus);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumPi0").c_str()                   , &GTruth_NumPi0);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumPiMinus").c_str()               , &GTruth_NumPiMinus);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumProton").c_str()                , &GTruth_NumProton);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumNeutron").c_str()               , &GTruth_NumNeutron);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_StrangeHadronPDG").c_str()   , &GTruth_StrangeHadronPDG);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_CharmHadronPDG").c_str()   , &GTruth_CharmHadronPDG);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_gX").c_str()                       , &GTruth_gX);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_gY").c_str()                       , &GTruth_gY);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_gT").c_str()                       , &GTruth_gT);
@@ -135,10 +138,12 @@ void NTupleInterface::SetRootFile(TFile* inputFile, TString treeName, fhicl::Par
   if (fDLMode) {
     fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsSeaQuark").c_str(), &GTruth_IsSeaQuark_int);
     fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsCharm").c_str()   , &GTruth_IsCharm_int);
+    fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsStrange").c_str()   , &GTruth_IsStrange_int);
   }
   else {
     fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsSeaQuark").c_str(), &GTruth_IsSeaQuark);
     fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsCharm").c_str()   , &GTruth_IsCharm);
+    fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsStrange").c_str()   , &GTruth_IsStrange);
   }
 
   fNEntries = fTree->GetEntries();
@@ -294,6 +299,9 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
   gtruth.fGscatter = GTruth_Gscatter;
   gtruth.fGint = GTruth_Gint;
   gtruth.fResNum = GTruth_ResNum;
+  gtruth.fDecayMode = GTruth_DecayMode;
+  gtruth.fStrangeHadronPdg = GTruth_StrangeHadronPDG;
+  gtruth.fCharmHadronPdg = GTruth_CharmHadronPDG;
   gtruth.fNumPiPlus = GTruth_NumPiPlus;
   gtruth.fNumPi0 = GTruth_NumPi0;
   gtruth.fNumPiMinus = GTruth_NumPiMinus;
@@ -327,11 +335,13 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
     gtruth.fProbePDG = MCFlux_ntype;  // Grab nu PDG from MCFlux
     gtruth.fIsSeaQuark = GTruth_IsSeaQuark_int;
     gtruth.fIsCharm = GTruth_IsCharm_int;
+    gtruth.fIsStrange = GTruth_IsStrange_int;
   }
   else {
     gtruth.fProbePDG = GTruth_ProbePDG;
     gtruth.fIsSeaQuark = GTruth_IsSeaQuark;
     gtruth.fIsCharm = GTruth_IsCharm;
+    gtruth.fIsStrange = GTruth_IsStrange;
   }
 
   if (fVerbose) {
