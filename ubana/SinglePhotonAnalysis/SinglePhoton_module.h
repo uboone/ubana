@@ -992,6 +992,10 @@ namespace single_photon
             int m_gtruth_num_proton;
             int m_gtruth_num_neutron;
             bool m_gtruth_is_charm;
+            bool m_gtruth_is_strange;
+            int m_gtruth_charm_hadron_pdg;
+            int m_gtruth_strange_hadron_pdg;
+            int m_gtruth_decay_mode;
             double m_gtruth_gx;
             double m_gtruth_gy;
             double m_gtruth_gt;

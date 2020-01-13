@@ -81,6 +81,10 @@ namespace single_photon
 	    m_gtruth_num_proton=-9999;
 	    m_gtruth_num_neutron=-9999;
 	    m_gtruth_is_charm=false;
+	    m_gtruth_is_strange=false;
+        m_gtruth_charm_hadron_pdg = -9999;
+        m_gtruth_strange_hadron_pdg = -9999;
+        m_gtruth_decay_mode = -9999;
 	    m_gtruth_gx=-9999;
 	    m_gtruth_gy=-9999;
 	    m_gtruth_gy=-9999;
@@ -190,6 +194,10 @@ namespace single_photon
     eventweight_tree->Branch("GTruth_NumProton",  &m_gtruth_num_proton );
     eventweight_tree->Branch("GTruth_NumNeutron", &m_gtruth_num_neutron );
     eventweight_tree->Branch("GTruth_IsCharm",  &m_gtruth_is_charm );
+    eventweight_tree->Branch("GTruth_IsStrange",  &m_gtruth_is_strange );
+    eventweight_tree->Branch("GTruth_StrangeHadronPDG",  &m_gtruth_strange_hadron_pdg );
+    eventweight_tree->Branch("GTruth_CharmHadronPDG",  &m_gtruth_charm_hadron_pdg );
+    eventweight_tree->Branch("GTruth_DecayMode",&m_gtruth_decay_mode);
     eventweight_tree->Branch("GTruth_gX",  &m_gtruth_gx );
     eventweight_tree->Branch("GTruth_gY", &m_gtruth_gy );
     eventweight_tree->Branch("GTruth_gT", &m_gtruth_gt );
@@ -352,6 +360,10 @@ namespace single_photon
   m_gtruth_num_proton = gTruth->fNumProton;
   m_gtruth_num_neutron = gTruth->fNumNeutron;
   m_gtruth_is_charm = gTruth->fIsCharm;
+  m_gtruth_is_strange = gTruth->fIsStrange;
+  m_gtruth_decay_mode = gTruth->fDecayMode;
+  m_gtruth_strange_hadron_pdg = gTruth->fStrangeHadronPdg;
+  m_gtruth_charm_hadron_pdg = gTruth->fCharmHadronPdg;
   m_gtruth_gx = gTruth->fgX;
   m_gtruth_gy = gTruth->fgY;
   m_gtruth_gt = gTruth->fgT;
