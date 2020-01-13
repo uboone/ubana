@@ -1,0 +1,97 @@
+# FHiCL document used to run the "driver" executable. To learn more
+#  about the FHiCL language, please look at
+#  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
+
+#include "geometry_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+#include "sam_microboone.fcl"
+#include "services_microboone_basic.fcl"
+
+services:{
+  TFileService: { fileName: "NuMuCC0pi0p.root" }
+  ExptGeoHelperInterface:         @local::microboone_geometry_helper
+  Geometry:                       @local::microboone_geo
+  @table::microboone_services
+}
+
+physics:
+{	
+  producers:
+  {
+  }
+  filters:
+  {
+    MuonFilter:
+      {
+        module_type: "SingleMuonFilter"
+       
+        FiducialVolumeSettings: {
+
+          # First entry are the borders for the first volume,
+          # second entry for the second fiducial volume
+  
+          BorderXLow:   [5.]
+          BorderXHigh:  [5.]
+          BorderYLow:   [5.]
+          BorderYHigh:  [5.]
+          BorderZLow:   [5.]
+          BorderZHigh:  [5.]
+ 
+          #BorderXLow:   [5., 5.]
+          #BorderXHigh:  [5., 5.]
+          #BorderYLow:   [20., 20.]
+          #BorderYHigh:  [20., 20.]
+          #BorderZLow:   [15., 742.]
+          #BorderZHigh:  [300.8, 10.]
+  
+        }
+
+        PandoraLabel: "pandora"
+
+        TrackProducerLabel: "pandora" 
+        ShowerProducerLabel: "pandora" 
+      
+      }
+  }
+
+  stream1: [ out1 ]
+  filtering: [ MuonFilter ]
+  trigger_paths: [ filtering ]
+
+  end_paths: [ stream1 ]  
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_SingleMuon.root"
+    SelectEvents: [ filtering ]
+    dataTier:    "reconstructed"
+    compressionLevel: 1
+    outputCommands: ["keep *_*_*_*"]
+  }
+}
+
+services.SpaceCharge.EnableCalSpatialSCE: true #enable bkwd (reco -> true)
+services.SpaceCharge.EnableCalEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: false # disable fwd (true -> reco)
+services.SpaceCharge.EnableSimEfieldSCE: false
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+#services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root" #fwd map (mis-naming)
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+
+#services.DetectorPropertiesService.NumberTimeSamples:        6400
+#services.DetectorPropertiesService.ReadOutWindowSize:        6400
+services.DetectorClocksService.InheritClockConfig:           false
+#services.DetectorClocksService.TriggerOffsetTPC: -1600
+
+
+#source:
+#{
+#  module_type: RootInput
+#}
+
+process_name: SingleMuonFilter
