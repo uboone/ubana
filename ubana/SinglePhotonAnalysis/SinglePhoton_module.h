@@ -968,6 +968,12 @@ namespace single_photon
             double m_mctruth_neutrino_qsqr;
             bool m_gtruth_is_sea_quark;
             int m_gtruth_tgt_pdg;
+            int m_gtruth_tgt_Z;
+            int m_gtruth_tgt_A;
+            double m_gtruth_tgt_p4_x;
+            double m_gtruth_tgt_p4_y;
+            double m_gtruth_tgt_p4_z;
+            double m_gtruth_tgt_p4_E;
             double m_gtruth_weight;
             double m_gtruth_probability;
             double m_gtruth_xsec;
@@ -1001,6 +1007,7 @@ namespace single_photon
             double m_gtruth_hit_nuc_p4_y;
             double m_gtruth_hit_nuc_p4_z;
             double m_gtruth_hit_nuc_p4_E;
+            double m_gtruth_hit_nuc_pos;
             double m_gtruth_fs_had_syst_p4_x;
             double m_gtruth_fs_had_syst_p4_y;
             double m_gtruth_fs_had_syst_p4_z;

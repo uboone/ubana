@@ -633,6 +633,17 @@ namespace single_photon
             // MCShower and MCTrack come from energy depositions in GEANT4
             if(!m_is_data){
 
+
+                std::vector<art::Ptr<simb::GTruth>> gTruthVector;
+                art::ValidHandle<std::vector<simb::GTruth>> const & gTruthHandle= evt.getValidHandle<std::vector<simb::GTruth>>(m_generatorLabel);
+                art::fill_ptr_vector(gTruthVector,gTruthHandle);
+                std::cout<<"ARSE"<<std::endl;
+                for(size_t p=0; p< gTruthVector.size();p++){
+                    std::cout<<gTruthVector[p]<<" "<<*gTruthVector[p]<<std::endl;
+                }
+
+
+
                 art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle= evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
                 art::fill_ptr_vector(mcTruthVector,mcTruthHandle);
 
@@ -761,7 +772,7 @@ namespace single_photon
                 }
                 std::cout<<"Going to grab eventweightSplines for CCQE genie fix, won't be necessary long term"<<std::endl;
                 art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw ;
-                if(    evt.getByLabel("eventweightSplines",ev_evw)){
+                if(    evt.getByLabel("eventweight4to4aFix",ev_evw)){
 
                     std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
                     if(ev_evw->size() > 1) std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"<< "WARNING: eventweight slice genie fix has more than one entry\n";
@@ -786,8 +797,6 @@ namespace single_photon
 
                 art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> * tmp_mcparticles_per_hit = NULL;
                 std::vector<art::Ptr<simb::MCParticle>> tmp_matchedMCParticleVector;
-
-                this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,*tmp_mcparticles_per_hit, tmp_matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
 
                 if(!m_run_pi0_filter) this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,*tmp_mcparticles_per_hit, tmp_matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
 
@@ -1015,6 +1024,11 @@ namespace single_photon
                 proton_length2energy_tgraph.GetMean();
                 fileconv->Close();
             }
+
+
+            
+
+
 
             // --------------------- Shower Related variables ------------
             this->CreateShowerBranches();
