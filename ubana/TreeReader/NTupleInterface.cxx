@@ -276,7 +276,7 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
   gtruth.ftgtPDG = GTruth_tgtPDG;
   gtruth.ftgtA = GTruth_tgtA;
   gtruth.ftgtZ = GTruth_tgtZ;
-  gtruth.ftgtP4 = TLorentzVector(
+  gtruth.fTgtP4 = TLorentzVector(
     GTruth_tgtP4x,
     GTruth_tgtP4y,
     GTruth_tgtP4z,
