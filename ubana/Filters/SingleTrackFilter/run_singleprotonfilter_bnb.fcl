@@ -1,0 +1,79 @@
+#include "time_memory_tracker_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+
+process_name: singletrackfilter
+
+services:{
+}
+source:
+{
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+
+} # source
+
+physics:
+{	
+  analyzers:
+  {
+  }
+  producers:
+  {
+  }
+  filters:{
+  
+    STfilter:
+     {
+      module_type: "SingleTrackFilter"
+      pfp_producer: "pandora"
+      hitfinder_producer: "pandora"
+      flash_producer: "simpleFlashBeam" 
+      DoMuon: false
+      DoProton: true
+      nuPDG : 14
+      NPFP:   1
+      NTrack: 1
+      NShower:0     
+      ProtonStartX : 10
+      ProtonStartY : -96.5
+      ProtonStartZ : 10
+      ProtonEndX : 246.35
+      ProtonEndY : 96.5
+      ProtonEndZ : 1026.8
+      ProtonLengthMin:1.2
+      ProtonLengthMax: 200
+      ProtonChi2: 90
+      DeltaY:95
+      DeltaZ:110
+      DeltaYSigma:2.3
+      DeltaZSigma:2
+      xclVariableLow:-100
+      xclVariableHigh:250
+      FlashScore:10
+      Beam_low:3.19
+      Beam_high:4.87
+      ####################################
+
+    }
+  }
+  stream1: [ out1 ]
+  filtering: [ STfilter ]
+  trigger_paths: [ filtering ]
+  
+  end_paths: [ stream1 ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_singleproton.root"
+    SelectEvents: [ filtering ]
+    dataTier:    "reconstructed"
+    compressionLevel: 1
+    outputCommands: ["keep *_*_*_*"]
+  }
+}
+
