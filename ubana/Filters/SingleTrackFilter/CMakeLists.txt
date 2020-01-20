@@ -53,6 +53,7 @@ art_make(BASENAME_ONLY
          )
 
 add_subdirectory(helpers)
+add_subdirectory(Muon)
 
 install_headers()
 install_source()
