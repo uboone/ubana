@@ -5,6 +5,7 @@
 process_name: singletrackfilter
 
 services:{
+FileCatalogMetadata:  @local::art_file_catalog_data
 }
 source:
 {
