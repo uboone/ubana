@@ -5,7 +5,7 @@ services:
 { 
 
   # Here, we set the fileName of the output ROOT file
-  TFileService: {fileName: "arborist_%tc_out.root"}
+  TFileService: {fileName: "arborist_%ifb_%tc_out.root"}
 
   # these tell you information about the time and memory
   # used by running the fhicl file
