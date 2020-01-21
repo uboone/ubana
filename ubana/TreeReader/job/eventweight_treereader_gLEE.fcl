@@ -414,7 +414,7 @@ treereader_eventweight: {
     parameter_list: [ "NormNCRES" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 100
   }
   
   MaNCRESshape: {
@@ -423,7 +423,7 @@ treereader_eventweight: {
     parameter_list: [ "MaNCRESshape" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 100
   }
   
   MvNCRESshape: {
@@ -432,7 +432,7 @@ treereader_eventweight: {
     parameter_list: [ "MvNCRESshape" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 100
   }
   
   MaCOHpi: {
@@ -459,7 +459,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvpCC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvpCC2pi: {
@@ -468,7 +468,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvpCC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvpNC1pi: {
@@ -477,7 +477,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvpNC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvpNC2pi: {
@@ -486,7 +486,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvpNC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvnCC1pi: {
@@ -495,7 +495,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvnCC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvnCC2pi: {
@@ -504,7 +504,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvnCC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvnNC1pi: {
@@ -513,7 +513,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvnNC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvnNC2pi: {
@@ -522,7 +522,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvnNC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims:10
+    number_of_multisims:50
   }
   
   NonRESBGvbarpCC1pi: {
@@ -531,7 +531,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarpCC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvbarpCC2pi: {
@@ -540,7 +540,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarpCC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvbarpNC1pi: {
@@ -549,7 +549,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarpNC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvbarpNC2pi: {
@@ -558,7 +558,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarpNC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvbarnCC1pi: {
@@ -567,7 +567,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarnCC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvbarnCC2pi: {
@@ -576,7 +576,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarnCC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvbarnNC1pi: {
@@ -585,7 +585,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarnNC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   NonRESBGvbarnNC2pi: {
@@ -594,7 +594,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarnNC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 10
+    number_of_multisims: 50
   }
   
   AhtBY: {
