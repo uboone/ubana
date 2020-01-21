@@ -129,7 +129,7 @@ source: {
 outputs: {
  out1: {
    module_type: RootOutput
-   fileName: "treereader__%ifb_%tc.root"
+   fileName: "treereader_genie_all_%ifb_%tc.root"
    compressionLevel: 1
    dataTier: "simulated"
   }
