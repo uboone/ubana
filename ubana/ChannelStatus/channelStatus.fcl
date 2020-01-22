@@ -1,0 +1,45 @@
+
+process_name: ChannelStatus
+
+services: {
+  TFileService: { fileName: "channelStatus_%r_%s_%tc.root"}
+}
+
+source : {
+  module_type  : RootInput
+  maxEvents:  10
+}
+
+#outputs: {
+#  out1: {
+#    module_type: RootOutput
+#    fileName: ""
+#  }
+#}
+
+physics : {
+
+  producers : {
+  
+  }
+
+  analyzers : {
+    ChannelStatus: {
+      module_type: "ChannelStatus"
+      TPC_badChannelListProducer: "nfbadchannel"
+      TPC_badChannelListLabel: "badmasks"
+      SaveTPC_badChannelList: true
+      //outputFileName: "badChannel_info"
+    }
+  }
+
+  unpackerPath : []
+  paths: [ChannelStatus]
+
+  trigger_paths : []
+
+  end_paths : [paths]
+
+}
+
+
