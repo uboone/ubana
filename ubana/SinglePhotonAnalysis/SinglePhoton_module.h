@@ -1522,7 +1522,9 @@ namespace single_photon
             std::vector<double> m_reco_track_pid_chi2_p_plane2;
             std::vector<double> m_reco_track_pid_three_plane_proton_pid;
 
+
             double m_genie_spline_weight;
+            double m_genie_CV_tune_weight;
 
             bool Pi0PreselectionFilter();
     };

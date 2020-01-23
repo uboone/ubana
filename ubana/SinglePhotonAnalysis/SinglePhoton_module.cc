@@ -777,18 +777,26 @@ namespace single_photon
                     std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
                     if(ev_evw->size() > 1) std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"<< "WARNING: eventweight slice genie fix has more than one entry\n";
                     //m_genie_spline_weight=weight_map;
+                    //
+
                     for (auto const& x : weight_map){
                         std::cout << x.first  // string (key)
                             << ':' 
                             << x.second.size() << std::endl ;
-                        if(x.second.size()==1){
+                        if(x.second.size()==1 && x.first == "splines_general_Spline"){
                             m_genie_spline_weight = x.second.front();
+                            std::cout<<"Its a spline fix"<<std::endl;
+                        }
+                         if(x.second.size()==1 && x.first == "TunedCentralValue_Genie"){
+                            m_genie_CV_tune_weight = x.second.front();
+                            std::cout<<"Its a CV fix"<<std::endl;
                         }
                     }
 
                 }else{
                     std::cout<<"No data producet called eventweightSplines"<<std::endl;
                     m_genie_spline_weight =1.0;
+                    m_genie_CV_tune_weight =1.0;
                 }
 
 
@@ -979,6 +987,7 @@ namespace single_photon
             vertex_tree->Branch("event_number", &m_event_number, "event_number/I");
 
             vertex_tree->Branch("genie_spline_weight", &m_genie_spline_weight, "genie_spline_weight/D");
+            vertex_tree->Branch("genie_CV_tune_weight", &m_genie_CV_tune_weight, "genie_CV_tune_weight/D");
 
 
             vertex_tree->Branch("test_matched_hits", &m_test_matched_hits, "test_matched_hits/I");
