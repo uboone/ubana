@@ -165,6 +165,13 @@ wcls: {
 	  structs: {
       	      gain_fudge_factor: 0.826
 	      sys_resp: false
+
+	      // Diffusion constants
+	      DiffusionLongitudinal: 6.4  // unit: cm^2/s, configured in the jsonnet file
+	      DiffusionTransverse:   9.8  // unit: cm^2/s, configured in the jsonnet file
+
+	      // Electron lifetime
+	      ElectronLifetime: 1000 // unit: ms, configured in the jsonnet file
       	  }
       }
    }
@@ -213,6 +220,14 @@ wcls: {
               #scaleMC_perplane:   '[0.0040, 0.0043, 0.0040]'
               scaleMC_perplane: @local::microboone_calorimetryalgmcc84mc_CalAreaConstantsWCLS
               scaleDATA_perplane: @local::microboone_calorimetryalgmcc84data_CalAreaConstantsWCLS
+
+	      // Diffusion constants
+	      DiffusionLongitudinal: 6.4  // unit: cm^2/s, configured in the jsonnet file
+	      DiffusionTransverse:   9.8  // unit: cm^2/s, configured in the jsonnet file
+
+              // Electron lifetime
+              ElectronLifetime: 1000 // unit: ms, configured in the jsonnet file
+              ELifetimeCorrection: false // or true; using lifetime database
       	  }
       }
    }

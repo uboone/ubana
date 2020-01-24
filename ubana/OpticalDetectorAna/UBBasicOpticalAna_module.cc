@@ -20,6 +20,8 @@
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 
 #include "lardataobj/RawData/OpDetWaveform.h"
+#include "lardataobj/RecoBase/OpHit.h"
+#include "lardataobj/RecoBase/OpFlash.h"
 #include "OpDetWaveformAna.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h" // lardata
 #include <vector>
@@ -46,6 +48,8 @@ public:
 
 private:
   std::vector< std::string      > _module_v;    
+  std::string                     _hit_producer;
+  std::string                     _flash_producer;
   std::vector< bool             > _do_hitana_v;
   std::vector< bool             > _do_wfana_v;
   std::vector< bool             > _store_wf_v;
@@ -61,11 +65,13 @@ UBBasicOpticalAna::UBBasicOpticalAna(fhicl::ParameterSet const & p)
   EDAnalyzer(p)  // ,
  // More initializers here.
 {
-  _module_v       = p.get< std::vector< std::string > > ( "InputModule"    );
-  _do_hitana_v    = p.get< std::vector< bool        > > ( "AnaHit"         );
-  _do_wfana_v     = p.get< std::vector< bool        > > ( "AnaWaveform"    );
-  _store_wf_v     = p.get< std::vector< bool        > > ( "SaveWaveform"   );
-  _store_ev_wf_v  = p.get< std::vector< bool        > > ( "SaveEvWaveform" );
+  _module_v       = p.get< std::vector< std::string > > ( "InputModule"      );
+  _hit_producer   = p.get< std::string                > ( "HitProducer", ""  );
+  _flash_producer = p.get< std::string                > ( "FlashProducer", "");
+  _do_hitana_v    = p.get< std::vector< bool        > > ( "AnaHit"           );
+  _do_wfana_v     = p.get< std::vector< bool        > > ( "AnaWaveform"      );
+  _store_wf_v     = p.get< std::vector< bool        > > ( "SaveWaveform"     );
+  _store_ev_wf_v  = p.get< std::vector< bool        > > ( "SaveEvWaveform"   );
   assert( _module_v.size () == _do_hitana_v.size ()    );
   assert( _module_v.size () == _do_wfana_v.size  ()    );
   assert( _module_v.size () == _store_wf_v.size  ()    );
@@ -82,10 +88,12 @@ void UBBasicOpticalAna::beginJob()
   for(size_t i=0; i<_ana_v.size(); ++i) {
    
     
-    if( _do_hitana_v [i]  ) _ana_v[i].AnaHit         ( fs->make<TTree> ( "hitana_tree", "" ) );
-    if( _do_wfana_v  [i]  ) _ana_v[i].AnaWaveform    ( fs->make<TTree> ( "hitwf_tree", "" ) );
-    if( _store_wf_v  [i]  ) _ana_v[i].SaveWaveform   ( fs->make<TTree> ( "wf_tree", "" ) );
-    if( _store_ev_wf_v[i] ) _ana_v[i].SaveEvWaveform ( fs->make<TTree> ( "ev_wf_tree", "" ) );
+    if( _do_hitana_v [i]     ) _ana_v[i].AnaHit         ( fs->make<TTree> ( "hitana_tree"  , "" ) );
+    if( _do_wfana_v  [i]     ) _ana_v[i].AnaWaveform    ( fs->make<TTree> ( "hitwf_tree"   , "" ) );
+    if( _store_wf_v  [i]     ) _ana_v[i].SaveWaveform   ( fs->make<TTree> ( "wf_tree"      , "" ) );
+    if( _store_ev_wf_v[i]    ) _ana_v[i].SaveEvWaveform ( fs->make<TTree> ( "ev_wf_tree"   , "" ) );
+    if (_hit_producer != ""  ) _ana_v[i].SaveEvHit      ( fs->make<TTree> ( "ev_hit_tree"  , "" ) );
+    if (_flash_producer != "") _ana_v[i].SaveEvFlash    ( fs->make<TTree> ( "ev_flash_tree", "" ) );
 
   }    
 }
@@ -94,13 +102,31 @@ void UBBasicOpticalAna::analyze(art::Event const & e)
 {
   auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
 
+  auto run = e.run();
+  auto sub = e.subRun();
+  auto evt = e.event();
+
   // Implementation of required member function here.
   for(size_t i=0; i<_module_v.size(); ++i) {
+
+    _ana_v[i].SetEventInfo(run,sub,evt);
    
     _ana_v[i].TickPeriod(ts->OpticalClock().TickPeriod());
  
     art::Handle< std::vector< raw::OpDetWaveform > > wf_handle;
     e.getByLabel( _module_v[i], wf_handle );
+
+    if (_hit_producer != "") {
+      art::Handle< std::vector< recob::OpHit > > hit_handle;
+      e.getByLabel( _hit_producer, hit_handle );
+      _ana_v[i].AnaEventHit(*hit_handle);
+    }// if hit producer is specified
+
+    if (_flash_producer != "") {
+      art::Handle< std::vector< recob::OpFlash > > flash_handle;
+      e.getByLabel( _flash_producer, flash_handle );
+      _ana_v[i].AnaEventFlash(*flash_handle);
+    }// if hit producer is specified
 
     if(!wf_handle.isValid()) continue;
 
