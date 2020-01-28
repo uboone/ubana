@@ -683,7 +683,7 @@ treereader_eventweight: {
       1, 1, 1, 1, 1, 1
     ]
     mode: multisim
-    number_of_multisims: 4 
+    number_of_multisims: 100 
   }
   weight_functions_spline: [
     splines_general

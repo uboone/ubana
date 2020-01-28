@@ -19,7 +19,7 @@ source: {
   skipEvents: 0
   maxEvents: -1
   inputType: "ntuple"
-  treeName: "singlephoton/eventweight_tree"
+  treeName: "eventweight_tree"
   dataProductName: "TreeReader"
   branches: {
     run: "run"

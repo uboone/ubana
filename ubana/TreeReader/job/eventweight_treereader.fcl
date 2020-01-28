@@ -273,7 +273,7 @@ treereader_eventweight: {
     NonRESBGvbarnCC1pi, NonRESBGvbarnCC2pi, NonRESBGvbarnNC1pi,
     NonRESBGvbarnNC2pi, AhtBY, BhtBY, CV1uBY, CV2uBY, AGKYxF1pi, AGKYpT1pi,
     MFP_pi, MFP_N, FrCEx_pi, FrInel_pi, FrAbs_pi, FrCEx_N, FrInel_N, FrAbs_N,
-    RDecBR1gamma, RDecBR1eta, Theta_Delta2Npi, FrPiProd_pi, FrPiProd_N, TunedCentralValue
+    RDecBR1gamma, RDecBR1eta, Theta_Delta2Npi, FrPiProd_pi, FrPiProd_N, TunedCentralValue, All
   ]
  MaCCQE: {
     type: Genie
@@ -880,7 +880,7 @@ treereader_eventweight: {
       1, 1, 1, 1, 1, 1
     ]
     mode: multisim
-    number_of_multisims: 4 
+    number_of_multisims: 250
   }
   weight_functions_spline: [
     splines_general
