@@ -1,0 +1,75 @@
+#include "services_microboone.fcl"
+#include "messageservice.fcl"
+#include "mctruthmatching_uboone.fcl"
+##include "mctruthassociations_uboone.fcl"
+
+process_name: PFPProfile 
+
+services:
+{
+  TFileService: {fileName: "Profile.root"}
+  @table::microboone_simulation_services
+  @table::microboone_services
+  BackTrackerService:                       @local::microboone_backtrackerservice
+  ParticleInventoryService:                 @local::standard_particleinventoryservice
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents: 10
+}
+
+physics:
+{
+  analyzers: 
+  {
+    profile: 
+    {
+      module_type:    "PFPProfile"
+      UseMCOverlay  :    false
+      UseMCSingleParticle  :    true
+      UseData:        false
+      PhotonProcess:  false
+      FVCutOnRecon:   false
+      FidVolCutX:     15.0
+      FidVolCutY:     15.0
+      FidVolCutZUP:   30.0
+      FidVolCutZDOWN: 100.0
+      ADCtoE:         [232,249,243.7]
+      Recombination:  0.6
+      CutPurity:      0.9
+      CutCompleteness: 0.9
+    }
+  }
+  
+  analysis: [profile]
+  end_paths: [analysis]
+}
+
+services.DetectorPropertiesService.NumberTimeSamples:        6400
+services.DetectorPropertiesService.ReadOutWindowSize:        6400
+services.DetectorClocksService.InheritClockConfig:           false
+services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
+
+#services.ParticleInventoryService.ParticleInventory.OverrideRealData: true # for using Particle Inventory, i.e., get MCParticle list in overlay data 
+
+#services.ParticleInventoryService.ParticleInventory.EveIdCalculator: "EveIdCalculator"
+# SCE correction
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+services.SpaceCharge.EnableCalEfieldSCE: true
+services.SpaceCharge.EnableCalSpatialSCE: true
+services.SpaceCharge.EnableCorrSCE: true
+services.SpaceCharge.EnableSimEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_fwd_Jan18.root"
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+services.SpaceCharge.service_provider: "SpaceChargeServiceMicroBooNE"
+
+
+
+
+
+
+
+

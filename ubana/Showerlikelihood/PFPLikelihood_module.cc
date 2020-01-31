@@ -1,14 +1,10 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       PFPProfile
+// Class:       PFPLikelihood
 // Plugin Type: analyzer (art v3_03_01)
-// File:        PFPProfile_module.cc
+// File:        PFPLikelihood_module.cc
 //
-// Generated at Tue Nov 19 19:03:26 2019 by Tingjun Yang using cetskelgen
+// Generated at Fri Jan  3 08:54:50 2020 by Wanwei Wu using cetskelgen
 // from cetlib version v3_08_00.
-// 
-// Purpose of this module is to study the longitudinal and transverse profiles
-// for different particles and use the profile information for particle ID
-//
 ////////////////////////////////////////////////////////////////////////
 
 // art include
@@ -57,19 +53,22 @@ using namespace std;
 constexpr int kNplanes = 3;      //number of wire planes
 constexpr int kMaxPFPs = 1000;   //maximum number of PFParticles
 
-class PFPProfile;
+constexpr int kNenergies = 10;   // selected energies for profile
 
-class PFPProfile : public art::EDAnalyzer {
+
+class PFPLikelihood;
+
+class PFPLikelihood : public art::EDAnalyzer {
 public:
-  explicit PFPProfile(fhicl::ParameterSet const& p);
+  explicit PFPLikelihood(fhicl::ParameterSet const& p);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
   // Plugins should not be copied or assigned.
-  PFPProfile(PFPProfile const&) = delete;
-  PFPProfile(PFPProfile&&) = delete;
-  PFPProfile& operator=(PFPProfile const&) = delete;
-  PFPProfile& operator=(PFPProfile&&) = delete;
+  PFPLikelihood(PFPLikelihood const&) = delete;
+  PFPLikelihood(PFPLikelihood&&) = delete;
+  PFPLikelihood& operator=(PFPLikelihood const&) = delete;
+  PFPLikelihood& operator=(PFPLikelihood&&) = delete;
 
   // Required functions.
   void analyze(art::Event const& e) override;
@@ -80,23 +79,21 @@ public:
 
 private:
 
+  // Declare member data here.
   // user's defined functions
-  void project(const double& x0, 
-               const double& y0, 
-               const double& x1, 
-               const double& y1, 
-               const double& x, 
-               const double& y, 
-               double& xp, 
-               double& yp);
+  void project(const double& x0,
+      const double& y0,
+      const double& x1,
+      const double& y1,
+      const double& x,
+      const double& y,
+      double& xp,
+      double& yp);
 
   void reset();
 
   // configuration from fcl
-  bool fUseMCOverlay;
-  bool fUseMCSingleParticle;
-  bool fUseData;
-  bool fPhotonProcess; // true: save photon process info 
+  bool fUseMCInfo;
   bool fFVCutOnRecon; // true: use recon; false: use MC
   float fFidVolCutX;
   float fFidVolCutY;
@@ -104,8 +101,12 @@ private:
   float fFidVolCutZDOWN;
   std::vector<double> fADCtoE; // calibration constants
   double fRecombination;
+  bool fUseEnergyCorrection;
+  std::vector<double> fEnergyCorrectionSlope;
+  std::vector<double> fEnergyCorrectionIntercept;
   float fCutPurity;
   float fCutCompleteness;
+  std::string fProfileTemplateFile;
 
   // Fiducial volume
   float fFidVolXmin;
@@ -115,15 +116,19 @@ private:
   float fFidVolZmin;
   float fFidVolZmax;
 
+  // template
+  TProfile *profile_long_electron[kNenergies]; // [energies]
+  TProfile *profile_long_photon[kNenergies]; // [energies]
+
   // TTree
   TTree *fEventTree;
-  
+
   // event information
   int event;
   int run;
   int subrun;
 
-  // MCTruth: overlay
+  // MCTruth
   int nuPDG_truth;
   int leptonPDG_truth;
   double leptonEnergy_truth; // [GeV]
@@ -132,11 +137,6 @@ private:
   double nuMomentum_truth[4]; // neutrino incoming momentum [GeV]
   double nuEnergy_truth; // neutrino incoming energy [GeV]
   int MC_lepton_ID; // primary lepton TrackId
-  // MCTruth: single particle
-  int singleParticle_PDG_truth;
-  double singleParticle_energy_truth; //[GeV]
-  double singleParticle_vertex_truth[4]; 
-  double singleParticle_momentum_truth[4]; // [GeV]
 
   // PFP
   int npfps;
@@ -156,13 +156,12 @@ private:
   int shwid[kMaxPFPs];
   double pfpvertex_recon[kMaxPFPs][3];
   double pfpvertex_truth[kMaxPFPs][3]; // from the pfp particle start
-  double pfpvertex_truth_sce[kMaxPFPs][3]; // from the pfp particle start
   double pfpend_truth[kMaxPFPs][3]; // from the pfp particle end
-  double pfpend_truth_sce[kMaxPFPs][3]; // from the pfp particle end
   double pfpdir_recon[kMaxPFPs][3];
   double pfpdir_truth[kMaxPFPs][3]; // from the pfp particle
   double pfp_datahits[kMaxPFPs][3]; // fraction of hits from data in a pfp
   int pfp_primary_e[kMaxPFPs]; // whether a pfp is from primary electron. 0: false; 1:true
+  int pfppdg[kMaxPFPs]; // from PdgCode() funciton of PFParticle
   int pfppdg_truth[kMaxPFPs]; // from matching hits and MCParticle
   double pfpcharge[kMaxPFPs][3];
   double pfpenergy_mc[kMaxPFPs]; // pfp particle's kinetic energy [MeV]
@@ -171,25 +170,19 @@ private:
   double pfp_purity[kMaxPFPs][3]; // for each planes
   double pfpcompleteness[kMaxPFPs];
   double pfp_completeness[kMaxPFPs][3]; // for each planes
-  
-  vector<string> pfp_photon_process;
-  vector<int> pfp_photon_numberDaughters;
-  vector<vector<int>> pfp_photon_daughter_pdg;
-  vector<vector<double>> pfp_photon_daughter_energy; // [MeV]; kinetic energy
-
+  // likelihood
+  double pfp_longlikelihood_electron[kMaxPFPs]; // use plane 2 and electron profile template only
+  double pfp_longlikelihood_photon[kMaxPFPs]; // use plane 2 and photon profile template only
 
 };
 
 
-PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
+PFPLikelihood::PFPLikelihood(fhicl::ParameterSet const& p)
   : EDAnalyzer{p}  // ,
   // More initializers here.
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
-  fUseMCOverlay = p.get<bool>("UseMCOverlay");
-  fUseMCSingleParticle = p.get<bool>("UseMCSingleParticle");
-  fUseData = p.get<bool>("UseData");
-  fPhotonProcess = p.get<bool>("PhotonProcess");
+  fUseMCInfo = p.get<bool>("UseMCInfo");
   fFVCutOnRecon       = p.get<bool>("FVCutOnRecon");
   fFidVolCutX         = p.get<float>("FidVolCutX");
   fFidVolCutY         = p.get<float>("FidVolCutY");
@@ -197,20 +190,21 @@ PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
   fFidVolCutZDOWN         = p.get<float>("FidVolCutZDOWN");
   fADCtoE = p.get<std::vector<double>>("ADCtoE");
   fRecombination = p.get<double>("Recombination");
+  fUseEnergyCorrection = p.get<bool>("UseEnergyCorrection");
+  fEnergyCorrectionSlope = p.get<std::vector<double>>("EnergyCorrectionSlope");
+  fEnergyCorrectionIntercept = p.get<std::vector<double>>("EnergyCorrectionIntercept");
   fCutPurity    = p.get<float>("CutPurity");
   fCutCompleteness = p.get<float>("CutCompleteness");
+  fProfileTemplateFile = p.get<std::string>("ProfileTemplateFile");
 }
 
-void PFPProfile::analyze(art::Event const& e)
+void PFPLikelihood::analyze(art::Event const& e)
 {
-
   reset();
 
   run = e.run();
   subrun = e.subRun();
   event = e.id().event();
-
-  //cout << "event: " << event << endl;
 
   // Get mctruth
   art::Handle< std::vector< simb::MCTruth > > mctruthListHandle;
@@ -232,7 +226,7 @@ void PFPProfile::analyze(art::Event const& e)
   if (e.getByLabel("pandora", pfpListHandle)) {
     art::fill_ptr_vector(pfpList, pfpListHandle);
   }
-
+  
   // Get all clusters
   art::Handle < std::vector < recob::Cluster > > cluListHandle;
   std::vector < art::Ptr < recob::Cluster > > cluList;
@@ -248,7 +242,7 @@ void PFPProfile::analyze(art::Event const& e)
 
   // Get Shower-PFParticle association
   art::FindManyP<recob::Shower> fmspfp(pfpListHandle, e, "pandora");
-
+  
   // Get cluster-PFParticle association
   art::FindManyP<recob::Cluster> fmcpfp(pfpListHandle, e, "pandora");
 
@@ -268,134 +262,79 @@ void PFPProfile::analyze(art::Event const& e)
   std::vector<std::unordered_map<int, double>> hit_trkide(3);
 
   // MCInfo
-  simb::MCParticle singleParticle;
-
-  if (fUseMCOverlay || fUseMCSingleParticle) {
+  if (fUseMCInfo) {
     if (mctruthList.size() > 1) {
       std::cout << "Warning:  mctruthList.size() = " << mctruthList.size() << "; more than one mctruth in the event" << std::endl;
     }
-    //cout << "mctruthList.size(): " << mctruthList.size() << endl;
-
     for (size_t i = 0; i < mctruthList.size(); ++i) {
+      // mctruth: generator
       art::Ptr<simb::MCTruth> mctruth = mctruthList[i];
-      // only fUseMCOverlay has the neutrino; fUseMCSingleParticle does not have neutrino
-      if (fUseMCOverlay){
-        // mctruth: generator
-        if (mctruth->NeutrinoSet()) {
-          simb::MCNeutrino nu = mctruth->GetNeutrino();
-          simb::MCParticle neutrino = nu.Nu(); // incoming neutrino
-          simb::MCParticle lepton = nu.Lepton(); // outgoing lepton
+      if (mctruth->NeutrinoSet()) {
+        simb::MCNeutrino nu = mctruth->GetNeutrino();
+        simb::MCParticle neutrino = nu.Nu(); // incoming neutrino
+        simb::MCParticle lepton = nu.Lepton(); // outgoing lepton
 
-          nuPDG_truth = neutrino.PdgCode();
-          leptonPDG_truth = lepton.PdgCode();
-          leptonEnergy_truth = lepton.E(); // [GeV]
-          ccnc_truth = nu.CCNC(); // 0: CC; 1: NC
+        nuPDG_truth = neutrino.PdgCode();
+        leptonPDG_truth = lepton.PdgCode();
+        leptonEnergy_truth = lepton.E(); // [GeV]
+        ccnc_truth = nu.CCNC(); // 0: CC; 1: NC
 
-          const TLorentzVector & vertex = neutrino.Position(0);
-          vertex.GetXYZT(nuVertex_truth); 
+        const TLorentzVector & vertex = neutrino.Position(0);
+        vertex.GetXYZT(nuVertex_truth); 
 
-          const TLorentzVector & nu_momentum = neutrino.Momentum(0);
-          nu_momentum.GetXYZT(nuMomentum_truth);
-          nuEnergy_truth = nuMomentum_truth[3];
-
-          if (!fFVCutOnRecon) {
-            double check_vertex[3];
-            check_vertex[0] = nuVertex_truth[0];
-            check_vertex[1] = nuVertex_truth[1];
-            check_vertex[2] = nuVertex_truth[2];
-
-            if (!insideFV(check_vertex)) {
-              cout << "\n **** Interaction is NOT inside the Fiducial Volume. RETURN ****" << endl;
-              return;
-            }
-          }
-        }
-
-        // mcparticle: Geant4
-        const sim::ParticleList& plist = piserv->ParticleList();
-        //cout << "plist.size(): " << plist.size() << endl;
-        for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar) {
-          simb::MCParticle *particle = 0;
-          particle = ipar->second;
-          auto & truth = piserv->ParticleToMCTruth_P(particle);
-          // primary lepton
-          if (truth->Origin() == simb::kBeamNeutrino
-              && particle->Mother() == 0
-              && std::abs(particle->PdgCode()) >= 11
-              && std::abs(particle->PdgCode()) <= 16) { 
-            MC_lepton_ID = particle->TrackId();
-            break;
-          }
-        }
-
-        // hit information
-        //cout << "hitList.size(): " << hitList.size() << endl;
-        std::vector<simb::MCParticle const *> hit_particle_vec;
-        std::vector<anab::BackTrackerHitMatchingData const *> hit_match_vec;
-        //std::vector<std::unordered_map<int, double>> hit_trkide(3);
-        hit_trkide.clear();
-        for (size_t i = 0; i < hitList.size(); ++i) {
-          art::Ptr<recob::Hit> hit = hitList[i];
-          hit_particle_vec.clear();
-          hit_match_vec.clear();
-          particles_per_hit.get(hit.key(), hit_particle_vec, hit_match_vec);
-          for (size_t i_p = 0; i_p < hit_particle_vec.size(); ++i_p) {
-            if (piserv->TrackIdToEveTrackId(hit_particle_vec.at(i_p)->TrackId())) {
-              hit_trkide[hit->WireID().Plane][piserv->TrackIdToEveTrackId(hit_particle_vec.at(i_p)->TrackId())] += hit_match_vec[i_p]->energy; // energy deposited by ionization by this track ID [MeV] 
-            }
-          }
-        }
-      } // end of if (fUseMCOverlay)
-
-      // fUseMCSingleParticle 
-      if (fUseMCSingleParticle) {
-        //cout << "NParticles: " << mctruth->NParticles() << endl;
-        // mctruth: generator
-        if (mctruth->NParticles() != 1) {
-          cout << "Warning: this is not single particle generator. There are more than one particles." << endl; 
-        }
-        //simb::MCParticle singleParticle = mctruth->GetParticle(0);
-        singleParticle = mctruth->GetParticle(0);
-        singleParticle_PDG_truth = singleParticle.PdgCode();
-        singleParticle_energy_truth = singleParticle.E(); // [GeV]
-
-        const TLorentzVector & vertex = singleParticle.Position(0);
-        vertex.GetXYZT(singleParticle_vertex_truth);
-
-        const TLorentzVector & momentum = singleParticle.Momentum(0);
-        momentum.GetXYZT(singleParticle_momentum_truth);
+        const TLorentzVector & nu_momentum = neutrino.Momentum(0);
+        nu_momentum.GetXYZT(nuMomentum_truth);
+        nuEnergy_truth = nuMomentum_truth[3];
 
         if (!fFVCutOnRecon) {
           double check_vertex[3];
-          check_vertex[0] = singleParticle_vertex_truth[0];
-          check_vertex[1] = singleParticle_vertex_truth[1];
-          check_vertex[2] = singleParticle_vertex_truth[2];
+          check_vertex[0] = nuVertex_truth[0];
+          check_vertex[1] = nuVertex_truth[1];
+          check_vertex[2] = nuVertex_truth[2];
 
           if (!insideFV(check_vertex)) {
             cout << "\n **** Interaction is NOT inside the Fiducial Volume. RETURN ****" << endl;
             return;
           }
         }
+      }
 
-        // hit information
-        std::vector<simb::MCParticle const *> hit_particle_vec;
-        std::vector<anab::BackTrackerHitMatchingData const *> hit_match_vec;
-        hit_trkide.clear();
-        for (size_t i = 0; i < hitList.size(); ++i) {
-          art::Ptr<recob::Hit> hit = hitList[i];
-          hit_particle_vec.clear();
-          hit_match_vec.clear();
-          particles_per_hit.get(hit.key(), hit_particle_vec, hit_match_vec);
-          for (size_t i_p = 0; i_p < hit_particle_vec.size(); ++i_p) {
-            hit_trkide[hit->WireID().Plane][singleParticle_PDG_truth] += hit_match_vec[i_p]->energy; // energy deposited by ionization by this track ID [MeV] 
+      // mcparticle: Geant4
+      const sim::ParticleList& plist = piserv->ParticleList();
+      for (sim::ParticleList::const_iterator ipar = plist.begin(); ipar != plist.end(); ++ipar) {
+        simb::MCParticle *particle = 0;
+        particle = ipar->second;
+        auto & truth = piserv->ParticleToMCTruth_P(particle);
+        // primary lepton
+        if (truth->Origin() == simb::kBeamNeutrino
+            && particle->Mother() == 0
+            && std::abs(particle->PdgCode()) >= 11
+            && std::abs(particle->PdgCode()) <= 16) { 
+          MC_lepton_ID = particle->TrackId();
+          break;
+        }
+      }
+
+      // hit information
+      std::vector<simb::MCParticle const *> hit_particle_vec;
+      std::vector<anab::BackTrackerHitMatchingData const *> hit_match_vec;
+      //std::vector<std::unordered_map<int, double>> hit_trkide(3);
+      hit_trkide.clear();
+      for (size_t i = 0; i < hitList.size(); ++i) {
+        art::Ptr<recob::Hit> hit = hitList[i];
+        hit_particle_vec.clear();
+        hit_match_vec.clear();
+        particles_per_hit.get(hit.key(), hit_particle_vec, hit_match_vec);
+        for (size_t i_p = 0; i_p < hit_particle_vec.size(); ++i_p) {
+          if (piserv->TrackIdToEveTrackId(hit_particle_vec.at(i_p)->TrackId())) {
+            hit_trkide[hit->WireID().Plane][piserv->TrackIdToEveTrackId(hit_particle_vec.at(i_p)->TrackId())] += hit_match_vec[i_p]->energy; // energy deposited by ionization by this track ID [MeV] 
           }
         }
-      } // end of if (fUseMCSingleParticle)
+      }
 
     } // end of for mctruthList.size() i; in principle only one mctruch each simulated event
-  } // end of if (fUseMCOverlay || fUseMCSingleParticle)
-
-
+  } // end of if (fUseMCInfo)
+  
   // Conversion factor from tick to distance
   double tickToDist = detprop->DriftVelocity(detprop->Efield(),detprop->Temperature());
   tickToDist *= 1.e-3 * detprop->SamplingRate(); // 1e-3 is conversion of 1/us to 1/ns  
@@ -407,7 +346,7 @@ void PFPProfile::analyze(art::Event const& e)
     if (npfps >= kMaxPFPs) continue;
     pfpid[npfps] = pfp.key();
     pfpself[npfps] = pfp->Self();
-    //cout << "pfp->PdgCode(): " << pfppdg[npfps] << endl;
+    pfppdg[npfps] = pfp->PdgCode();
     // Find the vertex and direction of the pfparticle
     double vtx[3] = {0,0,0};
     double dir[3] = {0,0,0};
@@ -477,21 +416,9 @@ void PFPProfile::analyze(art::Event const& e)
           }
         }
       }
-      // todo: add restriction on how many hits on the selected plane(s).
-      
-      for (int p=0; p<3; p++) {
-        for (size_t ihit = 0; ihit < allhits[p].size(); ihit++) {
-          pfpcharge[npfps][p] += allhits[p][ihit]->Integral();
-        }
-      }
-      for (int p=0; p<3; p++) {
-        pfpenergy_recon[npfps][p] = pfpcharge[npfps][p]*fADCtoE[p]/fRecombination*23.6e-6; // [MeV]
-      }
 
-      const simb::MCParticle* pfp_particle = NULL;
-
-      if (fUseMCOverlay) {
-        // Associate a particle to pfp by considering hits on all planes
+      // Associate a particle to pfp by considering hits on all planes
+      if (fUseMCInfo) {
         std::vector<simb::MCParticle const *> particle_vec;
         std::vector<anab::BackTrackerHitMatchingData const *> match_vec;
         std::unordered_map<int, double> pfphit_trkide;
@@ -503,6 +430,8 @@ void PFPProfile::analyze(art::Event const& e)
         for (size_t p = 0; p < 3; p++) {
           int count_datahits = 0;
           for (size_t ihit = 0; ihit < allhits[p].size(); ihit++) {
+
+            pfpcharge[npfps][p] += allhits[p][ihit]->Integral();
             particle_vec.clear();
             match_vec.clear();
             particles_per_hit.get(allhits[p][ihit].key(), particle_vec, match_vec);
@@ -533,6 +462,7 @@ void PFPProfile::analyze(art::Event const& e)
         double plane_pfp_particle_E[3] = {0, 0, 0};
         double plane_pfp_total_E[3] = {0, 0, 0};
         for (size_t p = 0; p < 3; p++) {
+          pfpenergy_recon[npfps][p] = pfpcharge[npfps][p]*fADCtoE[p]/fRecombination*23.6e-6; // [MeV] 
           for (auto const & plane_trkide : plane_pfphit_trkide[p]) {
             plane_pfp_total_E[p] += plane_trkide.second;
             if (plane_trkide.second > plane_pfp_particle_E[p]) {
@@ -543,12 +473,24 @@ void PFPProfile::analyze(art::Event const& e)
 
         if (pfp_trackID) {
           if (piserv->TrackIdToParticle_P(pfp_trackID)) {
-            //const simb::MCParticle* pfp_particle = piserv->TrackIdToParticle_P(pfp_trackID);
-            pfp_particle = piserv->TrackIdToParticle_P(pfp_trackID);
+            const simb::MCParticle* pfp_particle = piserv->TrackIdToParticle_P(pfp_trackID);
+            pfppdg_truth[npfps] = pfp_particle->PdgCode();
             if ( (abs(pfp_particle->PdgCode()) == 11) && (pfp_trackID == MC_lepton_ID) ) {
               pfp_primary_e[npfps] = 1;
             }
 
+            pfpvertex_truth[npfps][0] = pfp_particle->Vx();
+            pfpvertex_truth[npfps][1] = pfp_particle->Vy();
+            pfpvertex_truth[npfps][2] = pfp_particle->Vz();
+            pfpend_truth[npfps][0] = pfp_particle->EndX();
+            pfpend_truth[npfps][1] = pfp_particle->EndY();
+            pfpend_truth[npfps][2] = pfp_particle->EndZ();
+            
+            double momentum = std::sqrt(pfp_particle->Px()*pfp_particle->Px() + pfp_particle->Py()*pfp_particle->Py() + pfp_particle->Pz()*pfp_particle->Pz());
+            pfpdir_truth[npfps][0] = pfp_particle->Px() / momentum;
+            pfpdir_truth[npfps][1] = pfp_particle->Py() / momentum;
+            pfpdir_truth[npfps][2] = pfp_particle->Pz() / momentum;
+            pfpenergy_mc[npfps] = (pfp_particle->E() - pfp_particle->Mass())*1000.0; // kinetic energy [MeV]
             double particle_total_E = hit_trkide[0][pfp_trackID] + hit_trkide[1][pfp_trackID] + hit_trkide[2][pfp_trackID];
             if (pfp_particle_E) {
               pfppurity[npfps] = pfp_particle_E / pfp_total_E;       
@@ -564,102 +506,9 @@ void PFPProfile::analyze(art::Event const& e)
                 }
               }
             }
-
-          }
-        } // end of if (pfp_trackID)
-      } // end of if (fUseMCOverlay)
-      
-      if (fUseMCSingleParticle) {
-        pfp_particle = &singleParticle;
-        
-        std::vector<simb::MCParticle const *> particle_vec;
-        std::vector<anab::BackTrackerHitMatchingData const *> match_vec;
-        std::vector<std::unordered_map<int, double>> plane_pfphit_trkide(3);
-        for (size_t p = 0; p < 3; p++) {
-          for (size_t ihit = 0; ihit < allhits[p].size(); ihit++) {
-            particle_vec.clear();
-            match_vec.clear();
-            particles_per_hit.get(allhits[p][ihit].key(), particle_vec, match_vec);
-            for (size_t i_p = 0; i_p < particle_vec.size(); ++i_p) {
-              plane_pfphit_trkide[p][singleParticle_PDG_truth] += match_vec[i_p]->energy;
-            }
           }
         }
-        
-        for (size_t p = 0; p < 3; p++) {
-          if (hit_trkide[p][singleParticle_PDG_truth]) {
-            pfp_completeness[npfps][p] = plane_pfphit_trkide[p][singleParticle_PDG_truth] / hit_trkide[p][singleParticle_PDG_truth];
-          }
-        }
-      } // end of if (fUseMCSingleParticle)
-
-      if (fPhotonProcess && pfp_particle) { 
-        //....check photon...
-        if (abs(pfp_particle->PdgCode()) == 22) {
-          pfp_photon_process.push_back(pfp_particle->Process());
-          pfp_photon_numberDaughters.push_back(pfp_particle->NumberDaughters());
-          vector<int> daughter_pdg;
-          vector<double> daughter_energy;
-          daughter_pdg.clear();
-          daughter_energy.clear();
-          for (int n=0; n<pfp_particle->NumberDaughters(); n++) {
-            if (! piserv->TrackIdToParticle_P(pfp_particle->Daughter(n)) ) continue;
-            daughter_pdg.push_back(piserv->TrackIdToParticle_P(pfp_particle->Daughter(n))->PdgCode());
-            daughter_energy.push_back((piserv->TrackIdToParticle_P(pfp_particle->Daughter(n))->E() - piserv->TrackIdToParticle_P(pfp_particle->Daughter(n))->Mass())*1000.0);
-          }
-          pfp_photon_daughter_pdg.push_back(daughter_pdg);
-          pfp_photon_daughter_energy.push_back(daughter_energy);
-        }
-      } // end of if (fPhotonProcess)
-      
-      if (pfp_particle) {
-        pfppdg_truth[npfps] = pfp_particle->PdgCode();
-        pfpvertex_truth[npfps][0] = pfp_particle->Vx();
-        pfpvertex_truth[npfps][1] = pfp_particle->Vy();
-        pfpvertex_truth[npfps][2] = pfp_particle->Vz();
-        pfpend_truth[npfps][0] = pfp_particle->EndX();
-        pfpend_truth[npfps][1] = pfp_particle->EndY();
-        pfpend_truth[npfps][2] = pfp_particle->EndZ();
-
-        // SCE correction for the position in order to compare true and reco
-        // ideally we would like to correct the reco and then compare it to truth
-        // However, the SCE correction implemented here is to correct the true position and then compare to reco.
-        auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
-        auto const& detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-        auto const& detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
-        auto const& mct_h = e.getValidHandle< std::vector<simb::MCTruth> >("generator");
-        auto gen = mct_h->at(0);
-
-        double g4Ticks = 0.0;
-        if (fUseMCOverlay) {
-          g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
-        }
-        if (fUseMCSingleParticle) {
-          g4Ticks = detClocks->TPCG4Time2Tick(gen.GetParticle(0).T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
-        }
-
-        double xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
-        auto sce_offset_vertex = SCE->GetPosOffsets(geo::Point_t(pfp_particle->Vx(),pfp_particle->Vy(),pfp_particle->Vz()));
-        pfpvertex_truth_sce[npfps][0] = pfp_particle->Vx() - sce_offset_vertex.X() + xtimeoffset +0.6;
-        // The 0.6 cm term accounts for the different coordinate center between WC (Y wires) and LArSoft (U wires
-        pfpvertex_truth_sce[npfps][1] = pfp_particle->Vy() + sce_offset_vertex.Y();
-        pfpvertex_truth_sce[npfps][2] = pfp_particle->Vz() + sce_offset_vertex.Z();
-        auto sce_offset_end = SCE->GetPosOffsets(geo::Point_t(pfp_particle->EndX(),pfp_particle->EndY(),pfp_particle->EndZ()));
-        pfpend_truth_sce[npfps][0] = pfp_particle->EndX() - sce_offset_end.X() + xtimeoffset +0.6;
-        pfpend_truth_sce[npfps][1] = pfp_particle->EndY() + sce_offset_end.Y();
-        pfpend_truth_sce[npfps][2] = pfp_particle->EndZ() + sce_offset_end.Z();
-
-        double momentum = std::sqrt(pfp_particle->Px()*pfp_particle->Px() + pfp_particle->Py()*pfp_particle->Py() + pfp_particle->Pz()*pfp_particle->Pz());
-        pfpdir_truth[npfps][0] = pfp_particle->Px() / momentum;
-        pfpdir_truth[npfps][1] = pfp_particle->Py() / momentum;
-        pfpdir_truth[npfps][2] = pfp_particle->Pz() / momentum;
-        pfpenergy_mc[npfps] = (pfp_particle->E() - pfp_particle->Mass())*1000.0; // kinetic energy [MeV]
-
-        //cout << "pfp_particle->PdgCode(): " << pfp_particle->PdgCode() << endl;
-        //cout << "pfp_particle->Vx(): " << pfp_particle->Vx() << endl;
-        //cout << "pfpvertex_truth[npfps][2]: " << pfpvertex_truth[npfps][2] << endl;
-
-      } // end of if (pfp_particle)
+      } // end of fUseMCInfo
 
       // Loop over all planes
       for (unsigned short pl = 0; pl <geom->Nplanes(); ++pl){
@@ -750,17 +599,16 @@ void PFPProfile::analyze(art::Event const& e)
     }
 
   }// loop over pfps
-
   fEventTree->Fill();
 }
 
-void PFPProfile::project(const double& x0, 
-                         const double& y0, 
-                         const double& x1, 
-                         const double& y1, 
-                         const double& x, 
-                         const double& y, 
-                         double& xp, 
+void PFPLikelihood::project(const double& x0,
+                         const double& y0,
+                         const double& x1,
+                         const double& y1,
+                         const double& x,
+                         const double& y,
+                         double& xp,
                          double& yp){
 
   //Project a point on a line, based on
@@ -773,13 +621,13 @@ void PFPProfile::project(const double& x0,
   else{
     double m = (y1 - y0) / (x1 - x0);
     double b = y0 - (m * x0);
-    
+
     xp = (m * y + x - m * b) / (m * m + 1);
     yp = (m * m * y + m * x + b) / (m * m + 1);
   }
 }
 
-void PFPProfile::beginJob(){
+void PFPLikelihood::beginJob(){
 
   art::ServiceHandle<art::TFileService> tfs;
   fEventTree = tfs->make<TTree>("Event", "Event");
@@ -787,23 +635,13 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("run", &run, "run/I");
   fEventTree->Branch("subrun", &subrun, "subrun/I");
 
-  if (fUseMCOverlay) {
-    fEventTree->Branch("nuPDG_truth", &nuPDG_truth, "nuPDG_truth/I");
-    fEventTree->Branch("leptonPDG_truth", &leptonPDG_truth, "leptonPDG_truth/I");
-    fEventTree->Branch("leptonEnergy_truth", &leptonEnergy_truth, "leptonEnergy_truth/D");
-    fEventTree->Branch("ccnc_truth", &ccnc_truth, "ccnc_truth/I");
-    fEventTree->Branch("nuVertex_truth", &nuVertex_truth, "nuVertex_truth[4]/D");
-    fEventTree->Branch("nuMomentum_truth", &nuMomentum_truth, "nuMomentum_truth[4]/D");
-    fEventTree->Branch("nuEnergy_truth", &nuEnergy_truth, "nuEnergy_truth/D");
-    
-  }
-
-  if (fUseMCSingleParticle) {
-    fEventTree->Branch("singleParticle_PDG_truth", &singleParticle_PDG_truth, "singleParticle_PDG_truth/I");
-    fEventTree->Branch("singleParticle_energy_truth", &singleParticle_energy_truth, "singleParticle_energy_truth/D");
-    fEventTree->Branch("singleParticle_vertex_truth", &singleParticle_vertex_truth, "singleParticle_vertex_truth[4]/D");
-    fEventTree->Branch("singleParticle_momentum_truth", &singleParticle_momentum_truth, "singleParticle_momentum_truth[4]/D");
-  }
+  fEventTree->Branch("nuPDG_truth", &nuPDG_truth, "nuPDG_truth/I");
+  fEventTree->Branch("leptonPDG_truth", &leptonPDG_truth, "leptonPDG_truth/I");
+  fEventTree->Branch("leptonEnergy_truth", &leptonEnergy_truth, "leptonEnergy_truth/D");
+  fEventTree->Branch("ccnc_truth", &ccnc_truth, "ccnc_truth/I");
+  fEventTree->Branch("nuVertex_truth", &nuVertex_truth, "nuVertex_truth[4]/D");
+  fEventTree->Branch("nuMomentum_truth", &nuMomentum_truth, "nuMomentum_truth[4]/D");
+  fEventTree->Branch("nuEnergy_truth", &nuEnergy_truth, "nuEnergy_truth/D");
 
   fEventTree->Branch("npfps", &npfps,"npfps/I");
   fEventTree->Branch("pfpid", pfpid, "pfpid[npfps]/I");
@@ -812,27 +650,20 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("trkid", trkid, "trkid[npfps]/I");
   fEventTree->Branch("shwkey", shwkey, "shwkey[npfps]/I");
   fEventTree->Branch("shwid", shwid, "shwid[npfps]/I");
+  fEventTree->Branch("pfp_primary_e", pfp_primary_e, "pfp_primary_e[npfps]/I");
+  fEventTree->Branch("pfppdg", pfppdg, "pfppdg[npfps]/I");
   fEventTree->Branch("pfppdg_truth", pfppdg_truth, "pfppdg_truth[npfps]/I");
-
-  if (fUseMCOverlay) fEventTree->Branch("pfp_primary_e", pfp_primary_e, "pfp_primary_e[npfps]/I");
-  
   fEventTree->Branch("pfpvertex_recon", pfpvertex_recon, "pfpvertex_recon[npfps][3]/D");
   fEventTree->Branch("pfpvertex_truth", pfpvertex_truth, "pfpvertex_truth[npfps][3]/D");
-  fEventTree->Branch("pfpvertex_truth_sce", pfpvertex_truth_sce, "pfpvertex_truth_sce[npfps][3]/D");
   fEventTree->Branch("pfpend_truth", pfpend_truth, "pfpend_truth[npfps][3]/D");
-  fEventTree->Branch("pfpend_truth_sce", pfpend_truth_sce, "pfpend_truth_sce[npfps][3]/D");
   fEventTree->Branch("pfpdir_recon", pfpdir_recon, "pfpdir_recon[npfps][3]/D");
   fEventTree->Branch("pfpdir_truth", pfpdir_truth, "pfpdir_truth[npfps][3]/D");
-
-  if (fUseMCOverlay) {
-    fEventTree->Branch("pfp_datahits", pfp_datahits, "pfp_datahits[npfps][3]/D");
-    fEventTree->Branch("pfppurity", pfppurity, "pfppurity[npfps]/D");
-    fEventTree->Branch("pfp_purity", pfp_purity, "pfp_purity[npfps][3]/D");
-    fEventTree->Branch("pfpcompleteness", pfpcompleteness, "pfpcompleteness[npfps]/D");
-  }
-
+  fEventTree->Branch("pfp_datahits", pfp_datahits, "pfp_datahits[npfps][3]/D");
   fEventTree->Branch("pfpenergy_mc", pfpenergy_mc, "pfpenergy_mc[npfps]/D");
   fEventTree->Branch("pfpenergy_recon", pfpenergy_recon, "pfpenergy_recon[npfps][3]/D");
+  fEventTree->Branch("pfppurity", pfppurity, "pfppurity[npfps]/D");
+  fEventTree->Branch("pfp_purity", pfp_purity, "pfp_purity[npfps][3]/D");
+  fEventTree->Branch("pfpcompleteness", pfpcompleteness, "pfpcompleteness[npfps]/D");
   fEventTree->Branch("pfp_completeness", pfp_completeness, "pfp_completeness[npfps][3]/D");
   fEventTree->Branch("TotalCharge", TotalCharge, "TotalCharge[npfps][3]/F");
   fEventTree->Branch("LongProf", LongProf, "LongProf[npfps][3][100]/F");
@@ -843,57 +674,41 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("TranProf_4", TranProf_4, "TranProf_4[npfps][3][16]/F");
   fEventTree->Branch("TranProf_5", TranProf_5, "TranProf_5[npfps][3][16]/F");
 
-  if (fPhotonProcess) {
-    fEventTree->Branch("pfp_photon_process", &pfp_photon_process);
-    fEventTree->Branch("pfp_photon_numberDaughters", &pfp_photon_numberDaughters);
-    fEventTree->Branch("pfp_photon_daughter_pdg", &pfp_photon_daughter_pdg);
-    fEventTree->Branch("pfp_photon_daughter_energy", &pfp_photon_daughter_energy);
-  }
+  fEventTree->Branch("pfp_longlikelihood_electron", pfp_longlikelihood_electron, "pfp_longlikelihood_electron[npfps]/D");
+  fEventTree->Branch("pfp_longlikelihood_photon", pfp_longlikelihood_photon, "pfp_longlikelihood_photon[npfps]/D");
 
   // Get the FV cut information
-  auto const* geo = lar::providerFrom<geo::Geometry>();
-  double minX = 1e9; // [cm]
-  double maxX = -1e9;
-  double minY = 1e9;
-  double maxY = -1e9;
-  double minZ = 1e9;
-  double maxZ = -1e9;
-
-  for (size_t i = 0; i<geo->NTPC(); ++i){
-    double local[3] = {0.,0.,0.};
-    double world[3] = {0.,0.,0.};
-    const geo::TPCGeo &tpc = geo->TPC(i);
-    tpc.LocalToWorld(local,world);
-
-    if (minX > world[0] - geo->DetHalfWidth(i))  minX = world[0]-geo->DetHalfWidth(i);
-    if (maxX < world[0] + geo->DetHalfWidth(i))  maxX = world[0]+geo->DetHalfWidth(i);
-    if (minY > world[1] - geo->DetHalfHeight(i)) minY = world[1]-geo->DetHalfHeight(i);
-    if (maxY < world[1] + geo->DetHalfHeight(i)) maxY = world[1]+geo->DetHalfHeight(i);
-    if (minZ > world[2] - geo->DetLength(i)/2.)  minZ = world[2]-geo->DetLength(i)/2.;
-    if (maxZ < world[2] + geo->DetLength(i)/2.)  maxZ = world[2]+geo->DetLength(i)/2.;
-  }
-
-  // For uboone geometry:
-  minX = 0.;
-  maxX = 256.;
-  minY = -116.;
-  maxY = 116.;
-  minZ = 0.;
-  maxZ = 1036.;
+  // uboone geometry
+  double minX = 0.;
+  double maxX = 256.;
+  double minY = -116.;
+  double maxY = 116.;
+  double minZ = 0.;
+  double maxZ = 1036.;
 
   fFidVolXmin = minX + fFidVolCutX;
   fFidVolXmax = maxX - fFidVolCutX;
   fFidVolYmin = minY + fFidVolCutY;
   fFidVolYmax = maxY - fFidVolCutY;
   fFidVolZmin = minZ + fFidVolCutZUP;
-  fFidVolZmax = maxZ - fFidVolCutZDOWN; 
+  fFidVolZmax = maxZ - fFidVolCutZDOWN;
   cout << "Fiducial Volume cuts on vertex:" << endl;
   cout << fFidVolXmin << " =< x =< " << fFidVolXmax << endl;
   cout << fFidVolYmin << " =< y =< " << fFidVolYmax << endl;
   cout << fFidVolZmin << " =< z =< " << fFidVolZmax << endl;
+
+  // Profile Template
+  const char * energy_options[10] = {"0_100MeV", "100_200MeV", "200_300MeV","300_400MeV", "400_500MeV","500_600MeV", "600_700MeV","700_800MeV", "800_900MeV","900_1000MeV"};
+
+  TFile *pfpProfileTemplate = TFile::Open(fProfileTemplateFile.c_str());
+  for (int j=0; j<kNenergies;j++) {
+    profile_long_electron[j] = (TProfile*)pfpProfileTemplate->Get(TString::Format("hprofile_electron_%s_long", energy_options[j]));
+    profile_long_photon[j] = (TProfile*)pfpProfileTemplate->Get(TString::Format("hprofile_photon_%s_long", energy_options[j]));
+  }
+
 }
 
-bool PFPProfile::insideFV( double vertex[3]) {
+bool PFPLikelihood::insideFV( double vertex[3] ) {
   if ( vertex[0] >= fFidVolXmin && vertex[0] <= fFidVolXmax &&
       vertex[1] >= fFidVolYmin && vertex[1] <= fFidVolYmax &&
       vertex[2] >= fFidVolZmin && vertex[2] <= fFidVolZmax ) {
@@ -904,12 +719,12 @@ bool PFPProfile::insideFV( double vertex[3]) {
   }
 }
 
-void PFPProfile::reset() {
+void PFPLikelihood::reset(){
 
   run = -99999;
   subrun = -99999;
   event = -99999;
-  
+
   MC_lepton_ID = 0;
 
   npfps = -99999;
@@ -921,16 +736,17 @@ void PFPProfile::reset() {
     shwkey[i] = -1;
     shwid[i] = -1;
     pfp_primary_e[i] = 0;
+    pfppdg[i] = -1;
     pfppdg_truth[i] = -1;
     pfpenergy_mc[i] = 0;
     pfppurity[i] = -1.0;
     pfpcompleteness[i] = -1.0;
+    pfp_longlikelihood_electron[i] = -99.0;
+    pfp_longlikelihood_photon[i] = -99.0;
     for (size_t j = 0; j<3; ++j){
       pfpvertex_recon[i][j] = -99999.0;
       pfpvertex_truth[i][j] = -99999.0;
-      pfpvertex_truth_sce[i][j] = -99999.0;
       pfpend_truth[i][j] = -99999.0;
-      pfpend_truth_sce[i][j] = -99999.0;
       pfpdir_recon[i][j] = -99999.0;
       pfpdir_truth[i][j] = -99999.0;
       TotalCharge[i][j] = 0;
@@ -950,13 +766,6 @@ void PFPProfile::reset() {
       }
     }
   }
-  
-  if (fPhotonProcess) {
-    pfp_photon_process.clear();
-    pfp_photon_numberDaughters.clear();
-    pfp_photon_daughter_pdg.clear();
-    pfp_photon_daughter_energy.clear();
-  }
 }
 
-DEFINE_ART_MODULE(PFPProfile)
+DEFINE_ART_MODULE(PFPLikelihood)
