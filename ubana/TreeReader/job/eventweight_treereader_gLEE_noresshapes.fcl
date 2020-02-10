@@ -1,5 +1,4 @@
 BEGIN_PROLOG
-
 treereader_eventweight: {
   module_type: "EventWeight"
  
@@ -26,7 +25,209 @@ treereader_eventweight: {
     NormCCMEC: 0.52 # GENIE knob setting, gives scaling factor of 1.26
     XSecShape_CCMEC: 0.22 # 0 --> Nieves CCMEC default, 1 --> GENIE empirical
   }
+  weight_functions_flux: [
+    horncurrent, expskin,
+    piplus, piminus, kplus, kzero, kminus,
+    pioninexsec, pionqexsec, piontotxsec,
+    nucleontotxsec, nucleonqexsec, nucleoninexsec
+  ]
 
+  piplus: {
+    type: PrimaryHadronSWCentralSplineVariation
+    random_seed: 2
+    parameter_list: ["piplus"]
+    parameter_sigma: 1 
+    mode: multisim
+    scale_factor: 1
+    number_of_multisims: 1000
+    PrimaryHadronGeantCode: 211 # geant code for particle production on Be
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    ExternalData: "beamData/ExternalData/BNBExternalData_uBooNE_SplinesHARP.root"
+    ExternalFit: "beamData/ExternalData/BNBExternalData_uBooNE.root"
+    use_MiniBooNE_random_numbers: false
+  }
+
+  piminus: {
+    type: PrimaryHadronSWCentralSplineVariation
+    random_seed: 3
+    parameter_list: ["piminus"]
+    parameter_sigma: 1 
+    mode: multisim
+    scale_factor: 1
+    number_of_multisims: 1000
+    PrimaryHadronGeantCode: -211 # geant code for particle production on Be
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    ExternalData: "beamData/ExternalData/BNBExternalData_uBooNE_SplinesHARP.root"
+    ExternalFit: "beamData/ExternalData/BNBExternalData_uBooNE.root"
+    use_MiniBooNE_random_numbers: false
+  }
+
+  kplus: {
+    type: PrimaryHadronFeynmanScaling
+    random_seed: 4
+    parameter_sigma: 1 
+    mode: multisim
+    number_of_multisims: 1000
+    PrimaryHadronGeantCode: 321 # geant code for particle production on Be
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    ExternalData: "beamData/ExternalData/BNBExternalData_uBooNE.root"
+    # Uncertainties without SciBooNE Contraint
+    #parameter_list: ["kplusOld"]
+    #scale_factor: 2   
+    #ExternalData:"beamData/ExternalData/BNBExternalData_uBooNE_KPlus_withoutSciBooNE.root"
+    # Uncertainties with SciBooNE Constraint
+    parameter_list: ["kplus"]
+    scale_factor: 1         
+    ExternalData:"beamData/ExternalData/BNBExternalData_uBooNE.root"
+    use_MiniBooNE_random_numbers: false
+  }
+
+  kzero: {
+    type: PrimaryHadronSanfordWang
+    random_seed: 5
+    parameter_list: ["kzero"]
+    parameter_sigma: 1
+    mode: multisim
+    scale_factor: 1
+    number_of_multisims: 1000
+    PrimaryHadronGeantCode: [130, 310, 311] # geant code for particle production on Be
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    ExternalData: "beamData/ExternalData/BNBExternalData_uBooNE.root"
+    use_MiniBooNE_random_numbers: false
+  }
+
+  kminus: {
+    type: PrimaryHadronNormalization
+    random_seed: 6
+    parameter_list: ["kminus"]
+    parameter_sigma: 1
+    mode: multisim
+    scale_factor: 1
+    number_of_multisims: 1000
+    PrimaryHadronGeantCode: -321 # geant code for particle production on Be
+    weight_calculator: "MiniBooNE" # "MicroBooNE" OR "MiniBooNE"
+    use_MiniBooNE_random_numbers: false
+  }
+
+  horncurrent: {
+    type: FluxUnisim
+    CentralValue_hist_file: "beamData/UnisimHists/may06_10kpot_ntrd1000_flux.root"
+    PositiveSystematicVariation_hist_file: "beamData/UnisimHists/may06_horn175ka_rgen610.6_flux.root"
+    NegativeSystematicVariation_hist_file: "beamData/UnisimHists/may06_horn173ka_rgen610.6_flux.root"
+    parameter_list: ["horncurrent"]
+    random_seed: 7
+    scale_factor_pos: 1  
+    scale_factor_neg: 1
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    mode: multisim
+    number_of_multisims: 1000
+    use_MiniBooNE_random_numbers: false
+  }
+
+  pioninexsec: {
+    type: FluxUnisim
+    CentralValue_hist_file: "beamData/UnisimHists/may06_10kpot_ntrd1000_flux.root"
+    PositiveSystematicVariation_hist_file: "beamData/UnisimHists/may06_pioninexsec_up_rgen610.6_flux.root"
+    NegativeSystematicVariation_hist_file: "beamData/UnisimHists/may06_pioninexsec_down_rgen610.6_flux.root"
+    parameter_list: ["pioninexsec"]
+    random_seed: 8
+    scale_factor_pos: 1  
+    scale_factor_neg: 1
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    mode: multisim
+    number_of_multisims: 1000
+    use_MiniBooNE_random_numbers: false
+  }
+
+  nucleontotxsec: {
+    type: FluxUnisim
+    CentralValue_hist_file: "beamData/UnisimHists/may06_10kpot_ntrd1000_flux.root"
+    PositiveSystematicVariation_hist_file: "beamData/UnisimHists/may06_nucleontotxsec_up_rgen610.6_flux.root"
+    NegativeSystematicVariation_hist_file: "beamData/UnisimHists/may06_nucleontotxsec_down_rgen610.6_flux.root"
+    parameter_list: ["nucleontotxsec"]
+    random_seed: 9
+    scale_factor_pos: 1  
+    scale_factor_neg: 1
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    mode: multisim
+    number_of_multisims: 1000
+    use_MiniBooNE_random_numbers: false
+  }
+
+  nucleonqexsec: {
+    type: FluxUnisim
+    CentralValue_hist_file: "beamData/UnisimHists/may06_10kpot_ntrd1000_flux.root"
+    PositiveSystematicVariation_hist_file: "beamData/UnisimHists/may06_nucleonqexsec_up_rgen610.6_flux.root"
+    NegativeSystematicVariation_hist_file: "beamData/UnisimHists/may06_nucleonqexsec_down_rgen610.6_flux.root"
+    parameter_list: ["nucleonqexsec"]
+    random_seed: 10
+    scale_factor_pos: 0.333 #From MiniBooNE 
+    scale_factor_neg: 0.573 #From MiniBooNE
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    mode: multisim
+    number_of_multisims: 1000
+    use_MiniBooNE_random_numbers: false
+  }
+
+  nucleoninexsec: {
+    type: FluxUnisim
+    CentralValue_hist_file: "beamData/UnisimHists/may06_10kpot_ntrd1000_flux.root"
+    PositiveSystematicVariation_hist_file: "beamData/UnisimHists/may06_nucleoninexsec_up_rgen610.6_flux.root"
+    NegativeSystematicVariation_hist_file: "beamData/UnisimHists/may06_nucleoninexsec_down_rgen610.6_flux.root"
+    parameter_list: ["nucleoninexsec"]
+    random_seed: 11
+    scale_factor_pos: 1  
+    scale_factor_neg: 1
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    mode: multisim
+    number_of_multisims: 1000
+    use_MiniBooNE_random_numbers: false
+  }
+
+  pionqexsec: {
+    type: FluxUnisim
+    CentralValue_hist_file: "beamData/UnisimHists/may06_10kpot_ntrd1000_flux.root"
+    PositiveSystematicVariation_hist_file: "beamData/UnisimHists/may06_pionqexsec_up_rgen610.6_flux.root"
+    NegativeSystematicVariation_hist_file: "beamData/UnisimHists/may06_pionqexsec_down_rgen610.6_flux.root"
+    parameter_list: ["pionqexsec"]
+    random_seed: 12
+    scale_factor_pos: 0.292 #From MiniBooNE  
+    scale_factor_neg: 0.585 #From MiniBooNE
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    mode: multisim
+    number_of_multisims: 1000
+    use_MiniBooNE_random_numbers: false
+  }
+
+  piontotxsec: {
+    type: FluxUnisim
+    CentralValue_hist_file: "beamData/UnisimHists/may06_10kpot_ntrd1000_flux.root"
+    PositiveSystematicVariation_hist_file: "beamData/UnisimHists/may06_piontotxsec_up_rgen610.6_flux.root"
+    NegativeSystematicVariation_hist_file: "beamData/UnisimHists/may06_piontotxsec_down_rgen610.6_flux.root"
+    parameter_list: ["piontotxsec"]
+    random_seed: 13
+    scale_factor_pos: 1  
+    scale_factor_neg: 1
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    mode: multisim
+    number_of_multisims: 1000
+    use_MiniBooNE_random_numbers: false
+  }
+
+  expskin: {
+    type: FluxUnisim
+    CentralValue_hist_file: "beamData/UnisimHists/may06_10kpot_ntrd1000_flux.root"
+    PositiveSystematicVariation_hist_file: "beamData/UnisimHists/expskin_nrtd1000_flux.root"
+    NegativeSystematicVariation_hist_file: "beamData/UnisimHists/expskin_nrtd1000_flux.root"
+    parameter_list: ["expskin"]
+    random_seed: 14
+    scale_factor_pos: 1  
+    scale_factor_neg: 1
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    mode: multisim
+    number_of_multisims: 1000
+    use_MiniBooNE_random_numbers: false
+  }
 
  
   ##########################################################
@@ -59,18 +260,26 @@ treereader_eventweight: {
   ##########################################################
 
   weight_functions_genie: [
-    All
+    MaCCQE, RPA_CCQE, NormCCMEC,  XSecShape_CCMEC, AxFFCCQEshape,
+    VecFFCCQEshape,  DecayAngMEC, MaNCEL, EtaNCEL, NormNCMEC, FracPN_CCMEC,
+    FracDelta_CCMEC, MaCCRES, MvCCRES, 
+    MaNCRES, MvNCRES, NonRESBGvpCC1pi,
+    NonRESBGvpCC2pi, NonRESBGvpNC1pi, NonRESBGvpNC2pi, NonRESBGvnCC1pi,
+    NonRESBGvnCC2pi, NonRESBGvnNC1pi, NonRESBGvnNC2pi, NonRESBGvbarpCC1pi,
+    NonRESBGvbarpCC2pi, NonRESBGvbarpNC1pi, NonRESBGvbarpNC2pi,
+    NonRESBGvbarnCC1pi, NonRESBGvbarnCC2pi, NonRESBGvbarnNC1pi,
+    NonRESBGvbarnNC2pi, AhtBY, BhtBY, CV1uBY, CV2uBY, AGKYxF1pi, AGKYpT1pi,
+    MFP_pi, MFP_N, FrCEx_pi, FrInel_pi, FrAbs_pi, FrCEx_N, FrInel_N, FrAbs_N,
+    RDecBR1gamma, RDecBR1eta, Theta_Delta2Npi, FrPiProd_pi, FrPiProd_N,All
   ]
- 
-   MaCCQE: {
+ MaCCQE: {
     type: Genie
     random_seed: 1
     parameter_list: [ "MaCCQE" ]
     parameter_sigma: [ 4.16128 ] # +/- 0.12 GeV
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
-
   RPA_CCQE: {
     type: Genie
     random_seed: 2
@@ -81,16 +290,14 @@ treereader_eventweight: {
     mode: minmax 
     number_of_multisims: 2
   }
-
   NormCCMEC: {
     type: Genie
     random_seed: 3
     parameter_list: [ "NormCCMEC" ]
     parameter_sigma: [ 1.4 ] # +/- 70%
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
-
   XSecShape_CCMEC: {
     type: Genie
     random_seed: 4
@@ -101,7 +308,6 @@ treereader_eventweight: {
     mode: minmax
     number_of_multisims: 2
   }
-
   AxFFCCQEshape: {
     type: Genie
     random_seed: 5
@@ -112,7 +318,6 @@ treereader_eventweight: {
     mode: minmax
     number_of_multisims: 2
   }
-
   VecFFCCQEshape: {
     type: Genie
     random_seed: 6
@@ -123,7 +328,6 @@ treereader_eventweight: {
     mode: minmax
     number_of_multisims: 2
   }
-
   DecayAngMEC: {
     type: Genie
     random_seed: 7
@@ -132,79 +336,73 @@ treereader_eventweight: {
     parameter_min: [ 0.0 ]
     parameter_max: [ 1.0 ]
     mode: minmax
-    number_of_multisims: 2
+    number_of_multisims: 10
   }
-
   MaNCEL: {
     type: Genie
     random_seed: 8
     parameter_list: [ "MaNCEL" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
-
   EtaNCEL: {
     type: Genie
     random_seed: 9
     parameter_list: [ "EtaNCEL" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
-
   NormNCMEC: {
     type: Genie
     random_seed: 10
     parameter_list: [ "NormNCMEC" ]
     parameter_sigma: [ 2 ] # +/-100%
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
-
   FracPN_CCMEC: {
     type: Genie
     random_seed: 11
     parameter_list: [ "FracPN_CCMEC" ]
     parameter_sigma: [ 1 ] # +/-20%
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
-
   FracDelta_CCMEC: {
     type: Genie
     random_seed: 12
     parameter_list: [ "FracDelta_CCMEC" ]
     parameter_sigma: [ 1.5 ] # +/-30%
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
-
   NormCCRES: {
     type: Genie
     random_seed: 13
     parameter_list: [ "NormCCRES" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
-  MaCCRESshape: {
+  MaCCRES: {
     type: Genie
     random_seed: 14
-    parameter_list: [ "MaCCRESshape" ]
+    parameter_list: [ "MaCCRES" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 100
   }
   
-  MvCCRESshape: {
+  MvCCRES: {
     type: Genie
     random_seed: 15
-    parameter_list: [ "MvCCRESshape" ]
+    parameter_list: [ "MvCCRES" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 100
   }
   
   NormNCRES: {
@@ -213,25 +411,25 @@ treereader_eventweight: {
     parameter_list: [ "NormNCRES" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 100
   }
   
-  MaNCRESshape: {
+  MaNCRES: {
     type: Genie
     random_seed: 17
-    parameter_list: [ "MaNCRESshape" ]
+    parameter_list: [ "MaNCRES" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 100
   }
   
-  MvNCRESshape: {
+  MvNCRES: {
     type: Genie
     random_seed: 18
-    parameter_list: [ "MvNCRESshape" ]
+    parameter_list: [ "MvNCRES" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 100
   }
   
   MaCOHpi: {
@@ -240,7 +438,7 @@ treereader_eventweight: {
     parameter_list: [ "MaCOHpi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   R0COHpi: {
@@ -249,7 +447,7 @@ treereader_eventweight: {
     parameter_list: [ "R0COHpi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   NonRESBGvpCC1pi: {
@@ -258,7 +456,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvpCC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvpCC2pi: {
@@ -267,7 +465,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvpCC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvpNC1pi: {
@@ -276,7 +474,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvpNC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvpNC2pi: {
@@ -285,7 +483,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvpNC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvnCC1pi: {
@@ -294,7 +492,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvnCC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvnCC2pi: {
@@ -303,7 +501,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvnCC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvnNC1pi: {
@@ -312,7 +510,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvnNC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvnNC2pi: {
@@ -321,7 +519,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvnNC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims:50
   }
   
   NonRESBGvbarpCC1pi: {
@@ -330,7 +528,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarpCC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvbarpCC2pi: {
@@ -339,7 +537,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarpCC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvbarpNC1pi: {
@@ -348,7 +546,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarpNC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvbarpNC2pi: {
@@ -357,7 +555,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarpNC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvbarnCC1pi: {
@@ -366,7 +564,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarnCC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvbarnCC2pi: {
@@ -375,7 +573,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarnCC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvbarnNC1pi: {
@@ -384,7 +582,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarnNC1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   NonRESBGvbarnNC2pi: {
@@ -393,7 +591,7 @@ treereader_eventweight: {
     parameter_list: [ "NonRESBGvbarnNC2pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 50
   }
   
   AhtBY: {
@@ -402,7 +600,7 @@ treereader_eventweight: {
     parameter_list: [ "AhtBY" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   BhtBY: {
@@ -411,7 +609,7 @@ treereader_eventweight: {
     parameter_list: [ "BhtBY" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   CV1uBY: {
@@ -420,7 +618,7 @@ treereader_eventweight: {
     parameter_list: [ "CV1uBY" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   CV2uBY: {
@@ -429,7 +627,7 @@ treereader_eventweight: {
     parameter_list: [ "CV2uBY" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   AGKYxF1pi: {
@@ -438,7 +636,7 @@ treereader_eventweight: {
     parameter_list: [ "AGKYxF1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   AGKYpT1pi: {
@@ -447,7 +645,7 @@ treereader_eventweight: {
     parameter_list: [ "AGKYpT1pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   MFP_pi: {
@@ -456,7 +654,7 @@ treereader_eventweight: {
     parameter_list: [ "MFP_pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   MFP_N: {
@@ -465,7 +663,7 @@ treereader_eventweight: {
     parameter_list: [ "MFP_N" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   FrCEx_pi: {
@@ -474,7 +672,7 @@ treereader_eventweight: {
     parameter_list: [ "FrCEx_pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   FrInel_pi: {
@@ -483,7 +681,7 @@ treereader_eventweight: {
     parameter_list: [ "FrInel_pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   FrAbs_pi: {
@@ -492,7 +690,7 @@ treereader_eventweight: {
     parameter_list: [ "FrAbs_pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 100
   }
   
   FrCEx_N: {
@@ -501,7 +699,7 @@ treereader_eventweight: {
     parameter_list: [ "FrCEx_N" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 100
   }
   
   FrInel_N: {
@@ -510,7 +708,7 @@ treereader_eventweight: {
     parameter_list: [ "FrInel_N" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   FrAbs_N: {
@@ -519,7 +717,7 @@ treereader_eventweight: {
     parameter_list: [ "FrAbs_N" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   RDecBR1gamma: {
@@ -528,7 +726,7 @@ treereader_eventweight: {
     parameter_list: [ "RDecBR1gamma" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   RDecBR1eta: {
@@ -537,7 +735,7 @@ treereader_eventweight: {
     parameter_list: [ "RDecBR1eta" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
   
   Theta_Delta2Npi: {
@@ -550,26 +748,25 @@ treereader_eventweight: {
     mode: minmax
     number_of_multisims: 2
   }
-
   FrPiProd_pi: {
     type: Genie
     random_seed: 54
     parameter_list: [ "FrPiProd_pi" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
-
   FrPiProd_N: {
     type: Genie
     random_seed: 55
     parameter_list: [ "FrPiProd_N" ]
     parameter_sigma: [ 1 ]
     mode: multisim
-    number_of_multisims: 4
+    number_of_multisims: 10
   }
-
-  # Single function that applies all weights needed to obtain
+  
+ 
+      #Single function that applies all weights needed to obtain
   # a new tuned central value
   # NOTE: For samples generated with GENIE v3.0.4 splines, the
   # spline weight to convert v3.0.4 --> v3.0.4a cross sections
@@ -584,9 +781,6 @@ treereader_eventweight: {
     mode: central_value
     number_of_multisims: 1
   }
-
-  
-    
   
  
 # Single function to reweight all GENIE parameters at once
@@ -654,10 +848,10 @@ treereader_eventweight: {
       "MaCCQE", "MaNCEL", "EtaNCEL",
       # MEC
       "NormCCMEC", "NormNCMEC", "FracPN_CCMEC", "FracDelta_CCMEC",
-      # RES
+      # RES reverted to no shape/norm
       "MaCCRES", "MvCCRES", "MaNCRES",
       "MvNCRES",
-      # COH
+      # COH disabled Steve Gardiner
       #"MaCOHpi", "R0COHpi",
       # Non-resonant background
       "NonRESBGvpCC1pi", "NonRESBGvpCC2pi", "NonRESBGvpNC1pi", "NonRESBGvpNC2pi",
@@ -683,7 +877,7 @@ treereader_eventweight: {
       1, 1
     ]
     mode: multisim
-    number_of_multisims: 100 
+    number_of_multisims: 100
   }
   weight_functions_spline: [
     splines_general
@@ -703,7 +897,8 @@ treereader_eventweight: {
 ##########################################################
 
 treereader_eventweight.weight_functions: [
-  @sequence::treereader_eventweight.weight_functions_genie 
+  @sequence::treereader_eventweight.weight_functions_genie, 
+  @sequence::treereader_eventweight.weight_functions_flux
 ]
  
 END_PROLOG
