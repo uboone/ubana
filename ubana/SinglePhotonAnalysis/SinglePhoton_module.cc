@@ -92,6 +92,14 @@ namespace single_photon
         m_exiting_photon_energy_threshold = pset.get<double>("exiting_photon_energy");
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
 
+
+
+        //SEAviwer Settings
+        m_SEAviewHitThreshold = pset.get<double>("SEAviewHitThreshold",50);
+        m_SEAviewDbscanMinPts = pset.get<double>("SEAviewDBSCANMinPts",2);
+        m_SEAviewDbscanEps = pset.get<double>("SEAviewDBSCANEps",3);
+
+
         this->setTPCGeom(); 
 
         rangen = new TRandom3(22);
@@ -817,9 +825,58 @@ namespace single_photon
             }
 
             //Isolation
-
+ 
+    // ################################################### SEAview SEAview #########################################################
+    // #####################################################################################################################################
             //This is a quick check 
 
+
+        //-----------------------------            //SEAviwer -----------------------------------
+
+        if(showers.size()==1 && tracks.size()==0){    
+           
+        art::Ptr<recob::Shower> p_shr = showers.front();
+        art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
+        std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
+        
+        int p_sliceid = PFPToSliceIdMap[p_pfp];
+        auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
+
+        std::string uniq_tag = "yarp";
+
+        //Setup seaviewr object
+        seaview::SEAviewer sevd("test_"+uniq_tag, geom, theDetector );
+        //Pass in any bad channels you like
+        sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
+        //Give it a vertex to center around
+        sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
+
+        //Add the hits from just this slice, as well sa ALL hits 
+        sevd.addSliceHits(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
+        sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
+        sevd.setHitThreshold(m_SEAviewHitThreshold); 
+
+        //Add all the "nice " PFParticle Hits, as well as what to label
+        sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
+
+        //and add the SingleShower we like
+        sevd.addShower(p_shr); // art::Ptr<recob::Shower>
+
+        //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" you passed in. 
+        sevd.calcUnassociatedHits();
+
+        //Recluster
+        sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
+        
+        //And some plotting
+        sevd.Print();
+        
+        //This is the place I will put the new Second Shower Search
+        sevd.analyzeClusters();
+   
+        }
+    // ################################################### END SEAview END SEAview #########################################################
+    // #####################################################################################################################################
 
 
 
@@ -969,8 +1026,10 @@ namespace single_photon
             //run_subrun_tree
             m_run = 0;
             m_subrun = 0;
+            m_subrun_pot = 0;
             run_subrun_tree->Branch("run",&m_run,"run/I");
             run_subrun_tree->Branch("subrun",&m_subrun,"subrun/I");
+            run_subrun_tree->Branch("subrun_pot",&m_subrun_pot,"subrun_pot/I");
 
             // --------------------- POT Releated variables -----------------
             m_number_of_events = 0;
@@ -1152,14 +1211,14 @@ namespace single_photon
             m_run = sr.run();
             m_subrun = sr.subRun();
 
-            run_subrun_tree->Fill();
+            double this_pot = 0;
 
             if(m_potLabel != ""){
                 if(m_potLabel == "generator"){
 
                     art::Handle<sumdata::POTSummary> gen_pot_hand;
                     if(sr.getByLabel(m_potLabel,gen_pot_hand)){
-                        double this_pot =  gen_pot_hand->totgoodpot;
+                        this_pot =  gen_pot_hand->totgoodpot;
                         m_pot_count += this_pot;
                         std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
                     }
@@ -1167,12 +1226,16 @@ namespace single_photon
 
                     art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR875;
                     if (sr.getByLabel("beamdata","bnbETOR875",potSummaryHandlebnbETOR875)){
-                        m_pot_count += potSummaryHandlebnbETOR875->totpot;
+                        this_pot =potSummaryHandlebnbETOR875->totpot; 
+                        m_pot_count += this_pot;
                         std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<potSummaryHandlebnbETOR875->totpot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
                     }
                 }
             }
 
+            m_subrun_pot = this_pot; 
+            
+            run_subrun_tree->Fill();
             return true;
 
         }

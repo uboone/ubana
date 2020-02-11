@@ -88,6 +88,9 @@
 #include "bad_channel_matching.h"
 #include "sssVeto_BDT.class.h"
 #include "DBSCAN.h"
+
+#include "SEAview/SEAviewer.h"
+
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace single_photon
@@ -785,6 +788,13 @@ namespace single_photon
             bool m_fill_trees;
             bool m_run_pi0_filter;
 
+            //SEAviwer bits
+            double m_SEAviewHitThreshold;
+            double  m_SEAviewDbscanMinPts;
+                double m_SEAviewDbscanEps;
+
+
+
             bool m_runCRT;
             double m_DTOffset;
             double  m_Resolution;
@@ -829,6 +839,7 @@ namespace single_photon
 
             int m_run;
             int m_subrun;
+            int m_subrun_pot;
 
             //------------ Event Related Variables -------------
             int m_run_number;

@@ -17,6 +17,7 @@ art_make( BASENAME_ONLY
 			larsim_MCCheater_BackTrackerService_service
 			larsim_MCCheater_ParticleInventoryService_service
 			larpandora_LArPandoraInterface
+            ubana_SinglePhotonAnalysis_SEAview
             ${PANDORASDK}
             ${PANDORAMONITORING}
             LArPandoraContent 
@@ -56,6 +57,7 @@ art_make( BASENAME_ONLY
             SignalShapingServiceMicroBooNE_service
 			nusimdata_SimulationBase
 			ubana_LEEPhotonAnalysis
+            ubana_SinglePhotonAnalysis_SEAview
 			${UB_DATA_TYPES}
 			${Boost_SERIALIZATION_LIBRARY}
                         nutools_RandomUtils_NuRandomService_service
@@ -76,6 +78,7 @@ art_make( BASENAME_ONLY
                         ${ROOT_BASIC_LIB_LIST}
                         ${ROOT_GEOM} )
                       
+add_subdirectory(SEAview)
 add_subdirectory(job)
 install_headers()
 install_fhicl()
