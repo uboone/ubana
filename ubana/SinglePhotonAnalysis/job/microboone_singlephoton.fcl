@@ -16,7 +16,7 @@ singlephoton_analyzer:{
     RunPi0Filter: false
  
     usePID: true 
-    work_function: 23
+    work_function: 23.6
     recombination_factor: 0.62
     gain_mc: [235.5, 249.7, 237.6] #DocDB 20227-v7 using dE/dx calibration method for all planes, updated on 9/13/19
     gain_data: [230.3, 237.6, 243.7] #see above docdb

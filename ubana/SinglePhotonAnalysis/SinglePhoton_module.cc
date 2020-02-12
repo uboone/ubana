@@ -842,7 +842,7 @@ namespace single_photon
         int p_sliceid = PFPToSliceIdMap[p_pfp];
         auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
 
-        std::string uniq_tag = "yarp";
+        std::string uniq_tag = "yarp"+std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
 
         //Setup seaviewr object
         seaview::SEAviewer sevd("test_"+uniq_tag, geom, theDetector );
