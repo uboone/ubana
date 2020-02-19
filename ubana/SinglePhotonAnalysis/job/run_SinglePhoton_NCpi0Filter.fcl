@@ -12,7 +12,7 @@
 
 #include "microboone_singlephoton.fcl"
 
-process_name : SinglePhoton      #The process name must NOT contain any underscores
+process_name : SinglePhotonFilter      #The process name must NOT contain any underscores
 
 source : {
     module_type : RootInput

@@ -882,7 +882,8 @@ namespace single_photon
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 
-        if(m_run_pi0_filter)  return filter_pass;
+        if(m_run_pi0_filter_2g1p)  return filter_pass;
+        else if(m_run_pi0_filter_2g0p)  return filter_pass_2g0p;
 
         return true;
 
@@ -1546,8 +1547,6 @@ namespace single_photon
     bool SinglePhoton::Pi0PreselectionFilter()
     {
         
-        std::cout << "[CHECK]: Running 2g1p filter" << std::endl;        
-
         if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
         if(m_vertex_pos_y < -112. || m_vertex_pos_y > 112.) return false;
         if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1031.8) return false;
@@ -1564,8 +1563,6 @@ namespace single_photon
 
     bool SinglePhoton::Pi0PreselectionFilter2g0p()
     {
-
-        std::cout << "[CHECK]: Running 2g0p filter" << std::endl;        
 
         if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
         if(m_vertex_pos_y < -112. || m_vertex_pos_y > 112.) return false;
