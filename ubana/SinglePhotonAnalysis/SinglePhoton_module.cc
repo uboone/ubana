@@ -1574,7 +1574,6 @@ namespace single_photon
 
         if(m_reco_shower_energy_max.size()!=2) return false;
         if(m_reco_shower_energy_max[m_reco_shower_ordered_energy_index[0]]<30.) return false;
-           //m_reco_shower_energy_max[m_reco_shower_ordered_energy_index[0]]>580.) 
 
         return true;
     }
