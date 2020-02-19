@@ -16,6 +16,7 @@ art_make( BASENAME_ONLY
                    RecoTruth
                    Topology
                    PID
+                   FiducialVolume
                    ubobj_UBXSec
                    ubobj_Trigger
                    HitCosmicTag_Base 
@@ -76,6 +77,7 @@ art_make( BASENAME_ONLY
                    RecoTruth
                    Topology
                    PID
+                   FiducialVolume
                    ubobj_UBXSec
 		   ubobj_Trigger
                    HitCosmicTag_Base
@@ -257,6 +259,46 @@ art_make_library(
        larpandora_LArPandoraInterface
        nusimdata_SimulationBase
        LArPandoraContent
+       cetlib cetlib_except
+
+)
+
+art_make_library(
+   LIBRARY_NAME
+       FiducialVolume
+   SOURCE
+       FiducialVolume.cxx
+   LIBRARIES
+       ubana_BasicTool_GeoAlgo
+       lardataobj_RawData
+       larcorealg_Geometry
+       larcore_Geometry_Geometry_service
+       ${ART_FRAMEWORK_CORE}
+       ${ART_FRAMEWORK_IO_SOURCES}
+       ${ART_FRAMEWORK_PRINCIPAL}
+       art_Persistency_Common canvas
+       art_Persistency_Provenance canvas
+       art_Utilities canvas
+       larcorealg_Geometry
+       larcore_Geometry_Geometry_service
+       art_Persistency_Common canvas
+       art_Persistency_Provenance canvas
+       art_Utilities canvas
+       lardataobj_RecoBase
+       lardataobj_AnalysisBase
+       lardata_Utilities
+       larpandora_LarPandoraEventBuilding
+       LArPandoraContent
+       larpandora_LArPandoraInterface
+       nusimdata_SimulationBase
+       LArPandoraContent
+       ${ART_FRAMEWORK_SERVICES_REGISTRY}
+       ${MF_MESSAGELOGGER}
+       ${FHICLCPP}
+       ${ROOT_BASIC_LIB_LIST}
+       ${ROOT_GEOM}
+       ${Boost_FILESYSTEM_LIBRARY}
+       ${Boost_SYSTEM_LIBRARY}
        cetlib cetlib_except
 
 )

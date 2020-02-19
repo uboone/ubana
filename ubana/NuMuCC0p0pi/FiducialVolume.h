@@ -44,17 +44,29 @@ namespace ubana{
     /// Printd the current configuration
     void PrintConfig();
 
-    /// Returns true if the point is in the FV
-    bool InFV(double x, double y, double z);
+    /// Returns true if the vertex is in the active volume
+    bool VertexInActive(double x, double y, double z);
 
-    /// Returns true if the point is in the FV 
-    bool InFV(double* x);
+    /// Returns true if the vertex is in the FV
+    bool VertexInFV(double x, double y, double z);
+    
+    /// Retruns true if the point is contained
+    bool PointContain(double x, double y, double z);
 
-    /// Returns true if the point is in the FV
-    bool InFV(TVector3 x);
+    /// Returns true if the vertex is in the FV 
+    bool VertexInFV(double* x);
+
+    /// Returns true if the vertex is in the active volume
+    bool VertexInActive(TVector3 x);
+
+    /// Returns true if the vertex is in the FV
+    bool VertexInFV(TVector3 x);
+    
+    /// Return true if the point is in the FV
+    bool PointContain(TVector3 x);
 
     /// Returns true if BOTH points are in the FV
-    bool InFV(TVector3 x1, TVector3 x2);
+    bool TrackContain(TVector3 x1, TVector3 x2);
 
   protected:
 

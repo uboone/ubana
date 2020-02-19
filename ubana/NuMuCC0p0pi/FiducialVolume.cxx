@@ -29,7 +29,14 @@ namespace ubana {
       throw std::exception();
     }
 
+    // In this specific application, 
+    // always assume the fix box is the containment requirement
+    // and the following boxes are the forbidden regions for the vertex
+
     _n_fv = _border_x_low.size();
+    if (_n_fv < 1){
+      throw cet::exception("[Fiducial volume]")<< "The FV is not set correctly" << std::endl;
+    }
 
     _det_half_height = det_half_height;
     _det_width       = det_width;
@@ -57,51 +64,116 @@ namespace ubana {
 
   }
 
-  bool FiducialVolume::InFV(double* x) {
+  //////////////////////////////
+  //The 0th box is the containment requirement
+  //The rest boxes are the "dead wire" regions which the vertices should be excluded in these regions
+  ////////////////////////////
 
-    return this->InFV(x[0], x[1], x[2]);
+  bool FiducialVolume::VertexInActive(TVector3 x) {
 
-  }
-
-  bool FiducialVolume::InFV(TVector3 x) {
-
-    return this->InFV(x.X(), x.Y(), x.Z());
-
-  }
-
-  bool FiducialVolume::InFV(TVector3 x1, TVector3 x2) {
-
-    return (this->InFV(x1.X(), x1.Y(), x1.Z()) && this->InFV(x2.X(), x2.Y(), x2.Z()));
+    return this->VertexInActive(x.X(), x.Y(), x.Z());
 
   }
 
-  bool FiducialVolume::InFV(double x, double y, double z) {
+  bool FiducialVolume::VertexInFV(double* x) {
+
+    return this->VertexInFV(x[0], x[1], x[2]);
+
+  }
+
+  bool FiducialVolume::VertexInFV(TVector3 x) {
+
+    return this->VertexInFV(x.X(), x.Y(), x.Z());
+
+  }
+
+  bool FiducialVolume::PointContain(TVector3 x) {
+
+    return this->PointContain(x.X(), x.Y(), x.Z());
+
+  }
+
+  // Assume x1 is track start and x2 is track end
+  bool FiducialVolume::TrackContain(TVector3 x1, TVector3 x2) {
+
+    return (this->VertexInFV(x1.X(), x1.Y(), x1.Z()) && this->PointContain(x2.X(), x2.Y(), x2.Z()));
+
+  }
+
+  /////////////////// For Dirt (if vertex in the active area or not)
+  bool FiducialVolume::VertexInActive(double x, double y, double z) {
 
     // Construct a vector
     ::geoalgo::Vector the_point(x, y, z);
 
-    for (size_t i = 0; i < _n_fv; i++) {
+    // Vertex in the active volume
+    // Construct the fiducial volume
+    ::geoalgo::AABox fidvol(0., 
+                            -1.*_det_half_height,
+                            0.,
+                            _det_width,
+                            _det_half_height,
+                            _det_length);
 
-
-      // Construct the fiducial volume
-      ::geoalgo::AABox fidvol(_border_x_low.at(i), 
-                              -1.*_det_half_height + _border_y_low.at(i), 
-                              _border_z_low.at(i),
-                              _det_width - _border_x_high.at(i), 
-                              _det_half_height - _border_y_high.at(i), 
-                              _det_length - _border_z_high.at(i));
-
-      // Check if the vector is in the FV
-      if(fidvol.Contain(the_point))
-        return true;
-
-    }
-
-    return false;
-
+    // Check if the vector is in the FV
+    if(fidvol.Contain(the_point))
+      return true;
+    else
+      return false;
   }
 
+  /////////////////// For Containment
+  bool FiducialVolume::PointContain(double x, double y, double z) {
 
+    // Construct a vector
+    ::geoalgo::Vector the_point(x, y, z);
+
+    // Containment only requires the point to be in the 0th box
+    // Construct the fiducial volume
+    ::geoalgo::AABox fidvol(_border_x_low.at(0), 
+                            -1.*_det_half_height + _border_y_low.at(0), 
+                            _border_z_low.at(0),
+                            _det_width - _border_x_high.at(0), 
+                            _det_half_height - _border_y_high.at(0), 
+                            _det_length - _border_z_high.at(0));
+
+    // Check if the vector is in the FV
+    if(fidvol.Contain(the_point))
+      return true;
+    else
+      return false;
+  }
+
+  ////////////////// For Vertex
+  bool FiducialVolume::VertexInFV(double x, double y, double z) {
+
+    // Construct a vector
+    ::geoalgo::Vector the_point(x, y, z);
+
+    if (_n_fv == 1){
+      return this->PointContain(x, y, z);
+    }
+
+    if (_n_fv > 1){
+      // Vertex shouldn't be in the other boxes than 0th
+      for (size_t i = 1; i < _n_fv; i++) {
+        ::geoalgo::AABox fidvol(_border_x_low.at(i),
+                                -1.*_det_half_height + _border_y_low.at(i),
+                                _border_z_low.at(i),
+                                _det_width - _border_x_high.at(i),
+                                _det_half_height - _border_y_high.at(i),
+                                _det_length - _border_z_high.at(i));
+        // Check if the vector in the sub-boxes
+        if (fidvol.Contain(the_point)){
+          return false;
+        }  
+      }
+      return true;
+    }
+    
+    // dumb return
+    return true;
+  }
 }
 
 
