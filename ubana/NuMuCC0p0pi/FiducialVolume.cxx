@@ -150,6 +150,8 @@ namespace ubana {
     // Construct a vector
     ::geoalgo::Vector the_point(x, y, z);
 
+    bool if_in_deadbox = false;
+
     if (_n_fv == 1){
       return this->PointContain(x, y, z);
     }
@@ -165,14 +167,15 @@ namespace ubana {
                                 _det_length - _border_z_high.at(i));
         // Check if the vector in the sub-boxes
         if (fidvol.Contain(the_point)){
-          return false;
+          if_in_deadbox = true;
         }  
       }
-      return true;
     }
     
-    // dumb return
-    return true;
+    // Return true if point is contained but not in deadbox
+    bool vtx_in_FV = this->PointContain(x, y, z) && !if_in_deadbox;
+
+    return vtx_in_FV;
   }
 }
 

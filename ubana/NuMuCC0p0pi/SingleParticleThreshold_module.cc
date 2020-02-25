@@ -165,6 +165,7 @@ private:
  
   int Ntrack; // number of tracks in this event
   int N_MCP; // number of MC particles in this event
+  int vtx_dist; // distance in between tracks (default = 99999)
 
   std::vector<int> hits_dEdx_size_pl0;
   std::vector<int> hits_dEdx_size_pl1;
@@ -323,9 +324,12 @@ void ParticleThreshold::analyze(art::Event const& evt)
   art::fill_ptr_vector(MCParticleCollection, Handle_MCParticle);
 
   //------Loop over all MCParticles
-  N_MCP = MCParticleCollection.size();
+  N_MCP = 0;
+  TVector3 mu_start;
+  TVector3 other_start;
   for(int i_mcp = 0; i_mcp < (int) MCParticleCollection.size(); i_mcp++){
     if(MCParticleCollection[i_mcp]->Process() == "primary"){    
+      N_MCP++;
       auto MCP = MCParticleCollection[i_mcp];
       auto AllTrueTrackPos = MCP->EndPosition() - MCP->Position();
       All_true_PDG.push_back(MCP->PdgCode());
@@ -350,7 +354,19 @@ void ParticleThreshold::analyze(art::Event const& evt)
       All_true_trk_theta_xz.push_back(std::atan2(AllTrueTrackPos.X(), AllTrueTrackPos.Z()));
       All_true_trk_costheta_xz.push_back(cos(All_true_trk_theta_xz.back()));
       All_true_trk_length.push_back(sqrt(AllTrueTrackPos.X()*AllTrueTrackPos.X() + AllTrueTrackPos.Y()*AllTrueTrackPos.Y() + AllTrueTrackPos.Z()*AllTrueTrackPos.Z())); // An estimation of true track length
+      if(MCP->PdgCode() == 13){
+        mu_start = All_true_start;
+      }
+      if(MCP->PdgCode() != 13){
+        other_start = All_true_start;
+      }
     }
+  }
+  if(N_MCP == 2){ // assuming if there are two primary MC paritlces, they must be one muon and one othe
+    vtx_dist = (mu_start - other_start).Mag();
+  }
+  else{
+    vtx_dist = 99999;
   }
 
   //------Loop over all tracks
@@ -940,6 +956,7 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("All_true_trk_costheta_xz", &All_true_trk_costheta_xz);
   my_event_->Branch("All_true_trk_length", &All_true_trk_length);
 
+  my_event_->Branch("vtx_dist", &vtx_dist);
   my_event_->Branch("N_MCP", &N_MCP);
   my_event_->Branch("Ntrack", &Ntrack);
 
