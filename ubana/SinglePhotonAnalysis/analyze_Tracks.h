@@ -464,9 +464,9 @@ namespace single_photon
         vertex_tree->Branch("sim_track_px",&m_sim_track_px);
         vertex_tree->Branch("sim_track_py",&m_sim_track_py);
         vertex_tree->Branch("sim_track_pz",&m_sim_track_pz);
-         vertex_tree->Branch("sim_track_endx",&m_sim_track_px);
-        vertex_tree->Branch("sim_track_endy",&m_sim_track_py);
-        vertex_tree->Branch("sim_track_endz",&m_sim_track_pz);
+        vertex_tree->Branch("sim_track_endx",&m_sim_track_endx);
+        vertex_tree->Branch("sim_track_endy",&m_sim_track_endy);
+        vertex_tree->Branch("sim_track_endz",&m_sim_track_endz);
         vertex_tree->Branch("sim_track_trackID",&m_sim_track_trackID);
 
         vertex_tree->Branch("sim_track_sliceId",& m_sim_track_sliceId);
@@ -677,9 +677,13 @@ namespace single_photon
                 std::vector<double> correctedstart(3);
                 std::vector<double> correctedend(3);
                 std::vector<double> raw_End  ={mcparticle->EndX(), mcparticle->EndY(), mcparticle->EndZ()};
+               // std::cout<<"the raw end of this mcparticle is "<<raw_End[0]<<", "<<raw_End[1]<<", "<<raw_End[2]<<std::endl;
                 this->spacecharge_correction(mcparticle, correctedstart);
                 this->spacecharge_correction(mcparticle, correctedend, raw_End);
+                
+                //std::cout<<"the corrected end of this mcparticle is "<<correctedend[0]<<", "<<correctedend[1]<<", "<<correctedend[2]<<std::endl;
 
+           
                 m_sim_track_matched[i_trk] = 1;
                 m_sim_track_energy[i_trk] = mcparticle->E();
                 m_sim_track_mass[i_trk] = mcparticle->Mass();
@@ -694,9 +698,9 @@ namespace single_photon
                 m_sim_track_endy[i_trk]= correctedend[1];
                 m_sim_track_endz[i_trk]= correctedend[2];
              
-              //  m_sim_track_px[i_trk];
-              //  m_sim_track_py[i_trk];
-              //  m_sim_track_pz[i_trk];
+                m_sim_track_px[i_trk]=  mcparticle->Px();
+                m_sim_track_py[i_trk]=  mcparticle->Py();
+                m_sim_track_pz[i_trk]=  mcparticle->Pz();
              
 
                 m_sim_track_origin[i_trk] = mctruth->Origin();
