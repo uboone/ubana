@@ -85,6 +85,51 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_overlay_fraction",&m_sss_candidate_overlay_fraction);
 
 
+
+
+        vertex_tree->Branch("sss3d_ioc_ranked_en",&m_sss3d_ioc_ranked_en);
+        vertex_tree->Branch("sss3d_ioc_ranked_conv",&m_sss3d_ioc_ranked_conv);
+        vertex_tree->Branch("sss3d_ioc_ranked_invar",&m_sss3d_ioc_ranked_invar);
+        vertex_tree->Branch("sss3d_ioc_ranked_implied_invar",&m_sss3d_ioc_ranked_implied_invar);
+        vertex_tree->Branch("sss3d_ioc_ranked_ioc",&m_sss3d_ioc_ranked_ioc);
+        vertex_tree->Branch("sss3d_ioc_ranked_opang",&m_sss3d_ioc_ranked_opang);
+        vertex_tree->Branch("sss3d_ioc_ranked_implied_opang",&m_sss3d_ioc_ranked_implied_opang);
+        vertex_tree->Branch("sss3d_ioc_ranked_id",&m_sss3d_ioc_ranked_id);
+
+        vertex_tree->Branch("sss3d_invar_ranked_en",&m_sss3d_invar_ranked_en);
+        vertex_tree->Branch("sss3d_invar_ranked_conv",&m_sss3d_invar_ranked_conv);
+        vertex_tree->Branch("sss3d_invar_ranked_invar",&m_sss3d_invar_ranked_invar);
+        vertex_tree->Branch("sss3d_invar_ranked_implied_invar",&m_sss3d_invar_ranked_implied_invar);
+        vertex_tree->Branch("sss3d_invar_ranked_ioc",&m_sss3d_invar_ranked_ioc);
+        vertex_tree->Branch("sss3d_invar_ranked_opang",&m_sss3d_invar_ranked_opang);
+        vertex_tree->Branch("sss3d_invar_ranked_implied_opang",&m_sss3d_invar_ranked_implied_opang);
+        vertex_tree->Branch("sss3d_invar_ranked_id",&m_sss3d_invar_ranked_id);
+
+
+        vertex_tree->Branch("sss2d_ioc_ranked_en",&m_sss2d_ioc_ranked_en);
+        vertex_tree->Branch("sss2d_ioc_ranked_conv",&m_sss2d_ioc_ranked_conv);
+        vertex_tree->Branch("sss2d_ioc_ranked_ioc",&m_sss2d_ioc_ranked_ioc);
+        vertex_tree->Branch("sss2d_ioc_ranked_pca",&m_sss2d_ioc_ranked_pca);
+        vertex_tree->Branch("sss2d_ioc_ranked_invar",&m_sss2d_ioc_ranked_invar);
+        vertex_tree->Branch("sss2d_ioc_ranked_angle_to_shower",&m_sss2d_ioc_ranked_angle_to_shower);
+        vertex_tree->Branch("sss2d_ioc_ranked_num_planes",&m_sss2d_ioc_ranked_num_planes);
+
+        vertex_tree->Branch("sss2d_invar_ranked_en",&m_sss2d_invar_ranked_en);
+        vertex_tree->Branch("sss2d_invar_ranked_conv",&m_sss2d_invar_ranked_conv);
+        vertex_tree->Branch("sss2d_invar_ranked_ioc",&m_sss2d_invar_ranked_ioc);
+        vertex_tree->Branch("sss2d_invar_ranked_pca",&m_sss2d_invar_ranked_pca);
+        vertex_tree->Branch("sss2d_invar_ranked_invar",&m_sss2d_invar_ranked_invar);
+        vertex_tree->Branch("sss2d_invar_ranked_angle_to_shower",&m_sss2d_invar_ranked_angle_to_shower);
+        vertex_tree->Branch("sss2d_invar_ranked_num_planes",&m_sss2d_invar_ranked_num_planes);
+
+        vertex_tree->Branch("sss2d_conv_ranked_en",&m_sss2d_conv_ranked_en);
+        vertex_tree->Branch("sss2d_conv_ranked_conv",&m_sss2d_conv_ranked_conv);
+        vertex_tree->Branch("sss2d_conv_ranked_ioc",&m_sss2d_conv_ranked_ioc);
+        vertex_tree->Branch("sss2d_conv_ranked_pca",&m_sss2d_conv_ranked_pca);
+        vertex_tree->Branch("sss2d_conv_ranked_invar",&m_sss2d_conv_ranked_invar);
+        vertex_tree->Branch("sss2d_conv_ranked_angle_to_shower",&m_sss2d_conv_ranked_angle_to_shower);
+        vertex_tree->Branch("sss2d_conv_ranked_num_planes",&m_sss2d_conv_ranked_num_planes);
+
     }
 
     void SinglePhoton::SecondShowerSearch(
@@ -778,7 +823,7 @@ namespace single_photon
 
                 //Some time matching
 
-                
+
                 //Closest neightor
                 for(int l=0; l< m_sss_num_candidates; l++){
                     int this_p = m_sss_candidate_plane[l];
@@ -796,7 +841,8 @@ namespace single_photon
                     std::vector<double> thisvars = { (double)m_sss_candidate_num_hits[l], (double)m_sss_candidate_num_wires[l], (double)m_sss_candidate_num_ticks[l], (double)m_sss_candidate_PCA[l], log10((double)m_sss_candidate_impact_parameter[l]), log10((double)m_sss_candidate_min_dist[l]), (double)m_sss_candidate_impact_parameter[l]/(double)m_sss_candidate_min_dist[l], (double)m_sss_candidate_energy[l]*0.001, cos((double)m_sss_candidate_angle_to_shower[l]), (double)m_sss_candidate_fit_slope[l], (double)m_sss_candidate_fit_constant[l], (double)m_sss_candidate_plane[l],m_reco_shower_energy_max[0]*0.001,  2*0.001*0.001*m_sss_candidate_energy[l]*m_reco_shower_energy_max[0]*(1.0-cos(m_sss_candidate_angle_to_shower[l])) , log10(2*0.001*0.001*m_sss_candidate_energy[l]*m_reco_shower_energy_max[0]*(1.0-cos(m_sss_candidate_angle_to_shower[l]))),m_sss_candidate_energy[l]/m_reco_shower_energy_max[0], (double)m_sss_candidate_closest_neighbour[l] };
 
 
-                    double score = sssVetov1->GetMvaValue(thisvars);
+                    //double score = sssVetov1->GetMvaValue(thisvars);
+                    double score = -1;
                     m_sss_candidate_veto_score.push_back(score);
 
                 }
@@ -1457,25 +1503,25 @@ namespace single_photon
 
             //What are we intested in learning
             std::vector<std::string> interested = {"IsClearCosmic","TrackScore","NuScore","IsNeutrino","SliceIndex"};
-           
-            /*
-            std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> metadatas = pfPartToMetadataAssoc.at(pfp.key());
-            for(auto &meta: metadatas){
-                  std::map<std::string, float> propertiesmap  = meta->GetPropertiesMap();
 
-                  for (auto it:propertiesmap ){
-                    std::cout<<it.first<<" "<<it.second<<" ";
-                  }
-                  std::cout<<std::endl;
-                  
-                  //for each of the things in the list
-                  for(auto &s: interested){
-                    if(propertiesmap.count(s)==1){
-                        std::cout<<" "<<s<<" :  "<<propertiesmap[s]<<" ";
-                    }else{
-                        std::cout<<" NO "<<s<<" . ";
-                    }
-                  }
+            /*
+               std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> metadatas = pfPartToMetadataAssoc.at(pfp.key());
+               for(auto &meta: metadatas){
+               std::map<std::string, float> propertiesmap  = meta->GetPropertiesMap();
+
+               for (auto it:propertiesmap ){
+               std::cout<<it.first<<" "<<it.second<<" ";
+               }
+               std::cout<<std::endl;
+
+            //for each of the things in the list
+            for(auto &s: interested){
+            if(propertiesmap.count(s)==1){
+            std::cout<<" "<<s<<" :  "<<propertiesmap[s]<<" ";
+            }else{
+            std::cout<<" NO "<<s<<" . ";
+            }
+            }
             }
             */
 
@@ -1505,10 +1551,10 @@ namespace single_photon
 
             if(is_matched) 
             {
-               // std::cout<<"matched and continuing"<<std::endl; 
+                // std::cout<<"matched and continuing"<<std::endl; 
                 continue;
             }
-           
+
             double senergy = this->CalcEShower(showerToHitsMap[shr]); 
             double invar = implied_invar_mass(m_vertex_pos_x, m_vertex_pos_y, m_vertex_pos_z,  primary_shower, m_reco_shower_energy_max[0], shr, senergy);
             double implied_invar = invar_mass(primary_shower, m_reco_shower_energy_max[0], shr, senergy) ;
@@ -1534,7 +1580,7 @@ namespace single_photon
                 m_sss3d_shower_ioc_ratio.push_back(imp/dist);
             }else{
                 m_sss3d_shower_ioc_ratio.push_back(0);
-            
+
             }
             m_sss3d_shower_energy_max.push_back(senergy);// 
             m_sss3d_shower_score.push_back(shr_score);
@@ -1543,6 +1589,325 @@ namespace single_photon
         }   
 
         return;
+    }
+
+
+
+    void SinglePhoton::SimpleSecondShowerCluster(){
+
+        std::string base = "sss3d_";
+        std::vector<std::string> mod = {"ioc_ranked","invar_ranked"};
+
+        m_sss3d_ioc_ranked_en = -9;
+        m_sss3d_ioc_ranked_conv = -9;
+        m_sss3d_ioc_ranked_invar = -9;
+        m_sss3d_ioc_ranked_implied_invar = -9;
+        m_sss3d_ioc_ranked_ioc = -9;
+        m_sss3d_ioc_ranked_opang = -9;
+        m_sss3d_ioc_ranked_implied_opang = -9; 
+        m_sss3d_ioc_ranked_id = -9;
+
+        m_sss3d_invar_ranked_en = -9;
+        m_sss3d_invar_ranked_conv = -9;
+        m_sss3d_invar_ranked_invar = -9;
+        m_sss3d_invar_ranked_implied_invar = -9;
+        m_sss3d_invar_ranked_ioc = -9;
+        m_sss3d_invar_ranked_opang = -9;
+        m_sss3d_invar_ranked_implied_opang = -9; 
+        m_sss3d_invar_ranked_id = -9;
+
+
+        std::string base2d = "sss_";
+        std::vector<std::string> mod2d = {"ioc_ranked","conv_ranked","invar_ranked"};
+
+        m_sss2d_ioc_ranked_en = -9;
+        m_sss2d_ioc_ranked_conv = -9;
+        m_sss2d_ioc_ranked_ioc = -9;
+        m_sss2d_ioc_ranked_pca = -9;
+        m_sss2d_ioc_ranked_invar = -9;
+        m_sss2d_ioc_ranked_angle_to_shower = -9;
+        m_sss2d_ioc_ranked_num_planes = -9;
+
+        m_sss2d_conv_ranked_en = -9;
+        m_sss2d_conv_ranked_conv = -9;
+        m_sss2d_conv_ranked_ioc = -9;
+        m_sss2d_conv_ranked_pca = -9;
+        m_sss2d_conv_ranked_invar = -9;
+        m_sss2d_conv_ranked_angle_to_shower = -9;
+        m_sss2d_conv_ranked_num_planes = -9;
+
+        m_sss2d_invar_ranked_en = -9;
+        m_sss2d_invar_ranked_conv = -9;
+        m_sss2d_invar_ranked_ioc = -9;
+        m_sss2d_invar_ranked_pca = -9;
+        m_sss2d_invar_ranked_invar = -9;
+        m_sss2d_invar_ranked_angle_to_shower = -9;
+        m_sss2d_invar_ranked_num_planes = -9;
+
+        //---------------------------------------
+        //First off, the 3D showers 
+            //First some 3D shower information
+            if(m_sss3d_shower_conversion_dist.size()>0 && m_reco_shower_energy_max.size()>0){
+                //std::cout<<"Primary shower en "<<reco_shower_energy_max->at(0)<<std::endl;
+
+                std::vector<double> inv = m_sss3d_shower_implied_invariant_mass;
+                for(auto &v : inv) v = fabs(v-m_mass_pi0_mev);
+
+                std::vector<size_t> ranked_ioc = sort_indexes_rev<double>((m_sss3d_shower_ioc_ratio));
+                std::vector<size_t> ranked_invar = sort_indexes_rev<double>((inv));
+                std::vector<size_t> ranked_conv = sort_indexes_rev<double>((m_sss3d_shower_conversion_dist));
+                std::vector<size_t> ranked_en = sort_indexes_rev<double>((m_sss3d_shower_energy_max));
+
+                int to_consider = m_sss3d_shower_conversion_dist.size();
+
+                if(false){
+                    std::cout<<"IOC"<<std::endl;
+                    for(int j=0; j<to_consider; j++){
+                        std::cout<<"--"<<ranked_ioc[j]<<" ioc: "<<m_sss3d_shower_ioc_ratio.at( ranked_ioc[j] )<<" invar: "<<m_sss3d_shower_implied_invariant_mass.at(ranked_ioc[j])<<" en: "<<m_sss3d_shower_energy_max.at(ranked_ioc[j])<<" conv: "<<m_sss3d_shower_conversion_dist.at(ranked_ioc[j])<<std::endl;
+                    }
+
+                    std::cout<<"INVAR"<<std::endl;
+                    for(int j=0; j<to_consider; j++){
+                        std::cout<<"--"<<ranked_invar[j]<<" ioc: "<<m_sss3d_shower_ioc_ratio.at( ranked_invar[j] )<<" invar: "<<m_sss3d_shower_implied_invariant_mass.at(ranked_invar[j])<<" en: "<<m_sss3d_shower_energy_max.at(ranked_invar[j])<<" conv: "<<m_sss3d_shower_conversion_dist.at(ranked_invar[j]) <<std::endl;
+                    }
+
+                    std::cout<<"EN"<<std::endl;
+                    for(int j=0; j<to_consider; j++){
+                        int rk = ranked_en[ranked_en.size()-1-j];
+                        std::cout<<"--"<<rk<<" ioc: "<<m_sss3d_shower_ioc_ratio.at( rk )<<" invar: "<<m_sss3d_shower_implied_invariant_mass.at(rk)<<" en: "<<m_sss3d_shower_energy_max.at(rk)<<" conv: "<<m_sss3d_shower_conversion_dist.at(rk)<<std::endl;
+                    }
+                    std::cout<<"CONV"<<std::endl;
+                    for(int j=0; j<to_consider; j++){
+                        std::cout<<"--"<<ranked_conv[j]<<" ioc: "<<m_sss3d_shower_ioc_ratio.at( ranked_conv[j] )<<" invar: "<<m_sss3d_shower_implied_invariant_mass.at(ranked_conv[j])<<" en: "<<m_sss3d_shower_energy_max.at(ranked_conv[j])<<" conv: "<<m_sss3d_shower_conversion_dist.at(ranked_conv[j])<<std::endl;
+                    }
+                }
+
+
+                //std::cout<<"Best IOC "<<"--"<<ranked_ioc[0]<<" ioc: "<<sss3d_shower_ioc_ratio->at( ranked_ioc[0] )<<" invar: "<<sss3d_shower_implied_invariant_mass->at(ranked_ioc[0])<<" en: "<<sss3d_shower_energy_max->at(ranked_ioc[0])<<" conv: "<<sss3d_shower_conversion_dist->at(ranked_ioc[0])<<std::endl;
+                m_sss3d_ioc_ranked_en = m_sss3d_shower_energy_max.at(ranked_ioc[0]);            
+                m_sss3d_ioc_ranked_conv = m_sss3d_shower_conversion_dist.at(ranked_ioc[0]);            
+                m_sss3d_ioc_ranked_invar = m_sss3d_shower_invariant_mass.at(ranked_ioc[0]);            
+                m_sss3d_ioc_ranked_implied_invar = m_sss3d_shower_implied_invariant_mass.at(ranked_ioc[0]);            
+                m_sss3d_ioc_ranked_ioc = m_sss3d_shower_ioc_ratio.at(ranked_ioc[0]);
+                m_sss3d_ioc_ranked_opang = 1.0 - pow(m_sss3d_shower_invariant_mass.at(ranked_ioc[0]),2)/(2.0*m_sss3d_shower_energy_max.at(ranked_ioc[0])*m_reco_shower_energy_max.at(0));
+                m_sss3d_ioc_ranked_implied_opang = 1.0 - pow(m_sss3d_shower_implied_invariant_mass.at(ranked_ioc[0]),2)/(2.0*m_sss3d_shower_energy_max.at(ranked_ioc[0])*m_reco_shower_energy_max.at(0));
+                m_sss3d_ioc_ranked_id = ranked_ioc[0];
+
+
+                // std::cout<<"Best invar "<<"--"<<ranked_invar[0]<<" ioc: "<<sss3d_shower_ioc_ratio.at( ranked_invar[0] )<<" invar: "<<sss3d_shower_implied_invariant_mass.at(ranked_invar[0])<<" en: "<<sss3d_shower_energy_max.at(ranked_invar[0])<<" conv: "<<sss3d_shower_conversion_dist.at(ranked_invar[0])<<std::endl;
+                m_sss3d_invar_ranked_en = m_sss3d_shower_energy_max.at(ranked_invar[0]);            
+                m_sss3d_invar_ranked_conv = m_sss3d_shower_conversion_dist.at(ranked_invar[0]);            
+                m_sss3d_invar_ranked_invar = m_sss3d_shower_invariant_mass.at(ranked_invar[0]);            
+                m_sss3d_invar_ranked_implied_invar = m_sss3d_shower_implied_invariant_mass.at(ranked_invar[0]);            
+                m_sss3d_invar_ranked_ioc = m_sss3d_shower_ioc_ratio.at(ranked_invar[0]);
+                m_sss3d_invar_ranked_opang = 1.0 - pow(m_sss3d_shower_invariant_mass.at(ranked_invar[0]),2)/(2.0*m_sss3d_shower_energy_max.at(ranked_invar[0])*m_reco_shower_energy_max.at(0));
+                m_sss3d_invar_ranked_implied_opang = 1.0 - pow(m_sss3d_shower_implied_invariant_mass.at(ranked_invar[0]),2)/(2.0*m_sss3d_shower_energy_max.at(ranked_invar[0])*m_reco_shower_energy_max.at(0));
+                m_sss3d_invar_ranked_id = ranked_invar[0];
+
+            }//end of 3D shower searching
+
+
+            //Now some 2D shower information
+            //
+            if(m_sss_num_candidates>0){
+                //std::cout<<"2D clusters: "<<sss_num_candidates<<std::endl;
+                std::vector<int> nplans(3,0);
+                std::vector<std::vector<int>> indexmap(3);
+
+
+                for(int i=0; i< m_sss_num_candidates; i++){
+                    //std::cout<<i<<" p: "<<m_sss_candidate_plane->at(i)<<" pdg: "<<m_sss_candidate_parent_pdg->at(i)<<" ovf "<<m_sss_candidate_overlay_fraction->at(i)<<" conv: "<<m_sss_candidate_min_dist->at(i)<<std::endl;
+                }
+
+                std::vector<std::vector<int>> uniq_candidates;
+
+                for(int i=0; i< m_sss_num_candidates; i++){
+                    int ip = m_sss_candidate_plane.at(i);
+                    //int nhits = sss_candidate_num_hits.at(i);
+                    nplans[ip]++;
+                    indexmap[ip].push_back(i);
+
+                    //Two passes to build up all "Candidates" for 2 and 3 plane matches
+                    for(int j=i;j<m_sss_num_candidates;j++){
+                        int jp = m_sss_candidate_plane.at(j);
+                        if(jp==ip) continue;
+
+                        bool contain_ij = false;
+                        bool contain_ji = false;
+                        if(m_sss_candidate_mean_tick.at(j)<=m_sss_candidate_max_tick.at(i) && m_sss_candidate_mean_tick.at(j) >= m_sss_candidate_min_tick.at(i))contain_ij = true;
+                        if(m_sss_candidate_mean_tick.at(i)<=m_sss_candidate_max_tick.at(j) && m_sss_candidate_mean_tick.at(i) >= m_sss_candidate_min_tick.at(j))contain_ji = true;
+                        //                                std::cout<<i<<" "<<j<<" "<<contain_ij<<" "<<contain_ji<<std::endl;
+                        if(contain_ij && contain_ji){
+                            uniq_candidates.push_back({i,j});
+                        }
+                    }
+                }
+
+                //Now loop over to check if any indlude a third plane
+                for(int i = 0; i< (int)uniq_candidates.size(); i++){
+                    for(int k=0; k<m_sss_num_candidates; k++){
+                        //first check if this possible 3rd match is on a seperate plane
+                        bool new_plane = true;
+                        for(auto &pp:uniq_candidates[i]){
+                            if(m_sss_candidate_plane.at(k)==m_sss_candidate_plane.at(pp) ) new_plane = false;   
+                        }
+                        if(new_plane){
+
+                            bool contain_ik = false;
+                            bool contain_ki = false;
+                            bool contain_jk = false;
+                            bool contain_kj = false;
+                            if(m_sss_candidate_mean_tick.at(k)<=m_sss_candidate_max_tick.at(uniq_candidates[i][0]) && m_sss_candidate_mean_tick.at(k) >= m_sss_candidate_min_tick.at(uniq_candidates[i][0]))contain_ik = true;
+                            if(m_sss_candidate_mean_tick.at(uniq_candidates[i][0])<=m_sss_candidate_max_tick.at(k) && m_sss_candidate_mean_tick.at(uniq_candidates[i][0]) >= m_sss_candidate_min_tick.at(k))contain_ki = true;
+                            if(m_sss_candidate_mean_tick.at(k)<=m_sss_candidate_max_tick.at(uniq_candidates[i][1]) && m_sss_candidate_mean_tick.at(k) >= m_sss_candidate_min_tick.at(uniq_candidates[i][1]))contain_ik = true;
+                            if(m_sss_candidate_mean_tick.at(uniq_candidates[i][1])<=m_sss_candidate_max_tick.at(k) && m_sss_candidate_mean_tick.at(uniq_candidates[i][1]) >= m_sss_candidate_min_tick.at(k))contain_ki = true;
+
+                            //If this matches well with Either last candidate, include as a possibility
+                            if((contain_ik&&contain_ki) || (contain_jk&&contain_kj)){
+                                uniq_candidates[i].push_back(k);
+                            }
+
+                        }
+                    }
+                }
+                //Check which candidates have been used where
+                std::vector<int> used_candidates(m_sss_num_candidates);
+                for(int i = 0; i< (int)uniq_candidates.size(); i++){
+                    for(auto &j: uniq_candidates[i]){
+                        used_candidates[j]++;
+                    }
+                }
+
+                //If a candidate has been included in NO 2 or 3 plane cluster, treat it on its own
+                for(int i = 0; i< (int)used_candidates.size(); i++){
+                    if(used_candidates[i]==0) uniq_candidates.push_back({i});
+                }
+
+                //Now lets delete any permutations
+                std::vector<std::vector<int>> uniq_candidates2;
+                uniq_candidates2.push_back(uniq_candidates.front()); 
+
+                for(int i = 1; i< (int)uniq_candidates.size(); i++){
+
+                    bool perm = false;
+                    for(int j = 0; j< (int)uniq_candidates2.size(); j++){
+                        perm = marks_compare_vec_nonsense<int>(uniq_candidates[i], uniq_candidates2[j]);
+                        if(perm) break;
+                    }
+                    if(!perm) uniq_candidates2.push_back(uniq_candidates[i]);
+                }
+
+                //Printing candidates (After perm check)
+                std::cout<<"After: used_candidates "<<m_sss_num_candidates<<std::endl;
+                for(int i = 0; i< (int)uniq_candidates2.size(); i++){
+                    std::cout<<i<<" | ";
+                    for(auto &j: uniq_candidates2[i])std::cout<<" "<<j;
+                    std::cout<<std::endl;
+                }
+
+                //Right lets CULL and rank the candidates
+                std::vector<bool> candidate_pass(uniq_candidates2.size(),false);
+                std::vector<double>  candidates_en(uniq_candidates2.size(),0);
+                std::vector<double>  candidates_ioc(uniq_candidates2.size(),0);
+                std::vector<double>  candidates_conv(uniq_candidates2.size(),0);
+                std::vector<double>  candidates_pca(uniq_candidates2.size(),0);
+                std::vector<double>  candidates_angle_to_shower(uniq_candidates2.size(),0);
+                std::vector<int>     candidates_num_planes(uniq_candidates2.size(),0);
+                std::vector<double> candidates_eff_invar(uniq_candidates2.size(),0);
+                std::vector<double> candidates_eff_invar_diff(uniq_candidates2.size(),0);
+
+                //rank by min_impat/max_min_dist and select
+                //rank by Energy energy
+
+                for(int j=0; j<(int)uniq_candidates2.size();j++){
+                    int nt=uniq_candidates2[j].size();
+                    //std::cout<<"Candidate #: "<<j<<" has "<<nt<<" 2D clusters"<<std::endl;
+
+                    double mean_min_dist = 0.0;
+                    double max_min_dist = 0.0;
+
+                    double mean_energy = 0.0;
+
+                    double mean_impact = 0.0;
+                    double mean_conv = 0.0;
+                    double min_conv = 999;
+
+                    double min_impact = 999;
+                    double mean_invar = 0.0;
+                    double mean_invar_diff = 0.0;
+
+                    double max_pca = 0;
+                    double min_angle = 999;
+
+                    for(int c=0; c< nt;++c){
+                        int ic = uniq_candidates2[j][c];
+
+                        //std::cout<<"----- plane: "<<m_sss_candidate_plane.at(ic)<<" nhits: "<<m_sss_candidate_num_hits.at(ic)<<" imp: "<<m_sss_candidate_impact_parameter.at(ic)<<" en: "<<m_sss_candidate_energy.at(ic)<<" a2s: "<<m_sss_candidate_angle_to_shower.at(ic)<<" conv: "<<m_sss_candidate_min_dist.at(ic)<<" pdg: "<<m_sss_candidate_parent_pdg.at(ic)<<std::endl;
+
+
+                        double eff_invar = sqrt(2.0*m_sss_candidate_energy.at(ic)*m_reco_shower_energy_max.at(0)*(1.0-cos(m_sss_candidate_angle_to_shower.at(ic))));
+                        double eff_invar_diff = fabs(eff_invar-139.5);
+
+                        mean_min_dist +=m_sss_candidate_min_dist.at(ic)/(double)nt;
+                        mean_energy +=m_sss_candidate_energy.at(ic)/(double)nt;
+                        mean_impact +=m_sss_candidate_impact_parameter.at(ic)/(double)nt;
+                        mean_conv +=m_sss_candidate_min_dist.at(ic)/(double)nt;
+                        mean_invar +=eff_invar/(double)nt;
+                        mean_invar_diff +=eff_invar_diff/(double)nt;
+
+                        min_conv = std::min(min_conv, m_sss_candidate_min_dist.at(ic));
+                        max_min_dist = std::max(max_min_dist, m_sss_candidate_min_dist.at(ic));
+                        max_pca = std::max(max_pca, m_sss_candidate_PCA.at(ic));
+                        min_impact = std::min(min_impact, m_sss_candidate_impact_parameter.at(ic));
+                        min_angle = std::min(min_angle, m_sss_candidate_angle_to_shower.at(ic));
+
+                    }
+                    std::cout<<"======== Mean En "<<mean_energy<<" mean dist "<<mean_min_dist<<" meanimpact "<<mean_impact<<" minimpact/maxdist :  "<<min_impact/max_min_dist<<" invar "<<mean_invar<<std::endl;
+                    candidates_ioc[j]=min_impact/max_min_dist;
+                    candidates_en[j]=mean_energy;
+                    candidates_conv[j] = min_conv;
+                    candidates_pca[j] = max_pca;
+                    candidates_angle_to_shower[j] = min_angle;
+                    candidates_num_planes[j] =nt; 
+                    candidates_eff_invar_diff[j] = mean_invar_diff;
+                    candidates_eff_invar[j] = mean_invar;
+                }
+
+                std::vector<size_t> ranked_ioc = sort_indexes_rev<double>(candidates_ioc);
+                std::vector<size_t> ranked_invar = sort_indexes_rev<double>(candidates_eff_invar_diff);
+                std::vector<size_t> ranked_conv = sort_indexes_rev<double>(candidates_conv);
+
+                std::cout<<"========== Ranking ======== "<<std::endl;
+                std::cout<<"IOC ";   for (auto &ii: ranked_ioc) std::cout<<" "<<ii; std::cout<<std::endl;
+                std::cout<<"CONV ";   for (auto &ii: ranked_conv) std::cout<<" "<<ii; std::cout<<std::endl;
+                std::cout<<"INVAR ";for (auto &ii: ranked_invar) std::cout<<" "<<ii; std::cout<<std::endl;
+
+                m_sss2d_ioc_ranked_en = candidates_en[ranked_ioc[0]];
+                m_sss2d_ioc_ranked_conv = candidates_conv[ranked_ioc[0]];
+                m_sss2d_ioc_ranked_ioc = candidates_ioc[ranked_ioc[0]];
+                m_sss2d_ioc_ranked_invar = candidates_eff_invar[ranked_ioc[0]];
+                m_sss2d_ioc_ranked_pca = candidates_pca[ranked_ioc[0]];
+                m_sss2d_ioc_ranked_angle_to_shower  = candidates_angle_to_shower[ranked_ioc[0]];
+                m_sss2d_ioc_ranked_num_planes  = candidates_num_planes[ranked_ioc[0]];
+
+                m_sss2d_conv_ranked_en = candidates_en[ranked_conv[0]];
+                m_sss2d_conv_ranked_conv = candidates_conv[ranked_conv[0]];
+                m_sss2d_conv_ranked_ioc = candidates_ioc[ranked_conv[0]];
+                m_sss2d_conv_ranked_invar = candidates_eff_invar[ranked_conv[0]];
+                m_sss2d_conv_ranked_pca = candidates_pca[ranked_conv[0]];
+                m_sss2d_conv_ranked_angle_to_shower  = candidates_angle_to_shower[ranked_conv[0]];
+                m_sss2d_conv_ranked_num_planes  = candidates_num_planes[ranked_conv[0]];
+
+                m_sss2d_invar_ranked_en = candidates_en[ranked_invar[0]];
+                m_sss2d_invar_ranked_conv = candidates_conv[ranked_invar[0]];
+                m_sss2d_invar_ranked_ioc = candidates_ioc[ranked_invar[0]];
+                m_sss2d_invar_ranked_invar = candidates_eff_invar[ranked_invar[0]];
+                m_sss2d_invar_ranked_pca = candidates_pca[ranked_invar[0]];
+                m_sss2d_invar_ranked_angle_to_shower  = candidates_angle_to_shower[ranked_invar[0]];
+                m_sss2d_invar_ranked_num_planes  = candidates_num_planes[ranked_invar[0]];
+            }
+
+        return ;
     }
 
 

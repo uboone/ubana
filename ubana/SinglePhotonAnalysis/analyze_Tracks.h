@@ -100,7 +100,6 @@ namespace single_photon
         m_reco_track_num_calo_hits_p0.clear();
         m_reco_track_num_calo_hits_p2.clear();
 
-
         m_sim_track_matched.clear();
         m_sim_track_overlay_fraction.clear();
         m_sim_track_energy.clear();

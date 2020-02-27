@@ -86,7 +86,7 @@
 #include <sys/stat.h>
 
 #include "bad_channel_matching.h"
-#include "sssVeto_BDT.class.h"
+//#include "sssVeto_BDT.class.h"
 #include "DBSCAN.h"
 
 #include "SEAview/SEAviewer.h"
@@ -157,6 +157,28 @@ namespace single_photon
 
             return idx;
         }
+
+    template <typename T>
+        std::vector<size_t> sort_indexes_rev(const std::vector<T> &v) {
+
+            std::vector<size_t> idx(v.size());
+            std::iota(idx.begin(), idx.end(), 0);
+
+            // sort indexes based on comparing values in v
+            std::sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+            return idx;
+        }
+
+template<typename T>
+bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
+{
+        std::sort(v1.begin(), v1.end());
+            std::sort(v2.begin(), v2.end());
+                return v1 == v2;
+}
+
+
 
     double calcWire(double Y, double Z, int plane, int fTPC, int fCryostat, geo::GeometryCore const& geo ){
         double wire = geo.WireCoordinate(Y, Z, plane, fTPC, fCryostat);
@@ -466,6 +488,9 @@ namespace single_photon
             void ClearSecondShowers3D();
             void CreateSecondShowerBranches3D();
 
+            void SimpleSecondShowerCluster();
+
+
             void SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & normaltrkmap,art::Event const & evt);
 
 
@@ -603,7 +628,7 @@ namespace single_photon
             int isInTPCActive(std::vector<double>&);
             int isInTPCActive(double cut,std::vector<double>&);
             double distToTPCActive(std::vector<double>&vec);
-            
+
             int isInSCB(std::vector<double>&);
             int isInSCB(double cut,std::vector<double>&);
             int distToSCB(double & dist, std::vector<double> &vec);
@@ -791,7 +816,7 @@ namespace single_photon
             //SEAviwer bits
             double m_SEAviewHitThreshold;
             double  m_SEAviewDbscanMinPts;
-                double m_SEAviewDbscanEps;
+            double m_SEAviewDbscanEps;
 
 
 
@@ -800,6 +825,8 @@ namespace single_photon
             double  m_Resolution;
             std::string  m_DAQHeaderProducer;
             std::ofstream out_stream;
+
+            double m_mass_pi0_mev;
 
             double m_exiting_photon_energy_threshold ;
             double m_exiting_proton_energy_threshold ;
@@ -839,7 +866,7 @@ namespace single_photon
 
             int m_run;
             int m_subrun;
-            int m_subrun_pot;
+            double m_subrun_pot;
 
             //------------ Event Related Variables -------------
             int m_run_number;
@@ -854,7 +881,8 @@ namespace single_photon
 
             int m_sss_num_candidates;
 
-            ReadBDT * sssVetov1;
+            //currently commenting this out for speed as its not used
+            //ReadBDT * sssVetov1;
 
             std::vector<int> m_sss_candidate_num_hits;
             std::vector<int> m_sss_candidate_num_wires;
@@ -900,6 +928,54 @@ namespace single_photon
             std::vector<int> m_sss3d_slice_clear_cosmic;
 
             bool bool_make_sss_plots;
+
+            double m_sss3d_ioc_ranked_en;
+            double m_sss3d_ioc_ranked_conv;
+            double m_sss3d_ioc_ranked_invar;
+            double m_sss3d_ioc_ranked_implied_invar;
+            double m_sss3d_ioc_ranked_ioc;
+            double m_sss3d_ioc_ranked_opang;
+            double m_sss3d_ioc_ranked_implied_opang;
+            int m_sss3d_ioc_ranked_id;
+
+            double m_sss3d_invar_ranked_en;
+            double m_sss3d_invar_ranked_conv;
+            double m_sss3d_invar_ranked_invar;
+            double m_sss3d_invar_ranked_implied_invar;
+            double m_sss3d_invar_ranked_ioc;
+            double m_sss3d_invar_ranked_opang;
+            double m_sss3d_invar_ranked_implied_opang;
+            int m_sss3d_invar_ranked_id;
+
+            double m_sss2d_ioc_ranked_en;
+            double m_sss2d_ioc_ranked_conv;
+            double m_sss2d_ioc_ranked_ioc;
+            double m_sss2d_ioc_ranked_pca;
+            double m_sss2d_ioc_ranked_invar;
+            double m_sss2d_ioc_ranked_angle_to_shower;
+            int m_sss2d_ioc_ranked_num_planes;
+
+            double m_sss2d_conv_ranked_en;
+            double m_sss2d_conv_ranked_conv;
+            double m_sss2d_conv_ranked_ioc;
+            double m_sss2d_conv_ranked_pca;
+            double m_sss2d_conv_ranked_invar;
+            double m_sss2d_conv_ranked_angle_to_shower;
+            int m_sss2d_conv_ranked_num_planes;
+
+            double m_sss2d_invar_ranked_en;
+            double m_sss2d_invar_ranked_conv;
+            double m_sss2d_invar_ranked_ioc;
+            double m_sss2d_invar_ranked_pca;
+            double m_sss2d_invar_ranked_invar;
+            double m_sss2d_invar_ranked_angle_to_shower;
+            int m_sss2d_invar_ranked_num_planes;
+
+
+
+
+
+
 
             //------------ Vertex Related variables -------------
             int m_reco_vertex_size;

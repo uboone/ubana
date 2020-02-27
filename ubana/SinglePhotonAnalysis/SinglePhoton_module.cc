@@ -92,12 +92,13 @@ namespace single_photon
         m_exiting_photon_energy_threshold = pset.get<double>("exiting_photon_energy");
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
 
+        m_mass_pi0_mev =  139.57;
 
 
         //SEAviwer Settings
         m_SEAviewHitThreshold = pset.get<double>("SEAviewHitThreshold",50);
-        m_SEAviewDbscanMinPts = pset.get<double>("SEAviewDBSCANMinPts",2);
-        m_SEAviewDbscanEps = pset.get<double>("SEAviewDBSCANEps",3);
+        m_SEAviewDbscanMinPts = pset.get<double>("SEAviewDBSCANMinPts",10);
+        m_SEAviewDbscanEps = pset.get<double>("SEAviewDBSCANEps",5);
 
 
         this->setTPCGeom(); 
@@ -127,7 +128,8 @@ namespace single_photon
         }
 
         std::vector<std::string> inputVars = { "sss_candidate_num_hits", "sss_candidate_num_wires", "sss_candidate_num_ticks", "sss_candidate_PCA", "log10(sss_candidate_impact_parameter)", "log10(sss_candidate_min_dist)", "sss_candidate_impact_parameter/sss_candidate_min_dist", "sss_candidate_energy*0.001", "cos(sss_candidate_angle_to_shower)", "sss_candidate_fit_slope", "sss_candidate_fit_constant", "sss_candidate_plane", "sss_reco_shower_energy*0.001", "2*0.001*0.001*sss_reco_shower_energy*sss_candidate_energy*(1-cos(sss_candidate_angle_to_shower))", "log10(2*0.001*0.001*sss_reco_shower_energy*sss_candidate_energy*(1-cos(sss_candidate_angle_to_shower)))", "sss_candidate_energy*0.001/(sss_reco_shower_energy*0.001)", "sss_candidate_closest_neighbour" };
-        sssVetov1 = new ReadBDT(inputVars);
+        
+        //sssVetov1 = new ReadBDT(inputVars);
 
 
     }
@@ -833,7 +835,7 @@ namespace single_photon
 
         //-----------------------------            //SEAviwer -----------------------------------
 
-        if(showers.size()==1 && tracks.size()==0){    
+        if(false && showers.size()==1 && tracks.size()==0){    
            
         art::Ptr<recob::Shower> p_shr = showers.front();
         art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
@@ -964,6 +966,10 @@ namespace single_photon
                 }
             }
 
+            //And cluster the 2d and 3d second showers
+            if(!m_run_pi0_filter) this->SimpleSecondShowerCluster();
+
+
 
             //---------------------- END OF LOOP, fill vertex ---------------------
 
@@ -1029,7 +1035,7 @@ namespace single_photon
             m_subrun_pot = 0;
             run_subrun_tree->Branch("run",&m_run,"run/I");
             run_subrun_tree->Branch("subrun",&m_subrun,"subrun/I");
-            run_subrun_tree->Branch("subrun_pot",&m_subrun_pot,"subrun_pot/I");
+            run_subrun_tree->Branch("subrun_pot",&m_subrun_pot,"subrun_pot/D");
 
             // --------------------- POT Releated variables -----------------
             m_number_of_events = 0;
