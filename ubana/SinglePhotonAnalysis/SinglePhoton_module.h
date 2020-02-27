@@ -1185,6 +1185,12 @@ namespace single_photon
             std::vector<double> m_sim_track_startx;
             std::vector<double> m_sim_track_starty;
             std::vector<double> m_sim_track_startz;
+            std::vector<double> m_sim_track_px;
+            std::vector<double> m_sim_track_py;
+            std::vector<double> m_sim_track_pz;
+            std::vector<double> m_sim_track_endx;
+            std::vector<double> m_sim_track_endy;
+            std::vector<double> m_sim_track_endz;
             std::vector<int> m_sim_track_trackID;
 
             std::vector<int> m_sim_track_sliceId; //the slice id for the slice continaing the sim track
