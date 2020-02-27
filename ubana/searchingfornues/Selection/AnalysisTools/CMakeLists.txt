@@ -6,6 +6,7 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          nusimdata_SimulationBase
                          larcorealg_Geometry
                          larcore_Geometry_Geometry_service
+                         larpandora_LArPandoraInterface
                          lardata_RecoObjects
                          lardata_Utilities
 			 larreco_RecoAlg
@@ -14,6 +15,7 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          ${ART_FRAMEWORK_PRINCIPAL}
                          ${ART_FRAMEWORK_SERVICES_REGISTRY}
                          ${ART_FRAMEWORK_SERVICES_BASIC}
+                         ${ART_FRAMEWORK_SERVICES_SYSTEM}
                          ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                          ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
                          ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
@@ -21,6 +23,7 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          art_Persistency_Provenance
                          art_Utilities
                          canvas
+			 hep_concurrency
                          ${MF_MESSAGELOGGER}
                          ${MF_UTILITIES}
                          ${FHICLCPP}
@@ -34,6 +37,8 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          ${ROOT_MINUIT}
                          ubreco_ShowerReco_ProximityClustering_Algorithms
                          uboonecode_uboone_XGBoost
+                         art_Persistency_Common
+                         art_Framework_Services_System_TriggerNamesService_service
         )
 
 install_headers()

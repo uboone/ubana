@@ -16,9 +16,9 @@ namespace searchingfornues
    * @input hitcoll  : proxy connecting clusters to hits
    * @return vector of distances on the three planes [U,V,Y]
    */
-  std::vector<float> GetTrackShowerScore(const ProxyPfpElem_t &pfp_pxy1,
-					 const ProxyPfpElem_t &pfp_pxy2,
-					 const ProxyClusColl_t &hitcoll)
+  std::vector<float> GetPFPHitDistance(const ProxyPfpElem_t &pfp_pxy1,
+				       const ProxyPfpElem_t &pfp_pxy2,
+				       const ProxyClusColl_t &hitcoll)
     {
 
     auto const* geom = ::lar::providerFrom<geo::Geometry>();
@@ -80,8 +80,7 @@ namespace searchingfornues
 	      auto hit2 = hits2[h2];
 
 	      float dt = (hit1->PeakTime()    - hit2->PeakTime()) * t2cm;
-	      float dw = (hit1->WireID().Wire - hit2->WireID().Wire) * w2cm;
-	      
+	      float dw = ((float)(hit1->WireID().Wire) - ((float)hit2->WireID().Wire)) * w2cm;
 	      float dhit = sqrt ( (dt*dt) + (dw*dw) );
 
 	      if (dhit < dmin) { dmin = dhit; }
