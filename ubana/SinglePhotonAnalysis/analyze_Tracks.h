@@ -116,6 +116,8 @@ namespace single_photon
         m_sim_track_endx.clear();
         m_sim_track_endy.clear();
         m_sim_track_endz.clear();
+        m_sim_track_length.clear();
+      
         m_sim_track_px.clear();
         m_sim_track_py.clear();
         m_sim_track_pz.clear();
@@ -272,6 +274,7 @@ namespace single_photon
         m_sim_track_endx.resize(size);
         m_sim_track_endy.resize(size);
         m_sim_track_endz.resize(size);
+        m_sim_track_length.resize(size);
         
         m_sim_track_px.resize(size);
         m_sim_track_py.resize(size);
@@ -467,6 +470,8 @@ namespace single_photon
         vertex_tree->Branch("sim_track_endx",&m_sim_track_endx);
         vertex_tree->Branch("sim_track_endy",&m_sim_track_endy);
         vertex_tree->Branch("sim_track_endz",&m_sim_track_endz);
+        vertex_tree->Branch("sim_track_length",&m_sim_track_length);
+       
         vertex_tree->Branch("sim_track_trackID",&m_sim_track_trackID);
 
         vertex_tree->Branch("sim_track_sliceId",& m_sim_track_sliceId);
@@ -697,6 +702,8 @@ namespace single_photon
                 m_sim_track_endx[i_trk]= correctedend[0];
                 m_sim_track_endy[i_trk]= correctedend[1];
                 m_sim_track_endz[i_trk]= correctedend[2];
+            
+                m_sim_track_length[i_trk]= sqrt(pow( m_sim_track_endx[i_trk] -  m_sim_track_startx[i_trk], 2)+ pow( m_sim_track_endy[i_trk] -  m_sim_track_starty[i_trk], 2) + pow( m_sim_track_endz[i_trk] -  m_sim_track_startz[i_trk], 2));
              
                 m_sim_track_px[i_trk]=  mcparticle->Px();
                 m_sim_track_py[i_trk]=  mcparticle->Py();
