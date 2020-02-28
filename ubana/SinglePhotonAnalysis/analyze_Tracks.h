@@ -117,6 +117,14 @@ namespace single_photon
         m_sim_track_startx.clear();
         m_sim_track_starty.clear();
         m_sim_track_startz.clear();
+        m_sim_track_endx.clear();
+        m_sim_track_endy.clear();
+        m_sim_track_endz.clear();
+        m_sim_track_length.clear();
+      
+        m_sim_track_px.clear();
+        m_sim_track_py.clear();
+        m_sim_track_pz.clear();
         m_sim_track_trackID.clear();
 
         // PID
@@ -273,6 +281,14 @@ namespace single_photon
         m_sim_track_startx.resize(size);
         m_sim_track_starty.resize(size);
         m_sim_track_startz.resize(size);
+        m_sim_track_endx.resize(size);
+        m_sim_track_endy.resize(size);
+        m_sim_track_endz.resize(size);
+        m_sim_track_length.resize(size);
+        
+        m_sim_track_px.resize(size);
+        m_sim_track_py.resize(size);
+        m_sim_track_pz.resize(size);
         m_sim_track_trackID.resize(size);
         m_sim_track_overlay_fraction.resize(size);
 
@@ -463,6 +479,14 @@ namespace single_photon
         vertex_tree->Branch("sim_track_startx",&m_sim_track_startx);
         vertex_tree->Branch("sim_track_starty",&m_sim_track_starty);
         vertex_tree->Branch("sim_track_startz",&m_sim_track_startz);
+        vertex_tree->Branch("sim_track_px",&m_sim_track_px);
+        vertex_tree->Branch("sim_track_py",&m_sim_track_py);
+        vertex_tree->Branch("sim_track_pz",&m_sim_track_pz);
+        vertex_tree->Branch("sim_track_endx",&m_sim_track_endx);
+        vertex_tree->Branch("sim_track_endy",&m_sim_track_endy);
+        vertex_tree->Branch("sim_track_endz",&m_sim_track_endz);
+        vertex_tree->Branch("sim_track_length",&m_sim_track_length);
+       
         vertex_tree->Branch("sim_track_trackID",&m_sim_track_trackID);
 
         vertex_tree->Branch("sim_track_sliceId",& m_sim_track_sliceId);
@@ -676,18 +700,37 @@ namespace single_photon
                 const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
                 const art::Ptr<recob::PFParticle> pfp = trackToPFParticleMap[track];
 
-                std::vector<double> corrected(3);
-                this->spacecharge_correction(mcparticle, corrected);
+                std::vector<double> correctedstart(3);
+                std::vector<double> correctedend(3);
+                std::vector<double> raw_End  ={mcparticle->EndX(), mcparticle->EndY(), mcparticle->EndZ()};
+               // std::cout<<"the raw end of this mcparticle is "<<raw_End[0]<<", "<<raw_End[1]<<", "<<raw_End[2]<<std::endl;
+                this->spacecharge_correction(mcparticle, correctedstart);
+                this->spacecharge_correction(mcparticle, correctedend, raw_End);
+                
+                //std::cout<<"the corrected end of this mcparticle is "<<correctedend[0]<<", "<<correctedend[1]<<", "<<correctedend[2]<<std::endl;
 
+           
                 m_sim_track_matched[i_trk] = 1;
                 m_sim_track_energy[i_trk] = mcparticle->E();
                 m_sim_track_mass[i_trk] = mcparticle->Mass();
                 m_sim_track_kinetic_energy[i_trk] = m_sim_track_energy[i_trk]-m_sim_track_mass[i_trk];
                 m_sim_track_pdg[i_trk] = mcparticle->PdgCode();
                 m_sim_track_process[i_trk] = mcparticle->Process();
-                m_sim_track_startx[i_trk] = corrected[0];
-                m_sim_track_starty[i_trk] = corrected[1];
-                m_sim_track_startz[i_trk] = corrected[2];
+                m_sim_track_startx[i_trk] = correctedstart[0];
+                m_sim_track_starty[i_trk] = correctedstart[1];
+                m_sim_track_startz[i_trk] = correctedstart[2];
+              
+                m_sim_track_endx[i_trk]= correctedend[0];
+                m_sim_track_endy[i_trk]= correctedend[1];
+                m_sim_track_endz[i_trk]= correctedend[2];
+            
+                m_sim_track_length[i_trk]= sqrt(pow( m_sim_track_endx[i_trk] -  m_sim_track_startx[i_trk], 2)+ pow( m_sim_track_endy[i_trk] -  m_sim_track_starty[i_trk], 2) + pow( m_sim_track_endz[i_trk] -  m_sim_track_startz[i_trk], 2));
+             
+                m_sim_track_px[i_trk]=  mcparticle->Px();
+                m_sim_track_py[i_trk]=  mcparticle->Py();
+                m_sim_track_pz[i_trk]=  mcparticle->Pz();
+             
+
                 m_sim_track_origin[i_trk] = mctruth->Origin();
                 m_sim_track_trackID[i_trk] = mcparticle->TrackId();
                 m_sim_track_overlay_fraction[i_trk] = vfrac[i_trk];
