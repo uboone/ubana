@@ -27,6 +27,7 @@ namespace single_photon
         m_sss_candidate_num_ticks.clear();
         m_sss_candidate_plane.clear();
         m_sss_candidate_PCA.clear();
+        m_sss_candidate_mean_ADC.clear();
         m_sss_candidate_impact_parameter.clear();
         m_sss_candidate_fit_slope.clear();
         m_sss_candidate_veto_score.clear();
@@ -64,6 +65,7 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_num_ticks",&m_sss_candidate_num_ticks);
         vertex_tree->Branch("sss_candidate_plane",&m_sss_candidate_plane);
         vertex_tree->Branch("sss_candidate_PCA",&m_sss_candidate_PCA);
+        vertex_tree->Branch("sss_candidate_mean_ADC",&m_sss_candidate_mean_ADC);
         vertex_tree->Branch("sss_candidate_impact_parameter",&m_sss_candidate_impact_parameter); 
         vertex_tree->Branch("sss_candidate_fit_slope",&m_sss_candidate_fit_slope);
         vertex_tree->Branch("sss_candidate_fit_constant",&m_sss_candidate_fit_constant);
@@ -83,8 +85,6 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_parent_pdg",&m_sss_candidate_parent_pdg);
         vertex_tree->Branch("sss_candidate_trackid",&m_sss_candidate_trackid);
         vertex_tree->Branch("sss_candidate_overlay_fraction",&m_sss_candidate_overlay_fraction);
-
-
 
 
         vertex_tree->Branch("sss3d_ioc_ranked_en",&m_sss3d_ioc_ranked_en);
@@ -143,8 +143,6 @@ namespace single_photon
             std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap){
 
 
-
-
         int total_track_hits =0;
         int total_shower_hits =0;
         int nu_slice_id = -999;
@@ -176,7 +174,6 @@ namespace single_photon
             for(auto &h: trackhits){
                 associated_hits.push_back(h);
             }
-
         }
 
         for(size_t s =0; s< showers.size(); s++){
@@ -185,8 +182,6 @@ namespace single_photon
             int sliceid = pfParticleToSliceIDMap.at(pfp);
             auto slicehits = sliceIDToHitsMap.at(sliceid);
             auto showerhits = pfParticleToHitsMap.at(pfp);
-
-
 
             std::cout<<"SinglePhoton::SSS\t||\tshower "<<s<<" is in slice "<<sliceid<<" which has "<<slicehits.size()<<" hits. This shower has  "<<showerhits.size()<<" of them. "<<std::endl;
             total_shower_hits+=showerhits.size();
@@ -415,7 +410,6 @@ namespace single_photon
                     g_vertex[i]->GetYaxis()->SetLabelSize(0);
                 }
 
-
                 can->cd(i+5);
                 g_vertex[i]->Draw("ap");
 
@@ -513,8 +507,8 @@ namespace single_photon
 
 
             //*****************************DBSCAN***********************************
-            int min_pts = 10;
-            double eps = 5.0;
+            int min_pts = m_SEAviewDbscanMinPts;
+            double eps = m_SEAviewDbscanEps;
             std::vector<int> num_clusters(3,0);
 
             std::vector<std::vector<TGraph*>> g_clusters(3);
@@ -532,14 +526,14 @@ namespace single_photon
                 for(auto &c: cluster_labels[i]){
                     num_clusters[i] = std::max(c,num_clusters[i]);
                 }
-                std::cout << "SinglePhoton::SSS\t||\tOn this plane, DBSCAN found: "<<num_clusters[i]<<" clusters"<<std::endl;
+                std::cout << "SinglePhoton::SSS\t||\tOn this plane, "<<m_event_number<<" DBSCAN found: "<<num_clusters[i]<<" clusters"<<std::endl;
             }
 
             //Now fill the clusters
 
             for(int i=0; i<3; i++){
 
-                for(int c=0; c<num_clusters[i]; c++){
+                for(int c=0; c<num_clusters[i]+1; c++){
 
                     std::vector<std::vector<double>> pts;
                     std::vector<art::Ptr<recob::Hit>> hitz;
@@ -552,7 +546,11 @@ namespace single_photon
                         }
 
                     }
-                    vec_clusters.emplace_back(c,i,pts,hitz);
+                    if(hitz.size()!=0){
+                        vec_clusters.emplace_back(c,i,pts,hitz);
+                        std::cout<<"SinglePhoton::SSS\t||\t Cluster "<<c<<" has "<<hitz.size()<<" hitz on plane and "<<pts.size()<<"points "<<i<<std::endl;
+                    }
+
                 }
             }
 
@@ -702,6 +700,14 @@ namespace single_photon
                     auto ssscorz = this->ScoreCluster(i,c, hitz ,vertex_wire[i], vertex_time[i], showers[0]);
                     int is_in_shower = this->CompareToShowers(i,c, hitz ,vertex_wire[i], vertex_time[i], showers, showerToPFParticleMap, pfParticleToHitsMap,eps);
 
+                    double mean_summed_ADC = 0.0;
+                    for(auto &h:hitz){
+                        mean_summed_ADC +=h->SummedADC();
+                    }
+                    mean_summed_ADC = mean_summed_ADC/(double)num_hits_in_cluster;
+
+
+
                     // std::string sname = makeSplitlineString({"Cluster: ","Hits: ","PCA: ","Theta: "},{c,num_hits_in_cluster});
 
                     std::string sname = "#splitline{Cluster "+std::to_string(c)+"}{#splitline{Hits: "+std::to_string(num_hits_in_cluster)+"}{#splitline{PCA "+std::to_string(ssscorz.pca_0)+"}{#splitline{Theta:" +std::to_string(ssscorz.pca_theta)+"}{#splitline{Wires: "+std::to_string(ssscorz.n_wires)+ "}{#splitline{Ticks: "+std::to_string(ssscorz.n_ticks)+"}{#splitline{ReMerged: "+std::to_string(is_in_shower)+"}{}}}}}}}";
@@ -715,7 +721,7 @@ namespace single_photon
                         if(g_clusters[i][c]->GetN()>0){
                             TGraph * tmp = (TGraph*)g_clusters[i][c]->Clone(("tmp_"+std::to_string(i)+std::to_string(c)).c_str());
 
-                            int Npts = 20;
+                            int Npts =m_SEAviewMaxPtsLinFit;
                             TGraph * core  = (TGraph*)this->GetNearestNpts(i,c,hitz,vertex_wire[i],vertex_time[i],Npts);
 
                             core->Draw("p same");
@@ -731,7 +737,7 @@ namespace single_photon
                                 fmin = std::min(fmin,ttx);
                             }
 
-                            std::cout<<"Just Before Core Fit of "<<tmp->GetN()<<" pts between "<<chan_min[i]<<" "<<chan_max[i]<<" or "<<fmin<<" "<<fmax<<std::endl;
+//                            std::cout<<"Just Before Core Fit of "<<tmp->GetN()<<" pts between "<<chan_min[i]<<" "<<chan_max[i]<<" or "<<fmin<<" "<<fmax<<std::endl;
 
                             double con;
                             double slope;
@@ -792,8 +798,9 @@ namespace single_photon
                             m_sss_candidate_max_wire.push_back(ssscorz.max_wire);
                             m_sss_candidate_mean_wire.push_back(ssscorz.mean_wire);
                             m_sss_candidate_min_dist.push_back(ssscorz.min_dist);
+                            m_sss_candidate_mean_ADC.push_back(mean_summed_ADC);
 
-                            m_sss_candidate_energy.push_back(  this->CalcEShowerPlane(hitz,(int)i));
+                            m_sss_candidate_energy.push_back( this->CalcEShowerPlane(hitz,(int)i));
                             m_sss_candidate_angle_to_shower.push_back(kinda_angle);
 
 
@@ -912,6 +919,29 @@ namespace single_photon
 
         }
 
+
+        //For purposes of testing SEAview compatability:
+        //
+
+        std::cout<<"SSSOLD "<<m_run_number<<" "<<m_subrun_number<<" "<<m_event_number<<" NumCandidates: "<<m_sss_num_candidates<<std::endl;
+         for(int i=0; i< m_sss_num_candidates; i++){
+            std::cout<<i<<" Num Hits "<<m_sss_candidate_num_hits[i]<<std::endl;
+            std::cout<<i<<" Num Wires "<<m_sss_candidate_num_wires[i]<<std::endl;
+            std::cout<<i<<" Num Ticks "<<m_sss_candidate_num_ticks[i]<<std::endl;
+            std::cout<<i<<" Plane "<<m_sss_candidate_plane[i]<<std::endl;
+            std::cout<<i<<" PCA "<<m_sss_candidate_PCA[i]<<std::endl;
+            std::cout<<i<<" Impact "<<m_sss_candidate_impact_parameter[i]<<std::endl;
+            std::cout<<i<<" Fit Slope "<<m_sss_candidate_fit_slope[i]<<std::endl;
+            std::cout<<i<<" Fit Constant "<<m_sss_candidate_fit_constant[i]<<std::endl;
+            std::cout<<i<<" Mean Tick "<<m_sss_candidate_mean_tick[i]<<std::endl;
+            std::cout<<i<<" Max Tick "<<m_sss_candidate_max_tick[i]<<std::endl;
+            std::cout<<i<<" Min Tick "<<m_sss_candidate_min_tick[i]<<std::endl;
+            std::cout<<i<<" Mean Wire "<<m_sss_candidate_mean_wire[i]<<std::endl;
+            std::cout<<i<<" Max Wire "<<m_sss_candidate_max_wire[i]<<std::endl;
+            std::cout<<i<<" Min Wire "<<m_sss_candidate_min_wire[i]<<std::endl;
+            std::cout<<i<<" Energy "<<m_sss_candidate_energy[i]<<std::endl;
+            std::cout<<i<<" AngletoShower "<<m_sss_candidate_angle_to_shower[i]<<std::endl;
+        }
 
         return;
     }

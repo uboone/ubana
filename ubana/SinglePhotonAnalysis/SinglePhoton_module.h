@@ -537,7 +537,9 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             void CreateFlashBranches();
 
             //----------------  Tracks ----------------------------
-            void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
+            void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap,
+                               std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitsMap,
+                    std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
                     std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
@@ -804,6 +806,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::string m_CRTHitProducer;
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
+            int     m_delaunay_max_hits;
             bool m_is_verbose;
             bool m_print_out_event;
             bool m_is_data;
@@ -814,11 +817,12 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             bool m_run_pi0_filter;
 
             //SEAviwer bits
+            double m_SEAviewPlotDistance;
             double m_SEAviewHitThreshold;
             double  m_SEAviewDbscanMinPts;
             double m_SEAviewDbscanEps;
-
-
+            double m_SEAviewMaxPtsLinFit;
+            bool   m_SEAviewMakePDF;
 
             bool m_runCRT;
             double m_DTOffset;
@@ -861,6 +865,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             //------------ POT related variables --------------
             int m_number_of_events;
+            int m_number_of_events_in_subrun;
             double m_pot_count;
             int m_number_of_vertices;
 
@@ -872,6 +877,8 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             int m_run_number;
             int m_subrun_number;
             int m_event_number;
+            double m_pot_per_event;
+            double m_pot_per_subrun;
 
             int m_test_matched_hits;
             int m_reco_slice_objects;
@@ -889,11 +896,12 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int>  m_sss_candidate_num_ticks;
             std::vector<int>  m_sss_candidate_plane;
             std::vector<double> m_sss_candidate_PCA;
+            std::vector<double> m_sss_candidate_mean_ADC;
             std::vector<double> m_sss_candidate_impact_parameter;
             std::vector<double> m_sss_candidate_fit_slope;
             std::vector<double> m_sss_candidate_veto_score;
             std::vector<double> m_sss_candidate_fit_constant;
-            std::vector<double>  m_sss_candidate_mean_tick;
+            std::vector<double> m_sss_candidate_mean_tick;
             std::vector<double> m_sss_candidate_max_tick;
             std::vector<double> m_sss_candidate_min_tick;
             std::vector<double> m_sss_candidate_min_wire;
@@ -903,11 +911,11 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_sss_candidate_energy;
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
-            std::vector<int>   m_sss_candidate_matched;
-            std::vector<int>       m_sss_candidate_pdg;
-            std::vector<int>        m_sss_candidate_parent_pdg;
+            std::vector<int>    m_sss_candidate_matched;
+            std::vector<int>    m_sss_candidate_pdg;
+            std::vector<int>    m_sss_candidate_parent_pdg;
             std::vector<int>    m_sss_candidate_trackid;
-            std::vector<double>       m_sss_candidate_overlay_fraction;
+            std::vector<double> m_sss_candidate_overlay_fraction;
 
             int m_sss3d_num_showers;
             std::vector<double> m_sss3d_shower_start_x;
@@ -1173,6 +1181,11 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_reco_track_start_dist_to_SCB;
             std::vector<int> m_reco_track_end_in_SCB;
             std::vector<int> m_reco_track_start_in_SCB;
+            std::vector<double> m_reco_track_calo_energy_plane0;
+            std::vector<double> m_reco_track_calo_energy_plane1;
+            std::vector<double> m_reco_track_calo_energy_plane2;
+            std::vector<double> m_reco_track_calo_energy_max;
+
 
             std::vector<double>   m_reco_track_theta_yz;
             std::vector<double>   m_reco_track_phi_yx;

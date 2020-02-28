@@ -29,6 +29,7 @@ namespace single_photon
         m_is_verbose = pset.get<bool>("Verbose",false);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
+        m_delaunay_max_hits = pset.get<int>("maxDelaunayHits",1000);
         m_is_data = pset.get<bool>("isData",false);
         m_is_overlayed = pset.get<bool>("isOverlayed",false);
 
@@ -96,10 +97,12 @@ namespace single_photon
 
 
         //SEAviwer Settings
-        m_SEAviewHitThreshold = pset.get<double>("SEAviewHitThreshold",50);
-        m_SEAviewDbscanMinPts = pset.get<double>("SEAviewDBSCANMinPts",10);
-        m_SEAviewDbscanEps = pset.get<double>("SEAviewDBSCANEps",5);
-
+        m_SEAviewHitThreshold = pset.get<double>("SEAviewHitThreshold",25);
+        m_SEAviewPlotDistance = pset.get<double>("SEAviewPlotDistance",80);
+        m_SEAviewDbscanMinPts = pset.get<double>("SEAviewDBSCANMinPts",8);
+        m_SEAviewDbscanEps = pset.get<double>("SEAviewDBSCANEps",4);
+        m_SEAviewMaxPtsLinFit = pset.get<double>("SEAviewMaxHitsLinFit",20.0);
+        m_SEAviewMakePDF = pset.get<bool>("SEAviewMakePDF",true);
 
         this->setTPCGeom(); 
 
@@ -630,8 +633,13 @@ namespace single_photon
             //   this->AnalyzeFlashes(flashVector, crthit_h);
 
             std::cout<<"start track"<<std::endl;
-            this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
+            this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToHitsMap,  pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
             this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
+
+            
+        
+
+
 
             if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
 
@@ -712,7 +720,6 @@ namespace single_photon
 
                 std::cout<<"SinglePhoton\t||\t Starting backtracker on recob::shower"<<std::endl;
                 this->showerRecoMCmatching(showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap);
-
 
                 //photoNuclearTesting(matchedMCParticleVector);
 
@@ -835,47 +842,70 @@ namespace single_photon
 
         //-----------------------------            //SEAviwer -----------------------------------
 
-        if(false && showers.size()==1 && tracks.size()==0){    
+        if(showers.size()==1){    
            
-        art::Ptr<recob::Shower> p_shr = showers.front();
-        art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
-        std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
-        
-        int p_sliceid = PFPToSliceIdMap[p_pfp];
-        auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
+            art::Ptr<recob::Shower> p_shr = showers.front();
+            art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
+            std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
+            
+                    
+            int p_sliceid = PFPToSliceIdMap[p_pfp];
+            auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
 
-        std::string uniq_tag = "yarp"+std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
+            std::string uniq_tag = "yarp"+std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
 
-        //Setup seaviewr object
-        seaview::SEAviewer sevd("test_"+uniq_tag, geom, theDetector );
-        //Pass in any bad channels you like
-        sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
-        //Give it a vertex to center around
-        sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
+            //Setup seaviewr object
+            seaview::SEAviewer sevd("test_"+uniq_tag, geom, theDetector );
+            //Pass in any bad channels you like
+            sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
+            //Give it a vertex to center around
+            sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
 
-        //Add the hits from just this slice, as well sa ALL hits 
-        sevd.addSliceHits(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
-        sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
-        sevd.setHitThreshold(m_SEAviewHitThreshold); 
+            //Add the hits from just this slice, as well sa ALL hits 
+            sevd.addSliceHits(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
+            sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
+            sevd.setHitThreshold(m_SEAviewHitThreshold); 
 
-        //Add all the "nice " PFParticle Hits, as well as what to label
-        sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
+            //Add all the "nice " PFParticle Hits, as well as what to label
+            sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
 
-        //and add the SingleShower we like
-        sevd.addShower(p_shr); // art::Ptr<recob::Shower>
+            //and add the SingleShower we like
+            sevd.addShower(p_shr); // art::Ptr<recob::Shower>
 
-        //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" you passed in. 
-        sevd.calcUnassociatedHits();
+            //Add all track PFP
+            
+            for(auto &trk: tracks){
+                art::Ptr<recob::PFParticle> p_pfp_trk = trackToNuPFParticleMap[trk];
+                std::vector<art::Ptr<recob::Hit>> p_hits_trk = pfParticleToHitsMap[p_pfp_trk];
+                sevd.addPFParticleHits(p_hits_trk,"track");
+                sevd.addTrack(trk);
+            }
+            
+            //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 
+            sevd.calcUnassociatedHits();
 
-        //Recluster
-        sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
-        
-        //And some plotting
-        sevd.Print();
-        
-        //This is the place I will put the new Second Shower Search
-        sevd.analyzeClusters();
-   
+            //Recluster
+            sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
+            
+            //And some plotting
+            if(m_SEAviewMakePDF) sevd.Print(m_SEAviewPlotDistance);
+            
+            //This is the place I will put the new Second Shower Search
+            std::vector<seaview::cluster> vec_SEAclusters ;
+            sevd.analyzeClusters(m_SEAviewDbscanEps, showerToNuPFParticleMap, pfParticleToHitsMap, vec_SEAclusters);
+            
+
+            //And save to file.
+            std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Clusters to chat about"<<std::endl;
+            for(size_t c=0; c< vec_SEAclusters.size(); c++){
+                auto clu = vec_SEAclusters.at(c);
+                int pl = clu.getPlane();
+                auto hitz = clu.getHits();
+                double Ep = this->CalcEShowerPlane(hitz,pl); 
+                std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.f_ImpactParameter<<" "<<clu.f_FitSlope<<" "<<clu.f_FitCons<<" "<<clu.f_MeanADC<<" "<<clu.f_AngleWRTShower<<std::endl;
+            }
+
+
         }
     // ################################################### END SEAview END SEAview #########################################################
     // #####################################################################################################################################
@@ -1041,6 +1071,11 @@ namespace single_photon
             m_number_of_events = 0;
             m_number_of_vertices = 0;
             m_pot_count=0;
+            m_pot_per_event = 0;
+            m_pot_per_subrun = 0;
+            m_number_of_events_in_subrun=0;
+
+
 
             pot_tree->Branch("number_of_events",&m_number_of_events,"number_of_events/I");
             pot_tree->Branch("number_of_vertices",&m_number_of_vertices,"number_of_vertices/I");
@@ -1051,9 +1086,13 @@ namespace single_photon
             vertex_tree->Branch("subrun_number", &m_subrun_number, "subrun_number/I");
             vertex_tree->Branch("event_number", &m_event_number, "event_number/I");
 
+            vertex_tree->Branch("pot_per_event",&m_pot_per_event,"pot_per_event/D");
+            vertex_tree->Branch("pot_per_subrun",&m_pot_per_subrun,"pot_per_subrun/D");
+            vertex_tree->Branch("number_of_events_in_subrun",&m_number_of_events_in_subrun,"number_of_events_in_subrun/D");
+
+
             vertex_tree->Branch("genie_spline_weight", &m_genie_spline_weight, "genie_spline_weight/D");
             vertex_tree->Branch("genie_CV_tune_weight", &m_genie_CV_tune_weight, "genie_CV_tune_weight/D");
-
 
             vertex_tree->Branch("test_matched_hits", &m_test_matched_hits, "test_matched_hits/I");
             // --------------------- Vertex Related variables ------------
@@ -1158,11 +1197,16 @@ namespace single_photon
         //-------------------------------------------------------------------------------------------
         void SinglePhoton::ClearVertex(){
 
+
             //------------ Event related Variables -------------
             m_event_number = -99;
             m_subrun_number = -99;
             m_run_number = -99;
             m_test_matched_hits = 0;
+
+            m_pot_per_event = 0;
+            m_pot_per_subrun = m_subrun_pot;
+            m_number_of_events_in_subrun = 0;
 
             m_genie_spline_weight = 1.0;
 
@@ -1459,7 +1503,10 @@ namespace single_photon
 
 
         double SinglePhoton::triangle_area(double a1, double a2, double b1, double b2, double c1, double c2){
-            return fabs((a1*(b2-c2)+b1*(c2-a2)+c1*(a2-b2))/2.0);
+            double m1 = 0.3;
+            double m2 = 1.0/25.0;
+            
+            return fabs((a1*m1*(b2*m2-c2*m2)+b1*m1*(c2*m2-a2*m2)+c1*m1*(a2*m2-b2*m2))/2.0);
         }
 
         int SinglePhoton::quick_delaunay_fit(int n, double *X, double *Y, int *num_triangles, double * area){
@@ -1501,17 +1548,17 @@ namespace single_photon
                 const art::Ptr<recob::Hit> hit = hits[i];
                 switch(hit->View()){
                     case 0:
-                        C0.push_back((double)hit->Channel());         
+                        C0.push_back((double)hit->WireID().Wire);         
                         T0.push_back(hit->PeakTime());         
                         n_0++;
                         break;
                     case 1:
-                        C1.push_back((double)hit->Channel());         
+                        C1.push_back((double)hit->WireID().Wire);         
                         T1.push_back(hit->PeakTime());         
                         n_1++;
                         break;
                     case 2:
-                        C2.push_back((double)hit->Channel());         
+                        C2.push_back((double)hit->WireID().Wire);         
                         T2.push_back(hit->PeakTime());         
                         n_2++;
                         break;
@@ -1520,9 +1567,9 @@ namespace single_photon
                 }
             }
             if(m_use_delaunay){
-                if(n_0>0) this->quick_delaunay_fit(n_0, &C0[0]  , &T0[0]  , &num_triangles[0],&area[0]);
-                if(n_1>0) this->quick_delaunay_fit(n_1, &C1[0]  , &T1[0]  , &num_triangles[1],&area[1]);
-                if(n_2>0) this->quick_delaunay_fit(n_2, &C2[0]  , &T2[0]  , &num_triangles[2],&area[2]);
+                if(n_0>0 && (int)n_0 < m_delaunay_max_hits) this->quick_delaunay_fit(n_0, &C0[0]  , &T0[0]  , &num_triangles[0],&area[0]);
+                if(n_1>0 && (int)n_1 < m_delaunay_max_hits) this->quick_delaunay_fit(n_1, &C1[0]  , &T1[0]  , &num_triangles[1],&area[1]);
+                if(n_2>0 && (int)n_2 < m_delaunay_max_hits) this->quick_delaunay_fit(n_2, &C2[0]  , &T2[0]  , &num_triangles[2],&area[2]);
             }
             num_hits[0] = n_0;
             num_hits[1] = n_1;
@@ -1590,11 +1637,6 @@ namespace single_photon
             //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
             return 0;
         }
-
-
-
-
-
 
 
 

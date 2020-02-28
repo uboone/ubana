@@ -31,6 +31,11 @@ namespace single_photon
 
         m_reco_track_theta_yz.clear();
         m_reco_track_phi_yx.clear();
+        
+        m_reco_track_calo_energy_plane0.clear();
+        m_reco_track_calo_energy_plane1.clear();
+        m_reco_track_calo_energy_plane2.clear();
+        m_reco_track_calo_energy_max.clear();
 
         m_reco_track_num_trajpoints.clear();
         m_reco_track_num_spacepoints.clear();
@@ -172,6 +177,12 @@ namespace single_photon
         m_reco_track_start_dist_to_SCB.resize(size);
         m_reco_track_end_in_SCB.resize(size);
         m_reco_track_start_in_SCB.resize(size);
+
+        m_reco_track_calo_energy_plane0.resize(size);
+        m_reco_track_calo_energy_plane1.resize(size);
+        m_reco_track_calo_energy_plane2.resize(size);
+        m_reco_track_calo_energy_max.resize(size);
+
 
 
         m_reco_track_startx.resize(size);
@@ -327,6 +338,11 @@ namespace single_photon
         vertex_tree->Branch("reco_track_theta_yz", &m_reco_track_theta_yz);
         vertex_tree->Branch("reco_track_phi_yx", &m_reco_track_phi_yx);
 
+        vertex_tree->Branch("reco_track_calo_energy_plane0", &m_reco_track_calo_energy_plane0);
+        vertex_tree->Branch("reco_track_calo_energy_plane1", &m_reco_track_calo_energy_plane1);
+        vertex_tree->Branch("reco_track_calo_energy_plane2", &m_reco_track_calo_energy_plane2);
+        vertex_tree->Branch("reco_track_calo_energy_max", &m_reco_track_calo_energy_max);
+
         vertex_tree->Branch("reco_track_num_trajpoints", &m_reco_track_num_trajpoints);
         vertex_tree->Branch("reco_track_num_spacepoints", &m_reco_track_num_spacepoints);
         vertex_tree->Branch("reco_track_proton_kinetic_energy", &m_reco_track_proton_kinetic_energy);
@@ -463,6 +479,7 @@ namespace single_photon
 
     void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap,
+            std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitsMap, 
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap, 
             std::map<int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap,
             std::map<int, double> &sliceIdToNuScoreMap,
@@ -494,13 +511,18 @@ namespace single_photon
             const art::Ptr<recob::Track> track = *iter;
             const art::Ptr<recob::PFParticle> pfp = trackToNuPFParticleMap[track];
             const std::vector< art::Ptr<recob::SpacePoint> > trk_spacepoints = pfParticleToSpacePointsMap[pfp];
-
+            const std::vector<art::Ptr<recob::Hit>> trk_hits  = pfParticleToHitsMap[pfp];
 
             int m_trkid = track->ID();
             double m_length = track->Length();
             auto m_trk_dir = track->Direction();
 
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t On Track: "<<i_trk<<" with TrackID: "<<m_trkid<<" and length: "<<m_length<<""<<std::endl;;
+
+            m_reco_track_calo_energy_plane0[i_trk] = this->CalcEShowerPlane(trk_hits, 0);
+            m_reco_track_calo_energy_plane1[i_trk] = this->CalcEShowerPlane(trk_hits, 1);
+            m_reco_track_calo_energy_plane2[i_trk] = this->CalcEShowerPlane(trk_hits, 2);
+            m_reco_track_calo_energy_max[i_trk] = std::max( m_reco_track_calo_energy_plane2[i_trk],  std::max(m_reco_track_calo_energy_plane0[i_trk],m_reco_track_calo_energy_plane1[i_trk]));
 
             m_reco_track_num_spacepoints[i_trk] = (int)trk_spacepoints.size();
 
