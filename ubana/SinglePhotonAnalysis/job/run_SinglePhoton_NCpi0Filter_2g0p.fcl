@@ -61,8 +61,8 @@ physics: {
 
  analyzers: {}
  filters : {
-        #singlephotonfil: @local::singlephoton_filter_2g0p   #run in 2g0p
-        singlephotonfil: @local::singlephoton_filter   #run in 2g1p
+        singlephotonfil: @local::singlephoton_filter_2g0p   #run in 2g0p
+        #singlephotonfil: @local::singlephoton_filter   #run in 2g1p
         #singlephotonana: @local::singlephoton_analyzer #run in analyzing mode
   }
 

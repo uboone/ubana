@@ -10,7 +10,56 @@
 #include "config_particle_identification_producerlabels.fcl"
 #include "shrreco3d.fcl"
 
-#include "microboone_singlephoton.fcl"
+singlephoton_analyzer:{
+
+    module_type:    SinglePhoton
+    PandoraLabel:   "pandora"
+    TrackLabel:     "pandora"
+    ShowerLabel:    "pandora"
+    #ShowerLabel: "showerreco3dpandora"
+    ParticleIDLabel:"pid"
+    CaloLabel:      "pandoracaliSCE"
+    FlashLabel:     "simpleFlashBeam"
+    POTLabel:       "generator"
+    input_param:    "optional" 
+
+    FillTrees: true
+    RunPi0Filter: false
+    FilterMode2g1p: false
+    FilterMode2g0p: false
+ 
+    usePID:         "true" 
+    work_function: 23
+    recombination_factor: 0.62
+    #gain : 197
+    gain_mc: [235.5, 249.7, 237.6] #DocDB 20227-v7 using dE/dx calibration method for all planes, updated on 9/13/19
+    gain_data: [230.3, 237.6, 243.7] #see above docdb
+    wire_spacing : 0.3 
+    width_box : 1.
+    length_box : 4.
+    truthmatching_signaldef : "ncdelta"
+    runAllPFPs: "false"
+    exiting_photon_energy: 0.02
+    exiting_proton_energy: 0.978  #40Mev + proton mass 
+
+    runCRT: "false"
+    DTOffset: 68600.0 #us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+    Resolution: 1.0 #same as above
+    DAQHeaderProducer: "daq" #ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+
+    }
+
+singlephoton_filter: @local::singlephoton_analyzer
+singlephoton_filter.FillTrees: false
+singlephoton_filter.RunPi0Filter: true
+singlephoton_filter.FilterMode2g1p: true
+singlephoton_filter.FilterMode2g0p: false
+singlephoton_filter.isData: true
+singlephoton_filter.usePID: false
+
+singlephoton_filter_2g0p: @local::singlephoton_filter
+singlephoton_filter_2g0p.FilterMode2g1p: false
+singlephoton_filter_2g0p.FilterMode2g0p: true
 
 process_name : SinglePhotonFilter      #The process name must NOT contain any underscores
 
@@ -28,7 +77,7 @@ services :
     LArPropertiesService:      @local::standard_properties
     DetectorClocksService:     @local::standard_detectorclocks
     DetectorPropertiesService: @local::standard_detproperties
-    FileCatalogMetadata:       @local::art_file_catalog_data # or @local::art_file_catalog_mc
+    FileCatalogMetadata: @local::art_file_catalog_data # or @local::art_file_catalog_mc
     @table::microboone_services
 }
 
@@ -45,9 +94,6 @@ outputs:
   }
 }
 
-
-
-
 physics: {
 
  producers : {
@@ -61,8 +107,8 @@ physics: {
 
  analyzers: {}
  filters : {
-        #singlephotonfil: @local::singlephoton_filter_2g0p   #run in 2g0p
-        singlephotonfil: @local::singlephoton_filter   #run in 2g1p
+        singlephotonfil: @local::singlephoton_filter_2g0p   #run in 2g0p
+        #singlephotonfil: @local::singlephoton_filter   #run in 2g1p
         #singlephotonana: @local::singlephoton_analyzer #run in analyzing mode
   }
 
@@ -93,3 +139,9 @@ services.DetectorClocksService.InheritClockConfig: false
 # PID stuff
 physics.producers.pid.ProducerLabels.TrackLabel: "pandora"
 physics.producers.pid.ProducerLabels.CalorimetryLabel: "pandoracaliSCE"
+
+physics.filters.singlephotonfil.isData: "true"
+physics.filters.singlephotonfil.POTLabel: "beamdata"
+physics.filters.singlephotonfil.beamgateStartTime: 3.3
+physics.filters.singlephotonfil.beamgateEndTime: 4.9
+physics.filters.singlephotonfil.BadChannelProducer: "nfspl1"
