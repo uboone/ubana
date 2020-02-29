@@ -1557,6 +1557,12 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_reco_shower_energy_plane1;
             std::vector<double> m_reco_shower_energy_plane2;
 
+            std::vector<double> m_reco_shower_reclustered_energy_max;
+            std::vector<double> m_reco_shower_reclustered_energy_plane0;
+            std::vector<double> m_reco_shower_reclustered_energy_plane1;
+            std::vector<double> m_reco_shower_reclustered_energy_plane2;
+
+
             std::vector<double> m_reco_shower_plane0;
             std::vector<double> m_reco_shower_plane1;
             std::vector<double> m_reco_shower_plane2;

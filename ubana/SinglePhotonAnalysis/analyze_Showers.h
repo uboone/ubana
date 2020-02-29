@@ -109,6 +109,12 @@ namespace single_photon
         m_reco_shower_energy_plane0.clear();
         m_reco_shower_energy_plane1.clear();
         m_reco_shower_energy_plane2.clear();
+        
+        m_reco_shower_reclustered_energy_plane0.clear();
+        m_reco_shower_reclustered_energy_plane1.clear();
+        m_reco_shower_reclustered_energy_plane2.clear();
+        m_reco_shower_reclustered_energy_max.clear();
+
         m_reco_shower_plane0_nhits.clear();
         m_reco_shower_plane1_nhits.clear();
         m_reco_shower_plane2_nhits.clear();
@@ -187,6 +193,12 @@ namespace single_photon
         m_reco_shower_kalman_mean_dEdx_plane0.resize(size);
         m_reco_shower_kalman_mean_dEdx_plane1.resize(size);
         m_reco_shower_kalman_mean_dEdx_plane2.resize(size);
+
+        m_reco_shower_reclustered_energy_plane0.resize(size);
+        m_reco_shower_reclustered_energy_plane1.resize(size);
+        m_reco_shower_reclustered_energy_plane2.resize(size);
+        m_reco_shower_reclustered_energy_max.resize(size);
+
 
         m_reco_shower3d_exists.resize(size);
         m_reco_shower3d_startx.resize(size);
@@ -397,6 +409,12 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_plane0_meanRMS",&m_reco_shower_plane0_meanRMS);
         vertex_tree->Branch("reco_shower_plane1_meanRMS",&m_reco_shower_plane1_meanRMS);
         vertex_tree->Branch("reco_shower_plane2_meanRMS",&m_reco_shower_plane2_meanRMS);
+
+        vertex_tree->Branch("reco_shower_reclustered_energy_plane0",&m_reco_shower_reclustered_energy_plane0);
+        vertex_tree->Branch("reco_shower_reclustered_energy_plane1",&m_reco_shower_reclustered_energy_plane1);
+        vertex_tree->Branch("reco_shower_reclustered_energy_plane2",&m_reco_shower_reclustered_energy_plane2);
+        vertex_tree->Branch("reco_shower_reclustered_energy_max",&m_reco_shower_reclustered_energy_max);
+
 
 
         vertex_tree->Branch("reco_shower_ordered_energy_index",&m_reco_shower_ordered_energy_index);

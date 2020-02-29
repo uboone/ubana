@@ -903,10 +903,23 @@ namespace single_photon
                 auto hitz = clu.getHits();
                 double Ep = this->CalcEShowerPlane(hitz,pl); 
                 std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.f_ImpactParameter<<" "<<clu.f_FitSlope<<" "<<clu.f_FitCons<<" "<<clu.f_MeanADC<<" "<<clu.f_AngleWRTShower<<std::endl;
+
+                int remerge = clu.getShowerRemerge();
+                if(remerge>=0 && remerge< m_reco_shower_reclustered_energy_plane2.size()){
+                    if(pl==0)m_reco_shower_reclustered_energy_plane0[remerge]+=Ep;
+                    if(pl==1)m_reco_shower_reclustered_energy_plane1[remerge]+=Ep;
+                    if(pl==2)m_reco_shower_reclustered_energy_plane2[remerge]+=Ep;
+                }
+
             }
 
-
         }
+    
+        for(int i =0; i<showers.size(); i++){
+            m_reco_shower_reclustered_energy_max[i] = std::max(m_reco_shower_reclustered_energy_plane1[i],std::max(m_reco_shower_reclustered_energy_plane0[i],m_reco_shower_reclustered_energy_plane2[i]));
+        }
+
+
     // ################################################### END SEAview END SEAview #########################################################
     // #####################################################################################################################################
 
