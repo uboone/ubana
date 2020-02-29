@@ -22,6 +22,7 @@ namespace single_photon
 
         m_sss_num_candidates = 0;
 
+
         m_sss_candidate_num_hits.clear();
         m_sss_candidate_num_wires.clear();
         m_sss_candidate_num_ticks.clear();
@@ -47,6 +48,7 @@ namespace single_photon
         m_sss_candidate_parent_pdg.clear();
         m_sss_candidate_trackid.clear();
         m_sss_candidate_overlay_fraction.clear();
+        m_sss_candidate_remerge.clear();
     }
 
     void SinglePhoton::ResizeSecondShowers(size_t size){
@@ -79,6 +81,7 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_energy",&m_sss_candidate_energy);
         vertex_tree->Branch("sss_candidate_angle_to_shower",&m_sss_candidate_angle_to_shower);
         vertex_tree->Branch("sss_candidate_closest_neighbour",&m_sss_candidate_closest_neighbour);
+        vertex_tree->Branch("sss_candidate_remerge",&m_sss_candidate_remerge);
 
         vertex_tree->Branch("sss_candidate_matched",&m_sss_candidate_matched);
         vertex_tree->Branch("sss_candidate_pdg",&m_sss_candidate_pdg);
@@ -142,6 +145,11 @@ namespace single_photon
             std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
             std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap){
 
+
+
+        std::cout<<"ERROR! SecondShowerSearch has been made redundant by SEAview methodology. see SEAview/SEAview.h for details. This shouldnt be running at all"<<std::endl;
+        std::cerr<<"ERROR! SecondShowerSearch has been made redundant by SEAview methodology. see SEAview/SEAview.h for details. This shouldnt be running at all"<<std::endl;
+        exit(EXIT_FAILURE);
 
         int total_track_hits =0;
         int total_shower_hits =0;

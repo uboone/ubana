@@ -131,7 +131,7 @@ namespace single_photon
         }
 
         std::vector<std::string> inputVars = { "sss_candidate_num_hits", "sss_candidate_num_wires", "sss_candidate_num_ticks", "sss_candidate_PCA", "log10(sss_candidate_impact_parameter)", "log10(sss_candidate_min_dist)", "sss_candidate_impact_parameter/sss_candidate_min_dist", "sss_candidate_energy*0.001", "cos(sss_candidate_angle_to_shower)", "sss_candidate_fit_slope", "sss_candidate_fit_constant", "sss_candidate_plane", "sss_reco_shower_energy*0.001", "2*0.001*0.001*sss_reco_shower_energy*sss_candidate_energy*(1-cos(sss_candidate_angle_to_shower))", "log10(2*0.001*0.001*sss_reco_shower_energy*sss_candidate_energy*(1-cos(sss_candidate_angle_to_shower)))", "sss_candidate_energy*0.001/(sss_reco_shower_energy*0.001)", "sss_candidate_closest_neighbour" };
-        
+
         //sssVetov1 = new ReadBDT(inputVars);
 
 
@@ -636,8 +636,8 @@ namespace single_photon
             this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToHitsMap,  pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
             this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
 
-            
-        
+
+
 
 
 
@@ -804,7 +804,7 @@ namespace single_photon
                             m_genie_spline_weight = x.second.front();
                             std::cout<<"Its a spline fix"<<std::endl;
                         }
-                         if(x.second.size()==1 && x.first == "TunedCentralValue_Genie"){
+                        if(x.second.size()==1 && x.first == "TunedCentralValue_Genie"){
                             m_genie_CV_tune_weight = x.second.front();
                             std::cout<<"Its a CV fix"<<std::endl;
                         }
@@ -818,110 +818,150 @@ namespace single_photon
 
 
                 std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
-            }else{
-
-                art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> * tmp_mcparticles_per_hit = NULL;
-                std::vector<art::Ptr<simb::MCParticle>> tmp_matchedMCParticleVector;
-
-                if(!m_run_pi0_filter) this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,*tmp_mcparticles_per_hit, tmp_matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-
             }
-
-            //Second Shower Search-Pandora style
+            
+            //Isolation
             if(!m_run_all_pfps){
                 //Isolation
                 if(! m_run_pi0_filter)   this-> IsolationStudy(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap);
             }
 
-            //Isolation
- 
-    // ################################################### SEAview SEAview #########################################################
-    // #####################################################################################################################################
-            //This is a quick check 
+
+            // ################################################### SEAview SEAview #########################################################
+            // #####################################################################################################################################
+            //-----------------------------            //SEAviwer -----------------------------------
+
+            if(showers.size()==1 && !m_run_pi0_filter){    
+
+                art::Ptr<recob::Shower> p_shr = showers.front();
+                art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
+                std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
 
 
-        //-----------------------------            //SEAviwer -----------------------------------
+                int p_sliceid = PFPToSliceIdMap[p_pfp];
+                auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
 
-        if(showers.size()==1){    
-           
-            art::Ptr<recob::Shower> p_shr = showers.front();
-            art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
-            std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
-            
-                    
-            int p_sliceid = PFPToSliceIdMap[p_pfp];
-            auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
+                std::string uniq_tag = "yarp"+std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
 
-            std::string uniq_tag = "yarp"+std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
+                //Setup seaviewr object
+                seaview::SEAviewer sevd("test_"+uniq_tag, geom, theDetector );
+                //Pass in any bad channels you like
+                sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
+                //Give it a vertex to center around
+                sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
 
-            //Setup seaviewr object
-            seaview::SEAviewer sevd("test_"+uniq_tag, geom, theDetector );
-            //Pass in any bad channels you like
-            sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
-            //Give it a vertex to center around
-            sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
+                //Add the hits from just this slice, as well sa ALL hits 
+                sevd.addSliceHits(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
+                sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
+                sevd.setHitThreshold(m_SEAviewHitThreshold); 
 
-            //Add the hits from just this slice, as well sa ALL hits 
-            sevd.addSliceHits(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
-            sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
-            sevd.setHitThreshold(m_SEAviewHitThreshold); 
+                //Add all the "nice " PFParticle Hits, as well as what to label
+                sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
 
-            //Add all the "nice " PFParticle Hits, as well as what to label
-            sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
+                //and add the SingleShower we like
+                sevd.addShower(p_shr); // art::Ptr<recob::Shower>
 
-            //and add the SingleShower we like
-            sevd.addShower(p_shr); // art::Ptr<recob::Shower>
+                //Add all track PFP
 
-            //Add all track PFP
-            
-            for(auto &trk: tracks){
-                art::Ptr<recob::PFParticle> p_pfp_trk = trackToNuPFParticleMap[trk];
-                std::vector<art::Ptr<recob::Hit>> p_hits_trk = pfParticleToHitsMap[p_pfp_trk];
-                sevd.addPFParticleHits(p_hits_trk,"track");
-                sevd.addTrack(trk);
-            }
-            
-            //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 
-            sevd.calcUnassociatedHits();
+                for(auto &trk: tracks){
+                    art::Ptr<recob::PFParticle> p_pfp_trk = trackToNuPFParticleMap[trk];
+                    std::vector<art::Ptr<recob::Hit>> p_hits_trk = pfParticleToHitsMap[p_pfp_trk];
+                    sevd.addPFParticleHits(p_hits_trk,"track");
+                    sevd.addTrack(trk);
+                }
 
-            //Recluster
-            sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
-            
-            //And some plotting
-            if(m_SEAviewMakePDF) sevd.Print(m_SEAviewPlotDistance);
-            
-            //This is the place I will put the new Second Shower Search
-            std::vector<seaview::cluster> vec_SEAclusters ;
-            sevd.analyzeClusters(m_SEAviewDbscanEps, showerToNuPFParticleMap, pfParticleToHitsMap, vec_SEAclusters);
-            
+                //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 
+                sevd.calcUnassociatedHits();
 
-            //And save to file.
-            std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Clusters to chat about"<<std::endl;
-            for(size_t c=0; c< vec_SEAclusters.size(); c++){
-                auto clu = vec_SEAclusters.at(c);
-                int pl = clu.getPlane();
-                auto hitz = clu.getHits();
-                double Ep = this->CalcEShowerPlane(hitz,pl); 
-                std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.f_ImpactParameter<<" "<<clu.f_FitSlope<<" "<<clu.f_FitCons<<" "<<clu.f_MeanADC<<" "<<clu.f_AngleWRTShower<<std::endl;
+                //Recluster
+                sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
 
-                int remerge = clu.getShowerRemerge();
-                if(remerge>=0 && remerge< m_reco_shower_reclustered_energy_plane2.size()){
-                    if(pl==0)m_reco_shower_reclustered_energy_plane0[remerge]+=Ep;
-                    if(pl==1)m_reco_shower_reclustered_energy_plane1[remerge]+=Ep;
-                    if(pl==2)m_reco_shower_reclustered_energy_plane2[remerge]+=Ep;
+                //And some plotting
+                if(m_SEAviewMakePDF) sevd.Print(m_SEAviewPlotDistance);
+
+                //This is the place I will put the new Second Shower Search
+                std::vector<seaview::cluster> vec_SEAclusters ;
+                sevd.analyzeClusters(m_SEAviewDbscanEps, showerToNuPFParticleMap, pfParticleToHitsMap, vec_SEAclusters);
+
+
+                //And save to file.
+                std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Clusters to chat about"<<std::endl;
+
+                m_sss_num_candidates = 0;
+                for(size_t c=0; c< vec_SEAclusters.size(); c++){
+                    auto clu = vec_SEAclusters.at(c);
+                    int pl = clu.getPlane();
+                    auto hitz = clu.getHits();
+                    double Ep = this->CalcEShowerPlane(hitz,pl); 
+                    int remerge = clu.getShowerRemerge();
+                    cluster_score * ssscorz = clu.getScore();
+
+                    std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.f_ImpactParameter<<" "<<clu.f_FitSlope<<" "<<clu.f_FitCons<<" "<<clu.f_MeanADC<<" "<<clu.f_AngleWRTShower<<" "<<remerge<<std::endl;
+
+                    if(remerge>=0 && remerge< (int)m_reco_shower_reclustered_energy_plane2.size()){
+                        if(pl==0)m_reco_shower_reclustered_energy_plane0[remerge]+=Ep;
+                        if(pl==1)m_reco_shower_reclustered_energy_plane1[remerge]+=Ep;
+                        if(pl==2)m_reco_shower_reclustered_energy_plane2[remerge]+=Ep;
+
+                         continue;// Dont include this as a viable cluster!
+                    }
+
+                    m_sss_num_candidates ++;
+                    //Fill All the bits
+
+                            m_sss_candidate_num_hits.push_back((int)hitz.size());
+                            m_sss_candidate_num_wires.push_back((int)ssscorz->n_wires);
+                            m_sss_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
+                            m_sss_candidate_plane.push_back(pl);
+                            m_sss_candidate_PCA.push_back(ssscorz->pca_0);
+                            m_sss_candidate_impact_parameter.push_back(clu.f_ImpactParameter);
+                            m_sss_candidate_fit_slope.push_back(clu.f_FitSlope);
+                            m_sss_candidate_fit_constant.push_back(clu.f_FitCons);
+                            m_sss_candidate_mean_tick.push_back(ssscorz->mean_tick);
+                            m_sss_candidate_max_tick.push_back(ssscorz->max_tick);
+                            m_sss_candidate_min_tick.push_back(ssscorz->min_tick);
+                            m_sss_candidate_min_wire.push_back(ssscorz->min_wire);
+                            m_sss_candidate_max_wire.push_back(ssscorz->max_wire);
+                            m_sss_candidate_mean_wire.push_back(ssscorz->mean_wire);
+                            m_sss_candidate_min_dist.push_back(ssscorz->min_dist);
+                            m_sss_candidate_mean_ADC.push_back(clu_f.f_MeanADC);
+                            m_sss_candidate_energy.push_back(Ep);
+                            m_sss_candidate_angle_to_shower.push_back(clu.f_AngleWRTShower);
+                            m_sss_candidate_remerge.push_back(remerge);
+
+
+                    //MCTruth matching for pi0's
+                    if(m_is_data){
+                        m_sss_candidate_matched.push_back(-1);
+                        m_sss_candidate_pdg.push_back(-1);
+                        m_sss_candidate_parent_pdg.push_back(-1);
+                        m_sss_candidate_trackid.push_back(-1);
+                        m_sss_candidate_overlay_fraction.push_back(-1);
+
+                    }else{
+                        auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+                        m_sss_candidate_matched.push_back(ssmatched[0]);
+                        m_sss_candidate_pdg.push_back(ssmatched[1]);
+                        m_sss_candidate_parent_pdg.push_back(ssmatched[2]);
+                        m_sss_candidate_trackid.push_back(ssmatched[3]);
+                        m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
+                    }
+
                 }
 
             }
 
-        }
-    
-        for(int i =0; i<showers.size(); i++){
-            m_reco_shower_reclustered_energy_max[i] = std::max(m_reco_shower_reclustered_energy_plane1[i],std::max(m_reco_shower_reclustered_energy_plane0[i],m_reco_shower_reclustered_energy_plane2[i]));
-        }
+            for(int i =0; i<(int)showers.size(); i++){
+                m_reco_shower_reclustered_energy_max[i] = std::max(m_reco_shower_reclustered_energy_plane1[i],std::max(m_reco_shower_reclustered_energy_plane0[i],m_reco_shower_reclustered_energy_plane2[i]));
+            }
+
+            //And cluster the 2d and 3d second showers
+            if(!m_run_pi0_filter) this->SimpleSecondShowerCluster();
 
 
-    // ################################################### END SEAview END SEAview #########################################################
-    // #####################################################################################################################################
+
+            // ################################################### END SEAview END SEAview #########################################################
+            // #####################################################################################################################################
 
 
 
@@ -1008,10 +1048,6 @@ namespace single_photon
 
                 }
             }
-
-            //And cluster the 2d and 3d second showers
-            if(!m_run_pi0_filter) this->SimpleSecondShowerCluster();
-
 
 
             //---------------------- END OF LOOP, fill vertex ---------------------
@@ -1152,7 +1188,7 @@ namespace single_photon
             }
 
 
-            
+
 
 
 
@@ -1297,7 +1333,7 @@ namespace single_photon
             }
 
             m_subrun_pot = this_pot; 
-            
+
             run_subrun_tree->Fill();
             return true;
 
@@ -1518,7 +1554,7 @@ namespace single_photon
         double SinglePhoton::triangle_area(double a1, double a2, double b1, double b2, double c1, double c2){
             double m1 = 0.3;
             double m2 = 1.0/25.0;
-            
+
             return fabs((a1*m1*(b2*m2-c2*m2)+b1*m1*(c2*m2-a2*m2)+c1*m1*(a2*m2-b2*m2))/2.0);
         }
 

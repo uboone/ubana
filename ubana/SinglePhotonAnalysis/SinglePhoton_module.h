@@ -911,6 +911,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_sss_candidate_energy;
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
+            std::vector<int>    m_sss_candidate_remerge;
             std::vector<int>    m_sss_candidate_matched;
             std::vector<int>    m_sss_candidate_pdg;
             std::vector<int>    m_sss_candidate_parent_pdg;
