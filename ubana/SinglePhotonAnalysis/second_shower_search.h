@@ -18,6 +18,7 @@ namespace single_photon
 
     void SinglePhoton::ClearSecondShowers(){
         m_sss_num_unassociated_hits=0;
+        m_sss_num_unassociated_hits_above_threshold=0;
         m_sss_num_associated_hits=0;
 
         m_sss_num_candidates = 0;
@@ -58,6 +59,7 @@ namespace single_photon
 
     void SinglePhoton::CreateSecondShowerBranches(){
         vertex_tree->Branch("sss_num_unassociated_hits",&m_sss_num_unassociated_hits,"sss_num_unassociated_hits/I");
+        vertex_tree->Branch("sss_num_unassociated_hits_above_threshold",&m_sss_num_unassociated_hits_above_threshold,"sss_num_unassociated_hits_above_threshold/I");
         vertex_tree->Branch("sss_num_associated_hits",&m_sss_num_associated_hits,"sss_num_associated_hits/I");
 
         vertex_tree->Branch("sss_num_candidates",&m_sss_num_candidates,"sss_num_candidates/I");

@@ -638,13 +638,15 @@ namespace single_photon
 
 
 
-
-
-
             if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
 
             this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap,pfParticleMap,pfParticlesToShowerReco3DMap); 
             this->AnalyzeKalmanShowers(showers,showerToNuPFParticleMap,pfParticlesToShowerKalmanMap, kalmanTrackToCaloMap, pfParticleToHitsMap);
+
+            
+            
+            
+            art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
 
             // MCTruth, MCParticle, MCNeutrino information all comes directly from GENIE.
@@ -688,8 +690,6 @@ namespace single_photon
                 // art::ValidHandle<std::vector<sim::MCShower>> const & mcShowerHandle  = evt.getValidHandle<std::vector<sim::MCShower>>(m_mcShowerLabel);
                 //  art::fill_ptr_vector(mcTrackVector,mcTrackHandle);
                 //  art::fill_ptr_vector(mcShowerVector,mcShowerHandle);
-
-                art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
 
                 //mcc9 march miniretreat fix
@@ -775,9 +775,9 @@ namespace single_photon
                 //this one was for testing, leaving out for now
                 // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
 
-                if(!m_run_pi0_filter){
-                    this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-                }
+                //if(!m_run_pi0_filter){
+                //    this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+                //}
 
                 std::cout<<"filling info in ncdelta slice tree"<<std::endl;
                 this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
@@ -871,8 +871,10 @@ namespace single_photon
                 }
 
                 //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 
-                sevd.calcUnassociatedHits();
-
+                auto vnh= sevd.calcUnassociatedHits();
+                m_sss_num_unassociated_hits =vnh[1]+vnh[2];
+                m_sss_num_unassociated_hits_above_threshold = vnh[2];
+                m_sss_num_associated_hits = vnh[0]-vnh[1]-vnh[2];
                 //Recluster
                 sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
 
@@ -894,7 +896,7 @@ namespace single_photon
                     auto hitz = clu.getHits();
                     double Ep = this->CalcEShowerPlane(hitz,pl); 
                     int remerge = clu.getShowerRemerge();
-                    cluster_score * ssscorz = clu.getScore();
+                    seaview::cluster_score * ssscorz = clu.getScore();
 
                     std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.f_ImpactParameter<<" "<<clu.f_FitSlope<<" "<<clu.f_FitCons<<" "<<clu.f_MeanADC<<" "<<clu.f_AngleWRTShower<<" "<<remerge<<std::endl;
 
@@ -924,7 +926,7 @@ namespace single_photon
                             m_sss_candidate_max_wire.push_back(ssscorz->max_wire);
                             m_sss_candidate_mean_wire.push_back(ssscorz->mean_wire);
                             m_sss_candidate_min_dist.push_back(ssscorz->min_dist);
-                            m_sss_candidate_mean_ADC.push_back(clu_f.f_MeanADC);
+                            m_sss_candidate_mean_ADC.push_back(clu.f_MeanADC);
                             m_sss_candidate_energy.push_back(Ep);
                             m_sss_candidate_angle_to_shower.push_back(clu.f_AngleWRTShower);
                             m_sss_candidate_remerge.push_back(remerge);
@@ -939,6 +941,7 @@ namespace single_photon
                         m_sss_candidate_overlay_fraction.push_back(-1);
 
                     }else{
+
                         auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
                         m_sss_candidate_matched.push_back(ssmatched[0]);
                         m_sss_candidate_pdg.push_back(ssmatched[1]);
