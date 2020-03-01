@@ -102,7 +102,7 @@ namespace single_photon
         m_SEAviewDbscanMinPts = pset.get<double>("SEAviewDBSCANMinPts",8);
         m_SEAviewDbscanEps = pset.get<double>("SEAviewDBSCANEps",4);
         m_SEAviewMaxPtsLinFit = pset.get<double>("SEAviewMaxHitsLinFit",20.0);
-        m_SEAviewMakePDF = pset.get<bool>("SEAviewMakePDF",true);
+        m_SEAviewMakePDF = pset.get<bool>("SEAviewMakePDF",false);
 
         this->setTPCGeom(); 
 
@@ -649,9 +649,11 @@ namespace single_photon
                 const art::Ptr<recob::PFParticle> pfp = showerToNuPFParticleMap[s];
                 const std::vector< art::Ptr<recob::SpacePoint> > shr_spacepoints = pfParticleToSpacePointsMap[pfp];
 
+                m_reco_shower_end_dist_to_active_TPC[i_shr] = 99999;
+                m_reco_shower_end_dist_to_SCB[i_shr] = 99999;
                 for(auto &sp: shr_spacepoints){
                          std::vector<double> tmp_spt = {sp->XYZ()[0],sp->XYZ()[1] , sp->XYZ()[2]};
-                         m_reco_shower_start_dist_to_active_TPC[i_shr] = std::min(m_reco_shower_end_dist_to_active_TPC[i_shr], distToTPCActive(tmp_spt));
+                         m_reco_shower_end_dist_to_active_TPC[i_shr] = std::min(m_reco_shower_end_dist_to_active_TPC[i_shr], distToTPCActive(tmp_spt));
                          double tmo;
                          this->distToSCB(tmo,tmp_spt);
                          m_reco_shower_end_dist_to_SCB[i_shr] = std::min(m_reco_shower_end_dist_to_SCB[i_shr],tmo);

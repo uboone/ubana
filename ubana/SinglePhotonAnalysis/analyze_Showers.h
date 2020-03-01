@@ -608,7 +608,6 @@ namespace single_photon
             m_reco_shower_start_dist_to_active_TPC[i_shr] = distToTPCActive(hstart);
             m_reco_shower_start_in_SCB[i_shr] = this->distToSCB(m_reco_shower_start_dist_to_SCB[i_shr],hstart);
 
-
             m_reco_shower_dirx[i_shr] = shr_dir.X();
             m_reco_shower_diry[i_shr] = shr_dir.Y();
             m_reco_shower_dirz[i_shr] = shr_dir.Z();
