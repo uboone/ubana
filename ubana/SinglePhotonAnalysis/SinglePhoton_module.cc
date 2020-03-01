@@ -643,7 +643,21 @@ namespace single_photon
             this->AnalyzeShowers(showers,showerToNuPFParticleMap, pfParticleToHitsMap, pfParticleToClustersMap, clusterToHitsMap,sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap, PFPToTrackScoreMap,pfParticleMap,pfParticlesToShowerReco3DMap); 
             this->AnalyzeKalmanShowers(showers,showerToNuPFParticleMap,pfParticlesToShowerKalmanMap, kalmanTrackToCaloMap, pfParticleToHitsMap);
 
-            
+            //Calc a fake shower "end" distance
+            for(size_t i_shr = 0; i_shr<showers.size();i_shr++){
+                const art::Ptr<recob::Shower> s = showers[i_shr];
+                const art::Ptr<recob::PFParticle> pfp = showerToNuPFParticleMap[s];
+                const std::vector< art::Ptr<recob::SpacePoint> > shr_spacepoints = pfParticleToSpacePointsMap[pfp];
+
+                for(auto &sp: shr_spacepoints){
+                         std::vector<double> tmp_spt = {sp->XYZ()[0],sp->XYZ()[1] , sp->XYZ()[2]};
+                         m_reco_shower_start_dist_to_active_TPC[i_shr] = std::min(m_reco_shower_end_dist_to_active_TPC[i_shr], distToTPCActive(tmp_spt));
+                         double tmo;
+                         this->distToSCB(tmo,tmp_spt);
+                         m_reco_shower_end_dist_to_SCB[i_shr] = std::min(m_reco_shower_end_dist_to_SCB[i_shr],tmo);
+                }
+            }
+
             
             
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);

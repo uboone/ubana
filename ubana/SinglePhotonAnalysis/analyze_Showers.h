@@ -39,6 +39,8 @@ namespace single_photon
         m_reco_shower_start_dist_to_active_TPC.clear();
         m_reco_shower_start_dist_to_SCB.clear();
         m_reco_shower_start_in_SCB.clear();
+        m_reco_shower_end_dist_to_active_TPC.clear();
+        m_reco_shower_end_dist_to_SCB.clear();
         
         m_reco_shower_dirx.clear();
         m_reco_shower_diry.clear();
@@ -227,6 +229,10 @@ namespace single_photon
         m_reco_shower_start_dist_to_SCB.resize(size);
         m_reco_shower_start_in_SCB.resize(size);
  
+        m_reco_shower_end_dist_to_active_TPC.resize(size);
+        m_reco_shower_end_dist_to_SCB.resize(size);
+ 
+
         m_reco_shower_startx.resize(size);
         m_reco_shower_starty.resize(size);
         m_reco_shower_startz.resize(size);
@@ -379,6 +385,8 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_start_dist_to_active_TPC", &m_reco_shower_start_dist_to_active_TPC);
         vertex_tree->Branch("reco_shower_start_dist_to_SCB",  &m_reco_shower_start_dist_to_SCB);
         vertex_tree->Branch("reco_shower_start_in_SCB",   &m_reco_shower_start_in_SCB);
+         vertex_tree->Branch("reco_shower_end_dist_to_active_TPC", &m_reco_shower_end_dist_to_active_TPC);
+        vertex_tree->Branch("reco_shower_end_dist_to_SCB",  &m_reco_shower_end_dist_to_SCB);
  
         
         vertex_tree->Branch("reco_shower_theta_yz",&m_reco_shower_theta_yz);
@@ -1131,6 +1139,10 @@ namespace single_photon
             }else{
                 m_reco_shower_kalman_median_dEdx_allplane[i_shr] = NAN;
             }
+
+
+
+            
 
 
         i_shr++;

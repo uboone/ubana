@@ -1363,6 +1363,8 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_reco_shower_start_dist_to_active_TPC;
             std::vector<double> m_reco_shower_start_dist_to_SCB;
             std::vector<int> m_reco_shower_start_in_SCB;
+            std::vector<double> m_reco_shower_end_dist_to_active_TPC;
+            std::vector<double> m_reco_shower_end_dist_to_SCB;
 
             std::vector<double>   m_reco_shower_dirx;
             std::vector<double>   m_reco_shower_diry;
