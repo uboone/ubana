@@ -873,7 +873,7 @@ namespace single_photon
                 //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 
                 auto vnh= sevd.calcUnassociatedHits();
                 m_sss_num_unassociated_hits =vnh[1]+vnh[2];
-                m_sss_num_unassociated_hits_above_threshold = vnh[2];
+                m_sss_num_unassociated_hits_below_threshold = vnh[2];
                 m_sss_num_associated_hits = vnh[0]-vnh[1]-vnh[2];
                 //Recluster
                 sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);

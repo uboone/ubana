@@ -884,7 +884,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             int m_reco_slice_objects;
             //------- Second shower related variables ----
             int m_sss_num_unassociated_hits;
-            int m_sss_num_unassociated_hits_above_threshold;
+            int m_sss_num_unassociated_hits_below_threshold;
             int m_sss_num_associated_hits;
 
             int m_sss_num_candidates;
