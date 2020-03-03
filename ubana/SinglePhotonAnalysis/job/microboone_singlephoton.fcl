@@ -12,6 +12,13 @@ singlephoton_analyzer:{
     POTLabel:       "generator"
     input_param:    "optional" 
 
+    SEAviewHitThreshold: 25
+    SEAviewDBSCANMinPts: 8
+    SEAviewDBSCANEps: 4
+    SEAviewPlotDistance: 80
+    SEAviewMaxHitsLinFit: 20.0
+    SEAviewMakePDF: false
+
     FillTrees: true
     RunPi0Filter: false
  
