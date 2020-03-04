@@ -974,11 +974,6 @@ namespace single_photon
                 m_reco_shower_reclustered_energy_max[i] = std::max(m_reco_shower_reclustered_energy_plane1[i],std::max(m_reco_shower_reclustered_energy_plane0[i],m_reco_shower_reclustered_energy_plane2[i]));
             }
 
-            //And cluster the 2d and 3d second showers
-            if(!m_run_pi0_filter) this->SimpleSecondShowerCluster();
-
-
-
             // ################################################### END SEAview END SEAview #########################################################
             // #####################################################################################################################################
 
@@ -997,6 +992,10 @@ namespace single_photon
 
                 this->SecondShowerSearch3D(showers, showerToNuPFParticleMap, tracks,trackToNuPFParticleMap,evt);
             }        
+
+
+            //And cluster the 2d and 3d second showers
+            if(!m_run_pi0_filter) this->SimpleSecondShowerCluster();
 
             size_t n_neutrino_slice=0;
             size_t n_neutrino_candidate_pfp_id=0;
