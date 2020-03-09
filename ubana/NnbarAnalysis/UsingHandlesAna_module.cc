@@ -37,14 +37,6 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-//#include "art/Framework/Core/FindManyP.h"
-#include "canvas/Utilities/ensurePointer.h"
-#include "canvas/Persistency/Common/FindManyP.h"
-#include "canvas/Persistency/Common/FindMany.h"
-#include "canvas/Persistency/Common/FindOneP.h"
-#include "canvas/Persistency/Common/FindOne.h"
-
-
 // Tracking down includes can be a pain, the way I usually do it is
 // by going to the LArSoft doxygen, looking for the relevant .h
 // file, and looking at the directory structure on the left.
@@ -56,14 +48,8 @@
 #include "art/Framework/Services/Optional/TFileService.h" // used for ROOT file
 
 // LArSoft includes
-#include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
-#include "lardataobj/RecoBase/Shower.h"
-#include "lardataobj/RecoBase/Vertex.h"
-#include "lardataobj/RecoBase/Slice.h"
-#include "lardataobj/RecoBase/PFParticle.h"
 
-#include "lardataobj/RecoBase/PFParticleMetadata.h"
 // ROOT includes
 #include "TTree.h"
 
@@ -130,18 +116,8 @@ class UsingHandlesAna : public art::EDAnalyzer {
     std::vector<double> track_theta_fromptrvec_v;
     std::vector<double> track_phi_fromptrvec_v;
 
-    int num_track;
-    int num_shower;
-    int num_vertex;
-    int num_slice;
-  
-
     // fhicl parameters
     std::string fTrackLabel;
-   std::string fShowerLabel;
-   std::string fVertexLabel;
-   std::string fSliceLabel;
-  std::string fPandoraLabel;
 
     // other variables
     double track_length;
@@ -162,11 +138,8 @@ UsingHandlesAna::UsingHandlesAna(fhicl::ParameterSet const & p)
   // says "get the fhicl parameter that is called TrackLabel and treat it 
   // as a std::string", the second argument is the default argument in case
   // the fhicl parameter isn't set.
-  fTrackLabel = p.get<std::string>("TrackLabel", "pandora::McRecoStage2");
-  fShowerLabel = p.get<std::string>("ShowerLabel", "pandora::McRecoStage2");
-  fVertexLabel = p.get<std::string>("VertexLabel", "pandora::McRecoStage2");
-  fSliceLabel = p.get<std::string>("SliceLabel", "pandora::McRecoStage2");
-  fPandoraLabel = p.get<std::string>("PandoraLabel", "pandora");
+  fTrackLabel = p.get<std::string>("TrackLabel", "pandoraNu::McRecoStage2");
+
 }
 
 // this function is run once at the beginning of a job, not once per event
@@ -186,10 +159,6 @@ void UsingHandlesAna::beginJob()
   out_tree->Branch("track_theta_fromptrvec_v" , "std::vector<double>", &track_theta_fromptrvec_v);
   out_tree->Branch("track_phi_fromptrvec_v"   , "std::vector<double>", &track_phi_fromptrvec_v);
 
-  out_tree->Branch("num_track", &num_track, "num_track/I");
-  out_tree->Branch("num_shower", &num_shower, "num_shower/I");
-  out_tree->Branch("num_vertex", &num_vertex, "num_vertex/I");
-  out_tree->Branch("num_slice", &num_slice, "num_slice/I");
 }
 
 // this acts as an event loop, everything inside these brackets are 
@@ -211,16 +180,11 @@ void UsingHandlesAna::analyze(art::Event const & e)
   // whats in the file! You can do this by running
   // lar -c eventdump.fcl my_input_artroot_file.root
   art::Handle< std::vector<recob::Track> > trackHandle;
-  art::Handle< std::vector<recob::Shower> > showerHandle;
-  art::Handle< std::vector<recob::Vertex> > vertexHandle;
-  art::Handle< std::vector<recob::Slice> > sliceHandle;
+
   // getByLabel will fill the track handle with a
   // std::vector<recob::Track> with the label defined in
   // fTrackLabel (which comes from the fhicl file)
   e.getByLabel(fTrackLabel, trackHandle);
-  e.getByLabel(fShowerLabel, showerHandle);
-  e.getByLabel(fVertexLabel, vertexHandle);
-  e.getByLabel(fSliceLabel, sliceHandle);
 
   // --------------------------------------------------------------------------
   // FIRST METHOD FOR USING THE HANDLE
@@ -245,167 +209,6 @@ void UsingHandlesAna::analyze(art::Event const & e)
   // access via a ptr vector
   std::vector< art::Ptr<recob::Track> > trackPtrVector;
   art::fill_ptr_vector(trackPtrVector, trackHandle);
-
-  std::vector< art::Ptr<recob::Shower> > showerPtrVector;
-  art::fill_ptr_vector(showerPtrVector, showerHandle);
-
-  std::vector< art::Ptr<recob::Vertex> > vertexPtrVector;
-  art::fill_ptr_vector(vertexPtrVector, vertexHandle);
-
-  std::vector< art::Ptr<recob::Slice> > slicePtrVector;
-  art::fill_ptr_vector(slicePtrVector, sliceHandle);
-
-
-
-
-  num_track=int(trackPtrVector.size());
-  num_shower = int (showerPtrVector.size());
-  num_vertex = int (vertexPtrVector.size());
-
-  num_slice = int (slicePtrVector.size());
-
-  std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::PFParticle>> > sliceToPFParticlesMap;
-  std::map<int, std::vector<art::Ptr<recob::PFParticle>> > sliceIDToPFParticlesMap;
-
-  art::FindManyP<recob::PFParticle> pfparticles_per_slice(sliceHandle, e, fPandoraLabel);
-  art::FindManyP<recob::Hit> hits_per_slice(sliceHandle, e, fPandoraLabel);
-
-
-  for (size_t i = 0; i < slicePtrVector.size(); i++){
-    art::Ptr<recob::Slice> thisSlice = slicePtrVector.at(i);
-    sliceToPFParticlesMap[thisSlice] =pfparticles_per_slice.at(thisSlice.key());
-    sliceIDToPFParticlesMap[thisSlice->ID()] = pfparticles_per_slice.at(thisSlice.key());
-    std::cout << "Slice "<< i <<" , ID : "<< thisSlice->ID() << " , Charge : "<< thisSlice->Charge() << std::endl;
-  }
-
-
-  std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::Hit>> > sliceToHitsMap;
-  std::map<int, std::vector<art::Ptr<recob::Hit>> > sliceIDToHitsMap;
-  for(size_t i=0; i< slicePtrVector.size(); ++i){
-    art::Ptr<recob::Slice> thisSlice = slicePtrVector.at(i);
-    sliceToHitsMap[thisSlice] =hits_per_slice.at(thisSlice.key());
-    sliceIDToHitsMap[thisSlice->ID()] = hits_per_slice.at(thisSlice.key());
-  }
-
-  //Collect the PFParticles from the event. This is the core!
-
-  art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = e.getValidHandle<std::vector<recob::PFParticle>>(fPandoraLabel);
-  std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
-  art::fill_ptr_vector(pfParticleVector,pfParticleHandle);
-  //So a cross check
-  /*if (!pfParticleHandle.isValid())
-    {
-
-      if(m_run_pi0_filter)
-
-	return false;
-
-      else
-
-	return true;
-
-	}*/
-
-
-
-  art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, e,  fPandoraLabel);
-  std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap;
-  for(size_t i=0; i< pfParticleVector.size(); ++i){
-    const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
-    pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
-  }
-
-
-
-  for(size_t i=0; i< pfParticleVector.size(); ++i){
-
-    const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
-
-    pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
-
-  }
-
-
-  if(true){
-
-    std::cout<<"SliceTest: there are "<<slicePtrVector.size()<<" slices in this event"<<std::endl;
-
-    float highestSliceScore = -1.0;
-    int highestSliceID = 1000;
-    int highestSliceLoc = 1000;
-    for(size_t s =0; s<slicePtrVector.size(); s++){
-
-      auto slice = slicePtrVector[s];
-      auto pfps = sliceToPFParticlesMap[slice]; 
-
-      std::cout<<"SliceTest: On Slice "<<s<<" it has "<<pfps.size()<<" pfparticles"<<std::endl;
-
-      std::vector<float> nu_scores;
-
-      bool isSelectedSlice = false;
-
-      int primaries = 0;
-
-      int primary_pdg = 0;
-
-      for(auto &pfp: pfps){
-
-	std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> metadatas = pfParticleToMetadataMap[pfp];
-	for(auto &meta: metadatas){
-	  std::map<std::string, float> propertiesmap  = meta->GetPropertiesMap();
-	  //for each of the things in the list
-	  if(propertiesmap.count("NuScore")==1){
-	    nu_scores.push_back(propertiesmap["NuScore"]);
-	    if (propertiesmap["NuScore"] > highestSliceScore){
-	      highestSliceScore = propertiesmap["NuScore"];
-	      highestSliceID = slice->ID();
-	      highestSliceLoc = s;
-	      std:: cout << "[Select Highest Slice] Loc. of slice : " << highestSliceLoc<<", updated ID : "<<highestSliceID << " , Score : " << highestSliceScore << std::endl; 
-	    }
-	  }
-	  if(propertiesmap.count("IsNeutrino")==1){
-	    isSelectedSlice = true; 
-	  }
-	}
-
-	if (pfp->IsPrimary()) {
-	  primaries++;
-	  primary_pdg = (pfp->PdgCode());    
-	}
-      }
-
-      if(nu_scores.size()>0){
-	double mean  = std::accumulate(nu_scores.begin(), nu_scores.end(), 0.0)/(double)nu_scores.size();
-	if(mean!=nu_scores.front()){
-	  std::cout<<"ERROR! Somehow the pfp's in this slice have different nu-scores? IMpossible."<<std::endl;
-
-	  exit(EXIT_FAILURE);
-
-	}
-
-	std::cout<<"SliceTest: -- and has a nu_score of "<<nu_scores.front()<<std::endl;
-
-	std::cout<<"SliceTest: -- with "<<primaries<<" primaries: pdg last: "<<primary_pdg<<std::endl;
-
-      }else{
-
-	std::cout<<"SliceTest: -- and does not have a nu_score of. "<<std::endl;
-
-      }
-
-      if(isSelectedSlice) std::cout<<"SliceTest: -- -- And is the Selected Neutrino Slice"<<std::endl;
-
-    }
-
-  }
-
-
-
-
-
-
-
-
   for (size_t i = 0; i < trackPtrVector.size(); i++){
     
     art::Ptr<recob::Track> thisTrack = trackPtrVector.at(i);

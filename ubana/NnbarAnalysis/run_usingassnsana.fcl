@@ -6,7 +6,7 @@
 # of the data product, i.e. a set of pandoraNu tracks which are produced by a 
 # fhicl file with the process_name McRecoStage2 will have a 
 # label 'pandoraNu::McRecoStage2'
-process_name: usinghandlesana 
+process_name: usingassnsana 
 
 # the services block is standard and defines and configures any of 
 # the art services you use in the file (and some that are defined in fhicl) 
@@ -15,7 +15,7 @@ services:
 { 
 
   # Here, we set the fileName of the output ROOT file
-  TFileService: {fileName: "usinghandlesana_out.root"}
+  TFileService: {fileName: "usingassnsana_out.root"}
 
   # these tell you information about the time and memory
   # used by running the fhicl file
@@ -27,34 +27,32 @@ services:
 }
  
 # in this section, 'physics' and 'analyzers' are names set by larsoft,
-# while 'usinghandlesanamod' is customisable.
+# while 'usingassnsanamod' is customisable.
 # if this was a producer module ('producers' rather than 'analyzers')
-# then usinghandlesanamod would be the label for the produced data
-# products, i.e. it would be usinghandlesanamod::usinghandlesana
+# then usingassnsanamod would be the label for the produced data
+# products, i.e. it would be usingassnsanamod::usingassnsana
 physics:
 {
 
   analyzers:
   {
 
-    usinghandlesanamod:
+    usingassnsanamod:
     {
       # this is the name of the module you want to run
-      module_type: UsingHandlesAna
+      module_type: UsingAssnsAna
 
       # this is read into the module
-      TrackLabel: "pandora::McRecoStage2"
-      ShowerLabel: "pandora::McRecoStage2"
-      VertexLabel: "pandora::McRecoStage2"
-      SliceLabel: "pandora::McRecoStage2"
-      PandoraLabel: "pandora"
+      TrackLabel: "pandoraNu::McRecoStage2"
+      TrackHitAssnLabel: "pandoraNu::McRecoStage2"
+
     }
 
   }
 
   # if you had multiple analyzer modules, you can define them in the
   # analyzers tag above, and then have say analysis: [ana1, ana2]
-  analysis: [usinghandlesanamod]
+  analysis: [usingassnsanamod]
   end_paths: [analysis]
 }
 

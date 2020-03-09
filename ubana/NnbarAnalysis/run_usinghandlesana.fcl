@@ -43,11 +43,8 @@ physics:
       module_type: UsingHandlesAna
 
       # this is read into the module
-      TrackLabel: "pandora::McRecoStage2"
-      ShowerLabel: "pandora::McRecoStage2"
-      VertexLabel: "pandora::McRecoStage2"
-      SliceLabel: "pandora::McRecoStage2"
-      PandoraLabel: "pandora"
+      TrackLabel: "pandoraNu::McRecoStage2"
+
     }
 
   }
