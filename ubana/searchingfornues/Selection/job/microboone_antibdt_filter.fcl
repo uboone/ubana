@@ -23,14 +23,14 @@ microboone_antibdtfilter:
         tool_type: "CC0piNpSelection"
         TrkShrscore: 0.5
         CLSproducer: "pandora"
-        TRKproducer: "pandoraTrack"
-        CALproducer: "pandoraTrackcali"
-        PIDproducer: "pandoraTrackcalipid"
+        TRKproducer: "pandora"
+        CALproducer: "pandoracali"
+        PIDproducer: "pandoracalipid"
         CALproducerTrkFit: "shrreco3dKalmanShowercali"
         TRKproducerTrkFit: "shrreco3dKalmanShower"
         Clusterproducer: "proximity"
         Hitproducer: "gaushit"
-        mcsfitmu: @local::mcsfitproducer # @local::microboone_reco_data_producers.pandoraMCSMu.fitter
+        mcsfitmu: @local::mcsfitproducer.fitter # @local::microboone_reco_data_producers.pandoraMCSMu.fitter
         LocaldEdx: false # use dQdx and convert to dEdx with fixed conversion
         # ADC to E conversion taken from reco2 production fhicl file
         ADCtoE: [232,249,243.7] # e-/ADC @local::microboone_reco_data_producers.shrreco3d.ADCtoE
