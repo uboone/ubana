@@ -30,7 +30,7 @@ microboone_antibdtfilter:
         TRKproducerTrkFit: "shrreco3dKalmanShower"
         Clusterproducer: "proximity"
         Hitproducer: "gaushit"
-        mcsfitmu: @local::mcsfitproducer # @local::microboone_reco_data_producers.pandoraMCSMu.fitter
+        mcsfitmu: @local::mcsfitproducer.fitter # @local::microboone_reco_data_producers.pandoraMCSMu.fitter
         LocaldEdx: false # use dQdx and convert to dEdx with fixed conversion
         # ADC to E conversion taken from reco2 production fhicl file
         ADCtoE: [232,249,243.7] # e-/ADC @local::microboone_reco_data_producers.shrreco3d.ADCtoE
