@@ -28,7 +28,7 @@ microboone_antibdtfilter:
         PIDproducer: "pandoracalipid"
         CALproducerTrkFit: "shrreco3dKalmanShowercali"
         TRKproducerTrkFit: "shrreco3dKalmanShower"
-        Clusterproducer: "proximity"
+        Clusterproducer: "pandora"
         Hitproducer: "gaushit"
         mcsfitmu: @local::mcsfitproducer.fitter # @local::microboone_reco_data_producers.pandoraMCSMu.fitter
         LocaldEdx: false # use dQdx and convert to dEdx with fixed conversion
