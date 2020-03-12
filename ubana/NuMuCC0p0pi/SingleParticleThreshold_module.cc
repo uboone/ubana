@@ -153,6 +153,8 @@ private:
   std::vector<double> true_hadron_mom;//True momentum of hadron track in the every event (reconstructed)
   std::vector<double> true_mu_purity; // Reco-True purity in the muon track
   std::vector<double> true_hadron_purity; // Reco-True purity in the hadron track
+  std::vector<double> true_mu_completeness; // Reco-True completeness in the muon track
+  std::vector<double> true_hadron_completeness; // Reco-True completeness in the hadron track
 
   std::vector<double> start_mu_x;//Reconstructed start x in the every event
   std::vector<double> start_mu_y;//Reconstructed start y in the every event
@@ -440,6 +442,7 @@ void ParticleThreshold::analyze(art::Event const& evt)
       if(MCparticle->Process() == "primary" && MCparticle->PdgCode() == 13){
         true_mu_mom.push_back(MCparticle->P());
         true_mu_purity.push_back(backtrackertruthmatch.ReturnPurity());
+        true_mu_completeness.push_back(backtrackertruthmatch.ReturnCompleteness());
 
         mu_reconstructed = true;
         reco_mu_start = Trk_start_SCEcorr;
@@ -475,6 +478,7 @@ void ParticleThreshold::analyze(art::Event const& evt)
       if(MCparticle->Process() == "primary" && MCparticle->PdgCode() != 13){
         true_hadron_mom.push_back(MCparticle->P());
         true_hadron_purity.push_back(backtrackertruthmatch.ReturnPurity());
+        true_hadron_completeness.push_back(backtrackertruthmatch.ReturnCompleteness());
 
         hadron_reconstructed = true;
         reco_hadron_start = Trk_start_SCEcorr;
@@ -614,6 +618,8 @@ void ParticleThreshold::analyze(art::Event const& evt)
   true_hadron_mom.clear();
   true_mu_purity.clear();
   true_hadron_purity.clear();
+  true_mu_completeness.clear();
+  true_hadron_completeness.clear();
 
   start_mu_x.clear();
   start_mu_y.clear();
@@ -744,6 +750,8 @@ void ParticleThreshold::Initialize_event()
   my_event_->Branch("true_hadron_mom", &true_hadron_mom);
   my_event_->Branch("true_mu_purity", &true_mu_purity);
   my_event_->Branch("true_hadron_purity", &true_hadron_purity);
+  my_event_->Branch("true_mu_completeness", &true_mu_completeness);
+  my_event_->Branch("true_hadron_completeness", &true_hadron_completeness);
 
   my_event_->Branch("start_mu_x", &start_mu_x);
   my_event_->Branch("start_mu_y", &start_mu_y);
