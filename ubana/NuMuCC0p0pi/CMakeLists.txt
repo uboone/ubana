@@ -8,9 +8,9 @@ set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpa
 link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
 
 art_make( BASENAME_ONLY
-          LIBRARY_NAME     uboonecode_uboone_UBXSec
+          LIBRARY_NAME     NuMuCC0pi0p
           LIB_LIBRARIES
-                   uboonecode_uboone_UBXSec_Algorithms
+                   #uboonecode_uboone_UBXSec_Algorithms
                    BackTrack
                    BrokenTrack
                    RecoTruth
@@ -71,7 +71,7 @@ art_make( BASENAME_ONLY
                    ${ROOT_EG}
 
           MODULE_LIBRARIES
-                   uboonecode_uboone_UBXSec_Algorithms 
+                   #uboonecode_uboone_UBXSec_Algorithms 
                    BackTrack
                    BrokenTrack
                    RecoTruth

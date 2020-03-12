@@ -123,6 +123,8 @@ private:
   std::vector<double> All_true_trk_costheta_xz;
   std::vector<double> All_true_trk_length; 
 
+  std::vector<double> trk_cosmic_percent;// Cosmic hit percentage of the track from reco-true matching
+  std::vector<double> trk_purity;// Purity of true MCParticle hits in the track from reco-true matching
   std::vector<double> true_mom;//True momentum of muon track in the every event
   std::vector<double> true_start_x;//True start of muon track (X)
   std::vector<double> true_start_y;//True start of muon track (Y)
@@ -306,8 +308,12 @@ void CCthreshold::analyze(art::Event const& evt)
           BackTrackerTruthMatch backtrackertruthmatch;
           backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
           auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
+
           if(MCparticle && MCparticle == MCP && MCparticle->Process() == "primary"){
             std::cout<<"Track matches with primary MC particle!"<<std::endl;
+            trk_cosmic_percent.push_back(backtrackertruthmatch.ReturnCosmicPercent());
+            trk_purity.push_back(backtrackertruthmatch.ReturnPurity());
+
             auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
             true_mom.push_back(MCparticle->P());
             true_start_x.push_back(MCparticle->Position().X());
@@ -354,7 +360,10 @@ void CCthreshold::analyze(art::Event const& evt)
   All_true_trk_theta_xz.clear();
   All_true_trk_costheta_xz.clear();
   All_true_trk_length.clear();
- 
+
+  trk_cosmic_percent.clear();
+  trk_purity.clear();
+   
   true_mom.clear();
   true_start_x.clear();
   true_start_y.clear();
@@ -410,6 +419,9 @@ void CCthreshold::Initialize_event()
   my_event_->Branch("All_true_trk_costheta_xz", &All_true_trk_costheta_xz);
   my_event_->Branch("All_true_trk_length", &All_true_trk_length);
   
+  my_event_->Branch("trk_cosmic_percent", &trk_cosmic_percent);
+  my_event_->Branch("trk_purity", &trk_purity);
+
   my_event_->Branch("true_mom", &true_mom);
   my_event_->Branch("true_start_x", &true_start_x);
   my_event_->Branch("true_start_y", &true_start_y);

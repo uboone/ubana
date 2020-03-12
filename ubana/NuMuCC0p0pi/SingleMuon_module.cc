@@ -211,6 +211,8 @@ private:
   bool if_selected = false; // If selected based on the reco info
   bool if_matchMu = false; // If the selected track matched with true muon from numu cc
   bool if_cosmic = true; // Check if a track is cosmic or not by if it has an associated MCParticle
+  std::vector<double> trk_cosmic_percent; // the percentage of cosmic charge of hits in the track
+  std::vector<double> trk_purity; // the purity of the MCParticle of the hits in the track
 
   bool if_broken = false; // if find broken track
   bool if_newTrkThroughGoing = false; // if the new track is through going
@@ -1453,12 +1455,16 @@ void SingleMuon::analyze(art::Event const& evt)
 
         mom_range_PID_avg_noSCE.push_back(_trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, PID_Pdg_3pl));
 
-        //-- Fill TRUE info, if the track is from numu cc muon
+        //-- Fill TRUE info
+        // The corresponding MC particle is not necessary from numu, cc and primary process at the moment
+        // It shouldn't affect the selection (so far)
         if(IsMC){
           std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
           BackTrackerTruthMatch backtrackertruthmatch;
           backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
           auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
+          trk_cosmic_percent.push_back(backtrackertruthmatch.ReturnCosmicPercent());
+          trk_purity.push_back(backtrackertruthmatch.ReturnPurity());
           if(!MCparticle){
             if_cosmic = true;
             std::cout<<"MC particle does not exist!"<<std::endl;
@@ -1492,6 +1498,7 @@ void SingleMuon::analyze(art::Event const& evt)
           }
           reco_MC_dist_vtx.push_back((true_nuVtx - Trk_start_SCEcorr).Mag());
           reco_MC_dist_vtx_noSCE.push_back((true_nuVtx - Trk_start).Mag());
+
         }
        
         //Directional Info
@@ -1594,6 +1601,9 @@ void SingleMuon::analyze(art::Event const& evt)
     true_vtxFV.clear();
     reco_MC_dist_vtx.clear();
     reco_MC_dist_vtx_noSCE.clear();
+
+    trk_cosmic_percent.clear();
+    trk_purity.clear();
   }
 
   if(UsingCRT){
@@ -1845,6 +1855,8 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("Nr_trk_asso_crthit", &Nr_trk_asso_crthit);
   my_event_->Branch("trk_crt_time", &trk_crt_time);
 
+  my_event_->Branch("trk_cosmic_percent", &trk_cosmic_percent);
+  my_event_->Branch("trk_purity", &trk_purity);
   my_event_->Branch("if_cosmic", &if_cosmic);
   my_event_->Branch("if_matchMu", &if_matchMu);
   my_event_->Branch("if_selected", &if_selected);

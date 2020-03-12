@@ -22,7 +22,7 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 	double max_dQinTruthMatchedHits = -1., dQinAllHits = 0.;
 	std::unordered_map<int,double> trackid_dQinTruthMatchedHits;
 
-	// Loop only over the recob::Hits
+	// Loop only over the recob::Hits associated to a specific track
 	for (int i_h = 0; i_h < int(trk_hits_ptrs.size()); ++i_h) {
 
 		float dQinHit = trk_hits_ptrs[i_h]->Integral(); // Charge deposition of a recob::Hit
@@ -77,6 +77,13 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 
 	fcompleteness = fmaxe / ftote;
 
+        // Might have some problem
+        double temp = dQinAllHits;
+        for (int i_p = 0; i_p < int(particle_vec.size()); ++i_p) {
+          temp -= trackid_dQinTruthMatchedHits[ particle_vec[i_p]->TrackId() ];
+        }
+        fcosmic = temp / dQinAllHits; // the percentage of cosmic charge
+
 	double kMin_dQ_inTruthMatchedHits = 0.;
 
 	if ( fpurity < kMin_dQ_inTruthMatchedHits) { 
@@ -107,6 +114,11 @@ bool BackTrackerTruthMatch::ParticleAlreadyMatchedInThisHit(std::vector<int> Alr
 	}
 
 	return false; 
+}
+// _________________________________________________________________________________________________________________________________________________________________________________________________
+double BackTrackerTruthMatch::ReturnCosmicPercent() {
+
+        return fcosmic;
 }
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 

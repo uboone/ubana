@@ -52,6 +52,7 @@ class BackTrackerTruthMatch {
 		void MatchToMCParticle(const art::Handle<std::vector<recob::Hit> >& hit_handle, const art::Event& e, std::vector<art::Ptr<recob::Hit> >& trk_hits_ptrs);
 		art::Ptr< simb::MCParticle > ReturnMCParticle();  
 		bool ParticleAlreadyMatchedInThisHit(std::vector<int> AlreadyMatched_TrackIDs ,int cTrackID);
+                double ReturnCosmicPercent();
 		double ReturnPurity();
 		double ReturnCompleteness();
 		double ReturnTrueAssDepositedEnergy();
@@ -61,6 +62,7 @@ class BackTrackerTruthMatch {
 	private:
 
 		art::Ptr< simb::MCParticle > fmaxp_me;
+		double fcosmic = -999;
 		double fpurity = -999;
 		double fcompleteness = -999;
 		double ftote = 0;
