@@ -8,6 +8,7 @@
 
 // backtracking tools
 #include "../CommonDefs/BacktrackingFuncs.h"
+#include "../CommonDefs/SCECorrections.h"
 #include "larcore/Geometry/Geometry.h"
 
 namespace analysis
@@ -69,6 +70,7 @@ public:
 private:
   float DistFiducial(float x, float y, float z);
   void DistFiducialBoundaries(float x, float y, float z, std::vector<std::vector<double>> &dboundaries);
+  bool isFiducial(const float x[3]) const;
 
   art::InputTag fMCTproducer;
 
@@ -78,11 +80,11 @@ private:
   float _dvtx; // smallest distance between vertex and any boundary
   float _dtrk; // smallest distance between any track start/end point and any boundary
 
-  std::vector<std::vector<double>> _dmc_boundary; // smallest distance between any MCParticle and each boundary
+  std::vector<std::vector<double>> _dmc_boundary;  // smallest distance between any MCParticle and each boundary
   std::vector<std::vector<double>> _dtrk_boundary; // smallest distance between any track start/end point and each boundary
-  std::vector<double> _dtrk_x_boundary; // smallest distance between any track start/end point and x boundaries
-  std::vector<double> _dtrk_y_boundary; // smallest distance between any track start/end point and y boundaries
-  std::vector<double> _dtrk_z_boundary; // smallest distance between any track start/end point and z boundaries
+  std::vector<double> _dtrk_x_boundary;            // smallest distance between any track start/end point and x boundaries
+  std::vector<double> _dtrk_y_boundary;            // smallest distance between any track start/end point and y boundaries
+  std::vector<double> _dtrk_z_boundary;            // smallest distance between any track start/end point and z boundaries
 
   std::vector<double> _dshr_x_boundary; // smallest distance between any shower start point and x boundaries
   std::vector<double> _dshr_y_boundary; // smallest distance between any shower start point and y boundaries
@@ -94,6 +96,8 @@ private:
 
   std::vector<std::vector<double>> _dvtx_boundary; // smallest distance between the neutrino vertex and each boundary
   std::vector<std::vector<double>> _dshr_boundary; // smallest distance between any shower start point and each boundary
+
+  float contained_sps_ratio;
 };
 
 //----------------------------------------------------------------------------
@@ -119,12 +123,12 @@ void ContainmentAnalysis::configure(fhicl::ParameterSet const &pset)
 {
   fMCTproducer = pset.get<art::InputTag>("MCTproducer", "generator");
   _FV = pset.get<float>("FV");
-
 }
 
 void ContainmentAnalysis::analyzeEvent(art::Event const &e, bool fData)
 {
-  if (!fData) {
+  if (!fData)
+  {
     auto const &mct_h = e.getValidHandle<std::vector<simb::MCTruth>>(fMCTproducer);
     auto mct = mct_h->at(0);
     size_t npart = mct.NParticles();
@@ -179,6 +183,8 @@ void ContainmentAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfp
   _dvtx_boundary.resize(3, std::vector<double>(2, std::numeric_limits<double>::max()));
   _dshr_boundary.resize(3, std::vector<double>(2, std::numeric_limits<double>::max()));
 
+  size_t sps_fv = 0, sps_all = 0;
+
   for (const auto &pfp_pxy : slice_pfp_v)
   {
 
@@ -209,6 +215,20 @@ void ContainmentAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfp
     else
     { // if not the neutrino PFP
 
+      auto spcpnts = pfp_pxy.get<recob::SpacePoint>();
+      sps_all += spcpnts.size();
+      for (auto &sp : spcpnts)
+      {
+        float _reco_nu_vtx_sce[3];
+
+        _reco_nu_vtx_sce[0] = sp->XYZ()[0];
+        _reco_nu_vtx_sce[1] = sp->XYZ()[1];
+        _reco_nu_vtx_sce[2] = sp->XYZ()[2];
+        searchingfornues::ApplySCECorrectionXYZ(sp->XYZ()[0], sp->XYZ()[1], sp->XYZ()[2], _reco_nu_vtx_sce);
+        if (isFiducial(_reco_nu_vtx_sce))
+          sps_fv++;
+      }
+
       auto ntrk = pfp_pxy.get<recob::Track>().size();
 
       if (ntrk == 1)
@@ -236,7 +256,8 @@ void ContainmentAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfp
 
       auto nshr = pfp_pxy.get<recob::Shower>().size();
 
-      if (nshr == 1) {
+      if (nshr == 1)
+      {
         auto shr = pfp_pxy.get<recob::Shower>().at(0);
         auto shrstart = shr->ShowerStart();
         DistFiducialBoundaries(shrstart.X(), shrstart.Y(), shrstart.Z(), _dshr_boundary);
@@ -245,11 +266,10 @@ void ContainmentAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfp
         _dshr_z_boundary = _dshr_boundary[2];
       }
 
-
     } // if not the neutrino PFP
 
   } // for all PFP
-
+  contained_sps_ratio = sps_fv / ((float) sps_all);
 }
 
 void ContainmentAnalysis::setBranches(TTree *_tree)
@@ -257,6 +277,7 @@ void ContainmentAnalysis::setBranches(TTree *_tree)
 
   _tree->Branch("dvtx", &_dvtx, "dvtx/F");
   _tree->Branch("dtrk", &_dtrk, "dtrk/F");
+  _tree->Branch("contained_sps_ratio", &contained_sps_ratio, "contained_sps_ratio/F");
 
   _tree->Branch("dtrk_x_boundary", "std::vector < double >", &_dtrk_x_boundary);
   _tree->Branch("dtrk_y_boundary", "std::vector < double >", &_dtrk_y_boundary);
@@ -285,15 +306,29 @@ void ContainmentAnalysis::resetTTree(TTree *_tree)
   return;
 }
 
-void ContainmentAnalysis::DistFiducialBoundaries(float x, float y, float z, std::vector< std::vector < double > > &dist_boundaries)
+bool ContainmentAnalysis::isFiducial(const float x[3]) const
 {
-
+  float border = 10.;
   art::ServiceHandle<geo::Geometry> geo;
-  std::vector<double> bnd = {
-      0., 2. * geo->DetHalfWidth(),
-      -geo->DetHalfHeight(), geo->DetHalfHeight(),
-      0., geo->DetLength()
-    };
+  geo::TPCGeo const &thisTPC = geo->TPC();
+  geo::BoxBoundedGeo theTpcGeo = thisTPC.ActiveBoundingBox();
+  std::vector<double> bnd = {theTpcGeo.MinX(), theTpcGeo.MaxX(), theTpcGeo.MinY(), theTpcGeo.MaxY(), theTpcGeo.MinZ(), theTpcGeo.MaxZ()};
+  bool is_x =
+      x[0] > (bnd[0] + border) && x[0] < (bnd[1] - border);
+  bool is_y =
+      x[1] > (bnd[2] + border) && x[1] < (bnd[3] - border);
+  bool is_z =
+      x[2] > (bnd[4] + border) && x[2] < (bnd[5] - border);
+
+  return is_x && is_y && is_z;
+}
+
+void ContainmentAnalysis::DistFiducialBoundaries(float x, float y, float z, std::vector<std::vector<double>> &dist_boundaries)
+{
+  art::ServiceHandle<geo::Geometry> geo;
+  geo::TPCGeo const &thisTPC = geo->TPC();
+  geo::BoxBoundedGeo theTpcGeo = thisTPC.ActiveBoundingBox();
+  std::vector<double> bnd = {theTpcGeo.MinX(), theTpcGeo.MaxX(), theTpcGeo.MinY(), theTpcGeo.MaxY(), theTpcGeo.MinZ(), theTpcGeo.MaxZ()};
 
   auto const *SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
@@ -319,7 +354,7 @@ void ContainmentAnalysis::DistFiducialBoundaries(float x, float y, float z, std:
 
   if (y - bnd[2] < dist_boundaries[1][0])
   {
-     dist_boundaries[1][0] = y - bnd[2];
+    dist_boundaries[1][0] = y - bnd[2];
   }
 
   if (bnd[3] - y < dist_boundaries[1][1])
