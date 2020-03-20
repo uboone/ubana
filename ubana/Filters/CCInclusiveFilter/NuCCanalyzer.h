@@ -36,9 +36,9 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 
-
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/GTruth.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
@@ -47,6 +47,9 @@
 #include "helpers/TrackHelper.h"
 
 #include "TTree.h"
+
+#include "GENIE/Framework/EventGen/EventRecord.h"
+#include "GENIE/Framework/Ntuple/NtpMCEventRecord.h"
 
 class NuCCanalyzer;
 
@@ -137,6 +140,12 @@ public:
      */
     bool IsContained(float x, float y, float z, const std::vector<float> &borders) const;
 
+    /**
+     *  @brief Saves full GENIE event records and the contents
+     *  of evwgh::MCEventWeight objects to an output TTree
+     *
+     */
+    void SaveExtraMCInfo( const art::Event& evt );
 
     void endSubRun(const art::SubRun &subrun) override;
 
@@ -316,6 +325,16 @@ private:
     TTree *fSubrunTree;
     uint m_run, m_subrun;
     float m_pot;
+
+    /// Tree for saving extra MC info (full GENIE event records,
+    /// maps from MCEventWeight)
+    TTree* fGenieEventTree;
+    genie::NtpMCEventRecord* fGenieEventRecord = nullptr;
+    std::map< std::string, std::vector<double> >* fWeightsMap = nullptr;
+
+    /// Producer label used to create the evwgh::MCEventWeight objects
+    /// that should be saved to the output file
+    std::string fWeightProducerLabel;
 };
 
 void NuCCanalyzer::reconfigure(fhicl::ParameterSet const &p)
@@ -325,6 +344,8 @@ void NuCCanalyzer::reconfigure(fhicl::ParameterSet const &p)
     m_geant_producer = p.get<std::string>("geant_producer", "largeant");
     m_hit_mcp_producer = p.get<std::string>("hit_mcp_producer", "gaushitTruthMatch");
     m_muon_producer = p.get<std::string>("muon_producer", "NuCCproducer");
+
+    fWeightProducerLabel = p.get<std::string>("weight_producer", "eventweight");
 
     m_vtx_fid_x_start = p.get<float>("vtx_fid_x_start", 10);
     m_vtx_fid_y_start = p.get<float>("vtx_fid_y_start", 10);
@@ -442,6 +463,17 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
         fEventTree->Branch("mc_nu_daughter_px", "std::vector< float >", &fTrueNu_DaughterPx);
         fEventTree->Branch("mc_nu_daughter_py", "std::vector< float >", &fTrueNu_DaughterPy);
         fEventTree->Branch("mc_nu_daughter_pz", "std::vector< float >", &fTrueNu_DaughterPz);
+
+        /// Tree to save extra MC information
+        fGenieEventTree = tfs->make<TTree>("gtree", "GENIE events tree");
+        fGenieEventTree->Branch("event", &fEvent, "event/i");
+        fGenieEventTree->Branch("run", &fRun, "run/i");
+        fGenieEventTree->Branch("subrun", &fSubrun, "subrun/i");
+        fGenieEventTree->Branch("evt_time_sec", &fTimeHigh, "evt_time_sec/i");
+        fGenieEventTree->Branch("evt_time_nsec", &fTimeLow, "evt_time_nsec/i");
+
+        fGenieEventTree->Branch("gmcrec", "genie::NtpMCEventRecord", &fGenieEventRecord);
+        fGenieEventTree->Branch("weights_map", "std::map< std::string, std::vector<double> >", &fWeightsMap);
     }
 
     //// Tree for every daughter

@@ -1,5 +1,7 @@
 #include "NuCCanalyzer.h"
 
+#include "nutools/EventGeneratorBase/GENIE/GENIE2ART.h"
+
 void NuCCanalyzer::endSubRun(const art::SubRun &subrun)
 {
   if (!m_isData)
@@ -57,7 +59,9 @@ void NuCCanalyzer::analyze(art::Event const &evt)
     std::cout << "[NuCCanalyzer::FillReconstructed] No reconstructed PFParticles in event." << std::endl;
   else
   {
+    std::cout << "[NuCCanalyzer::FillReconstructed] Gathering neutrino PFParticles.\n";
     larpandora.SelectNeutrinoPFParticles(pfparticles, pfneutrinos);
+    std::cout << "[NuCCanalyzer::FillReconstructed] Done gathering neutrino PFParticles.\n";
     if (pfneutrinos.size() != 1)
       std::cout << "[NuCCanalyzer::FillReconstructed] Number of reconstructed neutrinos in event is " << pfneutrinos.size() << std::endl;
     else // We have a reconstructed neutrino
@@ -72,6 +76,11 @@ void NuCCanalyzer::analyze(art::Event const &evt)
       fIsNuMuCC = IsNuMuCC(evt);
     }
   }
+
+  // Save extra information (full weight map, full GENIE event records) for MC
+  // events
+  if ( !m_isData ) this->SaveExtraMCInfo( evt );
+
   fEventTree->Fill();
   std::cout << "\n\n";
 }
@@ -607,9 +616,95 @@ bool NuCCanalyzer::IsNuMuCC(art::Event const &evt)
     const std::vector<art::Ptr<anab::T0>> T0_muon = pfp_muon_assn.at(particleMap.at(daughter_id).key());
     if (T0_muon.size() != 0)
     {
-      std::cout << "[NuCCfilter::filter] Muon neutrino daughter found! Event passed filter." << std::endl;
+      std::cout << "[NuCCanalyzer] Muon neutrino daughter found! Event passed filter." << std::endl;
       return true;
     }
   }
   return false;
+}
+
+void NuCCanalyzer::SaveExtraMCInfo( const art::Event& evt ) {
+
+  // Create a temporary genie::NtpMCEventRecord used for filling
+  // the TTree
+  std::cout << "[NuCCanalyzer] Making temporary genie::NtpMCEventRecord"
+    << std::endl;
+  auto temp_evrec = std::make_unique< genie::NtpMCEventRecord >();
+  std::cout << "[NuCCanalyzer] Made temporary genie::NtpMCEventRecord"
+    << std::endl;
+  fGenieEventRecord = temp_evrec.get();
+  std::cout << "[NuCCanalyzer] Deleting unneeded genie::EventRecord"
+    << std::endl;
+  delete (fGenieEventRecord->event);
+
+  std::cout << "[NuCCanalyzer] Retrieving handles to truth info"
+    << std::endl;
+
+  // Retrieve the two data products needed to recreate the
+  // full GENIE event record(s) for neutrino vertices
+  // in the event
+  art::Handle< std::vector<simb::MCTruth> > mcTruthHandle;
+  art::Handle< std::vector<simb::GTruth> > gTruthHandle;
+
+  // Also retrieve the MCEventWeight objects that should be saved to the output.
+  // Note that these should also have a one-to-one correspondence to the MCTruth
+  // objects
+  art::Handle< std::vector<evwgh::MCEventWeight> > weightHandle;
+
+  // Assume that the GenieGen module was run using the
+  // "generator" producer label
+  evt.getByLabel( "generator", mcTruthHandle );
+  evt.getByLabel( "generator", gTruthHandle );
+
+  std::cout << "[NuCCanalyzer] Retrieving MC event weights"
+    << " from the producer \"" << fWeightProducerLabel << '\"'
+    << std::endl;
+
+  // Use the configured producer label to get the weights
+  evt.getByLabel( fWeightProducerLabel, weightHandle );
+
+  std::cout << "[NuCCanalyzer] Filling ptr vectors" << std::endl;
+
+  std::vector< art::Ptr<simb::MCTruth> > mclist;
+  art::fill_ptr_vector( mclist, mcTruthHandle );
+
+  std::vector< art::Ptr<simb::GTruth > > glist;
+  art::fill_ptr_vector( glist, gTruthHandle );
+
+  std::vector< art::Ptr< evwgh::MCEventWeight > > wlist;
+  art::fill_ptr_vector( wlist, weightHandle );
+
+  size_t num_neutrinos = mclist.size();
+
+  std::cout << "[NuCCanalyzer] Retrieved truth info for "
+    << num_neutrinos << " neutrinos" << std::endl;
+
+  for ( size_t v = 0u; v < num_neutrinos; ++v ) {
+
+    std::cout << "[NuCCanalyzer] Loading event record"
+      << " for neutrino #" << v << std::endl;
+
+    // Convert the MCTruth and GTruth objects from the event
+    // back into the original genie::EventRecord from which
+    // they were built
+    genie::EventRecord* genie_event = evgb::RetrieveGHEP(*mclist[v], *glist[v]);
+
+    // The genie::NtpMCEventRecord object takes ownership on this line, so we
+    // don't need to manually delete the genie::EventRecord pointer here
+    fGenieEventRecord->event = genie_event;
+
+    std::cout << "[NuCCanalyzer] Loading weights map"
+      << " for neutrino #" << v << std::endl;
+
+    // Fairly evil, but allows us to write the full object to the
+    // output TTree without copying it.
+    fWeightsMap = const_cast< std::map< std::string, std::vector<double> >* >(
+      &(wlist.at(v)->fWeight) );
+
+    std::cout << "[NuCCanalyzer] Filling TTree"
+      << " for neutrino #" << v << std::endl;
+
+    fGenieEventTree->Fill();
+  }
+
 }
