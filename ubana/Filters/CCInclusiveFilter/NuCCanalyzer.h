@@ -226,6 +226,9 @@ private:
     // MC neutrino daughter
     std::vector<int> fTrueNu_DaughterPDG;
     std::vector<float> fTrueNu_DaughterE;
+    std::vector<float> fTrueNu_DaughterPx;
+    std::vector<float> fTrueNu_DaughterPy;
+    std::vector<float> fTrueNu_DaughterPz;
     std::vector<bool> fTrueNu_DaughterMatched;
     // Reco candidate info
     int fNu_PDG;
@@ -436,6 +439,9 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
         fEventTree->Branch("mc_nu_daughter_matched", "std::vector< bool >", &fTrueNu_DaughterMatched);
         fEventTree->Branch("mc_nu_daughter_pdg", "std::vector< int >", &fTrueNu_DaughterPDG);
         fEventTree->Branch("mc_nu_daughter_energy", "std::vector< float >", &fTrueNu_DaughterE);
+        fEventTree->Branch("mc_nu_daughter_px", "std::vector< float >", &fTrueNu_DaughterPx);
+        fEventTree->Branch("mc_nu_daughter_py", "std::vector< float >", &fTrueNu_DaughterPy);
+        fEventTree->Branch("mc_nu_daughter_pz", "std::vector< float >", &fTrueNu_DaughterPz);
     }
 
     //// Tree for every daughter
@@ -546,6 +552,9 @@ void NuCCanalyzer::clearEvent()
     fBestObviousCosmic_FlashChi2 = 0;
     fTrueNu_DaughterPDG.clear();
     fTrueNu_DaughterE.clear();
+    fTrueNu_DaughterPx.clear();
+    fTrueNu_DaughterPy.clear();
+    fTrueNu_DaughterPz.clear();
     fTrueNu_DaughterMatched.clear();
 
     pfparticles.clear();

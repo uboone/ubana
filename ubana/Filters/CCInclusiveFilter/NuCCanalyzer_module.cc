@@ -446,13 +446,13 @@ bool NuCCanalyzer::MatchDaughter(art::Event const &evt, const art::Ptr<recob::PF
 
 void NuCCanalyzer::FillTrueNu(art::Event const &evt)
 {
-  auto const &generator_handle = evt.getValidHandle<std::vector<simb::MCTruth>>("generator");
-  auto const &generator(*generator_handle);
+  auto const &generator_handle = evt.getValidHandle< std::vector<simb::MCTruth> >( "generator" );
+  auto const &generator( *generator_handle );
   fNumNu = generator.size();
   std::cout << "[NuCCanalyzer::FillTrueNu] True neutrinos found: " << fNumNu;
-  if (generator.size() > 0)
+  if ( generator.size() > 0 )
   {
-    if (generator.front().Origin() != simb::kBeamNeutrino)
+    if ( generator.front().Origin() != simb::kBeamNeutrino )
     {
       std::cout << "[NuCCanalyzer::FillTrueNu] Origin of generator particle is not kBeamNeutrino." << std::endl;
       return;
@@ -502,6 +502,9 @@ void NuCCanalyzer::FillTrueNu(art::Event const &evt)
     if (mc_truth->Origin() == simb::kBeamNeutrino)
     {
       fTrueNu_DaughterE.push_back(mcparticle->E());
+      fTrueNu_DaughterPx.push_back(mcparticle->Px());
+      fTrueNu_DaughterPy.push_back(mcparticle->Py());
+      fTrueNu_DaughterPz.push_back(mcparticle->Pz());
       fTrueNu_DaughterPDG.push_back(mcparticle->PdgCode());
     }
   }
