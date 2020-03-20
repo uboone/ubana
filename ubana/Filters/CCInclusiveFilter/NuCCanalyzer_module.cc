@@ -305,8 +305,14 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
     {
       fTrackPID_chiproton = pid_map.at("chi2_proton");
       fTrackPID_chimuon = pid_map.at("chi2_muon");
+      // For robustness, don't require that the 3-plane proton PID variable is
+      // saved in the map, but if it is, retrieve and save it.
+      if ( pid_map.count("ThreePlaneProtonPID") ) {
+        fTrackPID_threePlaneProtonPID = pid_map.at( "ThreePlaneProtonPID" );
+      }
       std::cout << "[NuCCanalyzer::FillDaughters] fTrackPID_chiproton: " << fTrackPID_chiproton << ", fTrackPID_chimuon: " << fTrackPID_chimuon;
       std::cout << ", fTrackRange_mom_p: " << fTrackRange_mom_p << ", fTrackRange_mom_mu: " << fTrackRange_mom_mu << std::endl;
+      std::cout << "fTrackPID_threePlaneProtonPID: " << fTrackPID_threePlaneProtonPID << std::endl;
     }
     else
     {

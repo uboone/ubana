@@ -282,6 +282,7 @@ private:
     float fTrackMCS_ll;
     float fTrackPID_chiproton;
     float fTrackPID_chimuon;
+    float fTrackPID_threePlaneProtonPID;
     bool fIsMuonCandidate;
     // Shower info
     float fShowerLength;
@@ -478,6 +479,7 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
     fNueDaughtersTree->Branch("track_mcs_ll", &fTrackMCS_ll, "track_mcs_ll/F");
     fNueDaughtersTree->Branch("track_chi2_proton", &fTrackPID_chiproton, "track_chi2_proton/F");
     fNueDaughtersTree->Branch("track_chi2_muon", &fTrackPID_chimuon, "track_chi2_muon/F");
+    fNueDaughtersTree->Branch("track_3plane_proton_pid", &fTrackPID_threePlaneProtonPID, "track_3plane_proton_pid/F");
     fNueDaughtersTree->Branch("shower_length", &fShowerLength, "shower_length/F");
     fNueDaughtersTree->Branch("shower_openangle", &fShowerOpenAngle, "shower_openangle/F");
     fNueDaughtersTree->Branch("shower_dirx", &fShowerDirX, "shower_dirx/F");
@@ -600,6 +602,7 @@ void NuCCanalyzer::clearDaughter()
     fTrackMCS_ll = 0;
     fTrackPID_chiproton = 0;
     fTrackPID_chimuon = 0;
+    fTrackPID_threePlaneProtonPID = -FLT_MAX;
     fIsMuonCandidate = false;
     // Shower info
     fShowerLength = 0;

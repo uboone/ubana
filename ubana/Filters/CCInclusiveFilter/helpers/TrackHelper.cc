@@ -24,6 +24,20 @@ bool TrackHelper::getPID(std::map<std::string, float> &pid_map,
             for (size_t i_algscore = 0; i_algscore < AlgScoresVec.size(); i_algscore++)
             {
                 anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+
+                // Extra code to retrieve the likelihood score for the 3-plane proton PID
+                // algorithm developed by Pip Hamilton (see docDB #23008 and #23348)
+                // Retrieval code based on ubana/ParticleID/Modules/ParticleIDValidationPlots_module.cc
+                if ( AlgScore.fAlgName == "ThreePlaneProtonPID" )
+                {
+                  if ( anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood )
+                  {
+                    if ( AlgScore.fAssumedPdg == 2212 ) {
+                      pid_map.insert( std::pair<std::string, float>("ThreePlaneProtonPID", AlgScore.fValue) );
+                    }
+                  }
+                }
+
                 if (AlgScore.fPlaneMask.none() || AlgScore.fPlaneMask.count() > 1 || (AlgScore.fPlaneMask.count() == 1 && !(AlgScore.fPlaneMask.test(0) || AlgScore.fPlaneMask.test(1) || AlgScore.fPlaneMask.test(2))))
                 {
                     std::cout << "[TrackHelper::getPID] Bad AlgScore" << std::endl;
