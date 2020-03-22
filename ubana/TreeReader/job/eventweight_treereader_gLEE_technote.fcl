@@ -270,7 +270,7 @@ treereader_eventweight: {
     NonRESBGvbarnCC1pi, NonRESBGvbarnCC2pi, NonRESBGvbarnNC1pi,
     NonRESBGvbarnNC2pi, AhtBY, BhtBY, CV1uBY, CV2uBY, AGKYxF1pi, AGKYpT1pi,
     MFP_pi, MFP_N, FrCEx_pi, FrInel_pi, FrAbs_pi, FrCEx_N, FrInel_N, FrAbs_N,
-    RDecBR1gamma, RDecBR1eta, Theta_Delta2Npi, FrPiProd_pi, FrPiProd_N,All
+    FrPiProd_pi, FrPiProd_N,All
   ]
  MaCCQE: {
     type: Genie
@@ -720,34 +720,7 @@ treereader_eventweight: {
     number_of_multisims: 10
   }
   
-  RDecBR1gamma: {
-    type: Genie
-    random_seed: 51
-    parameter_list: [ "RDecBR1gamma" ]
-    parameter_sigma: [ 1 ]
-    mode: multisim
-    number_of_multisims: 10
-  }
-  
-  RDecBR1eta: {
-    type: Genie
-    random_seed: 52
-    parameter_list: [ "RDecBR1eta" ]
-    parameter_sigma: [ 1 ]
-    mode: multisim
-    number_of_multisims: 10
-  }
-  
-  Theta_Delta2Npi: {
-    type: Genie
-    random_seed: 53
-    parameter_list: [ "Theta_Delta2Npi" ]
-    parameter_sigma: [ 1 ]
-    parameter_min: [ 0.0 ]
-    parameter_max: [ 1.0 ]
-    mode: minmax
-    number_of_multisims: 2
-  }
+
   FrPiProd_pi: {
     type: Genie
     random_seed: 54
@@ -863,7 +836,7 @@ treereader_eventweight: {
       "AGKYxF1pi", "AGKYpT1pi",
       # FSI
       "MFP_pi", "MFP_N", "FrCEx_pi", "FrInel_pi", "FrAbs_pi",
-      "FrCEx_N", "FrInel_N", "FrAbs_N",
+      "FrCEx_N", "FrInel_N", "FrAbs_N"
       # Delta resonance decays 
       #removed because defines our branching ratio
       # "RDecBR1gamma_Genie", "RDecBR1eta"
