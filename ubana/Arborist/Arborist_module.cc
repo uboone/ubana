@@ -71,6 +71,7 @@ private:
   int fInteractionCCNC;
   int fInteractionMode;
   int fInteractionType;
+  int fTarget;
   double fTrueNeutrinoBaseline;
   double fSplineBugFixWeight;
   double fTunedCentralValueWeight;
@@ -101,6 +102,7 @@ void Arborist::beginJob()
  eventweight_tree->Branch("nu_interaction_ccnc", &fInteractionCCNC);
  eventweight_tree->Branch("nu_interaction_mode", &fInteractionMode);
  eventweight_tree->Branch("nu_interaction_type", &fInteractionType);
+ eventweight_tree->Branch("nu_target_pdg", &fTarget);
  eventweight_tree->Branch("nu_L_true", &fTrueNeutrinoBaseline);
  eventweight_tree->Branch("spline_weight", &fSplineBugFixWeight);
  eventweight_tree->Branch("ub_tune_weight", &fTunedCentralValueWeight);
@@ -119,6 +121,7 @@ void Arborist::resetVariables()
   fInteractionCCNC = -1;
   fInteractionMode = -1;
   fInteractionType = -1;
+  fTarget = 0;
   fTrueNeutrinoBaseline = -1.;
   fSplineBugFixWeight = -1.;
   fTunedCentralValueWeight = -1.;
@@ -137,6 +140,7 @@ void Arborist::FillTruthInfo(art::Event const & e) {
   fInteractionCCNC = ev_mctruth->front().GetNeutrino().CCNC();
   fInteractionMode = ev_mctruth->front().GetNeutrino().Mode();
   fInteractionType = ev_mctruth->front().GetNeutrino().InteractionType();
+  fTarget = ev_mctruth->front().GetNeutrino().Target();
 
   art::ValidHandle<std::vector<simb::MCFlux>> const & ev_mcflux = 
     e.getValidHandle<std::vector<simb::MCFlux>>("generator");
