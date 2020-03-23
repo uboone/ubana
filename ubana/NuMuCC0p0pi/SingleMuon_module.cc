@@ -320,9 +320,25 @@ private:
   std::vector<double> charge_avg_bin7; // the multiplication of charge in bin 7 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
   std::vector<double> vtx_hit_distance;// Distance of track vertex and the closest hit spacepoints
  
-  int hits_dEdx_size_pl0;
-  int hits_dEdx_size_pl1;
-  int hits_dEdx_size_pl2;
+  unsigned int hits_dEdx_size_pl0;
+  unsigned int hits_dEdx_size_pl1;
+  unsigned int hits_dEdx_size_pl2;
+
+  float avg_dEdx_LargeHit_pl0;
+  float avg_dEdx_LargeHit_pl1;
+  float avg_dEdx_LargeHit_pl2;
+
+  int Nr_LargeHit_pl0; // Number of dE/dx in the range of 10-100 Mev/c from pl0
+  int Nr_endthird_LargeHit_pl0; // Number of dE/dx in the range of 10-100 Mev/c at the end third of the track from pl0
+  int Nr_beginthird_LargeHit_pl0; // Number of dE/dx in the range of 10-100 Mev/c at the beginning third of the track from pl0
+
+  int Nr_LargeHit_pl1; // Number of dE/dx in the range of 10-100 Mev/c from pl1
+  int Nr_endthird_LargeHit_pl1; // Number of dE/dx in the range of 10-100 Mev/c at the end third of the track from pl1
+  int Nr_beginthird_LargeHit_pl1; // Number of dE/dx in the range of 10-100 Mev/c at the beginning third of the track from pl1
+
+  int Nr_LargeHit_pl2; // Number of dE/dx in the range of 10-100 Mev/c from pl2
+  int Nr_endthird_LargeHit_pl2; // Number of dE/dx in the range of 10-100 Mev/c at the end third of the track from pl2
+  int Nr_beginthird_LargeHit_pl2; // Number of dE/dx in the range of 10-100 Mev/c at the beginning third of the track from pl2
 
   std::vector<float> dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
   std::vector<float> dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
@@ -1254,7 +1270,85 @@ void SingleMuon::analyze(art::Event const& evt)
         int half_size_pl0 = hits_dEdx_size_pl0 / 2;
         int half_size_pl1 = hits_dEdx_size_pl1 / 2;
         int half_size_pl2 = hits_dEdx_size_pl2 / 2;
- 
+        
+        // Check how many dE/dx out of range (10-100 MeV/cm) in one plane for a track
+        // Regarding that dE/dx larger than 100 MeV/cm is noise
+        
+        for(unsigned int i_pl0 = 0; i_pl0 < hits_dEdx_size_pl0; i_pl0++){
+          if(dEdx_pl0[i_pl0] > 10 && dEdx_pl0[i_pl0] < 100){
+            Nr_LargeHit_pl0++;
+            if(resRange_pl0[i_pl0] < Trk_length_pl0 / 3.){
+              Nr_endthird_LargeHit_pl0++;
+            }
+            if(resRange_pl0[i_pl0] > Trk_length_pl0 * 2./ 3.){
+              Nr_beginthird_LargeHit_pl0++;
+            }
+          }
+        }
+
+        for(unsigned int i_pl1 = 0; i_pl1 < hits_dEdx_size_pl1; i_pl1++){
+          if(dEdx_pl1[i_pl1] > 10 && dEdx_pl1[i_pl1] < 100){
+            Nr_LargeHit_pl1++;
+            if(resRange_pl1[i_pl1] < Trk_length_pl1 / 3.){
+              Nr_endthird_LargeHit_pl1++;
+            }
+            if(resRange_pl1[i_pl1] > Trk_length_pl1 * 2./ 3.){
+              Nr_beginthird_LargeHit_pl1++;
+            }
+          }
+        }
+
+        for(unsigned int i_pl2 = 0; i_pl2 < hits_dEdx_size_pl2; i_pl2++){
+          if(dEdx_pl2[i_pl2] > 10 && dEdx_pl2[i_pl2] < 100){
+            Nr_LargeHit_pl2++;
+            if(resRange_pl2[i_pl2] < Trk_length_pl2 / 3.){
+              Nr_endthird_LargeHit_pl2++;
+            }
+            if(resRange_pl2[i_pl2] > Trk_length_pl2 * 2./ 3.){
+              Nr_beginthird_LargeHit_pl2++;
+            }
+          }
+        }
+     
+        // Get the three largest hits (dE/dx)
+        auto copy_dEdx_pl0 = dEdx_pl0;
+        auto copy_dEdx_pl1 = dEdx_pl1;
+        auto copy_dEdx_pl2 = dEdx_pl2;
+
+        std::sort(copy_dEdx_pl0.begin(), copy_dEdx_pl0.end());
+        std::sort(copy_dEdx_pl1.begin(), copy_dEdx_pl1.end());
+        std::sort(copy_dEdx_pl2.begin(), copy_dEdx_pl2.end());
+        // pl 0
+	if(hits_dEdx_size_pl0 < 3){
+          for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl0; i_hit++){
+            avg_dEdx_LargeHit_pl0 += copy_dEdx_pl0[i_hit];
+          }
+          avg_dEdx_LargeHit_pl0 = avg_dEdx_LargeHit_pl0 / hits_dEdx_size_pl0;
+        }
+        else{
+          avg_dEdx_LargeHit_pl0 = (copy_dEdx_pl0[hits_dEdx_size_pl0 - 1] + copy_dEdx_pl0[hits_dEdx_size_pl0 - 2] + copy_dEdx_pl0[hits_dEdx_size_pl0 - 3]) / 3;
+        }
+        // pl 1
+        if(hits_dEdx_size_pl1 < 3){
+          for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl1; i_hit++){
+            avg_dEdx_LargeHit_pl1 += copy_dEdx_pl1[i_hit];
+          }
+          avg_dEdx_LargeHit_pl1 = avg_dEdx_LargeHit_pl1 / hits_dEdx_size_pl1;
+        }
+        else{
+          avg_dEdx_LargeHit_pl1 = (copy_dEdx_pl1[hits_dEdx_size_pl1 - 1] + copy_dEdx_pl1[hits_dEdx_size_pl1 - 2] + copy_dEdx_pl1[hits_dEdx_size_pl1 - 3]) / 3;
+        }
+        // pl 2
+        if(hits_dEdx_size_pl2 < 3){
+          for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl2; i_hit++){
+            avg_dEdx_LargeHit_pl2 += copy_dEdx_pl2[i_hit];
+          }
+          avg_dEdx_LargeHit_pl2 = avg_dEdx_LargeHit_pl2 / hits_dEdx_size_pl2;
+        }
+        else{
+          avg_dEdx_LargeHit_pl2 = (copy_dEdx_pl2[hits_dEdx_size_pl2 - 1] + copy_dEdx_pl2[hits_dEdx_size_pl2 - 2] + copy_dEdx_pl2[hits_dEdx_size_pl2 - 3]) / 3;
+        } 
+
         dEdx_pl0_start_half = std::accumulate(dEdx_pl0.end() - half_size_pl0, dEdx_pl0.end(), 0.) / half_size_pl0;
         dEdx_pl0_end_half = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + half_size_pl0, 0. ) / half_size_pl0;
         dEdx_pl1_start_half = std::accumulate(dEdx_pl1.end() - half_size_pl1, dEdx_pl1.end(), 0.) / half_size_pl1;
@@ -1570,6 +1664,22 @@ void SingleMuon::analyze(art::Event const& evt)
   if_trk_CRT_out_Beam = false;
   if_broken = false;
   if_newTrkThroughGoing = false;
+
+  avg_dEdx_LargeHit_pl0 = 0;
+  avg_dEdx_LargeHit_pl1 = 0;
+  avg_dEdx_LargeHit_pl2 = 0;
+
+  Nr_LargeHit_pl0 = 0;
+  Nr_endthird_LargeHit_pl0 = 0;
+  Nr_beginthird_LargeHit_pl0 = 0;
+
+  Nr_LargeHit_pl1 = 0;
+  Nr_endthird_LargeHit_pl1 = 0;
+  Nr_beginthird_LargeHit_pl1 = 0;
+
+  Nr_LargeHit_pl2 = 0;
+  Nr_endthird_LargeHit_pl2 = 0;
+  Nr_beginthird_LargeHit_pl2 = 0;
 
   if(IsMC){
     MC_Primary_PDG.clear();
@@ -1953,6 +2063,22 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("charge_std_bin7", &charge_std_bin7);
   
   my_event_->Branch("vtx_hit_distance", &vtx_hit_distance);
+
+  my_event_->Branch("avg_dEdx_LargeHit_pl0", &avg_dEdx_LargeHit_pl0);
+  my_event_->Branch("avg_dEdx_LargeHit_pl1", &avg_dEdx_LargeHit_pl1);
+  my_event_->Branch("avg_dEdx_LargeHit_pl2", &avg_dEdx_LargeHit_pl2);
+
+  my_event_->Branch("Nr_LargeHit_pl0", &Nr_LargeHit_pl0);
+  my_event_->Branch("Nr_endthird_LargeHit_pl0", &Nr_endthird_LargeHit_pl0);
+  my_event_->Branch("Nr_beginthird_LargeHit_pl0", &Nr_beginthird_LargeHit_pl0);
+
+  my_event_->Branch("Nr_LargeHit_pl1", &Nr_LargeHit_pl1);
+  my_event_->Branch("Nr_endthird_LargeHit_pl1", &Nr_endthird_LargeHit_pl1);
+  my_event_->Branch("Nr_beginthird_LargeHit_pl1", &Nr_beginthird_LargeHit_pl1);
+
+  my_event_->Branch("Nr_LargeHit_pl2", &Nr_LargeHit_pl2);
+  my_event_->Branch("Nr_endthird_LargeHit_pl2", &Nr_endthird_LargeHit_pl2);
+  my_event_->Branch("Nr_beginthird_LargeHit_pl2", &Nr_beginthird_LargeHit_pl2);
 
   my_event_->Branch("dEdx_pl0", &dEdx_pl0);
   my_event_->Branch("dEdx_pl1", &dEdx_pl1);
