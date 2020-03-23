@@ -59,6 +59,7 @@ private:
 
   art::InputTag fEventWeightInputTag;
   std::string fSplineBugFixLabel;
+  std::string fRootinoBugFixLabel;
   std::string fTunedCentralValueLabel;
   std::string fLEESignalLabel;
 
@@ -74,6 +75,7 @@ private:
   int fTarget;
   double fTrueNeutrinoBaseline;
   double fSplineBugFixWeight;
+  double fRootinoBugFixWeight;
   double fTunedCentralValueWeight;
   double fCombinedCentralValueWeight;
   double fLEESignalWeight;
@@ -86,6 +88,7 @@ Arborist::Arborist(fhicl::ParameterSet const& p)
   : EDAnalyzer{p},
   fEventWeightInputTag(p.get<art::InputTag>("EventWeightInputTag")),
   fSplineBugFixLabel(p.get<std::string>("SplineBugFixLabel")),
+  fRootinoBugFixLabel(p.get<std::string>("RootinoBugFixLabel")),
   fTunedCentralValueLabel(p.get<std::string>("TunedCentralValueLabel")),
   fLEESignalLabel(p.get<std::string>("LEESignalLabel"))
 {
@@ -105,6 +108,7 @@ void Arborist::beginJob()
  eventweight_tree->Branch("nu_target_pdg", &fTarget);
  eventweight_tree->Branch("nu_L_true", &fTrueNeutrinoBaseline);
  eventweight_tree->Branch("spline_weight", &fSplineBugFixWeight);
+ eventweight_tree->Branch("rootino_weight", &fRootinoBugFixWeight);
  eventweight_tree->Branch("ub_tune_weight", &fTunedCentralValueWeight);
  eventweight_tree->Branch("xsec_corr_weight", &fCombinedCentralValueWeight);
  eventweight_tree->Branch("lee_weight", &fLEESignalWeight);
@@ -124,6 +128,7 @@ void Arborist::resetVariables()
   fTarget = 0;
   fTrueNeutrinoBaseline = -1.;
   fSplineBugFixWeight = -1.;
+  fRootinoBugFixWeight = -1.;
   fTunedCentralValueWeight = -1.;
   fCombinedCentralValueWeight = -1.;
   fLEESignalWeight = -1.;
@@ -171,6 +176,10 @@ void Arborist::FillEventWeights(art::Event const & e){
     fSplineBugFixWeight = weight_map.find(fSplineBugFixLabel)->second[0];
     fEventWeightMap.erase(fSplineBugFixLabel);
   }
+  if ( weight_map.find(fRootinoBugFixLabel) != weight_map.end() ) {
+    fRootinoBugFixWeight = weight_map.find(fRootinoBugFixLabel)->second[0];
+    fEventWeightMap.erase(fRootinoBugFixLabel);
+  }
   if ( weight_map.find(fTunedCentralValueLabel) != weight_map.end() ) {
     fTunedCentralValueWeight = weight_map.find(fTunedCentralValueLabel)->second[0];
     fEventWeightMap.erase(fTunedCentralValueLabel);
@@ -180,8 +189,10 @@ void Arborist::FillEventWeights(art::Event const & e){
     fEventWeightMap.erase(fLEESignalLabel);
   }
 
-  if ( weight_map.find(fSplineBugFixLabel) != weight_map.end() && weight_map.find(fTunedCentralValueLabel) != weight_map.end() )
-    fCombinedCentralValueWeight = fSplineBugFixWeight * fTunedCentralValueWeight;
+  if ( weight_map.find(fSplineBugFixLabel) != weight_map.end()
+       && weight_map.find(fRootinoBugFixLabel) != weight_map.end()
+       && weight_map.find(fTunedCentralValueLabel) != weight_map.end() )
+    fCombinedCentralValueWeight = fSplineBugFixWeight * fRootinoBugFixWeight * fTunedCentralValueWeight;
   
 }
 void Arborist::analyze(art::Event const& e)

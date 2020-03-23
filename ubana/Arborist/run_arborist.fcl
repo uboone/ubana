@@ -28,10 +28,9 @@ physics:
       module_type: Arborist
          
       EventWeightInputTag: "eventweight"
-      #EventWeightInputTag: "eventweight4to4aFix"
-      #EventWeightInputTag: "eventweightLEE"
       SplineBugFixLabel: "splines_general_Spline"
-      TunedCentralValueLabel: "TunedCentralValue_Genie"
+      RootinoBugFixLabel: "RootinoFix_UBGenie"
+      TunedCentralValueLabel: "TunedCentralValue_UBGenie"
       LEESignalLabel: "eLEE_Combined_Oct2018_LEESignalElectron"
     }
 
