@@ -179,44 +179,44 @@ private:
   std::vector<double> crthit_time; // Time of CRT hits
   int Nr_crthit_inBeam = 0; // Number of CRT hits in beamtime
   
-  std::vector<int> Nr_trk_asso_crthit(2, -999); // Number of CRT hits associated to the track
-  std::vector<double> trk_crt_time(2, -999);// The CRT time of the hit which matched to the track
-  std::vector<bool> if_trk_CRT_out_Beam(2, false); // Check if a track matches with out of beam CRT hit(s)
+  std::vector<int> Nr_trk_asso_crthit = {-999, -999}; // Number of CRT hits associated to the track
+  std::vector<double> trk_crt_time = {-999, -999};// The CRT time of the hit which matched to the track
+  std::vector<bool> if_trk_CRT_out_Beam = {false, false}; // Check if a track matches with out of beam CRT hit(s)
 
-  std::vector<bool> trk_OutOfTime(2, false);
+  std::vector<bool> trk_OutOfTime = {false, false};
 
-  std::vector<bool> vtx_InFV(2, false);
-  std::vector<bool> trk_contained(2, false);
+  std::vector<bool> vtx_InFV = {false, false};
+  std::vector<bool> trk_contained = {false, false};
 
-  std::vector<double> trk_phi(2, -999);
-  std::vector<double> trk_theta(2, -999);
-  std::vector<double> trk_costheta(2, -999);
+  std::vector<double> trk_phi = {-999, -999};
+  std::vector<double> trk_theta = {-999, -999};
+  std::vector<double> trk_costheta = {-999, -999};
 
-  std::vector<double> theta_pl2(2, -999);
-  std::vector<double> theta_pl1(2, -999);
-  std::vector<double> theta_pl0(2, -999);
-  std::vector<double> phi_readout(2, -999);
+  std::vector<double> theta_pl2 = {-999, -999};
+  std::vector<double> theta_pl1 = {-999, -999};
+  std::vector<double> theta_pl0 = {-999, -999};
+  std::vector<double> phi_readout = {-999, -999};
 
-  std::vector<double> sin2_theta_pl2(2, -999);
-  std::vector<double> sin2_theta_pl1(2, -999);
-  std::vector<double> sin2_theta_pl0(2, -999);
-  std::vector<double> sin2_phi_readout(2, -999);
+  std::vector<double> sin2_theta_pl2 = {-999, -999};
+  std::vector<double> sin2_theta_pl1 = {-999, -999};
+  std::vector<double> sin2_theta_pl0 = {-999, -999};
+  std::vector<double> sin2_phi_readout = {-999, -999};
 
-  std::vector<double> bestMCS(2, -999);
-  std::vector<double> bestMCSLL(2, -999);
-  std::vector<double> fwdMCS(2, -999);
-  std::vector<double> fwdMCSLL(2, -999);
-  std::vector<double> bwdMCS(2, -999);
-  std::vector<double> bwdMCSLL(2, -999);
+  std::vector<double> bestMCS = {-999, -999};
+  std::vector<double> bestMCSLL = {-999, -999};
+  std::vector<double> fwdMCS = {-999, -999};
+  std::vector<double> fwdMCSLL = {-999, -999};
+  std::vector<double> bwdMCS = {-999, -999};
+  std::vector<double> bwdMCSLL = {-999, -999};
 
-  std::vector<double> bestMCSLL_NoSCE(2, -999);
-  std::vector<double> fwdMCSLL_NoSCE(2, -999);
-  std::vector<double> bwdMCSLL_NoSCE(2, -999);
+  std::vector<double> bestMCSLL_NoSCE = {-999, -999};
+  std::vector<double> fwdMCSLL_NoSCE = {-999, -999};
+  std::vector<double> bwdMCSLL_NoSCE = {-999, -999};
 
-  std::vector<double> Trk_length(2, -999);
-  std::vector<double> Mom_Range_mu(2, -999);
-  std::vector<double> Mom_Range_p(2, -999);
-  std::vector<double> Mom_Range_pi(2, -999);
+  std::vector<double> Trk_length = {-999, -999};
+  std::vector<double> Mom_Range_mu = {-999, -999};
+  std::vector<double> Mom_Range_p = {-999, -999};
+  std::vector<double> Mom_Range_pi = {-999, -999};
  
   std::vector<float> dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
   std::vector<float> dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
@@ -225,61 +225,61 @@ private:
   std::vector<float> resRange_pl1; // range from a hit to the end of the selected track end
   std::vector<float> resRange_pl2; // range from a hit to the end of the selected track end 
 
-  std::vector<double> avg_dEdx_LargeHit_pl0(2, -999);
-  std::vector<double> avg_dEdx_LargeHit_pl1(2, -999);
-  std::vector<double> avg_dEdx_LargeHit_pl2(2, -999);
+  std::vector<double> avg_dEdx_LargeHit_pl0 = {-999, -999};
+  std::vector<double> avg_dEdx_LargeHit_pl1 = {-999, -999};
+  std::vector<double> avg_dEdx_LargeHit_pl2 = {-999, -999};
 
-  std::vector<double> dEdx_pl0_start_half(2, -999);
-  std::vector<double> dEdx_pl0_end_half(2, -999);
-  std::vector<double> dEdx_pl1_start_half(2, -999);
-  std::vector<double> dEdx_pl1_end_half(2, -999);
-  std::vector<double> dEdx_pl2_start_half(2, -999);
-  std::vector<double> dEdx_pl2_end_half(2, -999);
+  std::vector<double> dEdx_pl0_start_half = {-999, -999};
+  std::vector<double> dEdx_pl1_start_half = {-999, -999};
+  std::vector<double> dEdx_pl2_start_half = {-999, -999};
+  std::vector<double> dEdx_pl0_end_half = {-999, -999};
+  std::vector<double> dEdx_pl1_end_half = {-999, -999};
+  std::vector<double> dEdx_pl2_end_half = {-999, -999};
 
-  std::vector<double> dEdx_pl0_start1020(2, -999);
-  std::vector<double> dEdx_pl0_end1020(2, -999);
-  std::vector<double> dEdx_pl1_start1020(2, -999);
-  std::vector<double> dEdx_pl1_end1020(2, -999);
-  std::vector<double> dEdx_pl2_start1020(2, -999);
-  std::vector<double> dEdx_pl2_end1020(2, -999);
+  std::vector<double> dEdx_pl0_start1020 = {-999, -999};
+  std::vector<double> dEdx_pl1_start1020 = {-999, -999};
+  std::vector<double> dEdx_pl2_start1020 = {-999, -999};
+  std::vector<double> dEdx_pl0_end1020 = {-999, -999};
+  std::vector<double> dEdx_pl1_end1020 = {-999, -999};
+  std::vector<double> dEdx_pl2_end1020 = {-999, -999};
 
-  std::vector<double> dEdx_pl2_1020_ratio(2, -999);
-  std::vector<double> dEdx_pl2_half_ratio(2, -999);
+  std::vector<double> dEdx_pl2_1020_ratio = {-999, -999};
+  std::vector<double> dEdx_pl2_half_ratio = {-999, -999};
 
-  std::vector<double> dEdx_pl0_mid(2, -999);
-  std::vector<double> dEdx_pl1_mid(2, -999);
-  std::vector<double> dEdx_pl2_mid(2, -999);
+  std::vector<double> dEdx_pl0_mid = {-999, -999};
+  std::vector<double> dEdx_pl1_mid = {-999, -999};
+  std::vector<double> dEdx_pl2_mid = {-999, -999};
 
-  std::vector<double> PID_Chi2Mu_3pl(2, -999);
-  std::vector<double> PID_Chi2P_3pl(2, -999);
-  std::vector<double> PID_Chi2Pi_3pl(2, -999);
-  std::vector<double> PID_Chi2K_3pl(2, -999);
+  std::vector<double> PID_Chi2Mu_3pl = {-999, -999};
+  std::vector<double> PID_Chi2P_3pl = {-999, -999};
+  std::vector<double> PID_Chi2Pi_3pl = {-999, -999};
+  std::vector<double> PID_Chi2K_3pl = {-999, -999};
 
-  std::vector<double> trk_cosmic_percent(2, -999);
-  std::vector<double> trk_purity(2, -999);
-  std::vector<double> trk_completeness(2, -999);
+  std::vector<double> trk_cosmic_percent = {-999, -999};
+  std::vector<double> trk_purity = {-999, -999};
+  std::vector<double> trk_completeness = {-999, -999};
 
-  std::vector<bool> if_cosmic(2, true);
-  std::vector<bool> if_matchMu(2, false);
+  std::vector<bool> if_cosmic = {true, true};
+  std::vector<bool> if_matchMu = {false, false};
   
-  std::vector<double> true_mom(2, -999);
-  std::vector<double> true_start_x(2, -999);
-  std::vector<double> true_start_y(2, -999);
-  std::vector<double> true_start_z(2, -999);
-  std::vector<double> true_end_x(2, -999);
-  std::vector<double> true_end_y(2, -999);
-  std::vector<double> true_end_z(2, -999);
-  std::vector<double> true_trk_phi(2, -999);
-  std::vector<double> true_trk_theta(2, -999);
-  std::vector<double> true_trk_costheta(2, -999);
-  std::vector<double> true_trk_theta_yz(2, -999);
-  std::vector<double> true_trk_costheta_yz(2, -999);
-  std::vector<double> true_trk_theta_xz(2, -999);
-  std::vector<double> true_trk_costheta_xz(2, -999);
-  std::vector<double> true_trk_length(2, -999);
-  std::vector<double> true_trk_PDG(2, -999);
-  std::vector<bool> true_trk_ifcontained(2, false);
-  std::vector<bool> true_vtxFV(2, false);
+  std::vector<double> true_mom = {-999, -999};
+  std::vector<double> true_start_x = {-999, -999};
+  std::vector<double> true_start_y = {-999, -999};
+  std::vector<double> true_start_z = {-999, -999};
+  std::vector<double> true_end_x = {-999, -999};
+  std::vector<double> true_end_y = {-999, -999};
+  std::vector<double> true_end_z = {-999, -999};
+  std::vector<double> true_trk_phi = {-999, -999};
+  std::vector<double> true_trk_theta = {-999, -999};
+  std::vector<double> true_trk_costheta = {-999, -999};
+  std::vector<double> true_trk_theta_yz = {-999, -999};
+  std::vector<double> true_trk_costheta_yz = {-999, -999};
+  std::vector<double> true_trk_theta_xz = {-999, -999};
+  std::vector<double> true_trk_costheta_xz = {-999, -999};
+  std::vector<double> true_trk_length = {-999, -999};
+  std::vector<double> true_trk_PDG = {-999, -999};
+  std::vector<bool> true_trk_ifcontained = {false, false};
+  std::vector<bool> true_vtxFV = {false, false};
 
   int muon_idx = -999;
   int proton_idx = -999;
