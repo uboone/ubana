@@ -11,6 +11,7 @@ services:
     RandomNumberGenerator: {}                     #ART native random number generator
     @table::microboone_reco_data_services
     message:      @local::standard_info
+    FileCatalogMetadata:  @local::art_file_catalog_data   # or _mc or _overlay
 }
 services.DatabaseUtil.ShouldConnect: false
 services.TPCEnergyCalibService.TPCEnergyCalibProvider: @local::microboone_tpcenergycalib_provider_data
@@ -132,3 +133,11 @@ physics.producers.pandoraTrackcalipid.Chi2PIDAlg.UseMedian:                     
 
 physics.producers.proximity.VtxProducer: "pandora"
 physics.producers.proximity.HitProducer: "nuslicehits"
+
+
+microboone_tfile_metadata: {
+   GenerateTFileMetadata: true
+   JSONFileName: "neutrinoselection_filt.root.json"
+   dataTier: "root-tuple"
+   fileFormat: "root"
+}
