@@ -185,7 +185,14 @@ private:
 
   std::vector<bool> trk_OutOfTime = {false, false};
 
-  std::vector<bool> vtx_InFV = {false, false};
+  std::vector<double> trk_start_x = {-999, -999};
+  std::vector<double> trk_start_y = {-999, -999};
+  std::vector<double> trk_start_z = {-999, -999};
+  std::vector<double> trk_end_x = {-999, -999};
+  std::vector<double> trk_end_y = {-999, -999};
+  std::vector<double> trk_end_z = {-999, -999};
+
+  std::vector<bool> trk_start_InFV = {false, false};
   std::vector<bool> trk_contained = {false, false};
 
   std::vector<double> trk_phi = {-999, -999};
@@ -261,6 +268,8 @@ private:
 
   std::vector<bool> if_cosmic = {true, true};
   std::vector<bool> if_matchMu = {false, false};
+  std::vector<bool> if_matchP = {false, false};
+  std::vector<bool> if_matchPrimary = {false, false};
   
   std::vector<double> true_mom = {-999, -999};
   std::vector<double> true_start_x = {-999, -999};
@@ -287,17 +296,23 @@ private:
   double vtx_x = -999;
   double vtx_y = -999;
   double vtx_z = -999;
+  bool vtx_InFV = false;
 
   double muon_cand_phi = -999;
   double muon_cand_theta = -999;
   double muon_cand_costheta = -999;
   double muon_cand_mom_MCS = -999;
   double muon_cand_mom_range = -999;
+  double muon_cand_length = -999;
 
   double proton_cand_phi = -999;
   double proton_cand_theta = -999;
   double proton_cand_costheta = -999;
   double proton_cand_mom_range = -999;
+  double proton_cand_length = -999;
+
+  bool if_match_mu_p = false;
+  bool if_match_mu_p_flipped = false;
 
   double missing_PT = -999;
 
@@ -780,11 +795,19 @@ void SingleMuon::analyze(art::Event const& evt)
           Trk_start_SCEcorr[i_trk].SetY(Trk_start[i_trk].Y() + Trk_start_offset.Y());
           Trk_start_SCEcorr[i_trk].SetZ(Trk_start[i_trk].Z() + Trk_start_offset.Z());
 
+          trk_start_x[i_trk] = Trk_start_SCEcorr[i_trk].X();
+          trk_start_y[i_trk] = Trk_start_SCEcorr[i_trk].Y();
+          trk_start_z[i_trk] = Trk_start_SCEcorr[i_trk].Z();
+
           Trk_end[i_trk] = daughter_Tracks[i_trk]->End<TVector3>();
           auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end[i_trk].X(), Trk_end[i_trk].Y(), Trk_end[i_trk].Z()));
           Trk_end_SCEcorr[i_trk].SetX(Trk_end[i_trk].X() - Trk_end_offset.X());
           Trk_end_SCEcorr[i_trk].SetY(Trk_end[i_trk].Y() + Trk_end_offset.Y());
           Trk_end_SCEcorr[i_trk].SetZ(Trk_end[i_trk].Z() + Trk_end_offset.Z());
+
+          trk_end_x[i_trk] = Trk_end_SCEcorr[i_trk].X();
+          trk_end_y[i_trk] = Trk_end_SCEcorr[i_trk].Y();
+          trk_end_z[i_trk] = Trk_end_SCEcorr[i_trk].Z();
 
           //-- Track out of time
           if( Trk_start_SCEcorr[i_trk].X() < 0 || Trk_start_SCEcorr[i_trk].X() > 2. * geo->DetHalfWidth() || Trk_end_SCEcorr[i_trk].X() < 0 || Trk_end_SCEcorr[i_trk].X() > 2. * geo->DetHalfWidth()){
@@ -795,7 +818,7 @@ void SingleMuon::analyze(art::Event const& evt)
           }
 
           //-- If contained
-          vtx_InFV[i_trk] = _fiducial_volume.VertexInFV(Trk_start_SCEcorr[i_trk]);
+          trk_start_InFV[i_trk] = _fiducial_volume.VertexInFV(Trk_start_SCEcorr[i_trk]);
           trk_contained[i_trk] = _fiducial_volume.TrackContain(Trk_start_SCEcorr[i_trk], Trk_end_SCEcorr[i_trk]);
 
           //-- Angle wrt to the detector coordinator
@@ -985,29 +1008,42 @@ void SingleMuon::analyze(art::Event const& evt)
               std::cout<<"MC particle does not exist!"<<std::endl;
             }
             else{
-              if_cosmic[i_trk] = false;
-              if(MCparticle->PdgCode() == 13) if_matchMu[i_trk] = true;
-              TVector3 TrueTrackPos(MCparticle->Px(), MCparticle->Py(), MCparticle->Pz());// The initial momentum represent the angle of true track
-              true_mom[i_trk] = MCparticle->P();
-              true_start_x[i_trk] = MCparticle->Position().X();
-              true_start_y[i_trk] = MCparticle->Position().Y();
-              true_start_z[i_trk] = MCparticle->Position().Z();
-              true_end_x[i_trk] = MCparticle->EndPosition().X();
-              true_end_y[i_trk] = MCparticle->EndPosition().Y();
-              true_end_z[i_trk] = MCparticle->EndPosition().Z();
-              TVector3 true_start(MCparticle->Position().X(), MCparticle->Position().Y(), MCparticle->Position().Z());
-              TVector3 true_end(MCparticle->EndPosition().X(), MCparticle->EndPosition().Y(), MCparticle->EndPosition().Z());
-              true_trk_ifcontained[i_trk] = _fiducial_volume.TrackContain(true_start, true_end);
-              true_vtxFV[i_trk] = _fiducial_volume.VertexInFV(true_start);
-              true_trk_phi[i_trk] = TrueTrackPos.Phi();
-              true_trk_theta[i_trk] = TrueTrackPos.Theta();
-              true_trk_costheta[i_trk] = cos(TrueTrackPos.Theta());
-              true_trk_theta_yz[i_trk] = std::atan2(TrueTrackPos.Y(), TrueTrackPos.Z());
-              true_trk_costheta_yz[i_trk] = cos(true_trk_theta_yz[i_trk]);
-              true_trk_theta_xz[i_trk] = std::atan2(TrueTrackPos.X(), TrueTrackPos.Z());
-              true_trk_costheta_xz[i_trk] = cos(true_trk_theta_xz[i_trk]);
-              true_trk_length[i_trk] = (true_start - true_end).Mag(); // An estimation of true track length
-              true_trk_PDG[i_trk] = MCparticle->PdgCode();
+              if(trk_cosmic_percent[i_trk] > 0.8){
+                if_cosmic[i_trk] = true;
+              }
+              else{
+                if_cosmic[i_trk] = false;
+                if(MCparticle->Process() == "primary" && trk_purity[i_trk] > 0.2 && trk_completeness[i_trk] > 0.2){
+                  if_matchPrimary[i_trk] = true;
+                  if(MCparticle->PdgCode() == 13){
+                    if_matchMu[i_trk] = true;
+                  }
+                  if(MCparticle->PdgCode() == 2212){
+                    if_matchP[i_trk] = true;
+                  }
+                }
+                TVector3 TrueTrackPos(MCparticle->Px(), MCparticle->Py(), MCparticle->Pz());// The initial momentum represent the angle of true track
+                true_mom[i_trk] = MCparticle->P();
+                true_start_x[i_trk] = MCparticle->Position().X();
+                true_start_y[i_trk] = MCparticle->Position().Y();
+                true_start_z[i_trk] = MCparticle->Position().Z();
+                true_end_x[i_trk] = MCparticle->EndPosition().X();
+                true_end_y[i_trk] = MCparticle->EndPosition().Y();
+                true_end_z[i_trk] = MCparticle->EndPosition().Z();
+                TVector3 true_start(MCparticle->Position().X(), MCparticle->Position().Y(), MCparticle->Position().Z());
+                TVector3 true_end(MCparticle->EndPosition().X(), MCparticle->EndPosition().Y(), MCparticle->EndPosition().Z());
+                true_trk_ifcontained[i_trk] = _fiducial_volume.TrackContain(true_start, true_end);
+                true_vtxFV[i_trk] = _fiducial_volume.VertexInFV(true_start);
+                true_trk_phi[i_trk] = TrueTrackPos.Phi();
+                true_trk_theta[i_trk] = TrueTrackPos.Theta();
+                true_trk_costheta[i_trk] = cos(TrueTrackPos.Theta());
+                true_trk_theta_yz[i_trk] = std::atan2(TrueTrackPos.Y(), TrueTrackPos.Z());
+                true_trk_costheta_yz[i_trk] = cos(true_trk_theta_yz[i_trk]);
+                true_trk_theta_xz[i_trk] = std::atan2(TrueTrackPos.X(), TrueTrackPos.Z());
+                true_trk_costheta_xz[i_trk] = cos(true_trk_theta_xz[i_trk]);
+                true_trk_length[i_trk] = (true_start - true_end).Mag(); // An estimation of true track length
+                true_trk_PDG[i_trk] = MCparticle->PdgCode();
+              }
             }
           }
           
@@ -1020,12 +1056,12 @@ void SingleMuon::analyze(art::Event const& evt)
         //-- Track particle ID (Set the threshold to be PID_Chi2P_3pl 95)
         // If we don't use track length for the moment
         if(PID_Chi2P_3pl[0] <= 95 && PID_Chi2P_3pl[1] > 95){
-          muon_idx = 0;
-          proton_idx = 1;
-        }
-        if(PID_Chi2P_3pl[0] > 95 && PID_Chi2P_3pl[1] <= 95){
           muon_idx = 1;
           proton_idx = 0;
+        }
+        if(PID_Chi2P_3pl[0] > 95 && PID_Chi2P_3pl[1] <= 95){
+          muon_idx = 0;
+          proton_idx = 1;
         }
         if(PID_Chi2P_3pl[0] <= 95 && PID_Chi2P_3pl[1] <= 95){
           if(dEdx_pl2_mid[0] >= dEdx_pl2_mid[1]){
@@ -1081,16 +1117,29 @@ void SingleMuon::analyze(art::Event const& evt)
           vtx_y = Trk_start_SCEcorr[muon_idx].Y();
           vtx_z = Trk_start_SCEcorr[muon_idx].Z();
 
+          vtx_InFV = _fiducial_volume.VertexInFV(Trk_start_SCEcorr[muon_idx]);
+
           muon_cand_phi = daughter_Tracks[muon_idx]->Phi();
           muon_cand_theta = daughter_Tracks[muon_idx]->Theta();
           muon_cand_costheta = cos(daughter_Tracks[muon_idx]->Theta());
           muon_cand_mom_MCS = bestMCS[muon_idx];
           muon_cand_mom_range = Mom_Range_mu[muon_idx];
+          muon_cand_length = Trk_length[muon_idx];
 
           proton_cand_phi = daughter_Tracks[proton_idx]->Phi();
           proton_cand_theta = daughter_Tracks[proton_idx]->Theta();
           proton_cand_costheta = cos(daughter_Tracks[proton_idx]->Theta());
           proton_cand_mom_range = Mom_Range_p[proton_idx];
+          proton_cand_length = Trk_length[proton_idx];
+
+          if(IsMC){
+            if(if_matchMu[muon_idx] == true && if_matchP[proton_idx] == true){
+              if_match_mu_p = true;
+            }
+            if(if_matchMu[proton_idx] == true && if_matchP[muon_idx] == true){
+              if_match_mu_p_flipped = true;
+            }
+          }
         }
         
         //-- Missing PT (no need to decide the PID of the tracks)
@@ -1110,6 +1159,18 @@ void SingleMuon::analyze(art::Event const& evt)
 
   my_event_->Fill();
 
+  if(IsMC){
+    MC_Primary_PDG.clear();
+    MC_Primary_Mom.clear();
+    MC_proton_true_Mom_above255.clear();
+    MC_muon_true_Mom.clear();
+    MC_muon_true_cos_theta.clear();
+    MC_muon_true_phi.clear();
+    MC_proton_true_cos_theta.clear();
+    MC_proton_true_phi.clear();
+    Ghost_PDG.clear();
+  }
+
   flash_matching_chi2 = -999; 
   flash_YCenter = -999;
   flash_YWidth = -999;
@@ -1124,46 +1185,52 @@ void SingleMuon::analyze(art::Event const& evt)
   crthit_time.clear();
   Nr_crthit_inBeam = 0;
 
-  std::fill_n(Nr_trk_asso_crthit, 2, -999); 
-  std::fill_n(trk_crt_time, 2, -999);
-  std::fill_n(if_trk_CRT_out_Beam, 2, false);
+  Nr_trk_asso_crthit = {-999, -999}; 
+  trk_crt_time = {-999, -999};
+  if_trk_CRT_out_Beam = {false, false};
 
+  trk_OutOfTime = {false, false};
 
-  std::fill_n(trk_OutOfTime, 2, false);
+  trk_start_x = {-999, -999};
+  trk_start_y = {-999, -999};
+  trk_start_z = {-999, -999};
+  trk_end_x = {-999, -999};
+  trk_end_y = {-999, -999};
+  trk_end_z = {-999, -999};
 
-  std::fill_n(vtx_InFV, 2, false);
-  std::fill_n(trk_contained, 2, false);
+  trk_start_InFV = {false, false};
+  trk_contained = {false, false};
 
-  std::fill_n(trk_phi, 2, -999);
-  std::fill_n(trk_theta, 2, -999);
-  std::fill_n(trk_costheta, 2, -999);
+  trk_phi = {-999, -999};
+  trk_theta = {-999, -999};
+  trk_costheta = {-999, -999};
 
-  std::fill_n(theta_pl0, 2, -999);
-  std::fill_n(theta_pl1, 2, -999);
-  std::fill_n(theta_pl2, 2, -999);
-  std::fill_n(phi_readout, 2, -999);
+  theta_pl0 = {-999, -999};
+  theta_pl1 = {-999, -999};
+  theta_pl2 = {-999, -999};
+  phi_readout = {-999, -999};
 
-  std::fill_n(sin2_theta_pl0, 2, -999);
-  std::fill_n(sin2_theta_pl1, 2, -999);
-  std::fill_n(sin2_theta_pl2, 2, -999);
-  std::fill_n(sin2_phi_readout, 2, -999);
+  sin2_theta_pl0 = {-999, -999};
+  sin2_theta_pl1 = {-999, -999};
+  sin2_theta_pl2 = {-999, -999};
+  sin2_phi_readout = {-999, -999};
 
-  std::fill_n(bestMCS, 2, -999);
-  std::fill_n(bestMCSLL, 2, -999);
-  std::fill_n(fwdMCS, 2, -999);
-  std::fill_n(fwdMCSLL, 2, -999);
-  std::fill_n(bwdMCS, 2, -999);
-  std::fill_n(bwdMCSLL, 2, -999);
+  bestMCS = {-999, -999};
+  bestMCSLL = {-999, -999};
+  fwdMCS = {-999, -999};
+  fwdMCSLL = {-999, -999};
+  bwdMCS = {-999, -999};
+  bwdMCSLL = {-999, -999};
 
-  std::fill_n(bestMCSLL_NoSCE, 2, -999);
-  std::fill_n(fwdMCSLL_NoSCE, 2, -999);
-  std::fill_n(bwdMCSLL_NoSCE, 2, -999);
+  bestMCSLL_NoSCE = {-999, -999};
+  fwdMCSLL_NoSCE = {-999, -999};
+  bwdMCSLL_NoSCE = {-999, -999};
 
   
-  std::fill_n(Trk_length, 2, -999);
-  std::fill_n(Mom_Range_mu, 2, -999);
-  std::fill_n(Mom_Range_p, 2, -999);
-  std::fill_n(Mom_Range_pi, 2, -999);
+  Trk_length = {-999, -999};
+  Mom_Range_mu = {-999, -999};
+  Mom_Range_p = {-999, -999};
+  Mom_Range_pi = {-999, -999};
  
   dEdx_pl0.clear(); 
   dEdx_pl1.clear(); 
@@ -1172,58 +1239,60 @@ void SingleMuon::analyze(art::Event const& evt)
   resRange_pl1.clear();
   resRange_pl2.clear();
 
-  std::fill_n(avg_dEdx_LargeHit_pl0, 2, -999);
-  std::fill_n(avg_dEdx_LargeHit_pl1, 2, -999);
-  std::fill_n(avg_dEdx_LargeHit_pl2, 2, -999);
+  avg_dEdx_LargeHit_pl0 = {-999, -999};
+  avg_dEdx_LargeHit_pl1 = {-999, -999};
+  avg_dEdx_LargeHit_pl2 = {-999, -999};
  
-  std::fill_n(dEdx_pl0_start_half, 2, -999);
-  std::fill_n(dEdx_pl0_end_half, 2, -999);
-  std::fill_n(dEdx_pl1_start_half, 2, -999);
-  std::fill_n(dEdx_pl1_end_half, 2, -999);
-  std::fill_n(dEdx_pl2_start_half, 2, -999);
-  std::fill_n(dEdx_pl2_end_half, 2, -999);
+  dEdx_pl0_start_half = {-999, -999};
+  dEdx_pl1_start_half = {-999, -999};
+  dEdx_pl2_start_half = {-999, -999};
+  dEdx_pl0_end_half = {-999, -999};
+  dEdx_pl1_end_half = {-999, -999};
+  dEdx_pl2_end_half = {-999, -999};
 
-  std::fill_n(dEdx_pl0_start1020, 2, -999);
-  std::fill_n(dEdx_pl0_end1020, 2, -999);
-  std::fill_n(dEdx_pl1_start1020, 2, -999);
-  std::fill_n(dEdx_pl1_end1020, 2, -999);
-  std::fill_n(dEdx_pl2_start1020, 2, -999);
-  std::fill_n(dEdx_pl2_end1020, 2, -999);
+  dEdx_pl0_start1020 = {-999, -999};
+  dEdx_pl1_start1020 = {-999, -999};
+  dEdx_pl2_start1020 = {-999, -999};
+  dEdx_pl0_end1020 = {-999, -999};
+  dEdx_pl1_end1020 = {-999, -999};
+  dEdx_pl2_end1020 = {-999, -999};
 
-  std::fill_n(dEdx_pl0_mid, 2, -999);
-  std::fill_n(dEdx_pl1_mid, 2, -999);
-  std::fill_n(dEdx_pl2_mid, 2, -999);
+  dEdx_pl0_mid = {-999, -999};
+  dEdx_pl1_mid = {-999, -999};
+  dEdx_pl2_mid = {-999, -999};
 
-  std::fill_n(PID_Chi2Mu_3pl, 2, -999);
-  std::fill_n(PID_Chi2P_3pl, 2, -999);
-  std::fill_n(PID_Chi2Pi_3pl, 2, -999);
-  std::fill_n(PID_Chi2K_3pl, 2, -999);
+  PID_Chi2Mu_3pl = {-999, -999};
+  PID_Chi2P_3pl = {-999, -999};
+  PID_Chi2Pi_3pl = {-999, -999};
+  PID_Chi2K_3pl = {-999, -999};
 
-  std::fill_n(trk_cosmic_percent, 2, -999);
-  std::fill_n(trk_purity, 2, -999);
-  std::fill_n(trk_completeness, 2, -999);
+  trk_cosmic_percent = {-999, -999};
+  trk_purity = {-999, -999};
+  trk_completeness = {-999, -999};
 
-  std::fill_n(if_matchMu, 2, false);
-  std::fill_n(if_cosmic, 2, true);
+  if_matchMu = {false, false};
+  if_matchP = {false, false};
+  if_matchPrimary = {false, false};
+  if_cosmic = {true, true};
 
-  std::fill_n(true_mom, 2, -999);  
-  std::fill_n(true_start_x, 2, -999);  
-  std::fill_n(true_start_y, 2, -999);  
-  std::fill_n(true_start_z, 2, -999);
-  std::fill_n(true_end_x, 2, -999);
-  std::fill_n(true_end_y, 2, -999);
-  std::fill_n(true_end_z, 2, -999);  
-  std::fill_n(true_trk_ifcontained, 2, false);  
-  std::fill_n(true_vtxFV, 2, false);  
-  std::fill_n(true_trk_phi, 2, -999);  
-  std::fill_n(true_trk_theta, 2, -999);  
-  std::fill_n(true_trk_costheta, 2, -999);  
-  std::fill_n(true_trk_theta_yz, 2, -999);  
-  std::fill_n(true_trk_costheta_yz, 2, -999);  
-  std::fill_n(true_trk_theta_xz, 2, -999);  
-  std::fill_n(true_trk_costheta_xz, 2, -999);  
-  std::fill_n(true_trk_length, 2, -999);  
-  std::fill_n(true_trk_PDG, 2, -999);  
+  true_mom = {-999, -999};  
+  true_start_x = {-999, -999};  
+  true_start_y = {-999, -999};  
+  true_start_z = {-999, -999};
+  true_end_x = {-999, -999};
+  true_end_y = {-999, -999};
+  true_end_z = {-999, -999};  
+  true_trk_ifcontained = {false, false};  
+  true_vtxFV = {false, false};  
+  true_trk_phi = {-999, -999};  
+  true_trk_theta = {-999, -999};  
+  true_trk_costheta = {-999, -999};  
+  true_trk_theta_yz = {-999, -999};  
+  true_trk_costheta_yz = {-999, -999};  
+  true_trk_theta_xz = {-999, -999};  
+  true_trk_costheta_xz = {-999, -999};  
+  true_trk_length = {-999, -999};  
+  true_trk_PDG = {-999, -999};  
 
   muon_idx = -999;
   proton_idx = -999;
@@ -1231,17 +1300,23 @@ void SingleMuon::analyze(art::Event const& evt)
   vtx_x = -999;
   vtx_y = -999;
   vtx_z = -999;
+  vtx_InFV = false;
 
   muon_cand_phi = -999;
   muon_cand_theta = -999;
   muon_cand_costheta = -999;
   muon_cand_mom_MCS = -999;
   muon_cand_mom_range = -999;
+  muon_cand_length = -999;
 
   proton_cand_phi = -999;
   proton_cand_theta = -999;
   proton_cand_costheta = -999;
   proton_cand_mom_range = -999;
+  proton_cand_length = -999;
+
+  if_match_mu_p = false;
+  if_match_mu_p_flipped = false;
 
   missing_PT = -999;
 
@@ -1353,7 +1428,14 @@ void SingleMuon::Initialize_event()
 
   my_event_->Branch("trk_OutOfTime", &trk_OutOfTime);
 
-  my_event_->Branch("vtx_InFV", &vtx_InFV);
+  my_event_->Branch("trk_start_x", &trk_start_x);
+  my_event_->Branch("trk_start_y", &trk_start_y);
+  my_event_->Branch("trk_start_z", &trk_start_z);
+  my_event_->Branch("trk_end_x", &trk_end_x);
+  my_event_->Branch("trk_end_y", &trk_end_y);
+  my_event_->Branch("trk_end_z", &trk_end_z);
+
+  my_event_->Branch("trk_start_InFV", &trk_start_InFV);
   my_event_->Branch("trk_contained", &trk_contained);
 
   my_event_->Branch("trk_phi", &trk_phi);
@@ -1416,6 +1498,8 @@ void SingleMuon::Initialize_event()
 
   my_event_->Branch("if_cosmic", &if_cosmic);
   my_event_->Branch("if_matchMu", &if_matchMu);
+  my_event_->Branch("if_matchP", &if_matchP);
+  my_event_->Branch("if_matchPrimary", &if_matchPrimary);
 
   my_event_->Branch("muon_idx", &muon_idx);
   my_event_->Branch("proton_idx", &proton_idx);
@@ -1423,17 +1507,25 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("vtx_x", &vtx_x);
   my_event_->Branch("vtx_y", &vtx_y);
   my_event_->Branch("vtx_z", &vtx_z);
+  my_event_->Branch("vtx_InFV", &vtx_InFV);
 
   my_event_->Branch("muon_cand_phi", &muon_cand_phi);
   my_event_->Branch("muon_cand_theta", &muon_cand_theta);
   my_event_->Branch("muon_cand_costheta", &muon_cand_costheta);
   my_event_->Branch("muon_cand_mom_MCS", &muon_cand_mom_MCS);
   my_event_->Branch("muon_cand_mom_range", &muon_cand_mom_range);
+  my_event_->Branch("muon_cand_length", &muon_cand_length);
 
   my_event_->Branch("proton_cand_phi", &proton_cand_phi);
   my_event_->Branch("proton_cand_theta", &proton_cand_theta);
   my_event_->Branch("proton_cand_costheta", &proton_cand_costheta);
   my_event_->Branch("proton_cand_mom_range", &proton_cand_mom_range);
+  my_event_->Branch("proton_cand_length", &proton_cand_length);
+
+  if(IsMC){
+    my_event_->Branch("if_match_mu_p", &if_match_mu_p);
+    my_event_->Branch("if_match_mu_p_flipped", &if_match_mu_p_flipped);
+  }
 
   my_event_->Branch("missing_PT", &missing_PT);
 }
