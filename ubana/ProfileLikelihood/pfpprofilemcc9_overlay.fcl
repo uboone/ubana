@@ -3,7 +3,7 @@
 #include "mctruthmatching_uboone.fcl"
 ##include "mctruthassociations_uboone.fcl"
 
-process_name: PFPProfile 
+process_name: PFPProfileMCC9 
 
 services:
 {
@@ -26,7 +26,7 @@ physics:
   {
     profile: 
     {
-      module_type:    "PFPProfile"
+      module_type:    "PFPProfileMCC9"
       UseMCOverlay  :   true 
       UseMCSingleParticle  :    false
       UseData:        false

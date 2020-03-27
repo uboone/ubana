@@ -21,4 +21,5 @@ add_subdirectory(TreeReader)
 add_subdirectory(Arborist)
 add_subdirectory(searchingfornues)
 add_subdirectory(ProfileLikelihood)
+add_subdirectory(MyClasses)
 

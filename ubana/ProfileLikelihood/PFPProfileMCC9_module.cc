@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       PFPProfile
+// Class:       PFPProfileMCC9
 // Plugin Type: analyzer (art v3_03_01)
-// File:        PFPProfile_module.cc
+// File:        PFPProfileMCC9_module.cc
 //
 // Generated at Tue Nov 19 19:03:26 2019 by Tingjun Yang using cetskelgen
 // from cetlib version v3_08_00.
@@ -45,6 +45,8 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 
+#include "ubana/MyClasses/BackTrackerTruthMatch.h"
+
 // ROOT include
 #include "TFile.h"
 #include "TTree.h"
@@ -61,19 +63,19 @@ using namespace std;
 constexpr int kNplanes = 3;      //number of wire planes
 constexpr int kMaxPFPs = 1000;   //maximum number of PFParticles
 
-class PFPProfile;
+class PFPProfileMCC9;
 
-class PFPProfile : public art::EDAnalyzer {
+class PFPProfileMCC9 : public art::EDAnalyzer {
 public:
-  explicit PFPProfile(fhicl::ParameterSet const& p);
+  explicit PFPProfileMCC9(fhicl::ParameterSet const& p);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
   // Plugins should not be copied or assigned.
-  PFPProfile(PFPProfile const&) = delete;
-  PFPProfile(PFPProfile&&) = delete;
-  PFPProfile& operator=(PFPProfile const&) = delete;
-  PFPProfile& operator=(PFPProfile&&) = delete;
+  PFPProfileMCC9(PFPProfileMCC9 const&) = delete;
+  PFPProfileMCC9(PFPProfileMCC9&&) = delete;
+  PFPProfileMCC9& operator=(PFPProfileMCC9 const&) = delete;
+  PFPProfileMCC9& operator=(PFPProfileMCC9&&) = delete;
 
   // Required functions.
   void analyze(art::Event const& e) override;
@@ -185,7 +187,7 @@ private:
 };
 
 
-PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
+PFPProfileMCC9::PFPProfileMCC9(fhicl::ParameterSet const& p)
   : EDAnalyzer{p}  // ,
   // More initializers here.
 {
@@ -205,7 +207,7 @@ PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
   fCutCompleteness = p.get<float>("CutCompleteness");
 }
 
-void PFPProfile::analyze(art::Event const& e)
+void PFPProfileMCC9::analyze(art::Event const& e)
 {
 
   reset();
@@ -243,7 +245,26 @@ void PFPProfile::analyze(art::Event const& e)
   if (e.getByLabel("pandora", cluListHandle)) {
     art::fill_ptr_vector(cluList, cluListHandle);
   }
+  
+  // Get all mcparticle
+  art::Handle < std::vector <simb::MCParticle> > mcparticleHandle;
+  std::vector < art::Ptr <simb::MCParticle> >mcparticleList;
+  if (e.getByLabel("largeant", mcparticleHandle)) {
+    art::fill_ptr_vector(mcparticleList, mcparticleHandle);
+  }
+  cout << "mcparticleList.size(): " << mcparticleList.size() << endl;
+  /*
+  if (e.getByLabel("largeant", mcparticleHandle)) {
+    art::FindOneP<simb::MCTruth> MCParticleToMCTruth(mcparticleHandle,e,"largeant");
+    BackTrackerTruthMatch backtrackertruthmatchhit;
+    std::vector<art::Ptr<recob::Hit> > hit_vec_ptr;
+    hit_vec_ptr.push_back(CurrentHit);
+    backtrackertruthmatchhit.MatchToMCParticle(hit_handle,e,hit_vec_ptr);
 
+    art::Ptr< simb::MCParticle > maxp_me_hit = backtrackertruthmatchhit.ReturnMCParticle();
+
+  }
+*/
   // Get MCParticle-hit association
   art::FindMany<simb::MCParticle,anab::BackTrackerHitMatchingData> particles_per_hit(hitListHandle, e, "gaushitTruthMatch");
 
@@ -478,6 +499,29 @@ void PFPProfile::analyze(art::Event const& e)
                 allhits[hit->WireID().Plane].push_back(hit);
               }
             }
+            //www test BackTrackerTruthMatch
+            std::vector< art::Ptr<recob::Hit> > pfp_hits_ptrs = fmhc.at(cluster.key());
+            if (e.getByLabel("largeant", mcparticleHandle)) {
+              art::FindOneP<simb::MCTruth> MCParticleToMCTruth(mcparticleHandle,e,"largeant");
+              BackTrackerTruthMatch backtrackertruthmatchhit;
+              backtrackertruthmatchhit.MatchToMCParticle(hitListHandle,e,pfp_hits_ptrs);
+
+              art::Ptr< simb::MCParticle > maxp_me = backtrackertruthmatchhit.ReturnMCParticle();
+
+              if (!maxp_me.isNull()) {
+                cout << "maxp_me->PdgCode(): " << maxp_me->PdgCode() << endl;
+                cout << "maxp_me->TrackId(): " << maxp_me->TrackId() << endl;
+                const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruth.at(maxp_me.key());
+                if (mctruth->Origin() == 1) {
+                  cout << "beam selection" << endl;
+                }
+                if (mctruth->Origin() == 2) {
+                  cout << "cosmic selection" << endl;
+                }
+
+              }
+
+            }
           }
         }
       }
@@ -618,6 +662,7 @@ void PFPProfile::analyze(art::Event const& e)
       
       if (pfp_particle) {
         pfppdg_truth[npfps] = pfp_particle->PdgCode();
+        cout << "pfp_particle->PdgCode(): " << pfp_particle->PdgCode() << endl;
         pfpvertex_truth[npfps][0] = pfp_particle->Vx();
         pfpvertex_truth[npfps][1] = pfp_particle->Vy();
         pfpvertex_truth[npfps][2] = pfp_particle->Vz();
@@ -691,17 +736,7 @@ void PFPProfile::analyze(art::Event const& e)
         double z0 = -DBL_MAX;
         double rmin = DBL_MAX;
         // Loop over all hits on the current plane
-        //cout << "plane: " << pl << endl;
         for (auto const & hit : allhits[pl]){
-          //www: check wire direction on each plane
-          //cout << geom->Plane(pl).Wire(hit->WireID().Wire).ThetaZ(true) << endl;
-          //double wirestart[3];
-          //double wireend[3];
-          //geom->Plane(pl).Wire(hit->WireID().Wire).GetStart(wirestart);
-          //geom->Plane(pl).Wire(hit->WireID().Wire).GetEnd(wireend);
-          //cout << "wirestart: (" << wirestart[0] << ", " << wirestart[1] << ", "<<  wirestart[2] << ")" << endl;
-          //cout << "wireend: (" << wireend[0] << ", " << wireend[1] << ", "<<  wireend[2] << ")" << endl;
-
           double w_cm = hit->WireID().Wire*wirePitch;
           double t_cm = hit->PeakTime()*tickToDist;
           // Project the hit onto pfparticle projection
@@ -768,7 +803,7 @@ void PFPProfile::analyze(art::Event const& e)
   fEventTree->Fill();
 }
 
-void PFPProfile::project(const double& x0, 
+void PFPProfileMCC9::project(const double& x0, 
                          const double& y0, 
                          const double& x1, 
                          const double& y1, 
@@ -793,7 +828,7 @@ void PFPProfile::project(const double& x0,
   }
 }
 
-void PFPProfile::beginJob(){
+void PFPProfileMCC9::beginJob(){
 
   art::ServiceHandle<art::TFileService> tfs;
   fEventTree = tfs->make<TTree>("Event", "Event");
@@ -907,7 +942,7 @@ void PFPProfile::beginJob(){
   cout << fFidVolZmin << " =< z =< " << fFidVolZmax << endl;
 }
 
-bool PFPProfile::insideFV( double vertex[3]) {
+bool PFPProfileMCC9::insideFV( double vertex[3]) {
   if ( vertex[0] >= fFidVolXmin && vertex[0] <= fFidVolXmax &&
       vertex[1] >= fFidVolYmin && vertex[1] <= fFidVolYmax &&
       vertex[2] >= fFidVolZmin && vertex[2] <= fFidVolZmax ) {
@@ -918,7 +953,7 @@ bool PFPProfile::insideFV( double vertex[3]) {
   }
 }
 
-void PFPProfile::reset() {
+void PFPProfileMCC9::reset() {
 
   run = -99999;
   subrun = -99999;
@@ -973,4 +1008,4 @@ void PFPProfile::reset() {
   }
 }
 
-DEFINE_ART_MODULE(PFPProfile)
+DEFINE_ART_MODULE(PFPProfileMCC9)
