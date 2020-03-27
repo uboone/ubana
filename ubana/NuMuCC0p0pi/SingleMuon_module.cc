@@ -127,8 +127,8 @@ private:
   int MC_nMuon; // Number of muon(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nElectron; // Number of eletron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nNeutron; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_below255; // Number of proton(s) (p<255) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_above255; // Number of proton(s) (p >= 255) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_below260; // Number of proton(s) (p<260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_above260; // Number of proton(s) (p >= 260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPi0; // Number of pi0(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPiPlus_below65; // Number of pi plus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   int MC_nPiPlus_above65; // Number of pi plus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
@@ -136,7 +136,7 @@ private:
   int MC_nPiMinus_above65; // Number of pi minus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   std::vector<int> MC_Primary_PDG; // PDG of neutrino daughters
   std::vector<double> MC_Primary_Mom; // Momemtum of neutrino daughters
-  std::vector<double> MC_proton_true_Mom_above255; // Momentum of proton above 255 MeV
+  std::vector<double> MC_proton_true_Mom_above260; // Momentum of proton above 260 MeV
   std::vector<double> MC_muon_true_Mom; // True Momentum of muon
   std::vector<double> MC_muon_true_cos_theta; // True cos theta of muon
   std::vector<double> MC_muon_true_phi; // True phi of muon
@@ -161,288 +161,186 @@ private:
   double len_Muon_0pi1p; // length of true muon
   double len_Proton_0pi1p; // length of true proton
 
-  double flash_matching_chi2; //Chi2 of flash matching in each neutrino slice
+  int n_pfp_nuDaughters = 0; // number of pfp which are the daughters of the neutrino
+  int n_dau_tracks = 0; // number of tracks asssociated to pfp neutrino daughters
+  int n_dau_showers = 0; // number of showers asssociated to pfp neutrino daughters
 
-  std::vector<double> true_mom;//True momentum of muon track in the every event
-  std::vector<double> true_start_x;//True start of muon track (X)
-  std::vector<double> true_start_y;//True start of muon track (Y)
-  std::vector<double> true_start_z;//True start of muon track (Z)
-  std::vector<double> true_end_x;//True end of muon track (X)
-  std::vector<double> true_end_y;//True end of muon track (Y)
-  std::vector<double> true_end_z;//True end of muon track (Z)
-  std::vector<double> true_trk_phi;//True phi of muon track 
-  std::vector<double> true_trk_theta;//True theta of muon track 
-  std::vector<double> true_trk_costheta;//True cos(theta) of muon track 
-  std::vector<double> true_trk_theta_yz;
-  std::vector<double> true_trk_costheta_yz;
-  std::vector<double> true_trk_theta_xz;
-  std::vector<double> true_trk_costheta_xz;
-  std::vector<double> true_trk_length;//True track length (distance from the start to the end point) 
-  std::vector<double> true_trk_PDG;//Track pdg 
-  std::vector<bool> true_trk_ifcontained; // True track if contained or not
-  std::vector<bool> true_vtxFV; // True track if contained or not
-
-  std::vector<double> reco_MC_dist_vtx; // Distance of reco - MC vertex w/ SCE correction
-  std::vector<double> reco_MC_dist_vtx_noSCE; // Distance of reco - MC vertex w/o SCE correction
-
-  int nr_granddau_shw;
-  int nr_granddau_trk;
-  int nr_granddau;
+  int nr_granddau_shw = 0;
+  int nr_granddau_trk = 0;
+  int nr_granddau = 0;
   std::vector<int> MC_granddau_pdg;
   std::vector<double> granddau_trk_len;
   std::vector<double> granddau_shw_len;
 
-  double flash_YCenter;
-  double flash_YWidth;
-  double flash_ZCenter;
-  double flash_ZWidth;
-  double flash_TotalPE;
+  bool if_1track = false; // If selected based on the reco info
 
-  bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
-  bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
+  double flash_matching_chi2 = -999; //Chi2 of flash matching in each neutrino slice
+  double flash_YCenter = -999;
+  double flash_YWidth = -999;
+  double flash_ZCenter = -999;
+  double flash_ZWidth = -999;
+  double flash_TotalPE = -999;
+
   std::vector<double> crthit_PE; // The photonelectrons of CRT hits which are in beam window
   std::vector<double> crthit_plane; // Plane of CRT hits
   std::vector<double> crthit_time; // Time of CRT hits
-  int Nr_crthit; // Number of CRT hits in beamtime
-  int Nr_trk_asso_crthit; // Number of CRT hits associated to the track
+  int Nr_crthit_inBeam = 0; // Number of CRT hits in beamtime
+  int Nr_trk_asso_crthit = 0; // Number of CRT hits associated to the track
   double trk_crt_time = -999;// The CRT time of the hit which matched to the track
   bool if_trk_CRT_out_Beam = false; // Check if a track matches with out of beam CRT hit(s)
+  bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
+  bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
 
-  bool if_selected = false; // If selected based on the reco info
-  bool if_matchMu = false; // If the selected track matched with true muon from numu cc
-  bool if_cosmic = true; // Check if a track is cosmic or not by if it has an associated MCParticle
-  std::vector<double> trk_cosmic_percent; // the percentage of cosmic charge of hits in the track
-  std::vector<double> trk_purity; // the purity of the MCParticle of the hits in the track
+  double trk_vtx_x = -999;
+  double trk_vtx_y = -999;
+  double trk_vtx_z = -999;
+  double trk_start_x = -999;
+  double trk_start_y = -999;
+  double trk_start_z = -999;
+  double trk_end_x = -999;
+  double trk_end_y = -999;
+  double trk_end_z = -999;
 
-  bool if_broken = false; // if find broken track
-  bool if_newTrkThroughGoing = false; // if the new track is through going
-  std::vector<double> trk_broken_len;// length of the merged broken track (distance of two furtherest track ends)
-  std::vector<int> trk_broken_nr_merged;// number of broken tracks merged in
+  bool trk_OutOfTime = false;
 
-  std::vector<double> mom_bestMCS_mu;//MCS best momentum of muon track in the every event
-  std::vector<double> mom_bestMCS_ll_mu;//Likelihood of MCS best momentum of muon track in the every event
-  std::vector<double> mom_fwdMCS_mu;//MCS forward momentum of muon track in the every event
-  std::vector<double> mom_fwdMCS_ll_mu;//Likelihood of MCS forward momentum of muon track in the every event
-  std::vector<double> mom_bwdMCS_mu;//MCS backward momentum of muon track in the every event
-  std::vector<double> mom_bwdMCS_ll_mu;//Likelihood of MCS backward momentum of muon track in the every event
-  std::vector<double> mom_bestMCS_ll_mu_NoSCE;//Likelihood of MCS (NoSCE correction) best momentum of muon track in the every event
-  std::vector<double> mom_fwdMCS_ll_mu_NoSCE;//Likelihood of MCS (NoSCE correction) best momentum of muon track in the every event
-  std::vector<double> mom_Range_mu;//Range momentum of muon track in the every event
-  std::vector<double> mom_Range_p;//Range momentum of proton track in the every event
-  std::vector<double> mom_Range_pi;//Range momentum of pion track in the every event
-  std::vector<double> mom_Range_mu_noSCE;//Range momentum of muon track in the every event
-  std::vector<double> mom_Range_p_noSCE;//Range momentum of proton track in the every event
-  std::vector<double> mom_Range_pi_noSCE;//Range momentum of pion track in the every event
-  std::vector<double> mom_range_PID_avg_noSCE;//Range momentum of tracks based on their PID particle type using 3 pls
-  std::vector<double> missing_PT_MCS;// missing transverse momentum P*sin(theta)
-  std::vector<double> missing_PT_range;// missing transverse momentum
+  bool trk_contained = false;
+  bool vtx_InFV = false; 
 
-  std::vector<double> vtx_x;//Reconstructed track vtx x in the every event
-  std::vector<double> vtx_y;//Reconstructed track vtx y in the every event
-  std::vector<double> vtx_z;//Reconstructed track vtx z in the every event
+  bool if_broken = false;
+  double trk_broken_len = -999;
+  double trk_broken_nr_merged = -999;
+  bool trk_merged_ifcontained = false;
+  bool vtx_merged_InFV = false;
+  bool if_newTrkThroughGoing = false;
 
-  std::vector<double> trk_start_x;//Reconstructed track start x in the every event
-  std::vector<double> trk_start_y;//Reconstructed track start y in the every event
-  std::vector<double> trk_start_z;//Reconstructed track start z in the every event
-  //std::vector<double> nu_vtx_x;//Reconstructed neutrino pfp vtx x in the every event
-  //std::vector<double> nu_vtx_y;//Reconstructed neutrino pfp vtx y in the every event
-  //std::vector<double> nu_vtx_z;//Reconstructed neutrino pfp vtx z in the every event
-  std::vector<double> vtx_start_dist;// Distance of track vertex and track start
+  double sin2_theta_pl0 = -999;
+  double sin2_theta_pl1 = -999;
+  double sin2_theta_pl2 = -999;
+  double sin2_phi_readout = -999;
 
-  std::vector<double> vtx_x_MCS;//Reconstructed vtx x in the every event
-  std::vector<double> vtx_y_MCS;//Reconstructed vtx y in the every event
-  std::vector<double> vtx_z_MCS;//Reconstructed vtx z in the every event
-  std::vector<double> start_x_noSCE;//Reconstructed start x in the every event
-  std::vector<double> start_y_noSCE;//Reconstructed start y in the every event
-  std::vector<double> start_z_noSCE;//Reconstructed start z in the every event
-  std::vector<double> end_x_noSCE;//Reconstructed end x in the every event
-  std::vector<double> end_y_noSCE;//Reconstructed end y in the every event
-  std::vector<double> end_z_noSCE;//Reconstructed end z in the every event
-  std::vector<double> start_x;//Reconstructed start x in the every event
-  std::vector<double> start_y;//Reconstructed start y in the every event
-  std::vector<double> start_z;//Reconstructed start z in the every event
-  std::vector<double> end_x;//Reconstructed end x in the every event
-  std::vector<double> end_y;//Reconstructed end y in the every event
-  std::vector<double> end_z;//Reconstructed end z in the every event
-  std::vector<double> trk_phi;//Reconstructed track phi in the every event
-  std::vector<double> trk_theta;//Reconstructed track theta in the every event
-  std::vector<double> trk_costheta;//Reconstructed track cos(theta) in the every event
-  std::vector<double> trk_phi_MCS;//Reconstructed track phi in the every event
-  std::vector<double> trk_theta_MCS;//Reconstructed track theta in the every event
-  std::vector<double> trk_costheta_MCS;//Reconstructed track cos(theta) in the every event
-  std::vector<double> trk_length_pl0;//Range momentum of muon track in the every event
-  std::vector<double> trk_length_pl1;//Range momentum of muon track in the every event
-  std::vector<double> trk_length_pl2;//Range momentum of muon track in the every event
-  std::vector<double> trk_length_avg;//Range momentum of muon track in the every event
-  std::vector<double> trk_length_noSCE;//Range momentum of muon track in the every event
-  std::vector<bool> trk_ifcontained;//to check if the track is contained or not
-  std::vector<bool> trk_OutOfTime;//to check if either of the track end is out of X boundary
-  std::vector<bool> vtx_FV;//to check if the vertex is in FV or not
-  std::vector<bool> vtx_MCS_FV;//to check if the vertex is in FV or not
-  std::vector<double> trk_end_theta_yz;
-  std::vector<double> trk_end_costheta_yz;
-  std::vector<double> trk_end_theta_xz;
-  std::vector<double> trk_end_costheta_xz;
-  std::vector<double> trk_theta_yz;
-  std::vector<double> trk_costheta_yz;
-  std::vector<double> trk_theta_xz;
-  std::vector<double> trk_costheta_xz;
+  double trk_phi = -999;
+  double trk_theta = -999;
+  double trk_costheta = -999;
 
-  std::vector<bool> old_trk_ifcontained;//to check if the track is contained or not
-  std::vector<bool> old_vtx_FV;//to check if the vertex is in FV or not
+  double trk_length = -999;
 
-  std::vector<double> sin2_theta_pl2; // sin^2 (theta is the angle wrt to pl2 wire)
-  std::vector<double> sin2_theta_pl1; // sin^2 (theta is the angle wrt to pl1 wire)
-  std::vector<double> sin2_theta_pl0; // sin^2 (theta is the angle wrt to pl0 wire)
-  std::vector<double> sin2_phi_readout; // sin^2 (phi is the angle wrt to X)
+  double mom_Range_mu = -999;
+  double mom_Range_p = -999;
+  double mom_Range_pi = -999;
 
-  std::vector<int> v_sanity_check;
-  int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
-  int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
-  int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
+  double bestMCS = -999;
+  double bestMCSLL = -999;
+  double fwdMCS = -999;
+  double fwdMCSLL = -999;
+  double bwdMCS = -999;
+  double bwdMCSLL = -999;
 
-  std::vector<double> charge_std_bin0; // the multiplication of charge in bin 0 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_std_bin1; // the multiplication of charge in bin 1 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_std_bin2; // the multiplication of charge in bin 2 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_std_bin3; // the multiplication of charge in bin 3 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_std_bin4; // the multiplication of charge in bin 4 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_std_bin5; // the multiplication of charge in bin 5 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_std_bin6; // the multiplication of charge in bin 6 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_std_bin7; // the multiplication of charge in bin 7 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double bestMCSLL_NoSCE = -999;
+  double fwdMCSLL_NoSCE = -999;
+  double bwdMCSLL_NoSCE = -999;
 
-  std::vector<double> charge_avg_bin0; // the multiplication of charge in bin 0 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_avg_bin1; // the multiplication of charge in bin 1 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_avg_bin2; // the multiplication of charge in bin 2 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_avg_bin3; // the multiplication of charge in bin 3 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_avg_bin4; // the multiplication of charge in bin 4 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_avg_bin5; // the multiplication of charge in bin 5 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_avg_bin6; // the multiplication of charge in bin 6 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> charge_avg_bin7; // the multiplication of charge in bin 7 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
-  std::vector<double> vtx_hit_distance;// Distance of track vertex and the closest hit spacepoints
+  double missing_PT_range = -999;
+  double missing_PT_MCS = -999;
+
+  double PID_Chi2Mu_3pl = -999;
+  double PID_Chi2P_3pl = -999;
+  double PID_Chi2Pi_3pl = -999;
+  double PID_Chi2K_3pl = -999;
+
+  std::vector<float> dEdx_pl0;
+  std::vector<float> dQdx_pl0;
+  std::vector<float> resRange_pl0;
+
+  std::vector<float> dEdx_pl1;
+  std::vector<float> dQdx_pl1;
+  std::vector<float> resRange_pl1;
+
+  std::vector<float> dEdx_pl2;
+  std::vector<float> dQdx_pl2;
+  std::vector<float> resRange_pl2;
+
+  double dEdx_pl0_start_half = -999;
+  double dEdx_pl1_start_half = -999;
+  double dEdx_pl2_start_half = -999;
+  double dEdx_pl0_end_half = -999;
+  double dEdx_pl1_end_half = -999;
+  double dEdx_pl2_end_half = -999;
+
+  double dEdx_pl0_start1020 = -999;
+  double dEdx_pl1_start1020 = -999;
+  double dEdx_pl2_start1020 = -999;
+  double dEdx_pl0_end1020 = -999;
+  double dEdx_pl1_end1020 = -999;
+  double dEdx_pl2_end1020 = -999;
+
+  double dEdx_pl0_1020_ratio = -999;
+  double dEdx_pl0_half_ratio = -999;
+  double dEdx_pl1_1020_ratio = -999;
+  double dEdx_pl1_half_ratio = -999;
+  double dEdx_pl2_1020_ratio = -999;
+  double dEdx_pl2_half_ratio = -999;
+
+  double avg_dEdx_LargeHit_pl0 = -999;
+  double avg_dEdx_LargeHit_pl1 = -999;
+  double avg_dEdx_LargeHit_pl2 = -999;
+
+  double dEdx_pl0_mid = -999;
+  double dEdx_pl1_mid = -999;
+  double dEdx_pl2_mid = -999;
+
+  double charge_std_bin0 = -999; // the multiplication of charge in bin 0 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_std_bin1 = -999; // the multiplication of charge in bin 1 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_std_bin2 = -999; // the multiplication of charge in bin 2 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_std_bin3 = -999; // the multiplication of charge in bin 3 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_std_bin4 = -999; // the multiplication of charge in bin 4 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_std_bin5 = -999; // the multiplication of charge in bin 5 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_std_bin6 = -999; // the multiplication of charge in bin 6 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_std_bin7 = -999; // the multiplication of charge in bin 7 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+
+  double charge_avg_bin0 = -999; // the multiplication of charge in bin 0 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_avg_bin1 = -999; // the multiplication of charge in bin 1 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_avg_bin2 = -999; // the multiplication of charge in bin 2 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_avg_bin3 = -999; // the multiplication of charge in bin 3 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_avg_bin4 = -999; // the multiplication of charge in bin 4 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_avg_bin5 = -999; // the multiplication of charge in bin 5 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_avg_bin6 = -999; // the multiplication of charge in bin 6 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  double charge_avg_bin7 = -999; // the multiplication of charge in bin 7 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+
+  double vtx_hit_distance = -999;// Distance of track vertex and the closest hit spacepoints
+
+  double trk_cosmic_percent = -999;
+  double trk_purity = -999;
+  double trk_completeness = -999;
+  bool if_cosmic = true;
+  bool if_matchPrimary = false;
+  bool if_matchMu = false;
+
+  double true_mom = -999;//True momentum of muon track in the every event
+  double true_start_x = -999;//True start of muon track (X)
+  double true_start_y = -999;//True start of muon track (Y)
+  double true_start_z = -999;//True start of muon track (Z)
+  double true_end_x = -999;//True end of muon track (X)
+  double true_end_y = -999;//True end of muon track (Y)
+  double true_end_z = -999;//True end of muon track (Z)
+  double true_trk_phi = -999;//True phi of muon track
+  double true_trk_theta = -999;//True theta of muon track
+  double true_trk_costheta = -999;//True cos(theta) of muon track
+  double true_trk_theta_yz = -999;
+  double true_trk_costheta_yz = -999;
+  double true_trk_theta_xz = -999;
+  double true_trk_costheta_xz = -999;
+  double true_trk_length = -999;//True track length (distance from the start to the end point)
+  double true_trk_PDG = -999;//Track pdg
+  bool true_trk_ifcontained = -999; // True track if contained or not
+  bool true_vtxFV = -999; // True track if contained or not
+
+  double reco_MC_dist_vtx = -999; // Distance of reco - MC vertex w/ SCE correction
+  double reco_MC_dist_vtx_noSCE = -999; // Distance of reco - MC vertex w/o SCE correction
  
-  unsigned int hits_dEdx_size_pl0;
-  unsigned int hits_dEdx_size_pl1;
-  unsigned int hits_dEdx_size_pl2;
-
-  float avg_dEdx_LargeHit_pl0;
-  float avg_dEdx_LargeHit_pl1;
-  float avg_dEdx_LargeHit_pl2;
-
-  int Nr_LargeHit_pl0; // Number of dE/dx in the range of 10-100 Mev/c from pl0
-  int Nr_endthird_LargeHit_pl0; // Number of dE/dx in the range of 10-100 Mev/c at the end third of the track from pl0
-  int Nr_beginthird_LargeHit_pl0; // Number of dE/dx in the range of 10-100 Mev/c at the beginning third of the track from pl0
-
-  int Nr_LargeHit_pl1; // Number of dE/dx in the range of 10-100 Mev/c from pl1
-  int Nr_endthird_LargeHit_pl1; // Number of dE/dx in the range of 10-100 Mev/c at the end third of the track from pl1
-  int Nr_beginthird_LargeHit_pl1; // Number of dE/dx in the range of 10-100 Mev/c at the beginning third of the track from pl1
-
-  int Nr_LargeHit_pl2; // Number of dE/dx in the range of 10-100 Mev/c from pl2
-  int Nr_endthird_LargeHit_pl2; // Number of dE/dx in the range of 10-100 Mev/c at the end third of the track from pl2
-  int Nr_beginthird_LargeHit_pl2; // Number of dE/dx in the range of 10-100 Mev/c at the beginning third of the track from pl2
-
-  std::vector<float> dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
-  std::vector<float> dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
-  std::vector<float> dEdx_pl2; // dE/dx of the selected (muon) track from plane 2 (collection)
-  std::vector<float> dQdx_pl0; // dQ/dx of the selected (muon) track from plane 0 (closest to drift)
-  std::vector<float> dQdx_pl1; // dQ/dx of the selected (muon) track from plane 1
-  std::vector<float> dQdx_pl2; // dQ/dx of the selected (muon) track from plane 2 (collection)
-  std::vector<float> resRange_pl0; // range from a hit to the end of the selected track end
-  std::vector<float> resRange_pl1; // range from a hit to the end of the selected track end
-  std::vector<float> resRange_pl2; // range from a hit to the end of the selected track end
-  std::vector<float> pitch_pl0;
-  std::vector<float> pitch_pl1;
-  std::vector<float> pitch_pl2;
-
-  std::vector<float> reverse_dEdx_pl0; // dE/dx of the selected (muon) track from plane 0 (closest to drift)
-  std::vector<float> reverse_dEdx_pl1; // dE/dx of the selected (muon) track from plane 1
-  std::vector<float> reverse_dEdx_pl2; // dE/dx of the selected (muon) track from plane 2 (collection)
-  std::vector<float> reverse_dQdx_pl0; // dQ/dx of the selected (muon) track from plane 0 (closest to drift)
-  std::vector<float> reverse_dQdx_pl1; // dQ/dx of the selected (muon) track from plane 1
-  std::vector<float> reverse_dQdx_pl2; // dQ/dx of the selected (muon) track from plane 2 (collection)
-  std::vector<float> reverse_resRange_pl0; // range from a hit to the end of the selected track end
-  std::vector<float> reverse_resRange_pl1; // range from a hit to the end of the selected track end
-  std::vector<float> reverse_resRange_pl2; // range from a hit to the end of the selected track end
-
-  float dEdx_pl0_start_half; // average dEdx of start half hits of pl 0
-  float dEdx_pl1_start_half; // average dEdx of start half hits of pl 0
-  float dEdx_pl2_start_half; // average dEdx of start half hits of pl 0
-  float dEdx_pl0_end_half; // average dEdx of end half hits of pl 0
-  float dEdx_pl1_end_half; // average dEdx of end half hits of pl 0
-  float dEdx_pl2_end_half; // average dEdx of end half hits of pl 0
-  float dEdx_pl0_start5; // average dEdx of first 5 hit of pl 0
-  float dEdx_pl1_start5; // average dEdx of first 5 hit of pl 0
-  float dEdx_pl2_start5; // average dEdx of first 5 hit of pl 0
-  float dEdx_pl0_end5; // average dEdx of end 5 hit of pl 0
-  float dEdx_pl1_end5; // average dEdx of end 5 hit of pl 0
-  float dEdx_pl2_end5; // average dEdx of end 5 hit of pl 0
-  float dEdx_pl0_start10; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl1_start10; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl2_start10; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl0_end10; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl1_end10; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl2_end10; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl0_start1020; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl1_start1020; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl2_start1020; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl0_end1020; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl1_end1020; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl2_end1020; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl0_start16; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl1_start16; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl2_start16; // average dEdx of first 10 hit of pl 0
-  float dEdx_pl0_end16; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl1_end16; // average dEdx of end 10 hit of pl 0
-  float dEdx_pl2_end16; // average dEdx of end 10 hit of pl 0
-
-  float dEdx_pl2_1020_ratio; // dEdx_pl2_end1020/(dEdx_pl2_end1020 + dEdx_pl2_start1020)
-  float dEdx_pl2_10_ratio; // dEdx_pl2_end10/(dEdx_pl2_end10 + dEdx_pl2_start10)
-  float dEdx_pl2_5_ratio; // dEdx_pl2_end5/(dEdx_pl2_end5 + dEdx_pl2_start5)
-  float dEdx_pl2_16_ratio; // dEdx_pl2_end5/(dEdx_pl2_end5 + dEdx_pl2_start5)
-  float dEdx_pl2_half_ratio; // dEdx_pl2_end5/(dEdx_pl2_end5 + dEdx_pl2_start5)
-
-  double dEdx_pl0_mid; // the average dEdx of the middle 1/3 part of the track on pl0
-  double dEdx_pl1_mid; // the average dEdx of the middle 1/3 part of the track on pl1
-  double dEdx_pl2_mid; // the average dEdx of the middle 1/3 part of the track on pl2
-
-  double PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
-  double PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
-  double PID_Chi2Mu_pl2; // Chi2 of muon assumption of plane 2 in PID
-  double PID_Chi2Mu_3pl; // Chi2 of muon assumption of 3 planes in PID 
- 
-  double PID_Chi2P_pl0; // Chi2 of proton assumption of plane 0 in PID
-  double PID_Chi2P_pl1; // Chi2 of proton assumption of plane 1 in PID
-  double PID_Chi2P_pl2; // Chi2 of proton assumption of plane 2 in PID
-  double PID_Chi2P_3pl; // Chi2 of proton assumption of 3 planes in PID
-
-  double PID_Chi2Pi_pl0; // Chi2 of pion assumption of plane 0 in PID
-  double PID_Chi2Pi_pl1; // Chi2 of pion assumption of plane 1 in PID
-  double PID_Chi2Pi_pl2; // Chi2 of pion assumption of plane 2 in PID
-  double PID_Chi2Pi_3pl; // Chi2 of pion assumption of 3 planes in PID
-  
-  double PID_Chi2K_pl0; // Chi2 of kaon assumption of plane 0 in PID
-  double PID_Chi2K_pl1; // Chi2 of kaon assumption of plane 1 in PID
-  double PID_Chi2K_pl2; // Chi2 of kaon assumption of plane 2 in PID
-  double PID_Chi2K_3pl; // Chi2 of kaon assumption of 3 planes in PID
-
-  int PID_Pdg_3pl; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
-  int PID_Pdg_pl2;
-  int PID_Pdg_pl1;
-  int PID_Pdg_pl0;
-  double PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
-  double PID_pl2_Chi2;
-  double PID_pl1_Chi2;
-  double PID_pl0_Chi2;
-
-  int BestPlane_PID;
-  bool Pl2_for_PID;
-  bool Pl1_for_PID;
-  bool Pl0_for_PID;
-
-  bool if_fwd_MCS; // If using forward MCS direction judge
-  bool if_fwd_true; // If fwd by the reco true vertex distance
-  bool if_fwd_dEdx10; // If fwd by the reco dEdx 10 hits (should use for contained)
-  bool if_fwd_dEdx1020; // If fwd by the reco dEdx 10 hits (should use for contained)
-  bool if_fwd_dEdxhalf; // If fwd by the reco dEdx half of the hits (should use for contained)
+  bool if_fwd_true = true; // If fwd by the reco true vertex distance
+  bool if_fwd_MCS = true; // If using forward MCS direction judge
+  bool if_fwd_dEdx1020 = true; // If fwd by the reco dEdx 10 hits (should use for contained)
+  bool if_fwd_dEdxhalf = true; // If fwd by the reco dEdx half of the hits (should use for contained)
 
   bool                                IsMC;
   bool                                UsingCRT;
@@ -614,7 +512,7 @@ void SingleMuon::analyze(art::Event const& evt)
   evt.getByLabel(m_CRTHitLabel, Handle_crthit);
   std::vector<art::Ptr<crt::CRTHit>> crthit_v;
   art::fill_ptr_vector(crthit_v, Handle_crthit);
-  Nr_crthit = 0;
+  Nr_crthit_inBeam = 0;
 
   // Vertex - PFP association
   art::FindMany<recob::Vertex> pfpToVtxAsso(Handle_pfParticle, evt, m_pandoraLabel);
@@ -692,8 +590,8 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_nMuon = 0;
     MC_nElectron = 0;
     MC_nNeutron = 0;
-    MC_nProton_below255 = 0;
-    MC_nProton_above255 = 0;
+    MC_nProton_below260 = 0;
+    MC_nProton_above260 = 0;
     MC_nPi0 = 0;
     MC_nPiPlus_below65 = 0;
     MC_nPiPlus_above65 = 0;
@@ -751,10 +649,10 @@ void SingleMuon::analyze(art::Event const& evt)
           // neutron
           if(MCParticleCollection[i_mcp]->PdgCode() == 2112) MC_nNeutron++;
           // proton
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.255) MC_nProton_below255++;
-          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.255) {
-            MC_nProton_above255++; 
-            MC_proton_true_Mom_above255.push_back(MCParticleCollection[i_mcp]->P());
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.260) MC_nProton_below260++;
+          if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.260) {
+            MC_nProton_above260++; 
+            MC_proton_true_Mom_above260.push_back(MCParticleCollection[i_mcp]->P());
             ProtonDir.SetXYZ(MCParticleCollection[i_mcp]->Px(), MCParticleCollection[i_mcp]->Py(),MCParticleCollection[i_mcp]->Pz());
             ProtonStart.SetXYZ(MCParticleCollection[i_mcp]->Vx(), MCParticleCollection[i_mcp]->Vy(),MCParticleCollection[i_mcp]->Vz());
             ProtonEnd.SetXYZ(MCParticleCollection[i_mcp]->EndX(), MCParticleCollection[i_mcp]->EndY(),MCParticleCollection[i_mcp]->EndZ());
@@ -772,7 +670,7 @@ void SingleMuon::analyze(art::Event const& evt)
     }
  
     Topology topology;
-    TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above255, MC_nProton_below255, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
+    TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above260, MC_nProton_below260, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
     if(TopologyType == 1){
       len_Muon_0pi0p = (MuonStart - MuonEnd).Mag();
     }
@@ -804,18 +702,10 @@ void SingleMuon::analyze(art::Event const& evt)
     if(pfp->IsPrimary() && pfp->PdgCode() == 14){
       n_pfp_nuDaughters = pfp->NumDaughters();
 
-      // Get Neutrino slice flash matching score (chi2)
-      auto flash_matching_T0 = pfpToT0Asso.at(pfp.key());
-
-      if(flash_matching_T0.size() == 1){
-        flash_matching_chi2 = flash_matching_T0.front()->TriggerConfidence();
-      }
-
       // For CC0pi0p, we only consider the case with the number of neutrino daughters less than 4
       if(n_pfp_nuDaughters < 4){
         // Get the pointer for the daughters of the neutrino
         for(int j = 0; j < n_pfp_nuDaughters; j++){
-          int sanity_check = 0;
           auto Iterator = pfParticleIdMap.find(pfp->Daughters().at(j));
           auto dau_pfp = Iterator->second;
           NeutrinoDaughters.push_back(dau_pfp);
@@ -824,7 +714,6 @@ void SingleMuon::analyze(art::Event const& evt)
           if(assoTrack.size()==1){
             daughter_Tracks.push_back(assoTrack.front());
             Track_PDG.push_back(dau_pfp->PdgCode());
-            sanity_check++;
           }
           if(assoTrack.size()>1){
             throw cet::exception("[Numu0pi0p]") << "PFParticle has >1 track!" << std::endl;
@@ -834,7 +723,6 @@ void SingleMuon::analyze(art::Event const& evt)
           if(assoShower.size()==1){
             daughter_Showers.push_back(assoShower.front());
             Shower_PDG.push_back(dau_pfp->PdgCode());
-            sanity_check++;
           }
           if(assoShower.size()>1){
             throw cet::exception("[Numu0pi0p]") << "PFParticle has >1 shower!" << std::endl;
@@ -844,7 +732,6 @@ void SingleMuon::analyze(art::Event const& evt)
           if(assoTrack.empty() && assoShower.empty()){
             Ghost_PDG.push_back(dau_pfp->PdgCode());
           }
-          v_sanity_check.push_back(sanity_check);
         } // finish looping of pfp
       }
      
@@ -852,9 +739,9 @@ void SingleMuon::analyze(art::Event const& evt)
       n_dau_tracks = daughter_Tracks.size();
       n_dau_showers = daughter_Showers.size();
 
-      //Todo: temperary version
       // Selection and Fill in Info
       if(n_dau_tracks == 1 && n_dau_showers == 0){
+        if_1track = true;
 
         // The daughter of the pfparticle which corresponds to 1 primary track
         // In case there are more than one primary pfparticle when 1 track + 0 shower (primary) precent
@@ -893,7 +780,8 @@ void SingleMuon::analyze(art::Event const& evt)
             }
           }
         }
-        // OpFlash related information
+
+        //-- OpFlash related information
         if(flash_v.size() == 1){
           flash_YCenter = flash_v[0]->YCenter();         
           flash_YWidth = flash_v[0]->YWidth();         
@@ -901,8 +789,13 @@ void SingleMuon::analyze(art::Event const& evt)
           flash_ZWidth = flash_v[0]->ZWidth();         
           flash_TotalPE = flash_v[0]->TotalPE();         
         }
+        auto flash_matching_T0 = pfpToT0Asso.at(pfp.key());
 
-        // CRT related information
+        if(flash_matching_T0.size() == 1){
+          flash_matching_chi2 = flash_matching_T0.front()->TriggerConfidence();
+        }
+
+        //-- CRT related information
         if(UsingCRT){
           double evt_timeGPS_nsec = 0.;
           if(!rawHandle_DAQHeader.isValid()) {
@@ -911,25 +804,37 @@ void SingleMuon::analyze(art::Event const& evt)
           raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
           art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
           evt_timeGPS_nsec = evtTimeGPS.timeLow();
+          
+          //- CRT info in beam time     
+          for (unsigned int i_crt = 0; i_crt < crthit_v.size(); i_crt ++){
+            // figure out what plane this hit comes from
+            // 3 -> top, 0 -> bottom, 1 -> anode, 2 -> cathode
+            double crt_time = ((crthit_v[i_crt]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.);
 
-          // If a track is associated to a CRT hit which is outside of beam window, exclude them (For both contained and exiting)
+            if(crt_time >= fBeamStart && crt_time <= fBeamEnd){
+              crthit_PE.push_back(crthit_v[i_crt]->peshit);
+              crthit_plane.push_back(crthit_v[i_crt]->plane);
+              crthit_time.push_back(crt_time);
+              Nr_crthit_inBeam++;
+            } // If CRT hit in Beam window
+          } // CRT hit loop
+          if(Nr_crthit_inBeam != (int) crthit_time.size()) {
+            throw cet::exception("[Numu0pi0p]") << "Number of crt hits does not match!" << std::endl;
+          }
+
+          //- If a track is associated to a CRT hit which is outside of beam window, exclude them (For both contained and exiting)
           auto Track_CRThit = CRTToTrackAsso.at(daughter_Tracks.front().key()); 
           Nr_trk_asso_crthit = Track_CRThit.size();
           if(Track_CRThit.size() > 0){
             for(unsigned int i_trk_hit = 0; i_trk_hit < Track_CRThit.size(); i_trk_hit++){
-              if(IsMC) {
-                trk_crt_time = ((Track_CRThit[i_trk_hit]->ts0_ns - evt_timeGPS_nsec + fDTOffset_overlay) / 1000.);
-              }
-              if(!IsMC) { 
-                trk_crt_time = ((Track_CRThit[i_trk_hit]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.);
-              }      
+              trk_crt_time = ((Track_CRThit[i_trk_hit]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.);
               if(trk_crt_time < fBeamStart || trk_crt_time > fBeamEnd){
                 if_trk_CRT_out_Beam = true;
               } // If matched CRT hit out of Beam window
             }
           }
 
-          // For contained (Veto if there is any CRT hit in beam window)
+          //- [For cross-check] For contained (Veto if there is any CRT hit in beam window)
           if(flash_v.size() > 0){
             for(unsigned int i_fl = 0; i_fl < flash_v.size(); i_fl++){
               auto CRT_hit = CRThitFlashAsso.at(flash_v[i_fl].key());
@@ -940,48 +845,9 @@ void SingleMuon::analyze(art::Event const& evt)
             } // loop over flash(es)
           } // if flash exists
 
-          // For exiting (Veto if there are more than one CRT hits in beam wnidow) and potentially contained
-          if(evt_CRTveto){
-            // overlay is also basically data, using ts0
-            for (unsigned int i_crt = 0; i_crt < crthit_v.size(); i_crt ++){
-              // figure out what plane this hit comes from
-              // 3 -> top, 0 -> bottom, 1 -> anode, 2 -> cathode
-              double crt_time;
-              if(IsMC) crt_time = ((crthit_v[i_crt]->ts0_ns - evt_timeGPS_nsec + fDTOffset_overlay) / 1000.);
-              if(!IsMC) crt_time = ((crthit_v[i_crt]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.);
-              //if(IsMC) crt_time = crthit_v[i_crt]->ts1_ns / 1000.; 
-              // Use ts0 for everything except mc
-              //crthit_ts1_.push_back(((double)CRTHitCollection.at(i).ts1_ns + fHardDelay_)/1000.0);
-              //fHardDelay_ = 40000
-    
-              if(crt_time >= fBeamStart && crt_time <= fBeamEnd){
-                crthit_PE.push_back(crthit_v[i_crt]->peshit);
-                crthit_plane.push_back(crthit_v[i_crt]->plane);
-                crthit_time.push_back(crt_time);
-                Nr_crthit++;
-              } // If CRT hit in Beam window
-            } // CRT hit loop
-            if(Nr_crthit != (int) crthit_time.size()) {
-              std::cout << "[CRT] Something is wrong" << std::endl;
-            }
-          }
         } // Using CRT
 
         //-- Fill RECO track info (in the naive version this is selected)
-        if_selected = true;
-
-        //// Vertex of the neutrino or the neutrino daughter
-        //auto assoVtx_nu = pfpToVtxAsso.at(pfp.key()); // vector
-        //if(assoVtx_nu.size()==1){
-        //  auto vtx_nu = assoVtx_nu.front()->position();
-        //  std::cout<<"assoVtx_nu X: "<<vtx_nu.X()<<", "<<vtx_nu.Y()<<", "<<vtx_nu.Z()<<std::endl;
-        //} 
-
-        //auto assoVtx_nu_dau = pfpToVtxAsso.at(daughter_Tracks.front().key()); // vector
-        //if(assoVtx_nu_dau.size()==1){
-        //  auto vtx_nu_dau = assoVtx_nu_dau.front()->position();
-        //  std::cout<<"assoVtx_nu_dau X: "<<vtx_nu_dau.X()<<", "<<vtx_nu_dau.Y()<<", "<<vtx_nu_dau.Z()<<std::endl;
-        //}
 
         // Add spatial correction to the track start and end
         Trk_vtx = daughter_Tracks.front()->Vertex<TVector3>();
@@ -990,11 +856,19 @@ void SingleMuon::analyze(art::Event const& evt)
         Trk_vtx_SCEcorr.SetY(Trk_vtx.Y() + Trk_vtx_offset.Y());
         Trk_vtx_SCEcorr.SetZ(Trk_vtx.Z() + Trk_vtx_offset.Z());
 
+        trk_vtx_x = Trk_vtx_SCEcorr.X();
+        trk_vtx_y = Trk_vtx_SCEcorr.Y();
+        trk_vtx_z = Trk_vtx_SCEcorr.Z();
+
         Trk_start = daughter_Tracks.front()->Start<TVector3>();
         auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
         Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
         Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
         Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
+
+        trk_start_x = Trk_start_SCEcorr.X();
+        trk_start_y = Trk_start_SCEcorr.Y();
+        trk_start_z = Trk_start_SCEcorr.Z();
 
         Trk_end = daughter_Tracks.front()->End<TVector3>();
         auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
@@ -1002,221 +876,94 @@ void SingleMuon::analyze(art::Event const& evt)
         Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
         Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
 
-        //-- if either of the track end is out of the time, label them 
-        if(Trk_start_SCEcorr.X() < 0 || Trk_start_SCEcorr.X() > 2. * geo->DetHalfWidth() || Trk_end_SCEcorr.X() < 0 || Trk_end_SCEcorr.X() > 2. * geo->DetHalfWidth()) trk_OutOfTime.push_back(true);
-        else trk_OutOfTime.push_back(false);
+        trk_end_x = Trk_end_SCEcorr.X();
+        trk_end_y = Trk_end_SCEcorr.Y();
+        trk_end_z = Trk_end_SCEcorr.Z();
 
-        bool trk_contained = _fiducial_volume.TrackContain(Trk_start_SCEcorr, Trk_end_SCEcorr);
-        old_trk_ifcontained.push_back(trk_contained);       
+        //-- if either of the track end is out of the time, label them 
+        if(trk_start_x < 0 || trk_start_x > 2. * geo->DetHalfWidth() || trk_end_x < 0 || trk_end_x > 2. * geo->DetHalfWidth()){
+          trk_OutOfTime = true;
+        }
+        else{
+          trk_OutOfTime = false;
+        }
+
+        //-- track containment
+        trk_contained = _fiducial_volume.TrackContain(Trk_start_SCEcorr, Trk_end_SCEcorr);
        
-        bool vtx_InFV = _fiducial_volume.VertexInFV(Trk_start_SCEcorr);
-        old_vtx_FV.push_back(vtx_InFV);
+        vtx_InFV = _fiducial_volume.VertexInFV(Trk_start_SCEcorr);
 
         //-- Preliminary broken track searching (For the moment, only support 2 track merging)
         BrokenTrack brokentrack;
         brokentrack.MatchTracks(daughter_Tracks.front(), AllTrackCollection);
         if(brokentrack.NewTrk()){
           if_broken = true;
-          trk_broken_len.push_back(brokentrack.TrkLen());
-          trk_broken_nr_merged.push_back(brokentrack.NumberMergedTracks());
+          trk_broken_len = brokentrack.TrkLen();
+          trk_broken_nr_merged = brokentrack.NumberMergedTracks();
 
           TVector3 trk_end1 = brokentrack.TrkEnd1();
           TVector3 trk_end2 = brokentrack.TrkEnd2();
 
-          trk_ifcontained.push_back(_fiducial_volume.TrackContain(trk_end1, trk_end2));
+          trk_merged_ifcontained = _fiducial_volume.TrackContain(trk_end1, trk_end2);
           
           if(!_fiducial_volume.PointContain(trk_end1) && !_fiducial_volume.PointContain(trk_end2)){ 
-            vtx_FV.push_back(false);
+            vtx_merged_InFV = false;
             if_newTrkThroughGoing = true;
-            std::cout<<"trk_end1_ X: "<< trk_end1.X()<<", Y: "<<trk_end1.Y()<<", Z: "<<trk_end1.Z()<<std::endl;
-            std::cout<<"trk_end2_ X: "<< trk_end2.X()<<", Y: "<<trk_end2.Y()<<", Z: "<<trk_end2.Z()<<std::endl;
           }
-          else vtx_FV.push_back(vtx_InFV);
+          else{
+            vtx_merged_InFV = vtx_InFV;
+          }
         } 
         else{
-          trk_ifcontained.push_back(trk_contained);
-          vtx_FV.push_back(vtx_InFV);
+          trk_merged_ifcontained = trk_contained;
+          vtx_merged_InFV = vtx_InFV;
         }
 
-        // Angle wrt to the readout; theta is to the wire; phi is to x
+        //-- Angle wrt to the readout; theta is to the wire; phi is to x
         auto Trk_pos = Trk_end_SCEcorr - Trk_start_SCEcorr;
         double theta_pl2 = std::atan2(Trk_pos.Z(), Trk_pos.Y()); // atan2(y,x)
         double theta_pl1 = theta_pl2 + M_PI/3; // If plan1 is -60 degree to Y, looking from outside to the TPC
         double theta_pl0 = theta_pl2 - M_PI/3; // If plan0 is +60 degree to Y, looking from outside to the TPC
         double phi_readout = std::atan2(Trk_pos.X(), Trk_pos.Y());
 
-        sin2_theta_pl2.push_back(sin(theta_pl2) * sin(theta_pl2));
-        sin2_theta_pl1.push_back(sin(theta_pl1) * sin(theta_pl1));
-        sin2_theta_pl0.push_back(sin(theta_pl0) * sin(theta_pl0));
-        sin2_phi_readout.push_back(sin(phi_readout) * sin(phi_readout));
+        sin2_theta_pl2 = sin(theta_pl2) * sin(theta_pl2);
+        sin2_theta_pl1 = sin(theta_pl1) * sin(theta_pl1);
+        sin2_theta_pl0 = sin(theta_pl0) * sin(theta_pl0);
+        sin2_phi_readout = sin(phi_readout) * sin(phi_readout);
 
-        double bestMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestMomentum();
-        double bestMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestLogLikelihood();
-        double fwdMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->fwdMomentum();
-        double fwdMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->fwdLogLikelihood();
-        double bwdMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bwdMomentum();
-        double bwdMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bwdLogLikelihood();
+        //-- track angle
+        trk_phi = daughter_Tracks.front()->Phi();
+        trk_theta = daughter_Tracks.front()->Theta();
+        trk_costheta = cos(daughter_Tracks.front()->Theta());
 
-        double bestMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->bestLogLikelihood();
-        double fwdMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->fwdLogLikelihood();
+        //-- track length
+        trk_length = daughter_Tracks.front()->Length();
 
-        mom_bestMCS_mu.push_back(bestMCS);
-        mom_bestMCS_ll_mu.push_back(bestMCSLL);
-        mom_fwdMCS_mu.push_back(fwdMCS);
-        mom_fwdMCS_ll_mu.push_back(fwdMCSLL);
-        mom_bwdMCS_mu.push_back(bwdMCS);
-        mom_bwdMCS_ll_mu.push_back(bwdMCSLL);
+        //-- Momentum
+        //- range
+        mom_Range_mu = _trk_mom_calculator.GetTrackMomentum(trk_length, 13);
+        mom_Range_p = _trk_mom_calculator.GetTrackMomentum(trk_length, 2212);
+        mom_Range_pi = _trk_mom_calculator.GetTrackMomentum(trk_length, 211);
 
-        mom_bestMCS_ll_mu_NoSCE.push_back(bestMCSLL_NoSCE);
-        mom_fwdMCS_ll_mu_NoSCE.push_back(fwdMCSLL_NoSCE);
+        //- MCS
+        bestMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestMomentum();
+        bestMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bestLogLikelihood();
+        fwdMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->fwdMomentum();
+        fwdMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->fwdLogLikelihood();
+        bwdMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bwdMomentum();
+        bwdMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bwdLogLikelihood();
 
-        // Track length and range momentum
-        double Trk_length_noSCE = daughter_Tracks.front()->Length();
-        auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key());
-        double Trk_length_pl0 = assoCal[0]->Range();  //pandoracali has spatial correction
-        double Trk_length_pl1 = assoCal[1]->Range();  //pandoracali has spatial correction
-        double Trk_length_pl2 = assoCal[2]->Range();  //pandoracali has spatial correction
-        double Trk_length_avg = 0;
-        int valid_pl = 0;
-        for (unsigned int i_pl = 0; i_pl < assoCal.size(); i_pl++){
-          if(assoCal[i_pl]->Range() > 0){
-            Trk_length_avg += assoCal[i_pl]->Range();
-            valid_pl++;
-          }
-        }
-        Trk_length_avg = Trk_length_avg / valid_pl;
+        bestMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->bestLogLikelihood();
+        fwdMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->fwdLogLikelihood();
+        bwdMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->bwdLogLikelihood();
 
-        trk_length_pl0.push_back(Trk_length_pl0); // track length with spatial correction
-        trk_length_pl1.push_back(Trk_length_pl1); // track length with spatial correction
-        trk_length_pl2.push_back(Trk_length_pl2); // track length with spatial correction
-        trk_length_avg.push_back(Trk_length_avg); // track length with spatial correction
-        trk_length_noSCE.push_back(Trk_length_noSCE);
+        //-- Missing PT
+        missing_PT_range = mom_Range_mu * sin(trk_theta);
+        missing_PT_MCS = bestMCS * sin(trk_theta);
 
-        // Usual case, the vertex is the single track start
-        vtx_x.push_back(Trk_vtx_SCEcorr.X());//track_vtx
-        vtx_y.push_back(Trk_vtx_SCEcorr.Y());
-        vtx_z.push_back(Trk_vtx_SCEcorr.Z());
-        trk_start_x.push_back(Trk_start_SCEcorr.X());//track_start
-        trk_start_y.push_back(Trk_start_SCEcorr.Y());
-        trk_start_z.push_back(Trk_start_SCEcorr.Z());
-        vtx_start_dist.push_back((Trk_vtx_SCEcorr - Trk_start_SCEcorr).Mag());
-
-        start_x.push_back(Trk_start_SCEcorr.X());
-        start_y.push_back(Trk_start_SCEcorr.Y());
-        start_z.push_back(Trk_start_SCEcorr.Z());
-        end_x.push_back(Trk_end_SCEcorr.X());
-        end_y.push_back(Trk_end_SCEcorr.Y());
-        end_z.push_back(Trk_end_SCEcorr.Z());
-        start_x_noSCE.push_back(Trk_start.X());
-        start_y_noSCE.push_back(Trk_start.Y());
-        start_z_noSCE.push_back(Trk_start.Z());
-        end_x_noSCE.push_back(Trk_end.X());
-        end_y_noSCE.push_back(Trk_end.Y());
-        end_z_noSCE.push_back(Trk_end.Z());
-        
-        trk_phi.push_back(daughter_Tracks.front()->Phi());
-        trk_theta.push_back(daughter_Tracks.front()->Theta());
-        trk_costheta.push_back(cos(daughter_Tracks.front()->Theta()));
-    
-        double Mom_Range_mu = _trk_mom_calculator.GetTrackMomentum(Trk_length_pl2, 13);
-        double Mom_Range_mu_noSCE = _trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, 13);
-        mom_Range_mu.push_back(Mom_Range_mu);
-        mom_Range_mu_noSCE.push_back(Mom_Range_mu_noSCE);
-
-        double Mom_Range_p = _trk_mom_calculator.GetTrackMomentum(Trk_length_pl2, 2212);
-        double Mom_Range_p_noSCE = _trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, 2212);
-        mom_Range_p.push_back(Mom_Range_p);
-        mom_Range_p_noSCE.push_back(Mom_Range_p_noSCE);
-
-        double Mom_Range_pi = _trk_mom_calculator.GetTrackMomentum(Trk_length_pl2, 211);
-        double Mom_Range_pi_noSCE = _trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, 211);
-        mom_Range_pi.push_back(Mom_Range_pi);
-        mom_Range_pi_noSCE.push_back(Mom_Range_pi_noSCE);
-
-        //Missing PT
-        missing_PT_range.push_back(Mom_Range_mu_noSCE * sin(daughter_Tracks.front()->Theta()));
-        missing_PT_MCS.push_back(bestMCS * sin(daughter_Tracks.front()->Theta()));
-
-        //Calorimetry Info
-
-        // Charge Linearity
-        double radius = (Trk_start_SCEcorr - Trk_end_SCEcorr).Mag();
-        double sec = radius / 8;
-        double min_dist = 9999;
-        double charge_sec[8] = {0};
-        int nr_charge[8] = {0};
-        std::vector<std::vector<double>> vec_charge;
-        vec_charge.resize(8);
-        // divide the sphere into [8] sections
-        auto assoSlice = SliceToPFPAsso.at(pfp.key()); // vector
-        auto assoHits = HitToSliceAsso.at(assoSlice.front().key());
-
-        // If hits is belong to track, use trajectory point; Otherwise use spacepoints
-        //if (TrackHitToHitAsso.isValid()){
-
-
-        //}
-        for (unsigned int i_hit = 0; i_hit < assoHits.size(); i_hit++){
-          auto assoSpacePoints = SpacePointToHitAsso.at(assoHits[i_hit].key());
-          if(assoSpacePoints.size()==1){
-            TVector3 SP = (TVector3)assoSpacePoints.front()->XYZ();
-            auto SP_offset = SCE->GetCalPosOffsets(geo::Point_t(SP.X(), SP.Y(), SP.Z()));
-            TVector3 SP_SCEcorr;
-            SP_SCEcorr.SetX(SP.X() - SP_offset.X());
-            SP_SCEcorr.SetY(SP.Y() + SP_offset.Y());
-            SP_SCEcorr.SetZ(SP.Z() + SP_offset.Z());
-
-            if ((SP_SCEcorr - Trk_start_SCEcorr).Mag() < min_dist){
-              min_dist = (SP_SCEcorr - Trk_start_SCEcorr).Mag();
-            }
-            for(unsigned int i_sec = 0; i_sec < 8; i_sec++){
-              if((SP_SCEcorr - Trk_start_SCEcorr).Mag() < sec * (i_sec + 1) && (SP_SCEcorr - Trk_start_SCEcorr).Mag() >= sec * i_sec){
-                vec_charge[i_sec].push_back(assoHits[i_hit]->Integral()/100);
-                charge_sec[i_sec] += assoHits[i_hit]->Integral()/100;     
-                nr_charge[i_sec]++;
-              }
-            }
-          }
-          else if(assoSpacePoints.size()>1){
-            std::cout<<"Number of space points: "<< assoSpacePoints.size()<<", which exceeds the normal quota."<<std::endl;
-          }
-        } // Finish loop the associated hits in the neutrino slice
-        vtx_hit_distance.push_back(min_dist);
-        double avg = 0;
-        double std = 0;
-        double stddev[8] = {0};
-        for(int n = 0; n < 8; n++){
-          avg += charge_sec[n];
-        }
-        avg = avg / 8.;
-
-        for(int n = 0; n < 8; n++){
-          std += (charge_sec[n] - avg) * (charge_sec[n] - avg);
-        }
-        for(int n = 0; n < 8; n++){
-          stddev[n] = std - (charge_sec[n] - avg) * (charge_sec[n] - avg);
-          stddev[n] = sqrt(1./7 * stddev[n]);
-        }
-        
-        charge_std_bin0.push_back((charge_sec[0] - avg) / stddev[0]);
-        charge_std_bin1.push_back((charge_sec[1] - avg) / stddev[1]);
-        charge_std_bin2.push_back((charge_sec[2] - avg) / stddev[2]);
-        charge_std_bin3.push_back((charge_sec[3] - avg) / stddev[3]);
-        charge_std_bin4.push_back((charge_sec[4] - avg) / stddev[4]);
-        charge_std_bin5.push_back((charge_sec[5] - avg) / stddev[5]);
-        charge_std_bin6.push_back((charge_sec[6] - avg) / stddev[6]);
-        charge_std_bin7.push_back((charge_sec[7] - avg) / stddev[7]);
-
-        charge_avg_bin0.push_back((charge_sec[0] - avg) / avg);
-        charge_avg_bin1.push_back((charge_sec[1] - avg) / avg);
-        charge_avg_bin2.push_back((charge_sec[2] - avg) / avg);
-        charge_avg_bin3.push_back((charge_sec[3] - avg) / avg);
-        charge_avg_bin4.push_back((charge_sec[4] - avg) / avg);
-        charge_avg_bin5.push_back((charge_sec[5] - avg) / avg);
-        charge_avg_bin6.push_back((charge_sec[6] - avg) / avg);
-        charge_avg_bin7.push_back((charge_sec[7] - avg) / avg);
-
+        //-- dE/dx
         // pandoracaliSCE has E-field and spatial correction
+        auto assoCal = trackToCalAsso.at(daughter_Tracks.front().key());
         if(assoCal.size()!=3){
           throw cet::exception("[Numu0pi0p]") << "Where are the three planes for the calorimetry!" << std::endl;
         }
@@ -1226,91 +973,68 @@ void SingleMuon::analyze(art::Event const& evt)
         dEdx_pl0 = assoCal[0]->dEdx();
         dQdx_pl0 = assoCal[0]->dQdx();
         resRange_pl0 = assoCal[0]->ResidualRange();
-        pitch_pl0 = assoCal[0]->TrkPitchVec();
 
-        reverse_dEdx_pl0 = dEdx_pl0;
-        reverse_dQdx_pl0 = dQdx_pl0;
-        reverse_resRange_pl0 = resRange_pl0;
-        std::reverse(reverse_dEdx_pl0.begin(), reverse_dEdx_pl0.end());
-        std::reverse(reverse_dQdx_pl0.begin(), reverse_dQdx_pl0.end());
-        std::reverse(reverse_resRange_pl0.begin(), reverse_resRange_pl0.end());
-        for(auto& element : reverse_resRange_pl0) element = Trk_length_pl0 - element;
-        //std::for_each(reverse_resRange_pl0.begin(), reverse_resRange_pl0.end(), [Trk_length_pl0](float &ele){ ele = Trk_length_pl0 - ele; });
- 
         dEdx_pl1 = assoCal[1]->dEdx();
         dQdx_pl1 = assoCal[1]->dQdx();
         resRange_pl1 = assoCal[1]->ResidualRange();
-        pitch_pl1 = assoCal[1]->TrkPitchVec();
-
-        reverse_dEdx_pl1 = dEdx_pl1;
-        reverse_dQdx_pl1 = dQdx_pl1;
-        reverse_resRange_pl1 = resRange_pl1;
-        std::reverse(reverse_dEdx_pl1.begin(), reverse_dEdx_pl1.end());
-        std::reverse(reverse_dQdx_pl1.begin(), reverse_dQdx_pl1.end());
-        std::reverse(reverse_resRange_pl1.begin(), reverse_resRange_pl1.end());
-        for(auto& element : reverse_resRange_pl1) element = Trk_length_pl1 - element;
 
         dEdx_pl2 = assoCal[2]->dEdx();
         dQdx_pl2 = assoCal[2]->dQdx();
         resRange_pl2 = assoCal[2]->ResidualRange();
-        pitch_pl2 = assoCal[2]->TrkPitchVec();
 
-        reverse_dEdx_pl2 = dEdx_pl2;
-        reverse_dQdx_pl2 = dQdx_pl2;
-        reverse_resRange_pl2 = resRange_pl2;
-        std::reverse(reverse_dEdx_pl2.begin(), reverse_dEdx_pl2.end());
-        std::reverse(reverse_dQdx_pl2.begin(), reverse_dQdx_pl2.end());
-        std::reverse(reverse_resRange_pl2.begin(), reverse_resRange_pl2.end());
-        for(auto& element : reverse_resRange_pl2) element = Trk_length_pl2 - element;
+        auto hits_dEdx_size_pl0 = dEdx_pl0.size();
+        auto hits_dEdx_size_pl1 = dEdx_pl1.size();
+        auto hits_dEdx_size_pl2 = dEdx_pl2.size();
 
-        hits_dEdx_size_pl0 = dEdx_pl0.size();
-        hits_dEdx_size_pl1 = dEdx_pl1.size();
-        hits_dEdx_size_pl2 = dEdx_pl2.size();
-  
-        int half_size_pl0 = hits_dEdx_size_pl0 / 2;
-        int half_size_pl1 = hits_dEdx_size_pl1 / 2;
-        int half_size_pl2 = hits_dEdx_size_pl2 / 2;
-        
-        // Check how many dE/dx out of range (10-100 MeV/cm) in one plane for a track
-        // Regarding that dE/dx larger than 100 MeV/cm is noise
-        
-        for(unsigned int i_pl0 = 0; i_pl0 < hits_dEdx_size_pl0; i_pl0++){
-          if(dEdx_pl0[i_pl0] > 10 && dEdx_pl0[i_pl0] < 100){
-            Nr_LargeHit_pl0++;
-            if(resRange_pl0[i_pl0] < Trk_length_pl0 / 3.){
-              Nr_endthird_LargeHit_pl0++;
-            }
-            if(resRange_pl0[i_pl0] > Trk_length_pl0 * 2./ 3.){
-              Nr_beginthird_LargeHit_pl0++;
-            }
-          }
+        auto half_size_pl0 = hits_dEdx_size_pl0 / 2;
+        auto half_size_pl1 = hits_dEdx_size_pl1 / 2;
+        auto half_size_pl2 = hits_dEdx_size_pl2 / 2;
+
+        //- ratio
+        // dEdx_half
+        dEdx_pl0_start_half = std::accumulate(dEdx_pl0.end() - half_size_pl0, dEdx_pl0.end(), 0.) / half_size_pl0;
+        dEdx_pl0_end_half = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + half_size_pl0, 0. ) / half_size_pl0;
+        dEdx_pl1_start_half = std::accumulate(dEdx_pl1.end() - half_size_pl1, dEdx_pl1.end(), 0.) / half_size_pl1;
+        dEdx_pl1_end_half = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + half_size_pl1, 0. ) / half_size_pl1;
+        dEdx_pl2_start_half = std::accumulate(dEdx_pl2.end() - half_size_pl2, dEdx_pl2.end(), 0.) / half_size_pl2;
+        dEdx_pl2_end_half = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
+
+        // dEdx_1020
+        if (dEdx_pl0.size()<=30) {
+          dEdx_pl0_start1020 = dEdx_pl0_start_half;
+          dEdx_pl0_end1020 = dEdx_pl0_end_half;
+        }
+        else{
+          dEdx_pl0_start1020 = std::accumulate(dEdx_pl0.end() - 20, dEdx_pl0.end() - 10, 0.) / 10.;
+          dEdx_pl0_end1020 = std::accumulate(dEdx_pl0.begin() + 10, dEdx_pl0.begin() + 20, 0.) / 10.;
+        }
+        if (dEdx_pl1.size()<=30) {
+          dEdx_pl1_start1020 = dEdx_pl1_start_half;
+          dEdx_pl1_end1020 = dEdx_pl1_end_half;
+        }
+        else{
+          dEdx_pl1_start1020 = std::accumulate(dEdx_pl1.end() - 20, dEdx_pl1.end() - 10, 0.) / 10.;
+          dEdx_pl1_end1020 = std::accumulate(dEdx_pl1.begin() + 10, dEdx_pl1.begin() + 20, 0.) / 10.;
+        }
+        if (dEdx_pl2.size()<=30) {
+          dEdx_pl2_start1020 = dEdx_pl2_start_half;
+          dEdx_pl2_end1020 = dEdx_pl2_end_half;
+        }
+        else{
+          dEdx_pl2_start1020 = std::accumulate(dEdx_pl2.end() - 20, dEdx_pl2.end() - 10, 0.) / 10.;
+          dEdx_pl2_end1020 = std::accumulate(dEdx_pl2.begin() + 10, dEdx_pl2.begin() + 20, 0.) / 10.;
         }
 
-        for(unsigned int i_pl1 = 0; i_pl1 < hits_dEdx_size_pl1; i_pl1++){
-          if(dEdx_pl1[i_pl1] > 10 && dEdx_pl1[i_pl1] < 100){
-            Nr_LargeHit_pl1++;
-            if(resRange_pl1[i_pl1] < Trk_length_pl1 / 3.){
-              Nr_endthird_LargeHit_pl1++;
-            }
-            if(resRange_pl1[i_pl1] > Trk_length_pl1 * 2./ 3.){
-              Nr_beginthird_LargeHit_pl1++;
-            }
-          }
-        }
+        dEdx_pl0_1020_ratio = dEdx_pl0_end1020 / (dEdx_pl0_end1020 + dEdx_pl0_start1020);
+        dEdx_pl0_half_ratio = dEdx_pl0_end_half / (dEdx_pl0_end_half + dEdx_pl0_start_half);
 
-        for(unsigned int i_pl2 = 0; i_pl2 < hits_dEdx_size_pl2; i_pl2++){
-          if(dEdx_pl2[i_pl2] > 10 && dEdx_pl2[i_pl2] < 100){
-            Nr_LargeHit_pl2++;
-            if(resRange_pl2[i_pl2] < Trk_length_pl2 / 3.){
-              Nr_endthird_LargeHit_pl2++;
-            }
-            if(resRange_pl2[i_pl2] > Trk_length_pl2 * 2./ 3.){
-              Nr_beginthird_LargeHit_pl2++;
-            }
-          }
-        }
-     
-        // Get the three largest hits (dE/dx)
+        dEdx_pl1_1020_ratio = dEdx_pl1_end1020 / (dEdx_pl1_end1020 + dEdx_pl1_start1020);
+        dEdx_pl1_half_ratio = dEdx_pl1_end_half / (dEdx_pl1_end_half + dEdx_pl1_start_half);
+
+        dEdx_pl2_1020_ratio = dEdx_pl2_end1020 / (dEdx_pl2_end1020 + dEdx_pl2_start1020);
+        dEdx_pl2_half_ratio = dEdx_pl2_end_half / (dEdx_pl2_end_half + dEdx_pl2_start_half);
+
+        // - Large hits (the three largest dE/dx)
         auto copy_dEdx_pl0 = dEdx_pl0;
         auto copy_dEdx_pl1 = dEdx_pl1;
         auto copy_dEdx_pl2 = dEdx_pl2;
@@ -1318,8 +1042,8 @@ void SingleMuon::analyze(art::Event const& evt)
         std::sort(copy_dEdx_pl0.begin(), copy_dEdx_pl0.end());
         std::sort(copy_dEdx_pl1.begin(), copy_dEdx_pl1.end());
         std::sort(copy_dEdx_pl2.begin(), copy_dEdx_pl2.end());
-        // pl 0
-	if(hits_dEdx_size_pl0 < 3){
+        // pl 0        
+        if(hits_dEdx_size_pl0 < 3){
           for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl0; i_hit++){
             avg_dEdx_LargeHit_pl0 += copy_dEdx_pl0[i_hit];
           }
@@ -1347,147 +1071,9 @@ void SingleMuon::analyze(art::Event const& evt)
         }
         else{
           avg_dEdx_LargeHit_pl2 = (copy_dEdx_pl2[hits_dEdx_size_pl2 - 1] + copy_dEdx_pl2[hits_dEdx_size_pl2 - 2] + copy_dEdx_pl2[hits_dEdx_size_pl2 - 3]) / 3;
-        } 
-
-        dEdx_pl0_start_half = std::accumulate(dEdx_pl0.end() - half_size_pl0, dEdx_pl0.end(), 0.) / half_size_pl0;
-        dEdx_pl0_end_half = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + half_size_pl0, 0. ) / half_size_pl0;
-        dEdx_pl1_start_half = std::accumulate(dEdx_pl1.end() - half_size_pl1, dEdx_pl1.end(), 0.) / half_size_pl1;
-        dEdx_pl1_end_half = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + half_size_pl1, 0. ) / half_size_pl1;
-        dEdx_pl2_start_half = std::accumulate(dEdx_pl2.end() - half_size_pl2, dEdx_pl2.end(), 0.) / half_size_pl2;
-        dEdx_pl2_end_half = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
-        // dEdx_5
-        if (dEdx_pl0.size()<=5) {
-          dEdx_pl0_start5 = dEdx_pl0_start_half;
-          dEdx_pl0_end5 = dEdx_pl0_end_half;
-        }
-        else{
-          dEdx_pl0_start5 = std::accumulate(dEdx_pl0.end() - 5, dEdx_pl0.end(), 0.) / 5.;
-          dEdx_pl0_end5 = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + 5, 0.) / 5.;
-        }
-        if (dEdx_pl1.size()<=5) {
-          dEdx_pl1_start5 = dEdx_pl1_start_half;
-          dEdx_pl1_end5 = dEdx_pl1_end_half;
-        }
-        else{
-          dEdx_pl1_start5 = std::accumulate(dEdx_pl1.end() - 5, dEdx_pl1.end(), 0.) / 5.;
-          dEdx_pl1_end5 = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + 5, 0.) / 5.;
-        }
-        if (dEdx_pl2.size()<=5) {
-          dEdx_pl2_start5 = dEdx_pl2_start_half;
-          dEdx_pl2_end5 = dEdx_pl2_end_half;
-        }
-        else{
-          dEdx_pl2_start5 = std::accumulate(dEdx_pl2.end() - 5, dEdx_pl2.end(), 0.) / 5.;
-          dEdx_pl2_end5 = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + 5, 0.) / 5.;
-        }
-        // dEdx_10
-        if (dEdx_pl0.size()<=10) {
-          dEdx_pl0_start10 = dEdx_pl0_start_half;
-          dEdx_pl0_end10 = dEdx_pl0_end_half;
-        }
-        else{ 
-          dEdx_pl0_start10 = std::accumulate(dEdx_pl0.end() - 10, dEdx_pl0.end(), 0.) / 10.;
-          dEdx_pl0_end10 = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + 10, 0.) / 10.;
-        }
-        if (dEdx_pl1.size()<=10) {
-          dEdx_pl1_start10 = dEdx_pl1_start_half;
-          dEdx_pl1_end10 = dEdx_pl1_end_half;
-        }
-        else{
-          dEdx_pl1_start10 = std::accumulate(dEdx_pl1.end() - 10, dEdx_pl1.end(), 0.) / 10.;
-          dEdx_pl1_end10 = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + 10, 0.) / 10.;
-        }
-        if (dEdx_pl2.size()<=10) {
-          dEdx_pl2_start10 = dEdx_pl2_start_half;
-          dEdx_pl2_end10 = dEdx_pl2_end_half;
-        }
-        else{
-          dEdx_pl2_start10 = std::accumulate(dEdx_pl2.end() - 10, dEdx_pl2.end(), 0.) / 10.;
-          dEdx_pl2_end10 = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + 10, 0.) / 10.;
-        }
-        // dEdx_1020
-        if (dEdx_pl0.size()<=30) {
-          dEdx_pl0_start1020 = dEdx_pl0_start_half;
-          dEdx_pl0_end1020 = dEdx_pl0_end_half;
-        }
-        else{
-          dEdx_pl0_start1020 = std::accumulate(dEdx_pl0.end() - 20, dEdx_pl0.end() - 10, 0.) / 10.;
-          dEdx_pl0_end1020 = std::accumulate(dEdx_pl0.begin() + 10, dEdx_pl0.begin() + 20, 0.) / 10.;
-        }
-        if (dEdx_pl1.size()<=30) {
-          dEdx_pl1_start1020 = dEdx_pl1_start_half;
-          dEdx_pl1_end1020 = dEdx_pl1_end_half;
-        }
-        else{
-          dEdx_pl1_start1020 = std::accumulate(dEdx_pl1.end() - 20, dEdx_pl1.end() - 10, 0.) / 10.;
-          dEdx_pl1_end1020 = std::accumulate(dEdx_pl1.begin() + 10, dEdx_pl1.begin() + 20, 0.) / 10.;
-        }
-        if (dEdx_pl2.size()<=30) {
-          dEdx_pl2_start1020 = dEdx_pl2_start_half;
-          dEdx_pl2_end1020 = dEdx_pl2_end_half;
-        }
-        else{
-          dEdx_pl2_start1020 = std::accumulate(dEdx_pl2.end() - 20, dEdx_pl2.end() - 10, 0.) / 10.;
-          dEdx_pl2_end1020 = std::accumulate(dEdx_pl2.begin() + 10, dEdx_pl2.begin() + 20, 0.) / 10.;
-        }
-        // dEdx_515
-        if (dEdx_pl0.size()<=30) {
-          dEdx_pl0_start1020 = dEdx_pl0_start_half;
-          dEdx_pl0_end1020 = dEdx_pl0_end_half;
-        }
-        else{
-          dEdx_pl0_start1020 = std::accumulate(dEdx_pl0.end() - 20, dEdx_pl0.end() - 10, 0.) / 10.;
-          dEdx_pl0_end1020 = std::accumulate(dEdx_pl0.begin() + 10, dEdx_pl0.begin() + 20, 0.) / 10.;
-        }
-        if (dEdx_pl1.size()<=30) {
-          dEdx_pl1_start1020 = dEdx_pl1_start_half;
-          dEdx_pl1_end1020 = dEdx_pl1_end_half;
-        }
-        else{
-          dEdx_pl1_start1020 = std::accumulate(dEdx_pl1.end() - 20, dEdx_pl1.end() - 10, 0.) / 10.;
-          dEdx_pl1_end1020 = std::accumulate(dEdx_pl1.begin() + 10, dEdx_pl1.begin() + 20, 0.) / 10.;
-        }
-        if (dEdx_pl2.size()<=30) {
-          dEdx_pl2_start1020 = dEdx_pl2_start_half;
-          dEdx_pl2_end1020 = dEdx_pl2_end_half;
-        }
-        else{
-          dEdx_pl2_start1020 = std::accumulate(dEdx_pl2.end() - 20, dEdx_pl2.end() - 10, 0.) / 10.;
-          dEdx_pl2_end1020 = std::accumulate(dEdx_pl2.begin() + 10, dEdx_pl2.begin() + 20, 0.) / 10.;
-        }
-        // dEdx_1_6
-        if (dEdx_pl0.size()<=7) {
-          dEdx_pl0_start16 = dEdx_pl0_start_half;
-          dEdx_pl0_end16 = dEdx_pl0_end_half;
-        }
-        else{
-          dEdx_pl0_start1020 = std::accumulate(dEdx_pl0.end() - 6, dEdx_pl0.end() - 1, 0.) / 5.;
-          dEdx_pl0_end1020 = std::accumulate(dEdx_pl0.begin() + 1, dEdx_pl0.begin() + 6, 0.) / 5.;
-        }
-        if (dEdx_pl1.size()<=7) {
-          dEdx_pl1_start16 = dEdx_pl1_start_half;
-          dEdx_pl1_end16 = dEdx_pl1_end_half;
-        }
-        else{
-          dEdx_pl1_start16 = std::accumulate(dEdx_pl1.end() - 6, dEdx_pl1.end() - 1, 0.) / 5.;
-          dEdx_pl1_end16 = std::accumulate(dEdx_pl1.begin() + 1, dEdx_pl1.begin() + 6, 0.) / 5.;
-        }
-        if (dEdx_pl2.size()<=7) {
-          dEdx_pl2_start16 = dEdx_pl2_start_half;
-          dEdx_pl2_end16 = dEdx_pl2_end_half;
-        }
-        else{
-          dEdx_pl2_start16 = std::accumulate(dEdx_pl2.end() - 6, dEdx_pl2.end() - 1, 0.) / 5.;
-          dEdx_pl2_end16 = std::accumulate(dEdx_pl2.begin() + 1, dEdx_pl2.begin() + 6, 0.) / 5.;
         }
 
-        dEdx_pl2_1020_ratio = dEdx_pl2_end1020 / (dEdx_pl2_end1020 + dEdx_pl2_start1020);
-        dEdx_pl2_10_ratio = dEdx_pl2_end10 / (dEdx_pl2_end10 + dEdx_pl2_start10);
-        dEdx_pl2_5_ratio = dEdx_pl2_end5 / (dEdx_pl2_end5 + dEdx_pl2_start5);
-        dEdx_pl2_16_ratio = dEdx_pl2_end16 / (dEdx_pl2_end16 + dEdx_pl2_start16);
-        dEdx_pl2_half_ratio = dEdx_pl2_end_half / (dEdx_pl2_end_half + dEdx_pl2_start_half);
-
-        // Get dEdx of the middle part in the track
+        //- dEdx of the middle part of the track
         int nr_pl0_mid = dEdx_pl0.size()/3;
         int nr_pl1_mid = dEdx_pl1.size()/3;
         int nr_pl2_mid = dEdx_pl2.size()/3;
@@ -1509,143 +1095,225 @@ void SingleMuon::analyze(art::Event const& evt)
         else {
           dEdx_pl2_mid = 0;
         }
-        // Gain PID info of the track
+
+        //-- Charge linearity
+        double radius = (Trk_start_SCEcorr - Trk_end_SCEcorr).Mag();
+        double sec = radius / 8;
+        double min_dist = 9999;
+        double charge_sec[8] = {0};
+        int nr_charge[8] = {0};
+        std::vector<std::vector<double>> vec_charge;
+        vec_charge.resize(8);
+        // divide the sphere into [8] sections
+        auto assoSlice = SliceToPFPAsso.at(pfp.key()); // vector
+        auto assoHits = HitToSliceAsso.at(assoSlice.front().key());
+
+        // TODO: If hits is belong to track, use trajectory point; Otherwise use spacepoints
+        for (unsigned int i_hit = 0; i_hit < assoHits.size(); i_hit++){
+          auto assoSpacePoints = SpacePointToHitAsso.at(assoHits[i_hit].key());
+          if(assoSpacePoints.size()==1){
+            TVector3 SP = (TVector3)assoSpacePoints.front()->XYZ();
+            auto SP_offset = SCE->GetCalPosOffsets(geo::Point_t(SP.X(), SP.Y(), SP.Z()));
+            TVector3 SP_SCEcorr;
+            SP_SCEcorr.SetX(SP.X() - SP_offset.X());
+            SP_SCEcorr.SetY(SP.Y() + SP_offset.Y());
+            SP_SCEcorr.SetZ(SP.Z() + SP_offset.Z());
+
+            if ((SP_SCEcorr - Trk_start_SCEcorr).Mag() < min_dist){
+              min_dist = (SP_SCEcorr - Trk_start_SCEcorr).Mag();
+            }
+            for(unsigned int i_sec = 0; i_sec < 8; i_sec++){
+              if((SP_SCEcorr - Trk_start_SCEcorr).Mag() < sec * (i_sec + 1) && (SP_SCEcorr - Trk_start_SCEcorr).Mag() >= sec * i_sec){
+                vec_charge[i_sec].push_back(assoHits[i_hit]->Integral()/100);
+                charge_sec[i_sec] += assoHits[i_hit]->Integral()/100;     
+                nr_charge[i_sec]++;
+              }
+            }
+          }
+          else if(assoSpacePoints.size()>1){
+            std::cout<<"Number of space points: "<< assoSpacePoints.size()<<", which exceeds the normal quota."<<std::endl;
+          }
+        } // Finish loop the associated hits in the neutrino slice
+        vtx_hit_distance = min_dist;
+        double avg = 0;
+        double std = 0;
+        double stddev[8] = {0};
+        for(int n = 0; n < 8; n++){
+          avg += charge_sec[n];
+        }
+        avg = avg / 8.;
+
+        for(int n = 0; n < 8; n++){
+          std += (charge_sec[n] - avg) * (charge_sec[n] - avg);
+        }
+        for(int n = 0; n < 8; n++){
+          stddev[n] = std - (charge_sec[n] - avg) * (charge_sec[n] - avg);
+          stddev[n] = sqrt(1./7 * stddev[n]);
+        }
+        
+        charge_std_bin0 = (charge_sec[0] - avg) / stddev[0];
+        charge_std_bin1 = (charge_sec[1] - avg) / stddev[1];
+        charge_std_bin2 = (charge_sec[2] - avg) / stddev[2];
+        charge_std_bin3 = (charge_sec[3] - avg) / stddev[3];
+        charge_std_bin4 = (charge_sec[4] - avg) / stddev[4];
+        charge_std_bin5 = (charge_sec[5] - avg) / stddev[5];
+        charge_std_bin6 = (charge_sec[6] - avg) / stddev[6];
+        charge_std_bin7 = (charge_sec[7] - avg) / stddev[7];
+
+        charge_avg_bin0 = (charge_sec[0] - avg) / avg;
+        charge_avg_bin1 = (charge_sec[1] - avg) / avg;
+        charge_avg_bin2 = (charge_sec[2] - avg) / avg;
+        charge_avg_bin3 = (charge_sec[3] - avg) / avg;
+        charge_avg_bin4 = (charge_sec[4] - avg) / avg;
+        charge_avg_bin5 = (charge_sec[5] - avg) / avg;
+        charge_avg_bin6 = (charge_sec[6] - avg) / avg;
+        charge_avg_bin7 = (charge_sec[7] - avg) / avg;
+
+        //-- PID
         PID pid;
         pid.Chi2(PIDTotrackAsso,daughter_Tracks.front(), Trk_start_SCEcorr, Trk_end_SCEcorr,hits_dEdx_size_pl0, hits_dEdx_size_pl1, hits_dEdx_size_pl2);
-        PID_Chi2Mu_pl0 = pid.PID_Chi2Mu_pl0; // Chi2 of muon assumption of plane 0 in PID
-        PID_Chi2Mu_pl1 = pid.PID_Chi2Mu_pl1; // Chi2 of muon assumption of plane 1 in PID
-        PID_Chi2Mu_pl2 = pid.PID_Chi2Mu_pl2; // Chi2 of muon assumption of plane 2 in PID
         PID_Chi2Mu_3pl = pid.PID_Chi2Mu_3pl; // Chi2 of muon assumption of 3 planes in PID
-
-        PID_Chi2P_pl0 = pid.PID_Chi2P_pl0; // Chi2 of proton assumption of plane 0 in PID
-        PID_Chi2P_pl1 = pid.PID_Chi2P_pl1; // Chi2 of proton assumption of plane 1 in PID
-        PID_Chi2P_pl2 = pid.PID_Chi2P_pl2; // Chi2 of proton assumption of plane 2 in PID
         PID_Chi2P_3pl = pid.PID_Chi2P_3pl; // Chi2 of proton assumption of 3 planes in PID
-
-        PID_Chi2Pi_pl0 = pid.PID_Chi2Pi_pl0; // Chi2 of pion assumption of plane 0 in PID
-        PID_Chi2Pi_pl1 = pid.PID_Chi2Pi_pl1; // Chi2 of pion assumption of plane 1 in PID
-        PID_Chi2Pi_pl2 = pid.PID_Chi2Pi_pl2; // Chi2 of pion assumption of plane 2 in PID
         PID_Chi2Pi_3pl = pid.PID_Chi2Pi_3pl; // Chi2 of pion assumption of 3 planes in PID
-
-        PID_Chi2K_pl0 = pid.PID_Chi2K_pl0; // Chi2 of kaon assumption of plane 0 in PID
-        PID_Chi2K_pl1 = pid.PID_Chi2K_pl1; // Chi2 of kaon assumption of plane 1 in PID
-        PID_Chi2K_pl2 = pid.PID_Chi2K_pl2; // Chi2 of kaon assumption of plane 2 in PID
         PID_Chi2K_3pl = pid.PID_Chi2K_3pl; // Chi2 of kaon assumption of 3 planes in PID
 
-        PID_avg_Chi2 = pid.PID_avg_Chi2; // Minimum averaged Chi2 of 3 planes among all assumptions
-        PID_pl2_Chi2 = pid.PID_pl2_Chi2;
-        PID_pl1_Chi2 = pid.PID_pl1_Chi2;
-        PID_pl0_Chi2 = pid.PID_pl0_Chi2;
-
-        BestPlane_PID = pid.BestPlane_PID;
-        Pl2_for_PID = pid.Pl2_for_PID;
-        Pl1_for_PID = pid.Pl1_for_PID;
-        Pl0_for_PID = pid.Pl0_for_PID;
-
-        PID_Pdg_3pl = pid.PID_Pdg_3pl; //[Only fill positive value] The Pdg of the corresponding particle assumption with minimum Chi2
-        PID_Pdg_pl2 = pid.PID_Pdg_pl2;
-        PID_Pdg_pl1 = pid.PID_Pdg_pl1;
-        PID_Pdg_pl0 = pid.PID_Pdg_pl0;
-
-        mom_range_PID_avg_noSCE.push_back(_trk_mom_calculator.GetTrackMomentum(Trk_length_noSCE, PID_Pdg_3pl));
-
-        //-- Fill TRUE info
-        // The corresponding MC particle is not necessary from numu, cc and primary process at the moment
-        // It shouldn't affect the selection (so far)
+        /////////////////
+        // Fill TRUE info
+        //////////////// 
         if(IsMC){
           std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
           BackTrackerTruthMatch backtrackertruthmatch;
           backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
           auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
-          trk_cosmic_percent.push_back(backtrackertruthmatch.ReturnCosmicPercent());
-          trk_purity.push_back(backtrackertruthmatch.ReturnPurity());
+          trk_cosmic_percent = backtrackertruthmatch.ReturnCosmicPercent();
+          trk_purity = backtrackertruthmatch.ReturnPurity();
+          trk_completeness = backtrackertruthmatch.ReturnCompleteness();
+
           if(!MCparticle){
             if_cosmic = true;
             std::cout<<"MC particle does not exist!"<<std::endl;
           }
           else{
-            if_cosmic = false;
-            if(MCparticle->PdgCode() == 13) if_matchMu = true;
-            //auto TrueTrackPos = MCparticle->EndPosition() - MCparticle->Position();
-            TVector3 TrueTrackPos(MCparticle->Px(), MCparticle->Py(), MCparticle->Pz());// The initial momentum represent the angle of true track
-            true_mom.push_back(MCparticle->P());
-            true_start_x.push_back(MCparticle->Position().X());
-            true_start_y.push_back(MCparticle->Position().Y());
-            true_start_z.push_back(MCparticle->Position().Z());
-            true_end_x.push_back(MCparticle->EndPosition().X());
-            true_end_y.push_back(MCparticle->EndPosition().Y());
-            true_end_z.push_back(MCparticle->EndPosition().Z());
-            TVector3 true_start(MCparticle->Position().X(), MCparticle->Position().Y(), MCparticle->Position().Z());
-            TVector3 true_end(MCparticle->EndPosition().X(), MCparticle->EndPosition().Y(), MCparticle->EndPosition().Z());
-            true_trk_ifcontained.push_back(_fiducial_volume.TrackContain(true_start, true_end));
-            true_vtxFV.push_back(_fiducial_volume.VertexInFV(true_start));
-            true_trk_phi.push_back(TrueTrackPos.Phi());
-            true_trk_theta.push_back(TrueTrackPos.Theta());
-            true_trk_costheta.push_back(cos(TrueTrackPos.Theta()));
-            true_trk_theta_yz.push_back(std::atan2(TrueTrackPos.Y(), TrueTrackPos.Z()));
-            true_trk_costheta_yz.push_back(cos(true_trk_theta_yz.back()));
-            true_trk_theta_xz.push_back(std::atan2(TrueTrackPos.X(), TrueTrackPos.Z()));
-            true_trk_costheta_xz.push_back(cos(true_trk_theta_xz.back()));
-            true_trk_length.push_back((true_start - true_end).Mag()); // An estimation of true track length
-            true_trk_PDG.push_back(MCparticle->PdgCode());
-            
-          }
-          reco_MC_dist_vtx.push_back((true_nuVtx - Trk_start_SCEcorr).Mag());
-          reco_MC_dist_vtx_noSCE.push_back((true_nuVtx - Trk_start).Mag());
-
+            if(trk_cosmic_percent > 0.8){
+                if_cosmic = true;
+              }
+            else{
+              if_cosmic = false;
+              if(MCparticle->Process() == "primary" && trk_purity > 0.2 && trk_completeness > 0.2){
+                if_matchPrimary = true;
+                if(MCparticle->PdgCode() == 13){
+                  if_matchMu = true;
+                }
+              } 
+              TVector3 TrueTrackPos(MCparticle->Px(), MCparticle->Py(), MCparticle->Pz());// The initial momentum represent the angle of true track
+              true_mom = MCparticle->P();
+              true_start_x = MCparticle->Position().X();
+              true_start_y = MCparticle->Position().Y();
+              true_start_z = MCparticle->Position().Z();
+              true_end_x = MCparticle->EndPosition().X();
+              true_end_y = MCparticle->EndPosition().Y();
+              true_end_z = MCparticle->EndPosition().Z();
+              TVector3 true_start(MCparticle->Position().X(), MCparticle->Position().Y(), MCparticle->Position().Z());
+              TVector3 true_end(MCparticle->EndPosition().X(), MCparticle->EndPosition().Y(), MCparticle->EndPosition().Z());
+              true_trk_ifcontained = _fiducial_volume.TrackContain(true_start, true_end);
+              true_vtxFV = _fiducial_volume.VertexInFV(true_start);
+              true_trk_phi = TrueTrackPos.Phi();
+              true_trk_theta = TrueTrackPos.Theta();
+              true_trk_costheta = cos(TrueTrackPos.Theta());
+              true_trk_theta_yz = std::atan2(TrueTrackPos.Y(), TrueTrackPos.Z());
+              true_trk_costheta_yz = cos(true_trk_theta_yz);
+              true_trk_theta_xz = std::atan2(TrueTrackPos.X(), TrueTrackPos.Z());
+              true_trk_costheta_xz = cos(true_trk_theta_xz);
+              true_trk_length = (true_start - true_end).Mag(); // An estimation of true track length
+              true_trk_PDG = MCparticle->PdgCode();
+            }
+          } // If MC particle exists
+          reco_MC_dist_vtx = (true_nuVtx - Trk_start_SCEcorr).Mag();
+          reco_MC_dist_vtx_noSCE = (true_nuVtx - Trk_start).Mag();
         }
        
-        //Directional Info
+        //--Directional Info
         // Check the directional info of the track by MCS
-        if (mom_bestMCS_ll_mu == mom_fwdMCS_ll_mu) if_fwd_MCS = true;
+        if (bestMCSLL == fwdMCSLL) if_fwd_MCS = true;
         else if_fwd_MCS = false;
 
         // Check the direction info of the track by dEdx
         if (dEdx_pl2_start_half < dEdx_pl2_end_half) if_fwd_dEdxhalf = true;
         else if_fwd_dEdxhalf = false;
-        if (dEdx_pl2_start10 < dEdx_pl2_end10) if_fwd_dEdx10 = true;
-        else if_fwd_dEdx10 = false;
         if (dEdx_pl2_start1020 < dEdx_pl2_end1020) if_fwd_dEdx1020 = true;
         else if_fwd_dEdx1020 = false;
 
         if(IsMC){
           // Check the directional info of the track by true reco vertex distance
-          TVector3 vtx(true_start_x[0], true_start_y[0], true_start_z[0]);
+          TVector3 vtx(true_start_x, true_start_y, true_start_z);
           TVector3 D_start = Trk_start_SCEcorr - vtx;
           TVector3 D_end = Trk_end_SCEcorr - vtx;
           if (D_start.Mag() < D_end.Mag()) if_fwd_true = true;
           else if_fwd_true = false;
         }
 
-        if(if_fwd_MCS){
-          vtx_x_MCS.push_back(vtx_x.back());
-          vtx_y_MCS.push_back(vtx_y.back());
-          vtx_z_MCS.push_back(vtx_z.back());
-  
-          vtx_MCS_FV.push_back(vtx_FV.back());
-       
-          trk_phi_MCS.push_back(trk_phi.back());
-          trk_theta_MCS.push_back(trk_theta.back());
-          trk_costheta_MCS.push_back(trk_costheta.back());
-        }
-        else{
-          vtx_x_MCS.push_back(end_x.back());
-          vtx_y_MCS.push_back(end_y.back());
-          vtx_z_MCS.push_back(end_z.back());
-
-          TVector3 vtx_MCS(end_x.back(), end_y.back(), end_z.back());          
-          vtx_MCS_FV.push_back(_fiducial_volume.VertexInFV(vtx_MCS));
-
-          trk_phi_MCS.push_back(M_PI + trk_phi.back());
-          trk_theta_MCS.push_back(M_PI + trk_theta.back());
-          trk_costheta_MCS.push_back(cos(trk_theta_MCS.back()));
-        }
       }
       
     }
   }
 
   my_event_->Fill();
+
+  if(IsMC){
+    MC_Primary_PDG.clear();
+    MC_Primary_Mom.clear();
+    MC_proton_true_Mom_above260.clear();
+    MC_muon_true_Mom.clear();
+    MC_muon_true_cos_theta.clear();
+    MC_muon_true_phi.clear();
+    MC_proton_true_cos_theta.clear();
+    MC_proton_true_phi.clear();
+    Ghost_PDG.clear();
+ 
+    cos_ang_muon_proton = -999;
+    dist_muon_proton = -999;
+    len_Muon_0pi0p = -999;
+    len_Muon_0pi1p = -999;
+    len_Proton_0pi1p = -999;
+
+    true_mom = -999;
+    true_start_x = -999;
+    true_start_y = -999;
+    true_start_z = -999;
+    true_end_x = -999;
+    true_end_y = -999;
+    true_end_z = -999;
+    true_trk_phi = -999;
+    true_trk_theta = -999;
+    true_trk_costheta = -999;
+    true_trk_theta_yz = -999;
+    true_trk_costheta_yz = -999;
+    true_trk_theta_xz = -999;
+    true_trk_costheta_xz = -999;
+    true_trk_length = -999;
+    true_trk_PDG = -999;
+    true_trk_ifcontained = -999;
+    true_vtxFV = -999;
+    reco_MC_dist_vtx = -999;
+    reco_MC_dist_vtx_noSCE = -999;
+
+    trk_cosmic_percent = -999;
+    trk_purity = -999;
+    trk_completeness = -999;
+    if_cosmic = false;
+    if_matchPrimary = false;
+    if_matchMu = false;
+  }
+
+  daughter_Tracks.clear();
+  daughter_Showers.clear();
+  Track_PDG.clear();
+  Shower_PDG.clear();
+  Ghost_PDG.clear();
+
+  n_pfp_nuDaughters = 0; // number of pfp which are the daughters of the neutrino
+  n_dau_tracks = 0; // number of tracks asssociated to pfp neutrino daughters
+  n_dau_showers = 0; // number of showers asssociated to pfp neutrino daughters
 
   nr_granddau_shw = 0;
   nr_granddau_trk = 0;
@@ -1654,201 +1322,138 @@ void SingleMuon::analyze(art::Event const& evt)
   granddau_trk_len.clear();
   granddau_shw_len.clear();
 
+  if_1track = false;
+
+  crthit_PE.clear();
+  crthit_plane.clear();
+  crthit_time.clear();
+  Nr_crthit_inBeam = 0;
+  Nr_trk_asso_crthit = 0;
+  trk_crt_time = -999;
   evt_CRTveto = false;
   evt_CRTveto_100 = false;
-  trk_crt_time = -999;
 
-  if_cosmic = true;
-  if_matchMu = false;
-  if_selected = false;
-  if_trk_CRT_out_Beam = false;
+  trk_vtx_x = -999;
+  trk_vtx_y = -999;
+  trk_vtx_z = -999;
+  trk_start_x = -999;
+  trk_start_y = -999;
+  trk_start_z = -999;
+  trk_end_x = -999;
+  trk_end_y = -999;
+  trk_end_z = -999;
+
+  trk_OutOfTime = false;
+
+  trk_contained = false;
+  vtx_InFV = false;
+
   if_broken = false;
+  trk_broken_len = -999;
+  trk_broken_nr_merged = -999;
+  trk_merged_ifcontained = false;
+  vtx_merged_InFV = false;
   if_newTrkThroughGoing = false;
 
-  avg_dEdx_LargeHit_pl0 = 0;
-  avg_dEdx_LargeHit_pl1 = 0;
-  avg_dEdx_LargeHit_pl2 = 0;
+  sin2_theta_pl0 = -999;
+  sin2_theta_pl1 = -999;
+  sin2_theta_pl2 = -999;
+  sin2_phi_readout = -999;
 
-  Nr_LargeHit_pl0 = 0;
-  Nr_endthird_LargeHit_pl0 = 0;
-  Nr_beginthird_LargeHit_pl0 = 0;
+  trk_phi = -999;
+  trk_theta = -999;
+  trk_costheta = -999;
 
-  Nr_LargeHit_pl1 = 0;
-  Nr_endthird_LargeHit_pl1 = 0;
-  Nr_beginthird_LargeHit_pl1 = 0;
+  trk_length = -999;
 
-  Nr_LargeHit_pl2 = 0;
-  Nr_endthird_LargeHit_pl2 = 0;
-  Nr_beginthird_LargeHit_pl2 = 0;
+  mom_Range_mu = -999;
+  mom_Range_p = -999;
+  mom_Range_pi = -999;
 
-  if(IsMC){
-    MC_Primary_PDG.clear();
-    MC_Primary_Mom.clear();
-    MC_proton_true_Mom_above255.clear();
-    MC_muon_true_Mom.clear();
-    MC_muon_true_cos_theta.clear();
-    MC_muon_true_phi.clear();
-    MC_proton_true_cos_theta.clear();
-    MC_proton_true_phi.clear();
-    Ghost_PDG.clear();
-    true_mom.clear();
-    true_start_x.clear();
-    true_start_y.clear();
-    true_start_z.clear();
-    true_end_x.clear();
-    true_end_y.clear();
-    true_end_z.clear();
-    true_trk_phi.clear();
-    true_trk_theta.clear();
-    true_trk_costheta.clear();
-    true_trk_theta_yz.clear();
-    true_trk_costheta_yz.clear();
-    true_trk_theta_xz.clear();
-    true_trk_costheta_xz.clear();
-    true_trk_length.clear();
-    true_trk_PDG.clear();
-    true_trk_ifcontained.clear();
-    true_vtxFV.clear();
-    reco_MC_dist_vtx.clear();
-    reco_MC_dist_vtx_noSCE.clear();
+  bestMCS = -999;
+  bestMCSLL = -999;
+  fwdMCS = -999;
+  fwdMCSLL = -999;
+  bwdMCS = -999;
+  bwdMCSLL = -999;
 
-    trk_cosmic_percent.clear();
-    trk_purity.clear();
-  }
+  bestMCSLL_NoSCE = -999;
+  fwdMCSLL_NoSCE = -999;
+  bwdMCSLL_NoSCE = -999;
 
-  if(UsingCRT){
-    crthit_PE.clear();
-    crthit_plane.clear();
-    crthit_time.clear();
-  }
+  missing_PT_range = -999;
+  missing_PT_MCS = -999;
 
-  v_sanity_check.clear();
-  daughter_Tracks.clear();
-  daughter_Showers.clear();
-  Track_PDG.clear();
-  Shower_PDG.clear();
-  Ghost_PDG.clear();
-
-  trk_broken_len.clear();
-  trk_broken_nr_merged.clear();
-
-  mom_bestMCS_mu.clear();
-  mom_bestMCS_ll_mu.clear();
-  mom_fwdMCS_mu.clear();
-  mom_fwdMCS_ll_mu.clear();
-  mom_bwdMCS_mu.clear();
-  mom_bwdMCS_ll_mu.clear();
-  mom_bestMCS_ll_mu_NoSCE.clear();
-  mom_fwdMCS_ll_mu_NoSCE.clear();
-  mom_Range_mu.clear();
-  mom_Range_mu_noSCE.clear();
-  mom_Range_p.clear();
-  mom_Range_p_noSCE.clear();
-  mom_Range_pi.clear();
-  mom_Range_pi_noSCE.clear();
-  mom_range_PID_avg_noSCE.clear();
-  missing_PT_range.clear();
-  missing_PT_MCS.clear();
-
-  vtx_x.clear();
-  vtx_y.clear();
-  vtx_z.clear();
- 
-  vtx_start_dist.clear();
-  trk_start_x.clear();
-  trk_start_y.clear();
-  trk_start_z.clear();
-
-  vtx_x_MCS.clear();
-  vtx_y_MCS.clear();
-  vtx_z_MCS.clear();
-  start_x.clear();
-  start_y.clear();
-  start_z.clear();
-  end_x.clear();
-  end_y.clear();
-  end_z.clear();
-  start_x_noSCE.clear();
-  start_y_noSCE.clear();
-  start_z_noSCE.clear();
-  end_x_noSCE.clear();
-  end_y_noSCE.clear();
-  end_z_noSCE.clear();
-  trk_phi.clear();
-  trk_theta.clear();
-  trk_costheta.clear();
-  trk_phi_MCS.clear();
-  trk_theta_MCS.clear();
-  trk_costheta_MCS.clear();
-  trk_length_pl0.clear();
-  trk_length_pl1.clear();
-  trk_length_pl2.clear();
-  trk_length_avg.clear();
-  trk_length_noSCE.clear();
-  trk_ifcontained.clear();
-  trk_OutOfTime.clear();
-  vtx_FV.clear();
-  vtx_MCS_FV.clear();
-  trk_end_theta_yz.clear();
-  trk_end_costheta_yz.clear();
-  trk_end_theta_xz.clear();
-  trk_end_costheta_xz.clear();
-  trk_theta_yz.clear();
-  trk_costheta_yz.clear();
-  trk_theta_xz.clear();
-  trk_costheta_xz.clear();
-  
-  old_trk_ifcontained.clear();
-  old_vtx_FV.clear();
-
-  sin2_theta_pl2.clear();
-  sin2_theta_pl1.clear();
-  sin2_theta_pl0.clear();
-  sin2_phi_readout.clear();
-
-  charge_avg_bin0.clear();
-  charge_avg_bin1.clear();
-  charge_avg_bin2.clear();
-  charge_avg_bin3.clear();
-  charge_avg_bin4.clear();
-  charge_avg_bin5.clear();
-  charge_avg_bin6.clear();
-  charge_avg_bin7.clear();
-
-  charge_std_bin0.clear();
-  charge_std_bin1.clear();
-  charge_std_bin2.clear();
-  charge_std_bin3.clear();
-  charge_std_bin4.clear();
-  charge_std_bin5.clear();
-  charge_std_bin6.clear();
-  charge_std_bin7.clear();
-
-  vtx_hit_distance.clear();
+  PID_Chi2Mu_3pl = -999;
+  PID_Chi2P_3pl = -999;
+  PID_Chi2Pi_3pl = -999;
+  PID_Chi2K_3pl = -999;
 
   dEdx_pl0.clear();
-  dEdx_pl1.clear();
-  dEdx_pl2.clear();
   dQdx_pl0.clear();
-  dQdx_pl1.clear();
-  dQdx_pl2.clear();
   resRange_pl0.clear();
+
+  dEdx_pl1.clear();
+  dQdx_pl1.clear();
   resRange_pl1.clear();
+
+  dEdx_pl2.clear();
+  dQdx_pl2.clear();
   resRange_pl2.clear();
-  pitch_pl0.clear();
-  pitch_pl1.clear();
-  pitch_pl2.clear();
 
-  reverse_dEdx_pl0.clear();
-  reverse_dEdx_pl1.clear();
-  reverse_dEdx_pl2.clear();
-  reverse_dQdx_pl0.clear();
-  reverse_dQdx_pl1.clear();
-  reverse_dQdx_pl2.clear();
-  reverse_resRange_pl0.clear();
-  reverse_resRange_pl1.clear();
-  reverse_resRange_pl2.clear();
+  dEdx_pl0_start_half = -999;
+  dEdx_pl1_start_half = -999;
+  dEdx_pl2_start_half = -999;
+  dEdx_pl0_end_half = -999;
+  dEdx_pl1_end_half = -999;
+  dEdx_pl2_end_half = -999;
 
+  dEdx_pl0_start1020 = -999;
+  dEdx_pl1_start1020 = -999;
+  dEdx_pl2_start1020 = -999;
+  dEdx_pl0_end1020 = -999;
+  dEdx_pl1_end1020 = -999;
+  dEdx_pl2_end1020 = -999;
+
+  dEdx_pl0_1020_ratio = -999;
+  dEdx_pl0_half_ratio = -999;
+  dEdx_pl1_1020_ratio = -999;
+  dEdx_pl1_half_ratio = -999;
+  dEdx_pl2_1020_ratio = -999;
+  dEdx_pl2_half_ratio = -999;
+
+  avg_dEdx_LargeHit_pl0 = -999;
+  avg_dEdx_LargeHit_pl1 = -999;
+  avg_dEdx_LargeHit_pl2 = -999;
+
+  dEdx_pl0_mid = -999;
+  dEdx_pl1_mid = -999;
+  dEdx_pl2_mid = -999;
+
+  charge_std_bin0 = -999; // the multiplication of charge in bin 0 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_std_bin1 = -999; // the multiplication of charge in bin 1 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_std_bin2 = -999; // the multiplication of charge in bin 2 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_std_bin3 = -999; // the multiplication of charge in bin 3 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_std_bin4 = -999; // the multiplication of charge in bin 4 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_std_bin5 = -999; // the multiplication of charge in bin 5 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_std_bin6 = -999; // the multiplication of charge in bin 6 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_std_bin7 = -999; // the multiplication of charge in bin 7 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+
+  charge_avg_bin0 = -999; // the multiplication of charge in bin 0 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_avg_bin1 = -999; // the multiplication of charge in bin 1 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_avg_bin2 = -999; // the multiplication of charge in bin 2 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_avg_bin3 = -999; // the multiplication of charge in bin 3 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_avg_bin4 = -999; // the multiplication of charge in bin 4 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_avg_bin5 = -999; // the multiplication of charge in bin 5 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_avg_bin6 = -999; // the multiplication of charge in bin 6 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+  charge_avg_bin7 = -999; // the multiplication of charge in bin 7 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
+
+  vtx_hit_distance = -999;// Distance of track vertex and the closest hit spacepoints
+
+  if_fwd_true = true; // If fwd by the reco true vertex distance
+  if_fwd_MCS = true; // If using forward MCS direction judge
+  if_fwd_dEdx1020 = true; // If fwd by the reco dEdx 10 hits (should use for contained)
+  if_fwd_dEdxhalf = true; // If fwd by the reco dEdx half of the hits (should use for contained)
 }
 
 void SingleMuon::Initialize_event()
@@ -1887,8 +1492,8 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nMuon", &MC_nMuon);
     my_event_->Branch("MC_nElectron", &MC_nElectron);
     my_event_->Branch("MC_nNeutron", &MC_nNeutron);
-    my_event_->Branch("MC_nProton_below255", &MC_nProton_below255);
-    my_event_->Branch("MC_nProton_above255", &MC_nProton_above255);
+    my_event_->Branch("MC_nProton_below260", &MC_nProton_below260);
+    my_event_->Branch("MC_nProton_above260", &MC_nProton_above260);
     my_event_->Branch("MC_nPi0", &MC_nPi0);
     my_event_->Branch("MC_nPiPlus_below65", &MC_nPiPlus_below65);
     my_event_->Branch("MC_nPiPlus_above65", &MC_nPiPlus_above65);
@@ -1896,7 +1501,7 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nPiMinus_above65", &MC_nPiMinus_above65);
     my_event_->Branch("MC_Primary_PDG", &MC_Primary_PDG);
     my_event_->Branch("MC_Primary_Mom", &MC_Primary_Mom);
-    my_event_->Branch("MC_proton_true_Mom_above255", &MC_proton_true_Mom_above255);
+    my_event_->Branch("MC_proton_true_Mom_above260", &MC_proton_true_Mom_above260);
     my_event_->Branch("MC_muon_true_Mom", &MC_muon_true_Mom);
     my_event_->Branch("MC_muon_true_cos_theta", &MC_muon_true_cos_theta);
     my_event_->Branch("MC_muon_true_phi", &MC_muon_true_phi);
@@ -1937,13 +1542,7 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("reco_MC_dist_vtx", &reco_MC_dist_vtx);
     my_event_->Branch("reco_MC_dist_vtx_noSCE", &reco_MC_dist_vtx_noSCE);
   }
-  my_event_->Branch("flash_YCenter", &flash_YCenter);
-  my_event_->Branch("flash_YWidth", &flash_YWidth);
-  my_event_->Branch("flash_ZCenter", &flash_ZCenter);
-  my_event_->Branch("flash_ZWidth", &flash_ZWidth);
-  my_event_->Branch("flash_TotalPE", &flash_TotalPE);
 
-  my_event_->Branch("v_sanity_check", &v_sanity_check);
   my_event_->Branch("n_pfp_nuDaughters", &n_pfp_nuDaughters);
   my_event_->Branch("n_dau_tracks", &n_dau_tracks);
   my_event_->Branch("n_dau_showers", &n_dau_showers);
@@ -1955,94 +1554,123 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("granddau_shw_len", &granddau_shw_len);
   
   my_event_->Branch("flash_matching_chi2", &flash_matching_chi2);
+  my_event_->Branch("flash_YCenter", &flash_YCenter);
+  my_event_->Branch("flash_YWidth", &flash_YWidth);
+  my_event_->Branch("flash_ZCenter", &flash_ZCenter);
+  my_event_->Branch("flash_ZWidth", &flash_ZWidth);
+  my_event_->Branch("flash_TotalPE", &flash_TotalPE);
 
   my_event_->Branch("evt_CRTveto", &evt_CRTveto);
   my_event_->Branch("evt_CRTveto_100", &evt_CRTveto_100);
   my_event_->Branch("crthit_PE", &crthit_PE);
   my_event_->Branch("crthit_plane", &crthit_plane);
   my_event_->Branch("crthit_time", &crthit_time);
-  my_event_->Branch("Nr_crthit", &Nr_crthit);
+  my_event_->Branch("Nr_crthit_inBeam", &Nr_crthit_inBeam);
   my_event_->Branch("Nr_trk_asso_crthit", &Nr_trk_asso_crthit);
   my_event_->Branch("trk_crt_time", &trk_crt_time);
-
-  my_event_->Branch("trk_cosmic_percent", &trk_cosmic_percent);
-  my_event_->Branch("trk_purity", &trk_purity);
-  my_event_->Branch("if_cosmic", &if_cosmic);
-  my_event_->Branch("if_matchMu", &if_matchMu);
-  my_event_->Branch("if_selected", &if_selected);
-  my_event_->Branch("if_trk_CRT_out_Beam", &if_trk_CRT_out_Beam);
-  my_event_->Branch("if_broken", &if_broken);
-  my_event_->Branch("if_newTrkThroughGoing", &if_newTrkThroughGoing);
-
-  my_event_->Branch("trk_broken_len", &trk_broken_len);
-  my_event_->Branch("trk_broken_nr_merged", &trk_broken_nr_merged);
-
-  my_event_->Branch("mom_bestMCS_mu", &mom_bestMCS_mu);
-  my_event_->Branch("mom_bestMCS_ll_mu", &mom_bestMCS_ll_mu);
-  my_event_->Branch("mom_fwdMCS_mu", &mom_fwdMCS_mu);
-  my_event_->Branch("mom_fwdMCS_ll_mu", &mom_fwdMCS_ll_mu);
-  my_event_->Branch("mom_bwdMCS_mu", &mom_bwdMCS_mu);
-  my_event_->Branch("mom_bwdMCS_ll_mu", &mom_bwdMCS_ll_mu);
-  my_event_->Branch("mom_bestMCS_ll_mu_NoSCE", &mom_bestMCS_ll_mu_NoSCE);
-  my_event_->Branch("mom_fwdMCS_ll_mu_NoSCE", &mom_fwdMCS_ll_mu_NoSCE);
-  my_event_->Branch("mom_Range_mu", &mom_Range_mu);
-  my_event_->Branch("mom_Range_p", &mom_Range_p);
-  my_event_->Branch("mom_Range_pi", &mom_Range_pi);
-  my_event_->Branch("mom_Range_mu_noSCE", &mom_Range_mu_noSCE);
-  my_event_->Branch("mom_Range_p_noSCE", &mom_Range_p_noSCE);
-  my_event_->Branch("mom_Range_pi_noSCE", &mom_Range_pi_noSCE);
-  my_event_->Branch("mom_range_PID_avg_noSCE", &mom_range_PID_avg_noSCE);
-  my_event_->Branch("missing_PT_range", &missing_PT_range);
-  my_event_->Branch("missing_PT_MCS", &missing_PT_MCS);
-  my_event_->Branch("vtx_x", &vtx_x);
-  my_event_->Branch("vtx_y", &vtx_y);
-  my_event_->Branch("vtx_z", &vtx_z);
-  my_event_->Branch("vtx_start_dist", &vtx_start_dist);
+  
+  my_event_->Branch("trk_vtx_x", &trk_vtx_x);
+  my_event_->Branch("trk_vtx_y", &trk_vtx_y);
+  my_event_->Branch("trk_vtx_z", &trk_vtx_z);
   my_event_->Branch("trk_start_x", &trk_start_x);
   my_event_->Branch("trk_start_y", &trk_start_y);
   my_event_->Branch("trk_start_z", &trk_start_z);
-  my_event_->Branch("vtx_x_MCS", &vtx_x_MCS);
-  my_event_->Branch("vtx_y_MCS", &vtx_y_MCS);
-  my_event_->Branch("vtx_z_MCS", &vtx_z_MCS);
-  my_event_->Branch("start_x", &start_x);
-  my_event_->Branch("start_y", &start_y);
-  my_event_->Branch("start_z", &start_z);
-  my_event_->Branch("end_x", &end_x);
-  my_event_->Branch("end_y", &end_y);
-  my_event_->Branch("end_z", &end_z);
-  my_event_->Branch("start_x_noSCE", &start_x_noSCE);
-  my_event_->Branch("start_y_noSCE", &start_y_noSCE);
-  my_event_->Branch("start_z_noSCE", &start_z_noSCE);
-  my_event_->Branch("end_x_noSCE", &end_x_noSCE);
-  my_event_->Branch("end_y_noSCE", &end_y_noSCE);
-  my_event_->Branch("end_z_noSCE", &end_z_noSCE);
+  my_event_->Branch("trk_end_x", &trk_end_x);
+  my_event_->Branch("trk_end_y", &trk_end_y);
+  my_event_->Branch("trk_end_z", &trk_end_z);
+
+  my_event_->Branch("trk_OutOfTime", &trk_OutOfTime);
+
+  my_event_->Branch("trk_contained", &trk_contained);
+  my_event_->Branch("vtx_InFV", &vtx_InFV);
+
+  my_event_->Branch("if_broken", &if_broken);
+  my_event_->Branch("trk_broken_len", &trk_broken_len);
+  my_event_->Branch("trk_broken_nr_merged", &trk_broken_nr_merged);
+  my_event_->Branch("trk_merged_ifcontained", &trk_merged_ifcontained);
+  my_event_->Branch("vtx_merged_InFV", &vtx_merged_InFV);
+  my_event_->Branch("if_newTrkThroughGoing", &if_newTrkThroughGoing);
+
+  my_event_->Branch("sin2_theta_pl0", &sin2_theta_pl0);
+  my_event_->Branch("sin2_theta_pl1", &sin2_theta_pl1);
+  my_event_->Branch("sin2_theta_pl2", &sin2_theta_pl2);
+  my_event_->Branch("sin2_phi_readout", &sin2_phi_readout);
+
   my_event_->Branch("trk_phi", &trk_phi);
   my_event_->Branch("trk_theta", &trk_theta);
   my_event_->Branch("trk_costheta", &trk_costheta);
-  my_event_->Branch("trk_phi_MCS", &trk_phi_MCS);
-  my_event_->Branch("trk_theta_MCS", &trk_theta_MCS);
-  my_event_->Branch("trk_costheta_MCS", &trk_costheta_MCS);
-  my_event_->Branch("trk_length_pl0", &trk_length_pl0);
-  my_event_->Branch("trk_length_pl1", &trk_length_pl1);
-  my_event_->Branch("trk_length_pl2", &trk_length_pl2);
-  my_event_->Branch("trk_length_avg", &trk_length_avg);
-  my_event_->Branch("trk_length_noSCE", &trk_length_noSCE);
-  my_event_->Branch("trk_ifcontained", &trk_ifcontained);
-  my_event_->Branch("trk_OutOfTime", &trk_OutOfTime);
-  my_event_->Branch("vtx_FV", &vtx_FV);
-  my_event_->Branch("vtx_MCS_FV", &vtx_MCS_FV);
 
-  my_event_->Branch("old_vtx_FV", &old_vtx_FV);
-  my_event_->Branch("old_trk_ifcontained", &old_trk_ifcontained);
+  my_event_->Branch("trk_length", &trk_length);
 
-  my_event_->Branch("sin2_theta_pl2", &sin2_theta_pl2);
-  my_event_->Branch("sin2_theta_pl1", &sin2_theta_pl1);
-  my_event_->Branch("sin2_theta_pl0", &sin2_theta_pl0);
-  my_event_->Branch("sin2_phi_readout", &sin2_phi_readout);
+  my_event_->Branch("mom_Range_mu", &mom_Range_mu);
+  my_event_->Branch("mom_Range_p", &mom_Range_p);
+  my_event_->Branch("mom_Range_pi", &mom_Range_pi);
 
-  my_event_->Branch("hits_dEdx_size_pl0", &hits_dEdx_size_pl0);
-  my_event_->Branch("hits_dEdx_size_pl1", &hits_dEdx_size_pl1);
-  my_event_->Branch("hits_dEdx_size_pl2", &hits_dEdx_size_pl2);
+  my_event_->Branch("bestMCS", &bestMCS);
+  my_event_->Branch("bestMCSLL", &bestMCSLL);
+  my_event_->Branch("fwdMCS", &fwdMCS);
+  my_event_->Branch("fwdMCSLL", &fwdMCSLL);
+  my_event_->Branch("bwdMCS", &bwdMCS);
+  my_event_->Branch("bwdMCSLL", &bwdMCSLL);
+  my_event_->Branch("bestMCSLL_NoSCE", &bestMCSLL_NoSCE);
+  my_event_->Branch("fwdMCSLL_NoSCE", &fwdMCSLL_NoSCE);
+  my_event_->Branch("bwdMCSLL_NoSCE", &bwdMCSLL_NoSCE);
+
+  my_event_->Branch("missing_PT_range", &missing_PT_range);
+  my_event_->Branch("missing_PT_MCS", &missing_PT_MCS);
+
+  my_event_->Branch("PID_Chi2Mu_3pl", &PID_Chi2Mu_3pl);
+  my_event_->Branch("PID_Chi2P_3pl", &PID_Chi2P_3pl);
+  my_event_->Branch("PID_Chi2Pi_3pl", &PID_Chi2Pi_3pl);
+  my_event_->Branch("PID_Chi2K_3pl", &PID_Chi2K_3pl);
+
+  my_event_->Branch("dEdx_pl0", &dEdx_pl0);
+  my_event_->Branch("dQdx_pl0", &dQdx_pl0);
+  my_event_->Branch("resRange_pl0", &resRange_pl0);
+  my_event_->Branch("dEdx_pl1", &dEdx_pl1);
+  my_event_->Branch("dQdx_pl1", &dQdx_pl1);
+  my_event_->Branch("resRange_pl1", &resRange_pl1);
+  my_event_->Branch("dEdx_pl2", &dEdx_pl2);
+  my_event_->Branch("dQdx_pl2", &dQdx_pl2);
+  my_event_->Branch("resRange_pl2", &resRange_pl2);
+
+  my_event_->Branch("dEdx_pl0_start_half", &dEdx_pl0_start_half);
+  my_event_->Branch("dEdx_pl1_start_half", &dEdx_pl1_start_half);
+  my_event_->Branch("dEdx_pl2_start_half", &dEdx_pl2_start_half);
+  my_event_->Branch("dEdx_pl0_end_half", &dEdx_pl0_end_half);
+  my_event_->Branch("dEdx_pl1_end_half", &dEdx_pl1_end_half);
+  my_event_->Branch("dEdx_pl2_end_half", &dEdx_pl2_end_half);
+
+  my_event_->Branch("dEdx_pl0_start1020", &dEdx_pl0_start1020);
+  my_event_->Branch("dEdx_pl1_start1020", &dEdx_pl1_start1020);
+  my_event_->Branch("dEdx_pl2_start1020", &dEdx_pl2_start1020);
+  my_event_->Branch("dEdx_pl0_end1020", &dEdx_pl0_end1020);
+  my_event_->Branch("dEdx_pl1_end1020", &dEdx_pl1_end1020);
+  my_event_->Branch("dEdx_pl2_end1020", &dEdx_pl2_end1020);
+
+  my_event_->Branch("dEdx_pl0_1020_ratio", &dEdx_pl0_1020_ratio);
+  my_event_->Branch("dEdx_pl0_half_ratio", &dEdx_pl0_half_ratio);
+  my_event_->Branch("dEdx_pl1_1020_ratio", &dEdx_pl1_1020_ratio);
+  my_event_->Branch("dEdx_pl1_half_ratio", &dEdx_pl1_half_ratio);
+  my_event_->Branch("dEdx_pl2_1020_ratio", &dEdx_pl2_1020_ratio);
+  my_event_->Branch("dEdx_pl2_half_ratio", &dEdx_pl2_half_ratio);
+
+  my_event_->Branch("avg_dEdx_LargeHit_pl0", &avg_dEdx_LargeHit_pl0);
+  my_event_->Branch("avg_dEdx_LargeHit_pl1", &avg_dEdx_LargeHit_pl1);
+  my_event_->Branch("avg_dEdx_LargeHit_pl2", &avg_dEdx_LargeHit_pl2);
+
+  my_event_->Branch("dEdx_pl0_mid", &dEdx_pl0_mid);
+  my_event_->Branch("dEdx_pl1_mid", &dEdx_pl1_mid);
+  my_event_->Branch("dEdx_pl2_mid", &dEdx_pl2_mid);
+
+  my_event_->Branch("charge_std_bin0", &charge_std_bin0);
+  my_event_->Branch("charge_std_bin1", &charge_std_bin1);
+  my_event_->Branch("charge_std_bin2", &charge_std_bin2);
+  my_event_->Branch("charge_std_bin3", &charge_std_bin3);
+  my_event_->Branch("charge_std_bin4", &charge_std_bin4);
+  my_event_->Branch("charge_std_bin5", &charge_std_bin5);
+  my_event_->Branch("charge_std_bin6", &charge_std_bin6);
+  my_event_->Branch("charge_std_bin7", &charge_std_bin7);
 
   my_event_->Branch("charge_avg_bin0", &charge_avg_bin0);
   my_event_->Branch("charge_avg_bin1", &charge_avg_bin1);
@@ -2053,136 +1681,13 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("charge_avg_bin6", &charge_avg_bin6);
   my_event_->Branch("charge_avg_bin7", &charge_avg_bin7);
 
-  my_event_->Branch("charge_std_bin0", &charge_std_bin0);
-  my_event_->Branch("charge_std_bin1", &charge_std_bin1);
-  my_event_->Branch("charge_std_bin2", &charge_std_bin2);
-  my_event_->Branch("charge_std_bin3", &charge_std_bin3);
-  my_event_->Branch("charge_std_bin4", &charge_std_bin4);
-  my_event_->Branch("charge_std_bin5", &charge_std_bin5);
-  my_event_->Branch("charge_std_bin6", &charge_std_bin6);
-  my_event_->Branch("charge_std_bin7", &charge_std_bin7);
-  
   my_event_->Branch("vtx_hit_distance", &vtx_hit_distance);
 
-  my_event_->Branch("avg_dEdx_LargeHit_pl0", &avg_dEdx_LargeHit_pl0);
-  my_event_->Branch("avg_dEdx_LargeHit_pl1", &avg_dEdx_LargeHit_pl1);
-  my_event_->Branch("avg_dEdx_LargeHit_pl2", &avg_dEdx_LargeHit_pl2);
-
-  my_event_->Branch("Nr_LargeHit_pl0", &Nr_LargeHit_pl0);
-  my_event_->Branch("Nr_endthird_LargeHit_pl0", &Nr_endthird_LargeHit_pl0);
-  my_event_->Branch("Nr_beginthird_LargeHit_pl0", &Nr_beginthird_LargeHit_pl0);
-
-  my_event_->Branch("Nr_LargeHit_pl1", &Nr_LargeHit_pl1);
-  my_event_->Branch("Nr_endthird_LargeHit_pl1", &Nr_endthird_LargeHit_pl1);
-  my_event_->Branch("Nr_beginthird_LargeHit_pl1", &Nr_beginthird_LargeHit_pl1);
-
-  my_event_->Branch("Nr_LargeHit_pl2", &Nr_LargeHit_pl2);
-  my_event_->Branch("Nr_endthird_LargeHit_pl2", &Nr_endthird_LargeHit_pl2);
-  my_event_->Branch("Nr_beginthird_LargeHit_pl2", &Nr_beginthird_LargeHit_pl2);
-
-  my_event_->Branch("dEdx_pl0", &dEdx_pl0);
-  my_event_->Branch("dEdx_pl1", &dEdx_pl1);
-  my_event_->Branch("dEdx_pl2", &dEdx_pl2);
-  //my_event_->Branch("dQdx_pl0", &dQdx_pl0);
-  //my_event_->Branch("dQdx_pl1", &dQdx_pl1);
-  //my_event_->Branch("dQdx_pl2", &dQdx_pl2);
-  my_event_->Branch("resRange_pl0", &resRange_pl0);
-  my_event_->Branch("resRange_pl1", &resRange_pl1);
-  my_event_->Branch("resRange_pl2", &resRange_pl2);
-  my_event_->Branch("pitch_pl0", &pitch_pl0);
-  my_event_->Branch("pitch_pl1", &pitch_pl1);
-  my_event_->Branch("pitch_pl2", &pitch_pl2);
-
-  my_event_->Branch("reverse_dEdx_pl0", &reverse_dEdx_pl0);
-  my_event_->Branch("reverse_dEdx_pl1", &reverse_dEdx_pl1);
-  my_event_->Branch("reverse_dEdx_pl2", &reverse_dEdx_pl2);
-  //my_event_->Branch("reverse_dQdx_pl0", &reverse_dQdx_pl0);
-  //my_event_->Branch("reverse_dQdx_pl1", &reverse_dQdx_pl1);
-  //my_event_->Branch("reverse_dQdx_pl2", &reverse_dQdx_pl2);
-  my_event_->Branch("reverse_resRange_pl0", &reverse_resRange_pl0);
-  my_event_->Branch("reverse_resRange_pl1", &reverse_resRange_pl1);
-  my_event_->Branch("reverse_resRange_pl2", &reverse_resRange_pl2);
-
-  my_event_->Branch("dEdx_pl0_start_half", &dEdx_pl0_start_half);
-  my_event_->Branch("dEdx_pl1_start_half", &dEdx_pl1_start_half);
-  my_event_->Branch("dEdx_pl2_start_half", &dEdx_pl2_start_half);
-  my_event_->Branch("dEdx_pl0_end_half", &dEdx_pl0_end_half);
-  my_event_->Branch("dEdx_pl1_end_half", &dEdx_pl1_end_half);
-  my_event_->Branch("dEdx_pl2_end_half", &dEdx_pl2_end_half);
-  my_event_->Branch("dEdx_pl0_start5", &dEdx_pl0_start5);
-  my_event_->Branch("dEdx_pl1_start5", &dEdx_pl1_start5);
-  my_event_->Branch("dEdx_pl2_start5", &dEdx_pl2_start5);
-  my_event_->Branch("dEdx_pl0_end5", &dEdx_pl0_end5);
-  my_event_->Branch("dEdx_pl1_end5", &dEdx_pl1_end5);
-  my_event_->Branch("dEdx_pl2_end5", &dEdx_pl2_end5);
-  my_event_->Branch("dEdx_pl0_start10", &dEdx_pl0_start10);
-  my_event_->Branch("dEdx_pl1_start10", &dEdx_pl1_start10);
-  my_event_->Branch("dEdx_pl2_start10", &dEdx_pl2_start10);
-  my_event_->Branch("dEdx_pl0_end10", &dEdx_pl0_end10);
-  my_event_->Branch("dEdx_pl1_end10", &dEdx_pl1_end10);
-  my_event_->Branch("dEdx_pl2_end10", &dEdx_pl2_end10);
-  my_event_->Branch("dEdx_pl0_start1020", &dEdx_pl0_start1020);
-  my_event_->Branch("dEdx_pl1_start1020", &dEdx_pl1_start1020);
-  my_event_->Branch("dEdx_pl2_start1020", &dEdx_pl2_start1020);
-  my_event_->Branch("dEdx_pl0_end1020", &dEdx_pl0_end1020);
-  my_event_->Branch("dEdx_pl1_end1020", &dEdx_pl1_end1020);
-  my_event_->Branch("dEdx_pl2_end1020", &dEdx_pl2_end1020);
-  my_event_->Branch("dEdx_pl0_start16", &dEdx_pl0_start16);
-  my_event_->Branch("dEdx_pl1_start16", &dEdx_pl1_start16);
-  my_event_->Branch("dEdx_pl2_start16", &dEdx_pl2_start16);
-  my_event_->Branch("dEdx_pl0_end16", &dEdx_pl0_end16);
-  my_event_->Branch("dEdx_pl1_end16", &dEdx_pl1_end16);
-  my_event_->Branch("dEdx_pl2_end16", &dEdx_pl2_end16);
- 
-  my_event_->Branch("dEdx_pl2_1020_ratio", &dEdx_pl2_1020_ratio);
-  my_event_->Branch("dEdx_pl2_10_ratio", &dEdx_pl2_10_ratio);
-  my_event_->Branch("dEdx_pl2_5_ratio", &dEdx_pl2_5_ratio);
-  my_event_->Branch("dEdx_pl2_16_ratio", &dEdx_pl2_16_ratio);
-  my_event_->Branch("dEdx_pl2_half_ratio", &dEdx_pl2_half_ratio);
-  
-  my_event_->Branch("dEdx_pl0_mid", &dEdx_pl0_mid);
-  my_event_->Branch("dEdx_pl1_mid", &dEdx_pl1_mid);
-  my_event_->Branch("dEdx_pl2_mid", &dEdx_pl2_mid);
-
-  my_event_->Branch("PID_Chi2Mu_pl0", &PID_Chi2Mu_pl0);
-  my_event_->Branch("PID_Chi2Mu_pl1", &PID_Chi2Mu_pl1);
-  my_event_->Branch("PID_Chi2Mu_pl2", &PID_Chi2Mu_pl2);
-  my_event_->Branch("PID_Chi2Mu_3pl", &PID_Chi2Mu_3pl);
-  my_event_->Branch("PID_Chi2P_pl0", &PID_Chi2P_pl0);
-  my_event_->Branch("PID_Chi2P_pl1", &PID_Chi2P_pl1);
-  my_event_->Branch("PID_Chi2P_pl2", &PID_Chi2P_pl2);
-  my_event_->Branch("PID_Chi2P_3pl", &PID_Chi2P_3pl);
-  my_event_->Branch("PID_Chi2Pi_pl0", &PID_Chi2Pi_pl0);
-  my_event_->Branch("PID_Chi2Pi_pl1", &PID_Chi2Pi_pl1);
-  my_event_->Branch("PID_Chi2Pi_pl2", &PID_Chi2Pi_pl2);
-  my_event_->Branch("PID_Chi2Pi_3pl", &PID_Chi2Pi_3pl);
-  my_event_->Branch("PID_Chi2K_pl0", &PID_Chi2K_pl0);
-  my_event_->Branch("PID_Chi2K_pl1", &PID_Chi2K_pl1);
-  my_event_->Branch("PID_Chi2K_pl2", &PID_Chi2K_pl2);
-  my_event_->Branch("PID_Chi2K_3pl", &PID_Chi2K_3pl);
-
-  my_event_->Branch("PID_Pdg_3pl", &PID_Pdg_3pl);
-  my_event_->Branch("PID_Pdg_pl2", &PID_Pdg_pl2);
-  my_event_->Branch("PID_Pdg_pl1", &PID_Pdg_pl1);
-  my_event_->Branch("PID_Pdg_pl0", &PID_Pdg_pl0);
-  my_event_->Branch("PID_avg_Chi2", &PID_avg_Chi2);
-  my_event_->Branch("PID_pl2_Chi2", &PID_pl2_Chi2);
-  my_event_->Branch("PID_pl1_Chi2", &PID_pl1_Chi2);
-  my_event_->Branch("PID_pl0_Chi2", &PID_pl0_Chi2);
-
-  my_event_->Branch("Pl0_for_PID", &Pl0_for_PID);
-  my_event_->Branch("Pl1_for_PID", &Pl1_for_PID);
-  my_event_->Branch("Pl2_for_PID", &Pl2_for_PID);
-  my_event_->Branch("BestPlane_PID", &BestPlane_PID);
-
-  my_event_->Branch("if_fwd_MCS", &if_fwd_MCS);
   my_event_->Branch("if_fwd_true", &if_fwd_true);
-  my_event_->Branch("if_fwd_dEdx10", &if_fwd_dEdx10);
+  my_event_->Branch("if_fwd_MCS", &if_fwd_MCS);
   my_event_->Branch("if_fwd_dEdx1020", &if_fwd_dEdx1020);
-  my_event_->Branch("dEdx_pl2_1020_ratio", &dEdx_pl2_1020_ratio);
-  my_event_->Branch("dEdx_pl2_10_ratio", &dEdx_pl2_10_ratio);
-  my_event_->Branch("dEdx_pl2_5_ratio", &dEdx_pl2_5_ratio);
   my_event_->Branch("if_fwd_dEdxhalf", &if_fwd_dEdxhalf);
+
 }
 
 void SingleMuon::endSubRun(art::SubRun const &sr){
