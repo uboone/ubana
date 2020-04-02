@@ -64,6 +64,8 @@
 #include "TClonesArray.h"
 #include "TObject.h"
 
+#include <tgmath.h>
+
 #include "FiducialVolume.h"
 #include "BackTrackerTruthMatch.h"
 #include "RecoTruthMCParticle.h"
@@ -112,61 +114,84 @@ private:
   
   void Initialize_event();
 
-  double EventWeight; // Spine reweight using Steven's tool  
+  double EventWeight = 1; // Spine reweight using Steven's tool  
   
-  bool MC_beamNeutrino; // MCTruth beam origin
-  bool MC_FV; // MCTruth vertex in FV = true, out of FV = false
-  bool MC_if_in_active; // MCTruth vertex in active volume = true, out of active volume = false
-  int MC_ccnc; // MCTruth cc = 0 or nc = 1
-  int MC_nupdg; // MCTruth nupdg; numu = 14, nue = 12
-  int MC_int_mode; // https://nusoft.fnal.gov/larsoft/doxsvn/html/MCNeutrino_8h_source.html
-  double MC_nu_E; // MCTruth nu energy
-  double MC_nuVtxX; // MCTruth nu vtx X
-  double MC_nuVtxY; // MCTruth nu vtx Y
-  double MC_nuVtxZ; // MCTruth nu vtx Z
-  int MC_nMuon; // Number of muon(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nElectron; // Number of eletron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nNeutron; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_below260; // Number of proton(s) (p<260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_above260; // Number of proton(s) (p >= 260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPi0; // Number of pi0(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiPlus_below65; // Number of pi plus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiPlus_above65; // Number of pi plus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiMinus_below65; // Number of pi minus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiMinus_above65; // Number of pi minus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  bool MC_beamNeutrino = false; // MCTruth beam origin
+  bool MC_FV = false; // MCTruth vertex in FV = true, out of FV = false
+  bool MC_if_in_active = false; // MCTruth vertex in active volume = true, out of active volume = false
+  int MC_ccnc = -999; // MCTruth cc = 0 or nc = 1
+  int MC_nupdg = -999; // MCTruth nupdg; numu = 14, nue = 12
+  int MC_int_mode = -999; // https://nusoft.fnal.gov/larsoft/doxsvn/html/MCNeutrino_8h_source.html
+  double MC_nu_E = -999; // MCTruth nu energy
+  double MC_nuVtxX = -999; // MCTruth nu vtx X
+  double MC_nuVtxY = -999; // MCTruth nu vtx Y
+  double MC_nuVtxZ = -999; // MCTruth nu vtx Z
+  int MC_nMuon = 0; // Number of muon(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nElectron = 0; // Number of eletron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nNeutron = 0; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_below260 = 0; // Number of proton(s) (p<260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_above260 = 0; // Number of proton(s) (p >= 260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPi0 = 0; // Number of pi0(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiPlus_below65 = 0; // Number of pi plus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiPlus_above65 = 0; // Number of pi plus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiMinus_below65 = 0; // Number of pi minus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiMinus_above65 = 0; // Number of pi minus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   std::vector<int> MC_Primary_PDG; // PDG of neutrino daughters
   std::vector<double> MC_Primary_Mom; // Momemtum of neutrino daughters
-  std::vector<double> MC_proton_true_Mom_above260; // Momentum of proton above 260 MeV
-  std::vector<double> MC_muon_true_Mom; // True Momentum of muon
-  std::vector<double> MC_muon_true_cos_theta; // True cos theta of muon
-  std::vector<double> MC_muon_true_phi; // True phi of muon
-  std::vector<double> MC_proton_true_cos_theta; // True cos theta of proton
-  std::vector<double> MC_proton_true_phi; // True phi of proton
+
+  std::vector<double> MC_muon_true_Mom;
+  std::vector<double> MC_muon_true_theta;
+  std::vector<double> MC_muon_true_cos_theta;
+  std::vector<double> MC_muon_true_phi;
+  std::vector<double> MC_muon_true_Px;
+  std::vector<double> MC_muon_true_Py;
+  std::vector<double> MC_muon_true_Pz;
+
+  // when the true proton is above 260 Mev
+  std::vector<double> MC_proton_true_Mom;
+  std::vector<double> MC_proton_true_theta;
+  std::vector<double> MC_proton_true_cos_theta;
+  std::vector<double> MC_proton_true_phi;
+  std::vector<double> MC_proton_true_Px;
+  std::vector<double> MC_proton_true_Py;
+  std::vector<double> MC_proton_true_Pz;
 
   std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
 
-  double Genie_Q2;
-  double Genie_q2;
-  double Genie_W;
-  int Genie_nNeutron_preFSI;// before FSI 
-  int Genie_nProton_preFSI;// before FSI 
-  int Genie_nPi0_preFSI;// before FSI 
-  int Genie_nPiPlus_preFSI;// before FSI 
-  int Genie_nPiMinus_preFSI;// before FSI 
+  double Genie_Q2 = -999;
+  double Genie_q2 = -999;
+  double Genie_W = -999;
+  int Genie_nNeutron_preFSI = 0;// before FSI 
+  int Genie_nProton_preFSI = 0;// before FSI 
+  int Genie_nPi0_preFSI = 0;// before FSI 
+  int Genie_nPiPlus_preFSI = 0;// before FSI 
+  int Genie_nPiMinus_preFSI = 0;// before FSI 
 
   int TopologyType;// The topology of true neutrino interaction + FSI products after Geant4
-  double MC_cos_ang_muon_proton; // cosine of the angle in between muon and proton
-  double dist_muon_proton; // distance between muon start and proton start
-  double len_Muon_0pi0p; // length of true muon
-  double len_Muon_0pi1p; // length of true muon
-  double len_Proton_0pi1p; // length of true proton
+
+  //true signal information CC0pi1p
+  double MC_muon_mom = -999;
+  double MC_muon_theta = -999;
+  double MC_muon_costheta = -999;
+  double MC_muon_phi = -999;
+
+  double MC_proton_mom = -999;
+  double MC_proton_theta = -999;
+  double MC_proton_costheta = -999;
+  double MC_proton_phi = -999;
+
+  double MC_cos_ang_muon_proton = -999;
+  double MC_PT = -999;
+  double MC_PL = -999;
 
   double flash_matching_chi2 = -999; //Chi2 of flash matching in each neutrino slice
+  double trigger_time = -999;
   double flash_YCenter = -999;
   double flash_YWidth = -999;
   double flash_ZCenter = -999;
   double flash_ZWidth = -999;
   double flash_TotalPE = -999;
+  double flash_time = -999;
 
   int n_pfp_nuDaughters;
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
@@ -313,10 +338,13 @@ private:
 
   double cos_ang_muon_proton = -999;
 
+  double dist_mu_p_start = -999;
+
+  double PT = -999;
+  double PL = -999;
+
   bool if_match_mu_p = false;
   bool if_match_mu_p_flipped = false;
-
-  double missing_PT = -999;
 
   bool                                IsMC;
   bool                                UsingCRT;
@@ -429,12 +457,6 @@ void SingleMuon::analyze(art::Event const& evt)
   evt.getByLabel(m_pandoraLabel, Handle_Slice);
   //std::vector< art::Ptr<recob::Slice> > AllSliceCollection;
   //art::fill_ptr_vector(AllSliceCollection, Handle_Slice);
-
-  //// SpacePoint
-  //art::Handle<std::vector<recob::SpacePoint> > Handle_SpacePoint;
-  //evt.getByLabel(m_pandoraLabel, Handle_SpacePoint);
-  //std::vector< art::Ptr<recob::SpacePoint> > AllSpacePointCollection;
-  //art::fill_ptr_vector(AllSpacePointCollection, Handle_SpacePoint);
 
   // Hit
   art::Handle<std::vector<recob::Hit> > Handle_Hit;
@@ -555,28 +577,6 @@ void SingleMuon::analyze(art::Event const& evt)
 
   if(IsMC){
     //------- Get part of the generator neutrino info
-    //Initiate the variables
-    MC_beamNeutrino = false;
-    MC_nupdg = -99999;
-    MC_ccnc = -99999;
-    MC_FV = false;
-
-    MC_nMuon = 0;
-    MC_nElectron = 0;
-    MC_nNeutron = 0;
-    MC_nProton_below260 = 0;
-    MC_nProton_above260 = 0;
-    MC_nPi0 = 0;
-    MC_nPiPlus_below65 = 0;
-    MC_nPiPlus_above65 = 0;
-    MC_nPiMinus_below65 = 0;
-    MC_nPiMinus_above65 = 0;
-
-    Genie_nNeutron_preFSI = 0;
-    Genie_nProton_preFSI = 0;
-    Genie_nPi0_preFSI = 0;
-    Genie_nPiPlus_preFSI = 0;
-    Genie_nPiMinus_preFSI = 0;
     
     for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
       if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) MC_beamNeutrino = true;
@@ -595,12 +595,6 @@ void SingleMuon::analyze(art::Event const& evt)
 
     // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
     // Not necessary all the Genie particles go through the geant4 stage?
-    TVector3 MuonDir;
-    TVector3 ProtonDir;
-    TVector3 MuonStart;
-    TVector3 ProtonStart;
-    TVector3 MuonEnd;
-    TVector3 ProtonEnd;
     if (MC_ccnc == 0 && MC_nupdg == 14 && MC_beamNeutrino == true){
       for(unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
         if(MCParticleCollection[i_mcp]->Process() == "primary"){
@@ -611,12 +605,15 @@ void SingleMuon::analyze(art::Event const& evt)
           // muon
           if(MCParticleCollection[i_mcp]->PdgCode() == 13){
             MC_nMuon++;
+
             MC_muon_true_Mom.push_back(MCParticleCollection[i_mcp]->P());
-            MuonDir.SetXYZ(MCParticleCollection[i_mcp]->Px(), MCParticleCollection[i_mcp]->Py(),MCParticleCollection[i_mcp]->Pz());
-            MuonStart.SetXYZ(MCParticleCollection[i_mcp]->Vx(), MCParticleCollection[i_mcp]->Vy(),MCParticleCollection[i_mcp]->Vz());
-            MuonEnd.SetXYZ(MCParticleCollection[i_mcp]->EndX(), MCParticleCollection[i_mcp]->EndY(),MCParticleCollection[i_mcp]->EndZ());
-            MC_muon_true_cos_theta.push_back(cos((MuonEnd - MuonStart).Theta()));
-            MC_muon_true_phi.push_back((MuonEnd - MuonStart).Phi());
+            MC_muon_true_theta.push_back(acos(MCParticleCollection[i_mcp]->Pz() / MCParticleCollection[i_mcp]->P()));
+            MC_muon_true_cos_theta.push_back(MCParticleCollection[i_mcp]->Pz() / MCParticleCollection[i_mcp]->P());
+            MC_muon_true_phi.push_back(atan2(MCParticleCollection[i_mcp]->Py(), MCParticleCollection[i_mcp]->Px()));
+
+            MC_muon_true_Px.push_back(MCParticleCollection[i_mcp]->Px());
+            MC_muon_true_Py.push_back(MCParticleCollection[i_mcp]->Py());
+            MC_muon_true_Pz.push_back(MCParticleCollection[i_mcp]->Pz());
           } 
           // electron
           if(MCParticleCollection[i_mcp]->PdgCode() == 11) MC_nElectron++;
@@ -626,10 +623,15 @@ void SingleMuon::analyze(art::Event const& evt)
           if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.260) MC_nProton_below260++;
           if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.260) {
             MC_nProton_above260++; 
-            MC_proton_true_Mom_above260.push_back(MCParticleCollection[i_mcp]->P());
-            ProtonDir.SetXYZ(MCParticleCollection[i_mcp]->Px(), MCParticleCollection[i_mcp]->Py(),MCParticleCollection[i_mcp]->Pz());
-            ProtonStart.SetXYZ(MCParticleCollection[i_mcp]->Vx(), MCParticleCollection[i_mcp]->Vy(),MCParticleCollection[i_mcp]->Vz());
-            ProtonEnd.SetXYZ(MCParticleCollection[i_mcp]->EndX(), MCParticleCollection[i_mcp]->EndY(),MCParticleCollection[i_mcp]->EndZ());
+
+            MC_proton_true_Mom.push_back(MCParticleCollection[i_mcp]->P());
+            MC_proton_true_theta.push_back(acos(MCParticleCollection[i_mcp]->Pz() / MCParticleCollection[i_mcp]->P()));
+            MC_proton_true_cos_theta.push_back(MCParticleCollection[i_mcp]->Pz() / MCParticleCollection[i_mcp]->P());
+            MC_proton_true_phi.push_back(atan2(MCParticleCollection[i_mcp]->Py(), MCParticleCollection[i_mcp]->Px()));
+      
+            MC_proton_true_Px.push_back(MCParticleCollection[i_mcp]->Px());
+            MC_proton_true_Py.push_back(MCParticleCollection[i_mcp]->Py());
+            MC_proton_true_Pz.push_back(MCParticleCollection[i_mcp]->Pz());
           }
           // pion0
           if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
@@ -646,16 +648,27 @@ void SingleMuon::analyze(art::Event const& evt)
     Topology topology;
     TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above260, MC_nProton_below260, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
     if(TopologyType == 1){
-      len_Muon_0pi0p = (MuonStart - MuonEnd).Mag();
     }
     // If it is cc0pi1p then there should be only information of 1p
     if(TopologyType == 2){
-      MC_cos_ang_muon_proton = (MuonDir * ProtonDir) / (MuonDir.Mag() * ProtonDir.Mag());
-      dist_muon_proton = (MuonStart - ProtonStart).Mag();
-      len_Muon_0pi1p = (MuonStart - MuonEnd).Mag();
-      len_Proton_0pi1p = (ProtonStart - ProtonEnd).Mag();
-      MC_proton_true_cos_theta.push_back(cos((ProtonEnd - ProtonStart).Theta()));
-      MC_proton_true_phi.push_back((ProtonEnd - ProtonStart).Phi());
+
+      MC_muon_mom = MC_muon_true_Mom.front();
+      MC_muon_theta = MC_muon_true_theta.front();
+      MC_muon_costheta = MC_muon_true_cos_theta.front();
+      MC_muon_phi = MC_muon_true_phi.front();
+
+      MC_proton_mom = MC_proton_true_Mom.front();
+      MC_proton_theta = MC_proton_true_theta.front();
+      MC_proton_costheta = MC_proton_true_cos_theta.front();
+      MC_proton_phi = MC_proton_true_phi.front();
+
+      TVector3 muon_dir(MC_muon_true_Px.front(), MC_muon_true_Py.front(), MC_muon_true_Pz.front());
+      TVector3 proton_dir(MC_proton_true_Px.front(), MC_proton_true_Py.front(), MC_proton_true_Pz.front());
+      MC_cos_ang_muon_proton = (muon_dir * proton_dir) / (muon_dir.Mag() * proton_dir.Mag());
+
+      MC_PT = sqrt((MC_muon_true_Px.front() + MC_proton_true_Px.front()) * (MC_muon_true_Px.front() + MC_proton_true_Px.front()) + (MC_muon_true_Py.front() + MC_proton_true_Py.front()) * (MC_muon_true_Py.front() + MC_proton_true_Py.front()));
+      MC_PL = abs(MC_muon_true_Pz.front() + MC_proton_true_Pz.front()); 
+
     }    
     // Get Genie info on how many particles produced
     for(unsigned int i_gn = 0; i_gn < GTruthCollection.size(); i_gn++){
@@ -681,6 +694,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
       if(flash_matching_T0.size() == 1){
         flash_matching_chi2 = flash_matching_T0.front()->TriggerConfidence();
+        trigger_time = flash_matching_T0.front()->Time();
       }
     
       if(flash_v.size() == 1){
@@ -689,6 +703,7 @@ void SingleMuon::analyze(art::Event const& evt)
         flash_ZCenter = flash_v[0]->ZCenter();
         flash_ZWidth = flash_v[0]->ZWidth();
         flash_TotalPE = flash_v[0]->TotalPE();
+        flash_time = flash_v[0]->Time();
       }
 
       // For CC0pi0p, we only consider the case with the number of neutrino daughters less than 6
@@ -1055,69 +1070,80 @@ void SingleMuon::analyze(art::Event const& evt)
         } // Finish looping the 2 tracks
 
         ///////////////////////
-        // Decide the vertex position, missing PT, which track is proton and which is muon
+        // Decide the vertex position, PT PL, which track is proton and which is muon
         //////////////////////
         //
         //-- Track particle ID (Set the threshold to be PID_Chi2P_3pl 95)
         // If we don't use track length for the moment
-        if(PID_Chi2P_3pl[0] <= 95 && PID_Chi2P_3pl[1] > 95){
+        if(PID_Chi2P_3pl[0] < 70 && PID_Chi2P_3pl[1] > 90){
           muon_idx = 1;
           proton_idx = 0;
         }
-        if(PID_Chi2P_3pl[0] > 95 && PID_Chi2P_3pl[1] <= 95){
+        if(PID_Chi2P_3pl[0] > 90 && PID_Chi2P_3pl[1] < 70){
           muon_idx = 0;
           proton_idx = 1;
         }
-        if(PID_Chi2P_3pl[0] <= 95 && PID_Chi2P_3pl[1] <= 95){
-          if(dEdx_pl2_mid[0] >= dEdx_pl2_mid[1]){
-            if(dEdx_pl2_mid[0] > 3.5){
-              muon_idx = 1;
-              proton_idx = 0;
-            }
-            else{
-              muon_idx = -1;
-              proton_idx = -1;
-            }
-          }
 
-          if(dEdx_pl2_mid[0] < dEdx_pl2_mid[1]){
-            if(dEdx_pl2_mid[1] > 3.5){
-              muon_idx = 0;
-              proton_idx = 1;
-            }
-            else{
-              muon_idx = -1;
-              proton_idx = -1;
-            }
-          }
-        }
-        if(PID_Chi2P_3pl[0] > 95 && PID_Chi2P_3pl[1] > 95){
-          // Maybe check the muon PID and decide the
-          if(dEdx_pl2_mid[0] >= dEdx_pl2_mid[1]){
-            if(dEdx_pl2_mid[0] > 3.5){
-              muon_idx = 1;
-              proton_idx = 0;
-            }
-            else{
-              muon_idx = -1;
-              proton_idx = -1;
-            }
-          }
 
-          if(dEdx_pl2_mid[0] < dEdx_pl2_mid[1]){
-            if(dEdx_pl2_mid[1] > 3.5){
-              muon_idx = 0;
-              proton_idx = 1;
-            }
-            else{
-              muon_idx = -1;
-              proton_idx = -1;
-            }
-          }
-        }
 
-        //-- Vertex and Others
+        //if(PID_Chi2P_3pl[0] <= 95 && PID_Chi2P_3pl[1] > 95){
+        //  muon_idx = 1;
+        //  proton_idx = 0;
+        //}
+        //if(PID_Chi2P_3pl[0] > 95 && PID_Chi2P_3pl[1] <= 95){
+        //  muon_idx = 0;
+        //  proton_idx = 1;
+        //}
+        //if(PID_Chi2P_3pl[0] <= 95 && PID_Chi2P_3pl[1] <= 95){
+        //  if(dEdx_pl2_mid[0] >= dEdx_pl2_mid[1]){
+        //    if(dEdx_pl2_mid[0] > 3.5){
+        //      muon_idx = 1;
+        //      proton_idx = 0;
+        //    }
+        //    else{
+        //      muon_idx = -1;
+        //      proton_idx = -1;
+        //    }
+        //  }
+
+        //  if(dEdx_pl2_mid[0] < dEdx_pl2_mid[1]){
+        //    if(dEdx_pl2_mid[1] > 3.5){
+        //      muon_idx = 0;
+        //      proton_idx = 1;
+        //    }
+        //    else{
+        //      muon_idx = -1;
+        //      proton_idx = -1;
+        //    }
+        //  }
+        //}
+        //if(PID_Chi2P_3pl[0] > 95 && PID_Chi2P_3pl[1] > 95){
+        //  // Maybe check the muon PID and decide the
+        //  if(dEdx_pl2_mid[0] >= dEdx_pl2_mid[1]){
+        //    if(dEdx_pl2_mid[0] > 3.5){
+        //      muon_idx = 1;
+        //      proton_idx = 0;
+        //    }
+        //    else{
+        //      muon_idx = -1;
+        //      proton_idx = -1;
+        //    }
+        //  }
+
+        //  if(dEdx_pl2_mid[0] < dEdx_pl2_mid[1]){
+        //    if(dEdx_pl2_mid[1] > 3.5){
+        //      muon_idx = 0;
+        //      proton_idx = 1;
+        //    }
+        //    else{
+        //      muon_idx = -1;
+        //      proton_idx = -1;
+        //    }
+        //  }
+        //}
+
         if(muon_idx >= 0 && proton_idx >= 0){
+          //-- Vertex and Others
           vtx_x = Trk_start_SCEcorr[muon_idx].X();
           vtx_y = Trk_start_SCEcorr[muon_idx].Y();
           vtx_z = Trk_start_SCEcorr[muon_idx].Z();
@@ -1139,6 +1165,25 @@ void SingleMuon::analyze(art::Event const& evt)
 
           cos_ang_muon_proton = (trk_startdir[muon_idx] * trk_startdir[proton_idx]) / (trk_startdir[muon_idx].Mag() * trk_startdir[proton_idx].Mag());
 
+          TVector 3 muon_start(Trk_start_SCEcorr[muon_idx].X(), Trk_start_SCEcorr[muon_idx].Y(), Trk_start_SCEcorr[muon_idx].Z());
+          TVector 3 proton_start(Trk_start_SCEcorr[proton_idx].X(), Trk_start_SCEcorr[proton_idx].Y(), Trk_start_SCEcorr[proton_idx].Z());
+          dist_mu_p_start = (muon_start - proton_start).Mag();
+
+          //-- PT and PL
+          // PT = PT(track 1) + PT(track 2) = sqrt((PT1_x + PT2_x)^2 + (PT1_y + PT2_y)^2)
+          // PL = PL(track 1) + PL(track 2) = abs(PL1_z + PL2_z)
+          if(muon_idx >= 0 && proton_idx >= 0){
+          float muon_PT_x = bestMCS[muon_idx] * sin(muon_cand_theta) * cos(muon_cand_phi);
+          float muon_PT_y = bestMCS[muon_idx] * sin(muon_cand_theta) * sin(muon_cand_phi);
+          float muon_PT_z = bestMCS[muon_idx] * cos(muon_cand_theta);
+
+          float proton_PT_x = Mom_Range_p[proton_idx] * sin(proton_cand_theta) * cos(proton_cand_phi);
+          float proton_PT_y = Mom_Range_p[proton_idx] * sin(proton_cand_theta) * sin(proton_cand_phi);
+          float proton_PT_z = Mom_Range_p[proton_idx] * cos(proton_cand_theta);
+
+          PT = sqrt((muon_PT_x + proton_PT_x) * (muon_PT_x + proton_PT_x) + (muon_PT_y + proton_PT_y) * (muon_PT_y + proton_PT_y));
+          PL = abs(muon_PT_z + proton_PT_z);
+
           if(IsMC){
             if(if_matchMu[muon_idx] == true && if_matchP[proton_idx] == true){
               if_match_mu_p = true;
@@ -1147,19 +1192,8 @@ void SingleMuon::analyze(art::Event const& evt)
               if_match_mu_p_flipped = true;
             }
           }
-        }
+        } // if there is a valid pair of muon and proton candidate
         
-        //-- Missing PT (no need to decide the PID of the tracks)
-        // PT = PT(track 1) + PT(track 2) = sqrt((PT1_x + PT2_x)^2 + (PT1_y + PT2_y)^2)
-        if(muon_idx >= 0 && proton_idx >= 0){
-          float muon_PT_x = bestMCS[muon_idx] * sin(daughter_Tracks[muon_idx]->Theta()) * cos(daughter_Tracks[muon_idx]->Phi());
-          float muon_PT_y = bestMCS[muon_idx] * sin(daughter_Tracks[muon_idx]->Theta()) * sin(daughter_Tracks[muon_idx]->Phi());
-          float proton_PT_x = Mom_Range_p[proton_idx] * sin(daughter_Tracks[proton_idx]->Theta()) * cos(daughter_Tracks[proton_idx]->Phi());
-          float proton_PT_y = Mom_Range_p[proton_idx] * sin(daughter_Tracks[proton_idx]->Theta()) * sin(daughter_Tracks[proton_idx]->Phi());
-
-          missing_PT = sqrt((muon_PT_x + proton_PT_x) * (muon_PT_x + proton_PT_x) + (muon_PT_y + proton_PT_y) * (muon_PT_y + proton_PT_y));
-        }
-
       } // If it is 2-primary-track selection
     } // If it is neutrino slice
   } // End of Loop over all pfparticles
@@ -1167,23 +1201,77 @@ void SingleMuon::analyze(art::Event const& evt)
   my_event_->Fill();
 
   if(IsMC){
+    MC_beamNeutrino = false;
+    MC_nupdg = -999;
+    MC_ccnc = -999;
+    MC_FV = false;
+    MC_if_in_active = false;
+    MC_int_mode = -999;
+    MC_nu_E = -999;
+    MC_nuVtxX = -999;
+    MC_nuVtxY = -999;
+    MC_nuVtxZ = -999;
+
+    MC_nMuon = 0;
+    MC_nElectron = 0;
+    MC_nNeutron = 0;
+    MC_nProton_below260 = 0;
+    MC_nProton_above260 = 0;
+    MC_nPi0 = 0;
+    MC_nPiPlus_below65 = 0;
+    MC_nPiPlus_above65 = 0;
+    MC_nPiMinus_below65 = 0;
+    MC_nPiMinus_above65 = 0;
+
     MC_Primary_PDG.clear();
     MC_Primary_Mom.clear();
-    MC_proton_true_Mom_above260.clear();
+    Ghost_PDG.clear();
+
     MC_muon_true_Mom.clear();
+    MC_muon_true_theta.clear();
     MC_muon_true_cos_theta.clear();
     MC_muon_true_phi.clear();
+    MC_muon_true_Px.clear();
+    MC_muon_true_Py.clear();
+    MC_muon_true_Pz.clear();
+
+    MC_proton_true_Mom.clear();
+    MC_proton_true_theta.clear();
     MC_proton_true_cos_theta.clear();
     MC_proton_true_phi.clear();
-    Ghost_PDG.clear();
+    MC_proton_true_Px.clear();
+    MC_proton_true_Py.clear();
+    MC_proton_true_Pz.clear();
+
+    MC_muon_mom = -999;
+    MC_muon_theta = -999;
+    MC_muon_costheta = -999;
+    MC_muon_phi = -999;
+  
+    MC_proton_mom = -999;
+    MC_proton_theta = -999;
+    MC_proton_costheta = -999;
+    MC_proton_phi = -999;
+  
+    MC_cos_ang_muon_proton = -999;
+    MC_PT = -999;
+    MC_PL = -999;
+
+    Genie_nNeutron_preFSI = 0;
+    Genie_nProton_preFSI = 0;
+    Genie_nPi0_preFSI = 0;
+    Genie_nPiPlus_preFSI = 0;
+    Genie_nPiMinus_preFSI = 0;
   }
 
   flash_matching_chi2 = -999; 
+  trigger_time = -999;
   flash_YCenter = -999;
   flash_YWidth = -999;
   flash_ZCenter = -999;
   flash_ZWidth = -999;
   flash_TotalPE = -999;
+  flash_time = -999;
 
   if_2tracks = false;
 
@@ -1324,10 +1412,13 @@ void SingleMuon::analyze(art::Event const& evt)
 
   cos_ang_muon_proton = -999;
 
+  dist_mu_p_start = -999;
+
+  PT = -999;
+  PL = -999;
+
   if_match_mu_p = false;
   if_match_mu_p_flipped = false;
-
-  missing_PT = -999;
 
 }
 
@@ -1349,11 +1440,6 @@ void SingleMuon::Initialize_event()
   if(IsMC){
     my_event_->Branch("EventWeight", &EventWeight);
     my_event_->Branch("TopologyType", &TopologyType);
-    my_event_->Branch("MC_cos_ang_muon_proton", &MC_cos_ang_muon_proton);
-    my_event_->Branch("dist_muon_proton", &dist_muon_proton);
-    my_event_->Branch("len_Muon_0pi0p", &len_Muon_0pi0p);
-    my_event_->Branch("len_Muon_0pi1p", &len_Muon_0pi1p);
-    my_event_->Branch("len_Proton_0pi1p", &len_Proton_0pi1p);
     my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
     my_event_->Branch("MC_int_mode", &MC_int_mode);
     my_event_->Branch("MC_nupdg", &MC_nupdg);
@@ -1376,12 +1462,21 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nPiMinus_above65", &MC_nPiMinus_above65);
     my_event_->Branch("MC_Primary_PDG", &MC_Primary_PDG);
     my_event_->Branch("MC_Primary_Mom", &MC_Primary_Mom);
-    my_event_->Branch("MC_proton_true_Mom_above260", &MC_proton_true_Mom_above260);
-    my_event_->Branch("MC_muon_true_Mom", &MC_muon_true_Mom);
-    my_event_->Branch("MC_muon_true_cos_theta", &MC_muon_true_cos_theta);
-    my_event_->Branch("MC_muon_true_phi", &MC_muon_true_phi);
-    my_event_->Branch("MC_proton_true_cos_theta", &MC_proton_true_cos_theta);
-    my_event_->Branch("MC_proton_true_phi", &MC_proton_true_phi);
+
+    my_event_->Branch("MC_muon_mom", &MC_muon_mom);
+    my_event_->Branch("MC_muon_theta", &MC_muon_theta);
+    my_event_->Branch("MC_muon_costheta", &MC_muon_costheta);
+    my_event_->Branch("MC_muon_phi", &MC_muon_phi);
+
+    my_event_->Branch("MC_proton_mom", &MC_proton_mom);
+    my_event_->Branch("MC_proton_theta", &MC_proton_theta);
+    my_event_->Branch("MC_proton_costheta", &MC_proton_costheta);
+    my_event_->Branch("MC_proton_phi", &MC_proton_phi);
+
+    my_event_->Branch("MC_cos_ang_muon_proton", &MC_cos_ang_muon_proton);
+    my_event_->Branch("MC_PT", &MC_PT);
+    my_event_->Branch("MC_PL", &MC_PL);
+
     my_event_->Branch("Ghost_PDG", &Ghost_PDG);
 
     my_event_->Branch("Genie_Q2", &Genie_Q2);
@@ -1414,11 +1509,13 @@ void SingleMuon::Initialize_event()
 
   }
   my_event_->Branch("flash_matching_chi2", &flash_matching_chi2);
+  my_event_->Branch("trigger_time", &trigger_time);
   my_event_->Branch("flash_YCenter", &flash_YCenter);
   my_event_->Branch("flash_YWidth", &flash_YWidth);
   my_event_->Branch("flash_ZCenter", &flash_ZCenter);
   my_event_->Branch("flash_ZWidth", &flash_ZWidth);
   my_event_->Branch("flash_TotalPE", &flash_TotalPE);
+  my_event_->Branch("flash_time", &flash_time);
 
   my_event_->Branch("n_pfp_nuDaughters", &n_pfp_nuDaughters);
   my_event_->Branch("n_dau_tracks", &n_dau_tracks);
@@ -1532,13 +1629,17 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("proton_cand_length", &proton_cand_length);
   
   my_event_->Branch("cos_ang_muon_proton", &cos_ang_muon_proton);
+  
+  my_event_->Branch("dist_mu_p_start", &dist_mu_p_start);
+  
+  my_event_->Branch("PT", &PT);
+  my_event_->Branch("PL", &PL);
 
   if(IsMC){
     my_event_->Branch("if_match_mu_p", &if_match_mu_p);
     my_event_->Branch("if_match_mu_p_flipped", &if_match_mu_p_flipped);
   }
 
-  my_event_->Branch("missing_PT", &missing_PT);
 }
 
 void SingleMuon::endSubRun(art::SubRun const &sr){

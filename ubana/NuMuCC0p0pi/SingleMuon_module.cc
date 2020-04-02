@@ -793,7 +793,14 @@ void SingleMuon::analyze(art::Event const& evt)
 
         if(flash_matching_T0.size() == 1){
           flash_matching_chi2 = flash_matching_T0.front()->TriggerConfidence();
+          
         }
+        //std::cout<<"flash_YCenter: "<< flash_YCenter<<" / "<<flash_matching_T0.front()->YCenter()<<std::endl;
+        std::cout<<"T0 time: "<< flash_matching_T0.front()->Time()<<std::endl;
+
+        std::cout<<"flash time: "<< flash_v[0]->Time()<<std::endl;
+        std::cout<<"flash time width: "<< flash_v[0]->TimeWidth()<<std::endl;
+        std::cout<<"flash abs time: "<< flash_v[0]->AbsTime()<<std::endl;
 
         //-- CRT related information
         if(UsingCRT){
@@ -1332,6 +1339,7 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_crt_time = -999;
   evt_CRTveto = false;
   evt_CRTveto_100 = false;
+  if_trk_CRT_out_Beam = false;
 
   trk_vtx_x = -999;
   trk_vtx_y = -999;
@@ -1541,11 +1549,20 @@ void SingleMuon::Initialize_event()
 
     my_event_->Branch("reco_MC_dist_vtx", &reco_MC_dist_vtx);
     my_event_->Branch("reco_MC_dist_vtx_noSCE", &reco_MC_dist_vtx_noSCE);
+    
+    my_event_->Branch("if_cosmic", &if_cosmic);
+    my_event_->Branch("if_matchPrimary", &if_matchPrimary);
+    my_event_->Branch("if_matchMu", &if_matchMu);
+    my_event_->Branch("trk_cosmic_percent", &trk_cosmic_percent);
+    my_event_->Branch("trk_purity", &trk_purity);
+    my_event_->Branch("trk_completeness", &trk_completeness);
   }
 
   my_event_->Branch("n_pfp_nuDaughters", &n_pfp_nuDaughters);
   my_event_->Branch("n_dau_tracks", &n_dau_tracks);
   my_event_->Branch("n_dau_showers", &n_dau_showers);
+
+  my_event_->Branch("if_1track", &if_1track);
   
   my_event_->Branch("nr_granddau_shw", &nr_granddau_shw);
   my_event_->Branch("nr_granddau_trk", &nr_granddau_trk);
@@ -1568,6 +1585,7 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("Nr_crthit_inBeam", &Nr_crthit_inBeam);
   my_event_->Branch("Nr_trk_asso_crthit", &Nr_trk_asso_crthit);
   my_event_->Branch("trk_crt_time", &trk_crt_time);
+  my_event_->Branch("if_trk_CRT_out_Beam", &if_trk_CRT_out_Beam);
   
   my_event_->Branch("trk_vtx_x", &trk_vtx_x);
   my_event_->Branch("trk_vtx_y", &trk_vtx_y);
