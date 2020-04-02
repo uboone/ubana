@@ -167,7 +167,7 @@ private:
   int Genie_nPiPlus_preFSI = 0;// before FSI 
   int Genie_nPiMinus_preFSI = 0;// before FSI 
 
-  int TopologyType;// The topology of true neutrino interaction + FSI products after Geant4
+  int TopologyType = -999;// The topology of true neutrino interaction + FSI products after Geant4
 
   //true signal information CC0pi1p
   double MC_muon_mom = -999;
@@ -647,9 +647,7 @@ void SingleMuon::analyze(art::Event const& evt)
  
     Topology topology;
     TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above260, MC_nProton_below260, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
-    if(TopologyType == 1){
-    }
-    // If it is cc0pi1p then there should be only information of 1p
+    // [CC0pi1p] Store true kinematic information for efficiency study 
     if(TopologyType == 2){
 
       MC_muon_mom = MC_muon_true_Mom.front();
@@ -1165,14 +1163,13 @@ void SingleMuon::analyze(art::Event const& evt)
 
           cos_ang_muon_proton = (trk_startdir[muon_idx] * trk_startdir[proton_idx]) / (trk_startdir[muon_idx].Mag() * trk_startdir[proton_idx].Mag());
 
-          TVector 3 muon_start(Trk_start_SCEcorr[muon_idx].X(), Trk_start_SCEcorr[muon_idx].Y(), Trk_start_SCEcorr[muon_idx].Z());
-          TVector 3 proton_start(Trk_start_SCEcorr[proton_idx].X(), Trk_start_SCEcorr[proton_idx].Y(), Trk_start_SCEcorr[proton_idx].Z());
+          TVector3 muon_start(Trk_start_SCEcorr[muon_idx].X(), Trk_start_SCEcorr[muon_idx].Y(), Trk_start_SCEcorr[muon_idx].Z());
+          TVector3 proton_start(Trk_start_SCEcorr[proton_idx].X(), Trk_start_SCEcorr[proton_idx].Y(), Trk_start_SCEcorr[proton_idx].Z());
           dist_mu_p_start = (muon_start - proton_start).Mag();
 
           //-- PT and PL
           // PT = PT(track 1) + PT(track 2) = sqrt((PT1_x + PT2_x)^2 + (PT1_y + PT2_y)^2)
           // PL = PL(track 1) + PL(track 2) = abs(PL1_z + PL2_z)
-          if(muon_idx >= 0 && proton_idx >= 0){
           float muon_PT_x = bestMCS[muon_idx] * sin(muon_cand_theta) * cos(muon_cand_phi);
           float muon_PT_y = bestMCS[muon_idx] * sin(muon_cand_theta) * sin(muon_cand_phi);
           float muon_PT_z = bestMCS[muon_idx] * cos(muon_cand_theta);
@@ -1226,6 +1223,8 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_Primary_PDG.clear();
     MC_Primary_Mom.clear();
     Ghost_PDG.clear();
+
+    TopologyType = -999;
 
     MC_muon_true_Mom.clear();
     MC_muon_true_theta.clear();

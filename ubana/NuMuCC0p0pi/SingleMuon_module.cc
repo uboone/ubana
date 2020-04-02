@@ -112,54 +112,61 @@ private:
   
   void Initialize_event();
 
-  double EventWeight; // Spine reweight using Steven's tool  
+  double EventWeight = 1; // Spine reweight using Steven's tool  
   
-  bool MC_beamNeutrino; // MCTruth beam origin
-  bool MC_FV; // MCTruth vertex in FV = true, out of FV = false
-  bool MC_if_in_active; // MCTruth vertex in active volume = true, out of active volume = false
-  int MC_ccnc; // MCTruth cc = 0 or nc = 1
-  int MC_nupdg; // MCTruth nupdg; numu = 14, nue = 12
-  int MC_int_mode; // https://nusoft.fnal.gov/larsoft/doxsvn/html/MCNeutrino_8h_source.html
-  double MC_nu_E; // MCTruth nu energy
-  double MC_nuVtxX; // MCTruth nu vtx X
-  double MC_nuVtxY; // MCTruth nu vtx Y
-  double MC_nuVtxZ; // MCTruth nu vtx Z
-  int MC_nMuon; // Number of muon(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nElectron; // Number of eletron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nNeutron; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_below260; // Number of proton(s) (p<260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nProton_above260; // Number of proton(s) (p >= 260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPi0; // Number of pi0(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiPlus_below65; // Number of pi plus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiPlus_above65; // Number of pi plus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiMinus_below65; // Number of pi minus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
-  int MC_nPiMinus_above65; // Number of pi minus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  bool MC_beamNeutrino = false; // MCTruth beam origin
+  bool MC_FV = false; // MCTruth vertex in FV = true, out of FV = false
+  bool MC_if_in_active = false; // MCTruth vertex in active volume = true, out of active volume = false
+  int MC_ccnc = -999; // MCTruth cc = 0 or nc = 1
+  int MC_nupdg = -999; // MCTruth nupdg; numu = 14, nue = 12
+  int MC_int_mode = -999; // https://nusoft.fnal.gov/larsoft/doxsvn/html/MCNeutrino_8h_source.html
+  double MC_nu_E = -999; // MCTruth nu energy
+  double MC_nuVtxX = -999; // MCTruth nu vtx X
+  double MC_nuVtxY = -999; // MCTruth nu vtx Y
+  double MC_nuVtxZ = -999; // MCTruth nu vtx Z
+
+  int MC_nMuon = 0; // Number of muon(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nElectron = 0; // Number of eletron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nNeutron = 0; // Number of neutron(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_below260 = 0; // Number of proton(s) (p<260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nProton_above260 = 0; // Number of proton(s) (p >= 260) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPi0 = 0; // Number of pi0(s) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiPlus_below65 = 0; // Number of pi plus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiPlus_above65 = 0; // Number of pi plus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiMinus_below65 = 0; // Number of pi minus(s) (p < 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
+  int MC_nPiMinus_above65 = 0; // Number of pi minus(s) (p > 65MeV) from MCParticles, neutrino interaction + FSI for cc events (NC: default value)
   std::vector<int> MC_Primary_PDG; // PDG of neutrino daughters
   std::vector<double> MC_Primary_Mom; // Momemtum of neutrino daughters
-  std::vector<double> MC_proton_true_Mom_above260; // Momentum of proton above 260 MeV
-  std::vector<double> MC_muon_true_Mom; // True Momentum of muon
-  std::vector<double> MC_muon_true_cos_theta; // True cos theta of muon
-  std::vector<double> MC_muon_true_phi; // True phi of muon
-  std::vector<double> MC_proton_true_cos_theta; // True cos theta of proton
-  std::vector<double> MC_proton_true_phi; // True phi of proton
+ 
+  std::vector<double> MC_muon_true_Mom;
+  std::vector<double> MC_muon_true_theta;
+  std::vector<double> MC_muon_true_cos_theta;
+  std::vector<double> MC_muon_true_phi;
+  std::vector<double> MC_muon_true_Px;
+  std::vector<double> MC_muon_true_Py;
+  std::vector<double> MC_muon_true_Pz;
 
   std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
 
-  double Genie_Q2;
-  double Genie_q2;
-  double Genie_W;
-  int Genie_nNeutron_preFSI;// before FSI 
-  int Genie_nProton_preFSI;// before FSI 
-  int Genie_nPi0_preFSI;// before FSI 
-  int Genie_nPiPlus_preFSI;// before FSI 
-  int Genie_nPiMinus_preFSI;// before FSI 
+  double Genie_Q2 = -999;
+  double Genie_q2 = -999;
+  double Genie_W = -999;
+  int Genie_nNeutron_preFSI = 0;// before FSI 
+  int Genie_nProton_preFSI = 0;// before FSI 
+  int Genie_nPi0_preFSI = 0;// before FSI 
+  int Genie_nPiPlus_preFSI = 0;// before FSI 
+  int Genie_nPiMinus_preFSI = 0;// before FSI 
 
-  int TopologyType;// The topology of true neutrino interaction + FSI products after Geant4
-  double cos_ang_muon_proton; // cosine of the angle in between muon and proton
-  double dist_muon_proton; // distance between muon start and proton start
-  double len_Muon_0pi0p; // length of true muon
-  double len_Muon_0pi1p; // length of true muon
-  double len_Proton_0pi1p; // length of true proton
+  int TopologyType = -999;// The topology of true neutrino interaction + FSI products after Geant4
+
+  //true signal information CC0pi1p
+  double MC_muon_mom = -999;
+  double MC_muon_theta = -999;
+  double MC_muon_costheta = -999;
+  double MC_muon_phi = -999;
+
+  double MC_PT = -999;
+  double MC_PL = -999;
 
   int n_pfp_nuDaughters = 0; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks = 0; // number of tracks asssociated to pfp neutrino daughters
@@ -175,11 +182,13 @@ private:
   bool if_1track = false; // If selected based on the reco info
 
   double flash_matching_chi2 = -999; //Chi2 of flash matching in each neutrino slice
+  double trigger_time = -999;
   double flash_YCenter = -999;
   double flash_YWidth = -999;
   double flash_ZCenter = -999;
   double flash_ZWidth = -999;
   double flash_TotalPE = -999;
+  double flash_time = -999;
 
   std::vector<double> crthit_PE; // The photonelectrons of CRT hits which are in beam window
   std::vector<double> crthit_plane; // Plane of CRT hits
@@ -200,6 +209,16 @@ private:
   double trk_end_x = -999;
   double trk_end_y = -999;
   double trk_end_z = -999;
+
+  double trk_vtx_x_noSCE = -999;
+  double trk_vtx_y_noSCE = -999;
+  double trk_vtx_z_noSCE = -999;
+  double trk_start_x_noSCE = -999;
+  double trk_start_y_noSCE = -999;
+  double trk_start_z_noSCE = -999;
+  double trk_end_x_noSCE = -999;
+  double trk_end_y_noSCE = -999;
+  double trk_end_z_noSCE = -999;
 
   bool trk_OutOfTime = false;
 
@@ -239,8 +258,10 @@ private:
   double fwdMCSLL_NoSCE = -999;
   double bwdMCSLL_NoSCE = -999;
 
-  double missing_PT_range = -999;
-  double missing_PT_MCS = -999;
+  double PT_range = -999;
+  double PL_range = -999;
+  double PT_MCS = -999;
+  double PL_MCS = -999;
 
   double PID_Chi2Mu_3pl = -999;
   double PID_Chi2P_3pl = -999;
@@ -287,6 +308,45 @@ private:
   double dEdx_pl0_mid = -999;
   double dEdx_pl1_mid = -999;
   double dEdx_pl2_mid = -999;
+
+  double dEdx_pl0_start_half_clean = -999;
+  double dEdx_pl1_start_half_clean = -999;
+  double dEdx_pl2_start_half_clean = -999;
+  double dEdx_pl0_end_half_clean = -999;
+  double dEdx_pl1_end_half_clean = -999;
+  double dEdx_pl2_end_half_clean = -999;
+
+  double dEdx_pl0_start1020_clean = -999;
+  double dEdx_pl1_start1020_clean = -999;
+  double dEdx_pl2_start1020_clean = -999;
+  double dEdx_pl0_end1020_clean = -999;
+  double dEdx_pl1_end1020_clean = -999;
+  double dEdx_pl2_end1020_clean = -999;
+
+  double dEdx_pl0_start5_clean = -999;
+  double dEdx_pl1_start5_clean = -999;
+  double dEdx_pl2_start5_clean = -999;
+  double dEdx_pl0_end5_clean = -999;
+  double dEdx_pl1_end5_clean = -999;
+  double dEdx_pl2_end5_clean = -999;
+
+  double dEdx_pl0_5_ratio_clean = -999;
+  double dEdx_pl0_1020_ratio_clean = -999;
+  double dEdx_pl0_half_ratio_clean = -999;
+  double dEdx_pl1_5_ratio_clean = -999;
+  double dEdx_pl1_1020_ratio_clean = -999;
+  double dEdx_pl1_half_ratio_clean = -999;
+  double dEdx_pl2_5_ratio_clean = -999;
+  double dEdx_pl2_1020_ratio_clean = -999;
+  double dEdx_pl2_half_ratio_clean = -999;
+
+  double avg_dEdx_LargeHit_pl0_clean = -999;
+  double avg_dEdx_LargeHit_pl1_clean = -999;
+  double avg_dEdx_LargeHit_pl2_clean = -999;
+
+  double dEdx_pl0_mid_clean = -999;
+  double dEdx_pl1_mid_clean = -999;
+  double dEdx_pl2_mid_clean = -999;
 
   double charge_std_bin0 = -999; // the multiplication of charge in bin 0 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
   double charge_std_bin1 = -999; // the multiplication of charge in bin 1 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
@@ -581,28 +641,6 @@ void SingleMuon::analyze(art::Event const& evt)
 
   if(IsMC){
     //------- Get part of the generator neutrino info
-    //Initiate the variables
-    MC_beamNeutrino = false;
-    MC_nupdg = -99999;
-    MC_ccnc = -99999;
-    MC_FV = false;
-
-    MC_nMuon = 0;
-    MC_nElectron = 0;
-    MC_nNeutron = 0;
-    MC_nProton_below260 = 0;
-    MC_nProton_above260 = 0;
-    MC_nPi0 = 0;
-    MC_nPiPlus_below65 = 0;
-    MC_nPiPlus_above65 = 0;
-    MC_nPiMinus_below65 = 0;
-    MC_nPiMinus_above65 = 0;
-
-    Genie_nNeutron_preFSI = 0;
-    Genie_nProton_preFSI = 0;
-    Genie_nPi0_preFSI = 0;
-    Genie_nPiPlus_preFSI = 0;
-    Genie_nPiMinus_preFSI = 0;
     
     for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
       if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) MC_beamNeutrino = true;
@@ -621,12 +659,6 @@ void SingleMuon::analyze(art::Event const& evt)
 
     // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
     // Not necessary all the Genie particles go through the geant4 stage?
-    TVector3 MuonDir;
-    TVector3 ProtonDir;
-    TVector3 MuonStart;
-    TVector3 ProtonStart;
-    TVector3 MuonEnd;
-    TVector3 ProtonEnd;
     if (MC_ccnc == 0 && MC_nupdg == 14 && MC_beamNeutrino == true){
       for(unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
         if(MCParticleCollection[i_mcp]->Process() == "primary"){
@@ -637,12 +669,16 @@ void SingleMuon::analyze(art::Event const& evt)
           // muon
           if(MCParticleCollection[i_mcp]->PdgCode() == 13){
             MC_nMuon++;
+    
             MC_muon_true_Mom.push_back(MCParticleCollection[i_mcp]->P());
-            MuonDir.SetXYZ(MCParticleCollection[i_mcp]->Px(), MCParticleCollection[i_mcp]->Py(),MCParticleCollection[i_mcp]->Pz());
-            MuonStart.SetXYZ(MCParticleCollection[i_mcp]->Vx(), MCParticleCollection[i_mcp]->Vy(),MCParticleCollection[i_mcp]->Vz());
-            MuonEnd.SetXYZ(MCParticleCollection[i_mcp]->EndX(), MCParticleCollection[i_mcp]->EndY(),MCParticleCollection[i_mcp]->EndZ());
-            MC_muon_true_cos_theta.push_back(cos((MuonEnd - MuonStart).Theta()));
-            MC_muon_true_phi.push_back((MuonEnd - MuonStart).Phi());
+            MC_muon_true_theta.push_back(acos(MCParticleCollection[i_mcp]->Pz() / MCParticleCollection[i_mcp]->P()));
+            MC_muon_true_cos_theta.push_back(MCParticleCollection[i_mcp]->Pz() / MCParticleCollection[i_mcp]->P());
+            MC_muon_true_phi.push_back(atan2(MCParticleCollection[i_mcp]->Py(), MCParticleCollection[i_mcp]->Px()));
+
+            MC_muon_true_Px.push_back(MCParticleCollection[i_mcp]->Px());
+            MC_muon_true_Py.push_back(MCParticleCollection[i_mcp]->Py());
+            MC_muon_true_Pz.push_back(MCParticleCollection[i_mcp]->Pz());
+
           } 
           // electron
           if(MCParticleCollection[i_mcp]->PdgCode() == 11) MC_nElectron++;
@@ -652,10 +688,6 @@ void SingleMuon::analyze(art::Event const& evt)
           if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.260) MC_nProton_below260++;
           if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.260) {
             MC_nProton_above260++; 
-            MC_proton_true_Mom_above260.push_back(MCParticleCollection[i_mcp]->P());
-            ProtonDir.SetXYZ(MCParticleCollection[i_mcp]->Px(), MCParticleCollection[i_mcp]->Py(),MCParticleCollection[i_mcp]->Pz());
-            ProtonStart.SetXYZ(MCParticleCollection[i_mcp]->Vx(), MCParticleCollection[i_mcp]->Vy(),MCParticleCollection[i_mcp]->Vz());
-            ProtonEnd.SetXYZ(MCParticleCollection[i_mcp]->EndX(), MCParticleCollection[i_mcp]->EndY(),MCParticleCollection[i_mcp]->EndZ());
           }
           // pion0
           if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
@@ -671,18 +703,18 @@ void SingleMuon::analyze(art::Event const& evt)
  
     Topology topology;
     TopologyType = topology.TopologyLabel(MC_nMuon, MC_nElectron, MC_nPiPlus_above65, MC_nPiPlus_below65, MC_nPiMinus_above65, MC_nPiMinus_below65, MC_nPi0, MC_nProton_above260, MC_nProton_below260, MC_nupdg, MC_ccnc, MC_beamNeutrino, MC_FV);
+    // [CC0pi0p] Store true kinematic information for efficiency study
     if(TopologyType == 1){
-      len_Muon_0pi0p = (MuonStart - MuonEnd).Mag();
+
+      MC_muon_mom = MC_muon_true_Mom.front();
+      MC_muon_theta = MC_muon_true_theta.front();
+      MC_muon_costheta = MC_muon_true_cos_theta.front();
+      MC_muon_phi = MC_muon_true_phi.front();
+
+      MC_PT = sqrt(MC_muon_true_Px.front() * MC_muon_true_Px.front() + MC_muon_true_Py.front() * MC_muon_true_Py.front());
+      MC_PL = abs(MC_muon_true_Pz.front());      
     }
-    // If it is cc0pi1p then there should be only information of 1p
-    if(TopologyType == 2){
-      cos_ang_muon_proton = (MuonDir * ProtonDir) / (MuonDir.Mag() * ProtonDir.Mag());
-      dist_muon_proton = (MuonStart - ProtonStart).Mag();
-      len_Muon_0pi1p = (MuonStart - MuonEnd).Mag();
-      len_Proton_0pi1p = (ProtonStart - ProtonEnd).Mag();
-      MC_proton_true_cos_theta.push_back(cos((ProtonEnd - ProtonStart).Theta()));
-      MC_proton_true_phi.push_back((ProtonEnd - ProtonStart).Phi());
-    }    
+
     // Get Genie info on how many particles produced
     for(unsigned int i_gn = 0; i_gn < GTruthCollection.size(); i_gn++){
       Genie_Q2 = GTruthCollection[i_gn]->fgQ2;
@@ -788,19 +820,14 @@ void SingleMuon::analyze(art::Event const& evt)
           flash_ZCenter = flash_v[0]->ZCenter();         
           flash_ZWidth = flash_v[0]->ZWidth();         
           flash_TotalPE = flash_v[0]->TotalPE();         
+          flash_time = flash_v[0]->Time();
         }
         auto flash_matching_T0 = pfpToT0Asso.at(pfp.key());
 
         if(flash_matching_T0.size() == 1){
           flash_matching_chi2 = flash_matching_T0.front()->TriggerConfidence();
-          
+          trigger_time = flash_matching_T0.front()->Time(); 
         }
-        //std::cout<<"flash_YCenter: "<< flash_YCenter<<" / "<<flash_matching_T0.front()->YCenter()<<std::endl;
-        std::cout<<"T0 time: "<< flash_matching_T0.front()->Time()<<std::endl;
-
-        std::cout<<"flash time: "<< flash_v[0]->Time()<<std::endl;
-        std::cout<<"flash time width: "<< flash_v[0]->TimeWidth()<<std::endl;
-        std::cout<<"flash abs time: "<< flash_v[0]->AbsTime()<<std::endl;
 
         //-- CRT related information
         if(UsingCRT){
@@ -867,6 +894,10 @@ void SingleMuon::analyze(art::Event const& evt)
         trk_vtx_y = Trk_vtx_SCEcorr.Y();
         trk_vtx_z = Trk_vtx_SCEcorr.Z();
 
+        trk_vtx_x_noSCE = Trk_vtx.X();
+        trk_vtx_y_noSCE = Trk_vtx.Y();
+        trk_vtx_z_noSCE = Trk_vtx.Z();
+
         Trk_start = daughter_Tracks.front()->Start<TVector3>();
         auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
         Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
@@ -877,6 +908,10 @@ void SingleMuon::analyze(art::Event const& evt)
         trk_start_y = Trk_start_SCEcorr.Y();
         trk_start_z = Trk_start_SCEcorr.Z();
 
+        trk_start_x_noSCE = Trk_start.X();
+        trk_start_y_noSCE = Trk_start.Y();
+        trk_start_z_noSCE = Trk_start.Z();
+
         Trk_end = daughter_Tracks.front()->End<TVector3>();
         auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
         Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X());
@@ -886,6 +921,10 @@ void SingleMuon::analyze(art::Event const& evt)
         trk_end_x = Trk_end_SCEcorr.X();
         trk_end_y = Trk_end_SCEcorr.Y();
         trk_end_z = Trk_end_SCEcorr.Z();
+
+        trk_end_x_noSCE = Trk_end.X();
+        trk_end_y_noSCE = Trk_end.Y();
+        trk_end_z_noSCE = Trk_end.Z();
 
         //-- if either of the track end is out of the time, label them 
         if(trk_start_x < 0 || trk_start_x > 2. * geo->DetHalfWidth() || trk_end_x < 0 || trk_end_x > 2. * geo->DetHalfWidth()){
@@ -964,9 +1003,11 @@ void SingleMuon::analyze(art::Event const& evt)
         fwdMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->fwdLogLikelihood();
         bwdMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->bwdLogLikelihood();
 
-        //-- Missing PT
-        missing_PT_range = mom_Range_mu * sin(trk_theta);
-        missing_PT_MCS = bestMCS * sin(trk_theta);
+        //-- PT and PL
+        PT_range = abs(mom_Range_mu * sin(trk_theta));
+        PL_range = abs(mom_Range_mu * cos(trk_theta));
+        PT_MCS = abs(bestMCS * sin(trk_theta));
+        PL_MCS = abs(bestMCS * cos(trk_theta));
 
         //-- dE/dx
         // pandoracaliSCE has E-field and spatial correction
@@ -1007,7 +1048,7 @@ void SingleMuon::analyze(art::Event const& evt)
         dEdx_pl2_end_half = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
 
         // dEdx_1020
-        if (dEdx_pl0.size()<=30) {
+        if (dEdx_pl0.size()<=40) {
           dEdx_pl0_start1020 = dEdx_pl0_start_half;
           dEdx_pl0_end1020 = dEdx_pl0_end_half;
         }
@@ -1015,7 +1056,7 @@ void SingleMuon::analyze(art::Event const& evt)
           dEdx_pl0_start1020 = std::accumulate(dEdx_pl0.end() - 20, dEdx_pl0.end() - 10, 0.) / 10.;
           dEdx_pl0_end1020 = std::accumulate(dEdx_pl0.begin() + 10, dEdx_pl0.begin() + 20, 0.) / 10.;
         }
-        if (dEdx_pl1.size()<=30) {
+        if (dEdx_pl1.size()<=40) {
           dEdx_pl1_start1020 = dEdx_pl1_start_half;
           dEdx_pl1_end1020 = dEdx_pl1_end_half;
         }
@@ -1023,7 +1064,7 @@ void SingleMuon::analyze(art::Event const& evt)
           dEdx_pl1_start1020 = std::accumulate(dEdx_pl1.end() - 20, dEdx_pl1.end() - 10, 0.) / 10.;
           dEdx_pl1_end1020 = std::accumulate(dEdx_pl1.begin() + 10, dEdx_pl1.begin() + 20, 0.) / 10.;
         }
-        if (dEdx_pl2.size()<=30) {
+        if (dEdx_pl2.size()<=40) {
           dEdx_pl2_start1020 = dEdx_pl2_start_half;
           dEdx_pl2_end1020 = dEdx_pl2_end_half;
         }
@@ -1101,6 +1142,178 @@ void SingleMuon::analyze(art::Event const& evt)
         }
         else {
           dEdx_pl2_mid = 0;
+        }
+
+        //-- Clean dE/dx, remove dE/dx is below 0.5 and above 70 MeV (artificial)
+        std::vector<float> dEdx_pl0_clean;
+        std::vector<float> resRange_pl0_clean;
+        std::vector<float> dEdx_pl1_clean;
+        std::vector<float> resRange_pl1_clean;
+        std::vector<float> dEdx_pl2_clean;
+        std::vector<float> resRange_pl2_clean;
+
+        for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl0; i_hit++){
+          if(dEdx_pl0[i_hit] > 0.5 && dEdx_pl0[i_hit] < 70){
+            dEdx_pl0_clean.push_back(dEdx_pl0[i_hit]);
+            resRange_pl0_clean.push_back(resRange_pl0[i_hit]);
+          }
+        }
+
+        for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl1; i_hit++){
+          if(dEdx_pl1[i_hit] > 0.5 && dEdx_pl1[i_hit] < 70){
+            dEdx_pl1_clean.push_back(dEdx_pl1[i_hit]);
+            resRange_pl1_clean.push_back(resRange_pl1[i_hit]);
+          }
+        }
+
+        for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl2; i_hit++){
+          if(dEdx_pl2[i_hit] > 0.5 && dEdx_pl2[i_hit] < 70){
+            dEdx_pl2_clean.push_back(dEdx_pl2[i_hit]);
+            resRange_pl2_clean.push_back(resRange_pl2[i_hit]);
+          }
+        }
+
+        auto hits_dEdx_size_pl0_clean = dEdx_pl0_clean.size();
+        auto hits_dEdx_size_pl1_clean = dEdx_pl1_clean.size();
+        auto hits_dEdx_size_pl2_clean = dEdx_pl2_clean.size();
+
+        auto half_size_pl0_clean = hits_dEdx_size_pl0_clean / 2;
+        auto half_size_pl1_clean = hits_dEdx_size_pl1_clean / 2;
+        auto half_size_pl2_clean = hits_dEdx_size_pl2_clean / 2;
+
+        //- ratio
+        // dEdx_half
+        dEdx_pl0_start_half_clean = std::accumulate(dEdx_pl0_clean.end() - half_size_pl0_clean, dEdx_pl0_clean.end(), 0.) / half_size_pl0_clean;
+        dEdx_pl0_end_half_clean = std::accumulate(dEdx_pl0_clean.begin(), dEdx_pl0_clean.begin() + half_size_pl0_clean, 0. ) / half_size_pl0_clean;
+        dEdx_pl1_start_half_clean = std::accumulate(dEdx_pl1_clean.end() - half_size_pl1_clean, dEdx_pl1_clean.end(), 0.) / half_size_pl1_clean;
+        dEdx_pl1_end_half_clean = std::accumulate(dEdx_pl1_clean.begin(), dEdx_pl1_clean.begin() + half_size_pl1_clean, 0. ) / half_size_pl1_clean;
+        dEdx_pl2_start_half_clean = std::accumulate(dEdx_pl2_clean.end() - half_size_pl2_clean, dEdx_pl2_clean.end(), 0.) / half_size_pl2_clean;
+        dEdx_pl2_end_half_clean = std::accumulate(dEdx_pl2_clean.begin(), dEdx_pl2_clean.begin() + half_size_pl2_clean, 0. ) / half_size_pl2_clean;
+        
+        // dEdx_1020
+        if (dEdx_pl0_clean.size()<=40) {
+          dEdx_pl0_start1020_clean = dEdx_pl0_start_half_clean;
+          dEdx_pl0_end1020_clean = dEdx_pl0_end_half_clean;
+        }
+        else{
+          dEdx_pl0_start1020_clean = std::accumulate(dEdx_pl0_clean.end() - 20, dEdx_pl0_clean.end() - 10, 0.) / 10.;
+          dEdx_pl0_end1020_clean = std::accumulate(dEdx_pl0_clean.begin() + 10, dEdx_pl0_clean.begin() + 20, 0.) / 10.;
+        }
+        if (dEdx_pl1_clean.size()<=40) {
+          dEdx_pl1_start1020_clean = dEdx_pl1_start_half_clean;
+          dEdx_pl1_end1020_clean = dEdx_pl1_end_half_clean;
+        }
+        else{
+          dEdx_pl1_start1020_clean = std::accumulate(dEdx_pl1_clean.end() - 20, dEdx_pl1_clean.end() - 10, 0.) / 10.;
+          dEdx_pl1_end1020_clean = std::accumulate(dEdx_pl1_clean.begin() + 10, dEdx_pl1_clean.begin() + 20, 0.) / 10.;
+        }
+        if (dEdx_pl2_clean.size()<=40) {
+          dEdx_pl2_start1020_clean = dEdx_pl2_start_half_clean;
+          dEdx_pl2_end1020_clean = dEdx_pl2_end_half_clean;
+        }
+        else{
+          dEdx_pl2_start1020_clean = std::accumulate(dEdx_pl2_clean.end() - 20, dEdx_pl2_clean.end() - 10, 0.) / 10.;
+          dEdx_pl2_end1020_clean = std::accumulate(dEdx_pl2_clean.begin() + 10, dEdx_pl2_clean.begin() + 20, 0.) / 10.;
+        }
+
+        // dEdx_5
+        if (dEdx_pl0_clean.size()<=10) {
+          dEdx_pl0_start5_clean = dEdx_pl0_start_half_clean;
+          dEdx_pl0_end5_clean = dEdx_pl0_end_half_clean;
+        }
+        else{
+          dEdx_pl0_start5_clean = std::accumulate(dEdx_pl0_clean.end() - 5, dEdx_pl0_clean.end(), 0.) / 5.;
+          dEdx_pl0_end5_clean = std::accumulate(dEdx_pl0_clean.begin(), dEdx_pl0_clean.begin() + 5, 0.) / 5.;
+        }
+        if (dEdx_pl1_clean.size()<=10) {
+          dEdx_pl1_start5_clean = dEdx_pl1_start_half_clean;
+          dEdx_pl1_end5_clean = dEdx_pl1_end_half_clean;
+        }
+        else{
+          dEdx_pl1_start5_clean = std::accumulate(dEdx_pl1_clean.end() - 5, dEdx_pl1_clean.end(), 0.) / 5.;
+          dEdx_pl1_end5_clean = std::accumulate(dEdx_pl1_clean.begin(), dEdx_pl1_clean.begin() + 5, 0.) / 5.;
+        }
+        if (dEdx_pl2_clean.size()<=10) {
+          dEdx_pl2_start5_clean = dEdx_pl2_start_half_clean;
+          dEdx_pl2_end5_clean = dEdx_pl2_end_half_clean;
+        }
+        else{
+          dEdx_pl2_start5_clean = std::accumulate(dEdx_pl2_clean.end() - 5, dEdx_pl2_clean.end(), 0.) / 5.;
+          dEdx_pl2_end5_clean = std::accumulate(dEdx_pl2_clean.begin(), dEdx_pl2_clean.begin() + 5, 0.) / 5.;
+        }
+    
+        dEdx_pl0_5_ratio_clean = dEdx_pl0_end5_clean / (dEdx_pl0_end5_clean + dEdx_pl0_start5_clean);
+        dEdx_pl0_1020_ratio_clean = dEdx_pl0_end1020_clean / (dEdx_pl0_end1020_clean + dEdx_pl0_start1020_clean);
+        dEdx_pl0_half_ratio_clean = dEdx_pl0_end_half_clean / (dEdx_pl0_end_half_clean + dEdx_pl0_start_half_clean);
+
+        dEdx_pl1_5_ratio_clean = dEdx_pl1_end5_clean / (dEdx_pl1_end5_clean + dEdx_pl1_start5_clean);
+        dEdx_pl1_1020_ratio_clean = dEdx_pl1_end1020_clean / (dEdx_pl1_end1020_clean + dEdx_pl1_start1020_clean);
+        dEdx_pl1_half_ratio_clean = dEdx_pl1_end_half_clean / (dEdx_pl1_end_half_clean + dEdx_pl1_start_half_clean);
+
+        dEdx_pl2_5_ratio_clean = dEdx_pl2_end5_clean / (dEdx_pl2_end5_clean + dEdx_pl2_start5_clean);
+        dEdx_pl2_1020_ratio_clean = dEdx_pl2_end1020_clean / (dEdx_pl2_end1020_clean + dEdx_pl2_start1020_clean);
+        dEdx_pl2_half_ratio_clean = dEdx_pl2_end_half_clean / (dEdx_pl2_end_half_clean + dEdx_pl2_start_half_clean);
+
+        // - Large hits (the three largest dE/dx)
+        auto copy_dEdx_pl0_clean = dEdx_pl0_clean;
+        auto copy_dEdx_pl1_clean = dEdx_pl1_clean;
+        auto copy_dEdx_pl2_clean = dEdx_pl2_clean;
+
+        std::sort(copy_dEdx_pl0_clean.begin(), copy_dEdx_pl0_clean.end());
+        std::sort(copy_dEdx_pl1_clean.begin(), copy_dEdx_pl1_clean.end());
+        std::sort(copy_dEdx_pl2_clean.begin(), copy_dEdx_pl2_clean.end());
+        // pl 0
+        if(hits_dEdx_size_pl0_clean < 3){
+          for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl0_clean; i_hit++){
+            avg_dEdx_LargeHit_pl0_clean += copy_dEdx_pl0_clean[i_hit];
+          }
+          avg_dEdx_LargeHit_pl0_clean = avg_dEdx_LargeHit_pl0_clean / hits_dEdx_size_pl0_clean;
+        }
+        else{
+          avg_dEdx_LargeHit_pl0_clean = (copy_dEdx_pl0_clean[hits_dEdx_size_pl0_clean - 1] + copy_dEdx_pl0_clean[hits_dEdx_size_pl0_clean - 2] + copy_dEdx_pl0_clean[hits_dEdx_size_pl0_clean - 3]) / 3;
+        }
+        // pl 1
+        if(hits_dEdx_size_pl1_clean < 3){
+          for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl1_clean; i_hit++){
+            avg_dEdx_LargeHit_pl1_clean += copy_dEdx_pl1_clean[i_hit];
+          }
+          avg_dEdx_LargeHit_pl1_clean = avg_dEdx_LargeHit_pl1_clean / hits_dEdx_size_pl1_clean;
+        }
+        else{
+          avg_dEdx_LargeHit_pl1_clean = (copy_dEdx_pl1_clean[hits_dEdx_size_pl1_clean - 1] + copy_dEdx_pl1_clean[hits_dEdx_size_pl1_clean - 2] + copy_dEdx_pl1_clean[hits_dEdx_size_pl1_clean - 3]) / 3;
+        }
+        // pl 2
+        if(hits_dEdx_size_pl2_clean < 3){
+          for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl2_clean; i_hit++){
+            avg_dEdx_LargeHit_pl2_clean += copy_dEdx_pl2_clean[i_hit];
+          }
+          avg_dEdx_LargeHit_pl2_clean = avg_dEdx_LargeHit_pl2_clean / hits_dEdx_size_pl2_clean;
+        }
+        else{
+          avg_dEdx_LargeHit_pl2_clean = (copy_dEdx_pl2_clean[hits_dEdx_size_pl2_clean - 1] + copy_dEdx_pl2_clean[hits_dEdx_size_pl2_clean - 2] + copy_dEdx_pl2_clean[hits_dEdx_size_pl2_clean - 3]) / 3;
+        }
+
+        //- dEdx of the middle part of the track
+        int nr_pl0_mid_clean = dEdx_pl0_clean.size()/3;
+        int nr_pl1_mid_clean = dEdx_pl1_clean.size()/3;
+        int nr_pl2_mid_clean = dEdx_pl2_clean.size()/3;
+        if(nr_pl0_mid_clean > 0){ //pl0
+          dEdx_pl0_mid_clean = std::accumulate(dEdx_pl0_clean.begin() + nr_pl0_mid_clean , dEdx_pl0_clean.begin() + 2*nr_pl0_mid_clean, 0.) / nr_pl0_mid_clean;
+        }
+        else {
+          dEdx_pl0_mid_clean = 0;
+        }
+        if(nr_pl1_mid_clean > 0){ //pl1
+          dEdx_pl1_mid_clean = std::accumulate(dEdx_pl1_clean.begin() + nr_pl1_mid_clean , dEdx_pl1_clean.begin() + 2*nr_pl1_mid_clean, 0.) / nr_pl1_mid_clean;
+        }
+        else {
+          dEdx_pl1_mid_clean = 0;
+        }
+        if(nr_pl2_mid_clean > 0){ //pl2
+          dEdx_pl2_mid_clean = std::accumulate(dEdx_pl2_clean.begin() + nr_pl2_mid_clean , dEdx_pl2_clean.begin() + 2*nr_pl2_mid_clean, 0.) / nr_pl2_mid_clean;
+        }
+        else {
+          dEdx_pl2_mid_clean = 0;
         }
 
         //-- Charge linearity
@@ -1267,21 +1480,50 @@ void SingleMuon::analyze(art::Event const& evt)
   my_event_->Fill();
 
   if(IsMC){
+
+    MC_beamNeutrino = false;
+    MC_nupdg = -999;
+    MC_ccnc = -999;
+    MC_FV = false;
+    MC_if_in_active = false;
+    MC_int_mode = -999;
+    MC_nu_E = -999;
+    MC_nuVtxX = -999;
+    MC_nuVtxY = -999;
+    MC_nuVtxZ = -999;
+
+    MC_nMuon = 0;
+    MC_nElectron = 0;
+    MC_nNeutron = 0;
+    MC_nProton_below260 = 0;
+    MC_nProton_above260 = 0;
+    MC_nPi0 = 0;
+    MC_nPiPlus_below65 = 0;
+    MC_nPiPlus_above65 = 0;
+    MC_nPiMinus_below65 = 0;
+    MC_nPiMinus_above65 = 0;
+
     MC_Primary_PDG.clear();
     MC_Primary_Mom.clear();
-    MC_proton_true_Mom_above260.clear();
+    Ghost_PDG.clear();
+
+    TopologyType = -999;
+
     MC_muon_true_Mom.clear();
+    MC_muon_true_theta.clear();
     MC_muon_true_cos_theta.clear();
     MC_muon_true_phi.clear();
-    MC_proton_true_cos_theta.clear();
-    MC_proton_true_phi.clear();
-    Ghost_PDG.clear();
- 
-    cos_ang_muon_proton = -999;
-    dist_muon_proton = -999;
-    len_Muon_0pi0p = -999;
-    len_Muon_0pi1p = -999;
-    len_Proton_0pi1p = -999;
+    MC_muon_true_Px.clear();
+    MC_muon_true_Py.clear();
+    MC_muon_true_Pz.clear();
+
+    MC_muon_mom = -999;
+    MC_muon_theta = -999;
+    MC_muon_costheta = -999;
+    MC_muon_phi = -999;
+
+    MC_PT = -999;
+    MC_PL = -999;
 
     true_mom = -999;
     true_start_x = -999;
@@ -1331,6 +1573,15 @@ void SingleMuon::analyze(art::Event const& evt)
 
   if_1track = false;
 
+  flash_matching_chi2 = -999; //Chi2 of flash matching in each neutrino slice
+  trigger_time = -999;
+  flash_YCenter = -999;
+  flash_YWidth = -999;
+  flash_ZCenter = -999;
+  flash_ZWidth = -999;
+  flash_TotalPE = -999;
+  flash_time = -999;
+
   crthit_PE.clear();
   crthit_plane.clear();
   crthit_time.clear();
@@ -1350,6 +1601,16 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_end_x = -999;
   trk_end_y = -999;
   trk_end_z = -999;
+
+  trk_vtx_x_noSCE = -999;
+  trk_vtx_y_noSCE = -999;
+  trk_vtx_z_noSCE = -999;
+  trk_start_x_noSCE = -999;
+  trk_start_y_noSCE = -999;
+  trk_start_z_noSCE = -999;
+  trk_end_x_noSCE = -999;
+  trk_end_y_noSCE = -999;
+  trk_end_z_noSCE = -999;
 
   trk_OutOfTime = false;
 
@@ -1389,8 +1650,10 @@ void SingleMuon::analyze(art::Event const& evt)
   fwdMCSLL_NoSCE = -999;
   bwdMCSLL_NoSCE = -999;
 
-  missing_PT_range = -999;
-  missing_PT_MCS = -999;
+  PT_range = -999;
+  PL_range = -999;
+  PT_MCS = -999;
+  PL_MCS = -999;
 
   PID_Chi2Mu_3pl = -999;
   PID_Chi2P_3pl = -999;
@@ -1438,6 +1701,45 @@ void SingleMuon::analyze(art::Event const& evt)
   dEdx_pl1_mid = -999;
   dEdx_pl2_mid = -999;
 
+  dEdx_pl0_start_half_clean = -999;
+  dEdx_pl1_start_half_clean = -999;
+  dEdx_pl2_start_half_clean = -999;
+  dEdx_pl0_end_half_clean = -999;
+  dEdx_pl1_end_half_clean = -999;
+  dEdx_pl2_end_half_clean = -999;
+
+  dEdx_pl0_start1020_clean = -999;
+  dEdx_pl1_start1020_clean = -999;
+  dEdx_pl2_start1020_clean = -999;
+  dEdx_pl0_end1020_clean = -999;
+  dEdx_pl1_end1020_clean = -999;
+  dEdx_pl2_end1020_clean = -999;
+
+  dEdx_pl0_start5_clean = -999;
+  dEdx_pl1_start5_clean = -999;
+  dEdx_pl2_start5_clean = -999;
+  dEdx_pl0_end5_clean = -999;
+  dEdx_pl1_end5_clean = -999;
+  dEdx_pl2_end5_clean = -999;
+
+  dEdx_pl0_5_ratio_clean = -999;
+  dEdx_pl0_1020_ratio_clean = -999;
+  dEdx_pl0_half_ratio_clean = -999;
+  dEdx_pl1_5_ratio_clean = -999;
+  dEdx_pl1_1020_ratio_clean = -999;
+  dEdx_pl1_half_ratio_clean = -999;
+  dEdx_pl2_5_ratio_clean = -999;
+  dEdx_pl2_1020_ratio_clean = -999;
+  dEdx_pl2_half_ratio_clean = -999;
+
+  avg_dEdx_LargeHit_pl0_clean = -999;
+  avg_dEdx_LargeHit_pl1_clean = -999;
+  avg_dEdx_LargeHit_pl2_clean = -999;
+
+  dEdx_pl0_mid_clean = -999;
+  dEdx_pl1_mid_clean = -999;
+  dEdx_pl2_mid_clean = -999;
+
   charge_std_bin0 = -999; // the multiplication of charge in bin 0 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
   charge_std_bin1 = -999; // the multiplication of charge in bin 1 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
   charge_std_bin2 = -999; // the multiplication of charge in bin 2 diff to the avg of 8 sections in the slice to the standard deviation of charge in 8 sections
@@ -1482,11 +1784,6 @@ void SingleMuon::Initialize_event()
   if(IsMC){
     my_event_->Branch("EventWeight", &EventWeight);
     my_event_->Branch("TopologyType", &TopologyType);
-    my_event_->Branch("cos_ang_muon_proton", &cos_ang_muon_proton);
-    my_event_->Branch("dist_muon_proton", &dist_muon_proton);
-    my_event_->Branch("len_Muon_0pi0p", &len_Muon_0pi0p);
-    my_event_->Branch("len_Muon_0pi1p", &len_Muon_0pi1p);
-    my_event_->Branch("len_Proton_0pi1p", &len_Proton_0pi1p);
     my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
     my_event_->Branch("MC_int_mode", &MC_int_mode);
     my_event_->Branch("MC_nupdg", &MC_nupdg);
@@ -1509,12 +1806,15 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_nPiMinus_above65", &MC_nPiMinus_above65);
     my_event_->Branch("MC_Primary_PDG", &MC_Primary_PDG);
     my_event_->Branch("MC_Primary_Mom", &MC_Primary_Mom);
-    my_event_->Branch("MC_proton_true_Mom_above260", &MC_proton_true_Mom_above260);
-    my_event_->Branch("MC_muon_true_Mom", &MC_muon_true_Mom);
-    my_event_->Branch("MC_muon_true_cos_theta", &MC_muon_true_cos_theta);
-    my_event_->Branch("MC_muon_true_phi", &MC_muon_true_phi);
-    my_event_->Branch("MC_proton_true_cos_theta", &MC_proton_true_cos_theta);
-    my_event_->Branch("MC_proton_true_phi", &MC_proton_true_phi);
+
+    my_event_->Branch("MC_muon_mom", &MC_muon_mom);
+    my_event_->Branch("MC_muon_theta", &MC_muon_theta);
+    my_event_->Branch("MC_muon_costheta", &MC_muon_costheta);
+    my_event_->Branch("MC_muon_phi", &MC_muon_phi);
+
+    my_event_->Branch("MC_PT", &MC_PT);
+    my_event_->Branch("MC_PL", &MC_PL);
+
     my_event_->Branch("Ghost_PDG", &Ghost_PDG);
 
     my_event_->Branch("Genie_Q2", &Genie_Q2);
@@ -1571,11 +1871,13 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("granddau_shw_len", &granddau_shw_len);
   
   my_event_->Branch("flash_matching_chi2", &flash_matching_chi2);
+  my_event_->Branch("trigger_time", &trigger_time);
   my_event_->Branch("flash_YCenter", &flash_YCenter);
   my_event_->Branch("flash_YWidth", &flash_YWidth);
   my_event_->Branch("flash_ZCenter", &flash_ZCenter);
   my_event_->Branch("flash_ZWidth", &flash_ZWidth);
   my_event_->Branch("flash_TotalPE", &flash_TotalPE);
+  my_event_->Branch("flash_time", &flash_time);
 
   my_event_->Branch("evt_CRTveto", &evt_CRTveto);
   my_event_->Branch("evt_CRTveto_100", &evt_CRTveto_100);
@@ -1596,6 +1898,16 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("trk_end_x", &trk_end_x);
   my_event_->Branch("trk_end_y", &trk_end_y);
   my_event_->Branch("trk_end_z", &trk_end_z);
+
+  my_event_->Branch("trk_vtx_x_noSCE", &trk_vtx_x_noSCE);
+  my_event_->Branch("trk_vtx_y_noSCE", &trk_vtx_y_noSCE);
+  my_event_->Branch("trk_vtx_z_noSCE", &trk_vtx_z_noSCE);
+  my_event_->Branch("trk_start_x_noSCE", &trk_start_x_noSCE);
+  my_event_->Branch("trk_start_y_noSCE", &trk_start_y_noSCE);
+  my_event_->Branch("trk_start_z_noSCE", &trk_start_z_noSCE);
+  my_event_->Branch("trk_end_x_noSCE", &trk_end_x_noSCE);
+  my_event_->Branch("trk_end_y_noSCE", &trk_end_y_noSCE);
+  my_event_->Branch("trk_end_z_noSCE", &trk_end_z_noSCE);
 
   my_event_->Branch("trk_OutOfTime", &trk_OutOfTime);
 
@@ -1634,8 +1946,10 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("fwdMCSLL_NoSCE", &fwdMCSLL_NoSCE);
   my_event_->Branch("bwdMCSLL_NoSCE", &bwdMCSLL_NoSCE);
 
-  my_event_->Branch("missing_PT_range", &missing_PT_range);
-  my_event_->Branch("missing_PT_MCS", &missing_PT_MCS);
+  my_event_->Branch("PT_range", &PT_range);
+  my_event_->Branch("PL_range", &PL_range);
+  my_event_->Branch("PT_MCS", &PT_MCS);
+  my_event_->Branch("PL_MCS", &PL_MCS);
 
   my_event_->Branch("PID_Chi2Mu_3pl", &PID_Chi2Mu_3pl);
   my_event_->Branch("PID_Chi2P_3pl", &PID_Chi2P_3pl);
@@ -1680,6 +1994,45 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("dEdx_pl0_mid", &dEdx_pl0_mid);
   my_event_->Branch("dEdx_pl1_mid", &dEdx_pl1_mid);
   my_event_->Branch("dEdx_pl2_mid", &dEdx_pl2_mid);
+
+  my_event_->Branch("dEdx_pl0_start_half_clean", &dEdx_pl0_start_half_clean);
+  my_event_->Branch("dEdx_pl1_start_half_clean", &dEdx_pl1_start_half_clean);
+  my_event_->Branch("dEdx_pl2_start_half_clean", &dEdx_pl2_start_half_clean);
+  my_event_->Branch("dEdx_pl0_end_half_clean", &dEdx_pl0_end_half_clean);
+  my_event_->Branch("dEdx_pl1_end_half_clean", &dEdx_pl1_end_half_clean);
+  my_event_->Branch("dEdx_pl2_end_half_clean", &dEdx_pl2_end_half_clean);
+
+  my_event_->Branch("dEdx_pl0_start1020_clean", &dEdx_pl0_start1020_clean);
+  my_event_->Branch("dEdx_pl1_start1020_clean", &dEdx_pl1_start1020_clean);
+  my_event_->Branch("dEdx_pl2_start1020_clean", &dEdx_pl2_start1020_clean);
+  my_event_->Branch("dEdx_pl0_end1020_clean", &dEdx_pl0_end1020_clean);
+  my_event_->Branch("dEdx_pl1_end1020_clean", &dEdx_pl1_end1020_clean);
+  my_event_->Branch("dEdx_pl2_end1020_clean", &dEdx_pl2_end1020_clean);
+
+  my_event_->Branch("dEdx_pl0_start5_clean", &dEdx_pl0_start5_clean);
+  my_event_->Branch("dEdx_pl1_start5_clean", &dEdx_pl1_start5_clean);
+  my_event_->Branch("dEdx_pl2_start5_clean", &dEdx_pl2_start5_clean);
+  my_event_->Branch("dEdx_pl0_end5_clean", &dEdx_pl0_end5_clean);
+  my_event_->Branch("dEdx_pl1_end5_clean", &dEdx_pl1_end5_clean);
+  my_event_->Branch("dEdx_pl2_end5_clean", &dEdx_pl2_end5_clean);
+
+  my_event_->Branch("dEdx_pl0_5_ratio_clean", &dEdx_pl0_5_ratio_clean);
+  my_event_->Branch("dEdx_pl0_1020_ratio_clean", &dEdx_pl0_1020_ratio_clean);
+  my_event_->Branch("dEdx_pl0_half_ratio_clean", &dEdx_pl0_half_ratio_clean);
+  my_event_->Branch("dEdx_pl1_5_ratio_clean", &dEdx_pl1_5_ratio_clean);
+  my_event_->Branch("dEdx_pl1_1020_ratio_clean", &dEdx_pl1_1020_ratio_clean);
+  my_event_->Branch("dEdx_pl1_half_ratio_clean", &dEdx_pl1_half_ratio_clean);
+  my_event_->Branch("dEdx_pl2_5_ratio_clean", &dEdx_pl2_5_ratio_clean);
+  my_event_->Branch("dEdx_pl2_1020_ratio_clean", &dEdx_pl2_1020_ratio_clean);
+  my_event_->Branch("dEdx_pl2_half_ratio_clean", &dEdx_pl2_half_ratio_clean);
+
+  my_event_->Branch("avg_dEdx_LargeHit_pl0_clean", &avg_dEdx_LargeHit_pl0_clean);
+  my_event_->Branch("avg_dEdx_LargeHit_pl1_clean", &avg_dEdx_LargeHit_pl1_clean);
+  my_event_->Branch("avg_dEdx_LargeHit_pl2_clean", &avg_dEdx_LargeHit_pl2_clean);
+
+  my_event_->Branch("dEdx_pl0_mid_clean", &dEdx_pl0_mid_clean);
+  my_event_->Branch("dEdx_pl1_mid_clean", &dEdx_pl1_mid_clean);
+  my_event_->Branch("dEdx_pl2_mid_clean", &dEdx_pl2_mid_clean);
 
   my_event_->Branch("charge_std_bin0", &charge_std_bin0);
   my_event_->Branch("charge_std_bin1", &charge_std_bin1);
