@@ -688,6 +688,8 @@ namespace single_photon
             bool m_has_CRT;
             bool m_fill_trees;
             bool m_run_pi0_filter;
+            bool m_run_pi0_filter_2g1p;
+            bool m_run_pi0_filter_2g0p;
 
             bool m_runCRT;
             double m_DTOffset;
@@ -1343,6 +1345,7 @@ namespace single_photon
             double m_genie_spline_weight;
 
             bool Pi0PreselectionFilter();
+            bool Pi0PreselectionFilter2g0p();
     };
 
     DEFINE_ART_MODULE(SinglePhoton)

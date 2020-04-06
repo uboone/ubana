@@ -12,7 +12,7 @@
 
 #include "microboone_singlephoton.fcl"
 
-process_name : SinglePhoton      #The process name must NOT contain any underscores
+process_name : SinglePhotonFilter      #The process name must NOT contain any underscores
 
 source : {
     module_type : RootInput
@@ -22,12 +22,13 @@ source : {
 services :
 {
     #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
-    TFileService: { fileName: "vertexed_singlephoton_%tc.root" }
+    TFileService: { fileName: "vertexed_singlephoton_%tc_hist.root" }
     ExptGeoHelperInterface:    @local::standard_geometry_helper
     Geometry:                  @local::standard_geo
     LArPropertiesService:      @local::standard_properties
     DetectorClocksService:     @local::standard_detectorclocks
     DetectorPropertiesService: @local::standard_detproperties
+    FileCatalogMetadata:       @local::art_file_catalog_data # or @local::art_file_catalog_mc
     @table::microboone_services
 }
 
@@ -60,7 +61,8 @@ physics: {
 
  analyzers: {}
  filters : {
-        singlephotonfil: @local::singlephoton_filter   #run in filtering mode
+        #singlephotonfil: @local::singlephoton_filter_2g0p   #run in 2g0p
+        singlephotonfil: @local::singlephoton_filter   #run in 2g1p
         #singlephotonana: @local::singlephoton_analyzer #run in analyzing mode
   }
 

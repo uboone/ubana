@@ -15,6 +15,8 @@ singlephoton_analyzer:{
 
     FillTrees: true
     RunPi0Filter: false
+    FilterMode2g1p: false
+    FilterMode2g0p: false
  
     usePID:         "true" 
     work_function: 23
@@ -40,7 +42,13 @@ singlephoton_analyzer:{
 singlephoton_filter: @local::singlephoton_analyzer
 singlephoton_filter.FillTrees: false
 singlephoton_filter.RunPi0Filter: true
+singlephoton_filter.FilterMode2g1p: true
+singlephoton_filter.FilterMode2g0p: false
 singlephoton_filter.isData: true
 singlephoton_filter.usePID: false
+
+singlephoton_filter_2g0p: @local::singlephoton_filter
+singlephoton_filter_2g0p.FilterMode2g1p: false
+singlephoton_filter_2g0p.FilterMode2g0p: true
 
 END_PROLOG

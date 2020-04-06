@@ -31,8 +31,10 @@ namespace single_photon
         m_is_data = pset.get<bool>("isData",false);
         m_is_overlayed = pset.get<bool>("isOverlayed",false);
 
-        m_fill_trees = pset.get<bool>("FillTrees",true);
-        m_run_pi0_filter = pset.get<bool>("RunPi0Filter",false);
+        m_fill_trees          = pset.get<bool>("FillTrees",true);
+        m_run_pi0_filter      = pset.get<bool>("RunPi0Filter",false);
+        m_run_pi0_filter_2g1p = pset.get<bool>("FilterMode2g1p",false);
+        m_run_pi0_filter_2g0p = pset.get<bool>("FilterMode2g0p",false);
     
         if(m_run_pi0_filter) m_is_data = true;// If running in filter mode, treat all as data
 
@@ -859,8 +861,14 @@ namespace single_photon
 
         //---------------------- END OF LOOP, fill vertex ---------------------
         bool filter_pass = Pi0PreselectionFilter();
+        bool filter_pass_2g0p = Pi0PreselectionFilter2g0p();
         if(m_fill_trees){
             if (filter_pass && m_run_pi0_filter){
+                vertex_tree->Fill();
+                ncdelta_slice_tree->Fill();
+                eventweight_tree->Fill();
+
+            }else if(filter_pass_2g0p && m_run_pi0_filter) {
                 vertex_tree->Fill();
                 ncdelta_slice_tree->Fill();
                 eventweight_tree->Fill();
@@ -874,7 +882,8 @@ namespace single_photon
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
 
-        if(m_run_pi0_filter)  return filter_pass;
+        if(m_run_pi0_filter_2g1p)  return filter_pass;
+        else if(m_run_pi0_filter_2g0p)  return filter_pass_2g0p;
 
         return true;
 
@@ -1537,7 +1546,7 @@ namespace single_photon
 
     bool SinglePhoton::Pi0PreselectionFilter()
     {
-
+        
         if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
         if(m_vertex_pos_y < -112. || m_vertex_pos_y > 112.) return false;
         if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1031.8) return false;
@@ -1548,6 +1557,23 @@ namespace single_photon
 
         if(m_reco_shower_conversion_distance.size()!=2) return false;
         if(m_reco_shower_conversion_distance[0]<1. || m_reco_shower_conversion_distance[1]<1.) return false;
+
+        return true;
+    }
+
+    bool SinglePhoton::Pi0PreselectionFilter2g0p()
+    {
+
+        if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
+        if(m_vertex_pos_y < -112. || m_vertex_pos_y > 112.) return false;
+        if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1031.8) return false;
+
+        if(m_reco_asso_showers!=2) return false;
+        if(m_reco_asso_tracks!=0) return false;
+        if(m_reco_vertex_size<1) return false;
+
+        if(m_reco_shower_energy_max.size()!=2) return false;
+        if(m_reco_shower_energy_max[m_reco_shower_ordered_energy_index[0]]<30.) return false;
 
         return true;
     }
