@@ -12,6 +12,7 @@ art_make(
                     lardataobj_RawData
                     lardataobj_RecoBase
                     lardataobj_AnalysisBase
+                    larcoreobj_SummaryData
                     lardata_Utilities
                     nusimdata_SimulationBase
                     larsim_EventWeight_Base

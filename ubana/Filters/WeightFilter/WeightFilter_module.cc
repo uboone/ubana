@@ -22,6 +22,7 @@
 
 //include the truth objects
 #include "larcoreobj/SummaryData/POTSummary.h"
+#include "larsim/EventWeight/Base/MCEventWeight.h"
 
 
 namespace util {
@@ -43,6 +44,7 @@ public:
 
   bool filter(art::Event& e) override;
   bool beginSubRun(art::SubRun &) override;
+  bool endSubRun(art::SubRun &) override;
   
 private:
 
@@ -50,7 +52,6 @@ private:
   art::InputTag fPOTInfoTag;
   
   bool   fApplyPOTWeight;
-  double fTargetPOT;
   double fPOTWeight;
 
   bool   fApplyExternalWeight;
@@ -69,7 +70,7 @@ private:
 util::WeightFilter::WeightFilter(fhicl::ParameterSet const& p)
   : EDFilter{p}, 
   fApplyPOTWeight(p.get<bool>("ApplyPOTWeight")),
-  fTargetPOT(p.get<double>("TargetPOT",10.1E20)),
+  fPOTWeight(p.get<double>("POTWeight",1.0)),
   fApplyExternalWeight(p.get<bool>("ApplyExternalWeight")),
   fExternalWeight(p.get<double>("ExternalWeight",1.0)),
   fApplyEventWeight(p.get<bool>("ApplyEventWeight")),
@@ -79,6 +80,7 @@ util::WeightFilter::WeightFilter(fhicl::ParameterSet const& p)
     
   // Call appropriate produces<>() functions here.
   // Call appropriate consumes<>() for any products to be retrieved by this module.
+  this->produces<sumdata::POTSummary,art::InSubRun>();
   
   if(fApplyEventWeight)
     fEventWeightTag = p.get<art::InputTag>("EventWeightTag");
@@ -89,6 +91,7 @@ util::WeightFilter::WeightFilter(fhicl::ParameterSet const& p)
 
 bool util::WeightFilter::beginSubRun(art::SubRun & s)
 {
+  /*
   fPOTWeight=1.;
   if(fApplyPOTWeight){
     auto const& potsum_handle = s.getValidHandle< sumdata::POTSummary >(fPOTInfoTag);
@@ -97,11 +100,29 @@ bool util::WeightFilter::beginSubRun(art::SubRun & s)
     if(fVerbose) std::cout << "\tPOTWeight = " << fTargetPOT << " / " << potsum_handle->totpot 
 			   << " = " << fPOTWeight << std::endl;
   }
-
+  */
   return true;
 }
 
-bool util::WeightFilter::filter(art::Event& )
+bool util::WeightFilter::endSubRun(art::SubRun & s)
+{
+  auto const& potsum_handle = s.getValidHandle< sumdata::POTSummary >(fPOTInfoTag);
+  
+  std::unique_ptr<sumdata::POTSummary> srpot_ptr(new sumdata::POTSummary());
+  srpot_ptr->totpot = potsum_handle->totpot*fPOTWeight;
+  srpot_ptr->totgoodpot = potsum_handle->totgoodpot*fPOTWeight;
+  srpot_ptr->totspills = (int)(potsum_handle->totspills*fPOTWeight);
+  srpot_ptr->goodspills = (int)(potsum_handle->goodspills*fPOTWeight);
+
+
+  if(fVerbose) std::cout << "\tPOTWeight = " << srpot_ptr->totpot << " / " << potsum_handle->totpot 
+			 << " = " << fPOTWeight << std::endl;
+
+  s.put(std::move(srpot_ptr));
+  return true;
+}
+
+bool util::WeightFilter::filter(art::Event& e)
 {
   //get a random number
   double random = fFlatDistribution(fRandomGenerator);
@@ -109,6 +130,17 @@ bool util::WeightFilter::filter(art::Event& )
   double fEventWeight=1.;
   if(fApplyEventWeight){
     //...
+    auto const& evw_handle = e.getValidHandle< std::vector<evwgh::MCEventWeight> >(fEventWeightTag);
+    auto const& evw_vec(*evw_handle);
+    for(auto const& evw_map : evw_vec){
+      for(auto const& evw : evw_map.fWeight){
+	
+	if(evw.second.size()>0) fEventWeight*=evw.second.at(0);	
+	if(fVerbose)
+	  std::cout << "\t\tweight... " << evw.first << " : " << evw.second.at(0) << std::endl;
+	
+      }
+    }
   }
   
   //calc total weight
