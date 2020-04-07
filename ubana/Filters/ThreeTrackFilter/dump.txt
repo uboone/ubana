@@ -1,0 +1,245 @@
+1c1
+< //////////////////////////////////////////////////////////////////////
+---
+> ////////////////////////////////////////////////////////////////////////
+4c4
+< // File:        ThreeTrackFilter_module.cc
+---
+> // File:        SingleMuonFilter_module.cc
+24d23
+< #include "lardataobj/RecoBase/PFParticle.h"
+28d26
+< #include "lardataobj/RecoBase/Vertex.h"
+32,36d29
+< #include "lardata/DetectorInfoServices/DetectorClocksService.h" 
+< #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+< #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
+< 
+< #include "nusimdata/SimulationBase/MCTruth.h"
+47c40
+< class ThreeTrackFilter;
+---
+> class SingleMuonFilter;
+50c43
+< class ThreeTrackFilter : public art::EDFilter {
+---
+> class SingleMuonFilter : public art::EDFilter {
+52c45
+<   explicit ThreeTrackFilter(fhicl::ParameterSet const& p);
+---
+>   explicit SingleMuonFilter(fhicl::ParameterSet const& p);
+57,60c50,53
+<   ThreeTrackFilter(ThreeTrackFilter const&) = delete;
+<   ThreeTrackFilter(ThreeTrackFilter&&) = delete;
+<   ThreeTrackFilter& operator=(ThreeTrackFilter const&) = delete;
+<   ThreeTrackFilter& operator=(ThreeTrackFilter&&) = delete;
+---
+>   SingleMuonFilter(SingleMuonFilter const&) = delete;
+>   SingleMuonFilter(SingleMuonFilter&&) = delete;
+>   SingleMuonFilter& operator=(SingleMuonFilter const&) = delete;
+>   SingleMuonFilter& operator=(SingleMuonFilter&&) = delete;
+90,100c83
+<   int n_good_daughters; //number of daughters that are tracks and whose start is within 5cm of the vertex
+<   int ntracks;
+<   int nshowers;
+<   float vtxcut;
+<   float reco_nu_vtxx, reco_nu_vtxy, reco_nu_vtxz;
+<   bool _debug = false;
+<   lar_pandora::LArPandoraHelper larpandora;
+<   lar_pandora::PFParticleVector pfparticles;
+<   lar_pandora::PFParticleVector pfneutrinos;
+<   lar_pandora::PFParticlesToVertices particlesToVertices;
+<   lar_pandora::VertexVector pfvertices;
+---
+> 
+106d88
+< 
+110c92
+< ThreeTrackFilter::ThreeTrackFilter(fhicl::ParameterSet const& pset): 
+---
+> SingleMuonFilter::SingleMuonFilter(fhicl::ParameterSet const& pset): 
+115d96
+< 
+124,128d104
+< 
+<   ntracks = pset.get<int>("NTrack", 3); //fhicl parameter that makes ther required number of tracks == 3
+<   nshowers = pset.get<int>("NShowers", 0); //"" number of showers == 0
+<   vtxcut =  pset.get<float>("VtxCut", 5.0); //require the start of each track to be within 5cm of the reconstructed vertex
+< 
+131,132c107,108
+< //bool ThreeTrackFilter::filter(art::Event const& evt)
+< bool ThreeTrackFilter::filter(art::Event & evt)
+---
+> //bool SingleMuonFilter::filter(art::Event const& evt)
+> bool SingleMuonFilter::filter(art::Event & evt)
+159,162d134
+<   //Stuff in order to get the reconstructed vertex:
+<   larpandora.SelectNeutrinoPFParticles(pfparticles, pfneutrinos);
+<   larpandora.CollectVertices(evt, m_pandoraLabel, pfvertices, particlesToVertices);
+< 
+173,176c145,147
+<   std::vector<art::Ptr<recob::PFParticle> > NeutrinoDaughters; //total number of neutrino daughters
+<   std::vector<art::Ptr<recob::Track> > daughter_Tracks; //number of daugher tracks
+<   std::vector<art::Ptr<recob::Track> > good_daughter_Tracks; //Daughters that happen to be close to the vertex (i.e. within 5cm)
+<   std::vector<art::Ptr<recob::Shower> > daughter_Showers; //number of daughter showers
+---
+>   std::vector<art::Ptr<recob::PFParticle> > NeutrinoDaughters;
+>   std::vector<art::Ptr<recob::Track> > daughter_Tracks;
+>   std::vector<art::Ptr<recob::Shower> > daughter_Showers;
+180,184c151,153
+<   TVector3 Trk_start_SCEcorr;
+<   TVector3 trk_good_start;
+<   TVector3 trk_good_start_SCEcorr;
+<   //Tvector 3 Trk_end;
+<   //TVector3 Trk_end_SCEcorr;
+---
+>   TVector3 Trk_end;
+>   TVector3 Trk_start_SCEcorr; 
+>   TVector3 Trk_end_SCEcorr;
+186,194d154
+<   ///////////////////////////////////////////////////////////
+<   // Reject an event if 1) Not in the neutrino slice 2) Not 3-track 0-shower topology 3) Vtx not in FV 4) the 3 track starts are not within 5cm of the reconstructed vertex
+<   //////////////////////////////////////////////////////////
+< 
+<   if (pfparticles.size() == 0){
+<     if(_debug) std::cout<<"[Numu0pi0p] No Reconstructed PFParticles in the event." << std::endl;
+<   }
+<   else {//if there are reconstructed pfparticles continue on your merry way                                                                                            
+<     if(pfneutrinos.size()==1){ //when there is exactly 1 neutrino candidate in the event                                                                               
+196,206c156,160
+<         art::Ptr<recob::PFParticle> pfnu = pfneutrinos.front();
+<         lar_pandora::VertexVector neutrino_vertex_vec = particlesToVertices.at(pfnu);
+<         const recob::Vertex::Point_t &neutrino_vtx = neutrino_vertex_vec.front()->position();
+< 
+<         reco_nu_vtxx = neutrino_vtx.X();
+<         reco_nu_vtxy = neutrino_vtx.Y();
+<         reco_nu_vtxz = neutrino_vtx.Z();
+< 
+<     } //end of if loop concerning events where the pfneutrinos is exactly 1 
+<   }
+<   
+---
+>   // Reject an event if
+>   // - No neutrino slice
+>   // - Not 1-track 0-shower topology
+>   // - Vtx not in FV
+>  
+208,211c162
+< 
+<   //////////////////////////////////////
+<   //Get Reco neutrino (pfparticle)
+<   /////////////////////////////////////
+---
+>   //-------- Get Reco neutrino (pfparticle)
+219c170
+<       // For CC0pi2p, we only consider the case with the number of neutrino daughters less than 4
+---
+>       // For CC0pi0p, we only consider the case with the number of neutrino daughters less than 4
+223,224c174
+<           
+< 	  auto Iterator = pfParticleIdMap.find(pfp->Daughters().at(j));
+---
+>           auto Iterator = pfParticleIdMap.find(pfp->Daughters().at(j));
+227,228c177
+<           
+< 	  // Collect pfparticle associated track in a vector
+---
+>           // Collect pfparticle associated track in a vector
+231,260c180,183
+<           
+< 	    daughter_Tracks.push_back(assoTrack.front());	    
+< 
+< 	    //All da space charge garbage!
+< 	    // Get time offset for x space charge correction
+< 	    auto const& detProperties_good = lar::providerFrom<detinfo::DetectorPropertiesService>();
+< 	    auto const& detClocks_good = lar::providerFrom<detinfo::DetectorClocksService>();
+< 	    auto const& mct_h_good = evt.getValidHandle<std::vector<simb::MCTruth> >("generator");
+< 	    auto gen_good = mct_h_good->at(0);
+< 	    double g4Ticks_good = detClocks_good->TPCG4Time2Tick(gen_good.GetNeutrino().Nu().T()) + detProperties_good->GetXTicksOffset(0,0,0) - detProperties_good->TriggerOffset();
+< 	    double xtimeoffset_good = detProperties_good->ConvertTicksToX(g4Ticks_good,0,0,0);
+< 	    trk_good_start = assoTrack.front()->Vertex<TVector3>();
+< 	    auto trk_good_start_offset = SCE->GetCalPosOffsets(geo::Point_t(trk_good_start.X(), trk_good_start.Y(), trk_good_start.Z()));
+< 	    
+< 	    trk_good_start_SCEcorr.SetX((trk_good_start.X() - trk_good_start_offset.X() + xtimeoffset_good) + 0.6);
+< 	    trk_good_start_SCEcorr.SetY(trk_good_start.Y() + trk_good_start_offset.Y());
+< 	    trk_good_start_SCEcorr.SetZ(trk_good_start.Z() + trk_good_start_offset.Z());
+< 
+< 
+< 	    //defining the magnitude of the difference between the track start and the reconstructed neutrino start
+< 	    float reco_3d_diff = sqrt(pow((reco_nu_vtxx - trk_good_start_SCEcorr.X()),2) + pow((reco_nu_vtxy - trk_good_start_SCEcorr.Y()),2) + pow((reco_nu_vtxz - trk_good_start_SCEcorr.Z()),2));
+< 
+< 	    if(reco_3d_diff < vtxcut){ 
+< 	      good_daughter_Tracks.push_back(assoTrack.front());
+< 	    }
+< 
+< 	  } //finish loop that looks at the pfp assotiation for tracks
+< 
+<           if(assoTrack.size()>1){ //means that there is more than one track associated to the daughter pfparticle
+<             throw cet::exception("[Numu0pi2p]") << "PFParticle has >1 track!" << std::endl;
+---
+>             daughter_Tracks.push_back(assoTrack.front());
+>           }
+>           if(assoTrack.size()>1){
+>             throw cet::exception("[Numu0pi0p]") << "PFParticle has >1 track!" << std::endl;
+267,268c190,191
+<           if(assoShower.size()>1){ //means that there is more than one shower associated to the daughter pfparticle
+<             throw cet::exception("[Numu0pi2p]") << "PFParticle has >1 shower!" << std::endl;
+---
+>           if(assoShower.size()>1){
+>             throw cet::exception("[Numu0pi0p]") << "PFParticle has >1 shower!" << std::endl;
+273c196
+<       //number of tracks and showers and good daughters (ie.e tracks that pass the reco cut)
+---
+>       //number of tracks and showers
+276d198
+<       n_good_daughters = good_daughter_Tracks.size();
+279,304c201,210
+<       if(n_dau_tracks == ntracks && n_dau_showers == nshowers){
+<         
+< 	//All da space charge garbage!                                                                                                                                                                          
+< 	// Get time offset for x space charge correction                                                                                                                                                        
+< 	auto const& detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
+< 	auto const& detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
+< 	auto const& mct_h = evt.getValidHandle<std::vector<simb::MCTruth> >("generator");
+< 	auto gen = mct_h->at(0);
+< 	double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+< 	double xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
+< 
+< 	Trk_start = daughter_Tracks.front()->Vertex<TVector3>();
+< 	auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
+< 
+< 	Trk_start_SCEcorr.SetX((Trk_start.X() - Trk_start_offset.X() + xtimeoffset) + 0.6);
+< 	Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
+< 	Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
+< 
+< 	bool vtx_InFV = _fiducial_volume.InFV(Trk_start_SCEcorr);
+< 
+< 	if(n_good_daughters == ntracks ) {
+< 	  return true;
+< 	}
+< 	else{
+< 	  return false; //checking to make sure that the 
+< 	}
+---
+>       if(n_dau_tracks == 1 && n_dau_showers == 0){
+>         // Add spatial correction to the track start and end
+>         Trk_start = daughter_Tracks.front()->Vertex<TVector3>();
+>         auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
+>         Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
+>         Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
+>         Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
+> 
+>         bool vtx_InFV = _fiducial_volume.InFV(Trk_start_SCEcorr);
+> 
+323c229
+< void ThreeTrackFilter::beginJob()
+---
+> void SingleMuonFilter::beginJob()
+328c234
+< void ThreeTrackFilter::endJob()
+---
+> void SingleMuonFilter::endJob()
+333c239
+< DEFINE_ART_MODULE(ThreeTrackFilter)
+---
+> DEFINE_ART_MODULE(SingleMuonFilter)

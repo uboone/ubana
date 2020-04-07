@@ -1,0 +1,23 @@
+#include "config_single_proton_filter.fcl"
+
+physics:
+{
+ 
+ analyzers: 
+ {
+    SingleProtonAna:                    @local::single_proton_ana
+ }
+        
+ ana:  [SingleProtonAna]
+
+ #trigger_paths: [ prod ]
+ end_paths: [ ana ]
+
+}
+physics.analyzers.SingleProtonAna.DebugMode:     false
+physics.analyzers.SingleProtonAna.Overlay:             false
+physics.analyzers.SingleProtonAna.CRTVeto:   false
+physics.analyzers.SingleProtonAna.Beam_low: 3.57
+physics.analyzers.SingleProtonAna.Beam_high: 5.25
+physics.analyzers.SingleProtonAna.Trklen_low: 0.5
+physics.analyzers.SingleProtonAna.Trklen_high: 200

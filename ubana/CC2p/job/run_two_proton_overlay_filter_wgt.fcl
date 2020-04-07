@@ -1,0 +1,41 @@
+#include "config_two_proton_filter_wgt.fcl"
+
+
+physics:
+{
+ producers: 
+{
+  eventweightGeniePM: @local::microboone_eventweight_genie_pm
+    eventweightGenieALL: @local::microboone_eventweight_genie_all
+ eventweightFluxJan29: @local::microboone_eventweight_flux_jan29 
+}
+ 
+ analyzers: 
+ {
+    TwoProtonAna:                    @local::two_proton_ana
+ }
+        
+prod: [eventweightGeniePM,eventweightGenieALL,eventweightFluxJan29] 
+ana:  [TwoProtonAna]
+
+# trigger_paths: [ prod ]
+ end_paths: [ ana ]
+
+}
+physics.analyzers.TwoProtonAna.DebugMode: false
+physics.analyzers.TwoProtonAna.Reweighting:   true
+physics.analyzers.TwoProtonAna.Overlay:   true
+physics.analyzers.TwoProtonAna.CRTVeto:   false
+physics.analyzers.TwoProtonAna.Beam_low: 3.57
+physics.analyzers.TwoProtonAna.Beam_high: 5.25
+physics.analyzers.TwoProtonAna.Trklen_low: 0.5
+physics.analyzers.TwoProtonAna.Trklen_high: 200
+physics.analyzers.TwoProtonAna.Trklen_high: 200
+physics.analyzers.TwoProtonAna.P_muon: 0.1
+physics.analyzers.TwoProtonAna.P_proton: 0.2
+physics.analyzers.TwoProtonAna.P_pionpm: 0.065
+physics.analyzers.TwoProtonAna.P_pion0: 0.065
+physics.analyzers.TwoProtonAna.P_electron: 0.01
+physics.analyzers.TwoProtonAna.P_neutron: 0.01
+
+

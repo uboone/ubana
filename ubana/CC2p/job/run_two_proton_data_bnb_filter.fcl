@@ -1,0 +1,23 @@
+#include "config_two_proton_filter.fcl"
+
+physics:
+{
+ 
+ analyzers: 
+ {
+    TwoProtonAna:                    @local::two_proton_ana
+ }
+        
+ ana:  [TwoProtonAna]
+
+ #trigger_paths: [ prod ]
+ end_paths: [ ana ]
+
+}
+physics.analyzers.TwoProtonAna.DebugMode:                           true
+physics.analyzers.TwoProtonAna.Overlay:                             false
+physics.analyzers.TwoProtonAna.CRTVeto:   false
+physics.analyzers.TwoProtonAna.Beam_low: 3.19
+physics.analyzers.TwoProtonAna.Beam_high: 4.87
+physics.analyzers.TwoProtonAna.Trklen_low: 0.5
+physics.analyzers.TwoProtonAna.Trklen_high: 200

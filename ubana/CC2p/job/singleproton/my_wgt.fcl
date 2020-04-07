@@ -1,0 +1,43 @@
+#include "services_microboone.fcl"
+#include "microboone_eventweight_service.fcl"
+#include "seedservice_microboone.fcl"
+#include "eventweight_microboone.fcl"
+
+process_name: EventWeight4to4aFix
+
+services: {
+  TimeTracker: {}
+  MemoryTracker: {}
+  RandomNumberGenerator: {}
+  FileCatalogMetadata: @local::art_file_catalog_mc
+  NuRandomService: @local::microboone_seedservice
+  UBEventWeight: @local::microboone_eventweight_service
+}
+
+source: {
+  module_type: RootInput
+}
+
+physics: {
+ producers: {
+   eventweight4to4aFix: @local::microboone_eventweight_justSplines
+   rns: {
+     module_type: "RandomNumberSaver"
+   }
+ }
+ 
+ simulate: [ rns, eventweight4to4aFix ]
+ stream1: [ out1 ]
+ trigger_paths: [ simulate ]
+ end_paths: [ stream1 ]
+}
+
+outputs: {
+ out1: {
+   module_type: RootOutput
+   fileName: "%ifb_%tc_eventweight.root"
+   dataTier: "simulated"
+   compressionLevel: 1
+ }
+}
+

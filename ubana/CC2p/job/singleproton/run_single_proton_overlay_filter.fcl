@@ -1,0 +1,41 @@
+#include "config_single_proton_filter.fcl"
+
+#physics.producers.eventweightSplines: @local::microboone_eventweight_justSplines
+
+physics:
+{
+ #producers: 
+#{
+   #eventweight4to4aFix: @local::microboone_eventweight_justSplines
+   
+# }
+ 
+ analyzers: 
+ {
+    SingleProtonAna:                    @local::single_proton_ana
+ }
+        
+#prod: [eventweight4to4aFix] 
+ana:  [SingleProtonAna]
+
+# trigger_paths: [ prod ]
+ end_paths: [ ana ]
+
+}
+physics.analyzers.SingleProtonAna.DebugMode: false
+physics.analyzers.SingleProtonAna.Reweighting:   false
+physics.analyzers.SingleProtonAna.Overlay:   true
+physics.analyzers.SingleProtonAna.CRTVeto:   false
+physics.analyzers.SingleProtonAna.Beam_low: 3.57
+physics.analyzers.SingleProtonAna.Beam_high: 5.25
+physics.analyzers.SingleProtonAna.Trklen_low: 0.5
+physics.analyzers.SingleProtonAna.Trklen_high: 200
+physics.analyzers.SingleProtonAna.Trklen_high: 200
+physics.analyzers.SingleProtonAna.P_muon: 0.1
+physics.analyzers.SingleProtonAna.P_proton: 0.2
+physics.analyzers.SingleProtonAna.P_pionpm: 0.065
+physics.analyzers.SingleProtonAna.P_pion0: 0.065
+physics.analyzers.SingleProtonAna.P_electron: 0.01
+physics.analyzers.SingleProtonAna.P_neutron: 0.01
+
+

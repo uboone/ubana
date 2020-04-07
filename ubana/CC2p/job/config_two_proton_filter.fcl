@@ -1,0 +1,80 @@
+#include "pandoramodules_microboone.fcl"
+#include "external_event_building.fcl"
+#include "flash_neutrino_id.fcl"
+#include "calorimetry_microboone.fcl"
+#include "config_dedx_calibration.fcl"
+#include "config_particle_identification.fcl"
+#include "calibration_microboone.fcl"
+#include "microboone_eventweight_service.fcl"
+#include "eventweight_microboone.fcl"
+
+BEGIN_PROLOG
+
+eventweight4to4aFix: @local::microboone_eventweight_justSplines
+
+two_proton_ana: 
+{
+    module_type: "CC2p"
+
+    # Input producers
+    pfp_producer: "pandora"
+}
+
+END_PROLOG
+
+###################################################################################
+
+#include "services_microboone.fcl"
+#include "photpropservices_microboone.fcl"
+#include "time_memory_tracker_microboone.fcl"
+#include "reco_uboone_mcc9_8.fcl"
+#
+process_name: TwoProtonAna
+
+services:
+{
+  scheduler:               {defaultExceptions: false}
+  TFileService:            {fileName: "twoproton_anatree.root"}
+
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+
+  TimeTracker:              @local::microboone_time_tracker
+  MemoryTracker:            @local::microboone_memory_tracker
+  message:                  @local::microboone_message_services_prod_debug
+  FileCatalogMetadata:      @local::art_file_catalog_mc
+  SpaceCharge:              @local::microboone_spacecharge
+  DetectorPropertiesService:@local::microboone_detproperties
+  LArProperties:            @local::microboone_properties
+  DetectorClocksService:    @local::microboone_detectorclocks
+  PhotonVisibilityService:  @local::microboone_photonvisibilityservice
+  UBEventWeight:            @local::microboone_eventweight_service
+#  PmtGainService:           @local::PMTService
+}
+
+# Configuration
+services.SpaceCharge.EnableCorrSCE:       true
+services.SpaceCharge.EnableSimEfieldSCE:  true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.DetectorClocksService.InheritClockConfig:                         false
+services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1
+  fileNames: []
+  #saveMemoryObjectThreshold: 0
+}
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName: "%ifb_%tc_twoproton.root"
+   dataTier: "reconstructed"
+   compressionLevel: 1
+   saveMemoryObjectThreshold: 0
+ }
+}

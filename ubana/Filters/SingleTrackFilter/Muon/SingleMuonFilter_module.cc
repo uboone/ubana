@@ -69,7 +69,6 @@ private:
   art::ServiceHandle<art::TFileService> tfs;
 
   spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
-
   TTree * POTtree;
   int run, subrun;
   double POT_miss1E10;
