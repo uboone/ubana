@@ -85,8 +85,8 @@ util::WeightFilter::WeightFilter(fhicl::ParameterSet const& p)
   if(fApplyEventWeight)
     fEventWeightTag = p.get<art::InputTag>("EventWeightTag");
   
-  if(fApplyPOTWeight)
-    fPOTInfoTag = p.get<art::InputTag>("POTInfoTag");
+  //if(fApplyPOTWeight)
+  fPOTInfoTag = p.get<art::InputTag>("POTInfoTag");
 }
 
 bool util::WeightFilter::beginSubRun(art::SubRun & s)
@@ -119,6 +119,7 @@ bool util::WeightFilter::endSubRun(art::SubRun & s)
 			 << " = " << fPOTWeight << std::endl;
 
   s.put(std::move(srpot_ptr));
+  
   return true;
 }
 
