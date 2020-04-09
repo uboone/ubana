@@ -49,6 +49,7 @@ public:
 private:
 
   std::vector<art::InputTag> fEventWeightTags;
+  std::vector<std::vector<std::string> > fWeightNames;
   art::InputTag fPOTInfoTag;
   
   bool   fApplyPOTWeight;
@@ -82,9 +83,10 @@ util::WeightFilter::WeightFilter(fhicl::ParameterSet const& p)
   // Call appropriate consumes<>() for any products to be retrieved by this module.
   this->produces<sumdata::POTSummary,art::InSubRun>();
   
-  if(fApplyEventWeight)
+  if(fApplyEventWeight){
     fEventWeightTags = p.get< std::vector<art::InputTag> >("EventWeightTags");
-  
+    fWeightNames = p.get< std::vector< std::vector<std::string> > >("WeightNames");
+  }  
   //if(fApplyPOTWeight)
   fPOTInfoTag = p.get<art::InputTag>("POTInfoTag");
 }
@@ -131,22 +133,28 @@ bool util::WeightFilter::filter(art::Event& e)
   double fEventWeight=1.;
   if(fApplyEventWeight){
     //...
-    for(auto const& tag : fEventWeightTags){
-    
-      auto const& evw_handle = e.getValidHandle< std::vector<evwgh::MCEventWeight> >(tag);
+
+    for(size_t tag = 0; tag < fEventWeightTags.size(); tag++){
+
+      auto const& evw_handle = e.getValidHandle< std::vector<evwgh::MCEventWeight> >(fEventWeightTags[tag]);
       auto const& evw_vec(*evw_handle);
-      for(auto const& evw_map : evw_vec){
-	for(auto const& evw : evw_map.fWeight){
-	  
-	  if(evw.second.size()>0) fEventWeight*=evw.second.at(0);	
-	  if(fVerbose)
-	    std::cout << "\t\tweight " << tag << " ... " << evw.first << " : " << evw.second.at(0) << std::endl;
-	  
+      
+      for(auto const& wname : fWeightNames[tag]){ 
+	
+	//auto const& evw_handle = e.getValidHandle< std::vector<evwgh::MCEventWeight> >(tag);
+	//auto const& evw_vec(*evw_handle);
+	for(auto const& evw_map : evw_vec){
+	  for(auto const& evw : evw_map.fWeight){
+	    if(evw.first.find(wname) != std::string::npos){	  
+	      if(evw.second.size()>0 && evw.second.at(0)>=0) fEventWeight*=evw.second.at(0);	
+	      if(fVerbose)
+		std::cout << "\t\tweight " << tag << " ... " << evw.first << " : " << evw.second.at(0) << std::endl;	    
+	    }
+	  }
 	}
       }
     }
-  }  
-  //calc total weight
+  } //calc total weight
   double weightTot=1.;
   if(fApplyPOTWeight)
     weightTot*=fPOTWeight;
