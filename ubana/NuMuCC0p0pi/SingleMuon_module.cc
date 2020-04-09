@@ -194,11 +194,15 @@ private:
   std::vector<double> crthit_plane; // Plane of CRT hits
   std::vector<double> crthit_time; // Time of CRT hits
   int Nr_crthit_inBeam = 0; // Number of CRT hits in beamtime
+  double only_crthit_time_inBeam = -999;
+  bool if_t0_crt_time_inBeam_match = true;
+
   int Nr_trk_asso_crthit = 0; // Number of CRT hits associated to the track
   double trk_crt_time = -999;// The CRT time of the hit which matched to the track
   bool if_trk_CRT_out_Beam = false; // Check if a track matches with out of beam CRT hit(s)
   bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
   bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
+  bool if_t0_trk_crt_time_match = true;
 
   double trk_vtx_x = -999;
   double trk_vtx_y = -999;
@@ -855,6 +859,14 @@ void SingleMuon::analyze(art::Event const& evt)
           if(Nr_crthit_inBeam != (int) crthit_time.size()) {
             throw cet::exception("[Numu0pi0p]") << "Number of crt hits does not match!" << std::endl;
           }
+          if(Nr_crthit_inBeam == 1){
+            only_crthit_time_inBeam = crthit_time[0];
+            if(trigger_time != -999){
+              if(only_crthit_time_inBeam - trigger_time> -0.2){
+                if_t0_crt_time_inBeam_match = false;   
+              }
+            }
+          }
 
           //- If a track is associated to a CRT hit which is outside of beam window, exclude them (For both contained and exiting)
           auto Track_CRThit = CRTToTrackAsso.at(daughter_Tracks.front().key()); 
@@ -868,7 +880,7 @@ void SingleMuon::analyze(art::Event const& evt)
             }
           }
 
-          //- [For cross-check] For contained (Veto if there is any CRT hit in beam window)
+          //- For contained (Veto if there is any CRT hit within 1us of the flash which is in the beam window)
           if(flash_v.size() > 0){
             for(unsigned int i_fl = 0; i_fl < flash_v.size(); i_fl++){
               auto CRT_hit = CRThitFlashAsso.at(flash_v[i_fl].key());
@@ -881,6 +893,15 @@ void SingleMuon::analyze(art::Event const& evt)
 
         } // Using CRT
 
+        // - crt time and t0 time match
+        if(trigger_time != -999 && trk_crt_time != -999){
+          if((trk_crt_time - trigger_time) == 0 || ((trk_crt_time - trigger_time) > -0.52 && (trk_crt_time - trigger_time) < -0.42)){
+            if_t0_trk_crt_time_match =  true;
+          }
+          else{
+            if_t0_trk_crt_time_match = false;
+          }
+        }
         //-- Fill RECO track info (in the naive version this is selected)
 
         // Add spatial correction to the track start and end
@@ -1586,11 +1607,15 @@ void SingleMuon::analyze(art::Event const& evt)
   crthit_plane.clear();
   crthit_time.clear();
   Nr_crthit_inBeam = 0;
+  only_crthit_time_inBeam = -999;
+  if_t0_crt_time_inBeam_match = true;
+
   Nr_trk_asso_crthit = 0;
   trk_crt_time = -999;
   evt_CRTveto = false;
   evt_CRTveto_100 = false;
   if_trk_CRT_out_Beam = false;
+  if_t0_trk_crt_time_match = true;
 
   trk_vtx_x = -999;
   trk_vtx_y = -999;
@@ -1885,9 +1910,13 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("crthit_plane", &crthit_plane);
   my_event_->Branch("crthit_time", &crthit_time);
   my_event_->Branch("Nr_crthit_inBeam", &Nr_crthit_inBeam);
+  my_event_->Branch("only_crthit_time_inBeam", &only_crthit_time_inBeam);
+  my_event_->Branch("if_t0_crt_time_inBeam_match", &if_t0_crt_time_inBeam_match);
+
   my_event_->Branch("Nr_trk_asso_crthit", &Nr_trk_asso_crthit);
   my_event_->Branch("trk_crt_time", &trk_crt_time);
-  my_event_->Branch("if_trk_CRT_out_Beam", &if_trk_CRT_out_Beam);
+  my_event_->Branch("if_trk_CRT_out_Beam", &if_trk_CRT_out_Beam);  
+  my_event_->Branch("if_t0_trk_crt_time_match", &if_t0_trk_crt_time_match);
   
   my_event_->Branch("trk_vtx_x", &trk_vtx_x);
   my_event_->Branch("trk_vtx_y", &trk_vtx_y);

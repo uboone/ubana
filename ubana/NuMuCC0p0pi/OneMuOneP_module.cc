@@ -203,10 +203,16 @@ private:
   std::vector<double> crthit_plane; // Plane of CRT hits
   std::vector<double> crthit_time; // Time of CRT hits
   int Nr_crthit_inBeam = 0; // Number of CRT hits in beamtime
+  double only_crthit_time_inBeam = -999;
+  bool if_t0_crt_time_inBeam_match = true;
   
+  bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
+  bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
+
   std::vector<int> Nr_trk_asso_crthit = {-999, -999}; // Number of CRT hits associated to the track
   std::vector<double> trk_crt_time = {-999, -999};// The CRT time of the hit which matched to the track
   std::vector<bool> if_trk_CRT_out_Beam = {false, false}; // Check if a track matches with out of beam CRT hit(s)
+  std::vector<bool> if_t0_trk_crt_time_match = {true, true};
 
   std::vector<bool> trk_OutOfTime = {false, false};
 
@@ -776,7 +782,26 @@ void SingleMuon::analyze(art::Event const& evt)
           if(Nr_crthit_inBeam != (int) crthit_time.size()) {
             throw cet::exception("[Numu0pi0p]") << "Number of CRT hits in beam time does not match!" << std::endl;
           }
-        }
+          if(Nr_crthit_inBeam == 1){
+            only_crthit_time_inBeam = crthit_time[0];
+            if(trigger_time != -999){
+              if(only_crthit_time_inBeam - trigger_time> -0.2){
+                if_t0_crt_time_inBeam_match = false;
+              }
+            }
+          }
+       
+          //- For contained (Veto if there is any CRT hit within 1us of the flash which is in the beam window)
+          if(flash_v.size() > 0){
+            for(unsigned int i_fl = 0; i_fl < flash_v.size(); i_fl++){
+              auto CRT_hit = CRThitFlashAsso.at(flash_v[i_fl].key());
+              if(CRT_hit.size() > 0){
+                evt_CRTveto = true;
+                if(CRT_hit.front()->peshit > 100) evt_CRTveto_100 = true;
+              } // if CRT veto
+            } // loop over flash(es)
+          } // if flash exists
+        } // Using CRT
 
         //////////////////////
         // Information required per track (2 tracks)
@@ -800,6 +825,17 @@ void SingleMuon::analyze(art::Event const& evt)
                 } // If matched CRT hit out of Beam window
               } // Loop over the associated CRT hits
             }  // If there is associated CRT hits
+
+            // - crt time and t0 time match
+            if(trigger_time != -999 && trk_crt_time[i_trk] != -999){
+              if((trk_crt_time[i_trk] - trigger_time) == 0 || ((trk_crt_time[i_trk] - trigger_time) > -0.52 && (trk_crt_time[i_trk] - trigger_time) < -0.42)){
+                if_t0_trk_crt_time_match[i_trk] =  true;
+              }
+              else{
+                if_t0_trk_crt_time_match[i_trk] = false;
+              }
+            }
+
           } // CRT info
 
           //------ Reco info
@@ -1278,10 +1314,16 @@ void SingleMuon::analyze(art::Event const& evt)
   crthit_plane.clear();
   crthit_time.clear();
   Nr_crthit_inBeam = 0;
+  only_crthit_time_inBeam = -999;
+  if_t0_crt_time_inBeam_match = true;
+
+  evt_CRTveto = false;
+  evt_CRTveto_100 = false;
 
   Nr_trk_asso_crthit = {-999, -999}; 
   trk_crt_time = {-999, -999};
   if_trk_CRT_out_Beam = {false, false};
+  if_t0_trk_crt_time_match = {true, true};
 
   trk_OutOfTime = {false, false};
 
@@ -1526,10 +1568,16 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("crthit_plane", &crthit_plane);
   my_event_->Branch("crthit_time", &crthit_time);
   my_event_->Branch("Nr_crthit_inBeam", &Nr_crthit_inBeam);
+  my_event_->Branch("only_crthit_time_inBeam", &only_crthit_time_inBeam);
+  my_event_->Branch("if_t0_crt_time_inBeam_match", &if_t0_crt_time_inBeam_match);
+
+  my_event_->Branch("evt_CRTveto", &evt_CRTveto);
+  my_event_->Branch("evt_CRTveto_100", &evt_CRTveto_100);
 
   my_event_->Branch("Nr_trk_asso_crthit", &Nr_trk_asso_crthit);
   my_event_->Branch("trk_crt_time", &trk_crt_time);
   my_event_->Branch("if_trk_CRT_out_Beam", &if_trk_CRT_out_Beam);
+  my_event_->Branch("if_t0_trk_crt_time_match", &if_t0_trk_crt_time_match);
 
   my_event_->Branch("trk_OutOfTime", &trk_OutOfTime);
 
