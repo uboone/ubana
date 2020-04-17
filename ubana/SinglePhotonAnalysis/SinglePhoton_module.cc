@@ -38,6 +38,8 @@ namespace single_photon
 
         if(m_run_pi0_filter) m_is_data = true;// If running in filter mode, treat all as data
 
+       m_runPhotoNuTruth = pset.get<bool>("RunPhotoNu",false); 
+
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
         m_sliceLabel = pset.get<std::string>("SliceLabel","pandora");
@@ -833,6 +835,38 @@ namespace single_photon
                 }
 
 
+                //PhotoNu Bit - Run only if flag is on
+                
+                m_photonu_weight_low = -999;
+                m_photonu_weight_high = -999;
+                if(m_runPhotoNuTruth){
+
+
+                    art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw_ph ;
+                    if(    evt.getByLabel("eventweight",ev_evw_ph)){
+
+                        std::map<std::string, std::vector<double>> const & weight_map = ev_evw_ph->front().fWeight;
+
+                        for (auto const& x : weight_map){
+                            std::cout << x.first  // string (key)
+                                << ':' 
+                                << x.second.size() << std::endl ;
+                            if(x.first == "photonuclear_photon_PhotoNuclear"){
+                                auto vec  = x.second;
+                                double ph_low = x[1];
+                                double ph_high = x[0];
+                                std::cout<<"PhotoNuBit: "<<ph_low<<" "<<ph_high<<std::endl;
+                                m_photonu_weight_low = ph_low;
+                                m_photonu_weight_high = ph_high;
+                            }
+                        }
+
+                    }
+
+
+
+                }
+
                 std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
             }
             
@@ -1160,6 +1194,9 @@ namespace single_photon
 
             vertex_tree->Branch("genie_spline_weight", &m_genie_spline_weight, "genie_spline_weight/D");
             vertex_tree->Branch("genie_CV_tune_weight", &m_genie_CV_tune_weight, "genie_CV_tune_weight/D");
+
+            vertex_tree->Branch("photonu_weight_low", &m_photonu_weight_low, "photonu_weight_low/D");
+            vertex_tree->Branch("photonu_weight_high", &m_photonu_weight_high, "photonu_weight_high/D");
 
             vertex_tree->Branch("test_matched_hits", &m_test_matched_hits, "test_matched_hits/I");
             // --------------------- Vertex Related variables ------------

@@ -816,6 +816,8 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             bool m_fill_trees;
             bool m_run_pi0_filter;
 
+            bool m_runPhotoNuTruth;
+
             //SEAviwer bits
             double m_SEAviewPlotDistance;
             double m_SEAviewHitThreshold;
@@ -1643,6 +1645,9 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             double m_genie_spline_weight;
             double m_genie_CV_tune_weight;
+
+            double m_photonu_weight_low;
+            double m_photonu_weight_high;
 
             bool Pi0PreselectionFilter();
     };
