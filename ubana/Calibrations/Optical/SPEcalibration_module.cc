@@ -37,6 +37,7 @@
 #include "TH1D.h"
 
 // LArSoft 
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"

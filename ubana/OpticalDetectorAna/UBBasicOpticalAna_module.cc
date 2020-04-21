@@ -19,6 +19,7 @@
 #include "art_root_io/TFileService.h"
 #include "art_root_io/TFileDirectory.h"
 
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "OpDetWaveformAna.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h" // lardata

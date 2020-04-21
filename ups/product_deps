@@ -1,16 +1,16 @@
-# This @product_deps@ file defines dependencies for this package. 
+# This @product_deps@ file defines dependencies for this package.
 
 # The *parent* line must the first non-commented line and defines this product and version
 # The version must be of the form vxx_yy_zz (e.g. v01_02_03)
-parent ubana v08_36_02
+parent ubana v08_50_00
 
-defaultqual e17
+defaultqual e19
 
 # These optional lines define where headers, libraries, and executables go and should
 # be used only if your product does not conform to the defaults.
 # Format: directory_type directory_path directory_name
 #   where directory_type is one of incdir, libdir, or bindir
-#   where directory_path is one of product_dir, fq_dir and - 
+#   where directory_path is one of product_dir, fq_dir and -
 # Defaults:
 # incdir  product_dir  include
 # fcldir  product_dir  fcl
@@ -30,22 +30,22 @@ table_fragment_end
 # Add the dependent product and version
 
 product                 version
-ubreco                  v08_36_02
-ubraw                   v08_36_02
-larana                  v08_13_02
-larpandora              v08_08_02
-cetbuildtools	        v7_14_00	-	only_for_build
+ubreco                  v08_50_00
+ubraw                   v08_49_00
+larana                  v08_17_03
+larpandora              v08_12_03
+cetbuildtools	        v7_15_01	-	only_for_build
 end_product_list
 
-qualifier      ubreco         ubraw          larana         larpandora     
-c2:py3:debug   c2:py3:debug   c2:py3:debug   c2:py3:debug   c2:py3:debug       
-c2:py3:prof    c2:py3:prof    c2:py3:prof    c2:py3:prof    c2:py3:prof        
-e17:py3:debug  e17:py3:debug  e17:py3:debug  e17:py3:debug  e17:py3:debug
-e17:py3:prof   e17:py3:prof   e17:py3:prof   e17:py3:prof   e17:py3:prof
-c2:debug       c2:debug       c2:debug       c2:debug       c2:debug       
-c2:prof        c2:prof        c2:prof        c2:prof        c2:prof        
-e17:debug      e17:debug      e17:debug      e17:debug      e17:debug
-e17:prof       e17:prof       e17:prof       e17:prof       e17:prof
+qualifier      ubreco         ubraw          larana         larpandora
+c7:py2:debug   c7:py2:debug   c7:py2:debug   c7:py2:debug   c7:py2:debug
+c7:py2:prof    c7:py2:prof    c7:py2:prof    c7:py2:prof    c7:py2:prof
+c7:debug       c7:debug       c7:debug       c7:debug       c7:debug
+c7:prof        c7:prof        c7:prof        c7:prof        c7:prof
+e19:py2:debug  e19:py2:debug  e19:py2:debug  e19:py2:debug  e19:py2:debug
+e19:py2:prof   e19:py2:prof   e19:py2:prof   e19:py2:prof   e19:py2:prof
+e19:debug      e19:debug      e19:debug      e19:debug      e19:debug
+e19:prof       e19:prof       e19:prof       e19:prof       e19:prof
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:
