@@ -145,12 +145,18 @@ private:
   // PFP
   int npfps;
   float LongProf[kMaxPFPs][3][100];
-  float TranProf[kMaxPFPs][3][16];
-  float TranProf_1[kMaxPFPs][3][16];
-  float TranProf_2[kMaxPFPs][3][16];
-  float TranProf_3[kMaxPFPs][3][16];
-  float TranProf_4[kMaxPFPs][3][16];
-  float TranProf_5[kMaxPFPs][3][16];
+  //float TranProf[kMaxPFPs][3][16];
+  //float TranProf_1[kMaxPFPs][3][16];
+  //float TranProf_2[kMaxPFPs][3][16];
+  //float TranProf_3[kMaxPFPs][3][16];
+  //float TranProf_4[kMaxPFPs][3][16];
+  //float TranProf_5[kMaxPFPs][3][16];
+  float TranProf[kMaxPFPs][3][40];
+  float TranProf_1[kMaxPFPs][3][40];
+  float TranProf_2[kMaxPFPs][3][40];
+  float TranProf_3[kMaxPFPs][3][40];
+  float TranProf_4[kMaxPFPs][3][40];
+  float TranProf_5[kMaxPFPs][3][40];
   float TotalCharge[kMaxPFPs][3];
   int pfpid[kMaxPFPs];
   int pfpself[kMaxPFPs];
@@ -159,6 +165,7 @@ private:
   int shwkey[kMaxPFPs];
   int shwid[kMaxPFPs];
   double pfpvertex_recon[kMaxPFPs][3];
+  double pfpvertex_recon_shift[kMaxPFPs][3]; // www: rmin with sign [pfp][plane]
   double pfpvertex_truth[kMaxPFPs][3]; // from the pfp particle start
   double pfpvertex_truth_sce[kMaxPFPs][3]; // from the pfp particle start
   double pfpend_truth[kMaxPFPs][3]; // from the pfp particle end
@@ -710,13 +717,24 @@ void PFPProfile::analyze(art::Event const& e)
           project(w0_cm, t0_cm, w1_cm, t1_cm, w_cm, t_cm, wp_cm, tp_cm);
           // Distance between hit and its projection
           // This will be used for transverse profile
-          double dist = sqrt((wp_cm-w_cm)*(wp_cm-w_cm)+(tp_cm-t_cm)*(tp_cm-t_cm));
+          //double dist = sqrt((wp_cm-w_cm)*(wp_cm-w_cm)+(tp_cm-t_cm)*(tp_cm-t_cm)); //www
+          // www: consider the hit on which side of the projected direction
+          //cout << "test: " << endl;
+          //cout << "vertex: (" << w0_cm << ", " << t0_cm << ")" << endl;
+          //cout << "projection point: (" << wp_cm << ", " << tp_cm << ")" << endl;
+          //cout << "hit point: (" << w_cm << ", " << t_cm << ")" << endl;
+
+          //double dist = sqrt((wp_cm-w_cm)*(wp_cm-w_cm)+(tp_cm-t_cm)*(tp_cm-t_cm)); //www
+          //cout << "trans dist: " << test_sign*dist << endl;
           // Ratio
-          double r = sqrt((wp_cm-w0_cm)*(wp_cm-w0_cm)+(tp_cm-t0_cm)*(tp_cm-t0_cm))/
-            sqrt((w1_cm-w0_cm)*(w1_cm-w0_cm)+(t1_cm-t0_cm)*(t1_cm-t0_cm));
+          double r = sqrt((wp_cm-w0_cm)*(wp_cm-w0_cm)+(tp_cm-t0_cm)*(tp_cm-t0_cm))/sqrt((w1_cm-w0_cm)*(w1_cm-w0_cm)+(t1_cm-t0_cm)*(t1_cm-t0_cm));
           // Determine if the hit is before and after the vertex
           double sign = 1.;
           if ((wp_cm-w0_cm)*(w1_cm-w0_cm)+(tp_cm-t0_cm)*(t1_cm-t0_cm)<0) sign = -1;
+          // www trans left or right depends on both trans_sign and sign (before or after the vertex)
+          double trans_sign = 1.;
+          if ((wp_cm-w0_cm)*(t_cm-tp_cm)-(w_cm-wp_cm)*(tp_cm-t0_cm) < 0) trans_sign = -1.;
+          double dist = sqrt((wp_cm-w_cm)*(wp_cm-w_cm)+(tp_cm-t_cm)*(tp_cm-t_cm)) * trans_sign * sign;
           // x,y,z are the 3D coordinates of the hit projection
           double x = vtx[0]+dir[0]*r*sign;
           double y = vtx[1]+dir[1]*r*sign;
@@ -733,6 +751,16 @@ void PFPProfile::analyze(art::Event const& e)
           hitdist.push_back(dist);
           hitcharge.push_back(hit->Integral());
         }
+        // www: for each plane, save the first point away from vertex with a sign
+        double vertex_shift = sqrt((vtx[0]-x0)*(vtx[0]-x0)+
+                                   (vtx[1]-y0)*(vtx[1]-y0)+
+                                   (vtx[2]-z0)*(vtx[2]-z0));
+        if (vertex_shift !=0) {
+          double sign_vertex_shift = ((x0-vtx[0])*dir[0] + (y0-vtx[1])*dir[1] + (z0-vtx[2])*dir[2]) / (vertex_shift*sqrt(dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2])); // cos(theta) of two vectors : 1 parallel; -1 antiparallel
+          vertex_shift = vertex_shift*sign_vertex_shift;
+        }
+        pfpvertex_recon_shift[npfps][pl] = vertex_shift; // for each plane 
+        
         // Now calculate longitudinal and transverse profiles
         for (size_t i = 0; i<hitx.size(); ++i){
           double Ldist = sqrt((hitx[i]-x0)*(hitx[i]-x0)+
@@ -741,11 +769,19 @@ void PFPProfile::analyze(art::Event const& e)
           double Tdist = hitdist[i];
           //if (pfp.key()==0) std::cout<<pfp.key()<<" "<<pl<<" "<<Ldist<<" "<<Tdist<<" "<<hitcharge[i]<<std::endl;
           int iL = int(Ldist/(14./4.)); //0.25 radiation length
-          int iT = int(Tdist/0.5);     //0.5 cm
+          //int iT = int(Tdist/0.5);     //0.5 cm
+          // www: use two side trans, may consider 1 cm step
+          int iTside = int(Tdist/0.5);  // 0.5 cm
+          int iT = 999;
+          if (std::abs(iTside) < 20) {
+            if (Tdist >= 0) iT = iTside;
+            else iT = 20 + std::abs(iTside);
+          }
           //std::cout<<npfps<<" "<<pl<<" "<<Ldist<<" "<<iL<<" "<<hitcharge[i]<<std::endl;
           //std::cout<<npfps<<" "<<pl<<" "<<Tdist<<" "<<iT<<" "<<hitcharge[i]<<std::endl;
           if (iL>=0 && iL<100) LongProf[npfps][pl][iL] += hitcharge[i];
-          if (iT>=0 && iT<16)  {
+          //if (iT>=0 && iT<16)  { // www
+          if (iT>=0 && iT<40)  {
             TranProf[npfps][pl][iT] += hitcharge[i];
             if (Ldist/14. < 1) TranProf_1[npfps][pl][iT] += hitcharge[i];
             else if (Ldist/14. < 2) TranProf_2[npfps][pl][iT] += hitcharge[i];
@@ -831,6 +867,7 @@ void PFPProfile::beginJob(){
   if (fUseMCOverlay) fEventTree->Branch("pfp_primary_e", pfp_primary_e, "pfp_primary_e[npfps]/I");
   
   fEventTree->Branch("pfpvertex_recon", pfpvertex_recon, "pfpvertex_recon[npfps][3]/D");
+  fEventTree->Branch("pfpvertex_recon_shift", pfpvertex_recon_shift, "pfpvertex_recon_shift[npfps][3]/D");
   fEventTree->Branch("pfpvertex_truth", pfpvertex_truth, "pfpvertex_truth[npfps][3]/D");
   fEventTree->Branch("pfpvertex_truth_sce", pfpvertex_truth_sce, "pfpvertex_truth_sce[npfps][3]/D");
   fEventTree->Branch("pfpend_truth", pfpend_truth, "pfpend_truth[npfps][3]/D");
@@ -850,12 +887,19 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("pfp_completeness", pfp_completeness, "pfp_completeness[npfps][3]/D");
   fEventTree->Branch("TotalCharge", TotalCharge, "TotalCharge[npfps][3]/F");
   fEventTree->Branch("LongProf", LongProf, "LongProf[npfps][3][100]/F");
-  fEventTree->Branch("TranProf", TranProf, "TranProf[npfps][3][16]/F");
-  fEventTree->Branch("TranProf_1", TranProf_1, "TranProf_1[npfps][3][16]/F");
-  fEventTree->Branch("TranProf_2", TranProf_2, "TranProf_2[npfps][3][16]/F");
-  fEventTree->Branch("TranProf_3", TranProf_3, "TranProf_3[npfps][3][16]/F");
-  fEventTree->Branch("TranProf_4", TranProf_4, "TranProf_4[npfps][3][16]/F");
-  fEventTree->Branch("TranProf_5", TranProf_5, "TranProf_5[npfps][3][16]/F");
+  //fEventTree->Branch("TranProf", TranProf, "TranProf[npfps][3][16]/F");
+  //fEventTree->Branch("TranProf_1", TranProf_1, "TranProf_1[npfps][3][16]/F");
+  //fEventTree->Branch("TranProf_2", TranProf_2, "TranProf_2[npfps][3][16]/F");
+  //fEventTree->Branch("TranProf_3", TranProf_3, "TranProf_3[npfps][3][16]/F");
+  //fEventTree->Branch("TranProf_4", TranProf_4, "TranProf_4[npfps][3][16]/F");
+  //fEventTree->Branch("TranProf_5", TranProf_5, "TranProf_5[npfps][3][16]/F");
+
+  fEventTree->Branch("TranProf", TranProf, "TranProf[npfps][3][40]/F");
+  fEventTree->Branch("TranProf_1", TranProf_1, "TranProf_1[npfps][3][40]/F");
+  fEventTree->Branch("TranProf_2", TranProf_2, "TranProf_2[npfps][3][40]/F");
+  fEventTree->Branch("TranProf_3", TranProf_3, "TranProf_3[npfps][3][40]/F");
+  fEventTree->Branch("TranProf_4", TranProf_4, "TranProf_4[npfps][3][40]/F");
+  fEventTree->Branch("TranProf_5", TranProf_5, "TranProf_5[npfps][3][40]/F");
 
   if (fPhotonProcess) {
     fEventTree->Branch("pfp_photon_process", &pfp_photon_process);
@@ -941,6 +985,7 @@ void PFPProfile::reset() {
     pfpcompleteness[i] = -1.0;
     for (size_t j = 0; j<3; ++j){
       pfpvertex_recon[i][j] = -99999.0;
+      pfpvertex_recon_shift[i][j] = -99999.0;
       pfpvertex_truth[i][j] = -99999.0;
       pfpvertex_truth_sce[i][j] = -99999.0;
       pfpend_truth[i][j] = -99999.0;
@@ -954,7 +999,8 @@ void PFPProfile::reset() {
       pfp_purity[i][j] = -1.0;
       pfp_completeness[i][j] = -1.0;
       for (size_t k = 0; k<100; ++k) LongProf[i][j][k] = 0;
-      for (size_t k = 0; k<16; ++k) {
+      //for (size_t k = 0; k<16; ++k) { // www
+      for (size_t k = 0; k<40; ++k) {
         TranProf[i][j][k] = 0;
         TranProf_1[i][j][k] = 0;
         TranProf_2[i][j][k] = 0;
