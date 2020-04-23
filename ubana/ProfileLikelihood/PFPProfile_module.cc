@@ -19,10 +19,8 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-//
 #include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
-#include "art/Utilities/make_tool.h"
+//#include "art/Framework/Services/Optional/TFileDirectory.h"
 //#include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
@@ -38,6 +36,7 @@
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"  // to calculate the time offset for x
@@ -55,6 +54,8 @@
 #include "TProfile2D.h"
 #include <TROOT.h>
 #include <TStyle.h>
+#include "TMatrixD.h"
+#include "TDecompSVD.h"
 
 using namespace std;
 
@@ -110,6 +111,7 @@ private:
   double fRecombination;
   float fCutPurity;
   float fCutCompleteness;
+  bool fSave3Dpoints;
 
   // Fiducial volume
   float fFidVolXmin;
@@ -188,6 +190,10 @@ private:
   vector<vector<int>> pfp_photon_daughter_pdg;
   vector<vector<double>> pfp_photon_daughter_energy; // [MeV]; kinetic energy
 
+  vector<int> pfpkey;
+  vector<vector<double>> spx;
+  vector<vector<double>> spy;
+  vector<vector<double>> spz;
 
 };
 
@@ -210,6 +216,7 @@ PFPProfile::PFPProfile(fhicl::ParameterSet const& p)
   fRecombination = p.get<double>("Recombination");
   fCutPurity    = p.get<float>("CutPurity");
   fCutCompleteness = p.get<float>("CutCompleteness");
+  fSave3Dpoints = p.get<bool>("Save3Dpoints", false);
 }
 
 void PFPProfile::analyze(art::Event const& e)
@@ -265,6 +272,9 @@ void PFPProfile::analyze(art::Event const& e)
 
   // Get hit-cluster association
   art::FindManyP<recob::Hit> fmhc(cluListHandle, e, "pandora");
+
+  // Get hit-spacepoint association
+  art::FindManyP<recob::SpacePoint> fmsh(hitListHandle, e, "sps3d");
 
   // Get Geometry service
   art::ServiceHandle<geo::Geometry const> geom;
@@ -424,40 +434,129 @@ void PFPProfile::analyze(art::Event const& e)
     double dir[3] = {0,0,0};
     bool foundvtxdir = false;
 
+    vector<double> vx, vy, vz;
+    double avex = 0, avey = 0, avez = 0;
+    // Get hits on each plane
+    std::vector<std::vector<art::Ptr<recob::Hit>>> allhits(3);
+    std::map<art::Ptr<recob::SpacePoint>, int> spmap;
+    if (fmcpfp.isValid()){
+      // Get clusters associated with pfparticle
+      auto const& clusters = fmcpfp.at(pfp.key());
+      for (auto const & cluster : clusters){
+        if (fmhc.isValid()){
+          // Get hits associated with cluster
+          auto const& hits = fmhc.at(cluster.key());
+          for (auto const & hit: hits){
+            if (bool(hit->WireID())){// wire id valid
+              allhits[hit->WireID().Plane].push_back(hit);
+              const auto & sps = fmsh.at(hit.key());
+              for (const auto & sp : sps){
+//                if (!spmap[sp.key()]){
+//                  spmap[sp.key()] = 1;
+//                  vx.push_back(sp->XYZ()[0]);
+//                  vy.push_back(sp->XYZ()[1]);
+//                  vz.push_back(sp->XYZ()[2]);
+//                }
+                ++spmap[sp];
+              }
+            }
+          }
+        }
+      }
+    }
+    for (auto it : spmap){
+      if (it.second >=2){
+        vx.push_back((it.first)->XYZ()[0]);
+        vy.push_back((it.first)->XYZ()[1]);
+        vz.push_back((it.first)->XYZ()[2]);
+        avex += vx.back();
+        avey += vy.back();
+        avez += vz.back();
+      }
+    }
+    if (fSave3Dpoints){
+      pfpkey.push_back(pfp.key());
+      spx.push_back(vx);
+      spy.push_back(vy);
+      spz.push_back(vz);
+    }
+    // todo: add restriction on how many hits on the selected plane(s).
+
+    if (vx.size()>=3){
+      avex /= vx.size();
+      avey /= vy.size();
+      avez /= vz.size();
+
+      TMatrixD A(vx.size(), 3);
+      for (size_t i = 0; i< vx.size(); ++i){
+        A[i][0] = vx[i]-avex;
+        A[i][1] = vy[i]-avey;
+        A[i][2] = vz[i]-avez;
+      }
+      vtx[0] = avex;
+      vtx[1] = avey;
+      vtx[2] = avez;
+
+      TDecompSVD svd(A);
+      if (svd.Decompose()){
+        TMatrixD S = svd.GetV();
+        if (S[2][0]>0){
+          dir[0] = S[0][0];
+          dir[1] = S[1][0];
+          dir[2] = S[2][0];
+        }
+        else{
+          dir[0] = -S[0][0];
+          dir[1] = -S[1][0];
+          dir[2] = -S[2][0];
+        }
+        foundvtxdir = true;
+      }
+    }
     // First check tracks
     if (fmtpfp.isValid()){
       auto const& tracks = fmtpfp.at(pfp.key());
       if (!tracks.empty()){
-        vtx[0] = tracks[0]->Start().X();
-        vtx[1] = tracks[0]->Start().Y();
-        vtx[2] = tracks[0]->Start().Z();
-
-        dir[0] = tracks[0]->StartDirection().X();
-        dir[1] = tracks[0]->StartDirection().Y();
-        dir[2] = tracks[0]->StartDirection().Z();
+        if (!foundvtxdir){
+          vtx[0] = tracks[0]->Start().X();
+          vtx[1] = tracks[0]->Start().Y();
+          vtx[2] = tracks[0]->Start().Z();
         
+          dir[0] = tracks[0]->StartDirection().X();
+          dir[1] = tracks[0]->StartDirection().Y();
+          dir[2] = tracks[0]->StartDirection().Z();
+        }
         trkkey[npfps] = tracks[0].key();
         trkid[npfps] = tracks[0]->ID();
         foundvtxdir = true;
       }
     }
     // If no track is found, check showers
-    if (!foundvtxdir && fmspfp.isValid()){
+    if (fmspfp.isValid()){
       auto const& showers = fmspfp.at(pfp.key());
       if (!showers.empty()){
-        vtx[0] = showers[0]->ShowerStart().X();
-        vtx[1] = showers[0]->ShowerStart().Y();
-        vtx[2] = showers[0]->ShowerStart().Z();
-
-        dir[0] = showers[0]->Direction().X();
-        dir[1] = showers[0]->Direction().Y();
-        dir[2] = showers[0]->Direction().Z();
+        if (!foundvtxdir){
+          vtx[0] = showers[0]->ShowerStart().X();
+          vtx[1] = showers[0]->ShowerStart().Y();
+          vtx[2] = showers[0]->ShowerStart().Z();
         
+          dir[0] = showers[0]->Direction().X();
+          dir[1] = showers[0]->Direction().Y();
+          dir[2] = showers[0]->Direction().Z();
+        }
         shwkey[npfps] = showers[0].key();
         shwid[npfps] = showers[0]->ID();
         foundvtxdir = true;
       }
     }
+
+    /*
+    if (shwkey[npfps] == 4){
+      for (size_t i = 0; i<vx.size(); ++i){
+        std::cout<<vx[i]<<" "<<vy[i]<<" "<<vz[i]<<std::endl;
+      }
+    }
+    */
 
     if (foundvtxdir){// foundvtxdir
       if (fFVCutOnRecon) {
@@ -471,24 +570,6 @@ void PFPProfile::analyze(art::Event const& e)
         pfpvertex_recon[npfps][xyz] = vtx[xyz];
         pfpdir_recon[npfps][xyz] = dir[xyz];
       }
-      // Get hits on each plane
-      std::vector<std::vector<art::Ptr<recob::Hit>>> allhits(3);
-      if (fmcpfp.isValid()){
-        // Get clusters associated with pfparticle
-        auto const& clusters = fmcpfp.at(pfp.key());
-        for (auto const & cluster : clusters){
-          if (fmhc.isValid()){
-            // Get hits associated with cluster
-            auto const& hits = fmhc.at(cluster.key());
-            for (auto const & hit: hits){
-              if (bool(hit->WireID())){// wire id valid
-                allhits[hit->WireID().Plane].push_back(hit);
-              }
-            }
-          }
-        }
-      }
-      // todo: add restriction on how many hits on the selected plane(s).
       
       for (int p=0; p<3; p++) {
         for (size_t ihit = 0; ihit < allhits[p].size(); ihit++) {
@@ -681,6 +762,11 @@ void PFPProfile::analyze(art::Event const& e)
         double t0 = detprop->ConvertXToTicks(vtx[0], pl, 0, 0);
         double w1 = geom->WireCoordinate(vtx[1]+dir[1], vtx[2]+dir[2], pl, 0, 0);
         double t1 = detprop->ConvertXToTicks(vtx[0]+dir[0], pl, 0, 0);
+//        if (shwkey[npfps] == 0&&pl==2){
+//          std::cout<<w0<<" "<<t0<<" "<<w1<<" "<<t1<<std::endl;
+//          std::cout<<vtx[0]<<" "<<vtx[1]<<" "<<vtx[2]<<std::endl;
+//          std::cout<<dir[0]<<" "<<dir[1]<<" "<<dir[2]<<std::endl;
+//        }
         // Convert wire number and tick to cm
         double w0_cm = w0*wirePitch;
         double t0_cm = t0*tickToDist;
@@ -708,7 +794,9 @@ void PFPProfile::analyze(art::Event const& e)
           //geom->Plane(pl).Wire(hit->WireID().Wire).GetEnd(wireend);
           //cout << "wirestart: (" << wirestart[0] << ", " << wirestart[1] << ", "<<  wirestart[2] << ")" << endl;
           //cout << "wireend: (" << wireend[0] << ", " << wireend[1] << ", "<<  wireend[2] << ")" << endl;
-
+//          if (shwkey[npfps] == 0&&pl==2){
+//            std::cout<<hit->WireID().Wire<<" "<<hit->PeakTime()<<std::endl;
+//          }
           double w_cm = hit->WireID().Wire*wirePitch;
           double t_cm = hit->PeakTime()*tickToDist;
           // Project the hit onto pfparticle projection
@@ -908,6 +996,13 @@ void PFPProfile::beginJob(){
     fEventTree->Branch("pfp_photon_daughter_energy", &pfp_photon_daughter_energy);
   }
 
+  if (fSave3Dpoints){
+    fEventTree->Branch("pfpkey", &pfpkey);
+    fEventTree->Branch("spx", &spx);
+    fEventTree->Branch("spy", &spy);
+    fEventTree->Branch("spz", &spz);
+  }
+
   // Get the FV cut information
   auto const* geo = lar::providerFrom<geo::Geometry>();
   double minX = 1e9; // [cm]
@@ -1016,6 +1111,13 @@ void PFPProfile::reset() {
     pfp_photon_numberDaughters.clear();
     pfp_photon_daughter_pdg.clear();
     pfp_photon_daughter_energy.clear();
+  }
+
+  if (fSave3Dpoints){
+    pfpkey.clear();
+    spx.clear();
+    spy.clear();
+    spz.clear();
   }
 }
 
