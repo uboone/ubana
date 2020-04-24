@@ -172,6 +172,8 @@ private:
   int trkid[kMaxPFPs];
   int shwkey[kMaxPFPs];
   int shwid[kMaxPFPs];
+  double tsvtx[kMaxPFPs][3];
+  double tsdir[kMaxPFPs][3];
   double pfpvertex_recon[kMaxPFPs][3];
   double pfpvertex_recon_shift[kMaxPFPs][3]; // www: rmin with sign [pfp][plane]
   double pfpvertex_truth[kMaxPFPs][3]; // from the pfp particle start
@@ -606,6 +608,10 @@ void PFPProfile::analyze(art::Event const& e)
           dir[1] = tracks[0]->StartDirection().Y();
           dir[2] = tracks[0]->StartDirection().Z();
         }
+        for (int i = 0; i<3; ++i){
+          tsvtx[npfps][i] = vtx[i];
+          tsdir[npfps][i] = dir[i];
+        }
         trkkey[npfps] = tracks[0].key();
         trkid[npfps] = tracks[0]->ID();
         foundvtxdir = true;
@@ -623,6 +629,10 @@ void PFPProfile::analyze(art::Event const& e)
           dir[0] = showers[0]->Direction().X();
           dir[1] = showers[0]->Direction().Y();
           dir[2] = showers[0]->Direction().Z();
+        }
+        for (int i = 0; i<3; ++i){
+          tsvtx[npfps][i] = vtx[i];
+          tsdir[npfps][i] = dir[i];
         }
         shwkey[npfps] = showers[0].key();
         shwid[npfps] = showers[0]->ID();
@@ -1037,7 +1047,9 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("pfppdg_truth", pfppdg_truth, "pfppdg_truth[npfps]/I");
 
   if (fUseMCOverlay) fEventTree->Branch("pfp_primary_e", pfp_primary_e, "pfp_primary_e[npfps]/I");
-  
+
+  fEventTree->Branch("tsvtx", tsvtx, "tsvtx[npfps][3]/D");
+  fEventTree->Branch("tsdir", tsdir, "tsdir[npfps][3]/D");
   fEventTree->Branch("pfpvertex_recon", pfpvertex_recon, "pfpvertex_recon[npfps][3]/D");
   fEventTree->Branch("pfpvertex_recon_shift", pfpvertex_recon_shift, "pfpvertex_recon_shift[npfps][3]/D");
   fEventTree->Branch("pfpvertex_truth", pfpvertex_truth, "pfpvertex_truth[npfps][3]/D");
@@ -1175,6 +1187,8 @@ void PFPProfile::reset() {
       Npts_B[i][j] = 0;
     }
     for (size_t j = 0; j<3; ++j){
+      tsvtx[i][j] = -99999.0;
+      tsdir[i][j] = -99999.0;
       pfpvertex_recon[i][j] = -99999.0;
       pfpvertex_recon_shift[i][j] = -99999.0;
       pfpvertex_truth[i][j] = -99999.0;
