@@ -147,6 +147,7 @@ private:
   // PFP
   int npfps;
   float LongProf[kMaxPFPs][3][100];
+  int NhitsLong[kMaxPFPs][3][100];
   //float TranProf[kMaxPFPs][3][16];
   //float TranProf_1[kMaxPFPs][3][16];
   //float TranProf_2[kMaxPFPs][3][16];
@@ -154,12 +155,17 @@ private:
   //float TranProf_4[kMaxPFPs][3][16];
   //float TranProf_5[kMaxPFPs][3][16];
   float TranProf[kMaxPFPs][3][40];
+  int NhitsTran[kMaxPFPs][3][40];
   float TranProf_1[kMaxPFPs][3][40];
   float TranProf_2[kMaxPFPs][3][40];
   float TranProf_3[kMaxPFPs][3][40];
   float TranProf_4[kMaxPFPs][3][40];
   float TranProf_5[kMaxPFPs][3][40];
   float TotalCharge[kMaxPFPs][3];
+  float RMS_F[kMaxPFPs][50];
+  float RMS_B[kMaxPFPs][50];
+  int Npts_F[kMaxPFPs][50];
+  int Npts_B[kMaxPFPs][50];
   int pfpid[kMaxPFPs];
   int pfpself[kMaxPFPs];
   int trkkey[kMaxPFPs];
@@ -435,7 +441,7 @@ void PFPProfile::analyze(art::Event const& e)
     bool foundvtxdir = false;
 
     vector<double> vx, vy, vz;
-    double avex = 0, avey = 0, avez = 0;
+    double avgx = 0, avgy = 0, avgz = 0;
     // Get hits on each plane
     std::vector<std::vector<art::Ptr<recob::Hit>>> allhits(3);
     std::map<art::Ptr<recob::SpacePoint>, int> spmap;
@@ -469,9 +475,9 @@ void PFPProfile::analyze(art::Event const& e)
         vx.push_back((it.first)->XYZ()[0]);
         vy.push_back((it.first)->XYZ()[1]);
         vz.push_back((it.first)->XYZ()[2]);
-        avex += vx.back();
-        avey += vy.back();
-        avez += vz.back();
+        avgx += vx.back();
+        avgy += vy.back();
+        avgz += vz.back();
       }
     }
     if (fSave3Dpoints){
@@ -483,19 +489,19 @@ void PFPProfile::analyze(art::Event const& e)
     // todo: add restriction on how many hits on the selected plane(s).
 
     if (vx.size()>=3){
-      avex /= vx.size();
-      avey /= vy.size();
-      avez /= vz.size();
+      avgx /= vx.size();
+      avgy /= vy.size();
+      avgz /= vz.size();
 
       TMatrixD A(vx.size(), 3);
       for (size_t i = 0; i< vx.size(); ++i){
-        A[i][0] = vx[i]-avex;
-        A[i][1] = vy[i]-avey;
-        A[i][2] = vz[i]-avez;
+        A[i][0] = vx[i]-avgx;
+        A[i][1] = vy[i]-avgy;
+        A[i][2] = vz[i]-avgz;
       }
-      vtx[0] = avex;
-      vtx[1] = avey;
-      vtx[2] = avez;
+      vtx[0] = avgx;
+      vtx[1] = avgy;
+      vtx[2] = avgz;
 
       TDecompSVD svd(A);
       if (svd.Decompose()){
@@ -511,6 +517,80 @@ void PFPProfile::analyze(art::Event const& e)
           dir[2] = -S[2][0];
         }
         foundvtxdir = true;
+
+        //Project all 3D points on the line
+        TVector3 x1(avgx, avgy, avgz);
+        TVector3 x2(avgx+dir[0], avgy+dir[1], avgz+dir[2]);
+        std::vector<TVector3> x;
+        std::vector<double> dis;
+        for (size_t i = 0; i<vx.size(); ++i){
+          TVector3 x0(vx[i], vy[i], vz[i]);
+          double t = -(x1-x0)*(x2-x1)/((x2-x1).Mag2());
+          x.push_back(x1+(x2-x1)*t);
+          dis.push_back(((x0-x1).Cross(x0-x2)).Mag()/((x2-x1).Mag()));
+        }
+
+        vector<vector<double>> vdis(50);
+
+        //first assume forward going
+        double minz = 1e10;
+        TVector3 vtx;
+        for (size_t i = 0; i<x.size(); ++i){
+          if (x[i].Z()<minz){
+            minz = x[i].Z();
+            vtx = x[i];
+          }
+        }
+  
+        for (size_t i = 0; i<x.size(); ++i){
+          int il = int((x[i]-vtx).Mag()/(0.5*14));
+          if (il>=0 && il < 50){
+            vdis[il].push_back(dis[i]);
+          }
+          //cout<<(x[i]-vtx).Mag()<<" "<<dis[i]<<endl;
+        }
+
+        for (size_t i = 0; i<vdis.size(); ++i){
+          Npts_F[npfps][i] = vdis[i].size();
+          if (vdis[i].empty()) continue;
+
+          double rms = 0;
+          for (size_t j = 0; j<vdis[i].size(); ++j){
+            rms += pow(vdis[i][j],2);
+          }
+          rms = sqrt(rms/vdis[i].size());
+          RMS_F[npfps][i] = rms;
+          //std::cout<<npfps<<" "<<i<<" "<<rms<<std::endl;
+        }
+        //Now assume backward going
+        vector<vector<double>> vdis2(50);
+        double maxz = -1e10;
+        for (size_t i = 0; i<x.size(); ++i){
+          if (x[i].Z()>maxz){
+            maxz = x[i].Z();
+            vtx = x[i];
+          }
+        }
+  
+        for (size_t i = 0; i<x.size(); ++i){
+          int il = int((x[i]-vtx).Mag()/(0.5*14));
+          if (il>=0 && il < 50){
+            vdis2[il].push_back(dis[i]);
+          }
+          //cout<<(x[i]-vtx).Mag()<<" "<<dis[i]<<endl;
+        }
+
+        for (size_t i = 0; i<vdis2.size(); ++i){
+          Npts_B[npfps][i] = vdis2[i].size();
+          if (vdis2[i].empty()) continue;
+
+          double rms = 0;
+          for (size_t j = 0; j<vdis2[i].size(); ++j){
+            rms += pow(vdis2[i][j],2);
+          }
+          rms = sqrt(rms/vdis2[i].size());
+          RMS_B[npfps][i] = rms;
+        }
       }
     }
     // First check tracks
@@ -867,10 +947,14 @@ void PFPProfile::analyze(art::Event const& e)
           }
           //std::cout<<npfps<<" "<<pl<<" "<<Ldist<<" "<<iL<<" "<<hitcharge[i]<<std::endl;
           //std::cout<<npfps<<" "<<pl<<" "<<Tdist<<" "<<iT<<" "<<hitcharge[i]<<std::endl;
-          if (iL>=0 && iL<100) LongProf[npfps][pl][iL] += hitcharge[i];
+          if (iL>=0 && iL<100){
+            LongProf[npfps][pl][iL] += hitcharge[i];
+            ++NhitsLong[npfps][pl][iL];
+          }
           //if (iT>=0 && iT<16)  { // www
           if (iT>=0 && iT<40)  {
             TranProf[npfps][pl][iT] += hitcharge[i];
+            ++NhitsTran[npfps][pl][iT];
             if (Ldist/14. < 1) TranProf_1[npfps][pl][iT] += hitcharge[i];
             else if (Ldist/14. < 2) TranProf_2[npfps][pl][iT] += hitcharge[i];
             else if (Ldist/14. < 3) TranProf_3[npfps][pl][iT] += hitcharge[i];
@@ -975,6 +1059,7 @@ void PFPProfile::beginJob(){
   fEventTree->Branch("pfp_completeness", pfp_completeness, "pfp_completeness[npfps][3]/D");
   fEventTree->Branch("TotalCharge", TotalCharge, "TotalCharge[npfps][3]/F");
   fEventTree->Branch("LongProf", LongProf, "LongProf[npfps][3][100]/F");
+  fEventTree->Branch("NhitsLong", NhitsLong, "NhitsLong[npfps][3][100]/I");
   //fEventTree->Branch("TranProf", TranProf, "TranProf[npfps][3][16]/F");
   //fEventTree->Branch("TranProf_1", TranProf_1, "TranProf_1[npfps][3][16]/F");
   //fEventTree->Branch("TranProf_2", TranProf_2, "TranProf_2[npfps][3][16]/F");
@@ -983,12 +1068,17 @@ void PFPProfile::beginJob(){
   //fEventTree->Branch("TranProf_5", TranProf_5, "TranProf_5[npfps][3][16]/F");
 
   fEventTree->Branch("TranProf", TranProf, "TranProf[npfps][3][40]/F");
+  fEventTree->Branch("NhitsTran", NhitsTran, "NhitsTran[npfps][3][40]/I");
   fEventTree->Branch("TranProf_1", TranProf_1, "TranProf_1[npfps][3][40]/F");
   fEventTree->Branch("TranProf_2", TranProf_2, "TranProf_2[npfps][3][40]/F");
   fEventTree->Branch("TranProf_3", TranProf_3, "TranProf_3[npfps][3][40]/F");
   fEventTree->Branch("TranProf_4", TranProf_4, "TranProf_4[npfps][3][40]/F");
   fEventTree->Branch("TranProf_5", TranProf_5, "TranProf_5[npfps][3][40]/F");
-
+  fEventTree->Branch("RMS_F", RMS_F, "RMS_F[npfps][50]/F");
+  fEventTree->Branch("RMS_B", RMS_B, "RMS_B[npfps][50]/F");
+  fEventTree->Branch("Npts_F", Npts_F, "Npts_F[npfps][50]/I");
+  fEventTree->Branch("Npts_B", Npts_B, "Npts_B[npfps][50]/I");
+  
   if (fPhotonProcess) {
     fEventTree->Branch("pfp_photon_process", &pfp_photon_process);
     fEventTree->Branch("pfp_photon_numberDaughters", &pfp_photon_numberDaughters);
@@ -1078,6 +1168,12 @@ void PFPProfile::reset() {
     pfpenergy_mc[i] = 0;
     pfppurity[i] = -1.0;
     pfpcompleteness[i] = -1.0;
+    for (size_t j = 0; j<50; ++j){
+      RMS_F[i][j] = 0;
+      RMS_B[i][j] = 0;
+      Npts_F[i][j] = 0;
+      Npts_B[i][j] = 0;
+    }
     for (size_t j = 0; j<3; ++j){
       pfpvertex_recon[i][j] = -99999.0;
       pfpvertex_recon_shift[i][j] = -99999.0;
@@ -1093,7 +1189,10 @@ void PFPProfile::reset() {
       pfp_datahits[i][j] = 1;
       pfp_purity[i][j] = -1.0;
       pfp_completeness[i][j] = -1.0;
-      for (size_t k = 0; k<100; ++k) LongProf[i][j][k] = 0;
+      for (size_t k = 0; k<100; ++k){
+        LongProf[i][j][k] = 0;
+        NhitsLong[i][j][k] = 0;
+      }
       //for (size_t k = 0; k<16; ++k) { // www
       for (size_t k = 0; k<40; ++k) {
         TranProf[i][j][k] = 0;
@@ -1102,6 +1201,7 @@ void PFPProfile::reset() {
         TranProf_3[i][j][k] = 0;
         TranProf_4[i][j][k] = 0;
         TranProf_5[i][j][k] = 0;
+        NhitsTran[i][j][k] = 0;
       }
     }
   }
