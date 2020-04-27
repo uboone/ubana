@@ -43,7 +43,7 @@ physics:
       module_type: UsingHandlesAna
 
       # this is read into the module
-      TrackLabel: "pandoraNu::McRecoStage2"
+      TrackLabel: "pandora"
 
     }
 

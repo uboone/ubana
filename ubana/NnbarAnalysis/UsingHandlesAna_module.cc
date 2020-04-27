@@ -37,6 +37,14 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+//#include "art/Framework/Core/FindManyP.h"
+#include "canvas/Utilities/ensurePointer.h"
+#include "canvas/Persistency/Common/FindManyP.h"
+#include "canvas/Persistency/Common/FindMany.h"
+#include "canvas/Persistency/Common/FindOneP.h"
+#include "canvas/Persistency/Common/FindOne.h"
+
+
 // Tracking down includes can be a pain, the way I usually do it is
 // by going to the LArSoft doxygen, looking for the relevant .h
 // file, and looking at the directory structure on the left.
@@ -48,13 +56,24 @@
 #include "art/Framework/Services/Optional/TFileService.h" // used for ROOT file
 
 // LArSoft includes
+#include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
+#include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/Vertex.h"
+#include "lardataobj/RecoBase/Slice.h"
+#include "lardataobj/RecoBase/PFParticle.h"
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
+#include "lardataobj/RecoBase/Cluster.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 // ROOT includes
 #include "TTree.h"
 
 class UsingHandlesAna;
-
 
 class UsingHandlesAna : public art::EDAnalyzer {
 
@@ -66,63 +85,100 @@ class UsingHandlesAna : public art::EDAnalyzer {
   // You can force LArSoft to create a separate header files
   // (see cetskelgen --help), but it's ill-advised.
 
-  public:
-    explicit UsingHandlesAna(fhicl::ParameterSet const & p);
+public:
+  explicit UsingHandlesAna(fhicl::ParameterSet const & p);
 
-    UsingHandlesAna(UsingHandlesAna const &) = delete;
-    UsingHandlesAna(UsingHandlesAna &&) = delete;
-    UsingHandlesAna & operator = (UsingHandlesAna const &) = delete;
-    UsingHandlesAna & operator = (UsingHandlesAna &&) = delete;
+  UsingHandlesAna(UsingHandlesAna const &) = delete;
+  UsingHandlesAna(UsingHandlesAna &&) = delete;
+  UsingHandlesAna & operator = (UsingHandlesAna const &) = delete;
+  UsingHandlesAna & operator = (UsingHandlesAna &&) = delete;
 
-    void analyze(art::Event const & e) override;
+  void analyze(art::Event const & e) override;
 
-    // this is an optional function, which can be generated automatically
-    // using the '-e beginJob' flag with cetskelgen
-    void beginJob() override;
+  // this is an optional function, which can be generated automatically
+  // using the '-e beginJob' flag with cetskelgen
+  void beginJob() override;
 
-    // function to clear out vectors and set dummy variables every event
-    void resetVariables();
+  // function to clear out vectors and set dummy variables every event
+  void resetVariables();
+  typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
+  typedef std::map< size_t, art::Ptr<recob::PFParticle>> PFParticleIdMap;
 
-  private:
+private:
 
-    // initialise service handles
-    // services basically contain a lot of functions which
-    // make your life easier. 
-    // There are a few Services you might want to use as an analyzer:
-    // * art::TFileService
-    //   -- used for saving information to root files (Trees, histograms, etc.)
-    // * cheat::BackTracker
-    //   -- used to do reco-true matching
-    // * geo::Geometry
-    //   -- used to access detector geometry information (length, height, 
-    //      convert ticks to X position, etc.)
-    // * sim::LArG4Parameters
-    //   -- used to access information about LAr
-    art::ServiceHandle< art::TFileService > tfs;
+  //typedef std::vector< art::Ptr<recob::Shower> > ShowerVector;
 
-    // defining private member variables here
-    TTree* out_tree;
+  double CalcEShower(const std::vector<art::Ptr<recob::Hit>> &hits);
+  double QtoEConversionHit(art::Ptr<recob::Hit> thishitptr, int plane);
+  double QtoEConversion(double q);
+  double GetQHit(art::Ptr<recob::Hit> thishitptr, int plane);
+  // initialise service handles
+  // services basically contain a lot of functions which
+  // make your life easier. 
+  // There are a few Services you might want to use as an analyzer:
+  // * art::TFileService
+  //   -- used for saving information to root files (Trees, histograms, etc.)
+  // * cheat::BackTracker
+  //   -- used to do reco-true matching
+  // * geo::Geometry
+  //   -- used to access detector geometry information (length, height, 
+  //      convert ticks to X position, etc.)
+  // * sim::LArG4Parameters
+  //   -- used to access information about LAr
+  art::ServiceHandle< art::TFileService > tfs;
 
-    int run;
-    int sub_run;
-    int event;
-    // going to set the tree up such that one entry
-    // is one event, so anything with multiple
-    // objects per event (i.e. tracks) needs a vector
-    std::vector<double> track_length_fromhandle_v;
-    std::vector<double> track_theta_fromhandle_v;
-    std::vector<double> track_phi_fromhandle_v;
-    std::vector<double> track_length_fromptrvec_v;
-    std::vector<double> track_theta_fromptrvec_v;
-    std::vector<double> track_phi_fromptrvec_v;
+  // defining private member variables here
+  TTree* out_tree;
 
-    // fhicl parameters
-    std::string fTrackLabel;
+  int run;
+  int sub_run;
+  int event;
+  // going to set the tree up such that one entry
+  // is one event, so anything with multiple
+  // objects per event (i.e. tracks) needs a vector
+  std::vector<double> track_length_fromhandle_v;
+  std::vector<double> track_theta_fromhandle_v;
+  std::vector<double> track_phi_fromhandle_v;
+  std::vector<double> track_length_fromptrvec_v;
+  std::vector<double> track_theta_fromptrvec_v;
+  std::vector<double> track_phi_fromptrvec_v;
 
-    // other variables
-    double track_length;
-    double track_theta;
-    double track_phi;
+  int lead_idx;
+  int num_track;
+  int num_shower;
+  int num_vertex;
+  int num_slice;
+  int num_slice_hits;
+  int num_slice_pfps;
+  int num_slice_tracks;
+  int num_slice_showers;
+  double slice_score;
+  double pf_energy;
+  double pf_energy_track;
+  double pf_energy_shower;
+  double leading_track_E;
+  double leading_track_mu_chi;
+  double leading_track_pi_chi;
+  double subleading_track_E;
+  double leading_shower_E;
+  double subleading_shower_E;
+  std::vector<float> leading_track_dEdx_v;
+  double subleading_track_dEdx;
+  double leading_shower_dEdx;
+  double subleading_shower_dEdx;
+
+
+  // fhicl parameters
+  std::string fTrackLabel;
+  std::string fShowerLabel;
+  std::string fVertexLabel;
+  std::string fSliceLabel;
+  std::string fPandoraLabel;
+
+  // other variables
+  double track_length;
+  double track_theta;
+  double track_phi;
 
 };
 
@@ -131,15 +187,17 @@ class UsingHandlesAna : public art::EDAnalyzer {
 // to read in fhicl parameters from the associated fhicl file. 
 UsingHandlesAna::UsingHandlesAna(fhicl::ParameterSet const & p)
   :
-    EDAnalyzer(p)  // ,
+  EDAnalyzer(p)  // ,
 {
-
   // this is how you access variables from fhicl files. The first argument 
   // says "get the fhicl parameter that is called TrackLabel and treat it 
   // as a std::string", the second argument is the default argument in case
   // the fhicl parameter isn't set.
-  fTrackLabel = p.get<std::string>("TrackLabel", "pandoraNu::McRecoStage2");
-
+  fTrackLabel = p.get<std::string>("TrackLabel", "pandora::McRecoStage2");
+  fShowerLabel = p.get<std::string>("ShowerLabel", "pandora::McRecoStage2");
+  fVertexLabel = p.get<std::string>("VertexLabel", "pandora::McRecoStage2");
+  fSliceLabel = p.get<std::string>("SliceLabel", "pandora::McRecoStage2");
+  fPandoraLabel = p.get<std::string>("PandoraLabel", "pandora");
 }
 
 // this function is run once at the beginning of a job, not once per event
@@ -158,8 +216,145 @@ void UsingHandlesAna::beginJob()
   out_tree->Branch("track_length_fromptrvec_v", "std::vector<double>", &track_length_fromptrvec_v);
   out_tree->Branch("track_theta_fromptrvec_v" , "std::vector<double>", &track_theta_fromptrvec_v);
   out_tree->Branch("track_phi_fromptrvec_v"   , "std::vector<double>", &track_phi_fromptrvec_v);
+  out_tree->Branch("slice_score", &slice_score, "slice_score/D");
+  out_tree->Branch("pf_energy", &pf_energy, "pf_energy/D");
+  out_tree->Branch("pf_energy_track", &pf_energy_track, "pf_energy_track/D");
+  out_tree->Branch("pf_energy_shower", &pf_energy_shower, "pf_energy_shower/D");
+  out_tree->Branch("leading_track_E", &leading_track_E, "leading_track_E/D");
+  out_tree->Branch("leading_track_mu_chi", &leading_track_mu_chi, "leading_track_mu_chi/D");
+  out_tree->Branch("leading_track_pi_chi", &leading_track_pi_chi, "leading_track_pi_chi/D");
+  out_tree->Branch("subleading_track_E", &subleading_track_E, "subleading_track_E/D");
+  out_tree->Branch("leading_shower_E", &leading_shower_E, "leading_shower_E/D");
+  out_tree->Branch("subleading_shower_E", &subleading_shower_E, "subleading_shower_E/D");
+  out_tree->Branch("leading_track_dEdx_v", "std::vector<float>", &leading_track_dEdx_v);
+  out_tree->Branch("subleading_track_dEdx", &subleading_track_dEdx, "subleading_track_dEdx/D");
+  out_tree->Branch("leading_shower_dEdx", &leading_shower_dEdx, "leading_shower_dEdx/D");
+  out_tree->Branch("subleading_shower_dEdx", &subleading_shower_dEdx, "subleading_shower_dEdx/D");
+
+  out_tree->Branch("run", &run, "run/I");
+  out_tree->Branch("sub_run", &sub_run, "sub_run/I");
+  out_tree->Branch("event", &event, "event/I");
+
+
+  out_tree->Branch("num_slice_tracks", &num_slice_tracks, "num_slice_tracks/I");
+  out_tree->Branch("num_slice_showers", &num_slice_showers, "num_slice_showers/I");
+  out_tree->Branch("num_slice_hits", &num_slice_hits, "num_slice_hits/I");
+  out_tree->Branch("num_slice_pfps", &num_slice_pfps, "num_slice_pfps/I");
+  out_tree->Branch("num_track", &num_track, "num_track/I");
+  out_tree->Branch("num_shower", &num_shower, "num_shower/I");
+  out_tree->Branch("num_vertex", &num_vertex, "num_vertex/I");
+  out_tree->Branch("num_slice", &num_slice, "num_slice/I");
+  out_tree->Branch("lead_idx", &lead_idx, "lead_idx/I");
+}
+
+double UsingHandlesAna::CalcEShower(const std::vector<art::Ptr<recob::Hit>> &hits){    
+
+  double energy[3] = {0., 0., 0.};
+
+  //std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t Looking at shower with "<<hits.size() <<" hits on all planes"<<std::endl;
+
+  //for each hit in the shower
+
+  for (auto &thishitptr : hits){
+
+    //check the plane
+
+    int plane= thishitptr->View();
+
+    //skip invalid planes             
+
+    if (plane > 2 || plane < 0)        continue;
+
+    //calc the energy of the hit
+
+    double E = QtoEConversionHit(thishitptr, plane);    
+
+    //add the energy to the plane
+
+    energy[plane] += E;
+
+  }//for each hiti
+
+  //find the max energy on a single plane
+
+  double max = energy[0];
+
+  for (double en: energy){
+
+    if( en > max){
+
+      max = en;
+
+    }
+
+  }
+
+  // std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t The energy on each plane for this shower is "<<energy[0]<<", "<<energy[1]<<", "<<energy[2]<<std::endl;
+
+  //return the highest energy on any of the planes
+
+  return max;
 
 }
+
+double UsingHandlesAna::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr, int plane){
+
+  return QtoEConversion(GetQHit(thishitptr, plane));
+
+}
+
+
+double UsingHandlesAna::GetQHit(art::Ptr<recob::Hit> thishitptr, int plane){
+
+  double gain;
+
+  //choose gain based on whether data/mc and by plane
+  bool m_is_data=false;
+  bool m_is_overlayed =false;
+
+  std::vector<double> m_gain_mc;
+  std::vector<double> m_gain_data;
+
+  m_gain_mc= {235.5, 249.7, 237.6};
+  m_gain_data= {230.3, 237.6, 243.7};
+
+  if (m_is_data == false &&  m_is_overlayed == false){
+
+    gain = m_gain_mc[plane] ;
+
+    //if (m_is_verbose) std::cout<<"the gain for mc on plane "<<plane<<" is "<<gain<<std::endl;
+
+  } if (m_is_data == true ||  m_is_overlayed == true){
+
+    gain = m_gain_data[plane] ;
+
+    //if (m_is_verbose) std::cout<<"the gain for data on plane "<<plane<<" is "<<gain<<std::endl;
+
+  }
+
+  double Q = thishitptr->Integral()*gain;
+
+  return Q;
+
+}
+
+
+double UsingHandlesAna::QtoEConversion(double Q){
+
+  //return the energy value converted to MeV (the factor of 1e-6)
+  double m_work_function= 23.6;
+ 
+  double m_recombination_factor= 0.62;
+
+
+
+  double E = Q* m_work_function *1e-6 /m_recombination_factor;
+
+  return E;
+
+}
+
+
 
 // this acts as an event loop, everything inside these brackets are 
 // applied to each event
@@ -180,11 +375,16 @@ void UsingHandlesAna::analyze(art::Event const & e)
   // whats in the file! You can do this by running
   // lar -c eventdump.fcl my_input_artroot_file.root
   art::Handle< std::vector<recob::Track> > trackHandle;
-
+  art::Handle< std::vector<recob::Shower> > showerHandle;
+  art::Handle< std::vector<recob::Vertex> > vertexHandle;
+  art::Handle< std::vector<recob::Slice> > sliceHandle;
   // getByLabel will fill the track handle with a
   // std::vector<recob::Track> with the label defined in
   // fTrackLabel (which comes from the fhicl file)
   e.getByLabel(fTrackLabel, trackHandle);
+  e.getByLabel(fShowerLabel, showerHandle);
+  e.getByLabel(fVertexLabel, vertexHandle);
+  e.getByLabel(fSliceLabel, sliceHandle);
 
   // --------------------------------------------------------------------------
   // FIRST METHOD FOR USING THE HANDLE
@@ -209,6 +409,392 @@ void UsingHandlesAna::analyze(art::Event const & e)
   // access via a ptr vector
   std::vector< art::Ptr<recob::Track> > trackPtrVector;
   art::fill_ptr_vector(trackPtrVector, trackHandle);
+
+  std::vector< art::Ptr<recob::Shower> > showerPtrVector;
+  art::fill_ptr_vector(showerPtrVector, showerHandle);
+
+  std::vector< art::Ptr<recob::Vertex> > vertexPtrVector;
+  art::fill_ptr_vector(vertexPtrVector, vertexHandle);
+
+  std::vector< art::Ptr<recob::Slice> > slicePtrVector;
+  art::fill_ptr_vector(slicePtrVector, sliceHandle);
+
+  num_track=int(trackPtrVector.size());
+  num_shower = int (showerPtrVector.size());
+  num_vertex = int (vertexPtrVector.size());
+  num_slice = int (slicePtrVector.size());
+
+  // Map building [slice, pfparticles]
+  std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::PFParticle>> > sliceToPFParticlesMap;
+  std::map<int, std::vector<art::Ptr<recob::PFParticle>> > sliceIDToPFParticlesMap;
+  art::FindManyP<recob::PFParticle> pfparticles_per_slice(sliceHandle, e, fPandoraLabel);
+
+  for (size_t i = 0; i < slicePtrVector.size(); i++){
+    art::Ptr<recob::Slice> thisSlice = slicePtrVector.at(i);
+    sliceToPFParticlesMap[thisSlice] =pfparticles_per_slice.at(thisSlice.key());
+    sliceIDToPFParticlesMap[thisSlice->ID()] = pfparticles_per_slice.at(thisSlice.key());
+  }
+
+  // Map building [slice, hits]
+  std::map< art::Ptr<recob::Slice>, std::vector<art::Ptr<recob::Hit>> > sliceToHitsMap;
+  std::map<int, std::vector<art::Ptr<recob::Hit>> > sliceIDToHitsMap;
+  art::FindManyP<recob::Hit> hits_per_slice(sliceHandle, e, fPandoraLabel);
+
+  for(size_t i=0; i< slicePtrVector.size(); ++i){
+    art::Ptr<recob::Slice> thisSlice = slicePtrVector.at(i);
+    sliceToHitsMap[thisSlice] =hits_per_slice.at(thisSlice.key());
+    sliceIDToHitsMap[thisSlice->ID()] = hits_per_slice.at(thisSlice.key());
+  }
+
+  //Collect the PFParticles from the event. This is the core!
+  art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = e.getValidHandle<std::vector<recob::PFParticle>>(fPandoraLabel);
+  std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
+  art::fill_ptr_vector(pfParticleVector,pfParticleHandle); 
+
+  // Map building [pfp, metadata]
+  art::FindManyP< larpandoraobj::PFParticleMetadata > pfPartToMetadataAssoc(pfParticleHandle, e,  fPandoraLabel);
+  std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > pfParticleToMetadataMap;
+  for(size_t i=0; i< pfParticleVector.size(); ++i){
+    const art::Ptr<recob::PFParticle> pfp = pfParticleVector[i];
+    pfParticleToMetadataMap[pfp] =  pfPartToMetadataAssoc.at(pfp.key());
+  }
+
+  PFParticleIdMap pfParticleMap;
+  for (unsigned int i = 0; i < pfParticleHandle->size(); ++i){
+    const art::Ptr<recob::PFParticle> pParticle(pfParticleHandle, i);
+  }
+
+
+
+
+  // Best-slice selection
+  //std::cout<<"SliceTest: there are "<<slicePtrVector.size()<<" slices in this event"<<std::endl;
+
+  float highestSliceScore = -1.0;
+  int highestSliceID = 1000;
+  int highestSliceLoc = 1000;
+
+  auto highpfps = sliceIDToPFParticlesMap[0]; //dummy
+
+  for(size_t s =0; s<slicePtrVector.size(); s++){
+
+    auto slice = slicePtrVector[s];
+    auto pfps = sliceToPFParticlesMap[slice]; 
+
+    //std::cout<<"SliceTest: On Slice "<<s<<" it has "<<pfps.size()<<" pfparticles"<<std::endl;
+
+    std::vector<float> nu_scores;
+
+    bool isSelectedSlice = false;
+    int primaries = 0;
+    int primary_pdg = 0;
+
+    for(auto &pfp: pfps){
+
+      std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> metadatas = pfParticleToMetadataMap[pfp];
+      for(auto &meta: metadatas){
+	std::map<std::string, float> propertiesmap  = meta->GetPropertiesMap();
+	//for each of the things in the list
+	if(propertiesmap.count("NuScore")==1){
+	  nu_scores.push_back(propertiesmap["NuScore"]);
+	  if (propertiesmap["NuScore"] > highestSliceScore){
+	    highestSliceScore = propertiesmap["NuScore"];
+	    highestSliceID = slice->ID();
+	    highestSliceLoc = s;
+	    highpfps=pfps;
+	    std:: cout << "[Select Highest Slice] Loc. of slice : " << highestSliceLoc<<", updated ID : "<<highestSliceID << " , Score : " << highestSliceScore << std::endl; 
+	  }
+	}
+	if(propertiesmap.count("IsNeutrino")==1){
+	  isSelectedSlice = true; 
+	}
+      }
+      if (pfp->IsPrimary()) {
+	primaries++;
+	primary_pdg = (pfp->PdgCode());    
+      }
+    }
+
+    if(nu_scores.size()>0){
+      double mean  = std::accumulate(nu_scores.begin(), nu_scores.end(), 0.0)/(double)nu_scores.size();
+      if(mean!=nu_scores.front()){
+	//std::cout<<"ERROR! Somehow the pfp's in this slice have different nu-scores? IMpossible."<<std::endl;
+	exit(EXIT_FAILURE);
+      }
+      //std::cout<<"SliceTest: -- and has a nu_score of "<<nu_scores.front()<<std::endl;
+      std::cout<<"SliceTest: -- with "<<primaries<<" primaries: pdg last: "<<primary_pdg<<std::endl;
+    }else{
+      //std::cout<<"SliceTest: -- and does not have a nu_score of. "<<std::endl;
+    }
+    if(isSelectedSlice) std::cout<<"SliceTest: -- -- And is the Selected Neutrino Slice"<<std::endl;
+  }
+
+  std::cout <<"debugggg" << std::endl;
+
+  // Exception
+  if (slicePtrVector.size()<1){
+    slice_score=0;
+    num_slice_pfps =0;
+    num_slice_hits = 0;
+    pf_energy = 0.;
+    pf_energy_track = 0.;
+    pf_energy_shower = 0.;
+    leading_track_E = 0.;
+    //leading_track_mu_chi = -1.;
+    //leading_track_pi_chi = -1.;
+    subleading_track_E = 0.;
+    leading_shower_E = 0.;
+    subleading_shower_E = 0.;
+    //leading_track_dEdx = 0.;
+    subleading_track_dEdx = 0.;
+    leading_shower_dEdx = 0.;
+    subleading_shower_dEdx = 0.;
+  }
+  else{
+    auto highSlicePfps = sliceToPFParticlesMap[slicePtrVector[highestSliceLoc]];
+    auto highSliceHits = sliceToHitsMap[slicePtrVector[highestSliceLoc]];
+
+    //for(auto &highpfp: highSlicePfps){
+    //auto highpfpar = highpfp->Self();
+    //      std::cout << "highpfpar energy " << highpfp.E() << std::endl;
+    //}
+
+    std::cout << "highestSliceScore : " << highestSliceScore<< std::endl;
+    slice_score = highestSliceScore;
+    std::cout << "highest slice pfps  : " << highSlicePfps.size() << std::endl;
+    num_slice_pfps = highSlicePfps.size();
+    std::cout << "highest slice hits  : " << highSliceHits.size() << std::endl;
+    num_slice_hits = highSliceHits.size();
+
+
+    // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino                         
+    //At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.         
+    //tracks is a vector of recob::Tracks and same for showers.                                                                       
+    //Implicitly, tracks.size() + showers.size() =  nuParticles.size(); At this point I would like two things.                      
+    
+    std::vector< art::Ptr<recob::Track> > tracks;
+    std::vector< art::Ptr<recob::Shower> > showers;
+
+    std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle >> trackToNuPFParticleMap;
+    std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> showerToNuPFParticleMap;
+
+    art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, e, fPandoraLabel);
+    art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, e, fPandoraLabel);
+
+
+
+    for (const art::Ptr<recob::PFParticle> &pParticle : highSlicePfps)      {
+      const std::vector< art::Ptr<recob::Track> > associatedTracks(pfPartToTrackAssoc.at(pParticle.key()));
+      const std::vector< art::Ptr<recob::Shower> > associatedShowers(pfPartToShowerAssoc.at(pParticle.key()));
+      const unsigned int nTracks(associatedTracks.size());
+      const unsigned int nShowers(associatedShowers.size());
+
+      // Check if the PFParticle has no associated tracks or showers
+      if (nTracks == 0 && nShowers == 0)
+	{
+	  std::cout  << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << std::endl;
+	  continue;
+	}
+      // Check if there is an associated track
+      if (nTracks == 1 && nShowers == 0)
+	{
+	  tracks.push_back(associatedTracks.front());
+	  trackToNuPFParticleMap[tracks.back()]= pParticle;
+	  continue;
+	}
+      // Check if there is an associated shower
+      if (nTracks == 0 && nShowers == 1)
+	{
+	  showers.push_back(associatedShowers.front());
+	  showerToNuPFParticleMap[showers.back()] = pParticle;
+	  continue;
+	}
+
+      //throw cet::exception("SinglePhoton") << "  There were " << nTracks << " tracks and " << nShowers << " showers associated with PFParticle " << pParticle->Self();
+    }
+
+    std::cout << "# tracks : "<< tracks.size() << " ,  # showers : " << showers.size() << std::endl;
+    num_slice_tracks = tracks.size();
+    num_slice_showers = showers.size();
+
+    //Track PID
+    art::FindOneP<anab::ParticleID> pid_per_track(trackHandle, e, "pandoracalipidSCE");
+    std::map<art::Ptr<recob::Track>, art::Ptr<anab::ParticleID> > trackToPIDMap;
+    for(size_t i=0; i< tracks.size(); ++i){
+      trackToPIDMap[tracks[i]] = pid_per_track.at(tracks[i].key());
+    }
+    //ParticleIDAlgScores(
+
+    //Track Calorimetry
+
+    art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, e, "pandoracalo");
+    std::map<art::Ptr<recob::Track>, art::Ptr<anab::Calorimetry> > trackToCalorimetryMap;
+
+    //So a cross check
+    if (!calo_per_track.isValid())
+      {
+	std::cout << "  Failed to get Assns between recob::Track and anab::Calorimetry.\n" << std::endl;
+	return;
+      }
+
+    leading_track_E = 0.;
+    //leading_track_mu_chi = -1.;
+    //leading_track_pi_chi = -1.;
+    subleading_track_E = 0.;
+    leading_track_dEdx_v = {};
+    subleading_track_dEdx = 0.;
+    int lead_idx = -1;
+
+    for(size_t i=0; i< tracks.size(); ++i){
+
+      if (i==0) lead_idx = 0; //initialization
+
+      if(calo_per_track.at(tracks[i].key()).size() ==0){
+	std::cerr<<"Track Calorimetry Breaking!  the vector of calo_per_track is of length 0 at this track."<<std::endl;
+      }
+
+      trackToCalorimetryMap[tracks[i]] = calo_per_track.at(tracks[i].key())[0];
+      //  std::cout << "Calorimetry for" <<i<<"-track : " << trackToCalorimetryMap[tracks[i]] << std::endl;
+      double_t trackCaloE = trackToCalorimetryMap[tracks[i]]->KineticEnergy();
+      //auto trackdEdx = trackToCalorimetryMap[tracks[i]]->dEdx();
+      //std::cout << "trackdEdx size: "<< trackdEdx.size() <<std::endl;
+      //std::cout << "Calorimetry Kinetic-E for " <<i<<"-track : " << trackCaloE << std::endl;
+      //}
+    //      std::cout << "PIDA for track : "<< trackPID->ParticleIDAlgScores().fValue << std::endl;
+
+      if (trackCaloE>0 && trackCaloE<5e3) pf_energy+=trackCaloE;
+      
+      if (trackCaloE>leading_track_E && trackCaloE<5e3){
+	lead_idx = i;
+	subleading_track_E = leading_track_E;
+	leading_track_E = trackCaloE;
+	std::cout << "update lead_idx : "<< lead_idx << "leading_track_E : "<< trackCaloE << std::endl;
+      }
+    }
+    std::cout << "Final lead_idx : "<<lead_idx <<std::endl;
+    if(lead_idx > -1){
+      
+      auto trackdEdx = trackToCalorimetryMap[tracks[lead_idx]]->dEdx();
+
+      if (trackdEdx.size()>0){
+	leading_track_dEdx_v=trackdEdx;
+	for (size_t k = 0; k<trackdEdx.size(); k++){
+	  //leading_track_dEdx=trackdEdx;
+	  //out_tree->GetBranch("leading_track_dEdx")->Fill(); 
+	  //	std::cout << "dedx : " << leading_track_dEdx_v[k] << std::endl;
+         
+	}
+      }
+      auto trackPID = trackToPIDMap[tracks[lead_idx]];
+      std::vector<anab::sParticleIDAlgScores> AlgScoresVec = trackPID->ParticleIDAlgScores();
+      std::cout << "size of algoscores for leading track : " << AlgScoresVec.size() <<std::endl;
+      for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+
+	anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+	if (AlgScore.fAlgName == "Chi2"){	/*std::cout << "\n ParticleIDAlg " << AlgScore.fAlgName
+							  << "\n -- Variable type: " << AlgScore.fVariableType
+							  << "\n -- Track direction: " << AlgScore.fTrackDir
+							  << "\n -- Assuming PDG: " << AlgScore.fAssumedPdg
+							  << "\n -- Number of degrees of freedom: " << AlgScore.fNdf
+							  << "\n -- Value: " << AlgScore.fValue
+							  << "\n -- Using planeMask: " << AlgScore.fPlaneMask << " (plane " << UBPID::uB_getSinglePlane(AlgScore.fPlaneMask) << ")" << std::endl;*/}
+	if (AlgScore.fAlgName == "Chi2" && AlgScore.fPlaneMask.test(2)){
+	  if (TMath::Abs(AlgScore.fAssumedPdg) == 13){ // chi2mu
+	    leading_track_mu_chi = AlgScore.fValue;
+	    //std::cout << "Assumgin mu with value : " << AlgScore.fValue <<std::endl;
+	  }
+	  else if (TMath::Abs(AlgScore.fAssumedPdg) == 211){
+	    leading_track_pi_chi = AlgScore.fValue;
+	    //std::cout << "Assumgin pi with value : " <<AlgScore.fValue<<std::endl;
+	  }
+	}
+	//std::cout << "AlgScore.fAlgName : " << AlgScore.fAlgName << std::endl;
+      
+      }
+      std::cout << "Assumgin mu with value : " << leading_track_mu_chi <<std::endl;
+      std::cout << "Assumgin pi with value : " << leading_track_pi_chi<<std::endl;
+      if (leading_track_mu_chi<0) std::cout << "I can't understand" << std::endl; 
+    }
+    std::cout << "Track total Kinetic-E : " << pf_energy << std::endl;
+    pf_energy_track = pf_energy;
+
+    //Shower Calorimetry
+    //std::cout << "How many showers ? " << showers.size() << std::endl; 
+
+    art::FindManyP<recob::Cluster> clusters_per_pfparticle(pfParticleHandle, e, "pandora");
+    art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = e.getValidHandle<std::vector<recob::Cluster>>("pandora");
+    std::vector< art::Ptr<recob::Cluster> > clusterVector;
+    art::fill_ptr_vector(clusterVector,clusterHandle);
+    art::FindManyP<recob::Hit> hits_per_cluster(clusterHandle, e, "pandora");
+
+    std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Hit>> > pfParticleToHitsMap;
+    std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > pfParticleToClustersMap;
+    std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> > clusterToHitsMap;
+
+    for(size_t i=0; i< highSlicePfps.size(); ++i){
+      auto pfp = highSlicePfps[i];
+      pfParticleToClustersMap[pfp] = clusters_per_pfparticle.at(pfp.key());
+    }
+
+    //fill map Cluster to Hits
+    for(size_t i=0; i< clusterVector.size(); ++i){
+      auto cluster = clusterVector[i];
+      clusterToHitsMap[cluster] = hits_per_cluster.at(cluster.key());
+    }
+
+    for(size_t i=0; i<highSlicePfps.size(); ++i){
+      auto pfp = highSlicePfps[i];
+      // std::cout<<"starting to match to hits for pfp "<<pfp->Self()<<std::endl;
+      //get the associated clusters
+      std::vector<art::Ptr<recob::Cluster>> clusters_vec  = pfParticleToClustersMap[pfp] ;
+      //make empty vector to store hits
+      std::vector<art::Ptr<recob::Hit>> hits_for_pfp = {};
+      // std::cout<<"-- there are "<<clusters_vec.size()<<" associated clusters"<<std::endl;
+      //for each cluster, get the associated hits
+      for (art::Ptr<recob::Cluster> cluster: clusters_vec){
+	std::vector<art::Ptr<recob::Hit>> hits_vec =  clusterToHitsMap[cluster];
+	//   std::cout<<"looking at cluster in pfp "<<pfp->Self()<<" with "<<hits_vec.size() <<" hits"<<std::endl;
+	//insert hits into vector
+	hits_for_pfp.insert( hits_for_pfp.end(), hits_vec.begin(), hits_vec.end() );
+      }
+      //fill the map
+      pfParticleToHitsMap[pfp] = hits_for_pfp;
+      //std::cout<<"saving a total of "<<hits_for_pfp.size()<<" hits for pfp "<<pfp->Self()<<std::endl;
+    }//for each pfp
+
+    leading_shower_E = 0.;
+    subleading_shower_E = 0.;
+    leading_shower_dEdx = 0.;
+    subleading_shower_dEdx = 0.;
+
+    //int leading_shower_idx = -1;
+    //std::vector<double> leading_shower_dEdx_vec = {};
+
+    for (ShowerVector::const_iterator iter = showers.begin(), iterEnd = showers.end(); iter != iterEnd; ++iter){
+      const art::Ptr<recob::Shower> shower = *iter;
+      const art::Ptr<recob::PFParticle> pfp = showerToNuPFParticleMap[shower];
+      const std::vector<art::Ptr<recob::Hit>> hits =  pfParticleToHitsMap[pfp];
+      //      const std::vector<art::Ptr<recob::Cluster>> clusters = pfParticleToClusterMap[pfp];
+      std::cout << "CalcEShower : " << CalcEShower(hits) << std::endl;
+
+      if (CalcEShower(hits) <5e3){
+
+	pf_energy_shower+=CalcEShower(hits);
+	//shower to pfp map && pfp to hits map
+	//    (highSliceHits)
+	if (CalcEShower(hits) > leading_shower_E){
+	  subleading_shower_E = leading_shower_E;
+	  leading_shower_E = CalcEShower(hits);
+	
+	}
+      }
+    }
+    std::cout << "total shower E : " << pf_energy_shower << std::endl;
+    pf_energy+=pf_energy_shower;
+
+  }
+
+ 
   for (size_t i = 0; i < trackPtrVector.size(); i++){
     
     art::Ptr<recob::Track> thisTrack = trackPtrVector.at(i);
@@ -226,8 +812,50 @@ void UsingHandlesAna::analyze(art::Event const & e)
 
   }
 
-  out_tree->Fill();
+    out_tree->Fill();
+  //out_tree->GetBranch("run")->Fill();
+  //out_tree->GetBranch("sub_run")->Fill();
+  //out_tree->GetBranch("event")->Fill();
+  //out_tree->GetBranch("slice_score")->Fill();
+  //out_tree->GetBranch("pf_energy")->Fill();
+  //out_tree->GetBranch("pf_energy_track")->Fill();
+  //out_tree->GetBranch("leading_shower_E")->Fill();
+  //out_tree->GetBranch("leading_track_E")->Fill();
+  //out_tree->GetBranch("pf_energy_shower")->Fill();
+  
+  //if(leading_track_mu_chi>0) out_tree->GetBranch("leading_track_mu_chi")->Fill();
+  //if(leading_track_pi_chi>0) out_tree->GetBranch("leading_track_pi_chi")->Fill();
 
+  /*
+  out_tree = tfs->make<TTree>("out_tree"      , "out_tree");
+  out_tree->Branch("track_length_fromhandle_v", "std::vector<double>", &track_length_fromhandle_v);
+  out_tree->Branch("track_theta_fromhandle_v" , "std::vector<double>", &track_theta_fromhandle_v);
+  out_tree->Branch("track_phi_fromhandle_v"   , "std::vector<double>", &track_phi_fromhandle_v);
+  out_tree->Branch("track_length_fromptrvec_v", "std::vector<double>", &track_length_fromptrvec_v);
+  out_tree->Branch("track_theta_fromptrvec_v" , "std::vector<double>", &track_theta_fromptrvec_v);
+  out_tree->Branch("track_phi_fromptrvec_v"   , "std::vector<double>", &track_phi_fromptrvec_v);
+  out_tree->Branch("slice_score", &slice_score, "slice_score/D");
+  out_tree->Branch("pf_energy", &pf_energy, "pf_energy/D");
+  out_tree->Branch("pf_energy_track", &pf_energy_track, "pf_energy_track/D");
+  out_tree->Branch("pf_energy_shower", &pf_energy_shower, "pf_energy_shower/D");
+  out_tree->Branch("leading_track_E", &leading_track_E, "leading_track_E/D");
+  out_tree->Branch("leading_track_mu_chi", &leading_track_mu_chi, "leading_track_mu_chi/D");
+  out_tree->Branch("leading_track_pi_chi", &leading_track_pi_chi, "leading_track_pi_chi/D");
+  out_tree->Branch("subleading_track_E", &subleading_track_E, "subleading_track_E/D");
+  out_tree->Branch("leading_shower_E", &leading_shower_E, "leading_shower_E/D");
+  out_tree->Branch("subleading_shower_E", &subleading_shower_E, "subleading_shower_E/D");
+  out_tree->Branch("leading_track_dEdx_v", "std::vector<float>", &leading_track_dEdx_v);
+  out_tree->Branch("subleading_track_dEdx", &subleading_track_dEdx, "subleading_track_dEdx/D");
+  out_tree->Branch("leading_shower_dEdx", &leading_shower_dEdx, "leading_shower_dEdx/D");
+  out_tree->Branch("subleading_shower_dEdx", &subleading_shower_dEdx, "subleading_shower_dEdx/D");
+
+  out_tree->Branch("run", &run, "run/I");
+  out_tree->Branch("sub_run", &sub_run, "sub_run/I");
+  out_tree->Branch("event", &event, "event/I");
+
+*/
+
+  
 }
 
 
@@ -238,12 +866,18 @@ void UsingHandlesAna::resetVariables()
   sub_run = -1;
   event = -1;
 
+  pf_energy_track = 0.;
+  pf_energy_shower = 0.;
+  pf_energy = 0.;
   track_length_fromhandle_v.resize(0);
   track_theta_fromhandle_v.resize(0);
   track_phi_fromhandle_v.resize(0);
   track_length_fromptrvec_v.resize(0);
   track_theta_fromptrvec_v.resize(0);
   track_phi_fromptrvec_v.resize(0);
+  leading_track_mu_chi = NAN;            
+  leading_track_pi_chi = NAN; 
+
 
 }
 
