@@ -646,22 +646,24 @@ void NuCCanalyzer::SaveExtraMCInfo( const art::Event& evt ) {
   art::Handle< std::vector<simb::MCTruth> > mcTruthHandle;
   art::Handle< std::vector<simb::GTruth> > gTruthHandle;
 
-  // Also retrieve the MCEventWeight objects that should be saved to the output.
-  // Note that these should also have a one-to-one correspondence to the MCTruth
-  // objects
-  art::Handle< std::vector<evwgh::MCEventWeight> > weightHandle;
-
   // Assume that the GenieGen module was run using the
   // "generator" producer label
   evt.getByLabel( "generator", mcTruthHandle );
   evt.getByLabel( "generator", gTruthHandle );
 
-  std::cout << "[NuCCanalyzer] Retrieving MC event weights"
-    << " from the producer \"" << fWeightProducerLabel << '\"'
-    << std::endl;
+  // If saving weights is enabled, also retrieve the MCEventWeight objects that
+  // should be saved to the output. Note that these should also have a
+  // one-to-one correspondence to the MCTruth objects
+  art::Handle< std::vector<evwgh::MCEventWeight> > weightHandle;
 
-  // Use the configured producer label to get the weights
-  evt.getByLabel( fWeightProducerLabel, weightHandle );
+  if ( fRetrieveWeights ) {
+    std::cout << "[NuCCanalyzer] Retrieving MC event weights"
+      << " from the producer \"" << fWeightProducerLabel << '\"'
+      << std::endl;
+
+    // Use the configured producer label to get the weights
+    evt.getByLabel( fWeightProducerLabel, weightHandle );
+  }
 
   std::cout << "[NuCCanalyzer] Filling ptr vectors" << std::endl;
 
@@ -672,7 +674,10 @@ void NuCCanalyzer::SaveExtraMCInfo( const art::Event& evt ) {
   art::fill_ptr_vector( glist, gTruthHandle );
 
   std::vector< art::Ptr< evwgh::MCEventWeight > > wlist;
-  art::fill_ptr_vector( wlist, weightHandle );
+
+  if ( fRetrieveWeights ) {
+    art::fill_ptr_vector( wlist, weightHandle );
+  }
 
   size_t num_neutrinos = mclist.size();
 
@@ -693,13 +698,16 @@ void NuCCanalyzer::SaveExtraMCInfo( const art::Event& evt ) {
     // don't need to manually delete the genie::EventRecord pointer here
     fGenieEventRecord->event = genie_event;
 
-    std::cout << "[NuCCanalyzer] Loading weights map"
-      << " for neutrino #" << v << std::endl;
+    if ( fRetrieveWeights ) {
 
-    // Fairly evil, but allows us to write the full object to the
-    // output TTree without copying it.
-    fWeightsMap = const_cast< std::map< std::string, std::vector<double> >* >(
-      &(wlist.at(v)->fWeight) );
+      std::cout << "[NuCCanalyzer] Loading weights map"
+        << " for neutrino #" << v << std::endl;
+
+      // Fairly evil, but allows us to write the full object to the
+      // output TTree without copying it.
+      fWeightsMap = const_cast< std::map< std::string, std::vector<double> >* >(
+        &(wlist.at(v)->fWeight) );
+    }
 
     std::cout << "[NuCCanalyzer] Filling TTree"
       << " for neutrino #" << v << std::endl;

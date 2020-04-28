@@ -335,6 +335,10 @@ private:
     /// Producer label used to create the evwgh::MCEventWeight objects
     /// that should be saved to the output file
     std::string fWeightProducerLabel;
+
+    /// Whether or not to save the evwgh::MCEventWeight objects to
+    /// the output file
+    bool fRetrieveWeights;
 };
 
 void NuCCanalyzer::reconfigure(fhicl::ParameterSet const &p)
@@ -346,6 +350,7 @@ void NuCCanalyzer::reconfigure(fhicl::ParameterSet const &p)
     m_muon_producer = p.get<std::string>("muon_producer", "NuCCproducer");
 
     fWeightProducerLabel = p.get<std::string>("weight_producer", "eventweight");
+    fRetrieveWeights = p.get<bool>("retrieve_weights", true);
 
     m_vtx_fid_x_start = p.get<float>("vtx_fid_x_start", 10);
     m_vtx_fid_y_start = p.get<float>("vtx_fid_y_start", 10);
@@ -473,7 +478,10 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
         fGenieEventTree->Branch("evt_time_nsec", &fTimeLow, "evt_time_nsec/i");
 
         fGenieEventTree->Branch("gmcrec", "genie::NtpMCEventRecord", &fGenieEventRecord);
-        fGenieEventTree->Branch("weights_map", "std::map< std::string, std::vector<double> >", &fWeightsMap);
+
+        if ( fRetrieveWeights ) {
+          fGenieEventTree->Branch("weights_map", "std::map< std::string, std::vector<double> >", &fWeightsMap);
+        }
     }
 
     //// Tree for every daughter
