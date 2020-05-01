@@ -209,10 +209,19 @@ private:
   bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
   bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
 
-  std::vector<int> Nr_trk_asso_crthit = {-999, -999}; // Number of CRT hits associated to the track
+  std::vector<int> Nr_trk_asso_crthit = {0, 0}; // Number of CRT hits associated to the track
   std::vector<double> trk_crt_time = {-999, -999};// The CRT time of the hit which matched to the track
   std::vector<bool> if_trk_CRT_out_Beam = {false, false}; // Check if a track matches with out of beam CRT hit(s)
   std::vector<bool> if_t0_trk_crt_time_match = {true, true};
+
+  std::vector<double> crthit_time_T0corr; // Time of CRT hits
+  int Nr_crthit_inBeam_T0corr = 0; // Number of CRT hits in beamtime
+  double only_crthit_time_inBeam_T0corr = -999;
+  bool if_t0_crt_time_inBeam_match_T0corr = true;
+
+  std::vector<double> trk_crt_time_T0corr = {-999, -999};// The CRT time of the hit which matched to the track
+  std::vector<bool> if_trk_CRT_out_Beam_T0corr = {false, false}; // Check if a track matches with out of beam CRT hit(s)
+  std::vector<bool> if_t0_trk_crt_time_match_T0corr = {true, true};
 
   std::vector<bool> trk_OutOfTime = {false, false};
 
@@ -353,6 +362,7 @@ private:
   bool if_match_mu_p_flipped = false;
 
   bool                                IsMC;
+  bool                                T0Corr;
   bool                                UsingCRT;
   double                              fBeamStart;
   double                              fBeamEnd;
@@ -374,6 +384,7 @@ private:
   std::string                         CRT_TrackAssLabel;
   std::string                         m_CRTVetoLabel;
   std::string                         m_CRTHitLabel;
+  std::string                         m_CRTcorrT0Label;
   std::string                         m_FlashLabel;
 
   double _min_track_len;
@@ -386,6 +397,7 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   : 
   EDAnalyzer{pset},
   IsMC(pset.get<bool>("IsMC")),
+  T0Corr(pset.get<bool>("T0Corr")),
   UsingCRT(pset.get<bool>("UsingCRT")),
   fBeamStart(pset.get<double>("BeamStart")),
   fBeamEnd(pset.get<double>("BeamEnd")),
@@ -404,6 +416,7 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   m_calorimetryProducerLabel(pset.get<std::string>("calorimetryProducerLabel")),
   m_CRTVetoLabel(pset.get<std::string>("CRTVetoLabel")),
   m_CRTHitLabel(pset.get<std::string>("CRTHitProducer")),
+  m_CRTcorrT0Label(pset.get<std::string>("CRTcorrT0Label")),
   m_FlashLabel(pset.get<std::string>("FlashLabel")),
   _min_track_len{pset.get<double>("MinTrackLength", 0.1)},
   _trk_mom_calculator{_min_track_len}
@@ -516,6 +529,14 @@ void SingleMuon::analyze(art::Event const& evt)
   evt.getByLabel(m_CRTHitLabel, Handle_crthit);
   std::vector<art::Ptr<crt::CRTHit>> crthit_v;
   art::fill_ptr_vector(crthit_v, Handle_crthit);
+
+  // CRT corr T0
+  std::vector<art::Ptr<anab::T0>> crtT0_v;
+  if(T0Corr){
+    art::Handle<std::vector<anab::T0>> Handle_crtcorrT0;
+    evt.getByLabel(m_CRTcorrT0Label, Handle_crtcorrT0);
+    art::fill_ptr_vector(crtT0_v, Handle_crtcorrT0);
+  }
 
   // Vertex - PFP association
   art::FindMany<recob::Vertex> pfpToVtxAsso(Handle_pfParticle, evt, m_pandoraLabel);
@@ -700,14 +721,16 @@ void SingleMuon::analyze(art::Event const& evt)
         flash_matching_chi2 = flash_matching_T0.front()->TriggerConfidence();
         trigger_time = flash_matching_T0.front()->Time();
       }
-    
-      if(flash_v.size() == 1){
-        flash_YCenter = flash_v[0]->YCenter();
-        flash_YWidth = flash_v[0]->YWidth();
-        flash_ZCenter = flash_v[0]->ZCenter();
-        flash_ZWidth = flash_v[0]->ZWidth();
-        flash_TotalPE = flash_v[0]->TotalPE();
-        flash_time = flash_v[0]->Time();
+   
+      for(unsigned int i_flash = 0; i_flash < flash_v.size(); i_flash++){
+        if(flash_v[i_flash]->Time() >= fBeamStart && flash_v[i_flash]->Time() <= fBeamEnd){
+          flash_YCenter = flash_v[i_flash]->YCenter();
+          flash_YWidth = flash_v[i_flash]->YWidth();
+          flash_ZCenter = flash_v[i_flash]->ZCenter();
+          flash_ZWidth = flash_v[i_flash]->ZWidth();
+          flash_TotalPE = flash_v[i_flash]->TotalPE();
+          flash_time = flash_v[i_flash]->Time();
+        }
       }
 
       // For CC0pi0p, we only consider the case with the number of neutrino daughters less than 6
@@ -766,37 +789,71 @@ void SingleMuon::analyze(art::Event const& evt)
         raw::DAQHeaderTimeUBooNE const& my_DAQHeader(*rawHandle_DAQHeader);
         art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
         evt_timeGPS_nsec = evtTimeGPS.timeLow();
+
+        double CRTT0corr = 0;
+        if(T0Corr){
+          if(crtT0_v.size() == 1){
+            CRTT0corr = crtT0_v.front()->Time();
+          }
+          else{
+            CRTT0corr = 0;
+          }
+        }
+
         if(UsingCRT){
           // overlay is also basically data, using ts0
           for (unsigned int i_crt = 0; i_crt < crthit_v.size(); i_crt ++){
             // figure out what plane this hit comes from
             // 3 -> top, 0 -> bottom, 1 -> anode, 2 -> cathode
             double crt_time = ((crthit_v[i_crt]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.);
-            if(crt_time >= fBeamStart && crt_time <= fBeamEnd){
-              crthit_PE.push_back(crthit_v[i_crt]->peshit);
-              crthit_plane.push_back(crthit_v[i_crt]->plane);
-              crthit_time.push_back(crt_time);
+
+            crthit_PE.push_back(crthit_v[i_crt]->peshit);
+            crthit_plane.push_back(crthit_v[i_crt]->plane);
+            crthit_time.push_back(crt_time);
+
+            if(crt_time >= fBeamStart && crt_time <= fBeamEnd && crthit_v[i_crt]->peshit > 70){
               Nr_crthit_inBeam++; // The total number of CRT hits in beam should be less than the number of exiting tracks
+              only_crthit_time_inBeam = crt_time;
             } // If CRT hit in Beam window
+
+            // with CRT T0 time correction
+            if(T0Corr){
+              double crt_time_T0corr = ((crthit_v[i_crt]->ts0_ns - evt_timeGPS_nsec + CRTT0corr) / 1000.);
+              crthit_time_T0corr.push_back(crt_time_T0corr);
+
+              if(crt_time_T0corr >= fBeamStart && crt_time_T0corr <= fBeamEnd && crthit_v[i_crt]->peshit > 70){
+                Nr_crthit_inBeam_T0corr++;
+                only_crthit_time_inBeam_T0corr = crt_time_T0corr;
+              } // If CRT hit in Beam window
+            }
+
           } // CRT hit loop
-          if(Nr_crthit_inBeam != (int) crthit_time.size()) {
-            throw cet::exception("[Numu0pi0p]") << "Number of CRT hits in beam time does not match!" << std::endl;
-          }
+
           if(Nr_crthit_inBeam == 1){
-            only_crthit_time_inBeam = crthit_time[0];
             if(trigger_time != -999){
-              if(only_crthit_time_inBeam - trigger_time> -0.2){
+              //if(only_crthit_time_inBeam - trigger_time> -0.2){
+              if(abs(only_crthit_time_inBeam - trigger_time) > 1){
                 if_t0_crt_time_inBeam_match = false;
               }
             }
           }
-       
+
+          if(T0Corr){
+            if(Nr_crthit_inBeam_T0corr == 1){
+              if(trigger_time != -999){
+                if(abs(only_crthit_time_inBeam_T0corr - trigger_time) > 1){
+                  if_t0_crt_time_inBeam_match_T0corr = false;
+                }
+              }
+            }
+          }
+
           //- For contained (Veto if there is any CRT hit within 1us of the flash which is in the beam window)
           if(flash_v.size() > 0){
             for(unsigned int i_fl = 0; i_fl < flash_v.size(); i_fl++){
               auto CRT_hit = CRThitFlashAsso.at(flash_v[i_fl].key());
               if(CRT_hit.size() > 0){
-                evt_CRTveto = true;
+                if(CRT_hit.front()->peshit > 70) evt_CRTveto = true;
                 if(CRT_hit.front()->peshit > 100) evt_CRTveto_100 = true;
               } // if CRT veto
             } // loop over flash(es)
@@ -815,24 +872,52 @@ void SingleMuon::analyze(art::Event const& evt)
             // If a track is exiting, Nr_trk_asso_crthit <= 1
             // If a track is contained, Nr_trk_asso_crthit = 0
             // Else remove the slice
-            Nr_trk_asso_crthit[i_trk] = Track_CRThit.size();
-            if(Nr_trk_asso_crthit[i_trk] > 0){
-              for(unsigned int i_trk_hit = 0; i_trk_hit < Track_CRThit.size(); i_trk_hit++){
-                trk_crt_time[i_trk] = ((Track_CRThit[i_trk_hit]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.);
+            if(Track_CRThit.size() > 0){
+              for(unsigned int i_trk_crt = 0; i_trk_crt < Track_CRThit.size(); i_trk_crt++){
+                if(Track_CRThit[i_trk_crt]->peshit > 70){
+                  // w/o T0 correction
+                  trk_crt_time[i_trk] = ((Track_CRThit[i_trk_crt]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.);
+                  // w/ T0 correction
+                  if(T0Corr){
+                    trk_crt_time_T0corr[i_trk] = ((Track_CRThit[i_trk_crt]->ts0_ns - evt_timeGPS_nsec + CRTT0corr) / 1000.);
+                  }
+
+                  Nr_trk_asso_crthit[i_trk]++;
+                }
+
                 if(trk_crt_time[i_trk] < fBeamStart || trk_crt_time[i_trk] > fBeamEnd){
                   // For 2 tracks, as long as one of them has associated CRT hit out of time, reject!
                   if_trk_CRT_out_Beam[i_trk] = true;
                 } // If matched CRT hit out of Beam window
+
+                if(T0Corr){
+                  if(trk_crt_time_T0corr[i_trk] < fBeamStart || trk_crt_time_T0corr[i_trk] > fBeamEnd){
+                    if_trk_CRT_out_Beam_T0corr[i_trk] = true;
+                  } // If matched CRT hit out of Beam window
+                }
+
               } // Loop over the associated CRT hits
             }  // If there is associated CRT hits
 
             // - crt time and t0 time match
             if(trigger_time != -999 && trk_crt_time[i_trk] != -999){
-              if((trk_crt_time[i_trk] - trigger_time) == 0 || ((trk_crt_time[i_trk] - trigger_time) > -0.52 && (trk_crt_time[i_trk] - trigger_time) < -0.42)){
+              //if((trk_crt_time[i_trk] - trigger_time) == 0 || ((trk_crt_time[i_trk] - trigger_time) > -0.52 && (trk_crt_time[i_trk] - trigger_time) < -0.42)){
+              if(abs(trk_crt_time[i_trk] - trigger_time) < 1){
                 if_t0_trk_crt_time_match[i_trk] =  true;
               }
               else{
                 if_t0_trk_crt_time_match[i_trk] = false;
+              }
+            }
+
+            if(T0Corr){
+              if(trigger_time != -999 && trk_crt_time_T0corr[i_trk] != -999){
+                if(abs(trk_crt_time_T0corr[i_trk] - trigger_time) < 1){
+                  if_t0_trk_crt_time_match_T0corr[i_trk] =  true;
+                }
+                else{
+                  if_t0_trk_crt_time_match_T0corr[i_trk] = false;
+                }
               }
             }
 
@@ -947,43 +1032,75 @@ void SingleMuon::analyze(art::Event const& evt)
           std::sort(copy_dEdx_pl2.begin(), copy_dEdx_pl2.end());  
           // pl 0
           if(hits_dEdx_size_pl0 < 3){
-            for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl0; i_hit++){
-              avg_dEdx_LargeHit_pl0[i_trk] += copy_dEdx_pl0[i_hit];
+            if(hits_dEdx_size_pl0 != 0){
+              for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl0; i_hit++){
+                avg_dEdx_LargeHit_pl0[i_trk] += copy_dEdx_pl0[i_hit];
+              }
+              avg_dEdx_LargeHit_pl0[i_trk] = avg_dEdx_LargeHit_pl0[i_trk] / hits_dEdx_size_pl0;
             }
-            avg_dEdx_LargeHit_pl0[i_trk] = avg_dEdx_LargeHit_pl0[i_trk] / hits_dEdx_size_pl0;
+            else{
+              avg_dEdx_LargeHit_pl0[i_trk] = 0;
+            }
           }
           else{
             avg_dEdx_LargeHit_pl0[i_trk] = (copy_dEdx_pl0[hits_dEdx_size_pl0 - 1] + copy_dEdx_pl0[hits_dEdx_size_pl0 - 2] + copy_dEdx_pl0[hits_dEdx_size_pl0 - 3]) / 3;
           }
           // pl 1
           if(hits_dEdx_size_pl1 < 3){
-            for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl1; i_hit++){
-              avg_dEdx_LargeHit_pl1[i_trk] += copy_dEdx_pl1[i_hit];
+            if(hits_dEdx_size_pl1 != 0){
+              for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl1; i_hit++){
+                avg_dEdx_LargeHit_pl1[i_trk] += copy_dEdx_pl1[i_hit];
+              }
+              avg_dEdx_LargeHit_pl1[i_trk] = avg_dEdx_LargeHit_pl1[i_trk] / hits_dEdx_size_pl1;
             }
-            avg_dEdx_LargeHit_pl1[i_trk] = avg_dEdx_LargeHit_pl1[i_trk] / hits_dEdx_size_pl1;
+            else{
+              avg_dEdx_LargeHit_pl1[i_trk] = 0;
+            }
           }
           else{
             avg_dEdx_LargeHit_pl1[i_trk] = (copy_dEdx_pl1[hits_dEdx_size_pl1 - 1] + copy_dEdx_pl1[hits_dEdx_size_pl1 - 2] + copy_dEdx_pl1[hits_dEdx_size_pl1 - 3]) / 3;
           }
           // pl 2
           if(hits_dEdx_size_pl2 < 3){
-            for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl2; i_hit++){
-              avg_dEdx_LargeHit_pl2[i_trk] += copy_dEdx_pl2[i_hit];
+            if(hits_dEdx_size_pl2 != 0){
+              for(unsigned int i_hit = 0; i_hit < hits_dEdx_size_pl2; i_hit++){
+                avg_dEdx_LargeHit_pl2[i_trk] += copy_dEdx_pl2[i_hit];
+              }
+              avg_dEdx_LargeHit_pl2[i_trk] = avg_dEdx_LargeHit_pl2[i_trk] / hits_dEdx_size_pl2;
             }
-            avg_dEdx_LargeHit_pl2[i_trk] = avg_dEdx_LargeHit_pl2[i_trk] / hits_dEdx_size_pl2;
+            else{
+              avg_dEdx_LargeHit_pl2[i_trk] = 0;
+            }
           }
           else{
             avg_dEdx_LargeHit_pl2[i_trk] = (copy_dEdx_pl2[hits_dEdx_size_pl2 - 1] + copy_dEdx_pl2[hits_dEdx_size_pl2 - 2] + copy_dEdx_pl2[hits_dEdx_size_pl2 - 3]) / 3;
           }
 
           //- Average dE/dx close to the start and the end of the track
-          dEdx_pl0_start_half[i_trk] = std::accumulate(dEdx_pl0.end() - half_size_pl0, dEdx_pl0.end(), 0.) / half_size_pl0;
-          dEdx_pl0_end_half[i_trk] = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + half_size_pl0, 0. ) / half_size_pl0;
-          dEdx_pl1_start_half[i_trk] = std::accumulate(dEdx_pl1.end() - half_size_pl1, dEdx_pl1.end(), 0.) / half_size_pl1;
-          dEdx_pl1_end_half[i_trk] = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + half_size_pl1, 0. ) / half_size_pl1;
-          dEdx_pl2_start_half[i_trk] = std::accumulate(dEdx_pl2.end() - half_size_pl2, dEdx_pl2.end(), 0.) / half_size_pl2;
-          dEdx_pl2_end_half[i_trk] = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
-
+          if(half_size_pl0 != 0){
+            dEdx_pl0_start_half[i_trk] = std::accumulate(dEdx_pl0.end() - half_size_pl0, dEdx_pl0.end(), 0.) / half_size_pl0;
+            dEdx_pl0_end_half[i_trk] = std::accumulate(dEdx_pl0.begin(), dEdx_pl0.begin() + half_size_pl0, 0. ) / half_size_pl0;
+          }
+          else{
+            dEdx_pl0_start_half[i_trk] = 0;
+            dEdx_pl0_end_half[i_trk] = 0;
+          }
+          if(half_size_pl1 != 0){
+            dEdx_pl1_start_half[i_trk] = std::accumulate(dEdx_pl1.end() - half_size_pl1, dEdx_pl1.end(), 0.) / half_size_pl1;
+            dEdx_pl1_end_half[i_trk] = std::accumulate(dEdx_pl1.begin(), dEdx_pl1.begin() + half_size_pl1, 0. ) / half_size_pl1;
+          }
+          else{
+            dEdx_pl1_start_half[i_trk] = 0;
+            dEdx_pl1_end_half[i_trk] = 0;
+          }
+          if(half_size_pl2 != 0){
+            dEdx_pl2_start_half[i_trk] = std::accumulate(dEdx_pl2.end() - half_size_pl2, dEdx_pl2.end(), 0.) / half_size_pl2;
+            dEdx_pl2_end_half[i_trk] = std::accumulate(dEdx_pl2.begin(), dEdx_pl2.begin() + half_size_pl2, 0. ) / half_size_pl2;
+          }
+          else{
+            dEdx_pl2_start_half[i_trk] = 0;
+            dEdx_pl2_end_half[i_trk] = 0; 
+          }
           //- dEdx_1020
           if (dEdx_pl0.size()<=30) {
             dEdx_pl0_start1020[i_trk] = dEdx_pl0_start_half[i_trk];
@@ -1010,8 +1127,14 @@ void SingleMuon::analyze(art::Event const& evt)
             dEdx_pl2_end1020[i_trk] = std::accumulate(dEdx_pl2.begin() + 10, dEdx_pl2.begin() + 20, 0.) / 10.;
           }
 
-          dEdx_pl2_1020_ratio[i_trk] = dEdx_pl2_end1020[i_trk] / (dEdx_pl2_end1020[i_trk] + dEdx_pl2_start1020[i_trk]);
-          dEdx_pl2_half_ratio[i_trk] = dEdx_pl2_end_half[i_trk] / (dEdx_pl2_end_half[i_trk] + dEdx_pl2_start_half[i_trk]);
+          if((dEdx_pl2_end_half[i_trk] + dEdx_pl2_start_half[i_trk]) != 0){
+            dEdx_pl2_1020_ratio[i_trk] = dEdx_pl2_end1020[i_trk] / (dEdx_pl2_end1020[i_trk] + dEdx_pl2_start1020[i_trk]);
+            dEdx_pl2_half_ratio[i_trk] = dEdx_pl2_end_half[i_trk] / (dEdx_pl2_end_half[i_trk] + dEdx_pl2_start_half[i_trk]);
+          }
+          else{
+            dEdx_pl2_1020_ratio[i_trk] = 0;
+            dEdx_pl2_half_ratio[i_trk] = 0;
+          }
 
           //- Get dEdx of the middle part in the track
           int nr_pl0_mid = dEdx_pl0.size()/3;
@@ -1320,10 +1443,21 @@ void SingleMuon::analyze(art::Event const& evt)
   evt_CRTveto = false;
   evt_CRTveto_100 = false;
 
-  Nr_trk_asso_crthit = {-999, -999}; 
+  Nr_trk_asso_crthit = {0, 0}; 
   trk_crt_time = {-999, -999};
   if_trk_CRT_out_Beam = {false, false};
   if_t0_trk_crt_time_match = {true, true};
+
+  if(T0Corr){
+    crthit_time_T0corr.clear();
+    Nr_crthit_inBeam_T0corr = 0;
+    only_crthit_time_inBeam_T0corr = -999;
+    if_t0_crt_time_inBeam_match_T0corr = true;
+  
+    trk_crt_time_T0corr = {-999, -999};
+    if_trk_CRT_out_Beam_T0corr = {false, false};
+    if_t0_trk_crt_time_match_T0corr = {true, true};
+  }
 
   trk_OutOfTime = {false, false};
 
@@ -1578,6 +1712,17 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("trk_crt_time", &trk_crt_time);
   my_event_->Branch("if_trk_CRT_out_Beam", &if_trk_CRT_out_Beam);
   my_event_->Branch("if_t0_trk_crt_time_match", &if_t0_trk_crt_time_match);
+
+  if(T0Corr){
+    my_event_->Branch("crthit_time_T0corr", &crthit_time_T0corr);
+    my_event_->Branch("Nr_crthit_inBeam_T0corr", &Nr_crthit_inBeam_T0corr);
+    my_event_->Branch("only_crthit_time_inBeam_T0corr", &only_crthit_time_inBeam_T0corr);
+    my_event_->Branch("if_t0_crt_time_inBeam_match_T0corr", &if_t0_crt_time_inBeam_match_T0corr);
+  
+    my_event_->Branch("trk_crt_time_T0corr", &trk_crt_time_T0corr);
+    my_event_->Branch("if_trk_CRT_out_Beam_T0corr", &if_trk_CRT_out_Beam_T0corr);
+    my_event_->Branch("if_t0_trk_crt_time_match_T0corr", &if_t0_trk_crt_time_match_T0corr);
+  }
 
   my_event_->Branch("trk_OutOfTime", &trk_OutOfTime);
 
