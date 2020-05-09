@@ -49,6 +49,9 @@
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 //#include "lardataobj/AnalysisBase/PlaneIDBitsetHelperFunctions.h"
 
+#include "lardata/DetectorInfoServices/DetectorClocksService.h" 
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "larsim/EventWeight/Base/WeightManager.h"
@@ -103,6 +106,9 @@ private:
   art::ServiceHandle<art::TFileService> tfs;
 
   spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+  // Get time offset for x space charge correction
+  detinfo::DetectorProperties const* detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  detinfo::DetectorClocks const* detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
 
   TTree * POTtree;
   int run, subrun;
@@ -124,6 +130,9 @@ private:
   double flash_TotalPE = -999;
   double flash_time = -999;
 
+  bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
+  bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
+
   double CRTT0corr = 0;
   std::vector<double> crthit_PE; // The photonelectrons of CRT hits which are in beam window
   std::vector<double> crthit_plane; // Plane of CRT hits
@@ -132,6 +141,7 @@ private:
 
   std::vector<int> Nr_trk_asso_crthit; // Number of CRT hits associated to the track
   std::vector<double> trk_crt_time;// The CRT time of the hit which matched to the track
+  std::vector<double> trk_crt_time_T0asso;// The CRT time of the hit which matched to the track
 
   std::vector<double> crthit_time_T0corr; // Time of CRT hits
   int Nr_crthit_inBeam_T0corr = 0; // Number of CRT hits in beamtime
@@ -286,6 +296,9 @@ private:
   std::vector<bool> true_trk_ifcontained; // True track if contained or not
   std::vector<bool> true_vtxFV; // True track if contained or not
 
+  //int event = 0;
+
+
   bool                                IsMC;
   bool                                T0Corr;
   bool                                UsingCRT;
@@ -360,6 +373,19 @@ EveryTrack::EveryTrack(fhicl::ParameterSet const& pset)
 
 void EveryTrack::analyze(art::Event const& evt)
 {
+
+  // Initialise X offset for postion correction (SCE)
+  double xtimeoffset = 0;
+
+  if(IsMC){
+    auto const&  mct_h = evt.getValidHandle<std::vector<simb::MCTruth> >("generator");
+    auto gen = mct_h->at(0);
+    double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+    xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
+  }
+  else{
+    xtimeoffset = 0;
+  }
 
   //// Get necessary handles
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
@@ -524,6 +550,13 @@ void EveryTrack::analyze(art::Event const& evt)
       flash_ZWidth = flash_v[i_flash]->ZWidth();
       flash_TotalPE = flash_v[i_flash]->TotalPE();
       flash_time = flash_v[i_flash]->Time();
+
+      //CRT veto
+      auto CRT_hit = CRThitFlashAsso.at(flash_v[i_flash].key());
+      if(CRT_hit.size() == 1){
+        if(CRT_hit.front()->peshit > 70) evt_CRTveto = true;
+        if(CRT_hit.front()->peshit > 100) evt_CRTveto_100 = true;
+      } // if CRT veto
     }
   }
 
@@ -537,7 +570,7 @@ void EveryTrack::analyze(art::Event const& evt)
   art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();
   evt_timeGPS_nsec = evtTimeGPS.timeLow();
 
-  std::cout<<"evt_timeGPS_nsec: "<< evt_timeGPS_nsec<<std::endl;
+  //std::cout<<"evt_timeGPS_nsec: "<< evt_timeGPS_nsec<<std::endl;
 
   if(T0Corr){
     if(crtT0_v.size() == 1){
@@ -610,30 +643,15 @@ void EveryTrack::analyze(art::Event const& evt)
   nr_dau_tracks = daughter_Tracks.size();
   nr_dau_showers = daughter_Showers.size();
 
-  //-------- Get All tracks
-  for(unsigned int i_trk = 0; i_trk < AllTrackCollection.size(); i_trk++){
-
-    if(daughter_Tracks.size() == 0){
-      if_trk_NeutrinoSlice_primary.push_back(false);
-    }
-    else{
-      for(unsigned int i_pri_trk = 0; i_pri_trk < daughter_Tracks.size(); i_pri_trk++){
-        if(AllTrackCollection[i_trk] == daughter_Tracks[i_pri_trk]){
-          if_trk_NeutrinoSlice_primary.push_back(true);
-          break;
-        }
-        else{
-          if_trk_NeutrinoSlice_primary.push_back(false);
-        }
-      }
-    } 
+  //-------- Get All tracks in neutrino slice
+  for(unsigned int i_trk = 0; i_trk < daughter_Tracks.size(); i_trk++){
 
     // Track CRT
-    auto Track_CRThit = CRTToTrackAsso.at(AllTrackCollection[i_trk].key());
-    auto Track_CRTT0 = CRTT0ToTrackAsso.at(AllTrackCollection[i_trk].key());
+    auto Track_CRThit = CRTToTrackAsso.at(daughter_Tracks[i_trk].key());
+    auto Track_CRTT0 = CRTT0ToTrackAsso.at(daughter_Tracks[i_trk].key());
     if(Track_CRTT0.size() > 0){
       for(unsigned int i_trk_crt = 0; i_trk_crt < Track_CRThit.size(); i_trk_crt++){
-        std::cout<<"trk_crt_time T0: "<< Track_CRTT0[i_trk_crt]->Time()<<std::endl;
+        trk_crt_time_T0asso.push_back(Track_CRTT0[i_trk_crt]->Time());
       }
     }
 
@@ -642,8 +660,8 @@ void EveryTrack::analyze(art::Event const& evt)
         if(Track_CRThit[i_trk_crt]->peshit > 70){
           // w/o T0 correction
           trk_crt_time.push_back(((Track_CRThit[i_trk_crt]->ts0_ns - evt_timeGPS_nsec + fDTOffset) / 1000.));
-          std::cout<<"Track_CRThit[i_trk_crt]->ts0_ns: "<< Track_CRThit[i_trk_crt]->ts0_ns<<std::endl;
-          std::cout<<"trk_crt_time: "<< trk_crt_time.back()<<std::endl;
+          //std::cout<<"Track_CRThit[i_trk_crt]->ts0_ns: "<< Track_CRThit[i_trk_crt]->ts0_ns<<std::endl;
+          //std::cout<<"trk_crt_time: "<< trk_crt_time.back()<<std::endl;
           // w/ T0 correction
           if(T0Corr){
             trk_crt_time_T0corr.push_back(((Track_CRThit[i_trk_crt]->ts0_ns - evt_timeGPS_nsec + CRTT0corr) / 1000.));
@@ -654,9 +672,9 @@ void EveryTrack::analyze(art::Event const& evt)
     Nr_trk_asso_crthit.push_back(trk_crt_time.size());
 
     // Add spatial correction to the track start and end
-    Trk_vtx = AllTrackCollection[i_trk]->Vertex<TVector3>();
+    Trk_vtx = daughter_Tracks[i_trk]->Vertex<TVector3>();
     auto Trk_vtx_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_vtx.X(), Trk_vtx.Y(), Trk_vtx.Z()));
-    Trk_vtx_SCEcorr.SetX(Trk_vtx.X() - Trk_vtx_offset.X());
+    Trk_vtx_SCEcorr.SetX(Trk_vtx.X() - Trk_vtx_offset.X() + xtimeoffset + 0.6);
     Trk_vtx_SCEcorr.SetY(Trk_vtx.Y() + Trk_vtx_offset.Y());
     Trk_vtx_SCEcorr.SetZ(Trk_vtx.Z() + Trk_vtx_offset.Z());
 
@@ -668,9 +686,9 @@ void EveryTrack::analyze(art::Event const& evt)
     trk_vtx_y_noSCE.push_back(Trk_vtx.Y());
     trk_vtx_z_noSCE.push_back(Trk_vtx.Z());
 
-    Trk_start = AllTrackCollection[i_trk]->Start<TVector3>();
+    Trk_start = daughter_Tracks[i_trk]->Start<TVector3>();
     auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
-    Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
+    Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X() + xtimeoffset + 0.6);
     Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
     Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
 
@@ -682,9 +700,9 @@ void EveryTrack::analyze(art::Event const& evt)
     trk_start_y_noSCE.push_back(Trk_start.Y());
     trk_start_z_noSCE.push_back(Trk_start.Z());
 
-    Trk_end = AllTrackCollection[i_trk]->End<TVector3>();
+    Trk_end = daughter_Tracks[i_trk]->End<TVector3>();
     auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
-    Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X());
+    Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X() + xtimeoffset + 0.6);
     Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
     Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
 
@@ -716,12 +734,12 @@ void EveryTrack::analyze(art::Event const& evt)
     sin2_phi_readout.push_back(sin(phi_readout) * sin(phi_readout));
 
     //-- track angle
-    trk_phi.push_back(AllTrackCollection[i_trk]->Phi());
-    trk_theta.push_back(AllTrackCollection[i_trk]->Theta());
-    trk_costheta.push_back(cos(AllTrackCollection[i_trk]->Theta()));
+    trk_phi.push_back(daughter_Tracks[i_trk]->Phi());
+    trk_theta.push_back(daughter_Tracks[i_trk]->Theta());
+    trk_costheta.push_back(cos(daughter_Tracks[i_trk]->Theta()));
 
     //-- track length
-    trk_length.push_back(AllTrackCollection[i_trk]->Length());
+    trk_length.push_back(daughter_Tracks[i_trk]->Length());
 
 
     //-- Momentum
@@ -731,19 +749,19 @@ void EveryTrack::analyze(art::Event const& evt)
     mom_Range_pi.push_back(_trk_mom_calculator.GetTrackMomentum(trk_length.back(), 211));
 
     //- MCS
-    bestMCS.push_back(mcsfitresult_mu_v.at(AllTrackCollection[i_trk].key())->bestMomentum());
-    bestMCSLL.push_back(mcsfitresult_mu_v.at(AllTrackCollection[i_trk].key())->bestLogLikelihood());
-    fwdMCS.push_back(mcsfitresult_mu_v.at(AllTrackCollection[i_trk].key())->fwdMomentum());
-    fwdMCSLL.push_back(mcsfitresult_mu_v.at(AllTrackCollection[i_trk].key())->fwdLogLikelihood());
-    bwdMCS.push_back(mcsfitresult_mu_v.at(AllTrackCollection[i_trk].key())->bwdMomentum());
-    bwdMCSLL.push_back(mcsfitresult_mu_v.at(AllTrackCollection[i_trk].key())->bwdLogLikelihood());
+    bestMCS.push_back(mcsfitresult_mu_v.at(daughter_Tracks[i_trk].key())->bestMomentum());
+    bestMCSLL.push_back(mcsfitresult_mu_v.at(daughter_Tracks[i_trk].key())->bestLogLikelihood());
+    fwdMCS.push_back(mcsfitresult_mu_v.at(daughter_Tracks[i_trk].key())->fwdMomentum());
+    fwdMCSLL.push_back(mcsfitresult_mu_v.at(daughter_Tracks[i_trk].key())->fwdLogLikelihood());
+    bwdMCS.push_back(mcsfitresult_mu_v.at(daughter_Tracks[i_trk].key())->bwdMomentum());
+    bwdMCSLL.push_back(mcsfitresult_mu_v.at(daughter_Tracks[i_trk].key())->bwdLogLikelihood());
 
-    bestMCSLL_NoSCE.push_back(mcsfitresult_mu_NoSCE_v.at(AllTrackCollection[i_trk].key())->bestLogLikelihood());
-    fwdMCSLL_NoSCE.push_back(mcsfitresult_mu_NoSCE_v.at(AllTrackCollection[i_trk].key())->fwdLogLikelihood());
-    bwdMCSLL_NoSCE.push_back(mcsfitresult_mu_NoSCE_v.at(AllTrackCollection[i_trk].key())->bwdLogLikelihood());
+    bestMCSLL_NoSCE.push_back(mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->bestLogLikelihood());
+    fwdMCSLL_NoSCE.push_back(mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->fwdLogLikelihood());
+    bwdMCSLL_NoSCE.push_back(mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->bwdLogLikelihood());
 
     //-- dE/dx
-    auto assoCal = trackToCalAsso.at(AllTrackCollection[i_trk].key());
+    auto assoCal = trackToCalAsso.at(daughter_Tracks[i_trk].key());
     if(assoCal.size()!=3){
       throw cet::exception("[Numu0pi0p]") << "Where are the three planes for the calorimetry!" << std::endl;
     }
@@ -1063,7 +1081,7 @@ void EveryTrack::analyze(art::Event const& evt)
     }
     //-- PID
      PID pid;
-     pid.Chi2(PIDTotrackAsso,AllTrackCollection[i_trk], Trk_start_SCEcorr, Trk_end_SCEcorr,hits_dEdx_size_pl0, hits_dEdx_size_pl1, hits_dEdx_size_pl2);
+     pid.Chi2(PIDTotrackAsso,daughter_Tracks[i_trk], Trk_start_SCEcorr, Trk_end_SCEcorr,hits_dEdx_size_pl0, hits_dEdx_size_pl1, hits_dEdx_size_pl2);
      PID_Chi2Mu_3pl.push_back(pid.PID_Chi2Mu_3pl); // Chi2 of muon assumption of 3 planes in PID
      PID_Chi2P_3pl.push_back(pid.PID_Chi2P_3pl); // Chi2 of proton assumption of 3 planes in PID
      PID_Chi2Pi_3pl.push_back(pid.PID_Chi2Pi_3pl); // Chi2 of pion assumption of 3 planes in PID
@@ -1073,7 +1091,7 @@ void EveryTrack::analyze(art::Event const& evt)
      // Fill TRUE info
      ////////////////
      if(IsMC){
-       std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(AllTrackCollection[i_trk].key());
+       std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks[i_trk].key());
        BackTrackerTruthMatch backtrackertruthmatch;
        backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
        auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
@@ -1199,6 +1217,9 @@ void EveryTrack::analyze(art::Event const& evt)
   flash_matching_chi2 = -999;
   trigger_time = -999;
 
+  evt_CRTveto = false;
+  evt_CRTveto_100 = false;
+
   CRTT0corr = 0;
   crthit_PE.clear(); // The photonelectrons of CRT hits which are in beam window
   crthit_plane.clear(); // Plane of CRT hits
@@ -1207,6 +1228,7 @@ void EveryTrack::analyze(art::Event const& evt)
 
   Nr_trk_asso_crthit.clear(); // Number of CRT hits associated to the track
   trk_crt_time.clear();// The CRT time of the hit which matched to the track
+  trk_crt_time_T0asso.clear();
 
   crthit_time_T0corr.clear(); // Time of CRT hits
   Nr_crthit_inBeam_T0corr = 0; // Number of CRT hits in beamtime
@@ -1417,12 +1439,16 @@ void EveryTrack::Initialize_event()
   my_event_->Branch("flash_matching_chi2", &flash_matching_chi2);
   my_event_->Branch("trigger_time", &trigger_time);
 
+  my_event_->Branch("evt_CRTveto", &evt_CRTveto);
+  my_event_->Branch("evt_CRTveto_100", &evt_CRTveto_100);
+
   my_event_->Branch("crthit_PE", &crthit_PE);
   my_event_->Branch("crthit_plane", &crthit_plane);
   my_event_->Branch("crthit_time", &crthit_time);
   my_event_->Branch("Nr_crthit_inBeam", &Nr_crthit_inBeam);
   my_event_->Branch("Nr_trk_asso_crthit", &Nr_trk_asso_crthit);
   my_event_->Branch("trk_crt_time", &trk_crt_time);
+  my_event_->Branch("trk_crt_time_T0asso", &trk_crt_time_T0asso);
   my_event_->Branch("crthit_time_T0corr", &crthit_time_T0corr);
   my_event_->Branch("Nr_crthit_inBeam_T0corr", &Nr_crthit_inBeam_T0corr);
   my_event_->Branch("trk_crt_time_T0corr", &trk_crt_time_T0corr);

@@ -49,6 +49,9 @@
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 //#include "lardataobj/AnalysisBase/PlaneIDBitsetHelperFunctions.h"
 
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "larsim/EventWeight/Base/WeightManager.h"
@@ -103,6 +106,8 @@ private:
   art::ServiceHandle<art::TFileService> tfs;
 
   spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+  detinfo::DetectorProperties const* detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  detinfo::DetectorClocks const* detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
 
   TTree * POTtree;
   int run, subrun;
@@ -490,6 +495,17 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
 
 void SingleMuon::analyze(art::Event const& evt)
 {
+  // prepare X offset for position correction (SCE)
+  double xtimeoffset = 0;
+  if(IsMC){
+    auto const& mct_h = evt.getValidHandle<std::vector<simb::MCTruth> >("generator");
+    auto gen = mct_h->at(0);
+    double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+    xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
+  }
+  else{
+    xtimeoffset = 0;
+  }
 
   //// Get necessary handles
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
@@ -988,7 +1004,7 @@ void SingleMuon::analyze(art::Event const& evt)
         // Add spatial correction to the track start and end
         Trk_vtx = daughter_Tracks.front()->Vertex<TVector3>();
         auto Trk_vtx_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_vtx.X(), Trk_vtx.Y(), Trk_vtx.Z()));
-        Trk_vtx_SCEcorr.SetX(Trk_vtx.X() - Trk_vtx_offset.X());
+        Trk_vtx_SCEcorr.SetX(Trk_vtx.X() - Trk_vtx_offset.X() + xtimeoffset + 0.6);
         Trk_vtx_SCEcorr.SetY(Trk_vtx.Y() + Trk_vtx_offset.Y());
         Trk_vtx_SCEcorr.SetZ(Trk_vtx.Z() + Trk_vtx_offset.Z());
 
@@ -1002,7 +1018,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
         Trk_start = daughter_Tracks.front()->Start<TVector3>();
         auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
-        Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
+        Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X() + xtimeoffset + 0.6);
         Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
         Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
 
@@ -1016,7 +1032,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
         Trk_end = daughter_Tracks.front()->End<TVector3>();
         auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
-        Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X());
+        Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X() + xtimeoffset + 0.6);
         Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
         Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
 
