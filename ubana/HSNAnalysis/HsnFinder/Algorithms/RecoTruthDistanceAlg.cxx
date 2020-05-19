@@ -7,7 +7,6 @@ namespace RecoTruthDistance
   {
     reconfigure(pset);
     fGeometry = lar::providerFrom<geo::Geometry>();
-    fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
   }
   RecoTruthDistanceAlg::~RecoTruthDistanceAlg()
   {}

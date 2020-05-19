@@ -579,6 +579,7 @@ void Kplane2::analyze( const art::Event& evt){
   size_t n_candidates=0;
   int break_indicator=0;
   
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
   if (!isdata){
      if (fSaveTrackInfo){
          size_t NTracks = tracklist.size(); 
@@ -1101,7 +1102,7 @@ void Kplane2::analyze( const art::Event& evt){
 													      std::map<int,double> trk_k_ide;
 													      for(size_t h = 0; h < allKHits.size(); ++h){
 													          art::Ptr<recob::Hit> hit = allKHits[h];
-													          std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
+                                                              std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(clockData, hit);
 														  for(size_t e = 0; e < TrackIDs.size(); ++e){
 														      trk_k_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 													          }
@@ -1119,7 +1120,7 @@ void Kplane2::analyze( const art::Event& evt){
 													        std::map<int,double> trk_mu_ide;
 														for(size_t h = 0; h < allMuHits.size(); ++h){
 														    art::Ptr<recob::Hit> hit = allMuHits[h];
-														    std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
+                                                              std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(clockData, hit);
 														    for(size_t e = 0; e < TrackIDs.size(); ++e){
 															trk_mu_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 														    }
@@ -1607,7 +1608,7 @@ void Kplane2::analyze( const art::Event& evt){
 													                       std::map<int,double> trk_k_ide;
 													                       for(size_t h = 0; h < allKHits.size(); ++h){
 													                           art::Ptr<recob::Hit> hit = allKHits[h];
-													                           std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
+                                                              std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(clockData, hit);
 														                   for(size_t e = 0; e < TrackIDs.size(); ++e){
 														                       trk_k_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 													                           }
@@ -1625,7 +1626,7 @@ void Kplane2::analyze( const art::Event& evt){
 													                          std::map<int,double> trk_mu_ide;
 														                  for(size_t h = 0; h < allMuHits.size(); ++h){
 														                       art::Ptr<recob::Hit> hit = allMuHits[h];
-														                       std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
+                                                              std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(clockData, hit);
 														                       for(size_t e = 0; e < TrackIDs.size(); ++e){
 															                   trk_mu_ide[TrackIDs[e].trackID] += TrackIDs[e].energy;
 														                       }
@@ -1767,5 +1768,3 @@ void Kplane2::reset(){
 DEFINE_ART_MODULE(Kplane2)
   
 }
-
-

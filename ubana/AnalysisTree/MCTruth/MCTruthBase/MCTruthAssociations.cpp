@@ -38,7 +38,7 @@ MCTruthAssociations::MCTruthAssociations(const fhicl::ParameterSet& config)
 void MCTruthAssociations::setup(const HitParticleAssociationsVec&  partToHitAssnsVec,
                                 const MCTruthParticleAssociations& truthToPartAssns,
                                 const geo::GeometryCore&           geometry,
-                                const detinfo::DetectorProperties& detectorProperties)
+                                const detinfo::DetectorPropertiesData& detectorProperties)
 {
     // Keep track of input services
     fGeometry           = &geometry;
@@ -624,4 +624,3 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
 }
     
 } // end of namespace
-

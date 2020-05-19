@@ -78,8 +78,6 @@ private:
   double GetYZCorrection(TVector3& xyz, TH2F *his);
   double GetXCorrection(TVector3& xyz, TH1F *his);
 
-  const detinfo::DetectorProperties* detprop;
-
 };
 
 
@@ -100,7 +98,6 @@ ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
     throw art::Exception(art::errors::Configuration)
       <<"Size of Corr_YZ and Corr_X need to be 3.";
   }
-  detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
 
   //create calorimetry product and its association with track
   produces< std::vector<anab::Calorimetry>              >();
@@ -132,6 +129,8 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
     throw art::Exception(art::errors::ProductNotFound)
       <<"Could not get assocated Calorimetry objects";
   }
+
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt);
 
   for (size_t trkIter = 0; trkIter < tracklist.size(); ++trkIter){   
     for (size_t i = 0; i<fmcal.at(trkIter).size(); ++i){
@@ -217,14 +216,14 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
           /*
           //set time to be trgger time so we don't do lifetime correction
           //we will turn off lifetime correction in caloAlg, this is just to be double sure
-          vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detprop->TriggerOffset(), planeID.Plane, 0);
+          vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detProp.TriggerOffset(), planeID.Plane, 0);
           */
 
           //Calculate dE/dx using the new recombination constants
           double dQdx_e = caloAlg.ElectronsFromADCArea(vdQdx[j], planeID.Plane);
-          double rho = detprop->Density();            // LAr density in g/cm^3
+          double rho = detProp.Density();            // LAr density in g/cm^3
           double Wion = 1000./util::kGeVToElectrons;  // 23.6 eV = 1e, Wion in MeV/e
-          double E_field = detprop->Efield();        // Electric Field in the drift region in KV/cm
+          double E_field = detProp.Efield();        // Electric Field in the drift region in KV/cm
           double Beta = fModBoxB / (rho * E_field);
           double Alpha = fModBoxA;
           vdEdx[j] = (exp(Beta * Wion * dQdx_e ) - Alpha) / Beta;

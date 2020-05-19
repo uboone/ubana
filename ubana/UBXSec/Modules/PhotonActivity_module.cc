@@ -144,7 +144,7 @@ void PhotonActivity::produce(art::Event & e)
   
   auto const & evt_trigger = (*evt_trigger_h)[0];
   auto const trig_time = evt_trigger.TriggerTime();
-  auto const * ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   /*
   double nuTime = 0.;
@@ -162,12 +162,12 @@ void PhotonActivity::produce(art::Event & e)
       if (_debug){
         std::cout << "Particle pdg: " << par.PdgCode() << std::endl;
         std::cout << "Particle time: " << par.Trajectory().T(0) << std::endl;
-        std::cout << "    converted: " << ts->G4ToElecTime(par.Trajectory().T(0)) - trig_time << std::endl;
+        std::cout << "    converted: " << clockData.G4ToElecTime(par.Trajectory().T(0)) - trig_time << std::endl;
         std::cout << "new Particle time: " << par.T() << std::endl;
-        std::cout << "new    converted: " << ts->G4ToElecTime(par.T()) - trig_time << std::endl;
+        std::cout << "new    converted: " << clockData.G4ToElecTime(par.T()) - trig_time << std::endl;
         std::cout << std::endl;
       }
-      if (par.PdgCode() == 14) nuTime = par.T();//ts->G4ToElecTime(par.T()) - trig_time;
+      if (par.PdgCode() == 14) nuTime = par.T();//clockData.G4ToElecTime(par.T()) - trig_time;
     }
   }
 
@@ -190,7 +190,7 @@ void PhotonActivity::produce(art::Event & e)
 
     for(auto const& oneph : simph) {
 
-      double t = ts->G4ToElecTime(oneph.Time) - trig_time;
+      double t = clockData.G4ToElecTime(oneph.Time) - trig_time;
       if (_debug) std::cout << "Photon G4 time is " << oneph.Time << "  while the TPC time is " << t << std::endl;
 
       if (t > _beam_window_start && t < _beam_window_end) {

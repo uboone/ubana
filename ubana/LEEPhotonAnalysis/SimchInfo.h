@@ -1,6 +1,3 @@
-
-
-
 #ifndef SIMCHINFO_H
 #define SIMCHINFO_H
 
@@ -10,7 +7,9 @@
 
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/RecoBase/Hit.h"
-
+namespace detinfo {
+  class DetectorClocksData;
+}
 
 
 class SimchInfo {
@@ -27,12 +26,15 @@ class SimchInfo {
 
   struct WireRange_t;
 
-  void FillSimchInfo(std::vector<sim::SimChannel> const & simch_v,
+  void FillSimchInfo(detinfo::DetectorClocksData const& clockData,
+                     std::vector<sim::SimChannel> const & simch_v,
 		     std::vector<std::vector<unsigned int>> const & g4_trackid_v,
 		     std::vector<std::vector<art::Ptr<recob::Hit>>> const & reco_to_hit_v);
   
-  std::vector<double> MCQ(art::Ptr<recob::Hit> const & hit) const;
-  std::vector<double> MCQ(std::vector<art::Ptr<recob::Hit>> const & hit_v) const;
+  std::vector<double> MCQ(detinfo::DetectorClocksData const& clockData,
+                          art::Ptr<recob::Hit> const & hit) const;
+  std::vector<double> MCQ(detinfo::DetectorClocksData const& clockData,
+                          std::vector<art::Ptr<recob::Hit>> const & hit_v) const;
 
   std::vector<std::vector<double>> const & GetMCQVV() const {return fmcq_vv;}
 

@@ -47,7 +47,6 @@
 #include "lardataobj/RawData/BeamInfo.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 //#include "larsim/MCCheater/BackTracker.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -323,7 +322,6 @@
      *  @brief Standard useful properties
      */
     geo::GeometryCore const*            fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const*  fDetector;           ///< Pointer to the detector properties
     /// @}
     
    };
@@ -332,8 +330,7 @@
     // Constructor
    CTMDataONAna::CTMDataONAna(fhicl::ParameterSet const& pset): 
    EDAnalyzer(pset),
-   fGeometry(lar::providerFrom<geo::Geometry>()),
-   fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
+   fGeometry(lar::providerFrom<geo::Geometry>())
   {
       this->reconfigure(pset);
   }
@@ -1525,4 +1522,3 @@ double CTMDataONAna::FlashTrackDist(double flash, double start, double end) cons
  } // namespace CTMDataONAna_module
  
   #endif //CTMDATAONANA_H
-  

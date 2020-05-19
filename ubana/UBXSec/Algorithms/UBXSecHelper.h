@@ -26,6 +26,9 @@
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "ubobj/UBXSec/TPCObject.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
+namespace detinfo {
+  class DetectorClocksData;
+}
 
 typedef std::map< art::Ptr<recob::PFParticle>, unsigned int > RecoParticleToNMatchedHits;
 typedef std::map< art::Ptr<simb::MCParticle>,  RecoParticleToNMatchedHits > ParticleMatchingMap;
@@ -44,7 +47,8 @@ class UBXSecHelper {
    *  @param trackPurity the output track (PFP, whatever) purity 
    *  @param trackEfficiency the output track (PFP, whatever) efficiency
    */
-  static void GetTrackPurityAndEfficiency( lar_pandora::HitVector recoHits, double & trackPurity, double & trackEfficiency );
+  static void GetTrackPurityAndEfficiency(detinfo::DetectorClocksData const& clockData,
+                                          lar_pandora::HitVector recoHits, double & trackPurity, double & trackEfficiency );
 
     /**
    *  @brief Perform matching between true and reconstructed particles

@@ -103,7 +103,6 @@ private:
 
     // Other variables that will be shared between different methods.
     geo::GeometryCore const*             fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const* fDetectorProperties; ///< Pointer to the detector properties
 
 }; // class  TPCNeutrinoIDAna
 
@@ -161,7 +160,6 @@ void  TPCNeutrinoIDAna::reconfigure(fhicl::ParameterSet const& pset)
     fInputFileName = pset.get<std::string>("FullyQualifiedInputFile");
     
     fGeometry = lar::providerFrom<geo::Geometry>();
-    fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
     
     return;
 }
@@ -191,6 +189,7 @@ void  TPCNeutrinoIDAna::analyze(const art::Event& event)
     // In principle we can have several producers running over various configurations of vertices and tracks.
     // The output associations we want to check are then encapsuated in the input vectors of strings
     // So the outer loop is over the indices
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(event);
     for(size_t assnIdx = 0; assnIdx < fVertexModuleLabelVec.size(); assnIdx++)
     {
         // Recover a handle to the collection of vertices
@@ -232,8 +231,8 @@ void  TPCNeutrinoIDAna::analyze(const art::Event& event)
                         double trackEndPos[]   = {trackEnd.X(),  trackEnd.Y(),  trackEnd.Z()};
 
                         // Starting and ending ticks depend on the x position, we'll use the W plane for reference
-                        size_t startTicks = fDetectorProperties->ConvertXToTicks(trackStartPos[0], 2, 0, 0);
-                        size_t endTicks   = fDetectorProperties->ConvertXToTicks(trackEndPos[0], 2, 0, 0);
+                        size_t startTicks = detProp.ConvertXToTicks(trackStartPos[0], 2, 0, 0);
+                        size_t endTicks   = detProp.ConvertXToTicks(trackEndPos[0], 2, 0, 0);
                         size_t loTicks    = std::min(startTicks,endTicks);
                         size_t hiTicks    = std::max(startTicks,endTicks);
                         

@@ -156,8 +156,7 @@ private:
     Float_t trkmom_cross[kMaxTrack];	   // momentum.
     Float_t trklen_cross[kMaxTrack];	   // length.
     
-    detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    double XDriftVelocity = detprop->DriftVelocity()*1e-3; //cm/ns
+    double XDriftVelocity;
     art::ServiceHandle<geo::Geometry> geom;
 
  }; // class Lifetime
@@ -167,6 +166,8 @@ private:
 Lifetime::Lifetime(fhicl::ParameterSet const& parameterSet)
     : EDAnalyzer(parameterSet)
 {
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
+    XDriftVelocity = detProp.DriftVelocity()*1e-3; //cm/ns
     reconfigure(parameterSet);
 }
 //========================================================================

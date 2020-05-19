@@ -323,7 +323,6 @@
      *  @brief Standard useful properties
      */
     geo::GeometryCore const*            fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const*  fDetector;           ///< Pointer to the detector properties
     /// @}
     
    };
@@ -332,8 +331,7 @@
     // Constructor
    CTMDataOFFAna::CTMDataOFFAna(fhicl::ParameterSet const& pset): 
    EDAnalyzer(pset),
-   fGeometry(lar::providerFrom<geo::Geometry>()),
-   fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
+   fGeometry(lar::providerFrom<geo::Geometry>())
   {
       this->reconfigure(pset);
   }
@@ -1525,4 +1523,3 @@ double CTMDataOFFAna::FlashTrackDist(double flash, double start, double end) con
  } // namespace CTMDataOFFAna_module
  
   #endif //CTMDATAOFFANA_H
-  

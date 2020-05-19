@@ -119,8 +119,8 @@ namespace flashana {
     std::vector<std::string> custom_algo_v;
     custom_algo_v = mgr_cfg.get<std::vector<std::string> >("CustomAlgo",custom_algo_v);
 
-    const detinfo::DetectorProperties *_detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    double const drift_velocity =  _detprop->DriftVelocity();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
+    double const drift_velocity =  detProp.DriftVelocity();
     
     art::ServiceHandle<geo::Geometry> const geo;    
     std::vector<double> const det_xrange = {0., 2.0 * geo->DetHalfWidth()};

@@ -19,7 +19,7 @@
 
 namespace pm      { class AnodeCathodePMAlg; }
 namespace geo     { class GeometryCore; }
-namespace detinfo { class DetectorProperties; }
+namespace detinfo { class DetectorPropertiesData; }
 namespace fhicl   { class ParameterSet; }
 namespace recob   { class Hit; }
 
@@ -33,7 +33,7 @@ class pm::AnodeCathodePMAlg{
   
   void Configure(fhicl::ParameterSet         const&,
 		 geo::GeometryCore           const&,
-		 detinfo::DetectorProperties const&);
+                 detinfo::DetectorPropertiesData const&);
   
   void RunPatternMatching(std::vector<recob::Hit> const&,float &);
   

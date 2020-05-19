@@ -26,7 +26,6 @@ HsnFinder::HsnFinder(fhicl::ParameterSet const & pset) :
 {
   // Get geometry and detector services
   fGeometry = lar::providerFrom<geo::Geometry>();
-  fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
   // Determine profile ticks
   double profileStep = (fRadiusProfileLimits[1] - fRadiusProfileLimits[0]) / float(fRadiusProfileBins);
