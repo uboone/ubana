@@ -35,6 +35,7 @@
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
+#include "larreco/RecoAlg/TrajectoryMCSFitter.h"
 
 
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -147,6 +148,7 @@ private:
     std::string m_geant_producer;
     std::string m_hit_mcp_producer;
     std::string m_muon_producer;
+    std::string m_weight_producer;
 
     float m_vtx_fid_x_start;
     float m_vtx_fid_y_start;
@@ -168,6 +170,7 @@ private:
     PandoraInterfaceHelper pandoraInterfaceHelper;
     EnergyHelper energyHelper;
     TrackHelper trackHelper;
+    trkf::TrajectoryMCSFitter mcsfitter;
 
     // Store the pfps that qualify as muon candidates
     std::vector<art::Ptr<recob::PFParticle>> m_muon_candidates;
@@ -283,6 +286,19 @@ private:
     float fTrackPID_chiproton;
     float fTrackPID_chimuon;
     bool fIsMuonCandidate;
+    // MCS trajectory
+    float fTrackLength_rm10;
+    float fTrackMom_MuFwd_rm10;
+    float fTrackMomErr_MuFwd_rm10;
+    float fTrackLL_MuFwd_rm10;
+    float fTrackMom_MuBwd_rm10;
+    float fTrackMomErr_MuBwd_rm10;
+    float fTrackLL_MuBwd_rm10;
+    float fTrackMom_Mu_rm10;
+    float fTrackMomErr_Mu_rm10;
+    float fTrackLL_Mu_rm10;
+    float fTrackDeltaLL_Mu_rm10;
+    float fTrackIsBestFwd_Mu_rm10;
     // Shower info
     float fShowerLength;
     float fShowerOpenAngle;
@@ -321,6 +337,7 @@ void NuCCanalyzer::reconfigure(fhicl::ParameterSet const &p)
     m_geant_producer = p.get<std::string>("geant_producer", "largeant");
     m_hit_mcp_producer = p.get<std::string>("hit_mcp_producer", "gaushitTruthMatch");
     m_muon_producer = p.get<std::string>("muon_producer", "NuCCproducer");
+    m_weight_producer = p.get<std::string>("weight_producer", "eventweightSplines");
 
     m_vtx_fid_x_start = p.get<float>("vtx_fid_x_start", 10);
     m_vtx_fid_y_start = p.get<float>("vtx_fid_y_start", 10);
@@ -343,7 +360,7 @@ void NuCCanalyzer::reconfigure(fhicl::ParameterSet const &p)
 }
 
 NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
-    : EDAnalyzer(p)
+    : EDAnalyzer(p), mcsfitter(p.get<fhicl::ParameterSet>("mcsfitter"))
 {
     art::ServiceHandle<art::TFileService> tfs;
     this->reconfigure(p);
@@ -462,7 +479,6 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
     fNueDaughtersTree->Branch("vz", &fVz, "vz/F");
     fNueDaughtersTree->Branch("start_contained", &fStartContained, "start_contained/O");
     fNueDaughtersTree->Branch("vtx_distance", &fVtxDistance, "vtx_distance/F");
-
     fNueDaughtersTree->Branch("track_length", &fTrackLength, "track_length/F");
     fNueDaughtersTree->Branch("track_endx", &fTrackEndX, "track_endx/F");
     fNueDaughtersTree->Branch("track_endy", &fTrackEndY, "track_endy/F");
@@ -478,6 +494,20 @@ NuCCanalyzer::NuCCanalyzer(fhicl::ParameterSet const &p)
     fNueDaughtersTree->Branch("track_mcs_ll", &fTrackMCS_ll, "track_mcs_ll/F");
     fNueDaughtersTree->Branch("track_chi2_proton", &fTrackPID_chiproton, "track_chi2_proton/F");
     fNueDaughtersTree->Branch("track_chi2_muon", &fTrackPID_chimuon, "track_chi2_muon/F");
+
+    fNueDaughtersTree->Branch("mcs_trackLength_rm10",       &fTrackLength_rm10,       "mcs_trackLength_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackMom_MuFwd_rm10",    &fTrackMom_MuFwd_rm10,    "mcs_trackMom_MuFwd_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackMomErr_MuFwd_rm10", &fTrackMomErr_MuFwd_rm10, "mcs_trackMomErr_MuFwd_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackLL_MuFwd_rm10",     &fTrackLL_MuFwd_rm10,     "mcs_trackLL_MuFwd_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackMom_MuBwd_rm10",    &fTrackMom_MuBwd_rm10,    "mcs_trackMom_MuBwd_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackMomErr_MuBwd_rm10", &fTrackMomErr_MuBwd_rm10, "mcs_trackMomErr_MuBwd_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackLL_MuBwd_rm10",     &fTrackLL_MuBwd_rm10,     "mcs_trackLL_MuBwd_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackMom_Mu_rm10",       &fTrackMom_Mu_rm10,       "mcs_trackMom_Mu_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackMomErr_Mu_rm10",    &fTrackMomErr_Mu_rm10,    "mcs_trackMomErr_Mu_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackLL_Mu_rm10",        &fTrackLL_Mu_rm10,        "mcs_trackLL_Mu_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackDeltaLL_Mu_rm10",   &fTrackDeltaLL_Mu_rm10,   "mcs_trackDeltaLL_Mu_rm10/F");
+    fNueDaughtersTree->Branch("mcs_trackIsBestFwd_Mu_rm10", &fTrackIsBestFwd_Mu_rm10, "mcs_trackIsBestFwd_Mu_rm10/F");
+
     fNueDaughtersTree->Branch("shower_length", &fShowerLength, "shower_length/F");
     fNueDaughtersTree->Branch("shower_openangle", &fShowerOpenAngle, "shower_openangle/F");
     fNueDaughtersTree->Branch("shower_dirx", &fShowerDirX, "shower_dirx/F");
@@ -601,6 +631,19 @@ void NuCCanalyzer::clearDaughter()
     fTrackPID_chiproton = 0;
     fTrackPID_chimuon = 0;
     fIsMuonCandidate = false;
+
+    fTrackLength_rm10 = 0;
+    fTrackMom_MuFwd_rm10 = 0;
+    fTrackMomErr_MuFwd_rm10 = 0;
+    fTrackLL_MuFwd_rm10 = 0;
+    fTrackMom_MuBwd_rm10 = 0;
+    fTrackMomErr_MuBwd_rm10 = 0;
+    fTrackLL_MuBwd_rm10 = 0;
+    fTrackMom_Mu_rm10 = 0;
+    fTrackMomErr_Mu_rm10 = 0;
+    fTrackLL_Mu_rm10 = 0;
+    fTrackDeltaLL_Mu_rm10 = 0;
+    fTrackIsBestFwd_Mu_rm10 = 0;
     // Shower info
     fShowerLength = 0;
     fShowerOpenAngle = 0;

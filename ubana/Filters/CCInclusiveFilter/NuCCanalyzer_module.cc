@@ -1,3 +1,6 @@
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/MCSFitResult.h"
+#include "lardataobj/RecoBase/TrajectoryPointFlags.h"
 #include "NuCCanalyzer.h"
 
 void NuCCanalyzer::endSubRun(const art::SubRun &subrun)
@@ -28,15 +31,19 @@ void NuCCanalyzer::analyze(art::Event const &evt)
   // Event weight:
   if (!m_isData)
   {
-    art::InputTag eventweight_tag("eventweightSplines");
+    art::InputTag eventweight_tag(m_weight_producer);
     art::Handle<std::vector<evwgh::MCEventWeight>> eventweights_handle;
     if (evt.getByLabel(eventweight_tag, eventweights_handle))
     {
       std::vector<art::Ptr<evwgh::MCEventWeight>> eventweights;
       art::fill_ptr_vector(eventweights, eventweights_handle);
       std::map<std::string, std::vector<double>> evtwgt_map = eventweights.at(0)->fWeight;
-      const std::vector<double> &weights = evtwgt_map.at("splines_general_Spline");
-      fEventWeight = weights.front();
+
+      double splineWeight = evtwgt_map.at("splines_general_Spline").front();
+      double rootinoWeight = evtwgt_map.at("RootinoFix_UBGenie").front();
+      double cvWeight = evtwgt_map.at("TunedCentralValue_UBGenie").front();
+      fEventWeight = splineWeight * rootinoWeight * cvWeight;
+
       std::cout << "[NuCCanalyzer::analyze]: Event Weight:  " << fEventWeight << std::endl;
     }
     else
@@ -292,6 +299,41 @@ bool NuCCanalyzer::FillDaughters(const art::Ptr<recob::PFParticle> &pfp,
     fTrackEndZ = this_track->End().Z();
 
     // MCS momentum:
+    std::vector<recob::Track::Point_t> posv_rm10 = this_track->Trajectory().Trajectory().Positions();
+    std::vector<recob::Track::Vector_t> momv_rm10 = this_track->Trajectory().Trajectory().Momenta();
+    std::vector<recob::TrajectoryPointFlags> flgv_rm10 = this_track->Trajectory().Flags();
+    size_t init_size_rm10 = posv_rm10.size();
+    for (size_t i=0;i<init_size_rm10;++i) {
+      if (posv_rm10[init_size_rm10-1-i].X()>-1.) break;
+      posv_rm10.pop_back();
+      momv_rm10.pop_back();
+      flgv_rm10.pop_back();
+    }
+    init_size_rm10 = posv_rm10.size();
+    for (size_t i=0;i<init_size_rm10;++i) {
+      if ((this_track->End()-posv_rm10[init_size_rm10-1-i]).R()>10.) break;
+      posv_rm10.pop_back();
+      momv_rm10.pop_back();
+      flgv_rm10.pop_back();
+    }
+
+    if (posv_rm10.size()>4) {
+      recob::TrackTrajectory tt_rm10(std::move(posv_rm10),std::move(momv_rm10),std::move(flgv_rm10),this_track->HasMomentum());
+      const recob::MCSFitResult& mcsMu_rm10 = mcsfitter.fitMcs(tt_rm10,13);
+      fTrackLength_rm10 = tt_rm10.Length();
+      fTrackMom_MuFwd_rm10    = mcsMu_rm10.fwdMomentum();
+      fTrackMomErr_MuFwd_rm10 = mcsMu_rm10.fwdMomUncertainty();
+      fTrackLL_MuFwd_rm10     = mcsMu_rm10.fwdLogLikelihood();
+      fTrackMom_MuBwd_rm10    = mcsMu_rm10.bwdMomentum();
+      fTrackMomErr_MuBwd_rm10 = mcsMu_rm10.bwdMomUncertainty();
+      fTrackLL_MuBwd_rm10     = mcsMu_rm10.bwdLogLikelihood();
+      fTrackMom_Mu_rm10       = mcsMu_rm10.bestMomentum();
+      fTrackMomErr_Mu_rm10    = mcsMu_rm10.bestMomUncertainty();
+      fTrackLL_Mu_rm10        = mcsMu_rm10.bestLogLikelihood();
+      fTrackDeltaLL_Mu_rm10   = mcsMu_rm10.deltaLogLikelihood();
+      fTrackIsBestFwd_Mu_rm10 = mcsMu_rm10.isBestFwd();
+    }
+
     const recob::MCSFitResult &mcsMu = MCSMu_handle->at(this_track.key());
     fTrackMCS_mom = mcsMu.fwdMomentum();
     fTrackMCS_err = mcsMu.fwdMomUncertainty();
