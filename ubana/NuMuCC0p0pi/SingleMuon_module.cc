@@ -151,6 +151,14 @@ private:
   std::vector<double> MC_muon_true_Py;
   std::vector<double> MC_muon_true_Pz;
 
+  std::vector<double> MC_proton_true_Mom;
+  std::vector<double> MC_proton_true_theta;
+  std::vector<double> MC_proton_true_cos_theta;
+  std::vector<double> MC_proton_true_phi;
+  std::vector<double> MC_proton_true_Px;
+  std::vector<double> MC_proton_true_Py;
+  std::vector<double> MC_proton_true_Pz;
+
   std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
 
   double Genie_Q2 = -999;
@@ -164,7 +172,7 @@ private:
 
   int TopologyType = -999;// The topology of true neutrino interaction + FSI products after Geant4
 
-  //true signal information CC0pi1p
+  //true signal information CC0pi0p
   double MC_muon_mom = -999;
   double MC_muon_theta = -999;
   double MC_muon_costheta = -999;
@@ -172,6 +180,19 @@ private:
 
   double MC_PT = -999;
   double MC_PL = -999;
+
+  //true signal information CC0pi1p
+  double MC_0pi1p_muon_mom = -999;
+  double MC_0pi1p_muon_theta = -999;
+  double MC_0pi1p_muon_costheta = -999;
+  double MC_0pi1p_muon_phi = -999;
+
+  double MC_0pi1p_proton_mom = -999;
+  double MC_0pi1p_proton_theta = -999;
+  double MC_0pi1p_proton_costheta = -999;
+  double MC_0pi1p_proton_phi = -999;
+
+  double MC_0pi1p_cos_ang_muon_proton = -999;
 
   int n_pfp_nuDaughters = 0; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks = 0; // number of tracks asssociated to pfp neutrino daughters
@@ -730,6 +751,15 @@ void SingleMuon::analyze(art::Event const& evt)
           if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() < 0.260) MC_nProton_below260++;
           if(MCParticleCollection[i_mcp]->PdgCode() == 2212 && MCParticleCollection[i_mcp]->P() >= 0.260) {
             MC_nProton_above260++; 
+
+            MC_proton_true_Mom.push_back(MCParticleCollection[i_mcp]->P());
+            MC_proton_true_theta.push_back(acos(MCParticleCollection[i_mcp]->Pz() / MCParticleCollection[i_mcp]->P()));
+            MC_proton_true_cos_theta.push_back(MCParticleCollection[i_mcp]->Pz() / MCParticleCollection[i_mcp]->P());
+            MC_proton_true_phi.push_back(atan2(MCParticleCollection[i_mcp]->Py(), MCParticleCollection[i_mcp]->Px()));
+
+            MC_proton_true_Px.push_back(MCParticleCollection[i_mcp]->Px());
+            MC_proton_true_Py.push_back(MCParticleCollection[i_mcp]->Py());
+            MC_proton_true_Pz.push_back(MCParticleCollection[i_mcp]->Pz());
           }
           // pion0
           if(MCParticleCollection[i_mcp]->PdgCode() == 111) MC_nPi0++;
@@ -755,6 +785,24 @@ void SingleMuon::analyze(art::Event const& evt)
 
       MC_PT = sqrt(MC_muon_true_Px.front() * MC_muon_true_Px.front() + MC_muon_true_Py.front() * MC_muon_true_Py.front());
       MC_PL = abs(MC_muon_true_Pz.front());      
+    }
+
+    if(TopologyType == 2){
+
+      MC_0pi1p_muon_mom = MC_muon_true_Mom.front();
+      MC_0pi1p_muon_theta = MC_muon_true_theta.front();
+      MC_0pi1p_muon_costheta = MC_muon_true_cos_theta.front();
+      MC_0pi1p_muon_phi = MC_muon_true_phi.front();
+
+      MC_0pi1p_proton_mom = MC_proton_true_Mom.front();
+      MC_0pi1p_proton_theta = MC_proton_true_theta.front();
+      MC_0pi1p_proton_costheta = MC_proton_true_cos_theta.front();
+      MC_0pi1p_proton_phi = MC_proton_true_phi.front();
+
+      TVector3 muon_dir(MC_muon_true_Px.front(), MC_muon_true_Py.front(), MC_muon_true_Pz.front());
+      TVector3 proton_dir(MC_proton_true_Px.front(), MC_proton_true_Py.front(), MC_proton_true_Pz.front());
+      MC_0pi1p_cos_ang_muon_proton = (muon_dir * proton_dir) / (muon_dir.Mag() * proton_dir.Mag());
+
     }
 
     // Get Genie info on how many particles produced
@@ -1752,6 +1800,18 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_PT = -999;
     MC_PL = -999;
 
+    MC_0pi1p_muon_mom = -999;
+    MC_0pi1p_muon_theta = -999;
+    MC_0pi1p_muon_costheta = -999;
+    MC_0pi1p_muon_phi = -999;
+
+    MC_0pi1p_proton_mom = -999;
+    MC_0pi1p_proton_theta = -999;
+    MC_0pi1p_proton_costheta = -999;
+    MC_0pi1p_proton_phi = -999;
+
+    MC_0pi1p_cos_ang_muon_proton = -999;
+
     true_mom = -999;
     true_start_x = -999;
     true_start_y = -999;
@@ -2055,6 +2115,16 @@ void SingleMuon::Initialize_event()
 
     my_event_->Branch("MC_PT", &MC_PT);
     my_event_->Branch("MC_PL", &MC_PL);
+
+    my_event_->Branch("MC_0pi1p_muon_mom", &MC_0pi1p_muon_mom);
+    my_event_->Branch("MC_0pi1p_muon_theta", &MC_0pi1p_muon_theta);
+    my_event_->Branch("MC_0pi1p_muon_costheta", &MC_0pi1p_muon_costheta);
+    my_event_->Branch("MC_0pi1p_muon_phi", &MC_0pi1p_muon_phi);
+    my_event_->Branch("MC_0pi1p_proton_mom", &MC_0pi1p_proton_mom);
+    my_event_->Branch("MC_0pi1p_proton_theta", &MC_0pi1p_proton_theta);
+    my_event_->Branch("MC_0pi1p_proton_costheta", &MC_0pi1p_proton_costheta);
+    my_event_->Branch("MC_0pi1p_proton_phi", &MC_0pi1p_proton_phi);
+    my_event_->Branch("MC_0pi1p_cos_ang_muon_proton", &MC_0pi1p_cos_ang_muon_proton);
 
     my_event_->Branch("Ghost_PDG", &Ghost_PDG);
 
