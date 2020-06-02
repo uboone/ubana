@@ -26,6 +26,7 @@ art_make(BASENAME_ONLY
   ${Boost_SYSTEM_LIBRARY}
   MODULE_LIBRARIES
   TPCNeutrinoIDAlgs
+  lardataalg_DetectorInfo
   lardataobj_RecoBase
   lardataobj_AnalysisBase
   larcorealg_Geometry

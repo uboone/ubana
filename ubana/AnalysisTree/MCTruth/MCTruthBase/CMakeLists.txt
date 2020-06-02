@@ -1,6 +1,7 @@
 cet_enable_asserts()
 
 art_make( LIB_LIBRARIES lardataobj_RecoBase
+                        lardataalg_DetectorInfo
                         larcorealg_Geometry
                         larcore_Geometry_Geometry_service
                         lardata_RecoObjects
