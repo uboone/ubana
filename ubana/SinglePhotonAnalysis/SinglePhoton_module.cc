@@ -853,8 +853,8 @@ namespace single_photon
                                 << x.second.size() << std::endl ;
                             if(x.first == "photonuclear_photon_PhotoNuclear"){
                                 auto vec  = x.second;
-                                double ph_low = x[1];
-                                double ph_high = x[0];
+                                double ph_low = vec[1];
+                                double ph_high = vec[0];
                                 std::cout<<"PhotoNuBit: "<<ph_low<<" "<<ph_high<<std::endl;
                                 m_photonu_weight_low = ph_low;
                                 m_photonu_weight_high = ph_high;
