@@ -46,13 +46,13 @@ void RecoMCMatching::FillHitTree(art::Event const & e) {
     e.getValidHandle<std::vector<recob::Shower>>(fshower_producer);
   art::FindManyP<recob::Hit> ShowerToHit(ev_shower, e, fshower_producer);  
   
-  detinfo::DetectorClocks const * ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   for(size_t i = 0; i < ev_track->size(); ++i) {
     for(art::Ptr<recob::Hit> const & hit : TrackToHit.at(i)) {
       fhit_from_reco_track = 1;
       fhit_time = hit->PeakTime();
-      fhit_tdc = ts->TPCTick2TDC(fhit_time);
+      fhit_tdc = clockData.TPCTick2TDC(fhit_time);
       fhit_tree->Fill();
     }
   }
@@ -61,7 +61,7 @@ void RecoMCMatching::FillHitTree(art::Event const & e) {
     for(art::Ptr<recob::Hit> const & hit : ShowerToHit.at(i)) {
       fhit_from_reco_track = 0;
       fhit_time = hit->PeakTime();
-      fhit_tdc = ts->TPCTick2TDC(fhit_time);
+      fhit_tdc = clockData.TPCTick2TDC(fhit_time);
       fhit_tree->Fill();
     }
   }
@@ -195,7 +195,9 @@ void RecoMCMatching::MatchSimchInfo(art::Event const & e,
     }
   }
 
-  simchi.FillSimchInfo(*ev_simchannel,
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
+  simchi.FillSimchInfo(clockData,
+                       *ev_simchannel,
 		       g4_trackid_v,
 		       reco_to_hit_v);
   fmcq_vv = simchi.GetMCQVV();

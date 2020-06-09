@@ -2,6 +2,7 @@ cet_enable_asserts()
 add_subdirectory(MCTruthBase)
 
 art_make( MODULE_LIBRARIES lardataobj_RecoBase
+                           lardataalg_DetectorInfo
                            larcorealg_Geometry
                            larcore_Geometry_Geometry_service
                            lardata_RecoObjects
@@ -32,6 +33,7 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            ${ROOT_BASIC_LIB_LIST}
 
           TOOL_LIBRARIES   lardataobj_RecoBase
+                           lardataalg_DetectorInfo
                            larcorealg_Geometry
                            larcore_Geometry_Geometry_service
                            lardata_RecoObjects

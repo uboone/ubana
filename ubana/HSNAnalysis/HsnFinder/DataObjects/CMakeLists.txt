@@ -6,6 +6,7 @@ art_make( BASENAME_ONLY
 		larsim_Simulation
 		lardataobj_RawData
 		lardata_RecoObjects
+                lardataalg_DetectorInfo
 		lardataobj_RecoBase
 		lardataobj_MCBase
 		lardataobj_AnalysisBase

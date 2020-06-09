@@ -1,4 +1,3 @@
-
 #include "ubana/AnalysisTree/MCTruth/IMCTruthMatching.h"
 
 #include "ubana/AnalysisTree/MCTruth/MCTruthBase/MCTruthAssociations.h"
@@ -88,47 +87,59 @@ public:
     
     // this method will return the Geant4 track IDs of
     // the particles contributing ionization electrons to the identified hit
-    std::vector<sim::TrackIDE> HitToTrackID(recob::Hit const& hit)           const override;
-    std::vector<sim::TrackIDE> HitToTrackID(art::Ptr<recob::Hit> const& hit) const override;
+    std::vector<sim::TrackIDE> HitToTrackID(detinfo::DetectorClocksData const&,
+                                            recob::Hit const& hit)           const override;
+    std::vector<sim::TrackIDE> HitToTrackID(detinfo::DetectorClocksData const&,
+                                            art::Ptr<recob::Hit> const& hit) const override;
     
     // method to return a subset of allhits that are matched to a list of TrackIDs
-    const std::vector<std::vector<art::Ptr<recob::Hit>>> TrackIDsToHits(std::vector<art::Ptr<recob::Hit>> const& allhits,
+    std::vector<std::vector<art::Ptr<recob::Hit>>> TrackIDsToHits(detinfo::DetectorClocksData const&,
+                                                                  std::vector<art::Ptr<recob::Hit>> const& allhits,
                                                                                 std::vector<int> const& tkIDs) const override;
     
     // method to return the EveIDs of particles contributing ionization
     // electrons to the identified hit
-    std::vector<sim::TrackIDE> HitToEveID(recob::Hit           const& hit) const override;
-    std::vector<sim::TrackIDE> HitToEveID(art::Ptr<recob::Hit> const& hit) const override;
+    std::vector<sim::TrackIDE> HitToEveID(detinfo::DetectorClocksData const&,
+                                          recob::Hit           const& hit) const override;
+    std::vector<sim::TrackIDE> HitToEveID(detinfo::DetectorClocksData const&,
+                                          art::Ptr<recob::Hit> const& hit) const override;
 
     // method to return the XYZ position of the weighted average energy deposition for a given hit
-    std::vector<double>  HitToXYZ(art::Ptr<recob::Hit> const& hit) const override;
+    std::vector<double>  HitToXYZ(detinfo::DetectorClocksData const&,
+                                  art::Ptr<recob::Hit> const& hit) const override;
     
     // method to return the XYZ position of a space point (unweighted average XYZ of component hits).
-    std::vector<double> SpacePointToXYZ(art::Ptr<recob::SpacePoint> const& spt,
+    std::vector<double> SpacePointToXYZ(detinfo::DetectorClocksData const& clockData,
+                                        art::Ptr<recob::SpacePoint> const& spt,
                                         art::Event                  const& evt,
                                         std::string                 const& label) const override;
     
     // method to return the XYZ position of a space point (unweighted average XYZ of component hits).
-    std::vector<double> SpacePointHitsToXYZ(art::PtrVector<recob::Hit> const& hits) const override;
+    std::vector<double> SpacePointHitsToXYZ(detinfo::DetectorClocksData const&,
+                                            art::PtrVector<recob::Hit> const& hits) const override;
     
     // method to return the fraction of hits in a collection that come from the specified Geant4 track ids
-    double HitCollectionPurity(std::set<int>                              trackIDs,
+    double HitCollectionPurity(detinfo::DetectorClocksData const&,
+                               std::set<int>                              trackIDs,
                                        std::vector< art::Ptr<recob::Hit> > const& hits) const override;
     
     // method to return the fraction of all hits in an event from a specific set of Geant4 track IDs that are
     // represented in a collection of hits
-    double HitCollectionEfficiency(std::set<int>                              trackIDs,
+    double HitCollectionEfficiency(detinfo::DetectorClocksData const&,
+                                   std::set<int>                              trackIDs,
                                    std::vector< art::Ptr<recob::Hit> > const& hits,
                                    std::vector< art::Ptr<recob::Hit> > const& allhits,
                                    geo::View_t                         const& view) const override;
     
     // method to return the fraction of charge in a collection that come from the specified Geant4 track ids
-    double HitChargeCollectionPurity(std::set<int>                              trackIDs,
+    double HitChargeCollectionPurity(detinfo::DetectorClocksData const&,
+                                     std::set<int>                              trackIDs,
                                              std::vector< art::Ptr<recob::Hit> > const& hits) const override;
     
     // method to return the fraction of all charge in an event from a specific set of Geant4 track IDs that are
     // represented in a collection of hits
-    double HitChargeCollectionEfficiency(std::set<int>                              trackIDs,
+    double HitChargeCollectionEfficiency(detinfo::DetectorClocksData const&,
+                                         std::set<int>                              trackIDs,
                                          std::vector< art::Ptr<recob::Hit> > const& hits,
                                          std::vector< art::Ptr<recob::Hit> > const& allhits,
                                          geo::View_t                         const& view) const override;
@@ -140,10 +151,12 @@ public:
     std::set<int> GetSetOfTrackIDs() const override;
     
     // method to return all EveIDs corresponding to the given list of hits
-    std::set<int> GetSetOfEveIDs(std::vector< art::Ptr<recob::Hit> > const& hits) const override;
+    std::set<int> GetSetOfEveIDs(detinfo::DetectorClocksData const&,
+                                 std::vector< art::Ptr<recob::Hit> > const& hits) const override;
     
     // method to return all TrackIDs corresponding to the given list of hits
-    std::set<int> GetSetOfTrackIDs(std::vector< art::Ptr<recob::Hit> > const& hits) const override;
+    std::set<int> GetSetOfTrackIDs(detinfo::DetectorClocksData const&,
+                                   std::vector< art::Ptr<recob::Hit> > const& hits) const override;
 
 private:
     
@@ -159,7 +172,6 @@ private:
     
     // Useful services, keep copies for now (we can update during begin run periods)
     const geo::GeometryCore*           fGeometry;             ///< pointer to Geometry service
-    const detinfo::DetectorProperties* fDetectorProperties;   ///< Detector properties service
 };
     
 //----------------------------------------------------------------------------
@@ -173,7 +185,6 @@ AssociationsTruth::AssociationsTruth(fhicl::ParameterSet const & pset) :
     fMCTruthAssociations(pset.get<fhicl::ParameterSet>("MCTruthAssociations"))
 {
     fGeometry           = lar::providerFrom<geo::Geometry>();
-    fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
     
     reconfigure(pset);
     
@@ -231,7 +242,8 @@ void AssociationsTruth::Rebuild(const art::Event& evt)
     evt.getByLabel(fG4ProducerLabel, truthPartAssnsHandle);
     
     // Pass this to the truth associations code
-    fMCTruthAssociations.setup(partHitAssnsVec, *truthPartAssnsHandle, *fGeometry, *fDetectorProperties);
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt);
+    fMCTruthAssociations.setup(partHitAssnsVec, *truthPartAssnsHandle, *fGeometry, detProp);
     
     // Ugliness to follow! Basically, we need to build the "particle list" and the current implementation of
     // that code requires a copy...
@@ -279,19 +291,22 @@ const std::vector< art::Ptr<simb::MCTruth> >&  AssociationsTruth::MCTruthVector(
 }
 
 //----------------------------------------------------------------------
-std::vector<sim::TrackIDE> AssociationsTruth::HitToTrackID(recob::Hit const& hit) const
+std::vector<sim::TrackIDE> AssociationsTruth::HitToTrackID(detinfo::DetectorClocksData const&,
+                                                           recob::Hit const& hit) const
 {
     return fMCTruthAssociations.HitToTrackID(&hit);
 }
 
 //----------------------------------------------------------------------
-std::vector<sim::TrackIDE> AssociationsTruth::HitToTrackID(art::Ptr<recob::Hit> const& hit) const
+std::vector<sim::TrackIDE> AssociationsTruth::HitToTrackID(detinfo::DetectorClocksData const&,
+                                                           art::Ptr<recob::Hit> const& hit) const
 {
     return fMCTruthAssociations.HitToTrackID(hit);
 }
 
 //----------------------------------------------------------------------
-const std::vector<std::vector<art::Ptr<recob::Hit>>> AssociationsTruth::TrackIDsToHits(std::vector<art::Ptr<recob::Hit>> const& allhits,
+std::vector<std::vector<art::Ptr<recob::Hit>>> AssociationsTruth::TrackIDsToHits(detinfo::DetectorClocksData const&,
+                                                                                 std::vector<art::Ptr<recob::Hit>> const& allhits,
                                                                                        std::vector<int> const& tkIDs) const
 {
     return fMCTruthAssociations.TrackIDsToHits(allhits,tkIDs);
@@ -301,14 +316,16 @@ const std::vector<std::vector<art::Ptr<recob::Hit>>> AssociationsTruth::TrackIDs
 // plist is assumed to have adopted the appropriate EveIdCalculator prior to
 // having been passed to this method. It is likely that the EmEveIdCalculator is
 // the one you always want to use
-std::vector<sim::TrackIDE> AssociationsTruth::HitToEveID(recob::Hit const& hit) const
+std::vector<sim::TrackIDE> AssociationsTruth::HitToEveID(detinfo::DetectorClocksData const&,
+                                                         recob::Hit const& hit) const
 {
     return fMCTruthAssociations.HitToEveID(&hit);
 }
     
-std::vector<sim::TrackIDE> AssociationsTruth::HitToEveID(art::Ptr<recob::Hit> const& hit) const
+std::vector<sim::TrackIDE> AssociationsTruth::HitToEveID(detinfo::DetectorClocksData const& clockData,
+                                                         art::Ptr<recob::Hit> const& hit) const
 {
-    return this->HitToEveID(*hit);
+    return this->HitToEveID(clockData, *hit);
 }
 
 //----------------------------------------------------------------------
@@ -324,32 +341,37 @@ std::set<int> AssociationsTruth::GetSetOfTrackIDs() const
 }
     
 //----------------------------------------------------------------------
-std::set<int> AssociationsTruth::GetSetOfEveIDs(std::vector< art::Ptr<recob::Hit> > const& hits) const
+std::set<int> AssociationsTruth::GetSetOfEveIDs(detinfo::DetectorClocksData const&,
+                                                std::vector< art::Ptr<recob::Hit> > const& hits) const
 {
     return fMCTruthAssociations.GetSetOfEveIDs(hits);
 }
     
 //----------------------------------------------------------------------
-std::set<int> AssociationsTruth::GetSetOfTrackIDs(std::vector< art::Ptr<recob::Hit> > const& hits) const
+std::set<int> AssociationsTruth::GetSetOfTrackIDs(detinfo::DetectorClocksData const&,
+                                                  std::vector< art::Ptr<recob::Hit> > const& hits) const
 {
     return fMCTruthAssociations.GetSetOfTrackIDs(hits);
 }
     
 //----------------------------------------------------------------------
-double AssociationsTruth::HitCollectionPurity(std::set<int> trackIDs, std::vector< art::Ptr<recob::Hit> > const& hits) const
+double AssociationsTruth::HitCollectionPurity(detinfo::DetectorClocksData const&,
+                                              std::set<int> trackIDs, std::vector< art::Ptr<recob::Hit> > const& hits) const
 {
     return fMCTruthAssociations.HitCollectionPurity(trackIDs, hits);
 }
     
 //----------------------------------------------------------------------
-double AssociationsTruth::HitChargeCollectionPurity(std::set<int> trackIDs, std::vector< art::Ptr<recob::Hit> > const& hits) const
+double AssociationsTruth::HitChargeCollectionPurity(detinfo::DetectorClocksData const&,
+                                                    std::set<int> trackIDs, std::vector< art::Ptr<recob::Hit> > const& hits) const
 {
     return fMCTruthAssociations.HitChargeCollectionPurity(trackIDs, hits);
 }
     
     
 //----------------------------------------------------------------------
-double AssociationsTruth::HitCollectionEfficiency(std::set<int>                              trackIDs,
+double AssociationsTruth::HitCollectionEfficiency(detinfo::DetectorClocksData const&,
+                                                  std::set<int>                              trackIDs,
                                                   std::vector< art::Ptr<recob::Hit> > const& hits,
                                                   std::vector< art::Ptr<recob::Hit> > const& allhits,
                                                   geo::View_t const&                         view) const
@@ -358,7 +380,8 @@ double AssociationsTruth::HitCollectionEfficiency(std::set<int>                 
 }
     
 //----------------------------------------------------------------------
-double AssociationsTruth::HitChargeCollectionEfficiency(std::set<int>                              trackIDs,
+double AssociationsTruth::HitChargeCollectionEfficiency(detinfo::DetectorClocksData const&,
+                                                        std::set<int>                              trackIDs,
                                                         std::vector< art::Ptr<recob::Hit> > const& hits,
                                                         std::vector< art::Ptr<recob::Hit> > const& allhits,
                                                         geo::View_t                         const& view) const
@@ -367,13 +390,15 @@ double AssociationsTruth::HitChargeCollectionEfficiency(std::set<int>           
 }
     
 //----------------------------------------------------------------------
-std::vector<double> AssociationsTruth::HitToXYZ(art::Ptr<recob::Hit> const& hit) const
+std::vector<double> AssociationsTruth::HitToXYZ(detinfo::DetectorClocksData const&,
+                                                art::Ptr<recob::Hit> const& hit) const
 {
     return fMCTruthAssociations.HitToXYZ(hit);
 }
     
 //----------------------------------------------------------------------
-std::vector<double> AssociationsTruth::SpacePointToXYZ(art::Ptr<recob::SpacePoint> const& spt,
+std::vector<double> AssociationsTruth::SpacePointToXYZ(detinfo::DetectorClocksData const& clockData,
+                                                       art::Ptr<recob::SpacePoint> const& spt,
                                                        art::Event                  const& evt,
                                                        std::string                 const& label) const
 {
@@ -387,11 +412,12 @@ std::vector<double> AssociationsTruth::SpacePointToXYZ(art::Ptr<recob::SpacePoin
     art::PtrVector<recob::Hit> hits;
     for(size_t h = 0; h < hitv.size(); ++h) hits.push_back(hitv[h]);
     
-    return this->SpacePointHitsToXYZ(hits);
+    return this->SpacePointHitsToXYZ(clockData, hits);
 }
     
 //----------------------------------------------------------------------
-std::vector<double> AssociationsTruth::SpacePointHitsToXYZ(art::PtrVector<recob::Hit> const& hits) const
+std::vector<double> AssociationsTruth::SpacePointHitsToXYZ(detinfo::DetectorClocksData const&,
+                                                           art::PtrVector<recob::Hit> const& hits) const
 {
     return fMCTruthAssociations.SpacePointHitsToXYZ(hits);
 }

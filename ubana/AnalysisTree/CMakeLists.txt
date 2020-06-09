@@ -9,6 +9,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            lardataobj_Simulation
 	                       lardata_Utilities
 			               larevt_Filters
+                                       lardataalg_DetectorInfo
 			               lardataobj_RawData
 			               lardataobj_RecoBase
 			               lardata_RecoObjects

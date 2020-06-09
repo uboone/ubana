@@ -5,6 +5,7 @@ art_make( BASENAME_ONLY
 	  LIB_LIBRARIES
 	    larcorealg_Geometry
 	    larcore_Geometry_Geometry_service
+            lardataalg_DetectorInfo
         art_Framework_Core
         art_Framework_Services_Registry
         art_Framework_Principal

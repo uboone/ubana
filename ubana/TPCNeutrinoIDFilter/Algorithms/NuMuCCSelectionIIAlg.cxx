@@ -41,8 +41,7 @@
 namespace neutrinoid {
 
 NuMuCCSelectionIIAlg::NuMuCCSelectionIIAlg(fhicl::ParameterSet const &pset) :
-    fGeometry(lar::providerFrom<geo::Geometry>()),
-    fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
+    fGeometry(lar::providerFrom<geo::Geometry>())
 {
     this->reconfigure(pset);
 }

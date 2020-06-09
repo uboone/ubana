@@ -388,10 +388,10 @@ void XYZcorrection::analyze( const art::Event& evt){
    
      AC_trks=0;
      size_t N2Tracks = tracklist_2.size();
-     auto const* _detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-     double efield = _detp -> Efield();
-     double temp   = _detp -> Temperature();
-     double fDriftVelocity = _detp -> DriftVelocity(efield,temp);
+     auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt);
+     double efield = detProp.Efield();
+     double temp   = detProp.Temperature();
+     double fDriftVelocity = detProp.DriftVelocity(efield,temp);
      for(size_t i=0; i<N2Tracks;++i){
 	 std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(i);
 	 if(!t0s.size()) continue;
@@ -513,5 +513,3 @@ void XYZcorrection::reset(){
 	  
 DEFINE_ART_MODULE(XYZcorrection)
 }
-
-

@@ -73,9 +73,7 @@ enum class TH2DLabels : size_t
 };
 
 AltNuMuCCInclusiveAlg::AltNuMuCCInclusiveAlg(fhicl::ParameterSet const &pset) :
-    fGeometry(lar::providerFrom<geo::Geometry>()),
-    fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>()),
-    fClocks(lar::providerFrom<detinfo::DetectorClocksService>())
+    fGeometry(lar::providerFrom<geo::Geometry>())
 {
     this->reconfigure(pset);
 }

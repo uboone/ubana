@@ -88,7 +88,8 @@ namespace microboone {
 
   private:
     
-    void   HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe);
+    void   HitsPurity(detinfo::DetectorClocksData const& clockData,
+                      std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe);
     void   ResetVars();
     double length(const recob::Track& track);
     double length(const simb::MCParticle& part, TVector3& start, TVector3& end);
@@ -507,7 +508,8 @@ void microboone::Diffusion::analyze(const art::Event& evt)
   }  
 
   //services
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   
@@ -568,7 +570,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
     //and crashes, so check that the simIDEs have non-zero size before 
     //extracting hit true XYZ from simIDEs
     if (isMC){
-      const std::vector<const sim::IDE*> ides = bt_serv->HitToSimIDEs_Ps(hitlist[i]);
+      const std::vector<const sim::IDE*> ides = bt_serv->HitToSimIDEs_Ps(clockData, *hitlist[i]);
       if (ides.size()>0){
          std::vector<double> xyz = bt_serv->SimIDEsToXYZ(ides);
          hit_trueX[i] = xyz[0];
@@ -928,7 +930,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
        for (size_t ipl = 0; ipl < 3; ++ipl){
      	 double maxe = 0;
 	 float purity;
-     	 HitsPurity(hits[ipl],trkidtruth[i][ipl],purity,maxe);
+         HitsPurity(clockData, hits[ipl],trkidtruth[i][ipl],purity,maxe);
      	 if (trkidtruth[i][ipl]>0){
      	   const simb::MCParticle *particle = pi_serv->TrackIdToParticle_P(trkidtruth[i][ipl]);
      	   trkpdgtruth[i][ipl] = particle->PdgCode();
@@ -1017,11 +1019,13 @@ void microboone::Diffusion::analyze(const art::Event& evt)
    }//if (mcevts_truth)
   }//if (!isdata) 
   
-  taulife = detprop->ElectronLifetime();
+
+  taulife = detProp.ElectronLifetime();
   fTree->Fill();
 }
 
-void microboone::Diffusion::HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
+void microboone::Diffusion::HitsPurity(detinfo::DetectorClocksData const& clockData,
+                                       std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
 
   trackid = -1;
   purity = -1;
@@ -1035,7 +1039,7 @@ void microboone::Diffusion::HitsPurity(std::vector< art::Ptr<recob::Hit> > const
     art::Ptr<recob::Hit> hit = hits[h];
     std::vector<sim::IDE> ides;
     //bt_serv->HitToSimIDEs(hit,ides);
-    std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
+    std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(clockData, hit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){
       trkide[eveIDs[e].trackID] += eveIDs[e].energy;

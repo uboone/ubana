@@ -15,8 +15,6 @@
 
 // LArSoft includes
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "lardataalg/DetectorInfo/DetectorProperties.h"
-#include "lardataalg/DetectorInfo/DetectorClocks.h"
 
 // Root includes
 #include "TH1D.h"
@@ -121,8 +119,6 @@ private:
      *  @brief Standard useful properties
      */
     geo::GeometryCore const*            fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const*  fDetector;           ///< Pointer to the detector properties
-    detinfo::DetectorClocks const*      fClocks;             ///< Pointer to the clock services
     /// @}
 };
 

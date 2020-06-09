@@ -101,7 +101,8 @@ private:
   /// Orders spacepoints from highest to lowest (along Y coordinate)
   void SortSpacePoints(std::vector<art::Ptr<recob::SpacePoint>> sp_v, std::vector<TVector3>& sorted_points);
   /// Orders spacepoints from highest to lowest (in terms of recorded time, so from highest X to lowest X)
-  void SortHitPoints(std::vector<art::Ptr<recob::Hit>> hit_v, std::vector<TVector3>& sorted_points, TVector3 highest_point, size_t planeno);
+  void SortHitPoints(detinfo::DetectorPropertiesData const& detProp,
+                     std::vector<art::Ptr<recob::Hit>> hit_v, std::vector<TVector3>& sorted_points, TVector3 highest_point, size_t planeno);
   /// Takes a point as input and, if outside the TPC, returns a points on the borser of the TPC, returns the same point if in the TPC
   TVector3 ContainPoint(TVector3 p);
  
@@ -113,7 +114,6 @@ private:
   std::string _cluster_producer;
   std::string _swtrigger_producer;
 
-  ::detinfo::DetectorProperties const* fDetectorProperties;
   ::art::ServiceHandle<geo::Geometry> geo;
 
   ::pmtana::PECalib _pecalib;
@@ -186,8 +186,6 @@ ACPTTagger::ACPTTagger(fhicl::ParameterSet const & p) : EDProducer{p} {
   _spacepoint_producer   = p.get<std::string>("SpacePointProducer", "pandoraCosmic");
   _cluster_producer      = p.get<std::string>("ClusterProducer", "pandoraCosmic");
   _swtrigger_producer    = p.get<std::string>("SWTriggerProducer", "swtrigger");
-
-  fDetectorProperties    = lar::providerFrom<detinfo::DetectorPropertiesService>(); 
 
   _use_tracks            = p.get<bool>("UseTracks", true);
   _use_spacepoints       = p.get<bool>("UseSpacePoints", false);
@@ -406,10 +404,10 @@ void ACPTTagger::produce(art::Event & e)
     std::cout << __PRETTY_FUNCTION__ << " Selected a total of " << _flash_times.size() << " OpFlashes" << std::endl; 
   }
 
-  auto const* _detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  double efield     = _detp->Efield();
-  double temp       = _detp->Temperature();
-  _drift_vel        = _detp->DriftVelocity(efield,temp);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e);
+  double efield     = detProp.Efield();
+  double temp       = detProp.Temperature();
+  _drift_vel        = detProp.DriftVelocity(efield,temp);
 
   _trk_len.clear();
   _trk_x_up.clear();
@@ -485,7 +483,7 @@ void ACPTTagger::produce(art::Event & e)
 
         // Plane 2
         if (_use_y_plane) {
-          this->SortHitPoints(hit_v, pts, hp, 2);
+          this->SortHitPoints(detProp, hit_v, pts, hp, 2);
           if (pts.size() == 2) {
             z_start = pts.at(0).Z();
             z_end = pts.at(1).Z();
@@ -499,7 +497,7 @@ void ACPTTagger::produce(art::Event & e)
 
         // Plane 1
         if (_use_u_plane) {
-          this->SortHitPoints(hit_v, pts, hp, 1);
+          this->SortHitPoints(detProp, hit_v, pts, hp, 1);
           if (pts.size() == 2) {
             // Hack z pos 
             pts.at(0).SetZ(z_start);
@@ -514,7 +512,7 @@ void ACPTTagger::produce(art::Event & e)
 
         // Plane 0
         if (_use_v_plane) {
-          this->SortHitPoints(hit_v, pts, hp, 0);
+          this->SortHitPoints(detProp, hit_v, pts, hp, 0);
           if (pts.size() == 2) {
             // Hack z pos 
             pts.at(0).SetZ(z_start);
@@ -1001,7 +999,8 @@ void ACPTTagger::SortSpacePoints(std::vector<art::Ptr<recob::SpacePoint>> sp_v, 
 
 
 
-void ACPTTagger::SortHitPoints(std::vector<art::Ptr<recob::Hit>> hit_v, std::vector<TVector3>& sorted_points, TVector3 highest_point, size_t planeno) {
+void ACPTTagger::SortHitPoints(detinfo::DetectorPropertiesData const& detProp,
+                               std::vector<art::Ptr<recob::Hit>> hit_v, std::vector<TVector3>& sorted_points, TVector3 highest_point, size_t planeno) {
 
   sorted_points.clear();
   if (hit_v.size() < 2)
@@ -1017,9 +1016,6 @@ void ACPTTagger::SortHitPoints(std::vector<art::Ptr<recob::Hit>> hit_v, std::vec
   std::swap(temp_v, hit_v);
   if (hit_v.size() < 2)
     return;
-  for (size_t i = 0; i < hit_v.size(); i++) {
-
-  }
 
   // Sort Hit by x position
   std::sort(hit_v.begin(), hit_v.end(),
@@ -1029,7 +1025,8 @@ void ACPTTagger::SortHitPoints(std::vector<art::Ptr<recob::Hit>> hit_v, std::vec
             });
 
   // Find wire no and time of the highest point
-  double time_highest = fDetectorProperties->ConvertXToTicks(highest_point.X(), geo::PlaneID(0,0,2));
+
+  double time_highest = detProp.ConvertXToTicks(highest_point.X(), geo::PlaneID(0,0,2));
   int wire_highest = -1;
   try {
     wire_highest = geo->NearestWire(highest_point, planeno);
@@ -1051,15 +1048,15 @@ void ACPTTagger::SortHitPoints(std::vector<art::Ptr<recob::Hit>> hit_v, std::vec
     hit_v.at(hit_v.size()-1) = temp;
   }
 
-  if (_debug) std::cout << "[ACPTTagger] \t first pt wire " << hit_v.at(0)->WireID().Wire << ", time " << hit_v.at(0)->PeakTime() << ", which is x " << fDetectorProperties->ConvertTicksToX(hit_v.at(0)->PeakTime(), geo::PlaneID(0,0,2)) << std::endl;   
-  if (_debug) std::cout << "[ACPTTagger] \t second pt wire " << hit_v.at(hit_v.size()-1)->WireID().Wire << ", time " << hit_v.at(hit_v.size()-1)->PeakTime() << ", which is x " << fDetectorProperties->ConvertTicksToX(hit_v.at(hit_v.size()-1)->PeakTime(), geo::PlaneID(0,0,2)) << std::endl; 
+  if (_debug) std::cout << "[ACPTTagger] \t first pt wire " << hit_v.at(0)->WireID().Wire << ", time " << hit_v.at(0)->PeakTime() << ", which is x " << detProp.ConvertTicksToX(hit_v.at(0)->PeakTime(), geo::PlaneID(0,0,2)) << std::endl;
+  if (_debug) std::cout << "[ACPTTagger] \t second pt wire " << hit_v.at(hit_v.size()-1)->WireID().Wire << ", time " << hit_v.at(hit_v.size()-1)->PeakTime() << ", which is x " << detProp.ConvertTicksToX(hit_v.at(hit_v.size()-1)->PeakTime(), geo::PlaneID(0,0,2)) << std::endl;
      
   // Just save start and end point
   sorted_points.resize(2);
-  TVector3 pt1(fDetectorProperties->ConvertTicksToX(hit_v.at(0)->PeakTime(), geo::PlaneID(0,0,2)),
+  TVector3 pt1(detProp.ConvertTicksToX(hit_v.at(0)->PeakTime(), geo::PlaneID(0,0,2)),
                0.,
                hit_v.at(0)->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2)));
-  TVector3 pt2(fDetectorProperties->ConvertTicksToX(hit_v.at(hit_v.size()-1)->PeakTime(), geo::PlaneID(0,0,2)),
+  TVector3 pt2(detProp.ConvertTicksToX(hit_v.at(hit_v.size()-1)->PeakTime(), geo::PlaneID(0,0,2)),
                0.,
                hit_v.at(hit_v.size()-1)->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2)));
   sorted_points.at(0) = std::move(pt1);

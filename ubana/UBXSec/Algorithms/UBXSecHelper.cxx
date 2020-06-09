@@ -50,7 +50,8 @@
 
 
 //___________________________________________________________________________________________________
-void UBXSecHelper::GetTrackPurityAndEfficiency( lar_pandora::HitVector recoHits, double & trackPurity, double & trackEfficiency ) {
+void UBXSecHelper::GetTrackPurityAndEfficiency(detinfo::DetectorClocksData const& clockData,
+                                               lar_pandora::HitVector recoHits, double & trackPurity, double & trackEfficiency ) {
 
   art::ServiceHandle<cheat::BackTrackerService> bt;
 
@@ -60,7 +61,7 @@ void UBXSecHelper::GetTrackPurityAndEfficiency( lar_pandora::HitVector recoHits,
   for(size_t h = 0; h < recoHits.size(); h++){
 
     art::Ptr<recob::Hit> recoHit = recoHits[h];
-    std::vector<sim::TrackIDE> eveIDs = bt->HitToEveTrackIDEs(recoHit);
+    std::vector<sim::TrackIDE> eveIDs = bt->HitToEveTrackIDEs(clockData, recoHit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){
       //std::cout<<"[Hit "<< h<<"] hit plane: "<<recoHit->View()<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<"   pdg "<< (bt->TrackIDToParticle(eveIDs[e].trackID))->PdgCode()<<"   process "<<(bt->TrackIDToParticle(eveIDs[e].trackID))->Process()<<std::endl;
@@ -1283,4 +1284,3 @@ art::Ptr<simb::MCTruth> UBXSecHelper::TrackIDToMCTruth(art::Event const & e, std
     art::Ptr<simb::MCTruth> null_ptr;
     return null_ptr;
 }
-

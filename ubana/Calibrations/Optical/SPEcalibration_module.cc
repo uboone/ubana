@@ -510,7 +510,6 @@ void SPEcalibration::analyzePulseFindingMode(const art::Event& evt)
 {
   // initialize data handles and services
   art::ServiceHandle<geo::UBOpReadoutMap> ub_PMT_channel_map;
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
   art::Handle< std::vector< raw::OpDetWaveform > > LogicHandle;
   art::Handle< std::vector< raw::OpDetWaveform > > wfHandle;
   art::Handle< raw::DAQHeader > dhHandle;
@@ -534,7 +533,8 @@ void SPEcalibration::analyzePulseFindingMode(const art::Event& evt)
   nsamples = 0;
 
   // get trigger time
-  double trig_timestamp = ts->TriggerTime(); // usec from beginning of run (or subrun?)
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
+  double trig_timestamp = clockData.TriggerTime(); // usec from beginning of run (or subrun?)
 
   // event timestamp
   const raw::DAQHeader& dh = (*dhHandle);

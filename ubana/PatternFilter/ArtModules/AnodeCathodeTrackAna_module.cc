@@ -141,10 +141,10 @@ void pm::AnodeCathodeTrackAna::analyze(art::Event const & e)
 void pm::AnodeCathodeTrackAna::reconfigure(fhicl::ParameterSet const & p)
 {
   auto const* geo     = lar::providerFrom<geo::Geometry>();  
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();  
+  auto const detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
   fHitLabel = art::InputTag( p.get<std::string>("HitLabel") );
   
-  fAlg.Configure(p.get<fhicl::ParameterSet>("AnodeCathodPMAlg"),*geo,*detprop);
+  fAlg.Configure(p.get<fhicl::ParameterSet>("AnodeCathodPMAlg"),*geo,detprop);
 
   fTrackLabels = p.get< std::vector<art::InputTag> >("TrackLabels");
   fTrackMinDeltaX = p.get<float>("TrackMinDeltaX");
