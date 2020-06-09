@@ -33,12 +33,14 @@ namespace single_photon
         m_is_data = pset.get<bool>("isData",false);
         m_is_overlayed = pset.get<bool>("isOverlayed",false);
 
-        m_fill_trees = pset.get<bool>("FillTrees",true);
-        m_run_pi0_filter = pset.get<bool>("RunPi0Filter",false);
+        m_fill_trees          = pset.get<bool>("FillTrees",true);
+        m_run_pi0_filter      = pset.get<bool>("RunPi0Filter",false);
+        m_run_pi0_filter_2g1p = pset.get<bool>("FilterMode2g1p",false);
+        m_run_pi0_filter_2g0p = pset.get<bool>("FilterMode2g0p",false);
 
         if(m_run_pi0_filter) m_is_data = true;// If running in filter mode, treat all as data
 
-       m_runPhotoNuTruth = pset.get<bool>("RunPhotoNu",false); 
+        m_runPhotoNuTruth = pset.get<bool>("RunPhotoNu",false); 
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
@@ -149,7 +151,9 @@ namespace single_photon
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
         std::cout<<"SinglePhoton::analyze()\t||\t On entry: "<<m_number_of_events<<std::endl;
 
-        bool filter_pass = true;
+        //bool filter_pass = true; //superseeded by two below
+        bool filter_pass_2g1p = true;
+        bool filter_pass_2g0p = true;
 
         auto const TPC = (*geom).begin_TPC();
         auto ID = TPC.ID();
@@ -654,16 +658,16 @@ namespace single_photon
                 m_reco_shower_end_dist_to_active_TPC[i_shr] = 99999;
                 m_reco_shower_end_dist_to_SCB[i_shr] = 99999;
                 for(auto &sp: shr_spacepoints){
-                         std::vector<double> tmp_spt = {sp->XYZ()[0],sp->XYZ()[1] , sp->XYZ()[2]};
-                         m_reco_shower_end_dist_to_active_TPC[i_shr] = std::min(m_reco_shower_end_dist_to_active_TPC[i_shr], distToTPCActive(tmp_spt));
-                         double tmo;
-                         this->distToSCB(tmo,tmp_spt);
-                         m_reco_shower_end_dist_to_SCB[i_shr] = std::min(m_reco_shower_end_dist_to_SCB[i_shr],tmo);
+                    std::vector<double> tmp_spt = {sp->XYZ()[0],sp->XYZ()[1] , sp->XYZ()[2]};
+                    m_reco_shower_end_dist_to_active_TPC[i_shr] = std::min(m_reco_shower_end_dist_to_active_TPC[i_shr], distToTPCActive(tmp_spt));
+                    double tmo;
+                    this->distToSCB(tmo,tmp_spt);
+                    m_reco_shower_end_dist_to_SCB[i_shr] = std::min(m_reco_shower_end_dist_to_SCB[i_shr],tmo);
                 }
             }
 
-            
-            
+
+
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData> mcparticles_per_hit(hitHandle, evt, m_hitMCParticleAssnsLabel);
 
 
@@ -836,7 +840,7 @@ namespace single_photon
 
 
                 //PhotoNu Bit - Run only if flag is on
-                
+
                 m_photonu_weight_low = -999;
                 m_photonu_weight_high = -999;
                 if(m_runPhotoNuTruth){
@@ -869,7 +873,7 @@ namespace single_photon
 
                 std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
             }
-            
+
             //Isolation
             if(!m_run_all_pfps){
                 //Isolation
@@ -955,31 +959,31 @@ namespace single_photon
                         if(pl==1)m_reco_shower_reclustered_energy_plane1[remerge]+=Ep;
                         if(pl==2)m_reco_shower_reclustered_energy_plane2[remerge]+=Ep;
 
-                         continue;// Dont include this as a viable cluster!
+                        continue;// Dont include this as a viable cluster!
                     }
 
                     m_sss_num_candidates ++;
                     //Fill All the bits
 
-                            m_sss_candidate_num_hits.push_back((int)hitz.size());
-                            m_sss_candidate_num_wires.push_back((int)ssscorz->n_wires);
-                            m_sss_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
-                            m_sss_candidate_plane.push_back(pl);
-                            m_sss_candidate_PCA.push_back(ssscorz->pca_0);
-                            m_sss_candidate_impact_parameter.push_back(clu.f_ImpactParameter);
-                            m_sss_candidate_fit_slope.push_back(clu.f_FitSlope);
-                            m_sss_candidate_fit_constant.push_back(clu.f_FitCons);
-                            m_sss_candidate_mean_tick.push_back(ssscorz->mean_tick);
-                            m_sss_candidate_max_tick.push_back(ssscorz->max_tick);
-                            m_sss_candidate_min_tick.push_back(ssscorz->min_tick);
-                            m_sss_candidate_min_wire.push_back(ssscorz->min_wire);
-                            m_sss_candidate_max_wire.push_back(ssscorz->max_wire);
-                            m_sss_candidate_mean_wire.push_back(ssscorz->mean_wire);
-                            m_sss_candidate_min_dist.push_back(ssscorz->min_dist);
-                            m_sss_candidate_mean_ADC.push_back(clu.f_MeanADC);
-                            m_sss_candidate_energy.push_back(Ep);
-                            m_sss_candidate_angle_to_shower.push_back(clu.f_AngleWRTShower);
-                            m_sss_candidate_remerge.push_back(remerge);
+                    m_sss_candidate_num_hits.push_back((int)hitz.size());
+                    m_sss_candidate_num_wires.push_back((int)ssscorz->n_wires);
+                    m_sss_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
+                    m_sss_candidate_plane.push_back(pl);
+                    m_sss_candidate_PCA.push_back(ssscorz->pca_0);
+                    m_sss_candidate_impact_parameter.push_back(clu.f_ImpactParameter);
+                    m_sss_candidate_fit_slope.push_back(clu.f_FitSlope);
+                    m_sss_candidate_fit_constant.push_back(clu.f_FitCons);
+                    m_sss_candidate_mean_tick.push_back(ssscorz->mean_tick);
+                    m_sss_candidate_max_tick.push_back(ssscorz->max_tick);
+                    m_sss_candidate_min_tick.push_back(ssscorz->min_tick);
+                    m_sss_candidate_min_wire.push_back(ssscorz->min_wire);
+                    m_sss_candidate_max_wire.push_back(ssscorz->max_wire);
+                    m_sss_candidate_mean_wire.push_back(ssscorz->mean_wire);
+                    m_sss_candidate_min_dist.push_back(ssscorz->min_dist);
+                    m_sss_candidate_mean_ADC.push_back(clu.f_MeanADC);
+                    m_sss_candidate_energy.push_back(Ep);
+                    m_sss_candidate_angle_to_shower.push_back(clu.f_AngleWRTShower);
+                    m_sss_candidate_remerge.push_back(remerge);
 
 
                     //MCTruth matching for pi0's
@@ -1014,7 +1018,6 @@ namespace single_photon
 
 
             // PandoraAllOutComes
-            //if( showers.size()>0){
             if(true){
                 std::cout<<"------------ Shower3D --------------"<<std::endl;
                 /*for(auto &s : showers){
@@ -1101,14 +1104,16 @@ namespace single_photon
                 }
             }
 
-
             //---------------------- END OF LOOP, fill vertex ---------------------
-
-
-
-            filter_pass = Pi0PreselectionFilter();
+            filter_pass_2g1p = Pi0PreselectionFilter();
+            filter_pass_2g0p = Pi0PreselectionFilter2g0p();
             if(m_fill_trees){
-                if (filter_pass && m_run_pi0_filter){
+                if (filter_pass_2g1p && m_run_pi0_filter_2g1p){
+                    vertex_tree->Fill();
+                    ncdelta_slice_tree->Fill();
+                    eventweight_tree->Fill();
+
+                }else if(filter_pass_2g0p && m_run_pi0_filter_2g0p) {
                     vertex_tree->Fill();
                     ncdelta_slice_tree->Fill();
                     eventweight_tree->Fill();
@@ -1120,279 +1125,280 @@ namespace single_photon
                 }
             }
 
-
-            this->ClearVertex();
-
         }//loop over slices of interest
 
+        this->ClearVertex();
 
-        if(m_run_pi0_filter)  return filter_pass;
+
+        if(m_run_pi0_filter_2g1p)  return filter_pass_2g1p;
+        else if(m_run_pi0_filter_2g0p)  return filter_pass_2g0p;
+
 
         return true;
 
+    }
+
+
+
+
+    //-------------------------------------------------------------------------------------------
+
+    void SinglePhoton::endJob()
+    {
+        if (m_print_out_event){
+            out_stream.close();
+        }
+        pot_tree->Fill();
+    }
+
+    //-------------------------------------------------------------------------------------------
+
+
+    void SinglePhoton::beginJob()
+    {
+        mf::LogDebug("SinglePhoton") << " *** beginJob() *** " << "\n";
+
+        art::ServiceHandle<art::TFileService> tfs;
+
+        vertex_tree = tfs->make<TTree>("vertex_tree", "vertex_tree");
+        pot_tree = tfs->make<TTree>("pot_tree", "pot_tree");
+        eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
+        ncdelta_slice_tree = tfs->make<TTree>("ncdelta_slice_tree", "ncdelta_slice_tree");
+        run_subrun_tree = tfs->make<TTree>("run_subrun_tree","run_subrun_tree");
+
+        //run_subrun_tree
+        m_run = 0;
+        m_subrun = 0;
+        m_subrun_pot = 0;
+        run_subrun_tree->Branch("run",&m_run,"run/I");
+        run_subrun_tree->Branch("subrun",&m_subrun,"subrun/I");
+        run_subrun_tree->Branch("subrun_pot",&m_subrun_pot,"subrun_pot/D");
+
+        // --------------------- POT Releated variables -----------------
+        m_number_of_events = 0;
+        m_number_of_vertices = 0;
+        m_pot_count=0;
+        m_pot_per_event = 0;
+        m_pot_per_subrun = 0;
+        m_number_of_events_in_subrun=0;
+
+
+
+        pot_tree->Branch("number_of_events",&m_number_of_events,"number_of_events/I");
+        pot_tree->Branch("number_of_vertices",&m_number_of_vertices,"number_of_vertices/I");
+        pot_tree->Branch("POT",&m_pot_count,"POT/D");
+
+        // --------------------- Event Related variables ------------
+        vertex_tree->Branch("run_number", &m_run_number, "run_number/I");
+        vertex_tree->Branch("subrun_number", &m_subrun_number, "subrun_number/I");
+        vertex_tree->Branch("event_number", &m_event_number, "event_number/I");
+
+        vertex_tree->Branch("pot_per_event",&m_pot_per_event,"pot_per_event/D");
+        vertex_tree->Branch("pot_per_subrun",&m_pot_per_subrun,"pot_per_subrun/D");
+        vertex_tree->Branch("number_of_events_in_subrun",&m_number_of_events_in_subrun,"number_of_events_in_subrun/D");
+
+
+        vertex_tree->Branch("genie_spline_weight", &m_genie_spline_weight, "genie_spline_weight/D");
+        vertex_tree->Branch("genie_CV_tune_weight", &m_genie_CV_tune_weight, "genie_CV_tune_weight/D");
+
+        vertex_tree->Branch("photonu_weight_low", &m_photonu_weight_low, "photonu_weight_low/D");
+        vertex_tree->Branch("photonu_weight_high", &m_photonu_weight_high, "photonu_weight_high/D");
+
+        vertex_tree->Branch("test_matched_hits", &m_test_matched_hits, "test_matched_hits/I");
+        // --------------------- Vertex Related variables ------------
+        vertex_tree->Branch("reco_vertex_size", &m_reco_vertex_size);
+        vertex_tree->Branch("reco_vertex_x", &m_vertex_pos_x);
+        vertex_tree->Branch("reco_vertex_y", &m_vertex_pos_y);
+        vertex_tree->Branch("reco_vertex_z", &m_vertex_pos_z);
+        vertex_tree->Branch("reco_vertex_in_SCB", &m_reco_vertex_in_SCB);
+        vertex_tree->Branch("reco_vertex_dist_to_SCB",&m_reco_vertex_dist_to_SCB);
+        vertex_tree->Branch("reco_vertex_dist_to_active_TPC",&m_reco_vertex_dist_to_active_TPC);
+        vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane0",&m_reco_vertex_to_nearest_dead_wire_plane0);
+        vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane1",&m_reco_vertex_to_nearest_dead_wire_plane1);
+        vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
+
+        vertex_tree->Branch("reco_slice_objects", &m_reco_slice_objects, "reco_slice_objects/I");
+
+        this->CreateIsolationBranches();
+
+        this->CreateSecondShowerBranches();
+        this->CreateSecondShowerBranches3D();
+        // --------------------- Flash Related Variables ----------------------
+        this->CreateFlashBranches();
+
+        // --------------------- Track Related variables ------------
+        this->CreateTrackBranches();
+
+        std::string gpvm_location ="/pnfs/uboone/resilient/users/markross/tars/";
+
+
+        //Get the info for length->energy conversion from PSTAR database.
+        TFile *fileconv;
+        struct stat buffer;   
+
+        if(!m_run_pi0_filter){
+            if(stat("proton_conversion.root", &buffer) == 0){
+                fileconv = new TFile("proton_conversion.root", "read");
+            }else{
+                fileconv = new TFile((gpvm_location+"proton_conversion.root").c_str(), "read");
+            }
+
+            proton_length2energy_tgraph = *(TGraph*)fileconv->Get("Graph");
+            proton_length2energy_tgraph.GetMean();
+            fileconv->Close();
         }
 
 
 
 
-        //-------------------------------------------------------------------------------------------
-
-        void SinglePhoton::endJob()
-        {
-            if (m_print_out_event){
-                out_stream.close();
-            }
-            pot_tree->Fill();
-        }
-
-        //-------------------------------------------------------------------------------------------
 
 
-        void SinglePhoton::beginJob()
-        {
-            mf::LogDebug("SinglePhoton") << " *** beginJob() *** " << "\n";
-
-            art::ServiceHandle<art::TFileService> tfs;
-
-            vertex_tree = tfs->make<TTree>("vertex_tree", "vertex_tree");
-            pot_tree = tfs->make<TTree>("pot_tree", "pot_tree");
-            eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
-            ncdelta_slice_tree = tfs->make<TTree>("ncdelta_slice_tree", "ncdelta_slice_tree");
-            run_subrun_tree = tfs->make<TTree>("run_subrun_tree","run_subrun_tree");
-
-            //run_subrun_tree
-            m_run = 0;
-            m_subrun = 0;
-            m_subrun_pot = 0;
-            run_subrun_tree->Branch("run",&m_run,"run/I");
-            run_subrun_tree->Branch("subrun",&m_subrun,"subrun/I");
-            run_subrun_tree->Branch("subrun_pot",&m_subrun_pot,"subrun_pot/D");
-
-            // --------------------- POT Releated variables -----------------
-            m_number_of_events = 0;
-            m_number_of_vertices = 0;
-            m_pot_count=0;
-            m_pot_per_event = 0;
-            m_pot_per_subrun = 0;
-            m_number_of_events_in_subrun=0;
+        // --------------------- Shower Related variables ------------
+        this->CreateShowerBranches();
 
 
-
-            pot_tree->Branch("number_of_events",&m_number_of_events,"number_of_events/I");
-            pot_tree->Branch("number_of_vertices",&m_number_of_vertices,"number_of_vertices/I");
-            pot_tree->Branch("POT",&m_pot_count,"POT/D");
-
-            // --------------------- Event Related variables ------------
-            vertex_tree->Branch("run_number", &m_run_number, "run_number/I");
-            vertex_tree->Branch("subrun_number", &m_subrun_number, "subrun_number/I");
-            vertex_tree->Branch("event_number", &m_event_number, "event_number/I");
-
-            vertex_tree->Branch("pot_per_event",&m_pot_per_event,"pot_per_event/D");
-            vertex_tree->Branch("pot_per_subrun",&m_pot_per_subrun,"pot_per_subrun/D");
-            vertex_tree->Branch("number_of_events_in_subrun",&m_number_of_events_in_subrun,"number_of_events_in_subrun/D");
+        //Metadata Branches
+        this->CreateSliceBranches();
+        //this->CreateMatchedSliceBranches();
 
 
-            vertex_tree->Branch("genie_spline_weight", &m_genie_spline_weight, "genie_spline_weight/D");
-            vertex_tree->Branch("genie_CV_tune_weight", &m_genie_CV_tune_weight, "genie_CV_tune_weight/D");
+        // ---------------------- MCTruth Related Variables ----------
+        this->CreateMCTruthBranches();
 
-            vertex_tree->Branch("photonu_weight_low", &m_photonu_weight_low, "photonu_weight_low/D");
-            vertex_tree->Branch("photonu_weight_high", &m_photonu_weight_high, "photonu_weight_high/D");
-
-            vertex_tree->Branch("test_matched_hits", &m_test_matched_hits, "test_matched_hits/I");
-            // --------------------- Vertex Related variables ------------
-            vertex_tree->Branch("reco_vertex_size", &m_reco_vertex_size);
-            vertex_tree->Branch("reco_vertex_x", &m_vertex_pos_x);
-            vertex_tree->Branch("reco_vertex_y", &m_vertex_pos_y);
-            vertex_tree->Branch("reco_vertex_z", &m_vertex_pos_z);
-            vertex_tree->Branch("reco_vertex_in_SCB", &m_reco_vertex_in_SCB);
-            vertex_tree->Branch("reco_vertex_dist_to_SCB",&m_reco_vertex_dist_to_SCB);
-            vertex_tree->Branch("reco_vertex_dist_to_active_TPC",&m_reco_vertex_dist_to_active_TPC);
-            vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane0",&m_reco_vertex_to_nearest_dead_wire_plane0);
-            vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane1",&m_reco_vertex_to_nearest_dead_wire_plane1);
-            vertex_tree->Branch("reco_vertex_to_nearest_dead_wire_plane2",&m_reco_vertex_to_nearest_dead_wire_plane2);
-
-            vertex_tree->Branch("reco_slice_objects", &m_reco_slice_objects, "reco_slice_objects/I");
-
-            this->CreateIsolationBranches();
-
-            this->CreateSecondShowerBranches();
-            this->CreateSecondShowerBranches3D();
-            // --------------------- Flash Related Variables ----------------------
-            this->CreateFlashBranches();
-
-            // --------------------- Track Related variables ------------
-            this->CreateTrackBranches();
-
-            std::string gpvm_location ="/pnfs/uboone/resilient/users/markross/tars/";
+        // ---------------------- Eventweight CTruth Related Variables ---------
+        this->CreateEventWeightBranches();
 
 
-            //Get the info for length->energy conversion from PSTAR database.
-            TFile *fileconv;
-            struct stat buffer;   
+        //std::string bad_channel_file = "/pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt";
 
-            if(!m_run_pi0_filter){
-                if(stat("proton_conversion.root", &buffer) == 0){
-                    fileconv = new TFile("proton_conversion.root", "read");
-                }else{
-                    fileconv = new TFile((gpvm_location+"proton_conversion.root").c_str(), "read");
-                }
+        std::string bad_channel_file = "MCC9_channel_list.txt";
 
-                proton_length2energy_tgraph = *(TGraph*)fileconv->Get("Graph");
-                proton_length2energy_tgraph.GetMean();
-                fileconv->Close();
+        if(!m_run_pi0_filter){
+            if(stat(bad_channel_file.c_str(), &buffer) != 0){
+                bad_channel_file = gpvm_location+bad_channel_file;
             }
 
+            std::ifstream bc_file(bad_channel_file);
 
-
-
-
-
-            // --------------------- Shower Related variables ------------
-            this->CreateShowerBranches();
-
-
-            //Metadata Branches
-            this->CreateSliceBranches();
-            //this->CreateMatchedSliceBranches();
-
-
-            // ---------------------- MCTruth Related Variables ----------
-            this->CreateMCTruthBranches();
-
-            // ---------------------- Eventweight CTruth Related Variables ---------
-            this->CreateEventWeightBranches();
-
-
-            //std::string bad_channel_file = "/pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt";
-
-            std::string bad_channel_file = "MCC9_channel_list.txt";
-
-            if(!m_run_pi0_filter){
-                if(stat(bad_channel_file.c_str(), &buffer) != 0){
-                    bad_channel_file = gpvm_location+bad_channel_file;
-                }
-
-                std::ifstream bc_file(bad_channel_file);
-
-                if (bc_file.is_open())
+            if (bc_file.is_open())
+            {
+                std::string line;
+                while ( getline (bc_file,line) )
                 {
-                    std::string line;
-                    while ( getline (bc_file,line) )
-                    {
-                        std::vector<int> res;
-                        std::istringstream iss(line);
-                        for(std::string s; iss >> s; )
-                            res.push_back( std::stof(s));
+                    std::vector<int> res;
+                    std::istringstream iss(line);
+                    for(std::string s; iss >> s; )
+                        res.push_back( std::stof(s));
 
-                        std::pair<int,int> t(res[0],res[1]);
-                        bad_channel_list_fixed_mcc9.push_back(t);
-                    }
-                    bc_file.close();
+                    std::pair<int,int> t(res[0],res[1]);
+                    bad_channel_list_fixed_mcc9.push_back(t);
+                }
+                bc_file.close();
+            }
+        }
+
+        std::cout<<"SinglePhoton \t||\t beginJob() is complete"<<std::endl;
+
+    }
+
+
+
+
+    //-------------------------------------------------------------------------------------------
+    void SinglePhoton::ClearVertex(){
+
+
+        //------------ Event related Variables -------------
+        m_event_number = -99;
+        m_subrun_number = -99;
+        m_run_number = -99;
+        m_test_matched_hits = 0;
+
+        m_pot_per_event = 0;
+        m_pot_per_subrun = m_subrun_pot;
+        m_number_of_events_in_subrun = 0;
+
+        m_genie_spline_weight = 1.0;
+
+        //------------ Vertex related Variables -------------
+        m_reco_vertex_size = 0;
+        m_vertex_pos_x=-99999;
+        m_vertex_pos_y=-99999;
+        m_vertex_pos_z=-99999;
+        m_vertex_pos_tick=-9999;
+        m_vertex_pos_wire_p0=-9999;
+        m_vertex_pos_wire_p1=-9999;
+        m_vertex_pos_wire_p2=-9999;
+        m_reco_vertex_in_SCB = -9999;
+        m_reco_vertex_dist_to_SCB = -9999;
+        m_reco_vertex_dist_to_active_TPC= -9999;
+
+        m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
+        m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
+        m_reco_vertex_to_nearest_dead_wire_plane2=-99999;
+
+        m_reco_slice_objects = 0;
+
+
+        this->ClearIsolation();
+
+        this->ClearSecondShowers();
+        this->ClearSecondShowers3D();
+        //------------- Flash related Variables ------------------
+        this->ClearFlashes();
+
+        //------------- Track Related Variables -----------------
+        this->ClearTracks();
+
+        //------------- Track Related Variables -----------------
+        this->ClearShowers();
+        this->ClearMCTruths();
+
+        //------------- EventWeight Related Variables -----------------
+        this->ClearEventWeightBranches();
+
+
+
+        //MetaData Related Varibles
+        this->ClearSlices();
+
+
+    }
+
+
+    bool SinglePhoton::beginSubRun(art::SubRun& sr) {
+
+        m_run = sr.run();
+        m_subrun = sr.subRun();
+
+        double this_pot = 0;
+
+        if(m_potLabel != ""){
+            if(m_potLabel == "generator"){
+
+                art::Handle<sumdata::POTSummary> gen_pot_hand;
+                if(sr.getByLabel(m_potLabel,gen_pot_hand)){
+                    this_pot =  gen_pot_hand->totgoodpot;
+                    m_pot_count += this_pot;
+                    std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
+                }
+            }else{
+
+                art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR875;
+                if (sr.getByLabel("beamdata","bnbETOR875",potSummaryHandlebnbETOR875)){
+                    this_pot =potSummaryHandlebnbETOR875->totpot; 
+                    m_pot_count += this_pot;
+                    std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<potSummaryHandlebnbETOR875->totpot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
                 }
             }
-
-            std::cout<<"SinglePhoton \t||\t beginJob() is complete"<<std::endl;
-
         }
 
+        m_subrun_pot = this_pot; 
 
+        run_subrun_tree->Fill();
+        return true;
 
-
-        //-------------------------------------------------------------------------------------------
-        void SinglePhoton::ClearVertex(){
-
-
-            //------------ Event related Variables -------------
-            m_event_number = -99;
-            m_subrun_number = -99;
-            m_run_number = -99;
-            m_test_matched_hits = 0;
-
-            m_pot_per_event = 0;
-            m_pot_per_subrun = m_subrun_pot;
-            m_number_of_events_in_subrun = 0;
-
-            m_genie_spline_weight = 1.0;
-
-            //------------ Vertex related Variables -------------
-            m_reco_vertex_size = 0;
-            m_vertex_pos_x=-99999;
-            m_vertex_pos_y=-99999;
-            m_vertex_pos_z=-99999;
-            m_vertex_pos_tick=-9999;
-            m_vertex_pos_wire_p0=-9999;
-            m_vertex_pos_wire_p1=-9999;
-            m_vertex_pos_wire_p2=-9999;
-            m_reco_vertex_in_SCB = -9999;
-            m_reco_vertex_dist_to_SCB = -9999;
-            m_reco_vertex_dist_to_active_TPC= -9999;
-
-            m_reco_vertex_to_nearest_dead_wire_plane0=-99999;
-            m_reco_vertex_to_nearest_dead_wire_plane1=-99999;
-            m_reco_vertex_to_nearest_dead_wire_plane2=-99999;
-
-            m_reco_slice_objects = 0;
-
-
-            this->ClearIsolation();
-
-            this->ClearSecondShowers();
-            this->ClearSecondShowers3D();
-            //------------- Flash related Variables ------------------
-            this->ClearFlashes();
-
-            //------------- Track Related Variables -----------------
-            this->ClearTracks();
-
-            //------------- Track Related Variables -----------------
-            this->ClearShowers();
-            this->ClearMCTruths();
-
-            //------------- EventWeight Related Variables -----------------
-            this->ClearEventWeightBranches();
-
-
-
-            //MetaData Related Varibles
-            this->ClearSlices();
-
-
-        }
-
-
-        bool SinglePhoton::beginSubRun(art::SubRun& sr) {
-
-            m_run = sr.run();
-            m_subrun = sr.subRun();
-
-            double this_pot = 0;
-
-            if(m_potLabel != ""){
-                if(m_potLabel == "generator"){
-
-                    art::Handle<sumdata::POTSummary> gen_pot_hand;
-                    if(sr.getByLabel(m_potLabel,gen_pot_hand)){
-                        this_pot =  gen_pot_hand->totgoodpot;
-                        m_pot_count += this_pot;
-                        std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<this_pot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
-                    }
-                }else{
-
-                    art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR875;
-                    if (sr.getByLabel("beamdata","bnbETOR875",potSummaryHandlebnbETOR875)){
-                        this_pot =potSummaryHandlebnbETOR875->totpot; 
-                        m_pot_count += this_pot;
-                        std::cout<<"SinglePhoton::beginSubRun()\t||\t SubRun POT: "<<potSummaryHandlebnbETOR875->totpot<<" . Current total POT this file: "<<m_pot_count<<" (label) "<<m_potLabel<<std::endl;
-                    }
-                }
-            }
-
-            m_subrun_pot = this_pot; 
-
-            run_subrun_tree->Fill();
-            return true;
-
-        }
+    }
 
 
 
@@ -1402,458 +1408,475 @@ namespace single_photon
 
 
 
-        //-----------------------------------------------------------------------------------------------------------------------------------------
-        //-----------------------------------------------------------------------------------------------------------------------------------------
-        //-----------------------------------------------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------------------------------------------
 
-        void SinglePhoton::GetVertex(const lar_pandora::PFParticlesToVertices &pfParticlesToVerticesMap, const art::Ptr<recob::PFParticle> & particle ){
+    void SinglePhoton::GetVertex(const lar_pandora::PFParticlesToVertices &pfParticlesToVerticesMap, const art::Ptr<recob::PFParticle> & particle ){
 
-            if(m_is_verbose) std::cout<<"SinglePhoton::Getvertex()\t||\t Starting to analyze recob::Vertex\n";
-            int n_vert =0;
+        if(m_is_verbose) std::cout<<"SinglePhoton::Getvertex()\t||\t Starting to analyze recob::Vertex\n";
+        int n_vert =0;
 
-            //std::cout<<"There are "<<pfParticlesToVerticesMap.count(particle)<<" verticies associated with this particle"<<std::endl;
+        //std::cout<<"There are "<<pfParticlesToVerticesMap.count(particle)<<" verticies associated with this particle"<<std::endl;
 
-            lar_pandora::PFParticlesToVertices::const_iterator vIter = pfParticlesToVerticesMap.find(particle);
-            if (pfParticlesToVerticesMap.end() != vIter)
-            {
-                const lar_pandora::VertexVector &vertexVector = vIter->second;
-                if (!vertexVector.empty())
-                {
-                    if (vertexVector.size() !=1)
-                        std::cout << " Warning: Found particle with more than one associated vertex " << "\n";
-
-                    const art::Ptr<recob::Vertex> vertex = *(vertexVector.begin());
-                    double xyz[3] = {0.0, 0.0, 0.0} ;
-                    vertex->XYZ(xyz);
-
-                    n_vert++;
-                    //std::cout<<"Vertex!"<<"\t "<<xyz[0]<<" "<<xyz[1]<<" "<<xyz[2]<<"\n";
-
-                    m_vertex_pos_x = xyz[0];
-                    m_vertex_pos_y = xyz[1];
-                    m_vertex_pos_z = xyz[2];
-                    std::vector<double> tmp = {xyz[0],xyz[1],xyz[2]};
-                    m_reco_vertex_in_SCB = this->distToSCB(m_reco_vertex_dist_to_SCB,tmp);
-                    m_reco_vertex_dist_to_active_TPC = this->distToTPCActive(tmp);
-
-                    if(!m_run_pi0_filter){
-                        m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-                        m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-                        m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-                    }
-
-                }else{
-                    std::cout << " Error: vertexVector associated with this particle is empty " << "\n";
-                    std::cerr << " Error: vertexVector associated with this particle is empty " << "\n";
-                    //exit(0);
-
-                }
-            }
-
-            if(m_is_verbose) std::cout<<"SinglePhoton::Getvertex()\t||\t Finished. Found "<<n_vert<<" vertices.\n";
-        }
-
-
-        void SinglePhoton::GetPFParticleIdMap(const PFParticleHandle &pfParticleHandle, PFParticleIdMap &pfParticleMap)
+        lar_pandora::PFParticlesToVertices::const_iterator vIter = pfParticlesToVerticesMap.find(particle);
+        if (pfParticlesToVerticesMap.end() != vIter)
         {
-            //std::cout<<"Filling pfParticleMap with from the handle with total number "<<pfParticleHandle->size()<<std::endl;
-            for (unsigned int i = 0; i < pfParticleHandle->size(); ++i)
+            const lar_pandora::VertexVector &vertexVector = vIter->second;
+            if (!vertexVector.empty())
             {
-                const art::Ptr<recob::PFParticle> pParticle(pfParticleHandle, i);
-                // std::cout<<"Adding PFP to pfParticleMap with pfp id  "<<pParticle->Self()<<std::endl;
-                if (!pfParticleMap.insert(PFParticleIdMap::value_type(pParticle->Self(), pParticle)).second)
-                {
-                    throw cet::exception("SinglePhoton") << "  Unable to get PFParticle ID map, the input PFParticle collection has repeat IDs!";
+                if (vertexVector.size() !=1)
+                    std::cout << " Warning: Found particle with more than one associated vertex " << "\n";
+
+                const art::Ptr<recob::Vertex> vertex = *(vertexVector.begin());
+                double xyz[3] = {0.0, 0.0, 0.0} ;
+                vertex->XYZ(xyz);
+
+                n_vert++;
+                //std::cout<<"Vertex!"<<"\t "<<xyz[0]<<" "<<xyz[1]<<" "<<xyz[2]<<"\n";
+
+                m_vertex_pos_x = xyz[0];
+                m_vertex_pos_y = xyz[1];
+                m_vertex_pos_z = xyz[2];
+                std::vector<double> tmp = {xyz[0],xyz[1],xyz[2]};
+                m_reco_vertex_in_SCB = this->distToSCB(m_reco_vertex_dist_to_SCB,tmp);
+                m_reco_vertex_dist_to_active_TPC = this->distToTPCActive(tmp);
+
+                if(!m_run_pi0_filter){
+                    m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                    m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                    m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
                 }
+
+            }else{
+                std::cout << " Error: vertexVector associated with this particle is empty " << "\n";
+                std::cerr << " Error: vertexVector associated with this particle is empty " << "\n";
+                //exit(0);
+
             }
         }
 
+        if(m_is_verbose) std::cout<<"SinglePhoton::Getvertex()\t||\t Finished. Found "<<n_vert<<" vertices.\n";
+    }
 
-        void SinglePhoton::GetFinalStatePFParticleVectors(const PFParticleIdMap &pfParticleMap, const lar_pandora::PFParticlesToVertices &pfParticlesToVerticesMap, PFParticleVector &crParticles, PFParticleVector &nuParticles )
+
+    void SinglePhoton::GetPFParticleIdMap(const PFParticleHandle &pfParticleHandle, PFParticleIdMap &pfParticleMap)
+    {
+        //std::cout<<"Filling pfParticleMap with from the handle with total number "<<pfParticleHandle->size()<<std::endl;
+        for (unsigned int i = 0; i < pfParticleHandle->size(); ++i)
         {
-
-            int found = 0;
-            int primaries = 0;
-            int full = 0;
-            for (PFParticleIdMap::const_iterator it = pfParticleMap.begin(); it != pfParticleMap.end(); ++it)
+            const art::Ptr<recob::PFParticle> pParticle(pfParticleHandle, i);
+            // std::cout<<"Adding PFP to pfParticleMap with pfp id  "<<pParticle->Self()<<std::endl;
+            if (!pfParticleMap.insert(PFParticleIdMap::value_type(pParticle->Self(), pParticle)).second)
             {
-                const art::Ptr<recob::PFParticle> pParticle(it->second);
-
-                full++;
-                // Only look for primary particles
-                if (!pParticle->IsPrimary()) continue;
-
-                // Check if this particle is identified as the neutrino
-                const int pdg(pParticle->PdgCode());
-                const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
-
-
-                primaries++;
-                // If it is, lets get the vertex position
-                if(isNeutrino){
-                    found++;
-                    this->GetVertex(pfParticlesToVerticesMap, pParticle );
-
-                }
-
-                // All non-neutrino primary particles are reconstructed under the cosmic hypothesis
-                if (!isNeutrino)
-                {
-                    crParticles.push_back(pParticle);
-                    continue;
-                }
-
-                // ATTN. We are filling nuParticles under the assumption that there is only one reconstructed neutrino identified per event.
-                //       If this is not the case please handle accordingly
-                if (!nuParticles.empty())
-                {
-                    throw cet::exception("SinglePhoton") << "  This event contains multiple reconstructed neutrinos!";
-                }
-
-                // Add the daughters of the neutrino PFParticle to the nuPFParticles vector
-                for (const size_t daughterId : pParticle->Daughters())
-                {
-                    if (pfParticleMap.find(daughterId) == pfParticleMap.end())
-                        throw cet::exception("SinglePhoton") << "  Invalid PFParticle collection!";
-
-                    nuParticles.push_back(pfParticleMap.at(daughterId));
-                }
+                throw cet::exception("SinglePhoton") << "  Unable to get PFParticle ID map, the input PFParticle collection has repeat IDs!";
             }
-            std::cout<<"SinglePhoton::GetFinalStatePFParticleVectors()\t||\t Found "<<primaries<<" primary PFParticles (out of "<<full<<") of which: "<<found<<" were neutrinos."<<std::endl;
-            m_reco_vertex_size = found;
-
-
-
-
         }
+    }
 
-        //------------------------------------------------------------------------------------------------------------------------------------------
 
-        void SinglePhoton::CollectTracksAndShowers(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap, const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap)
+    void SinglePhoton::GetFinalStatePFParticleVectors(const PFParticleIdMap &pfParticleMap, const lar_pandora::PFParticlesToVertices &pfParticlesToVerticesMap, PFParticleVector &crParticles, PFParticleVector &nuParticles )
+    {
+
+        int found = 0;
+        int primaries = 0;
+        int full = 0;
+        for (PFParticleIdMap::const_iterator it = pfParticleMap.begin(); it != pfParticleMap.end(); ++it)
         {
+            const art::Ptr<recob::PFParticle> pParticle(it->second);
+
+            full++;
+            // Only look for primary particles
+            if (!pParticle->IsPrimary()) continue;
+
+            // Check if this particle is identified as the neutrino
+            const int pdg(pParticle->PdgCode());
+            const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
 
 
-            // Get the associations between PFParticles and tracks/showers from the event
-            art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, evt, m_trackLabel);
-            art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, evt, m_showerLabel);
+            primaries++;
+            // If it is, lets get the vertex position
+            if(isNeutrino){
+                found++;
+                this->GetVertex(pfParticlesToVerticesMap, pParticle );
 
-            //if running over the neutrino slice only 
-            if (m_run_all_pfps == false){ 
-                for (const art::Ptr<recob::PFParticle> &pParticle : particles) {
-                    const std::vector< art::Ptr<recob::Track> > associatedTracks(pfPartToTrackAssoc.at(pParticle.key()));
-                    const std::vector< art::Ptr<recob::Shower> > associatedShowers(pfPartToShowerAssoc.at(pParticle.key()));
-
-                    FillTracksAndShowers(associatedTracks, associatedShowers, pParticle,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
-                }
-            } else{ //if running over all slices
-                std::cout<<"SinglePhoton\t||\tThe total number of PFP's in the map is "<<pfParticleMap.size()<<std::endl;
-                //            std::cout<<"The total number of PFP's in the vector is "<< particles.size()<<std::endl;
-                for (auto pair : pfParticleMap){
-                    const art::Ptr<recob::PFParticle> &pParticle = pair.second;
-
-                    const std::vector< art::Ptr<recob::Track> > associatedTracks(pfPartToTrackAssoc.at(pParticle.key()));
-                    const std::vector< art::Ptr<recob::Shower> > associatedShowers(pfPartToShowerAssoc.at(pParticle.key()));
-
-                    FillTracksAndShowers(associatedTracks, associatedShowers, pParticle,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
-
-                }
             }
 
+            // All non-neutrino primary particles are reconstructed under the cosmic hypothesis
+            if (!isNeutrino)
+            {
+                crParticles.push_back(pParticle);
+                continue;
+            }
 
+            // ATTN. We are filling nuParticles under the assumption that there is only one reconstructed neutrino identified per event.
+            //       If this is not the case please handle accordingly
+            if (!nuParticles.empty())
+            {
+                throw cet::exception("SinglePhoton") << "  This event contains multiple reconstructed neutrinos!";
+            }
+
+            // Add the daughters of the neutrino PFParticle to the nuPFParticles vector
+            for (const size_t daughterId : pParticle->Daughters())
+            {
+                if (pfParticleMap.find(daughterId) == pfParticleMap.end())
+                    throw cet::exception("SinglePhoton") << "  Invalid PFParticle collection!";
+
+                nuParticles.push_back(pfParticleMap.at(daughterId));
+            }
+        }
+        std::cout<<"SinglePhoton::GetFinalStatePFParticleVectors()\t||\t Found "<<primaries<<" primary PFParticles (out of "<<full<<") of which: "<<found<<" were neutrinos."<<std::endl;
+        m_reco_vertex_size = found;
+
+
+
+
+    }
+
+    //------------------------------------------------------------------------------------------------------------------------------------------
+
+    void SinglePhoton::CollectTracksAndShowers(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap, const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap)
+    {
+
+
+        // Get the associations between PFParticles and tracks/showers from the event
+        art::FindManyP< recob::Track     > pfPartToTrackAssoc(pfParticleHandle, evt, m_trackLabel);
+        art::FindManyP< recob::Shower    > pfPartToShowerAssoc(pfParticleHandle, evt, m_showerLabel);
+
+        //if running over the neutrino slice only 
+        if (m_run_all_pfps == false){ 
+            for (const art::Ptr<recob::PFParticle> &pParticle : particles) {
+                const std::vector< art::Ptr<recob::Track> > associatedTracks(pfPartToTrackAssoc.at(pParticle.key()));
+                const std::vector< art::Ptr<recob::Shower> > associatedShowers(pfPartToShowerAssoc.at(pParticle.key()));
+
+                FillTracksAndShowers(associatedTracks, associatedShowers, pParticle,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
+            }
+        } else{ //if running over all slices
+            std::cout<<"SinglePhoton\t||\tThe total number of PFP's in the map is "<<pfParticleMap.size()<<std::endl;
+            //            std::cout<<"The total number of PFP's in the vector is "<< particles.size()<<std::endl;
+            for (auto pair : pfParticleMap){
+                const art::Ptr<recob::PFParticle> &pParticle = pair.second;
+
+                const std::vector< art::Ptr<recob::Track> > associatedTracks(pfPartToTrackAssoc.at(pParticle.key()));
+                const std::vector< art::Ptr<recob::Shower> > associatedShowers(pfPartToShowerAssoc.at(pParticle.key()));
+
+                FillTracksAndShowers(associatedTracks, associatedShowers, pParticle,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
+
+            }
         }
 
-        void SinglePhoton::FillTracksAndShowers( const std::vector< art::Ptr<recob::Track> > & associatedTracks, const std::vector< art::Ptr<recob::Shower> > & associatedShowers, const art::Ptr<recob::PFParticle> &pParticle , const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap)
+
+    }
+
+    void SinglePhoton::FillTracksAndShowers( const std::vector< art::Ptr<recob::Track> > & associatedTracks, const std::vector< art::Ptr<recob::Shower> > & associatedShowers, const art::Ptr<recob::PFParticle> &pParticle , const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap)
+    {
+
+        const unsigned int nTracks(associatedTracks.size());
+        const unsigned int nShowers(associatedShowers.size());
+
+
+        // Check if the PFParticle has no associated tracks or showers
+        if (nTracks == 0 && nShowers == 0)
         {
-
-            const unsigned int nTracks(associatedTracks.size());
-            const unsigned int nShowers(associatedShowers.size());
-
-
-            // Check if the PFParticle has no associated tracks or showers
-            if (nTracks == 0 && nShowers == 0)
-            {
-                //  std::cout<<"ERROR No tracks or showers were associated to PFParticle " << pParticle->Self()<<" with pdg "<<pParticle->PdgCode() <<std::endl;
-                //std::cout<<"-- isPrimary = "<<pParticle->IsPrimary()<<std::endl;
-                mf::LogDebug("SinglePhoton") << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << "\n";
-                return;
-            }
-
-            // Check if there is an associated track
-            if (nTracks == 1 && nShowers == 0)
-            {
-
-                tracks.push_back(associatedTracks.front());
-                trackToNuPFParticleMap[tracks.back()]= pParticle;
-                //std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  associatedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
-
-                return;
-            }
-
-            // Check if there is an associated shower
-            if (nTracks == 0 && nShowers == 1)
-            {
-                showers.push_back(associatedShowers.front());
-                showerToNuPFParticleMap[showers.back()] = pParticle;
-                // std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  associatedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
-
-                return;
-            }
-
-            throw cet::exception("SinglePhoton") << "  There were " << nTracks << " tracks and " << nShowers << " showers associated with PFParticle " << pParticle->Self();
-
+            //  std::cout<<"ERROR No tracks or showers were associated to PFParticle " << pParticle->Self()<<" with pdg "<<pParticle->PdgCode() <<std::endl;
+            //std::cout<<"-- isPrimary = "<<pParticle->IsPrimary()<<std::endl;
+            mf::LogDebug("SinglePhoton") << "  No tracks or showers were associated to PFParticle " << pParticle->Self() << "\n";
+            return;
         }
 
-
-
-
-        double SinglePhoton::triangle_area(double a1, double a2, double b1, double b2, double c1, double c2){
-            double m1 = 0.3;
-            double m2 = 1.0/25.0;
-
-            return fabs((a1*m1*(b2*m2-c2*m2)+b1*m1*(c2*m2-a2*m2)+c1*m1*(a2*m2-b2*m2))/2.0);
-        }
-
-        int SinglePhoton::quick_delaunay_fit(int n, double *X, double *Y, int *num_triangles, double * area){
-
-            std::vector<double> z(n,0.0);
-
-            TGraph2D *g = new TGraph2D(n,X,Y,&z[0]);
-            TGraphDelaunay delan(g);
-            delan.SetMarginBinsContent(0);
-            delan.ComputeZ(0,0);
-            delan.FindAllTriangles();
-            (*num_triangles)=delan.GetNdt();
-
-            //Grab the locations of all the trianges. These will be intergers referencing to position in X,Y arrays
-            Int_t *MT = delan.GetMTried();
-            Int_t *NT = delan.GetNTried();
-            Int_t *PT = delan.GetPTried();
-
-            (*area)=0.0;
-            for(int i = 0; i<delan.GetNdt(); i++){
-                (*area)+=triangle_area(X[MT[i]-1],Y[MT[i]-1],X[NT[i]-1],Y[NT[i]-1],X[PT[i]-1],Y[PT[i]-1]);
-            }
-
-            delete g;
-            return 0;
-        }
-
-        int SinglePhoton::delaunay_hit_wrapper(const std::vector<art::Ptr<recob::Hit>>& hits, std::vector<int> & num_hits, std::vector<int>& num_triangles, std::vector<double> & area){
-
-            int n = hits.size();
-            std::vector<double> C0,T0;
-            std::vector<double> C1,T1;
-            std::vector<double> C2,T2;
-            size_t n_0=0;
-            size_t n_1=0;
-            size_t n_2=0;
-
-            for(int i=0;i<n; i++){
-                const art::Ptr<recob::Hit> hit = hits[i];
-                switch(hit->View()){
-                    case 0:
-                        C0.push_back((double)hit->WireID().Wire);         
-                        T0.push_back(hit->PeakTime());         
-                        n_0++;
-                        break;
-                    case 1:
-                        C1.push_back((double)hit->WireID().Wire);         
-                        T1.push_back(hit->PeakTime());         
-                        n_1++;
-                        break;
-                    case 2:
-                        C2.push_back((double)hit->WireID().Wire);         
-                        T2.push_back(hit->PeakTime());         
-                        n_2++;
-                        break;
-                    default:
-                        break;
-                }
-            }
-            if(m_use_delaunay){
-                if(n_0>0 && (int)n_0 < m_delaunay_max_hits) this->quick_delaunay_fit(n_0, &C0[0]  , &T0[0]  , &num_triangles[0],&area[0]);
-                if(n_1>0 && (int)n_1 < m_delaunay_max_hits) this->quick_delaunay_fit(n_1, &C1[0]  , &T1[0]  , &num_triangles[1],&area[1]);
-                if(n_2>0 && (int)n_2 < m_delaunay_max_hits) this->quick_delaunay_fit(n_2, &C2[0]  , &T2[0]  , &num_triangles[2],&area[2]);
-            }
-            num_hits[0] = n_0;
-            num_hits[1] = n_1;
-            num_hits[2] = n_2;
-
-            //std::cout<<"Plane 0: "<<n_0<<" hits with "<<num_triangles[0]<<" triangles of area: "<< area[0]<<std::endl;
-            //std::cout<<"Plane 1: "<<n_1<<" hits with "<<num_triangles[1]<<" triangles of area: "<< area[1]<<std::endl;
-            //std::cout<<"Plane 2: "<<n_2<<" hits with "<<num_triangles[2]<<" triangles of area: "<< area[2]<<std::endl;
-
-            return 0;
-        }
-
-        int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected, std::vector<double> & input){
-            corrected.resize(3);
-
-            double kx = input[0];
-            double ky = input[1];
-            double kz = input[2];
-
-            auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
-            double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
-
-            double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
-
-            //        double xOffset = -scecorr.X() +xtimeoffset+0.6;
-            double yOffset = scecorr.Y();
-            double zOffset = scecorr.Z();
-
-            corrected[0]=kx - scecorr.X() + xtimeoffset + 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
-            corrected[1]=ky+yOffset;
-            corrected[2]=kz+zOffset;
-
-            //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
-            //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
-            //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
-            return 0;
-        }
-
-
-
-
-
-        int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected){
-            corrected.resize(3);
-
-            double kx = mcparticle->Vx();
-            double ky = mcparticle->Vy();
-            double kz = mcparticle->Vz();
-
-            auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
-            double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
-
-            double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
-
-            //double xOffset = -scecorr.X() +xtimeoffset+0.6;
-            double yOffset = scecorr.Y();
-            double zOffset = scecorr.Z();
-
-            corrected[0]=kx - scecorr.X() + xtimeoffset + 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
-            corrected[1]=ky+yOffset;
-            corrected[2]=kz+zOffset;
-
-            //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
-            //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
-            //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
-            return 0;
-        }
-
-
-
-
-
-        int SinglePhoton::spacecharge_correction(const simb::MCParticle & mcparticle, std::vector<double> & corrected){
-            corrected.resize(3);
-            //Space Charge Effect! functionize this soon.
-            double kx = mcparticle.Vx();
-            double ky = mcparticle.Vy();
-            double kz = mcparticle.Vz();
-            auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
-            double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle.T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
-
-            double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
-
-            corrected[0]=kx - scecorr.X() +xtimeoffset+0.6;
-            corrected[1]=ky + scecorr.Y();
-            corrected[2]=kz + scecorr.Z();
-            return 0;
-        }
-
-        void SinglePhoton::CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth, std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap)
+        // Check if there is an associated track
+        if (nTracks == 1 && nShowers == 0)
         {
 
-            //    if (evt.isRealData())
-            //      throw cet::exception("LArPandora") << " PandoraCollector::CollectMCParticles --- Trying to access MC truth from real data ";
+            tracks.push_back(associatedTracks.front());
+            trackToNuPFParticleMap[tracks.back()]= pParticle;
+            //std::cout<<"adding to trackToNuPFParticleMap this track with id "<<  associatedTracks.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
-            art::Handle< std::vector< simb::MCParticle>  > theParticles;
-            evt.getByLabel(label, theParticles);
-
-            if (!theParticles.isValid())
-            {
-                mf::LogDebug("LArPandora") << "  Failed to find MC particles... " << std::endl;
-                return;
-            }
-            else
-            {
-                mf::LogDebug("LArPandora") << "  Found: " << theParticles->size() << " MC particles " << std::endl;
-            }
-
-            art::FindOneP<simb::MCTruth> theTruthAssns(theParticles, evt, label);
-
-            for (unsigned int i = 0, iEnd = theParticles->size(); i < iEnd; ++i)
-            {
-                const art::Ptr<simb::MCParticle> particle(theParticles, i);
-                const art::Ptr<simb::MCTruth> truth(theTruthAssns.at(i));
-                truthToParticles[truth].push_back(particle);
-                particlesToTruth[particle] = truth;
-                MCParticleToTrackIdMap[particle->TrackId()] = particle;
-            }
-
-            std::cout<<"SinglePhoton::CollectMCParticles() \t||\t the number of MCParticles in the event is "<<theParticles->size()<<std::endl;
+            return;
         }
 
-        void SinglePhoton::CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector)
+        // Check if there is an associated shower
+        if (nTracks == 0 && nShowers == 1)
         {
-            //    if (evt.isRealData())
-            //      throw cet::exception("LArPandora") << " PandoraCollector::CollectSimChannels --- Trying to access MC truth from real data ";
+            showers.push_back(associatedShowers.front());
+            showerToNuPFParticleMap[showers.back()] = pParticle;
+            // std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  associatedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
 
-            art::Handle< std::vector<sim::SimChannel> > theSimChannels;
-            evt.getByLabel(label, theSimChannels);
-
-            if (!theSimChannels.isValid())
-            {
-                mf::LogDebug("LArPandora") << "  Failed to find sim channels... " << std::endl;
-                return;
-            }
-            else
-            {
-                mf::LogDebug("LArPandora") << "  Found: " << theSimChannels->size() << " SimChannels " << std::endl;
-            }
-
-            for (unsigned int i = 0; i < theSimChannels->size(); ++i)
-            {
-                const art::Ptr<sim::SimChannel> channel(theSimChannels, i);
-                simChannelVector.push_back(channel);
-            }
+            return;
         }
 
+        throw cet::exception("SinglePhoton") << "  There were " << nTracks << " tracks and " << nShowers << " showers associated with PFParticle " << pParticle->Self();
 
-        void SinglePhoton::BuildMCParticleHitMaps(const art::Event &evt, const std::string &label, const std::vector<art::Ptr<recob::Hit>> &hitVector,   std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  &particlesToHits,         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  &hitsToParticles, const lar_pandora::LArPandoraHelper::DaughterMode daughterMode, std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap)
+    }
+
+
+
+
+    double SinglePhoton::triangle_area(double a1, double a2, double b1, double b2, double c1, double c2){
+        double m1 = 0.3;
+        double m2 = 1.0/25.0;
+
+        return fabs((a1*m1*(b2*m2-c2*m2)+b1*m1*(c2*m2-a2*m2)+c1*m1*(a2*m2-b2*m2))/2.0);
+    }
+
+    int SinglePhoton::quick_delaunay_fit(int n, double *X, double *Y, int *num_triangles, double * area){
+
+        std::vector<double> z(n,0.0);
+
+        TGraph2D *g = new TGraph2D(n,X,Y,&z[0]);
+        TGraphDelaunay delan(g);
+        delan.SetMarginBinsContent(0);
+        delan.ComputeZ(0,0);
+        delan.FindAllTriangles();
+        (*num_triangles)=delan.GetNdt();
+
+        //Grab the locations of all the trianges. These will be intergers referencing to position in X,Y arrays
+        Int_t *MT = delan.GetMTried();
+        Int_t *NT = delan.GetNTried();
+        Int_t *PT = delan.GetPTried();
+
+        (*area)=0.0;
+        for(int i = 0; i<delan.GetNdt(); i++){
+            (*area)+=triangle_area(X[MT[i]-1],Y[MT[i]-1],X[NT[i]-1],Y[NT[i]-1],X[PT[i]-1],Y[PT[i]-1]);
+        }
+
+        delete g;
+        return 0;
+    }
+
+    int SinglePhoton::delaunay_hit_wrapper(const std::vector<art::Ptr<recob::Hit>>& hits, std::vector<int> & num_hits, std::vector<int>& num_triangles, std::vector<double> & area){
+
+        int n = hits.size();
+        std::vector<double> C0,T0;
+        std::vector<double> C1,T1;
+        std::vector<double> C2,T2;
+        size_t n_0=0;
+        size_t n_1=0;
+        size_t n_2=0;
+
+        for(int i=0;i<n; i++){
+            const art::Ptr<recob::Hit> hit = hits[i];
+            switch(hit->View()){
+                case 0:
+                    C0.push_back((double)hit->WireID().Wire);         
+                    T0.push_back(hit->PeakTime());         
+                    n_0++;
+                    break;
+                case 1:
+                    C1.push_back((double)hit->WireID().Wire);         
+                    T1.push_back(hit->PeakTime());         
+                    n_1++;
+                    break;
+                case 2:
+                    C2.push_back((double)hit->WireID().Wire);         
+                    T2.push_back(hit->PeakTime());         
+                    n_2++;
+                    break;
+                default:
+                    break;
+            }
+        }
+        if(m_use_delaunay){
+            if(n_0>0 && (int)n_0 < m_delaunay_max_hits) this->quick_delaunay_fit(n_0, &C0[0]  , &T0[0]  , &num_triangles[0],&area[0]);
+            if(n_1>0 && (int)n_1 < m_delaunay_max_hits) this->quick_delaunay_fit(n_1, &C1[0]  , &T1[0]  , &num_triangles[1],&area[1]);
+            if(n_2>0 && (int)n_2 < m_delaunay_max_hits) this->quick_delaunay_fit(n_2, &C2[0]  , &T2[0]  , &num_triangles[2],&area[2]);
+        }
+        num_hits[0] = n_0;
+        num_hits[1] = n_1;
+        num_hits[2] = n_2;
+
+        //std::cout<<"Plane 0: "<<n_0<<" hits with "<<num_triangles[0]<<" triangles of area: "<< area[0]<<std::endl;
+        //std::cout<<"Plane 1: "<<n_1<<" hits with "<<num_triangles[1]<<" triangles of area: "<< area[1]<<std::endl;
+        //std::cout<<"Plane 2: "<<n_2<<" hits with "<<num_triangles[2]<<" triangles of area: "<< area[2]<<std::endl;
+
+        return 0;
+    }
+
+    int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected, std::vector<double> & input){
+        corrected.resize(3);
+
+        double kx = input[0];
+        double ky = input[1];
+        double kz = input[2];
+
+        auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
+        double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
+
+        double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
+
+        //        double xOffset = -scecorr.X() +xtimeoffset+0.6;
+        double yOffset = scecorr.Y();
+        double zOffset = scecorr.Z();
+
+        corrected[0]=kx - scecorr.X() + xtimeoffset + 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
+        corrected[1]=ky+yOffset;
+        corrected[2]=kz+zOffset;
+
+        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
+        return 0;
+    }
+
+
+
+
+
+    int SinglePhoton::spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected){
+        corrected.resize(3);
+
+        double kx = mcparticle->Vx();
+        double ky = mcparticle->Vy();
+        double kz = mcparticle->Vz();
+
+        auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
+        double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
+
+        double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
+
+        //double xOffset = -scecorr.X() +xtimeoffset+0.6;
+        double yOffset = scecorr.Y();
+        double zOffset = scecorr.Z();
+
+        corrected[0]=kx - scecorr.X() + xtimeoffset + 0.6; //due to sim/wirecell differences  Seev https://cdcvs.fnal.gov/redmine/projects/uboone-physics-analysis/wiki/MCC9_Tutorials 
+        corrected[1]=ky+yOffset;
+        corrected[2]=kz+zOffset;
+
+        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
+        return 0;
+    }
+
+
+
+
+
+    int SinglePhoton::spacecharge_correction(const simb::MCParticle & mcparticle, std::vector<double> & corrected){
+        corrected.resize(3);
+        //Space Charge Effect! functionize this soon.
+        double kx = mcparticle.Vx();
+        double ky = mcparticle.Vy();
+        double kz = mcparticle.Vz();
+        auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
+        double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle.T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
+
+        double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
+
+        corrected[0]=kx - scecorr.X() +xtimeoffset+0.6;
+        corrected[1]=ky + scecorr.Y();
+        corrected[2]=kz + scecorr.Z();
+        return 0;
+    }
+
+    void SinglePhoton::CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth, std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap)
+    {
+
+        //    if (evt.isRealData())
+        //      throw cet::exception("LArPandora") << " PandoraCollector::CollectMCParticles --- Trying to access MC truth from real data ";
+
+        art::Handle< std::vector< simb::MCParticle>  > theParticles;
+        evt.getByLabel(label, theParticles);
+
+        if (!theParticles.isValid())
         {
-            std::vector< art::Ptr<sim::SimChannel> >   simChannelVector;
-            std::map< art::Ptr<simb::MCTruth>,     std::vector<art::Ptr<simb::MCParticle>>  >    truthToParticles;
-            std::map< art::Ptr<simb::MCParticle>,  art::Ptr<simb::MCTruth> > particlesToTruth;
-            std::map< art::Ptr<recob::Hit>,    std::vector< sim::TrackIDE >    >               hitsToTrackIDEs;
-
-            this->CollectSimChannels(evt, label, simChannelVector);
-            this->CollectMCParticles(evt, label, truthToParticles, particlesToTruth, MCParticleToTrackIdMap);
-            lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitVector, simChannelVector, hitsToTrackIDEs);
-            lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitsToTrackIDEs, truthToParticles, particlesToHits, hitsToParticles, daughterMode);
-
-
+            mf::LogDebug("LArPandora") << "  Failed to find MC particles... " << std::endl;
+            return;
         }
-
-        bool SinglePhoton::Pi0PreselectionFilter()
+        else
         {
-
-            if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
-            if(m_vertex_pos_y < -112. || m_vertex_pos_y > 112.) return false;
-            if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1031.8) return false;
-
-            if(m_reco_asso_showers!=2) return false;
-            if(m_reco_asso_tracks!=1) return false;
-            if(m_reco_vertex_size<1) return false;
-
-            if(m_reco_shower_conversion_distance.size()!=2) return false;
-            if(m_reco_shower_conversion_distance[0]<1. || m_reco_shower_conversion_distance[1]<1.) return false;
-
-            return true;
+            mf::LogDebug("LArPandora") << "  Found: " << theParticles->size() << " MC particles " << std::endl;
         }
 
+        art::FindOneP<simb::MCTruth> theTruthAssns(theParticles, evt, label);
+
+        for (unsigned int i = 0, iEnd = theParticles->size(); i < iEnd; ++i)
+        {
+            const art::Ptr<simb::MCParticle> particle(theParticles, i);
+            const art::Ptr<simb::MCTruth> truth(theTruthAssns.at(i));
+            truthToParticles[truth].push_back(particle);
+            particlesToTruth[particle] = truth;
+            MCParticleToTrackIdMap[particle->TrackId()] = particle;
+        }
+
+        std::cout<<"SinglePhoton::CollectMCParticles() \t||\t the number of MCParticles in the event is "<<theParticles->size()<<std::endl;
+    }
+
+    void SinglePhoton::CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector)
+    {
+        //    if (evt.isRealData())
+        //      throw cet::exception("LArPandora") << " PandoraCollector::CollectSimChannels --- Trying to access MC truth from real data ";
+
+        art::Handle< std::vector<sim::SimChannel> > theSimChannels;
+        evt.getByLabel(label, theSimChannels);
+
+        if (!theSimChannels.isValid())
+        {
+            mf::LogDebug("LArPandora") << "  Failed to find sim channels... " << std::endl;
+            return;
+        }
+        else
+        {
+            mf::LogDebug("LArPandora") << "  Found: " << theSimChannels->size() << " SimChannels " << std::endl;
+        }
+
+        for (unsigned int i = 0; i < theSimChannels->size(); ++i)
+        {
+            const art::Ptr<sim::SimChannel> channel(theSimChannels, i);
+            simChannelVector.push_back(channel);
+        }
+    }
 
 
-    } //namespace
+    void SinglePhoton::BuildMCParticleHitMaps(const art::Event &evt, const std::string &label, const std::vector<art::Ptr<recob::Hit>> &hitVector,   std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  &particlesToHits,         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  &hitsToParticles, const lar_pandora::LArPandoraHelper::DaughterMode daughterMode, std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap)
+    {
+        std::vector< art::Ptr<sim::SimChannel> >   simChannelVector;
+        std::map< art::Ptr<simb::MCTruth>,     std::vector<art::Ptr<simb::MCParticle>>  >    truthToParticles;
+        std::map< art::Ptr<simb::MCParticle>,  art::Ptr<simb::MCTruth> > particlesToTruth;
+        std::map< art::Ptr<recob::Hit>,    std::vector< sim::TrackIDE >    >               hitsToTrackIDEs;
+
+        this->CollectSimChannels(evt, label, simChannelVector);
+        this->CollectMCParticles(evt, label, truthToParticles, particlesToTruth, MCParticleToTrackIdMap);
+        lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitVector, simChannelVector, hitsToTrackIDEs);
+        lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitsToTrackIDEs, truthToParticles, particlesToHits, hitsToParticles, daughterMode);
+
+
+    }
+
+    bool SinglePhoton::Pi0PreselectionFilter()
+    {
+
+        if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
+        if(m_vertex_pos_y < -112. || m_vertex_pos_y > 112.) return false;
+        if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1031.8) return false;
+
+        if(m_reco_asso_showers!=2) return false;
+        if(m_reco_asso_tracks!=1) return false;
+        if(m_reco_vertex_size<1) return false;
+
+        if(m_reco_shower_conversion_distance.size()!=2) return false;
+        if(m_reco_shower_conversion_distance[0]<1. || m_reco_shower_conversion_distance[1]<1.) return false;
+
+        return true;
+    }
+
+
+
+    bool SinglePhoton::Pi0PreselectionFilter2g0p()
+    {
+
+        if(m_vertex_pos_x < 5.0 || m_vertex_pos_x > 251.) return false;
+        if(m_vertex_pos_y < -112. || m_vertex_pos_y > 112.) return false;
+        if(m_vertex_pos_z < 5.0 || m_vertex_pos_z > 1031.8) return false;
+
+        if(m_reco_asso_showers!=2) return false;
+        if(m_reco_asso_tracks!=0) return false;
+        if(m_reco_vertex_size<1) return false;
+
+        if(m_reco_shower_energy_max.size()!=2) return false;
+        if(m_reco_shower_energy_max[m_reco_shower_ordered_energy_index[0]]<30.) return false;
+
+        return true;
+    }
+
+} //namespace

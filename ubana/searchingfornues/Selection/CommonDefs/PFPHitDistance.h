@@ -16,9 +16,9 @@ namespace searchingfornues
    * @input hitcoll  : proxy connecting clusters to hits
    * @return vector of distances on the three planes [U,V,Y]
    */
-  std::vector<float> GetTrackShowerScore(const ProxyPfpElem_t &pfp_pxy1,
-					 const ProxyPfpElem_t &pfp_pxy2,
-					 const ProxyClusColl_t &hitcoll)
+  std::vector<float> GetPFPHitDistance(const ProxyPfpElem_t &pfp_pxy1,
+				       const ProxyPfpElem_t &pfp_pxy2,
+				       const ProxyClusColl_t &hitcoll)
     {
 
     auto const* geom = ::lar::providerFrom<geo::Geometry>();
@@ -43,7 +43,8 @@ namespace searchingfornues
 	const auto &clus = hitcoll[ass_clus.key()];
 	auto clus_hit_v = clus.get<recob::Hit>();
 	auto plane = clus->Plane().Plane;
-	if ( (plane >=0) && (plane < 3) ) {
+	//if ( (plane >=0) && (plane < 3) ) {
+	if ( plane < 3 ) {
 	  cluster1_hits_v[plane].clear();
 	  for (size_t h=0; h < clus_hit_v.size(); h++) {
 	    cluster1_hits_v[plane].push_back( clus_hit_v[h] );
@@ -56,7 +57,8 @@ namespace searchingfornues
 	const auto &clus = hitcoll[ass_clus.key()];
 	auto clus_hit_v = clus.get<recob::Hit>();
 	auto plane = clus->Plane().Plane;
-	if ( (plane >=0) && (plane < 3) ) {
+	//if ( (plane >=0) && (plane < 3) ) {
+	if ( plane < 3 ) {
 	  cluster2_hits_v[plane].clear();
 	  for (size_t h=0; h < clus_hit_v.size(); h++) {
 	    cluster2_hits_v[plane].push_back( clus_hit_v[h] );
@@ -80,8 +82,7 @@ namespace searchingfornues
 	      auto hit2 = hits2[h2];
 
 	      float dt = (hit1->PeakTime()    - hit2->PeakTime()) * t2cm;
-	      float dw = (hit1->WireID().Wire - hit2->WireID().Wire) * w2cm;
-	      
+	      float dw = ((float)(hit1->WireID().Wire) - ((float)hit2->WireID().Wire)) * w2cm;
 	      float dhit = sqrt ( (dt*dt) + (dw*dw) );
 
 	      if (dhit < dmin) { dmin = dhit; }

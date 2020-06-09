@@ -815,6 +815,8 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             bool m_has_CRT;
             bool m_fill_trees;
             bool m_run_pi0_filter;
+            bool m_run_pi0_filter_2g1p;
+            bool m_run_pi0_filter_2g0p;
 
             bool m_runPhotoNuTruth;
 
@@ -1650,6 +1652,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             double m_photonu_weight_high;
 
             bool Pi0PreselectionFilter();
+            bool Pi0PreselectionFilter2g0p();
     };
 
     DEFINE_ART_MODULE(SinglePhoton)
