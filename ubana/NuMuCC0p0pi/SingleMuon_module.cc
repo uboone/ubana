@@ -106,8 +106,8 @@ private:
   art::ServiceHandle<art::TFileService> tfs;
 
   spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
-  detinfo::DetectorProperties const* detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  detinfo::DetectorClocks const* detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
+  //detinfo::DetectorProperties const* detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  //detinfo::DetectorClocks const* detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
 
   TTree * POTtree;
   int run, subrun;
@@ -161,14 +161,14 @@ private:
 
   std::vector<int> Ghost_PDG; // pdg code of the pfp which has no track or shower associated; No elements ideally
 
-  double Genie_Q2 = -999;
-  double Genie_q2 = -999;
-  double Genie_W = -999;
-  int Genie_nNeutron_preFSI = 0;// before FSI 
-  int Genie_nProton_preFSI = 0;// before FSI 
-  int Genie_nPi0_preFSI = 0;// before FSI 
-  int Genie_nPiPlus_preFSI = 0;// before FSI 
-  int Genie_nPiMinus_preFSI = 0;// before FSI 
+  //double Genie_Q2 = -999;
+  //double Genie_q2 = -999;
+  //double Genie_W = -999;
+  //int Genie_nNeutron_preFSI = 0;// before FSI 
+  //int Genie_nProton_preFSI = 0;// before FSI 
+  //int Genie_nPi0_preFSI = 0;// before FSI 
+  //int Genie_nPiPlus_preFSI = 0;// before FSI 
+  //int Genie_nPiMinus_preFSI = 0;// before FSI 
 
   int TopologyType = -999;// The topology of true neutrino interaction + FSI products after Geant4
 
@@ -193,6 +193,9 @@ private:
   double MC_0pi1p_proton_phi = -999;
 
   double MC_0pi1p_cos_ang_muon_proton = -999;
+
+  double MC_0pi2p_proton1_mom = -999;
+  double MC_0pi2p_proton2_mom = -999;
 
   int n_pfp_nuDaughters = 0; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks = 0; // number of tracks asssociated to pfp neutrino daughters
@@ -229,6 +232,7 @@ private:
   bool if_trk_CRT_out_Beam = false; // Check if a track matches with out of beam CRT hit(s)
   bool evt_CRTveto = false; // If CRT veto, eliminate the events for contained (70PE threshold)
   bool evt_CRTveto_100 = false; // If CRT veto, eliminate the events for contained (100PE threshold)
+  bool evt_CRT_veto_homebrew = false;
   bool if_t0_trk_crt_time_match = true;
 
   std::vector<double> crthit_time_T0corr; // Time of CRT hits
@@ -521,8 +525,8 @@ void SingleMuon::analyze(art::Event const& evt)
   if(IsMC){
     auto const& mct_h = evt.getValidHandle<std::vector<simb::MCTruth> >("generator");
     auto gen = mct_h->at(0);
-    double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
-    xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
+    //double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+    //xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
   }
   else{
     xtimeoffset = 0;
@@ -530,7 +534,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
   //// Get necessary handles
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
-  std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
+  //std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
   std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
   std::vector<art::Ptr<evwgh::MCEventWeight> > WeightCollection;
 
@@ -540,10 +544,10 @@ void SingleMuon::analyze(art::Event const& evt)
     evt.getByLabel(m_generatorLabel, Handle_MCTruth);
     art::fill_ptr_vector(MCTruthCollection, Handle_MCTruth);
 
-    // Genie Truth
-    art::Handle< std::vector<simb::GTruth> > Handle_GTruth;
-    evt.getByLabel(m_generatorLabel, Handle_GTruth);
-    art::fill_ptr_vector(GTruthCollection, Handle_GTruth);
+    //// Genie Truth
+    //art::Handle< std::vector<simb::GTruth> > Handle_GTruth;
+    //evt.getByLabel(m_generatorLabel, Handle_GTruth);
+    //art::fill_ptr_vector(GTruthCollection, Handle_GTruth);
  
     // MC Particle
     art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
@@ -805,17 +809,21 @@ void SingleMuon::analyze(art::Event const& evt)
 
     }
 
-    // Get Genie info on how many particles produced
-    for(unsigned int i_gn = 0; i_gn < GTruthCollection.size(); i_gn++){
-      Genie_Q2 = GTruthCollection[i_gn]->fgQ2;
-      Genie_q2 = GTruthCollection[i_gn]->fgq2;
-      Genie_W = GTruthCollection[i_gn]->fgW;
-      Genie_nNeutron_preFSI = GTruthCollection[i_gn]->fNumNeutron;
-      Genie_nProton_preFSI = GTruthCollection[i_gn]->fNumProton;
-      Genie_nPi0_preFSI = GTruthCollection[i_gn]->fNumPi0;
-      Genie_nPiPlus_preFSI = GTruthCollection[i_gn]->fNumPiPlus;
-      Genie_nPiMinus_preFSI = GTruthCollection[i_gn]->fNumPiMinus;
+    if(TopologyType == 3){
+      MC_0pi2p_proton1_mom = MC_proton_true_Mom[0];
+      MC_0pi2p_proton2_mom = MC_proton_true_Mom[1];
     }
+    //// Get Genie info on how many particles produced
+    //for(unsigned int i_gn = 0; i_gn < GTruthCollection.size(); i_gn++){
+    //  Genie_Q2 = GTruthCollection[i_gn]->fgQ2;
+    //  Genie_q2 = GTruthCollection[i_gn]->fgq2;
+    //  Genie_W = GTruthCollection[i_gn]->fgW;
+    //  Genie_nNeutron_preFSI = GTruthCollection[i_gn]->fNumNeutron;
+    //  Genie_nProton_preFSI = GTruthCollection[i_gn]->fNumProton;
+    //  Genie_nPi0_preFSI = GTruthCollection[i_gn]->fNumPi0;
+    //  Genie_nPiPlus_preFSI = GTruthCollection[i_gn]->fNumPiPlus;
+    //  Genie_nPiMinus_preFSI = GTruthCollection[i_gn]->fNumPiMinus;
+    //}
   }
 
   //-------- Get Reco neutrino (pfparticle)
@@ -932,7 +940,7 @@ void SingleMuon::analyze(art::Event const& evt)
           evt_timeGPS_nsec = evtTimeGPS.timeLow();
         
           if(T0Corr){ 
-            if(crtT0_v.size() == 1){
+            if(!IsMC && crtT0_v.size() == 1){
               CRTT0corr = crtT0_v.front()->Time();
             } 
             else{
@@ -960,6 +968,13 @@ void SingleMuon::analyze(art::Event const& evt)
             if(T0Corr){
               double crt_time_T0corr = ((crthit_v[i_crt]->ts0_ns - evt_timeGPS_nsec + CRTT0corr) / 1000.);
               crthit_time_T0corr.push_back(crt_time_T0corr);
+ 
+              //home-brew CRT veto
+              if(trigger_time != -999){
+                if(abs(crt_time_T0corr - trigger_time) < 1 && crthit_v[i_crt]->peshit > 70){
+                  evt_CRT_veto_homebrew = true;
+                }
+              }
 
               if(crt_time_T0corr >= fBeamStart && crt_time_T0corr <= fBeamEnd && crthit_v[i_crt]->peshit > 70){
                 Nr_crthit_inBeam_T0corr++;
@@ -1812,6 +1827,9 @@ void SingleMuon::analyze(art::Event const& evt)
 
     MC_0pi1p_cos_ang_muon_proton = -999;
 
+    MC_0pi2p_proton1_mom = -999;
+    MC_0pi2p_proton2_mom = -999;
+
     true_mom = -999;
     true_start_x = -999;
     true_start_y = -999;
@@ -1881,6 +1899,7 @@ void SingleMuon::analyze(art::Event const& evt)
   trk_crt_time = -999;
   evt_CRTveto = false;
   evt_CRTveto_100 = false;
+  evt_CRT_veto_homebrew = false;
   if_trk_CRT_out_Beam = false;
   if_t0_trk_crt_time_match = true;
 
@@ -2126,16 +2145,19 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("MC_0pi1p_proton_phi", &MC_0pi1p_proton_phi);
     my_event_->Branch("MC_0pi1p_cos_ang_muon_proton", &MC_0pi1p_cos_ang_muon_proton);
 
+    my_event_->Branch("MC_0pi2p_proton1_mom", &MC_0pi2p_proton1_mom);
+    my_event_->Branch("MC_0pi2p_proton2_mom", &MC_0pi2p_proton2_mom);
+
     my_event_->Branch("Ghost_PDG", &Ghost_PDG);
 
-    my_event_->Branch("Genie_Q2", &Genie_Q2);
-    my_event_->Branch("Genie_q2", &Genie_q2);
-    my_event_->Branch("Genie_W", &Genie_W);
-    my_event_->Branch("Genie_nNeutron_preFSI", &Genie_nNeutron_preFSI);
-    my_event_->Branch("Genie_nProton_preFSI", &Genie_nProton_preFSI);
-    my_event_->Branch("Genie_nPi0_preFSI", &Genie_nPi0_preFSI);
-    my_event_->Branch("Genie_nPiPlus_preFSI", &Genie_nPiPlus_preFSI);
-    my_event_->Branch("Genie_nPiMinus_preFSI", &Genie_nPiMinus_preFSI);
+    //my_event_->Branch("Genie_Q2", &Genie_Q2);
+    //my_event_->Branch("Genie_q2", &Genie_q2);
+    //my_event_->Branch("Genie_W", &Genie_W);
+    //my_event_->Branch("Genie_nNeutron_preFSI", &Genie_nNeutron_preFSI);
+    //my_event_->Branch("Genie_nProton_preFSI", &Genie_nProton_preFSI);
+    //my_event_->Branch("Genie_nPi0_preFSI", &Genie_nPi0_preFSI);
+    //my_event_->Branch("Genie_nPiPlus_preFSI", &Genie_nPiPlus_preFSI);
+    //my_event_->Branch("Genie_nPiMinus_preFSI", &Genie_nPiMinus_preFSI);
 
     my_event_->Branch("MC_granddau_pdg", &MC_granddau_pdg);
 
@@ -2192,6 +2214,7 @@ void SingleMuon::Initialize_event()
 
   my_event_->Branch("evt_CRTveto", &evt_CRTveto);
   my_event_->Branch("evt_CRTveto_100", &evt_CRTveto_100);
+  my_event_->Branch("evt_CRT_veto_homebrew", &evt_CRT_veto_homebrew);
   my_event_->Branch("crthit_PE", &crthit_PE);
   my_event_->Branch("crthit_plane", &crthit_plane);
   my_event_->Branch("crthit_time", &crthit_time);
