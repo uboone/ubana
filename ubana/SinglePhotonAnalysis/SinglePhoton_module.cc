@@ -1018,7 +1018,7 @@ namespace single_photon
 
 
             // PandoraAllOutComes
-            if(true){
+            if(!m_run_pi0_filter){
                 std::cout<<"------------ Shower3D --------------"<<std::endl;
                 /*for(auto &s : showers){
                   std::cout<<"shower pfp key : "<<showerToNuPFParticleMap[s].key()<<" self: "<<showerToNuPFParticleMap[s]->Self()<<std::endl;

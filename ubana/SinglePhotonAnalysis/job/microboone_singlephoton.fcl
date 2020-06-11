@@ -52,6 +52,7 @@ singlephoton_filter.FilterMode2g1p: true
 singlephoton_filter.FilterMode2g0p: false
 singlephoton_filter.isData: true
 singlephoton_filter.usePID: false
+singlephoton_filter.work_function: 23
 
 singlephoton_filter_2g0p: @local::singlephoton_filter
 singlephoton_filter_2g0p.FilterMode2g1p: false
