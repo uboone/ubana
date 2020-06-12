@@ -5,6 +5,4 @@ physics.filters.singlephotonana.POTLabel: "beamdata"
 physics.filters.singlephotonana.beamgateStartTime: 3.19
 physics.filters.singlephotonana.beamgateEndTime: 4.87
 physics.filters.singlephotonana.BadChannelProducer: "nfspl1"
-
-physics.filters.singlephotonana.CaloLabel:      "pandoracalo"
-
+physics.filters.singlephotonana.runCRT: "true"
