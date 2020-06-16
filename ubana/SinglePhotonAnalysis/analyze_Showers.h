@@ -36,7 +36,12 @@ namespace single_photon
 
         m_reco_shower_startx.clear();
         m_reco_shower_starty.clear();
-        m_reco_shower_startz.clear();
+        m_reco_shower_start_dist_to_active_TPC.clear();
+        m_reco_shower_start_dist_to_SCB.clear();
+        m_reco_shower_start_in_SCB.clear();
+        m_reco_shower_end_dist_to_active_TPC.clear();
+        m_reco_shower_end_dist_to_SCB.clear();
+        
         m_reco_shower_dirx.clear();
         m_reco_shower_diry.clear();
         m_reco_shower_dirz.clear();
@@ -106,9 +111,19 @@ namespace single_photon
         m_reco_shower_energy_plane0.clear();
         m_reco_shower_energy_plane1.clear();
         m_reco_shower_energy_plane2.clear();
+        
+        m_reco_shower_reclustered_energy_plane0.clear();
+        m_reco_shower_reclustered_energy_plane1.clear();
+        m_reco_shower_reclustered_energy_plane2.clear();
+        m_reco_shower_reclustered_energy_max.clear();
+
         m_reco_shower_plane0_nhits.clear();
         m_reco_shower_plane1_nhits.clear();
         m_reco_shower_plane2_nhits.clear();
+        m_reco_shower_plane0_meanRMS.clear();
+        m_reco_shower_plane1_meanRMS.clear();
+        m_reco_shower_plane2_meanRMS.clear();
+
 
 
         m_reco_shower_dQdx_plane0.clear();
@@ -164,6 +179,7 @@ namespace single_photon
         m_reco_shower_isclearcosmic.clear();
         m_reco_shower_is_nuslice.clear();
         m_reco_shower_trackscore.clear();
+        m_reco_shower_pfparticle_pdg.clear();
 
     }
 
@@ -179,6 +195,12 @@ namespace single_photon
         m_reco_shower_kalman_mean_dEdx_plane0.resize(size);
         m_reco_shower_kalman_mean_dEdx_plane1.resize(size);
         m_reco_shower_kalman_mean_dEdx_plane2.resize(size);
+
+        m_reco_shower_reclustered_energy_plane0.resize(size);
+        m_reco_shower_reclustered_energy_plane1.resize(size);
+        m_reco_shower_reclustered_energy_plane2.resize(size);
+        m_reco_shower_reclustered_energy_max.resize(size);
+
 
         m_reco_shower3d_exists.resize(size);
         m_reco_shower3d_startx.resize(size);
@@ -203,6 +225,13 @@ namespace single_photon
         m_reco_shower3d_dEdx_plane1.resize(size);
         m_reco_shower3d_dEdx_plane2.resize(size);
 
+        m_reco_shower_start_dist_to_active_TPC.resize(size);
+        m_reco_shower_start_dist_to_SCB.resize(size);
+        m_reco_shower_start_in_SCB.resize(size);
+ 
+        m_reco_shower_end_dist_to_active_TPC.resize(size);
+        m_reco_shower_end_dist_to_SCB.resize(size);
+ 
 
         m_reco_shower_startx.resize(size);
         m_reco_shower_starty.resize(size);
@@ -237,6 +266,11 @@ namespace single_photon
         m_reco_shower_plane0_nhits.resize(size);
         m_reco_shower_plane1_nhits.resize(size);
         m_reco_shower_plane2_nhits.resize(size);
+
+        m_reco_shower_plane0_meanRMS.resize(size);
+        m_reco_shower_plane1_meanRMS.resize(size);
+        m_reco_shower_plane2_meanRMS.resize(size);
+
 
 
         m_reco_shower_ordered_energy_index.resize(size);
@@ -295,6 +329,7 @@ namespace single_photon
         m_reco_shower_isclearcosmic.resize(size);
         m_reco_shower_is_nuslice.resize(size);
         m_reco_shower_trackscore.resize(size);
+        m_reco_shower_pfparticle_pdg.resize(size);
 
 
         m_sim_shower_energy.resize(size);
@@ -347,6 +382,13 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_startx", &m_reco_shower_startx);
         vertex_tree->Branch("reco_shower_starty", &m_reco_shower_starty);
         vertex_tree->Branch("reco_shower_startz", &m_reco_shower_startz);
+        vertex_tree->Branch("reco_shower_start_dist_to_active_TPC", &m_reco_shower_start_dist_to_active_TPC);
+        vertex_tree->Branch("reco_shower_start_dist_to_SCB",  &m_reco_shower_start_dist_to_SCB);
+        vertex_tree->Branch("reco_shower_start_in_SCB",   &m_reco_shower_start_in_SCB);
+         vertex_tree->Branch("reco_shower_end_dist_to_active_TPC", &m_reco_shower_end_dist_to_active_TPC);
+        vertex_tree->Branch("reco_shower_end_dist_to_SCB",  &m_reco_shower_end_dist_to_SCB);
+ 
+        
         vertex_tree->Branch("reco_shower_theta_yz",&m_reco_shower_theta_yz);
         vertex_tree->Branch("reco_shower_phi_yx",&m_reco_shower_phi_yx);
         vertex_tree->Branch("reco_shower_conversion_distance",& m_reco_shower_conversion_distance);
@@ -372,6 +414,16 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_plane0_nhits",&m_reco_shower_plane0_nhits);
         vertex_tree->Branch("reco_shower_plane1_nhits",&m_reco_shower_plane1_nhits);
         vertex_tree->Branch("reco_shower_plane2_nhits",&m_reco_shower_plane2_nhits);
+        vertex_tree->Branch("reco_shower_plane0_meanRMS",&m_reco_shower_plane0_meanRMS);
+        vertex_tree->Branch("reco_shower_plane1_meanRMS",&m_reco_shower_plane1_meanRMS);
+        vertex_tree->Branch("reco_shower_plane2_meanRMS",&m_reco_shower_plane2_meanRMS);
+
+        vertex_tree->Branch("reco_shower_reclustered_energy_plane0",&m_reco_shower_reclustered_energy_plane0);
+        vertex_tree->Branch("reco_shower_reclustered_energy_plane1",&m_reco_shower_reclustered_energy_plane1);
+        vertex_tree->Branch("reco_shower_reclustered_energy_plane2",&m_reco_shower_reclustered_energy_plane2);
+        vertex_tree->Branch("reco_shower_reclustered_energy_max",&m_reco_shower_reclustered_energy_max);
+
+
 
         vertex_tree->Branch("reco_shower_ordered_energy_index",&m_reco_shower_ordered_energy_index);
         vertex_tree->Branch("i_shr",&m_reco_shower_ordered_energy_index);
@@ -426,6 +478,7 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_isclearcosmic",& m_reco_shower_isclearcosmic);
         vertex_tree->Branch("reco_shower_is_nuslice", & m_reco_shower_is_nuslice);
         vertex_tree->Branch("reco_shower_trackscore", & m_reco_shower_trackscore);
+        vertex_tree->Branch("reco_shower_pfparticle_pdg", & m_reco_shower_pfparticle_pdg);
 
 
         vertex_tree->Branch("reco_shower3d_exists", &m_reco_shower3d_exists);
@@ -549,6 +602,12 @@ namespace single_photon
             m_reco_shower_startx[i_shr] = shr_start.X();
             m_reco_shower_starty[i_shr] = shr_start.Y();
             m_reco_shower_startz[i_shr] = shr_start.Z();
+
+ 
+            std::vector<double> hstart = {m_reco_shower_startx[i_shr],m_reco_shower_starty[i_shr],m_reco_shower_startz[i_shr]};
+            m_reco_shower_start_dist_to_active_TPC[i_shr] = distToTPCActive(hstart);
+            m_reco_shower_start_in_SCB[i_shr] = this->distToSCB(m_reco_shower_start_dist_to_SCB[i_shr],hstart);
+
             m_reco_shower_dirx[i_shr] = shr_dir.X();
             m_reco_shower_diry[i_shr] = shr_dir.Y();
             m_reco_shower_dirz[i_shr] = shr_dir.Z();
@@ -682,6 +741,10 @@ namespace single_photon
             m_reco_shower_plane0_nhits[i_shr] = getNHitsPlane(hits, 0);
             m_reco_shower_plane1_nhits[i_shr] = getNHitsPlane(hits, 1);
             m_reco_shower_plane2_nhits[i_shr] = getNHitsPlane(hits, 2);
+
+            m_reco_shower_plane0_meanRMS[i_shr] = getMeanHitWidthPlane(hits, 0);
+            m_reco_shower_plane1_meanRMS[i_shr] = getMeanHitWidthPlane(hits, 1);
+            m_reco_shower_plane2_meanRMS[i_shr] = getMeanHitWidthPlane(hits, 2);
 
 
 
@@ -888,8 +951,10 @@ namespace single_photon
 
             if ( PFPToTrackScoreMap.find(pfp) != PFPToTrackScoreMap.end() ) {
                 m_reco_shower_trackscore[i_shr] = PFPToTrackScoreMap[pfp];
+                m_reco_shower_pfparticle_pdg[i_shr] = pfp->PdgCode();
             } else{
                 m_reco_shower_trackscore[i_shr] = -999; 
+                m_reco_shower_pfparticle_pdg[i_shr] = -999;
             }
 
             if ( m_reco_shower_sliceId[i_shr] >0) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t On Shower: "<<i_shr<<". Pfp id = "<< pfp->Self()<<". The slice id for this shower is "<< m_reco_shower_sliceId[i_shr]<<", the neutrino score for this slice is "<< m_reco_shower_nuscore[i_shr]<<", and is_nuslice = "<<  m_reco_shower_is_nuslice[i_shr]<<". The track score is : "<< m_reco_shower_trackscore[i_shr]<<std::endl;
@@ -1073,6 +1138,10 @@ namespace single_photon
             }else{
                 m_reco_shower_kalman_median_dEdx_allplane[i_shr] = NAN;
             }
+
+
+
+            
 
 
         i_shr++;
@@ -1414,6 +1483,28 @@ namespace single_photon
     double SinglePhoton::radToDeg(double rad){
         return rad * 180/M_PI;
     }
+
+
+    double SinglePhoton::getMeanHitWidthPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){
+        int nhits = 0;
+        double widths = 0;
+        for (art::Ptr<recob::Hit> thishitptr : hits){
+            //check the plane
+            int plane= thishitptr->View();
+
+            //skip invalid planes       
+            if (plane != this_plane) continue;
+
+            widths += thishitptr->RMS();
+            nhits++;
+
+
+        }//for each hiti
+        return   widths/(double)nhits;
+
+    }
+
+
 
     int SinglePhoton::getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){
         int nhits = 0;

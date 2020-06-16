@@ -22,9 +22,20 @@ namespace single_photon
         m_reco_track_endx.clear();
         m_reco_track_endy.clear();
         m_reco_track_endz.clear();
+        m_reco_track_end_dist_to_active_TPC.clear();
+        m_reco_track_start_dist_to_active_TPC.clear();
+        m_reco_track_end_dist_to_SCB.clear();
+        m_reco_track_start_dist_to_SCB.clear();
+        m_reco_track_end_in_SCB.clear();
+        m_reco_track_start_in_SCB.clear();
 
         m_reco_track_theta_yz.clear();
         m_reco_track_phi_yx.clear();
+        
+        m_reco_track_calo_energy_plane0.clear();
+        m_reco_track_calo_energy_plane1.clear();
+        m_reco_track_calo_energy_plane2.clear();
+        m_reco_track_calo_energy_max.clear();
 
         m_reco_track_num_trajpoints.clear();
         m_reco_track_num_spacepoints.clear();
@@ -94,7 +105,6 @@ namespace single_photon
         m_reco_track_num_calo_hits_p0.clear();
         m_reco_track_num_calo_hits_p2.clear();
 
-
         m_sim_track_matched.clear();
         m_sim_track_overlay_fraction.clear();
         m_sim_track_energy.clear();
@@ -107,6 +117,14 @@ namespace single_photon
         m_sim_track_startx.clear();
         m_sim_track_starty.clear();
         m_sim_track_startz.clear();
+        m_sim_track_endx.clear();
+        m_sim_track_endy.clear();
+        m_sim_track_endz.clear();
+        m_sim_track_length.clear();
+      
+        m_sim_track_px.clear();
+        m_sim_track_py.clear();
+        m_sim_track_pz.clear();
         m_sim_track_trackID.clear();
 
         // PID
@@ -138,6 +156,7 @@ namespace single_photon
         m_reco_track_nuscore.clear();
         m_reco_track_isclearcosmic.clear();
         m_reco_track_trackscore.clear();
+        m_reco_track_pfparticle_pdg.clear();
         m_reco_track_is_nuslice.clear();
 
 
@@ -160,6 +179,19 @@ namespace single_photon
         m_reco_track_endx.resize(size);
         m_reco_track_endy.resize(size);
         m_reco_track_endz.resize(size);
+        m_reco_track_end_dist_to_active_TPC.resize(size);
+        m_reco_track_start_dist_to_active_TPC.resize(size);
+        m_reco_track_end_dist_to_SCB.resize(size);
+        m_reco_track_start_dist_to_SCB.resize(size);
+        m_reco_track_end_in_SCB.resize(size);
+        m_reco_track_start_in_SCB.resize(size);
+
+        m_reco_track_calo_energy_plane0.resize(size);
+        m_reco_track_calo_energy_plane1.resize(size);
+        m_reco_track_calo_energy_plane2.resize(size);
+        m_reco_track_calo_energy_max.resize(size);
+
+
 
         m_reco_track_startx.resize(size);
         m_reco_track_starty.resize(size);
@@ -249,6 +281,14 @@ namespace single_photon
         m_sim_track_startx.resize(size);
         m_sim_track_starty.resize(size);
         m_sim_track_startz.resize(size);
+        m_sim_track_endx.resize(size);
+        m_sim_track_endy.resize(size);
+        m_sim_track_endz.resize(size);
+        m_sim_track_length.resize(size);
+        
+        m_sim_track_px.resize(size);
+        m_sim_track_py.resize(size);
+        m_sim_track_pz.resize(size);
         m_sim_track_trackID.resize(size);
         m_sim_track_overlay_fraction.resize(size);
 
@@ -280,6 +320,7 @@ namespace single_photon
         m_reco_track_nuscore.resize(size);
         m_reco_track_isclearcosmic.resize(size);
         m_reco_track_trackscore.resize(size);
+        m_reco_track_pfparticle_pdg.resize(size);
         m_reco_track_is_nuslice.resize(size);
 
         m_sim_track_sliceId.resize(size);
@@ -298,12 +339,25 @@ namespace single_photon
         vertex_tree->Branch("reco_track_startx", &m_reco_track_startx);
         vertex_tree->Branch("reco_track_starty", &m_reco_track_starty);
         vertex_tree->Branch("reco_track_startz", &m_reco_track_startz);
+        
         vertex_tree->Branch("reco_track_endx", &m_reco_track_endx);
         vertex_tree->Branch("reco_track_endy", &m_reco_track_endy);
         vertex_tree->Branch("reco_track_endz", &m_reco_track_endz);
+        vertex_tree->Branch("reco_track_end_dist_to_active_TPC", &m_reco_track_end_dist_to_active_TPC);
+        vertex_tree->Branch("reco_track_start_dist_to_active_TPC", &m_reco_track_start_dist_to_active_TPC);
+        vertex_tree->Branch("reco_track_end_dist_to_SCB", &m_reco_track_end_dist_to_SCB);
+        vertex_tree->Branch("reco_track_start_dist_to_SCB", &m_reco_track_start_dist_to_SCB);
+        vertex_tree->Branch("reco_track_end_in_SCB", &m_reco_track_end_in_SCB);
+        vertex_tree->Branch("reco_track_start_in_SCB", &m_reco_track_start_in_SCB);
+
 
         vertex_tree->Branch("reco_track_theta_yz", &m_reco_track_theta_yz);
         vertex_tree->Branch("reco_track_phi_yx", &m_reco_track_phi_yx);
+
+        vertex_tree->Branch("reco_track_calo_energy_plane0", &m_reco_track_calo_energy_plane0);
+        vertex_tree->Branch("reco_track_calo_energy_plane1", &m_reco_track_calo_energy_plane1);
+        vertex_tree->Branch("reco_track_calo_energy_plane2", &m_reco_track_calo_energy_plane2);
+        vertex_tree->Branch("reco_track_calo_energy_max", &m_reco_track_calo_energy_max);
 
         vertex_tree->Branch("reco_track_num_trajpoints", &m_reco_track_num_trajpoints);
         vertex_tree->Branch("reco_track_num_spacepoints", &m_reco_track_num_spacepoints);
@@ -410,6 +464,7 @@ namespace single_photon
         vertex_tree->Branch("reco_track_nuscore",& m_reco_track_nuscore);
         vertex_tree->Branch("reco_track_isclearcosmic",& m_reco_track_isclearcosmic);
         vertex_tree->Branch("reco_track_trackscore",& m_reco_track_trackscore);
+        vertex_tree->Branch("reco_track_pfparticle_pdg",& m_reco_track_pfparticle_pdg);
         vertex_tree->Branch("reco_track_is_nuslice",& m_reco_track_is_nuslice);
 
         vertex_tree->Branch("sim_track_matched",&m_sim_track_matched);
@@ -424,6 +479,15 @@ namespace single_photon
         vertex_tree->Branch("sim_track_startx",&m_sim_track_startx);
         vertex_tree->Branch("sim_track_starty",&m_sim_track_starty);
         vertex_tree->Branch("sim_track_startz",&m_sim_track_startz);
+        vertex_tree->Branch("sim_track_px",&m_sim_track_px);
+        vertex_tree->Branch("sim_track_py",&m_sim_track_py);
+        vertex_tree->Branch("sim_track_pz",&m_sim_track_pz);
+        vertex_tree->Branch("sim_track_endx",&m_sim_track_endx);
+        vertex_tree->Branch("sim_track_endy",&m_sim_track_endy);
+        vertex_tree->Branch("sim_track_endz",&m_sim_track_endz);
+        vertex_tree->Branch("sim_track_length",&m_sim_track_length);
+       
+        vertex_tree->Branch("sim_track_trackID",&m_sim_track_trackID);
 
         vertex_tree->Branch("sim_track_sliceId",& m_sim_track_sliceId);
         vertex_tree->Branch("sim_track_nuscore",& m_sim_track_nuscore);
@@ -439,6 +503,7 @@ namespace single_photon
 
     void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap,
+            std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitsMap, 
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap, 
             std::map<int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap,
             std::map<int, double> &sliceIdToNuScoreMap,
@@ -470,13 +535,18 @@ namespace single_photon
             const art::Ptr<recob::Track> track = *iter;
             const art::Ptr<recob::PFParticle> pfp = trackToNuPFParticleMap[track];
             const std::vector< art::Ptr<recob::SpacePoint> > trk_spacepoints = pfParticleToSpacePointsMap[pfp];
-
+            const std::vector<art::Ptr<recob::Hit>> trk_hits  = pfParticleToHitsMap[pfp];
 
             int m_trkid = track->ID();
             double m_length = track->Length();
             auto m_trk_dir = track->Direction();
 
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t On Track: "<<i_trk<<" with TrackID: "<<m_trkid<<" and length: "<<m_length<<""<<std::endl;;
+
+            m_reco_track_calo_energy_plane0[i_trk] = this->CalcEShowerPlane(trk_hits, 0);
+            m_reco_track_calo_energy_plane1[i_trk] = this->CalcEShowerPlane(trk_hits, 1);
+            m_reco_track_calo_energy_plane2[i_trk] = this->CalcEShowerPlane(trk_hits, 2);
+            m_reco_track_calo_energy_max[i_trk] = std::max( m_reco_track_calo_energy_plane2[i_trk],  std::max(m_reco_track_calo_energy_plane0[i_trk],m_reco_track_calo_energy_plane1[i_trk]));
 
             m_reco_track_num_spacepoints[i_trk] = (int)trk_spacepoints.size();
 
@@ -493,6 +563,16 @@ namespace single_photon
             m_reco_track_endx[i_trk] = track->End().X();   
             m_reco_track_endy[i_trk]= track->End().Y();   
             m_reco_track_endz[i_trk]= track->End().Z();   
+            
+            std::vector<double> hend = {m_reco_track_endx[i_trk],m_reco_track_endy[i_trk],m_reco_track_endz[i_trk]};
+            std::vector<double> hstart = {m_reco_track_startx[i_trk],m_reco_track_starty[i_trk],m_reco_track_startz[i_trk]};
+
+            m_reco_track_end_dist_to_active_TPC[i_trk] = distToTPCActive(hend);
+            m_reco_track_start_dist_to_active_TPC[i_trk] = distToTPCActive(hstart);
+
+            m_reco_track_end_in_SCB[i_trk] = this->distToSCB(m_reco_track_end_dist_to_SCB[i_trk],hend);
+            m_reco_track_start_in_SCB[i_trk] = this->distToSCB(m_reco_track_start_dist_to_SCB[i_trk],hstart);
+
 
             m_reco_track_theta_yz[i_trk] = atan2(m_reco_track_diry[i_trk],m_reco_track_dirz[i_trk]);
             m_reco_track_phi_yx[i_trk] = atan2(m_reco_track_diry[i_trk],m_reco_track_dirx[i_trk]);
@@ -561,8 +641,10 @@ namespace single_photon
           //  m_reco_track_trackscore[i_trk] = PFPToTrackScoreMap[pfp];
             if ( PFPToTrackScoreMap.find(pfp) != PFPToTrackScoreMap.end() ) {
                 m_reco_track_trackscore[i_trk] = PFPToTrackScoreMap[pfp];
+                m_reco_track_pfparticle_pdg[i_trk] = pfp->PdgCode();
             } else{
                 m_reco_track_trackscore[i_trk] = -999; 
+                m_reco_track_pfparticle_pdg[i_trk] = -999; 
             }
 
             //A loop over the trajectory points
@@ -602,15 +684,12 @@ namespace single_photon
             ){
 
 
-        if(m_is_verbose) std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite"<<std::endl;;
+        //if(m_is_verbose)           
+            std::cout<<"SinglePhoton::RecoMCTracks()\t||\t Begininning recob::Track Reco-MC suite on: "<<tracks.size()<<" tracks."<<std::endl;
 
         int i_trk = 0;
-        //for (TrackVector::const_iterator iter = tracks.begin(), iterEnd = tracks.end(); iter != iterEnd; ++iter)
-        for(size_t k =0; k< tracks.size();++k)    
 
-        {
-
-            //   const art::Ptr<recob::Track> track = *iter;
+        for(size_t k =0; k< tracks.size();++k){
             const art::Ptr<recob::Track> track = tracks[k];
             m_sim_track_matched[i_trk] = 0;
 
@@ -621,19 +700,37 @@ namespace single_photon
                 const art::Ptr<simb::MCTruth> mctruth = MCParticleToMCTruthMap[mcparticle];
                 const art::Ptr<recob::PFParticle> pfp = trackToPFParticleMap[track];
 
-                std::vector<double> corrected(3);
-                this->spacecharge_correction(mcparticle, corrected);
+                std::vector<double> correctedstart(3);
+                std::vector<double> correctedend(3);
+                std::vector<double> raw_End  ={mcparticle->EndX(), mcparticle->EndY(), mcparticle->EndZ()};
+               // std::cout<<"the raw end of this mcparticle is "<<raw_End[0]<<", "<<raw_End[1]<<", "<<raw_End[2]<<std::endl;
+                this->spacecharge_correction(mcparticle, correctedstart);
+                this->spacecharge_correction(mcparticle, correctedend, raw_End);
+                
+                //std::cout<<"the corrected end of this mcparticle is "<<correctedend[0]<<", "<<correctedend[1]<<", "<<correctedend[2]<<std::endl;
 
-
+           
                 m_sim_track_matched[i_trk] = 1;
                 m_sim_track_energy[i_trk] = mcparticle->E();
                 m_sim_track_mass[i_trk] = mcparticle->Mass();
                 m_sim_track_kinetic_energy[i_trk] = m_sim_track_energy[i_trk]-m_sim_track_mass[i_trk];
                 m_sim_track_pdg[i_trk] = mcparticle->PdgCode();
                 m_sim_track_process[i_trk] = mcparticle->Process();
-                m_sim_track_startx[i_trk] = corrected[0];
-                m_sim_track_starty[i_trk] = corrected[1];
-                m_sim_track_startz[i_trk] = corrected[2];
+                m_sim_track_startx[i_trk] = correctedstart[0];
+                m_sim_track_starty[i_trk] = correctedstart[1];
+                m_sim_track_startz[i_trk] = correctedstart[2];
+              
+                m_sim_track_endx[i_trk]= correctedend[0];
+                m_sim_track_endy[i_trk]= correctedend[1];
+                m_sim_track_endz[i_trk]= correctedend[2];
+            
+                m_sim_track_length[i_trk]= sqrt(pow( m_sim_track_endx[i_trk] -  m_sim_track_startx[i_trk], 2)+ pow( m_sim_track_endy[i_trk] -  m_sim_track_starty[i_trk], 2) + pow( m_sim_track_endz[i_trk] -  m_sim_track_startz[i_trk], 2));
+             
+                m_sim_track_px[i_trk]=  mcparticle->Px();
+                m_sim_track_py[i_trk]=  mcparticle->Py();
+                m_sim_track_pz[i_trk]=  mcparticle->Pz();
+             
+
                 m_sim_track_origin[i_trk] = mctruth->Origin();
                 m_sim_track_trackID[i_trk] = mcparticle->TrackId();
                 m_sim_track_overlay_fraction[i_trk] = vfrac[i_trk];
@@ -642,28 +739,20 @@ namespace single_photon
                 m_sim_track_nuscore[i_trk] = sliceIdToNuScoreMap[ m_sim_track_sliceId[i_trk]] ;
                 m_sim_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp]; 
 
-                // if(mcparticle->TrackId() != 0){
-                // }
-                //std::cout<<"looking for mother with track id "<<mcparticle->Mother()<<std::endl;
 
                 if(mcparticle->Mother()>=(int)mcParticleVector.size()){
-                    //if (MCParticleToTrackIdMap[mcparticle->Mother()].isNull()){   
                     m_sim_track_parent_pdg[i_trk] = -1;
                 }else{
                     m_sim_track_parent_pdg[i_trk] = mcParticleVector[mcparticle->Mother()]->PdgCode();
-                    // m_sim_track_parent_pdg[i_trk] = MCParticleToTrackIdMap[mcparticle->Mother()]->PdgCode();
                 }
 
-                //std::cout<<"the sim track id is "<<m_sim_track_trackID[i_trk]<<" and the pdg is "<<  m_sim_track_pdg[i_trk]<<" with parent pdg  "<<  m_sim_track_parent_pdg[i_trk]<<std::endl;
-                //if( m_sim_track_parent_pdg[i_trk] != -999){
-                //    std::cout <<" and the parent track id "<<  mcparticle->Mother() <<std::endl;
-                // }
 
 
                 }
                 i_trk++;
             }
 
+         return;
         }
 
 
@@ -1099,6 +1188,7 @@ namespace single_photon
 
                 //int planeid = 2;
                 for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++) {
+
                     anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
                     //int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneID);
                     int planeid = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);

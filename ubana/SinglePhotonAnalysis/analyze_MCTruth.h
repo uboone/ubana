@@ -10,6 +10,7 @@ namespace single_photon
         m_mctruth_nu_vertex_x = -9999;
         m_mctruth_nu_vertex_y = -9999;
         m_mctruth_nu_vertex_z = -9999;
+        m_mctruth_reco_vertex_dist = -9999;
         m_mctruth_ccnc = -99;
         m_mctruth_qsqr = -99;
         m_mctruth_nu_E = -99;
@@ -18,6 +19,24 @@ namespace single_photon
         m_mctruth_num_daughter_particles = -99;
         m_mctruth_daughters_pdg.clear();
         m_mctruth_daughters_E.clear();
+
+        m_mctruth_daughters_status_code.clear();
+        m_mctruth_daughters_trackID.clear();
+        m_mctruth_daughters_mother_trackID.clear();
+        m_mctruth_daughters_px.clear();
+        m_mctruth_daughters_py.clear();
+        m_mctruth_daughters_pz.clear();
+        m_mctruth_daughters_startx.clear();
+        m_mctruth_daughters_starty.clear();
+        m_mctruth_daughters_startz.clear();
+        m_mctruth_daughters_time.clear();
+        m_mctruth_daughters_endx.clear();
+        m_mctruth_daughters_endy.clear();
+        m_mctruth_daughters_endz.clear();
+        m_mctruth_daughters_endtime.clear();
+        m_mctruth_daughters_process.clear();
+        m_mctruth_daughters_end_process.clear();
+
 
         m_mctruth_is_delta_radiative = 0;
         m_mctruth_delta_radiative_1g1p_or_1g1n = -999;
@@ -49,6 +68,14 @@ namespace single_photon
 
         m_mctruth_pi0_leading_photon_energy = -9999;
         m_mctruth_pi0_subleading_photon_energy = -9999;
+        m_mctruth_pi0_leading_photon_end_process = "none";
+        m_mctruth_pi0_subleading_photon_end_process = "none";
+        m_mctruth_pi0_leading_photon_end = {-9999,-9999,-9999};
+        m_mctruth_pi0_leading_photon_start = {-9999,-9999,-9999};
+        m_mctruth_pi0_subleading_photon_end = {-9999,-9999,-9999};
+        m_mctruth_pi0_subleading_photon_start = {-9999,-9999,-9999};
+        m_mctruth_pi0_leading_photon_exiting_TPC = -999;
+        m_mctruth_pi0_subleading_photon_exiting_TPC = -999;
 
         m_mctruth_exiting_delta0_num_daughters.clear();
 
@@ -67,6 +94,22 @@ namespace single_photon
     void SinglePhoton::ResizeMCTruths(size_t size){
         m_mctruth_daughters_pdg.resize(size);
         m_mctruth_daughters_E.resize(size);
+        m_mctruth_daughters_status_code.resize(size);
+        m_mctruth_daughters_trackID.resize(size);
+        m_mctruth_daughters_mother_trackID.resize(size);
+        m_mctruth_daughters_px.resize(size);
+        m_mctruth_daughters_py.resize(size);
+        m_mctruth_daughters_pz.resize(size);
+        m_mctruth_daughters_startx.resize(size);
+        m_mctruth_daughters_starty.resize(size);
+        m_mctruth_daughters_startz.resize(size);
+        m_mctruth_daughters_time.resize(size);
+        m_mctruth_daughters_endx.resize(size);
+        m_mctruth_daughters_endy.resize(size);
+        m_mctruth_daughters_endz.resize(size);
+        m_mctruth_daughters_endtime.resize(size);
+        m_mctruth_daughters_end_process.resize(size);
+        m_mctruth_daughters_process.resize(size);
 
     }
 
@@ -80,6 +123,7 @@ namespace single_photon
         vertex_tree->Branch("mctruth_nu_vertex_x",&m_mctruth_nu_vertex_x);
         vertex_tree->Branch("mctruth_nu_vertex_y",&m_mctruth_nu_vertex_y);
         vertex_tree->Branch("mctruth_nu_vertex_z",&m_mctruth_nu_vertex_z);
+        vertex_tree->Branch("mctruth_reco_vertex_dist",&m_mctruth_reco_vertex_dist);
 
         vertex_tree->Branch("mctruth_lepton_pdg",&m_mctruth_lepton_pdg);
         vertex_tree->Branch("mctruth_lepton_E",&m_mctruth_lepton_E);
@@ -91,6 +135,24 @@ namespace single_photon
         vertex_tree->Branch("mctruth_num_daughter_particles",&m_mctruth_num_daughter_particles);
         vertex_tree->Branch("mctruth_daughters_pdg",&m_mctruth_daughters_pdg);
         vertex_tree->Branch("mctruth_daughters_E",&m_mctruth_daughters_E);
+        vertex_tree->Branch("mctruth_daughters_status_code",&m_mctruth_daughters_status_code);
+        vertex_tree->Branch("mctruth_daughters_trackID",&m_mctruth_daughters_trackID);
+        vertex_tree->Branch("mctruth_daughters_mother_trackID",&m_mctruth_daughters_mother_trackID);
+        vertex_tree->Branch("mctruth_daughters_px",&m_mctruth_daughters_px);
+        vertex_tree->Branch("mctruth_daughters_py",&m_mctruth_daughters_py);
+        vertex_tree->Branch("mctruth_daughters_pz",&m_mctruth_daughters_pz);
+        vertex_tree->Branch("mctruth_daughters_startx",&m_mctruth_daughters_startx);
+        vertex_tree->Branch("mctruth_daughters_starty",&m_mctruth_daughters_starty);
+        vertex_tree->Branch("mctruth_daughters_startz",&m_mctruth_daughters_startz);
+        vertex_tree->Branch("mctruth_daughters_time",&m_mctruth_daughters_time);
+        vertex_tree->Branch("mctruth_daughters_endx",&m_mctruth_daughters_endx);
+        vertex_tree->Branch("mctruth_daughters_endy",&m_mctruth_daughters_endy);
+        vertex_tree->Branch("mctruth_daughters_endz",&m_mctruth_daughters_endz);
+        vertex_tree->Branch("mctruth_daughters_endtime",&m_mctruth_daughters_endtime);
+        vertex_tree->Branch("mctruth_daughters_process",&m_mctruth_daughters_process);
+        vertex_tree->Branch("mctruth_daughters_end_process",&m_mctruth_daughters_end_process);
+
+
 
 
         vertex_tree->Branch("mctruth_num_exiting_protons",&m_mctruth_num_exiting_protons);
@@ -126,7 +188,16 @@ namespace single_photon
         vertex_tree->Branch("mctruth_num_reconstructable_protons",&m_mctruth_num_reconstructable_protons);
 
         vertex_tree->Branch("mctruth_pi0_leading_photon_energy",&m_mctruth_pi0_leading_photon_energy);
+        vertex_tree->Branch("mctruth_pi0_leading_photon_end_process",&m_mctruth_pi0_leading_photon_end_process);
+        vertex_tree->Branch("mctruth_pi0_leading_photon_start",&m_mctruth_pi0_leading_photon_start);
+        vertex_tree->Branch("mctruth_pi0_leading_photon_end",&m_mctruth_pi0_leading_photon_end);
+        vertex_tree->Branch("mctruth_pi0_leading_photon_exiting_TPC",&m_mctruth_pi0_leading_photon_exiting_TPC);
         vertex_tree->Branch("mctruth_pi0_subleading_photon_energy",&m_mctruth_pi0_subleading_photon_energy);
+        vertex_tree->Branch("mctruth_pi0_subleading_photon_end_process",&m_mctruth_pi0_subleading_photon_end_process);
+        vertex_tree->Branch("mctruth_pi0_subleading_photon_start",&m_mctruth_pi0_subleading_photon_start);
+        vertex_tree->Branch("mctruth_pi0_subleading_photon_end",&m_mctruth_pi0_subleading_photon_end);
+        vertex_tree->Branch("mctruth_pi0_subleading_photon_exiting_TPC",&m_mctruth_pi0_subleading_photon_exiting_TPC);
+
 
         vertex_tree->Branch("mctruth_exiting_pi0_E",&m_mctruth_exiting_pi0_E);
         vertex_tree->Branch("mctruth_exiting_pi0_px",&m_mctruth_exiting_pi0_px);
@@ -136,36 +207,58 @@ namespace single_photon
 
     void SinglePhoton::AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector , std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector){
         m_mctruth_num = mcTruthVector.size();
-        this->ResizeMCTruths(m_mctruth_num);
-
+        
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Starting to analyze "<<m_mctruth_num<<" simb::MCTruth's."<<std::endl;
         if(m_mctruth_num >1){
             std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t WARNING There is more than 1 MCTruth neutrino interaction. Just running over the first simb::MCTruth."<<std::endl;
+        }else if(m_mctruth_num==0){
+            std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t WARNING There is 0 MCTruth neutrino interaction. Break simb::MCTruth."<<std::endl;
         }
 
         //one mctruth per event.  contains list of all particles 
         for(int i=0; i<std::min(1,m_mctruth_num); i++){
             const art::Ptr<simb::MCTruth> truth = mcTruthVector[i];
 
+
             m_mctruth_origin = truth->Origin();
-            m_mctruth_ccnc = truth->GetNeutrino().CCNC();
-            m_mctruth_mode = truth->GetNeutrino().Mode();
-            m_mctruth_interaction_type = truth->GetNeutrino().InteractionType();
-            m_mctruth_qsqr = truth->GetNeutrino().QSqr();
-            m_mctruth_nu_pdg = truth->GetNeutrino().Nu().PdgCode();
-            m_mctruth_nu_E = truth->GetNeutrino().Nu().E();
-            m_mctruth_lepton_pdg = truth->GetNeutrino().Lepton().PdgCode();
-            m_mctruth_lepton_E = truth->GetNeutrino().Lepton().E();
+            if(m_is_verbose) std::cout<<"Getting origin "<<truth->Origin()<<std::endl;
 
-            std::vector<double> corrected(3);
-            this->spacecharge_correction( truth->GetNeutrino().Lepton(),corrected);
+            if(!truth->NeutrinoSet()){
+                if(m_is_verbose) std::cout<<"Warning, no neutrino set skipping. "<<std::endl;
+            }else{
+                if(m_is_verbose) std::cout<<"Getting origin "<<truth->Origin()<<std::endl;
+                m_mctruth_ccnc = truth->GetNeutrino().CCNC();
+                if(m_is_verbose) std::cout<<"Getting ccnc "<<truth->GetNeutrino().CCNC()<<std::endl;
+                m_mctruth_mode = truth->GetNeutrino().Mode();
+                if(m_is_verbose) std::cout<<"Getting Mode"<<std::endl;
+                m_mctruth_interaction_type = truth->GetNeutrino().InteractionType();
+                if(m_is_verbose) std::cout<<"Getting Type"<<std::endl;
+                m_mctruth_qsqr = truth->GetNeutrino().QSqr();
+                if(m_is_verbose) std::cout<<"Getting Q"<<std::endl;
+                m_mctruth_nu_pdg = truth->GetNeutrino().Nu().PdgCode();
+                if(m_is_verbose) std::cout<<"Getting E"<<std::endl;
+                m_mctruth_nu_E = truth->GetNeutrino().Nu().E();
+                if(m_is_verbose) std::cout<<"Getting pdg"<<std::endl;
+                m_mctruth_lepton_pdg = truth->GetNeutrino().Lepton().PdgCode();
+                if(m_is_verbose) std::cout<<"Getting pdg lepton"<<std::endl;
+                m_mctruth_lepton_E = truth->GetNeutrino().Lepton().E();
+                if(m_is_verbose) std::cout<<"Getting lepton E"<<std::endl;
+            
+                if(m_is_verbose) std::cout<<"Getting SC corrected vertex position"<<std::endl;
+                std::vector<double> corrected(3);
+                this->spacecharge_correction( truth->GetNeutrino().Lepton(),corrected);
 
-            m_mctruth_nu_vertex_x = corrected[0];
-            m_mctruth_nu_vertex_y = corrected[1];
-            m_mctruth_nu_vertex_z = corrected[2];
+                m_mctruth_nu_vertex_x = corrected[0];
+                m_mctruth_nu_vertex_y = corrected[1];
+                m_mctruth_nu_vertex_z = corrected[2];
+                m_mctruth_reco_vertex_dist = sqrt(pow (m_mctruth_nu_vertex_x-m_vertex_pos_x,2)+pow (m_mctruth_nu_vertex_y-m_vertex_pos_y,2)+pow (m_mctruth_nu_vertex_z-m_vertex_pos_z,2));
+            
+            }
 
 
+            if(m_is_verbose) std::cout<<"We are working with : ";
             m_mctruth_num_daughter_particles = truth->NParticles(); //MCTruth_NParticles
+            if(m_is_verbose) std::cout<<m_mctruth_num_daughter_particles<<" m_mctruth_num_daugher_particles "<<std::endl;
             this->ResizeMCTruths(m_mctruth_num_daughter_particles);
 
 
@@ -183,6 +276,22 @@ namespace single_photon
                 m_mctruth_daughters_pdg[j] = par.PdgCode();
                 m_mctruth_daughters_E[j] = par.E();
 
+                m_mctruth_daughters_status_code[j] = par.StatusCode();
+                m_mctruth_daughters_trackID[j] = par.TrackId();
+                m_mctruth_daughters_mother_trackID[j] = par.Mother();
+                m_mctruth_daughters_px[j] = par.Px();
+                m_mctruth_daughters_py[j] = par.Py();
+                m_mctruth_daughters_pz[j] = par.Pz();
+                m_mctruth_daughters_startx[j] = par.Vx();
+                m_mctruth_daughters_starty[j] = par.Vy();
+                m_mctruth_daughters_startz[j] = par.Vz();
+                m_mctruth_daughters_time[j] = par.T();
+                m_mctruth_daughters_endx[j] = par.EndX();
+                m_mctruth_daughters_endy[j] = par.EndY();
+                m_mctruth_daughters_endz[j] = par.EndZ();
+                m_mctruth_daughters_endtime[j] = par.EndT();
+                m_mctruth_daughters_process[j] = par.Process();
+                m_mctruth_daughters_end_process[j] = par.EndProcess();
 
 
                 switch(m_mctruth_daughters_pdg[j]){
@@ -193,16 +302,18 @@ namespace single_photon
                                 m_mctruth_exiting_photon_mother_trackID.push_back(par.Mother());
                                 m_mctruth_exiting_photon_trackID.push_back(par.TrackId());
                                 m_mctruth_exiting_photon_energy.push_back(par.E());
-
                             }
                          if(m_is_verbose)   std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Photon "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and photon energy "<<par.E()<<std::endl;
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
-                            const  simb::MCParticle mother = truth->GetParticle(par.Mother());
-                            if((par.StatusCode()==1 || par.StatusCode()==14 ) && is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
-                                m_mctruth_delta_photon_energy = par.E();
-                                tmp_n_photons_from_delta ++;
-                                m_mctruth_is_delta_radiative++;
+                            if((par.StatusCode()==1 || par.StatusCode()==14 )){
+                                const  simb::MCParticle mother = truth->GetParticle(par.Mother());
+                                
+                                if(is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
+                                  m_mctruth_delta_photon_energy = par.E();
+                                     tmp_n_photons_from_delta ++;
+                                    m_mctruth_is_delta_radiative++;
+                                }
                             }
                         }
                         break;
@@ -238,10 +349,13 @@ namespace single_photon
 
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
-                            const  simb::MCParticle mother = truth->GetParticle(par.Mother());
-                            if(par.StatusCode()==14 && is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
-                                m_mctruth_delta_proton_energy = par.E();
-                                tmp_n_protons_from_delta ++;
+                            if(par.StatusCode()==14 ){
+                                
+                                const  simb::MCParticle mother = truth->GetParticle(par.Mother());
+                                if(is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
+                                    m_mctruth_delta_proton_energy = par.E();
+                                    tmp_n_protons_from_delta ++;
+                                }
                             }
 
 
@@ -254,10 +368,12 @@ namespace single_photon
                       if(m_is_verbose)      std::cout<<"SingleProton::AnalyzeMCTruths()\t||\t Neutron "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and neutron energy "<<par.E()<<std::endl;
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
-                            const  simb::MCParticle mother = truth->GetParticle(par.Mother());
-                            if(par.StatusCode()==14 && is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
+                            if(par.StatusCode()==14){
+                                const  simb::MCParticle mother = truth->GetParticle(par.Mother());
+                                if(is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
                                 m_mctruth_delta_neutron_energy = par.E();
                                 tmp_n_neutrons_from_delta ++;
+                                }
                             }
                         }
 
@@ -370,8 +486,9 @@ namespace single_photon
                 simb::MCParticle nth_mother = mother;
                 int n_generation = 2;
 
-                while(nth_mother.StatusCode() != 0){
+                while(nth_mother.StatusCode() != 0 || n_generation < 4){
 
+                    if(nth_mother.Mother()<0) break;
                     nth_mother = truth->GetParticle(nth_mother.Mother()); 
                     std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t ---- and "<<n_generation<<"-mother "<<nth_mother.PdgCode()<<" ("<<nth_mother.TrackId()<<") and status_code "<<nth_mother.StatusCode()<<std::endl;
                     if( is_delta_map.count(nth_mother.PdgCode())>0 && nth_mother.StatusCode()==3){
@@ -393,8 +510,8 @@ namespace single_photon
                 simb::MCParticle nth_mother = mother;
                 int n_generation = 2;
 
-                while(nth_mother.StatusCode() != 0){
-
+                while(nth_mother.StatusCode() != 0 && n_generation < 4){
+                    if(nth_mother.Mother()<0) break;
                     nth_mother = truth->GetParticle(nth_mother.Mother()); 
                     if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t ---- and "<<n_generation<<"-mother "<<nth_mother.PdgCode()<<" ("<<nth_mother.TrackId()<<") and status_code "<<nth_mother.StatusCode()<<std::endl;
                     if(is_delta_map.count(nth_mother.PdgCode())>0 && nth_mother.StatusCode()==3){
@@ -406,9 +523,6 @@ namespace single_photon
 
 
             }
-
-
-
 
 
             if(m_is_verbose){
@@ -444,12 +558,59 @@ namespace single_photon
 
                 double e1 = dau1->E();
                 double e2 = dau2->E();
+
+                std::vector<double> raw_1_End  ={dau1->EndX(), dau1->EndY(), dau1->EndZ()};
+                std::vector<double> raw_1_Start  ={dau1->Vx(), dau1->Vy(), dau1->Vz()};
+            
+                std::vector<double> raw_2_End  ={dau2->EndX(), dau2->EndY(), dau2->EndZ()};
+                std::vector<double> raw_2_Start  ={dau2->Vx(), dau2->Vy(), dau2->Vz()};
+
+                std::vector<double> corrected_1_start(3), corrected_2_start(3);
+                std::vector<double> corrected_1_end(3), corrected_2_end(3);
+
+                this->spacecharge_correction(dau1, corrected_1_start, raw_1_Start);
+                this->spacecharge_correction(dau1, corrected_1_end, raw_1_End);
+                
+                this->spacecharge_correction(dau2, corrected_2_start, raw_2_Start);
+                this->spacecharge_correction(dau2, corrected_2_end, raw_2_End);
+
+                for(int p1=0; p1<dau1->NumberDaughters();p1++){
+                        auto dd = mcParticleVector[mymap[dau1->Daughter(p1)]];
+                        std::cout<<"Post1 "<<dd->PdgCode()<<" "<<dd->TrackId()<<" "<<dd->StatusCode()<<" "<<dd->EndProcess()<<std::endl;
+                }
+ 
+                for(int p1=0; p1<dau2->NumberDaughters();p1++){
+                        auto dd = mcParticleVector[mymap[dau2->Daughter(p1)]];
+                        std::cout<<"Post2 "<<dd->PdgCode()<<" "<<dd->TrackId()<<" "<<dd->StatusCode()<<" "<<dd->EndProcess()<<" "<<dd->E()<<std::endl;
+                }
+                
+                int exit1 = this->isInTPCActive(corrected_1_end);
+                int exit2 = this->isInTPCActive(corrected_2_end);
+
                 if(e2<e1){
                     m_mctruth_pi0_leading_photon_energy = e1;
                     m_mctruth_pi0_subleading_photon_energy = e2;
+                    m_mctruth_pi0_leading_photon_end_process = dau1->EndProcess();
+                    m_mctruth_pi0_subleading_photon_end_process = dau2->EndProcess();
+                    m_mctruth_pi0_leading_photon_start = corrected_1_start;
+                    m_mctruth_pi0_leading_photon_end = corrected_1_end;
+                    m_mctruth_pi0_subleading_photon_start = corrected_2_start;
+                    m_mctruth_pi0_subleading_photon_end = corrected_2_end;
+                    m_mctruth_pi0_subleading_photon_exiting_TPC =exit1; 
+                    m_mctruth_pi0_leading_photon_exiting_TPC = exit2;
+
                 }else{
                     m_mctruth_pi0_leading_photon_energy = e2;
                     m_mctruth_pi0_subleading_photon_energy = e1;
+                    m_mctruth_pi0_leading_photon_end_process = dau2->EndProcess();
+                    m_mctruth_pi0_subleading_photon_end_process = dau1->EndProcess();
+                    m_mctruth_pi0_leading_photon_start = corrected_2_start;
+                    m_mctruth_pi0_leading_photon_end = corrected_2_end;
+                    m_mctruth_pi0_subleading_photon_start = corrected_1_start;
+                    m_mctruth_pi0_subleading_photon_end = corrected_1_end;
+                    m_mctruth_pi0_subleading_photon_exiting_TPC = exit2;
+                    m_mctruth_pi0_leading_photon_exiting_TPC = exit1;
+
                 }
 
             }

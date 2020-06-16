@@ -10,7 +10,51 @@
 #include "config_particle_identification_producerlabels.fcl"
 #include "shrreco3d.fcl"
 #include "reco_uboone_mcc9_8.fcl"
-#include "microboone_singlephoton.fcl"
+
+singlephoton_analyzer:{
+
+    module_type:    SinglePhoton
+    PandoraLabel:   "pandora"
+    TrackLabel:     "pandora"
+    ShowerLabel:    "pandora"
+    ParticleIDLabel:"pandoracalipidSCE"
+    CaloLabel:      "pandoracaliSCE"
+    FlashLabel:     "simpleFlashBeam"
+    POTLabel:       "generator"
+    input_param:    "optional" 
+
+    SEAviewHitThreshold: 25
+    SEAviewDBSCANMinPts: 8
+    SEAviewDBSCANEps: 4
+    SEAviewPlotDistance: 80
+    SEAviewMaxHitsLinFit: 20.0
+    SEAviewMakePDF: false
+
+    FillTrees: true
+    RunPi0Filter: false
+    FilterMode2g1p: false
+    FilterMode2g0p: false
+ 
+    usePID: true 
+    work_function: 23.6
+    recombination_factor: 0.62
+    gain_mc: [235.5, 249.7, 237.6] #DocDB 20227-v7 using dE/dx calibration method for all planes, updated on 9/13/19
+    gain_data: [230.3, 237.6, 243.7] #see above docdb
+    wire_spacing : 0.3 
+    width_box : 1.
+    length_box : 4.
+    
+    truthmatching_signaldef : "ncdelta"
+    runAllPFPs: "false"
+    exiting_photon_energy: 0.02
+    exiting_proton_energy: 0.978  #40Mev + proton mass 
+
+    runCRT: "false"
+    DTOffset: 68600.0 #us, taken from ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+    Resolution: 1.0 #same as above
+    DAQHeaderProducer: "daq" #ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
+
+    }
 
 process_name : SinglePhoton      #The process name must NOT contain any underscores
 
@@ -50,7 +94,6 @@ physics: {
  }
  analyzers: {}
  filters : {
-        #singlephotonfil: @local::singlephoton_filter   #run in filtering mode
         singlephotonana: @local::singlephoton_analyzer   #run in ana mode
  }
  pathana : [allShr, singlephotonana] #path for analysis
@@ -75,3 +118,8 @@ services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
 services.DetectorClocksService.TrigModuleName:               "daq"
 services.DetectorClocksService.InheritClockConfig: false
 
+physics.filters.singlephotonana.isData: "true"
+physics.filters.singlephotonana.POTLabel: "beamdata"
+physics.filters.singlephotonana.beamgateStartTime: 3.19
+physics.filters.singlephotonana.beamgateEndTime: 4.87
+physics.filters.singlephotonana.BadChannelProducer: "nfspl1"
