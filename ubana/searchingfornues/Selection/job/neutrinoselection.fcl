@@ -106,6 +106,7 @@ DefaultAnalysisTool: {
     CRTVetoproducer: ""
     CLSproducer: "pandora"
     MCTproducer: "generator"
+    MCFluxproducer: "generator"
     Hproducer: "gaushit"
     BacktrackTag: "gaushitTruthMatch"
     MCRproducer: "mcreco"
@@ -175,6 +176,7 @@ PMTNoiseTool: {
 
 BDTTool: {
     tool_type: "BDT"
+    #TrigResProducer: ""
     TrigResProducer: "TriggerResults::DataFiltersPostStage2"
 }
 
