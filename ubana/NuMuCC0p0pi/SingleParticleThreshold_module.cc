@@ -418,14 +418,14 @@ void ParticleThreshold::analyze(art::Event const& evt)
       TVector3 Trk_start = AllTrackCollection[trk_id]->Vertex<TVector3>();
       auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
       TVector3 Trk_start_SCEcorr;
-      Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
+      Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X() + 0.6);
       Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
       Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
 
       TVector3 Trk_end = AllTrackCollection[trk_id]->End<TVector3>();
       auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
       TVector3 Trk_end_SCEcorr;
-      Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X());
+      Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X() + 0.6);
       Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
       Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
 
