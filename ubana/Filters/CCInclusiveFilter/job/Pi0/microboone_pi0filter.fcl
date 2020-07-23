@@ -1,0 +1,18 @@
+BEGIN_PROLOG
+
+mcc9pi0selection: {
+    module_type: "MCC9Pi0Filter"
+    PANDORAproducer: "pandora"
+    SHRproducer: "shrreco3d"
+    MCTproducer: "generator"
+    MCPproducer: "largeant"
+    IsData: false
+    RMin: 3.0
+    DotMin: 0.8
+    TrkShrScore: 0.75
+    E1Min: 50
+    E2Min: 20
+    GammaDotMax: 0.94
+}
+        
+END_PROLOG

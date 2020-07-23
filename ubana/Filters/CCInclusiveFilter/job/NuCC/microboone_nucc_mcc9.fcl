@@ -1,0 +1,40 @@
+BEGIN_PROLOG
+
+microboone_nucc_producer:
+{
+  module_type: "NuCCproducer"
+
+  pfp_producer: "pandora"
+  hitfinder_producer: "gaushit"
+
+  vtx_fid_x_start: 10
+  vtx_fid_y_start: 10
+  vtx_fid_z_start: 10
+  vtx_fid_x_end: 10
+  vtx_fid_y_end: 10
+  vtx_fid_z_end: 50
+  pfp_start_border: 10
+
+  muon_cut_trackscore: 0.85
+  muon_cut_vtxdistance: 4.0
+  muon_cut_protonchi2: 60
+  muon_cut_chiratio: 7
+  muon_cut_length: 5
+
+  event_cut_flashchi2: 10
+  event_cut_nuscore_soft: 0.25
+  event_cut_nuscore_hard: 0.06
+  event_cut_flashchi2_ratio: 5
+  event_cut_length: 20
+
+}
+
+microboone_nucc_filter:
+{
+  module_type: "NuCCfilter"
+
+  pfp_producer: "pandora"
+  muon_producer: "NuCCproducer"
+}
+
+END_PROLOG

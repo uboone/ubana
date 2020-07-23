@@ -30,15 +30,14 @@ microboone_calibrationdedx :
     Corr_X:                  ["correction_x_plane0", "correction_x_plane1", "correction_x_plane2"]
     UseRecoTrackDir:         true
     CaloAlg:                 @local::microboone_calorimetryalgmcc84mc
-    #default modified box model parameters for MC
     ModBoxA:                 0.930 
     ModBoxB:                 0.212
+    CorrectSCE:              false
+    ForceUnity:              true
+    ELifetimeCorrection:     true
 }
 
 microboone_calibrationdedx_data :        @local::microboone_calibrationdedx
 microboone_calibrationdedx_data.CaloAlg: @local::microboone_calorimetryalgmcc84data
-#retuned modified box model by Raquel for data
-microboone_calibrationdedx_data.ModBoxA: 0.9220
-microboone_calibrationdedx_data.ModBoxB: 0.1836
 
 END_PROLOG

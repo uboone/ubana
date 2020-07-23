@@ -12,6 +12,7 @@ simple_plugin( CellTreeUB "module"
 	       larevt_CalibrationDBI_IOVData
 	       larcorealg_Geometry
 	       larcore_Geometry_Geometry_service
+	       larsim_EventWeight_Base
 	       ubraw_RawData
                ${ART_FRAMEWORK_CORE}
                ${ART_FRAMEWORK_IO_SOURCES}
@@ -43,6 +44,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
 			lardataobj_RecoBase
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
+			larsim_EventWeight_Base
                         ${UBDut}
                         ${PQ}
                         ${Boost_SERIALIZATION_LIBRARY}
@@ -78,6 +80,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         larcoreobj_SummaryData
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
+			larsim_EventWeight_Base
 			ubevt_Database
                         uboone_MicroBooNEWireCell
                         ${UBDut}

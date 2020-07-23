@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<!-- project details -->
+<!DOCTYPE project [
+<!ENTITY release "v06_26_01_12">
+<!ENTITY name "PIDproducer_MCtwotr_v1">
+<!ENTITY scratch_dir "/pnfs/uboone/scratch/users/kduffy/PID/PIDproducer_MCtwotr_v1">
+<!ENTITY resilient_dir "/pnfs/uboone/resilient/users/kduffy/PID/PIDproducer_MCtwotr_v1">
+<!ENTITY app_dir "/uboone/app/users/kduffy/CC1pi/CC1pi_uboonecode/srcs/uboonecode/uboone/ParticleID">
+<!ENTITY data_dir "/uboone/data/users/kduffy/PIDproducer_MCtwotr_v1">
+]>
+
+<job>
+
+<project name="&name;">
+
+    <!-- project size -->
+    <numevents>50</numevents>
+
+    <!-- batchOS -->
+    <os>SL6</os>
+
+    <resource>DEDICATED,OPPORTUNISTIC</resource>
+
+    <!-- larsoft info -->
+    <larsoft>
+        <tag>&release;</tag>    
+        <qual>e10:prof</qual>
+        <local>/pnfs/uboone/resilient/users/kduffy/tars/pid_test.tar</local>
+    </larsoft>
+
+    <!-- diffusion filter -->
+    <stage name="particleId">
+        <inputdef>kduffy_prodgenie_bnb_nu_cosmic_uboone_mcc8.7_reco2_dev_twotrfilter_1000files</inputdef>
+        <fcl>&app_dir;/job/run_particle_identification_withvalid.fcl</fcl>
+        <bookdir>&data_dir;</bookdir>
+        <workdir>&resilient_dir;</workdir>
+        <outdir>&scratch_dir;</outdir>
+        <logdir>&scratch_dir;</logdir>
+        <numjobs>250</numjobs>
+        <maxfilesperjob>4</maxfilesperjob>
+        <memory>8000</memory>
+        <datatier>pid</datatier>
+        <!--<inputstream>test</inputstream>-->
+        <schema>root</schema>
+   </stage>
+
+</project>
+
+</job>
