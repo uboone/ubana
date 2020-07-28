@@ -134,7 +134,9 @@ private:
     unsigned int _n_showers_contained; /**< Number of showers with a starting point within the fiducial volume */
     unsigned int _n_tracks_contained;  /**< Number of tracks fully contained in the fiducial volume */
     unsigned int _shr_hits_max;        /**< Number of hits of the leading shower */
+    unsigned int _shr_hits_2nd;        /**< Number of hits of the 2nd leading shower */
     unsigned int _trk_hits_max;        /**< Number of hits of the leading track */
+    unsigned int _trk_hits_2nd;        /**< Number of hits of the 2nd leading track */
     unsigned int _shr_hits_tot;        /**< Total number of shower hits */
     unsigned int _trk_hits_tot;        /**< Total number of track hits */
     unsigned int _trk_hits_y_tot;      /**< Total number of track hits on the Y plane */
@@ -176,6 +178,7 @@ private:
     float _shr_bragg_kaon;             /**< Kaon Bragg likelihood for the leading shower (with the shower reconstructed as track) */
 
     size_t _shr_pfp_id; /**< Index of the leading shower in the PFParticle vector */
+    size_t _shr2_pfp_id; /**< Index of the 2nd leading shower in the PFParticle vector */
 
     float _trk_len;             /**< Length of the longest track */
     float _trk_energy;          /**< Energy of the longest track assuming it's a proton and using stopping power in LAr */
@@ -189,6 +192,7 @@ private:
     float _trk_theta;           /**< Reconstructed theta angle for the longest track */
     float _trk_phi;             /**< Reconstructed phi angle for the longest track */
     size_t _trk_pfp_id;         /**< Index of the longest track in the PFParticle vector */
+    size_t _trk2_pfp_id;         /**< Index of the 2nd longest track in the PFParticle vector */
 
     float _hits_ratio;     /**< Ratio between hits from showers and total number of hits */
     float _trk_bragg_p;    /**< Proton Bragg likelihood score for the longest track */
@@ -230,10 +234,18 @@ private:
     int _subcluster;
     float _shrclusfrac0, _shrclusfrac1, _shrclusfrac2;        /**< what fraction of the total charge does the dominant shower sub-cluster carry? */
     float _shrclusdir0, _shrclusdir1, _shrclusdir2;        /**< 2D charge-weighted direction of shower hits calculated from neutrino vertex w.r.t. vertical in plane */
-    float _trkshrhitdist0, _trkshrhitdist1, _trkshrhitdist2;  /**< distance between hits of shower and track in 2D on each palne based on hit-hit distances */
+    float _trkshrhitdist0, _trkshrhitdist1, _trkshrhitdist2;  /**< distance between hits of shower and track in 2D on each plane based on hit-hit distances */
+    float _trk2shrhitdist0, _trk2shrhitdist1, _trk2shrhitdist2;  /**< distance between hits of shower and the 2nd track in 2D on each plane based on hit-hit distances */
+    float _trk1trk2hitdist0, _trk1trk2hitdist1, _trk1trk2hitdist2;  /**< distance between hits of 1st and 2nd tracks in 2D on each plane based on hit-hit distances */
 
   float _shrmoliereavg; /**< avg of moliere angle */
   float _shrmoliererms; /**< rms of moliere angle */
+  float _shr1shr2moliereavg; /**< avg of moliere angle, merging the two leading showers */
+  float _shr1shr2moliererms; /**< rms of moliere angle, merging the two leading showers */
+  float _shr1trk1moliereavg; /**< avg of moliere angle, merging the leading shower and track */
+  float _shr1trk1moliererms; /**< rms of moliere angle, merging the leading shower and track */
+  float _shr1trk2moliereavg; /**< avg of moliere angle, merging the leading shower and 2nd leading track */
+  float _shr1trk2moliererms; /**< rms of moliere angle, merging the leading shower and 2nd leading track */
 
   bool _ismerged;
 
@@ -582,96 +594,42 @@ bool CC0piNpSelection::selectEvent(art::Event const &e,
 
                 _n_showers_contained++;
 
-                auto &pca_pxy_v = pfp_pxy.get<recob::PCAxis>();
-                if (pca_pxy_v.size() > 0)
-                {
-                    _shr_pca_0 = pca_pxy_v[0]->getEigenValues()[0];
-                    _shr_pca_1 = pca_pxy_v[0]->getEigenValues()[1];
-                    _shr_pca_2 = pca_pxy_v[0]->getEigenValues()[2];
-                }
+		// store hits for each plane
+		std::vector<std::vector<art::Ptr<recob::Hit>>> cluster_hits_v_v(3, std::vector<art::Ptr<recob::Hit>>());
 
-                // store hits for each plane
-                std::vector<std::vector<art::Ptr<recob::Hit>>> cluster_hits_v_v(3, std::vector<art::Ptr<recob::Hit>>());
+		for (auto ass_clus : clus_pxy_v)
+		{
+		  // get cluster proxy
+		  const auto &clus = clus_proxy[ass_clus.key()];
+		  auto clus_hit_v = clus.get<recob::Hit>();
+		  shr_hits += clus_hit_v.size();
+		  for (const auto &hit : clus_hit_v)
+		  {
+		    hit_v.push_back(hit);
+		  }
+		  if (clus->Plane().Plane == 0)
+		  {
+		    _shr_hits_u_tot += clus_hit_v.size();
+		    // gather hits from this plane's cluster
+		    for (size_t h = 0; h < clus_hit_v.size(); h++)
+		      cluster_hits_v_v[0].push_back(clus_hit_v[h]);
+		  }
+		  else if (clus->Plane().Plane == 1)
+		  {
+		    _shr_hits_v_tot += clus_hit_v.size();
+		    // gather hits from this plane's cluster
+		    for (size_t h = 0; h < clus_hit_v.size(); h++)
+		      cluster_hits_v_v[1].push_back(clus_hit_v[h]);
+		  }
+		  else if (clus->Plane().Plane == 2)
+		  {
+		    _shr_hits_y_tot += clus_hit_v.size();
+		    // gather hits from this plane's cluster
+		    for (size_t h = 0; h < clus_hit_v.size(); h++)
+		      cluster_hits_v_v[2].push_back(clus_hit_v[h]);
+		  }
+		} // for all clusters associated to this shower
 
-                for (auto ass_clus : clus_pxy_v)
-                {
-                    // get cluster proxy
-                    const auto &clus = clus_proxy[ass_clus.key()];
-                    auto clus_hit_v = clus.get<recob::Hit>();
-                    shr_hits += clus_hit_v.size();
-                    for (const auto &hit : clus_hit_v)
-                    {
-                        hit_v.push_back(hit);
-                    }
-                    if (clus->Plane().Plane == 0)
-                    {
-                        _shr_hits_u_tot += clus_hit_v.size();
-                        // gather hits from this plane's cluster
-                        for (size_t h = 0; h < clus_hit_v.size(); h++)
-                            cluster_hits_v_v[0].push_back(clus_hit_v[h]);
-                    }
-                    else if (clus->Plane().Plane == 1)
-                    {
-                        _shr_hits_v_tot += clus_hit_v.size();
-                        // gather hits from this plane's cluster
-                        for (size_t h = 0; h < clus_hit_v.size(); h++)
-                            cluster_hits_v_v[1].push_back(clus_hit_v[h]);
-                    }
-                    else if (clus->Plane().Plane == 2)
-                    {
-                        _shr_hits_y_tot += clus_hit_v.size();
-                        // gather hits from this plane's cluster
-                        for (size_t h = 0; h < clus_hit_v.size(); h++)
-                            cluster_hits_v_v[2].push_back(clus_hit_v[h]);
-                    }
-                } // for all clusters associated to this shower
-
-                for (size_t pl = 0; pl < 3; pl++)
-                {
-                    int nclus = 0;
-                    float hitfracmax = 0.;
-		    // store direction of 2Dhits in cluster w.r.t. vertical on plane
-		    float clusterdir = 0;
-                    std::vector<std::vector<unsigned int>> out_cluster_v;
-                    if (cluster_hits_v_v[pl].size())
-                    {
-		      searchingfornues::cluster(cluster_hits_v_v[pl], out_cluster_v, 2.0, 1.0);
-		      clusterdir = searchingfornues::ClusterVtxDirection(nuvtx,cluster_hits_v_v[pl],_wire2cm,_time2cm);
-                        // find how many clusters above some # of hit threshold there are
-                        // find cluste with largest fraction of all hits
-                        float tothits = cluster_hits_v_v[pl].size();
-                        for (size_t nc = 0; nc < out_cluster_v.size(); nc++)
-                        {
-                            auto clus_hit_idx_v = out_cluster_v.at(nc);
-                            int nhitclus = clus_hit_idx_v.size();
-                            if (nhitclus > 3.)
-                                nclus += 1;
-                            float hitfrac = nhitclus / tothits;
-                            if (hitfrac > hitfracmax)
-                                hitfracmax = hitfrac;
-                        } // for all sub-clusters
-                    }     // if there are any hits on this plane
-                    if (pl == 0)
-                    {
-                        _shrsubclusters0 = nclus;
-                        _shrclusfrac0 = hitfracmax;
-			_shrclusdir0  = clusterdir;
-                    }
-                    if (pl == 1)
-                    {
-                        _shrsubclusters1 = nclus;
-                        _shrclusfrac1 = hitfracmax;
-			_shrclusdir1  = clusterdir;
-                    }
-                    if (pl == 2)
-                    {
-                        _shrsubclusters2 = nclus;
-                        _shrclusfrac2 = hitfracmax;
-			_shrclusdir2  = clusterdir;
-                    }
-                } // for all planes
-
-		_subcluster = _shrsubclusters0 + _shrsubclusters1 + _shrsubclusters2;
                 _shr_energy_tot += shr->Energy()[2] / 1000;
 
                 std::vector<float> cali_corr(3);
@@ -679,6 +637,22 @@ bool CC0piNpSelection::selectEvent(art::Event const &e,
                 _shr_energy_tot_cali += shr->Energy()[2] / 1000 * cali_corr[2];
 
                 _shr_hits_tot += shr_hits;
+
+		if (shr_hits > _shr_hits_2nd)
+		{
+		  if (shr_hits > _shr_hits_max)
+		  {
+		    // set 2nd to max (max will be updated to current below)
+		    _shr_hits_2nd = _shr_hits_max;
+                    _shr2_pfp_id = _shr_pfp_id;
+		  }
+		  else
+		  {
+		    // set 2nd to current, leave max unchanged
+		    _shr_hits_2nd = shr_hits;
+                    _shr2_pfp_id = i_pfp;
+		  }
+		}
 
 		// if this is the shower with most hits, take as the main shower
                 if (shr_hits > _shr_hits_max)
@@ -744,6 +718,61 @@ bool CC0piNpSelection::selectEvent(art::Event const &e,
                     _shr_py = shr_p.Y();
                     _shr_pz = shr_p.Z();
                     _shr_openangle = shr->OpenAngle();
+
+		    auto &pca_pxy_v = pfp_pxy.get<recob::PCAxis>();
+		    if (pca_pxy_v.size() > 0)
+		    {
+		      _shr_pca_0 = pca_pxy_v[0]->getEigenValues()[0];
+		      _shr_pca_1 = pca_pxy_v[0]->getEigenValues()[1];
+		      _shr_pca_2 = pca_pxy_v[0]->getEigenValues()[2];
+		    }
+
+		    for (size_t pl = 0; pl < 3; pl++)
+		    {
+		      int nclus = 0;
+		      float hitfracmax = 0.;
+		      // store direction of 2Dhits in cluster w.r.t. vertical on plane
+		      float clusterdir = 0;
+		      std::vector<std::vector<unsigned int>> out_cluster_v;
+		      if (cluster_hits_v_v[pl].size())
+		      {
+			searchingfornues::cluster(cluster_hits_v_v[pl], out_cluster_v, 2.0, 1.0);
+			clusterdir = searchingfornues::ClusterVtxDirection(nuvtx,cluster_hits_v_v[pl],_wire2cm,_time2cm);
+                        // find how many clusters above some # of hit threshold there are
+                        // find cluste with largest fraction of all hits
+                        float tothits = cluster_hits_v_v[pl].size();
+                        for (size_t nc = 0; nc < out_cluster_v.size(); nc++)
+			{
+			  auto clus_hit_idx_v = out_cluster_v.at(nc);
+			  int nhitclus = clus_hit_idx_v.size();
+			  if (nhitclus > 3.)
+			    nclus += 1;
+			  float hitfrac = nhitclus / tothits;
+			  if (hitfrac > hitfracmax)
+			    hitfracmax = hitfrac;
+                        } // for all sub-clusters
+		      }     // if there are any hits on this plane
+		      if (pl == 0)
+		      {
+                        _shrsubclusters0 = nclus;
+                        _shrclusfrac0 = hitfracmax;
+			_shrclusdir0  = clusterdir;
+		      }
+		      if (pl == 1)
+		      {
+                        _shrsubclusters1 = nclus;
+                        _shrclusfrac1 = hitfracmax;
+			_shrclusdir1  = clusterdir;
+		      }
+		      if (pl == 2)
+		      {
+                        _shrsubclusters2 = nclus;
+                        _shrclusfrac2 = hitfracmax;
+			_shrclusdir2  = clusterdir;
+		      }
+		    } // for all planes
+
+		    _subcluster = _shrsubclusters0 + _shrsubclusters1 + _shrsubclusters2;
 
                     if (tkcalo_proxy == NULL)
                     {
@@ -1054,6 +1083,22 @@ bool CC0piNpSelection::selectEvent(art::Event const &e,
                         _trk_pidchimu_worst = chimu;
                 }
 
+		if (trk_hits > _trk_hits_2nd)
+		{
+		  if (trk_hits > _trk_hits_max)
+		  {
+		    // set 2nd to max (max will be updated to current below)
+		    _trk_hits_2nd = _trk_hits_max;
+                    _trk2_pfp_id = _trk_pfp_id;
+		  }
+		  else
+		  {
+		    // set 2nd to current, leave max unchanged
+		    _trk_hits_2nd = trk_hits;
+                    _trk2_pfp_id = i_pfp;
+		  }
+		}
+
                 if (trk_hits > _trk_hits_max)
                 {
                     if (!fData)
@@ -1237,7 +1282,21 @@ bool CC0piNpSelection::selectEvent(art::Event const &e,
     _trkshrhitdist0 = trkshrhitdist_v[0];
     _trkshrhitdist1 = trkshrhitdist_v[1];
     _trkshrhitdist2 = trkshrhitdist_v[2];
+    auto trk2shrhitdist_v = searchingfornues::GetPFPHitDistance(pfp_pxy_v[_trk2_pfp_id], pfp_pxy_v[_shr_pfp_id], clus_proxy);
+    _trk2shrhitdist0 = trk2shrhitdist_v[0];
+    _trk2shrhitdist1 = trk2shrhitdist_v[1];
+    _trk2shrhitdist2 = trk2shrhitdist_v[2];
+    auto trk1trk2hitdist_v = searchingfornues::GetPFPHitDistance(pfp_pxy_v[_trk_pfp_id], pfp_pxy_v[_trk2_pfp_id], clus_proxy);
+    _trk1trk2hitdist0 = trk1trk2hitdist_v[0];
+    _trk1trk2hitdist1 = trk1trk2hitdist_v[1];
+    _trk1trk2hitdist2 = trk1trk2hitdist_v[2];
 
+    // compute the merged moliere averages after we figured out all ids... but for consistency skip if the original failed
+    if (_shrmoliereavg>0.) {
+      searchingfornues::GetMoliereRadiusMergedShowers(pfp_pxy_v[_shr_pfp_id],pfp_pxy_v[_shr2_pfp_id],_shr1shr2moliereavg,_shr1shr2moliererms);
+      searchingfornues::GetMoliereRadiusMergedShowers(pfp_pxy_v[_shr_pfp_id],pfp_pxy_v[_trk_pfp_id],_shr1trk1moliereavg,_shr1trk1moliererms);
+      searchingfornues::GetMoliereRadiusMergedShowers(pfp_pxy_v[_shr_pfp_id],pfp_pxy_v[_trk2_pfp_id],_shr1trk2moliereavg,_shr1trk2moliererms);
+    }
 
     _extra_energy_y -= (_trk_energy_hits_tot + _shr_energy_tot);
     _pt = total_p.Perp();
@@ -1273,9 +1332,13 @@ void CC0piNpSelection::resetTTree(TTree *_tree)
 
     _shr_pfp_id = 0;
     _trk_pfp_id = 0;
+    _shr2_pfp_id = 0;
+    _trk2_pfp_id = 0;
 
     _trk_hits_max = 0;
     _shr_hits_max = 0;
+    _trk_hits_2nd = 0;
+    _shr_hits_2nd = 0;
 
     _shr_dedx_Y = std::numeric_limits<float>::lowest();
     _shr_dedx_V = std::numeric_limits<float>::lowest();
@@ -1345,6 +1408,12 @@ void CC0piNpSelection::resetTTree(TTree *_tree)
     _trkshrhitdist0 = std::numeric_limits<float>::lowest();
     _trkshrhitdist1 = std::numeric_limits<float>::lowest();
     _trkshrhitdist2 = std::numeric_limits<float>::lowest();
+    _trk2shrhitdist0 = std::numeric_limits<float>::lowest();
+    _trk2shrhitdist1 = std::numeric_limits<float>::lowest();
+    _trk2shrhitdist2 = std::numeric_limits<float>::lowest();
+    _trk1trk2hitdist0 = std::numeric_limits<float>::lowest();
+    _trk1trk2hitdist1 = std::numeric_limits<float>::lowest();
+    _trk1trk2hitdist2 = std::numeric_limits<float>::lowest();
 
     _trk_theta = std::numeric_limits<float>::lowest();
     _trk_phi = std::numeric_limits<float>::lowest();
@@ -1415,6 +1484,12 @@ void CC0piNpSelection::resetTTree(TTree *_tree)
 
     _shrmoliereavg = std::numeric_limits<float>::lowest();
     _shrmoliererms = std::numeric_limits<float>::lowest();
+    _shr1shr2moliereavg = std::numeric_limits<float>::lowest();
+    _shr1shr2moliererms = std::numeric_limits<float>::lowest();
+    _shr1trk1moliereavg = std::numeric_limits<float>::lowest();
+    _shr1trk1moliererms = std::numeric_limits<float>::lowest();
+    _shr1trk2moliereavg = std::numeric_limits<float>::lowest();
+    _shr1trk2moliererms = std::numeric_limits<float>::lowest();
 
     _ismerged = false;
     _merge_bestdot = std::numeric_limits<float>::lowest();
@@ -1472,6 +1547,8 @@ void CC0piNpSelection::setBranches(TTree *_tree)
 
     _tree->Branch("trk_id", &_trk_pfp_id, "trk_pfp_id/i");
     _tree->Branch("shr_id", &_shr_pfp_id, "shr_pfp_id/i");
+    _tree->Branch("trk2_id", &_trk2_pfp_id, "trk2_pfp_id/i");
+    _tree->Branch("shr2_id", &_shr2_pfp_id, "shr2_pfp_id/i");
 
     _tree->Branch("shr_energy_tot", &_shr_energy_tot, "shr_energy_tot/F");
     _tree->Branch("shr_energy", &_shr_energy, "shr_energy/F");
@@ -1524,6 +1601,12 @@ void CC0piNpSelection::setBranches(TTree *_tree)
     _tree->Branch("shr_trkfitmedangle", &_shr_trkfitmedangle, "shr_trkfitmedangle/f");
     _tree->Branch("shrmoliereavg", &_shrmoliereavg, "shrmoliereavg/f");
     _tree->Branch("shrmoliererms", &_shrmoliererms, "shrmoliererms/f");
+    _tree->Branch("shr1shr2moliereavg", &_shr1shr2moliereavg, "shr1shr2moliereavg/f");
+    _tree->Branch("shr1shr2moliererms", &_shr1shr2moliererms, "shr1shr2moliererms/f");
+    _tree->Branch("shr1trk1moliereavg", &_shr1trk1moliereavg, "shr1trk1moliereavg/f");
+    _tree->Branch("shr1trk1moliererms", &_shr1trk1moliererms, "shr1trk1moliererms/f");
+    _tree->Branch("shr1trk2moliereavg", &_shr1trk2moliereavg, "shr1trk2moliereavg/f");
+    _tree->Branch("shr1trk2moliererms", &_shr1trk2moliererms, "shr1trk2moliererms/f");
     _tree->Branch("ismerged", &_ismerged, "ismerged/b");
     _tree->Branch("merge_bestdot",&_merge_bestdot, "merge_bestdot/f");
     _tree->Branch("merge_bestdist",&_merge_bestdist, "merge_bestdist/f");
@@ -1602,10 +1685,18 @@ void CC0piNpSelection::setBranches(TTree *_tree)
 
     _tree->Branch("trk_hits_max", &_trk_hits_max, "trk_hits_max/i");
     _tree->Branch("shr_hits_max", &_shr_hits_max, "shr_hits_max/i");
+    _tree->Branch("trk_hits_2nd", &_trk_hits_2nd, "trk_hits_2nd/i");
+    _tree->Branch("shr_hits_2nd", &_shr_hits_2nd, "shr_hits_2nd/i");
 
     _tree->Branch("trkshrhitdist0", &_trkshrhitdist0, "trkshrhitdist0/F");
     _tree->Branch("trkshrhitdist1", &_trkshrhitdist1, "trkshrhitdist1/F");
     _tree->Branch("trkshrhitdist2", &_trkshrhitdist2, "trkshrhitdist2/F");
+    _tree->Branch("trk2shrhitdist0", &_trk2shrhitdist0, "trk2shrhitdist0/F");
+    _tree->Branch("trk2shrhitdist1", &_trk2shrhitdist1, "trk2shrhitdist1/F");
+    _tree->Branch("trk2shrhitdist2", &_trk2shrhitdist2, "trk2shrhitdist2/F");
+    _tree->Branch("trk1trk2hitdist0", &_trk1trk2hitdist0, "trk1trk2hitdist0/F");
+    _tree->Branch("trk1trk2hitdist1", &_trk1trk2hitdist1, "trk1trk2hitdist1/F");
+    _tree->Branch("trk1trk2hitdist2", &_trk1trk2hitdist2, "trk1trk2hitdist2/F");
 
     _tree->Branch("total_hits_y", &_total_hits_y, "total_hits_y/i");
     _tree->Branch("extra_energy_y", &_extra_energy_y, "extra_energy_y/F");
