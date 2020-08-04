@@ -638,6 +638,41 @@ namespace single_photon
             this->AnalyzeFlashes(flashVector, crthit_h, evt_timeGPS_nsec, crtvetoToFlashMap);
             //   this->AnalyzeFlashes(flashVector, crthit_h);
 
+
+
+
+
+
+            //Raw Optical fltr
+
+            art::Handle<uboone::UbooneOpticalFilter> uBooNE_common_optFltr;
+            if(evt.getByLabel("opfiltercommon", uBooNE_common_optFltr)){
+                  m_flash_optfltr_pe_beam     = uBooNE_common_optFltr->PE_Beam();
+                  m_flash_optfltr_pe_beam_tot = uBooNE_common_optFltr->PE_Beam_Total();
+                  m_flash_optfltr_pe_veto     = uBooNE_common_optFltr->PE_Veto();
+                  m_flash_optfltr_pe_veto_tot = uBooNE_common_optFltr->PE_Veto_Total();
+              }else{
+                  m_flash_optfltr_pe_beam     = -999;
+                  m_flash_optfltr_pe_beam_tot = -999;
+                  m_flash_optfltr_pe_veto     = -999;
+                  m_flash_optfltr_pe_veto_tot = -999;
+               std::cout<<"No opfiltercommon product:"<<std::endl;
+             }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             std::cout<<"start track"<<std::endl;
             this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToHitsMap,  pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
             this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
@@ -1225,6 +1260,13 @@ namespace single_photon
         this->CreateSecondShowerBranches3D();
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
+
+        
+        vertex_tree->Branch("m_flash_optfltr_pe_beam",&m_flash_optfltr_pe_beam);
+        vertex_tree->Branch("m_flash_optfltr_pe_veto",&m_flash_optfltr_pe_veto);
+        vertex_tree->Branch("m_flash_optfltr_pe_veto_tot",&m_flash_optfltr_pe_veto_tot);
+        vertex_tree->Branch("m_flash_optfltr_pe_beam_tot",&m_flash_optfltr_pe_beam_tot);
+
 
         // --------------------- Track Related variables ------------
         this->CreateTrackBranches();

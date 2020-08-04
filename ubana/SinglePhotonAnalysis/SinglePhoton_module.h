@@ -62,6 +62,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
 
+#include "ubobj/Optical/UbooneOpticalFilter.h"
+
 // Helper function for PID stuff
 #include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
@@ -1403,6 +1405,11 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int> m_reco_shower_flash_shortest_index_z;
             std::vector<int> m_reco_shower_flash_shortest_index_y;
             std::vector<int> m_reco_shower_flash_shortest_index_yz;
+
+            double  m_flash_optfltr_pe_beam;
+            double  m_flash_optfltr_pe_beam_tot;
+            double  m_flash_optfltr_pe_veto;
+            double  m_flash_optfltr_pe_veto_tot;
 
             //end flash matching
             std::vector<int> m_reco_shower_num_hits_plane0;
