@@ -56,7 +56,6 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Auxiliary objects includes
 #include "Algorithms/FindPandoraVertexAlg.h"
@@ -101,7 +100,6 @@ private:
 
   // Declare services
   geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
-  detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
 
   // Declare trees
   TTree *metaTree;

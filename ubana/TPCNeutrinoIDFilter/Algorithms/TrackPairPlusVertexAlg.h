@@ -11,7 +11,6 @@
 
 // LArSoft includes
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Root includes
 #include "TH1D.h"
@@ -80,7 +79,6 @@ private:
      *  @brief Standard useful properties
      */
     geo::GeometryCore const*             m_geometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const* m_detector;           ///< Pointer to the detector properties
     /// @}
 };
 

@@ -95,7 +95,6 @@ void pm::AnodeCathodeTrackFilter::reconfigure(fhicl::ParameterSet const & p)
 {
 
   auto const* geo     = lar::providerFrom<geo::Geometry>();  
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();  
   fHitLabel = art::InputTag( p.get<std::string>("HitLabel") );
   fFractionMatchingThreshold = p.get<float>("FractionMatchingThreshold");
 
@@ -112,7 +111,8 @@ void pm::AnodeCathodeTrackFilter::reconfigure(fhicl::ParameterSet const & p)
 	fFractionMatchingThreshold = 0.0;
     }
   
-  fAlg.Configure(p.get<fhicl::ParameterSet>("AnodeCathodPMAlg"),*geo,*detprop);
+  auto const detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
+  fAlg.Configure(p.get<fhicl::ParameterSet>("AnodeCathodPMAlg"),*geo, detprop);
 
   fVerbose = p.get<bool>("Verbose",false);
 }

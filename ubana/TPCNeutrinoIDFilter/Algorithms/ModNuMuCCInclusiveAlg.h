@@ -11,7 +11,6 @@
 
 // LArSoft includes
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
@@ -19,7 +18,6 @@
 // LArSoft includes
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcore/Geometry/Geometry.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 #include "lardata/Utilities/AssociationUtil.h"
@@ -113,7 +111,6 @@ private:
      *  @brief Standard useful properties
      */
     geo::GeometryCore const*            fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const*  fDetector;           ///< Pointer to the detector properties
     /// @}
 };
 

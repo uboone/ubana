@@ -553,10 +553,10 @@ void OpDigitSaturationCorrection::produce(art::Event & e)
   }
 
   // load trigger data
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   // get the trigger time
-  _TrigTime = ts->TriggerTime();
+  _TrigTime = clockData.TriggerTime();
 
   if (_verbose)
     std::cout << "Check that channel numbers and mappings are as expected" << std::endl;

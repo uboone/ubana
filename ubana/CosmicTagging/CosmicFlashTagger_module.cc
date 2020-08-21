@@ -127,11 +127,11 @@ CosmicFlashTagger::CosmicFlashTagger(fhicl::ParameterSet const & p) : EDProducer
   if(_debug) _incompChecker.PrintConfig();
 
   // Use '_detp' to find 'efield' and 'temp'
-  auto const* _detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  double efield = _detp -> Efield();
-  double temp   = _detp -> Temperature();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
+  double efield = detProp.Efield();
+  double temp   = detProp.Temperature();
   // Determine the drift velocity from 'efield' and 'temp'
-  fDriftVelocity = _detp -> DriftVelocity(efield,temp); 
+  fDriftVelocity = detProp.DriftVelocity(efield,temp);
   if (_debug) std::cout << "Using drift velocity = " << fDriftVelocity << " cm/us, with E = " << efield << ", and T = " << temp << std::endl;
 
   if (_debug) {

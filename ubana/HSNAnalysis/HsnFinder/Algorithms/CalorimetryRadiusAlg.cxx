@@ -7,7 +7,6 @@ namespace CalorimetryRadius
   {
     reconfigure(pset);
     fGeometry = lar::providerFrom<geo::Geometry>();
-    fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
   }
   CalorimetryRadiusAlg::~CalorimetryRadiusAlg()
   {}

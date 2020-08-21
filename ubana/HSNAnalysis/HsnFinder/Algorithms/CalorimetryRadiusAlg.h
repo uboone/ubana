@@ -55,7 +55,6 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Auxiliary objects includes
 #include "ubana/HSNAnalysis/HsnFinder/DataObjects/DecayVertex.h"
@@ -99,7 +98,6 @@ namespace CalorimetryRadius
 
     // microboone services
     const geo::GeometryCore* fGeometry;
-    const detinfo::DetectorProperties* fDetectorProperties;
   };
 
 } // END namespace CalorimetryRadius

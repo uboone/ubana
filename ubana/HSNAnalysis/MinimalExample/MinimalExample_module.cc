@@ -18,7 +18,6 @@ private:
 
   // Declare services
   geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
-  detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
 
   // Declare trees
   TTree *tDataTree;

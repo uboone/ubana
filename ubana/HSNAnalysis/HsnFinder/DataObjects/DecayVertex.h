@@ -35,7 +35,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardataalg/DetectorInfo/DetectorPropertiesData.h"
 // #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 
 namespace AuxVertex
@@ -72,7 +72,7 @@ namespace AuxVertex
       const std::vector<double>& minTpcBound,
       const std::vector<double>& maxTpcBound,
       geo::GeometryCore const* geometry,
-      detinfo::DetectorProperties const* detectorProperties);
+      detinfo::DetectorPropertiesData const& detProp);
     void SetChannelLoc(int channel0, int channel1, int channel2);
     void SetTickLoc(float tick0, float tick1, float tick2);
     void SetProngChannelLoc(int par, int channel0, int channel1, int channel2);

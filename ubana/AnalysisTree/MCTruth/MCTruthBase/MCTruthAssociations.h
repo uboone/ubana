@@ -12,7 +12,7 @@
 
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "lardataalg/DetectorInfo/DetectorProperties.h"
+#include "lardataalg/DetectorInfo/DetectorPropertiesData.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -55,7 +55,7 @@ public:
     void setup(const HitParticleAssociationsVec&,
                const MCTruthParticleAssociations&,
                const geo::GeometryCore&,
-               const detinfo::DetectorProperties&);
+               const detinfo::DetectorPropertiesData&);
     
     const MCTruthParticleList& getParticleList() const;
 
@@ -161,7 +161,7 @@ private:
                                                                ///< based on hit collections
 
     geo::GeometryCore const*           fGeometry           = nullptr;
-    const detinfo::DetectorProperties* fDetectorProperties = nullptr;   ///< Detector properties service
+    const detinfo::DetectorPropertiesData* fDetectorProperties = nullptr;   ///< Detector properties service
 }; // class MCTruthAssociations
     
 }  // End of namespace

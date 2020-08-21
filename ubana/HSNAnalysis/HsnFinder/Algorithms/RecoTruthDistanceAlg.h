@@ -57,7 +57,6 @@
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 // Auxiliary objects includes
 #include "ubana/HSNAnalysis/HsnFinder/DataObjects/DecayVertex.h"
 #include "ubana/HSNAnalysis/HsnFinder/DataObjects/EventTreeFiller.h"
@@ -82,7 +81,6 @@ namespace RecoTruthDistance
     bool fVerbose;
     // microboone services
     const geo::GeometryCore* fGeometry;
-    const detinfo::DetectorProperties* fDetectorProperties;
   };
 
 } // END namespace RecoTruthDistance

@@ -148,7 +148,6 @@ private:
   bool IsCathodeCrossing(art::Ptr<recob::Track>, double &);
 
   ::art::ServiceHandle<geo::Geometry> geo;
-  ::detinfo::DetectorProperties const* fDetectorProperties;
 
   ::cosmictag::CosmicTagManager _ct_manager;
 
@@ -176,8 +175,6 @@ CandidateConsistency::CandidateConsistency(fhicl::ParameterSet const & p) : EDPr
   _ct_manager.Configure(p.get<cosmictag::Config_t>("CosmicTagManager"));
 
   _mgr.Configure(p.get<flashana::Config_t>("FlashMatchConfig"));
-
-  fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
   produces< std::vector<anab::CosmicTag>>();
   produces< art::Assns<ubana::TPCObject, anab::CosmicTag>>();
@@ -228,6 +225,7 @@ void CandidateConsistency::produce(art::Event & e)
   lar_pandora::ShowersToHits showers_to_hits;
   lar_pandora::LArPandoraHelper::CollectShowers(e, _shower_producer, shower_v, showers_to_hits);
 
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e);
 
   for (size_t i = 0; i < tpcobj_v.size(); i++) {
 
@@ -323,7 +321,7 @@ void CandidateConsistency::produce(art::Event & e)
         if (h->View() != 2) continue;
         
         cosmictag::SimpleHit sh;
-        sh.t = fDetectorProperties->ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
+        sh.t = detProp.ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
         sh.w = h->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2));
 
         sh.plane = h->View();
@@ -343,7 +341,7 @@ void CandidateConsistency::produce(art::Event & e)
       // Creating an approximate start hit given the TPCObject vertex
       double vertex[3] = {selected_tracks_vertex.at(i).X(), selected_tracks_vertex.at(i).Y(), selected_tracks_vertex.at(i).Z()};
       this->ContainPoint(vertex);
-      double vertex_t = fDetectorProperties->ConvertXToTicks(vertex[0], geo::PlaneID(0,0,2))/4.;
+      double vertex_t = detProp.ConvertXToTicks(vertex[0], geo::PlaneID(0,0,2))/4.;
       int vertex_w    = geo->NearestWire(vertex, 2);
 
       cosmictag::SimpleHit start;
@@ -474,7 +472,7 @@ void CandidateConsistency::produce(art::Event & e)
         if (h->View() != 2) continue;
         
         cosmictag::SimpleHit sh;
-        sh.t = fDetectorProperties->ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
+        sh.t = detProp.ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
         sh.w = h->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2));
 
         sh.plane = h->View();
@@ -495,7 +493,7 @@ void CandidateConsistency::produce(art::Event & e)
       // Creating an approximate start hit
       double vertex[3] = {selected_showers_vertex.at(i).X(), selected_showers_vertex.at(i).Y(), selected_showers_vertex.at(i).Z()};
       this->ContainPoint(vertex);
-      double vertex_t = fDetectorProperties->ConvertXToTicks(vertex[0], geo::PlaneID(0,0,2))/4.;
+      double vertex_t = detProp.ConvertXToTicks(vertex[0], geo::PlaneID(0,0,2))/4.;
       int vertex_w    = geo->NearestWire(vertex, 2);
 
       cosmictag::SimpleHit start;

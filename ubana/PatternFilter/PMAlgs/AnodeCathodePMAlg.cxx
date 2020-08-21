@@ -13,7 +13,7 @@
 
 #include "fhiclcpp/ParameterSet.h"
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "lardataalg/DetectorInfo/DetectorProperties.h"
+#include "lardataalg/DetectorInfo/DetectorPropertiesData.h"
 #include "lardataobj/RecoBase/Hit.h"
 
 #include <math.h>
@@ -26,7 +26,7 @@ pm::AnodeCathodePMAlg::AnodeCathodePMAlg()
 
 void pm::AnodeCathodePMAlg::Configure(fhicl::ParameterSet         const& p,
 				      geo::GeometryCore           const& geo,
-				      detinfo::DetectorProperties const& detp)
+                                      detinfo::DetectorPropertiesData const& detp)
 {
 
   //grab the wire information
@@ -179,4 +179,3 @@ void pm::AnodeCathodePMAlg::RunPatternMatching(std::vector<recob::Hit> const& hi
   FillHitmap(hitVector);
   frac_matched = GetFractionMatched();
 }
-

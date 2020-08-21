@@ -108,7 +108,7 @@ namespace AuxVertex
     const std::vector<double>& minTpcBound,
     const std::vector<double>& maxTpcBound,
     geo::GeometryCore const* geometry,
-    detinfo::DetectorProperties const* detectorProperties)
+    detinfo::DetectorPropertiesData const& detProp)
   {
     /* This functions call special geometry and detectorProperties objects
     in order to translate x,y,z coordinates in wire,tick coordinates.
@@ -158,24 +158,24 @@ namespace AuxVertex
       raw::ChannelID_t channel0 = geometry->NearestChannel(xyz,0);
       raw::ChannelID_t channel1 = geometry->NearestChannel(xyz,1);
       raw::ChannelID_t channel2 = geometry->NearestChannel(xyz,2);
-      double tick0 = detectorProperties->ConvertXToTicks(xyz[0], 0, 0, 0);
-      double tick1 = detectorProperties->ConvertXToTicks(xyz[0], 1, 0, 0);
-      double tick2 = detectorProperties->ConvertXToTicks(xyz[0], 2, 0, 0);
+      double tick0 = detProp.ConvertXToTicks(xyz[0], 0, 0, 0);
+      double tick1 = detProp.ConvertXToTicks(xyz[0], 1, 0, 0);
+      double tick2 = detProp.ConvertXToTicks(xyz[0], 2, 0, 0);
       fChannelLoc = {(int) channel0,(int) channel1,(int) channel2};
       fTickLoc = { (float) tick0, (float) tick1, (float) tick2};
 
       raw::ChannelID_t prong1_channel0 = geometry->NearestChannel(prong1_xyz,0);
       raw::ChannelID_t prong1_channel1 = geometry->NearestChannel(prong1_xyz,1);
       raw::ChannelID_t prong1_channel2 = geometry->NearestChannel(prong1_xyz,2);
-      double prong1_tick0 = detectorProperties->ConvertXToTicks(prong1_xyz[0], 0, 0, 0);
-      double prong1_tick1 = detectorProperties->ConvertXToTicks(prong1_xyz[0], 1, 0, 0);
-      double prong1_tick2 = detectorProperties->ConvertXToTicks(prong1_xyz[0], 2, 0, 0);
+      double prong1_tick0 = detProp.ConvertXToTicks(prong1_xyz[0], 0, 0, 0);
+      double prong1_tick1 = detProp.ConvertXToTicks(prong1_xyz[0], 1, 0, 0);
+      double prong1_tick2 = detProp.ConvertXToTicks(prong1_xyz[0], 2, 0, 0);
       raw::ChannelID_t prong2_channel0 = geometry->NearestChannel(prong2_xyz,0);
       raw::ChannelID_t prong2_channel1 = geometry->NearestChannel(prong2_xyz,1);
       raw::ChannelID_t prong2_channel2 = geometry->NearestChannel(prong2_xyz,2);
-      double prong2_tick0 = detectorProperties->ConvertXToTicks(prong2_xyz[0], 0, 0, 0);
-      double prong2_tick1 = detectorProperties->ConvertXToTicks(prong2_xyz[0], 1, 0, 0);
-      double prong2_tick2 = detectorProperties->ConvertXToTicks(prong2_xyz[0], 2, 0, 0);
+      double prong2_tick0 = detProp.ConvertXToTicks(prong2_xyz[0], 0, 0, 0);
+      double prong2_tick1 = detProp.ConvertXToTicks(prong2_xyz[0], 1, 0, 0);
+      double prong2_tick2 = detProp.ConvertXToTicks(prong2_xyz[0], 2, 0, 0);
 
       fProngChannelLoc = {{ (int) prong1_channel0, (int) prong1_channel1, (int) prong1_channel2}, { (int) prong2_channel0, (int) prong2_channel1, (int) prong2_channel2}};
       fProngTickLoc = {{ (float) prong1_tick0, (float) prong1_tick1, (float) prong1_tick2}, { (float) prong2_tick0, (float) prong2_tick1, (float) prong2_tick2}};

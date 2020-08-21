@@ -87,7 +87,6 @@ private:
   //::art::ServiceHandle<cheat::BackTracker> bt;
   ::art::ServiceHandle<geo::Geometry> geo;
   //::art::ServiceHandle<detinfo::DetectorPropertiesService> det;
-  ::detinfo::DetectorProperties const* fDetectorProperties;
 
   ::ubana::FiducialVolume _fiducial_volume;
 

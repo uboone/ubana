@@ -75,16 +75,19 @@ private:
   double fRC;
   double fA;
 
-  bool sortWaveforms( art::Event& event, subevent::WaveformData& hgbeam, subevent::WaveformData& lgbeam, subevent::CosmicWindowHolder& cosmics, int beamwin_len_threshold );
+  bool sortWaveforms(detinfo::DetectorClocksData const& clockData,
+                     art::Event& event, subevent::WaveformData& hgbeam, subevent::WaveformData& lgbeam, subevent::CosmicWindowHolder& cosmics, int beamwin_len_threshold );
   void prepCosmicDiscWaveforms(  subevent::CosmicWindowHolder& cosmics ); 
-  void prepBeamWaveforms( art::Event& event, subevent::WaveformData& hgwfms, subevent::WaveformData& lgwfms, subevent::SubEventList& cosmic_subevents );
+  void prepBeamWaveforms(detinfo::DetectorClocksData const& clockData,
+                         art::Event& event, subevent::WaveformData& hgwfms, subevent::WaveformData& lgwfms, subevent::SubEventList& cosmic_subevents );
   void GetHitGeometryInfo(subevent::Flash const& flash,
   			  geo::GeometryCore const& geom,
   			  std::vector<double> & sumw,
   			  std::vector<double> & sumw2,
   			  double & sumy, double & sumy2,
   			  double & sumz, double & sumz2);
-  void makeOpFlashes( art::Event& e, subevent::SubEventList& subevents, 
+  void makeOpFlashes(detinfo::DetectorClocksData const& clockData,
+                     art::Event& e, subevent::SubEventList& subevents,
   		      std::vector< recob::OpFlash >&  opflashes,
   		      std::vector< recob::OpHit >& ophits,
   		      art::Assns<recob::OpFlash, recob::OpHit>& AssnPtr );
@@ -163,7 +166,8 @@ void SubEventBuilder::produce(art::Event & e)
   subevent::WaveformData hgwfms;
   subevent::WaveformData lgwfms;
   subevent::CosmicWindowHolder cosmicwins;
-  bool ok = sortWaveforms( e, hgwfms, lgwfms, cosmicwins, fBeamWinLengthThreshold );
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
+  bool ok = sortWaveforms( clockData, e, hgwfms, lgwfms, cosmicwins, fBeamWinLengthThreshold );
   if (!ok) {
     std::cout << "trouble loading waveforms!" << std::endl;
     return;
@@ -177,7 +181,7 @@ void SubEventBuilder::produce(art::Event & e)
   if ( fverbose )
     std::cout << "Cosmic Disc. Subevents found: " << cosmic_subevents.size() << std::endl;
   // get waveforms and prep them
-  prepBeamWaveforms( e, hgwfms, lgwfms, cosmic_subevents );
+  prepBeamWaveforms(clockData, e, hgwfms, lgwfms, cosmic_subevents );
 
   // declare containers for beam subevent output
   subevent::SubEventList subevents;
@@ -200,8 +204,8 @@ void SubEventBuilder::produce(art::Event & e)
     std::unique_ptr< std::vector< recob::OpHit > > ophits( new std::vector< recob::OpHit > );
     std::unique_ptr< art::Assns<recob::OpFlash, recob::OpHit> >  AssnPtr( new art::Assns<recob::OpFlash, recob::OpHit> );
 
-    makeOpFlashes( e, subevents, *opflashes, *ophits, *AssnPtr );
-    makeOpFlashes( e, cosmic_subevents, *opflashes, *ophits, *AssnPtr );
+    makeOpFlashes( clockData, e, subevents, *opflashes, *ophits, *AssnPtr );
+    makeOpFlashes( clockData, e, cosmic_subevents, *opflashes, *ophits, *AssnPtr );
 
     e.put( std::move( opflashes ) );
     e.put( std::move( ophits ) );
@@ -251,9 +255,9 @@ void SubEventBuilder::produce(art::Event & e)
   
 }
 
-bool SubEventBuilder::sortWaveforms( art::Event& event, subevent::WaveformData& hgbeam, subevent::WaveformData& lgbeam, subevent::CosmicWindowHolder& cosmics, int beamwin_len_threshold ) {
-  // Load Services and Event Handles
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
+bool SubEventBuilder::sortWaveforms(detinfo::DetectorClocksData const& clockData,
+                                    art::Event& event, subevent::WaveformData& hgbeam, subevent::WaveformData& lgbeam, subevent::CosmicWindowHolder& cosmics, int beamwin_len_threshold ) {
+  // Load Event Handles
   
   art::Handle< std::vector< raw::OpDetWaveform > > hgwfmHandle;
   bool loadedhg = event.getByLabel( fOpDetInputModule, "OpdetBeamHighGain", hgwfmHandle );
@@ -266,14 +270,14 @@ bool SubEventBuilder::sortWaveforms( art::Event& event, subevent::WaveformData& 
   }
 
   // get trigger and beamgate info
-  double trig_timestamp = ts->TriggerTime();
+  double trig_timestamp = clockData.TriggerTime();
   if ( fverbose )
-    std::cout << "[SubEventBuilder] trig timestamp: " << trig_timestamp << "  beam timestamp: " << ts->BeamGateTime() << " diff=" << ts->BeamGateTime()-trig_timestamp << std::endl;
-  //unsigned int trig_frame = ts->OpticalClock().Frame( trig_timestamp );
-  //unsigned int trig_sample = ts->OpticalClock().Sample( trig_timestamp );
-  //double beam_timestamp = ts->BeamGateTime();
-  //unsigned int beam_frame = ts->OpticalClock().Frame( beam_timestamp );
-  //unsigned int beam_sample = ts->OpticalClock().Sample( beam_timestamp );
+    std::cout << "[SubEventBuilder] trig timestamp: " << trig_timestamp << "  beam timestamp: " << clockData.BeamGateTime() << " diff=" << clockData.BeamGateTime()-trig_timestamp << std::endl;
+  //unsigned int trig_frame = clockData.OpticalClock().Frame( trig_timestamp );
+  //unsigned int trig_sample = clockData.OpticalClock().Sample( trig_timestamp );
+  //double beam_timestamp = clockData.BeamGateTime();
+  //unsigned int beam_frame = clockData.OpticalClock().Frame( beam_timestamp );
+  //unsigned int beam_sample = clockData.OpticalClock().Sample( beam_timestamp );
 
   // Loop over High-Gain Waveforms
   for ( auto const& opdetData: (*hgwfmHandle) ) {
@@ -290,7 +294,7 @@ bool SubEventBuilder::sortWaveforms( art::Event& event, subevent::WaveformData& 
 
     if ( ((int)opdetData.size()) < beamwin_len_threshold ) {
       // cosmic windows: want to store ticks since trigger
-      int ticks = (int)((timestamp - trig_timestamp)/ts->OpticalClock().TickPeriod());
+      int ticks = (int)((timestamp - trig_timestamp)/clockData.OpticalClock().TickPeriod());
       //std::cout << "cosmic window start=" << ticks << " (ticks)" << " len=" << (int)opdetData.size() << std::endl;
       std::vector< double > wfm;
       wfm.reserve( opdetData.size() );
@@ -306,8 +310,8 @@ bool SubEventBuilder::sortWaveforms( art::Event& event, subevent::WaveformData& 
 	wfm.push_back( (double)adc );
       hgbeam.set( (int)channel, wfm, false );
       // store time stamp for later
-      //std::cout << "beam window start=" << (opdetData.TimeStamp()-trig_timestamp)/ts->OpticalClock().TickPeriod() << " (ticks) len=" << (int)opdetData.size() << std::endl;
-      hgbeam.storeTimeInfo( (int)channel,  ts->OpticalClock().Frame( opdetData.TimeStamp() ), opdetData.TimeStamp() );
+      //std::cout << "beam window start=" << (opdetData.TimeStamp()-trig_timestamp)/clockData.OpticalClock().TickPeriod() << " (ticks) len=" << (int)opdetData.size() << std::endl;
+      hgbeam.storeTimeInfo( (int)channel,  clockData.OpticalClock().Frame( opdetData.TimeStamp() ), opdetData.TimeStamp() );
     }
   }
 
@@ -326,7 +330,7 @@ bool SubEventBuilder::sortWaveforms( art::Event& event, subevent::WaveformData& 
 
     if ( ((int)opdetData.size()) < beamwin_len_threshold ) {
       // cosmic windows: want to store ticks since trigger
-      int ticks = (int)((timestamp - trig_timestamp)/ts->OpticalClock().TickPeriod());
+      int ticks = (int)((timestamp - trig_timestamp)/clockData.OpticalClock().TickPeriod());
       std::vector< double > wfm;
       wfm.reserve( opdetData.size() );
       for ( auto adc: opdetData )
@@ -340,7 +344,7 @@ bool SubEventBuilder::sortWaveforms( art::Event& event, subevent::WaveformData& 
       for ( auto adc: opdetData )
 	wfm.push_back( (double)adc );
       lgbeam.set( (int)(channel), wfm, false );
-      lgbeam.storeTimeInfo( (int)channel,  ts->OpticalClock().Frame( opdetData.TimeStamp() ), opdetData.TimeStamp() );
+      lgbeam.storeTimeInfo( (int)channel,  clockData.OpticalClock().Frame( opdetData.TimeStamp() ), opdetData.TimeStamp() );
     }
   }
   
@@ -392,9 +396,8 @@ void SubEventBuilder::prepCosmicDiscWaveforms( subevent::CosmicWindowHolder& cos
   }//end of high gain loop
 } // end of prepCosmicDiscWaveforms
 
-void SubEventBuilder::prepBeamWaveforms( art::Event& event, subevent::WaveformData& hgwfms, subevent::WaveformData& lgwfms, subevent::SubEventList& cosmicsubevents ) {
-  // get services
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
+void SubEventBuilder::prepBeamWaveforms(detinfo::DetectorClocksData const& clockData,
+                                        art::Event& event, subevent::WaveformData& hgwfms, subevent::WaveformData& lgwfms, subevent::SubEventList& cosmicsubevents ) {
 
   // first replace hgwfms that saturate and remove pedestal. also calculate mean beam timestapm while we are at it
   double mean_hg_beamtimestamp = 0.;
@@ -435,11 +438,11 @@ void SubEventBuilder::prepBeamWaveforms( art::Event& event, subevent::WaveformDa
   mean_hg_beamtimestamp /= double(hg_nchans);
   double closest = 0;
   for ( subevent::SubEventListIter it=cosmicsubevents.begin(); it!=cosmicsubevents.end(); it++ ) {
-    double dt_frombeamwin = (*it).tstart_sample*ts->OpticalClock().TickPeriod() - (mean_hg_beamtimestamp-ts->TriggerTime()); // cosmic window was from trigger time
+    double dt_frombeamwin = (*it).tstart_sample*clockData.OpticalClock().TickPeriod() - (mean_hg_beamtimestamp-clockData.TriggerTime()); // cosmic window was from trigger time
     if ( -20.0 <= dt_frombeamwin && dt_frombeamwin < 0.0 ) {
       if (fverbose)
 	std::cout << " found boundary subevent candidate:"
-		  <<"  dt_frombeam=" << dt_frombeamwin << " usec (" << dt_frombeamwin/ts->OpticalClock().TickPeriod() << " ticks)"
+                  <<"  dt_frombeam=" << dt_frombeamwin << " usec (" << dt_frombeamwin/clockData.OpticalClock().TickPeriod() << " ticks)"
 		  << " tstart=" << (*it).tstart_sample 
 		  << " tend=" << (*it).tend_sample << " (ticks)" << std::endl;
       if ( boundarysubevent==NULL || -dt_frombeamwin < closest ) {
@@ -454,7 +457,7 @@ void SubEventBuilder::prepBeamWaveforms( art::Event& event, subevent::WaveformDa
   if ( boundarysubevent ) {
     if (fverbose)
       std::cout << "[SubEventBuilder] boundary subevent, "
-		<< " tstart=" << (boundarysubevent->tstart_sample*ts->OpticalClock().TickPeriod()-(mean_hg_beamtimestamp-ts->TriggerTime()))/ts->OpticalClock().TickPeriod() << " (ticks from beamwin)"
+                << " tstart=" << (boundarysubevent->tstart_sample*clockData.OpticalClock().TickPeriod()-(mean_hg_beamtimestamp-clockData.TriggerTime()))/clockData.OpticalClock().TickPeriod() << " (ticks from beamwin)"
 		<< " tstart=" << boundarysubevent->tstart_sample
 		<< " tend=" << boundarysubevent->tend_sample << " (ticks from trig)" << std::endl;
     double f = exp( -fConfig.nspersample/fRC );
@@ -480,7 +483,7 @@ void SubEventBuilder::prepBeamWaveforms( art::Event& event, subevent::WaveformDa
       std::vector< double >& beamwin = hgwfms.get( ch );
 
       // get times in ticks
-      int tflashstart_frombeam  = int( ((*iflash).tstart*ts->OpticalClock().TickPeriod()-(mean_hg_beamtimestamp-ts->TriggerTime()))/ts->OpticalClock().TickPeriod() );
+      int tflashstart_frombeam  = int( ((*iflash).tstart*clockData.OpticalClock().TickPeriod()-(mean_hg_beamtimestamp-clockData.TriggerTime()))/clockData.OpticalClock().TickPeriod() );
       int tflashend_frombeam    = tflashstart_frombeam + (int)vcorr.size();
       int tbeamstart_fromcosmic = -tflashstart_frombeam;
       int tbeamend_fromcosmic   = tbeamstart_fromcosmic+(int)beamwin.size();
@@ -533,14 +536,14 @@ void SubEventBuilder::prepBeamWaveforms( art::Event& event, subevent::WaveformDa
     int subevent_tend = boundarysubevent->tend_sample; // samples from trigger
     if ( fverbose )
       std::cout << "suppressing waveform from boundary subevent up to sample " << subevent_tend << " tend=" << boundarysubevent->tend_sample << " (ticks)" 
-		<< " " << boundarysubevent->tend_sample*ts->OpticalClock().TickPeriod()*1.0e6
-		<< " " << boundarysubevent->tend_sample*ts->OpticalClock().TickPeriod()*1.0e6 - ts->TriggerTime()
+                << " " << boundarysubevent->tend_sample*clockData.OpticalClock().TickPeriod()*1.0e6
+                << " " << boundarysubevent->tend_sample*clockData.OpticalClock().TickPeriod()*1.0e6 - clockData.TriggerTime()
 		<< std::endl;
     for ( subevent::FlashListIter iflash=boundarysubevent->flashes.begin(); iflash!=boundarysubevent->flashes.end(); iflash++ ) {
       int ch = (*iflash).ch;
       std::vector< double >& wfm = hgwfms.get( ch );
-      int tflashend_frombeam = (int)(  ( (*iflash).tend*ts->OpticalClock().TickPeriod()-(mean_hg_beamtimestamp-ts->TriggerTime()) )/ts->OpticalClock().TickPeriod() );
-      //int tbeamstart_fromflash = (int) ( ( (mean_hg_beamtimestamp-ts->TriggerTime())-(*iflash).tstart*ts->OpticalClock().TickPeriod() )/ts->OpticalClock().TickPeriod() );
+      int tflashend_frombeam = (int)(  ( (*iflash).tend*clockData.OpticalClock().TickPeriod()-(mean_hg_beamtimestamp-clockData.TriggerTime()) )/clockData.OpticalClock().TickPeriod() );
+      //int tbeamstart_fromflash = (int) ( ( (mean_hg_beamtimestamp-clockData.TriggerTime())-(*iflash).tstart*clockData.OpticalClock().TickPeriod() )/clockData.OpticalClock().TickPeriod() );
       //std::cout << "  suppressing ch" << ch << " between 0 and " << tflashend_frombeam << " ticks in beam window (tick " << tbeamstart_fromflash << " of flash)" << std::endl;
       // suppress any portion of waveform that falls within this subevent
       if ( tflashend_frombeam>0 ) {
@@ -567,9 +570,7 @@ void SubEventBuilder::prepBeamWaveforms( art::Event& event, subevent::WaveformDa
 
 // bool SubEventBuilder::gatherWaveforms( art::Event& event, subevent::WaveformData& wfms, subevent::CosmicWindowHolder& cosmics ) {
 
-//   // Load Services and Event Handles
-//    auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
-
+//   // Load Event Handles
 //   art::Handle< std::vector< raw::OpDetWaveform > > hgwfmHandle;
 //   bool loadedhg = event.getByLabel( fOpDetInputModule, "OpdetBeamHighGain", hgwfmHandle );
   
@@ -595,7 +596,7 @@ void SubEventBuilder::prepBeamWaveforms( art::Event& event, subevent::WaveformDa
 //     //   if ( opdetData.size()>biggestcosmiclen )
 //     // 	biggestcosmiclen = opdetData.size();
 //     //   //std::cout << "skipping cosmic window: " << opdetData.size() << std::endl;
-//     //   double dtcosmic = opdetData.TimeStamp() - ts->BeamGateTime();
+//     //   double dtcosmic = opdetData.TimeStamp() - clockData.BeamGateTime();
 //     //   if ( fabs( dtcosmic )<shortestdt )
 //     // 	shortestdt = fabs( dtcosmic );
 //     //}
@@ -628,7 +629,7 @@ void SubEventBuilder::prepBeamWaveforms( art::Event& event, subevent::WaveformDa
 //     //std::cout << "  adc max: " << adcmax-ped << " pedestal=" << ped << std::endl;
 //     wfms.set( (int)channel, wfmstore, false );
 //     // store time stamp for later
-//     wfms.storeTimeInfo( (int)channel,  ts->OpticalClock().Frame( opdetData.TimeStamp() ), opdetData.TimeStamp() );
+//     wfms.storeTimeInfo( (int)channel,  clockData.OpticalClock().Frame( opdetData.TimeStamp() ), opdetData.TimeStamp() );
 
 //     // Low-Gain Waveforms
 //     if ( use_lowgain_wfm.size() > 0 ) {
@@ -711,15 +712,15 @@ void SubEventBuilder::GetHitGeometryInfo(subevent::Flash const& flash,
   sumz+=xyz[2]*PEThisHit; sumz2+=xyz[2]*xyz[2]*PEThisHit;
 }
 
-void SubEventBuilder::makeOpFlashes( art::Event& e, subevent::SubEventList& subevents, 
+void SubEventBuilder::makeOpFlashes(detinfo::DetectorClocksData const& clockData,
+                                    art::Event& e, subevent::SubEventList& subevents,
  				     std::vector< recob::OpFlash >&  opflashes,
  				     std::vector< recob::OpHit >& ophits,
  				     art::Assns<recob::OpFlash, recob::OpHit>& AssnPtr )
 {
   
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
   geo::GeometryCore const* geom = lar::providerFrom<geo::Geometry>();
-  double dt_beam = ts->BeamGateTime() - ts->TriggerTime();
+  double dt_beam = clockData.BeamGateTime() - clockData.TriggerTime();
 
   for ( subevent::SubEventListIter isubevent=subevents.begin(); isubevent!=subevents.end(); isubevent++ ) {
     subevent::SubEvent& asubevent = (*isubevent);
@@ -732,23 +733,23 @@ void SubEventBuilder::makeOpFlashes( art::Event& e, subevent::SubEventList& sube
     // 	    double zCenter=0, double zWidth=0,
     // 	    std::vector<double> WireCenters = std::vector<double>(0),
     // 	    std::vector<double> WireWidths  = std::vector<double>(0));
-    double reltime = asubevent.tstart_sample*ts->OpticalClock().TickPeriod(); // us
-    double abstime = ts->TriggerTime() + asubevent.tmax_sample*ts->OpticalClock().TickPeriod(); // us (both beam and cosmics measured relative to beginning of trigger
+    double reltime = asubevent.tstart_sample*clockData.OpticalClock().TickPeriod(); // us
+    double abstime = clockData.TriggerTime() + asubevent.tmax_sample*clockData.OpticalClock().TickPeriod(); // us (both beam and cosmics measured relative to beginning of trigger
     double reltime_beam = reltime + dt_beam;
-    double width = ( asubevent.tend_sample - asubevent.tstart_sample )*ts->OpticalClock().TickPeriod(); // us
+    double width = ( asubevent.tend_sample - asubevent.tstart_sample )*clockData.OpticalClock().TickPeriod(); // us
     if ( fverbose )
       std::cout << "opflash: "
 		<< " tsample_start=" << asubevent.tstart_sample << " tend_sample=" << asubevent.tend_sample
 		<< " abstime=" << abstime << " us"
 		<< " reltime=" << reltime << " us"  
 		<< " width=" << width << " us" 
-		<< " beamgatetime=" << ts->BeamGateTime() << " us"
-		<< " tickperiod=" << ts->OpticalClock().TickPeriod() << " us" << std::endl;
+                << " beamgatetime=" << clockData.BeamGateTime() << " us"
+                << " tickperiod=" << clockData.OpticalClock().TickPeriod() << " us" << std::endl;
     // Emprical corrections to get the Frame right
     // // Eventual solution - remove frames
     // taken from OpFlashAlg.cxx
-    unsigned int frame = ts->OpticalClock().Frame( abstime );
-    unsigned int trigframe = ts->OpticalClock().Frame( ts->BeamGateTime() );
+    unsigned int frame = clockData.OpticalClock().Frame( abstime );
+    unsigned int trigframe = clockData.OpticalClock().Frame( clockData.BeamGateTime() );
     bool InBeamFrame = (frame==trigframe);
     int OnBeamTime =0;
     if( std::abs(reltime_beam) < fTrigCoinc ) OnBeamTime=1; // this can't be right, can it?
@@ -800,11 +801,11 @@ void SubEventBuilder::makeOpFlashes( art::Event& e, subevent::SubEventList& sube
 
     // make ophits and associate it with the flashes
     for ( subevent::FlashListIter iflash=asubevent.flashes.begin(); iflash!=asubevent.flashes.end(); iflash++ ) {
-      double flash_reltime = (*iflash).tmax*ts->OpticalClock().TickPeriod();
-      double flash_abstime = flash_reltime + ts->TriggerTime();
-      unsigned int flash_frame = ts->OpticalClock().Frame( flash_abstime );
-      double flash_width = ( (*iflash).tend-(*iflash).tstart )*ts->OpticalClock().TickPeriod();
-      //ophits->emplace_back( (int)(*iflash).ch, flash_reltime, flash_abstime, flash_frame, flash_width, (*iflash).area, (*iflash).maxamp, (*iflash).area/100.0, 0.0 ); // wants microseconds
+      double flash_reltime = (*iflash).tmax*clockData.OpticalClock().TickPeriod();
+      double flash_abstime = flash_reltime + clockData.TriggerTime();
+      unsigned int flash_frame = clockData.OpticalClock().Frame( flash_abstime );
+      double flash_width = ( (*iflash).tend-(*iflash).tstart )*clockData.OpticalClock().TickPeriod();
+      //ophits.emplace_back( (int)(*iflash).ch, flash_reltime, flash_abstime, flash_frame, flash_width, (*iflash).area, (*iflash).maxamp, (*iflash).area/100.0, 0.0 ); // want microseconds
       ophits.emplace_back( (int)(*iflash).ch, flash_reltime, flash_abstime, flash_frame, flash_width, (*iflash).area, (*iflash).maxamp, (*iflash).area/130.0, 0.0 ); // wants microseconds
     }
     opflashes.emplace_back( std::move( aopflash ) );

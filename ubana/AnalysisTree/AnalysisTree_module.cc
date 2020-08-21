@@ -1652,10 +1652,13 @@ namespace microboone {
 
   private:
 
-    void   HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe);
+    void   HitsPurity(detinfo::DetectorClocksData const& clockData,
+                      std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe);
     double length(const recob::Track& track);
-    double driftedLength(const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
-    double driftedLength(const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom);
+    double driftedLength(detinfo::DetectorPropertiesData const& detProp,
+                         const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
+    double driftedLength(detinfo::DetectorPropertiesData const& detProp,
+                         const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom);
     double length(const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
     double bdist(const TVector3& pos);
 
@@ -4327,7 +4330,8 @@ void microboone::AnalysisTree::endSubRun(const art::SubRun& sr)
 void microboone::AnalysisTree::analyze(const art::Event& evt)
 {
   //services
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
 
   // collect the sizes which might me needed to resize the tree data structure:
   bool isMC = !evt.isRealData();
@@ -4703,7 +4707,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   }
 
 
-  //  std::cout<<detprop->NumberTimeSamples()<<" "<<detprop->ReadOutWindowSize()<<std::endl;
+  //  std::cout<<detProp.NumberTimeSamples()<<" "<<detProp.ReadOutWindowSize()<<std::endl;
   //  std::cout<<geom->DetHalfHeight()*2<<" "<<geom->DetHalfWidth()*2<<" "<<geom->DetLength()<<std::endl;
   //  std::cout<<geom->Nwires(0)<<" "<<geom->Nwires(1)<<" "<<geom->Nwires(2)<<std::endl;
 
@@ -4886,7 +4890,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       
         if (isMC&&!isCosmics)
         {
-            std::vector<sim::TrackIDE> trackIDEVec = fMCTruthMatching->HitToTrackID(hitlist[i]);
+            std::vector<sim::TrackIDE> trackIDEVec = fMCTruthMatching->HitToTrackID(clockData, hitlist[i]);
             fData -> hit_nelec[i] = 0;
             fData -> hit_energy[i] = 0;
             
@@ -5540,7 +5544,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	  }
 	  for (size_t ipl = 0; ipl < 3; ++ipl){
 	    double maxe = 0;
-	    HitsPurity(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
+            HitsPurity(clockData, hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
 	    //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<TrackerData.trkidtruth[iTrk][ipl]<<"\t"<<TrackerData.trkpurtruth[iTrk][ipl]<<"\t"<<maxe;
 	    if (TrackerData.trkidtruth[iTrk][ipl]>0){
 	      const art::Ptr<simb::MCTruth> mc = fMCTruthMatching->TrackIDToMCTruth(TrackerData.trkidtruth[iTrk][ipl]);
@@ -5556,7 +5560,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	  }
 
 	  double maxe = 0;
-	  HitsPurity(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
+          HitsPurity(clockData, allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
 	  //std::cout<<"\n"<<fTrackModuleLabel[iTracker]<<"\t"<<iTrk<<"\t"<<"\t"<<TrackerData.trkg4id[iTrk]<<"\t"<<maxe<<std::endl;
 	  if (TrackerData.trkg4id[iTrk]>0){
 	    const art::Ptr<simb::MCTruth> mc = fMCTruthMatching->TrackIDToMCTruth(TrackerData.trkg4id[iTrk]);
@@ -5574,7 +5578,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 		std::vector<sim::IDE> ides;
 
 		//fMCTruthMatching->HitToSimIDEs(hit,ides);
-		std::vector<sim::TrackIDE> eveIDs = fMCTruthMatching->HitToEveID(hit);
+                std::vector<sim::TrackIDE> eveIDs = fMCTruthMatching->HitToEveID(clockData, hit);
 		
 		for(size_t e = 0; e < eveIDs.size(); ++e){
 		  //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
@@ -5746,7 +5750,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 
         // Convert flash time to x coordinate (tjyang)
         geo::PlaneID pid(0, 0, 0);
-        FlashData.flsXcenter[i] = detprop->ConvertTicksToX(flashlist[iFlashAlg][i]->Time()/detprop->SamplingRate()*1e3 + detprop->GetXTicksOffset(pid),pid);
+        FlashData.flsXcenter[i] = detProp.ConvertTicksToX(flashlist[iFlashAlg][i]->Time()/sampling_rate(clockData)*1e3 + detProp.GetXTicksOffset(pid),pid);
       }
     }
   } // if fSaveFlashInfo
@@ -5782,16 +5786,14 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
     // Get space charge correction
     auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
     // Get time offset for x space charge correction
-    auto const& detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    auto const& detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
     if (fData->mcevts_truth > 0){//at least one mc record
       if (fSaveGenieInfo){
 	int neutrino_i = 0;
 	for(unsigned int iList = 0; (iList < mclist.size()) && (neutrino_i < kMaxTruth) ; ++iList){
 	  if (mclist[iList]->NeutrinoSet()){
 	    // Get time offset for space charge correction
-	    double g4Ticks = detClocks->TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
-	    double xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
+            double g4Ticks = clockData.TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T()) + detProp.GetXTicksOffset(0,0,0) - trigger_offset(clockData);
+            double xtimeoffset = detProp.ConvertTicksToX(g4Ticks,0,0,0);
 	    
 	    fData->nuPDG_truth[neutrino_i]  = mclist[iList]->GetNeutrino().Nu().PdgCode();
 	    fData->ccnc_truth[neutrino_i]   = mclist[iList]->GetNeutrino().CCNC();
@@ -5956,7 +5958,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	for(std::vector<sim::MCTrack>::const_iterator imctrk = mctrackh->begin();imctrk != mctrackh->end(); ++imctrk) {
     	  const sim::MCTrack& mctrk = *imctrk;
 	  TLorentzVector tpcstart, tpcend, tpcmom;
-	  double plen = driftedLength(mctrk, tpcstart, tpcend, tpcmom);
+          double plen = driftedLength(detProp, mctrk, tpcstart, tpcend, tpcmom);
 	  fData->mctrk_origin[trk]          = mctrk.Origin();
     	  fData->mctrk_pdg[trk]	            = mctrk.PdgCode();	   
     	  fData->mctrk_TrackId[trk]	    = mctrk.TrackID();	   
@@ -6026,9 +6028,6 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	std::vector<int> gpdg;
 	std::vector<int> gmother;
 	auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>(); 
-	// Get time offset for x space charge correction
-	auto const& detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-	auto const& detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
 	    
         for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart){
           const simb::MCParticle* pPart = (itPart++)->second;
@@ -6051,17 +6050,17 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 	    // Get time offset for space charge correction
 	    double xtimeoffset = 0;
 	    if (mc_truth){
-	      double g4Ticks = detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+              double g4Ticks = detProp.GetXTicksOffset(0,0,0) - trigger_offset(clockData);
 	      if (mc_truth->NeutrinoSet()){
-		g4Ticks += detClocks->TPCG4Time2Tick(mc_truth->GetNeutrino().Nu().T());
+                g4Ticks += clockData.TPCG4Time2Tick(mc_truth->GetNeutrino().Nu().T());
 	      }
-	      xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
+              xtimeoffset = detProp.ConvertTicksToX(g4Ticks,0,0,0);
 	    }
 	    
 	    TLorentzVector mcstart, mcend, mcstartdrifted, mcenddrifted;
 	    unsigned int pstarti, pendi, pstartdriftedi, penddriftedi; //mcparticle indices for starts and ends in tpc or drifted volumes
 	    double plen = length(*pPart, mcstart, mcend, pstarti, pendi);
-	    double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
+            double plendrifted = driftedLength(detProp, *pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
 	    
 	    bool isActive = plen != 0;
 	    bool isDrifted = plendrifted!= 0;
@@ -6276,7 +6275,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       } // if (fSaveGeantInfo) 
     }//if (mcevts_truth)
   }//if (isMC){
-  fData->taulife = detprop->ElectronLifetime();
+  fData->taulife = detProp.ElectronLifetime();
   fTree->Fill();
   
   if (mf::isDebugEnabled()) {
@@ -6415,7 +6414,8 @@ void microboone::AnalysisTree::FillShowers(
 
 
 
-void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
+void microboone::AnalysisTree::HitsPurity(detinfo::DetectorClocksData const& clockData,
+                                          std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
 
   trackid = -1;
   purity = -1;
@@ -6427,7 +6427,7 @@ void microboone::AnalysisTree::HitsPurity(std::vector< art::Ptr<recob::Hit> > co
     art::Ptr<recob::Hit> hit = hits[h];
     std::vector<sim::IDE> ides;
 
-    std::vector<sim::TrackIDE> eveIDs = fMCTruthMatching->HitToEveID(hit);
+    std::vector<sim::TrackIDE> eveIDs = fMCTruthMatching->HitToEveID(clockData, hit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){
       //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
@@ -6477,14 +6477,14 @@ double microboone::AnalysisTree::length(const recob::Track& track)
 }
 
 
-double microboone::AnalysisTree::driftedLength(const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom){
+double microboone::AnalysisTree::driftedLength(detinfo::DetectorPropertiesData const& detProp,
+                                               const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom){
   // Get geometry.
   auto const* geom = lar::providerFrom<geo::Geometry>();
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
   //compute the drift x range
-  double vDrift = detprop->DriftVelocity()*1e-3; //cm/ns
-  double xrange[2] = {detprop->ConvertTicksToX(0,0,0,0),detprop->ConvertTicksToX(detprop->NumberTimeSamples(),0,0,0)};
+  double vDrift = detProp.DriftVelocity()*1e-3; //cm/ns
+  double xrange[2] = {detProp.ConvertTicksToX(0,0,0,0),detProp.ConvertTicksToX(detProp.NumberTimeSamples(),0,0,0)};
   
   // Get active volume boundary.
   double bnd[6] = {0.,2.*geom->DetHalfWidth(),-geom->DetHalfHeight(),geom->DetHalfHeight(),0.,geom->DetLength()};
@@ -6522,15 +6522,15 @@ double microboone::AnalysisTree::driftedLength(const sim::MCTrack& mctrack, TLor
 }
 
 // Length of MC particle, trajectory by trajectory (with the manual shifting for x correction)
-double microboone::AnalysisTree::driftedLength(const simb::MCParticle& p, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi)
+double microboone::AnalysisTree::driftedLength(detinfo::DetectorPropertiesData const& detProp,
+                                               const simb::MCParticle& p, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi)
 {
   // Get geometry.
   auto const* geom = lar::providerFrom<geo::Geometry>();
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   
   //compute the drift x range
-  double vDrift = detprop->DriftVelocity()*1e-3; //cm/ns
-  double xrange[2] = {detprop->ConvertTicksToX(0,0,0,0),detprop->ConvertTicksToX(detprop->NumberTimeSamples(),0,0,0)};
+  double vDrift = detProp.DriftVelocity()*1e-3; //cm/ns
+  double xrange[2] = {detProp.ConvertTicksToX(0,0,0,0),detProp.ConvertTicksToX(detProp.NumberTimeSamples(),0,0,0)};
   
   // Get active volume boundary.
   double bnd[6] = {0.,2.*geom->DetHalfWidth(),-geom->DetHalfHeight(),geom->DetHalfHeight(),0.,geom->DetLength()};

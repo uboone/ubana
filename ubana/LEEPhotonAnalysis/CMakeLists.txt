@@ -14,6 +14,7 @@ art_make( BASENAME_ONLY
 			ubana_BasicTool_GeoAlgo
                         lardata_Utilities
                         larevt_Filters
+                        lardataalg_DetectorInfo
                         lardataobj_RawData
 			lardataobj_RecoBase
 			larcoreobj_SummaryData

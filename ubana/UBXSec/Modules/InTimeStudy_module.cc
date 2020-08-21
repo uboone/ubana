@@ -125,7 +125,7 @@ void InTimeStudy::produce(art::Event & e)
 
   auto const & evt_trigger = (*evt_trigger_h)[0];
   auto const trig_time = evt_trigger.TriggerTime();
-  auto const * ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   double nuTime = -1.e9;
   if (_debug) std::cout << "We have " << evt_mctruth_h->size() << " mctruth events." << std::endl;
@@ -140,7 +140,7 @@ void InTimeStudy::produce(art::Event & e)
       simb::MCParticle const& par = evt_mctruth.GetParticle(p);
       //if (par.PdgCode() != 14) continue;
 
-      double par_time = ts->G4ToElecTime(par.Trajectory().T(0)) - trig_time;
+      double par_time = clockData.G4ToElecTime(par.Trajectory().T(0)) - trig_time;
 
       if (par_time > 3.65 && par_time < 5.25) {
 
@@ -152,16 +152,16 @@ void InTimeStudy::produce(art::Event & e)
       if (_debug){
         std::cout << "Particle pdg: " << par.PdgCode() << std::endl;
         std::cout << "Particle time: " << par.Trajectory().T(0) << std::endl;
-        std::cout << "    converted: " << ts->G4ToElecTime(par.Trajectory().T(0)) - trig_time << std::endl;
+        std::cout << "    converted: " << clockData.G4ToElecTime(par.Trajectory().T(0)) - trig_time << std::endl;
         std::cout << "new Particle time: " << par.T() << std::endl;
-        std::cout << "new    converted: " << ts->G4ToElecTime(par.T()) - trig_time << std::endl;
+        std::cout << "new    converted: " << clockData.G4ToElecTime(par.T()) - trig_time << std::endl;
         std::cout << std::endl;
       }
       if (   par.PdgCode() == 14 
           || par.PdgCode() == -14
           || par.PdgCode() == 12
           || par.PdgCode() == -12) 
-        nuTime = par.T();//ts->G4ToElecTime(par.T()) - trig_time;
+        nuTime = par.T();//clockData.G4ToElecTime(par.T()) - trig_time;
     }
   }
 
@@ -194,9 +194,9 @@ void InTimeStudy::produce(art::Event & e)
   double Ycenter, Zcenter, Ywidth, Zwidth;
   GetFlashLocation(pmt_v[0], Ycenter, Zcenter, Ywidth, Zwidth);
 
-  recob::OpFlash flash(ts->G4ToElecTime(nuTime) - trig_time,       // time w.r.t. trigger
+  recob::OpFlash flash(clockData.G4ToElecTime(nuTime) - trig_time, // time w.r.t. trigger
                        0,                                          // time width
-                       ts->G4ToElecTime(nuTime),                   // flash time in elec clock
+                       clockData.G4ToElecTime(nuTime),             // flash time in elec clock
                        0.,                                         // frame (?)
                        pmt_v[0],                                   // pe per pmt
                        0, 0, 1,                                    // this are just default values

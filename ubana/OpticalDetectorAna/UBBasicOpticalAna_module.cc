@@ -93,12 +93,12 @@ void UBBasicOpticalAna::beginJob()
 
 void UBBasicOpticalAna::analyze(art::Event const & e)
 {
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   // Implementation of required member function here.
   for(size_t i=0; i<_module_v.size(); ++i) {
    
-    _ana_v[i].TickPeriod(ts->OpticalClock().TickPeriod());
+    _ana_v[i].TickPeriod(clockData.OpticalClock().TickPeriod());
  
     art::Handle< std::vector< raw::OpDetWaveform > > wf_handle;
     e.getByLabel( _module_v[i], wf_handle );
@@ -111,7 +111,7 @@ void UBBasicOpticalAna::analyze(art::Event const & e)
     for(auto const& wf : *wf_handle) {
       if(!wf.size()) continue;
       _ana_v[i].AnaWaveform( wf.ChannelNumber(),
-			     wf.TimeStamp() - ts->TriggerTime(),
+                             wf.TimeStamp() - clockData.TriggerTime(),
 			     wf );
     }
   }

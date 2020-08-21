@@ -161,8 +161,6 @@ private:
   const TDatabasePDG* _database_pdg = TDatabasePDG::Instance();
 
   // Services
-  ::detinfo::DetectorProperties const* _detector_properties;
-  ::detinfo::DetectorClocks const* _detector_clocks;
   spacecharge::SpaceCharge const* _SCE;
 
   // To be set via fcl parameters
@@ -341,14 +339,14 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p)
 
   _event_selection.PrintConfig();
 
-  _detector_properties = lar::providerFrom<detinfo::DetectorPropertiesService>(); 
-  _detector_clocks = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
   _SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
-  std::cout << "E Field: " << _detector_properties->Efield() << std::endl;
-  std::cout << "Temperature: " << _detector_properties->Temperature() << std::endl;
-  std::cout << "Drift Velocity: " << _detector_properties->DriftVelocity(_detector_properties->Efield(), _detector_properties->Temperature())<< std::endl;
-  std::cout << "Sampling Rate: " << _detector_properties->SamplingRate() << std::endl;
+  std::cout << "E Field: " << detProp.Efield() << std::endl;
+  std::cout << "Temperature: " << detProp.Temperature() << std::endl;
+  std::cout << "Drift Velocity: " << detProp.DriftVelocity(detProp.Efield(), detProp.Temperature())<< std::endl;
+  std::cout << "Sampling Rate: " << sampling_rate(clockData) << std::endl;
 
 
   art::ServiceHandle<art::TFileService> fs;
@@ -505,11 +503,12 @@ void UBXSec::produce(art::Event & e) {
   deadRegionsFinder.CreateBWires();
 
   // Use '_detp' to find 'efield' and 'temp'
-  auto const* _detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  double efield = _detp -> Efield();
-  double temp   = _detp -> Temperature();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e, clockData);
+  double efield = detProp.Efield();
+  double temp   = detProp.Temperature();
   // Determine the drift velocity from 'efield' and 'temp'
-  _drift_velocity = _detp -> DriftVelocity(efield,temp);
+  _drift_velocity = detProp.DriftVelocity(efield,temp);
   if (_debug) std::cout << "[UBXSec] Using drift velocity = " << _drift_velocity << " cm/us, with E = " << efield << ", and T = " << temp << std::endl;
 
   // Collect tracks
@@ -924,12 +923,12 @@ void UBXSec::produce(art::Event & e) {
 								mclist[iList]->GetNeutrino().Nu().Vy(),
 								mclist[iList]->GetNeutrino().Nu().Vz()));
 
-      double g4Ticks = _detector_clocks->TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T()) 
-                       + _detector_properties->GetXTicksOffset(0,0,0) 
-                       - _detector_properties->TriggerOffset();
+      double g4Ticks = clockData.TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T())
+                       + detProp.GetXTicksOffset(0,0,0)
+                       - trigger_offset(clockData);
 
       // The following offsets to be summed to the original true vertex
-      double xOffset = _detector_properties->ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.X();
+      double xOffset = detProp.ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.X();
       double yOffset = sce_corr.Y();
       double zOffset = sce_corr.Z();
 
@@ -1007,12 +1006,12 @@ void UBXSec::produce(art::Event & e) {
   //                                                        mclist[iList]->GetNeutrino().Nu().Vy(),
   //                                                        mclist[iList]->GetNeutrino().Nu().Vz());
 
-  //     double g4Ticks = _detector_clocks->TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T()) 
-  //                      + _detector_properties->GetXTicksOffset(0,0,0) 
-  //                      - _detector_properties->TriggerOffset();
+  //     double g4Ticks = clockData.TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T())
+  //                      + detProp.GetXTicksOffset(0,0,0)
+  //                      - trigger_offset(clockData);
 
   //     // The following offsets to be summed to the original true vertex
-  //     double xOffset = _detector_properties->ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.at(0);
+  //     double xOffset = detProp.ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.at(0);
   //     double yOffset = sce_corr.at(1);
   //     double zOffset = sce_corr.at(2);
 
@@ -1116,8 +1115,8 @@ void UBXSec::produce(art::Event & e) {
     std::cout << "[UBXSec] Cannot locate OpHits from ophitCosmic." << std::endl;
   }
 
-  std::cout << "[UBXSec] Trigger Time: " << _detector_clocks->TriggerTime() << std::endl;
-  std::cout << "[UBXSec] Tick Period:  " << _detector_clocks->OpticalClock().TickPeriod() << std::endl;
+  std::cout << "[UBXSec] Trigger Time: " << clockData.TriggerTime() << std::endl;
+  std::cout << "[UBXSec] Tick Period:  " << clockData.OpticalClock().TickPeriod() << std::endl;
 
 
 
@@ -1720,7 +1719,7 @@ void UBXSec::produce(art::Event & e) {
           if (candidate_track->HasValidPoint(i)) {
             TVector3 trk_pt = candidate_track->LocationAtPoint<TVector3>(i);
             double wire = geo->NearestWire(trk_pt, 2);
-            double time = _detector_properties->ConvertXToTicks(trk_pt.X(), geo::PlaneID(0,0,2));
+            double time = detProp.ConvertXToTicks(trk_pt.X(), geo::PlaneID(0,0,2));
             TVector3 p (wire, time, 0.);
             //std::cout << "emplacing track point on wire " << p.X() << ", and time " << p.Y() << std::endl;
             track_v.emplace_back(p);

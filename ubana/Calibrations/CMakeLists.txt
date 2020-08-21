@@ -15,6 +15,7 @@ art_make( BASENAME_ONLY
 			${ROOT_BASIC_LIB_LIST}
           MODULE_LIBRARIES 
 			ubana_Calibrations
+                        lardataalg_DetectorInfo
 			lardataobj_RawData
 			CalData
 			larcorealg_Geometry

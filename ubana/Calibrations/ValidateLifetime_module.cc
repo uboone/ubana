@@ -63,8 +63,7 @@ private:
   TH1D *hz;
 
   art::ServiceHandle<geo::Geometry> geom;
-  detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  double XDriftVelocity = detprop->DriftVelocity()*1e-3; //cm/ns
+  double XDriftVelocity;
 
 };
 
@@ -75,7 +74,10 @@ ub::ValidateLifetime::ValidateLifetime(fhicl::ParameterSet const & p)
   fTrackModuleLabel(p.get<std::string>("TrackModuleLabel")),
   fCalorimetryModuleLabel(p.get<std::string>("CalorimetryModuleLabel")),
   caloAlg(p.get< fhicl::ParameterSet >("CaloAlg"))
-{}
+{
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
+  XDriftVelocity = detProp.DriftVelocity()*1e-3; //cm/ns
+}
 
 void ub::ValidateLifetime::analyze(art::Event const & evt)
 {
@@ -87,6 +89,10 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
   
   art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
 
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
+  auto const samplingRate = sampling_rate(clockData);
+  auto const triggerOffset = trigger_offset(clockData);
   for (size_t i = 0; i<tracklist.size(); ++i){
     const auto& trkstart = tracklist[i]->Vertex();
     const auto& trkend = tracklist[i]->End();
@@ -120,11 +126,11 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
               double x = TrkPos1.X()-minx; //subtract the minx to get correct t0
               double t = x/(XDriftVelocity*1000); //change the velocity units to cm/ns to cm/us
               dqdxtime[planenum]->Fill(t, (calos[j] -> dQdx())[iHit]);
-              double dqdxcor = (calos[j] -> dQdx())[iHit]*caloAlg.LifetimeCorrection(t/(detprop->SamplingRate()*1.e-3)+detprop->TriggerOffset());
+              double dqdxcor = (calos[j] -> dQdx())[iHit]*caloAlg.LifetimeCorrection(clockData, detProp, t/(samplingRate*1.e-3)+triggerOffset);
               dqdxtimecor[planenum]->Fill(t, dqdxcor);
               hdqdx[planenum]->Fill((calos[j] -> dQdx())[iHit]);
               hdqdxcor[planenum]->Fill(dqdxcor);
-              double dedx = caloAlg.dEdx_AREA((calos[j] -> dQdx())[iHit], t/(detprop->SamplingRate()*1.e-3)+detprop->TriggerOffset(), planenum);
+              double dedx = caloAlg.dEdx_AREA(clockData, detProp, (calos[j] -> dQdx())[iHit], t/(samplingRate*1.e-3)+triggerOffset, planenum);
               hdedx[planenum]->Fill(dedx); 
               //if (planenum==2&&(calos[j] -> dQdx())[iHit]<50){
               //if (planenum==2&&dqdxcor<140){
