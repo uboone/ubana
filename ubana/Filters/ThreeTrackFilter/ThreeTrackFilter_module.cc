@@ -66,6 +66,7 @@ public:
   void beginJob() override;
   void endJob() override;
   void ClearLocalData();
+  bool vtxInFid(float x, float y, float z,float xedge_min, float xedge_max, float yedge_min, float yedge_max, float zedge_min, float zedge_max);
 
 private:
 
@@ -84,33 +85,40 @@ private:
   
   void Initialize_event();
 
+  bool _debug = false;
+
+  //Initiializing some important variables
+  ////////////////////////////////////////
   int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers; // number of showers asssociated to pfp neutrino daughters
   int n_good_daughters; //number of daughters that are tracks and whose start is within 5cm of the vertex
-  int ntracks;
-  int nshowers;
-  float vtxcut;
-  float reco_nu_vtxx = -9999., reco_nu_vtxy=-9999., reco_nu_vtxz=-9999.;
-  bool _debug = false;
-  TVector3 trk_good_start;
-  TVector3 trk_good_start_SCEcorr;
-  TVector3 trk_210_SCEcorr;
+  float reco_nu_vtxx = -9999., reco_nu_vtxy=-9999., reco_nu_vtxz=-9999.; //reconstructed neutrino vertex location
+  TVector3 trk_start; 
+  TVector3 trk_end;
 
-  lar_pandora::LArPandoraHelper larpandora;
-  lar_pandora::PFParticleVector pfparticles,pfparticles1;
-  lar_pandora::PFParticleVector pfneutrinos;
-  lar_pandora::PFParticlesToVertices particlesToVertices;
-  lar_pandora::VertexVector pfvertices;
-  lar_pandora::PFParticlesToMetadata particlesToMetadata;
-  lar_pandora::PFParticleMap particleMap;
-  lar_pandora::PFParticlesToSpacePoints particlesToSpacePoints;
+  //Initializing some fhicl parameters
+  //////////////////////////////////////
+  int ntracks; //number of tracks for the filter
+  int nshowers; //number of showers for the filter
+  float vtxcut; //minimum distrance required from vertex to each track start
+  float _border_x_low, _border_x_high, _border_y_low, _border_y_high, _border_z_low, _border_z_high;
 
-  std::string                         m_pandoraLabel;
-  std::string                         m_trackProducerLabel;
-  std::string                         m_showerProducerLabel;
-  std::string                         m_pfp_producer; //pfp producer   
+  std::string m_pandoraLabel; //pandora
+  std::string m_trackProducerLabel; //pandora or pandora track
+  std::string m_showerProducerLabel; //pandora or pandora shower
+  std::string m_pfp_producer; //pfp producer (pandora)   
 
+  //Gathering all of our larsoft products
+  /////////////////////////////////////////
+  lar_pandora::LArPandoraHelper larpandora; //grabbing the helper class                                                                                 
+  lar_pandora::PFParticleVector pfparticles,pfparticles1; //vector of pfparticles.                                                                      
+  lar_pandora::PFParticleVector pfneutrinos; //vector of reconstructed neutrino vertices                                                                
+  lar_pandora::PFParticlesToVertices particlesToVertices; //the output map from PFParticle to Vertex Objects                                            
+  lar_pandora::VertexVector pfvertices; //the output vector of vertex objects                                                                           
+  lar_pandora::PFParticlesToMetadata particlesToMetadata; //collection of PFParticleMetadata                                                            
+  lar_pandora::PFParticleMap particleMap; //output mapping between reconstructed particles and particleID                                               
+  lar_pandora::PFParticlesToSpacePoints particlesToSpacePoints; //collects PFParticles & associated spacepoints from ART event record (evt in this case) 
 
 };
 
@@ -131,16 +139,25 @@ ThreeTrackFilter::ThreeTrackFilter(fhicl::ParameterSet const& pset):
 
   _fiducial_volume.PrintConfig();
 
+  _debug = pset.get<bool>("Debug", "true"); //debug statements
   ntracks = pset.get<int>("NTrack", 3); //fhicl parameter that makes ther required number of tracks == 3
   nshowers = pset.get<int>("NShowers", 0); //"" number of showers == 0
   vtxcut =  pset.get<float>("VtxCut", 5.0); //require the start of each track to be within 5cm of the reconstructed vertex
-  _debug = pset.get<bool>("Debug", "true");
+
+  //Defining the padding from each detector edge
+  _border_x_low = pset.get<float>("borderX_low", 5.0); 
+  _border_x_high = pset.get<float>("borderX_high", 5.0); 
+  _border_y_low = pset.get<float>("borderY_low", 5.0); 
+  _border_y_high = pset.get<float>("borderY_high ", 5.0); 
+  _border_z_low = pset.get<float>("borderZ_low", 5.0); 
+  _border_z_high = pset.get<float>("borderZ_high", 5.0); 
 
 }
 
 //bool ThreeTrackFilter::filter(art::Event const& evt)
 bool ThreeTrackFilter::filter(art::Event & evt)
 {
+  ClearLocalData();//clear the local data before starting
 
   //Track
   art::Handle<std::vector<recob::Track> > Handle_TPCtrack;
@@ -167,14 +184,13 @@ bool ThreeTrackFilter::filter(art::Event & evt)
   art::FindManyP<recob::Shower> pfpToShowerAsso(Handle_pfParticle, evt, m_showerProducerLabel);
 
   //adding a boatload of stuff to get reco vertex
-  larpandora.CollectPFParticleMetadata(evt, m_pfp_producer, pfparticles, particlesToMetadata);
-  larpandora.BuildPFParticleMap(pfparticles, particleMap);
-  larpandora.CollectPFParticles(evt, m_pfp_producer, pfparticles1, particlesToSpacePoints);
-  if(_debug) std::cout<<"[Numu0pi2p] Number of PFParticles in the Event: "<<pfparticles.size()<<std::endl;
+  larpandora.CollectPFParticleMetadata(evt, m_pfp_producer, pfparticles, particlesToMetadata); //collect reconstructed PFParticle metadata
+  larpandora.BuildPFParticleMap(pfparticles, particleMap); //build particle map for reconstructed particles
+  larpandora.CollectPFParticles(evt, m_pfp_producer, pfparticles1, particlesToSpacePoints); //collect reconstructed PFParticles
+  larpandora.SelectNeutrinoPFParticles(pfparticles, pfneutrinos); //select reco neutrino particles from list of all reco particles
+  larpandora.CollectVertices(evt, m_pandoraLabel, pfvertices, particlesToVertices); //collect reco PFParticles and associated Vertices from ART
 
-  //Stuff in order to get the reconstructed vertex:
-  larpandora.SelectNeutrinoPFParticles(pfparticles, pfneutrinos);
-  larpandora.CollectVertices(evt, m_pandoraLabel, pfvertices, particlesToVertices);
+  if(_debug) std::cout<<"[Numu0pi2p] Number of PFParticles in the Event: "<<pfparticles.size()<<std::endl;
   if(_debug) std::cout<<"[Numu0pi2p] Number of RecoNeutrinos: "<<pfneutrinos.size()<<std::endl;
   if(_debug) std::cout<<"[Numu0pi2p] Number of RecoVertices: "<<pfvertices.size() <<std::endl;
 
@@ -203,18 +219,20 @@ bool ThreeTrackFilter::filter(art::Event & evt)
   }
   else {//if there are reconstructed pfparticles continue on your merry way       
     if(_debug) std::cout<< "[Numu0pi2p] Number of neutrino candidates in the event: " <<pfneutrinos.size() <<std::endl;
-    if(pfneutrinos.size()==1){ //when there is exactly 1 neutrino candidate in the event                                                                               
-	  
+
+    if(pfneutrinos.size()==1){ //when there is exactly 1 neutrino candidate in the event                                                                   	  
       //////////////////////////////////////
       //Get Reco neutrino (pfparticle)
       /////////////////////////////////////
       for(unsigned int i = 0; i < pfParticle_v.size(); i++){
 	auto pfp = pfParticle_v[i];
-	if(pfp->IsPrimary() && pfp->PdgCode() == 14){
+	if(pfp->IsPrimary() && pfp->PdgCode() == abs(14)){
 	  //if_Nu_Slice = true;
 
-	  lar_pandora::VertexVector neutrino_vertex_vec = particlesToVertices.at(pfp);
-	  const recob::Vertex::Point_t &neutrino_vtx = neutrino_vertex_vec.front()->position();
+	  art::Ptr<recob::PFParticle> pfnu = pfneutrinos.front();
+
+	  lar_pandora::VertexVector neutrino_vertex_vec = particlesToVertices.at(pfnu); //vector of neutrino vertices
+	  const recob::Vertex::Point_t &neutrino_vtx = neutrino_vertex_vec.front()->position(); //grab position of the neutrino vertex
 	  reco_nu_vtxx = neutrino_vtx.X();
 	  reco_nu_vtxy = neutrino_vtx.Y();
 	  reco_nu_vtxz = neutrino_vtx.Z();
@@ -234,57 +252,49 @@ bool ThreeTrackFilter::filter(art::Event & evt)
           
 	      // Collect pfparticle associated track in a vector
 	      auto assoTrack = pfpToTrackAsso.at(dau_pfp.key()); // vector
-	      if(assoTrack.size()==1){
+	      if(assoTrack.size()==1){ //1 track association to the PFParticle in question
           
 		daughter_Tracks.push_back(assoTrack.front());	    
 
-		//All da space charge garbage!
-		// Get time offset for x space charge correction
-		auto const& detProperties_good = lar::providerFrom<detinfo::DetectorPropertiesService>();
-		auto const& detClocks_good = lar::providerFrom<detinfo::DetectorClocksService>();
-		auto const& mct_h_good = evt.getValidHandle<std::vector<simb::MCTruth> >("generator");
-		auto gen_good = mct_h_good->at(0);
-		double g4Ticks_good = detClocks_good->TPCG4Time2Tick(gen_good.GetNeutrino().Nu().T()) + detProperties_good->GetXTicksOffset(0,0,0) - detProperties_good->TriggerOffset();
-		double xtimeoffset_good = detProperties_good->ConvertTicksToX(g4Ticks_good,0,0,0);
-		trk_good_start = assoTrack.front()->Vertex<TVector3>();
-		auto trk_good_start_offset = SCE->GetCalPosOffsets(geo::Point_t(trk_good_start.X(), trk_good_start.Y(), trk_good_start.Z()));
-	    
-		//auto trk_210_offset = SCE->GetCalPosOffsets(geo::Point_t(210, trk_good_start.Y(), trk_good_start.Z()));
-		//trk_210_SCEcorr.SetX((210 - trk_210_offset.X() + xtimeoffset_good) + 0.6);
-		//if(_debug) std::cout<<"[Numu0pi2p] Correction to X=210: "<<trk_210_SCEcorr.X()<<std::endl;
-		
-		trk_good_start_SCEcorr.SetX((trk_good_start.X() - trk_good_start_offset.X() + xtimeoffset_good) + 0.6);
-		trk_good_start_SCEcorr.SetY(trk_good_start.Y() + trk_good_start_offset.Y());
-		trk_good_start_SCEcorr.SetZ(trk_good_start.Z() + trk_good_start_offset.Z());
+		trk_start = assoTrack.front()->Vertex<TVector3>();
+	    	trk_end = assoTrack.back()->Vertex<TVector3>();
 
-		if(_debug) std::cout<<"[Numu0pi2p] Location of the True Vertex: "<<trk_good_start.X()<<" <-Vx "<<trk_good_start.Y()<<" <-Vy "<<trk_good_start.Z()<<" <-Vz "<<std::endl;
-		if(_debug) std::cout<<"[Numu0pi2p] Location of the True Vertex w/ SCE Correction: "<<trk_good_start_SCEcorr.X()<<" <-Vx "<<trk_good_start_SCEcorr.Y()<<" <-Vy "<<trk_good_start_SCEcorr.Z()<<" <-Vz "<<std::endl;
-	    
-		//defining the magnitude of the difference between the track start and the reconstructed neutrino start
-		float reco_3d_diff = sqrt(pow((reco_nu_vtxx - trk_good_start_SCEcorr.X()),2) + pow((reco_nu_vtxy - trk_good_start_SCEcorr.Y()),2) + pow((reco_nu_vtxz - trk_good_start_SCEcorr.Z()),2));
+		if(_debug) std::cout<<"[Numu0pi2p] Location of Reco Vertex: "<<" Vx: "<<trk_start.X()<<" Vy: "<<trk_start.Y()<<" Vz:  "<<trk_start.Z()<<std::endl;
+		if(_debug) std::cout<<"[Numu0pi2p] Location of Reco Track End: "<<" Vx: "<<trk_end.X()<<" Vy: "<<trk_end.Y()<<" Vz:  "<<trk_end.Z()<<std::endl;
 
-		if(_debug) std::cout<<"[Numu0pi2p] Reconstructed Vertex Resolution: "<<reco_3d_diff<<std::endl;
+		//defining the magnitude of the difference between the track start and the reco neutrino start
+		float reco_3d_diff_start = sqrt(pow((reco_nu_vtxx - trk_start.X()),2) + pow((reco_nu_vtxy - trk_start.Y()),2) + pow((reco_nu_vtxz - trk_start.Z()),2));
 
-		if(reco_3d_diff < vtxcut){ 
+		//defining the magnitude of the difference between the track end and the reco neutrino start
+		float reco_3d_diff_end = sqrt(pow((reco_nu_vtxx - trk_end.X()),2) + pow((reco_nu_vtxy - trk_end.Y()),2) + pow((reco_nu_vtxz - trk_end.Z()),2));
+
+		if(_debug) std::cout<<"[Numu0pi2p] Reconstructed Vertex Resolution From Start: "<<reco_3d_diff_start<<std::endl;
+		if(_debug) std::cout<<"[Numu0pi2p] Reconstructed Vertex Resolution From End: "<<reco_3d_diff_end<<std::endl;
+
+		if(reco_3d_diff_start < vtxcut || reco_3d_diff_end < vtxcut){ 
 		  good_daughter_Tracks.push_back(assoTrack.front());
 		}
 
-	      } //finish loop that looks at the pfp assotiation for tracks
+	      } //If associated track size == 1
 
 	      if(assoTrack.size()>1){ //means that there is more than one track associated to the daughter pfparticle
 		throw cet::exception("[Numu0pi2p]") << "PFParticle has >1 track!" << std::endl;
 	      }
-	      // Collect pfparticle associated shower in a vector
-	      auto assoShower = pfpToShowerAsso.at(dau_pfp.key()); // vector
-	      if(assoShower.size()==1){
+	     
+	      auto assoShower = pfpToShowerAsso.at(dau_pfp.key());
+	      if(assoShower.size()==1){ //exactly one association to the shower
 		daughter_Showers.push_back(assoShower.front());
 	      }
 	      if(assoShower.size()>1){ //means that there is more than one shower associated to the daughter pfparticle
 		throw cet::exception("[Numu0pi2p]") << "PFParticle has >1 shower!" << std::endl;
 	      }
-	    } // finish looping of pfp
+	    } // finishing the for loop over the neurino daughters
 	  } //end of n_pfp > 4
-     
+
+       //////////////////////
+       //Now for the good stuff
+       ////////////////////////
+      
       //Number of tracks and showers and good daughters (ie.e tracks that pass the reco cut)
       n_dau_tracks = daughter_Tracks.size();
       n_dau_showers = daughter_Showers.size();
@@ -295,39 +305,44 @@ bool ThreeTrackFilter::filter(art::Event & evt)
       if(_debug) std::cout<<"[Numu0pi2p] Number of Good Daughters: "<<n_good_daughters<<std::endl;
 
       // Selection and Fill in Info
+      //////////////////////////////
       if(n_dau_tracks == ntracks && n_dau_showers == nshowers){
 
 	if(_debug) std::cout<<"[Numu0pi2p] Yay!!! Let's fill some shit!"<<std::endl;
-	bool vtx_InFV = _fiducial_volume.InFV(trk_good_start_SCEcorr);
-	
+	bool vtxInFV = vtxInFid(reco_nu_vtxx, reco_nu_vtxy, reco_nu_vtxz, _border_x_low, _border_x_high, _border_y_low, _border_y_high, _border_z_low, _border_z_high); 
+
+	//if(_debug) std::cout<<"[Numu0pi2p] Value of vtx_InFV: "<<vtx_InFV<<std::endl;
+	if(_debug) std::cout<<"[Numu0pi2p] Value of vtxInFV: "<<vtxInFV<<std::endl;
+
+	//Check and make sure there are exactly 3 tracks that are within the 5cm of the vertex
 	if(n_good_daughters == ntracks ) {
 	  return true;
 	}
 	else{
-	  return false; //checking to make sure that the 
+	  return false; 
 	}
-        if(vtx_InFV){
+        
+	//Checking if the vertex is indeed within the FV
+	if(vtxInFV == true){
           return true;
-        } // if in FV
-        else{
-          return false;
-        } //not in FV
-      } // if 1trk, 0shw
-      else{
-        return false;        
-      } // not 1trk, 0 shw
+        } else {
+          return false; 
+	} 
 
-	} // if pfp < 4
+      }else { //if not 3 track 0 shwr topology
+        return false;        
+      }
+
+	} // End of the neutrino loop
       } // Finish loop all the pfp particles
-    } //if single neutrino
+    }// if the size of pfpneutrinos==1
   
-    ClearLocalData();
-  } //else loop over all the pfparticles
+    ClearLocalData();//clear the local data before leaving
+  } //else loop over all the pfparticles: end of the event
 
   return false; // If the function hasn't return before this, it means that there's no neutrino slice
-  ClearLocalData();
 
-}
+} //End Program
 
 void::ThreeTrackFilter::ClearLocalData()
 {
@@ -339,12 +354,30 @@ void::ThreeTrackFilter::ClearLocalData()
   reco_nu_vtxx=-9999.0;
   reco_nu_vtxy=-9999.0;
   reco_nu_vtxz=-9999.0;
-  trk_good_start.Clear();
-  trk_good_start_SCEcorr.Clear();
-  trk_210_SCEcorr.Clear();
+  trk_start.Clear();
+  trk_end.Clear();
 
 }
 
+bool::ThreeTrackFilter::vtxInFid(float x, float y, float z,float xedge_min, float xedge_max, float yedge_min, float yedge_max, float zedge_min, float zedge_max)
+{
+
+  //Defining the edges of the detector (hard coding cause I don't know why this is broken                                                                 
+  float xmin = 0.0 + xedge_min;
+  float xmax = 256.35 - xedge_max;
+  float ymin = -116.5 + yedge_min;
+  float ymax = 116.5 - yedge_max;
+  float zmin = 0.0 + zedge_min;
+  float zmax = 1036.8 - zedge_max;
+
+    if((x <= xmin || x >= xmax) || (y <= ymin || y >= ymax) || (z <= zmin || z >= zmax) ){
+    return false;
+  } else{
+    return true;
+  }
+
+
+}
 void ThreeTrackFilter::beginJob()
 {
   // Implementation of optional member function here.

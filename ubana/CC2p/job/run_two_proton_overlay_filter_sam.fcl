@@ -1,3 +1,8 @@
+#include "geometry.fcl"
+#include "services_microboone.fcl"
+#include "messageservice.fcl"
+#include "mctruthmatching_uboone.fcl"
+#include "mctruthassociations_uboone.fcl"
 #include "pandoramodules_microboone.fcl"
 #include "external_event_building.fcl"
 #include "flash_neutrino_id.fcl"
@@ -7,38 +12,11 @@
 #include "calibration_microboone.fcl"
 #include "microboone_eventweight_service.fcl"
 #include "eventweight_microboone.fcl"
-
-BEGIN_PROLOG
-
-eventweight4to4aFix: @local::microboone_eventweight_justSplines
-
-two_proton_ana: 
-{
-    module_type: "CC2p"
-
-    # Input producers
-    pfp_producer: "pandora"
-    #MCTruthMatching:	@local::BackTrackerTruthTool
-    #MCTruthAssociatiions:	@local::MCTruthAssociations
-
-
-
-}
-
-END_PROLOG
-
-###################################################################################
-
-#include "services_microboone.fcl"
 #include "photpropservices_microboone.fcl"
 #include "time_memory_tracker_microboone.fcl"
 #include "reco_uboone_mcc9_8.fcl"
-#include "geometry.fcl"
-#include "messageservice.fcl"
-#include "mctruthmatching_uboone.fcl"
-#include "mctruthassociations_uboone.fcl"
 
-process_name: TwoProtonAna
+process_name: TwoProtonAnaProcess
 
 services:
 {
@@ -64,14 +42,7 @@ services:
   #PmtGainService:           @local::PMTService
 
 }
-
-# Configuration
-services.SpaceCharge.EnableCorrSCE:       true
-services.SpaceCharge.EnableSimEfieldSCE:  true
-services.SpaceCharge.EnableSimSpatialSCE: true
-services.DetectorClocksService.InheritClockConfig:                         false
-services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
-
+	      
 source:
 {
   module_type: RootInput
@@ -91,3 +62,58 @@ outputs:
    saveMemoryObjectThreshold: 0
  }
 }
+
+physics:
+{
+ #producers: 
+#{
+   #eventweight4to4aFix: @local::microboone_eventweight_justSplines
+   
+# }
+ 
+ analyzers: 
+ {
+	TwoProtonAna: 
+	{
+		module_type: "CC2p"
+    		# Input producers
+    		pfp_producer: "pandora"
+    		MCTruthMatching:	@local::BackTrackerTruthTool
+    		MCTruthAssociatiions:	@local::MCTruthAssociations
+	}
+}
+
+#prod: [eventweight4to4aFix] 
+ana:  [TwoProtonAna]
+# trigger_paths: [ prod ]
+ end_paths: [ ana ]
+
+}
+
+
+# Configuration
+services.SpaceCharge.EnableCorrSCE:       true
+services.SpaceCharge.EnableSimEfieldSCE:  true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.DetectorClocksService.InheritClockConfig:                         false
+services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
+
+#physics.producers.eventweightSplines: @local::microboone_eventweight_justSplines
+
+physics.analyzers.TwoProtonAna.DebugMode: false
+physics.analyzers.TwoProtonAna.Reweighting:   false
+physics.analyzers.TwoProtonAna.Overlay:   true
+physics.analyzers.TwoProtonAna.CRTVeto:   false
+physics.analyzers.TwoProtonAna.Beam_low: 3.57
+physics.analyzers.TwoProtonAna.Beam_high: 5.25
+physics.analyzers.TwoProtonAna.Trklen_low: 0.5
+physics.analyzers.TwoProtonAna.Trklen_high: 200
+physics.analyzers.TwoProtonAna.Trklen_high: 200
+physics.analyzers.TwoProtonAna.P_muon: 0.1
+physics.analyzers.TwoProtonAna.P_proton: 0.2
+physics.analyzers.TwoProtonAna.P_pionpm: 0.07
+physics.analyzers.TwoProtonAna.P_pion0: 0.01
+physics.analyzers.TwoProtonAna.P_electron: 0.01
+physics.analyzers.TwoProtonAna.P_neutron: 0.01
+
+

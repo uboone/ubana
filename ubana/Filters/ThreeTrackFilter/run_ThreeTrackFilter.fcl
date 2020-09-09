@@ -38,13 +38,21 @@ physics:
   
         }
 
+	Debug: "true"
         PandoraLabel: "pandora"
         TrackProducerLabel: "pandora" 
         ShowerProducerLabel: "pandora" 
 	NShowers: 0      
 	NTrack: 3
 	VtxCut: 5.0
-	Debug: "true"
+
+	borderX_low: 10.0
+        borderX_high: 10.0
+        borderY_low: 10.0
+        borderY_high: 10.0
+        borderZ_low: 10.0
+        borderZ_high: 10.0
+
 
       }
   }

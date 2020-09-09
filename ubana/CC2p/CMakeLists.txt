@@ -34,7 +34,11 @@ art_make(BASENAME_ONLY
 		       ${ROOT_BASIC_LIB_LIST}
  
          MODULE_LIBRARIES 	  		   
-           uboonecode_uboone_XGBoost
+	   ubana_AnalysisTree_MCTruth_BackTrackerTruth_tool
+           ubana_AnalysisTree_MCTruth_AssociationsTruth_tool
+           ubana_AnalysisTree_MCTruth_MCTruthBase
+           ubana_BasicTool_GeoAlgo
+	   uboonecode_uboone_XGBoost
            uboonecode_uboone_CC2pAlgorithms
 	  	     larcorealg_Geometry
 		       larcore_Geometry_Geometry_service

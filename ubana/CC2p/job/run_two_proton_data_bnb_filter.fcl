@@ -14,7 +14,7 @@ physics:
  end_paths: [ ana ]
 
 }
-physics.analyzers.TwoProtonAna.DebugMode:                           true
+physics.analyzers.TwoProtonAna.DebugMode:                           false
 physics.analyzers.TwoProtonAna.Overlay:                             false
 physics.analyzers.TwoProtonAna.CRTVeto:   false
 physics.analyzers.TwoProtonAna.Beam_low: 3.19

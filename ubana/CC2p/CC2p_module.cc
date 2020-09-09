@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 // Class:       CC2p
 // Plugin Type: analyzer (art v3_01_02)
 // File:        CC2p_module.cc
@@ -38,8 +38,10 @@
 #include "lardataobj/RecoBase/OpHit.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
+#include "larsim/MCCheater/BackTrackerService.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -52,6 +54,9 @@
 #include "ubana/AnalysisTree/MCTruth/IMCTruthMatching.h"
 #include "ubana/CC2p/Algorithms/BackTrackerTruthMatch.h"
 #include "ubana/CC2p/Algorithms/TrackFeatures.h"
+
+#include "ubana/CC2p/Algorithms/PID.h"
+
 #include "ubana/LEEPhotonAnalysis/ParticleAssociations.h"
 #include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 #include "ubreco/LLSelectionTool/OpT0Finder/Base/OpT0FinderTypes.h"
@@ -69,12 +74,9 @@
 
 class CC2p;
 
-
 class CC2p : public art::EDAnalyzer {
 public:
   explicit CC2p(fhicl::ParameterSet const& p);
-  // The compiler-generated destructor is fine for non-base
-  // classes without bare pointers or other resource use.
 
   // Plugins should not be copied or assigned.
   CC2p(CC2p const&) = delete;
@@ -82,17 +84,15 @@ public:
   CC2p& operator=(CC2p const&) = delete;
   CC2p& operator=(CC2p&&) = delete;
 
-  // Required functions.
+  //Define all your functions
   void analyze(art::Event const& e) override;
-
-  // Selected optional functions.
   void beginJob() override;
+  void endSubRun(art::SubRun const& sr) override;
   void FillGENIETruth(art::Event const& e);
   bool IsContained(float st_x, float st_y, float st_z, float end_x, float end_y, float end_z);
   bool IsNearVertex(float st_x, float st_y, float st_z, float end_x, float end_y, float end_z);
   float KEfromLength(float trk_length);
   void ClearLocalData();
-
   //void endJob() override;
 
 private:
@@ -113,6 +113,7 @@ private:
   std::string m_potsum_instance; //POT Sum Instance
   std::string fMCParticleModuleLabel; //MCParticle Module Label
   std::string fHitModuleLabel; //Hit module label
+  std::string HitsPerTrackAssModuleLabel; //hits per track association label
   std::string fMCParticleToMCTruthAssModuleLabel; //MCParticle to MCTruth Association Module Label
   std::string m_flash_producer; //flassh producer
   double m_beamwindow_low; //left edge of the beam window
@@ -125,7 +126,6 @@ private:
   double m_p_pion0; //
   double m_p_electron; //
   double m_p_neutron; //
-
   double m_vtx_dis; //
   bool _debug=true; // ALWAYS DEBUG!
   bool m_doReweighting;  // Should I do the MC reweighting?
@@ -163,11 +163,12 @@ private:
   TTree* _sr_tree; //pot tree
   int _run, _subrun, _event; //duh
   int _n_pfp_per_event=-9999; //number of pfp per event
-  int _n_trk_per_event=-9999; //umber of track per evet
-  int _n_nu_per_event=-9999; //number of nu per event
+  int _n_trk_per_event=-9999; //number of track per evet
+  int _n_nu_per_event=-9999; //number of neutrinos per event
   int _n_nu_pfp_per_event=-9999; //number or nu pfp per event
   int _nu_PDG_per_event=-9999; //pdg code of the nu's
   int _n_shower_per_event=-9999; //number of showers per event
+  int _n_neutrinos_per_event=-9999; //number of neutrinos per event
   float _sr_pot; //total POT /1.0E16
 
   //GENIE Information
@@ -194,7 +195,7 @@ private:
   float _mc_q2=-9999., _mc_nu_vtxx, _mc_nu_vtxy, _mc_nu_vtxz, _mc_nu_vtxx_sce, _mc_nu_vtxy_sce, _mc_nu_vtxz_sce, _mc_enu; //mc q2, vertex, sce vertex, energy of the neutrino
   float _mc_X=-9999., _mc_Y=-9999., _mc_Pt=-9999.;
 
-  //ALL DA GENIE WEIGHTS
+  //ALL DA GENIE WEIGHTS FOR SYSTEMATICS
   float _mc_wgt=1;
   float _mc_wgt_cv=1;
   float _mc_wgt_0_EtaNCEL =1;
@@ -270,20 +271,17 @@ private:
   //Reconstructed Innformation
   ////////////////////////////////////
   float _reco_nu_vtxx=-9999., _reco_nu_vtxy=-9999.,  _reco_nu_vtxz=-9999.; //reco vertex
-  //  float p_reco_nu_vtxx=-9999., p_reco_nu_vtxy=-9999., p_reco_nu_vtxz=-9999.;
   std::vector<float> _reco_q2, _reco_length, _reco_start_x, _reco_start_y, _reco_start_z, _reco_end_x, _reco_end_y, _reco_end_z, _reco_theta, _reco_phi, _reco_ke, _reco_mom; //reco q2, length, start, end, theta, phi, ke, mom
   std::vector<float> _reco_mom_muon, _reco_mom_proton, _reco_mom_pion; //reco mom of muon, proton, pion
   std::vector<bool> _is_primary; //is it primary?
   std::vector<bool> _is_contained; //is it contained?
   std::vector<bool> _is_from_nu_slice; //did it come from the neutrino slice?
   std::vector<bool> _has_shower; //does it have a shower?
-
-  std::vector<int> _n_pfp; //number of pfp particles?
+  std::vector<int> _n_pfp; //number of pfp particles
   std::vector<int> _n_trk; //number of tacks
   std::vector<int> _n_shower; //number of showers
   std::vector<int> _id_pfp; //id of the pfp
   std::vector<int> _n_daughters; //number of daughter particles
-
   std::vector<int> _parentPDG; //pdg of the parent
   std::vector<float> _track_score; //track score
   std::vector<float> _dislen_ratio; //conpare 3D calculated length to the reco length
@@ -291,41 +289,11 @@ private:
   std::vector<float> _top_score; //neutrino score
   std::vector<float> _flash_score; //calculating the flash score
   int _vtx_n_pfp; //number of tracks near a vertex
-
-  // std::vector<bool> _flip_0,_flip_1,_flip_2; //I don't know if I actually need this.
-
-  //Flash Matching Variables
-  ////////////////////////////////////////////
-  /*  std::vector<float> _deltaY, _deltaZ, _deltaYSigma, _deltaZSigma, _chargeToLightRatio,_xclVariable;
-
-  int n_flashes;
-  std::vector<float> flashbeam_Ywidth;
-  std::vector<float> flashbeam_Zwidth;
-  std::vector<float> flashbeam_Twidth;
-  std::vector<float> flashbeam_Ycenter;
-  std::vector<float> flashbeam_Zcenter;
-  std::vector<float> flashbeam_Time;
-  std::vector<float> flashbeam_TotalPE;
-
-  float flash_brightest_Ywidth;
-  float flash_brightest_Zwidth;
-  float flash_brightest_Twidth;
-  float flash_brightest_Ycenter;
-  float flash_brightest_Zcenter;
-  float flash_brightest_Time;
-  float flash_brightest_TotalPE;
-
-  std::vector<float> flashbeam_CRThit;
-  std::vector<bool> flashbeam_CRTveto;
-  std::vector<std::vector<float>> flashbeam_PE_Per_PMT;
-
-  float flash_brightest_CRThit;
-  bool flash_brightest_CRTveto;
-  */
-  
+ 
   //Calorimetry and PID                                                                                                                                             
   //////////////////////////////////////////////////////// 
   std::vector<int> _nhits_0, _nhits_1, _nhits_2;
+  std::vector<float> _chi2p_3D, _chi2mu_3D, _chi2pi_3D, _chi2K_3D; //the 3D chi2 from thomas 
   std::vector<float> _chi2_p_0, _chi2_p_1, _chi2_p_2;
   std::vector<float> _chi2_mu_0, _chi2_mu_1, _chi2_mu_2;
   std::vector<float> _LL3;
@@ -342,7 +310,6 @@ private:
   std::vector<float> _avg_dedx_0, _avg_dedx_1, _avg_dedx_2;
   std::vector<float> _total_dedx_0, _total_dedx_1, _total_dedx_2;
   std::vector<float> _KE_calo_0, _KE_calo_1, _KE_calo_2;
-
   ::trkf::TrackMomentumCalculator _trk_mom_calculator;
 
 };
@@ -358,18 +325,18 @@ CC2p::CC2p(fhicl::ParameterSet const& p): EDAnalyzer{p}
   m_hit_mcp_producer  = p.get<std::string>("hit_mcp_producer", "gaushitTruthMatch");
   m_flash_producer    = p.get<std::string>("flash_producer", "simpleFlashBeam");
   m_crt_producer      = p.get<std::string>("crt_producer", "crtveto");
-  m_beamwindow_low    = p.get<double>("Beam_low", 3.57);
-  m_beamwindow_high   = p.get<double>("Beam_high", 5.25);
-  m_trklen_low        = p.get<double>("Trklen_low", 0.5);
-  m_trklen_high       = p.get<double>("Trklen_high", 200);
-  m_vtx_dis           = p.get<double>("Vertex_distance", 5);
-
-  m_p_muon            = p.get<double>("P_muon", 0.1);
-  m_p_proton          = p.get<double>("P_proton", 0.1);
-  m_p_pionpm          = p.get<double>("P_pionpm", 0.1);
-  m_p_pion0           = p.get<double>("P_pion0", 0.1);
-  m_p_electron        = p.get<double>("P_electron", 0.1);
-  m_p_neutron         = p.get<double>("P_neutron", 0.1);
+  HitsPerTrackAssModuleLabel = p.get<std::string>("hit_trackass","pandora");
+  m_beamwindow_low    = p.get<double>("Beam_low", 3.57); //beam window low
+  m_beamwindow_high   = p.get<double>("Beam_high", 5.25); //beam window high
+  m_trklen_low        = p.get<double>("Trklen_low", 0.5); //track length lower limit
+  m_trklen_high       = p.get<double>("Trklen_high", 200); //track length upper limit
+  m_vtx_dis           = p.get<double>("Vertex_distance", 5); //distance between  vertex and start/end of track
+  m_p_muon            = p.get<double>("P_muon", 0.1); //momentum of muon
+  m_p_proton          = p.get<double>("P_proton", 0.1); //momentum of proton
+  m_p_pionpm          = p.get<double>("P_pionpm", 0.1); //momentum of  pion
+  m_p_pion0           = p.get<double>("P_pion0", 0.1); //momentum of pio0
+  m_p_electron        = p.get<double>("P_electron", 0.1); //momentum of electron
+  m_p_neutron         = p.get<double>("P_neutron", 0.1); //momentum  of neutron
   m_doReweighting     = p.get<bool>("Reweighting", false);
   m_isOverlay         = p.get<bool>("Overlay", false);
   m_CRT               = p.get<bool>("CRTVeto", false);
@@ -377,41 +344,21 @@ CC2p::CC2p(fhicl::ParameterSet const& p): EDAnalyzer{p}
   m_genie_producer    = p.get<std::string>("genie_producer","generator");
   m_potsum_producer   = p.get<std::string>("POTSummaryProducer","generator");
 
+  fMCParticleToMCTruthAssModuleLabel = p.get< std::string >("MCParticleToMCTruthAssModuleLabel","largeant");
+
   //Now to define my trees and their various branches
   //////////////////////////////////////////////////////
   _tree1 = tfs->make<TTree>("tree","");
   _tree1->Branch("run",    &_run,    "run/I");
   _tree1->Branch("subrun", &_subrun, "subrun/I");
   _tree1->Branch("event",  &_event,  "event/I");
-  //_tree1->Branch("nflashes", &n_flashes, "nflashes/I");
   _tree1->Branch("n_pfp_per_event", &_n_pfp_per_event, "n_pfp_per_event/I");
   _tree1->Branch("n_trk_per_event", &_n_trk_per_event, "n_trk_per_event/I");
-  _tree1->Branch("n_shower_per_event", &_n_trk_per_event, "n_shower_per_event/I");
+  _tree1->Branch("n_shower_per_event", &_n_shower_per_event, "n_shower_per_event/I");
+  _tree1->Branch("n_neutrinos_per_event",&_n_neutrinos_per_event,"n_neutrinos_per_event/I");
   _tree1->Branch("n_nu_per_event", &_n_nu_per_event, "n_nu_per_event/I");
   _tree1->Branch("n_nu_pfp_per_event", &_n_nu_pfp_per_event, "n_nu_pfp_per_event/I");
   _tree1->Branch("nu_PDG_per_event", &_nu_PDG_per_event, "nu_PDG_per_event/I");
-
-  /*  _tree1->Branch("flash_Ywidth", &flashbeam_Ywidth);
-  _tree1->Branch("flash_Zwidth", &flashbeam_Zwidth);
-  _tree1->Branch("flash_Twidth", &flashbeam_Twidth);
-  _tree1->Branch("flash_Ycenter", &flashbeam_Ycenter);
-  _tree1->Branch("flash_Zcenter", &flashbeam_Zcenter);
-  _tree1->Branch("flash_Time", &flashbeam_Time);
-  _tree1->Branch("flash_CRThit", &flashbeam_CRThit);
-  _tree1->Branch("flash_CRTveto", &flashbeam_CRTveto);
-  _tree1->Branch("flash_TotalPE", &flashbeam_TotalPE);
-
-  _tree1->Branch("flash_brightest_Ywidth", &flash_brightest_Ywidth,"flash_brightest_Ywidth/F");
-  _tree1->Branch("flash_brightest_Zwidth", &flash_brightest_Zwidth,"flash_brightest_Zwidth/F");
-  _tree1->Branch("flash_brightest_Twidth", &flash_brightest_Twidth,"flash_brightest_Twidth/F");
-  _tree1->Branch("flash_brightest_Ycenter", &flash_brightest_Ycenter,"flash_brightest_Ycenter/F");
-  _tree1->Branch("flash_brightest_Zcenter", &flash_brightest_Zcenter,"flash_brightest_Zcenter/F");
-  _tree1->Branch("flash_brightest_Time", &flash_brightest_Time,"flash_brightest_Time/F");
-  _tree1->Branch("flash_brightest_CRThit", &flash_brightest_CRThit,"flash_brightest_CRThit/F");
-  _tree1->Branch("flash_brightest_CRTveto", &flash_brightest_CRTveto,"flash_brightest_CRTveto/O");
-  _tree1->Branch("flash_brightest_TotalPE", &flash_brightest_TotalPE,"flash_brightest_TotalPE/F");
-  _tree1->Branch("flash_PE_Per_PMT", &flashbeam_PE_Per_PMT);*/
-
   _tree1->Branch("mc_ccnc",&_mc_ccnc,"mc_ccnc/I");
   _tree1->Branch("mc_mode",&_mc_mode,"mc_mode/I");
   _tree1->Branch("mc_interactiontype",&_mc_interactiontype,"mc_interactiontype/I");
@@ -427,7 +374,6 @@ CC2p::CC2p(fhicl::ParameterSet const& p): EDAnalyzer{p}
   _tree1->Branch("mc_nu_vtxy_sce",&_mc_nu_vtxy_sce,"mc_nu_vtxy_sce/F");
   _tree1->Branch("mc_nu_vtxz_sce",&_mc_nu_vtxz_sce,"mc_nu_vtxz_sce/F");
   _tree1->Branch("mc_enu",&_mc_enu,"mc_enu/F");
-
   _tree1->Branch("mc_wgt",&_mc_wgt,"mc_wgt/F");
   _tree1->Branch("mc_wgt_cv",&_mc_wgt_cv,"mc_wgt_cv/F");
   _tree1->Branch("mc_wgt_0_EtaNCEL",&_mc_wgt_0_EtaNCEL,"mc_wgt_0_EtaNCEL/F");
@@ -484,7 +430,6 @@ CC2p::CC2p(fhicl::ParameterSet const& p): EDAnalyzer{p}
   _tree1->Branch("mc_wgt_1_NonRESBGvpNC2pi",&_mc_wgt_1_NonRESBGvpNC2pi,"mc_wgt_1_NonRESBGvpNC2pi/F");
   _tree1->Branch("mc_wgt_1_NormCCMEC",&_mc_wgt_1_NormCCMEC,"mc_wgt_1_NormCCMEC/F");
   _tree1->Branch("mc_wgt_1_NormNCMEC",&_mc_wgt_1_NormNCMEC,"mc_wgt_1_NormNCMEC/F");
-
   _tree1->Branch("evtwgt_genie_pm1_nfunc",&evtwgt_genie_pm1_nfunc,"evtwgt_genie_pm1_nfunc/I");
   _tree1->Branch("evtwgt_genie_pm1_funcname",&evtwgt_genie_pm1_funcname);
   _tree1->Branch("evtwgt_genie_pm1_nweight",&evtwgt_genie_pm1_nweight);
@@ -497,7 +442,6 @@ CC2p::CC2p(fhicl::ParameterSet const& p): EDAnalyzer{p}
   _tree1->Branch("evtwgt_flux_multisim_funcname",&evtwgt_flux_multisim_funcname);
   _tree1->Branch("evtwgt_flux_multisim_nweight",&evtwgt_flux_multisim_nweight);
   _tree1->Branch("evtwgt_flux_multisim_weight",&evtwgt_flux_multisim_weight);
-
   _tree1->Branch("mc_nupdg",&_mc_nupdg,"mc_nupdg/I");
   _tree1->Branch("mc_n_muon",&_mc_n_muon,"mc_n_muon/I");
   _tree1->Branch("mc_n_proton",&_mc_n_proton,"mc_n_proton/I");
@@ -575,9 +519,6 @@ CC2p::CC2p(fhicl::ParameterSet const& p): EDAnalyzer{p}
   _tree1->Branch("reco_nu_vtxx",&_reco_nu_vtxx,"reco_nu_vtxx/F");
   _tree1->Branch("reco_nu_vtxy",&_reco_nu_vtxy,"reco_nu_vtxy/F");
   _tree1->Branch("reco_nu_vtxz",&_reco_nu_vtxz,"reco_nu_vtxz/F");
-  //_tree1->Branch("flip_0",&_flip_0);
-  //_tree1->Branch("flip_1",&_flip_1);
-  //_tree1->Branch("flip_2",&_flip_2);
   _tree1->Branch("reco_length",&_reco_length);
   _tree1->Branch("reco_start_x",&_reco_start_x);
   _tree1->Branch("reco_start_y",&_reco_start_y);
@@ -595,6 +536,10 @@ CC2p::CC2p(fhicl::ParameterSet const& p): EDAnalyzer{p}
   _tree1->Branch("nhits_0",&_nhits_0);
   _tree1->Branch("nhits_1",&_nhits_1);
   _tree1->Branch("nhits_2",&_nhits_2);
+  _tree1->Branch("chi2p_3D",&_chi2p_3D);
+  _tree1->Branch("chi2mu_3D",&_chi2mu_3D);
+  _tree1->Branch("chi2pi_3D",&_chi2pi_3D);
+  _tree1->Branch("chi2K_3D",&_chi2K_3D);
   _tree1->Branch("chi2_p_0",&_chi2_p_0);
   _tree1->Branch("chi2_p_1",&_chi2_p_1);
   _tree1->Branch("chi2_p_2",&_chi2_p_2);
@@ -663,21 +608,17 @@ void CC2p::analyze(art::Event const& e)
   //////////////////
   FillGENIETruth(e);
 
-  //Flash stuff would go here
-  //////////////////////////
-  //Not using it since we are using the CCInclusive and a 3 track filter
-
   //Now to start everything else
   //////////////////////////////
-  larpandora.CollectPFParticleMetadata(e, m_pfp_producer, pfparticles, particlesToMetadata);
-  larpandora.BuildPFParticleMap(pfparticles, particleMap);
-  larpandora.CollectTracks(e,m_pfp_producer, trackVector2, tracksToHits);
+  larpandora.CollectPFParticleMetadata(e, m_pfp_producer, pfparticles, particlesToMetadata); //Get the particle meta data using the event and the pfp_producer
+  larpandora.BuildPFParticleMap(pfparticles, particleMap); //build the pfparticle map
+  larpandora.CollectTracks(e,m_pfp_producer, trackVector2, tracksToHits); //collect the tracks
   larpandora.CollectTracks(e, m_pfp_producer, pftracks, particlesToTracks);
-  larpandora.CollectShowers(e, m_pfp_producer, pfshowers, particlesToShowers);
-  larpandora.CollectVertices(e, m_pfp_producer, pfvertices, particlesToVertices);
-  larpandora.SelectNeutrinoPFParticles(pfparticles, pfneutrinos);
-  larpandora.CollectPFParticles(e, m_pfp_producer, pfparticles1, particlesToSpacePoints);
-  larpandora.CollectSpacePoints(e, m_pfp_producer, spacePoints, spacePointsToHits);
+  larpandora.CollectShowers(e, m_pfp_producer, pfshowers, particlesToShowers); //collect the showers
+  larpandora.CollectVertices(e, m_pfp_producer, pfvertices, particlesToVertices); //collect all the vertices
+  larpandora.SelectNeutrinoPFParticles(pfparticles, pfneutrinos); //Get the neutrino PFPs
+  larpandora.CollectPFParticles(e, m_pfp_producer, pfparticles1, particlesToSpacePoints); //Collect your PFPs
+  larpandora.CollectSpacePoints(e, m_pfp_producer, spacePoints, spacePointsToHits); //Collect the space points
 
   if(_debug) std::cout << "[McPfpMatch] RecoNeutrinos: " << pfneutrinos.size() << std::endl;
       
@@ -687,8 +628,8 @@ void CC2p::analyze(art::Event const& e)
   art::Handle<std::vector<recob::PFParticle>> pfparticles_handle;
   e.getByLabel(m_pfp_producer, pfparticles_handle);
   art::FindManyP<anab::T0> nuFlashScoreAsso(pfparticles_handle, e, "flashmatch");
-  art::FindManyP<recob::Track> PFPTrackAsso(pfparticles_handle, e, "pandora");
-  art::FindManyP<recob::Shower> PFPShowerAsso(pfparticles_handle, e, "pandora");
+  art::FindManyP<recob::Track> PFPTrackAsso(pfparticles_handle, e, "pandora"); //grabbing the track assocaitons
+  art::FindManyP<recob::Shower> PFPShowerAsso(pfparticles_handle, e, "pandora"); //grabbing the shower assocations
 
   if (!trackPIDAssn.isValid()){
     if(_debug) 
@@ -701,7 +642,7 @@ void CC2p::analyze(art::Event const& e)
   }
   else {//if there are reconstructed pfparticles continue on your merry way
 
-    if(_debug) std::cout << "[Numu0pi2p] There are " << pfparticles.size()<< " PFPs" << std::endl; //
+    if(_debug) std::cout << "[Numu0pi2p] There are " << pfparticles.size()<< " PFPs" << std::endl; //how many pfps in the event
     if(_debug) std::cout << "[Numu0pi2p] There are " << pftracks.size()<< " tracks" << std::endl; //better be exactly 3 for all events
     if(_debug) std::cout << "[Numu0pi2p] There are " << pfshowers.size()<< " showers" << std::endl; //better be exactly 0 for all events
     if(_debug) std::cout << "[Numu0pi2p] There are " << pfneutrinos.size()<< " neutrino candidates" << std::endl; //better be neutrinos!
@@ -709,15 +650,13 @@ void CC2p::analyze(art::Event const& e)
     _n_pfp_per_event=pfparticles.size();
     _n_trk_per_event=pftracks.size();
     _n_shower_per_event=pfshowers.size();
+    _n_neutrinos_per_event=pfneutrinos.size();
     
     if(pfneutrinos.size()==1){ //when there is exactly 1 neutrino candidate in the event
-      
-	//Lu's code
+     
         if(_debug) std::cout<< "[Numu0pi2p] Starting to Fill In the Vertex" <<std::endl;
 
 	art::Ptr<recob::PFParticle> pfnu = pfneutrinos.front();
-	if(_debug) std::cout << "[Numu0pi2p] Why are you complaining?" <<std::endl;
-
 	lar_pandora::VertexVector neutrino_vertex_vec = particlesToVertices.at(pfnu);
 	const recob::Vertex::Point_t &neutrino_vtx = neutrino_vertex_vec.front()->position();
 
@@ -763,9 +702,6 @@ void CC2p::analyze(art::Event const& e)
 	bool p_is_primary=false;
 	bool p_is_contained=false;
 	bool p_is_from_nu_slice=false;
-	//bool p_flip_0=false;
-	//bool p_flip_1=false;
-	//bool p_flip_2=false;
 	int p_n_pfp=-9999;
 	int p_n_trk=-9999;
 	int p_n_shower=-9999;
@@ -773,11 +709,9 @@ void CC2p::analyze(art::Event const& e)
 	float p_track_score=-9999;
 	float p_dislen_ratio=-9999;
 	float p_KE_len=-9999;
+
 	float p_reco_q2=-9999;
 	float p_reco_length=-9999;
-	//float p_reco_nu_vtxx=-9999;
-	//float p_reco_nu_vtxy=-9999;
-	//float p_reco_nu_vtxz=-9999;
 	float p_reco_start_x=-9999;
 	float p_reco_start_y=-9999;
 	float p_reco_start_z=-9999;
@@ -791,10 +725,12 @@ void CC2p::analyze(art::Event const& e)
 	float p_reco_mom_muon=-9999;
 	float p_reco_mom_proton=-9999;
 	float p_reco_mom_pion=-9999;
+
 	int p_id_pfp=-9999;
 	bool p_has_shower=false;
 	int p_n_daughters=-9999;
 	int p_nhits_0=-9999, p_nhits_1=-9999, p_nhits_2=-9999;
+	float p_chi2p_3D=-9999,p_chi2mu_3D=-9999,p_chi2pi_3D=-9999,p_chi2K_3D=-9999;
 	float p_chi2_p_0=-9999, p_chi2_p_1=-9999, p_chi2_p_2=-9999;
 	float p_chi2_mu_0=-9999, p_chi2_mu_1=-9999, p_chi2_mu_2=-9999;
 	float p_LL3=-9999;
@@ -814,23 +750,23 @@ void CC2p::analyze(art::Event const& e)
 	p_id_pfp=n;
 
 	const art::Ptr<recob::PFParticle> particle = pfparticles.at(n); //define an individual particle to be the nth particle of the pfparticles
-	
-
 	p_is_primary=particle->IsPrimary(); //is the particle the primary?
 	
-	if(!particle->IsPrimary()){ //if the particle is not the primary
+	if(!particle->IsPrimary()){ //if the particle is not the primary (i.e. not the neutrino)
 
-	  p_parentPDG=larpandora.GetParentNeutrino(particleMap, particle);
-	  const auto parentIterator = particleMap.find(particle->Parent());
-	  const int parentPDG = std::abs(parentIterator->second->PdgCode());
-	  if (abs(parentPDG) == 14) p_is_from_nu_slice=true;
+	  p_parentPDG=larpandora.GetParentNeutrino(particleMap, particle); //grab the parent PDG
+	  const auto parentIterator = particleMap.find(particle->Parent());  //find the parent of the particle from the Map
+	  const int parentPDG = std::abs(parentIterator->second->PdgCode()); //what is the particles parent pdg
+
+	  if (abs(parentPDG) == 14) p_is_from_nu_slice=true; //how we define the particle being from the neutrino slice
+
 	  if (parentIterator == particleMap.end()) continue;
 	  if (!parentIterator->second->IsPrimary()) continue;
 
-	  const std::vector<size_t> &daughterIDs = parentIterator->second->Daughters();
-	  p_n_pfp=daughterIDs.size();
-	  p_n_trk=0;
-	  p_n_shower=0;
+	  const std::vector<size_t> &daughterIDs = parentIterator->second->Daughters(); //grab the PFP ids of the daughters
+	  p_n_pfp=daughterIDs.size(); //number of daughters of our parent particle
+	  p_n_trk=0; //initalize
+	  p_n_shower=0; //initialize
 	  
 	  for(int j = 0; j< p_n_pfp; j++)
 	    {
@@ -838,27 +774,29 @@ void CC2p::analyze(art::Event const& e)
 	      auto this_pfp = Iterator->second;
 	      auto assoTrack = PFPTrackAsso.at(this_pfp.key());
 	      auto assoShower = PFPShowerAsso.at(this_pfp.key());
+	      
 	      if(assoTrack.size()==1){
-		  p_n_trk++;
-		  if(_debug) std::cout<< this_pfp<<" "<<this_pfp.key()<<std::endl;
+		p_n_trk++; //number of daughter tracks
+		if(_debug) std::cout<< "This_PFP: "<<this_pfp<<" "<<this_pfp.key()<<std::endl; //it is returning the IDs of the good PFP's
 		}
 	      if(assoShower.size()==1){
-		  p_n_shower++;
+		p_n_shower++; //number of daughter showers
 		}
 	    }
 
-	  art::Ptr<recob::PFParticle> pfnu1 =parentIterator->second;
+	  art::Ptr<recob::PFParticle> pfnu1 =parentIterator->second; //the parents of our particles
 	  if(_debug) std::cout << "[Numu0pi2p]  The neutrino candidate's PDG code is   " << pfnu1->PdgCode() << std::endl;
 
 	}// end the if loop for when the particle is NOT the primary
 
         
 	lar_pandora::PFParticlesToTracks::const_iterator trkIter = particlesToTracks.find(particle);
-	
+       
 	if (particlesToTracks.end() != trkIter){
 	    const lar_pandora::TrackVector &pftracks = trkIter->second;
 	    if (!pftracks.empty()) {
-		if (pftracks.size() !=1){    
+	      //want to ensure that each particle has only one associated track
+	      if (pftracks.size() !=1){    
 		  std::cout << " Warning: Found particle with more than one associated track "<<pftracks.size() << std::endl;
 		    continue;
 		  }
@@ -868,42 +806,54 @@ void CC2p::analyze(art::Event const& e)
 		const auto &trackEndPosition = track->End();
 		const auto &track_direction  = track->StartDirection();
 
-		p_reco_start_x=trackVtxPosition.x();
-		p_reco_start_y=trackVtxPosition.y();
-		p_reco_start_z=trackVtxPosition.z();
+		p_reco_start_x=trackVtxPosition.x(); //start of the particle in x
+		p_reco_start_y=trackVtxPosition.y(); //start of the particle in y
+		p_reco_start_z=trackVtxPosition.z(); //start of the particle in z
 		  
-		p_reco_end_x=trackEndPosition.x();
-		p_reco_end_y=trackEndPosition.y();
-		p_reco_end_z=trackEndPosition.z();
+		p_reco_end_x=trackEndPosition.x(); //end of the track in x
+		p_reco_end_y=trackEndPosition.y(); //end of the track in y
+		p_reco_end_z=trackEndPosition.z(); //end of the track in z
 		  
-		p_reco_length=track->Length();
-		p_reco_mom_muon=_trk_mom_calculator.GetTrackMomentum(p_reco_length, 13);
-		p_reco_mom_proton=_trk_mom_calculator.GetTrackMomentum(p_reco_length, 2212);
-		p_reco_mom_pion=_trk_mom_calculator.GetTrackMomentum(p_reco_length, 211);
+		p_reco_length=track->Length(); //length of the track
+		p_reco_mom_muon=_trk_mom_calculator.GetTrackMomentum(p_reco_length, 13); //gets the momentum of the track using muon hypothesis
+		p_reco_mom_proton=_trk_mom_calculator.GetTrackMomentum(p_reco_length, 2212); //gets the momentum of the track using the proton hypothesis
+		p_reco_mom_pion=_trk_mom_calculator.GetTrackMomentum(p_reco_length, 211); //gets the momentum of the track using the pion hypothesis
 
-		p_reco_theta=track_direction.Theta();
-		p_reco_phi=track_direction.Phi();
-		p_dislen_ratio=TMath::Sqrt( TMath::Power(p_reco_end_x-p_reco_start_x,2) + TMath::Power(p_reco_end_y-p_reco_start_y,2)  + TMath::Power(p_reco_end_z-p_reco_start_z,2))/ p_reco_length;
+		p_reco_theta=track_direction.Theta(); //theta of the track
+		p_reco_phi=track_direction.Phi(); //phi of the track
+		p_dislen_ratio=TMath::Sqrt( TMath::Power(p_reco_end_x-p_reco_start_x,2) + TMath::Power(p_reco_end_y-p_reco_start_y,2)  + TMath::Power(p_reco_end_z-p_reco_start_z,2))/ p_reco_length; //3d length of the track
 		  
-		float kelen=KEfromLength(track->Length());
+		float kelen=KEfromLength(track->Length()); //get the kinetic energy of the track from the length
 		p_KE_len=kelen;
-		p_is_contained=IsContained(p_reco_start_x,p_reco_start_y,p_reco_start_z, p_reco_end_x, p_reco_end_y, p_reco_end_z);
+		p_is_contained=IsContained(p_reco_start_x,p_reco_start_y,p_reco_start_z, p_reco_end_x, p_reco_end_y, p_reco_end_z); //is the track contained?
 
-		std::cout<<"Starting to do the vertex check"<<std::endl;
+		if(_debug) std::cout<<"Starting to do the vertex check"<<std::endl;
 
 		if(!particle->IsPrimary()&&p_n_pfp>0&&(IsNearVertex(_reco_nu_vtxx,_reco_nu_vtxy,_reco_nu_vtxz,p_reco_start_x,p_reco_start_y,p_reco_start_z)||IsNearVertex(_reco_nu_vtxx,_reco_nu_vtxy,_reco_nu_vtxz,p_reco_end_x,p_reco_end_y,p_reco_end_z))){
-
 		    _vtx_n_pfp++;
-		    //if(p_reco_length>=1)  _vtx_n_pfp_10mm++;
-		    //if(p_reco_length>=1.5)  _vtx_n_pfp_15mm++;
-		         
-		}
-		
+		} //the vertex check loop
+
+
 		//NOW TO DO SOME PID
 		/////////////////////
-		std::cout<<"Now we are starting to do some PID"<<std::endl;
+		if(_debug) std::cout<<"This is me trying to implement Thomas' 3D PID stuff"<<std::endl;
+		PID pid;
 
-		std::vector<art::Ptr<anab::ParticleID>> trackPID = trackPIDAssn.at(track.key());
+		TVector3 track_start(trackVtxPosition.x(),trackVtxPosition.y(),trackVtxPosition.z());
+		TVector3 track_end(trackEndPosition.x(),trackEndPosition.y(),trackEndPosition.z());
+
+		pid.Chi2(trackPIDAssn,track, track_start, track_end);
+		p_chi2p_3D = pid.PID_Chi2P_3pl;  // chi squqre cuts
+		p_chi2mu_3D = pid.PID_Chi2Mu_3pl;
+		p_chi2pi_3D = pid.PID_Chi2Pi_3pl;
+		p_chi2K_3D = pid.PID_Chi2K_3pl;
+		std::cout << "[1mu2p] Got track PID (muon 3pl)  : " << pid.PID_Chi2Mu_3pl << std::endl;
+		std::cout << "[1mu2p] Got track PID (proton 3pl): " << pid.PID_Chi2P_3pl << std::endl;
+
+		//NOW TO DO SOME PID: More traditional algorithms
+		/////////////////////////////////////////////////
+		if(_debug) std::cout<<"Now we are starting to do some PID"<<std::endl;
+		std::vector<art::Ptr<anab::ParticleID>> trackPID = trackPIDAssn.at(track.key()); //grabbing all the track PIDs
 		
 		if (trackPID.size() != 0){
 		    std::vector<anab::sParticleIDAlgScores> AlgScoresVec = trackPID.at(0)->ParticleIDAlgScores();
@@ -920,41 +870,44 @@ void CC2p::analyze(art::Event const& e)
 			    << "\n -- Value: " << AlgScore.fValue
 			    << "\n -- Using planeID: " << planenum << std::endl;
 			*/
+
+
+
 			if (anab::kVariableType(AlgScore.fVariableType) == anab::kGOF && anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward){
-			    if (AlgScore.fAlgName == "Chi2"&&TMath::Abs(AlgScore.fAssumedPdg) == 2212){
+			    if (AlgScore.fAlgName == "Chi2" && TMath::Abs(AlgScore.fAssumedPdg) == 2212){
 				if(planenum==0)    p_chi2_p_0=AlgScore.fValue;
 				if(planenum==1)    p_chi2_p_1=AlgScore.fValue;
 				if(planenum==2)    p_chi2_p_2=AlgScore.fValue;
 			      }
-			    if (AlgScore.fAlgName == "Chi2"&&TMath::Abs(AlgScore.fAssumedPdg) == 13){
+			    if (AlgScore.fAlgName == "Chi2" && TMath::Abs(AlgScore.fAssumedPdg) == 13){
 				if(planenum==0)    p_chi2_mu_0=AlgScore.fValue;
 				if(planenum==1)    p_chi2_mu_1=AlgScore.fValue;
 				if(planenum==2)    p_chi2_mu_2=AlgScore.fValue;
 			      }
 			  }
-			if (AlgScore.fAlgName == "BraggPeakLLH"&& anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood ){
+			if (AlgScore.fAlgName == "BraggPeakLLH" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood ){
 			    if (anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward&&TMath::Abs(AlgScore.fAssumedPdg) == 0){
 				if(planenum==0)    p_LL_mip_0=AlgScore.fValue;
 				if(planenum==1)    p_LL_mip_1=AlgScore.fValue;
 				if(planenum==2)    p_LL_mip_2=AlgScore.fValue;
 			      }
 			          
-			    if (anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward&&TMath::Abs(AlgScore.fAssumedPdg) == 2212){
+			    if (anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward && TMath::Abs(AlgScore.fAssumedPdg) == 2212){
 				if(planenum==0)    p_LL_p_0=AlgScore.fValue;
 				if(planenum==1)    p_LL_p_1=AlgScore.fValue;
 				if(planenum==2)    p_LL_p_2=AlgScore.fValue;
 			      }
-			    if (anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward&&TMath::Abs(AlgScore.fAssumedPdg) == 13){
+			    if (anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward && TMath::Abs(AlgScore.fAssumedPdg) == 13){
 				if(planenum==0)    p_LL_mu_0=AlgScore.fValue;
 				if(planenum==1)    p_LL_mu_1=AlgScore.fValue;
 				if(planenum==2)    p_LL_mu_2=AlgScore.fValue;
 			      }
-			    if (anab::kTrackDir(AlgScore.fTrackDir) == anab::kBackward&&TMath::Abs(AlgScore.fAssumedPdg) == 2212){
+			    if (anab::kTrackDir(AlgScore.fTrackDir) == anab::kBackward && TMath::Abs(AlgScore.fAssumedPdg) == 2212){
 				if(planenum==0)    p_LL_back_p_0=AlgScore.fValue;
 				if(planenum==1)    p_LL_back_p_1=AlgScore.fValue;
 				if(planenum==2)    p_LL_back_p_2=AlgScore.fValue;
 			      }
-			    if (anab::kTrackDir(AlgScore.fTrackDir) == anab::kBackward&&TMath::Abs(AlgScore.fAssumedPdg) == 13){
+			    if (anab::kTrackDir(AlgScore.fTrackDir) == anab::kBackward && TMath::Abs(AlgScore.fAssumedPdg) == 13){
 				if(planenum==0)    p_LL_back_mu_0=AlgScore.fValue;
 				if(planenum==1)    p_LL_back_mu_1=AlgScore.fValue;
 				if(planenum==2)    p_LL_back_mu_2=AlgScore.fValue;
@@ -965,7 +918,7 @@ void CC2p::analyze(art::Event const& e)
 			    if(planenum==1)    p_PIDA_1=AlgScore.fValue;
 			    if(planenum==2)    p_PIDA_2=AlgScore.fValue;
 			  }
-			if (AlgScore.fAlgName == "ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward &&TMath::Abs(AlgScore.fAssumedPdg) == 2212){
+			if (AlgScore.fAlgName == "ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward && TMath::Abs(AlgScore.fAssumedPdg) == 2212){
 			    if(planenum==2)   p_LL3=AlgScore.fValue;
 			}
 		      }
@@ -1027,10 +980,6 @@ void CC2p::analyze(art::Event const& e)
 			p_end_dedx_0=f_end_dedx_0;
 			p_total_dedx_0=f_total_dedx_0;
 
-			//if(p_start_dedx_0>p_end_dedx_0){
-			//   p_flip_0=true;
-			// }
-			
 			if(f_start_dedx_0>0){
 			    p_ratio_dedx_0=f_end_dedx_0/f_start_dedx_0;
 			  }
@@ -1049,16 +998,13 @@ void CC2p::analyze(art::Event const& e)
 			p_end_dedx_1=f_end_dedx_1;
 			p_total_dedx_1=f_total_dedx_1;
 			
-			//if(p_start_dedx_1>p_end_dedx_1){
-			//   p_flip_1=true;
-			// }
 			if(f_start_dedx_1>0){
 			    p_ratio_dedx_1=f_end_dedx_1/f_start_dedx_1;
 			  }
 		      }//plane 1
+		    
 		    if(calos.at(2)->dEdx().size()>0){
 			for( auto& de : calos.at(2)->dEdx()){
-			    //  std::cout<<"de/dx  "<<de<<std::endl;
 			    f_total_dedx_2 += de;
 			    ii2++;
 			    jj2--;
@@ -1070,13 +1016,6 @@ void CC2p::analyze(art::Event const& e)
 			p_start_dedx_2=f_start_dedx_2;
 			p_end_dedx_2=f_end_dedx_2;
 			p_total_dedx_2=f_total_dedx_2;
-			
-			//if(p_start_dedx_2>p_end_dedx_2){
-			//    p_flip_2=true;
-			//  }
-			//  std::cout<<"-------start de/dx  "<< p_start_dedx_2<<std::endl;
-			//  std::cout<<"end de/dx  "<< p_end_dedx_2<<std::endl;
-			//  std::cout<<"flip?  "<< p_flip_2<<std::endl;
 
 			if(f_start_dedx_2>0){
 			    p_ratio_dedx_2=f_end_dedx_2/f_start_dedx_2;
@@ -1084,18 +1023,19 @@ void CC2p::analyze(art::Event const& e)
 		      }//plane 2
 		  }//end of calo-related stuffs
 		
-		//Fill in the truth information for the track if you are looking at Overlay                                                                                                                                ////////////////////////////////////////////////////////////////////////////                 
-
+		
+		//Fill in the truth information for the track if you are looking at Overlay
+		////////////////////////////////////////////////////////////////////////////                 
 		if(m_isOverlay){
 		    
-		    lar_pandora::TracksToHits::const_iterator trkIter2 = tracksToHits.find(track);
-		    std::vector<art::Ptr<recob::Hit>> hitVec;
-		    hitVec.clear();
-		    hitVec= trkIter2->second;
+		    lar_pandora::TracksToHits::const_iterator trkIter2 = tracksToHits.find(track); //map of track and hit objects
+		    std::vector<art::Ptr<recob::Hit>> hitVec; //vector of recob hits
+		    hitVec.clear(); //clear the vector
+		    hitVec= trkIter2->second; //hits for a particular track
 		    
-		    if (_debug)   std::cout << "[Numu0pi2p] DEBUGGING 0 hitvec size "<<hitVec.size()<< std::endl;
-		    art::Handle<std::vector<simb::MCParticle>> mcparticle_handle;
-		    std::vector<art::Ptr<simb::MCParticle> > largeant_vec;
+		    if (_debug)   std::cout << "[Numu0pi2p] DEBUGGING 0 hitVec size "<<hitVec.size()<< std::endl;
+		    art::Handle<std::vector<simb::MCParticle>> mcparticle_handle; //handle of the vector of simb::MCparticles
+		    std::vector<art::Ptr<simb::MCParticle> > largeant_vec; //actual vector pointer for MCParticle
 		    
 		    if (e.getByLabel(m_geant_producer,mcparticle_handle)) { art::fill_ptr_vector(largeant_vec,mcparticle_handle); }
 		    art::Handle<std::vector<recob::Hit > > hit_handle;
@@ -1103,14 +1043,27 @@ void CC2p::analyze(art::Event const& e)
 		    hit_vec.clear();
 		    
 		    if(e.getByLabel(m_hit_producer,hit_handle)) { art::fill_ptr_vector(hit_vec,hit_handle); }
-		    if (_debug)   std::cout << "[Numu0pi2p] DEBUGGING 0 hitVec size "<<hit_vec.size()<< std::endl;
+		    if (_debug)   std::cout << "[Numu0pi2p] DEBUGGING 0 hit_vec size "<<hit_vec.size()<< std::endl;
 
-		    art::FindOneP<simb::MCTruth> MCParticleToMCTruth(mcparticle_handle,e,m_geant_producer);
-
-		    BackTrackerTruthMatch backtrackertruthmatch;
-		    backtrackertruthmatch.MatchToMCParticle(hit_handle,e,hitVec);
+		    //art::FindOneP<simb::MCTruth> MCParticleToMCTruth(mcparticle_handle,e,m_geant_producer); //I wonder if this is correct
+		    //These lines come directly from the backtracker documentation in the overlay stuff
+		    //art:;Ptr<recob::Track> CurrentTrack = trk_vec.at(i_t);
+		    art::FindManyP<recob::Hit> hits_per_track(trackHandle,e,HitsPerTrackAssModuleLabel);
+		    std::vector< art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(track.key());
 		    
+		    //this matches exactly from Afro's CCQE code
+		    art::FindOneP<simb::MCTruth> MCParticleToMCTruth(mcparticle_handle,e,fMCParticleToMCTruthAssModuleLabel);
+		    BackTrackerTruthMatch backtrackertruthmatch;
+		    backtrackertruthmatch.MatchToMCParticle(hit_handle,e,trk_hits_ptrs);
 		    art::Ptr< simb::MCParticle > maxp_me = backtrackertruthmatch.ReturnMCParticle();
+		    
+		    //What lu was using before
+		    //BackTrackerTruthMatch backtrackertruthmatch;
+		    //backtrackertruthmatch.MatchToMCParticle(hit_handle,e,hitVec);
+		    // art::Ptr< simb::MCParticle > maxp_me = backtrackertruthmatch.ReturnMCParticle();
+
+		    if (_debug) std::cout<<"Purity for a given track: "<<backtrackertruthmatch.ReturnPurity()<<std::endl;
+		    if (_debug) std::cout<<"Completeness for a given track: "<<backtrackertruthmatch.ReturnCompleteness()<<std::endl;
 
 		    if(!(maxp_me.isNull()))
 		      {
@@ -1131,32 +1084,30 @@ void CC2p::analyze(art::Event const& e)
 			p_mc_ke=maxp_me->E() - maxp_me->Mass();
 			p_mc_mom=maxp_me->P();
 
-			// Get space charge correction                                                                                                                                           
-			auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+			if(_debug) std::cout<<"MCTruth Origin: "<<mctruth->Origin()<<std::endl;
+			if(_debug) std::cout<<"Particle's MC PDG Code: "<<p_mc_pdg<<std::endl;
 
-			// Get time offset for x space charge correction                                                                                                                          
-			auto const& detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
+			//Make sure to do space charge correction
+			///////////////////////////////////////                                          
+			auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>(); //get the space charge correction                
+			auto const& detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>(); //Get time offset for X space charge correction
 			auto const& detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
 			auto const& mct_h = e.getValidHandle<std::vector<simb::MCTruth> >("generator");
 			auto gen = mct_h->at(0);
 			double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
 			double xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
-
 			auto sce_offset = SCE->GetPosOffsets(geo::Point_t(p_mc_start_x,p_mc_start_y,p_mc_start_z));
 			auto sce_offset_end = SCE->GetPosOffsets(geo::Point_t(p_mc_end_x,p_mc_end_y,p_mc_end_z));
 
 			p_mc_start_x_sce = (p_mc_start_x - sce_offset.X() + xtimeoffset) + 0.6;
 			p_mc_start_y_sce = p_mc_start_y + sce_offset.Y();
 			p_mc_start_z_sce = p_mc_start_z + sce_offset.Z();
-
 			p_mc_end_x_sce = (p_mc_end_x - sce_offset_end.X() + xtimeoffset) + 0.6;
 			p_mc_end_y_sce = p_mc_end_y + sce_offset_end.Y();
 			p_mc_end_z_sce = p_mc_end_z + sce_offset_end.Z();
 
 		      } else {
-
 			if (_debug) std::cout << "Track not matched by the BackTracker- Cosmic!" << std::endl;
-
 		      }
 		    hitVec.clear();
 		    largeant_vec.clear();
@@ -1164,19 +1115,15 @@ void CC2p::analyze(art::Event const& e)
 		
 		if(_debug)
 		  {
-		    //std::cout<<"[Numu0pi2p] PFP "<<n<<" nu Score:  "<< p_top_score<<std::endl;
 		    std::cout<<"[Numu0pi2p] track score "<<p_track_score<<std::endl;
-		    //std::cout<<"[Numu0pi2p] flash score "<<p_flash_score<<std::endl;
-
-		    //   std::cout<<"[Numu0pi2p] reco neutrino vertex: ("<< p_reco_nu_vtxx<<", "<< p_reco_nu_vtxx<<", "<< p_reco_nu_vtxx<<" )"<<std::endl;                                    
-
 		    std::cout<<"[Numu0pi2p] reco vtx x, y, z: ("<<p_reco_start_x<<", "<<p_reco_start_y<<", "<<p_reco_start_z<<" )"<<std::endl;
 		    std::cout<<"[Numu0pi2p] reco end x, y, z: ("<<p_reco_end_x<<", "<<p_reco_end_y<<", "<<p_reco_end_z<<" )"<<std::endl;
 		    std::cout<<"[Numu0pi2p] reco length: "<< p_reco_length <<std::endl;
 		    std::cout<<"[Numu0pi2p] reco theta: "<< p_reco_theta <<std::endl;
 		    std::cout<<"[Numu0pi2p] reco phi: "<< p_reco_phi <<std::endl;
-		    std::cout<<"[Numu0pi2p] chi proton 0, 1, 2: "<<p_chi2_p_0<<", "<<p_chi2_p_1<<", "<<p_chi2_p_2<<std::endl;
-		    std::cout<<"[Numu0pi2p] chi muon 0, 1, 2: "<<p_chi2_mu_0<<", "<<p_chi2_mu_1<<", "<<p_chi2_mu_2<<std::endl;
+		    std::cout<<"[Numu0pi2p] chi2 proton 0, 1, 2: "<<p_chi2_p_0<<", "<<p_chi2_p_1<<", "<<p_chi2_p_2<<std::endl;
+		    std::cout<<"[Numu0pi2p] chi2 muon 0, 1, 2: "<<p_chi2_mu_0<<", "<<p_chi2_mu_1<<", "<<p_chi2_mu_2<<std::endl;
+		    std::cout<<"[Numu0pi2p] chi2 3D: proton, muon, pion, kaon "<<p_chi2p_3D<<", "<<p_chi2mu_3D<<", "<<p_chi2pi_3D<<", "<<p_chi2K_3D<<std::endl;
 		    std::cout<<"[Numu0pi2p] 3-plane LL: "<<p_LL3<<std::endl;
 		    std::cout<<"[Numu0pi2p] KE 0 "<<p_KE_calo_0<<std::endl;
 		    std::cout<<"[Numu0pi2p] KE 1 "<<p_KE_calo_1<<std::endl;
@@ -1184,8 +1131,8 @@ void CC2p::analyze(art::Event const& e)
 		    std::cout<<"[Numu0pi2p] NHits 0 "<<p_nhits_0<<std::endl;
 		    std::cout<<"[Numu0pi2p] NHits 1 "<<p_nhits_1<<std::endl;
 		    std::cout<<"[Numu0pi2p] NHits 2 "<<p_nhits_2<<std::endl;
-
 		    std::cout<<"[Numu0pi2p] true PDG: "<< p_mc_pdg<<std::endl;
+		    std::cout<<"[Numu0pi2p] true origin: "<< p_mc_origin<<std::endl;
 		    std::cout<<"[Numu0pi2p] true K.E.: "<< p_mc_ke<<std::endl;
 		    std::cout<<"[Numu0pi2p] true start x, y, z: ("<<p_mc_start_x<<", "<<p_mc_start_y<<", "<<p_mc_start_z<<" )"<<std::endl;
 		    std::cout<<"[Numu0pi2p] true end x, y, z: ("<< p_mc_end_x<<", "<< p_mc_end_y<<", "<< p_mc_end_z<<" )"<<std::endl;
@@ -1195,130 +1142,144 @@ void CC2p::analyze(art::Event const& e)
 		    std::cout<<"[Numu0pi2p] --------------end of PFP  "<<n<<" ----------------"<<std::endl;
 		  }//if debug 
 
-
-	    }//if trackvector is not empty                                                                                                                                                      
+	    }//if trackvector is not empty                                                                                                                            
 	}//if there is a track 
-
-	//if(p_reco_length>m_trklen_low&&p_reco_length<m_trklen_high&&p_is_contained==true)
-	//{
-	    _mc_length.push_back(p_mc_length);
-	    _mc_start_x.push_back(p_mc_start_x);
-	    _mc_start_y.push_back(p_mc_start_y);
-	    _mc_start_z.push_back(p_mc_start_z);
-	    _mc_end_x.push_back(p_mc_end_x);
-	    _mc_end_y.push_back(p_mc_end_y);
-	    _mc_end_z.push_back(p_mc_end_z);
-	    _mc_start_x_sce.push_back(p_mc_start_x_sce);
-	    _mc_start_y_sce.push_back(p_mc_start_y_sce);
-	    _mc_start_z_sce.push_back(p_mc_start_z_sce);
-	    _mc_end_x_sce.push_back(p_mc_end_x_sce);
-	    _mc_end_y_sce.push_back(p_mc_end_y_sce);
-	    _mc_end_z_sce.push_back(p_mc_end_z_sce);
-	    _mc_theta.push_back(p_mc_theta);
-	    _mc_phi.push_back(p_mc_phi);
-	    _mc_ke.push_back(p_mc_ke);
-	    _mc_mom.push_back(p_mc_mom);
-	    _mc_pdg.push_back(p_mc_pdg);
-	    _mc_primary.push_back(p_mc_primary);
-	    _mc_origin.push_back(p_mc_origin);
-	    _is_contained.push_back(p_is_contained);
-	    _is_primary.push_back(p_is_primary);
-	    _is_from_nu_slice.push_back(p_is_from_nu_slice);
-	    _n_pfp.push_back(p_n_pfp);
-	    _id_pfp.push_back(p_id_pfp);
-	    _n_trk.push_back(p_n_trk);
-	    _n_shower.push_back(p_n_shower);
-	    _parentPDG.push_back(p_parentPDG);
-	    _track_score.push_back(p_track_score);
-	    _dislen_ratio.push_back(p_dislen_ratio);
-	    _KE_len.push_back(p_KE_len);
-	    _reco_q2.push_back(p_reco_q2);
-	    _reco_length.push_back(p_reco_length);
-	    
-	    //_reco_nu_vtxx.push_back(_reco_nu_vtxx);
-	    //_reco_nu_vtxy.push_back(_reco_nu_vtxy);
-	    //_reco_nu_vtxz.push_back(_reco_nu_vtxz);
-	    
-	    _reco_start_x.push_back(p_reco_start_x);
-	    _reco_start_y.push_back(p_reco_start_y);
-	    _reco_start_z.push_back(p_reco_start_z);
-	    _reco_end_x.push_back(p_reco_end_x);
-	    _reco_end_y.push_back(p_reco_end_y);
-	    _reco_end_z.push_back(p_reco_end_z);
-	    _reco_theta.push_back(p_reco_theta);
-	    _reco_phi.push_back(p_reco_phi);
-	    _reco_ke.push_back(p_reco_ke);
-	    _reco_mom.push_back(p_reco_mom);
-	    _reco_mom_muon.push_back(p_reco_mom_muon);
-	    _reco_mom_proton.push_back(p_reco_mom_proton);
-	    _reco_mom_pion.push_back(p_reco_mom_pion);
-	    _nhits_0.push_back(p_nhits_0);
-	    _nhits_1.push_back(p_nhits_1);
-	    _nhits_2.push_back( p_nhits_2);
-	    _chi2_p_0.push_back(p_chi2_p_0);
-	    _chi2_p_1.push_back( p_chi2_p_1);
-	    _chi2_p_2.push_back( p_chi2_p_2);
-	    _chi2_mu_0.push_back(p_chi2_mu_0);
-	    _chi2_p_1.push_back( p_chi2_p_1);
-	    _chi2_p_2.push_back( p_chi2_p_2);
-	    _chi2_mu_0.push_back(p_chi2_mu_0);
-	    _chi2_mu_1.push_back( p_chi2_mu_1);
-	    _chi2_mu_2.push_back( p_chi2_mu_2);
-	    //_top_score.push_back(p_top_score);
-	    //_flash_score.push_back(p_flash_score);
-	    _has_shower.push_back(p_has_shower);
-	    _n_daughters.push_back(p_n_daughters);
-	    _LL3.push_back(p_LL3);
-	    //_flip_0.push_back(p_flip_0);
-	    //_flip_1.push_back(p_flip_1);
-	    //_flip_2.push_back(p_flip_2);
-	    _LL_p_0.push_back(p_LL_p_0);
-	    _LL_p_1.push_back(p_LL_p_1);
-	    _LL_p_2.push_back(p_LL_p_2);
-	    _LL_mip_0.push_back(p_LL_mip_0);
-	    _LL_mip_1.push_back(p_LL_mip_1);
-	    _LL_mip_2.push_back(p_LL_mip_2);
-	    _LL_mu_0.push_back(p_LL_mu_0);
-	    _LL_mu_1.push_back(p_LL_mu_1);
-	    _LL_mu_2.push_back(p_LL_mu_2);
-	    _LL_back_p_0.push_back(p_LL_back_p_0);
-	    _LL_back_p_1.push_back( p_LL_back_p_1);
-	    _LL_back_p_2.push_back( p_LL_back_p_2);
-	    _LL_back_mu_0.push_back(p_LL_back_mu_0);
-	    _LL_back_mu_1.push_back( p_LL_back_mu_1);
-	    _LL_back_mu_2.push_back( p_LL_back_mu_2);
-	    _TM_dedx_0.push_back(p_TM_dedx_0);
-	    _TM_dedx_1.push_back( p_TM_dedx_1);
-	    _TM_dedx_2.push_back( p_TM_dedx_2);
-	    _PIDA_0.push_back(p_PIDA_0);
-	    _PIDA_1.push_back( p_PIDA_1);
-	    _PIDA_2.push_back( p_PIDA_2);
-	    _start_dedx_0.push_back(p_start_dedx_0);
-	    _start_dedx_1.push_back( p_start_dedx_1);
-	    _start_dedx_2.push_back( p_start_dedx_2);
-	    _end_dedx_0.push_back(p_end_dedx_0);
-	    _end_dedx_1.push_back( p_end_dedx_1);
-	    _end_dedx_2.push_back( p_end_dedx_2);
-	    _ratio_dedx_0.push_back(p_ratio_dedx_0);
-	    _ratio_dedx_1.push_back(p_ratio_dedx_1);
-	    _ratio_dedx_2.push_back( p_ratio_dedx_2);
-	    _avg_dedx_0.push_back(p_avg_dedx_0);
-	    _avg_dedx_1.push_back(p_avg_dedx_1);
-	    _avg_dedx_2.push_back( p_avg_dedx_2);
-	    _total_dedx_0.push_back(p_total_dedx_0);
-	    _total_dedx_1.push_back( p_total_dedx_1);
-	    _total_dedx_2.push_back( p_total_dedx_2);
-	    _KE_calo_0.push_back(p_KE_calo_0);
-	    _KE_calo_1.push_back( p_KE_calo_1);
-	    _KE_calo_2.push_back(p_KE_calo_2);
-	  
-	   //end of preselection                                                                            
+	
+	_mc_length.push_back(p_mc_length);
+	_mc_start_x.push_back(p_mc_start_x);
+	_mc_start_y.push_back(p_mc_start_y);
+	_mc_start_z.push_back(p_mc_start_z);
+	_mc_end_x.push_back(p_mc_end_x);
+	_mc_end_y.push_back(p_mc_end_y);
+	_mc_end_z.push_back(p_mc_end_z);
+	_mc_start_x_sce.push_back(p_mc_start_x_sce);
+	_mc_start_y_sce.push_back(p_mc_start_y_sce);
+	_mc_start_z_sce.push_back(p_mc_start_z_sce);
+	_mc_end_x_sce.push_back(p_mc_end_x_sce);
+	_mc_end_y_sce.push_back(p_mc_end_y_sce);
+	_mc_end_z_sce.push_back(p_mc_end_z_sce);
+	_mc_theta.push_back(p_mc_theta);
+	_mc_phi.push_back(p_mc_phi);
+	_mc_ke.push_back(p_mc_ke);
+	_mc_mom.push_back(p_mc_mom);
+	_mc_pdg.push_back(p_mc_pdg);
+	_mc_primary.push_back(p_mc_primary);
+	_mc_origin.push_back(p_mc_origin);
+	_is_contained.push_back(p_is_contained);
+	_is_primary.push_back(p_is_primary);
+	_is_from_nu_slice.push_back(p_is_from_nu_slice);
+	_n_pfp.push_back(p_n_pfp);
+	_id_pfp.push_back(p_id_pfp);
+	_n_trk.push_back(p_n_trk);
+	_n_shower.push_back(p_n_shower);
+	_parentPDG.push_back(p_parentPDG);
+	_track_score.push_back(p_track_score);
+	_dislen_ratio.push_back(p_dislen_ratio);
+	_KE_len.push_back(p_KE_len);
+	_reco_q2.push_back(p_reco_q2);
+	_reco_length.push_back(p_reco_length);
+	_reco_start_x.push_back(p_reco_start_x);
+	_reco_start_y.push_back(p_reco_start_y);
+	_reco_start_z.push_back(p_reco_start_z);
+	_reco_end_x.push_back(p_reco_end_x);
+	_reco_end_y.push_back(p_reco_end_y);
+	_reco_end_z.push_back(p_reco_end_z);
+	_reco_theta.push_back(p_reco_theta);
+	_reco_phi.push_back(p_reco_phi);
+	_reco_ke.push_back(p_reco_ke);
+	_reco_mom.push_back(p_reco_mom);
+	_reco_mom_muon.push_back(p_reco_mom_muon);
+	_reco_mom_proton.push_back(p_reco_mom_proton);
+	_reco_mom_pion.push_back(p_reco_mom_pion);
+	_nhits_0.push_back(p_nhits_0);
+	_nhits_1.push_back(p_nhits_1);
+	_nhits_2.push_back( p_nhits_2);
+	_chi2_p_0.push_back(p_chi2_p_0);
+	_chi2_p_1.push_back( p_chi2_p_1);
+	_chi2_p_2.push_back( p_chi2_p_2);
+	_chi2_mu_0.push_back(p_chi2_mu_0);
+	_chi2_mu_1.push_back( p_chi2_mu_1);
+	_chi2_mu_2.push_back( p_chi2_mu_2);
+	_chi2p_3D.push_back(p_chi2p_3D);
+	_chi2mu_3D.push_back(p_chi2mu_3D);
+	_chi2pi_3D.push_back(p_chi2pi_3D);
+	_chi2K_3D.push_back(p_chi2K_3D);
+	_has_shower.push_back(p_has_shower);
+	_n_daughters.push_back(p_n_daughters);
+	_LL3.push_back(p_LL3);
+	_LL_p_0.push_back(p_LL_p_0);
+	_LL_p_1.push_back(p_LL_p_1);
+	_LL_p_2.push_back(p_LL_p_2);
+	_LL_mip_0.push_back(p_LL_mip_0);
+	_LL_mip_1.push_back(p_LL_mip_1);
+	_LL_mip_2.push_back(p_LL_mip_2);
+	_LL_mu_0.push_back(p_LL_mu_0);
+	_LL_mu_1.push_back(p_LL_mu_1);
+	_LL_mu_2.push_back(p_LL_mu_2);
+	_LL_back_p_0.push_back(p_LL_back_p_0);
+	_LL_back_p_1.push_back( p_LL_back_p_1);
+	_LL_back_p_2.push_back( p_LL_back_p_2);
+	_LL_back_mu_0.push_back(p_LL_back_mu_0);
+	_LL_back_mu_1.push_back( p_LL_back_mu_1);
+	_LL_back_mu_2.push_back( p_LL_back_mu_2);
+	_TM_dedx_0.push_back(p_TM_dedx_0);
+	_TM_dedx_1.push_back( p_TM_dedx_1);
+	_TM_dedx_2.push_back( p_TM_dedx_2);
+	_PIDA_0.push_back(p_PIDA_0);
+	_PIDA_1.push_back( p_PIDA_1);
+	_PIDA_2.push_back( p_PIDA_2);
+	_start_dedx_0.push_back(p_start_dedx_0);
+	_start_dedx_1.push_back( p_start_dedx_1);
+	_start_dedx_2.push_back( p_start_dedx_2);
+	_end_dedx_0.push_back(p_end_dedx_0);
+	_end_dedx_1.push_back( p_end_dedx_1);
+	_end_dedx_2.push_back( p_end_dedx_2);
+	_ratio_dedx_0.push_back(p_ratio_dedx_0);
+	_ratio_dedx_1.push_back(p_ratio_dedx_1);
+	_ratio_dedx_2.push_back( p_ratio_dedx_2);
+	_avg_dedx_0.push_back(p_avg_dedx_0);
+	_avg_dedx_1.push_back(p_avg_dedx_1);
+	_avg_dedx_2.push_back( p_avg_dedx_2);
+	_total_dedx_0.push_back(p_total_dedx_0);
+	_total_dedx_1.push_back( p_total_dedx_1);
+	_total_dedx_2.push_back( p_total_dedx_2);
+	_KE_calo_0.push_back(p_KE_calo_0);
+	_KE_calo_1.push_back( p_KE_calo_1);
+	_KE_calo_2.push_back(p_KE_calo_2);
+	                                                                              
       }//end of looping over all PFParticles                                                                 
   }// end of everything that has more than 0 PFParticles                                                   
 _tree1->Fill();
 ClearLocalData();
 
 }//end of the CC2p analyze
+
+//Here is where the rest of the functions are defined
+/////////////////////////////////////////////////////
+void CC2p::endSubRun(art::SubRun const& sr)
+{
+  // Implementation of optional member function here.                                                                                                  
+  if (_debug) std::cout << "[UBXSec::endSubRun] Starts" << std::endl;
+
+  _run       = sr.run();
+  _subrun    = sr.subRun();
+
+  art::Handle<sumdata::POTSummary> potsum_h;
+
+  // MC                                                                                                                                                
+  if (m_isOverlay) {
+    if (_debug) std::cout << "[NCE::endSubRun] Getting POT for MC" << std::endl;
+    if(sr.getByLabel(m_potsum_producer, potsum_h)) {
+      if (_debug) std::cout << "[NCE::endSubRun] POT are valid" << std::endl;
+      _sr_pot = potsum_h->totpot/1.0e16;
+      //std::cout <<"MC pot:  "<<_sr_pot << std::endl;                                                                                             
+    } 
+    else
+      _sr_pot = 0.;
+    if (_debug) std::cout <<"MC pot:  "<<_sr_pot << std::endl;
+  }
+  _sr_tree->Fill();
+}
 
 void CC2p::ClearLocalData()
 {
@@ -1435,10 +1396,11 @@ void CC2p::ClearLocalData()
   _chi2_mu_0.clear(); 
   _chi2_mu_1.clear(); 
   _chi2_mu_2.clear();
+  _chi2p_3D.clear();
+  _chi2mu_3D.clear();
+  _chi2pi_3D.clear();
+  _chi2K_3D.clear();
   _LL3.clear();
-  //_flip_0.clear();
-  //_flip_1.clear();
-  //_flip_2.clear();
   _LL_p_0.clear();
   _LL_p_1.clear();
   _LL_p_2.clear();
@@ -1592,8 +1554,8 @@ void CC2p::FillGENIETruth(art::Event const& e)
 		  evtwgt_genie_pm1_funcname.push_back(func_name);
 		  evtwgt_genie_pm1_weight.push_back(weight_v);
 		  evtwgt_genie_pm1_nweight.push_back(weight_v.size());
-		  
 		  countFunc++;
+
 		  if(_debug)
 		    {
 		      for ( size_t u = 0; u < weight_v.size(); ++u ) 
@@ -1893,6 +1855,14 @@ void CC2p::FillGENIETruth(art::Event const& e)
 	   std::cout<<"[Numu0pi2p] # of pion0: "<<_mc_n_pion0<<std::endl;
 	   std::cout<<"[Numu0pi2p] # of neutron: "<<_mc_n_neutron<<std::endl;
 	   
+	   std::cout<<"[Numu0pi2p] # of threshold muon: "<<_mc_n_threshold_muon<<std::endl;
+	   std::cout<<"[Numu0pi2p] # of threshold proton: "<<_mc_n_threshold_proton<<std::endl;
+	   std::cout<<"[Numu0pi2p] # of threshold electron: "<<_mc_n_threshold_electron<<std::endl;
+	   std::cout<<"[Numu0pi2p] # of threshold pion+-: "<<_mc_n_threshold_pionpm<<std::endl;
+	   std::cout<<"[Numu0pi2p] # of threshold pion0: "<<_mc_n_threshold_pion0<<std::endl;
+	   std::cout<<"[Numu0pi2p] # of threshold neutron: "<<_mc_n_threshold_neutron<<std::endl;
+
+
 	 }//if debug
     }
 } //End of Fill GENIE Truth
