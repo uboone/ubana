@@ -72,6 +72,7 @@
 #include "TGraph2D.h"
 #include "TGraphDelaunay.h"
 #include "TRandom3.h"
+#include "TGeoPolygon.h"
 
 #include "Pandora/PdgTable.h"
 #include <chrono>
@@ -85,12 +86,65 @@
 #include <sys/stat.h>
 
 #include "bad_channel_matching.h"
-#include "sssVeto_BDT.class.h"
+//#include "sssVeto_BDT.class.h"
 #include "DBSCAN.h"
+
+#include "SEAview/SEAviewer.h"
+
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 namespace single_photon
 {
+
+    double impact_paramater_shr(double x, double y, double z, art::Ptr<recob::Shower> & shr){
+
+        std::vector<double> vert = {x,y,z}; 
+        std::vector<double> start = {shr->ShowerStart().X(), shr->ShowerStart().Y(),shr->ShowerStart().Z()};
+        std::vector<double> abit = {shr->ShowerStart().X() + shr->Direction().X(),  shr->ShowerStart().Y()+shr->Direction().Y(),  shr->ShowerStart().Z()+shr->Direction().Z()};
+
+        return dist_line_point(start, abit, vert);
+
+    }
+
+    double  implied_invar_mass(double vx, double vy, double vz, art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
+
+        double s1x = s1->ShowerStart().X()-vx;
+        double s1y = s1->ShowerStart().Y()-vy;
+        double s1z = s1->ShowerStart().Z()-vz;
+        double norm1  = sqrt(pow(s1x,2)+pow(s1y,2)+pow(s1z,2));
+        s1x = s1x/norm1;
+        s1y = s1y/norm1;
+        s1z = s1z/norm1;
+
+        double s2x = s2->ShowerStart().X()-vx;
+        double s2y = s2->ShowerStart().Y()-vy;
+        double s2z = s2->ShowerStart().Z()-vz;
+        double norm2  = sqrt(pow(s2x,2)+pow(s2y,2)+pow(s2z,2));
+        s2x = s2x/norm2;
+        s2y = s2y/norm2;
+        s2z = s2z/norm2;
+
+        return sqrt(2.0*E1*E2*(1.0-(s1x*s2x+s1y*s2y+s1z*s2z)));
+
+
+    }
+
+    double  invar_mass(art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
+
+        double s1x = s1->Direction().X();
+        double s1y = s1->Direction().Y();
+        double s1z = s1->Direction().Z();
+
+        double s2x = s2->Direction().X();
+        double s2y = s2->Direction().Y();
+        double s2z = s2->Direction().Z();
+
+        return sqrt(2.0*E1*E2*(1.0-(s1x*s2x+s1y*s2y+s1z*s2z)));
+
+    }
+
+
+
 
     template <typename T>
         std::vector<size_t> sort_indexes(const std::vector<T> &v) {
@@ -103,6 +157,28 @@ namespace single_photon
 
             return idx;
         }
+
+    template <typename T>
+        std::vector<size_t> sort_indexes_rev(const std::vector<T> &v) {
+
+            std::vector<size_t> idx(v.size());
+            std::iota(idx.begin(), idx.end(), 0);
+
+            // sort indexes based on comparing values in v
+            std::sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+            return idx;
+        }
+
+template<typename T>
+bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
+{
+        std::sort(v1.begin(), v1.end());
+            std::sort(v2.begin(), v2.end());
+                return v1 == v2;
+}
+
+
 
     double calcWire(double Y, double Z, int plane, int fTPC, int fCryostat, geo::GeometryCore const& geo ){
         double wire = geo.WireCoordinate(Y, Z, plane, fTPC, fCryostat);
@@ -301,6 +377,7 @@ namespace single_photon
             double CalcEShowerPlane(const std::vector<art::Ptr<recob::Hit>>& hits, int plane);
 
             int getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane);
+            double getMeanHitWidthPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane);
 
 
             /**
@@ -406,8 +483,16 @@ namespace single_photon
             //---------------- SecondShower----
             void ClearSecondShowers();
             void ResizeSecondShowers(size_t size);
-
             void CreateSecondShowerBranches();
+
+            void ClearSecondShowers3D();
+            void CreateSecondShowerBranches3D();
+
+            void SimpleSecondShowerCluster();
+
+
+            void SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & normaltrkmap,art::Event const & evt);
+
 
             void SecondShowerSearch(
                     const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
@@ -444,15 +529,17 @@ namespace single_photon
 
 
             //----------------  Flashes ----------------------------
-                void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec);
-                     
-          //  void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h);
+            void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec,  std::map<art::Ptr<recob::OpFlash>, std::vector< art::Ptr<crt::CRTHit>>> crtvetoToFlashMap);
+
+            //  void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h);
             void ClearFlashes();
             void ResizeFlashes(size_t);
             void CreateFlashBranches();
 
             //----------------  Tracks ----------------------------
-            void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
+            void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap,
+                               std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitsMap,
+                    std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
                     std::map<art::Ptr<recob::PFParticle>,double> &PFPToTrackScoreMap,
@@ -496,7 +583,7 @@ namespace single_photon
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
                     std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
 
-            std::vector<double> showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
+            void showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<simb::MCParticle>>& objectToMCParticleMap,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& objectToPFParticleMap,
                     std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> >& pfParticleToHitsMap,
@@ -510,7 +597,45 @@ namespace single_photon
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap);
 
 
+            int   photoNuclearTesting(std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector);
 
+            // ------------ Fid Volume and SCB------------------------- //
+            double m_tpc_active_x_low;
+            double m_tpc_active_x_high;
+            double m_tpc_active_y_low;
+            double m_tpc_active_y_high;
+            double m_tpc_active_z_low ;
+            double m_tpc_active_z_high;
+
+            double m_SCB_YX_TOP_y1_array;
+            std::vector<double> m_SCB_YX_TOP_x1_array;
+            std::vector<double> m_SCB_YX_TOP_y2_array;
+            double  m_SCB_YX_TOP_x2_array;
+            double m_SCB_YX_BOT_y1_array;
+            std::vector<double> m_SCB_YX_BOT_x1_array;
+            std::vector<double> m_SCB_YX_BOT_y2_array;
+            double m_SCB_YX_BOT_x2_array;
+
+            double m_SCB_ZX_Up_z1_array ;
+            double m_SCB_ZX_Up_x1_array ;
+            double m_SCB_ZX_Up_z2_array ;
+            double m_SCB_ZX_Up_x2_array ;
+
+            double m_SCB_ZX_Dw_z1_array;
+            std::vector<double> m_SCB_ZX_Dw_x1_array;
+            std::vector<double> m_SCB_ZX_Dw_z2_array;
+            double m_SCB_ZX_Dw_x2_array;
+
+
+            int isInTPCActive(std::vector<double>&);
+            int isInTPCActive(double cut,std::vector<double>&);
+            double distToTPCActive(std::vector<double>&vec);
+
+            int isInSCB(std::vector<double>&);
+            int isInSCB(double cut,std::vector<double>&);
+            int distToSCB(double & dist, std::vector<double> &vec);
+            int setTPCGeom();
+            bool loadSCB_YX(std::vector<TGeoPolygon*>&zpolygons);
 
             //---------------- MCTruths ----------------------------
 
@@ -676,10 +801,12 @@ namespace single_photon
             std::string m_mcTrackLabel;
             std::string m_mcShowerLabel;
             std::string m_pidLabel;            ///< For PID stuff
+            std::string m_CRTVetoLabel;
             std::string m_CRTTzeroLabel;
             std::string m_CRTHitProducer;
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
+            int     m_delaunay_max_hits;
             bool m_is_verbose;
             bool m_print_out_event;
             bool m_is_data;
@@ -688,12 +815,26 @@ namespace single_photon
             bool m_has_CRT;
             bool m_fill_trees;
             bool m_run_pi0_filter;
+            bool m_run_pi0_filter_2g1p;
+            bool m_run_pi0_filter_2g0p;
+
+            bool m_runPhotoNuTruth;
+
+            //SEAviwer bits
+            double m_SEAviewPlotDistance;
+            double m_SEAviewHitThreshold;
+            double  m_SEAviewDbscanMinPts;
+            double m_SEAviewDbscanEps;
+            double m_SEAviewMaxPtsLinFit;
+            bool   m_SEAviewMakePDF;
 
             bool m_runCRT;
             double m_DTOffset;
             double  m_Resolution;
             std::string  m_DAQHeaderProducer;
             std::ofstream out_stream;
+
+            double m_mass_pi0_mev;
 
             double m_exiting_photon_energy_threshold ;
             double m_exiting_proton_energy_threshold ;
@@ -720,6 +861,7 @@ namespace single_photon
             double m_width_dqdx_box;
             double m_length_dqdx_box;
 
+            TTree* run_subrun_tree;
             TTree* pot_tree;
             TTree* vertex_tree;
             TTree* eventweight_tree;
@@ -727,34 +869,44 @@ namespace single_photon
 
             //------------ POT related variables --------------
             int m_number_of_events;
+            int m_number_of_events_in_subrun;
             double m_pot_count;
             int m_number_of_vertices;
+
+            int m_run;
+            int m_subrun;
+            double m_subrun_pot;
 
             //------------ Event Related Variables -------------
             int m_run_number;
             int m_subrun_number;
             int m_event_number;
+            double m_pot_per_event;
+            double m_pot_per_subrun;
 
             int m_test_matched_hits;
             int m_reco_slice_objects;
             //------- Second shower related variables ----
             int m_sss_num_unassociated_hits;
+            int m_sss_num_unassociated_hits_below_threshold;
             int m_sss_num_associated_hits;
 
             int m_sss_num_candidates;
 
-            ReadBDT * sssVetov1;
+            //currently commenting this out for speed as its not used
+            //ReadBDT * sssVetov1;
 
             std::vector<int> m_sss_candidate_num_hits;
             std::vector<int> m_sss_candidate_num_wires;
             std::vector<int>  m_sss_candidate_num_ticks;
             std::vector<int>  m_sss_candidate_plane;
             std::vector<double> m_sss_candidate_PCA;
+            std::vector<double> m_sss_candidate_mean_ADC;
             std::vector<double> m_sss_candidate_impact_parameter;
             std::vector<double> m_sss_candidate_fit_slope;
             std::vector<double> m_sss_candidate_veto_score;
             std::vector<double> m_sss_candidate_fit_constant;
-            std::vector<double>  m_sss_candidate_mean_tick;
+            std::vector<double> m_sss_candidate_mean_tick;
             std::vector<double> m_sss_candidate_max_tick;
             std::vector<double> m_sss_candidate_min_tick;
             std::vector<double> m_sss_candidate_min_wire;
@@ -764,13 +916,80 @@ namespace single_photon
             std::vector<double> m_sss_candidate_energy;
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
-            std::vector<int>   m_sss_candidate_matched;
-            std::vector<int>       m_sss_candidate_pdg;
-            std::vector<int>        m_sss_candidate_parent_pdg;
+            std::vector<int>    m_sss_candidate_remerge;
+            std::vector<int>    m_sss_candidate_matched;
+            std::vector<int>    m_sss_candidate_pdg;
+            std::vector<int>    m_sss_candidate_parent_pdg;
             std::vector<int>    m_sss_candidate_trackid;
-            std::vector<double>       m_sss_candidate_overlay_fraction;
+            std::vector<double> m_sss_candidate_overlay_fraction;
+
+            int m_sss3d_num_showers;
+            std::vector<double> m_sss3d_shower_start_x;
+            std::vector<double> m_sss3d_shower_start_y;
+            std::vector<double> m_sss3d_shower_start_z;
+            std::vector<double> m_sss3d_shower_dir_x;
+            std::vector<double> m_sss3d_shower_dir_y;
+            std::vector<double> m_sss3d_shower_dir_z;
+            std::vector<double> m_sss3d_shower_length;
+            std::vector<double> m_sss3d_shower_conversion_dist;
+            std::vector<double> m_sss3d_shower_invariant_mass;
+            std::vector<double> m_sss3d_shower_implied_invariant_mass;
+            std::vector<double> m_sss3d_shower_impact_parameter;
+            std::vector<double> m_sss3d_shower_ioc_ratio;
+            std::vector<double> m_sss3d_shower_energy_max;
+            std::vector<double> m_sss3d_shower_score;
+            std::vector<int> m_sss3d_slice_nu;
+            std::vector<int> m_sss3d_slice_clear_cosmic;
 
             bool bool_make_sss_plots;
+
+            double m_sss3d_ioc_ranked_en;
+            double m_sss3d_ioc_ranked_conv;
+            double m_sss3d_ioc_ranked_invar;
+            double m_sss3d_ioc_ranked_implied_invar;
+            double m_sss3d_ioc_ranked_ioc;
+            double m_sss3d_ioc_ranked_opang;
+            double m_sss3d_ioc_ranked_implied_opang;
+            int m_sss3d_ioc_ranked_id;
+
+            double m_sss3d_invar_ranked_en;
+            double m_sss3d_invar_ranked_conv;
+            double m_sss3d_invar_ranked_invar;
+            double m_sss3d_invar_ranked_implied_invar;
+            double m_sss3d_invar_ranked_ioc;
+            double m_sss3d_invar_ranked_opang;
+            double m_sss3d_invar_ranked_implied_opang;
+            int m_sss3d_invar_ranked_id;
+
+            double m_sss2d_ioc_ranked_en;
+            double m_sss2d_ioc_ranked_conv;
+            double m_sss2d_ioc_ranked_ioc;
+            double m_sss2d_ioc_ranked_pca;
+            double m_sss2d_ioc_ranked_invar;
+            double m_sss2d_ioc_ranked_angle_to_shower;
+            int m_sss2d_ioc_ranked_num_planes;
+
+            double m_sss2d_conv_ranked_en;
+            double m_sss2d_conv_ranked_conv;
+            double m_sss2d_conv_ranked_ioc;
+            double m_sss2d_conv_ranked_pca;
+            double m_sss2d_conv_ranked_invar;
+            double m_sss2d_conv_ranked_angle_to_shower;
+            int m_sss2d_conv_ranked_num_planes;
+
+            double m_sss2d_invar_ranked_en;
+            double m_sss2d_invar_ranked_conv;
+            double m_sss2d_invar_ranked_ioc;
+            double m_sss2d_invar_ranked_pca;
+            double m_sss2d_invar_ranked_invar;
+            double m_sss2d_invar_ranked_angle_to_shower;
+            int m_sss2d_invar_ranked_num_planes;
+
+
+
+
+
+
 
             //------------ Vertex Related variables -------------
             int m_reco_vertex_size;
@@ -781,6 +1000,10 @@ namespace single_photon
             double m_vertex_pos_wire_p0;
             double m_vertex_pos_wire_p2;
             double m_vertex_pos_wire_p1;
+            int m_reco_vertex_in_SCB;
+            double m_reco_vertex_dist_to_SCB;
+            double m_reco_vertex_dist_to_active_TPC;
+
 
             int m_reco_asso_showers;
 
@@ -846,6 +1069,12 @@ namespace single_photon
             double m_mctruth_neutrino_qsqr;
             bool m_gtruth_is_sea_quark;
             int m_gtruth_tgt_pdg;
+            int m_gtruth_tgt_Z;
+            int m_gtruth_tgt_A;
+            double m_gtruth_tgt_p4_x;
+            double m_gtruth_tgt_p4_y;
+            double m_gtruth_tgt_p4_z;
+            double m_gtruth_tgt_p4_E;
             double m_gtruth_weight;
             double m_gtruth_probability;
             double m_gtruth_xsec;
@@ -864,6 +1093,10 @@ namespace single_photon
             int m_gtruth_num_proton;
             int m_gtruth_num_neutron;
             bool m_gtruth_is_charm;
+            bool m_gtruth_is_strange;
+            int m_gtruth_charm_hadron_pdg;
+            int m_gtruth_strange_hadron_pdg;
+            int m_gtruth_decay_mode;
             double m_gtruth_gx;
             double m_gtruth_gy;
             double m_gtruth_gt;
@@ -879,6 +1112,7 @@ namespace single_photon
             double m_gtruth_hit_nuc_p4_y;
             double m_gtruth_hit_nuc_p4_z;
             double m_gtruth_hit_nuc_p4_E;
+            double m_gtruth_hit_nuc_pos;
             double m_gtruth_fs_had_syst_p4_x;
             double m_gtruth_fs_had_syst_p4_y;
             double m_gtruth_fs_had_syst_p4_z;
@@ -912,6 +1146,11 @@ namespace single_photon
 
 
             //----------- CRT related variables -----------------
+
+            //for crt hits from the CRT veto product
+            int m_CRT_veto_nhits;
+            std::vector<double> m_CRT_veto_hit_PE; 
+
             //fields storing information about the CRT hit closest to the flash
             double m_CRT_min_hit_time;
             double m_CRT_min_hit_PE;
@@ -942,6 +1181,18 @@ namespace single_photon
             std::vector<double> m_reco_track_endx;
             std::vector<double> m_reco_track_endy;
             std::vector<double> m_reco_track_endz;
+            std::vector<double> m_reco_track_end_dist_to_active_TPC;
+            std::vector<double> m_reco_track_start_dist_to_active_TPC;
+            std::vector<double> m_reco_track_end_dist_to_SCB;
+            std::vector<double> m_reco_track_start_dist_to_SCB;
+            std::vector<int> m_reco_track_end_in_SCB;
+            std::vector<int> m_reco_track_start_in_SCB;
+            std::vector<double> m_reco_track_calo_energy_plane0;
+            std::vector<double> m_reco_track_calo_energy_plane1;
+            std::vector<double> m_reco_track_calo_energy_plane2;
+            std::vector<double> m_reco_track_calo_energy_max;
+
+
             std::vector<double>   m_reco_track_theta_yz;
             std::vector<double>   m_reco_track_phi_yx;
 
@@ -1024,6 +1275,7 @@ namespace single_photon
             std::vector<double> m_reco_track_nuscore; //the neutrino score of the slice containing the reco track
             std::vector<bool> m_reco_track_isclearcosmic;//true if reco track is in a clear cosmic slice
             std::vector<double> m_reco_track_trackscore;
+            std::vector<int> m_reco_track_pfparticle_pdg;
             std::vector<bool> m_reco_track_is_nuslice;
 
 
@@ -1039,6 +1291,14 @@ namespace single_photon
             std::vector<double> m_sim_track_startx;
             std::vector<double> m_sim_track_starty;
             std::vector<double> m_sim_track_startz;
+            std::vector<double> m_sim_track_px;
+            std::vector<double> m_sim_track_py;
+            std::vector<double> m_sim_track_pz;
+            std::vector<double> m_sim_track_endx;
+            std::vector<double> m_sim_track_endy;
+            std::vector<double> m_sim_track_endz;
+            std::vector<double> m_sim_track_length;
+            
             std::vector<int> m_sim_track_trackID;
 
             std::vector<int> m_sim_track_sliceId; //the slice id for the slice continaing the sim track
@@ -1104,6 +1364,12 @@ namespace single_photon
             std::vector<double>   m_reco_shower_startx;
             std::vector<double>   m_reco_shower_starty;
             std::vector<double>   m_reco_shower_startz;
+            std::vector<double> m_reco_shower_start_dist_to_active_TPC;
+            std::vector<double> m_reco_shower_start_dist_to_SCB;
+            std::vector<int> m_reco_shower_start_in_SCB;
+            std::vector<double> m_reco_shower_end_dist_to_active_TPC;
+            std::vector<double> m_reco_shower_end_dist_to_SCB;
+
             std::vector<double>   m_reco_shower_dirx;
             std::vector<double>   m_reco_shower_diry;
             std::vector<double>   m_reco_shower_dirz;
@@ -1153,6 +1419,7 @@ namespace single_photon
             std::vector<bool> m_reco_shower_isclearcosmic;//true if reco shower is in a clear cosmic slice
             std::vector<bool> m_reco_shower_is_nuslice;//true if reco shower is in a clear cosmic slice
             std::vector<double> m_reco_shower_trackscore;
+            std::vector<double> m_reco_shower_pfparticle_pdg;
 
             std::vector<double> m_reco_shower_kalman_exists;
             std::vector<double>   m_reco_shower_kalman_median_dEdx_plane0;
@@ -1210,6 +1477,7 @@ namespace single_photon
             double m_mctruth_nu_vertex_x;
             double m_mctruth_nu_vertex_y;
             double m_mctruth_nu_vertex_z;
+            double m_mctruth_reco_vertex_dist;
             double m_mctruth_lepton_E;
             int m_mctruth_nu_pdg;
             int m_mctruth_lepton_pdg;
@@ -1221,6 +1489,24 @@ namespace single_photon
             int m_mctruth_num_daughter_particles;
             std::vector<int> m_mctruth_daughters_pdg;
             std::vector<double> m_mctruth_daughters_E;
+
+            std::vector<int> m_mctruth_daughters_status_code;
+            std::vector<int> m_mctruth_daughters_trackID;
+            std::vector<int> m_mctruth_daughters_mother_trackID;
+            std::vector<double> m_mctruth_daughters_px;
+            std::vector<double> m_mctruth_daughters_py;
+            std::vector<double> m_mctruth_daughters_pz;
+            std::vector<double> m_mctruth_daughters_startx;
+            std::vector<double> m_mctruth_daughters_starty;
+            std::vector<double> m_mctruth_daughters_startz;
+            std::vector<double> m_mctruth_daughters_time;
+            std::vector<double> m_mctruth_daughters_endx;
+            std::vector<double> m_mctruth_daughters_endy;
+            std::vector<double> m_mctruth_daughters_endz;
+            std::vector<double> m_mctruth_daughters_endtime;
+            std::vector<std::string> m_mctruth_daughters_process;
+            std::vector<std::string> m_mctruth_daughters_end_process;
+
 
             int     m_mctruth_num_exiting_photons ;
             int      m_mctruth_num_exiting_protons ;
@@ -1261,7 +1547,15 @@ namespace single_photon
             std::vector<double>        m_mctruth_exiting_pi0_pz;
 
             double m_mctruth_pi0_leading_photon_energy;
+            std::string m_mctruth_pi0_leading_photon_end_process;
             double m_mctruth_pi0_subleading_photon_energy;
+            std::string m_mctruth_pi0_subleading_photon_end_process;
+            std::vector<double> m_mctruth_pi0_subleading_photon_end;
+            std::vector<double> m_mctruth_pi0_subleading_photon_start;
+            std::vector<double> m_mctruth_pi0_leading_photon_end;
+            std::vector<double> m_mctruth_pi0_leading_photon_start;
+            int    m_mctruth_pi0_leading_photon_exiting_TPC;
+            int    m_mctruth_pi0_subleading_photon_exiting_TPC;
 
             std::string  m_truthmatching_signaldef;
 
@@ -1271,6 +1565,12 @@ namespace single_photon
             std::vector<double> m_reco_shower_energy_plane1;
             std::vector<double> m_reco_shower_energy_plane2;
 
+            std::vector<double> m_reco_shower_reclustered_energy_max;
+            std::vector<double> m_reco_shower_reclustered_energy_plane0;
+            std::vector<double> m_reco_shower_reclustered_energy_plane1;
+            std::vector<double> m_reco_shower_reclustered_energy_plane2;
+
+
             std::vector<double> m_reco_shower_plane0;
             std::vector<double> m_reco_shower_plane1;
             std::vector<double> m_reco_shower_plane2;
@@ -1278,6 +1578,11 @@ namespace single_photon
             std::vector<double> m_reco_shower_plane0_nhits;
             std::vector<double> m_reco_shower_plane1_nhits;
             std::vector<double> m_reco_shower_plane2_nhits;
+
+            std::vector<double> m_reco_shower_plane0_meanRMS;
+            std::vector<double> m_reco_shower_plane1_meanRMS;
+            std::vector<double> m_reco_shower_plane2_meanRMS;
+
 
 
             std::vector<size_t>  m_reco_shower_ordered_energy_index;
@@ -1341,8 +1646,13 @@ namespace single_photon
 
 
             double m_genie_spline_weight;
+            double m_genie_CV_tune_weight;
+
+            double m_photonu_weight_low;
+            double m_photonu_weight_high;
 
             bool Pi0PreselectionFilter();
+            bool Pi0PreselectionFilter2g0p();
     };
 
     DEFINE_ART_MODULE(SinglePhoton)

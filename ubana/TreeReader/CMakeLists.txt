@@ -26,14 +26,6 @@ art_make_library(LIBRARY_NAME TreeInterface
                  	 #${DK2NUDATA}
                  	 ${DK2NUGENIE}
 			${LOG4CPP}
-			${GALGORITHM}
-			${GBASE}
-			${GEVGCORE}
-			${GEVGDRIVERS}
-                        ${GFLUXDRIVERS}
-			${GINTERACTION}
-			${GMESSENGER}
-			${GHEP}
 ####################################################
 		#$(CETLIB)
 		      ${FHICLCPP}
@@ -88,14 +80,6 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
                		dk2nuTree
 			${DK2NUGENIE}
 			${LOG4CPP}
-			${GALGORITHM}
-			${GBASE}
-			${GEVGCORE}
-			${GEVGDRIVERS}
-                        ${GFLUXDRIVERS}
-			${GINTERACTION}
-			${GMESSENGER}
-			${GHEP}
 ####################################################
                         ${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}
