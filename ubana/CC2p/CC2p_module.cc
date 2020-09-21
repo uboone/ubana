@@ -1304,6 +1304,7 @@ void CC2p::ClearLocalData()
   _mc_mode=-9999; 
   _mc_nupdg=-9999; 
   _mc_wgt=1; 
+  _mc_wgt_cv=1;
   _mc_interactiontype=-9999; 
   _mc_hitnuc=-9999; 
   _mc_nupdg=-9999;
@@ -1598,6 +1599,9 @@ void CC2p::FillGENIETruth(art::Event const& e)
 	      
 	      _mc_wgt= weights.front();
 	      _mc_wgt_cv= weights_cv.front();
+
+	      std::cout<<"Value of mc_wgt_cv: "<<_mc_wgt_cv<<std::endl;
+
 	      _mc_wgt_0_EtaNCEL = weights_EtaNCEL.at( 0 );
 	      _mc_wgt_1_EtaNCEL = weights_EtaNCEL.at( 1 );
 	      _mc_wgt_0_FrAbs_N = weights_FrAbs_N.at( 0 );
