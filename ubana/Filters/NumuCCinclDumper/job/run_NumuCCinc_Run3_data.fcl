@@ -1,0 +1,120 @@
+# FHiCL document used to run the "driver" executable. To learn more
+#  about the FHiCL language, please look at
+#  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
+
+#include "time_memory_tracker_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+
+## #include "numuCCanalyser.fcl"
+## #include "CRTTriggerCorr.fcl"
+
+
+process_name: numucc
+
+services:{
+  TFileService: { fileName: "NuCCana_%tc_%#_QP.root" }
+  
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+  ##@table::microboone_particleinventoryservice
+  
+  SpaceCharge:              @local::microboone_spacecharge
+  DetectorPropertiesService:@local::microboone_detproperties
+  LArProperties:            @local::microboone_properties
+  DetectorClocksService:    @local::microboone_detectorclocks
+
+}
+
+source:
+{
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+}
+
+physics:
+{
+  producers:
+  {
+    crttrigger:
+      {
+          module_type:            "CRTTriggerTimeProducer"
+          TrackProducerLabel:     "pandora"
+          data_label_crtT0asso:   "crttrackmatch"
+          data_label_flash_beam:  "simpleFlashBeam"
+          data_label_flash_cosmic: "simpleFlashCosmic"
+          data_label_crthit:      "crthitcorr"
+          data_label_DAQHeader:   "daq"
+          verbose:      0         # =0 no print outs
+          saveTTree:    1         # =0 saves no tree, =1 saves no vectors, =2 saves all in TTree
+          run_MC:       0         # 0: data is real data, 1: data contains MC (overlay)
+          store_t0:     1         # add a t0 object as a tag
+    }
+  }
+  
+  analyzers:
+  {
+    #numuCCAna:                    @local::NuCCana
+    numuCCAna:
+    {
+      module_type:            "NumuCCinklRun3"
+      pfp_producer:           pandora # "pandoraSliceId" # pandora
+      hitfinder_producer:     gaushit # "pandoraSliceId" # pandora
+      geant_producer:         largeant
+      hit_mcp_producer:       gaushitTruthMatch
+      SpacePointModule:       pandora
+      data_label_crtT0asso:   crttrackmatch # "pandoraCrtHitMatch"
+      data_label_flash_beam:  "simpleFlashBeam"
+      
+      data_label_crthit:      crthitcorr # "mixer"
+      data_label_crtmchit:    crthitsim  # maskedcrthitsim #crthitsim
+      data_label_DAQHeader:   "daq"
+      
+      use_trig_corr:          1
+      data_label_crttricorr:  crttrigger
+      
+      fHardDelay:             40000         #BNB data is 35520?
+      fTimeZeroOffset:        69100    #used for fTimeSelect=0
+      ## BNB: 3.195 - 4.875 // Ext: 3.570 - 5.250
+      beam_start:              2
+      beam_end:                6
+
+      is_data:                 true # true # false
+      store_Spacepoints:       false
+      verbose:                 0
+      fill_per_track:          0
+      PIDTrackAssLabel:        "pandoracalipidSCE"
+
+    }
+  }
+  
+  prod:             [ crttrigger ]
+  ana:              [ numuCCAna ]
+  trigger_paths:    [ prod ]
+  #e1: [ rootout ]
+  #end_paths: [ ana, e1 ]
+  end_paths: [ ana ]
+  
+}
+
+outputs:
+{
+ rootout:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_%#wCRTTrigCorr.root"
+    dataTier: "reconstructed"
+    compressionLevel: 1
+  }
+}
+#physics.producers.crttrigger.run_MC:      false
+physics.analyzers.numuCCAna.is_data:      true
+physics.analyzers.numuCCAna.has_MC_neutrino: false
+#physics.analyzers.numuCCAna.verbose:      0
+
+services.SpaceCharge.EnableCorrSCE:       true
+services.SpaceCharge.EnableSimEfieldSCE:  true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.DetectorClocksService.InheritClockConfig:                         false
+services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
+
