@@ -14,6 +14,7 @@ process_name: numucc
 
 services:{
   TFileService: { fileName: "NuCCana_%tc_%#_QP.root" }
+  FileCatalogMetadata:     @local::art_file_catalog_data  # or _mc or _overlay
   
   @table::microboone_services_reco
   @table::microboone_simulation_services
