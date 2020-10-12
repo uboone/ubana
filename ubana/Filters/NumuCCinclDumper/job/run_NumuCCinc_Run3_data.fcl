@@ -12,7 +12,6 @@ process_name: numucc
 services:{
   TFileService: { fileName: "NuCCana_fullRun3.root" }
   FileCatalogMetadata:     @local::art_file_catalog_data  # or _mc or _overlay
-  TFileMetadataMicroBooNE: @local::microboone_tfile_metadata
   
   @table::microboone_services_reco
   @table::microboone_simulation_services
@@ -125,14 +124,3 @@ services.SpaceCharge.EnableSimSpatialSCE: true
 services.DetectorClocksService.InheritClockConfig:                         false
 services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
 
-services.FileCatalogMetadata.applicationVersion: "v08_00_00_48"
-services.FileCatalogMetadata.fileType: "mc"
-services.FileCatalogMetadata.runType: "physics"
-
-services.FileCatalogMetadataMicroBooNE: {
-  FCLName: "run_NumuCCinc_Run3_data.fcl"
-  FCLVersion: "v08_00_00_48"
-  ProjectName: "nucc"
-  ProjectStage: "nucc"
-  ProjectVersion: "test_v08_00_00_48"
-}
