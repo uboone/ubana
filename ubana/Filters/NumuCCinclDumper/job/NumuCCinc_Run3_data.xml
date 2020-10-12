@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE project [
-<!ENTITY name "Data_V25_fullRun3_test2">
-<!ENTITY version "v08_00_00_35">
+<!ENTITY name "Data_V25_fullRun3">
+<!ENTITY version "v08_00_00_48">
 <!ENTITY qualifier "e17:prof">
 <!ENTITY dataset "data_bnb_mcc9.1_v08_00_00_25_reco2_G1_beam_good_reco2_1e19">
 <!ENTITY user "tmettler">
@@ -27,8 +27,15 @@
         <tag>&version;</tag>
         <qual>&qualifier;</qual>
         <fcldir>/uboone/app/users/tmettler/mcc9_prod/srcs/ubana/ubana/Filters/NumuCCinclDumper/job</fcldir>
-        <local>/pnfs/uboone/resilient/users/tmettler/mcc91/uboone_v08_00_00_48.tar</local>
+        <local>/pnfs/uboone/scratch/users/tmettler/uboone_v08_00_00_48.tar</local>
     </larsoft>
+    
+    <!-- Validate on worker -->
+    <check>1</check>
+    
+    <copy>0</copy>
+    
+    <version>test_v08_00_00_48</version>
 
     <!--  Project stages  -->
     <stage name="nucc">
@@ -39,11 +46,12 @@
         <workdir>/pnfs/uboone/scratch/users/&user;/work/&version;/&name;</workdir>
         <bookdir>/uboone/data/users/&user;/book/&version;/&name;</bookdir>>
         <inputdef>&dataset;</inputdef>
+        <!-- <inputlist>/uboone/app/users/tmettler/mcc9_prod/data/bnb_data_V25_G1_small.txt</inputlist>  -->
         <numjobs>1</numjobs>
         <disk>20GB</disk>
         <memory>1900</memory>
         <maxfilesperjob>3</maxfilesperjob>
-        <jobsub>--expected-lifetime=2h -Q --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true) -e IFDH_CP_UNLINK_ON_ERROR=1'</jobsub>
+        <jobsub>--expected-lifetime=2h -Q --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)' -e IFDH_CP_UNLINK_ON_ERROR=1</jobsub>
         <jobsub_start>--append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub_start> 
       
        <schema>root</schema>
