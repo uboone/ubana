@@ -26,8 +26,12 @@ physics:
     {
       # this is the name of the module you want to run
       module_type: Arborist
-
-
+         
+      EventWeightInputTag: "eventweight"
+      SplineBugFixLabel: "splines_general_Spline"
+      RootinoBugFixLabel: "RootinoFix_UBGenie"
+      TunedCentralValueLabel: "TunedCentralValue_UBGenie"
+      LEESignalLabel: "eLEE_Combined_Oct2018_LEESignalElectron"
     }
 
   }
