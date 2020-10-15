@@ -93,7 +93,7 @@ protected:
 
 private:
   bool m_configured = false;
-  bool m_debug = false;
+  //bool m_debug = false;
   bool m_verbose = false;
 };
 
