@@ -1,0 +1,62 @@
+BEGIN_PROLOG
+
+analyseEvents:
+
+{
+module_type: HyperonSelection
+
+## Module labels
+
+GenieGenModuleLabel: "generator"
+GeantLabel: "largeant"
+
+PFParticleLabel: "pandora"
+TrackLabel: "pandora"
+VertexLabel: "pandora"
+ShowerLabel: "pandora"
+MetadataLabel: "pandora" 
+
+PIDLabel: "pandorapid"
+CaloLabel: "pandoracali"
+HitLabel: "gaushit"
+TrackHitAssnLabel: "pandora" 
+ShowerHitAssnLabel: "pandora"
+HitTruthAssnLabel: "gaushitTruthMatch"
+
+###############################
+
+## Selection criteria
+
+# Minimum number of daughters of the primary
+MinDaughters: 3
+
+# Minimum number of tracks to search for
+MinDaughterTracks: 3
+
+# Maximum number of showerlike daughters permitted
+MaxDaughterShowers: 0
+
+# Minimum track/shower score for a pfp to be classified as tracklike
+TrackScore: 0.5
+
+#Maximum 3 plane PID score for muon candidate
+MuonPIDScore: 0.6
+
+#Track Length Cut (Not applied to muon candidate)
+SecondaryTrackLengthCut: 65
+TertiaryTrackLengthCut: 35
+
+
+## Misc parameters
+Print: false
+PrintPdg: 3122
+PrintChargedLambda: false
+
+}
+
+END_PROLOG
+
+
+
+
+
