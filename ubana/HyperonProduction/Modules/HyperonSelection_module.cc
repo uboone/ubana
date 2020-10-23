@@ -427,6 +427,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 {
 
 
+
 	//begin by resetting everything
 
 	//Generator Info
@@ -509,6 +510,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 	// GET EVENT GENERATOR INFO //
 	//////////////////////////////
 
+
 	art::Handle<std::vector<simb::MCTruth>> mctruthListHandle;
 	std::vector<art::Ptr<simb::MCTruth> > mcTrVect;
 
@@ -587,6 +589,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 	////////////////////////////////////////////
 	//Get Geant Information
 	///////////////////////////////////////////
+
 
 
 	//if event contains a hyperon, find decay vertex and decay products
@@ -887,6 +890,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 	//////////////////////////////////////////////////////////////////////////
 
 
+
 	auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
 
@@ -979,6 +983,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 				geo::Vector_t sce_corr = SCE->GetPosOffsets(point);
 
 
+
 				//no SC correction
 				//		fRecoPrimaryVertex.SetXYZ( vtx->position().X() , vtx->position().Y() , vtx->position().Z() );
 
@@ -994,9 +999,9 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 
 
-
 	//go through rest of particles, get lots of useful info!
 	for(const art::Ptr<recob::PFParticle> &pfp : pfparticleVect){
+
 
 		RecoParticle ThisPrimaryDaughter;
 
@@ -1037,7 +1042,6 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 
 
-
 		for(const art::Ptr<larpandoraobj::PFParticleMetadata> &meta : pfpMeta){
 
 			const larpandoraobj::PFParticleMetadata::PropertiesMap &pfParticlePropertiesMap(meta->GetPropertiesMap());
@@ -1059,7 +1063,6 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 		//            Get track info                //
 		//////////////////////////////////////////////
 
-
 		//if pfp is a track like object
 		if(!pfpTracks.empty() && !pfpVertex.empty()){
 
@@ -1073,6 +1076,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 				//   Truth match   //
 				/////////////////////
 
+			
 				//loop through hits in track, find which MC particle
 				//deposited most energy in track
 
@@ -1154,6 +1158,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 				// get PID for track //
 				///////////////////////
 
+
 				std::vector<art::Ptr<anab::Calorimetry>> caloFromTrack = caloTrackAssoc.at(trk.key());
 				std::vector<art::Ptr<anab::ParticleID>> trackPID = PIDAssoc.at(trk.key());
 
@@ -1202,6 +1207,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 			// Get Vertex information //
 			////////////////////////////
 
+
 			for(const art::Ptr<recob::Vertex> &vtx : pfpVertex){
 
 				geo::Point_t point = { vtx->position().X() , vtx->position().Y() , vtx->position().Z() };                
@@ -1247,10 +1253,10 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 		else fShowerPrimaryDaughters.push_back( ThisPrimaryDaughter );
 
 	}//end of PFP loop
-
-
+	
 
 	if(fPrint) PrintInfo();
+
 
 	fSelectedEvent = PerformSelection();
 
@@ -1354,8 +1360,13 @@ void hyperon::HyperonSelection::FinishEvent(){
 	//	if(ccnc == 0) {fNChargedCurrent++; fCCNC="CC"; }
 	//	else { fNNeutralCurrent++; fCCNC="NC"; }
 
-	if( isNeutrino(fLepton.at(0).PDG) ) { fNNeutralCurrent++; fCCNC="NC"; }
-	else { fNChargedCurrent++; fCCNC="CC"; }
+	
+	
+	if( fLepton.size() != 1 || isLepton(fLepton.at(0).PDG) ) { fNChargedCurrent++; fCCNC="CC"; }
+	else { fNNeutralCurrent++; fCCNC="NC"; }
+
+//	if( isNeutrino(fLepton.at(0).PDG) ) { fNNeutralCurrent++; fCCNC="NC"; }
+//	else { fNChargedCurrent++; fCCNC="CC"; }
 
 	if(fNuPDG == 12) fNnue++;
 	else if(fNuPDG == 14) fNnuMu++;
