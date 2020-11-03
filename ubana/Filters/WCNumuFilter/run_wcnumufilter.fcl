@@ -1,0 +1,92 @@
+#include "time_memory_tracker_microboone.fcl"
+#include "services_microboone.fcl"
+process_name: wcnumufilter
+services:
+{
+  TFileService: { fileName: "filter_results.root" }
+  TimeTracker:   @local::microboone_time_tracker
+  MemoryTracker: @local::microboone_memory_tracker
+                 @table::microboone_simulation_services
+} # services
+source:
+{
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+} # source
+
+physics:
+{
+  analyzers: {}
+  producers: {}
+  filters:
+  {
+    wcnumufilter:
+    {
+      module_type: "WCNumuFilter"
+
+      PotProducer: "generator"
+
+      MctruthProducer: "generator"
+      McpProducer:     "largeant::G4EDep"
+      SedProducer:     "ionization::G4EDep"
+
+      PatrecProducer:    "wcphybridNu"
+      TrackProducer:     "wcphybridTrack"
+      ShowerProducer:    "wcphybridShower"
+      ClusterProducer:   "wcphybridNu"
+      HitProducer:       "wcphybridGaushit"
+      BacktrackProducer: "wcphybridTruthMatch"
+      TrackFitterProducer: "pandoraKalmanShower"
+      CaloProducer:        "pandoraKalmanShowercali"
+
+      TrackPatrecAssn:  "wcphybridTrack"
+      TrackHitAssn:     "wcphybridTrack"
+      ShowerPatrecAssn: "wcphybridShower"
+      ShowerHitAssn:    "wcphybridShower"
+      ClusterHitAssn:   "wcphybridNu"
+      MetaPfpAssn:      "wcphybridNu"
+
+      WcpMatchProducer:       "nuselMetrics"
+      WcpTruthProducer:       "nuselMetrics"
+      WcpContainmentProducer: "nuselMetrics"
+      WcpChargeProducer:      "nuselMetrics"
+      WcpSTMProducer:         "nuselMetricsSTM"
+
+      WireCellRecoPFProducer: "wirecellPF"
+      WireCellShowerKEThreshold: 0.020 # unit: GeV
+
+      PF_inputtag:      "wirecellPF"
+      BDTvars:  true
+      KINEvars: true
+
+      DataTier: 1
+
+      BeamWindowStart: 3000.
+      BeamWindowEnd:   5000.
+
+      TickOffset:    2400.
+      TimePerTick:   0.5
+      DriftVelocity: 0.1098
+
+    }
+  } # filters
+
+  stream1: [ out1 ]
+  filtering: [ wcnumufilter ]
+  trigger_paths: [ filtering ]
+  end_paths: [ stream1 ]
+} # physics
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_numuccfiltered.root"
+    SelectEvents: [ filtering ]
+    dataTier: "reconstructed"
+    compressionLevel: 1
+    outputCommands: ["keep *_*_*_*"]
+  }
+}
+services.DetectorClocksService.InheritClockConfig: false
