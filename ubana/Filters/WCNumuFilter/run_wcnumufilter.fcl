@@ -69,10 +69,18 @@ physics:
       DriftVelocity: 0.1098
 
     }
+    mOfN : 
+    {
+      # accept first m out of n after the offset (the start the m will be at the offset of the block)
+      module_type: BlockingPrescaler 
+      blockSize: 10 # default is 1, this is m
+      stepSize: 17 # no default, this is n
+      offset: 0 # defaults is 0, where to start in 
+    }
   } # filters
 
   stream1: [ out1 ]
-  filtering: [ wcnumufilter ]
+  filtering: [ mOfN, wcnumufilter ]
   trigger_paths: [ filtering ]
   end_paths: [ stream1 ]
 } # physics
