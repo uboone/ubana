@@ -226,7 +226,7 @@ private:
   double EventWeight = 1; // Spine reweight using Steven's tool  
  
   int Nr_MCNu = 0;
-  int selected_mc_truth_id = -999;
+  int selected_mctruth_id = -999;
  
   bool MC_beamNeutrino = false; // MCTruth beam origin
   bool MC_FV = false; // MCTruth vertex in FV = true, out of FV = false
@@ -829,10 +829,7 @@ void SingleMuon::analyze(art::Event const& evt)
   }
 
   // MCTruth - MCParticle association
-//  art::FindMany<simb::MCTruth> MCpToMCtAsso(Handle_MCParticle, evt, m_generatorLabel);
-  //art::FindMany<simb::MCParticle> MCpToMCtAsso(Handle_MCTruth, evt, m_generatorLabel);
-  art::FindMany<simb::MCParticle,sim::GeneratedParticleInfo> MCpToMCtAsso(Handle_MCTruth, evt, m_geantLabel);
-  //std::cout<<"MCpToMCtAsso: "<<MCpToMCtAsso<<std::endl;
+  //art::FindMany<simb::MCParticle,sim::GeneratedParticleInfo> MCtToMCpAsso(Handle_MCTruth, evt, m_geantLabel);
 
   // Vertex - PFP association
   art::FindMany<recob::Vertex> pfpToVtxAsso(Handle_pfParticle, evt, m_pandoraLabel);
@@ -943,14 +940,17 @@ void SingleMuon::analyze(art::Event const& evt)
       MC_if_in_active = _fiducial_volume.VertexInActive(true_nuVtx);
 
 ///////////////////
-      std::vector<art::Ptr<simb::MCParticle>> v_mc_particle;
-      std::vector<sim::GeneratedParticleInfo const*> v_gpi;
-      std::cout<<"MCTruthCollection[i_mc].key(): "<<MCTruthCollection[i_mc].key()<<std::endl;
-      //MCpToMCtAsso.get(MCTruthCollection[i_mc].key(), v_mc_particle, v_gpi);
-      auto assoMC = MCpToMCtAsso.at(MCTruthCollection[i_mc].key());
-      std::cout<<"assoMC size: "<<assoMC.size()<<std::endl;
-      //std::cout<<"assoMC front: "<<assoMC.front()<<std::endl;
-      
+      //std::vector<art::Ptr<simb::MCParticle>> v_mc_particle;
+      //std::vector<sim::GeneratedParticleInfo const*> v_gpi;
+      //std::cout<<"MCTruthCollection[i_mc].key(): "<<MCTruthCollection[i_mc].key()<<std::endl;
+      ////MCpToMCtAsso.get(MCTruthCollection[i_mc].key(), v_mc_particle, v_gpi);
+      //auto assoMC = MCpToMCtAsso.at(MCTruthCollection[i_mc].key());
+      //std::cout<<"assoMC size: "<<assoMC.size()<<std::endl;
+      //std::cout<<"assoMC front: "<<assoMC.front()->Process()<<std::endl;
+      //for(unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
+      //  
+
+      //}  
 
       //std::cout<<"v_mc_truth size: "<< v_mc_particle.size()<<std::endl;
       //std::cout<<"v_gpi: "<<v_gpi.size()<<std::endl;
@@ -1964,13 +1964,26 @@ void SingleMuon::analyze(art::Event const& evt)
               true_trk_length = (true_start - true_end).Mag(); // An estimation of true track length
               true_trk_PDG = MCparticle->PdgCode();
 
-              for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
-                if(MCparticle->Mother() == MCTruthCollection[i_mc]->GetNeutrino().Nu().TrackId()){
-                  selected_mc_truth_id = i_mc;
+              if (MCparticle->Process() == "primary"){
+                if (Nr_MCNu > 1){
+                  //define the MCTruth to MCParticle association when we need it
+                  art::FindMany<simb::MCParticle,sim::GeneratedParticleInfo> MCtToMCpAsso(Handle_MCTruth, evt, m_geantLabel);
+                  for (unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
+                    if (selected_mctruth_id >= 0){break;}
+                    auto assoMC = MCtToMCpAsso.at(MCTruthCollection[i_mc].key());
+                    for (unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
+                      if (MCParticleCollection[i_mcp] == MCparticle){
+                        selected_mctruth_id = i_mc;
+                        break;
+                      } // match
+                    } // loop of MC particles
+                  } // loop of MC truth
+                } // if there is only one simulated neutrino intereaction, then skip
+                else if (Nr_MCNu == 1) {
+                  selected_mctruth_id = 0;
                 }
-              }
-              std::cout<<"backtracker track ID: "<< MCparticle->TrackId()<<std::endl;
-              std::cout<<"backtracker mum ID: "<< MCparticle->Mother()<<std::endl;
+              } // if the selected MCparticle is not primary, then it's not part of the signal
+
             }
           } // If MC particle exists
           reco_MC_dist_vtx = (true_nuVtx - Trk_start_SCEcorr).Mag();
@@ -2146,6 +2159,8 @@ void SingleMuon::analyze(art::Event const& evt)
     if_cosmic = false;
     if_matchPrimary = false;
     if_matchMu = false;
+
+    selected_mctruth_id = -999;// if there are no matched neutrino intereaction or the backtracked MCparticle is not primary, this value is set to default.
   }
 
   daughter_Tracks.clear();
@@ -2516,7 +2531,7 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("trk_purity", &trk_purity);
     my_event_->Branch("trk_completeness", &trk_completeness);
 
-    my_event_->Branch("selected_mc_truth_id", &selected_mc_truth_id);
+    my_event_->Branch("selected_mctruth_id", &selected_mctruth_id);
   }
 
   my_event_->Branch("n_pfp_nuDaughters", &n_pfp_nuDaughters);
