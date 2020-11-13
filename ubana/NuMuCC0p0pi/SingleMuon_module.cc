@@ -47,6 +47,7 @@
 #include "lardataobj/RecoBase/Slice.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/TrackHitMeta.h"
+#include "lardataobj/Simulation/GeneratedParticleInfo.h"
 //#include "lardataobj/AnalysisBase/PlaneIDBitsetHelperFunctions.h"
 
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
@@ -79,7 +80,7 @@ class SingleMuon;
 
 class SingleMuon : public art::EDAnalyzer {
 public:
-  explicit SingleMuon(fhicl::ParameterSet const& p);
+  explicit SingleMuon(fhicl::ParameterSet const& pset);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
@@ -106,8 +107,8 @@ private:
   art::ServiceHandle<art::TFileService> tfs;
 
   spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
-  //detinfo::DetectorProperties const* detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  //detinfo::DetectorClocks const* detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
+  detinfo::DetectorProperties const* detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  detinfo::DetectorClocks const* detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
 
   TTree * POTtree;
   int run, subrun;
@@ -117,8 +118,116 @@ private:
   
   void Initialize_event();
 
+  std::vector<double> weight_init{std::vector<double>(7, 1)};
+
+  std::vector<double> MaCCQE{std::vector<double>(7, 1)};
+  std::vector<double> CoulombCCQE{std::vector<double>(7, 1)};
+  std::vector<double> MaNCEL{std::vector<double>(7, 1)};
+  std::vector<double> EtaNCEL{std::vector<double>(7, 1)};
+
+  std::vector<double> NormCCMEC{std::vector<double>(7, 1)};
+  std::vector<double> NormNCMEC{std::vector<double>(7, 1)};
+  std::vector<double> FracPN_CCMEC{std::vector<double>(7, 1)};
+  std::vector<double> FracDelta_CCMEC{std::vector<double>(7, 1)};
+
+  std::vector<double> MaCCRES{std::vector<double>(7, 1)};
+  std::vector<double> MvCCRES{std::vector<double>(7, 1)};
+  std::vector<double> MaNCRES{std::vector<double>(7, 1)};
+  std::vector<double> MvNCRES{std::vector<double>(7, 1)};
+
+  std::vector<double> NonRESBGvpCC1pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvpCC2pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvpNC1pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvpNC2pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvnCC1pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvnCC2pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvnNC1pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvnNC2pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvbarpCC1pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvbarpCC2pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvbarpNC1pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvbarpNC2pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvbarnCC1pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvbarnCC2pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvbarnNC1pi{std::vector<double>(7, 1)};
+  std::vector<double> NonRESBGvbarnNC2pi{std::vector<double>(7, 1)};
+  std::vector<double> AhtBY{std::vector<double>(7, 1)};
+  std::vector<double> BhtBY{std::vector<double>(7, 1)};
+  std::vector<double> CV1uBY{std::vector<double>(7, 1)};
+  std::vector<double> CV2uBY{std::vector<double>(7, 1)};
+
+  std::vector<double> AGKYxF1pi{std::vector<double>(7, 1)};
+  std::vector<double> AGKYpT1pi{std::vector<double>(7, 1)};
+
+  std::vector<double> MFP_pi{std::vector<double>(7, 1)};
+  std::vector<double> MFP_N{std::vector<double>(7, 1)};
+  std::vector<double> FrCEx_pi{std::vector<double>(7, 1)};
+  std::vector<double> FrInel_pi{std::vector<double>(7, 1)};
+  std::vector<double> FrAbs_pi{std::vector<double>(7, 1)};
+  std::vector<double> FrCEx_N{std::vector<double>(7, 1)};
+  std::vector<double> FrInel_N{std::vector<double>(7, 1)};
+  std::vector<double> FrAbs_N{std::vector<double>(7, 1)};
+
+  std::vector<double> RDecBR1gamma{std::vector<double>(7, 1)};
+  std::vector<double> RDecBR1eta{std::vector<double>(7, 1)};
+
+  ///////////////////
+  //std::vector<double> MaCCQE;
+  //std::vector<double> CoulombCCQE;
+  //std::vector<double> MaNCEL;
+  //std::vector<double> EtaNCEL;
+
+  //std::vector<double> NormCCMEC;
+  //std::vector<double> NormNCMEC;
+  //std::vector<double> FracPN_CCMEC;
+  //std::vector<double> FracDelta_CCMEC;
+
+  //std::vector<double> MaCCRES;
+  //std::vector<double> MvCCRES;
+  //std::vector<double> MaNCRES;
+  //std::vector<double> MvNCRES;
+
+  //std::vector<double> NonRESBGvpCC1pi;
+  //std::vector<double> NonRESBGvpCC2pi;
+  //std::vector<double> NonRESBGvpNC1pi;
+  //std::vector<double> NonRESBGvpNC2pi;
+  //std::vector<double> NonRESBGvnCC1pi;
+  //std::vector<double> NonRESBGvnCC2pi;
+  //std::vector<double> NonRESBGvnNC1pi;
+  //std::vector<double> NonRESBGvnNC2pi;
+  //std::vector<double> NonRESBGvbarpCC1pi;
+  //std::vector<double> NonRESBGvbarpCC2pi;
+  //std::vector<double> NonRESBGvbarpNC1pi;
+  //std::vector<double> NonRESBGvbarpNC2pi;
+  //std::vector<double> NonRESBGvbarnCC1pi;
+  //std::vector<double> NonRESBGvbarnCC2pi;
+  //std::vector<double> NonRESBGvbarnNC1pi;
+  //std::vector<double> NonRESBGvbarnNC2pi;
+  //std::vector<double> AhtBY;
+  //std::vector<double> BhtBY;
+  //std::vector<double> CV1uBY;
+  //std::vector<double> CV2uBY;
+
+  //std::vector<double> AGKYxF1pi;
+  //std::vector<double> AGKYpT1pi;
+
+  //std::vector<double> MFP_pi;
+  //std::vector<double> MFP_N;
+  //std::vector<double> FrCEx_pi;
+  //std::vector<double> FrInel_pi;
+  //std::vector<double> FrAbs_pi;
+  //std::vector<double> FrCEx_N;
+  //std::vector<double> FrInel_N;
+  //std::vector<double> FrAbs_N;
+  //
+  //std::vector<double> RDecBR1gamma;
+  //std::vector<double> RDecBR1eta;
+
   double EventWeight = 1; // Spine reweight using Steven's tool  
-  
+ 
+  int Nr_MCNu = 0;
+  int selected_mc_truth_id = -999;
+ 
   bool MC_beamNeutrino = false; // MCTruth beam origin
   bool MC_FV = false; // MCTruth vertex in FV = true, out of FV = false
   bool MC_if_in_active = false; // MCTruth vertex in active volume = true, out of active volume = false
@@ -457,6 +566,8 @@ private:
   std::string                         m_CRTcorrT0Label;
   std::string                         m_FlashLabel;
 
+  std::vector<std::string>            genie_pars;
+
   double _min_track_len;
 
   ::trkf::TrackMomentumCalculator _trk_mom_calculator;
@@ -490,8 +601,11 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   m_FlashLabel(pset.get<std::string>("FlashLabel")),
   _min_track_len{pset.get<double>("MinTrackLength", 0.1)},
   _trk_mom_calculator{_min_track_len}
+  //genie_pars{pset.get< std::vector<std::string> >( "genie_parameter_list" )}
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
+  genie_pars = pset.get< std::vector<std::string> >( "genie_parameter_list" );
+
   _fiducial_volume.Configure(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
                              geo->DetHalfHeight(),
                              2.*geo->DetHalfWidth(),
@@ -510,8 +624,8 @@ void SingleMuon::analyze(art::Event const& evt)
   if(IsMC){
     auto const& mct_h = evt.getValidHandle<std::vector<simb::MCTruth> >("generator");
     auto gen = mct_h->at(0);
-    //double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
-    //xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0);
+    double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
+    xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0) + 0.6; //6mm X=0 differeneces in wireplanes, wirecell and reconstruction
   }
   else{
     xtimeoffset = 0;
@@ -519,13 +633,16 @@ void SingleMuon::analyze(art::Event const& evt)
 
   //// Get necessary handles
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
+  art::Handle< std::vector<simb::MCTruth> > Handle_MCTruth;
   //std::vector<art::Ptr<simb::GTruth> > GTruthCollection;
   std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
+  art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
   std::vector<art::Ptr<evwgh::MCEventWeight> > WeightCollection;
+  art::Handle< std::vector<evwgh::MCEventWeight> > Handle_Weight;
 
   if(IsMC){
     // MC Truth
-    art::Handle< std::vector<simb::MCTruth> > Handle_MCTruth;
+    //art::Handle< std::vector<simb::MCTruth> > Handle_MCTruth;
     evt.getByLabel(m_generatorLabel, Handle_MCTruth);
     art::fill_ptr_vector(MCTruthCollection, Handle_MCTruth);
 
@@ -535,21 +652,106 @@ void SingleMuon::analyze(art::Event const& evt)
     //art::fill_ptr_vector(GTruthCollection, Handle_GTruth);
  
     // MC Particle
-    art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
+    //art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
     evt.getByLabel(m_geantLabel, Handle_MCParticle);
     art::fill_ptr_vector(MCParticleCollection, Handle_MCParticle);
 
     // Reweight
-    art::Handle< std::vector<evwgh::MCEventWeight> > Handle_Weight;
-    if(evt.getByLabel("eventweight4to4aFix", Handle_Weight)){
+//    art::Handle< std::vector<evwgh::MCEventWeight> > Handle_Weight;
+//    if(evt.getByLabel("eventweight4to4aFix", Handle_Weight)){
+//      art::fill_ptr_vector(WeightCollection, Handle_Weight);
+//      std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(0)->fWeight;
+//      const std::vector<double> &weights = evtwgt_map.at("splines_general_Spline");
+//      EventWeight = weights.front();
+//    }
+//    else{
+//      EventWeight = 1;
+//    }
+
+    //art::Handle< std::vector<evwgh::MCEventWeight> > Handle_Weight;
+    if(evt.getByLabel("eventweight", Handle_Weight)){
       art::fill_ptr_vector(WeightCollection, Handle_Weight);
+      //at(0) figure out which one
       std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(0)->fWeight;
-      const std::vector<double> &weights = evtwgt_map.at("splines_general_Spline");
-      EventWeight = weights.front();
+
+      for (const auto& this_par: genie_pars){
+
+        std::cout<<"this_par: "<<this_par<<std::endl;
+        const std::vector<double> &weights = evtwgt_map.at(this_par);
+
+        if (this_par == "MaCCQE") { MaCCQE = weights; }
+        if (this_par == "CoulombCCQE") { CoulombCCQE = weights; }
+        if (this_par == "MaNCEL") { MaNCEL = weights; }
+        if (this_par == "EtaNCEL") { EtaNCEL = weights; }
+
+        if (this_par == "NormCCMEC") { NormCCMEC = weights; }
+        if (this_par == "NormNCMEC") { NormNCMEC = weights; }
+        if (this_par == "FracPN_CCMEC") { FracPN_CCMEC = weights; }
+        if (this_par == "FracDelta_CCMEC") { FracDelta_CCMEC = weights; }
+
+        if (this_par == "MaCCRES") { MaCCRES = weights; }
+        if (this_par == "MvCCRES") { MvCCRES = weights; }
+        if (this_par == "MaNCRES") { MaNCRES = weights; }
+        if (this_par == "MvNCRES") { MvNCRES = weights; }
+
+        if (this_par == "NonRESBGvpCC1pi") { NonRESBGvpCC1pi = weights; }
+        if (this_par == "NonRESBGvpCC2pi") { NonRESBGvpCC2pi = weights; }
+        if (this_par == "NonRESBGvpNC1pi") { NonRESBGvpNC1pi = weights; }
+        if (this_par == "NonRESBGvpNC2pi") { NonRESBGvpNC2pi = weights; }
+        if (this_par == "NonRESBGvnCC1pi") { NonRESBGvnCC1pi = weights; }
+        if (this_par == "NonRESBGvnCC2pi") { NonRESBGvnCC2pi = weights; }
+        if (this_par == "NonRESBGvnNC1pi") { NonRESBGvnNC1pi = weights; }
+        if (this_par == "NonRESBGvnNC2pi") { NonRESBGvnNC2pi = weights; }
+        if (this_par == "NonRESBGvbarpCC1pi") { NonRESBGvbarpCC1pi = weights; }
+        if (this_par == "NonRESBGvbarpCC2pi") { NonRESBGvbarpCC2pi = weights; }
+        if (this_par == "NonRESBGvbarpNC1pi") { NonRESBGvbarpNC1pi = weights; }
+        if (this_par == "NonRESBGvbarpNC2pi") { NonRESBGvbarpNC2pi = weights; }
+        if (this_par == "NonRESBGvbarnCC1pi") { NonRESBGvbarnCC1pi = weights; }
+        if (this_par == "NonRESBGvbarnCC2pi") { NonRESBGvbarnCC2pi = weights; }
+        if (this_par == "NonRESBGvbarnNC1pi") { NonRESBGvbarnNC1pi = weights; }
+        if (this_par == "NonRESBGvbarnNC2pi") { NonRESBGvbarnNC2pi = weights; }
+        if (this_par == "AhtBY") { AhtBY = weights; }
+        if (this_par == "BhtBY") { BhtBY = weights; }
+        if (this_par == "CV1uBY") { CV1uBY = weights; }
+        if (this_par == "CV2uBY") { CV2uBY = weights; }
+
+        if (this_par == "AGKYxF1pi") { AGKYxF1pi = weights; }
+        if (this_par == "AGKYpT1pi") { AGKYpT1pi = weights; }
+
+        if (this_par == "MFP_pi") { MFP_pi = weights; }
+        if (this_par == "MFP_N") { MFP_N = weights; }
+        if (this_par == "FrCEx_pi") { FrCEx_pi = weights; }
+        if (this_par == "FrInel_pi") { FrInel_pi = weights; }
+        if (this_par == "FrAbs_pi") { FrAbs_pi = weights; }
+        if (this_par == "FrCEx_N") { FrCEx_N = weights; }
+        if (this_par == "FrInel_N") { FrInel_N = weights; }
+        if (this_par == "FrAbs_N") { FrAbs_N = weights; }
+
+        if (this_par == "RDecBR1gamma") { RDecBR1gamma = weights; }
+        if (this_par == "RDecBR1eta") { RDecBR1eta = weights; }
+
+        //MCTruth - MCParticle association
+        //art::FindMany<simb::MCTruth,sim::GeneratedParticleInfo> MCpToMCtAsso(Handle_MCParticle, evt, m_generatorLabel);
+        //art::FindMany<simb::MCParticle> MCpToMCtAsso(Handle_MCTruth, evt, m_generatorLabel);
+      }
+    //  const std::vector<double> &weights = evtwgt_map.at("NonRESBGvpNC2pi_1sig_UBGenie");
+    //  //const std::vector<double> &weights = evtwgt_map.at("MaCCQE");
+    //  //std::cout<<"nani"<<std::endl;
+    //  //EventWeight = weights.front();
+    //  std::cout<<"weights.size(): "<< weights.size() <<std::endl;
+    //  std::cout<<"weights 0: "<< weights[0]<<std::endl;
+    //  std::cout<<"weights +1: "<< weights[1]<<std::endl;
+    //  //std::cout<<"weights -1: "<< weights[2]<<std::endl;
+    //  //std::cout<<"weights +2: "<< weights[3]<<std::endl;
+    //  //std::cout<<"weights -2: "<< weights[4]<<std::endl;
+    //  //std::cout<<"weights +3: "<< weights[5]<<std::endl;
+    //  //std::cout<<"weights -3: "<< weights[6]<<std::endl;
+
     }
-    else{
-      EventWeight = 1;
-    }
+
+    //else{
+    //  EventWeight = 1;
+    //}
   }
 
   // Slice
@@ -626,6 +828,12 @@ void SingleMuon::analyze(art::Event const& evt)
     art::fill_ptr_vector(crtT0_v, Handle_crtcorrT0);
   }
 
+  // MCTruth - MCParticle association
+//  art::FindMany<simb::MCTruth> MCpToMCtAsso(Handle_MCParticle, evt, m_generatorLabel);
+  //art::FindMany<simb::MCParticle> MCpToMCtAsso(Handle_MCTruth, evt, m_generatorLabel);
+  art::FindMany<simb::MCParticle,sim::GeneratedParticleInfo> MCpToMCtAsso(Handle_MCTruth, evt, m_geantLabel);
+  //std::cout<<"MCpToMCtAsso: "<<MCpToMCtAsso<<std::endl;
+
   // Vertex - PFP association
   art::FindMany<recob::Vertex> pfpToVtxAsso(Handle_pfParticle, evt, m_pandoraLabel);
 
@@ -693,10 +901,35 @@ void SingleMuon::analyze(art::Event const& evt)
 
   if(IsMC){
     //------- Get part of the generator neutrino info
+    Nr_MCNu = MCTruthCollection.size();
+    std::cout<<"Nr_MCNu: "<<Nr_MCNu<<std::endl;
+    if(Nr_MCNu>1){
+      for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
+        std::cout<<"i_mc: "<<i_mc<<" | Nu ID: "<< MCTruthCollection[i_mc]->GetNeutrino().Nu().TrackId()<<std::endl;
+      }
+      //throw cet::exception("[Numu0pi0p]") << "PFParticle has >1 track!" << std::endl;
+    }
     for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
-      if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin) MC_beamNeutrino = true;
+      //if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin){ v_MC_beamNeutrino.push_back(true);}
+      //v_MC_int_mode.push_back(MCTruthCollection[i_mc]->GetNeutrino().Mode());
+      //v_MC_nupdg.push_back(MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode());
+      //v_MC_ccnc.push_back(MCTruthCollection[i_mc]->GetNeutrino().CCNC());
+      //v_MC_Q2.push_back(MCTruthCollection[i_mc]->GetNeutrino().QSqr());
+
+      //v_MC_nu_E.push_back(MCTruthCollection[i_mc]->GetNeutrino().Nu().E());
+      //v_MC_nuVtxX.push_back(MCTruthCollection[i_mc]->GetNeutrino().Nu().Vx());
+      //v_MC_nuVtxY.push_back(MCTruthCollection[i_mc]->GetNeutrino().Nu().Vy());
+      //v_MC_nuVtxZ.push_back(MCTruthCollection[i_mc]->GetNeutrino().Nu().Vz());
+
+      //TVector3 true_nuVtx(v_MC_nuVtxX.back(), v_MC_nuVtxY.back(), v_MC_nuVtxZ.back());
+      //v_true_nuVtx.push_back(true_nuVx);
+      //v_MC_FV.push_back(_fiducial_volume.VertexInFV(true_nuVtx));
+      //v_MC_if_in_active.push_back(_fiducial_volume.VertexInActive(true_nuVtx));
+
+      if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin){ MC_beamNeutrino = true;}
       MC_int_mode = MCTruthCollection[i_mc]->GetNeutrino().Mode();
       MC_nupdg = MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode();
+      std::cout<<"Nu ID: "<< MCTruthCollection[i_mc]->GetNeutrino().Nu().TrackId()<<std::endl;
       MC_ccnc = MCTruthCollection[i_mc]->GetNeutrino().CCNC();
       MC_Q2 = MCTruthCollection[i_mc]->GetNeutrino().QSqr();
 
@@ -704,20 +937,56 @@ void SingleMuon::analyze(art::Event const& evt)
       MC_nuVtxX = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vx();
       MC_nuVtxY = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vy();
       MC_nuVtxZ = MCTruthCollection[i_mc]->GetNeutrino().Nu().Vz();
+
       true_nuVtx.SetXYZ(MC_nuVtxX, MC_nuVtxY, MC_nuVtxZ);
       MC_FV = _fiducial_volume.VertexInFV(true_nuVtx);
       MC_if_in_active = _fiducial_volume.VertexInActive(true_nuVtx);
+
+///////////////////
+      std::vector<art::Ptr<simb::MCParticle>> v_mc_particle;
+      std::vector<sim::GeneratedParticleInfo const*> v_gpi;
+      std::cout<<"MCTruthCollection[i_mc].key(): "<<MCTruthCollection[i_mc].key()<<std::endl;
+      //MCpToMCtAsso.get(MCTruthCollection[i_mc].key(), v_mc_particle, v_gpi);
+      auto assoMC = MCpToMCtAsso.at(MCTruthCollection[i_mc].key());
+      std::cout<<"assoMC size: "<<assoMC.size()<<std::endl;
+      //std::cout<<"assoMC front: "<<assoMC.front()<<std::endl;
+      
+
+      //std::cout<<"v_mc_truth size: "<< v_mc_particle.size()<<std::endl;
+      //std::cout<<"v_gpi: "<<v_gpi.size()<<std::endl;
     }
 
+    std::cout<<"MCParticleCollection.size(): "<<MCParticleCollection.size()<<std::endl;
     // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
     // Not necessary all the Genie particles go through the geant4 stage?
     if (MC_ccnc == 0 && MC_nupdg == 14 && MC_beamNeutrino == true){
       for(unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
         if(MCParticleCollection[i_mcp]->Process() == "primary"){
+
+          //std::vector<art::Ptr<simb::MCParticle>> v_mc_particle;
+          //std::vector<sim::GeneratedParticleInfo> v_gpi;
+          //MCpToMCtAsso.get(MCParticleCollection[i_mcp].key(), v_mc_particle, v_gpi);
+
+          //std::cout<<"v_mc_truth size: "<< v_mc_particle.size()<<std::endl;
+          //std::cout<<"v_gpi: "<<v_gpi.size()<<std::endl;
+
+          //std::cout<<"v_mc_truth nuE: "<<v_mc_truth.front().GetNeutrino().Nu().E()<<std::endl;
+
+          //auto assoMCTruth = MCpToMCtAsso.at(MCParticleCollection[i_mcp].key()); // vector
+          //std::cout<<"--asso MCT size: "<< assoMCTruth.size()<<std::endl;
+          //std::cout<<"asso MCTruth nuE: "<< assoMCTruth.front()->GetNeutrino().Nu().E()<<std::endl;
+          //std::cout<<"asso MCTruth ccnc: "<< assoMCTruth.front()->GetNeutrino().CCNC()<<std::endl;
+          //std::cout<<"asso MCTruth pdg: "<< assoMCTruth.front()->GetNeutrino().Nu().PdgCode()<<std::endl;
+          //std::cout<<"asso MCTruth beam: "<< assoMCTruth.front()->Origin()<<std::endl;
+
           // PDG and momemtum of neutrino daughters
           MC_Primary_PDG.push_back(MCParticleCollection[i_mcp]->PdgCode());
           MC_Primary_Mom.push_back(MCParticleCollection[i_mcp]->P());
 
+          std::cout<<"TrackID: "<< MCParticleCollection[i_mcp]->TrackId()<<std::endl;
+          if( Nr_MCNu > 1 ){
+            std::cout<<"--TrackID: "<< MCParticleCollection[i_mcp]->TrackId()<<std::endl;
+          }
           // muon
           if(MCParticleCollection[i_mcp]->PdgCode() == 13){
             MC_nMuon++;
@@ -761,6 +1030,10 @@ void SingleMuon::analyze(art::Event const& evt)
           if(MCParticleCollection[i_mcp]->PdgCode() == -211 && MCParticleCollection[i_mcp]->P() >= 0.080) MC_nPiMinus_above80++;
         }
       }
+    }
+
+    if (Nr_MCNu>1){
+      throw cet::exception("[Numu0pi0p]") << "More than 1 neutrino interactions" << std::endl;
     }
  
     Topology topology;
@@ -1021,7 +1294,7 @@ void SingleMuon::analyze(art::Event const& evt)
         // Add spatial correction to the track start and end
         Trk_vtx = daughter_Tracks.front()->Vertex<TVector3>();
         auto Trk_vtx_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_vtx.X(), Trk_vtx.Y(), Trk_vtx.Z()));
-        Trk_vtx_SCEcorr.SetX(Trk_vtx.X() - Trk_vtx_offset.X() + xtimeoffset + 0.6);
+        Trk_vtx_SCEcorr.SetX(Trk_vtx.X() - Trk_vtx_offset.X() + xtimeoffset);
         Trk_vtx_SCEcorr.SetY(Trk_vtx.Y() + Trk_vtx_offset.Y());
         Trk_vtx_SCEcorr.SetZ(Trk_vtx.Z() + Trk_vtx_offset.Z());
 
@@ -1035,7 +1308,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
         Trk_start = daughter_Tracks.front()->Start<TVector3>();
         auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
-        Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X() + xtimeoffset + 0.6);
+        Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X() + xtimeoffset);
         Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
         Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
 
@@ -1049,7 +1322,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
         Trk_end = daughter_Tracks.front()->End<TVector3>();
         auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end.X(), Trk_end.Y(), Trk_end.Z()));
-        Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X() + xtimeoffset + 0.6);
+        Trk_end_SCEcorr.SetX(Trk_end.X() - Trk_end_offset.X() + xtimeoffset);
         Trk_end_SCEcorr.SetY(Trk_end.Y() + Trk_end_offset.Y());
         Trk_end_SCEcorr.SetZ(Trk_end.Z() + Trk_end_offset.Z());
 
@@ -1690,6 +1963,14 @@ void SingleMuon::analyze(art::Event const& evt)
               true_trk_costheta_xz = cos(true_trk_theta_xz);
               true_trk_length = (true_start - true_end).Mag(); // An estimation of true track length
               true_trk_PDG = MCparticle->PdgCode();
+
+              for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
+                if(MCparticle->Mother() == MCTruthCollection[i_mc]->GetNeutrino().Nu().TrackId()){
+                  selected_mc_truth_id = i_mc;
+                }
+              }
+              std::cout<<"backtracker track ID: "<< MCparticle->TrackId()<<std::endl;
+              std::cout<<"backtracker mum ID: "<< MCparticle->Mother()<<std::endl;
             }
           } // If MC particle exists
           reco_MC_dist_vtx = (true_nuVtx - Trk_start_SCEcorr).Mag();
@@ -1724,6 +2005,57 @@ void SingleMuon::analyze(art::Event const& evt)
   my_event_->Fill();
 
   if(IsMC){
+
+    MaCCQE = weight_init;
+    CoulombCCQE = weight_init;
+    MaNCEL = weight_init;
+    EtaNCEL = weight_init;
+
+    NormCCMEC = weight_init;
+    NormNCMEC = weight_init;
+    FracPN_CCMEC = weight_init;
+    FracDelta_CCMEC = weight_init;
+
+    MaCCRES = weight_init;
+    MvCCRES = weight_init;
+    MaNCRES = weight_init;
+    MvNCRES = weight_init;
+
+    NonRESBGvpCC1pi = weight_init;
+    NonRESBGvpCC2pi = weight_init;
+    NonRESBGvpNC1pi = weight_init;
+    NonRESBGvpNC2pi = weight_init;
+    NonRESBGvnCC1pi = weight_init;
+    NonRESBGvnCC2pi = weight_init;
+    NonRESBGvnNC1pi = weight_init;
+    NonRESBGvnNC2pi = weight_init;
+    NonRESBGvbarpCC1pi = weight_init;
+    NonRESBGvbarpCC2pi = weight_init;
+    NonRESBGvbarpNC1pi = weight_init;
+    NonRESBGvbarpNC2pi = weight_init;
+    NonRESBGvbarnCC1pi = weight_init;
+    NonRESBGvbarnCC2pi = weight_init;
+    NonRESBGvbarnNC1pi = weight_init;
+    NonRESBGvbarnNC2pi = weight_init;
+    AhtBY = weight_init;
+    BhtBY = weight_init;
+    CV1uBY = weight_init;
+    CV2uBY = weight_init;
+
+    AGKYxF1pi = weight_init;
+    AGKYpT1pi = weight_init;
+
+    MFP_pi = weight_init;
+    MFP_N = weight_init;
+    FrCEx_pi = weight_init;
+    FrInel_pi = weight_init;
+    FrAbs_pi = weight_init;
+    FrCEx_N = weight_init;
+    FrInel_N = weight_init;
+    FrAbs_N = weight_init;
+
+    RDecBR1gamma = weight_init;
+    RDecBR1eta = weight_init;
 
     MC_beamNeutrino = false;
     MC_nupdg = -999;
@@ -2050,6 +2382,59 @@ void SingleMuon::Initialize_event()
   my_event_ = tfs->make<TTree>("tree","tree");
   
   if(IsMC){
+    my_event_->Branch("Nr_MCNu", &Nr_MCNu);
+
+    my_event_->Branch("MaCCQE", &MaCCQE);
+    my_event_->Branch("CoulombCCQE", &CoulombCCQE);
+    my_event_->Branch("MaNCEL", &MaNCEL);
+    my_event_->Branch("EtaNCEL", &EtaNCEL);
+
+    my_event_->Branch("NormCCMEC", &NormCCMEC);
+    my_event_->Branch("NormNCMEC", &NormNCMEC);
+    my_event_->Branch("FracPN_CCMEC", &FracPN_CCMEC);
+    my_event_->Branch("FracDelta_CCMEC", &FracDelta_CCMEC);
+
+    my_event_->Branch("MaCCRES", &MaCCRES);
+    my_event_->Branch("MvCCRES", &MvCCRES);
+    my_event_->Branch("MaNCRES", &MaNCRES);
+    my_event_->Branch("MvNCRES", &MvNCRES);
+
+    my_event_->Branch("NonRESBGvpCC1pi", &NonRESBGvpCC1pi);
+    my_event_->Branch("NonRESBGvpCC2pi", &NonRESBGvpCC2pi);
+    my_event_->Branch("NonRESBGvpNC1pi", &NonRESBGvpNC1pi);
+    my_event_->Branch("NonRESBGvpNC2pi", &NonRESBGvpNC2pi);
+    my_event_->Branch("NonRESBGvnCC1pi", &NonRESBGvnCC1pi);
+    my_event_->Branch("NonRESBGvnCC2pi", &NonRESBGvnCC2pi);
+    my_event_->Branch("NonRESBGvnNC1pi", &NonRESBGvnNC1pi);
+    my_event_->Branch("NonRESBGvnNC2pi", &NonRESBGvnNC2pi);
+    my_event_->Branch("NonRESBGvbarpCC1pi", &NonRESBGvbarpCC1pi);
+    my_event_->Branch("NonRESBGvbarpCC2pi", &NonRESBGvbarpCC2pi);
+    my_event_->Branch("NonRESBGvbarpNC1pi", &NonRESBGvbarpNC1pi);
+    my_event_->Branch("NonRESBGvbarpNC2pi", &NonRESBGvbarpNC2pi);
+    my_event_->Branch("NonRESBGvbarnCC1pi", &NonRESBGvbarnCC1pi);
+    my_event_->Branch("NonRESBGvbarnCC2pi", &NonRESBGvbarnCC2pi);
+    my_event_->Branch("NonRESBGvbarnNC1pi", &NonRESBGvbarnNC1pi);
+    my_event_->Branch("NonRESBGvbarnNC2pi", &NonRESBGvbarnNC2pi);
+    my_event_->Branch("AhtBY", &AhtBY);
+    my_event_->Branch("BhtBY", &BhtBY);
+    my_event_->Branch("CV1uBY", &CV1uBY);
+    my_event_->Branch("CV2uBY", &CV2uBY);
+
+    my_event_->Branch("AGKYxF1pi", &AGKYxF1pi);
+    my_event_->Branch("AGKYpT1pi", &AGKYpT1pi);
+
+    my_event_->Branch("MFP_pi", &MFP_pi);
+    my_event_->Branch("MFP_N", &MFP_N);
+    my_event_->Branch("FrCEx_pi", &FrCEx_pi);
+    my_event_->Branch("FrInel_pi", &FrInel_pi);
+    my_event_->Branch("FrAbs_pi", &FrAbs_pi);
+    my_event_->Branch("FrCEx_N", &FrCEx_N);
+    my_event_->Branch("FrInel_N", &FrInel_N);
+    my_event_->Branch("FrAbs_N", &FrAbs_N);
+
+    my_event_->Branch("RDecBR1gamma", &RDecBR1gamma);
+    my_event_->Branch("RDecBR1eta", &RDecBR1eta);
+
     my_event_->Branch("EventWeight", &EventWeight);
     my_event_->Branch("TopologyType", &TopologyType);
     my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
@@ -2130,6 +2515,8 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("trk_cosmic_percent", &trk_cosmic_percent);
     my_event_->Branch("trk_purity", &trk_purity);
     my_event_->Branch("trk_completeness", &trk_completeness);
+
+    my_event_->Branch("selected_mc_truth_id", &selected_mc_truth_id);
   }
 
   my_event_->Branch("n_pfp_nuDaughters", &n_pfp_nuDaughters);
