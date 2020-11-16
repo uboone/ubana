@@ -39,6 +39,7 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 #include "TFile.h"
 #include "TTree.h"

@@ -88,7 +88,8 @@ namespace ubana {
     if (_use_pida_cut) {
       for (auto track : _tracks) {
 
-        double length, pida;
+        double length;
+	double pida=9999;
 
         length = track->Length();
 

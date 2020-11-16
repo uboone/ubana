@@ -50,6 +50,7 @@
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 	
 #include <cstring> // std::memcpy()
 #include <vector>
