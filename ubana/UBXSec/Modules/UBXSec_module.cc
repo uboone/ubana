@@ -617,7 +617,7 @@ void UBXSec::produce(art::Event & e) {
       std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pid->ParticleIDAlgScores();
       for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 	anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-	int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+	int planenum = UBPID::uB_getSinglePlane(AlgScore.getPlaneMask());
 	if (AlgScore.fVariableType==anab::kPIDA && planenum==2){
 	  track_to_pid_map[track] = pid;
 	  continue;
@@ -1890,7 +1890,7 @@ void UBXSec::produce(art::Event & e) {
 	double tmppida=-9999;
 	for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 	  anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-	  int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+	  int planenum = UBPID::uB_getSinglePlane(AlgScore.getPlaneMask());
 	  if (planenum<0 || planenum>2) continue;
 	  if (AlgScore.fVariableType==anab::kPIDA){
 	    std::cout << "[UBXSec] \t\t ParticleID PIDA is " << AlgScore.fValue << ", plane is " << planenum << std::endl;

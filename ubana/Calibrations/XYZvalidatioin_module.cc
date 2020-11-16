@@ -521,7 +521,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 			     // Loop though AlgScoresVec and find the variables we want
 			     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 			       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-			       int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+			       int planenum = UBPID::uB_getSinglePlane(AlgScore.getPlaneMask());
 			       if (planenum<0 || planenum>2) continue;
 			       if (AlgScore.fVariableType==anab::kPIDA){
 				 mu_def_pida[stop_mu-1][planenum]=float(AlgScore.fValue);
@@ -601,7 +601,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 			     // Loop though AlgScoresVec and find the variables we want
 			     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 			       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-			       int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+			       int planenum = UBPID::uB_getSinglePlane(AlgScore.getPlaneMask());
 			       if (planenum<0 || planenum>2) continue;
 			       if (AlgScore.fVariableType==anab::kPIDA){
 				 pi_def_pida[stop_pi-1][planenum]=float(AlgScore.fValue);
@@ -672,7 +672,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 			     // Loop though AlgScoresVec and find the variables we want
 			     for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 			       anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-			       int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+			       int planenum = UBPID::uB_getSinglePlane(AlgScore.getPlaneMask());
 			       if (planenum<0 || planenum>2) continue;
 			       if (AlgScore.fVariableType==anab::kPIDA){
 				 k_def_pida[stop_k-1][planenum]=float(AlgScore.fValue);
@@ -755,7 +755,7 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 				// Loop though AlgScoresVec and find the variables we want
 				for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 				  anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-				  int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+				  int planenum = UBPID::uB_getSinglePlane(AlgScore.getPlaneMask());
 				  if (planenum<0 || planenum>2) continue;
 				  if (AlgScore.fVariableType==anab::kPIDA){
 				    p_def_pida[stop_p-1][planenum]=float(AlgScore.fValue);

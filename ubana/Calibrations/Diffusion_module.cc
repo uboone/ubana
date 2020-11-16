@@ -867,7 +867,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
 	 // Loop though AlgScoresVec and find the variables we want
 	 for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
 	   anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
-	   int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+	   int planenum = UBPID::uB_getSinglePlane(AlgScore.getPlaneMask());
 	   if (planenum<0 || planenum>2) continue;
 
 	   if (AlgScore.fAlgName == "Chi2" && (TMath::Abs(AlgScore.fAssumedPdg) == 13||TMath::Abs(AlgScore.fAssumedPdg) == 2212||TMath::Abs(AlgScore.fAssumedPdg) == 211||TMath::Abs(AlgScore.fAssumedPdg) == 321)){
