@@ -118,110 +118,110 @@ private:
   
   void Initialize_event();
 
-  std::vector<double> weight_init{std::vector<double>(7, 1)};
+//  std::vector<double> weight_init{std::vector<double>(7, 1)};
 
-  std::vector<double> MaCCQE{std::vector<double>(7, 1)};
-  std::vector<double> CoulombCCQE{std::vector<double>(7, 1)};
-  std::vector<double> MaNCEL{std::vector<double>(7, 1)};
-  std::vector<double> EtaNCEL{std::vector<double>(7, 1)};
-
-  std::vector<double> NormCCMEC{std::vector<double>(7, 1)};
-  std::vector<double> NormNCMEC{std::vector<double>(7, 1)};
-  std::vector<double> FracPN_CCMEC{std::vector<double>(7, 1)};
-  std::vector<double> FracDelta_CCMEC{std::vector<double>(7, 1)};
-
-  std::vector<double> MaCCRES{std::vector<double>(7, 1)};
-  std::vector<double> MvCCRES{std::vector<double>(7, 1)};
-  std::vector<double> MaNCRES{std::vector<double>(7, 1)};
-  std::vector<double> MvNCRES{std::vector<double>(7, 1)};
-
-  std::vector<double> NonRESBGvpCC1pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvpCC2pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvpNC1pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvpNC2pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvnCC1pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvnCC2pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvnNC1pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvnNC2pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvbarpCC1pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvbarpCC2pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvbarpNC1pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvbarpNC2pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvbarnCC1pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvbarnCC2pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvbarnNC1pi{std::vector<double>(7, 1)};
-  std::vector<double> NonRESBGvbarnNC2pi{std::vector<double>(7, 1)};
-  std::vector<double> AhtBY{std::vector<double>(7, 1)};
-  std::vector<double> BhtBY{std::vector<double>(7, 1)};
-  std::vector<double> CV1uBY{std::vector<double>(7, 1)};
-  std::vector<double> CV2uBY{std::vector<double>(7, 1)};
-
-  std::vector<double> AGKYxF1pi{std::vector<double>(7, 1)};
-  std::vector<double> AGKYpT1pi{std::vector<double>(7, 1)};
-
-  std::vector<double> MFP_pi{std::vector<double>(7, 1)};
-  std::vector<double> MFP_N{std::vector<double>(7, 1)};
-  std::vector<double> FrCEx_pi{std::vector<double>(7, 1)};
-  std::vector<double> FrInel_pi{std::vector<double>(7, 1)};
-  std::vector<double> FrAbs_pi{std::vector<double>(7, 1)};
-  std::vector<double> FrCEx_N{std::vector<double>(7, 1)};
-  std::vector<double> FrInel_N{std::vector<double>(7, 1)};
-  std::vector<double> FrAbs_N{std::vector<double>(7, 1)};
-
-  std::vector<double> RDecBR1gamma{std::vector<double>(7, 1)};
-  std::vector<double> RDecBR1eta{std::vector<double>(7, 1)};
+//  std::vector<double> MaCCQE{std::vector<double>(7, 1)};
+//  std::vector<double> CoulombCCQE{std::vector<double>(7, 1)};
+//  std::vector<double> MaNCEL{std::vector<double>(7, 1)};
+//  std::vector<double> EtaNCEL{std::vector<double>(7, 1)};
+//
+//  std::vector<double> NormCCMEC{std::vector<double>(7, 1)};
+//  std::vector<double> NormNCMEC{std::vector<double>(7, 1)};
+//  std::vector<double> FracPN_CCMEC{std::vector<double>(7, 1)};
+//  std::vector<double> FracDelta_CCMEC{std::vector<double>(7, 1)};
+//
+//  std::vector<double> MaCCRES{std::vector<double>(7, 1)};
+//  std::vector<double> MvCCRES{std::vector<double>(7, 1)};
+//  std::vector<double> MaNCRES{std::vector<double>(7, 1)};
+//  std::vector<double> MvNCRES{std::vector<double>(7, 1)};
+//
+//  std::vector<double> NonRESBGvpCC1pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvpCC2pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvpNC1pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvpNC2pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvnCC1pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvnCC2pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvnNC1pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvnNC2pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvbarpCC1pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvbarpCC2pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvbarpNC1pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvbarpNC2pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvbarnCC1pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvbarnCC2pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvbarnNC1pi{std::vector<double>(7, 1)};
+//  std::vector<double> NonRESBGvbarnNC2pi{std::vector<double>(7, 1)};
+//  std::vector<double> AhtBY{std::vector<double>(7, 1)};
+//  std::vector<double> BhtBY{std::vector<double>(7, 1)};
+//  std::vector<double> CV1uBY{std::vector<double>(7, 1)};
+//  std::vector<double> CV2uBY{std::vector<double>(7, 1)};
+//
+//  std::vector<double> AGKYxF1pi{std::vector<double>(7, 1)};
+//  std::vector<double> AGKYpT1pi{std::vector<double>(7, 1)};
+//
+//  std::vector<double> MFP_pi{std::vector<double>(7, 1)};
+//  std::vector<double> MFP_N{std::vector<double>(7, 1)};
+//  std::vector<double> FrCEx_pi{std::vector<double>(7, 1)};
+//  std::vector<double> FrInel_pi{std::vector<double>(7, 1)};
+//  std::vector<double> FrAbs_pi{std::vector<double>(7, 1)};
+//  std::vector<double> FrCEx_N{std::vector<double>(7, 1)};
+//  std::vector<double> FrInel_N{std::vector<double>(7, 1)};
+//  std::vector<double> FrAbs_N{std::vector<double>(7, 1)};
+//
+//  std::vector<double> RDecBR1gamma{std::vector<double>(7, 1)};
+//  std::vector<double> RDecBR1eta{std::vector<double>(7, 1)};
 
   ///////////////////
-  //std::vector<double> MaCCQE;
-  //std::vector<double> CoulombCCQE;
-  //std::vector<double> MaNCEL;
-  //std::vector<double> EtaNCEL;
+  std::vector<std::vector<double>> MaCCQE;
+  std::vector<std::vector<double>> CoulombCCQE;
+  std::vector<std::vector<double>> MaNCEL;
+  std::vector<std::vector<double>> EtaNCEL;
 
-  //std::vector<double> NormCCMEC;
-  //std::vector<double> NormNCMEC;
-  //std::vector<double> FracPN_CCMEC;
-  //std::vector<double> FracDelta_CCMEC;
+  std::vector<std::vector<double>> NormCCMEC;
+  std::vector<std::vector<double>> NormNCMEC;
+  std::vector<std::vector<double>> FracPN_CCMEC;
+  std::vector<std::vector<double>> FracDelta_CCMEC;
 
-  //std::vector<double> MaCCRES;
-  //std::vector<double> MvCCRES;
-  //std::vector<double> MaNCRES;
-  //std::vector<double> MvNCRES;
+  std::vector<std::vector<double>> MaCCRES;
+  std::vector<std::vector<double>> MvCCRES;
+  std::vector<std::vector<double>> MaNCRES;
+  std::vector<std::vector<double>> MvNCRES;
 
-  //std::vector<double> NonRESBGvpCC1pi;
-  //std::vector<double> NonRESBGvpCC2pi;
-  //std::vector<double> NonRESBGvpNC1pi;
-  //std::vector<double> NonRESBGvpNC2pi;
-  //std::vector<double> NonRESBGvnCC1pi;
-  //std::vector<double> NonRESBGvnCC2pi;
-  //std::vector<double> NonRESBGvnNC1pi;
-  //std::vector<double> NonRESBGvnNC2pi;
-  //std::vector<double> NonRESBGvbarpCC1pi;
-  //std::vector<double> NonRESBGvbarpCC2pi;
-  //std::vector<double> NonRESBGvbarpNC1pi;
-  //std::vector<double> NonRESBGvbarpNC2pi;
-  //std::vector<double> NonRESBGvbarnCC1pi;
-  //std::vector<double> NonRESBGvbarnCC2pi;
-  //std::vector<double> NonRESBGvbarnNC1pi;
-  //std::vector<double> NonRESBGvbarnNC2pi;
-  //std::vector<double> AhtBY;
-  //std::vector<double> BhtBY;
-  //std::vector<double> CV1uBY;
-  //std::vector<double> CV2uBY;
+  std::vector<std::vector<double>> NonRESBGvpCC1pi;
+  std::vector<std::vector<double>> NonRESBGvpCC2pi;
+  std::vector<std::vector<double>> NonRESBGvpNC1pi;
+  std::vector<std::vector<double>> NonRESBGvpNC2pi;
+  std::vector<std::vector<double>> NonRESBGvnCC1pi;
+  std::vector<std::vector<double>> NonRESBGvnCC2pi;
+  std::vector<std::vector<double>> NonRESBGvnNC1pi;
+  std::vector<std::vector<double>> NonRESBGvnNC2pi;
+  std::vector<std::vector<double>> NonRESBGvbarpCC1pi;
+  std::vector<std::vector<double>> NonRESBGvbarpCC2pi;
+  std::vector<std::vector<double>> NonRESBGvbarpNC1pi;
+  std::vector<std::vector<double>> NonRESBGvbarpNC2pi;
+  std::vector<std::vector<double>> NonRESBGvbarnCC1pi;
+  std::vector<std::vector<double>> NonRESBGvbarnCC2pi;
+  std::vector<std::vector<double>> NonRESBGvbarnNC1pi;
+  std::vector<std::vector<double>> NonRESBGvbarnNC2pi;
+  std::vector<std::vector<double>> AhtBY;
+  std::vector<std::vector<double>> BhtBY;
+  std::vector<std::vector<double>> CV1uBY;
+  std::vector<std::vector<double>> CV2uBY;
 
-  //std::vector<double> AGKYxF1pi;
-  //std::vector<double> AGKYpT1pi;
+  std::vector<std::vector<double>> AGKYxF1pi;
+  std::vector<std::vector<double>> AGKYpT1pi;
 
-  //std::vector<double> MFP_pi;
-  //std::vector<double> MFP_N;
-  //std::vector<double> FrCEx_pi;
-  //std::vector<double> FrInel_pi;
-  //std::vector<double> FrAbs_pi;
-  //std::vector<double> FrCEx_N;
-  //std::vector<double> FrInel_N;
-  //std::vector<double> FrAbs_N;
-  //
-  //std::vector<double> RDecBR1gamma;
-  //std::vector<double> RDecBR1eta;
+  std::vector<std::vector<double>> MFP_pi;
+  std::vector<std::vector<double>> MFP_N;
+  std::vector<std::vector<double>> FrCEx_pi;
+  std::vector<std::vector<double>> FrInel_pi;
+  std::vector<std::vector<double>> FrAbs_pi;
+  std::vector<std::vector<double>> FrCEx_N;
+  std::vector<std::vector<double>> FrInel_N;
+  std::vector<std::vector<double>> FrAbs_N;
+  
+  std::vector<std::vector<double>> RDecBR1gamma;
+  std::vector<std::vector<double>> RDecBR1eta;
 
   double EventWeight = 1; // Spine reweight using Steven's tool  
  
@@ -673,7 +673,9 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   //genie_pars{pset.get< std::vector<std::string> >( "genie_parameter_list" )}
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
-  genie_pars = pset.get< std::vector<std::string> >( "genie_parameter_list" );
+  if (IsMC){
+    genie_pars = pset.get< std::vector<std::string> >( "genie_parameter_list" );
+  }
 
   _fiducial_volume.Configure(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
                              geo->DetHalfHeight(),
@@ -740,68 +742,73 @@ void SingleMuon::analyze(art::Event const& evt)
     //art::Handle< std::vector<evwgh::MCEventWeight> > Handle_Weight;
     if(evt.getByLabel("eventweight", Handle_Weight)){
       art::fill_ptr_vector(WeightCollection, Handle_Weight);
-      //at(0) figure out which one
-      std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(0)->fWeight;
+      if(MCTruthCollection.size() == WeightCollection.size()){
+        for(unsigned int i_wgt = 0; i_wgt < WeightCollection.size(); i_wgt++){
+          std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(i_wgt)->fWeight;
 
-      for (const auto& this_par: genie_pars){
+          for (const auto& this_par: genie_pars){
 
-        std::cout<<"this_par: "<<this_par<<std::endl;
-        const std::vector<double> &weights = evtwgt_map.at(this_par);
+            //std::cout<<"this_par: "<<this_par<<std::endl;
+            const std::vector<double> &weights = evtwgt_map.at(this_par);
 
-        if (this_par == "MaCCQE") { MaCCQE = weights; }
-        if (this_par == "CoulombCCQE") { CoulombCCQE = weights; }
-        if (this_par == "MaNCEL") { MaNCEL = weights; }
-        if (this_par == "EtaNCEL") { EtaNCEL = weights; }
+            if (this_par == "MaCCQE") { MaCCQE.push_back(weights); }
+            if (this_par == "CoulombCCQE") { CoulombCCQE.push_back(weights); }
+            if (this_par == "MaNCEL") { MaNCEL.push_back(weights); }
+            if (this_par == "EtaNCEL") { EtaNCEL.push_back(weights); }
 
-        if (this_par == "NormCCMEC") { NormCCMEC = weights; }
-        if (this_par == "NormNCMEC") { NormNCMEC = weights; }
-        if (this_par == "FracPN_CCMEC") { FracPN_CCMEC = weights; }
-        if (this_par == "FracDelta_CCMEC") { FracDelta_CCMEC = weights; }
+            if (this_par == "NormCCMEC") { NormCCMEC.push_back(weights); }
+            if (this_par == "NormNCMEC") { NormNCMEC.push_back(weights); }
+            if (this_par == "FracPN_CCMEC") { FracPN_CCMEC.push_back(weights); }
+            if (this_par == "FracDelta_CCMEC") { FracDelta_CCMEC.push_back(weights); }
 
-        if (this_par == "MaCCRES") { MaCCRES = weights; }
-        if (this_par == "MvCCRES") { MvCCRES = weights; }
-        if (this_par == "MaNCRES") { MaNCRES = weights; }
-        if (this_par == "MvNCRES") { MvNCRES = weights; }
+            if (this_par == "MaCCRES") { MaCCRES.push_back(weights); }
+            if (this_par == "MvCCRES") { MvCCRES.push_back(weights); }
+            if (this_par == "MaNCRES") { MaNCRES.push_back(weights); }
+            if (this_par == "MvNCRES") { MvNCRES.push_back(weights); }
 
-        if (this_par == "NonRESBGvpCC1pi") { NonRESBGvpCC1pi = weights; }
-        if (this_par == "NonRESBGvpCC2pi") { NonRESBGvpCC2pi = weights; }
-        if (this_par == "NonRESBGvpNC1pi") { NonRESBGvpNC1pi = weights; }
-        if (this_par == "NonRESBGvpNC2pi") { NonRESBGvpNC2pi = weights; }
-        if (this_par == "NonRESBGvnCC1pi") { NonRESBGvnCC1pi = weights; }
-        if (this_par == "NonRESBGvnCC2pi") { NonRESBGvnCC2pi = weights; }
-        if (this_par == "NonRESBGvnNC1pi") { NonRESBGvnNC1pi = weights; }
-        if (this_par == "NonRESBGvnNC2pi") { NonRESBGvnNC2pi = weights; }
-        if (this_par == "NonRESBGvbarpCC1pi") { NonRESBGvbarpCC1pi = weights; }
-        if (this_par == "NonRESBGvbarpCC2pi") { NonRESBGvbarpCC2pi = weights; }
-        if (this_par == "NonRESBGvbarpNC1pi") { NonRESBGvbarpNC1pi = weights; }
-        if (this_par == "NonRESBGvbarpNC2pi") { NonRESBGvbarpNC2pi = weights; }
-        if (this_par == "NonRESBGvbarnCC1pi") { NonRESBGvbarnCC1pi = weights; }
-        if (this_par == "NonRESBGvbarnCC2pi") { NonRESBGvbarnCC2pi = weights; }
-        if (this_par == "NonRESBGvbarnNC1pi") { NonRESBGvbarnNC1pi = weights; }
-        if (this_par == "NonRESBGvbarnNC2pi") { NonRESBGvbarnNC2pi = weights; }
-        if (this_par == "AhtBY") { AhtBY = weights; }
-        if (this_par == "BhtBY") { BhtBY = weights; }
-        if (this_par == "CV1uBY") { CV1uBY = weights; }
-        if (this_par == "CV2uBY") { CV2uBY = weights; }
+            if (this_par == "NonRESBGvpCC1pi") { NonRESBGvpCC1pi.push_back(weights); }
+            if (this_par == "NonRESBGvpCC2pi") { NonRESBGvpCC2pi.push_back(weights); }
+            if (this_par == "NonRESBGvpNC1pi") { NonRESBGvpNC1pi.push_back(weights); }
+            if (this_par == "NonRESBGvpNC2pi") { NonRESBGvpNC2pi.push_back(weights); }
+            if (this_par == "NonRESBGvnCC1pi") { NonRESBGvnCC1pi.push_back(weights); }
+            if (this_par == "NonRESBGvnCC2pi") { NonRESBGvnCC2pi.push_back(weights); }
+            if (this_par == "NonRESBGvnNC1pi") { NonRESBGvnNC1pi.push_back(weights); }
+            if (this_par == "NonRESBGvnNC2pi") { NonRESBGvnNC2pi.push_back(weights); }
+            if (this_par == "NonRESBGvbarpCC1pi") { NonRESBGvbarpCC1pi.push_back(weights); }
+            if (this_par == "NonRESBGvbarpCC2pi") { NonRESBGvbarpCC2pi.push_back(weights); }
+            if (this_par == "NonRESBGvbarpNC1pi") { NonRESBGvbarpNC1pi.push_back(weights); }
+            if (this_par == "NonRESBGvbarpNC2pi") { NonRESBGvbarpNC2pi.push_back(weights); }
+            if (this_par == "NonRESBGvbarnCC1pi") { NonRESBGvbarnCC1pi.push_back(weights); }
+            if (this_par == "NonRESBGvbarnCC2pi") { NonRESBGvbarnCC2pi.push_back(weights); }
+            if (this_par == "NonRESBGvbarnNC1pi") { NonRESBGvbarnNC1pi.push_back(weights); }
+            if (this_par == "NonRESBGvbarnNC2pi") { NonRESBGvbarnNC2pi.push_back(weights); }
+            if (this_par == "AhtBY") { AhtBY.push_back(weights); }
+            if (this_par == "BhtBY") { BhtBY.push_back(weights); }
+            if (this_par == "CV1uBY") { CV1uBY.push_back(weights); }
+            if (this_par == "CV2uBY") { CV2uBY.push_back(weights); }
 
-        if (this_par == "AGKYxF1pi") { AGKYxF1pi = weights; }
-        if (this_par == "AGKYpT1pi") { AGKYpT1pi = weights; }
+            if (this_par == "AGKYxF1pi") { AGKYxF1pi.push_back(weights); }
+            if (this_par == "AGKYpT1pi") { AGKYpT1pi.push_back(weights); }
 
-        if (this_par == "MFP_pi") { MFP_pi = weights; }
-        if (this_par == "MFP_N") { MFP_N = weights; }
-        if (this_par == "FrCEx_pi") { FrCEx_pi = weights; }
-        if (this_par == "FrInel_pi") { FrInel_pi = weights; }
-        if (this_par == "FrAbs_pi") { FrAbs_pi = weights; }
-        if (this_par == "FrCEx_N") { FrCEx_N = weights; }
-        if (this_par == "FrInel_N") { FrInel_N = weights; }
-        if (this_par == "FrAbs_N") { FrAbs_N = weights; }
+            if (this_par == "MFP_pi") { MFP_pi.push_back(weights); }
+            if (this_par == "MFP_N") { MFP_N.push_back(weights); }
+            if (this_par == "FrCEx_pi") { FrCEx_pi.push_back(weights); }
+            if (this_par == "FrInel_pi") { FrInel_pi.push_back(weights); }
+            if (this_par == "FrAbs_pi") { FrAbs_pi.push_back(weights); }
+            if (this_par == "FrCEx_N") { FrCEx_N.push_back(weights); }
+            if (this_par == "FrInel_N") { FrInel_N.push_back(weights); }
+            if (this_par == "FrAbs_N") { FrAbs_N.push_back(weights); }
 
-        if (this_par == "RDecBR1gamma") { RDecBR1gamma = weights; }
-        if (this_par == "RDecBR1eta") { RDecBR1eta = weights; }
-
-        //MCTruth - MCParticle association
-        //art::FindMany<simb::MCTruth,sim::GeneratedParticleInfo> MCpToMCtAsso(Handle_MCParticle, evt, m_generatorLabel);
-        //art::FindMany<simb::MCParticle> MCpToMCtAsso(Handle_MCTruth, evt, m_generatorLabel);
+            if (this_par == "RDecBR1gamma") { RDecBR1gamma.push_back(weights); }
+            if (this_par == "RDecBR1eta") { RDecBR1eta.push_back(weights); }
+            //MCTruth - MCParticle association
+            //art::FindMany<simb::MCTruth,sim::GeneratedParticleInfo> MCpToMCtAsso(Handle_MCParticle, evt, m_generatorLabel);
+            //art::FindMany<simb::MCParticle> MCpToMCtAsso(Handle_MCTruth, evt, m_generatorLabel);
+          }
+        } // finish the loop of the MCTruth
+      } //sanity check of the size of the weight and MCTruth
+      else{
+        throw cet::exception("[Numu0pi0p]")<< "Reweight is not consistent with MCTruth!" << std::endl;
       }
     //  const std::vector<double> &weights = evtwgt_map.at("NonRESBGvpNC2pi_1sig_UBGenie");
     //  //const std::vector<double> &weights = evtwgt_map.at("MaCCQE");
@@ -969,14 +976,14 @@ void SingleMuon::analyze(art::Event const& evt)
     //------- Get part of the generator neutrino info
     Nr_MCNu = MCTruthCollection.size();
     // to throw away
-    std::cout<<"Nr_MCNu: "<<Nr_MCNu<<std::endl;
-    if(Nr_MCNu>1){
-      
-      for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
-        std::cout<<"i_mc: "<<i_mc<<" | Nu ID: "<< MCTruthCollection[i_mc]->GetNeutrino().Nu().TrackId()<<std::endl;
-      }
-      //throw cet::exception("[Numu0pi0p]") << "PFParticle has >1 track!" << std::endl;
-    }
+    //std::cout<<"Nr_MCNu: "<<Nr_MCNu<<std::endl;
+    //if(Nr_MCNu>1){
+    //  
+    //  for(unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
+    //    std::cout<<"i_mc: "<<i_mc<<" | Nu ID: "<< MCTruthCollection[i_mc]->GetNeutrino().Nu().TrackId()<<std::endl;
+    //  }
+    //  //throw cet::exception("[Numu0pi0p]") << "PFParticle has >1 track!" << std::endl;
+    //}
     // to throw away
     //
 
@@ -1080,9 +1087,9 @@ void SingleMuon::analyze(art::Event const& evt)
       art::FindMany<simb::MCParticle,sim::GeneratedParticleInfo> MCtToMCpAsso(Handle_MCTruth, evt, m_geantLabel);
       auto assoMC = MCtToMCpAsso.at(MCTruthCollection[i_mc].key());
 
-      std::cout<<"MC_ccnc.back(): "<<MC_ccnc.back()<<std::endl;
-      std::cout<<"MC_nupdg.back(): "<<MC_nupdg.back()<<std::endl;
-      std::cout<<"MC_beamNeutrino.back(): "<<MC_beamNeutrino.back()<<std::endl;
+      //std::cout<<"MC_ccnc.back(): "<<MC_ccnc.back()<<std::endl;
+      //std::cout<<"MC_nupdg.back(): "<<MC_nupdg.back()<<std::endl;
+      //std::cout<<"MC_beamNeutrino.back(): "<<MC_beamNeutrino.back()<<std::endl;
 
       // Loop all the MCParticles to determine the true topology (all the MCParticles are from the neutrino events in overlay)
       // Not necessary all the Genie particles go through the geant4 stage?
@@ -1098,7 +1105,7 @@ void SingleMuon::analyze(art::Event const& evt)
             // muon
             if(assoMC[i_mcp]->PdgCode() == 13){
               MC_nMuon[i_mc]++;
-              std::cout<<"MC_nMuon[i_mcp]++ "<< MC_nMuon[i_mcp]<<std::endl;
+              //std::cout<<"MC_nMuon[i_mcp]++ "<< MC_nMuon[i_mcp]<<std::endl;
 
               MC_muon_true_Mom[i_mc].push_back(assoMC[i_mcp]->P());
               MC_muon_true_theta[i_mc].push_back(acos(assoMC[i_mcp]->Pz() / assoMC[i_mcp]->P()));
@@ -2184,27 +2191,27 @@ void SingleMuon::analyze(art::Event const& evt)
               true_trk_length = (true_start - true_end).Mag(); // An estimation of true track length
               true_trk_PDG = MCparticle->PdgCode();
 
-              if (MCparticle->Process() == "primary"){
-                if (Nr_MCNu > 1){
-                  //define the MCTruth to MCParticle association when we need it
-                  art::FindMany<simb::MCParticle,sim::GeneratedParticleInfo> MCtToMCpAsso(Handle_MCTruth, evt, m_geantLabel);
-                  for (unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
-                    if (selected_mctruth_id >= 0){break;}
-                    auto assoMC = MCtToMCpAsso.at(MCTruthCollection[i_mc].key());
-                    for (unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
-                      if (MCParticleCollection[i_mcp] == MCparticle){
-                        selected_mctruth_id = i_mc;
-                        break;
-                      } // match
-                    } // loop of MC particles
-                  } // loop of MC truth
-                } // if there is only one simulated neutrino intereaction, then skip
-                else if (Nr_MCNu == 1) {
-                  selected_mctruth_id = 0;
-                }
-              } // if the selected MCparticle is not primary, then it's not part of the signal
+          //    if (MCparticle->Process() == "primary"){
+              if (Nr_MCNu > 1){
+                //define the MCTruth to MCParticle association when we need it
+                art::FindMany<simb::MCParticle,sim::GeneratedParticleInfo> MCtToMCpAsso(Handle_MCTruth, evt, m_geantLabel);
+                for (unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
+                  if (selected_mctruth_id >= 0){break;}
+                  auto assoMC = MCtToMCpAsso.at(MCTruthCollection[i_mc].key());
+                  for (unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
+                    if (MCParticleCollection[i_mcp] == MCparticle){
+                      selected_mctruth_id = i_mc;
+                      break;
+                    } // match
+                  } // loop of MC particles
+                } // loop of MC truth
+              } // if there is only one simulated neutrino intereaction, then skip
+              else if (Nr_MCNu == 1) {
+                selected_mctruth_id = 0;
+              }
+            //  } // if the selected MCparticle is not primary, then it's not part of the signal
 
-            }
+            } // not cosmic
           } // If MC particle exists
 
           if(selected_mctruth_id >= 0){
@@ -2241,221 +2248,271 @@ void SingleMuon::analyze(art::Event const& evt)
 
   my_event_->Fill();
 
-  if(IsMC){
+  //if(IsMC){
+  MaCCQE.clear();
+  CoulombCCQE.clear();
+  MaNCEL.clear();
+  EtaNCEL.clear();
 
-    MaCCQE = weight_init;
-    CoulombCCQE = weight_init;
-    MaNCEL = weight_init;
-    EtaNCEL = weight_init;
+  NormCCMEC.clear();
+  NormNCMEC.clear();
+  FracPN_CCMEC.clear();
+  FracDelta_CCMEC.clear();
 
-    NormCCMEC = weight_init;
-    NormNCMEC = weight_init;
-    FracPN_CCMEC = weight_init;
-    FracDelta_CCMEC = weight_init;
+  MaCCRES.clear();
+  MvCCRES.clear();
+  MaNCRES.clear();
+  MvNCRES.clear();
 
-    MaCCRES = weight_init;
-    MvCCRES = weight_init;
-    MaNCRES = weight_init;
-    MvNCRES = weight_init;
+  NonRESBGvpCC1pi.clear();
+  NonRESBGvpCC2pi.clear();
+  NonRESBGvpNC1pi.clear();
+  NonRESBGvpNC2pi.clear();
+  NonRESBGvnCC1pi.clear();
+  NonRESBGvnCC2pi.clear();
+  NonRESBGvnNC1pi.clear();
+  NonRESBGvnNC2pi.clear();
+  NonRESBGvbarpCC1pi.clear();
+  NonRESBGvbarpCC2pi.clear();
+  NonRESBGvbarpNC1pi.clear();
+  NonRESBGvbarpNC2pi.clear();
+  NonRESBGvbarnCC1pi.clear();
+  NonRESBGvbarnCC2pi.clear();
+  NonRESBGvbarnNC1pi.clear();
+  NonRESBGvbarnNC2pi.clear();
+  AhtBY.clear();
+  BhtBY.clear();
+  CV1uBY.clear();
+  CV2uBY.clear();
 
-    NonRESBGvpCC1pi = weight_init;
-    NonRESBGvpCC2pi = weight_init;
-    NonRESBGvpNC1pi = weight_init;
-    NonRESBGvpNC2pi = weight_init;
-    NonRESBGvnCC1pi = weight_init;
-    NonRESBGvnCC2pi = weight_init;
-    NonRESBGvnNC1pi = weight_init;
-    NonRESBGvnNC2pi = weight_init;
-    NonRESBGvbarpCC1pi = weight_init;
-    NonRESBGvbarpCC2pi = weight_init;
-    NonRESBGvbarpNC1pi = weight_init;
-    NonRESBGvbarpNC2pi = weight_init;
-    NonRESBGvbarnCC1pi = weight_init;
-    NonRESBGvbarnCC2pi = weight_init;
-    NonRESBGvbarnNC1pi = weight_init;
-    NonRESBGvbarnNC2pi = weight_init;
-    AhtBY = weight_init;
-    BhtBY = weight_init;
-    CV1uBY = weight_init;
-    CV2uBY = weight_init;
+  AGKYxF1pi.clear();
+  AGKYpT1pi.clear();
 
-    AGKYxF1pi = weight_init;
-    AGKYpT1pi = weight_init;
+  MFP_pi.clear();
+  MFP_N.clear();
+  FrCEx_pi.clear();
+  FrInel_pi.clear();
+  FrAbs_pi.clear();
+  FrCEx_N.clear();
+  FrInel_N.clear();
+  FrAbs_N.clear();
 
-    MFP_pi = weight_init;
-    MFP_N = weight_init;
-    FrCEx_pi = weight_init;
-    FrInel_pi = weight_init;
-    FrAbs_pi = weight_init;
-    FrCEx_N = weight_init;
-    FrInel_N = weight_init;
-    FrAbs_N = weight_init;
+  RDecBR1gamma.clear();
+  RDecBR1eta.clear();
 
-    RDecBR1gamma = weight_init;
-    RDecBR1eta = weight_init;
+//  MaCCQE = weight_init;
+//  CoulombCCQE = weight_init;
+//  MaNCEL = weight_init;
+//  EtaNCEL = weight_init;
+//
+//  NormCCMEC = weight_init;
+//  NormNCMEC = weight_init;
+//  FracPN_CCMEC = weight_init;
+//  FracDelta_CCMEC = weight_init;
+//
+//  MaCCRES = weight_init;
+//  MvCCRES = weight_init;
+//  MaNCRES = weight_init;
+//  MvNCRES = weight_init;
+//
+//  NonRESBGvpCC1pi = weight_init;
+//  NonRESBGvpCC2pi = weight_init;
+//  NonRESBGvpNC1pi = weight_init;
+//  NonRESBGvpNC2pi = weight_init;
+//  NonRESBGvnCC1pi = weight_init;
+//  NonRESBGvnCC2pi = weight_init;
+//  NonRESBGvnNC1pi = weight_init;
+//  NonRESBGvnNC2pi = weight_init;
+//  NonRESBGvbarpCC1pi = weight_init;
+//  NonRESBGvbarpCC2pi = weight_init;
+//  NonRESBGvbarpNC1pi = weight_init;
+//  NonRESBGvbarpNC2pi = weight_init;
+//  NonRESBGvbarnCC1pi = weight_init;
+//  NonRESBGvbarnCC2pi = weight_init;
+//  NonRESBGvbarnNC1pi = weight_init;
+//  NonRESBGvbarnNC2pi = weight_init;
+//  AhtBY = weight_init;
+//  BhtBY = weight_init;
+//  CV1uBY = weight_init;
+//  CV2uBY = weight_init;
+//
+//  AGKYxF1pi = weight_init;
+//  AGKYpT1pi = weight_init;
+//
+//  MFP_pi = weight_init;
+//  MFP_N = weight_init;
+//  FrCEx_pi = weight_init;
+//  FrInel_pi = weight_init;
+//  FrAbs_pi = weight_init;
+//  FrCEx_N = weight_init;
+//  FrInel_N = weight_init;
+//  FrAbs_N = weight_init;
+//
+//  RDecBR1gamma = weight_init;
+//  RDecBR1eta = weight_init;
 
-    MC_beamNeutrino.clear();
-    MC_nupdg.clear();
-    MC_ccnc.clear();
-    MC_Q2.clear();
-    MC_FV.clear();
-    MC_if_in_active.clear();
-    MC_int_mode.clear();
-    MC_nu_E.clear();
-    MC_transfer_E.clear();
-    MC_nuVtxX.clear();
-    MC_nuVtxY.clear();
-    MC_nuVtxZ.clear();
+  MC_beamNeutrino.clear();
+  MC_nupdg.clear();
+  MC_ccnc.clear();
+  MC_Q2.clear();
+  MC_FV.clear();
+  MC_if_in_active.clear();
+  MC_int_mode.clear();
+  MC_nu_E.clear();
+  MC_transfer_E.clear();
+  MC_nuVtxX.clear();
+  MC_nuVtxY.clear();
+  MC_nuVtxZ.clear();
 
-    //MC_beamNeutrino = false;
-    //MC_nupdg = -999;
-    //MC_ccnc = -999;
-    //MC_Q2 = -999;
-    //MC_FV = false;
-    //MC_if_in_active = false;
-    //MC_int_mode = -999;
-    //MC_nu_E = -999;
-    //MC_transfer_E = -999;
-    //MC_nuVtxX = -999;
-    //MC_nuVtxY = -999;
-    //MC_nuVtxZ = -999;
+  //MC_beamNeutrino = false;
+  //MC_nupdg = -999;
+  //MC_ccnc = -999;
+  //MC_Q2 = -999;
+  //MC_FV = false;
+  //MC_if_in_active = false;
+  //MC_int_mode = -999;
+  //MC_nu_E = -999;
+  //MC_transfer_E = -999;
+  //MC_nuVtxX = -999;
+  //MC_nuVtxY = -999;
+  //MC_nuVtxZ = -999;
 
-    //MC_nMuon = 0;
-    //MC_nElectron = 0;
-    //MC_nNeutron = 0;
-    //MC_nProton_below260 = 0;
-    //MC_nProton_above260 = 0;
-    //MC_nPi0 = 0;
-    //MC_nPiPlus_below80 = 0;
-    //MC_nPiPlus_above80 = 0;
-    //MC_nPiMinus_below80 = 0;
-    //MC_nPiMinus_above80 = 0;
+  //MC_nMuon = 0;
+  //MC_nElectron = 0;
+  //MC_nNeutron = 0;
+  //MC_nProton_below260 = 0;
+  //MC_nProton_above260 = 0;
+  //MC_nPi0 = 0;
+  //MC_nPiPlus_below80 = 0;
+  //MC_nPiPlus_above80 = 0;
+  //MC_nPiMinus_below80 = 0;
+  //MC_nPiMinus_above80 = 0;
 
-    //MC_Primary_PDG.clear();
-    //MC_Primary_Mom.clear();
-    //Ghost_PDG.clear();
+  //MC_Primary_PDG.clear();
+  //MC_Primary_Mom.clear();
+  //Ghost_PDG.clear();
 
-    //TopologyType = -999;
+  //TopologyType = -999;
 
-    //MC_muon_true_Mom.clear();
-    //MC_muon_true_theta.clear();
-    //MC_muon_true_cos_theta.clear();
-    //MC_muon_true_phi.clear();
-    //MC_muon_true_Px.clear();
-    //MC_muon_true_Py.clear();
-    //MC_muon_true_Pz.clear();
-    //MC_muon_true_E.clear();
+  //MC_muon_true_Mom.clear();
+  //MC_muon_true_theta.clear();
+  //MC_muon_true_cos_theta.clear();
+  //MC_muon_true_phi.clear();
+  //MC_muon_true_Px.clear();
+  //MC_muon_true_Py.clear();
+  //MC_muon_true_Pz.clear();
+  //MC_muon_true_E.clear();
 
-    //MC_muon_mom = -999;
-    //MC_muon_theta = -999;
-    //MC_muon_costheta = -999;
-    //MC_muon_phi = -999;
+  //MC_muon_mom = -999;
+  //MC_muon_theta = -999;
+  //MC_muon_costheta = -999;
+  //MC_muon_phi = -999;
 
-    //MC_PT = -999;
-    //MC_PL = -999;
+  //MC_PT = -999;
+  //MC_PL = -999;
 
-    //MC_0pi1p_muon_mom = -999;
-    //MC_0pi1p_muon_theta = -999;
-    //MC_0pi1p_muon_costheta = -999;
-    //MC_0pi1p_muon_phi = -999;
+  //MC_0pi1p_muon_mom = -999;
+  //MC_0pi1p_muon_theta = -999;
+  //MC_0pi1p_muon_costheta = -999;
+  //MC_0pi1p_muon_phi = -999;
 
-    //MC_0pi1p_proton_mom = -999;
-    //MC_0pi1p_proton_theta = -999;
-    //MC_0pi1p_proton_costheta = -999;
-    //MC_0pi1p_proton_phi = -999;
+  //MC_0pi1p_proton_mom = -999;
+  //MC_0pi1p_proton_theta = -999;
+  //MC_0pi1p_proton_costheta = -999;
+  //MC_0pi1p_proton_phi = -999;
 
-    //MC_0pi1p_cos_ang_muon_proton = -999;
+  //MC_0pi1p_cos_ang_muon_proton = -999;
 
-    //MC_0pi2p_proton1_mom = -999;
-    //MC_0pi2p_proton2_mom = -999;
+  //MC_0pi2p_proton1_mom = -999;
+  //MC_0pi2p_proton2_mom = -999;
 
-///
-    MC_nMuon.clear();
-    MC_nElectron.clear();
-    MC_nNeutron.clear();
-    MC_nProton_below260.clear();
-    MC_nProton_above260.clear();
-    MC_nPi0.clear();
-    MC_nPiPlus_below80.clear();
-    MC_nPiPlus_above80.clear();
-    MC_nPiMinus_below80.clear();
-    MC_nPiMinus_above80.clear();
+//
+  MC_nMuon.clear();
+  MC_nElectron.clear();
+  MC_nNeutron.clear();
+  MC_nProton_below260.clear();
+  MC_nProton_above260.clear();
+  MC_nPi0.clear();
+  MC_nPiPlus_below80.clear();
+  MC_nPiPlus_above80.clear();
+  MC_nPiMinus_below80.clear();
+  MC_nPiMinus_above80.clear();
 
-    MC_Primary_PDG.clear();
-    MC_Primary_Mom.clear();
+  MC_Primary_PDG.clear();
+  MC_Primary_Mom.clear();
 
-    MC_muon_true_Mom.clear();
-    MC_muon_true_theta.clear();
-    MC_muon_true_cos_theta.clear();
-    MC_muon_true_phi.clear();
-    MC_muon_true_Px.clear();
-    MC_muon_true_Py.clear();
-    MC_muon_true_Pz.clear();
-    MC_muon_true_E.clear();
+  MC_muon_true_Mom.clear();
+  MC_muon_true_theta.clear();
+  MC_muon_true_cos_theta.clear();
+  MC_muon_true_phi.clear();
+  MC_muon_true_Px.clear();
+  MC_muon_true_Py.clear();
+  MC_muon_true_Pz.clear();
+  MC_muon_true_E.clear();
 
-    MC_proton_true_Mom.clear();
-    MC_proton_true_theta.clear();
-    MC_proton_true_cos_theta.clear();
-    MC_proton_true_phi.clear();
-    MC_proton_true_Px.clear();
-    MC_proton_true_Py.clear();
-    MC_proton_true_Pz.clear();
+  MC_proton_true_Mom.clear();
+  MC_proton_true_theta.clear();
+  MC_proton_true_cos_theta.clear();
+  MC_proton_true_phi.clear();
+  MC_proton_true_Px.clear();
+  MC_proton_true_Py.clear();
+  MC_proton_true_Pz.clear();
 
-    MC_muon_mom.clear();
-    MC_muon_theta.clear();
-    MC_muon_costheta.clear();
-    MC_muon_phi.clear();
+  MC_muon_mom.clear();
+  MC_muon_theta.clear();
+  MC_muon_costheta.clear();
+  MC_muon_phi.clear();
 
-    MC_PT.clear();
-    MC_PL.clear();
+  MC_PT.clear();
+  MC_PL.clear();
 
-    MC_0pi1p_muon_mom.clear();
-    MC_0pi1p_muon_theta.clear();
-    MC_0pi1p_muon_costheta.clear();
-    MC_0pi1p_muon_phi.clear();
+  MC_0pi1p_muon_mom.clear();
+  MC_0pi1p_muon_theta.clear();
+  MC_0pi1p_muon_costheta.clear();
+  MC_0pi1p_muon_phi.clear();
 
-    MC_0pi1p_proton_mom.clear();
-    MC_0pi1p_proton_theta.clear();
-    MC_0pi1p_proton_costheta.clear();
-    MC_0pi1p_proton_phi.clear();
+  MC_0pi1p_proton_mom.clear();
+  MC_0pi1p_proton_theta.clear();
+  MC_0pi1p_proton_costheta.clear();
+  MC_0pi1p_proton_phi.clear();
 
-    MC_0pi1p_cos_ang_muon_proton.clear();
+  MC_0pi1p_cos_ang_muon_proton.clear();
 
-    MC_0pi2p_proton1_mom.clear();
-    MC_0pi2p_proton2_mom.clear();
+  MC_0pi2p_proton1_mom.clear();
+  MC_0pi2p_proton2_mom.clear();
 
-    ////////////////////////
+  ////////////////////////
 
-    true_mom = -999;
-    true_start_x = -999;
-    true_start_y = -999;
-    true_start_z = -999;
-    true_end_x = -999;
-    true_end_y = -999;
-    true_end_z = -999;
-    true_trk_phi = -999;
-    true_trk_theta = -999;
-    true_trk_costheta = -999;
-    true_trk_theta_yz = -999;
-    true_trk_costheta_yz = -999;
-    true_trk_theta_xz = -999;
-    true_trk_costheta_xz = -999;
-    true_trk_length = -999;
-    true_trk_PDG = -999;
-    true_trk_ifcontained = -999;
-    true_vtxFV = -999;
-    reco_MC_dist_vtx = -999;
-    reco_MC_dist_vtx_noSCE = -999;
+  true_mom = -999;
+  true_start_x = -999;
+  true_start_y = -999;
+  true_start_z = -999;
+  true_end_x = -999;
+  true_end_y = -999;
+  true_end_z = -999;
+  true_trk_phi = -999;
+  true_trk_theta = -999;
+  true_trk_costheta = -999;
+  true_trk_theta_yz = -999;
+  true_trk_costheta_yz = -999;
+  true_trk_theta_xz = -999;
+  true_trk_costheta_xz = -999;
+  true_trk_length = -999;
+  true_trk_PDG = -999;
+  true_trk_ifcontained = -999;
+  true_vtxFV = -999;
+  reco_MC_dist_vtx = -999;
+  reco_MC_dist_vtx_noSCE = -999;
 
-    trk_cosmic_percent = -999;
-    trk_purity = -999;
-    trk_completeness = -999;
-    if_cosmic = false;
-    if_matchPrimary = false;
-    if_matchMu = false;
+  trk_cosmic_percent = -999;
+  trk_purity = -999;
+  trk_completeness = -999;
+  if_cosmic = false;
+  if_matchPrimary = false;
+  if_matchMu = false;
 
-    selected_mctruth_id = -999;// if there are no matched neutrino intereaction or the backtracked MCparticle is not primary, this value is set to default.
-  }
+  selected_mctruth_id = -999;// if there are no matched neutrino intereaction or the backtracked MCparticle is not primary, this value is set to default.
+  //}
 
   daughter_Tracks.clear();
   daughter_Showers.clear();
