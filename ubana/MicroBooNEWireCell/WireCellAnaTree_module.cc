@@ -135,6 +135,7 @@ private:
   Float_t	f_reco_muonvtxY;
   Float_t	f_reco_muonvtxZ;
   Float_t	f_reco_muonMomentum[4];
+  Int_t		f_reco_Nproton;
   Float_t	f_reco_protonvtxX; // 
   Float_t	f_reco_protonvtxY;
   Float_t	f_reco_protonvtxZ;
@@ -1008,6 +1009,7 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("reco_muonvtxY", 		&f_reco_muonvtxY);
   fPFeval->Branch("reco_muonvtxZ", 		&f_reco_muonvtxZ);
   fPFeval->Branch("reco_muonMomentum", 		&f_reco_muonMomentum, "reco_muonMomentum[4]/F");
+  fPFeval->Branch("reco_Nproton", 		&f_reco_Nproton);
   fPFeval->Branch("reco_protonvtxX", 		&f_reco_protonvtxX);
   fPFeval->Branch("reco_protonvtxY", 		&f_reco_protonvtxY);
   fPFeval->Branch("reco_protonvtxZ", 		&f_reco_protonvtxZ);
@@ -1933,6 +1935,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	}
 	// proton
 	float ProtonKE = 0; //temp proton kinetic energy
+	f_reco_Nproton = 0;
 	for (size_t j=0; j<fProtonID.size(); j++){
 		auto const& p = fParticleMap[fProtonID.at(j)];
 		const TLorentzVector& pos = p.Position(0);
@@ -1947,6 +1950,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		f_reco_protonMomentum[1] = momentum.Py();	
 		f_reco_protonMomentum[2] = momentum.Pz();	
 		f_reco_protonMomentum[3] = momentum.E(); // GeV
+		f_reco_Nproton ++;
 	}
 
  	//shower	
@@ -2947,6 +2951,7 @@ void WireCellAnaTree::resetOutput()
 	f_reco_muonvtxX = -1; //
 	f_reco_muonvtxY = -1;
 	f_reco_muonvtxZ = -1;
+	f_reco_Nproton = -1;
 	f_reco_protonvtxX = -1; //
 	f_reco_protonvtxY = -1;
 	f_reco_protonvtxZ = -1;
