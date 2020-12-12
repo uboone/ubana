@@ -155,46 +155,78 @@ void Arborist::FillTruthInfo(art::Event const & e) {
 }
 
 void Arborist::FillEventWeights(art::Event const & e){
-  art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw =
-    e.getValidHandle<std::vector<evwgh::MCEventWeight>>(fEventWeightInputTag);
-
-  std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
-  if(ev_evw->size() > 1) {
-    std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
-	      << "WARNING: eventweight has more than one entry\n";
+  
+  std::vector<art::Handle<std::vector<evwgh::MCEventWeight>>> ev_evw_handles;
+  e.getManyByType(ev_evw_handles);
+  //std::cout << "INFO: ev_evw_handles.size() = " << ev_evw_handles.size() << std::endl;
+  
+  std::vector<evwgh::MCEventWeight> ev_evw_vec;
+  for ( unsigned int i=0; i<ev_evw_handles.size(); i++ ) {
+    if( !ev_evw_handles[i].isValid() ) {
+      std::cout << "WARNING: eventweight product " << i << " is not valid!" << std::endl;
+      continue;
+    }
+    ev_evw_vec.push_back(ev_evw_handles[i]->front());
+    if(ev_evw_handles[i]->size() > 1) {
+      std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
+		<< "WARNING: eventweight product " << i << " has more than one entry\n";
+    }
   }
+  //std::cout << "INFO: ev_evw_vec.size() = " << ev_evw_vec.size() << std::endl;
+  
+  // Loop over eventweight products...
+  for ( unsigned int i=0; i<ev_evw_vec.size(); i++ ) {
 
+    std::map<std::string, std::vector<double>> const & weight_map = ev_evw_vec[i].fWeight;
+    
+    for ( auto evweight_it = weight_map.begin(); evweight_it != weight_map.end(); evweight_it++ ) {
+      //std::cout << "INFO: eventweight product " << i << ", calculator " << evweight_it->first << " has " << evweight_it->second.size() << " universes" << std::endl;
+      for ( unsigned int j=0; j<evweight_it->second.size(); j++ )
+	fEventWeightMap[evweight_it->first].push_back(evweight_it->second[j]);
+    }
+    
+    // Note: The following assumes...
+    //   1) Any eventweight calculator with label fSplineBugFixLabel gives the desired fSplineBugFixWeight
+    //   2) Any eventweight calculator with label fRootinoBugFixLabel gives the desired fRootinoBugFixWeight
+    //   3) Any eventweight calculator with label fTunedCentralValueLabel gives the desired fTunedCentralValueWeight
+    //   4) Any eventweight calculator with label fLEESignalLabel gives the desired fLEESignalWeight
+    //   5) If the fCombinedCentralValueWeight is to be calculated, there will be at least one eventweight product with
+    //        *all* of fSplineBugFixWeight, fRootinoBugFixWeight, and fTunedCentralValueWeight
+    //   6) Any eventweight product with fSplineBugFixWeight, fRootinoBugFixWeight, and fTunedCentralValueWeight
+    //        gives the desired fCombinedCentralValueWeight
+    // ... this is fine with the standard Sep24 fcl chain, but may not be for other use cases
+    
+    if ( weight_map.find(fSplineBugFixLabel) != weight_map.end() ) {
+      fSplineBugFixWeight = weight_map.find(fSplineBugFixLabel)->second[0];
+      fEventWeightMap.erase(fSplineBugFixLabel);
+    }
+    if ( weight_map.find(fRootinoBugFixLabel) != weight_map.end() ) {
+      fRootinoBugFixWeight = weight_map.find(fRootinoBugFixLabel)->second[0];
+      fEventWeightMap.erase(fRootinoBugFixLabel);
+    }
+    if ( weight_map.find(fTunedCentralValueLabel) != weight_map.end() ) {
+      fTunedCentralValueWeight = weight_map.find(fTunedCentralValueLabel)->second[0];
+      fEventWeightMap.erase(fTunedCentralValueLabel);
+    }
+    if ( weight_map.find(fLEESignalLabel) != weight_map.end() ) {
+      fLEESignalWeight = weight_map.find(fLEESignalLabel)->second[0];
+      fEventWeightMap.erase(fLEESignalLabel);
+    }
+    
+    if ( weight_map.find(fSplineBugFixLabel) != weight_map.end()
+	 && weight_map.find(fRootinoBugFixLabel) != weight_map.end()
+	 && weight_map.find(fTunedCentralValueLabel) != weight_map.end() )
+      fCombinedCentralValueWeight = fSplineBugFixWeight * fRootinoBugFixWeight * fTunedCentralValueWeight;
+    
+  } // End loop over eventweight products
+  
   /*
-  for ( auto evweight_it = weight_map.begin(); evweight_it != weight_map.end(); evweight_it++ ) {
-    std::cout << evweight_it->first << std::endl;
-  }
+  for ( auto evweight_it = fEventWeightMap.begin(); evweight_it != fEventWeightMap.end(); evweight_it++ )
+    std::cout << "INFO: in total, calculator " << evweight_it->first << " has " << evweight_it->second.size() << " universes" << std::endl;
   */
 
-  fEventWeightMap = weight_map;
-  
-  if ( weight_map.find(fSplineBugFixLabel) != weight_map.end() ) {
-    fSplineBugFixWeight = weight_map.find(fSplineBugFixLabel)->second[0];
-    fEventWeightMap.erase(fSplineBugFixLabel);
-  }
-  if ( weight_map.find(fRootinoBugFixLabel) != weight_map.end() ) {
-    fRootinoBugFixWeight = weight_map.find(fRootinoBugFixLabel)->second[0];
-    fEventWeightMap.erase(fRootinoBugFixLabel);
-  }
-  if ( weight_map.find(fTunedCentralValueLabel) != weight_map.end() ) {
-    fTunedCentralValueWeight = weight_map.find(fTunedCentralValueLabel)->second[0];
-    fEventWeightMap.erase(fTunedCentralValueLabel);
-  }
-  if ( weight_map.find(fLEESignalLabel) != weight_map.end() ) {
-    fLEESignalWeight = weight_map.find(fLEESignalLabel)->second[0];
-    fEventWeightMap.erase(fLEESignalLabel);
-  }
-
-  if ( weight_map.find(fSplineBugFixLabel) != weight_map.end()
-       && weight_map.find(fRootinoBugFixLabel) != weight_map.end()
-       && weight_map.find(fTunedCentralValueLabel) != weight_map.end() )
-    fCombinedCentralValueWeight = fSplineBugFixWeight * fRootinoBugFixWeight * fTunedCentralValueWeight;
-  
 }
+
 void Arborist::analyze(art::Event const& e)
 {
   resetVariables();
