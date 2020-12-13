@@ -1,0 +1,41 @@
+#include "services_microboone.fcl"
+#include "time_memory_tracker_microboone.fcl"
+
+services:
+{ 
+
+  # Here, we set the fileName of the output ROOT file
+  TFileService: {fileName: "arborist_%tc_out.root"}
+
+  # these tell you information about the time and memory
+  # used by running the fhicl file
+  # @local just means "it's somewhere in one of the included fcl files, 
+  # or maybe in one of the fhicl files included in that one...", etc.
+  TimeTracker: @local::microboone_time_tracker
+  MemoryTracker: @local::microboone_memory_tracker
+
+}
+
+physics:
+{
+
+  analyzers:
+  {
+
+    arborist:
+    {
+      # this is the name of the module you want to run
+      module_type: Arborist
+         
+      EventWeightInputTag: "eventweightGenieKnobs"
+      SplineBugFixLabel: "splines_general_Spline"
+      RootinoBugFixLabel: "RootinoFix_UBGenie"
+      TunedCentralValueLabel: "TunedCentralValue_UBGenie"
+      LEESignalLabel: "eLEE_Combined_Oct2018_LEESignalElectron"
+    }
+
+  }
+
+  analysis: [arborist]
+  end_paths: [analysis]
+}
