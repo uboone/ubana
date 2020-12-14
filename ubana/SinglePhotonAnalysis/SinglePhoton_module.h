@@ -322,6 +322,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
              */
             void endJob() override;
             bool beginSubRun(art::SubRun& sr) override;
+            bool endSubRun(art::SubRun& sr) override;
 
         private:
             void ClearVertex();
@@ -878,6 +879,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             int m_run;
             int m_subrun;
             double m_subrun_pot;
+            int m_subrun_counts;
 
             //------------ Event Related Variables -------------
             int m_run_number;

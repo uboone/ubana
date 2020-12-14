@@ -155,6 +155,8 @@ namespace single_photon
         bool filter_pass_2g1p = true;
         bool filter_pass_2g0p = true;
 
+        m_subrun_counts++;
+
         auto const TPC = (*geom).begin_TPC();
         auto ID = TPC.ID();
         m_Cryostat = ID.Cryostat;
@@ -859,11 +861,11 @@ namespace single_photon
                             << x.second.size() << std::endl ;
                         if(x.second.size()==1 && x.first == "splines_general_Spline"){
                             m_genie_spline_weight = x.second.front();
-                            std::cout<<"Its a spline fix"<<std::endl;
+                            std::cout<<"Its a spline fix, value: "<<m_genie_spline_weight<<std::endl;
                         }
-                        if(x.second.size()==1 && x.first == "TunedCentralValue_Genie"){
+                        if(x.second.size()==1 && ( x.first == "TunedCentralValue_Genie" || x.first == "TunedCentralValue_UBGenie")){
                             m_genie_CV_tune_weight = x.second.front();
-                            std::cout<<"Its a CV fix"<<std::endl;
+                            std::cout<<"Its a CV fix, value:  "<<m_genie_CV_tune_weight<<std::endl;
                         }
                     }
 
@@ -1208,6 +1210,7 @@ namespace single_photon
         run_subrun_tree->Branch("run",&m_run,"run/I");
         run_subrun_tree->Branch("subrun",&m_subrun,"subrun/I");
         run_subrun_tree->Branch("subrun_pot",&m_subrun_pot,"subrun_pot/D");
+        run_subrun_tree->Branch("subrun_counts",&m_subrun_counts,"subrun_counts/I");
 
         // --------------------- POT Releated variables -----------------
         m_number_of_events = 0;
@@ -1410,10 +1413,15 @@ namespace single_photon
 
     bool SinglePhoton::beginSubRun(art::SubRun& sr) {
 
+
         m_run = sr.run();
         m_subrun = sr.subRun();
 
         double this_pot = 0;
+        
+        //reset subrun count 
+        m_subrun_counts = 0;
+
 
         if(m_potLabel != ""){
             if(m_potLabel == "generator"){
@@ -1437,13 +1445,17 @@ namespace single_photon
 
         m_subrun_pot = this_pot; 
 
-        run_subrun_tree->Fill();
         return true;
 
     }
 
 
+    bool SinglePhoton::endSubRun(art::SubRun&sr){
+        
 
+        run_subrun_tree->Fill();
+        return true;
+    }
 
 
 
