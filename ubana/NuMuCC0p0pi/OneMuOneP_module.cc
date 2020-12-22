@@ -375,6 +375,10 @@ private:
   std::vector<double> bwdMCS = {-999, -999};
   std::vector<double> bwdMCSLL = {-999, -999};
 
+  std::vector<double> bestMCS_NoSCE = {-999, -999};
+  std::vector<double> fwdMCS_NoSCE = {-999, -999};
+  std::vector<double> bwdMCS_NoSCE = {-999, -999};
+
   std::vector<double> bestMCSLL_NoSCE = {-999, -999};
   std::vector<double> fwdMCSLL_NoSCE = {-999, -999};
   std::vector<double> bwdMCSLL_NoSCE = {-999, -999};
@@ -481,6 +485,9 @@ private:
 
   bool if_match_mu_p = false;
   bool if_match_mu_p_flipped = false;
+
+  double reco_MC_dist_vtx = -999; // Distance of reco - MC vertex w/ SCE correction
+  double reco_MC_dist_vtx_noSCE = -999; // Distance of reco - MC vertex w/o SCE correction
 
   bool                                IsMC;
   bool                                T0Corr;
@@ -1346,7 +1353,10 @@ void SingleMuon::analyze(art::Event const& evt)
           fwdMCSLL[i_trk] =  mcsfitresult_mu_v.at(daughter_Tracks[i_trk].key())->fwdLogLikelihood();
           bwdMCS[i_trk] =  mcsfitresult_mu_v.at(daughter_Tracks[i_trk].key())->bwdMomentum();
           bwdMCSLL[i_trk] =  mcsfitresult_mu_v.at(daughter_Tracks[i_trk].key())->bwdLogLikelihood();
-  
+ 
+          bestMCS_NoSCE[i_trk] = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->bestMomentum();
+          fwdMCS_NoSCE[i_trk] = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->fwdMomentum();
+          bwdMCS_NoSCE[i_trk] = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->bwdMomentum(); 
           bestMCSLL_NoSCE[i_trk] = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->bestLogLikelihood();
           fwdMCSLL_NoSCE[i_trk] = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->fwdLogLikelihood();
           bwdMCSLL_NoSCE[i_trk] = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->bwdLogLikelihood();
@@ -1605,8 +1615,9 @@ void SingleMuon::analyze(art::Event const& evt)
                 //  selected_track_not_primary = true;
                 //}
 
-              }
+              } // cosmic percent
             } // If MC particle exists
+
           }
           
         } // Finish looping the 2 tracks
@@ -1732,6 +1743,12 @@ void SingleMuon::analyze(art::Event const& evt)
             if(if_matchMu[proton_idx] == true && if_matchP[muon_idx] == true){
               if_match_mu_p_flipped = true;
             }
+          }
+
+          if(selected_mctruth_id >= 0) {
+            TVector3 true_nuVtx(MC_nuVtxX[selected_mctruth_id], MC_nuVtxY[selected_mctruth_id], MC_nuVtxZ[selected_mctruth_id]);
+            reco_MC_dist_vtx = (true_nuVtx - Trk_start_SCEcorr[muon_idx]).Mag();
+            reco_MC_dist_vtx_noSCE = (true_nuVtx - Trk_start[muon_idx]).Mag();
           }
         } // if there is a valid pair of muon and proton candidate
         
@@ -1972,6 +1989,9 @@ void SingleMuon::analyze(art::Event const& evt)
   bwdMCS = {-999, -999};
   bwdMCSLL = {-999, -999};
 
+  bestMCS_NoSCE = {-999, -999};
+  fwdMCS_NoSCE = {-999, -999};
+  bwdMCS_NoSCE = {-999, -999};
   bestMCSLL_NoSCE = {-999, -999};
   fwdMCSLL_NoSCE = {-999, -999};
   bwdMCSLL_NoSCE = {-999, -999};
@@ -2077,6 +2097,8 @@ void SingleMuon::analyze(art::Event const& evt)
   if_match_mu_p = false;
   if_match_mu_p_flipped = false;
 
+  reco_MC_dist_vtx = -999;
+  reco_MC_dist_vtx_noSCE = -999;
 }
 
 void SingleMuon::Initialize_event()
@@ -2275,6 +2297,9 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("fwdMCSLL", &fwdMCSLL);
   my_event_->Branch("bwdMCS", &bwdMCS);
   my_event_->Branch("bwdMCSLL", &bwdMCSLL);
+  my_event_->Branch("bestMCS_NoSCE", &bestMCS_NoSCE);
+  my_event_->Branch("fwdMCS_NoSCE", &fwdMCS_NoSCE);
+  my_event_->Branch("bwdMCS_NoSCE", &bwdMCS_NoSCE);
   my_event_->Branch("bestMCSLL_NoSCE", &bestMCSLL_NoSCE);
   my_event_->Branch("fwdMCSLL_NoSCE", &fwdMCSLL_NoSCE);
   my_event_->Branch("bwdMCSLL_NoSCE", &bwdMCSLL_NoSCE);
@@ -2354,6 +2379,10 @@ void SingleMuon::Initialize_event()
   if(IsMC){
     my_event_->Branch("if_match_mu_p", &if_match_mu_p);
     my_event_->Branch("if_match_mu_p_flipped", &if_match_mu_p_flipped);
+
+    my_event_->Branch("reco_MC_dist_vtx", &reco_MC_dist_vtx);
+    my_event_->Branch("reco_MC_dist_vtx_noSCE", &reco_MC_dist_vtx_noSCE);
+
   }
 
 }

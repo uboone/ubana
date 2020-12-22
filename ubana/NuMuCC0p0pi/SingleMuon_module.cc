@@ -367,6 +367,35 @@ private:
 //  double MC_0pi2p_proton1_mom = -999;
 //  double MC_0pi2p_proton2_mom = -999;
 
+  // selected 
+  double MC_muon_mom_0pi0p = -999;
+  double MC_muon_theta_0pi0p = -999;
+  double MC_muon_costheta_0pi0p = -999;
+  double MC_muon_phi_0pi0p = -999;
+
+  double MC_PT_0pi0p =  -999;
+  double MC_PL_0pi0p = -999;
+
+  double MC_muon_mom_0pi1p = -999;
+  double MC_muon_theta_0pi1p = -999;
+  double MC_muon_costheta_0pi1p = -999;
+  double MC_muon_phi_0pi1p = -999;
+
+  double MC_proton_mom_0pi1p = -999;
+  double MC_proton_theta_0pi1p = -999;
+  double MC_proton_costheta_0pi1p = -999;
+  double MC_proton_phi_0pi1p = -999;
+
+  double MC_cos_ang_muon_proton_0pi1p = -999;
+
+
+  double MC_proton1_mom_0pi2p = -999;
+  double MC_proton2_mom_0pi2p = -999;
+
+  double MC_transfer_E_selected = -999;
+
+  double TopologyType_selected = -999;
+
   int n_pfp_nuDaughters = 0; // number of pfp which are the daughters of the neutrino
   int n_dau_tracks = 0; // number of tracks asssociated to pfp neutrino daughters
   int n_dau_showers = 0; // number of showers asssociated to pfp neutrino daughters
@@ -461,6 +490,9 @@ private:
   double bwdMCS = -999;
   double bwdMCSLL = -999;
 
+  double bestMCS_NoSCE = -999;
+  double fwdMCS_NoSCE = -999;
+  double bwdMCS_NoSCE = -999;
   double bestMCSLL_NoSCE = -999;
   double fwdMCSLL_NoSCE = -999;
   double bwdMCSLL_NoSCE = -999;
@@ -1634,8 +1666,11 @@ void SingleMuon::analyze(art::Event const& evt)
         bwdMCS =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bwdMomentum();
         bwdMCSLL =  mcsfitresult_mu_v.at(daughter_Tracks.front().key())->bwdLogLikelihood();
 
+        bestMCS_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->bestMomentum();
         bestMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->bestLogLikelihood();
+        fwdMCS_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->fwdMomentum();
         fwdMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->fwdLogLikelihood();
+        bwdMCS_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->bwdMomentum();
         bwdMCSLL_NoSCE = mcsfitresult_mu_NoSCE_v.at(daughter_Tracks.front().key())->bwdLogLikelihood();
 
         //-- PT and PL
@@ -2145,6 +2180,9 @@ void SingleMuon::analyze(art::Event const& evt)
         // Fill TRUE info
         //////////////// 
         if(IsMC){
+          if (Nr_MCNu == 1) {
+            selected_mctruth_id = 0;
+          }
           std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks.front().key());
           BackTrackerTruthMatch backtrackertruthmatch;
           backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
@@ -2206,9 +2244,6 @@ void SingleMuon::analyze(art::Event const& evt)
                   } // loop of MC particles
                 } // loop of MC truth
               } // if there is only one simulated neutrino intereaction, then skip
-              else if (Nr_MCNu == 1) {
-                selected_mctruth_id = 0;
-              }
             //  } // if the selected MCparticle is not primary, then it's not part of the signal
 
             } // not cosmic
@@ -2218,6 +2253,44 @@ void SingleMuon::analyze(art::Event const& evt)
             TVector3 true_nuVtx(MC_nuVtxX[selected_mctruth_id], MC_nuVtxY[selected_mctruth_id], MC_nuVtxZ[selected_mctruth_id]);
             reco_MC_dist_vtx = (true_nuVtx - Trk_start_SCEcorr).Mag();
             reco_MC_dist_vtx_noSCE = (true_nuVtx - Trk_start).Mag();
+
+            TopologyType_selected = TopologyType[selected_mctruth_id];
+
+            if(TopologyType_selected == 1){
+
+              MC_muon_mom_0pi0p = MC_muon_mom[selected_mctruth_id];
+              MC_muon_theta_0pi0p = MC_muon_theta[selected_mctruth_id];
+              MC_muon_costheta_0pi0p = MC_muon_costheta[selected_mctruth_id];
+              MC_muon_phi_0pi0p = MC_muon_phi[selected_mctruth_id];
+
+              MC_PT_0pi0p =  MC_PT[selected_mctruth_id];
+              MC_PL_0pi0p = MC_PL[selected_mctruth_id];
+            }
+
+            if(TopologyType_selected == 2){
+
+              MC_muon_mom_0pi1p = MC_0pi1p_muon_mom[selected_mctruth_id];
+              MC_muon_theta_0pi1p = MC_0pi1p_muon_theta[selected_mctruth_id];
+              MC_muon_costheta_0pi1p = MC_0pi1p_muon_costheta[selected_mctruth_id];
+              MC_muon_phi_0pi1p = MC_0pi1p_muon_phi[selected_mctruth_id];
+
+              MC_proton_mom_0pi1p = MC_0pi1p_proton_mom[selected_mctruth_id];
+              MC_proton_theta_0pi1p = MC_0pi1p_proton_theta[selected_mctruth_id];
+              MC_proton_costheta_0pi1p = MC_0pi1p_proton_costheta[selected_mctruth_id];
+              MC_proton_phi_0pi1p = MC_0pi1p_proton_phi[selected_mctruth_id];
+
+              MC_cos_ang_muon_proton_0pi1p = MC_0pi1p_cos_ang_muon_proton[selected_mctruth_id];
+
+            }
+
+            if(TopologyType_selected == 3){
+              MC_proton1_mom_0pi2p = MC_0pi2p_proton1_mom[selected_mctruth_id];
+              MC_proton2_mom_0pi2p = MC_0pi2p_proton2_mom[selected_mctruth_id];
+            }
+
+            if(MC_nMuon[selected_mctruth_id] == 1){
+              MC_transfer_E_selected = MC_transfer_E[selected_mctruth_id];
+            }
           }
         }
        
@@ -2248,271 +2321,298 @@ void SingleMuon::analyze(art::Event const& evt)
 
   my_event_->Fill();
 
-  //if(IsMC){
-  MaCCQE.clear();
-  CoulombCCQE.clear();
-  MaNCEL.clear();
-  EtaNCEL.clear();
+  if(IsMC){
+    MaCCQE.clear();
+    CoulombCCQE.clear();
+    MaNCEL.clear();
+    EtaNCEL.clear();
 
-  NormCCMEC.clear();
-  NormNCMEC.clear();
-  FracPN_CCMEC.clear();
-  FracDelta_CCMEC.clear();
+    NormCCMEC.clear();
+    NormNCMEC.clear();
+    FracPN_CCMEC.clear();
+    FracDelta_CCMEC.clear();
 
-  MaCCRES.clear();
-  MvCCRES.clear();
-  MaNCRES.clear();
-  MvNCRES.clear();
+    MaCCRES.clear();
+    MvCCRES.clear();
+    MaNCRES.clear();
+    MvNCRES.clear();
 
-  NonRESBGvpCC1pi.clear();
-  NonRESBGvpCC2pi.clear();
-  NonRESBGvpNC1pi.clear();
-  NonRESBGvpNC2pi.clear();
-  NonRESBGvnCC1pi.clear();
-  NonRESBGvnCC2pi.clear();
-  NonRESBGvnNC1pi.clear();
-  NonRESBGvnNC2pi.clear();
-  NonRESBGvbarpCC1pi.clear();
-  NonRESBGvbarpCC2pi.clear();
-  NonRESBGvbarpNC1pi.clear();
-  NonRESBGvbarpNC2pi.clear();
-  NonRESBGvbarnCC1pi.clear();
-  NonRESBGvbarnCC2pi.clear();
-  NonRESBGvbarnNC1pi.clear();
-  NonRESBGvbarnNC2pi.clear();
-  AhtBY.clear();
-  BhtBY.clear();
-  CV1uBY.clear();
-  CV2uBY.clear();
+    NonRESBGvpCC1pi.clear();
+    NonRESBGvpCC2pi.clear();
+    NonRESBGvpNC1pi.clear();
+    NonRESBGvpNC2pi.clear();
+    NonRESBGvnCC1pi.clear();
+    NonRESBGvnCC2pi.clear();
+    NonRESBGvnNC1pi.clear();
+    NonRESBGvnNC2pi.clear();
+    NonRESBGvbarpCC1pi.clear();
+    NonRESBGvbarpCC2pi.clear();
+    NonRESBGvbarpNC1pi.clear();
+    NonRESBGvbarpNC2pi.clear();
+    NonRESBGvbarnCC1pi.clear();
+    NonRESBGvbarnCC2pi.clear();
+    NonRESBGvbarnNC1pi.clear();
+    NonRESBGvbarnNC2pi.clear();
+    AhtBY.clear();
+    BhtBY.clear();
+    CV1uBY.clear();
+    CV2uBY.clear();
 
-  AGKYxF1pi.clear();
-  AGKYpT1pi.clear();
+    AGKYxF1pi.clear();
+    AGKYpT1pi.clear();
 
-  MFP_pi.clear();
-  MFP_N.clear();
-  FrCEx_pi.clear();
-  FrInel_pi.clear();
-  FrAbs_pi.clear();
-  FrCEx_N.clear();
-  FrInel_N.clear();
-  FrAbs_N.clear();
+    MFP_pi.clear();
+    MFP_N.clear();
+    FrCEx_pi.clear();
+    FrInel_pi.clear();
+    FrAbs_pi.clear();
+    FrCEx_N.clear();
+    FrInel_N.clear();
+    FrAbs_N.clear();
 
-  RDecBR1gamma.clear();
-  RDecBR1eta.clear();
+    RDecBR1gamma.clear();
+    RDecBR1eta.clear();
 
-//  MaCCQE = weight_init;
-//  CoulombCCQE = weight_init;
-//  MaNCEL = weight_init;
-//  EtaNCEL = weight_init;
-//
-//  NormCCMEC = weight_init;
-//  NormNCMEC = weight_init;
-//  FracPN_CCMEC = weight_init;
-//  FracDelta_CCMEC = weight_init;
-//
-//  MaCCRES = weight_init;
-//  MvCCRES = weight_init;
-//  MaNCRES = weight_init;
-//  MvNCRES = weight_init;
-//
-//  NonRESBGvpCC1pi = weight_init;
-//  NonRESBGvpCC2pi = weight_init;
-//  NonRESBGvpNC1pi = weight_init;
-//  NonRESBGvpNC2pi = weight_init;
-//  NonRESBGvnCC1pi = weight_init;
-//  NonRESBGvnCC2pi = weight_init;
-//  NonRESBGvnNC1pi = weight_init;
-//  NonRESBGvnNC2pi = weight_init;
-//  NonRESBGvbarpCC1pi = weight_init;
-//  NonRESBGvbarpCC2pi = weight_init;
-//  NonRESBGvbarpNC1pi = weight_init;
-//  NonRESBGvbarpNC2pi = weight_init;
-//  NonRESBGvbarnCC1pi = weight_init;
-//  NonRESBGvbarnCC2pi = weight_init;
-//  NonRESBGvbarnNC1pi = weight_init;
-//  NonRESBGvbarnNC2pi = weight_init;
-//  AhtBY = weight_init;
-//  BhtBY = weight_init;
-//  CV1uBY = weight_init;
-//  CV2uBY = weight_init;
-//
-//  AGKYxF1pi = weight_init;
-//  AGKYpT1pi = weight_init;
-//
-//  MFP_pi = weight_init;
-//  MFP_N = weight_init;
-//  FrCEx_pi = weight_init;
-//  FrInel_pi = weight_init;
-//  FrAbs_pi = weight_init;
-//  FrCEx_N = weight_init;
-//  FrInel_N = weight_init;
-//  FrAbs_N = weight_init;
-//
-//  RDecBR1gamma = weight_init;
-//  RDecBR1eta = weight_init;
+//    MaCCQE = weight_init;
+//    CoulombCCQE = weight_init;
+//    MaNCEL = weight_init;
+//    EtaNCEL = weight_init;
+//  
+//    NormCCMEC = weight_init;
+//    NormNCMEC = weight_init;
+//    FracPN_CCMEC = weight_init;
+//    FracDelta_CCMEC = weight_init;
+//  
+//    MaCCRES = weight_init;
+//    MvCCRES = weight_init;
+//    MaNCRES = weight_init;
+//    MvNCRES = weight_init;
+//  
+//    NonRESBGvpCC1pi = weight_init;
+//    NonRESBGvpCC2pi = weight_init;
+//    NonRESBGvpNC1pi = weight_init;
+//    NonRESBGvpNC2pi = weight_init;
+//    NonRESBGvnCC1pi = weight_init;
+//    NonRESBGvnCC2pi = weight_init;
+//    NonRESBGvnNC1pi = weight_init;
+//    NonRESBGvnNC2pi = weight_init;
+//    NonRESBGvbarpCC1pi = weight_init;
+//    NonRESBGvbarpCC2pi = weight_init;
+//    NonRESBGvbarpNC1pi = weight_init;
+//    NonRESBGvbarpNC2pi = weight_init;
+//    NonRESBGvbarnCC1pi = weight_init;
+//    NonRESBGvbarnCC2pi = weight_init;
+//    NonRESBGvbarnNC1pi = weight_init;
+//    NonRESBGvbarnNC2pi = weight_init;
+//    AhtBY = weight_init;
+//    BhtBY = weight_init;
+//    CV1uBY = weight_init;
+//    CV2uBY = weight_init;
+//  
+//    AGKYxF1pi = weight_init;
+//    AGKYpT1pi = weight_init;
+//  
+//    MFP_pi = weight_init;
+//    MFP_N = weight_init;
+//    FrCEx_pi = weight_init;
+//    FrInel_pi = weight_init;
+//    FrAbs_pi = weight_init;
+//    FrCEx_N = weight_init;
+//    FrInel_N = weight_init;
+//    FrAbs_N = weight_init;
+//  
+//    RDecBR1gamma = weight_init;
+//    RDecBR1eta = weight_init;
 
-  MC_beamNeutrino.clear();
-  MC_nupdg.clear();
-  MC_ccnc.clear();
-  MC_Q2.clear();
-  MC_FV.clear();
-  MC_if_in_active.clear();
-  MC_int_mode.clear();
-  MC_nu_E.clear();
-  MC_transfer_E.clear();
-  MC_nuVtxX.clear();
-  MC_nuVtxY.clear();
-  MC_nuVtxZ.clear();
+    MC_beamNeutrino.clear();
+    MC_nupdg.clear();
+    MC_ccnc.clear();
+    MC_Q2.clear();
+    MC_FV.clear();
+    MC_if_in_active.clear();
+    MC_int_mode.clear();
+    MC_nu_E.clear();
+    MC_transfer_E.clear();
+    MC_nuVtxX.clear();
+    MC_nuVtxY.clear();
+    MC_nuVtxZ.clear();
 
-  //MC_beamNeutrino = false;
-  //MC_nupdg = -999;
-  //MC_ccnc = -999;
-  //MC_Q2 = -999;
-  //MC_FV = false;
-  //MC_if_in_active = false;
-  //MC_int_mode = -999;
-  //MC_nu_E = -999;
-  //MC_transfer_E = -999;
-  //MC_nuVtxX = -999;
-  //MC_nuVtxY = -999;
-  //MC_nuVtxZ = -999;
+    //MC_beamNeutrino = false;
+    //MC_nupdg = -999;
+    //MC_ccnc = -999;
+    //MC_Q2 = -999;
+    //MC_FV = false;
+    //MC_if_in_active = false;
+    //MC_int_mode = -999;
+    //MC_nu_E = -999;
+    //MC_transfer_E = -999;
+    //MC_nuVtxX = -999;
+    //MC_nuVtxY = -999;
+    //MC_nuVtxZ = -999;
 
-  //MC_nMuon = 0;
-  //MC_nElectron = 0;
-  //MC_nNeutron = 0;
-  //MC_nProton_below260 = 0;
-  //MC_nProton_above260 = 0;
-  //MC_nPi0 = 0;
-  //MC_nPiPlus_below80 = 0;
-  //MC_nPiPlus_above80 = 0;
-  //MC_nPiMinus_below80 = 0;
-  //MC_nPiMinus_above80 = 0;
+    //MC_nMuon = 0;
+    //MC_nElectron = 0;
+    //MC_nNeutron = 0;
+    //MC_nProton_below260 = 0;
+    //MC_nProton_above260 = 0;
+    //MC_nPi0 = 0;
+    //MC_nPiPlus_below80 = 0;
+    //MC_nPiPlus_above80 = 0;
+    //MC_nPiMinus_below80 = 0;
+    //MC_nPiMinus_above80 = 0;
 
-  //MC_Primary_PDG.clear();
-  //MC_Primary_Mom.clear();
-  //Ghost_PDG.clear();
+    //MC_Primary_PDG.clear();
+    //MC_Primary_Mom.clear();
+    //Ghost_PDG.clear();
 
-  //TopologyType = -999;
+    //TopologyType = -999;
 
-  //MC_muon_true_Mom.clear();
-  //MC_muon_true_theta.clear();
-  //MC_muon_true_cos_theta.clear();
-  //MC_muon_true_phi.clear();
-  //MC_muon_true_Px.clear();
-  //MC_muon_true_Py.clear();
-  //MC_muon_true_Pz.clear();
-  //MC_muon_true_E.clear();
+    //MC_muon_true_Mom.clear();
+    //MC_muon_true_theta.clear();
+    //MC_muon_true_cos_theta.clear();
+    //MC_muon_true_phi.clear();
+    //MC_muon_true_Px.clear();
+    //MC_muon_true_Py.clear();
+    //MC_muon_true_Pz.clear();
+    //MC_muon_true_E.clear();
 
-  //MC_muon_mom = -999;
-  //MC_muon_theta = -999;
-  //MC_muon_costheta = -999;
-  //MC_muon_phi = -999;
+    //MC_muon_mom = -999;
+    //MC_muon_theta = -999;
+    //MC_muon_costheta = -999;
+    //MC_muon_phi = -999;
 
-  //MC_PT = -999;
-  //MC_PL = -999;
+    //MC_PT = -999;
+    //MC_PL = -999;
 
-  //MC_0pi1p_muon_mom = -999;
-  //MC_0pi1p_muon_theta = -999;
-  //MC_0pi1p_muon_costheta = -999;
-  //MC_0pi1p_muon_phi = -999;
+    //MC_0pi1p_muon_mom = -999;
+    //MC_0pi1p_muon_theta = -999;
+    //MC_0pi1p_muon_costheta = -999;
+    //MC_0pi1p_muon_phi = -999;
 
-  //MC_0pi1p_proton_mom = -999;
-  //MC_0pi1p_proton_theta = -999;
-  //MC_0pi1p_proton_costheta = -999;
-  //MC_0pi1p_proton_phi = -999;
+    //MC_0pi1p_proton_mom = -999;
+    //MC_0pi1p_proton_theta = -999;
+    //MC_0pi1p_proton_costheta = -999;
+    //MC_0pi1p_proton_phi = -999;
 
-  //MC_0pi1p_cos_ang_muon_proton = -999;
+    //MC_0pi1p_cos_ang_muon_proton = -999;
 
-  //MC_0pi2p_proton1_mom = -999;
-  //MC_0pi2p_proton2_mom = -999;
+    //MC_0pi2p_proton1_mom = -999;
+    //MC_0pi2p_proton2_mom = -999;
 
-//
-  MC_nMuon.clear();
-  MC_nElectron.clear();
-  MC_nNeutron.clear();
-  MC_nProton_below260.clear();
-  MC_nProton_above260.clear();
-  MC_nPi0.clear();
-  MC_nPiPlus_below80.clear();
-  MC_nPiPlus_above80.clear();
-  MC_nPiMinus_below80.clear();
-  MC_nPiMinus_above80.clear();
+//  
+    MC_nMuon.clear();
+    MC_nElectron.clear();
+    MC_nNeutron.clear();
+    MC_nProton_below260.clear();
+    MC_nProton_above260.clear();
+    MC_nPi0.clear();
+    MC_nPiPlus_below80.clear();
+    MC_nPiPlus_above80.clear();
+    MC_nPiMinus_below80.clear();
+    MC_nPiMinus_above80.clear();
 
-  MC_Primary_PDG.clear();
-  MC_Primary_Mom.clear();
+    MC_Primary_PDG.clear();
+    MC_Primary_Mom.clear();
 
-  MC_muon_true_Mom.clear();
-  MC_muon_true_theta.clear();
-  MC_muon_true_cos_theta.clear();
-  MC_muon_true_phi.clear();
-  MC_muon_true_Px.clear();
-  MC_muon_true_Py.clear();
-  MC_muon_true_Pz.clear();
-  MC_muon_true_E.clear();
+    MC_muon_true_Mom.clear();
+    MC_muon_true_theta.clear();
+    MC_muon_true_cos_theta.clear();
+    MC_muon_true_phi.clear();
+    MC_muon_true_Px.clear();
+    MC_muon_true_Py.clear();
+    MC_muon_true_Pz.clear();
+    MC_muon_true_E.clear();
 
-  MC_proton_true_Mom.clear();
-  MC_proton_true_theta.clear();
-  MC_proton_true_cos_theta.clear();
-  MC_proton_true_phi.clear();
-  MC_proton_true_Px.clear();
-  MC_proton_true_Py.clear();
-  MC_proton_true_Pz.clear();
+    MC_proton_true_Mom.clear();
+    MC_proton_true_theta.clear();
+    MC_proton_true_cos_theta.clear();
+    MC_proton_true_phi.clear();
+    MC_proton_true_Px.clear();
+    MC_proton_true_Py.clear();
+    MC_proton_true_Pz.clear();
 
-  MC_muon_mom.clear();
-  MC_muon_theta.clear();
-  MC_muon_costheta.clear();
-  MC_muon_phi.clear();
+    MC_muon_mom.clear();
+    MC_muon_theta.clear();
+    MC_muon_costheta.clear();
+    MC_muon_phi.clear();
 
-  MC_PT.clear();
-  MC_PL.clear();
+    MC_PT.clear();
+    MC_PL.clear();
 
-  MC_0pi1p_muon_mom.clear();
-  MC_0pi1p_muon_theta.clear();
-  MC_0pi1p_muon_costheta.clear();
-  MC_0pi1p_muon_phi.clear();
+    MC_0pi1p_muon_mom.clear();
+    MC_0pi1p_muon_theta.clear();
+    MC_0pi1p_muon_costheta.clear();
+    MC_0pi1p_muon_phi.clear();
 
-  MC_0pi1p_proton_mom.clear();
-  MC_0pi1p_proton_theta.clear();
-  MC_0pi1p_proton_costheta.clear();
-  MC_0pi1p_proton_phi.clear();
+    MC_0pi1p_proton_mom.clear();
+    MC_0pi1p_proton_theta.clear();
+    MC_0pi1p_proton_costheta.clear();
+    MC_0pi1p_proton_phi.clear();
 
-  MC_0pi1p_cos_ang_muon_proton.clear();
+    MC_0pi1p_cos_ang_muon_proton.clear();
 
-  MC_0pi2p_proton1_mom.clear();
-  MC_0pi2p_proton2_mom.clear();
+    MC_0pi2p_proton1_mom.clear();
+    MC_0pi2p_proton2_mom.clear();
 
-  ////////////////////////
+    MC_muon_mom_0pi0p = -999;
+    MC_muon_theta_0pi0p = -999;
+    MC_muon_costheta_0pi0p = -999;
+    MC_muon_phi_0pi0p = -999;
 
-  true_mom = -999;
-  true_start_x = -999;
-  true_start_y = -999;
-  true_start_z = -999;
-  true_end_x = -999;
-  true_end_y = -999;
-  true_end_z = -999;
-  true_trk_phi = -999;
-  true_trk_theta = -999;
-  true_trk_costheta = -999;
-  true_trk_theta_yz = -999;
-  true_trk_costheta_yz = -999;
-  true_trk_theta_xz = -999;
-  true_trk_costheta_xz = -999;
-  true_trk_length = -999;
-  true_trk_PDG = -999;
-  true_trk_ifcontained = -999;
-  true_vtxFV = -999;
-  reco_MC_dist_vtx = -999;
-  reco_MC_dist_vtx_noSCE = -999;
+    MC_PT_0pi0p =  -999;
+    MC_PL_0pi0p = -999;
 
-  trk_cosmic_percent = -999;
-  trk_purity = -999;
-  trk_completeness = -999;
-  if_cosmic = false;
-  if_matchPrimary = false;
-  if_matchMu = false;
+    MC_muon_mom_0pi1p = -999;
+    MC_muon_theta_0pi1p = -999;
+    MC_muon_costheta_0pi1p = -999;
+    MC_muon_phi_0pi1p = -999;
 
-  selected_mctruth_id = -999;// if there are no matched neutrino intereaction or the backtracked MCparticle is not primary, this value is set to default.
-  //}
+    MC_proton_mom_0pi1p = -999;
+    MC_proton_theta_0pi1p = -999;
+    MC_proton_costheta_0pi1p = -999;
+    MC_proton_phi_0pi1p = -999;
+
+    MC_cos_ang_muon_proton_0pi1p = -999;
+
+
+    MC_proton1_mom_0pi2p = -999;
+    MC_proton2_mom_0pi2p = -999;
+
+    MC_transfer_E_selected = -999;
+
+    TopologyType_selected = -999;
+    ////////////////////////
+
+    true_mom = -999;
+    true_start_x = -999;
+    true_start_y = -999;
+    true_start_z = -999;
+    true_end_x = -999;
+    true_end_y = -999;
+    true_end_z = -999;
+    true_trk_phi = -999;
+    true_trk_theta = -999;
+    true_trk_costheta = -999;
+    true_trk_theta_yz = -999;
+    true_trk_costheta_yz = -999;
+    true_trk_theta_xz = -999;
+    true_trk_costheta_xz = -999;
+    true_trk_length = -999;
+    true_trk_PDG = -999;
+    true_trk_ifcontained = -999;
+    true_vtxFV = -999;
+    reco_MC_dist_vtx = -999;
+    reco_MC_dist_vtx_noSCE = -999;
+
+    trk_cosmic_percent = -999;
+    trk_purity = -999;
+    trk_completeness = -999;
+    if_cosmic = false;
+    if_matchPrimary = false;
+    if_matchMu = false;
+
+    selected_mctruth_id = -999;// if there are no matched neutrino intereaction or the backtracked MCparticle is not primary, this value is set to default.
+  }
 
   daughter_Tracks.clear();
   daughter_Showers.clear();
@@ -2612,6 +2712,9 @@ void SingleMuon::analyze(art::Event const& evt)
   bwdMCS = -999;
   bwdMCSLL = -999;
 
+  bestMCS_NoSCE = -999;
+  fwdMCS_NoSCE = -999;
+  bwdMCS_NoSCE = -999;
   bestMCSLL_NoSCE = -999;
   fwdMCSLL_NoSCE = -999;
   bwdMCSLL_NoSCE = -999;
@@ -2848,7 +2951,35 @@ void SingleMuon::Initialize_event()
 
     my_event_->Branch("MC_0pi2p_proton1_mom", &MC_0pi2p_proton1_mom);
     my_event_->Branch("MC_0pi2p_proton2_mom", &MC_0pi2p_proton2_mom);
+    
+//////// selected
+    my_event_->Branch("MC_muon_mom_0pi0p", &MC_muon_mom_0pi0p);
+    my_event_->Branch("MC_muon_theta_0pi0p", &MC_muon_theta_0pi0p);
+    my_event_->Branch("MC_muon_costheta_0pi0p", &MC_muon_costheta_0pi0p);
+    my_event_->Branch("MC_muon_phi_0pi0p", &MC_muon_phi_0pi0p);
 
+    my_event_->Branch("MC_PT_0pi0p", &MC_PT_0pi0p);
+    my_event_->Branch("MC_PL_0pi0p", &MC_PL_0pi0p);
+
+    my_event_->Branch("MC_muon_mom_0pi1p", &MC_muon_mom_0pi1p);
+    my_event_->Branch("MC_muon_theta_0pi1p", &MC_muon_theta_0pi1p);
+    my_event_->Branch("MC_muon_costheta_0pi1p", &MC_muon_costheta_0pi1p);
+    my_event_->Branch("MC_muon_phi_0pi1p", &MC_muon_phi_0pi1p);
+
+    my_event_->Branch("MC_proton_mom_0pi1p", &MC_proton_mom_0pi1p);
+    my_event_->Branch("MC_proton_theta_0pi1p", &MC_proton_theta_0pi1p);
+    my_event_->Branch("MC_proton_costheta_0pi1p", &MC_proton_costheta_0pi1p);
+    my_event_->Branch("MC_proton_phi_0pi1p", &MC_proton_phi_0pi1p);
+
+    my_event_->Branch("MC_cos_ang_muon_proton_0pi1p", &MC_cos_ang_muon_proton_0pi1p);
+
+    my_event_->Branch("MC_proton1_mom_0pi2p", &MC_proton1_mom_0pi2p);
+    my_event_->Branch("MC_proton2_mom_0pi2p", &MC_proton2_mom_0pi2p);
+
+    my_event_->Branch("MC_transfer_E_selected", &MC_transfer_E_selected);
+
+    my_event_->Branch("TopologyType_selected", &TopologyType_selected);
+///////  selected
     my_event_->Branch("Ghost_PDG", &Ghost_PDG);
 
     my_event_->Branch("MC_granddau_pdg", &MC_granddau_pdg);
@@ -2974,6 +3105,9 @@ void SingleMuon::Initialize_event()
   my_event_->Branch("fwdMCSLL", &fwdMCSLL);
   my_event_->Branch("bwdMCS", &bwdMCS);
   my_event_->Branch("bwdMCSLL", &bwdMCSLL);
+  my_event_->Branch("bestMCS_NoSCE", &bestMCS_NoSCE);
+  my_event_->Branch("fwdMCS_NoSCE", &fwdMCS_NoSCE);
+  my_event_->Branch("bwdMCS_NoSCE", &bwdMCS_NoSCE);
   my_event_->Branch("bestMCSLL_NoSCE", &bestMCSLL_NoSCE);
   my_event_->Branch("fwdMCSLL_NoSCE", &fwdMCSLL_NoSCE);
   my_event_->Branch("bwdMCSLL_NoSCE", &bwdMCSLL_NoSCE);
