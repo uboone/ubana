@@ -2236,8 +2236,8 @@ void SingleMuon::analyze(art::Event const& evt)
                 for (unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
                   if (selected_mctruth_id >= 0){break;}
                   auto assoMC = MCtToMCpAsso.at(MCTruthCollection[i_mc].key());
-                  for (unsigned int i_mcp = 0; i_mcp < assoMC.size(); i_mcp++){
-                    if (assoMC[i_mcp] == MCparticle){
+                  for (unsigned int i_mcp = 0; i_mcp < MCParticleCollection.size(); i_mcp++){
+                    if (MCParticleCollection[i_mcp] == MCparticle){
                       selected_mctruth_id = i_mc;
                       break;
                     } // match
