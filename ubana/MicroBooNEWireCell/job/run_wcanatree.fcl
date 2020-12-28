@@ -7,7 +7,7 @@ services:
   TFileService: { fileName: "checkout.root" }
   TimeTracker:             @local::microboone_time_tracker
   MemoryTracker:           @local::microboone_memory_tracker
-  #FileCatalogMetadata:     @local::art_file_catalog_mc
+  FileCatalogMetadata:     @local::art_file_catalog_data
   @table::microboone_services
 }
 
@@ -41,7 +41,7 @@ physics:
       # WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
 
       POT_counting:	true
-      POT_inputTag:	"generator" #this if for overlay. For data e.g. "beamdata:bnbETOR875"
+      POT_inputTag:	"beamdata:bnbETOR875" # overlay: "generator" 
 
       ## Wire-Cell particle flow
       wirecellPF:	true	
@@ -112,3 +112,10 @@ services.DetectorClocksService.InheritClockConfig:  false
 #services.BackTrackerService:  @local::microboone_backtrackerservice
 #services.ParticleInventoryService: @local::standard_particleinventoryservice
 
+microboone_tfile_metadata:
+{
+  JSONFileName:          ["checkout.root.json"]
+  GenerateTFileMetadata: [true]
+  dataTier:              ["root-tuple"]
+  fileFormat:            ["root"]
+}
