@@ -104,6 +104,7 @@ private:
   bool fSaveLeeWeights;
   bool f_BDTvars;
   bool f_KINEvars;
+  bool fIsNuMI;
 
   bool fPFValidation; // switch of particle flow validation
   std::string fPFInputTag; // inputTag -- label:instance:process
@@ -904,6 +905,7 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   f_KINEvars = pset.get<bool>("KINEvars", false);
   fSaveWeights = pset.get<bool>("SaveWeights", false); // GENIE weights
   fSaveLeeWeights = pset.get<bool>("SaveLeeWeights", false); // LEE weights
+  fIsNuMI = pset.get<bool>("IsNuMI", false); // is true, convert to BNB style
   fSTMLabel = pset.get<std::string>("STMLabel");
   fFileType = pset.get<std::string>("FileType", "empty");
   fWeightLabel = pset.get<std::string>("WeightLabel", "");
@@ -3033,6 +3035,8 @@ void WireCellAnaTree::resetOutput()
 
 void WireCellAnaTree::save_weights(art::Event const& e)
 { 
+  double ppfx_cv_UBPPFXCV = 1.0; // for NuMI
+
   // Use the EventWeight producer label here
   art::Handle<std::vector<evwgh::MCEventWeight> > weightsHandle;
   // e.getByLabel("eventweight", weightsHandle);
@@ -3054,7 +3058,18 @@ void WireCellAnaTree::save_weights(art::Event const& e)
       if (knob_name == "splines_general_Spline"){
           f_weight_spline = weights.at(0);
       }
+      if (knob_name == "ppfx_cv_UBPPFXCV" and fIsNuMI){
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
+      }
     }
+  }
+
+  if (fIsNuMI) { 
+    f_weight_spline *= ppfx_cv_UBPPFXCV; // absorb NuMI's cv correction into spline
+    // std::cout << "weight_spline *= ppfx_cv_UBPPFXCV, where ppfx_cv_UBPPFXCV= " << ppfx_cv_UBPPFXCV << std::endl;
   }
   
   //std::cout<<"cv weight: "<<f_weight_cv<<std::endl;

@@ -33,12 +33,13 @@ physics:
       FileType:		"empty" # e.g. "prodgenie_bnb_intrinsic_nue_overlay_run1"
 
       MC:               false
-      SaveWeights:	false
-      SaveLeeWeights:	false
+      SaveWeights:	false # cv, spline
+      SaveLeeWeights:	false # lee
+      IsNuMI:		false
 
       # WeightLabel:      "eventweight::EventWeightMar18"
-      # WeightLabel:      "eventweightSep24::EventWeightSep24"
-      # WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
+      WeightLabel:      "eventweightSep24::EventWeightSep24"
+      WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
 
       POT_counting:	true
       POT_inputTag:	"beamdata:bnbETOR875" # overlay: "generator" 
@@ -60,9 +61,10 @@ physics:
       STMLabel:         "nuselMetricsSTM"
       FileType:         "empty"
 
-      SaveWeights:      false
-      SaveLeeWeights:   false
-      SaveFullWeights:  false
+      SaveWeights:      false # cv, spline
+      SaveLeeWeights:   false # lee
+      SaveFullWeights:  false # various universes
+      IsNuMI:		false
 
       # MCEventWeightLabels: [ "eventweight::EventWeightMar18" ] # moduleLabel:instanceName:processName
       MCEventWeightLabels: [ "eventweightSep24::EventWeightSep24"

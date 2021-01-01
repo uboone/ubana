@@ -2,7 +2,6 @@
 
 physics.analyzers.wcpselection.MC:		true
 physics.analyzers.wcpselection.SaveWeights:	true
-physics.analyzers.wcpselection.WeightLabel: 	"eventweightSep24::EventWeightSep24"
 physics.analyzers.wcpselection.POT_inputTag:	"generator"
 
 physics.analyzers.wcpweights.SaveWeights:	true

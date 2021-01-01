@@ -45,7 +45,8 @@
 
 #include <iostream>
 #include <fstream>
-
+#include <functional> // std::placeholders
+#include <algorithm>  // std::transform
 
 class WireCellEventWeightTree;
 
@@ -86,6 +87,7 @@ private:
   bool fSaveWeights;
   bool fSaveLeeWeights;
   bool fSaveFullWeights;
+  bool fIsNuMI;
 
   // output
   TTree* fTreeEval; 
@@ -131,6 +133,7 @@ void WireCellEventWeightTree::reconfigure(fhicl::ParameterSet const& pset)
   fSaveWeights = pset.get<bool>("SaveWeights", false); // GENIE weights
   fSaveLeeWeights = pset.get<bool>("SaveLeeWeights", false); // LEE weights
   fSaveFullWeights = pset.get<bool>("SaveFullWeights", false); // all weights
+  fIsNuMI = pset.get<bool>("IsNuMI", false); // if true, converts NuMI's weights into BNB style
   fSTMLabel = pset.get<std::string>("STMLabel");
   fFileType = pset.get<std::string>("FileType", "empty");
   fMCEventWeightLabels = pset.get<std::vector<std::string>>("MCEventWeightLabels");
@@ -238,12 +241,13 @@ void WireCellEventWeightTree::resetOutput()
 
 void WireCellEventWeightTree::save_weights(art::Event const& e)
 { 
+  double ppfx_cv_UBPPFXCV = 1.0; // for NuMI
+
   // Use the EventWeight producer label here
   art::Handle<std::vector<evwgh::MCEventWeight> > weightsHandle;
   // e.getByLabel("eventweight", weightsHandle);
   e.getByLabel(fWeightLabel, weightsHandle);
   
-  // Loop through these objects for each neutrino vertex in the event
   for(size_t i=0; i<weightsHandle->size(); i++){
     const evwgh::MCEventWeight& mc_weights = weightsHandle->at(i);
     // Loop over all of the weights in the MCEventWeight object
@@ -259,7 +263,18 @@ void WireCellEventWeightTree::save_weights(art::Event const& e)
       if (knob_name == "splines_general_Spline"){
           f_weight_spline = weights.at(0);
       }
+      if (knob_name == "ppfx_cv_UBPPFXCV" and fIsNuMI){
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
+      }
     }
+  }
+
+  if (fIsNuMI) {
+    f_weight_spline *= ppfx_cv_UBPPFXCV; // absorb NuMI's cv correction into spline
+    // std::cout << "weight_spline *= ppfx_cv_UBPPFXCV, where ppfx_cv_UBPPFXCV= " << ppfx_cv_UBPPFXCV << std::endl;
   }
   
   //std::cout<<"cv weight: "<<f_weight_cv<<std::endl;
@@ -291,9 +306,46 @@ void WireCellEventWeightTree::save_LEEweights(art::Event const& e)
 }
 
 void WireCellEventWeightTree::FillEventWeights(art::Event const & e){
+  // To make the NuMI wights fit the BNB analysis, a few assumptions
+  // have been made here:
+  // 1. absorb ppfx_cv_UBPPFXCV into spline weight
+  // 2. all other ppfx_* divided by ppfx_cv_UBPPFXCV
+  // 3. re-map the 12 ppfx_* vectors to 12 BNB flux weights
+  // 4. create a virtual knob with all values 1 in the vector (BNB has 13 flux knobs)
+  double ppfx_cv_UBPPFXCV = 1.0; 
+  bool got_ppfx_cv_UBPPFXCV = false;
+  if (fIsNuMI) {
+    for(auto const& weightLabel: fMCEventWeightLabels) {
+      if (got_ppfx_cv_UBPPFXCV) break;
+      auto ev_evw = e.getValidHandle<std::vector<evwgh::MCEventWeight>>(weightLabel);
+      std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
+      if(ev_evw->size() > 1) {
+        std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
+    	      << "WARNING: eventweight has more than one entry\n";
+      }
+    
+      for (auto const& x: weight_map) {
+        std::string knob = x.first; // key
+        std::vector<double> weights = x.second; // value
+        if (knob == "ppfx_cv_UBPPFXCV") {
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
+          got_ppfx_cv_UBPPFXCV = true;
+          break;
+        }
+      }
+     
+    }
+    if (not got_ppfx_cv_UBPPFXCV) {
+      std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
+  	      << "WARNING: ppfx_cv_UBPPFXCV not found!\n";
+    }
+  }
 
+  // Loop over weight maps
   for(auto const& weightLabel: fMCEventWeightLabels) {
-    // std::cout << "[gu] weightLabel: " << weightLabel << std::endl;
 
     // art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw =
       // CHANGE HERE DEPENDING ON THE SAMPLES
@@ -306,15 +358,55 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e){
   	      << "WARNING: eventweight has more than one entry\n";
     }
   
-    // fmcweight=weight_map;
-    // convert vector<double> to vector<float> 
+    // save wights in float
     for (auto const& x: weight_map) {
       std::string knob = x.first; // key
       std::vector<double> weights = x.second; // value
       std::vector<float> weights_asFloat(weights.begin(), weights.end());
-      // std::cout << "[gu] " << knob << " size: " << weights.size() << " 0-th: " << weights_asFloat.at(0) << std::endl;
-      // for (auto w: weights_asFloat) {std::cout << w << " ";}
-      // std::cout << std::endl;
+
+      if (fIsNuMI) {
+        // For NuMI, the 12 ppfx_* knobs are divided by ppfx_cv_UBPPFXCV,
+        // and ppfx_cv_UBPPFXCV is absorbed into spline weight
+        if (knob.rfind("ppfx_", 0) == 0 and knob != "ppfx_cv_UBPPFXCV") {
+          std::transform(weights_asFloat.begin(), weights_asFloat.end(), weights_asFloat.begin(),
+                         std::bind(std::divides<float>(), std::placeholders::_1, ppfx_cv_UBPPFXCV));
+          // FIXME: please validate if the values are changed
+        }
+        else if (knob == "splines_general_Spline") {
+          std::transform(weights_asFloat.begin(), weights_asFloat.end(), weights_asFloat.begin(),
+                         std::bind(std::multiplies<float>(), std::placeholders::_1, ppfx_cv_UBPPFXCV));
+          // FIXME: please validate if the values are changed
+        }
+
+        // The 12 knobs are re-maped to 13 BNB flux knobs:
+        // ppfx_mippk_PPFXMIPPKaon 		=> expskin_FluxUnisim
+        // ppfx_mipppi_PPFXMIPPPion 		=> horncurrent_FluxUnisim
+        // ppfx_ms_UBPPFX 			=> kminus_PrimaryHadronNormalization
+        // ppfx_other_PPFXOther 		=> kplus_PrimaryHadronFeynmanScaling
+        // ppfx_targatt_PPFXTargAtten 		=> kzero_PrimaryHadronSanfordWang
+        // ppfx_think_PPFXThinKaon 		=> nucleoninexsec_FluxUnisim
+        // ppfx_thinmes_PPFXThinMeson 		=> nucleonqexsec_FluxUnisim
+        // ppfx_thinn_PPFXThinNuc 		=> nucleontotxsec_FluxUnisim
+        // ppfx_thinna_PPFXThinNucA 		=> piminus_PrimaryHadronSWCentralSplineVariation
+        // ppfx_thinnpi_PPFXThinNeutronPion 	=> pioninexsec_FluxUnisim
+        // ppfx_thinpi_PPFXThinPion 		=> pionqexsec_FluxUnisim
+        // ppfx_totabs_PPFXTotAbsorp 		=> piontotxsec_FluxUnisim
+        // vector<float> (1, ...) 		=> piplus_PrimaryHadronSWCentralSplineVariation
+
+        if (knob == "ppfx_mippk_PPFXMIPPKaon") knob = "expskin_FluxUnisim";
+        else if (knob == "ppfx_mipppi_PPFXMIPPPion") knob = "horncurrent_FluxUnisim";
+        else if (knob == "ppfx_ms_UBPPFX") knob = "kminus_PrimaryHadronNormalization";
+        else if (knob == "ppfx_other_PPFXOther") knob = "kplus_PrimaryHadronFeynmanScaling";
+        else if (knob == "ppfx_targatt_PPFXTargAtten") knob = "kzero_PrimaryHadronSanfordWang";
+        else if (knob == "ppfx_think_PPFXThinKaon") knob = "nucleoninexsec_FluxUnisim";
+        else if (knob == "ppfx_thinmes_PPFXThinMeson") knob = "nucleonqexsec_FluxUnisim";
+        else if (knob == "ppfx_thinn_PPFXThinNuc") knob = "nucleontotxsec_FluxUnisim";
+        else if (knob == "ppfx_thinna_PPFXThinNucA") knob = "piminus_PrimaryHadronSWCentralSplineVariation";
+        else if (knob == "ppfx_thinnpi_PPFXThinNeutronPion") knob = "pioninexsec_FluxUnisim";
+        else if (knob == "ppfx_thinpi_PPFXThinPion") knob = "pionqexsec_FluxUnisim";
+        else if (knob == "ppfx_totabs_PPFXTotAbsorp") knob = "piontotxsec_FluxUnisim";
+      }
+
       if (fmcweight.find(knob) == fmcweight.end()) {
         fmcweight.emplace(knob, weights_asFloat);
       }
@@ -325,8 +417,14 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e){
     }
    
     fmcweight_filled = true;
-
   }
+
+  if (fIsNuMI) {
+    int nsize = fmcweight["ppfx_mippk_PPFXMIPPKaon"].size();
+    std::vector<float> virtual_knob(nsize, 1.0);
+    fmcweight.emplace("piplus_PrimaryHadronSWCentralSplineVariation", virtual_knob);
+  }
+
 }
 
 
