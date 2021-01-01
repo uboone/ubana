@@ -420,7 +420,7 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e){
   }
 
   if (fIsNuMI) {
-    int nsize = fmcweight["ppfx_mippk_PPFXMIPPKaon"].size();
+    int nsize = fmcweight["expskin_FluxUnisim"].size();
     std::vector<float> virtual_knob(nsize, 1.0);
     fmcweight.emplace("piplus_PrimaryHadronSWCentralSplineVariation", virtual_knob);
   }
