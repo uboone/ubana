@@ -27,6 +27,16 @@
 #include <vector>
 #include <string>
 
+#include "larevt/CalibrationDBI/Interface/PmtGainService.h"
+#include "larevt/CalibrationDBI/Interface/PmtGainProvider.h"
+
+#include "ubevt/Utilities/PMTRemapProvider.h"
+#include "ubevt/Utilities/PMTRemapService.h"
+
+#include "ubevt/Database/LightYieldService.h"
+#include "ubevt/Database/LightYieldProvider.h"
+#include "ubevt/Database/UbooneLightYieldProvider.h"
+
 class UBBasicOpticalAna;
 
 class UBBasicOpticalAna : public art::EDAnalyzer {
@@ -54,6 +64,9 @@ private:
   std::vector< bool             > _do_wfana_v;
   std::vector< bool             > _store_wf_v;
   std::vector< bool             > _store_ev_wf_v;
+  std::vector< bool             > _store_ev_wf_sum_v;
+  std::vector<unsigned int      > _nchan;
+  std::vector< int              > _chan_mask_v;
   std::vector< ::pmtana::OpDetWaveformAna > _ana_v;
   // Declare member data here.
 
@@ -65,13 +78,16 @@ UBBasicOpticalAna::UBBasicOpticalAna(fhicl::ParameterSet const & p)
   EDAnalyzer(p)  // ,
  // More initializers here.
 {
-  _module_v       = p.get< std::vector< std::string > > ( "InputModule"      );
-  _hit_producer   = p.get< std::string                > ( "HitProducer", ""  );
-  _flash_producer = p.get< std::string                > ( "FlashProducer", "");
-  _do_hitana_v    = p.get< std::vector< bool        > > ( "AnaHit"           );
-  _do_wfana_v     = p.get< std::vector< bool        > > ( "AnaWaveform"      );
-  _store_wf_v     = p.get< std::vector< bool        > > ( "SaveWaveform"     );
-  _store_ev_wf_v  = p.get< std::vector< bool        > > ( "SaveEvWaveform"   );
+  _module_v           = p.get< std::vector< std::string > > ( "InputModule"      );
+  _hit_producer       = p.get< std::string                > ( "HitProducer", ""  );
+  _flash_producer     = p.get< std::string                > ( "FlashProducer", "");
+  _do_hitana_v        = p.get< std::vector< bool        > > ( "AnaHit"           );
+  _do_wfana_v         = p.get< std::vector< bool        > > ( "AnaWaveform"      );
+  _store_wf_v         = p.get< std::vector< bool        > > ( "SaveWaveform"     );
+  _store_ev_wf_v      = p.get< std::vector< bool        > > ( "SaveEvWaveform"   );
+  _store_ev_wf_sum_v  = p.get< std::vector< bool        > > ( "SaveEvWaveformSum");
+  _chan_mask_v        = p.get< std::vector<int          > > ( "channelmask"      );
+  _nchan              = p.get< std::vector< unsigned int> > ( "nchan"            );
   assert( _module_v.size () == _do_hitana_v.size ()    );
   assert( _module_v.size () == _do_wfana_v.size  ()    );
   assert( _module_v.size () == _store_wf_v.size  ()    );
@@ -90,8 +106,8 @@ void UBBasicOpticalAna::beginJob()
     
     if( _do_hitana_v [i]     ) _ana_v[i].AnaHit         ( fs->make<TTree> ( "hitana_tree"  , "" ) );
     if( _do_wfana_v  [i]     ) _ana_v[i].AnaWaveform    ( fs->make<TTree> ( "hitwf_tree"   , "" ) );
-    if( _store_wf_v  [i]     ) _ana_v[i].SaveWaveform   ( fs->make<TTree> ( "wf_tree"      , "" ) );
-    if( _store_ev_wf_v[i]    ) _ana_v[i].SaveEvWaveform ( fs->make<TTree> ( "ev_wf_tree"   , "" ) );
+    if( _store_wf_v  [i]     ) _ana_v[i].SaveWaveform   ( fs->make<TTree> ( TString::Format("wf_tree_%01u",(unsigned int)(i))    , "" ) );
+    if( _store_ev_wf_v[i]    ) _ana_v[i].SaveEvWaveform ( fs->make<TTree> ( TString::Format("ev_wf_tree_%01u",(unsigned int)(i)) , "" ), _nchan[i], _store_ev_wf_sum_v[i], _chan_mask_v[i] );
     if (_hit_producer != ""  ) _ana_v[i].SaveEvHit      ( fs->make<TTree> ( "ev_hit_tree"  , "" ) );
     if (_flash_producer != "") _ana_v[i].SaveEvFlash    ( fs->make<TTree> ( "ev_flash_tree", "" ) );
 
@@ -106,10 +122,26 @@ void UBBasicOpticalAna::analyze(art::Event const & e)
   auto sub = e.subRun();
   auto evt = e.event();
 
+  // load gains
+  const lariov::PmtGainProvider& gain_provider = art::ServiceHandle<lariov::PmtGainService>()->GetProvider();
+  const ::util::PMTRemapProvider &pmtremap_provider = art::ServiceHandle<util::PMTRemapService>()->GetProvider();
+
+  std::vector<double> opch_area_gain_v(32,0.);
+  std::vector<double> opch_ampl_gain_v(32,0.);
+  for (size_t i=0; i < 32; i++) {
+    auto oldch = pmtremap_provider.OriginalOpChannel(i);
+    float amplgain = gain_provider.ExtraInfo(oldch%100).GetFloatData("amplitude_gain");
+    float areagain = gain_provider.Gain(oldch%100);
+    opch_area_gain_v[i] = areagain;
+    opch_ampl_gain_v[i] = amplgain;
+  }
+
   // Implementation of required member function here.
   for(size_t i=0; i<_module_v.size(); ++i) {
 
     _ana_v[i].SetEventInfo(run,sub,evt);
+
+    _ana_v[i].SetEventGain(opch_area_gain_v,opch_ampl_gain_v);
    
     _ana_v[i].TickPeriod(ts->OpticalClock().TickPeriod());
  

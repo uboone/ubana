@@ -7,6 +7,9 @@ art_make( BASENAME_ONLY
                         ${ROOT_BASIC_LIB_LIST}
 
 	  MODULE_LIBRARIES larcorealg_Geometry
+                        larevt_CalibrationDBI_Providers	
+			larevt_CalibrationDBI_IOVData
+			ubevt_Utilities
 	  	        larcore_Geometry_Geometry_service
 		        lardata_Utilities
 	                ubcore_Geometry

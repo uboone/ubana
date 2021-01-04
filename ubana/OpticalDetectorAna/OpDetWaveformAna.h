@@ -43,8 +43,8 @@ namespace pmtana {
     
     void AnaHit            ( TTree* ptr );
     void AnaWaveform       ( TTree* ptr );
-    void SaveWaveform      ( TTree* ptr );
-    void SaveEvWaveform    ( TTree* ptr );
+    void SaveWaveform      ( TTree* ptr ); 
+    void SaveEvWaveform    ( TTree* ptr, unsigned int nchan, bool savesum, int channelmask );
     void SaveEvHit         ( TTree* ptr );
     void SaveEvFlash       ( TTree* ptr );
 
@@ -52,6 +52,8 @@ namespace pmtana {
     void SetEventInfo ( const unsigned int run,
 		        const unsigned int subrun,
 		        const unsigned int event  );
+    void SetEventGain ( const std::vector<double> opch_area_gain_v,
+			const std::vector<double> opch_ampl_gain_v);
     void AnaWaveform  ( const unsigned int ch,
 			const double time_wrt_trigger,
 			const std::vector<short>& wf);
@@ -79,6 +81,7 @@ namespace pmtana {
     unsigned int _run;
     unsigned int _subrun;
     unsigned int _event;
+    std::vector<double> _opch_area_gain_v, _opch_ampl_gain_v;
     unsigned int _ch;
     float  _ped_mean;
     float  _ped_rms;
@@ -100,7 +103,7 @@ namespace pmtana {
     std::vector<std::vector<short>> _wf_v;
     // ev_hit_tree
     int _hit_ch;
-    float _hit_pe, _hit_time, _hit_ampl, _hit_area;
+    float _hit_ampl_pe, _hit_area_pe, _hit_time, _hit_ampl, _hit_area;
     // ev_flash_tree
     float _flash_ycenter, _flash_zcenter, _flash_ywidth, _flash_zwidth;
     float _flash_petotal, _flash_time;

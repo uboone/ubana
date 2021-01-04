@@ -1,3 +1,4 @@
+#include "reco_uboone_data_mcc9_8.fcl"
 #include "services_microboone.fcl"
 #include "opdetwaveformana.fcl"
 process_name: OpDetWaveformAna
@@ -15,6 +16,7 @@ services:
   RandomNumberGenerator:   {} #ART native random number generator
   message:                 @local::microboone_message_services_prod_debug
   FileCatalogMetadata:     @local::art_file_catalog_mc
+                           @table::microboone_reco_data_services
 }
 services.DetectorPropertiesService.NumberTimeSamples: 6400
 services.DetectorPropertiesService.ReadOutWindowSize: 6400
@@ -35,9 +37,27 @@ physics:
  end_paths: [ ana ]
 }
 
+
 physics.analyzers.opdetana: @local::OpDetWaveformAna
-physics.analyzers.opdetana.InputModule: ["saturation:OpdetBeamHighGain"]
-physics.analyzers.opdetana.AnaHit: [ false ]
-physics.analyzers.opdetana.AnaWaveform: [ false ]
-physics.analyzers.opdetana.SaveWaveform: [ false ]
-physics.analyzers.opdetana.SaveEvWaveform: [ true ]
+physics.analyzers.opdetana.HitProducer: "ophitBeam"
+physics.analyzers.opdetana.InputModule: ["pmtreadout:OpdetBeamHighGain","pmtreadout:UnspecifiedLogic"]
+physics.analyzers.opdetana.nchan: [ 32, 8]
+physics.analyzers.opdetana.channelmask: [ 0, 3 ] # only save these elements of vector
+physics.analyzers.opdetana.AnaHit: [false, true]
+physics.analyzers.opdetana.AnaWaveform: [ false, false]
+physics.analyzers.opdetana.SaveEvWaveform: [ true, true]
+physics.analyzers.opdetana.SaveEvWaveformSum: [ true, false] # if true only the sum is saved
+physics.analyzers.opdetana.SaveWaveform: [ false, false]
+
+
+physics.analyzers.opdetana: @local::OpDetWaveformAna
+physics.analyzers.opdetana.HitProducer: ""
+physics.analyzers.opdetana.InputModule: ["pmtreadout:OpdetBeamHighGain","pmtreadout:UnspecifiedLogic"]
+physics.analyzers.opdetana.nchan: [ 32, 8]
+physics.analyzers.opdetana.channelmask: [ -1, 3 ] # only save these elements of vector                                                                                                        
+physics.analyzers.opdetana.AnaHit: [false, false]
+physics.analyzers.opdetana.AnaWaveform: [ false, false]
+physics.analyzers.opdetana.SaveEvWaveform: [ true, true]
+physics.analyzers.opdetana.SaveEvWaveformSum: [ true, false] # if true only the sum is saved                                                                                                 
+physics.analyzers.opdetana.SaveWaveform: [ false, false]
+
