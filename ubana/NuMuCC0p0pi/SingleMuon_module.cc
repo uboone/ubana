@@ -2237,10 +2237,10 @@ void SingleMuon::analyze(art::Event const& evt)
                   if (selected_mctruth_id >= 0){break;}
                   auto assoMC = MCtToMCpAsso.at(MCTruthCollection[i_mc].key());
                   for (unsigned int i_mcp = 0; i_mcp < assoMC.size(); i_mcp++){
-                    if (assoMC[i_mcp] == MCparticle){
-                      selected_mctruth_id = i_mc;
-                      break;
-                    } // match
+                    //if (assoMC[i_mcp] == MCparticle){
+                    //  selected_mctruth_id = i_mc;
+                    //  break;
+                    //} // match
                   } // loop of MC particles
                 } // loop of MC truth
               } // if there is only one simulated neutrino intereaction, then skip
