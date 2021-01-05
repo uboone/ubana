@@ -141,14 +141,19 @@ private:
   Float_t	f_reco_protonvtxY;
   Float_t	f_reco_protonvtxZ;
   Float_t	f_reco_protonMomentum[4];
-  Float_t	f_mcflux_vx;
-  Float_t	f_mcflux_vy;
-  Float_t	f_mcflux_vz;
-  Float_t	f_mcflux_nuEnergy;
   Int_t		f_mcflux_run;
   Int_t		f_mcflux_evtno;
   Int_t		f_mcflux_ndecay;
   Int_t		f_mcflux_ntype;
+  Float_t	f_mcflux_nuEnergy;
+  Float_t	f_mcflux_vx;
+  Float_t	f_mcflux_vy;
+  Float_t	f_mcflux_vz;
+  Float_t	f_mcflux_genx; // origin of ray from flux generator
+  Float_t	f_mcflux_geny;
+  Float_t	f_mcflux_genz;
+  Float_t	f_mcflux_dk2gen; // distance from decay to ray origin
+  Float_t	f_mcflux_gen2vtx; // distance from ray origin to event vtx
 
   Float_t	f_truth_corr_nuvtxX; // truth -(SCE)-> SED -(nu time offset)-> reco [trigger offset O(10) ns ignored]
   Float_t	f_truth_corr_nuvtxY;
@@ -174,7 +179,9 @@ private:
   Float_t       f_truth_pio_energy_1;
   Float_t       f_truth_pio_energy_2;
   Float_t       f_truth_pio_angle;
-  Int_t 	f_truth_NCDelta;
+  Int_t 	f_truth_NCDelta; // Radiative Delta label (both CC and NC)
+  Float_t	f_truth_nu_pos[4]; // X,Y,Z,T
+  Float_t	f_truth_nu_momentum[4]; // Px,Py,Pz,E
   /// other truth info as follows save in this tree
 
   /// BDT input vars
@@ -1020,14 +1027,19 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("nuvtx_diff",			&f_nuvtx_diff);
   fPFeval->Branch("showervtx_diff",		&f_showervtx_diff);
   fPFeval->Branch("muonvtx_diff",		&f_muonvtx_diff);
-  fPFeval->Branch("mcflux_vx", 			&f_mcflux_vx);
-  fPFeval->Branch("mcflux_vy", 			&f_mcflux_vy);
-  fPFeval->Branch("mcflux_vz", 			&f_mcflux_vz);
-  fPFeval->Branch("mcflux_nuEnergy", 		&f_mcflux_nuEnergy);
   fPFeval->Branch("mcflux_run", 		&f_mcflux_run);
   fPFeval->Branch("mcflux_evtno", 		&f_mcflux_evtno);
   fPFeval->Branch("mcflux_ndecay", 		&f_mcflux_ndecay);
   fPFeval->Branch("mcflux_ntype", 		&f_mcflux_ntype);
+  fPFeval->Branch("mcflux_nuEnergy", 		&f_mcflux_nuEnergy);
+  fPFeval->Branch("mcflux_vx", 			&f_mcflux_vx);
+  fPFeval->Branch("mcflux_vy", 			&f_mcflux_vy);
+  fPFeval->Branch("mcflux_vz", 			&f_mcflux_vz);
+  fPFeval->Branch("mcflux_genx", 		&f_mcflux_genx);
+  fPFeval->Branch("mcflux_geny", 		&f_mcflux_geny);
+  fPFeval->Branch("mcflux_genz", 		&f_mcflux_genz);
+  fPFeval->Branch("mcflux_dk2gen", 		&f_mcflux_dk2gen);
+  fPFeval->Branch("mcflux_gen2vtx", 		&f_mcflux_gen2vtx);
 
   fPFeval->Branch("truth_corr_nuvtxX", 		&f_truth_corr_nuvtxX);
   fPFeval->Branch("truth_corr_nuvtxY", 		&f_truth_corr_nuvtxY);
@@ -1063,6 +1075,8 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("truth_pio_energy_2",         &f_truth_pio_energy_2);
   fPFeval->Branch("truth_pio_angle",            &f_truth_pio_angle);
   fPFeval->Branch("truth_NCDelta",            	&f_truth_NCDelta);
+  fPFeval->Branch("truth_nu_pos",         	&f_truth_nu_pos);
+  fPFeval->Branch("truth_nu_momentum",         	&f_truth_nu_momentum);
   }
 
 
@@ -2142,16 +2156,16 @@ void WireCellAnaTree::analyze(art::Event const& e)
 				}		
 			}
 
-			// simb::MCParticle nupart = nu.Nu();
-			// f_truth_nuvtxX = nupart.Vx(0); // initial vertex
-			// f_truth_nuvtxY = nupart.Vy(0);
-			// f_truth_nuvtxZ = nupart.Vz(0);
-			// f_truth_nuE = nupart.E(0); // initial energy
-			// f_truth_nuvtxEndX = nupart.EndX(); // end vertex
-			// f_truth_nuvtxEndY = nupart.EndY();
-			// f_truth_nuvtxEndZ = nupart.EndZ();
-			// f_truth_nuEndE = nupart.EndE(); // end energy
-
+                        const TLorentzVector& position = nu.Nu().Position(0);
+                        const TLorentzVector& momentum = nu.Nu().Momentum(0);
+                        f_truth_nu_pos[0] = position.X(); // cm
+                        f_truth_nu_pos[1] = position.Y();
+                        f_truth_nu_pos[2] = position.Z();
+                        f_truth_nu_pos[3] = position.T();
+                        f_truth_nu_momentum[0] = momentum.Px();
+                        f_truth_nu_momentum[1] = momentum.Py();
+                        f_truth_nu_momentum[2] = momentum.Pz();
+                        f_truth_nu_momentum[3] = momentum.E(); // GeV
 
 		}
 		
@@ -2177,15 +2191,19 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	art::Ptr<simb::MCFlux> mcflux;
 	if (mcfluxlist.size()>0) {
 		mcflux = mcfluxlist.at(0);
-		f_mcflux_nuEnergy = mcflux->fnenergyn; // neutrino energy for a decay
-		f_mcflux_vx = mcflux->fvx; // vertex of hadron decay
-		f_mcflux_vy = mcflux->fvy;
-		f_mcflux_vz = mcflux->fvz;
 		f_mcflux_run = mcflux->frun;
 		f_mcflux_evtno = mcflux->fevtno;
 		f_mcflux_ndecay = mcflux->fndecay;
 		f_mcflux_ntype = mcflux->fntype;
-
+		f_mcflux_nuEnergy = mcflux->fnenergyn; // neutrino energy for a decay
+		f_mcflux_vx = mcflux->fvx; // vertex of hadron decay
+		f_mcflux_vy = mcflux->fvy;
+		f_mcflux_vz = mcflux->fvz;
+		f_mcflux_genx = mcflux->fgenx;
+		f_mcflux_geny = mcflux->fgeny;
+		f_mcflux_genz = mcflux->fgenz;
+		f_mcflux_dk2gen = mcflux->fdk2gen; // distance from decay to ray origin
+		f_mcflux_gen2vtx = mcflux->fgen2vtx; // distance from ray origin to event vtx
 	}
 
 	}
@@ -2969,14 +2987,20 @@ void WireCellAnaTree::resetOutput()
 	f_reco_protonMomentum[1] = -1;
 	f_reco_protonMomentum[2] = -1;
 	f_reco_protonMomentum[3] = -1;
-	f_mcflux_vx = -1;
-	f_mcflux_vy = -1;
-	f_mcflux_vz = -1;
-	f_mcflux_nuEnergy = -1;
+
 	f_mcflux_run = -1;
-	f_mcflux_evtno = -1;
-	f_mcflux_ndecay = -1;
-	f_mcflux_ntype = -1;
+	f_mcflux_evtno = -1; 
+	f_mcflux_ndecay = -1; 
+	f_mcflux_ntype = -1; 
+	f_mcflux_nuEnergy = -1; 
+	f_mcflux_vx = -1; 
+	f_mcflux_vy = -1; 
+	f_mcflux_vz = -1; 
+	f_mcflux_genx = -1; 
+	f_mcflux_geny = -1; 
+	f_mcflux_genz = -1; 
+	f_mcflux_dk2gen = -1; 
+	f_mcflux_gen2vtx = -1; 
 
 	f_truth_corr_nuvtxX = -1; // truth -(SCE)-> SED -(nu time offset)-> reco [trigger offset O(10) ns ignored]
 	f_truth_corr_nuvtxY = -1;
@@ -3009,6 +3033,14 @@ void WireCellAnaTree::resetOutput()
         f_truth_pio_energy_2 = -1;
         f_truth_pio_angle = -1;
         f_truth_NCDelta = -1;
+	f_truth_nu_pos[0] = -1;
+	f_truth_nu_pos[1] = -1;
+	f_truth_nu_pos[2] = -1;
+	f_truth_nu_pos[3] = -1;
+	f_truth_nu_momentum[0] = -1;
+	f_truth_nu_momentum[1] = -1;
+	f_truth_nu_momentum[2] = -1;
+	f_truth_nu_momentum[3] = -1;
 
 	fPrimaryID.clear();	
 	fShowerID.clear();
@@ -3054,6 +3086,14 @@ void WireCellAnaTree::save_weights(art::Event const& e)
 
       if( knob_name == "TunedCentralValue_UBGenie"){
           f_weight_cv = weights.at(0);
+          if (std::isnan(f_weight_cv) or std::isinf(f_weight_cv)) {
+            f_weight_cv = 1.0;
+          }
+
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
       }
       if (knob_name == "splines_general_Spline"){
           f_weight_spline = weights.at(0);
