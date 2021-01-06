@@ -1,8 +1,9 @@
+#ifndef _Track_Length_Cut_h_
+#define _Track_Length_Cut_h_
+
 #include "ubana/HyperonProduction/util/RecoParticle.h"
 
-//assumes preselection and muon id have already been run (will crash otherwise)
-
-//reject events with tracks exceeded a certain length
+//Reject events with tracks exceeded a certain length
 //(excluding muon candidate)
 
 
@@ -29,7 +30,4 @@ return true;
 
 }
 
-
-
-
-
+#endif

@@ -20,6 +20,7 @@ public:
 RecoParticle(){}
 ~RecoParticle(){}
 
+int Index;
 
 //general reco info
 int PDG; //Pandora PDG code (11 or 13)
@@ -29,10 +30,22 @@ double Displacement; //distance from RECO PV
 
 //track info
 double TrackLength;
+double TrackDirectionX,TrackDirectionY,TrackDirectionZ;
+double TrackStartX,TrackStartY,TrackStartZ;
+double TrackEndX,TrackEndY,TrackEndZ;
+double TrackMuonClosestApproachPosition,TrackMuonClosestApproachDistance;
+
 
 //track PID info
-double TrackPID; //3 plane PID score
-double TrackProtonChi2,TrackMuonChi2,TrackKaonChi2,TrackPionChi2;
+//3 plane PID score
+double TrackPID; 
+//Mean dE/dX scores
+double MeandEdX_Plane0,MeandEdX_Plane1,MeandEdX_Plane2,MeandEdX_ThreePlane;
+//Nicolo's PID
+double Track_LLR_PID;
+
+//track kinematics
+double ProtonMomentum,MuonMomentum;
 
 
 //truth info
@@ -47,7 +60,9 @@ double TrackTrueTotalEdep;
 double TrackEdepPurity;
 
 
+
 void SetVertex(TVector3 V);
+void SetTrackPositions(TVector3 Start,TVector3 End);
 void Print();
 
 #ifdef __MAKE_ROOT_DICT__
@@ -65,6 +80,20 @@ Y = V.Y();
 Z = V.Z();
 
 }
+
+void RecoParticle::SetTrackPositions(TVector3 Start,TVector3 End){
+
+TrackStartX = Start.X();
+TrackStartY = Start.Y();
+TrackStartZ = Start.Z();
+
+TrackEndX = End.X();
+TrackEndY = End.Y();
+TrackEndZ = End.Z();
+
+}
+
+
 
 void RecoParticle::Print(){
 

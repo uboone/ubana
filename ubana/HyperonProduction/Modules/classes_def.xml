@@ -4,9 +4,8 @@
 <class name="std::vector<SimParticle>"/>
 <class name="RecoParticle"/>
 <class name="std::vector<RecoParticle>"/>
-<class name="PIDStore"/>
-<class name="std::vector<PIDStore>"/>
-<class name="std::vector<std::vector<PIDStore>>"/>
+<class name="FittedVertex"/>
+<class name="std::vector<FittedVertex>"/>
 </lcgdict>
 
 

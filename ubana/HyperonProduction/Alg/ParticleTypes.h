@@ -45,5 +45,14 @@ bool isNeutrino(int pdg){
 
 }
 
+bool isKaon(int pdg){
+
+if(abs(pdg) == 321 || pdg == 311) return true;
+
+else return false;
+
+
+}
+
 
 #endif

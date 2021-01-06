@@ -1,4 +1,3 @@
-
 art_make( 
 		LIB_LIBRARIES ${ROOT_BASIC_LIB_LIST}
 		DICT_LIBRARIES ${ROOT_BASIC_LIB_LIST}
@@ -9,7 +8,6 @@ art_make(
 
 		MODULE_LIBRARIES larcorealg_Geometry
 		${ROOT_BASIC_LIB_LIST}
-
 
 	)
 

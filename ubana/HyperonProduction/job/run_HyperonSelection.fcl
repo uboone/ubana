@@ -6,32 +6,20 @@ process_name: HyperonSelection
 source:
 {
 module_type: RootInput
-fileNames:[
-
-"/pnfs/uboone/persistent/users/cthorpe/hyperons/v08_00_00_13d/all/make_hyperons/29603765_13/prod_hyperon_13_20200306T170735_gen3.root"
-
-]
+fileNames:[ "/pnfs/uboone/persistent/users/cthorpe/hyperons/v08_00_00_13d/all/make_hyperons/29603765_13/prod_hyperon_13_20200306T170735_gen3.root" ]
 }
 
 services:
 {
-TFileService: { fileName: "../data/analysisOutputFHC_ultrapure_SigmaZero.root"}
-#TFileService: { fileName: "../data/analysisOutputBNB_test.root" }
+TFileService: { fileName: "analysisOutput.root"}
 @table::microboone_services
-
 }
 
 physics:
 {
-analyzers:
-	{
-	ana:	@local::analyseEvents
-	}
-
+analyzers: { ana: @local::analyseEvents }
 path0 : [ ana ] 
 end_paths : [ path0 ] 
-
-
 }
 
 services.DetectorClocksService.InheritClockConfig: false
@@ -39,12 +27,11 @@ services.DetectorClocksService.TriggerOffsetTPC: -400
 services.DetectorPropertiesService.NumberTimeSamples: 6400
 services.DetectorPropertiesService.ReadOutWindowSize: 6400
 
-services.SpaceCharge.EnableCalSpatialSCE: false #enable bkwd (reco -> true)
-services.SpaceCharge.EnableCalEfieldSCE: false
+services.SpaceCharge.EnableCalSpatialSCE: true #enable bkwd (reco -> true)
+services.SpaceCharge.EnableCalEfieldSCE: true
 services.SpaceCharge.EnableSimSpatialSCE: true # disable fwd (true -> reco)
 services.SpaceCharge.EnableSimEfieldSCE: true
 services.SpaceCharge.RepresentationType: "Voxelized_TH3"
 services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
-
 
 

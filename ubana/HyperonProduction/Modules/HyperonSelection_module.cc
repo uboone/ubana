@@ -34,8 +34,6 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindMany.h"				
 
-
-
 #include "lardataobj/RecoBase/Track.h"
 
 #include "lardataobj/RecoBase/Shower.h"
@@ -49,7 +47,6 @@
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
 
-
 #include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 
 #include "ubevt/Utilities/SignalShapingServiceMicroBooNE.h"
@@ -60,25 +57,41 @@
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
+//track momentum calculator
+#include "larreco/RecoAlg/TrackMomentumCalculator.h"
+//vertex fitter
+#include "larreco/RecoAlg/Geometric3DVertexFitter.h"
+
+
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 
+//root includes
 #include "TVector3.h"
 #include "TLorentzVector.h"
 
 //local includes
+
+//objects and helpers
 #include "ubana/HyperonProduction/util/SimParticle.h"
 #include "ubana/HyperonProduction/util/RecoParticle.h"
+#include "ubana/HyperonProduction/util/FittedVertex.h"
+#include "ubana/HyperonProduction/util/Helpers.h"
 
+//algorithms
 #include "ubana/HyperonProduction/Alg/ParticleTypes.h"
 #include "ubana/HyperonProduction/Alg/FV.h"
 #include "ubana/HyperonProduction/Alg/Muon_ID.h"
 #include "ubana/HyperonProduction/Alg/Track_Length_Cut.h"
 #include "ubana/HyperonProduction/Alg/Gap_Cut.h"
+#include "ubana/HyperonProduction/Alg/MeandEdX.h"
+#include "ubana/HyperonProduction/Alg/ThreePlaneMeandEdX.h"
+#include "ubana/HyperonProduction/Alg/Position_Match.h"
+#include "ubana/HyperonProduction/Alg/Good_Reco.h"
 
-#include "ubana/HyperonProduction/util/Helpers.h"
-
-#include "TRandom2.h"
+//PID components
+#include "ubana/HyperonProduction/Alg/LLR_PID.h"
+#include "ubana/HyperonProduction/Alg/LLRPID_proton_muon_lookup.h"
 
 
 namespace hyperon {
@@ -110,8 +123,13 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 		void PrintInfo();
 		void FinishEvent();
 
+		//lookup the origin type (primary, decay, other) of mc particle by
+		//its TrackId
 		int getOrigin(int idnum);
 
+		//check if event contains a reco'd muon, proton and pion from Lambda decay
+		//records their positions in track vector if they exist
+		void StoreTrackTruth();
 
 
 		void beginSubRun(const art::SubRun& sr);
@@ -131,13 +149,10 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 		//run/subrun/event information
 		int run,subrun,event;
 
-
 		int fileID;
 
 		//output trees
 		TTree * fOutputTree; //info for each event
-
-		TTree * fPIDTree; //PID Scores
 
 		TTree * fMetaTree; //metadata
 
@@ -157,7 +172,14 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 		bool fIsSigmaZero=false; //true if event hyperon was a sigma zero		
 		bool fIsLambda=false;
 		bool fIsLambdaCharged; //true if event contains Lambda decaying into p + pi-
-		bool fIsSignal=false; //true if numu event in fiducial vol producing Lambda decaying to p + pi- -->Signal to search for		
+
+		bool fIsAssociatedHyperon;
+
+		bool fIsSignal=false; //true if numu event in fiducial vol producing Lambda decaying to p + pi- -->Signal to search for	
+		bool fGoodReco=false; //true if is signal event with both decay products truth matching to reconstructed tracks
+
+		//neutrino
+		std::vector<SimParticle> fNeutrino;
 
 		//lepton produced at primary vtx		
 		std::vector<SimParticle> fLepton;
@@ -171,12 +193,11 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 		//pions produced at primary vtx
 		std::vector<SimParticle> fPrimaryPion;
 
+		//kaons produced at primary vtx
+		std::vector<SimParticle> fPrimaryKaon; 
+
 		//vertex information
 		TVector3 fTruePrimaryVertex;
-
-		//neutrino information
-		double fNuEnergy;
-		int fNuPDG;
 
 		//g4 truth info
 		TVector3 fDecayVertex;
@@ -226,24 +247,24 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 		std::vector<RecoParticle> fShowerPrimaryDaughters;
 		int fMuonIndex=-1; //index of muon candidate in fTrackPrimaryDaughters , -1 if no muon candidate found
 
+		//vertices produced by fitting pairs of tracks using trkf::Geometric3DVertexFitter
+		std::vector<FittedVertex> fTrackVertices;
+
 		//data storage (not to be written to tree)		
-		std::vector<int> fRecoTrackTruthMatchedID; //list of ID numbers of truth matched particles
+		std::vector<art::Ptr<recob::Track>> Tracks;
 
+		///////////////////////////
+		//  Truth Matching info  //
+		///////////////////////////
 
-		////////////////////////
-		//     PID INFO       //
-		////////////////////////
+		//indices in the reco track vector of the true muon
+		//and proton and pion from hyperon decay if the exist
 
-		std::vector<std::vector<int>> fAlgNumber; //pid scores for tracks 
-		std::vector<std::vector<int>> fPlaneNo; //pid scores for tracks 
-		std::vector<std::vector<int>> fAssumedPDG; //pid scores for tracks 
-		std::vector<std::vector<double>> fScore; //pid scores for tracks 
-		std::vector<double> fRecoLength; //pid scores for tracks 
-		std::vector<double> fTruePDG; //pid scores for tracks 
-		std::vector<double> fTrueLength; //pid scores for tracks 
+		//will have values of -1 if they do not exist
 
-
-
+		int fTrueMuonIndex=-1;
+		int fTrueDecayProtonIndex=-1;
+		int fTrueDecayPionIndex=-1;
 
 
 		/////////////////////////
@@ -266,6 +287,8 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 
 		int fNSignal; //number of signal events
 
+		int fNGoodReco; //number of signal events with both pion and proton reco'd
+
 		//reco level metadata
 
 		int fNSelectedEvents; //total events passing selection
@@ -274,6 +297,9 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 
 		int fNSelectedSignal; //number of signal events passing selection
 
+		int fNSelectedGoodReco; //number of signal events passing selection
+
+		//selection performance metrics
 
 		double fHyperonEfficiency; //hyperon selection efficiency
 		double fHyperonPurity;  //hyperon selection purity
@@ -287,10 +313,19 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 		double	fSignalEfficiencyTimesPurity=0; //hyperon selection efficiency x purity
 		double	fSignalEfficiencyTimesTruePurity=0; //hyperon selection efficiency x true purity
 
+		double	fGoodRecoEfficiency=0; //hyperon selection efficiency
+		double	fGoodRecoPurity=0;  //hyperon selection purity
+		double	fGoodRecoTruePurity=0; //hyperon purity after converting from enriched sample to real sample
+		double	fGoodRecoEfficiencyTimesPurity=0; //hyperon selection efficiency x purity
+		double	fGoodRecoEfficiencyTimesTruePurity=0; //hyperon selection efficiency x true purity
 
-		///////////////////////
-		//   Module Labels   //
-		///////////////////////
+		double fPOT=0; //total POT of the sample
+
+		//////////////////////////
+		//   FHICL PARAMETERS   //
+		//////////////////////////
+
+		//producer module labels
 
 		std::string fGenieGenModuleLabel;
 		std::string fGeantModuleLabel;
@@ -305,12 +340,15 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 		std::string fHitTruthAssnLabel;
 		std::string fMetadataLabel;
 		std::string fShowerHitAssnLabel;
-
+			
+		//POT module label
+		std::string fPOTSummaryLabel;
 
 		//misc
 		bool fPrint;
 		int fPrintPdg=-1; //-1 means print everything
-
+		bool fDebug=false;
+		
 
 		///////////////////////////////////
 		// Hyperon selection parameters  //
@@ -320,10 +358,22 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 		int fMaxPrimaryShowerDaughters;
 		int fMinDaughterTracks; //minimum number of track like primary daughters
 		double fMuonPIDScore;
+		double fMinimumMuonLength;
 		double fSecondaryTrackLengthCut;
 		double fTertiaryTrackLengthCut;
 
 		double fTrackScore; //minimum track/shower score required for pfp to be classified as track
+
+		///////////////////////
+		//      Objects      //
+		///////////////////////
+
+		//LLR PID components
+		searchingfornues::LLRPID llr_pid_calculator;
+		searchingfornues::ProtonMuonLookUpParameters protonmuon_parameters;
+
+		//vertex fitter
+		trkf::Geometric3DVertexFitter * fitter;
 
 
 };
@@ -337,43 +387,25 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
 
 bool hyperon::HyperonSelection::PerformSelection(){
 
-
-	//if(fRecoPrimaryVertex.X() == -1000 || fRecoPrimaryVertex.Y() == -1000 || fRecoPrimaryVertex.Y() == -1000) return false; //no reco'd neutrino 
+	if(fDebug) std::cout << "Applying Selection" << std::endl;
 
 	//Apply fiducial volume cut
-
 	if(!inActiveTPC(fRecoPrimaryVertex)) return false;
-
 	if(fNPrimaryDaughters < fMinDaughters) return false;
-	//	std::cout << "Passed Min Daughter cut" << std::endl;
 
 	if(fNPrimaryShowerDaughters > fMaxPrimaryShowerDaughters) return false;
-	//	std::cout << "Pass Max Shower cut" << std::endl;
-
 	if(fNPrimaryTrackDaughters < fMinDaughterTracks) return false;
-	//	std::cout << "Passed Min Track cut" << std::endl;
 
 
 	//Muon PID
-	int i_muon = Muon_ID(fTrackPrimaryDaughters,fMuonPIDScore);
+	int i_muon = Muon_ID(fTrackPrimaryDaughters,fMuonPIDScore,fMinimumMuonLength);
 	if(i_muon == -1) return false;
 	fMuonIndex = i_muon;
 
 	//Secondary and Tertiary Track Length Cuts
 	if(!Track_Length_Cut(fTrackPrimaryDaughters,i_muon,fSecondaryTrackLengthCut,fTertiaryTrackLengthCut)) return false;
 
-
-	//useful if you want to get ED of events passing selection
-
-	/*
-	   std::cout << "Event Num: " << event << "   ";
-	   if(fIsSignal) std::cout << "__ACCEPTED_SIGNAL__"  << "  ";
-	   else std::cout << "__ACCEPTED_BACKGROUND__" << "  ";   	
-	   std::cout << fMode << std::endl; 
-	   */
-
 	return true;
-
 
 }
 
@@ -388,7 +420,8 @@ hyperon::HyperonSelection::HyperonSelection(fhicl::ParameterSet const& p)
 	: EDAnalyzer{p}   // ,
 	// More initializers here.
 {
-	// Call appropriate consumes<>() for any products to be retrieved by this module.
+
+	//module labels
 	fGenieGenModuleLabel = p.get<std::string>("GenieGenModuleLabel");
 	fPFParticleLabel = p.get<std::string>("PFParticleLabel");
 	fGeantModuleLabel = p.get<std::string>("GeantLabel");
@@ -403,63 +436,90 @@ hyperon::HyperonSelection::HyperonSelection(fhicl::ParameterSet const& p)
 	fShowerHitAssnLabel = p.get<std::string>("ShowerHitAssnLabel");
 	fMetadataLabel = p.get<std::string>("MetadataLabel");
 
+	//POT module label
+	fPOTSummaryLabel = p.get<std::string>("POTSummaryLabel");
+	
+
 	//selection parameters
 	fMinDaughters = p.get<int>("MinDaughters",0);	
 	fMinDaughterTracks = p.get<int>("MinDaughterTracks",0);
 	fMaxPrimaryShowerDaughters = p.get<int>("MaxDaughterShowers",1000);
 	fMuonPIDScore = p.get<double>("MuonPIDScore",0.6);
+	fMinimumMuonLength = p.get<double>("MinimumMuonLength",0.0);
 	fSecondaryTrackLengthCut = p.get<double>("SecondaryTrackLengthCut",65);
 	fTertiaryTrackLengthCut = p.get<double>("TertiaryTrackLengthCut",35);
 
-	//misc
+	//track/shower classification threshold
 	fTrackScore = p.get<double>("TrackScore",0.5);
-
-
-
 
 	//misc parameters
 	fPrint = p.get<bool>("Print",false);
 	fPrintPdg = p.get<int>("PrintPdg",-1);
+	fDebug = p.get<bool>("Debug",false);
+
+	// set dedx pdf parameters for LLR PID
+	llr_pid_calculator.set_dedx_binning(0, protonmuon_parameters.dedx_edges_pl_0);
+	llr_pid_calculator.set_par_binning(0, protonmuon_parameters.parameters_edges_pl_0);
+	llr_pid_calculator.set_lookup_tables(0, protonmuon_parameters.dedx_pdf_pl_0);
+
+	llr_pid_calculator.set_dedx_binning(1, protonmuon_parameters.dedx_edges_pl_1);
+	llr_pid_calculator.set_par_binning(1, protonmuon_parameters.parameters_edges_pl_1);
+	llr_pid_calculator.set_lookup_tables(1, protonmuon_parameters.dedx_pdf_pl_1);
+
+	llr_pid_calculator.set_dedx_binning(2, protonmuon_parameters.dedx_edges_pl_2);
+	llr_pid_calculator.set_par_binning(2, protonmuon_parameters.parameters_edges_pl_2);
+	llr_pid_calculator.set_lookup_tables(2, protonmuon_parameters.dedx_pdf_pl_2);
+
+	//setup vertex algo for vertex fitter
+	fhicl::Table<trkf::Geometric3DVertexFitter::Config> options(p.get<fhicl::ParameterSet>("options"));
+	fhicl::Table<trkf::TrackStatePropagator::Config> propagator(p.get<fhicl::ParameterSet>("propagator"));
+	fitter = new trkf::Geometric3DVertexFitter(options, propagator);
+
 
 }
 
 void hyperon::HyperonSelection::analyze(art::Event const& e)
 {
 
-
+	if(fDebug) std::cout << "New Event" << std::endl;
 
 	//begin by resetting everything
 
-	//Generator Info
+	/////////////
+	// General //
+	/////////////
 
 	fInActiveTPC=false;
-	fIsHyperon=false; //true if event contains a hyperon
-	fIsSigmaZero=false; //true if event hyperon was a sigma zero		
+	fIsHyperon=false;
+	fIsSigmaZero=false;
+	fIsLambdaCharged=false;
+	fIsAssociatedHyperon=false;
 	fIsSignal=false;	
+	fGoodReco=false;
 
-	//G4 Info
+	/////////////
+	// G4 Info //
+	/////////////
 
-	//lepton
+	//neutrino that interacted
+	fNeutrino.clear();
+
+	//lepton produced in interaction
 	fLepton.clear();
 
-	//hyperon
+	//hyperon produced
 	fHyperon.clear();
 
-	//nucleons and pions produced at primary vtx
+	//nucleons, pions and kaons produced at primary vtx
 	fPrimaryNucleon.clear();
 	fPrimaryPion.clear();
+	fPrimaryKaon.clear();
 
 	//vertex information
 	fTruePrimaryVertex.SetXYZ(-1000,-1000,-1000);
 
-	//neutrino information
-	fNuEnergy=-1; //neutrino energy
-	fNuPDG=0; //neutrino PDG code
-
-	//g4 truth info
-	fDecayVertex.SetXYZ(-1000,-1000,-1000);
-
 	//hyperon decay products
+	fDecayVertex.SetXYZ(-1000,-1000,-1000);
 	fDecay.clear();
 
 	//sigma zero decay products
@@ -470,8 +530,9 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 	fLeptonPionAngle=-1; //openining angle between lepton and pion
 	fLeptonNucleonAngle=-1; //opening angle between lepton and nucleon
 
-
-	//Reco Info
+	///////////////
+	// Reco Info //
+	///////////////
 
 	fSelectedEvent = false; //true if event passes some selection criteria	
 	fNPrimaryDaughters = 0; //number of primary daughters
@@ -485,31 +546,28 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 	fShowerPrimaryDaughters.clear();
 	fMuonIndex=-1;
 
-	//PID Info
-	fAlgNumber.clear(); //pid scores for tracks 
-	fPlaneNo.clear(); //pid scores for tracks 
-	fAssumedPDG.clear(); //pid scores for tracks 
-	fScore.clear(); //pid scores for tracks 
-	fRecoLength.clear(); //pid scores for tracks 
-	fTruePDG.clear(); //pid scores for tracks 
-	fTrueLength.clear(); //pid scores for tracks 
+	fTrackVertices.clear();
 
+	//Truth Matched info - indices of muon, proton and pion from decay
+	//in fTrackPrimaryDaughters (if they exist)		
+	fTrueMuonIndex=-1;	
+	fTrueDecayProtonIndex=-1;
+	fTrueDecayPionIndex=-1;
 
-
-
-
-	//Event ID information
+	/////////////////////////
+	// Event ID information /
+	/////////////////////////
 
 	fEventID = e.id().event();
 	run = e.run();
 	subrun = e.subRun();
 	event = e.event();
 
-
 	//////////////////////////////
 	// GET EVENT GENERATOR INFO //
 	//////////////////////////////
 
+	if(fDebug) std::cout << "Getting Event Generator Info" << std::endl;
 
 	art::Handle<std::vector<simb::MCTruth>> mctruthListHandle;
 	std::vector<art::Ptr<simb::MCTruth> > mcTrVect;
@@ -536,23 +594,25 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 		mode = Nu.Mode();
 		ccnc = Nu.CCNC();
 
-		//TODO: Find out why this is always 0
-		//std::cout << ccnc << std::endl;
+		if(ccnc == 0) fCCNC = "CC";
+		else fCCNC = "NC";
 
+		//NOTE: Hyperon events produced in GENIE use mode == 0
+		//NuWro uses 1095 
 		if(mode == 0) fMode = "QEL";
 		else if(mode == 1) fMode = "RES";
 		else if(mode == 2) fMode = "DIS";
 		else if(mode == 3) fMode = "COH";
+		else if(mode == 5) fMode = "ElectronScattering";
 		else if(mode == 10) fMode = "MEC";
+		else if(mode == 11) fMode = "Diffractive";
 		else if(mode == 1095) fMode = "HYP";
 		else fMode = "Other";	
 
-
-
 		for(int k_particles=0;k_particles<MCtruth->NParticles();k_particles++){
 
-
 			simb::MCParticle Part = MCtruth->GetParticle(k_particles);
+
 
 			//Get list of particles from true PV, if lepton or neutrino set PV
 			if((isLepton(Part.PdgCode()) || isNeutrino(Part.PdgCode())) && Part.StatusCode() == 1){ 
@@ -570,8 +630,13 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 			//neutrino in the interaction
 			if(isNeutrino(Part.PdgCode()) && Part.StatusCode() == 0){
 
-				fNuEnergy = Part.E();
-				fNuPDG =  Part.PdgCode();
+				SimParticle P;
+
+				P.SetKinematics(Part.Momentum(),Part.Mass());				
+				P.SetPositions(Part.Position(),Part.EndPosition());	
+				P.PDG = Part.PdgCode();
+				P.Origin = 0;
+				fNeutrino.push_back( P );
 
 			}
 
@@ -590,10 +655,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 	//Get Geant Information
 	///////////////////////////////////////////
 
-
-
-	//if event contains a hyperon, find decay vertex and decay products
-
+	if(fDebug) std::cout << "Getting Event G4 Info" << std::endl;
 
 	//get list of geant4 particles
 	art::Handle<std::vector<simb::MCParticle>>g4particleHandle;
@@ -700,7 +762,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 		if(part->PdgCode() > 10000) continue; //anything with very large pdg code is a nucleus, skip these
 
-		SimParticle P = MakeSimParticle(part);
+		SimParticle P = MakeSimParticle(*part);
 		P.Origin = getOrigin(part->TrackId());
 
 		//hyperon produced at primary vertex
@@ -719,6 +781,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 		//pion produced at primary vertex
 		if( isPion(part->PdgCode()) ) fPrimaryPion.push_back( P );
 
+		if( isKaon(part->PdgCode()) ) fPrimaryKaon.push_back( P );
 
 
 	}
@@ -729,7 +792,6 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 	if(fHyperon.size() == 1){
 
-		//	std::cout << "Checking hyperon vector for fake daughters" << std::endl;
 
 		std::vector<int> daughter_IDs_tmp;
 
@@ -765,7 +827,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 		if(part->PdgCode() > 10000) continue; //anything with very large pdg code is a nucleus, skip these
 
-		SimParticle Decay = MakeSimParticle(part);
+		SimParticle Decay = MakeSimParticle(*part);
 		Decay.Origin = getOrigin(part->TrackId());
 		fDecay.push_back( Decay );
 
@@ -817,7 +879,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 			if(part->PdgCode() > 10000) continue; //anything with very large pdg code is a nucleus, skip these
 
-			SimParticle P = MakeSimParticle(part);			
+			SimParticle P = MakeSimParticle(*part);			
 			P.Origin = getOrigin(part->TrackId());
 
 			//one particle should be a Lambda, one should be a photon	
@@ -856,16 +918,12 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 						if(part2->PdgCode() > 10000) continue; //anything with very large pdg code is a nucleus, skip these
 
-						SimParticle P2 = MakeSimParticle(part2);
+						SimParticle P2 = MakeSimParticle(*part2);
 						P2.Origin = getOrigin(part2->TrackId());
 
-						fDecay.push_back( P );
+						fDecay.push_back( P2 );
 
 						daughter_IDs.push_back( part2->TrackId() );
-
-						//add its ID to list od decay products for searching later
-
-
 
 					}
 
@@ -876,7 +934,6 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 			}
 
 			else std::cout << "Unrecognized Sigma0 daughter: " << part->PdgCode() << std::endl; 
-
 
 		}
 
@@ -889,12 +946,14 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 	//Get Reconstructed Info
 	//////////////////////////////////////////////////////////////////////////
 
+	if(fDebug) std::cout << "Getting Reco'd Particles" << std::endl;
 
+	Tracks.clear();
 
 	auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
-
-	fRecoTrackTruthMatchedID.clear(); //ids of truth matched MC particles
+	//calculate momentum of tracks under various hypotheses
+	trkf::TrackMomentumCalculator trkm{0};
 
 	//setup handles
 	art::Handle<std::vector<recob::PFParticle>>pfparticleHandle; //PFParticles
@@ -935,8 +994,6 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 	if(e.getByLabel(fShowerLabel,showerHandle)) art::fill_ptr_vector(showerVect,showerHandle);
 	else
 		std::cout << "Shower handle not setup" << std::endl;
-
-
 
 
 	e.getByLabel(fHitLabel,hitHandle);
@@ -982,13 +1039,12 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 				geo::Point_t point = { vtx->position().X() , vtx->position().Y() , vtx->position().Z() };                
 				geo::Vector_t sce_corr = SCE->GetPosOffsets(point);
 
-
-
 				//no SC correction
-				//		fRecoPrimaryVertex.SetXYZ( vtx->position().X() , vtx->position().Y() , vtx->position().Z() );
+				//fRecoPrimaryVertex.SetXYZ( vtx->position().X() , vtx->position().Y() , vtx->position().Z() );
 
 				//w SC correction - forward
-				fRecoPrimaryVertex.SetXYZ( vtx->position().X() - sce_corr.X() , vtx->position().Y() - sce_corr.Y() , vtx->position().Z() - sce_corr.Z() );
+				fRecoPrimaryVertex.SetXYZ( vtx->position().X() + sce_corr.X() , vtx->position().Y() - sce_corr.Y() , vtx->position().Z() - sce_corr.Z() );
+
 
 
 			}
@@ -1005,25 +1061,6 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 		RecoParticle ThisPrimaryDaughter;
 
-
-
-		//create PID store
-		std::vector<int> thisTrackAlgNumbers;
-		std::vector<int> thisTrackPlaneNos;
-		std::vector<int> thisTrackAssumedPDGs;
-		std::vector<double> thisTrackScores;
-		double thisTrackTruePDG;
-		double thisTrackRecoLength;
-		double thisTrackTrueLength;
-
-		thisTrackAlgNumbers.clear();
-		thisTrackPlaneNos.clear();
-		thisTrackAssumedPDGs.clear();
-		thisTrackScores.clear();
-
-
-
-
 		//get data from every PFP, not just neutrino daughters
 		if(pfp->Parent() != neutrinoID) continue;
 
@@ -1035,22 +1072,14 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 		ThisPrimaryDaughter.PDG = pfp->PdgCode();
 
-		if(pfp->PdgCode() == 11) fNPrimaryShowerDaughters++;
-		if(pfp->PdgCode() == 13) fNPrimaryTrackDaughters++;
-
-		//	std::cout << "Tracks assoc to this pfp: " << pfpTracks.size() << "  Showers assoc to this pfp: " << pfpShowers.size() << std::endl;
-
-
 
 		for(const art::Ptr<larpandoraobj::PFParticleMetadata> &meta : pfpMeta){
 
 			const larpandoraobj::PFParticleMetadata::PropertiesMap &pfParticlePropertiesMap(meta->GetPropertiesMap());
 
 			if (!pfParticlePropertiesMap.empty()){
-				//			std::cout << " Found PFParticle " << pfp->Self() << " with: " << std::endl;
 				for (larpandoraobj::PFParticleMetadata::PropertiesMap::const_iterator it = pfParticlePropertiesMap.begin(); it != pfParticlePropertiesMap.end(); ++it){
 
-					//                    std::cout << "  - " << it->first << " = " << it->second << std::endl;
 
 					if(it->first == "TrackScore"){
 						ThisPrimaryDaughter.TrackShowerScore = it->second;
@@ -1063,20 +1092,24 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 		//            Get track info                //
 		//////////////////////////////////////////////
 
+
 		//if pfp is a track like object
-		if(!pfpTracks.empty() && !pfpVertex.empty()){
+		if(pfpTracks.size() == 1 && !pfpVertex.empty()){
 
-			for(const art::Ptr<recob::Track> &trk : pfpTracks){
+			for(const art::Ptr<recob::Track> &trk : pfpTracks){			
 
-				//reconstructed track length
-				ThisPrimaryDaughter.TrackLength = trk->Length();			
-				thisTrackRecoLength = trk->Length();
+				//fill track store for vertex fitting
+				if(pfp->PdgCode() == 13) Tracks.push_back(trk);
+
+				//sets track length/position related variables in ThisPrimaryDaughter
+				SetTrackVariables(ThisPrimaryDaughter , trk);
+
 
 				/////////////////////
 				//   Truth match   //
 				/////////////////////
 
-			
+
 				//loop through hits in track, find which MC particle
 				//deposited most energy in track
 
@@ -1088,6 +1121,8 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 				std::unordered_map<int , double>  trkide;
 				double maxe = -1;
 				double tote = 0;
+
+				int maxhits=-1;
 
 				simb::MCParticle const* matchedParticle = NULL;
 
@@ -1105,13 +1140,25 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 					//loop over particles that deposit energy in this hit
 					for (size_t i_particle = 0; i_particle < particleVec.size(); ++i_particle){
 
-						trkide[ particleVec[i_particle]->TrackId() ] += matchVec[i_particle]->energy;
+						//	trkide[ particleVec[i_particle]->TrackId() ] += matchVec[i_particle]->energy;
+						trkide[ particleVec[i_particle]->TrackId() ] ++; //just increment the number of hits
 
 						tote += matchVec[i_particle]->energy;
 
-						if ( trkide[ particleVec[i_particle]->TrackId() ] > maxe ){
 
-							maxe = trkide[ particleVec[i_particle]->TrackId() ];
+						/*
+						// old method - choose particle depositing most energy in track
+						if ( trkide[ particleVec[i_particle]->TrackId() ] > maxe ){
+						maxe = trkide[ particleVec[i_particle]->TrackId() ];
+						matchedParticle = particleVec[i_particle];
+
+						}
+						*/
+
+
+						//new method - choose particle depositing energy in the most hits
+						if ( trkide[ particleVec[i_particle]->TrackId() ] > maxhits ){
+							maxhits = trkide[ particleVec[i_particle]->TrackId() ];
 							matchedParticle = particleVec[i_particle];
 
 						}
@@ -1124,42 +1171,89 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 				if(matchedParticle != NULL){ 
 
+					SimParticle P = MakeSimParticle(*matchedParticle);
+					P.Origin = getOrigin(matchedParticle->TrackId());
+
 					ThisPrimaryDaughter.HasTruth = true;
 					ThisPrimaryDaughter.TrackEdepPurity = maxe/tote;
 
-					ThisPrimaryDaughter.TrackTruePDG = matchedParticle->PdgCode();
-					ThisPrimaryDaughter.TrackTrueE = matchedParticle->Momentum().E();
-					ThisPrimaryDaughter.TrackTruePx = matchedParticle->Momentum().X();
-					ThisPrimaryDaughter.TrackTruePy = matchedParticle->Momentum().Y();
-					ThisPrimaryDaughter.TrackTruePz = matchedParticle->Momentum().Z();
+					ThisPrimaryDaughter.TrackTruePDG = P.PDG;
+					ThisPrimaryDaughter.TrackTrueE = P.E;
+					ThisPrimaryDaughter.TrackTruePx = P.Px;
+					ThisPrimaryDaughter.TrackTruePy = P.Py;
+					ThisPrimaryDaughter.TrackTruePz = P.Pz;
 
+					ThisPrimaryDaughter.TrackTrueModMomentum = P.ModMomentum;
+					ThisPrimaryDaughter.TrackTrueKE = P.KE;
 
-					ThisPrimaryDaughter.TrackTrueModMomentum = sqrt( matchedParticle->E()*matchedParticle->E() - matchedParticle->Mass()*matchedParticle->Mass() );
-					ThisPrimaryDaughter.TrackTrueKE = matchedParticle->E() - matchedParticle->Mass();
+					ThisPrimaryDaughter.TrackTrueLength = P.Travel;
 
-					ThisPrimaryDaughter.TrackTrueLength = sqrt( (matchedParticle->Vx() - matchedParticle->EndX())*(matchedParticle->Vx() - matchedParticle->EndX())
-							+ (matchedParticle->Vy() - matchedParticle->EndY())*(matchedParticle->Vy() - matchedParticle->EndY())
-							+ (matchedParticle->Vz() - matchedParticle->EndZ())*(matchedParticle->Vz() - matchedParticle->EndZ()) ); 
-
-					ThisPrimaryDaughter.TrackTrueOrigin = getOrigin(matchedParticle->TrackId());
-
-					thisTrackTruePDG = matchedParticle->PdgCode();
-					thisTrackTrueLength = ThisPrimaryDaughter.TrackTrueLength;
+					ThisPrimaryDaughter.TrackTrueOrigin = P.Origin;
 
 
 				}
 				else ThisPrimaryDaughter.HasTruth = false;
 
-
-
-
-
 				///////////////////////
 				// get PID for track //
 				///////////////////////
 
-
 				std::vector<art::Ptr<anab::Calorimetry>> caloFromTrack = caloTrackAssoc.at(trk.key());
+
+				//Nicolo's PID
+
+				double this_llr_pid=0;
+				double this_llr_pid_score=0;
+				for(auto const &calo : caloFromTrack){
+
+					auto const &plane = calo->PlaneID().Plane;
+					auto const &dedx_values = calo->dEdx();
+					auto const &rr = calo->ResidualRange();
+					auto const &pitch = calo->TrkPitchVec();
+					std::vector<std::vector<float>> par_values;
+					par_values.push_back(rr);
+					par_values.push_back(pitch);
+
+					if (calo->ResidualRange().size() == 0) continue;
+
+					float calo_energy = 0;
+					for (size_t i = 0; i < dedx_values.size(); i++)
+					{
+						calo_energy += dedx_values[i] * pitch[i];
+					}
+
+					float llr_pid = llr_pid_calculator.LLR_many_hits_one_plane(dedx_values, par_values, plane);
+					this_llr_pid +=  llr_pid;
+
+				}
+				this_llr_pid_score = atan( this_llr_pid / 100.) * 2 / 3.14159266;
+
+				ThisPrimaryDaughter.Track_LLR_PID = this_llr_pid_score;
+
+				//Mean dE/dX
+				std::vector<std::pair<int,double>> MeandEdXs = MeandEdX(caloFromTrack);
+
+				double thisThreePlaneMeandEdX = ThreePlaneMeandEdX(trk,MeandEdXs);
+
+				ThisPrimaryDaughter.MeandEdX_ThreePlane = thisThreePlaneMeandEdX;
+
+				//add single plane mean dEdX
+				for(size_t i_plane=0;i_plane<MeandEdXs.size();i_plane++){
+
+					if( MeandEdXs.at(i_plane).first == 0 ){
+						ThisPrimaryDaughter.MeandEdX_Plane0 = MeandEdXs.at(i_plane).second;
+					}
+
+					if( MeandEdXs.at(i_plane).first == 1 ){
+						ThisPrimaryDaughter.MeandEdX_Plane1 = MeandEdXs.at(i_plane).second;
+					}
+
+					if( MeandEdXs.at(i_plane).first == 2 ){
+						ThisPrimaryDaughter.MeandEdX_Plane0 = MeandEdXs.at(i_plane).second;
+					}
+				}
+
+				//stock uboone PIDs
 				std::vector<art::Ptr<anab::ParticleID>> trackPID = PIDAssoc.at(trk.key());
 
 				std::vector<anab::sParticleIDAlgScores> AlgScoresVec = trackPID.at(0)->ParticleIDAlgScores();
@@ -1168,32 +1262,12 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 					anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
 
-					if(anab::kTrackDir(AlgScore.fTrackDir) == anab::kBackward) continue;
 
-					int algno=-1;
-					if(AlgScore.fAlgName == "Chi2") algno = 1;
-					else if(AlgScore.fAlgName == "BraggPeakLLH") algno = 2;
-					else if(AlgScore.fAlgName == "BraggPeakLLH_shift") algno = 3;
-					else if(AlgScore.fAlgName == "PIDA_median") algno = 4;
-					else if(AlgScore.fAlgName == "PIDA_mean") algno = 5;
-					else if(AlgScore.fAlgName == "TruncatedMean") algno = 6;
-					else if(AlgScore.fAlgName == "DepEvsRangeE") algno = 7;
-					else if(AlgScore.fAlgName == "ThreePlaneProtonPID") algno = 8;
-					else std::cout << "Unrecognized algorithm name: " << AlgScore.fAlgName << std::endl;
-
-					thisTrackAlgNumbers.push_back(algno);
-
-
-					thisTrackPlaneNos.push_back(UBPID::uB_getSinglePlane(AlgScore.fPlaneMask));
-					thisTrackAssumedPDGs.push_back(TMath::Abs(AlgScore.fAssumedPdg));
-					thisTrackScores.push_back(AlgScore.fValue);
-
-
-
-					//Just use 3 plane proton PID for the time being
+					//3 Plane Proton PID
 					if(  TMath::Abs(AlgScore.fAssumedPdg) == 2212  &&   AlgScore.fAlgName=="ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward){	
 
-						ThisPrimaryDaughter.TrackPID = AlgScore.fValue;
+						//take log
+						ThisPrimaryDaughter.TrackPID = std::log(AlgScore.fValue);
 
 					}
 
@@ -1214,54 +1288,94 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 				geo::Vector_t sce_corr = SCE->GetPosOffsets(point);
 
 				//no SC correction
-				//TVector3 pos(vtx->position().X(),vtx->position().Y(),vtx->position().Z());
+				//TVector3 pos( vtx->position().X() , vtx->position().Y() , vtx->position().Z() );
+
 				//w SC correction - forward
-				TVector3 pos( vtx->position().X() - sce_corr.X() , vtx->position().Y() - sce_corr.Y() , vtx->position().Z() - sce_corr.Z() );
+				TVector3 pos( vtx->position().X() + sce_corr.X() , vtx->position().Y() - sce_corr.Y() , vtx->position().Z() - sce_corr.Z() );
 
 				ThisPrimaryDaughter.SetVertex( pos );
 
-
-				double d = sqrt(  (pos.X() - fRecoPrimaryVertex.X())*(pos.X() - fRecoPrimaryVertex.X())
-						+ (pos.Y() - fRecoPrimaryVertex.Y())*(pos.Y() - fRecoPrimaryVertex.Y())
-						+ (pos.Z() - fRecoPrimaryVertex.Z())*(pos.Z() - fRecoPrimaryVertex.Z()) );
-
-				ThisPrimaryDaughter.Displacement = d;
+				ThisPrimaryDaughter.Displacement = (pos - fRecoPrimaryVertex).Mag();
 
 			}
 
 		}
 
 
-		if(ThisPrimaryDaughter.PDG == 13){
+		if(ThisPrimaryDaughter.PDG == 13 && pfpTracks.size() == 1){
 
 			fTrackPrimaryDaughters.push_back( ThisPrimaryDaughter );
-
-			//fill PID info
-
-			//for(size_t j=0;j<thisTrackAlgNames.size();j++) std::cout << thisTrackAlgNames.at(j) << std::endl;
-
-			fAlgNumber.push_back(thisTrackAlgNumbers); //pid scores for tracks 
-			fPlaneNo.push_back(thisTrackPlaneNos); //pid scores for tracks 
-			fAssumedPDG.push_back(thisTrackAssumedPDGs); //pid scores for tracks 
-			fScore.push_back(thisTrackScores); //pid scores for tracks 
-			fRecoLength.push_back(thisTrackRecoLength); //pid scores for tracks 
-			fTruePDG.push_back(thisTrackTruePDG); //pid scores for tracks 
-			fTrueLength.push_back(thisTrackTrueLength); //pid scores for tracks 
-
+			fNPrimaryTrackDaughters++;
 
 		}
-		else fShowerPrimaryDaughters.push_back( ThisPrimaryDaughter );
+		else if(ThisPrimaryDaughter.PDG == 11 && pfpShowers.size() == 1){ 
+			fShowerPrimaryDaughters.push_back( ThisPrimaryDaughter );
+			fNPrimaryShowerDaughters++;
+		}
 
 	}//end of PFP loop
-	
+
+	//set indices in particle vectors	
+	for(size_t i_tr=0;i_tr<fTrackPrimaryDaughters.size();i_tr++) fTrackPrimaryDaughters[i_tr].Index = i_tr;
+	for(size_t i_sh=0;i_sh<fShowerPrimaryDaughters.size();i_sh++) fShowerPrimaryDaughters[i_sh].Index = i_sh;
+
+
+	//store truth matching info for muon, decay proton and pion
+	StoreTrackTruth();
 
 	if(fPrint) PrintInfo();
+
+	if(fDebug) std::cout << "Track Particle Vector Size = " << fTrackPrimaryDaughters.size() << " ,Track Vector Size = " << Tracks.size() << std::endl;
+
+	
+	if(Tracks.size() != fTrackPrimaryDaughters.size()){ std::string message = "Track and reco particle vector size mismatch";
+                                        throw std::invalid_argument(message); }
+
+	//Run vertexing algorithm over pairs of tracks in the event
+
+	if(Tracks.size() > 1){
+
+		for(size_t i_tr=0;i_tr<Tracks.size();i_tr++){
+			for(size_t j_tr=0;j_tr<Tracks.size();j_tr++){
+
+				if(i_tr == j_tr) continue;
+
+				std::vector<art::Ptr<recob::Track>> tmp_tracks;
+
+				tmp_tracks.resize(2);
+				tmp_tracks[0] = Tracks.at(i_tr);	
+				tmp_tracks[1] = Tracks.at(j_tr);	
+
+				trkf::VertexWrapper track_vtx = fitter->fitTracks(tmp_tracks);
+				bool _vtx_fit_pandora_is_valid = track_vtx.isValid();
+
+				if(_vtx_fit_pandora_is_valid){
+
+					//apply SC correction
+					geo::Point_t point = { track_vtx.position().X() , track_vtx.position().Y() , track_vtx.position().Z() };
+					geo::Vector_t sce_corr = SCE->GetPosOffsets(point);
+
+					FittedVertex V;
+					V.Index_1 = i_tr;
+					V.Index_2 = j_tr;
+					V.X = point.X() + sce_corr.X();
+					V.Y = point.Y() + sce_corr.Y();
+					V.Z = point.Z() + sce_corr.Z();
+					V.Chi2_1 = fitter->chi2( track_vtx , *tmp_tracks[0] );					
+					V.Chi2_2 = fitter->chi2( track_vtx , *tmp_tracks[1] );					
+
+					fTrackVertices.push_back(V);
+
+				}
+
+			}
+		}
+	}
 
 
 	fSelectedEvent = PerformSelection();
 
 	FinishEvent();
-
 
 }
 
@@ -1274,9 +1388,9 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 void hyperon::HyperonSelection::PrintInfo(){
 
 
-	if(!fHyperon.size()) return;
+	if( fHyperon.size() != 1 ) return;
 
-	if(!(fHyperon.at(0).PDG == fPrintPdg || fPrintPdg == -1) || !fInActiveTPC) return;
+	if( !(fHyperon.at(0).PDG == fPrintPdg || fPrintPdg == -1) || !fInActiveTPC) return;
 
 	std::cout << std::endl;	
 	std::cout << "EventID: " << fEventID-1 << std::endl;
@@ -1357,55 +1471,168 @@ int hyperon::HyperonSelection::getOrigin(int idnum){
 
 void hyperon::HyperonSelection::FinishEvent(){
 
-	//	if(ccnc == 0) {fNChargedCurrent++; fCCNC="CC"; }
-	//	else { fNNeutralCurrent++; fCCNC="NC"; }
+	if(fDebug) std::cout << "Finishing Event" << std::endl;
 
-	
-	
-	if( fLepton.size() != 1 || isLepton(fLepton.at(0).PDG) ) { fNChargedCurrent++; fCCNC="CC"; }
-	else { fNNeutralCurrent++; fCCNC="NC"; }
+	if(fCCNC == "CC") fNChargedCurrent++;
+	else fNNeutralCurrent++;
 
-//	if( isNeutrino(fLepton.at(0).PDG) ) { fNNeutralCurrent++; fCCNC="NC"; }
-//	else { fNChargedCurrent++; fCCNC="CC"; }
-
-	if(fNuPDG == 12) fNnue++;
-	else if(fNuPDG == 14) fNnuMu++;
-	else if(fNuPDG == -12) fNnueBar++;
-	else fNnuMuBar++;
+	if( fNeutrino.size() != 1 ) std::cout << "Number of simulated neutrinos in this event != 1 !!" << std::endl;
+	else if(fNeutrino.at(0).PDG == 12) fNnue++;
+	else if(fNeutrino.at(0).PDG == 14) fNnuMu++;
+	else if(fNeutrino.at(0).PDG == -12) fNnueBar++;
+	else if(fNeutrino.at(0).PDG == -14) fNnuMuBar++;
 
 
-	if(fInActiveTPC && fIsLambdaCharged && fNuPDG == -14) fIsSignal = true;
+	//genie uses QEL for hyperon events, NuWro uses HYP
+	if(fNeutrino.size() == 1 && fInActiveTPC && fIsLambdaCharged && fNeutrino.at(0).PDG == -14 && ( fMode == "QEL" || fMode == "HYP") ) fIsSignal = true;
+
+	//asscociated hyperon/kaon production tagger - hyperon and kaon in the final state
+	if( fHyperon.size() && fPrimaryKaon.size() ) fIsAssociatedHyperon = true;
+
+	//if is a signal event, check if decay products were reconstructed
+	if(fIsSignal && fTrueDecayProtonIndex >= 0 && fTrueDecayPionIndex >= 0) fGoodReco = true;	
 
 	//store info for this event
 	fOutputTree->Fill();
-	
-	//store PID info
-	fPIDTree->Fill();
-	
+
 	//update metadata
 
 	fNEvents++; //total events in sample
 	if(fIsHyperon && fInActiveTPC) fNHyperons++; //total hyperon events in active vol
 	if(fSelectedEvent) fNSelectedEvents++; //total events passing selection
 	if(fSelectedEvent && fInActiveTPC && fIsHyperon) fNSelectedHyperons++; //total hyperons in active vol passing preselection
-	if(fSelectedEvent && fIsHyperon) fNSelectedHyperons++; //total true hyperon events passing selection
-
 
 	//signal events
 	if(fIsSignal) fNSignal++;
 	if(fIsSignal && fSelectedEvent) fNSelectedSignal++;
 
-
-	//efficiency = fNSelectedHyperonsInActiveVol/fNHyperonsInActiv;
-	//purity = fNSelectedHyperonsInActiveVol/fSelectedEvents;
-
+	//signal events
+	if(fGoodReco) fNGoodReco++;
+	if(fGoodReco && fSelectedEvent) fNSelectedGoodReco++;
 
 }
 
 
+/////////////////////////////////////////////////////////////////
+//   Find tracks truth matching to muon, proton and pion from  //
+//   hyperon decay (if they exist), store positions in track   //
+//   vector in tree                                            //
+/////////////////////////////////////////////////////////////////
+
+void hyperon::HyperonSelection::StoreTrackTruth(){
+
+	//make sure index stores have been reset!
+	fTrueMuonIndex=-1;	
+	fTrueDecayProtonIndex=-1;
+	fTrueDecayPionIndex=-1;
+
+	//can be multiple tracks corresponding to the muon/proton/pion
+	//first get all the tracks truth matching to primary muon, decay proton, decay pion
+
+	std::vector<int> Muons;
+	std::vector<int> DecayProtons;
+	std::vector<int> DecayPions;
+
+	for(size_t i_tr=0;i_tr<fTrackPrimaryDaughters.size();i_tr++){
+
+		//if track does not have a truth matching, skip
+		if(!fTrackPrimaryDaughters.at(i_tr).HasTruth) continue;
+
+		//if muon produced at primary vertex
+		if( abs(fTrackPrimaryDaughters.at(i_tr).TrackTruePDG) == 13 && fTrackPrimaryDaughters.at(i_tr).TrackTrueOrigin == 1 ) Muons.push_back( fTrackPrimaryDaughters.at(i_tr).Index );
+
+		//if proton produced from hyperon decay
+		if( fTrackPrimaryDaughters.at(i_tr).TrackTruePDG == 2212 && fTrackPrimaryDaughters.at(i_tr).TrackTrueOrigin == 2 ) DecayProtons.push_back( fTrackPrimaryDaughters.at(i_tr).Index );
+
+		//if pi minus produced from hyperon decay
+		if( fTrackPrimaryDaughters.at(i_tr).TrackTruePDG == -211 && fTrackPrimaryDaughters.at(i_tr).TrackTrueOrigin == 2 ) DecayPions.push_back( fTrackPrimaryDaughters.at(i_tr).Index );
+
+	}
+
+	//if there are no muons, protons or pions, exit here
+	if( !Muons.size() && !DecayProtons.size() && !DecayPions.size() ) return;
+
+	//set muon information
+	//if multiple muons found, choose the one closest to reco'd primary vertex
+	double min_dist=10000;
+	for(size_t i_m=0;i_m<Muons.size();i_m++){
+
+		TVector3 MuonStart(fTrackPrimaryDaughters.at(Muons.at(i_m)).TrackStartX,fTrackPrimaryDaughters.at(Muons.at(i_m)).TrackStartY,fTrackPrimaryDaughters.at(Muons.at(i_m)).TrackStartZ);
+
+		double d = (MuonStart - fRecoPrimaryVertex).Mag();
+
+		if(d < min_dist) { fTrueMuonIndex = Muons.at(i_m); min_dist = d;  }
+
+	}
+
+	//if there are no decay products, exit here
+	if( !DecayProtons.size() && !DecayPions.size() ) return;
+
+
+	//check you have both decay products, if you have both, choose the pair of tracks starting closest together
+
+	if( DecayProtons.size() && DecayPions.size() ){
+
+		//std::cout << "Got both decay products" << std::endl;	
+
+		double min_sep = 10000;
+
+		for(size_t i_pr=0;i_pr<DecayProtons.size();i_pr++){
+			for(size_t i_pi=0;i_pi<DecayPions.size();i_pi++){
+
+				TVector3 ProtonStart(fTrackPrimaryDaughters.at(DecayProtons.at(i_pr)).TrackStartX,fTrackPrimaryDaughters.at(DecayProtons.at(i_pr)).TrackStartY,fTrackPrimaryDaughters.at(DecayProtons.at(i_pr)).TrackStartZ);
+
+				TVector3 PionStart(fTrackPrimaryDaughters.at(DecayPions.at(i_pi)).TrackStartX,fTrackPrimaryDaughters.at(DecayPions.at(i_pi)).TrackStartY,fTrackPrimaryDaughters.at(DecayPions.at(i_pi)).TrackStartZ);
+
+				double d = (ProtonStart - PionStart).Mag();
+				if( d < min_sep ){ fTrueDecayProtonIndex = DecayProtons.at(i_pr); fTrueDecayPionIndex = DecayPions.at(i_pi); min_sep = d; }
+
+
+			}
+		}
+
+	}
+
+	//if missing one or both of the decay products, choose the tracks starting closest to PV
+	else {
+
+		//for protons
+		min_dist = 10000;
+		for(size_t i_pr=0;i_pr<DecayProtons.size();i_pr++){
+
+			TVector3 ProtonStart(fTrackPrimaryDaughters.at(DecayProtons.at(i_pr)).TrackStartX,fTrackPrimaryDaughters.at(DecayProtons.at(i_pr)).TrackStartY,fTrackPrimaryDaughters.at(DecayProtons.at(i_pr)).TrackStartZ);
+
+			double d = (ProtonStart - fRecoPrimaryVertex).Mag();
+
+			if(d < min_dist) { fTrueDecayProtonIndex = DecayProtons.at(i_pr); min_dist = d;  }
+
+		}
+
+		//for pions
+		min_dist = 10000;
+		for(size_t i_pi=0;i_pi<DecayPions.size();i_pi++){
+
+			TVector3 PionStart(fTrackPrimaryDaughters.at(DecayPions.at(i_pi)).TrackStartX,fTrackPrimaryDaughters.at(DecayPions.at(i_pi)).TrackStartY,fTrackPrimaryDaughters.at(DecayPions.at(i_pi)).TrackStartZ);
+
+			double d = (PionStart - fRecoPrimaryVertex).Mag();
+
+			if(d < min_dist) { fTrueDecayPionIndex = DecayPions.at(i_pi); min_dist = d;  }
+
+		}
+
+
+	}
+
+
+}
+
+//////////////////////////////////////////////////////////////////
 
 
 void hyperon::HyperonSelection::beginJob(){
+
+
+	if(fDebug) std::cout << "Begin job" << std::endl;
 
 	fileID=0;	
 
@@ -1435,12 +1662,12 @@ void hyperon::HyperonSelection::beginJob(){
 	fOutputTree->Branch("IsLambda",&fIsLambda);
 	fOutputTree->Branch("IsLambdaCharged",&fIsLambdaCharged);
 	fOutputTree->Branch("IsSignal",&fIsSignal);
-
+	fOutputTree->Branch("GoodReco",&fGoodReco);
+	fOutputTree->Branch("IsAssociatedHyperon",&fIsAssociatedHyperon);
 	fOutputTree->Branch("SelectedEvent",&fSelectedEvent);
 
 	//neutrino information
-	fOutputTree->Branch("NuEnergy",&fNuEnergy); //neutrino energy
-	fOutputTree->Branch("NuPDG",&fNuPDG); //neutrino PDG code
+	fOutputTree->Branch("Neutrino","vector<SimParticle>",&fNeutrino);
 	fOutputTree->Branch("TruePrimaryVertex","TVector3",&fTruePrimaryVertex);
 
 	//lepton
@@ -1448,15 +1675,16 @@ void hyperon::HyperonSelection::beginJob(){
 	//hyperon
 	fOutputTree->Branch("Hyperon","vector<SimParticle>",&fHyperon);
 
-	//nucleons and pions at the primary vtx
+	//nucleons, pions and kaons at the primary vtx
 	fOutputTree->Branch("PrimaryNucleon","vector<SimParticle>",&fPrimaryNucleon);
 	fOutputTree->Branch("PrimaryPion","vector<SimParticle>",&fPrimaryPion);
+	fOutputTree->Branch("PrimaryKaon","vector<SimParticle>",&fPrimaryKaon);
 
-	//g4 truth info
-
+	//hyperon decay info
 	fOutputTree->Branch("DecayVertex","TVector3",&fDecayVertex); //position of hyperon decay vertex
 	fOutputTree->Branch("Decay","vector<SimParticle>",&fDecay);
 
+	//sigma zero decay products
 	fOutputTree->Branch("SigmaZeroDecayPhoton","vector<SimParticle>",&fSigmaZeroDecayPhoton);
 	fOutputTree->Branch("SigmaZeroDecayLambda","vector<SimParticle>",&fSigmaZeroDecayLambda);
 
@@ -1472,32 +1700,18 @@ void hyperon::HyperonSelection::beginJob(){
 	//////////////////////
 
 	fOutputTree->Branch("RecoPrimaryVertex","TVector3",&fRecoPrimaryVertex);
-	fOutputTree->Branch("NPrimaryTrackDaughters",&fNPrimaryTrackDaughters); //num ofOutputTree->Branch("",f track like primary daughters
-	fOutputTree->Branch("NPrimaryShowerDaughters",&fNPrimaryShowerDaughters); //num ofOutputTree->Branch("",f shower like primary daughters
+	fOutputTree->Branch("NPrimaryTrackDaughters",&fNPrimaryTrackDaughters);
+	fOutputTree->Branch("NPrimaryShowerDaughters",&fNPrimaryShowerDaughters);
 
 	fOutputTree->Branch("TracklikePrimaryDaughters","vector<RecoParticle>",&fTrackPrimaryDaughters);
 	fOutputTree->Branch("ShowerlikePrimaryDaughters","vector<RecoParticle>",&fShowerPrimaryDaughters);
 	fOutputTree->Branch("MuonIndex",&fMuonIndex);
 
+	fOutputTree->Branch("TrackVertices","vector<FittedVertex>",&fTrackVertices);
 
-	///////////////////////
-        //     PID Scores    //
-        ///////////////////////     
-
-        fPIDTree=tfs->make<TTree>("PIDTree","PID Scores Tree");
-        fPIDTree->Branch("SelectedEvent",&fSelectedEvent);
-        fPIDTree->Branch("IsSignal",&fIsSignal);
-        fPIDTree->Branch("AlgNumber",&fAlgNumber); //pid scores for tracks 
-        fPIDTree->Branch("PlaneNo",&fPlaneNo); //pid scores for tracks 
-        fPIDTree->Branch("AssumedPDG",&fAssumedPDG); //pid scores for tracks 
-        fPIDTree->Branch("Score",&fScore); //pid scores for tracks 
-        fPIDTree->Branch("RecoLength",&fRecoLength); //pid scores for tracks 
-        fPIDTree->Branch("TruePDG",&fTruePDG); //pid scores for tracks 
-        fPIDTree->Branch("trueLength",&fRecoLength); //pid scores for tracks 
-
-
-
-
+	fOutputTree->Branch("TrueMuonIndex",&fTrueMuonIndex);
+	fOutputTree->Branch("TrueDecayProtonIndex",&fTrueDecayProtonIndex);
+	fOutputTree->Branch("TrueDecayPionIndex",&fTrueDecayPionIndex);
 
 	//////////////////////////////////////////
 	//            Metadata Tree		//
@@ -1505,7 +1719,6 @@ void hyperon::HyperonSelection::beginJob(){
 
 	fNEvents=0; //total events in sample
 	fNHyperons=0;
-
 
 	fNSelectedEvents=0; //total events passing selection
 	fNSelectedHyperons=0; //total true hyperon events passing selection
@@ -1519,6 +1732,8 @@ void hyperon::HyperonSelection::beginJob(){
 	fNSignal=0;
 	fNSelectedSignal=0;
 
+	fNGoodReco=0;
+	fNSelectedGoodReco=0;
 
 	fNChargedCurrent=0; //number of cc events
 	fNNeutralCurrent=0; //number of nc events
@@ -1527,6 +1742,7 @@ void hyperon::HyperonSelection::beginJob(){
 	fNnuMuBar=0; //number of numubar events
 	fNnueBar=0; //number of nuebar events
 
+	fPOT=0;
 
 	fMetaTree=tfs->make<TTree>("MetaTree","Metadata Info Tree");
 
@@ -1552,11 +1768,26 @@ void hyperon::HyperonSelection::beginJob(){
 
 	fMetaTree->Branch("NSignal",&fNSignal);
 	fMetaTree->Branch("NSelectedSignal",&fNSelectedSignal);	
+
 	fMetaTree->Branch("SignalEfficiency",&fSignalEfficiency);
 	fMetaTree->Branch("SignalPurity",&fSignalPurity);
 	fMetaTree->Branch("SignalEfficiencyTimesPurity",&fSignalEfficiencyTimesPurity);
 	fMetaTree->Branch("SignalTruePurity",&fSignalTruePurity);
 	fMetaTree->Branch("SignalEfficiencyTimesTruePurity",&fSignalEfficiencyTimesTruePurity);
+
+	fMetaTree->Branch("NGoodReco",&fNGoodReco);
+	fMetaTree->Branch("NSelectedGoodReco",&fNSelectedGoodReco);	
+
+	fMetaTree->Branch("GoodRecoEfficiency",&fGoodRecoEfficiency);
+	fMetaTree->Branch("GoodRecoPurity",&fGoodRecoPurity);
+	fMetaTree->Branch("GoodRecoEfficiencyTimesPurity",&fGoodRecoEfficiencyTimesPurity);
+	fMetaTree->Branch("GoodRecoTruePurity",&fGoodRecoTruePurity);
+	fMetaTree->Branch("GoodRecoEfficiencyTimesTruePurity",&fGoodRecoEfficiencyTimesTruePurity);
+
+	fMetaTree->Branch("POT",&fPOT);
+
+	if(fDebug) std::cout << "Finished begin job" << std::endl;
+
 
 }
 
@@ -1569,12 +1800,14 @@ void hyperon::HyperonSelection::endJob()
 	if(fNSelectedEvents > 0){
 		fHyperonPurity = (double)fNSelectedHyperons/fNSelectedEvents;
 		fSignalPurity = (double)fNSelectedSignal/fNSelectedEvents;	
+		fGoodRecoPurity = (double)fNSelectedGoodReco/fNSelectedEvents;
 	}
 
 	if(fNHyperons > 0) fHyperonEfficiency = (double)fNSelectedHyperons/fNHyperons;
 
 	if(fNSelectedSignal > 0) fSignalEfficiency = (double)fNSelectedSignal/fNSignal;
 
+	if(fNSelectedGoodReco > 0) fGoodRecoEfficiency = (double)fNSelectedGoodReco/fNGoodReco;
 
 	fHyperonEfficiencyTimesPurity = fHyperonPurity * fHyperonEfficiency;
 	fHyperonTruePurity = 1/( 1+(1/fHyperonPurity-1)*30 );
@@ -1584,6 +1817,9 @@ void hyperon::HyperonSelection::endJob()
 	fSignalTruePurity = 1/( 1+(1/fSignalPurity-1)*30 );
 	fSignalEfficiencyTimesTruePurity = fSignalEfficiency * fSignalTruePurity;
 
+	fGoodRecoEfficiencyTimesPurity = fGoodRecoPurity * fGoodRecoEfficiency;
+	fGoodRecoTruePurity = 1/( 1+(1/fGoodRecoPurity-1)*30 );
+	fGoodRecoEfficiencyTimesTruePurity = fGoodRecoEfficiency * fGoodRecoTruePurity;
 
 	//print useful metadata
 
@@ -1605,9 +1841,22 @@ void hyperon::HyperonSelection::endJob()
 	std::cout << "Enriched Sample E x P: " << fSignalEfficiencyTimesPurity*100 << std::endl;
 	std::cout << "True Purity assuming enrichment factor of 30: " << fSignalTruePurity*100 <<  std::endl;
 
+
+
+	std::cout << std::endl;
+	std::cout << "Selected Events: " <<  fNSelectedEvents << std::endl;
+	std::cout << "GoodReco Events: " << fNGoodReco << std::endl;
+	std::cout << "Selected GoodReco events: " << fNSelectedGoodReco  << std::endl;	
+	std::cout << "Enriched Sample Efficiency: " << fGoodRecoEfficiency*100 << std::endl;
+	std::cout << "Enriched Sample Purity: " << fGoodRecoPurity*100 << std::endl;	
+	std::cout << "Enriched Sample E x P: " << fGoodRecoEfficiencyTimesPurity*100 << std::endl;
+	std::cout << "True Purity assuming enrichment factor of 30: " << fGoodRecoTruePurity*100 <<  std::endl;
+
+
 	std::cout << std::endl << std::endl << std::endl;
 
 	fMetaTree->Fill();
+
 
 }
 
@@ -1616,8 +1865,14 @@ void hyperon::HyperonSelection::endJob()
 void hyperon::HyperonSelection::beginSubRun(const art::SubRun& sr)
 {
 
-	std::cout << "New file, ID: " << fileID << std::endl;
 	fileID++;
+	std::cout << "New file, ID: " << fileID << std::endl;
+
+	if(fDebug) std::cout << "Getting Subrun POT Info" << std::endl;
+
+	art::Handle<sumdata::POTSummary> POTHandle;
+
+	if(sr.getByLabel(fPOTSummaryLabel,POTHandle)) fPOT += POTHandle->totpot;	
 
 }
 

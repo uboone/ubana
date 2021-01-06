@@ -6,6 +6,8 @@ art_make(
 		DICT_LIBRARIES ${ROOT_BASIC_LIB_LIST} #required to make Reco/Sim Particle dictionaries
 
 		MODULE_LIBRARIES larcorealg_Geometry
+		#PID debugging
+		ubana_ParticleID_Algorithms
 		larcore_Geometry_Geometry_service
 		larsim_Simulation
 		nutools_ParticleNavigation

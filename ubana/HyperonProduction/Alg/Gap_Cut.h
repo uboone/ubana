@@ -1,3 +1,6 @@
+#ifndef _Gap_Cut_h_
+#define _Gap_Cut_h_
+
 #include "ubana/HyperonProduction/util/RecoParticle.h"
 
 //reject events with tracks exceeded a certain length
@@ -21,8 +24,6 @@ double d = sqrt( (RecoParticles.at(i).X - muon_x)*(RecoParticles.at(i).X - muon_
 	  + (RecoParticles.at(i).Y - muon_y)*(RecoParticles.at(i).Y - muon_y)
 	  + (RecoParticles.at(i).Z - muon_z)*(RecoParticles.at(i).Z - muon_z) );
 
-
-
 if(d < max_gap && d > min_gap) accepted.push_back(i); 
 
 }
@@ -39,7 +40,7 @@ double d = sqrt( (Accepted1.X - Accepted2.X)*(Accepted1.X - Accepted2.X)
 	       + (Accepted1.Y - Accepted2.Y)*(Accepted1.Y - Accepted2.Y)
 	       + (Accepted1.Z - Accepted2.Z)*(Accepted1.Z - Accepted2.Z) );
  
-std::cout << d << std::endl;
+//std::cout << d << std::endl;
 
 if(d > 1) return false;
 
@@ -48,7 +49,4 @@ return true;
 
 }
 
-
-
-
-
+#endif

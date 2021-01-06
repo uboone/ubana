@@ -30,7 +30,7 @@ double Travel=0; //distance between start position and end position
 double Theta=0; //theta of initial momentum
 double Phi=0; //phi of initial momentum
 
-int Origin=0; // 1 - primary , 2 - hyperon decay, 3 - other
+int Origin=0; //0 - neutrino , 1 - primary , 2 - hyperon decay, 3 - other
 
 
 void SetKinematics(TLorentzVector P, double Mass);
