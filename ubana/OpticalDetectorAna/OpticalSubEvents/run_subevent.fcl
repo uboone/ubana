@@ -9,6 +9,7 @@ services:
   TFileService: { fileName: "raw_digits.root" }
   ExptGeoHelperInterface: @local::microboone_geometry_helper
   Geometry:               @local::microboone_geo
+  GeometryConfigurationWriter: {}
   DetectorClocksService:            @local::microboone_detectorclocks
   #DatabaseUtil:           @local::microboone_database
   UBOpReadoutMap:         @local::microboone_opreadoutmap

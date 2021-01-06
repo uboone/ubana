@@ -46,6 +46,7 @@ microboone_tfile_metadata:
 
 services.ExptGeoHelperInterface: @local::microboone_geometry_helper
 services.Geometry:               @local::microboone_geo
+services.GeometryConfigurationWriter: {}
 services.UBOpReadoutMap:           @local::microboone_opreadoutmap
 services.DetectorClocksService:            @local::microboone_detectorclocks
 services.DatabaseUtil:           @local::microboone_database

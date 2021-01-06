@@ -10,6 +10,7 @@ services:
   TimeTracker:  {}
   ExptGeoHelperInterface: @local::microboone_geometry_helper
   Geometry:               @local::microboone_geo
+  GeometryConfigurationWriter: {}
   DetectorClocksService:            @local::microboone_detectorclocks
   UBOpReadoutMap:         @local::microboone_opreadoutmap
 }
