@@ -1075,8 +1075,8 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("truth_pio_energy_2",         &f_truth_pio_energy_2);
   fPFeval->Branch("truth_pio_angle",            &f_truth_pio_angle);
   fPFeval->Branch("truth_NCDelta",            	&f_truth_NCDelta);
-  fPFeval->Branch("truth_nu_pos",         	&f_truth_nu_pos);
-  fPFeval->Branch("truth_nu_momentum",         	&f_truth_nu_momentum);
+  fPFeval->Branch("truth_nu_pos",         	&f_truth_nu_pos, "truth_nu_pos[4]/F");
+  fPFeval->Branch("truth_nu_momentum",         	&f_truth_nu_momentum, "truth_nu_momentum[4]/F");
   }
 
 

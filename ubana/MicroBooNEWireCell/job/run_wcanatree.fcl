@@ -4,7 +4,7 @@ process_name: WireCellAnaTree
 
 services:
 {
-  TFileService: { fileName: "checkout.root" }
+  TFileService: { fileName: "reco2_checkout_hist.root" }
   TimeTracker:             @local::microboone_time_tracker
   MemoryTracker:           @local::microboone_memory_tracker
   FileCatalogMetadata:     @local::art_file_catalog_data
@@ -83,7 +83,13 @@ physics:
   }
 
   ana: [ wcpselection, wcpweights ]
-  end_paths: [ ana ]
+  ## trigger_paths contains the paths that modify the art::Event
+  # trigger_paths: [ ana ]
+
+  stream1: [ out1 ]
+  ## end_paths contains the paths that do not modify the art::Event
+  # end_paths: [ stream1 ]
+  end_paths: [ stream1, ana]
 }
 
 outputs:
@@ -116,7 +122,7 @@ services.DetectorClocksService.InheritClockConfig:  false
 
 microboone_tfile_metadata:
 {
-  JSONFileName:          ["checkout.root.json"]
+  JSONFileName:          ["reco2_checkout_hist.root.json"]
   GenerateTFileMetadata: [true]
   dataTier:              ["root-tuple"]
   fileFormat:            ["root"]
