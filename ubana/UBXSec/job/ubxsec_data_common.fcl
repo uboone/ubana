@@ -50,7 +50,6 @@ services.SpaceCharge.EnableCorrSCE:       true
 services.SpaceCharge.EnableSimEfieldSCE:  true
 services.SpaceCharge.EnableSimSpatialSCE: true
  
-#services.Geometry.ForceUseFCLOnly:                           true
 
 services.TimeTracker.printSummary:                           false
 services.TimeTracker.dbOutput:                               {}
