@@ -89,7 +89,8 @@ physics:
   stream1: [ out1 ]
   ## end_paths contains the paths that do not modify the art::Event
   # end_paths: [ stream1 ]
-  end_paths: [ stream1, ana]
+  # end_paths: [ stream1, ana ]
+  end_paths: [ ana ]
 }
 
 outputs:
