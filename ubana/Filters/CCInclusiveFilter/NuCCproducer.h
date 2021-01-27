@@ -124,6 +124,8 @@ private:
   float m_event_cut_flashchi2_ratio;
   float m_event_cut_length;
 
+  bool m_overrideNuScore;
+
   TrackHelper trackHelper;
   PandoraInterfaceHelper pandoraInterfaceHelper;
 
@@ -190,6 +192,8 @@ void NuCCproducer::reconfigure(fhicl::ParameterSet const &p)
   m_event_cut_nuscore_hard = p.get<float>("event_cut_nuscore_hard", 0.06);
   m_event_cut_flashchi2_ratio = p.get<float>("event_cut_flashchi2_ratio", 5);
   m_event_cut_length = p.get<float>("event_cut_length", 20);
+
+  m_overrideNuScore = p.get<bool>("OverrideNuScore", false);
 }
 
 NuCCproducer::NuCCproducer(fhicl::ParameterSet const &p)

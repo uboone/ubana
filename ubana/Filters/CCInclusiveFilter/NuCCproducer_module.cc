@@ -69,7 +69,8 @@ void NuCCproducer::FillReconstructed(art::Event const &evt)
   else
   {
     const larpandoraobj::PFParticleMetadata::PropertiesMap &neutrino_properties = neutrino_metadata_vec.front()->GetPropertiesMap();
-    fNu_Score = neutrino_properties.at("NuScore");
+    if(m_overrideNuScore) fNu_Score = 1.;
+    else fNu_Score = neutrino_properties.at("NuScore");
     const recob::Vertex::Point_t &neutrino_vtx = neutrino_vertex_vec.front()->position();
     fNu_Vx = neutrino_vtx.X();
     fNu_Vy = neutrino_vtx.Y();
