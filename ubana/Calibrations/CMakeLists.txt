@@ -1,4 +1,6 @@
 
+cet_remove_compiler_flags(CXX -pedantic)
+
 add_subdirectory(Optical)
 
 art_make( BASENAME_ONLY
