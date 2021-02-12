@@ -929,7 +929,7 @@ namespace single_photon
                 m_sss_num_unassociated_hits =vnh[1]+vnh[2];
                 m_sss_num_unassociated_hits_below_threshold = vnh[2];
                 m_sss_num_associated_hits = vnh[0]-vnh[1]-vnh[2];
-                //Recluster
+                //Recluster, group unassociated hits into different clusters
                 sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
 
                 //And some plotting
@@ -1628,7 +1628,7 @@ namespace single_photon
         delan.SetMarginBinsContent(0);
         delan.ComputeZ(0,0);
         delan.FindAllTriangles();
-        (*num_triangles)=delan.GetNdt();
+        (*num_triangles)=delan.GetNdt(); // number of Delaunay triangles found
 
         //Grab the locations of all the trianges. These will be intergers referencing to position in X,Y arrays
         Int_t *MT = delan.GetMTried();
@@ -1729,7 +1729,7 @@ namespace single_photon
         double ky = mcparticle->Vy();
         double kz = mcparticle->Vz();
 
-        auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
+        auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));  // to get position offsets to be used in ionization electron drift
         double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
 
         double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
@@ -1874,6 +1874,7 @@ namespace single_photon
         if(m_reco_vertex_size<1) return false;
 
         if(m_reco_shower_energy_max.size()!=2) return false;
+	//if the maximum energy of all showers on all planes is smaller than 30
         if(m_reco_shower_energy_max[m_reco_shower_ordered_energy_index[0]]<30.) return false;
 
         return true;

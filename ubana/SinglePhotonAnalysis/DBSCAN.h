@@ -25,14 +25,18 @@ class DBSCAN{
         double m_eps;
         int m_minpts;
 
-        /// Default constructor
+        /// constructor
         DBSCAN(double in_eps, int in_minpts): m_eps(in_eps), m_minpts(in_minpts) {}
 
         /// Default destructor
+        // Guanqun: probably not needed
         ~DBSCAN(){}
 
+	// scan over points, and group them into different clusters
         std::vector<int> Scan2D(std::vector<std::vector<double>> &pts);
+	// grab neighbours of point i.
         std::vector<std::vector<double>> GetNeighbours(size_t i, std::vector<std::vector<double>> &pts,bool);
+	// merge neighbours in seed and pts together into seed
         int UnionSets(std::vector<std::vector<double>> &seed, std::vector<std::vector<double>> &pts);
 };
 
@@ -55,12 +59,14 @@ std::vector<int> DBSCAN::Scan2D(std::vector<std::vector<double>> &pts){
             continue;
         }
 
+        // if point i is not a noise
         cluster_count+=1;
         label[i] = cluster_count;
         
 
         std::vector<std::vector<double>> seed_set = neighbours;
         for(size_t q=0; q<seed_set.size(); q++){
+	    //iq is index of neighbours
             size_t iq = (size_t)seed_set[q][2]; //This is original 
 
             if(label[iq]==l_noise){
@@ -113,6 +119,7 @@ std::vector<std::vector<double>> DBSCAN::GetNeighbours(size_t ipoint, std::vecto
     }
     return neighbours;
 }
+
 
 int DBSCAN::UnionSets(std::vector<std::vector<double>> &seed, std::vector<std::vector<double>> &pts){
 
