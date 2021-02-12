@@ -25,15 +25,19 @@ class seaDBSCAN{
         double m_eps;
         int m_minpts;
 
-        /// Default constructor
+        /// constructor
         seaDBSCAN(double in_eps, int in_minpts): m_eps(in_eps), m_minpts(in_minpts) {}
 
         /// Default destructor
         ~seaDBSCAN(){}
 
+        // identify each hit to a certain cluster, or identify as noise
         std::vector<int> Scan2D(std::vector<std::vector<double>> &pts);
+   	// get neighbour points for point i from vector pts
         std::vector<std::vector<double>> GetNeighbours(size_t i, std::vector<std::vector<double>> &pts,bool);
+        // combine elements in pts to seed if not found in seed
         int UnionSets(std::vector<std::vector<double>> &seed, std::vector<std::vector<double>> &pts);
+	// calculate distance between (w1, t1) and (w2, t2)
         double SimpleDist(double w1, double t1, double w2, double t2);
 
 };
@@ -70,14 +74,17 @@ std::vector<int> seaDBSCAN::Scan2D(std::vector<std::vector<double>> &pts){
             }
 
             if(label[iq]!=l_undef){
-                continue; // previously processed
+                continue; // previously processed, already identified to a cluster
             }
 
+	    // if label[iq] is l_undef
             label[iq]=cluster_count;// wasn't noise, new point, add to cluster
 
             std::vector<std::vector<double>> new_neighbours = this->GetNeighbours(iq,pts,true);//Get neighbours of this point, including itslef eh.
 
             if((int)new_neighbours.size() >= m_minpts ){ //expand the seed set
+		//Guanqun: change vector while looping over its elements
+		//new elements are pushed back to seed_set
                 this->UnionSets(seed_set, new_neighbours); 
             }
         }
@@ -141,6 +148,7 @@ int seaDBSCAN::UnionSets(std::vector<std::vector<double>> &seed, std::vector<std
 }
 
 double seaDBSCAN::SimpleDist(double w1, double t1, double w2, double t2){
+    // Guanqun: wire and tick conversion to distance??, if so should only be done on plane 2
     double wire_con = 0.3;
     double tick_con = 1.0/25.0;
 

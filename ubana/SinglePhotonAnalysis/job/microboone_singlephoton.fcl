@@ -17,7 +17,7 @@ singlephoton_analyzer:{
     SEAviewDBSCANEps: 4
     SEAviewPlotDistance: 80
     SEAviewMaxHitsLinFit: 20.0
-    SEAviewMakePDF: false
+    SEAviewMakePDF: false 
 
     FillTrees: true
     RunPi0Filter: false

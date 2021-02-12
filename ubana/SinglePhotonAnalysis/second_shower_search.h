@@ -964,9 +964,9 @@ namespace single_photon
         std::vector<double>t_tick;
         // std::vector<double>t_dist;
 
-        std::vector<double>all_wire;
+        std::vector<double>all_wire; // wire of all hits
         std::vector<double>all_tick;
-        std::vector<double>all_dist;
+        std::vector<double>all_dist; // distance to vertex of all hits
 
 
         for(size_t h = 0; h< hitz.size(); h++){
@@ -980,7 +980,7 @@ namespace single_photon
             all_dist.push_back(dd);
         }
 
-        std::vector<size_t> sorted_in = sort_indexes(all_dist);
+        std::vector<size_t> sorted_in = sort_indexes(all_dist); // index of all dist in descending order
         size_t max_e = std::min((size_t)Npts,hitz.size());
 
         for(size_t i =0; i<max_e; i++){
@@ -1256,7 +1256,7 @@ namespace single_photon
                 }
             }//end loop over particles per hit
 
-        }
+        } // end loop over hit
         if(found_a_match){
             std::cout<<"!"<<std::endl;
         }
@@ -1735,6 +1735,8 @@ namespace single_photon
 
 
                 // std::cout<<"Best invar "<<"--"<<ranked_invar[0]<<" ioc: "<<sss3d_shower_ioc_ratio.at( ranked_invar[0] )<<" invar: "<<sss3d_shower_implied_invariant_mass.at(ranked_invar[0])<<" en: "<<sss3d_shower_energy_max.at(ranked_invar[0])<<" conv: "<<sss3d_shower_conversion_dist.at(ranked_invar[0])<<std::endl;
+
+		// minimum discrepancy between implied invariant mass and pi0 mass
                 m_sss3d_invar_ranked_en = m_sss3d_shower_energy_max.at(ranked_invar[0]);            
                 m_sss3d_invar_ranked_conv = m_sss3d_shower_conversion_dist.at(ranked_invar[0]);            
                 m_sss3d_invar_ranked_invar = m_sss3d_shower_invariant_mass.at(ranked_invar[0]);            

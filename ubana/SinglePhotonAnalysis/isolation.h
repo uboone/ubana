@@ -238,8 +238,8 @@ std::cout << "Isolation: Acquiring track hit coordinates" << std::endl;
                 auto trackhits = pfParticleToHitsMap.at(pfpt);
 
                 std::vector<TGraph*> t_pts(3);
-                std::vector<std::vector<double>>  t_vec_t(3);
-                std::vector<std::vector<double>>  t_vec_c(3);
+                std::vector<std::vector<double>>  t_vec_t(3);  // peak time of track hits on 3 planes.
+                std::vector<std::vector<double>>  t_vec_c(3); // wire number of track hits on 3 planes.
 
                 for(auto &th: trackhits){
 		    double wire = (double)th->WireID().Wire;
@@ -270,9 +270,9 @@ std::cout << "Isolation: Acquiring  shower hit coordinates and comparing with tr
 		//First grab all shower clusters
 		 std::vector<std::vector<TGraph *>> pts_shr( showers.size(), std::vector<TGraph *>(3)  );
 
-		// map shower hits to  distance to the closest track hit
+		// map shower hits to  distance to the closest track hit (hold up to 10 hits with minimum distance)
 		std::vector<std::map< art::Ptr< recob::Hit>, double >> sh_dist(3);
-		// vector to save hit with largest minimum distance on each plane
+		// vector to save hit with largest minimum distance (in sh_dist) on each plane
 		std::vector< std::pair<art::Ptr< recob::Hit >, double > > max_min_hit(3);
 
                 art::Ptr<recob::PFParticle> pfp_s = showerToPFParticleMap.at(showers[0]);
@@ -287,7 +287,7 @@ std::cout << "Isolation: Acquiring  shower hit coordinates and comparing with tr
 		    int plane = (int)sh->View();
 		    num_shr_hits[plane] += 1;
 		    
-		    double minDist = 999.9;
+		    double minDist = 999.9;  //minimum distance between this shower hit and all track hits 
 		    double dist;
 		    // only do if there are track hits on this plane with which to compare
 		    if (t_vec_c[(int)sh->View()].size() != 0){	
@@ -391,7 +391,7 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
 
 		    for(auto &uh: unassociated_hits_all[plane]){
 	    
-			if (t_vec_c[plane].size() == 0) break;
+			if (t_vec_c[plane].size() == 0) break; // if track doesn't have hits on that plane
 
 			double wire = (double)uh->WireID().Wire;
 			vec_c.push_back(wire);
@@ -406,7 +406,7 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
 			}
 			u_hists[(int)uh->View()]->Fill(minDist);
 
-			if (minDist < minDist_tot[plane]) { 
+			if (minDist < minDist_tot[plane]) { // of all unassociated hits, the one that has min distance to closest track hits 
 			    minDist_tot[plane] = minDist;
 			    minWire[plane] = wire;
 			    minTime[plane] = time;
@@ -530,7 +530,8 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
             }
 
 // ******************************** DeadWireRegions ********************************************
-            for(size_t i=0; i< bad_channel_list_fixed_mcc9.size(); i++){
+          //plot dead wire  
+          for(size_t i=0; i< bad_channel_list_fixed_mcc9.size(); i++){
                 int badchan = bad_channel_list_fixed_mcc9[i].first;                                       
                 int ok = bad_channel_list_fixed_mcc9[i].second;       
 
@@ -548,6 +549,7 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
                 }
             }
 
+	    // plot track
             for(size_t t=0; t< pts_trk.size(); t++){
                 int tcol = tcols[used_col];
                 used_col++;
@@ -564,6 +566,7 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
                 }
             }
 
+ 	    // plot shower hits
             for(size_t t=0; t< pts_shr.size(); t++){
                 int tcol = tcols[used_col];
                 used_col++;
@@ -581,6 +584,7 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
             }
 
 
+	    // plot unassociated hits
             for(int i=0; i<3; i++){
                 can->cd(i+1);
 		if (g_unass[i]->GetN() > 0){

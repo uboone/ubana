@@ -70,9 +70,9 @@ namespace seaview {
         std::vector<size_t> seaview_sort_indexes(const std::vector<T> &v) {
 
             std::vector<size_t> idx(v.size());
-            std::iota(idx.begin(), idx.end(), 0);
+            std::iota(idx.begin(), idx.end(), 0); //fill the range with sequentially increasing values
 
-            // sort indexes based on comparing values in v
+            // sort indexes based on comparing values in v (descending order)
             std::sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {return v[i1] > v[i2];});
 
             return idx;
@@ -114,13 +114,13 @@ namespace seaview {
         double pca_1;
         double pca_theta;
 
-        int n_wires;
-        int n_ticks;
+        int n_wires; /* number of wires spanned by the cluster */
+        int n_ticks;  /* number of ticks spanned by the cluster */
 
         bool pass;
 
         cluster_score(int ip, int cl): plane(ip), cluster_label(cl){};
-    };
+    };  //end of cluster_score class
 
 
 
@@ -174,16 +174,16 @@ namespace seaview {
         std::vector<std::vector<double>> f_pts;
         std::vector<art::Ptr<recob::Hit>> f_hits;
         cluster_score f_score;
-        int f_shower_remerge;
+        int f_shower_remerge;  //index of the reco shower if the cluseter is close enough to a reco shower, otherwise -1.
         TGraph f_graph;
-    };
+    };  // end of class cluster
 
 
     class SEAviewer {
 
         public:
 
-            /// Default constructor
+            //constructor
             SEAviewer(std::string tag,geo::GeometryCore const * geom,detinfo::DetectorProperties const * theDetector );
 
             void configure(const fhicl::ParameterSet& pset){};
@@ -202,6 +202,7 @@ namespace seaview {
             int runseaDBSCAN(double min_pts, double eps);
 
             double calcWire(double Y, double Z, int plane, int fTPC, int fCryostat, geo::GeometryCore const& geo ){
+		//WireCoordinate returns the index of the nearest wire to the specified position.
                 double wire = geo.WireCoordinate(Y, Z, plane, fTPC, fCryostat);
                 return wire;
             }
@@ -216,13 +217,21 @@ namespace seaview {
 
             double dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& point);
 
+
+	    // @brief: analyze all the clusters, draw them on the canvas, together with fitted direction of the cluseter
+	    // @param: vec_c: vector of clusters to be analyzed
             std::vector<double> analyzeClusters(double eps, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, std::vector<seaview::cluster> &vec_c );
 
+	    // @brief: check if there is a hit in hitz close enought to one of the reco showers, if so return the index of that reco shower
+	    // @param: hitz is usually a cluster of unassociated hits
             int SeaviewCompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,   const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, double eps);
 
-
+	    // Guanqun: @brief: analyze a cluster of hits and summarize its property into an cluster_score 
+	    // argument shower is not used in the function body
             cluster_score SeaviewScoreCluster(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hits, double vertex_wire, double vertex_tick, const art::Ptr<recob::Shower> &shower);
 
+	    //@ brief: as name says, get Npts hits that're nearest from vertex
+	    // return the {wire, tick} info of these hits as a TGraph
             TGraph* SeaviewGetNearestNpts(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hitz, double vertex_wire, double vertex_tick, int Npts);
 
 
@@ -234,7 +243,8 @@ namespace seaview {
 
             std::string tag;
             double hit_threshold;
-            bool has_been_clustered;  
+            bool has_been_clustered;
+	    // PFP, Plane: index  
             std::vector<std::vector<TGraph>> vec_graphs;
 
             std::vector<std::string> vec_pfp_legend;
@@ -255,12 +265,13 @@ namespace seaview {
 
             std::vector<std::pair<int,int>> m_bad_channel_list;
 
-            //Vertex
+            //Vertex, size of 3
             std::vector<double> vertex_tick; 
             std::vector<double> vertex_chan; 
             std::vector<TGraph> vertex_graph;
 
             bool plot_true_vertex;
+	    //True vertex, size of 3
             std::vector<double> true_vertex_tick; 
             std::vector<double> true_vertex_chan; 
             std::vector<TGraph> true_vertex_graph;
@@ -284,6 +295,7 @@ namespace seaview {
             std::vector<std::vector<int>> cluster_labels;
             TRandom3 *rangen;
 
+	    // all clusters on all 3 planes, each cluster includes points identified for that cluster
             std::vector<seaview::cluster> vec_clusters;  
             std::vector<art::Ptr<recob::Shower>> vec_showers;
             std::vector<art::Ptr<recob::Track>> vec_tracks;

@@ -541,6 +541,7 @@ namespace single_photon
 
         int slice = -1;
         //for the pfp, get the slice
+        //allPFPSliceIdVec only include PFParticles whose ancester is a primary particle that has a nu score, and their slice ID.
         for(auto pair: allPFPSliceIdVec){
             if(pair.first == pfp){
                 slice =  pair.second;
@@ -671,6 +672,7 @@ namespace single_photon
 
                                 m_matched_signal_shower_is_clearcosmic.push_back( m_reco_shower_isclearcosmic[j]);
                                 m_matched_signal_shower_is_nuslice.push_back(m_reco_shower_is_nuslice[j]);
+				// num track/shower in slice here is in reverse order
                                 m_matched_signal_shower_tracks_in_slice.push_back(m_reco_slice_num_showers[id]);
                                 m_matched_signal_shower_showers_in_slice.push_back(m_reco_slice_num_tracks[id]);
                                 // std::cout<<"found signal photon shower pdg"<< m_sim_shower_pdg[j]<<"and is in neutrino slice =  "<< m_sim_shower_is_nuslice[j]<<std::endl;
@@ -696,7 +698,7 @@ namespace single_photon
 
                     int matched_track_id = m_sim_track_trackID[k];
 
-                    //if this sim track is a photon and it's primary (parent pdg is -1)
+                    //if this sim track is a proton and it's primary (parent pdg is -1)
                     if((parent == -1 ||parent == 12 || parent ==14 ) && pdg == 2212){
 
                         if (m_sim_track_matched[k] > 0){

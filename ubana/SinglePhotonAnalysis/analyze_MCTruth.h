@@ -246,6 +246,7 @@ namespace single_photon
             
                 if(m_is_verbose) std::cout<<"Getting SC corrected vertex position"<<std::endl;
                 std::vector<double> corrected(3);
+	        // get corrected lepton position
                 this->spacecharge_correction( truth->GetNeutrino().Lepton(),corrected);
 
                 m_mctruth_nu_vertex_x = corrected[0];
@@ -290,12 +291,12 @@ namespace single_photon
                 m_mctruth_daughters_endy[j] = par.EndY();
                 m_mctruth_daughters_endz[j] = par.EndZ();
                 m_mctruth_daughters_endtime[j] = par.EndT();
-                m_mctruth_daughters_process[j] = par.Process();
+                m_mctruth_daughters_process[j] = par.Process();  //Process() and EndProcess() return string
                 m_mctruth_daughters_end_process[j] = par.EndProcess();
 
 
                 switch(m_mctruth_daughters_pdg[j]){
-                    case(22):
+                    case(22): // if it's a gamma
                         {
                             if(par.StatusCode() == 1){
                                 m_mctruth_num_exiting_photons++;
@@ -317,7 +318,7 @@ namespace single_photon
                             }
                         }
                         break;
-                    case(111):
+                    case(111): // if it's a pi0
                         {
                             // Make sure the pi0 actually exits the nucleus
                             if (par.StatusCode() == 1) {
@@ -330,12 +331,12 @@ namespace single_photon
                             break;
                         }
                     case(211):
-                    case(-211):
+                    case(-211):  // it's pi+ or pi-
                         if (par.StatusCode() == 1) {
                             m_mctruth_num_exiting_pipm++;
                         }
                         break;
-                    case(2212):
+                    case(2212):  // if it's a proton
                         {
                             if(par.StatusCode() == 1){
                                 m_mctruth_num_exiting_protons++;
@@ -361,10 +362,10 @@ namespace single_photon
 
                             break;
                         }
-                    case(2112):
+                    case(2112): // if it's a neutron
                         {
 
-                            m_mctruth_num_exiting_neutrons++;
+                            m_mctruth_num_exiting_neutrons++;  // Guanqun: neutron always exits the nucleus? should check it
                       if(m_is_verbose)      std::cout<<"SingleProton::AnalyzeMCTruths()\t||\t Neutron "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and neutron energy "<<par.E()<<std::endl;
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
@@ -385,11 +386,11 @@ namespace single_photon
                     case(-2214):
                     case(2214):
                     case(-1114):
-                    case(1114):
+                    case(1114): // if it's delta-, or delta+
                         if(par.StatusCode() == 1){ m_mctruth_num_exiting_deltapm++; }
                         break;
                     case(-2114):
-                    case(2114):
+                    case(2114): // if it's delta0
                         if(par.StatusCode() == 1){ 
                             m_mctruth_num_exiting_delta0++;
                             m_mctruth_exiting_delta0_num_daughters.push_back(par.NumberDaughters());
@@ -399,7 +400,7 @@ namespace single_photon
                     default:
                         break;
                 }
-            }
+            } // end of m_mctruth_num_daughter_particles loop
 
 
             for(size_t p=0; p< m_mctruth_exiting_proton_energy.size(); p++){
@@ -440,11 +441,11 @@ namespace single_photon
             //first we loop over all 14's to see which have a direct mother delta. [done above]
             //so first we loop over all state 1 (exiting) to see what a LArTPC sees (post FSI)
                 for (unsigned int p = 0; p <  m_mctruth_exiting_photon_energy.size(); p++){
+		    // m_exiting_photon_energy_threshold is read from pset
+		    if ( m_mctruth_exiting_photon_energy[p] > m_exiting_photon_energy_threshold){
+				m_mctruth_num_reconstructable_protons++;
 
-            if ( m_mctruth_exiting_photon_energy[p] > m_exiting_photon_energy_threshold){
-                        m_mctruth_num_reconstructable_protons++;
-
-            }//if g above threshold
+		    }//if g above threshold
                 }
 
             //if it's a true delta radiative event, check the energies
@@ -455,13 +456,14 @@ namespace single_photon
                 for (unsigned int p = 0; p <  m_mctruth_exiting_photon_energy.size(); p++){
                     std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\tLooking at exiting photon with energy "<<m_mctruth_exiting_photon_energy[p]<<std::endl;
                     if ( m_mctruth_exiting_photon_energy[p] > m_exiting_photon_energy_threshold){
-                        m_mctruth_is_reconstructable_1g0p = true;
+                        m_mctruth_is_reconstructable_1g0p = true; // Guanqun: just means now we have a reconstructable shower, but we don't know if there is a reconstructed nucleon or not yet.
 
                     }//if g above threshold
                 }//for all exiting g
                 for(unsigned int pr = 0; pr <  m_mctruth_exiting_proton_energy.size(); pr++){
                    if ( m_mctruth_exiting_proton_energy[pr]> m_exiting_proton_energy_threshold){
                         //if it's already 1g1p then we've found a 1g2p which we aren't counting
+                        // Guanqun: limit to only 1 reconstructable proton?
                         if( m_mctruth_is_reconstructable_1g1p == true && m_mctruth_is_reconstructable_1g0p == false){
                             m_mctruth_is_reconstructable_1g1p = false;
                         }
@@ -471,7 +473,7 @@ namespace single_photon
                             m_mctruth_is_reconstructable_1g0p = false;
                         } 
                        std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\tChecking proton with energy "<<m_mctruth_exiting_proton_energy[pr]<<", is 1g1p/1g0p= "<< m_mctruth_is_reconstructable_1g1p<<"/"<< m_mctruth_is_reconstructable_1g0p<<std::endl;
-                         }//if p above threshold
+                   }//if p above threshold
                 }//for all exiting p
 
             }//if ncdelta
@@ -486,6 +488,8 @@ namespace single_photon
                 simb::MCParticle nth_mother = mother;
                 int n_generation = 2;
 
+		// Guanqun: why not consider its first-generation mother?
+		// for a photon exiting nucleus, its first mother is always also a photon (photon exits the nucleus, it becomes another photon..)
                 while(nth_mother.StatusCode() != 0 || n_generation < 4){
 
                     if(nth_mother.Mother()<0) break;
@@ -547,9 +551,10 @@ namespace single_photon
 
             if(false) std::cout << k << " Mother:"<< mcp->Mother() << " pdgcode: " << mcp->PdgCode() << " trkid: " << mcp->TrackId() << " statuscode: " << mcp->StatusCode() << std::endl;
 
-
+	    // if it's a pi0, its mother trackID is 0 and it has two daughters
             if(mcp->PdgCode() == 111 && mcp->Mother() == 0 && mcp->NumberDaughters()==2 ){
                 npi0check++;
+		// get its two daughters
                 const art::Ptr<simb::MCParticle> dau1 = mcParticleVector[mymap[mcp->Daughter(0)]];
                 const art::Ptr<simb::MCParticle> dau2 = mcParticleVector[mymap[mcp->Daughter(1)]];
 
@@ -596,6 +601,7 @@ namespace single_photon
                     m_mctruth_pi0_leading_photon_end = corrected_1_end;
                     m_mctruth_pi0_subleading_photon_start = corrected_2_start;
                     m_mctruth_pi0_subleading_photon_end = corrected_2_end;
+		    //note: the order of subleading/leading photon is reversed
                     m_mctruth_pi0_subleading_photon_exiting_TPC =exit1; 
                     m_mctruth_pi0_leading_photon_exiting_TPC = exit2;
 

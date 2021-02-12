@@ -1,6 +1,6 @@
 #include "SEAviewer.h"
 namespace seaview{
-    //default
+    // constructor
     SEAviewer::SEAviewer(std::string intag, geo::GeometryCore const * ingeom, detinfo::DetectorProperties const * intheDetector ): tag(intag), geom(ingeom), theDetector(intheDetector){
         chan_max = {-9999,-9999,-9999};
         chan_min = {9999,9999,9999};
@@ -24,7 +24,7 @@ namespace seaview{
         has_been_clustered = false;
         hit_threshold = -10;
 
-        rangen = new TRandom3(0);
+        rangen = new TRandom3(0); //same seed everytime
     }
 
 
@@ -53,7 +53,7 @@ namespace seaview{
         std::vector<std::vector<double>>  vec_chan(3);
 
         for(auto&h:all_hits){
-            if(map_slice_hits.count(h)==0){
+            if(map_slice_hits.count(h)==0){   // if h is not in the map, push its plane ID, wire ID, and time tick to the vectors
                 double wire = (double)h->WireID().Wire;
                 vec_chan[(int)h->View()].push_back(wire);
                 vec_tick[(int)h->View()].push_back((double)h->PeakTime());
@@ -65,7 +65,7 @@ namespace seaview{
         }
 
         for(int i=0; i<3; i++){
-            vec_all_graphs.emplace_back(vec_tick[i].size(),&vec_chan[i][0],&vec_tick[i][0]); 
+            vec_all_graphs.emplace_back(vec_tick[i].size(),&vec_chan[i][0],&vec_tick[i][0]); //implicitly converted to TGraph
         }
 
         vec_all_ticks = vec_tick;
@@ -85,14 +85,15 @@ namespace seaview{
 
         int n_all =slice_hits.size();
 
-        for(auto&h:slice_hits){
+        for(auto&h:slice_hits){ //type of h: recob::Hit
             if(map_unassociated_hits[h]){
 
                 if(h->SummedADC() < hit_threshold){
                     n_below_thresh++;
                     continue;
                 }
-                
+
+		// if summed ADC of the hit passes threshold                
                 n_unassoc++;
                 double wire = (double)h->WireID().Wire;
                 double tick = (double)h->PeakTime();
@@ -103,6 +104,7 @@ namespace seaview{
                 vec_hits[(int)h->View()].push_back(h);
                 tick_max = std::max(tick_max, tick);
                 tick_min = std::min(tick_min, tick);
+		//chan_max, chan_min stores: max, min unassociated channel for each plane
                 chan_max[(int)h->View()] = std::max( chan_max[(int)h->View()],wire);
                 chan_min[(int)h->View()] = std::min( chan_min[(int)h->View()],wire);
 
@@ -173,8 +175,8 @@ namespace seaview{
 
     std::vector<std::vector<double>> SEAviewer::to2D(std::vector<double> & threeD){
 
-        auto const TPC = (*geom).begin_TPC();
-        auto ID = TPC.ID();
+        auto const TPC = (*geom).begin_TPC();  //returns iterator pointing to the first TPC of detector
+        auto ID = TPC.ID(); // Guanqun: what class is this? can't find it...
         int fCryostat = ID.Cryostat;
         int fTPC = ID.TPC;
 
@@ -258,7 +260,7 @@ namespace seaview{
         //******************************* First plot "Vertex" ***************************************
 
         //Calculate some things
-
+	//Guanqun: what does tick_min - tick_shift actually mean?
         double real_tick_min =  (fabs(vertex_tick[0] - (tick_min-tick_shift))/25.0 > plot_distance)  ? vertex_tick[0]-25.0*plot_distance  : tick_min-tick_shift  ;
         double real_tick_max =  (fabs(vertex_tick[0] - (tick_max+tick_shift))/25.0 > plot_distance)  ? vertex_tick[0]+25.0*plot_distance  : tick_max+tick_shift  ;
 
@@ -307,7 +309,7 @@ namespace seaview{
             int ok = m_bad_channel_list[i].second;       
 
             if(ok>1)continue;
-            auto hs = geom->ChannelToWire(badchan);
+            auto hs = geom->ChannelToWire(badchan); //type of hs: vector containing the ID of all the connected wires
 
             int thisp = (int)hs[0].Plane;
             double bc = hs[0].Wire;
@@ -317,7 +319,7 @@ namespace seaview{
                 TLine *l = new TLine(bc,tick_min-tick_shift,bc,tick_max+tick_shift);
                 l->SetLineColor(kGray+1);
                 l->Draw("same");
-                can->cd(thisp+5);
+                can->cd(thisp+5);// Guanqun: how many values can plane ID take?
                 l->Draw("same");
                 can->cd(thisp+9);
                 l->Draw("same");
@@ -584,15 +586,15 @@ namespace seaview{
         //Loop over all clusters
         for(size_t c=0; c< vec_clusters.size(); c++){
 
-            auto hitz = vec_clusters[c].getHits();
+            auto hitz = vec_clusters[c].getHits(); // type of hitz: std::vector<art::Ptr<recob::Hit>>
             int num_hits_in_cluster = vec_clusters[c].getHits().size();
             int pl = vec_clusters[c].getPlane();
 
-            double mean_summed_ADC = 0.0;
+            double mean_summed_ADC = 0.0;  //summed ADC of the cluster
             for(auto &h:hitz){
                 mean_summed_ADC +=h->SummedADC();
             }
-            mean_summed_ADC = mean_summed_ADC/(double)num_hits_in_cluster;
+            mean_summed_ADC = mean_summed_ADC/(double)num_hits_in_cluster;  //mean ADC of one hit
 
             //Need to modify this a bit
             auto ssscorz = SeaviewScoreCluster(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers.front());
@@ -638,7 +640,7 @@ namespace seaview{
                         slope = 0;
                         con = fmin;
                     }else{
-                        core->Fit("pol1","Q","same",fmin,fmax);
+                        core->Fit("pol1","Q","same",fmin,fmax); // fit to polynomial of degree 1, and plot it on the same pad
                         con = core->GetFunction("pol1")->GetParameter(0);
                         slope = core->GetFunction("pol1")->GetParameter(1);
                     }
@@ -850,7 +852,7 @@ namespace seaview{
             score.mean_dist_tick += fabs(h_tick-vertex_tick);
             score.mean_dist_wire += fabs(h_wire-vertex_wire);
 
-            //wierd dits
+            //wierd dits  //Guanqun: projected distance
             double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
             score.mean_dist += dd;
             if(dd< score.min_dist){
@@ -889,6 +891,8 @@ namespace seaview{
         // **************** Metrics of Pointing: Does this cluster "point" back to the vertex? *************************
         // **************** First off, PCA
 
+
+ 	//Guanqun: understand what code is doing, but why do we do PCA here? physics meaning?
         TPrincipal* principal = new TPrincipal(2,"D");
         double mod_wire = 1.0;
         double mod_tick = 1.0;
@@ -919,6 +923,7 @@ namespace seaview{
         score.impact_parameter = fabs(slope*vertex_wire*mod_wire +vertex_tick/mod_tick+c)/sqrt(slope*slope+1.0*1.0);
 
 
+	
         if(score.n_wires < n_min_wires || score.n_ticks < n_min_ticks || score.pca_0 >= n_max_pca){
             score.pass = false;
         }
@@ -936,7 +941,7 @@ namespace seaview{
 
         for(size_t s =0; s< showers.size(); s++){
             art::Ptr<recob::Shower> shower = showers[s];
-            art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap.at(shower);
+            art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap.at(shower);  //key has to be in the map, otherwise out-of-range error
             std::vector<art::Ptr<recob::Hit>> showerhits = pfParticleToHitsMap.at(pfp);
 
             bool in_primary_shower = false;
@@ -948,12 +953,12 @@ namespace seaview{
 
                 for(auto &sh: showerhits){
 
-                    if(sh->View() != hit->View()) continue;
+                    if(sh->View() != hit->View()) continue;  //Guanqun: if not on the same plane?
 
                     double sh_wire = (double)sh->WireID().Wire;
                     double sh_tick = (double)sh->PeakTime();
 
-
+		    //seaDBSCAN has a similar function
                     double dist = sqrt(pow(sh_wire*0.3-h_wire*0.3,2)+pow(sh_tick/25.0-h_tick/25.0,2));
 
                     if(dist<=eps){
@@ -963,7 +968,7 @@ namespace seaview{
 
                 }
 
-            }
+            } // end of hitz loop
 
             if(in_primary_shower){
                 return (int)s;
@@ -998,10 +1003,11 @@ namespace seaview{
             all_dist.push_back(dd);
         }
 
+	// sorted_in has indices of elements in all_dist in descending order
         std::vector<size_t> sorted_in = seaview_sort_indexes(all_dist);
         size_t max_e = std::min((size_t)Npts,hitz.size());
 
-        for(size_t i =0; i<max_e; i++){
+        for(size_t i =0; i<max_e; i++){ // get the position ({wire, tick}) of the closest 'max_e' points.
             t_wire.push_back(all_wire[sorted_in[hitz.size()-1-i]]);
             t_tick.push_back(all_tick[sorted_in[hitz.size()-1-i]]);
         }
