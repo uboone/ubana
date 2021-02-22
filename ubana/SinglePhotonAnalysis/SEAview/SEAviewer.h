@@ -190,6 +190,8 @@ namespace seaview {
 
             int loadVertex(double m_vertex_pos_x, double m_vertex_pos_y, double m_vertex_pos_z);
             int addTrueVertex(double x, double y,double z);
+
+	    /* @brief: add all the given hits (expect all hits of one slice) */
             int addSliceHits(std::vector<art::Ptr<recob::Hit>>& hits);
             int addAllHits(std::vector<art::Ptr<recob::Hit>>& hits);
             int addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string leg );
@@ -212,7 +214,7 @@ namespace seaview {
                 return time;
             }
 
-
+	    /* @brief: given a 3D space point, calculate the [wire, tick] of the point on 3 planes */
             std::vector<std::vector<double>> to2D(std::vector<double> & threeD);
 
             double dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& point);
@@ -237,20 +239,20 @@ namespace seaview {
 
 
         protected:
-            int n_pfps;
-            int n_showers;
-            int n_tracks;
+            int n_pfps;    // num of PFParticles (including shower & track)
+            int n_showers; //num of showers
+            int n_tracks;  //num of tracks
 
             std::string tag;
             double hit_threshold;
             bool has_been_clustered;
 	    // PFP, Plane: index  
-            std::vector<std::vector<TGraph>> vec_graphs;
+            std::vector<std::vector<TGraph>> vec_graphs; //vector of graphs of [tick vs. wire] for hits of PFParticles.
 
-            std::vector<std::string> vec_pfp_legend;
+            std::vector<std::string> vec_pfp_legend; //legend for each PFParticle, for plotting purpose
             // PFP, Plane: index
-            std::vector<std::vector<std::vector<double>>> vec_ticks;
-            std::vector<std::vector<std::vector<double>>> vec_chans;
+            std::vector<std::vector<std::vector<double>>> vec_ticks; //vector of ticks on each plane for all PFParticles
+            std::vector<std::vector<std::vector<double>>> vec_chans; //vector of wires on each plane for all PFParticle
 
             geo::GeometryCore const * geom;
             detinfo::DetectorProperties const * theDetector ;
@@ -258,14 +260,14 @@ namespace seaview {
             double tick_shift;
             double chan_shift;
 
-            double tick_max;
+            double tick_max; //min, max tick of all hits
             double tick_min;
-            std::vector<double> chan_max;
+            std::vector<double> chan_max; //min, max wire of all (including vertex)
             std::vector<double> chan_min;
 
             std::vector<std::pair<int,int>> m_bad_channel_list;
 
-            //Vertex, size of 3
+            //Vertex, size of 3 (on 3 planes)
             std::vector<double> vertex_tick; 
             std::vector<double> vertex_chan; 
             std::vector<TGraph> vertex_graph;
@@ -276,28 +278,31 @@ namespace seaview {
             std::vector<double> true_vertex_chan; 
             std::vector<TGraph> true_vertex_graph;
 
-            std::vector<art::Ptr<recob::Hit>> slice_hits;
+            std::vector<art::Ptr<recob::Hit>> slice_hits; //all hits in a slice
             std::vector<art::Ptr<recob::Hit>> all_hits;
             std::map<art::Ptr<recob::Hit>,bool> map_unassociated_hits;
             std::map<art::Ptr<recob::Hit>, bool> map_slice_hits;
 
-            std::vector<TGraph> vec_unass_graphs;
-            std::vector<std::vector<double>> vec_unass_ticks;
+	    //Plane: index
+            std::vector<TGraph> vec_unass_graphs; //graph of [tick vs wire] for unassociated hits that pass the hit threshold
+            std::vector<std::vector<double>> vec_unass_ticks; //tick of unassso hits that pass threshold
             std::vector<std::vector<double>> vec_unass_chans;
-            std::vector<std::vector<std::vector<double>>> vec_unass_pts;
-            std::vector<std::vector<art::Ptr<recob::Hit>>> vec_unass_hits;
+            std::vector<std::vector<std::vector<double>>> vec_unass_pts; // [wire, tick] pair for unassociatd hits that pass threshold on each plane
+            std::vector<std::vector<art::Ptr<recob::Hit>>> vec_unass_hits; //vector of unasso hits that pss hit threshold on each plane
 
-            std::vector<TGraph> vec_all_graphs;
-            std::vector<std::vector<double>> vec_all_ticks;
-            std::vector<std::vector<double>> vec_all_chans;
 
-            std::vector<int> num_clusters;
-            std::vector<std::vector<int>> cluster_labels;
+	    //Plane: index
+            std::vector<TGraph> vec_all_graphs;  //graph of [tick vs wire] for all hits that are not in the slice
+            std::vector<std::vector<double>> vec_all_ticks;  //tick of all hits that are not in the slice (grouped by plane #)
+            std::vector<std::vector<double>> vec_all_chans;  //wire of all hits that are not in the slice on each plane.
+
+            std::vector<int> num_clusters; //number of clusters for unassociated hits on each plane
+            std::vector<std::vector<int>> cluster_labels; //one-to-one mapped cluster labels for unassociated hits in `vec_unass_pts`
             TRandom3 *rangen;
 
 	    // all clusters on all 3 planes, each cluster includes points identified for that cluster
             std::vector<seaview::cluster> vec_clusters;  
-            std::vector<art::Ptr<recob::Shower>> vec_showers;
+            std::vector<art::Ptr<recob::Shower>> vec_showers; //vector of recob::Shower contained in this class
             std::vector<art::Ptr<recob::Track>> vec_tracks;
 
     };

@@ -176,7 +176,7 @@ namespace seaview{
     std::vector<std::vector<double>> SEAviewer::to2D(std::vector<double> & threeD){
 
         auto const TPC = (*geom).begin_TPC();  //returns iterator pointing to the first TPC of detector
-        auto ID = TPC.ID(); // Guanqun: what class is this? can't find it...
+        auto ID = TPC.ID(); 
         int fCryostat = ID.Cryostat;
         int fTPC = ID.TPC;
 
@@ -203,6 +203,7 @@ namespace seaview{
 
         for(int i=0; i<3; i++){
 
+	    // use vector here, so that to plot the single point using TGraph
             std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
             std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
 
@@ -264,20 +265,24 @@ namespace seaview{
         double real_tick_min =  (fabs(vertex_tick[0] - (tick_min-tick_shift))/25.0 > plot_distance)  ? vertex_tick[0]-25.0*plot_distance  : tick_min-tick_shift  ;
         double real_tick_max =  (fabs(vertex_tick[0] - (tick_max+tick_shift))/25.0 > plot_distance)  ? vertex_tick[0]+25.0*plot_distance  : tick_max+tick_shift  ;
 
+
+        std::vector<double> real_wire_min(3); //real x axis edges for 3 planes
+        std::vector<double> real_wire_max(3);
+
         for(int i=0; i<3; i++){
             TPad * pader = (TPad*)can->cd(i+1);
 
             if(i==0 || i ==4 || i == 8) pader->SetLeftMargin(0.1);
 
 
-            double real_wire_min =  (fabs(vertex_chan[i] - (chan_min[i]-chan_shift))*0.3 > plot_distance ) ? vertex_chan[i]-plot_distance/0.3  : chan_min[i]-chan_shift  ;
-            double real_wire_max =  (fabs(vertex_chan[i] - (chan_max[i]+chan_shift))*0.3 > plot_distance ) ? vertex_chan[i]+plot_distance/0.3  : chan_max[i]+chan_shift  ;
+            real_wire_min[i] =  (fabs(vertex_chan[i] - (chan_min[i]-chan_shift))*0.3 > plot_distance ) ? vertex_chan[i]-plot_distance/0.3  : chan_min[i]-chan_shift  ;
+            real_wire_max[i] =  (fabs(vertex_chan[i] - (chan_max[i]+chan_shift))*0.3 > plot_distance ) ? vertex_chan[i]+plot_distance/0.3  : chan_max[i]+chan_shift  ;
 
             vertex_graph[i].SetMarkerStyle(29);
             vertex_graph[i].SetMarkerSize(2);
             vertex_graph[i].SetMarkerColor(kMagenta-3);
             vertex_graph[i].GetYaxis()->SetRangeUser(real_tick_min,real_tick_max);
-            vertex_graph[i].GetXaxis()->SetLimits(real_wire_min, real_wire_max);
+            vertex_graph[i].GetXaxis()->SetLimits(real_wire_min[i], real_wire_max[i]);
             vertex_graph[i].SetTitle(("Plane " +std::to_string(i)).c_str());
             vertex_graph[i].GetYaxis()->SetTitle("Peak Hit Time Tick");
             vertex_graph[i].GetXaxis()->SetTitle( ("Wire Number Plane " +std::to_string(i)).c_str());
@@ -314,15 +319,17 @@ namespace seaview{
             int thisp = (int)hs[0].Plane;
             double bc = hs[0].Wire;
 
-            if(chan_min[thisp]-chan_shift < bc && bc < chan_max[thisp]+chan_shift ){
+            if(real_wire_min[thisp] < bc && bc < real_wire_max[thisp] ){
+            //if(chan_min[thisp]-chan_shift < bc && bc < chan_max[thisp]+chan_shift ){
                 can->cd(thisp+1);
-                TLine *l = new TLine(bc,tick_min-tick_shift,bc,tick_max+tick_shift);
+  		TLine *l = new TLine(bc, real_tick_min, bc, real_tick_max);
+                //TLine *l = new TLine(bc,tick_min-tick_shift,bc,tick_max+tick_shift);
                 l->SetLineColor(kGray+1);
                 l->Draw("same");
-                can->cd(thisp+5);// Guanqun: how many values can plane ID take?
-                l->Draw("same");
-                can->cd(thisp+9);
-                l->Draw("same");
+                //can->cd(thisp+5);// Guanqun: how many values can plane ID take?
+                //l->Draw("same");
+                //can->cd(thisp+9);
+                //l->Draw("same");
             }
         }
 
