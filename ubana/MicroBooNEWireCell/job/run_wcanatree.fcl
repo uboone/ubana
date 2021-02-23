@@ -80,9 +80,18 @@ physics:
 
     }
 
+    wcppfdump:
+    {
+      module_type:      "WireCellPFDump"
+      PFDump:           false # do PF dump if true
+      MC:               false # save truth PF if true
+      FileType:         "empty" # e.g. "prodgenie_bnb_intrinsic_nue_overlay_run1"
+      PF_inputtag:      "wirecellPF" # for reco PF
+      PFtruth_inputtag: "largeant" # for truth PF
+    }
   }
 
-  ana: [ wcpselection, wcpweights ]
+  ana: [ wcpselection, wcpweights, wcppfdump ]
   ## trigger_paths contains the paths that modify the art::Event
   # trigger_paths: [ ana ]
 
