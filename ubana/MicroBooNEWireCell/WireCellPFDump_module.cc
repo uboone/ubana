@@ -83,9 +83,9 @@ class WireCellPFDump : public art::EDAnalyzer {
         // Declare member data here.
 
         // fcl config
-        bool fMC;
         bool f_PFDump;
-
+        bool fMC;
+        std::string fFileType;
         std::string fPFInputTag; // inputTag -- label:instance:process
         std::string fPFtruthInputTag; // inputTag -- label:instance:process
 
@@ -142,6 +142,7 @@ void WireCellPFDump::reconfigure(fhicl::ParameterSet const& pset)
     fMC = pset.get<bool>("MC"); // overlay and full mc
     f_PFDump = pset.get<bool>("PFDump", true);
 
+    fFileType = pset.get<std::string>("FileType", "empty");
     fPFInputTag = pset.get<std::string>("PF_inputtag");
     fPFtruthInputTag = pset.get<std::string>("PFtruth_inputtag");
 }
@@ -157,6 +158,7 @@ void WireCellPFDump::initOutput()
         fTreePFDump->Branch("run", &f_run);
         fTreePFDump->Branch("subrun", &f_subRun);
         fTreePFDump->Branch("event", &f_event);
+        fTreePFDump->Branch("file_type", &fFileType);
         fTreePFDump->Branch("truth_Ntrack", &truth_Ntrack);
         fTreePFDump->Branch("truth_id", &truth_id, "truth_id[truth_Ntrack]/I");
         fTreePFDump->Branch("truth_pdg", &truth_pdg, "truth_pdg[truth_Ntrack]/I");
