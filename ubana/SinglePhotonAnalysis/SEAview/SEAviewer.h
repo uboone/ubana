@@ -55,6 +55,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #include <string>
 #include <numeric>
 #include <algorithm>
@@ -194,7 +196,14 @@ namespace seaview {
 	    /* @brief: add all the given hits (expect all hits of one slice) */
             int addSliceHits(std::vector<art::Ptr<recob::Hit>>& hits);
             int addAllHits(std::vector<art::Ptr<recob::Hit>>& hits);
-            int addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string leg );
+ 	
+
+	    /* @brief: add hits for PFParticles
+ 	     * @param: leg - legend for this PFParticle, for plotting purposes
+ 	     * @param: if leg is 'shower', arg1 expects shower energy; arg2 expects conversion distance
+ 	     * @param: if leg is 'track', arg1 expects track length; arg2 expects PCA
+ 	     */
+            int addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string leg , double arg1 = 0.0, double arg2 = 0.0);
             int setBadChannelList(std::vector<std::pair<int,int>> &in);
             int addShower(art::Ptr<recob::Shower>&shr);
             int addTrack(art::Ptr<recob::Track>&trk);
@@ -305,6 +314,8 @@ namespace seaview {
             std::vector<art::Ptr<recob::Shower>> vec_showers; //vector of recob::Shower contained in this class
             std::vector<art::Ptr<recob::Track>> vec_tracks;
 
+	    //helper function
+	    void format_legend(std::string &leg, double arg1 = 0.0, double arg2 = 0.0);
     };
 
 }// namespace

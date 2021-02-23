@@ -1311,7 +1311,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             std::vector<size_t>  m_reco_track_ordered_energy_index; /* index of m_reco_track_proton_kinetic_energy such that element values are in descending order */
             std::vector<size_t>  m_reco_track_ordered_displacement_index; /* index of m_reco_track_length so that track length are in descending order */
-            std::vector<double> m_reco_track_spacepoint_principal0;
+            std::vector<double> m_reco_track_spacepoint_principal0; /* PCA of reco track (in 3D spacepoint) */
             std::vector<double> m_reco_track_spacepoint_principal1;
             std::vector<double> m_reco_track_spacepoint_principal2;
 

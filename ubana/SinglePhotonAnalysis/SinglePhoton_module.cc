@@ -947,18 +947,22 @@ namespace single_photon
                 sevd.setHitThreshold(m_SEAviewHitThreshold); 
 
                 //Add all the "nice " PFParticle Hits, as well as what to label
-                sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
+                //sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
+                sevd.addPFParticleHits(p_hits, "Shower", m_reco_shower_energy_max[0], m_reco_shower_conversion_distance[0]);  //std::vector<art::Ptr<recob::Hit>> and std::string
 
                 //and add the SingleShower we like
                 sevd.addShower(p_shr); // art::Ptr<recob::Shower>
 
                 //Add all track PFP
 
+		int i_trk = 0;
                 for(auto &trk: tracks){
                     art::Ptr<recob::PFParticle> p_pfp_trk = trackToNuPFParticleMap[trk];
                     std::vector<art::Ptr<recob::Hit>> p_hits_trk = pfParticleToHitsMap[p_pfp_trk];
-                    sevd.addPFParticleHits(p_hits_trk,"track");
+                    //sevd.addPFParticleHits(p_hits_trk,"track");
+                    sevd.addPFParticleHits(p_hits_trk,"track", m_reco_track_length[i_trk], m_reco_track_spacepoint_principal0[i_trk]);
                     sevd.addTrack(trk);
+		    ++i_trk;
                 }
 
                 //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 

@@ -125,8 +125,10 @@ namespace seaview{
     }
 
 
-    int SEAviewer::addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string legend){
+    int SEAviewer::addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string legend, double arg1, double arg2){
         n_pfps++;
+
+	format_legend(legend, arg1, arg2);
 
         vec_pfp_legend.push_back(legend);
 
@@ -274,9 +276,13 @@ namespace seaview{
 
             if(i==0 || i ==4 || i == 8) pader->SetLeftMargin(0.1);
 
-
+	    //only show area surrounding the vertex up to std::min(plot_distance, distance_bw_vertex_channel_min/max)
             real_wire_min[i] =  (fabs(vertex_chan[i] - (chan_min[i]-chan_shift))*0.3 > plot_distance ) ? vertex_chan[i]-plot_distance/0.3  : chan_min[i]-chan_shift  ;
             real_wire_max[i] =  (fabs(vertex_chan[i] - (chan_max[i]+chan_shift))*0.3 > plot_distance ) ? vertex_chan[i]+plot_distance/0.3  : chan_max[i]+chan_shift  ;
+
+ 	    //fix the area to show, always show area large enough to hold all track/showers
+            //real_wire_min[i] =   chan_min[i]-chan_shift  ;
+            //real_wire_max[i] =   chan_max[i]+chan_shift  ;
 
             vertex_graph[i].SetMarkerStyle(29);
             vertex_graph[i].SetMarkerSize(2);
@@ -390,9 +396,11 @@ namespace seaview{
 
                 double x2_plot;
                 if(other_pt[i][0]<start_pt[i][0]){
-                    x2_plot = chan_max[i]+chan_shift;
+                    //x2_plot = chan_max[i]+chan_shift; //guanqun: my guess is this needs to be updated as well to use real_wire_max/min
+		    x2_plot = real_wire_max[i];
                 }else{
-                    x2_plot = chan_min[i]-chan_shift;    
+                    //x2_plot = chan_min[i]-chan_shift;
+                    x2_plot = real_wire_min[i];    
                 }
                 double y2_plot = slope*x2_plot+inter;
 
@@ -1023,5 +1031,16 @@ namespace seaview{
     }
 
 
+    void SEAviewer::format_legend(std::string &leg, double arg1, double arg2){
+	std::ostringstream ss1, ss2;
+	ss1 << std::setprecision(1) << std::fixed << arg1;
+	ss2 << std::setprecision(2) << std::fixed << arg2;
+
+	if(leg == "Shower"){
+	    leg += ": " + ss1.str() + " MeV, " + ss2.str() + " cm conv. dist.";
+	}else{
+	    leg += ": "+ ss1.str() + " cm, " + ss2.str() + " PCA";
+        }
+    }
 
 }
