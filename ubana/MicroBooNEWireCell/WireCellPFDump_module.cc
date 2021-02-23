@@ -3,10 +3,7 @@
 // Plugin Type: analyzer (art v3_01_02)
 // File:        WireCellPFDump_module.cc
 //
-// Generated at Fri Oct  4 15:24:42 2019 by Hanyu Wei using cetskelgen
-// from cetlib version v3_05_01.
-//
-// 12.03.2020 modified by Wenqiang Gu (wgu@bnl.gov)
+// 2021-02-23 modified by Haiwang Yu (hyu@bnl.gov)
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
