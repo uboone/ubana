@@ -922,7 +922,9 @@ namespace single_photon
             // #####################################################################################################################################
             //-----------------------------            //SEAviwer -----------------------------------
 
-            if(showers.size()==1 && !m_run_pi0_filter){    
+
+            if(showers.size()==1 && tracks.size() ==0 && !m_run_pi0_filter){    
+            //if(showers.size()==1 && !m_run_pi0_filter){    
 
                 art::Ptr<recob::Shower> p_shr = showers.front();
                 art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
@@ -948,7 +950,7 @@ namespace single_photon
 
                 //Add all the "nice " PFParticle Hits, as well as what to label
                 //sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
-                sevd.addPFParticleHits(p_hits, "Shower", m_reco_shower_energy_max[0], m_reco_shower_conversion_distance[0]);  //std::vector<art::Ptr<recob::Hit>> and std::string
+                sevd.addPFParticleHits(p_hits, "Shower", m_reco_shower_energy_max[0], m_reco_shower_conversion_distance[0], m_reco_shower_impact_parameter[0]);  //std::vector<art::Ptr<recob::Hit>> and std::string
 
                 //and add the SingleShower we like
                 sevd.addShower(p_shr); // art::Ptr<recob::Shower>

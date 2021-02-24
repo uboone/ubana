@@ -125,10 +125,10 @@ namespace seaview{
     }
 
 
-    int SEAviewer::addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string legend, double arg1, double arg2){
+    int SEAviewer::addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string legend, double arg1, double arg2, double arg3){
         n_pfps++;
 
-	format_legend(legend, arg1, arg2);
+	format_legend(legend, arg1, arg2, arg3);
 
         vec_pfp_legend.push_back(legend);
 
@@ -488,6 +488,7 @@ namespace seaview{
           pottex.DrawLatex(.1,.94, pot_draw.c_str());
           */
         TLegend l_top(0.1,0.1,0.9,0.9);
+	l_top.SetTextSize(0.05);
 
         for(int p=0; p<n_pfps; p++){
 
@@ -1031,14 +1032,19 @@ namespace seaview{
     }
 
 
-    void SEAviewer::format_legend(std::string &leg, double arg1, double arg2){
-	std::ostringstream ss1, ss2;
+    void SEAviewer::format_legend(std::string &leg, double arg1, double arg2, double arg3){
+	std::ostringstream ss1, ss2, ss3;
 	ss1 << std::setprecision(1) << std::fixed << arg1;
 	ss2 << std::setprecision(2) << std::fixed << arg2;
+ 	ss3 << std::setprecision(1) << std::fixed << arg3;
 
 	if(leg == "Shower"){
-	    leg += ": " + ss1.str() + " MeV, " + ss2.str() + " cm conv. dist.";
+	    leg = "#splitline{" + leg + ": " + ss1.str() + " MeV, " + ss2.str() + " cm }{conv. dist. "
+			+ ss3.str() + " im. param.}";
+	    //leg += ": " + ss1.str() + " MeV, " + ss2.str() + " cm conv. dist.";
+
 	}else{
+	    //for tracks, 3rd argument is not used
 	    leg += ": "+ ss1.str() + " cm, " + ss2.str() + " PCA";
         }
     }

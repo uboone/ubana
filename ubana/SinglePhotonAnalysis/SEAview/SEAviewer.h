@@ -200,10 +200,10 @@ namespace seaview {
 
 	    /* @brief: add hits for PFParticles
  	     * @param: leg - legend for this PFParticle, for plotting purposes
- 	     * @param: if leg is 'shower', arg1 expects shower energy; arg2 expects conversion distance
- 	     * @param: if leg is 'track', arg1 expects track length; arg2 expects PCA
+ 	     * @param: if leg is 'shower', arg1 expects shower energy; arg2 expects conversion distance; arg3 expects impact parameter
+ 	     * @param: if leg is 'track', arg1 expects track length; arg2 expects PCA; arg3 currently not used
  	     */
-            int addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string leg , double arg1 = 0.0, double arg2 = 0.0);
+            int addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string leg , double arg1 = 0.0, double arg2 = 0.0, double arg3=0.0);
             int setBadChannelList(std::vector<std::pair<int,int>> &in);
             int addShower(art::Ptr<recob::Shower>&shr);
             int addTrack(art::Ptr<recob::Track>&trk);
@@ -315,7 +315,7 @@ namespace seaview {
             std::vector<art::Ptr<recob::Track>> vec_tracks;
 
 	    //helper function
-	    void format_legend(std::string &leg, double arg1 = 0.0, double arg2 = 0.0);
+	    void format_legend(std::string &leg, double arg1 = 0.0, double arg2 = 0.0, double arg3 = 0.0);
     };
 
 }// namespace
