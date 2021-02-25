@@ -1039,13 +1039,13 @@ namespace seaview{
  	ss3 << std::setprecision(1) << std::fixed << arg3;
 
 	if(leg == "Shower"){
-	    leg = "#splitline{" + leg + ": " + ss1.str() + " MeV, " + ss2.str() + " cm }{conv. dist. "
-			+ ss3.str() + " im. param.}";
+	    leg = "#splitline{" + leg + ": " + ss1.str() + " MeV | " + ss2.str() + " cm }{conv. dist | "
+			+ ss3.str() + " impact par.}";
 	    //leg += ": " + ss1.str() + " MeV, " + ss2.str() + " cm conv. dist.";
 
 	}else{
 	    //for tracks, 3rd argument is not used
-	    leg += ": "+ ss1.str() + " cm, " + ss2.str() + " PCA";
+	    leg += ": "+ ss1.str() + " cm | " + ss2.str() + " PCA";
         }
     }
 

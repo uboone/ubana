@@ -40,6 +40,9 @@ namespace single_photon
 
         if(m_run_pi0_filter) m_is_data = true;// If running in filter mode, treat all as data
 
+        m_runSelectedEvent    = pset.get<bool>("SelectEvent", false);
+ 	m_selected_event_list = pset.get<std::string>("SelectEventList", "");
+
         m_runPhotoNuTruth = pset.get<bool>("RunPhotoNu",false); 
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
@@ -150,12 +153,27 @@ namespace single_photon
 
         std::cout<<"---------------------------------------------------------------------------------"<<std::endl;
         std::cout<<"SinglePhoton::analyze()\t||\t On entry: "<<m_number_of_events<<std::endl;
+        this->ClearVertex();
 
         //bool filter_pass = true; //superseeded by two below
         bool filter_pass_2g1p = true;
         bool filter_pass_2g0p = true;
 
+
         m_subrun_counts++;
+
+        //Some event based properties
+        m_number_of_events++;
+
+        m_run_number = evt.run();
+        m_subrun_number = evt.subRun();
+        m_event_number = evt.id().event();
+
+	//if module is run in selected-event mode, and current event is not in the list, skip it
+        if(m_runSelectedEvent && !IsEventInList(m_run_number, m_subrun_number, m_event_number)){
+	    std::cout << "SinglePhoton::analyze()\t||\t event " << m_run_number << "/" << m_subrun_number << "/" << m_event_number << " is not in the list, skip it" << std::endl;
+	    return true;
+	}
 
         auto const TPC = (*geom).begin_TPC();
         auto ID = TPC.ID();
@@ -164,7 +182,6 @@ namespace single_photon
 
         _time2cm = theDetector->SamplingRate() / 1000.0 * theDetector->DriftVelocity( theDetector->Efield(), theDetector->Temperature() );//found in ProtoShowerPandora_tool.cc
 
-        this->ClearVertex();
 
         //******************************Setup*****************Setup**************************************/
         //***********************************************************************************************/
@@ -545,13 +562,6 @@ namespace single_photon
 
             //**********************************************************************************************/
             //**********************************************************************************************/
-            //Some event based properties
-
-            m_number_of_events++;
-
-            m_run_number = evt.run();
-            m_subrun_number = evt.subRun();
-            m_event_number = evt.id().event();
 
             if(vertexVector.size()>0){
                 m_number_of_vertices++;
@@ -923,8 +933,7 @@ namespace single_photon
             //-----------------------------            //SEAviwer -----------------------------------
 
 
-            if(showers.size()==1 && tracks.size() ==0 && !m_run_pi0_filter){    
-            //if(showers.size()==1 && !m_run_pi0_filter){    
+            if(showers.size()==1 && !m_run_pi0_filter){    
 
                 art::Ptr<recob::Shower> p_shr = showers.front();
                 art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
@@ -934,7 +943,7 @@ namespace single_photon
                 int p_sliceid = PFPToSliceIdMap[p_pfp];
                 auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
 
-                std::string uniq_tag = "yarp"+std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
+                std::string uniq_tag = std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
 
                 //Setup seaviewr object
                 seaview::SEAviewer sevd("test_"+uniq_tag, geom, theDetector );
@@ -1346,6 +1355,41 @@ namespace single_photon
                 }
                 bc_file.close();
             }
+        }
+
+ 
+        //------------------- List of Selected Events to run --------
+        if(m_runSelectedEvent){
+	    std::cout << "SinglePhoton \t||\t Running in selected-event only mode " << std::endl;
+
+	    std::ifstream infile(m_selected_event_list);
+	    if(!infile){
+		std::cerr << "Fail to open file: " << m_selected_event_list << std::endl;
+		return;
+	    }
+
+	    //read from file, run number, subrun number ,event number that should be run
+	    m_selected_set.clear();
+	    std::string line;
+	    while(std::getline(infile, line)){
+		std::istringstream ss(line);
+
+		std::vector<int> event_info; 
+	        for(int i; ss >> i; ) event_info.push_back(i);
+
+		m_selected_set.insert(event_info);
+	    }
+
+	    infile.close();
+
+	    if(m_is_verbose){
+		std::cout << "Selected Events: " << std::endl;
+		std::cout << "Run \t SubRun \t Event" << std::endl;
+		for(auto & v: m_selected_set){
+		    std::for_each(v.begin(), v.end(), [](int n){std::cout << n<<" \t "; });
+		    std::cout << std::endl;
+		}
+	    }
         }
 
         std::cout<<"SinglePhoton \t||\t beginJob() is complete"<<std::endl;
@@ -1938,6 +1982,16 @@ namespace single_photon
         if(m_reco_shower_energy_max[m_reco_shower_ordered_energy_index[0]]<30.) return false;
 
         return true;
+    }
+
+    bool SinglePhoton::IsEventInList(int run, int subrun, int event){
+        if(m_selected_set.find( {run, subrun, event} ) == m_selected_set.end()){
+	    if(m_selected_set.find({run, subrun})  == m_selected_set.end() ){
+		if(m_selected_set.find({run}) == m_selected_set.end())
+		    return false;
+	    }
+	}
+	return true;
     }
 
 } //namespace

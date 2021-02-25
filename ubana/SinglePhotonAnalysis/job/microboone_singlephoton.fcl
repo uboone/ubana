@@ -12,6 +12,8 @@ singlephoton_analyzer:{
     POTLabel:       "generator"
     input_param:    "optional" 
 
+    Verbose: false
+
     SEAviewHitThreshold: 25
     SEAviewDBSCANMinPts: 8
     SEAviewDBSCANEps: 4
@@ -24,6 +26,9 @@ singlephoton_analyzer:{
     FilterMode2g1p: false
     FilterMode2g0p: false
  
+    SelectEvent: false
+    SelectEventList:""
+
     usePID: true 
     work_function: 23.6
     recombination_factor: 0.62

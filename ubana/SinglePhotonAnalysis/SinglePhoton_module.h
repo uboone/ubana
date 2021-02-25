@@ -85,6 +85,7 @@
 #include <numeric>
 #include <algorithm>
 #include <map>
+#include <set>
 #include <sys/stat.h>
 
 #include "bad_channel_matching.h"
@@ -881,6 +882,10 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
             std::map<int,bool> bad_channel_map_fixed_mcc9;
 
+	    
+	    /* @brief: given run/subrun/event number, determine if this event is in the selected event list */
+	    bool IsEventInList(int run, int subrun, int event);
+
             TRandom3 *rangen;
             std::string m_shower3dLabel;
             std::string m_showerKalmanLabel;
@@ -921,6 +926,10 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             bool m_runPhotoNuTruth;
 
+	    bool m_runSelectedEvent;  //if it should run only selected events
+	    std::string m_selected_event_list; //full path for the file containing run/subrun/event number of selected events
+            std::set<std::vector<int>> m_selected_set;  //set of selected events  	 
+ 
             //SEAviwer bits
             double m_SEAviewPlotDistance;
             double m_SEAviewHitThreshold;
