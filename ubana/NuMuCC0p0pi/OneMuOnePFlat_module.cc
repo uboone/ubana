@@ -1699,6 +1699,14 @@ void SingleMuon::analyze(art::Event const& evt)
     MC_muon_true_Pz.clear();
     MC_muon_true_E.clear();
 
+    MC_proton_true_Mom.clear();
+    MC_proton_true_theta.clear();
+    MC_proton_true_cos_theta.clear();
+    MC_proton_true_phi.clear();
+    MC_proton_true_Px.clear();
+    MC_proton_true_Py.clear();
+    MC_proton_true_Pz.clear();
+
     MC_0pi0p_muon_mom = -999;
     MC_0pi0p_muon_theta = -999;
     MC_0pi0p_muon_costheta = -999;
