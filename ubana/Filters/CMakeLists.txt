@@ -1,1 +1,6 @@
 add_subdirectory(CCInclusiveTruthFilter)
+add_subdirectory(CoarseCCInclusiveFilter)
+add_subdirectory(CCInclusiveFilter)
+add_subdirectory(SingleTrackFilter)
+add_subdirectory(NumuCCinclDumper)
+add_subdirectory(WCNumuFilter)

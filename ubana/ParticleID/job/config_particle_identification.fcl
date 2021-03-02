@@ -1,0 +1,36 @@
+#include "config_particle_identification_fiducialvolume.fcl"
+#include "config_particle_identification_producerlabels.fcl"
+#include "config_particle_identification_braggalgo.fcl"
+#include "pidalgorithms.fcl"
+
+#
+# configuration fcl file for particleId fcl parameters
+#
+
+BEGIN_PROLOG
+
+particleidconfig:
+{
+
+  module_type: "ParticleId"
+
+  # producer labels for PID + validation
+
+  ProducerLabels: @local::producerlabels_mcc9
+
+
+  # bragg algorithm fcl parameters
+  BraggAlgo: @local::braggalgo
+
+  # fiducial volume dimensions
+  FiducialVolume: @local::pidfidvol
+
+  # needed for fcl
+  Chi2PIDAlg: @local::standard_chi2pidalg
+
+  DaughterFinderCutDistance:  5.0 # cm
+  DaughterFinderCutFraction:  0.5 # fraction of track length
+
+}
+
+END_PROLOG

@@ -12,6 +12,7 @@ simple_plugin( CellTreeUB "module"
 	       larevt_CalibrationDBI_IOVData
 	       larcorealg_Geometry
 	       larcore_Geometry_Geometry_service
+	       larsim_EventWeight_Base
 	       ubraw_RawData
                ${ART_FRAMEWORK_CORE}
                ${ART_FRAMEWORK_IO_SOURCES}
@@ -27,7 +28,72 @@ simple_plugin( CellTreeUB "module"
                BASENAME_ONLY
              )
 
-art_make( EXCLUDE CellTreeUB_module.cc
+simple_plugin( WireCellAnaTree "module"
+               ubobj_WcpPort
+               larcorealg_Geometry
+               larcore_Geometry_Geometry_service
+               lardataobj_RawData
+               lardataobj_RecoBase
+               lardataobj_MCBase
+               nusimdata_SimulationBase
+               lardata_Utilities
+               lardataalg_DetectorInfo
+               larreco_RecoAlg
+               ${ART_FRAMEWORK_CORE}
+               ${ART_FRAMEWORK_PRINCIPAL}
+               ${ART_FRAMEWORK_SERVICES_REGISTRY}
+               ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+               ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+               art_Persistency_Common
+               art_Persistency_Provenance
+               art_Utilities
+               canvas
+               ${MF_MESSAGELOGGER}
+               
+               ${FHICLCPP}
+               cetlib cetlib_except
+               ${ROOT_GEOM}
+               ${ROOT_XMLIO}
+               ${ROOT_GDML}
+               ${ROOT_EG}
+               ${ROOT_BASIC_LIB_LIST}
+               BASENAME_ONLY
+             )
+
+simple_plugin( WireCellEventWeightTree "module"
+               ubobj_WcpPort
+               larcorealg_Geometry
+               larcore_Geometry_Geometry_service
+               lardataobj_RawData
+               lardataobj_RecoBase
+               lardataobj_MCBase
+               nusimdata_SimulationBase
+               lardata_Utilities
+               lardataalg_DetectorInfo
+               larreco_RecoAlg
+               ${ART_FRAMEWORK_CORE}
+               ${ART_FRAMEWORK_PRINCIPAL}
+               ${ART_FRAMEWORK_SERVICES_REGISTRY}
+               ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+               ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+               art_Persistency_Common
+               art_Persistency_Provenance
+               art_Utilities
+               canvas
+               ${MF_MESSAGELOGGER}
+               
+               ${FHICLCPP}
+               cetlib cetlib_except
+               ${ROOT_GEOM}
+               ${ROOT_XMLIO}
+               ${ROOT_GDML}
+               ${ROOT_EG}
+               ${ROOT_BASIC_LIB_LIST}
+               BASENAME_ONLY
+             )
+
+
+art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWeightTree_module.cc
           BASENAME_ONLY
           LIBRARY_NAME uboone_MicroBooNEWireCell
           LIB_LIBRARIES lardata_Utilities_DatabaseUtil_service
@@ -43,6 +109,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
 			lardataobj_RecoBase
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
+			larsim_EventWeight_Base
                         ${UBDut}
                         ${PQ}
                         ${Boost_SERIALIZATION_LIBRARY}
@@ -78,6 +145,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         larcoreobj_SummaryData
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
+			larsim_EventWeight_Base
 			ubevt_Database
                         uboone_MicroBooNEWireCell
                         ${UBDut}

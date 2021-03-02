@@ -10,10 +10,12 @@ namespace pmtana {
 
   OpDetWaveformAna::OpDetWaveformAna(const std::string name)
     : _name(name)
-    , _hitana_tree (nullptr)
-    , _wfana_tree  (nullptr)
-    , _wf_tree     (nullptr)
-    , _ev_wf_tree  (nullptr)
+    , _hitana_tree   (nullptr)
+    , _wfana_tree    (nullptr)
+    , _wf_tree       (nullptr)
+    , _ev_wf_tree    (nullptr)
+    , _ev_hit_tree   (nullptr)
+    , _ev_flash_tree (nullptr)
   {
     ClearEvent();
     ClearWaveform();
@@ -91,6 +93,52 @@ namespace pmtana {
     }// for all waveforms      
     
     if( _ev_wf_tree ) _ev_wf_tree->Fill();
+    
+    return;
+  }
+
+
+  void OpDetWaveformAna::AnaEventHit  ( const std::vector<recob::OpHit>& ev_hit_v)
+  {
+
+    if( !_ev_hit_tree ) return;
+    
+    for (size_t i=0; i < ev_hit_v.size(); i++) {
+
+      auto const hit = ev_hit_v[i];
+
+      _hit_ch = hit.OpChannel();
+      
+      _hit_pe = hit.PE();
+      _hit_area = hit.Area();
+      _hit_ampl = hit.Amplitude();
+      _hit_time = hit.PeakTime();
+
+      if (_ev_hit_tree) _ev_hit_tree->Fill();
+      
+    }// for all hits
+    
+    return;
+  }
+  
+  void OpDetWaveformAna::AnaEventFlash  ( const std::vector<recob::OpFlash>& ev_flash_v) {
+    
+    if( !_ev_flash_tree ) return;
+    
+    for (size_t i=0; i < ev_flash_v.size(); i++) {
+      
+      auto const flash = ev_flash_v[i];
+      
+      _flash_time    = flash.Time();
+      _flash_zcenter = flash.ZCenter();
+      _flash_zwidth  = flash.ZWidth();
+      _flash_ycenter = flash.YCenter();
+      _flash_ywidth  = flash.YWidth();
+      _flash_petotal = std::accumulate(flash.PEs().begin(),flash.PEs().end(),0);
+
+      if (_ev_flash_tree) _ev_flash_tree->Fill();
+      
+    }// for all hits
     
     return;
   }
@@ -189,6 +237,7 @@ namespace pmtana {
     _wf_tree->Branch( "min_adc",  &_min_adc,  "min_adc/s"  );
     _wf_tree->Branch( "wf", "std::vector<short>", &_wf  );
   }
+
   void OpDetWaveformAna::SaveEvWaveform ( TTree* ptr )
   {
     if(!ptr) {
@@ -244,7 +293,54 @@ namespace pmtana {
     _ev_wf_tree->Branch( "wf_30", "std::vector<short>", &(_wf_v[30])  );
     _ev_wf_tree->Branch( "wf_31", "std::vector<short>", &(_wf_v[31])  );
   }
+
+  void OpDetWaveformAna::SaveEvHit ( TTree* ptr ) {
+    if(!ptr) {
+      std::cerr << "<<" << __FUNCTION__ << ">>" << " Invalid ptr!" << std::endl;
+      throw std::exception();
+    }
+    if(ptr->GetEntries()) {
+      std::cerr << "<<" << __FUNCTION__ << ">>" << " Non-initialized TTree!" << std::endl;
+      throw std::exception();
+    }
+    
+    _ev_hit_tree = ptr;
+    _ev_hit_tree->Branch( "run",      &_run,      "run/i"      );
+    _ev_hit_tree->Branch( "subrun",   &_subrun,   "subrun/i"   );
+    _ev_hit_tree->Branch( "event",    &_event,    "event/i"    );
+    _ev_hit_tree->Branch("hit_ch",&_hit_ch, "hit_ch/I");
+    _ev_hit_tree->Branch("hit_pe",&_hit_pe,"hit_pe/F");
+    _ev_hit_tree->Branch("hit_time",&_hit_time,"hit_time/F");
+    _ev_hit_tree->Branch("hit_ampl",&_hit_ampl,"hit_ampl/F");
+    _ev_hit_tree->Branch("hit_area",&_hit_area,"hit_area/F");
+  }
+  
+  void OpDetWaveformAna::SaveEvFlash ( TTree* ptr )
+  {
+    if(!ptr) {
+      std::cerr << "<<" << __FUNCTION__ << ">>" << " Invalid ptr!" << std::endl;
+      throw std::exception();
+    }
+    if(ptr->GetEntries()) {
+      std::cerr << "<<" << __FUNCTION__ << ">>" << " Non-initialized TTree!" << std::endl;
+      throw std::exception();
+    }
+
+    _ev_flash_tree = ptr;
+    _ev_flash_tree->Branch( "run",      &_run,      "run/i"      );
+    _ev_flash_tree->Branch( "subrun",   &_subrun,   "subrun/i"   );
+    _ev_flash_tree->Branch( "event",    &_event,    "event/i"    );
+    _ev_flash_tree->Branch("flash_time",&_flash_time,"flash_time/F");
+    _ev_flash_tree->Branch("flash_petotal",&_flash_petotal,"flash_petotal/F");
+    _ev_flash_tree->Branch("flash_zwidth",&_flash_zwidth,"flash_zwidth/F");
+    _ev_flash_tree->Branch("flash_zcenter",&_flash_zcenter,"flash_zcenter/F");
+    _ev_flash_tree->Branch("flash_ywidth",&_flash_ywidth,"flash_ywidth/F");
+    _ev_flash_tree->Branch("flash_ycenter",&_flash_ycenter,"flash_ycenter/F");
+  }
+
+
 }
+
 
 
 #endif

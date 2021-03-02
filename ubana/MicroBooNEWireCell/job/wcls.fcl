@@ -1,3 +1,5 @@
+#include "calorimetry_microboone.fcl"
+
 BEGIN_PROLOG
 
 wcls: {
@@ -163,6 +165,13 @@ wcls: {
 	  structs: {
       	      gain_fudge_factor: 0.826
 	      sys_resp: false
+
+	      // Diffusion constants
+	      DiffusionLongitudinal: 6.4  // unit: cm^2/s, configured in the jsonnet file
+	      DiffusionTransverse:   9.8  // unit: cm^2/s, configured in the jsonnet file
+
+	      // Electron lifetime
+	      ElectronLifetime: 1000 // unit: ms, configured in the jsonnet file
       	  }
       }
    }
@@ -172,11 +181,17 @@ wcls: {
       wcls_main: {
           tool_type: WCLS
           apps: ["Pgrapher"]
-          plugins: ["WireCellPgraph", "WireCellGen","WireCellSio", "WireCellLarsoft"]
+          plugins: ["WireCellPgraph", "WireCellGen","WireCellSio", "WireCellLarsoft", "WireCellubsim"]
           configs: ["pgrapher/experiment/uboone/uboone-sim-overlay.jsonnet"]
           inputers: ["wclsSimDepoSource"
        		// only if miscfg is "dynamic" add "wclsChannelSelectorDB"
                  , "wclsChannelSelectorDB"
+		// for YZ correction 
+		 , "wclsReweightedDepoTransform:depotran0"
+		 , "wclsReweightedDepoTransform:depotran1"
+		 , "wclsReweightedDepoTransform:depotran2"
+		// for "daily" lifetime
+		 , "wclsUbDrifter"
 		]
           outputers: [
              "wclsSimChannelSink:postdrift",
@@ -194,7 +209,25 @@ wcls: {
           }
 	  structs: {
       	      gain_fudge_factor: 0.826
+	
+	      // variation of field response
 	      sys_resp: false
+
+	      // MC YZ correction
+	      YZCorrfilenameMC: '"MC_YZCorr_mcc9_v1_efieldcorr.root"'
+	      YZCorrhistnames: '["hCorr0","hCorr1","hCorr2"]' // plane U, V, Y
+              #scaleDATA_perplane: '[0.0045, 0.0045, 0.0045]'
+              #scaleMC_perplane:   '[0.0040, 0.0043, 0.0040]'
+              scaleMC_perplane: @local::microboone_calorimetryalgmcc84mc_CalAreaConstantsWCLS
+              scaleDATA_perplane: @local::microboone_calorimetryalgmcc84data_CalAreaConstantsWCLS
+
+	      // Diffusion constants
+	      DiffusionLongitudinal: 6.4  // unit: cm^2/s, configured in the jsonnet file
+	      DiffusionTransverse:   9.8  // unit: cm^2/s, configured in the jsonnet file
+
+              // Electron lifetime
+              ElectronLifetime: 1000 // unit: ms, configured in the jsonnet file
+              ELifetimeCorrection: true // or true; using lifetime database
       	  }
       }
    }

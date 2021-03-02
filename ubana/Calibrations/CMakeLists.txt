@@ -32,7 +32,7 @@ art_make( BASENAME_ONLY
                         larreco_Calorimetry
 			lardata_Utilities
 			larevt_Filters
-                        lardata_Utilities_LArFFT_service
+            lardata_Utilities_LArFFT_service
 			SignalShapingServiceMicroBooNE_service
             larevt_CalibrationDBI_Providers
             nusimdata_SimulationBase
