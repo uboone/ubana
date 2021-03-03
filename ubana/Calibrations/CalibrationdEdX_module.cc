@@ -214,8 +214,10 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
         for (size_t j = 0; j<vdQdx.size(); ++j){
 	  float yzcorrection = energyCalibProvider.YZdqdxCorrection(planeID.Plane, vXYZ[j].Y(), vXYZ[j].Z());
 	  float xcorrection  = energyCalibProvider.XdqdxCorrection(planeID.Plane, vXYZ[j].X());
-    float elifetime  = elifetimeCalibProvider.Lifetime(); // [ms]
-    float driftvelocity = detprop->DriftVelocity(); // [cm/us]
+	  float elifetime  = elifetimeCalibProvider.Lifetime(); // [ms]
+	  double efield = detProp.Efield();
+	  double temp   = detProp.Temperature();
+	  float driftvelocity = detProp.DriftVelocity(efield, temp); // [cm/us]
        	  if (!yzcorrection) yzcorrection = 1.0;
 	  if (!xcorrection) xcorrection = 1.0;
 	  
@@ -241,18 +243,18 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
           /*
           //set time to be trgger time so we don't do lifetime correction
           //we will turn off lifetime correction in caloAlg, this is just to be double sure
-          vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detProp.TriggerOffset(), planeID.Plane, 0);
+          vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], trigger_offset(clockData), planeID.Plane, 0);
           */
 
           //Calculate dE/dx using the new recombination constants
           double dQdx_e = caloAlg.ElectronsFromADCArea(vdQdx[j], planeID.Plane);
           double rho = detProp.Density();            // LAr density in g/cm^3
           double Wion = 1000./util::kGeVToElectrons;  // 23.6 eV = 1e, Wion in MeV/e
-          double E_field = detProp.Efield();        // Electric Field in the drift region in KV/cm
+          double E_field_nominal = detProp.Efield();        // Electric Field in the drift region in KV/cm
           
           //correct Efield for SCE
           geo::Vector_t E_field_offsets = {0.,0.,0.};
-          if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()});
+          if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()}, 0);
           TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
           double E_field = E_field_vector.Mag();
           

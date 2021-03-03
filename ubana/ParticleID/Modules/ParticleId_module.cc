@@ -100,7 +100,8 @@ class UBPID::ParticleId : public art::EDProducer {
 };
 
 
-UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
+UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p) :
+  art::EDProducer(p)
 {
 
   /*std::cout << "[ParticleID] Note: A plane ID of -1 is expected when a track has no calorimetry" << std::endl;

@@ -29,7 +29,7 @@
 #include "../Selection/CommonDefs/TrackShowerScoreFuncs.h"
 #include "../Selection/CommonDefs/BacktrackingFuncs.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "TTree.h"
 #include "TMatrixDSymEigen.h"
 
@@ -173,9 +173,10 @@ SecondShowerPurity::SecondShowerPurity(fhicl::ParameterSet const& p)
 
   // get detector specific properties
   auto const* geom = ::lar::providerFrom<geo::Geometry>();
-  auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
   _wire2cm = geom->WirePitch(0,0,0);
-  _time2cm = detp->SamplingRate() / 1000.0 * detp->DriftVelocity( detp->Efield(), detp->Temperature() );
+  _time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
   // Call appropriate consumes<>() for any products to be retrieved by this module.
 }
@@ -207,8 +208,8 @@ void SecondShowerPurity::analyze(art::Event const& e)
 
   ResetTTree();
 
-  auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e, clockData);
   _evt = e.event();
   _sub = e.subRun();
   _run = e.run();
@@ -392,7 +393,7 @@ void SecondShowerPurity::analyze(art::Event const& e)
     for (size_t hi=0; hi < gaushit_hit_v.size(); hi++) {
       auto hit = gaushit_hit_v.at(hi);
       gammaWire += hit->WireID().Wire * _wire2cm * hit->Integral();
-      gammaTime += (hit->PeakTime() - detp->TriggerOffset())  * _time2cm * hit->Integral();
+      gammaTime += (hit->PeakTime() - trigger_offset(clockData))  * _time2cm * hit->Integral();
       _charge += hit->Integral();
     }
     gammaWire /= _charge;
@@ -515,7 +516,8 @@ std::vector<art::Ptr<recob::Hit>> SecondShowerPurity::getGaussHits(const std::ve
 
 void  SecondShowerPurity::PCA(const std::vector<art::Ptr<recob::Hit>> &hits, TVectorD& eigenVal, TMatrixD& eigenVec) {
 
-  auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
 
   // x -> wire
   // y -> time
@@ -527,7 +529,7 @@ void  SecondShowerPurity::PCA(const std::vector<art::Ptr<recob::Hit>> &hits, TVe
 
     auto hit = hits.at(h);
     auto wire = hit->WireID().Wire * _wire2cm;
-    auto time = ( hit->PeakTime() - detp->TriggerOffset() )   * _time2cm;
+    auto time = ( hit->PeakTime() - trigger_offset(clockData) )   * _time2cm;
 
     wavg += wire;
     tavg += time;
@@ -546,7 +548,7 @@ void  SecondShowerPurity::PCA(const std::vector<art::Ptr<recob::Hit>> &hits, TVe
 
     auto hit = hits.at(h);
     auto wire = hit->WireID().Wire * _wire2cm;
-    auto time = ( hit->PeakTime() - detp->TriggerOffset() )   * _time2cm;
+    auto time = ( hit->PeakTime() - trigger_offset(clockData) )   * _time2cm;
 
     double x = wire - wavg;
     double y = time - tavg;

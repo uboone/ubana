@@ -391,7 +391,7 @@ namespace single_photon
                 if(i==0 || i ==4 || i == 8) pader->SetLeftMargin(0.1);
 
                 std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
+                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
                 vertex_time[i] = time[0];
                 vertex_wire[i] = wire[0];
@@ -782,7 +782,7 @@ namespace single_photon
                             //recob::Shower start point, convered to wire tick.
 
                             double shr_wire = (double)calcWire(m_reco_shower_starty[0], m_reco_shower_startz[0], i, fTPC, fCryostat, *geom);
-                            double shr_time = calcTime(m_reco_shower_startx[0], i, fTPC,fCryostat, *theDetector);
+                            double shr_time = calcTime(m_reco_shower_startx[0], i, fTPC,fCryostat, theDetector);
 
                             std::vector<double> vec_c = {(double)(vertex_wire[i]-ssscorz.close_wire), (double)(vertex_time[i]-ssscorz.close_tick)};
                             std::vector<double> vec_s = {(double)vertex_wire[i]-shr_wire, (double)vertex_time[i]-shr_time};

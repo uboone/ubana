@@ -8,8 +8,8 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/PFParticle.h"
@@ -186,7 +186,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
     }
 
 
-    double calcTime(double X,int plane,int fTPC,int fCryostat, detinfo::DetectorProperties const& detprop){
+    double calcTime(double X,int plane,int fTPC,int fCryostat, detinfo::DetectorPropertiesData const& detprop){
         double time = detprop.ConvertXToTicks(X, plane, fTPC,fCryostat);
         return time;
     }
@@ -844,8 +844,8 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             double m_track_calo_min_dEdx_hits;
             double m_track_calo_trunc_fraction;
 
-            detinfo::DetectorProperties const * theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
-            detinfo::DetectorClocks    const *  detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
+            detinfo::DetectorClocksData const detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
+            detinfo::DetectorPropertiesData const theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
             spacecharge::SpaceCharge const * SCE;
             geo::GeometryCore const * geom;
             double m_work_function;

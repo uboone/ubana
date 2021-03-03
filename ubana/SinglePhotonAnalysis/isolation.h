@@ -497,7 +497,7 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
                 if(i==0 ) pader->SetLeftMargin(0.1);
 
                 std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
+                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
                 vertex_time[i] = time[0];
                 vertex_wire[i] = wire[0];

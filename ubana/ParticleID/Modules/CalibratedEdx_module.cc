@@ -77,9 +77,8 @@ class UBPID::CalibratedEdx : public art::EDProducer {
 };
 
 
-UBPID::CalibratedEdx::CalibratedEdx(fhicl::ParameterSet const & p)
-  // :
-  // Initialize member data here.
+UBPID::CalibratedEdx::CalibratedEdx(fhicl::ParameterSet const & p) :
+  art::EDProducer(p)
 {
 
   fhicl::ParameterSet p_labels = p.get<fhicl::ParameterSet>("ProducerLabels");

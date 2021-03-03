@@ -102,10 +102,7 @@ private:
   std::vector<float> _data_gain = {238.4, 238.4, 238.4}; // DocDB 20227
   std::vector<float> _mc_gain = {248.2, 248.2, 248.2};   // Plane 0, plane 1, plane 2
   std::vector<float> _gain;
-  const detinfo::DetectorProperties *_detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  float _drift = _detprop->DriftVelocity() * 1e-3;
   float _readout_window = 4.8;
-  float _from_tick_to_ns = _readout_window / _detprop->ReadOutWindowSize() * 1e6;
   float _wire_spacing = 0.3;
   float _work_function = 23 / 1e6;
   float _betap;

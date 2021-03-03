@@ -7,7 +7,7 @@ add_subdirectory(job)
 
 art_make( MODULE_LIBRARIES larcorealg_Geometry
                            larcore_Geometry_Geometry_service
-                           larsim_Simulation nutools_ParticleNavigation
+                           larsim_Simulation nug4_ParticleNavigation
                            lardataobj_Simulation
 			   lardataobj_RecoBase
 			   lardataobj_MCBase	
@@ -18,7 +18,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            larsim_MCCheater_ParticleInventoryService_service
                            lardataobj_RawData
                            larevt_CalibrationDBI_Providers
-                           nutools_RandomUtils_NuRandomService_service
+                           nurandom_RandomUtils_NuRandomService_service
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
                            ${ART_FRAMEWORK_SERVICES_REGISTRY}

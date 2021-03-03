@@ -22,9 +22,10 @@ namespace searchingfornues
     {
 
     auto const* geom = ::lar::providerFrom<geo::Geometry>();
-    auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
     float w2cm = geom->WirePitch(0,0,0);
-    float t2cm = detp->SamplingRate() / 1000.0 * detp->DriftVelocity( detp->Efield(), detp->Temperature() );
+    float t2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
       std::vector<float> dist_v = {-1,-1,-1};
 

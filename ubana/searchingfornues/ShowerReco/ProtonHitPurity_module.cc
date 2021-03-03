@@ -29,7 +29,7 @@
 #include "../Selection/CommonDefs/TrackShowerScoreFuncs.h"
 #include "../Selection/CommonDefs/BacktrackingFuncs.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "TTree.h"
 
 class ProtonHitPurity;
@@ -185,9 +185,10 @@ ProtonHitPurity::ProtonHitPurity(fhicl::ParameterSet const& p)
 
   // get detector specific properties
   auto const* geom = ::lar::providerFrom<geo::Geometry>();
-  auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
   _wire2cm = geom->WirePitch(0,0,0);
-  _time2cm = detp->SamplingRate() / 1000.0 * detp->DriftVelocity( detp->Efield(), detp->Temperature() );
+  _time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
   // Call appropriate consumes<>() for any products to be retrieved by this module.
 }
@@ -197,7 +198,7 @@ void ProtonHitPurity::analyze(art::Event const& e)
 
   ResetTTree();
 
-  auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   _evt = e.event();
   _sub = e.subRun();
@@ -413,7 +414,7 @@ void ProtonHitPurity::analyze(art::Event const& e)
     for (size_t hi=0; hi < gaushit_hit_v.size(); hi++) {
       auto hit = gaushit_hit_v.at(hi);
       protonWire += hit->WireID().Wire * _wire2cm * hit->Integral();
-      protonTime += (hit->PeakTime() - detp->TriggerOffset())  * _time2cm * hit->Integral();
+      protonTime += (hit->PeakTime() - trigger_offset(clockData))  * _time2cm * hit->Integral();
       _charge += hit->Integral();
     }
     protonWire /= _charge;

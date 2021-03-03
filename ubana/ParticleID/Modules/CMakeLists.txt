@@ -16,7 +16,7 @@ art_make( BASENAME_ONLY
   ubana_ParticleID_Algorithms
   larcorealg_Geometry
   larcore_Geometry_Geometry_service
-  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+  larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
   larsim_MCCheater_BackTracker
   lardata_Utilities
   larevt_Filters
@@ -24,7 +24,7 @@ art_make( BASENAME_ONLY
   lardataobj_RecoBase
   lardataobj_AnalysisBase
   larana_TruncatedMean_Algorithm
-  lardata_RecoObjects larreco_Deprecated  
+  lardata_RecoObjects
   larreco_RecoAlg
   larpandora_LArPandoraInterface
   SignalShapingServiceMicroBooNE_service

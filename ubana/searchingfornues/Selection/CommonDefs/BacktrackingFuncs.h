@@ -23,10 +23,10 @@ void ApplyDetectorOffsets(const float _vtx_t, const float _vtx_x, const float _v
                           float &_xtimeoffset, float &_xsceoffset, float &_ysceoffset, float &_zsceoffset)
 {
 
-  auto const &detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  auto const &detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
-  double g4Ticks = detClocks->TPCG4Time2Tick(_vtx_t) + detProperties->GetXTicksOffset(0, 0, 0) - detProperties->TriggerOffset();
-  _xtimeoffset = detProperties->ConvertTicksToX(g4Ticks, 0, 0, 0);
+  auto const detClocks = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProperties = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(detClocks);
+  double g4Ticks = detClocks.TPCG4Time2Tick(_vtx_t) + detProperties.GetXTicksOffset(0, 0, 0) - trigger_offset(detClocks);
+  _xtimeoffset = detProperties.ConvertTicksToX(g4Ticks, 0, 0, 0);
 
   auto const *SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
   auto offset = SCE->GetPosOffsets(geo::Point_t(_vtx_x, _vtx_y, _vtx_z));

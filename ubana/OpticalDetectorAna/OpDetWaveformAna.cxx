@@ -5,6 +5,7 @@
 #include <limits>
 #include <climits>
 #include <iostream>
+#include <numeric>
 
 namespace pmtana {
 

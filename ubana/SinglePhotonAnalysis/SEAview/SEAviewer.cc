@@ -1,7 +1,7 @@
 #include "SEAviewer.h"
 namespace seaview{
     //default
-    SEAviewer::SEAviewer(std::string intag, geo::GeometryCore const * ingeom, detinfo::DetectorProperties const * intheDetector ): tag(intag), geom(ingeom), theDetector(intheDetector){
+    SEAviewer::SEAviewer(std::string intag, geo::GeometryCore const * ingeom, detinfo::DetectorPropertiesData intheDetector ): tag(intag), geom(ingeom), theDetector(intheDetector){
         chan_max = {-9999,-9999,-9999};
         chan_min = {9999,9999,9999};
         tick_max = -99999;
@@ -182,7 +182,7 @@ namespace seaview{
 
         for(int i=0; i<3; i++){
             double wire = (double)calcWire(threeD[1], threeD[2], i, fTPC, fCryostat, *geom);
-            double time = calcTime(threeD[0], i, fTPC,fCryostat, *theDetector);
+            double time = calcTime(threeD[0], i, fTPC,fCryostat, theDetector);
 
             ans[i] = {wire,time};
         }
@@ -202,7 +202,7 @@ namespace seaview{
         for(int i=0; i<3; i++){
 
             std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-            std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
+            std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
             vertex_tick[i] = time[0];
             vertex_chan[i] = wire[0];
@@ -230,7 +230,7 @@ namespace seaview{
         for(int i=0; i<3; i++){
 
             std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-            std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
+            std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
             true_vertex_tick[i] = time[0];
             true_vertex_chan[i] = wire[0];

@@ -278,10 +278,10 @@ void PandoraInterfaceHelper::SCE(const float &x,
   y_out = y + sce_start.Y();
   z_out = z + sce_start.Z();
 
-  auto const &detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  auto const &detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
-  float g4Ticks = detClocks->TPCG4Time2Tick(nu_time) + detProperties->GetXTicksOffset(0, 0, 0) - detProperties->TriggerOffset();
-  float xtimeoffset = detProperties->ConvertTicksToX(g4Ticks, 0, 0, 0);
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
+  float g4Ticks = clockData.TPCG4Time2Tick(nu_time) + detProp.GetXTicksOffset(0, 0, 0) - trigger_offset(clockData);
+  float xtimeoffset = detProp.ConvertTicksToX(g4Ticks, 0, 0, 0);
 
   x_out = (x + xtimeoffset - sce_start.X()) + 0.6;
 }

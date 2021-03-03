@@ -4,6 +4,7 @@ art_make(
                         CoarseNuCCHelpers
           LIB_LIBRARIES 
                         larpandora_LArPandoraInterface
+			lardata_DetectorInfoServices_DetectorClocksServiceStandard_service
                         larcorealg_Geometry
                         larcore_Geometry_Geometry_service
                         larsim_Simulation lardataobj_Simulation
@@ -15,8 +16,6 @@ art_make(
 			            ${ART_FRAMEWORK_PRINCIPAL}
 			            ${ART_FRAMEWORK_SERVICES_REGISTRY}
 			            ${ART_FRAMEWORK_SERVICES_BASIC}
-			            ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-			            ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 			            art_Framework_Services_Registry
 			            art_Persistency_Common
 			            art_Persistency_Provenance

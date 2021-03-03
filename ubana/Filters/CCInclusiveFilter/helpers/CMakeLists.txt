@@ -4,6 +4,7 @@ art_make(
                         NuCCHelpers
           LIB_LIBRARIES 
                         larpandora_LArPandoraInterface
+			lardata_DetectorInfoServices_DetectorClocksServiceStandard_service
                         larcorealg_Geometry
                         larcore_Geometry_Geometry_service
                         larsim_Simulation 

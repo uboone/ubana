@@ -17,7 +17,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -202,7 +202,7 @@ bool SingleMuonFilter::filter(art::Event & evt)
       if(n_dau_tracks == 1 && n_dau_showers == 0){
         // Add spatial correction to the track start and end
         Trk_start = daughter_Tracks.front()->Vertex<TVector3>();
-        auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
+        auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()), 0);
         Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
         Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
         Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());

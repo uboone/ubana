@@ -16,7 +16,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"

@@ -184,7 +184,8 @@ namespace seaview {
         public:
 
             /// Default constructor
-            SEAviewer(std::string tag,geo::GeometryCore const * geom,detinfo::DetectorProperties const * theDetector );
+      SEAviewer(std::string tag,geo::GeometryCore const * geom,
+		detinfo::DetectorPropertiesData theDetector );
 
             void configure(const fhicl::ParameterSet& pset){};
 
@@ -206,7 +207,7 @@ namespace seaview {
                 return wire;
             }
 
-            double calcTime(double X,int plane,int fTPC,int fCryostat, detinfo::DetectorProperties const& detprop){
+            double calcTime(double X,int plane,int fTPC,int fCryostat, detinfo::DetectorPropertiesData const& detprop){
                 double time = detprop.ConvertXToTicks(X, plane, fTPC,fCryostat);
                 return time;
             }
@@ -243,7 +244,7 @@ namespace seaview {
             std::vector<std::vector<std::vector<double>>> vec_chans;
 
             geo::GeometryCore const * geom;
-            detinfo::DetectorProperties const * theDetector ;
+            detinfo::DetectorPropertiesData theDetector ;
 
             double tick_shift;
             double chan_shift;

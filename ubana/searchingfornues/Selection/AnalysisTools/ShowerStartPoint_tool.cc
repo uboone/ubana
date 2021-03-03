@@ -93,7 +93,7 @@ private:
   std::vector<float> _shr_hits_start_Y_wire_v;
   std::vector<float> _shr_hits_start_Y_x_v;
 
-  detinfo::DetectorProperties const *detprop;
+  detinfo::DetectorPropertiesData const detprop;
 
   float wireSpacing;
 
@@ -107,9 +107,9 @@ private:
 ///
 /// pset - Fcl parameters.
 ///
-ShowerStartPoint::ShowerStartPoint(const fhicl::ParameterSet &p)
+ShowerStartPoint::ShowerStartPoint(const fhicl::ParameterSet &p) :
+  detprop(art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob())
 {
-  detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   wireSpacing = 0.3;
   fCLSproducer = p.get<art::InputTag>("CLSproducer");
 }
@@ -231,7 +231,7 @@ void ShowerStartPoint::analyzeSlice(art::Event const &e, std::vector<ProxyPfpEle
         const auto &hit = hits[i];
 
         float wire_coord_hit = hit->WireID().Wire * wireSpacing;
-        float x_hit = detprop->ConvertTicksToX(hit->PeakTime(), ass_cluster->Plane());
+        float x_hit = detprop.ConvertTicksToX(hit->PeakTime(), ass_cluster->Plane());
 
         float distance_wrt_vertex = searchingfornues::distance2d(x_hit, wire_coord_hit,
                                                reco_vtx[0], wire_reco_vtx);

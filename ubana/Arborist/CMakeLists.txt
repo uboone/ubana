@@ -24,7 +24,7 @@ art_make( BASENAME_ONLY
 			nusimdata_SimulationBase
 			${UB_DATA_TYPES}
 			${Boost_SERIALIZATION_LIBRARY}
-                        nutools_RandomUtils_NuRandomService_service
+                        nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -59,7 +59,7 @@ art_make( BASENAME_ONLY
 			ubana_LEEPhotonAnalysis
 			${UB_DATA_TYPES}
 			${Boost_SERIALIZATION_LIBRARY}
-                        nutools_RandomUtils_NuRandomService_service
+                        nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
