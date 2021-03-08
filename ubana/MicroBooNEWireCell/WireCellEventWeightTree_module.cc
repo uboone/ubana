@@ -72,7 +72,7 @@ public:
   void resetOutput();
   void save_weights(art::Event const& e);
   void save_LEEweights(art::Event const& e);
-  void FillEventWeights(art::Event const & e); 
+  void FillEventWeights(art::Event const & e, const bool partial = false); 
 
 private:
 
@@ -80,6 +80,7 @@ private:
 
   // fcl config
   std::string fSTMLabel;
+  std::string fTruthLabel;
   std::string fFileType;
   std::vector<std::string> fMCEventWeightLabels;
   std::string fWeightLabel;
@@ -99,6 +100,7 @@ private:
   Float_t	  f_weight_cv;
   Float_t	  f_weight_lee;
   std::map<std::string, std::vector<float>> fmcweight;
+  std::unordered_set<std::string> fgenie_knobs;
   Bool_t fmcweight_filled;
  
   Int_t		  f_stm_eventtype;
@@ -109,6 +111,8 @@ private:
   Int_t		  f_stm_FullDead;
   Float_t	  f_stm_clusterlength;
 
+  Int_t           f_truth_vtxInside;
+
 };
 
 
@@ -117,6 +121,20 @@ WireCellEventWeightTree::WireCellEventWeightTree(fhicl::ParameterSet const& p)
   // More initializers here.
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
+  fgenie_knobs.insert("All_UBGenie");
+  fgenie_knobs.insert("AxFFCCQEshape_UBGenie");
+  fgenie_knobs.insert("DecayAngMEC_UBGenie");
+  fgenie_knobs.insert("NormCCCOH_UBGenie");
+  fgenie_knobs.insert("NormNCCOH_UBGenie");
+  fgenie_knobs.insert("RPA_CCQE_UBGenie");
+  fgenie_knobs.insert("RootinoFix_UBGenie");
+  fgenie_knobs.insert("ThetaDelta2NRad_UBGenie");
+  fgenie_knobs.insert("Theta_Delta2Npi_UBGenie");
+  fgenie_knobs.insert("TunedCentralValue_UBGenie");
+  fgenie_knobs.insert("VecFFCCQEshape_UBGenie");
+  fgenie_knobs.insert("XSecShape_CCMEC_UBGenie");
+  fgenie_knobs.insert("xsr_scc_Fa3_SCC");
+  fgenie_knobs.insert("xsr_scc_Fv3_SCC");
   
   // fcl config
   reconfigure(p);
@@ -135,6 +153,7 @@ void WireCellEventWeightTree::reconfigure(fhicl::ParameterSet const& pset)
   fSaveFullWeights = pset.get<bool>("SaveFullWeights", false); // all weights
   fIsNuMI = pset.get<bool>("IsNuMI", false); // if true, converts NuMI's weights into BNB style
   fSTMLabel = pset.get<std::string>("STMLabel");
+  fTruthLabel = pset.get<std::string>("TruthLabel");
   fFileType = pset.get<std::string>("FileType", "empty");
   fMCEventWeightLabels = pset.get<std::vector<std::string>>("MCEventWeightLabels");
   fWeightLabel = pset.get<std::string>("WeightLabel","");
@@ -203,6 +222,21 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
 		f_stm_clusterlength = s->GetClusterLength();
 	}
 
+        f_truth_vtxInside = -1;
+	art::Handle<std::vector<nsm::NuSelectionTruth> > truth_handle;
+	e.getByLabel(fTruthLabel,truth_handle);
+	std::vector<art::Ptr<nsm::NuSelectionTruth> > truth_vec;
+	art::fill_ptr_vector(truth_vec,truth_handle);
+	std::cout<<"--- NuSelectionTruth  ---"<<std::endl;
+	if(truth_vec.size()!=1) {
+		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
+		return;
+	} 
+	for(size_t i=0; i<truth_vec.size(); i++){
+		art::Ptr<nsm::NuSelectionTruth> t = truth_vec.at(i);
+                f_truth_vtxInside = t->GetIsVtxInside();
+	}
+
 	/// save GENIE weights
 	if(fSaveWeights) save_weights(e);	
 	if(fSaveLeeWeights) save_LEEweights(e);
@@ -214,6 +248,7 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
            && f_stm_STM==0
            && f_stm_FullDead==0
            && f_stm_clusterlength>0) { FillEventWeights(e); }
+        else if (f_truth_vtxInside) { FillEventWeights(e, true); }
 	/// end
 	
 	
@@ -305,7 +340,7 @@ void WireCellEventWeightTree::save_LEEweights(art::Event const& e)
   }
 }
 
-void WireCellEventWeightTree::FillEventWeights(art::Event const & e){
+void WireCellEventWeightTree::FillEventWeights(art::Event const & e, const bool partial) {
   // To make the NuMI wights fit the BNB analysis, a few assumptions
   // have been made here:
   // 1. absorb ppfx_cv_UBPPFXCV into spline weight
@@ -404,6 +439,9 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e){
         else if (knob == "ppfx_totabs_PPFXTotAbsorp") knob = "piontotxsec_FluxUnisim";
       }
 
+      if (partial && fgenie_knobs.find(knob) == fgenie_knobs.end()) {
+          continue;
+      }
       if (fmcweight.find(knob) == fmcweight.end()) {
         fmcweight.emplace(knob, weights_asFloat);
       }
