@@ -53,12 +53,15 @@ physics:
       PFtruth_inputtag: "largeant"
       Threshold_showerKE: 0.070 # units: GeV
 
+      PFDump:                   false
+      PFDump_min_truth_energy:  0.010 # GeV
     }
 
     wcpweights:
     {
       module_type:      "WireCellEventWeightTree"
       STMLabel:         "nuselMetricsSTM"
+      TruthLabel:       "nuselMetrics"
       FileType:         "empty"
 
       SaveWeights:      false # cv, spline
@@ -76,6 +79,23 @@ physics:
       # WeightLabel:	"eventweight::EventWeightMar18"
       WeightLabel:	"eventweightSep24::EventWeightSep24"
       WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
+
+      SaveGenieWeights: false # save Genie weights if vtx inside active volume
+      GenieKnobs:       [  "All_UBGenie"
+                          ,"AxFFCCQEshape_UBGenie"
+                          ,"DecayAngMEC_UBGenie"
+                          ,"NormCCCOH_UBGenie"
+                          ,"NormNCCOH_UBGenie"
+                          ,"RPA_CCQE_UBGenie"
+                          ,"RootinoFix_UBGenie"
+                          ,"ThetaDelta2NRad_UBGenie"
+                          ,"Theta_Delta2Npi_UBGenie"
+                          ,"TunedCentralValue_UBGenie"
+                          ,"VecFFCCQEshape_UBGenie"
+                          ,"XSecShape_CCMEC_UBGenie"
+                          ,"xsr_scc_Fa3_SCC"
+                          ,"xsr_scc_Fv3_SCC" ]
+
 
 
     }
