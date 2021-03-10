@@ -88,6 +88,7 @@ private:
   bool fSaveWeights;
   bool fSaveLeeWeights;
   bool fSaveFullWeights;
+  bool fSaveGenieWeights;
   bool fIsNuMI;
 
   // output
@@ -121,20 +122,6 @@ WireCellEventWeightTree::WireCellEventWeightTree(fhicl::ParameterSet const& p)
   // More initializers here.
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
-  fgenie_knobs.insert("All_UBGenie");
-  fgenie_knobs.insert("AxFFCCQEshape_UBGenie");
-  fgenie_knobs.insert("DecayAngMEC_UBGenie");
-  fgenie_knobs.insert("NormCCCOH_UBGenie");
-  fgenie_knobs.insert("NormNCCOH_UBGenie");
-  fgenie_knobs.insert("RPA_CCQE_UBGenie");
-  fgenie_knobs.insert("RootinoFix_UBGenie");
-  fgenie_knobs.insert("ThetaDelta2NRad_UBGenie");
-  fgenie_knobs.insert("Theta_Delta2Npi_UBGenie");
-  fgenie_knobs.insert("TunedCentralValue_UBGenie");
-  fgenie_knobs.insert("VecFFCCQEshape_UBGenie");
-  fgenie_knobs.insert("XSecShape_CCMEC_UBGenie");
-  fgenie_knobs.insert("xsr_scc_Fa3_SCC");
-  fgenie_knobs.insert("xsr_scc_Fv3_SCC");
   
   // fcl config
   reconfigure(p);
@@ -151,6 +138,7 @@ void WireCellEventWeightTree::reconfigure(fhicl::ParameterSet const& pset)
   fSaveWeights = pset.get<bool>("SaveWeights", false); // GENIE weights
   fSaveLeeWeights = pset.get<bool>("SaveLeeWeights", false); // LEE weights
   fSaveFullWeights = pset.get<bool>("SaveFullWeights", false); // all weights
+  fSaveGenieWeights = pset.get<bool>("SaveGenieWeights", false); // all weights
   fIsNuMI = pset.get<bool>("IsNuMI", false); // if true, converts NuMI's weights into BNB style
   fSTMLabel = pset.get<std::string>("STMLabel");
   fTruthLabel = pset.get<std::string>("TruthLabel");
@@ -158,6 +146,10 @@ void WireCellEventWeightTree::reconfigure(fhicl::ParameterSet const& pset)
   fMCEventWeightLabels = pset.get<std::vector<std::string>>("MCEventWeightLabels");
   fWeightLabel = pset.get<std::string>("WeightLabel","");
   fWeightLeeLabel = pset.get<std::string>("WeightLeeLabel","");
+  auto v_genie_knobs = pset.get<std::vector<std::string>>("GenieKnobs");
+  for (auto v : v_genie_knobs) {
+      fgenie_knobs.insert(v);
+  }
 }
 
 void WireCellEventWeightTree::initOutput()
@@ -248,7 +240,7 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
            && f_stm_STM==0
            && f_stm_FullDead==0
            && f_stm_clusterlength>0) { FillEventWeights(e); }
-        else if (f_truth_vtxInside) { FillEventWeights(e, true); }
+        else if (fSaveGenieWeights && f_truth_vtxInside) { FillEventWeights(e, true); }
 	/// end
 	
 	
