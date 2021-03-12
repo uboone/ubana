@@ -1006,6 +1006,7 @@ namespace single_photon
         score.pass = true;
 
         // ************* Some simple metrics relative to study point (usually vertex) ***************
+        // this can be moved to inclass initializer
         score.max_dist_tick = 0;
         score.min_dist_tick = 1e10;
         score.mean_dist_tick = 0;
@@ -1060,6 +1061,7 @@ namespace single_photon
             score.mean_dist_wire += fabs(h_wire-vertex_wire);
 
             //wierd dits
+            //requires that hit in hits has to be on the same plane as vertex_wire.
             double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
             score.mean_dist += dd;
             if(dd< score.min_dist){

@@ -132,10 +132,10 @@ namespace seaview {
         public:
 
         double f_ImpactParameter;
-        double f_FitSlope;
-        double f_FitCons;
-        double f_MeanADC;
-        double f_AngleWRTShower;
+        double f_FitSlope; //slope of the fitted shower/cluster direction
+        double f_FitCons;  //intercept of the fitted shower/cluster direction
+        double f_MeanADC;  //averaged summed ADC per hit
+        double f_AngleWRTShower; //angle between cluster-vertex direction and primary_shower_start-vertex direction, assuming cluster and primary shower both point back to the vertex
 
 
         cluster(int ID, int plane, std::vector<std::vector<double>> &pts, std::vector<art::Ptr<recob::Hit>> &hits) :f_ID(ID), f_plane(plane), f_pts(pts), f_hits(hits), f_score(0,0), f_shower_remerge(-1) {
@@ -157,13 +157,13 @@ namespace seaview {
         int setScore(cluster_score &in_score){ f_score = in_score;return 0;}
 
         cluster_score * getScore(){return &f_score;};
-        int getID() {return f_ID;}
-        int getN() {return f_npts;}
-        int getPlane(){ return f_plane;}
-        std::vector<std::vector<double>> getPTS(){return f_pts;}
+        int getID() const {return f_ID;}
+        int getN() const {return f_npts;}
+        int getPlane() const { return f_plane;}
+        std::vector<std::vector<double>> getPTS() const {return f_pts;}
         TGraph * getGraph(){ return &f_graph;}
         std::vector<art::Ptr<recob::Hit>>  getHits(){return f_hits;}
-        int getShowerRemerge(){return f_shower_remerge;}
+        int getShowerRemerge() const {return f_shower_remerge;}
         int setShowerRemerge(int remerge_in){
                 f_shower_remerge = remerge_in;
                 return f_shower_remerge;
@@ -173,7 +173,7 @@ namespace seaview {
         int f_ID;
         int f_npts;
         int f_plane;
-        std::vector<std::vector<double>> f_pts;
+        std::vector<std::vector<double>> f_pts; //vector of {wire, tick} pairs of all the hits
         std::vector<art::Ptr<recob::Hit>> f_hits;
         cluster_score f_score;
         int f_shower_remerge;  //index of the reco shower if the cluseter is close enough to a reco shower, otherwise -1.
@@ -230,7 +230,7 @@ namespace seaview {
 
 
 	    // @brief: analyze all the clusters, draw them on the canvas, together with fitted direction of the cluseter
-	    // @param: vec_c: vector of clusters to be analyzed
+	    // @param: vec_c: vector of clusters to be filled 
             std::vector<double> analyzeClusters(double eps, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, std::vector<seaview::cluster> &vec_c );
 
 	    // @brief: check if there is a hit in hitz close enought to one of the reco showers, if so return the index of that reco shower
@@ -309,7 +309,7 @@ namespace seaview {
             std::vector<std::vector<int>> cluster_labels; //one-to-one mapped cluster labels for unassociated hits in `vec_unass_pts`
             TRandom3 *rangen;
 
-	    // all clusters on all 3 planes, each cluster includes points identified for that cluster
+	    // all clusters on all 3 planes, each cluster includes points/hits identified for that cluster
             std::vector<seaview::cluster> vec_clusters;  
             std::vector<art::Ptr<recob::Shower>> vec_showers; //vector of recob::Shower contained in this class
             std::vector<art::Ptr<recob::Track>> vec_tracks;

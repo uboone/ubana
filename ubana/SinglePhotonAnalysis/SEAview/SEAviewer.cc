@@ -266,6 +266,8 @@ namespace seaview{
 	//Guanqun: what does tick_min - tick_shift actually mean?
         double real_tick_min =  (fabs(vertex_tick[0] - (tick_min-tick_shift))/25.0 > plot_distance)  ? vertex_tick[0]-25.0*plot_distance  : tick_min-tick_shift  ;
         double real_tick_max =  (fabs(vertex_tick[0] - (tick_max+tick_shift))/25.0 > plot_distance)  ? vertex_tick[0]+25.0*plot_distance  : tick_max+tick_shift  ;
+        //double real_tick_min = tick_min-tick_shift  ;
+        //double real_tick_max = tick_max+tick_shift  ;
 
 
         std::vector<double> real_wire_min(3); //real x axis edges for 3 planes

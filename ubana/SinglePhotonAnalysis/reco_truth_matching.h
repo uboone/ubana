@@ -580,6 +580,7 @@ namespace single_photon
      * @argument to be filled in function body:
      * 		objectToMCParticleMap: map of object (track, shower) to its best-matching MCParticle
      * 		mcParticleVector: a vector of best-matching MCParticle corresponding to objectVector
+     * @return: a vector of fraction number, which is the fraction of unassociated hits in all reco hits of PFParticle
      */	
     //Typenamed for recob::Track and recob::Shower
     template<typename T>

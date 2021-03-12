@@ -933,7 +933,9 @@ namespace single_photon
             //-----------------------------            //SEAviwer -----------------------------------
 
 
-            if(showers.size()==1 && !m_run_pi0_filter){    
+
+            if(showers.size()==1 && tracks.size() ==0 && !m_run_pi0_filter){    
+            //if(showers.size()==1 && !m_run_pi0_filter){    
 
                 art::Ptr<recob::Shower> p_shr = showers.front();
                 art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
@@ -943,7 +945,7 @@ namespace single_photon
                 int p_sliceid = PFPToSliceIdMap[p_pfp];
                 auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
 
-                std::string uniq_tag = std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
+                std::string uniq_tag = "HitThres_"+ std::to_string(static_cast<int>(m_SEAviewHitThreshold)) + "_" + std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
 
                 //Setup seaviewr object
                 seaview::SEAviewer sevd("test_"+uniq_tag, geom, theDetector );
@@ -997,7 +999,7 @@ namespace single_photon
 
                 m_sss_num_candidates = 0;
                 for(size_t c=0; c< vec_SEAclusters.size(); c++){
-                    auto clu = vec_SEAclusters.at(c);
+                    auto clu = vec_SEAclusters.at(c); //type: seaview::cluster
                     int pl = clu.getPlane();
                     auto hitz = clu.getHits();
                     double Ep = this->CalcEShowerPlane(hitz,pl); 
@@ -1006,6 +1008,7 @@ namespace single_photon
 
                     std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.f_ImpactParameter<<" "<<clu.f_FitSlope<<" "<<clu.f_FitCons<<" "<<clu.f_MeanADC<<" "<<clu.f_AngleWRTShower<<" "<<remerge<<std::endl;
 
+		    //if the cluster is too close to the recob::shower, then do not include it
                     if(remerge>=0 && remerge< (int)m_reco_shower_reclustered_energy_plane2.size()){
                         if(pl==0)m_reco_shower_reclustered_energy_plane0[remerge]+=Ep;
                         if(pl==1)m_reco_shower_reclustered_energy_plane1[remerge]+=Ep;
@@ -1056,7 +1059,7 @@ namespace single_photon
                         m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
                     }
 
-                }
+                } //end of cluster loop
 
             }
 

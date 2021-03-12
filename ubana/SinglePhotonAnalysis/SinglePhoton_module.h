@@ -135,7 +135,7 @@ namespace single_photon
 
     }
 
-    // invariant mass assuming vertex is at (0,0,0)
+    // invariant mass of two showers, calculated directly from shower directions
     double  invar_mass(art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
 
         double s1x = s1->Direction().X();
@@ -399,8 +399,6 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             /*
              *@brief Calculated the shower energy by looping over all the hits and summing the charge
              *@param hits -  an art pointer of all the hits in a shower
-             *
-             *
              * */
             double CalcEShower(const std::vector<art::Ptr<recob::Hit>> &hits); /* returns max energy on any of the planes */
             double CalcEShowerPlane(const std::vector<art::Ptr<recob::Hit>>& hits, int plane); /* returns energy sum of hits on a certain plane */
@@ -525,6 +523,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             void SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & normaltrkmap,art::Event const & evt);
 
 
+	    /* this function is now redundant, not in use anymore */
             void SecondShowerSearch(
                     const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
                     const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
@@ -550,8 +549,12 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 	    /* analyze a cluster of hits, and return corresponding sss_score */
             sss_score ScoreCluster(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double, const art::Ptr<recob::Shower>&);
 
-            /* get the nearest N hits surrounding given position, and return a TGraph of wire-tick for these hits */
-            TGraph* GetNearestNpts(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double,int);
+            /* get the nearest N hits surrounding given position, and return a TGraph of wire-tick for these hits 
+ 	     * This function is currently used in function 'SecondShowerSearch'
+ 	     * @parameter: plane, cluster are not in use
+ 	     * @note: need to make sure all the hits in hitz are on the same plane as vertex_wire
+ 	     */
+            TGraph* GetNearestNpts(int plane,int cluter,std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,int Npt);
 
 
 	    /* brief: returns index of the first shower in showers which is close enough to one of hit in hitz */
@@ -1008,15 +1011,15 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             int m_sss_num_candidates; /* number of unasso hit clusters which are not close enough to reco showers */
             std::vector<int> m_sss_candidate_num_hits;
-            std::vector<int> m_sss_candidate_num_wires;
+            std::vector<int> m_sss_candidate_num_wires; //number of wires spanned by the candidate cluster
             std::vector<int>  m_sss_candidate_num_ticks;
             std::vector<int>  m_sss_candidate_plane; /* on which plan the unasso cluster is */
             std::vector<double> m_sss_candidate_PCA;
             std::vector<double> m_sss_candidate_mean_ADC;
             std::vector<double> m_sss_candidate_impact_parameter;
-            std::vector<double> m_sss_candidate_fit_slope;
+            std::vector<double> m_sss_candidate_fit_slope; //slope of the cluster direction
             std::vector<double> m_sss_candidate_veto_score;
-            std::vector<double> m_sss_candidate_fit_constant;
+            std::vector<double> m_sss_candidate_fit_constant; //intercept of the cluster direction
             std::vector<double> m_sss_candidate_mean_tick;
             std::vector<double> m_sss_candidate_max_tick;
             std::vector<double> m_sss_candidate_min_tick;
@@ -1027,31 +1030,34 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_sss_candidate_energy;
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
-            std::vector<int>    m_sss_candidate_remerge;
+            std::vector<int>    m_sss_candidate_remerge; // index of the recob::shower candidate cluster is close to (expect it to be -1)
             std::vector<int>    m_sss_candidate_matched; /* has matched this unasso cluter to a primary MCParticle: 0-No, 1-Yes */
             std::vector<int>    m_sss_candidate_pdg;   /* pdg of the matched MCParticle */
             std::vector<int>    m_sss_candidate_parent_pdg;
-            std::vector<int>    m_sss_candidate_trackid;
+            std::vector<int>    m_sss_candidate_trackid; /* track ID of the matched MCParticle */
             std::vector<double> m_sss_candidate_overlay_fraction; /* fraction of overlay in the unasso cluster hits */
 
+    //------------ sss3d_showers variables are for reco::showers which are in the events, but not in the slice ----
+
             int m_sss3d_num_showers;  /* number of showers in the event but not in the slice */
-            std::vector<double> m_sss3d_shower_start_x; /* shower start in X axis, for all showers in the event */
+            std::vector<double> m_sss3d_shower_start_x; /* shower start in X axis, for all showers in the event but not in the slice*/
             std::vector<double> m_sss3d_shower_start_y;
             std::vector<double> m_sss3d_shower_start_z;
-            std::vector<double> m_sss3d_shower_dir_x; /* shower direction projection on X axis, for all showers in the event */
+            std::vector<double> m_sss3d_shower_dir_x; /* shower direction projection on X axis */
             std::vector<double> m_sss3d_shower_dir_y;
             std::vector<double> m_sss3d_shower_dir_z;
             std::vector<double> m_sss3d_shower_length;
-            std::vector<double> m_sss3d_shower_conversion_dist; /* dist between shower start and vertex, for all shrs in event */
+            std::vector<double> m_sss3d_shower_conversion_dist; /* dist between shower start and vertex*/
 
-            std::vector<double> m_sss3d_shower_invariant_mass; /* invariant mass of primary shower, and each shower in the event, 
+            std::vector<double> m_sss3d_shower_invariant_mass; /* invariant mass of primary recob::shower, and each shower in the event, 
 								* calculated assuming vertex is where their mother particle decays */
 
-            std::vector<double> m_sss3d_shower_implied_invariant_mass; /* similar to invariance mass, except assuming 
-									* the mother of two showers decays at (0,0,0) */
+            std::vector<double> m_sss3d_shower_implied_invariant_mass; /* similar to invariance mass, except this invariant mass  
+									* is calced direclty using shower direction of two showers */
 
             std::vector<double> m_sss3d_shower_impact_parameter; /* dist between vertex and shower direction line */
-            std::vector<double> m_sss3d_shower_ioc_ratio; /* ratio of impact parameter over conversion dist */
+            std::vector<double> m_sss3d_shower_ioc_ratio; /* ratio of impact parameter over conversion dist 
+							   * 0 if the conversion distance is 0*/
             std::vector<double> m_sss3d_shower_energy_max; /* max energy of all planes (E summed from hits) */
             std::vector<double> m_sss3d_shower_score;
             std::vector<int> m_sss3d_slice_nu;
@@ -1059,6 +1065,8 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             bool bool_make_sss_plots;
 
+
+    //------ max_energy, conversion dist, ioc of the sss3d shower that has the smallest ioc parameter ----
             double m_sss3d_ioc_ranked_en;
             double m_sss3d_ioc_ranked_conv;
             double m_sss3d_ioc_ranked_invar;
@@ -1066,8 +1074,9 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             double m_sss3d_ioc_ranked_ioc;
             double m_sss3d_ioc_ranked_opang;
             double m_sss3d_ioc_ranked_implied_opang;
-            int m_sss3d_ioc_ranked_id;
+            int m_sss3d_ioc_ranked_id; //index of the sss3d_shower that has the smallest ioc.
 
+    // --- same parameters, of the sss3d shower whose implied invariant mass together with primary recob::shower is closest to pi0 mass --
             double m_sss3d_invar_ranked_en;
             double m_sss3d_invar_ranked_conv;
             double m_sss3d_invar_ranked_invar;
@@ -1077,6 +1086,13 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             double m_sss3d_invar_ranked_implied_opang;
             int m_sss3d_invar_ranked_id;
 
+
+   //--------------- sss2d showers are essentially group of cluters on 3 planes, that have the potential to be a shower -------
+   //--------------- they are not recob::showers --------------------------
+
+   // sss2d_ioc_ranked variables are the varaibles (mean shower energy, conv. dist, ioc, etc) of the sss2d shower that has the smallest ioc 
+   // sss2d_conv_ranked variables are the varaibles (energy, conv. dist, ioc, etc) of the sss2d shower that has the smallest conv. distance 
+   // sss2d_invar_ranked variables are the varaibles of the sss2d shower whose invariant mass together with primary shower is closest to pi0. 
             double m_sss2d_ioc_ranked_en;
             double m_sss2d_ioc_ranked_conv;
             double m_sss2d_ioc_ranked_ioc;
