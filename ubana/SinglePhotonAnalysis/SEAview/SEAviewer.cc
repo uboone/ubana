@@ -418,8 +418,21 @@ namespace seaview{
 
         }
 
-        //If its be clusterized, plot clusters here. Lets try a color surrounding the black.
+        /********************************* Unassociated Hits ****************************/
+        for(int i=0; i<3; i++){
+            can->cd(i+1);
+            if(vec_unass_graphs[i].GetN()>0){//need a check in case this track has no hits on this plane.
 
+                vec_unass_graphs[i].Draw("p same"); 
+                vec_unass_graphs[i].SetMarkerColor(kBlack);
+                vec_unass_graphs[i].SetFillColor(kBlack);
+                vec_unass_graphs[i].SetMarkerStyle(20);
+                vec_unass_graphs[i].SetMarkerSize(plot_point_size);
+            }
+        }
+
+	/******************************* Clustered Hits ***********************************/
+	// draw cluster hits after drawing all unassociated hits such that clustered hits would be colored while un-clustered ones will be black.
         if(has_been_clustered){ 
 
             std::vector<int> cluster_colors(vec_clusters.size()+1,0);
@@ -441,7 +454,8 @@ namespace seaview{
                     c.getGraph()->SetMarkerColor(cluster_colors[c_offset]);
                     c.getGraph()->SetFillColor(cluster_colors[c_offset]);
                     c.getGraph()->SetMarkerStyle(20);
-                    c.getGraph()->SetMarkerSize(plot_point_size*2.0);
+                    //c.getGraph()->SetMarkerSize(plot_point_size);
+                    c.getGraph()->SetMarkerSize(plot_point_size*1.5);
                     //std::cout<<"Printing cluster "<<c.getID()<<" on plane "<<pl<<" col "<<cluster_colors[c_offset]<<std::endl;
                     //auto ll = c.getPTS();
                     //for(auto &p :ll){
@@ -453,18 +467,6 @@ namespace seaview{
         }//end clusters
 
 
-        /********************************* Unassociated Hits ****************************/
-        for(int i=0; i<3; i++){
-            can->cd(i+1);
-            if(vec_unass_graphs[i].GetN()>0){//need a check in case this track has no hits on this plane.
-
-                vec_unass_graphs[i].Draw("p same"); 
-                vec_unass_graphs[i].SetMarkerColor(kBlack);
-                vec_unass_graphs[i].SetFillColor(kBlack);
-                vec_unass_graphs[i].SetMarkerStyle(20);
-                vec_unass_graphs[i].SetMarkerSize(plot_point_size);
-            }
-        }
 
         //****** just plto vertex again with elipse;
         for(int i=0; i<3; i++){
@@ -489,7 +491,7 @@ namespace seaview{
           std::string pot_draw = "Run: "+std::to_string(m_run_number)+" SubRun: "+std::to_string(m_subrun_number)+" Event: "+std::to_string(m_event_number);
           pottex.DrawLatex(.1,.94, pot_draw.c_str());
           */
-        TLegend l_top(0.1,0.1,0.9,0.9);
+        TLegend l_top(0.1,0.0,0.9,1.0);
 	l_top.SetTextSize(0.05);
 
         for(int p=0; p<n_pfps; p++){
@@ -504,6 +506,14 @@ namespace seaview{
             }
 
         }
+
+	// draw legend for clustered hits if there is any
+	// only clusters that are considered second shower candidates have legends
+	for(const auto &cluster : vec_clusters){
+	    if(cluster.getLegend().empty()) continue;
+	    l_top.AddEntry(cluster.getGraph(), cluster.getLegend().c_str(), "f");
+  	}
+
         l_top.SetHeader(print_name.c_str(),"C");
         l_top.SetLineWidth(0);
         l_top.SetLineColor(kWhite);
@@ -1033,6 +1043,19 @@ namespace seaview{
         return new TGraph(t_wire.size(),&t_wire[0],&t_tick[0]);
     }
 
+    void SEAviewer::SetClusterLegend(int cluster, double energy, double impact_parameter, int is_matched, int matched_pdg, double overlay_fraction){
+	//need to use stringstream to control the number of digits..
+	std::ostringstream ss1, ss2, ss3;
+ 	ss1 << std::setprecision(1) << std::fixed << energy;
+	ss2 << std::setprecision(1) << std::fixed << impact_parameter;
+	ss3 << std::setprecision(2) << std::fixed << overlay_fraction;
+
+	std::string legend = "#splitline{E: " + ss1.str() + "MeV, Impact Par.: " 
+			+ ss2.str() + "cm}{#splitline{Matched: " + (is_matched == 1 ? "true" : "false") +", PDG: " 
+			+ std::to_string(matched_pdg) + "}{Ovelay Frac: "+ ss3.str() + "}}";
+
+	vec_clusters.at(cluster).setLegend(legend);
+    }
 
     void SEAviewer::format_legend(std::string &leg, double arg1, double arg2, double arg3){
 	std::ostringstream ss1, ss2, ss3;

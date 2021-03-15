@@ -987,7 +987,8 @@ namespace single_photon
                 sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
 
                 //And some plotting
-                if(m_SEAviewMakePDF) sevd.Print(m_SEAviewPlotDistance);
+                // If we want to plot pdfs again later, then we can't plot here
+                //if(m_SEAviewMakePDF) sevd.Print(m_SEAviewPlotDistance);
 
                 //This is the place I will put the new Second Shower Search
                 std::vector<seaview::cluster> vec_SEAclusters ;
@@ -1057,10 +1058,21 @@ namespace single_photon
                         m_sss_candidate_parent_pdg.push_back(ssmatched[2]);
                         m_sss_candidate_trackid.push_back(ssmatched[3]);
                         m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
+
+			//Guanqun: print out (best-matched) truth information of the cluster
+			std::cout << "Cluster: " << c  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << ", impact parameter: " << m_sss_candidate_impact_parameter.back() << "\n";
+			std::cout << "Cluster is matched: " << m_sss_candidate_matched.back() << ", matched PDG: " << m_sss_candidate_pdg.back() << " track ID: " << m_sss_candidate_trackid.back() << " overlay fraction: " << m_sss_candidate_overlay_fraction.back() << std::endl; 
+			std::cout << "===============================================================" << std::endl;
                     }
+
+		    sevd.SetClusterLegend(c, m_sss_candidate_energy.back(), m_sss_candidate_impact_parameter.back(), m_sss_candidate_matched.back(), m_sss_candidate_pdg.back() , m_sss_candidate_overlay_fraction.back() );
 
                 } //end of cluster loop
 
+		// Plot the event
+		if(m_SEAviewMakePDF){
+		    sevd.Print(m_SEAviewPlotDistance);
+		}
             }
 
             for(int i =0; i<(int)showers.size(); i++){

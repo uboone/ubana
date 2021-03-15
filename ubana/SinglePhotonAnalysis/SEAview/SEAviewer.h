@@ -155,6 +155,9 @@ namespace seaview {
 
         };
         int setScore(cluster_score &in_score){ f_score = in_score;return 0;}
+  	void setLegend(const std::string &in_leg){
+	    f_legend = in_leg;
+        }
 
         cluster_score * getScore(){return &f_score;};
         int getID() const {return f_ID;}
@@ -162,6 +165,8 @@ namespace seaview {
         int getPlane() const { return f_plane;}
         std::vector<std::vector<double>> getPTS() const {return f_pts;}
         TGraph * getGraph(){ return &f_graph;}
+        const TGraph * getGraph() const { return &f_graph;}
+	const std::string &getLegend() const {return f_legend; }
         std::vector<art::Ptr<recob::Hit>>  getHits(){return f_hits;}
         int getShowerRemerge() const {return f_shower_remerge;}
         int setShowerRemerge(int remerge_in){
@@ -178,6 +183,7 @@ namespace seaview {
         cluster_score f_score;
         int f_shower_remerge;  //index of the reco shower if the cluseter is close enough to a reco shower, otherwise -1.
         TGraph f_graph;
+        std::string f_legend; //legend of the f_graph
     };  // end of class cluster
 
 
@@ -245,6 +251,7 @@ namespace seaview {
 	    // return the {wire, tick} info of these hits as a TGraph
             TGraph* SeaviewGetNearestNpts(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hitz, double vertex_wire, double vertex_tick, int Npts);
 
+  	    void SetClusterLegend(int cluster, double energy, double impact_parameter, int is_matched, int matched_pdg, double overlay_fraction);
 
 
         protected:
