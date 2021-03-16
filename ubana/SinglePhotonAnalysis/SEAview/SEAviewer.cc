@@ -508,10 +508,15 @@ namespace seaview{
         }
 
 	// draw legend for clustered hits if there is any
-	// only clusters that are considered second shower candidates have legends
 	for(const auto &cluster : vec_clusters){
+
+	    // only consider clusters that are second shower candidates
 	    if(cluster.getLegend().empty()) continue;
-	    l_top.AddEntry(cluster.getGraph(), cluster.getLegend().c_str(), "f");
+
+	    // if the cluster is out of the plotting range, do not include it in the legend
+	    if(cluster.InRange(real_tick_max, real_tick_min, real_wire_max[cluster.getPlane()], real_wire_min[cluster.getPlane()])){
+	        l_top.AddEntry(cluster.getGraph(), cluster.getLegend().c_str(), "f");
+	    }
   	}
 
         l_top.SetHeader(print_name.c_str(),"C");
@@ -1043,17 +1048,28 @@ namespace seaview{
         return new TGraph(t_wire.size(),&t_wire[0],&t_tick[0]);
     }
 
-    void SEAviewer::SetClusterLegend(int cluster, double energy, double impact_parameter, int is_matched, int matched_pdg, double overlay_fraction){
+    void SEAviewer::SetClusterLegend(int cluster, double energy, int is_matched, int matched_pdg, double overlay_fraction){
+
+	//grab the plane number, and impact parameter of the cluster
+	int plane = vec_clusters.at(cluster).getPlane();
+        double impact_parameter  = vec_clusters.at(cluster).f_ImpactParameter;
+
 	//need to use stringstream to control the number of digits..
 	std::ostringstream ss1, ss2, ss3;
  	ss1 << std::setprecision(1) << std::fixed << energy;
 	ss2 << std::setprecision(1) << std::fixed << impact_parameter;
 	ss3 << std::setprecision(2) << std::fixed << overlay_fraction;
-
-	std::string legend = "#splitline{E: " + ss1.str() + "MeV, Impact Par.: " 
+	
+	std::string legend;
+	//add the truth information to the legend if the cluster is matched to a MCParticle
+	if(is_matched){
+	    legend = "#splitline{" + std::to_string(plane) + ", " + ss1.str() + "MeV, Impact Par.: " 
 			+ ss2.str() + "cm}{#splitline{Matched: " + (is_matched == 1 ? "true" : "false") +", PDG: " 
 			+ std::to_string(matched_pdg) + "}{Ovelay Frac: "+ ss3.str() + "}}";
-
+	}
+	else{
+	    legend = std::to_string(plane) + ", " + ss1.str() + "MeV, Impact Par.: " + ss2.str() + "cm";
+	}
 	vec_clusters.at(cluster).setLegend(legend);
     }
 

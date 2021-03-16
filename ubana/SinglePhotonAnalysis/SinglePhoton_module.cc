@@ -1065,7 +1065,7 @@ namespace single_photon
 			std::cout << "===============================================================" << std::endl;
                     }
 
-		    sevd.SetClusterLegend(c, m_sss_candidate_energy.back(), m_sss_candidate_impact_parameter.back(), m_sss_candidate_matched.back(), m_sss_candidate_pdg.back() , m_sss_candidate_overlay_fraction.back() );
+		    sevd.SetClusterLegend(c, m_sss_candidate_energy.back(),  m_sss_candidate_matched.back(), m_sss_candidate_pdg.back() , m_sss_candidate_overlay_fraction.back() );
 
                 } //end of cluster loop
 

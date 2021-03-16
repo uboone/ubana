@@ -173,6 +173,12 @@ namespace seaview {
                 f_shower_remerge = remerge_in;
                 return f_shower_remerge;
         }
+	    
+    	// determine if the cluster is within the plot range
+    	// tick_max, tick_min, wire_max, and wire_min are the edges of the X axis(wire) and Y axis(tick)
+	bool InRange(double tick_max, double tick_min, double wire_max, double wire_min) const{
+	    return f_score.min_wire < wire_max && f_score.max_wire > wire_min && f_score.max_tick > tick_min && f_score.min_tick < tick_max;
+        }
 
         private:
         int f_ID;
@@ -251,7 +257,7 @@ namespace seaview {
 	    // return the {wire, tick} info of these hits as a TGraph
             TGraph* SeaviewGetNearestNpts(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hitz, double vertex_wire, double vertex_tick, int Npts);
 
-  	    void SetClusterLegend(int cluster, double energy, double impact_parameter, int is_matched, int matched_pdg, double overlay_fraction);
+  	    void SetClusterLegend(int cluster, double energy, int is_matched, int matched_pdg, double overlay_fraction);
 
 
         protected:
@@ -321,7 +327,9 @@ namespace seaview {
             std::vector<art::Ptr<recob::Shower>> vec_showers; //vector of recob::Shower contained in this class
             std::vector<art::Ptr<recob::Track>> vec_tracks;
 
-	    //helper function
+	    //-----helper function-----------
+	    
+	    // form legend for recob::shower and recob::track objects
 	    void format_legend(std::string &leg, double arg1 = 0.0, double arg2 = 0.0, double arg3 = 0.0);
     };
 
