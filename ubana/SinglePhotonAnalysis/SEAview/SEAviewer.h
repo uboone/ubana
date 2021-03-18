@@ -101,6 +101,11 @@ namespace seaview {
 
         double impact_parameter;
 
+	//add a few parameters that are useful to find tracks in no recob::track events
+	double f_min_impact_parameter_to_shower = 1e10;  //mininum impact parameter of hits to the recob::shower direction
+	double f_min_conversion_dist_to_shower_start = 1e10;   //minimum distance of hits to the recob::shower start
+	double f_min_ioc_to_shower_start = 1e20;               //minimum ioc of all hits to the recob::shower direction
+
         double max_dist_tick;
         double mean_dist_tick;
         double min_dist_tick;
@@ -131,7 +136,7 @@ namespace seaview {
 
         public:
 
-        double f_ImpactParameter;
+        double f_ImpactParameter; //impact parameter of the vertex wrt to the cluster
         double f_FitSlope; //slope of the fitted shower/cluster direction
         double f_FitCons;  //intercept of the fitted shower/cluster direction
         double f_MeanADC;  //averaged summed ADC per hit
@@ -238,7 +243,18 @@ namespace seaview {
 	    /* @brief: given a 3D space point, calculate the [wire, tick] of the point on 3 planes */
             std::vector<std::vector<double>> to2D(std::vector<double> & threeD);
 
-            double dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& point);
+
+	    /* @brief: given two points on a line, and another point (in 2D space), calculate the impact parameter 
+	    * @param: 3 parameter of std::vector<double> are {wire, tick} vectors 
+ 	    */
+            double dist_line_point( const std::vector<double>&X1, const std::vector<double>& X2, const std::vector<double>& point);
+
+
+            //distance between two {wire, tick} points
+    	    double dist_point_point(double w1, double t1, double w2, double t2) const{
+        	return  sqrt(pow(w1*wire_con-w2*wire_con,2)+pow(t1*tick_con-t2*tick_con,2));
+            }
+
 
 
 	    // @brief: analyze all the clusters, draw them on the canvas, together with fitted direction of the cluseter
@@ -261,6 +277,11 @@ namespace seaview {
 
 
         protected:
+	
+	    //conversion from wire, tick to cm
+	    double wire_con = 0.3;
+            double tick_con = 1.0/25.0;
+
             int n_pfps;    // num of PFParticles (including shower & track)
             int n_showers; //num of showers
             int n_tracks;  //num of tracks

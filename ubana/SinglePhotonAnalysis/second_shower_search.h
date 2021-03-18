@@ -41,6 +41,9 @@ namespace single_photon
         m_sss_candidate_max_wire.clear();
         m_sss_candidate_mean_wire.clear();
         m_sss_candidate_min_dist.clear();
+	m_sss_candidate_min_impact_parameter_to_shower.clear();
+   	m_sss_candidate_min_conversion_dist_to_shower_start.clear();
+	m_sss_candidate_min_ioc_to_shower_start.clear();
         m_sss_candidate_energy.clear();
         m_sss_candidate_angle_to_shower.clear();
         m_sss_candidate_closest_neighbour.clear();
@@ -80,6 +83,9 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_max_wire",&m_sss_candidate_max_wire);
         vertex_tree->Branch("sss_candidate_min_wire",&m_sss_candidate_min_wire);
         vertex_tree->Branch("sss_candidate_min_dist",&m_sss_candidate_min_dist);
+	vertex_tree->Branch("sss_candidate_min_impact_parameter_to_shower", &m_sss_candidate_min_impact_parameter_to_shower);
+	vertex_tree->Branch("sss_candidate_min_conversion_dist_to_shower_start", &m_sss_candidate_min_conversion_dist_to_shower_start);
+	vertex_tree->Branch("sss_candidate_min_ioc_to_shower_start", &m_sss_candidate_min_ioc_to_shower_start);
         vertex_tree->Branch("sss_candidate_energy",&m_sss_candidate_energy);
         vertex_tree->Branch("sss_candidate_angle_to_shower",&m_sss_candidate_angle_to_shower);
         vertex_tree->Branch("sss_candidate_closest_neighbour",&m_sss_candidate_closest_neighbour);

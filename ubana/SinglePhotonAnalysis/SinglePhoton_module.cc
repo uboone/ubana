@@ -1036,6 +1036,9 @@ namespace single_photon
                     m_sss_candidate_max_wire.push_back(ssscorz->max_wire);
                     m_sss_candidate_mean_wire.push_back(ssscorz->mean_wire);
                     m_sss_candidate_min_dist.push_back(ssscorz->min_dist);
+	            m_sss_candidate_min_impact_parameter_to_shower.push_back(ssscorz->f_min_impact_parameter_to_shower);
+		    m_sss_candidate_min_conversion_dist_to_shower_start.push_back(ssscorz->f_min_conversion_dist_to_shower_start);
+		    m_sss_candidate_min_ioc_to_shower_start.push_back(ssscorz->f_min_ioc_to_shower_start);
                     m_sss_candidate_mean_ADC.push_back(clu.f_MeanADC);
                     m_sss_candidate_energy.push_back(Ep);
                     m_sss_candidate_angle_to_shower.push_back(clu.f_AngleWRTShower);
@@ -1060,7 +1063,7 @@ namespace single_photon
                         m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
 
 			//Guanqun: print out (best-matched) truth information of the cluster
-			std::cout << "Cluster: " << c  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << ", impact parameter: " << m_sss_candidate_impact_parameter.back() << "\n";
+			std::cout << "Cluster: " << c  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << ", impact parameter (wrt shower): " << m_sss_candidate_min_impact_parameter_to_shower.back() << "\n";
 			std::cout << "Cluster is matched: " << m_sss_candidate_matched.back() << ", matched PDG: " << m_sss_candidate_pdg.back() << " track ID: " << m_sss_candidate_trackid.back() << " overlay fraction: " << m_sss_candidate_overlay_fraction.back() << std::endl; 
 			std::cout << "===============================================================" << std::endl;
                     }
