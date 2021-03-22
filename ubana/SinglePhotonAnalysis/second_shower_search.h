@@ -48,6 +48,7 @@ namespace single_photon
         m_sss_candidate_angle_to_shower.clear();
         m_sss_candidate_closest_neighbour.clear();
         m_sss_candidate_matched.clear();
+	m_sss_candidate_matched_energy_fraction_best_plane.clear();
         m_sss_candidate_pdg.clear();
         m_sss_candidate_parent_pdg.clear();
         m_sss_candidate_trackid.clear();
@@ -96,7 +97,7 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_parent_pdg",&m_sss_candidate_parent_pdg);
         vertex_tree->Branch("sss_candidate_trackid",&m_sss_candidate_trackid);
         vertex_tree->Branch("sss_candidate_overlay_fraction",&m_sss_candidate_overlay_fraction);
-
+	vertex_tree->Branch("sss_candidate_matched_energy_fraction_best_plane", &m_sss_candidate_matched_energy_fraction_best_plane);
 
         vertex_tree->Branch("sss3d_ioc_ranked_en",&m_sss3d_ioc_ranked_en);
         vertex_tree->Branch("sss3d_ioc_ranked_conv",&m_sss3d_ioc_ranked_conv);
@@ -826,7 +827,7 @@ namespace single_photon
                                 m_sss_candidate_parent_pdg.push_back(-1);
                                 m_sss_candidate_trackid.push_back(-1);
                                 m_sss_candidate_overlay_fraction.push_back(-1);
-
+				m_sss_candidate_matched_energy_fraction_best_plane.push_back(-1);
                             }else{
                                 auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleIdMap,  MCParticleToTrackIdMap);
                                 m_sss_candidate_matched.push_back(ssmatched[0]);
@@ -834,6 +835,7 @@ namespace single_photon
                                 m_sss_candidate_parent_pdg.push_back(ssmatched[2]);
                                 m_sss_candidate_trackid.push_back(ssmatched[3]);
                                 m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
+				m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[5]);
                             }
 
 
@@ -1278,7 +1280,7 @@ namespace single_photon
             //This will only occur if the whole recob::PFParticle is PURELY associated with an overlay object
             found_a_match =false;
             //Here we will fill every sim_shower_XXX variable with -999 or something like that 
-            return {0,0,0,0,0};
+            return {0,0,0,0,0,0};
         }//
 
         /*
@@ -1445,7 +1447,7 @@ namespace single_photon
             par_pdg = match_mother->PdgCode();
         }
 
-        ans = {1,(double)match->PdgCode(), (double)par_pdg, (double)match->TrackId(),fraction_num_hits_overlay};
+        ans = {1,(double)match->PdgCode(), (double)par_pdg, (double)match->TrackId(),fraction_num_hits_overlay, best_mother_energy/total_energy_on_plane.at(best_mother_plane)};
 
         return ans;
     }//end sss matching;

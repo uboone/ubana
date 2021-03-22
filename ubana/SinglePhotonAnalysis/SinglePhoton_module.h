@@ -536,8 +536,8 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
 
 	    /* brief: analyze hits (second shower), find out which primary MCParticle is the best-match for these hits
- 	     * and return a vector of 5 elements: 
- 	     * {has_found_match, PDG for the match, PDG for the mother particle of match, track ID of match, fraction of overlay in hits }
+ 	     * and return a vector of 6 elements: 
+ 	     * {has_found_match, PDG for the match, PDG for the mother particle of match, track ID of match, fraction of overlay in hits, energy fraction of the matched particle on best-plane}
  	     */
             std::vector<double>SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
                     art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
@@ -1035,6 +1035,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_sss_candidate_closest_neighbour;
             std::vector<int>    m_sss_candidate_remerge; // index of the recob::shower candidate cluster is close to (expect it to be -1)
             std::vector<int>    m_sss_candidate_matched; /* has matched this unasso cluter to a primary MCParticle: 0-No, 1-Yes */
+	    std::vector<double> m_sss_candidate_matched_energy_fraction_best_plane; /* matched energy fraction of the best-matched MCParticle on best-plane */ 
             std::vector<int>    m_sss_candidate_pdg;   /* pdg of the matched MCParticle */
             std::vector<int>    m_sss_candidate_parent_pdg;
             std::vector<int>    m_sss_candidate_trackid; /* track ID of the matched MCParticle */

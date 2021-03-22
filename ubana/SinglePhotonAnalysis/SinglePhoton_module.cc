@@ -1052,7 +1052,7 @@ namespace single_photon
                         m_sss_candidate_parent_pdg.push_back(-1);
                         m_sss_candidate_trackid.push_back(-1);
                         m_sss_candidate_overlay_fraction.push_back(-1);
-
+			m_sss_candidate_matched_energy_fraction_best_plane.push_back(-1);
                     }else{
 
                         auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
@@ -1061,6 +1061,7 @@ namespace single_photon
                         m_sss_candidate_parent_pdg.push_back(ssmatched[2]);
                         m_sss_candidate_trackid.push_back(ssmatched[3]);
                         m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
+			m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[5]);
 
 			//Guanqun: print out (best-matched) truth information of the cluster
 			std::cout << "Cluster: " << c  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << ", impact parameter (wrt shower): " << m_sss_candidate_min_impact_parameter_to_shower.back() << "\n";
