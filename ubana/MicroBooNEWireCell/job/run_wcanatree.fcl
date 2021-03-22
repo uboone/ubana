@@ -4,7 +4,7 @@ process_name: WireCellAnaTree
 
 services:
 {
-  TFileService: { fileName: "reco2_checkout_hist.root" }
+  TFileService: { fileName: "reco_stage_2_hist.root" }
   TimeTracker:             @local::microboone_time_tracker
   MemoryTracker:           @local::microboone_memory_tracker
   FileCatalogMetadata:     @local::art_file_catalog_data
@@ -54,6 +54,7 @@ physics:
       Threshold_showerKE: 0.070 # units: GeV
 
       PFDump:                   false
+      save_track_position:      false
       PFDump_min_truth_energy:  0.010 # GeV
     }
 
@@ -152,7 +153,7 @@ services.DetectorClocksService.InheritClockConfig:  false
 
 microboone_tfile_metadata:
 {
-  JSONFileName:          ["reco2_checkout_hist.root.json"]
+  JSONFileName:          ["reco_stage_2_hist.root.json"]
   GenerateTFileMetadata: [true]
   dataTier:              ["root-tuple"]
   fileFormat:            ["root"]
