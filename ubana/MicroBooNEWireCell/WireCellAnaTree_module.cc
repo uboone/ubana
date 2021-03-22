@@ -7,6 +7,7 @@
 // from cetlib version v3_05_01.
 //
 // 12.03.2020 modified by Wenqiang Gu (wgu@bnl.gov)
+// 03.15.2021 modified by Haiwang Yu (hyu@bnl.gov)
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -47,6 +48,7 @@
 #include "TString.h"
 #include "TLorentzVector.h"
 #include "TVector3.h"
+#include "TClonesArray.h"
 
 #include <iostream>
 #include <fstream>
@@ -117,6 +119,7 @@ private:
   std::map<int, simb::MCParticle> fParticleMap; // map from trackId to particle instance
  
   bool f_PFDump;
+  bool f_save_track_position;
   float f_PFDump_min_truth_energy;
 
   // output
@@ -896,6 +899,7 @@ private:
   float truth_startMomentum[MAX_TRACKS][4];  // start momentum of this track; size == truth_Ntrack
   float truth_endMomentum[MAX_TRACKS][4];  // end momentum of this track; size == truth_Ntrack
   std::vector<std::vector<int> > *truth_daughters;  // daughters id of this track; vector
+  TObjArray *fMC_trackPosition;
 
   int reco_Ntrack;  // number of tracks in MC
   int reco_id[MAX_TRACKS];  // track id; size == reco_Ntrack
@@ -907,6 +911,24 @@ private:
   float reco_startMomentum[MAX_TRACKS][4];  // start momentum of this track; size == reco_Ntrack
   float reco_endMomentum[MAX_TRACKS][4];  // end momentum of this track; size == reco_Ntrack
   std::vector<std::vector<int> > *reco_daughters;  // daughters id of this track; vector
+
+  int mc_isnu; // is neutrino interaction
+  int mc_nGeniePrimaries; // number of Genie primaries
+  int mc_nu_pdg; // pdg code of neutrino
+  int mc_nu_ccnc; // cc or nc
+  int mc_nu_mode; // mode: http://nusoft.fnal.gov/larsoft/doxsvn/html/MCNeutrino_8h_source.html
+  int mc_nu_intType; // interaction type
+  int mc_nu_target; // target interaction
+  int mc_hitnuc; // hit nucleon
+  int mc_hitquark; // hit quark
+  double mc_nu_Q2; // Q^2
+  double mc_nu_W; // W
+  double mc_nu_X; // X
+  double mc_nu_Y; // Y
+  double mc_nu_Pt; // Pt
+  double mc_nu_Theta; // angle relative to lepton
+  float mc_nu_pos[4];  // interaction position of nu
+  float mc_nu_mom[4];  // interaction momentum of nu
 };
 
 
@@ -955,6 +977,7 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fthreshold_showerKE = pset.get<float>("Threshold_showerKE"); // GeV 
 
   f_PFDump = pset.get<bool>("PFDump", false);
+  f_save_track_position = pset.get<bool>("save_track_position", false);
   f_PFDump_min_truth_energy = pset.get<float>("PFDump_min_truth_energy", 0);
 }
 
@@ -1122,6 +1145,9 @@ void WireCellAnaTree::initOutput()
       fPFeval->Branch("truth_startMomentum", &truth_startMomentum, "truth_startMomentum[truth_Ntrack][4]/F");
       fPFeval->Branch("truth_endMomentum", &truth_endMomentum, "truth_endMomentum[truth_Ntrack][4]/F");
       fPFeval->Branch("truth_daughters", &truth_daughters);
+      fMC_trackPosition = new TObjArray();
+      fMC_trackPosition->SetOwner(kTRUE);
+      fPFeval->Branch("fMC_trackPosition", &fMC_trackPosition);
 
       fPFeval->Branch("reco_Ntrack", &reco_Ntrack);
       fPFeval->Branch("reco_id", &reco_id, "reco_id[reco_Ntrack]/I");
@@ -1133,6 +1159,24 @@ void WireCellAnaTree::initOutput()
       fPFeval->Branch("reco_startMomentum", &reco_startMomentum, "reco_startMomentum[reco_Ntrack][4]/F");
       fPFeval->Branch("reco_endMomentum", &reco_endMomentum, "reco_endMomentum[reco_Ntrack][4]/F");
       fPFeval->Branch("reco_daughters", &reco_daughters);
+
+      fPFeval->Branch("mc_isnu", &mc_isnu);
+      fPFeval->Branch("mc_nGeniePrimaries", &mc_nGeniePrimaries);
+      fPFeval->Branch("mc_nu_pdg", &mc_nu_pdg);
+      fPFeval->Branch("mc_nu_ccnc", &mc_nu_ccnc);
+      fPFeval->Branch("mc_nu_mode", &mc_nu_mode);
+      fPFeval->Branch("mc_nu_intType", &mc_nu_intType);
+      fPFeval->Branch("mc_nu_target", &mc_nu_target);
+      fPFeval->Branch("mc_hitnuc", &mc_hitnuc);
+      fPFeval->Branch("mc_hitquark", &mc_hitquark);
+      fPFeval->Branch("mc_nu_Q2", &mc_nu_Q2);
+      fPFeval->Branch("mc_nu_W", &mc_nu_W);
+      fPFeval->Branch("mc_nu_X", &mc_nu_X);
+      fPFeval->Branch("mc_nu_Y", &mc_nu_Y);
+      fPFeval->Branch("mc_nu_Pt", &mc_nu_Pt);
+      fPFeval->Branch("mc_nu_Theta", &mc_nu_Theta);
+      fPFeval->Branch("mc_nu_pos", &mc_nu_pos, "mc_nu_pos[4]/F");
+      fPFeval->Branch("mc_nu_mom", &mc_nu_mom, "mc_nu_mom[4]/F");
   }
 
 
@@ -2148,10 +2192,49 @@ void WireCellAnaTree::analyze(art::Event const& e)
          // }
          //
          
+         // Generator Info
+         art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
+         e.getByLabel("generator",mctruthListHandle);
+         std::vector<art::Ptr<simb::MCTruth> > mclist;
+         art::fill_ptr_vector(mclist, mctruthListHandle);
+         art::Ptr<simb::MCTruth> mctruth;
+         if (mclist.size()>0) {
+             mctruth = mclist.at(0);
+             if (mctruth->NeutrinoSet()) {
+                 simb::MCNeutrino nu = mctruth->GetNeutrino();
+                 mc_isnu = 1;
+                 mc_nGeniePrimaries = mctruth->NParticles();
+                 mc_nu_pdg = nu.Nu().PdgCode();
+                 mc_nu_ccnc = nu.CCNC();
+                 mc_nu_mode = nu.Mode();
+                 mc_nu_intType = nu.InteractionType();
+                 mc_nu_target = nu.Target();
+                 mc_hitnuc = nu.HitNuc();
+                 mc_hitquark = nu.HitQuark();
+                 mc_nu_Q2 = nu.QSqr();
+                 mc_nu_W = nu.W();
+                 mc_nu_X = nu.X();
+                 mc_nu_Y = nu.Y();
+                 mc_nu_Pt = nu.Pt();
+                 mc_nu_Theta = nu.Theta();
+                 const TLorentzVector& position = nu.Nu().Position(0);
+                 const TLorentzVector& momentum = nu.Nu().Momentum(0);
+                 position.GetXYZT(mc_nu_pos);
+                 momentum.GetXYZT(mc_nu_mom);
+                 //cout << "nu: " << mc_nu_pdg << ", nPrim: " << mc_nGeniePrimaries
+                 //     << ", ccnc: " << mc_nu_ccnc << endl;
+                 //for (int i=0; i<mc_nGeniePrimaries; i++) {
+                 //    simb::MCParticle particle = mctruth->GetParticle(i);
+                 //    cout << "id: " << particle.TrackId()
+                 //         << ", pdg: " << particle.PdgCode()
+                 //         << endl;
+                 //}
+             }
+         }
 	
-    if(f_PFDump) {
-        truth_daughters->resize(particles2.size());
-    }
+        if(f_PFDump) {
+            truth_daughters->resize(particles2.size());
+        }
 	for (auto const& particle: particles2){
 
         if(f_PFDump) {
@@ -2194,6 +2277,15 @@ void WireCellAnaTree::analyze(art::Event const& e)
             truth_endXYZT[truth_Ntrack-1][0] = (truth_endXYZT[truth_Ntrack-1][0] + 0.6)*1.101/1.098 + end_pos.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
             for (int i=0; i<particle->NumberDaughters(); ++i) {
                 truth_daughters->at(truth_Ntrack-1).push_back(particle->Daughter(i));
+            }
+            if(f_save_track_position) {
+                size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
+                TClonesArray *Lposition = new TClonesArray("TLorentzVector", numberTrajectoryPoints);
+                // Read the position and momentum along this particle track
+                for(unsigned int j=0; j<numberTrajectoryPoints; j++) {
+                    new ((*Lposition)[j]) TLorentzVector(particle->Position(j));
+                }
+                fMC_trackPosition->Add(Lposition);
             }
         }
 
@@ -2266,11 +2358,11 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	std::cout<<"Neutrino vertex SCE offset: "<<sce_offset.X() <<", "<<sce_offset.Y() <<", "<<sce_offset.Z()<<std::endl;
 	
 	// neutrino interaction type. Integer, see MCNeutrino.h for more details.
-	art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
-	e.getByLabel("generator",mctruthListHandle);
-	std::vector<art::Ptr<simb::MCTruth> > mclist;
-	art::fill_ptr_vector(mclist, mctruthListHandle);
-	art::Ptr<simb::MCTruth> mctruth;
+	//art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
+	//e.getByLabel("generator",mctruthListHandle);
+	//std::vector<art::Ptr<simb::MCTruth> > mclist;
+	//art::fill_ptr_vector(mclist, mctruthListHandle);
+	//art::Ptr<simb::MCTruth> mctruth;
 
 	if (mclist.size()>0) {
 		mctruth = mclist.at(0);
@@ -3101,6 +3193,27 @@ void WireCellAnaTree::resetOutput()
           truth_daughters->clear();
           reco_Ntrack = 0;
           reco_daughters->clear();
+          fMC_trackPosition->Clear();
+
+          mc_isnu = 0;
+          mc_nGeniePrimaries = -1;
+          mc_nu_pdg = -1;
+          mc_nu_ccnc = -1;
+          mc_nu_mode = -1;
+          mc_nu_intType = -1;
+          mc_nu_target = -1;
+          mc_hitnuc = -1;
+          mc_hitquark = -1;
+          mc_nu_Q2 = -1;
+          mc_nu_W = -1;
+          mc_nu_X = -1;
+          mc_nu_Y = -1;
+          mc_nu_Pt = -1;
+          mc_nu_Theta = -1;
+          for (int i=0; i<4; i++) {
+              mc_nu_pos[i] = 0;
+              mc_nu_mom[i] = 0;
+          }
 	}
 
 	f_neutrino_type = -1;
@@ -3235,14 +3348,12 @@ void WireCellAnaTree::save_weights(art::Event const& e)
           if (std::isnan(f_weight_cv) or std::isinf(f_weight_cv)) {
             f_weight_cv = 1.0;
           }
-
-          double value = weights.at(0);
-          if (not std::isnan(value) and not std::isinf(value)) {
-            ppfx_cv_UBPPFXCV = value;
-          }
       }
       if (knob_name == "splines_general_Spline"){
           f_weight_spline = weights.at(0);
+          if (std::isnan(f_weight_spline) or std::isinf(f_weight_spline)) {
+            f_weight_spline = 1.0;
+          }
       }
       if (knob_name == "ppfx_cv_UBPPFXCV" and fIsNuMI){
           double value = weights.at(0);
