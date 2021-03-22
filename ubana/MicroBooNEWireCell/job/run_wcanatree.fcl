@@ -54,6 +54,7 @@ physics:
       Threshold_showerKE: 0.070 # units: GeV
 
       PFDump:                   false
+      save_track_position:      false
       PFDump_min_truth_energy:  0.010 # GeV
     }
 
