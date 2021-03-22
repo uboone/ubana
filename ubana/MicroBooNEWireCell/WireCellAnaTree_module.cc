@@ -893,7 +893,7 @@ private:
   int truth_Ntrack;  // number of tracks in MC
   int truth_id[MAX_TRACKS];  // track id; size == truth_Ntrack
   int truth_pdg[MAX_TRACKS];  // track particle pdg; size == truth_Ntrack
-  int truth_process[MAX_TRACKS];  // track generation process code; size == truth_Ntrack
+  std::vector<std::string > *truth_process;
   int truth_mother[MAX_TRACKS];  // mother id of this track; size == truth_Ntrack
   float truth_startXYZT[MAX_TRACKS][4];  // start position of this track; size == truth_Ntrack
   float truth_endXYZT[MAX_TRACKS][4];  // end position of this track; size == truth_Ntrack
@@ -905,7 +905,7 @@ private:
   int reco_Ntrack;  // number of tracks in MC
   int reco_id[MAX_TRACKS];  // track id; size == reco_Ntrack
   int reco_pdg[MAX_TRACKS];  // track particle pdg; size == reco_Ntrack
-  int reco_process[MAX_TRACKS];  // track generation process code; size == reco_Ntrack
+  std::vector<std::string > *reco_process;
   int reco_mother[MAX_TRACKS];  // mother id of this track; size == reco_Ntrack
   float reco_startXYZT[MAX_TRACKS][4];  // start position of this track; size == reco_Ntrack
   float reco_endXYZT[MAX_TRACKS][4];  // end position of this track; size == reco_Ntrack
@@ -1139,7 +1139,7 @@ void WireCellAnaTree::initOutput()
       fPFeval->Branch("truth_Ntrack", &truth_Ntrack);
       fPFeval->Branch("truth_id", &truth_id, "truth_id[truth_Ntrack]/I");
       fPFeval->Branch("truth_pdg", &truth_pdg, "truth_pdg[truth_Ntrack]/I");
-      fPFeval->Branch("truth_process", &truth_process, "truth_process[truth_Ntrack]/I");
+      fPFeval->Branch("truth_process", &truth_process);
       fPFeval->Branch("truth_mother", &truth_mother, "truth_mother[truth_Ntrack]/I");
       fPFeval->Branch("truth_startXYZT", &truth_startXYZT, "truth_startXYZT[truth_Ntrack][4]/F");
       fPFeval->Branch("truth_endXYZT", &truth_endXYZT, "truth_endXYZT[truth_Ntrack][4]/F");
@@ -1153,7 +1153,7 @@ void WireCellAnaTree::initOutput()
       fPFeval->Branch("reco_Ntrack", &reco_Ntrack);
       fPFeval->Branch("reco_id", &reco_id, "reco_id[reco_Ntrack]/I");
       fPFeval->Branch("reco_pdg", &reco_pdg, "reco_pdg[reco_Ntrack]/I");
-      fPFeval->Branch("reco_process", &reco_process, "reco_process[reco_Ntrack]/I");
+      fPFeval->Branch("reco_process", &reco_process);
       fPFeval->Branch("reco_mother", &reco_mother, "reco_mother[reco_Ntrack]/I");
       fPFeval->Branch("reco_startXYZT", &reco_startXYZT, "reco_startXYZT[reco_Ntrack][4]/F");
       fPFeval->Branch("reco_endXYZT", &reco_endXYZT, "reco_endXYZT[reco_Ntrack][4]/F");
@@ -2003,16 +2003,13 @@ void WireCellAnaTree::analyze(art::Event const& e)
         std::cout << "particles.size(): " << particles.size() << std::endl;
 
 	
-    if(f_PFDump) {
-        reco_daughters->resize(particles.size());
-    }
 	for (auto const& particle: particles){
 
         if(f_PFDump) {
             ++reco_Ntrack;
             reco_id[reco_Ntrack-1] = particle->TrackId();
             reco_pdg[reco_Ntrack-1] = particle->PdgCode();
-            reco_process[reco_Ntrack-1] = 0;
+            reco_process->push_back(particle->Process());
             reco_mother[reco_Ntrack-1] = particle->Mother();
             auto start_pos = particle->Position();
             reco_startXYZT[reco_Ntrack-1][0] = start_pos.X();
@@ -2034,8 +2031,9 @@ void WireCellAnaTree::analyze(art::Event const& e)
             reco_endMomentum[reco_Ntrack-1][1] = end_mom.Py();
             reco_endMomentum[reco_Ntrack-1][2] = end_mom.Pz();
             reco_endMomentum[reco_Ntrack-1][3] = end_mom.E();
+            reco_daughters->push_back(std::vector<int>());
             for (int i=0; i<particle->NumberDaughters(); ++i) {
-                reco_daughters->at(reco_Ntrack-1).push_back(particle->Daughter(i));
+                reco_daughters->back().push_back(particle->Daughter(i));
             }
         }
 
@@ -2233,9 +2231,6 @@ void WireCellAnaTree::analyze(art::Event const& e)
              }
          }
 	
-        if(f_PFDump) {
-            truth_daughters->resize(particles2.size());
-        }
 	for (auto const& particle: particles2){
 
         if(f_PFDump) {
@@ -2251,7 +2246,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
             ++truth_Ntrack;
             truth_id[truth_Ntrack-1] = particle->TrackId();
             truth_pdg[truth_Ntrack-1] = particle->PdgCode();
-            truth_process[truth_Ntrack-1] = 0;
+            truth_process->push_back(particle->Process());
             truth_mother[truth_Ntrack-1] = particle->Mother();
             truth_startMomentum[truth_Ntrack-1][0] = start_mom.Px();
             truth_startMomentum[truth_Ntrack-1][1] = start_mom.Py();
@@ -2276,8 +2271,9 @@ void WireCellAnaTree::analyze(art::Event const& e)
             truth_endXYZT[truth_Ntrack-1][2] = end_pos.Z() + end_sce_offset.Z();
             truth_endXYZT[truth_Ntrack-1][3] = end_pos.T();
             truth_endXYZT[truth_Ntrack-1][0] = (truth_endXYZT[truth_Ntrack-1][0] + 0.6)*1.101/1.098 + end_pos.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
+            truth_daughters->push_back(std::vector<int>());
             for (int i=0; i<particle->NumberDaughters(); ++i) {
-                truth_daughters->at(truth_Ntrack-1).push_back(particle->Daughter(i));
+                truth_daughters->back().push_back(particle->Daughter(i));
             }
             if(f_save_track_position) {
                 size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
@@ -3191,8 +3187,10 @@ void WireCellAnaTree::resetOutput()
 
 	if(f_PFDump){
           truth_Ntrack = 0;
+          truth_process->clear();
           truth_daughters->clear();
           reco_Ntrack = 0;
+          reco_process->clear();
           reco_daughters->clear();
           fMC_trackPosition->Clear();
 
