@@ -112,7 +112,7 @@ private:
   Int_t		  f_stm_FullDead;
   Float_t	  f_stm_clusterlength;
 
-  Int_t           f_truth_vtxInside;
+  Bool_t          f_truth_vtxInside;
 
 };
 
@@ -214,7 +214,7 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
 		f_stm_clusterlength = s->GetClusterLength();
 	}
 
-        f_truth_vtxInside = -1;
+        f_truth_vtxInside = false;
 	art::Handle<std::vector<nsm::NuSelectionTruth> > truth_handle;
 	e.getByLabel(fTruthLabel,truth_handle);
 	std::vector<art::Ptr<nsm::NuSelectionTruth> > truth_vec;
