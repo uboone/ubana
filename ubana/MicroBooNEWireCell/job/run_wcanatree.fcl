@@ -53,7 +53,7 @@ physics:
       PFtruth_inputtag: "largeant"
       Threshold_showerKE: 0.070 # units: GeV
 
-      PFDump:                   false
+      PFDump:                   true
       save_track_position:      false
       PFDump_min_truth_energy:  0.010 # GeV
     }
@@ -81,7 +81,7 @@ physics:
       WeightLabel:	"eventweightSep24::EventWeightSep24"
       WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
 
-      SaveGenieWeights: false # save Genie weights if vtx inside active volume
+      SaveGenieWeights: true # save Genie weights if vtx inside active volume
       GenieKnobs:       [  "All_UBGenie"
                           ,"AxFFCCQEshape_UBGenie"
                           ,"DecayAngMEC_UBGenie"
