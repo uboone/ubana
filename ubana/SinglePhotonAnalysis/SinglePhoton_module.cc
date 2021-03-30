@@ -1007,7 +1007,7 @@ namespace single_photon
                     int remerge = clu.getShowerRemerge();
                     seaview::cluster_score * ssscorz = clu.getScore();
 
-                    std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.f_ImpactParameter<<" "<<clu.f_FitSlope<<" "<<clu.f_FitCons<<" "<<clu.f_MeanADC<<" "<<clu.f_AngleWRTShower<<" "<<remerge<<std::endl;
+                    std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.getImpactParam()<<" "<<clu.getFitSlope()<<" "<<clu.getFitCons()<<" "<<clu.getMeanADC()<<" "<<clu.getAngleWRTShower()<<" "<<remerge<<std::endl;
 
 		    //if the cluster is too close to the recob::shower, then do not include it
                     if(remerge>=0 && remerge< (int)m_reco_shower_reclustered_energy_plane2.size()){
@@ -1026,9 +1026,9 @@ namespace single_photon
                     m_sss_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
                     m_sss_candidate_plane.push_back(pl);
                     m_sss_candidate_PCA.push_back(ssscorz->pca_0);
-                    m_sss_candidate_impact_parameter.push_back(clu.f_ImpactParameter);
-                    m_sss_candidate_fit_slope.push_back(clu.f_FitSlope);
-                    m_sss_candidate_fit_constant.push_back(clu.f_FitCons);
+                    m_sss_candidate_impact_parameter.push_back(clu.getImpactParam());
+                    m_sss_candidate_fit_slope.push_back(clu.getFitSlope());
+                    m_sss_candidate_fit_constant.push_back(clu.getFitCons());
                     m_sss_candidate_mean_tick.push_back(ssscorz->mean_tick);
                     m_sss_candidate_max_tick.push_back(ssscorz->max_tick);
                     m_sss_candidate_min_tick.push_back(ssscorz->min_tick);
@@ -1036,12 +1036,20 @@ namespace single_photon
                     m_sss_candidate_max_wire.push_back(ssscorz->max_wire);
                     m_sss_candidate_mean_wire.push_back(ssscorz->mean_wire);
                     m_sss_candidate_min_dist.push_back(ssscorz->min_dist);
-	            m_sss_candidate_min_impact_parameter_to_shower.push_back(ssscorz->f_min_impact_parameter_to_shower);
-		    m_sss_candidate_min_conversion_dist_to_shower_start.push_back(ssscorz->f_min_conversion_dist_to_shower_start);
-		    m_sss_candidate_min_ioc_to_shower_start.push_back(ssscorz->f_min_ioc_to_shower_start);
-                    m_sss_candidate_mean_ADC.push_back(clu.f_MeanADC);
+	            m_sss_candidate_min_impact_parameter_to_shower.push_back(clu.getMinHitImpactParam());
+		    m_sss_candidate_min_conversion_dist_to_shower_start.push_back(clu.getMinHitConvDist());
+		    m_sss_candidate_min_ioc_to_shower_start.push_back(clu.getMinHitIOC());
+		    m_sss_candidate_ioc_based_length.push_back(clu.getIOCbasedLength());
+		    m_sss_candidate_wire_tick_based_length.push_back(clu.getWireTickBasedLength());
+		    m_sss_candidate_mean_ADC_first_half.push_back(clu.getMeanADCFirstHalf());
+		    m_sss_candidate_mean_ADC_second_half.push_back(clu.getMeanADCSecondHalf());
+		    m_sss_candidate_mean_ADC_first_to_second_ratio.push_back(clu.getMeanADCRatio());
+		    m_sss_candidate_track_angle_wrt_shower_direction.push_back(clu.getTrackAngleToShowerDirection());
+		    m_sss_candidate_linear_fit_chi2.push_back(clu.getLinearChi());
+                    m_sss_candidate_mean_ADC.push_back(clu.getMeanADC());
+		    m_sss_candidate_ADC_RMS.push_back(clu.getADCrms());
                     m_sss_candidate_energy.push_back(Ep);
-                    m_sss_candidate_angle_to_shower.push_back(clu.f_AngleWRTShower);
+                    m_sss_candidate_angle_to_shower.push_back(clu.getAngleWRTShower());
                     m_sss_candidate_remerge.push_back(remerge);
 
 
@@ -1064,7 +1072,7 @@ namespace single_photon
 			m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[5]);
 
 			//Guanqun: print out (best-matched) truth information of the cluster
-			std::cout << "Cluster: " << c  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << ", impact parameter (wrt shower): " << m_sss_candidate_min_impact_parameter_to_shower.back() << "\n";
+			std::cout << "Cluster: " << c  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << ", min IOC of hit(wrt shower): " << m_sss_candidate_min_ioc_to_shower_start.back() << "\n";
 			std::cout << "Cluster is matched: " << m_sss_candidate_matched.back() << ", matched PDG: " << m_sss_candidate_pdg.back() << " track ID: " << m_sss_candidate_trackid.back() << " overlay fraction: " << m_sss_candidate_overlay_fraction.back() << std::endl; 
 			std::cout << "===============================================================" << std::endl;
                     }

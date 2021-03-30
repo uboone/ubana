@@ -30,6 +30,7 @@ namespace single_photon
         m_sss_candidate_plane.clear();
         m_sss_candidate_PCA.clear();
         m_sss_candidate_mean_ADC.clear();
+	m_sss_candidate_ADC_RMS.clear();
         m_sss_candidate_impact_parameter.clear();
         m_sss_candidate_fit_slope.clear();
         m_sss_candidate_veto_score.clear();
@@ -44,6 +45,13 @@ namespace single_photon
 	m_sss_candidate_min_impact_parameter_to_shower.clear();
    	m_sss_candidate_min_conversion_dist_to_shower_start.clear();
 	m_sss_candidate_min_ioc_to_shower_start.clear();
+	m_sss_candidate_ioc_based_length.clear();
+	m_sss_candidate_wire_tick_based_length.clear();
+	m_sss_candidate_mean_ADC_first_half.clear();
+	m_sss_candidate_mean_ADC_second_half.clear();
+	m_sss_candidate_mean_ADC_first_to_second_ratio.clear();
+	m_sss_candidate_track_angle_wrt_shower_direction.clear();
+	m_sss_candidate_linear_fit_chi2.clear();
         m_sss_candidate_energy.clear();
         m_sss_candidate_angle_to_shower.clear();
         m_sss_candidate_closest_neighbour.clear();
@@ -74,6 +82,7 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_plane",&m_sss_candidate_plane);
         vertex_tree->Branch("sss_candidate_PCA",&m_sss_candidate_PCA);
         vertex_tree->Branch("sss_candidate_mean_ADC",&m_sss_candidate_mean_ADC);
+	vertex_tree->Branch("sss_candidate_ADC_RMS", &m_sss_candidate_ADC_RMS);
         vertex_tree->Branch("sss_candidate_impact_parameter",&m_sss_candidate_impact_parameter); 
         vertex_tree->Branch("sss_candidate_fit_slope",&m_sss_candidate_fit_slope);
         vertex_tree->Branch("sss_candidate_fit_constant",&m_sss_candidate_fit_constant);
@@ -87,6 +96,13 @@ namespace single_photon
 	vertex_tree->Branch("sss_candidate_min_impact_parameter_to_shower", &m_sss_candidate_min_impact_parameter_to_shower);
 	vertex_tree->Branch("sss_candidate_min_conversion_dist_to_shower_start", &m_sss_candidate_min_conversion_dist_to_shower_start);
 	vertex_tree->Branch("sss_candidate_min_ioc_to_shower_start", &m_sss_candidate_min_ioc_to_shower_start);
+	vertex_tree->Branch("sss_candidate_ioc_based_length", &m_sss_candidate_ioc_based_length);
+	vertex_tree->Branch("sss_candidate_wire_tick_based_length", &m_sss_candidate_wire_tick_based_length);
+	vertex_tree->Branch("sss_candidate_mean_ADC_first_half", &m_sss_candidate_mean_ADC_first_half);
+	vertex_tree->Branch("sss_candidate_mean_ADC_second_half", &m_sss_candidate_mean_ADC_second_half);
+	vertex_tree->Branch("sss_candidate_mean_ADC_first_to_second_ratio", &m_sss_candidate_mean_ADC_first_to_second_ratio);
+	vertex_tree->Branch("sss_candidate_track_angle_wrt_shower_direction", &m_sss_candidate_track_angle_wrt_shower_direction);
+	vertex_tree->Branch("sss_candidate_linear_fit_chi2", &m_sss_candidate_linear_fit_chi2);
         vertex_tree->Branch("sss_candidate_energy",&m_sss_candidate_energy);
         vertex_tree->Branch("sss_candidate_angle_to_shower",&m_sss_candidate_angle_to_shower);
         vertex_tree->Branch("sss_candidate_closest_neighbour",&m_sss_candidate_closest_neighbour);

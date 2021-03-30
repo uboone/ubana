@@ -1,5 +1,102 @@
 #include "SEAviewer.h"
+#include <algorithm>
+#include <cmath>
+
 namespace seaview{
+
+    void SEAviewer::TrackLikeClusterAnalyzer(cluster &cl, const std::vector<double> &shower_start_pt_2D, const std::vector<double> &shower_other_pt_2D){
+
+	//first round, grab min ioc, impact, conversion distance, and ADC_histogram, and indx of the hits with min/max IOC
+	double max_ioc_to_shower_start = DBL_MIN;
+	size_t num_hits = cl.f_hits.size();
+
+	cl.f_ADC_hist.StatOverflows(kTRUE); 
+
+	for(size_t i = 0; i!= num_hits; ++i){
+	    auto &h = cl.f_hits[i]; //type of h: art_ptr<recob::Hit>
+	    double h_tick = (double)h->PeakTime();
+            double h_wire = (double)h->WireID().Wire;
+
+	    //geometric properties
+	    double impact_parameter_to_shower = dist_line_point(shower_start_pt_2D, shower_other_pt_2D, {h_wire, h_tick});
+            double conversion_dist_to_shower_start = dist_point_point(h_wire, h_tick, shower_start_pt_2D[0], shower_start_pt_2D[1]);
+	    double ioc_to_shower_start = impact_parameter_to_shower/conversion_dist_to_shower_start;
+            cl.f_min_impact_parameter_to_shower = std::min(cl.f_min_impact_parameter_to_shower, impact_parameter_to_shower);
+            cl.f_min_conversion_dist_to_shower_start = std::min(cl.f_min_conversion_dist_to_shower_start, conversion_dist_to_shower_start);
+
+	    //remember two hits with min/max IOC
+	    if( ioc_to_shower_start < cl.f_min_ioc_to_shower_start){
+                cl.f_min_ioc_to_shower_start = ioc_to_shower_start;
+	        cl.start_hit_idx = i; 
+	    }else if( ioc_to_shower_start > max_ioc_to_shower_start){
+	        max_ioc_to_shower_start = ioc_to_shower_start;
+		cl.end_hit_idx = i;
+	    }
+
+	    //calorimetric properties
+	    cl.f_ADC_hist.Fill(h->SummedADC());
+
+	} //end of hit loop
+
+        cl.f_meanADC = cl.f_ADC_hist.GetMean();
+	cl.f_ADC_RMS = cl.f_ADC_hist.GetRMS();
+
+	// second round: group hits in two categories, first half and second half
+	// get the direction of the cluster
+	auto start_hit_ptr = cl.f_hits.at(cl.start_hit_idx), end_hit_ptr = cl.f_hits.at(cl.end_hit_idx);
+	std::vector<double> start_hit_point = { (double)start_hit_ptr->WireID().Wire, (double)start_hit_ptr->PeakTime()};	
+	std::vector<double> end_hit_point= { (double)end_hit_ptr->WireID().Wire, (double)end_hit_ptr->PeakTime()};	
+ 	std::vector<double> mid_point = { (start_hit_point[0] + end_hit_point[0])/2, (start_hit_point[1] + end_hit_point[1])/2};
+ 	std::vector<double> start_to_mid_vec = { (- start_hit_point[0] + end_hit_point[0])/2, ( - start_hit_point[1] + end_hit_point[1])/2};
+	cl.f_ioc_based_length = sqrt(pow((start_hit_point[0]-end_hit_point[0])*wire_con, 2.0) + pow((start_hit_point[1]-end_hit_point[1])*tick_con, 2.0));
+
+	cl.f_hit_group.resize(num_hits);	
+	for(size_t i = 0; i!=num_hits; ++i){
+	    auto h = cl.f_hits[i]; //type of h: art_ptr<recob::Hit>
+	    double h_tick = (double)h->PeakTime();
+            double h_wire = (double)h->WireID().Wire;
+
+	    std::vector<double> mid_to_h_vec = { h_wire - mid_point[0], h_tick - mid_point[1]};
+
+	    if( start_to_mid_vec[0]*mid_to_h_vec[0]*pow(wire_con, 2.0) + start_to_mid_vec[1] * mid_to_h_vec[1] *pow(tick_con, 2.0)<= 0 ){
+		cl.f_hit_group[i] = 1;
+		cl.f_mean_ADC_first_half += h->SummedADC();
+	    }
+	    else{
+		cl.f_hit_group[i] = 2;
+		cl.f_mean_ADC_second_half += h->SummedADC();
+	    }
+	}
+	cl.f_track_treated = true;
+
+ 	size_t nhits_first_half = std::count(cl.f_hit_group.begin(), cl.f_hit_group.end(), 1);
+	size_t nhits_second_half = std::count(cl.f_hit_group.begin(), cl.f_hit_group.end(), 2);
+	cl.f_mean_ADC_first_half /= nhits_first_half;
+	cl.f_mean_ADC_second_half /= nhits_second_half;
+	cl.f_mean_ADC_first_to_second_ratio = (cl.f_mean_ADC_second_half != 0 ? cl.f_mean_ADC_first_half/cl.f_mean_ADC_second_half : 0.0);
+
+
+	//angle between the track cluster and the shower direction
+	//cluster direction unit vector
+	double start_to_mid_length = sqrt( pow(start_to_mid_vec[0]*wire_con, 2.0) + pow(start_to_mid_vec[1]*tick_con, 2.0));
+	std::vector<double> cluster_dir = {start_to_mid_vec[0]*wire_con/start_to_mid_length, start_to_mid_vec[1]*tick_con/start_to_mid_length};
+	//shower direction unit vector
+	double shower_direction_length = sqrt(pow((shower_start_pt_2D[0] - shower_other_pt_2D[0])*wire_con, 2.0) + pow((shower_start_pt_2D[1] - shower_other_pt_2D[1])*tick_con, 2.0));
+ 	std::vector<double> shower_dir = { (shower_other_pt_2D[0] - shower_start_pt_2D[0])*wire_con/shower_direction_length, (shower_other_pt_2D[1] - shower_start_pt_2D[1])*tick_con/shower_direction_length};
+	//angle between two unit vector, in radian
+	cl.f_angle_wrt_shower_direction = acos( cluster_dir[0]*shower_dir[0] + cluster_dir[1]*shower_dir[1]);
+
+
+        //fit to wire-tick plot of the cluster, see how straight cluster is
+        TF1 *f1 = new TF1("f1", "1 ++ x", cl.f_score.min_wire, cl.f_score.max_wire);
+        int fit_status = cl.f_graph.Fit(f1, "RQ"); //if fit status is 0, the fit is ok.
+	f1 = cl.f_graph.GetFunction("f1");
+	if(fit_status == 0){
+	    cl.f_fit_chi2 = f1->GetChisquare();
+	}
+    }
+
+
     // constructor
     SEAviewer::SEAviewer(std::string intag, geo::GeometryCore const * ingeom, detinfo::DetectorProperties const * intheDetector ): tag(intag), geom(ingeom), theDetector(intheDetector){
         chan_max = {-9999,-9999,-9999};
@@ -609,10 +706,10 @@ namespace seaview{
 
         //This is where I will copy over a lot of the old SSS codebase
            std::vector<double> shr_start_3D= {vec_showers[0]->ShowerStart().X(), vec_showers[0]->ShowerStart().Y(),vec_showers[0]->ShowerStart().Z()};
-       //     std::vector<double> shr_other_3D=  {vec_showers[0]->ShowerStart().X()+vec_showers[0]->Direction().X(),vec_showers[0]->ShowerStart().Y()+vec_showers[0]->Direction().Y(), vec_showers[0]->ShowerStart().Z()+vec_showers[0]->Direction().Z()};
+           std::vector<double> shr_other_3D=  {vec_showers[0]->ShowerStart().X()+vec_showers[0]->Direction().X(),vec_showers[0]->ShowerStart().Y()+vec_showers[0]->Direction().Y(), vec_showers[0]->ShowerStart().Z()+vec_showers[0]->Direction().Z()};
 
             std::vector<std::vector<double>> shr_start_pt =   this->to2D(shr_start_3D);
-         //   std::vector<std::vector<double>> shr_other_pt =   this->to2D(shr_other_3D);
+            std::vector<std::vector<double>> shr_other_pt =   this->to2D(shr_other_3D);
 
 
 
@@ -623,15 +720,12 @@ namespace seaview{
             int num_hits_in_cluster = vec_clusters[c].getHits().size();
             int pl = vec_clusters[c].getPlane();
 
-            double mean_summed_ADC = 0.0;  //summed ADC of the cluster
-            for(auto &h:hitz){
-                mean_summed_ADC +=h->SummedADC();
-            }
-            mean_summed_ADC = mean_summed_ADC/(double)num_hits_in_cluster;  //mean ADC of one hit
-
             //Need to modify this a bit
             auto ssscorz = SeaviewScoreCluster(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers.front());
             vec_clusters[c].setScore(ssscorz);
+	    vec_clusters[c].setWireTickBasedLength(sqrt(pow((ssscorz.max_wire-ssscorz.min_wire)*wire_con, 2.0) + pow((ssscorz.max_tick - ssscorz.min_tick)*tick_con, 2.0)));
+
+	    TrackLikeClusterAnalyzer(vec_clusters[c], shr_start_pt[pl], shr_other_pt[pl]);
 
             //This is just checking if its in, we can do this earlier; TODO
             //TODO: is_in_shower, get back to primary shower (at least available)
@@ -713,17 +807,15 @@ namespace seaview{
                     std::cout<<pl<<" Mean Wire "<<ssscorz.mean_wire<<std::endl;
                     std::cout<<pl<<" Max Wire "<<ssscorz.max_wire<<std::endl;
                     std::cout<<pl<<" Min Wire "<<ssscorz.min_wire<<std::endl;
-                    std::cout<<pl<<" Mean Summed ADC "<<mean_summed_ADC<<std::endl;
                     std::cout<<pl<<" Kinda Angle "<<kinda_angle<<std::endl;
             
                     vec_clusters[c].setShowerRemerge(is_in_shower);
-                    vec_clusters[c].f_ImpactParameter = impact_parameter;
-                    vec_clusters[c].f_FitSlope =slope;
-                    vec_clusters[c].f_FitCons =con;
-                    vec_clusters[c].f_MeanADC = mean_summed_ADC;
-                    vec_clusters[c].f_AngleWRTShower = kinda_angle;
+                    vec_clusters[c].setImpactParam(impact_parameter);
+                    vec_clusters[c].setFitSlope(slope);
+                    vec_clusters[c].setFitCons(con);
+                    vec_clusters[c].setAngleWRTShower(kinda_angle);
                 }
-            }
+            } // if ssscorz has passed
         
         }//cluster loop
 
@@ -864,13 +956,6 @@ namespace seaview{
         std::map<int,bool> wire_count;
         std::map<int,bool> tick_count;
 
-	//grab shower-related information, such as shower start, shower direction etc
-	std::vector<double> shr_start_3D= {shower->ShowerStart().X(), shower->ShowerStart().Y(), shower->ShowerStart().Z()};
-        std::vector<double> shr_other_3D=  {shower->ShowerStart().X()+ shower->Direction().X(),shower->ShowerStart().Y()+shower->Direction().Y(), shower->ShowerStart().Z()+shower->Direction().Z()};
-        //project these two points on the plane this cluster is on
-        std::vector<double> start_pt_2D =   (this->to2D(shr_start_3D)).at(p);
-        std::vector<double> other_pt_2D =   (this->to2D(shr_other_3D)).at(p);
- 
 
         for(auto &h: hits){
             double h_tick = (double)h->PeakTime();
@@ -918,12 +1003,6 @@ namespace seaview{
                 score.n_ticks++;
             }
 
-	    //calculate quantities related to shower
-	    double impact_parameter_to_shower = dist_line_point(start_pt_2D, other_pt_2D, {h_wire, h_tick});
- 	    double conversion_dist_to_shower_start = dist_point_point(h_wire, h_tick, start_pt_2D[0], start_pt_2D[1]);
-	    score.f_min_impact_parameter_to_shower = std::min(score.f_min_impact_parameter_to_shower, impact_parameter_to_shower);
-	    score.f_min_conversion_dist_to_shower_start = std::min(score.f_min_conversion_dist_to_shower_start, conversion_dist_to_shower_start);
-	    score.f_min_ioc_to_shower_start = std::min(score.f_min_ioc_to_shower_start, impact_parameter_to_shower/conversion_dist_to_shower_start);
         }
 
         //            TGraph * g_pts = new TGraph(t_wires.size(),&t_ticks[0],&t_wires[0]);
@@ -1065,7 +1144,7 @@ namespace seaview{
 
 	//grab the plane number, and impact parameter of the cluster
 	int plane = vec_clusters.at(cluster).getPlane();
-        double min_ioc_to_shower  = vec_clusters.at(cluster).getScore()->f_min_ioc_to_shower_start;
+        double min_ioc_to_shower  = vec_clusters.at(cluster).getMinHitIOC();
 
 	//need to use stringstream to control the number of digits..
 	std::ostringstream ss1, ss2, ss3;

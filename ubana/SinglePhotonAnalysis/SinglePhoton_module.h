@@ -1016,6 +1016,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int>  m_sss_candidate_plane; /* on which plan the unasso cluster is */
             std::vector<double> m_sss_candidate_PCA;
             std::vector<double> m_sss_candidate_mean_ADC;
+	    std::vector<double> m_sss_candidate_ADC_RMS;
             std::vector<double> m_sss_candidate_impact_parameter;
             std::vector<double> m_sss_candidate_fit_slope; //slope of the cluster direction
             std::vector<double> m_sss_candidate_veto_score;
@@ -1030,6 +1031,13 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 	    std::vector<double> m_sss_candidate_min_impact_parameter_to_shower; //min impact parameter of all hits in cluster to the recob::shower direction line (on 2D plane)
 	    std::vector<double> m_sss_candidate_min_conversion_dist_to_shower_start;  //min distance between hits and recob::shower start (on 2D plane)
 	    std::vector<double> m_sss_candidate_min_ioc_to_shower_start;        //min ratio of impact_parameter_to_shower/conversion_dist_to_shower_start of all hits in the cluster
+	    std::vector<double> m_sss_candidate_ioc_based_length;
+	    std::vector<double> m_sss_candidate_wire_tick_based_length;
+	    std::vector<double> m_sss_candidate_mean_ADC_first_half;
+	    std::vector<double> m_sss_candidate_mean_ADC_second_half;
+	    std::vector<double> m_sss_candidate_mean_ADC_first_to_second_ratio;
+	    std::vector<double> m_sss_candidate_track_angle_wrt_shower_direction;
+	    std::vector<double> m_sss_candidate_linear_fit_chi2;
             std::vector<double> m_sss_candidate_energy;
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
