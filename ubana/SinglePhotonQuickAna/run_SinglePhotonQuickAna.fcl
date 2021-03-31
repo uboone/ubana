@@ -44,8 +44,8 @@ services :
 {
     #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
     TFileService: { fileName: "SinglePhotonQuickAna_%tc.root" }
-    #ExptGeoHelperInterface:    @local::standard_geometry_helper
-    #Geometry:                  @local::standard_geo
+    ExptGeoHelperInterface:    @local::standard_geometry_helper
+    Geometry:                  @local::standard_geo
     LArPropertiesService:      @local::standard_properties
     DetectorClocksService:     @local::standard_detectorclocks
     DetectorPropertiesService: @local::standard_detproperties

@@ -38,6 +38,8 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h" 
 
+#include "larcore/Geometry/Geometry.h"
+
 
 #include <vector>
 
@@ -85,7 +87,10 @@ class SinglePhotonQuickAna : public art::EDAnalyzer {
         detinfo::DetectorProperties const * theDetector ;
         detinfo::DetectorClocks    const *  detClocks   ;
         spacecharge::SpaceCharge const * SCE;
+        geo::GeometryCore const * geom;
 
+        int m_Cryostat;
+        int m_TPC;
 
         /*
          *@brief Calculated the shower energy by looping over all the hits and summing the charge
@@ -101,7 +106,7 @@ class SinglePhotonQuickAna : public art::EDAnalyzer {
          *@param plane the plane the hit is on
          **/
         double GetQHit(art::Ptr<recob::Hit> thishitptr, int plane);
-        
+
         /**
          * @brief Calculate the E value in MeV for a given hit
          * @param thishit - an individual hit 
@@ -205,6 +210,14 @@ SinglePhotonQuickAna::SinglePhotonQuickAna(fhicl::ParameterSet const& p)
 
     detClocks   = lar::providerFrom<detinfo::DetectorClocksService>();
     SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+    geom = lar::providerFrom<geo::Geometry>();
+
+    
+    
+    auto const TPC = (*geom).begin_TPC();
+    auto ID = TPC.ID();
+    m_Cryostat = ID.Cryostat;
+    m_TPC = ID.TPC;
 
 }
 
@@ -214,31 +227,33 @@ SinglePhotonQuickAna::SinglePhotonQuickAna(fhicl::ParameterSet const& p)
 void SinglePhotonQuickAna::analyze(art::Event const& evt)
 {
 
-    //Collect the PFParticles from the event. This is the core!
+    //First we grab a bunch of art data_products that we need
+
+    //Collect the PFParticles from the event. This is the core object we will be looking at
     art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = evt.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
     std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;
     art::fill_ptr_vector(pfParticleVector,pfParticleHandle);
 
-    //So a cross check
+    //So a cross check to see if its valid.
     if (!pfParticleHandle.isValid())
     {
         mf::LogDebug("SinglePhotonQuickEnergy") << "  Failed to find the PFParticles.\n";
         return;
     }
 
-    //get the cluster handle for direct hit based dQ/dx calc
+    //Get all the clusters in the event, used for a direct hit based dQ/dx calc
     art::ValidHandle<std::vector<recob::Cluster>> const & clusterHandle = evt.getValidHandle<std::vector<recob::Cluster>>(m_pandoraLabel);
     std::vector< art::Ptr<recob::Cluster> > clusterVector;
     art::fill_ptr_vector(clusterVector,clusterHandle);
 
 
-    //Grab all recob::Showers in the event
+    //Grab all recob::Showers in the event. 
     art::ValidHandle<std::vector<recob::Shower>> const & ShowerHandle = evt.getValidHandle<std::vector<recob::Shower>>(m_showerLabel);
     std::vector<art::Ptr<recob::Shower>> ShowerVector;
     art::fill_ptr_vector(ShowerVector,ShowerHandle);
 
 
-    //---------Build up a map of PFParticles to RecobShowers
+    //---------Build up a map of PFParticles to RecobShowers, standard reco is hat only PFParticles with a "track_score < 0.5" have associated recob::Showers
     art::FindOneP<recob::Shower> shower_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
     std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Shower>> pfParticlesToShowerMap;
     for(size_t i=0; i< pfParticleVector.size(); ++i){
@@ -250,7 +265,7 @@ void SinglePhotonQuickAna::analyze(art::Event const& evt)
 
 
     //Get a map between the PFP's and the clusters  they're imporant for the shower dQ/dx
-    //Also need a map between clusters and hits
+    //Also need a map between clusters and hits (i.e what 2D hits make up the clusters)
     art::FindManyP<recob::Cluster> clusters_per_pfparticle(pfParticleHandle, evt, m_pandoraLabel);
     art::FindManyP<recob::Hit> hits_per_cluster(clusterHandle, evt, m_pandoraLabel);
     std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > pfParticleToClustersMap;
@@ -266,6 +281,8 @@ void SinglePhotonQuickAna::analyze(art::Event const& evt)
         clusterToHitsMap[cluster] = hits_per_cluster.at(cluster.key());
     }
 
+
+    //Make a map from a given PFParticle to all hits inside
     std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Hit>> > pfParticleToHitsMap;
     //use pfp->cluster and cluster->hit to build pfp->hit map
     //for each PFP
@@ -285,13 +302,41 @@ void SinglePhotonQuickAna::analyze(art::Event const& evt)
         //fill the map
         pfParticleToHitsMap[pfp] = hits_for_pfp;
         //std::cout<<"saving a total of "<<hits_for_pfp.size()<<" hits for pfp "<<pfp->Self()<<std::endl;
-    }//for each pfp
+    }
+
+
+    //---------Kalman Track Showers --  This is for a seperate method, using kalman track fitter
+    art::FindOneP<recob::Track> showerKalman_per_pfparticle(pfParticleHandle, evt, m_showerKalmanLabel);
+    std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Track>> pfParticlesToShowerKalmanMap;
+    for(size_t i=0; i< pfParticleVector.size(); ++i){
+        auto pfp = pfParticleVector[i];
+        if(!showerKalman_per_pfparticle.at(pfp.key()).isNull()){ 
+            pfParticlesToShowerKalmanMap[pfp] =showerKalman_per_pfparticle.at(pfp.key());
+        }
+    }
+
+
+    //----- kalman Cali (calibrated calorimetry) for the kalman tracks
+    art::ValidHandle<std::vector<recob::Track>> const & kalmanTrackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_showerKalmanLabel);
+    std::vector<art::Ptr<recob::Track>> kalmanTrackVector;
+    art::fill_ptr_vector(kalmanTrackVector,kalmanTrackHandle);
+
+    //and a map between the kalman tracks and their associated calorimetry objects
+    art::FindManyP<anab::Calorimetry> cali_per_kalmantrack(kalmanTrackHandle, evt, m_showerKalmanCaloLabel);
+    std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> kalmanTrackToCaloMap;
+    for(size_t i=0; i< kalmanTrackVector.size(); ++i){
+        auto trk = kalmanTrackVector[i];
+        if(cali_per_kalmantrack.at(trk.key()).size()!=0){
+            kalmanTrackToCaloMap[trk] =cali_per_kalmantrack.at(trk.key());
+        }
+    }
 
 
 
 
-
-    //**************************** Starting here to loop over all showers ****************************//
+    //****************************************************************************************************//
+    //**************************** Starting here to loop over all PFParticles ****************************//
+    //****************************************************************************************************//
     int i_shr = 0;
 
     for (std::vector< art::Ptr<recob::PFParticle> >::const_iterator iter = pfParticleVector.begin(), iterEnd = pfParticleVector.end(); iter != iterEnd; ++iter)
@@ -329,41 +374,72 @@ void SinglePhotonQuickAna::analyze(art::Event const& evt)
         double reco_shower_dEdx_plane2_median = getMedian(reco_shower_dEdx_plane2);
 
         std::cout<<"Shower # "<<i_shr<<" Energy : ( "<<reco_shower_energy_plane0<<","<<reco_shower_energy_plane1<<","<<reco_shower_energy_plane2<<"), Nhits : ( "<<reco_shower_plane0_nhits<<","<<reco_shower_plane1_nhits<<","<<reco_shower_plane2_nhits<<"), Median dEdx : ("<<reco_shower_dEdx_plane0_median<<","<<reco_shower_dEdx_plane1_median<<","<<reco_shower_dEdx_plane2_median<<")"<<std::endl;
-        i_shr++;
 
+
+
+
+        //-------- Kalman Showers-----
+
+
+        if( pfParticlesToShowerKalmanMap.count(pfp) == 0 ){
+            std::cout<<"SinglephotonQuickAna::KalmanShowers\t||\t Note, no match for a Kalman track for this PFP."<<std::endl;
+            continue;
+        }
+        const art::Ptr<recob::Track> kalman = pfParticlesToShowerKalmanMap[pfp];
+
+        if(kalmanTrackToCaloMap.count(kalman)==0){
+            std::cout<<"SinglephotonQuickAna::KalmanShowers\t||\t Note, no match for a Calo for this Kalman track."<<std::endl;
+            continue;
+        }
+
+        const std::vector<art::Ptr<anab::Calorimetry>> calo = kalmanTrackToCaloMap[kalman];
+
+        if(calo.size()!=3){
+            std::cout<<"SinglephotonQuickAna::KalmanShower\t||\t ERROR!! ERROR!!! anab::Calorimetery vector associated with Kalman Shower is not of length 3!!! "<<std::endl;
+            continue;
+        }
+
+        std::vector<double> gains = {0,0,0};
+        for(int plane =0; plane < 3; plane++){
+            if (m_is_data == false &&  m_is_overlayed == false){
+                gains[plane] = m_gain_mc[plane] ;
+            } if (m_is_data == true ||  m_is_overlayed == true){
+                gains[plane] = m_gain_data[plane] ;
+            }
+        }
+        
+        std::vector<double> kalman_dEdx(3,-999);
+        for(size_t p=0; p<calo.size();p++){
+
+            int plane = calo[p]->PlaneID().Plane;
+            if(plane<0 || plane > 3) continue; 
+
+            std::vector<double> t_dEdx; 
+            std::vector<double> t_res;
+
+            for(size_t ix=0; ix<calo[p]->ResidualRange().size(); ++ix){
+
+                double rr = calo[p]->ResidualRange().back() - calo[p]->ResidualRange()[ix]; 
+                if(rr <= m_length_dqdx_box){
+                    t_dEdx.push_back(gains[plane]*m_work_function*calo[p]->dQdx()[ix]*1e-6 /m_recombination_factor);
+                    t_res.push_back(rr);
+                }
+            }
+            
+            double tmedian = NAN;
+
+            if(t_dEdx.size()>0) tmedian = this->getMedian(t_dEdx);
+            kalman_dEdx[plane] = tmedian;
+        }
+        std::cout<<"--- Kalman Shower # "<<i_shr<<" Median dEdx : ("<<kalman_dEdx[0]<<","<<kalman_dEdx[1]<<","<<kalman_dEdx[2]<<")"<<std::endl;
+
+
+        i_shr++;
     }//end Shower loop
 
 
 
 
-
-    //**************************** On to Kalman Fitted Shower Trunks ****************************//
-
-
-    //---------Kalman Track Showers
-    art::FindOneP<recob::Track> showerKalman_per_pfparticle(pfParticleHandle, evt, m_showerKalmanLabel);
-    std::map<art::Ptr<recob::PFParticle>, art::Ptr<recob::Track>> pfParticlesToShowerKalmanMap;
-    for(size_t i=0; i< pfParticleVector.size(); ++i){
-        auto pfp = pfParticleVector[i];
-        if(!showerKalman_per_pfparticle.at(pfp.key()).isNull()){ 
-            pfParticlesToShowerKalmanMap[pfp] =showerKalman_per_pfparticle.at(pfp.key());
-        }
-    }
-
-
-    //----- kalman Cali (calibrated calorimetry)
-    art::ValidHandle<std::vector<recob::Track>> const & kalmanTrackHandle  = evt.getValidHandle<std::vector<recob::Track>>(m_showerKalmanLabel);
-    std::vector<art::Ptr<recob::Track>> kalmanTrackVector;
-    art::fill_ptr_vector(kalmanTrackVector,kalmanTrackHandle);
-
-    art::FindManyP<anab::Calorimetry> cali_per_kalmantrack(kalmanTrackHandle, evt, m_showerKalmanCaloLabel);
-    std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>> kalmanTrackToCaloMap;
-    for(size_t i=0; i< kalmanTrackVector.size(); ++i){
-        auto trk = kalmanTrackVector[i];
-        if(cali_per_kalmantrack.at(trk.key()).size()!=0){
-            kalmanTrackToCaloMap[trk] =cali_per_kalmantrack.at(trk.key());
-        }
-    }
 
 
 }
