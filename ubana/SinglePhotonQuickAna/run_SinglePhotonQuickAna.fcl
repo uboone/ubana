@@ -21,12 +21,12 @@ quickana_config:{
     ShowerTrackFitter: "pandoraKalmanShower"
     ShowerTrackFitterCalo: "pandoraKalmanShowercali"
 
-    work_function: 23.6
-    recombination_factor: 0.62
-    gain_mc: [235.5, 249.7, 237.6] #DocDB 20227-v7 using dE/dx calibration method for all planes, updated on 9/13/19
-    gain_data: [230.3, 237.6, 243.7] #see above docdb
+    work_function: 23.6 #many drift electrons are produced via ionization of the argon atoms (set to 23.6e−6 MeV/e − )
+    recombination_factor: 0.62   #The recombination factor: describing the fact that the dispersed drift electrons may quickly thermalize and recombine with nearby ions.
+    gain_mc: [235.5, 249.7, 237.6] #Gains are used to conver hit integral (ADC × time ticks) to total charge, Q
+    gain_data: [230.3, 237.6, 243.7] #Both from  ocDB 20227-v7 using dE/dx calibration method for all planes, updated on 9/13/19
     wire_spacing : 0.3 
-    width_box : 1.
+    width_box : 1. #when calculating median dEdx in a trunc of a shower, what defines the trunc?
     length_box : 4.
     
     isData: "false"
