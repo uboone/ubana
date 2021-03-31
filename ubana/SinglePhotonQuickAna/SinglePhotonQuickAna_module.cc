@@ -212,8 +212,6 @@ SinglePhotonQuickAna::SinglePhotonQuickAna(fhicl::ParameterSet const& p)
     SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
     geom = lar::providerFrom<geo::Geometry>();
 
-    
-    
     auto const TPC = (*geom).begin_TPC();
     auto ID = TPC.ID();
     m_Cryostat = ID.Cryostat;
@@ -379,7 +377,8 @@ void SinglePhotonQuickAna::analyze(art::Event const& evt)
 
 
         //-------- Kalman Showers-----
-
+        // This section shows an alternative method for shower dEdx calculation. By fitting the shower to a track using the kalman track fitter, we look at the first ~4cm of the track and use the anab::Calorimetry object associated with the track to get a median dEdx. 
+        // NOTE: Kalman fitter works best on larger, well reconstucted showers. As this code loops simplt over ALL pfparticles, including ones that have reconstucted hits on 1 or 2 plans only, many will fail.
 
         if( pfParticlesToShowerKalmanMap.count(pfp) == 0 ){
             std::cout<<"SinglephotonQuickAna::KalmanShowers\t||\t Note, no match for a Kalman track for this PFP."<<std::endl;
