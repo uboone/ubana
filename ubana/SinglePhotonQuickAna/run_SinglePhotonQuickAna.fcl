@@ -1,0 +1,82 @@
+#include "services_microboone.fcl"
+#include "detectorclocks.fcl" 
+#include "detectorproperties.fcl" 
+#include "geometry.fcl" 
+#include "larproperties.fcl" 
+#include "services_microboone_basic.fcl"
+#include "config_particle_identification.fcl"
+#include "config_particle_identification_fiducialvolume.fcl"
+#include "config_particle_identification_braggalgo.fcl"
+#include "config_particle_identification_producerlabels.fcl"
+#include "shrreco3d.fcl"
+#include "reco_uboone_mcc9_8.fcl"
+
+process_name : SinglePhotonQuickAna      #The process name must NOT contain any underscores
+
+quickana_config:{
+    module_type:    SinglePhotonQuickAna
+
+    PandoraLabel:   "pandora"
+    ShowerLabel:    "pandora"
+    ShowerTrackFitter: "pandoraKalmanShower"
+    ShowerTrackFitterCalo: "pandoraKalmanShowercali"
+
+    work_function: 23.6
+    recombination_factor: 0.62
+    gain_mc: [235.5, 249.7, 237.6] #DocDB 20227-v7 using dE/dx calibration method for all planes, updated on 9/13/19
+    gain_data: [230.3, 237.6, 243.7] #see above docdb
+    wire_spacing : 0.3 
+    width_box : 1.
+    length_box : 4.
+    
+    isData: "false"
+    isOverlayed: "true"
+
+    }
+
+
+source : {
+    module_type : RootInput
+    maxEvents   : -1
+}
+
+services :
+{
+    #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
+    TFileService: { fileName: "SinglePhotonQuickAna_%tc.root" }
+    #ExptGeoHelperInterface:    @local::standard_geometry_helper
+    #Geometry:                  @local::standard_geo
+    LArPropertiesService:      @local::standard_properties
+    DetectorClocksService:     @local::standard_detectorclocks
+    DetectorPropertiesService: @local::standard_detproperties
+    @table::microboone_services
+}
+
+outputs: {
+}
+
+physics: {
+
+ producers: {}
+ analyzers : {
+     quickana: @local::quickana_config
+ }
+ filters : {}
+ ana : [quickana] 
+ end_paths: [ana]
+
+}
+
+services.SpaceCharge.EnableCorrSCE: true
+services.SpaceCharge.EnableSimEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: true
+
+services.DetectorPropertiesService.NumberTimeSamples:        6400
+services.DetectorPropertiesService.ReadOutWindowSize:        6400
+services.DetectorClocksService.InheritClockConfig:           false
+services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
+services.DetectorClocksService.TrigModuleName:               "daq"
+services.DetectorClocksService.InheritClockConfig: false
+
+
+
