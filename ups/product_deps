@@ -2,7 +2,7 @@
 
 # The *parent* line must the first non-commented line and defines this product and version
 # The version must be of the form vxx_yy_zz (e.g. v01_02_03)
-parent ubana v09_19_00
+parent ubana v09_20_00
 
 defaultqual e19
 
@@ -30,10 +30,10 @@ table_fragment_end
 # Add the dependent product and version
 
 product                 version
-ubreco                  v09_18_00
+ubreco                  v09_20_00
 ubraw                   v09_17_02
-larana                  v09_02_00
-larpandora              v09_05_05
+larana                  v09_02_01
+larpandora              v09_05_06
 cetbuildtools	        v7_17_01	-	only_for_build
 end_product_list
 
