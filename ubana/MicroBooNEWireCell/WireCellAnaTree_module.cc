@@ -7,6 +7,7 @@
 // from cetlib version v3_05_01.
 //
 // 12.03.2020 modified by Wenqiang Gu (wgu@bnl.gov)
+// 03.15.2021 modified by Haiwang Yu (hyu@bnl.gov)
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -47,6 +48,7 @@
 #include "TString.h"
 #include "TLorentzVector.h"
 #include "TVector3.h"
+#include "TClonesArray.h"
 
 #include <iostream>
 #include <fstream>
@@ -116,6 +118,10 @@ private:
   std::vector<int> fShowerID;
   std::map<int, simb::MCParticle> fParticleMap; // map from trackId to particle instance
  
+  bool f_PFDump;
+  bool f_save_track_position;
+  float f_PFDump_min_truth_energy;
+
   // output
   /// PF validation 
   /// when fPFValidation is true
@@ -879,6 +885,50 @@ private:
   double fspill_tor875;
   double fspill_tor875good;
 
+  enum LIMITS {
+      MAX_TRACKS = 30000,
+  };
+
+  int truth_Ntrack;  // number of tracks in MC
+  int truth_id[MAX_TRACKS];  // track id; size == truth_Ntrack
+  int truth_pdg[MAX_TRACKS];  // track particle pdg; size == truth_Ntrack
+  std::vector<std::string > *truth_process;
+  int truth_mother[MAX_TRACKS];  // mother id of this track; size == truth_Ntrack
+  float truth_startXYZT[MAX_TRACKS][4];  // start position of this track; size == truth_Ntrack
+  float truth_endXYZT[MAX_TRACKS][4];  // end position of this track; size == truth_Ntrack
+  float truth_startMomentum[MAX_TRACKS][4];  // start momentum of this track; size == truth_Ntrack
+  float truth_endMomentum[MAX_TRACKS][4];  // end momentum of this track; size == truth_Ntrack
+  std::vector<std::vector<int> > *truth_daughters;  // daughters id of this track; vector
+  TObjArray *fMC_trackPosition;
+
+  int reco_Ntrack;  // number of tracks in MC
+  int reco_id[MAX_TRACKS];  // track id; size == reco_Ntrack
+  int reco_pdg[MAX_TRACKS];  // track particle pdg; size == reco_Ntrack
+  std::vector<std::string > *reco_process;
+  int reco_mother[MAX_TRACKS];  // mother id of this track; size == reco_Ntrack
+  float reco_startXYZT[MAX_TRACKS][4];  // start position of this track; size == reco_Ntrack
+  float reco_endXYZT[MAX_TRACKS][4];  // end position of this track; size == reco_Ntrack
+  float reco_startMomentum[MAX_TRACKS][4];  // start momentum of this track; size == reco_Ntrack
+  float reco_endMomentum[MAX_TRACKS][4];  // end momentum of this track; size == reco_Ntrack
+  std::vector<std::vector<int> > *reco_daughters;  // daughters id of this track; vector
+
+  int mc_isnu; // is neutrino interaction
+  int mc_nGeniePrimaries; // number of Genie primaries
+  int mc_nu_pdg; // pdg code of neutrino
+  int mc_nu_ccnc; // cc or nc
+  int mc_nu_mode; // mode: http://nusoft.fnal.gov/larsoft/doxsvn/html/MCNeutrino_8h_source.html
+  int mc_nu_intType; // interaction type
+  int mc_nu_target; // target interaction
+  int mc_hitnuc; // hit nucleon
+  int mc_hitquark; // hit quark
+  double mc_nu_Q2; // Q^2
+  double mc_nu_W; // W
+  double mc_nu_X; // X
+  double mc_nu_Y; // Y
+  double mc_nu_Pt; // Pt
+  double mc_nu_Theta; // angle relative to lepton
+  float mc_nu_pos[4];  // interaction position of nu
+  float mc_nu_mom[4];  // interaction momentum of nu
 };
 
 
@@ -925,6 +975,10 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fPFInputTag = pset.get<std::string>("PF_inputtag");
   fPFtruthInputTag = pset.get<std::string>("PFtruth_inputtag");
   fthreshold_showerKE = pset.get<float>("Threshold_showerKE"); // GeV 
+
+  f_PFDump = pset.get<bool>("PFDump", false);
+  f_save_track_position = pset.get<bool>("save_track_position", false);
+  f_PFDump_min_truth_energy = pset.get<float>("PFDump_min_truth_energy", 0);
 }
 
 void WireCellAnaTree::initOutput()
@@ -999,7 +1053,7 @@ void WireCellAnaTree::initOutput()
   fTreePot->Branch("pot_tor875good", &fpot_tor875good);
   fTreePot->Branch("spill_tor875", &fspill_tor875);
   fTreePot->Branch("spill_tor875good", &fspill_tor875good);
- 
+
   /// PF validation 
   fPFeval = tfs->make<TTree>("T_PFeval", "T_PFeval");
   fPFeval->Branch("run", 			&f_run);
@@ -1077,6 +1131,52 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("truth_NCDelta",            	&f_truth_NCDelta);
   fPFeval->Branch("truth_nu_pos",         	&f_truth_nu_pos, "truth_nu_pos[4]/F");
   fPFeval->Branch("truth_nu_momentum",         	&f_truth_nu_momentum, "truth_nu_momentum[4]/F");
+  }
+
+  // PFDump
+  if(f_PFDump) {
+      fPFeval->Branch("truth_Ntrack", &truth_Ntrack);
+      fPFeval->Branch("truth_id", &truth_id, "truth_id[truth_Ntrack]/I");
+      fPFeval->Branch("truth_pdg", &truth_pdg, "truth_pdg[truth_Ntrack]/I");
+      fPFeval->Branch("truth_process", &truth_process);
+      fPFeval->Branch("truth_mother", &truth_mother, "truth_mother[truth_Ntrack]/I");
+      fPFeval->Branch("truth_startXYZT", &truth_startXYZT, "truth_startXYZT[truth_Ntrack][4]/F");
+      fPFeval->Branch("truth_endXYZT", &truth_endXYZT, "truth_endXYZT[truth_Ntrack][4]/F");
+      fPFeval->Branch("truth_startMomentum", &truth_startMomentum, "truth_startMomentum[truth_Ntrack][4]/F");
+      fPFeval->Branch("truth_endMomentum", &truth_endMomentum, "truth_endMomentum[truth_Ntrack][4]/F");
+      fPFeval->Branch("truth_daughters", &truth_daughters);
+      fMC_trackPosition = new TObjArray();
+      fMC_trackPosition->SetOwner(kTRUE);
+      fPFeval->Branch("fMC_trackPosition", &fMC_trackPosition);
+
+      fPFeval->Branch("reco_Ntrack", &reco_Ntrack);
+      fPFeval->Branch("reco_id", &reco_id, "reco_id[reco_Ntrack]/I");
+      fPFeval->Branch("reco_pdg", &reco_pdg, "reco_pdg[reco_Ntrack]/I");
+      fPFeval->Branch("reco_process", &reco_process);
+      fPFeval->Branch("reco_mother", &reco_mother, "reco_mother[reco_Ntrack]/I");
+      fPFeval->Branch("reco_startXYZT", &reco_startXYZT, "reco_startXYZT[reco_Ntrack][4]/F");
+      fPFeval->Branch("reco_endXYZT", &reco_endXYZT, "reco_endXYZT[reco_Ntrack][4]/F");
+      fPFeval->Branch("reco_startMomentum", &reco_startMomentum, "reco_startMomentum[reco_Ntrack][4]/F");
+      fPFeval->Branch("reco_endMomentum", &reco_endMomentum, "reco_endMomentum[reco_Ntrack][4]/F");
+      fPFeval->Branch("reco_daughters", &reco_daughters);
+
+      fPFeval->Branch("mc_isnu", &mc_isnu);
+      fPFeval->Branch("mc_nGeniePrimaries", &mc_nGeniePrimaries);
+      fPFeval->Branch("mc_nu_pdg", &mc_nu_pdg);
+      fPFeval->Branch("mc_nu_ccnc", &mc_nu_ccnc);
+      fPFeval->Branch("mc_nu_mode", &mc_nu_mode);
+      fPFeval->Branch("mc_nu_intType", &mc_nu_intType);
+      fPFeval->Branch("mc_nu_target", &mc_nu_target);
+      fPFeval->Branch("mc_hitnuc", &mc_hitnuc);
+      fPFeval->Branch("mc_hitquark", &mc_hitquark);
+      fPFeval->Branch("mc_nu_Q2", &mc_nu_Q2);
+      fPFeval->Branch("mc_nu_W", &mc_nu_W);
+      fPFeval->Branch("mc_nu_X", &mc_nu_X);
+      fPFeval->Branch("mc_nu_Y", &mc_nu_Y);
+      fPFeval->Branch("mc_nu_Pt", &mc_nu_Pt);
+      fPFeval->Branch("mc_nu_Theta", &mc_nu_Theta);
+      fPFeval->Branch("mc_nu_pos", &mc_nu_pos, "mc_nu_pos[4]/F");
+      fPFeval->Branch("mc_nu_mom", &mc_nu_mom, "mc_nu_mom[4]/F");
   }
 
 
@@ -1899,9 +1999,43 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	if (! e.getByLabel(fPFInputTag, particleHandle)) return;
     	std::vector< art::Ptr<simb::MCParticle> > particles;
     	art::fill_ptr_vector(particles, particleHandle);
+        std::cout << "particles.size(): " << particles.size() << std::endl;
 
 	
 	for (auto const& particle: particles){
+
+        if(f_PFDump) {
+            ++reco_Ntrack;
+            reco_id[reco_Ntrack-1] = particle->TrackId();
+            reco_pdg[reco_Ntrack-1] = particle->PdgCode();
+            reco_process->push_back(particle->Process());
+            reco_mother[reco_Ntrack-1] = particle->Mother();
+            auto start_pos = particle->Position();
+            reco_startXYZT[reco_Ntrack-1][0] = start_pos.X();
+            reco_startXYZT[reco_Ntrack-1][1] = start_pos.Y();
+            reco_startXYZT[reco_Ntrack-1][2] = start_pos.Z();
+            reco_startXYZT[reco_Ntrack-1][3] = start_pos.T();
+            auto end_pos = particle->EndPosition();
+            reco_endXYZT[reco_Ntrack-1][0] = end_pos.X();
+            reco_endXYZT[reco_Ntrack-1][1] = end_pos.Y();
+            reco_endXYZT[reco_Ntrack-1][2] = end_pos.Z();
+            reco_endXYZT[reco_Ntrack-1][3] = end_pos.T();
+            auto start_mom = particle->Momentum();
+            reco_startMomentum[reco_Ntrack-1][0] = start_mom.Px();
+            reco_startMomentum[reco_Ntrack-1][1] = start_mom.Py();
+            reco_startMomentum[reco_Ntrack-1][2] = start_mom.Pz();
+            reco_startMomentum[reco_Ntrack-1][3] = start_mom.E();
+            auto end_mom = particle->EndMomentum();
+            reco_endMomentum[reco_Ntrack-1][0] = end_mom.Px();
+            reco_endMomentum[reco_Ntrack-1][1] = end_mom.Py();
+            reco_endMomentum[reco_Ntrack-1][2] = end_mom.Pz();
+            reco_endMomentum[reco_Ntrack-1][3] = end_mom.E();
+            reco_daughters->push_back(std::vector<int>());
+            for (int i=0; i<particle->NumberDaughters(); ++i) {
+                reco_daughters->back().push_back(particle->Daughter(i));
+            }
+        }
+
 		int trkID = particle->TrackId();
 		fParticleMap[trkID] = (*particle);
 		if(particle->Mother() == 0){
@@ -2056,8 +2190,101 @@ void WireCellAnaTree::analyze(art::Event const& e)
          // }
          //
          
+         // Generator Info
+         art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
+         e.getByLabel("generator",mctruthListHandle);
+         std::vector<art::Ptr<simb::MCTruth> > mclist;
+         art::fill_ptr_vector(mclist, mctruthListHandle);
+         art::Ptr<simb::MCTruth> mctruth;
+         if (mclist.size()>0) {
+             mctruth = mclist.at(0);
+             if (mctruth->NeutrinoSet()) {
+                 simb::MCNeutrino nu = mctruth->GetNeutrino();
+                 mc_isnu = 1;
+                 mc_nGeniePrimaries = mctruth->NParticles();
+                 mc_nu_pdg = nu.Nu().PdgCode();
+                 mc_nu_ccnc = nu.CCNC();
+                 mc_nu_mode = nu.Mode();
+                 mc_nu_intType = nu.InteractionType();
+                 mc_nu_target = nu.Target();
+                 mc_hitnuc = nu.HitNuc();
+                 mc_hitquark = nu.HitQuark();
+                 mc_nu_Q2 = nu.QSqr();
+                 mc_nu_W = nu.W();
+                 mc_nu_X = nu.X();
+                 mc_nu_Y = nu.Y();
+                 mc_nu_Pt = nu.Pt();
+                 mc_nu_Theta = nu.Theta();
+                 const TLorentzVector& position = nu.Nu().Position(0);
+                 const TLorentzVector& momentum = nu.Nu().Momentum(0);
+                 position.GetXYZT(mc_nu_pos);
+                 momentum.GetXYZT(mc_nu_mom);
+                 //cout << "nu: " << mc_nu_pdg << ", nPrim: " << mc_nGeniePrimaries
+                 //     << ", ccnc: " << mc_nu_ccnc << endl;
+                 //for (int i=0; i<mc_nGeniePrimaries; i++) {
+                 //    simb::MCParticle particle = mctruth->GetParticle(i);
+                 //    cout << "id: " << particle.TrackId()
+                 //         << ", pdg: " << particle.PdgCode()
+                 //         << endl;
+                 //}
+             }
+         }
 	
 	for (auto const& particle: particles2){
+
+        if(f_PFDump) {
+            auto start_mom = particle->Momentum();
+            //std::cout << particle->Mother()
+            //<< ", " << start_mom.E()
+            //<< ", " << f_PFDump_min_truth_energy
+            //<< std::endl;
+            if (!(particle->Mother()==0) && !(start_mom.E()>f_PFDump_min_truth_energy)) {
+                continue;
+            }
+
+            ++truth_Ntrack;
+            truth_id[truth_Ntrack-1] = particle->TrackId();
+            truth_pdg[truth_Ntrack-1] = particle->PdgCode();
+            truth_process->push_back(particle->Process());
+            truth_mother[truth_Ntrack-1] = particle->Mother();
+            truth_startMomentum[truth_Ntrack-1][0] = start_mom.Px();
+            truth_startMomentum[truth_Ntrack-1][1] = start_mom.Py();
+            truth_startMomentum[truth_Ntrack-1][2] = start_mom.Pz();
+            truth_startMomentum[truth_Ntrack-1][3] = start_mom.E();
+            auto end_mom = particle->EndMomentum();
+            truth_endMomentum[truth_Ntrack-1][0] = end_mom.Px();
+            truth_endMomentum[truth_Ntrack-1][1] = end_mom.Py();
+            truth_endMomentum[truth_Ntrack-1][2] = end_mom.Pz();
+            truth_endMomentum[truth_Ntrack-1][3] = end_mom.E();
+            auto start_pos = particle->Position();
+            auto start_sce_offset = SCE->GetPosOffsets(geo::Point_t(start_pos.X(), start_pos.Y(), start_pos.Z()));
+            truth_startXYZT[truth_Ntrack-1][0] = start_pos.X() - start_sce_offset.X();
+            truth_startXYZT[truth_Ntrack-1][1] = start_pos.Y() + start_sce_offset.Y();
+            truth_startXYZT[truth_Ntrack-1][2] = start_pos.Z() + start_sce_offset.Z();
+            truth_startXYZT[truth_Ntrack-1][3] = start_pos.T();
+            truth_startXYZT[truth_Ntrack-1][0] = (truth_startXYZT[truth_Ntrack-1][0] + 0.6)*1.101/1.098 + start_pos.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
+            auto end_pos = particle->EndPosition();
+            auto end_sce_offset = SCE->GetPosOffsets(geo::Point_t(end_pos.X(), end_pos.Y(), end_pos.Z()));
+            truth_endXYZT[truth_Ntrack-1][0] = end_pos.X() - end_sce_offset.X();
+            truth_endXYZT[truth_Ntrack-1][1] = end_pos.Y() + end_sce_offset.Y();
+            truth_endXYZT[truth_Ntrack-1][2] = end_pos.Z() + end_sce_offset.Z();
+            truth_endXYZT[truth_Ntrack-1][3] = end_pos.T();
+            truth_endXYZT[truth_Ntrack-1][0] = (truth_endXYZT[truth_Ntrack-1][0] + 0.6)*1.101/1.098 + end_pos.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
+            truth_daughters->push_back(std::vector<int>());
+            for (int i=0; i<particle->NumberDaughters(); ++i) {
+                truth_daughters->back().push_back(particle->Daughter(i));
+            }
+            if(f_save_track_position) {
+                size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
+                TClonesArray *Lposition = new TClonesArray("TLorentzVector", numberTrajectoryPoints);
+                // Read the position and momentum along this particle track
+                for(unsigned int j=0; j<numberTrajectoryPoints; j++) {
+                    new ((*Lposition)[j]) TLorentzVector(particle->Position(j));
+                }
+                fMC_trackPosition->Add(Lposition);
+            }
+        }
+
 		if( particle->Mother() == 0 && (particle->PdgCode() == 11 || particle->PdgCode() == -11) ){
 			const TLorentzVector& position = particle->Position(0);
 			//f_truth_corr_showervtxX = position.X(); // units: cm inherit from larsoft				
@@ -2127,11 +2354,11 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	std::cout<<"Neutrino vertex SCE offset: "<<sce_offset.X() <<", "<<sce_offset.Y() <<", "<<sce_offset.Z()<<std::endl;
 	
 	// neutrino interaction type. Integer, see MCNeutrino.h for more details.
-	art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
-	e.getByLabel("generator",mctruthListHandle);
-	std::vector<art::Ptr<simb::MCTruth> > mclist;
-	art::fill_ptr_vector(mclist, mctruthListHandle);
-	art::Ptr<simb::MCTruth> mctruth;
+	//art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
+	//e.getByLabel("generator",mctruthListHandle);
+	//std::vector<art::Ptr<simb::MCTruth> > mclist;
+	//art::fill_ptr_vector(mclist, mctruthListHandle);
+	//art::Ptr<simb::MCTruth> mctruth;
 
 	if (mclist.size()>0) {
 		mctruth = mclist.at(0);
@@ -2955,6 +3182,36 @@ void WireCellAnaTree::resetOutput()
 		  kine_pio_phi_2=-1;
 		  kine_pio_dis_2=-1;
 		  kine_pio_angle=-1;
+	}
+
+	if(f_PFDump){
+          truth_Ntrack = 0;
+          truth_process->clear();
+          truth_daughters->clear();
+          reco_Ntrack = 0;
+          reco_process->clear();
+          reco_daughters->clear();
+          fMC_trackPosition->Clear();
+
+          mc_isnu = 0;
+          mc_nGeniePrimaries = -1;
+          mc_nu_pdg = -1;
+          mc_nu_ccnc = -1;
+          mc_nu_mode = -1;
+          mc_nu_intType = -1;
+          mc_nu_target = -1;
+          mc_hitnuc = -1;
+          mc_hitquark = -1;
+          mc_nu_Q2 = -1;
+          mc_nu_W = -1;
+          mc_nu_X = -1;
+          mc_nu_Y = -1;
+          mc_nu_Pt = -1;
+          mc_nu_Theta = -1;
+          for (int i=0; i<4; i++) {
+              mc_nu_pos[i] = 0;
+              mc_nu_mom[i] = 0;
+          }
 	}
 
 	f_neutrino_type = -1;

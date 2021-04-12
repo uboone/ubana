@@ -4,7 +4,7 @@ process_name: WireCellAnaTree
 
 services:
 {
-  TFileService: { fileName: "reco2_checkout_hist.root" }
+  TFileService: { fileName: "reco_stage_2_hist.root" }
   TimeTracker:             @local::microboone_time_tracker
   MemoryTracker:           @local::microboone_memory_tracker
   FileCatalogMetadata:     @local::art_file_catalog_data
@@ -53,12 +53,16 @@ physics:
       PFtruth_inputtag: "largeant"
       Threshold_showerKE: 0.070 # units: GeV
 
+      PFDump:                   true
+      save_track_position:      false
+      PFDump_min_truth_energy:  0.010 # GeV
     }
 
     wcpweights:
     {
       module_type:      "WireCellEventWeightTree"
       STMLabel:         "nuselMetricsSTM"
+      TruthLabel:       "nuselMetrics"
       FileType:         "empty"
 
       SaveWeights:      false # cv, spline
@@ -77,9 +81,35 @@ physics:
       WeightLabel:	"eventweightSep24::EventWeightSep24"
       WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
 
+      SaveGenieWeights: true # save Genie weights if vtx inside active volume
+      GenieKnobs:       [  "All_UBGenie"
+                          ,"AxFFCCQEshape_UBGenie"
+                          ,"DecayAngMEC_UBGenie"
+                          ,"NormCCCOH_UBGenie"
+                          ,"NormNCCOH_UBGenie"
+                          ,"RPA_CCQE_UBGenie"
+                          ,"RootinoFix_UBGenie"
+                          ,"ThetaDelta2NRad_UBGenie"
+                          ,"Theta_Delta2Npi_UBGenie"
+                          ,"TunedCentralValue_UBGenie"
+                          ,"VecFFCCQEshape_UBGenie"
+                          ,"XSecShape_CCMEC_UBGenie"
+                          ,"xsr_scc_Fa3_SCC"
+                          ,"xsr_scc_Fv3_SCC" ]
+
+
 
     }
 
+    wcppfdump:
+    {
+      module_type:      "WireCellPFDump"
+      PFDump:           false # do PF dump if true
+      MC:               false # save truth PF if true
+      FileType:         "empty" # e.g. "prodgenie_bnb_intrinsic_nue_overlay_run1"
+      PF_inputtag:      "wirecellPF" # for reco PF
+      PFtruth_inputtag: "largeant" # for truth PF
+    }
   }
 
   ana: [ wcpselection, wcpweights ]
@@ -123,7 +153,7 @@ services.DetectorClocksService.InheritClockConfig:  false
 
 microboone_tfile_metadata:
 {
-  JSONFileName:          ["reco2_checkout_hist.root.json"]
+  JSONFileName:          ["reco_stage_2_hist.root.json"]
   GenerateTFileMetadata: [true]
   dataTier:              ["root-tuple"]
   fileFormat:            ["root"]
