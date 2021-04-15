@@ -112,7 +112,7 @@ physics:
     }
   }
 
-  ana: [ wcpselection, wcpweights ]
+  ana: [ wcpselection ]
   ## trigger_paths contains the paths that modify the art::Event
   # trigger_paths: [ ana ]
 
