@@ -61,6 +61,10 @@ namespace single_photon
     bool SinglePhoton::loadSCB_YX(std::vector<TGeoPolygon*>& zpolygons){
         //TGeoManager *geom = new TGeoManager("save scb", "save scb");
         //cout << "size of " << zpolygons.size() << endl;
+
+        //DEPRECIATED SHOULD NOT BE USED!!!
+        std::cout<<"ERROR ERROR ERROR DEPRECIATED DEPRECIATED. "<<std::endl;
+
         double tbi = -10000.; //means "to be initialized"                                                                                                                                
         //torso
         double ptX[6] = {0., tbi, m_SCB_YX_TOP_x2_array, m_SCB_YX_BOT_x2_array, tbi, 0.};

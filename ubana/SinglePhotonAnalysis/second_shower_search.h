@@ -23,7 +23,6 @@ namespace single_photon
 
         m_sss_num_candidates = 0;
 
-
         m_sss_candidate_num_hits.clear();
         m_sss_candidate_num_wires.clear();
         m_sss_candidate_num_ticks.clear();
@@ -1186,11 +1185,13 @@ namespace single_photon
 
 
 
-    std::vector<double>SinglePhoton::SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
+    std::vector<double>SinglePhoton::SecondShowerMatching(
+	    std::vector<art::Ptr<recob::Hit>>& hitz,
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
             std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
             std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap){
+            std::map< int ,art::Ptr<simb::MCParticle>>  & MCParticleToTrackIdMap
+	){
 
 
         std::vector<double> ans; //matched,pdg,parentpdg,trkid
@@ -1437,7 +1438,7 @@ namespace single_photon
             par_pdg = match_mother->PdgCode();
         }
 
-        ans = {1,(double)match->PdgCode(), (double)par_pdg, (double)match->TrackId(),fraction_num_hits_overlay};
+        ans = {1,(double)match->PdgCode(), (double)par_pdg, (double)match->TrackId(), fraction_num_hits_overlay};
 
         return ans;
     }//end sss matching;

@@ -98,7 +98,7 @@ namespace single_photon
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
 
         m_mass_pi0_mev =  139.57;
-
+        m_true_eventweight_label = pset.get<std::string>("true_eventweight_label","mcweight");
 
         //SEAviwer Settings
         m_SEAviewHitThreshold = pset.get<double>("SEAviewHitThreshold",25);
@@ -908,6 +908,18 @@ namespace single_photon
 
                 }
 
+
+                art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw =  e.getValidHandle<std::vector<evwgh::MCEventWeight>>(m_true_eventweight_label);
+                std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
+                if(ev_evw->size() > 1) {
+                  std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
+                       << "WARNING: eventweight has more than one entry\n";
+                        }
+                 fmcweight=weight_map;
+
+
+
+
                 std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
             }
 
@@ -1149,16 +1161,19 @@ namespace single_photon
                     vertex_tree->Fill();
                     ncdelta_slice_tree->Fill();
                     eventweight_tree->Fill();
+                    true_eventweight_tree->Fill();
 
                 }else if(filter_pass_2g0p && m_run_pi0_filter_2g0p) {
                     vertex_tree->Fill();
                     ncdelta_slice_tree->Fill();
                     eventweight_tree->Fill();
+                    true_eventweight_tree->Fill();
 
                 }else if(!m_run_pi0_filter){
                     vertex_tree->Fill();
                     ncdelta_slice_tree->Fill();
                     eventweight_tree->Fill();
+                    true_eventweight_tree->Fill();
                 }
             }
 
@@ -1212,6 +1227,11 @@ namespace single_photon
         run_subrun_tree->Branch("subrun_pot",&m_subrun_pot,"subrun_pot/D");
         run_subrun_tree->Branch("subrun_counts",&m_subrun_counts,"subrun_counts/I");
 
+
+        true_eventweight_tree = tfs->make<TTree>("true_eventweight_tree", "true_eventweight_tree");
+        true_eventweight_tree->Branch("mcweight", "std::map<std::string, std::vector<double>>",&fmcweight);
+
+
         // --------------------- POT Releated variables -----------------
         m_number_of_events = 0;
         m_number_of_vertices = 0;
@@ -1219,7 +1239,6 @@ namespace single_photon
         m_pot_per_event = 0;
         m_pot_per_subrun = 0;
         m_number_of_events_in_subrun=0;
-
 
 
         pot_tree->Branch("number_of_events",&m_number_of_events,"number_of_events/I");
@@ -1401,8 +1420,7 @@ namespace single_photon
 
         //------------- EventWeight Related Variables -----------------
         this->ClearEventWeightBranches();
-
-
+        fmcweight.clear();
 
         //MetaData Related Varibles
         this->ClearSlices();

@@ -104,7 +104,7 @@ public:
   void beginJob() override;
   void beginSubRun(art::SubRun const & sr) override;
   void fillwpandora(art::Event const & e,
-		    ParticleAssociations & pas);
+  ParticleAssociations & pas);
   void analyze(art::Event const & e) override;
   void endJob() override;  
 

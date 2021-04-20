@@ -807,6 +807,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::string m_CRTVetoLabel;
             std::string m_CRTTzeroLabel;
             std::string m_CRTHitProducer;
+            std::string m_true_eventweight_label;
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
             int     m_delaunay_max_hits;
@@ -869,6 +870,9 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             TTree* vertex_tree;
             TTree* eventweight_tree;
             TTree* ncdelta_slice_tree;
+    
+            TTree* true_eventweight_tree;
+            std::map<std::string, std::vector<double>> fmcweight;
 
             //------------ POT related variables --------------
             int m_number_of_events;
