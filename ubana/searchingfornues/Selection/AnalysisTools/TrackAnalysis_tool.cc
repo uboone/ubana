@@ -483,14 +483,14 @@ void TrackAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t
           aux_dedx = searchingfornues::ModBoxCorrection(dqdx_values_corrected[i]*fADCtoE[plane], xyz_v[i].X(), xyz_v[i].Y(), xyz_v[i].Z());
           dedx_values_corrected.push_back(aux_dedx);
           calo_energy += aux_dedx * pitch[i];
-          _trk_plane_v.back() = plane;
-          _trk_calo_pfp_id_v.back() = i_pfp;
-          _trk_pitch_v.back() = pitch[i];
-          _trk_dedx_v.back() = aux_dedx;
-          _trk_de_v.back() = aux_dedx * pitch[i];
-          _trk_calo_x_v.back() = xyz_v[i].X();
-          _trk_calo_y_v.back() = xyz_v[i].Y();
-          _trk_calo_z_v.back() = xyz_v[i].Z();
+          _trk_plane_v.push_back(plane);
+          _trk_calo_pfp_id_v.push_back(i_pfp);
+          _trk_pitch_v.push_back(pitch[i]);
+          _trk_dedx_v.push_back(aux_dedx);
+          _trk_de_v.push_back(aux_dedx * pitch[i]);
+          _trk_calo_x_v.push_back(xyz_v[i].X());
+          _trk_calo_y_v.push_back(xyz_v[i].Y());
+          _trk_calo_z_v.push_back(xyz_v[i].Z());
         }
 
         float llr_pid = llr_pid_calculator.LLR_many_hits_one_plane(dedx_values_corrected, par_values, plane);
