@@ -8,7 +8,7 @@ EventFilterTool: {
 
 SecondShowerTaggerTool: {
     tool_type: "SecondShowerTagger"
-    Clusterproducer: "proximity"
+    Clusterproducer: "pandora"
     Hitproducer: "gaushit"
 }
 
@@ -303,7 +303,7 @@ CC0PiNpSelectionTool: {
     PIDproducer: "pandoracalipid"
     CALproducerTrkFit: "shrreco3dKalmanShowercali"
     TRKproducerTrkFit: "shrreco3dKalmanShower"
-    Clusterproducer: "proximity"
+    Clusterproducer: "pandora"
     Hitproducer: "gaushit"
     mcsfitmu: @local::microboone_reco_data_producers.pandoraMCSMu.fitter
     LocaldEdx: false # use dQdx and convert to dEdx with fixed conversion
