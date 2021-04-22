@@ -88,7 +88,7 @@ physics:
  #end_paths is a keyword and contains the paths that do not modify the art::Event, 
  #ie analyzers and output streams.  these all run simultaneously
  #end_paths:     [ stream1, ana ] 
- end_paths:     [  ana]#,e1  ] 
+ end_paths:     [  ana] #,e1  ] 
 }
 
 physics.filters.nuselection.AnalysisTools.default.BacktrackTag: "gaushitTruthMatch"
