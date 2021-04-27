@@ -2087,6 +2087,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	float ProtonKE = 0; //temp proton kinetic energy
 	f_reco_Nproton = 0;
 	for (size_t j=0; j<fProtonID.size(); j++){
+		f_reco_Nproton ++;
 		auto const& p = fParticleMap[fProtonID.at(j)];
 		const TLorentzVector& pos = p.Position(0);
 		const TLorentzVector& momentum = p.Momentum(0);
@@ -2100,7 +2101,6 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		f_reco_protonMomentum[1] = momentum.Py();	
 		f_reco_protonMomentum[2] = momentum.Pz();	
 		f_reco_protonMomentum[3] = momentum.E(); // GeV
-		f_reco_Nproton ++;
 	}
 
  	//shower	
