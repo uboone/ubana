@@ -233,8 +233,8 @@ namespace seaview {
 
 	//geometric properties
 	//track-related properties
-	size_t start_hit_idx; //index of the start hit
-	size_t end_hit_idx;   //index of the end hit
+	size_t start_hit_idx = SIZE_MAX; //index of the start hit
+	size_t end_hit_idx = SIZE_MAX;   //index of the end hit
 	double f_mean_ADC_first_half = 0.0;
 	double f_mean_ADC_second_half = 0.0;
 	double f_mean_ADC_first_to_second_ratio = 0.0;
@@ -246,11 +246,11 @@ namespace seaview {
 	double f_meanADC = -1.0;  // mean of hits ADC
 
 	
-        double f_ImpactParameter; //impact parameter of the vertex wrt to the cluster
-        double f_FitSlope; //slope of the fitted shower/cluster direction
-        double f_FitCons;  //intercept of the fitted shower/cluster direction
+        double f_ImpactParameter = -1.0; //impact parameter of the vertex wrt to the cluster
+        double f_FitSlope = 0.0; //slope of the fitted shower/cluster direction
+        double f_FitCons = 0.0;  //intercept of the fitted shower/cluster direction
 
-        double f_AngleWRTShower; //angle between cluster-vertex direction and primary_shower_start-vertex direction, assuming cluster and primary shower both point back to the vertex
+        double f_AngleWRTShower = -1.0; //angle between cluster-vertex direction and primary_shower_start-vertex direction, assuming cluster and primary shower both point back to the vertex
 				 // specific for second shower search for 1g1p analysis
     };  // end of class cluster
 
@@ -411,11 +411,12 @@ namespace seaview {
             std::vector<seaview::cluster> vec_clusters;  
             std::vector<art::Ptr<recob::Shower>> vec_showers; //vector of recob::Shower contained in this class
             std::vector<art::Ptr<recob::Track>> vec_tracks;
-
+	    
 	    //-----helper function-----------
 	    
 	    // form legend for recob::shower and recob::track objects
 	    void format_legend(std::string &leg, double arg1 = 0.0, double arg2 = 0.0, double arg3 = 0.0);
+
     };
 
     //define wire conversion, tick conversion factor

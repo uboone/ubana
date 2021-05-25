@@ -1072,7 +1072,7 @@ namespace single_photon
 			m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[5]);
 
 			//Guanqun: print out (best-matched) truth information of the cluster
-			std::cout << "Cluster: " << c  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << ", min IOC of hit(wrt shower): " << m_sss_candidate_min_ioc_to_shower_start.back() << "\n";
+			std::cout << "Cluster: " << m_sss_num_candidates-1  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << ", min IOC of hit(wrt shower): " << m_sss_candidate_min_ioc_to_shower_start.back() << "\n";
 			std::cout << "Cluster is matched: " << m_sss_candidate_matched.back() << ", matched PDG: " << m_sss_candidate_pdg.back() << " track ID: " << m_sss_candidate_trackid.back() << " overlay fraction: " << m_sss_candidate_overlay_fraction.back() << std::endl; 
 			std::cout << "===============================================================" << std::endl;
                     }
@@ -1085,6 +1085,9 @@ namespace single_photon
 		if(m_SEAviewMakePDF){
 		    sevd.Print(m_SEAviewPlotDistance);
 		}
+
+		//group clusters
+		group_sss_candidate();
             }
 
             for(int i =0; i<(int)showers.size(); i++){

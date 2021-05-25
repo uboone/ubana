@@ -22,7 +22,7 @@ namespace single_photon
         m_sss_num_associated_hits=0;
 
         m_sss_num_candidates = 0;
-
+	m_sss_num_candidate_groups = 0;
 
         m_sss_candidate_num_hits.clear();
         m_sss_candidate_num_wires.clear();
@@ -62,6 +62,9 @@ namespace single_photon
         m_sss_candidate_trackid.clear();
         m_sss_candidate_overlay_fraction.clear();
         m_sss_candidate_remerge.clear();
+	m_sss_num_candidate_in_group.clear();
+	m_grouped_sss_candidate_indices.clear();
+	m_sss_candidate_group_timeoverlap_fraction.clear();
     }
 
     void SinglePhoton::ResizeSecondShowers(size_t size){
@@ -114,6 +117,11 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_trackid",&m_sss_candidate_trackid);
         vertex_tree->Branch("sss_candidate_overlay_fraction",&m_sss_candidate_overlay_fraction);
 	vertex_tree->Branch("sss_candidate_matched_energy_fraction_best_plane", &m_sss_candidate_matched_energy_fraction_best_plane);
+
+	vertex_tree->Branch("sss_num_candidate_groups", &m_sss_num_candidate_groups);
+	vertex_tree->Branch("sss_num_candidate_in_group", &m_sss_num_candidate_in_group);
+	vertex_tree->Branch("grouped_sss_candidate_indices", &m_grouped_sss_candidate_indices);
+	vertex_tree->Branch("sss_candidate_group_timeoverlap_fraction", &m_sss_candidate_group_timeoverlap_fraction);
 
         vertex_tree->Branch("sss3d_ioc_ranked_en",&m_sss3d_ioc_ranked_en);
         vertex_tree->Branch("sss3d_ioc_ranked_conv",&m_sss3d_ioc_ranked_conv);
@@ -1977,6 +1985,89 @@ namespace single_photon
 
         return ;
     }
+
+    std::pair<bool, std::vector<double>> SinglePhoton::sssCandidateOverlap(const std::vector<int> & candidate_indices){
+
+        size_t size = candidate_indices.size();
+	if(size == 0){
+	    throw std::runtime_error("No sss candidate to analyze time overlap for..");
+	}
+
+	//cancidate_indices has at most 3 elements
+	std::vector<int> planes;
+        std::vector<double> max_ticks;
+        std::vector<double> min_ticks;
+        std::vector<double> tick_length;
+
+        for(auto i : candidate_indices){
+            planes.push_back(m_sss_candidate_plane[i]);
+            
+            max_ticks.push_back(m_sss_candidate_max_tick[i]);
+            min_ticks.push_back(m_sss_candidate_min_tick[i]); 
+            tick_length.push_back(m_sss_candidate_max_tick[i] - m_sss_candidate_min_tick[i]);
+        }
+
+
+	//if candidates are not on different planes
+	if( size == 2 && planes[0] == planes[1])
+            return {false, std::vector<double>(2, -1.0)};
+        if( size == 3 && (planes[0] == planes[1] || planes[1] == planes[2] || planes[0] == planes[2]))
+            return {false, std::vector<double>(3, -1.0)};
+
+	//calculate the overlapping tick-span
+	double tick_overlap = DBL_MAX;
+        for(auto max_e : max_ticks)
+            for(auto min_e : min_ticks)
+                if(max_e - min_e < tick_overlap)
+                    tick_overlap = max_e - min_e;
+ 
+	// if tick overlap is negative, meaning these clusters are not overlapping
+   	if(tick_overlap < 0)
+            return {false, std::vector<double>(size, -1.0)};
+        else{
+            std::vector<double> overlap_fraction;
+            for(auto l: tick_length){
+                overlap_fraction.push_back( l==0? 1.0 : tick_overlap/l);
+	    }
+            return {true, overlap_fraction};
+        }
+    }
+
+   
+    void SinglePhoton::group_sss_candidate(){
+	std::cout << "SinglePhoton::group_sss_candidate\t|| Total of " << m_sss_num_candidates << " to be grouped" << std::endl;
+	if(m_sss_num_candidates <= 1) return;
+
+        for(int i = 0; i != m_sss_num_candidates -1; ++i){
+            for(int j = i+1; j != m_sss_num_candidates; ++j){
+
+		//first, look at candidate pairs
+                auto pair_result = sssCandidateOverlap({i,j});
+                if( pair_result.first){
+
+		    ++m_sss_num_candidate_groups;
+		    m_sss_num_candidate_in_group.push_back(2);
+		    m_grouped_sss_candidate_indices.push_back({i,j});
+                    double min_frac = *std::min_element(pair_result.second.cbegin(), pair_result.second.cend());
+		    m_sss_candidate_group_timeoverlap_fraction.push_back(min_frac);
+		    std::cout << "Grouped candidate: (" << i  << ", " << j << ") | Minimum time tick overlap fraction: " << min_frac << std::endl;
+
+		    // if the pair is succefully grouped, look at possible trios
+                    for(int k = j+1; k!= m_sss_num_candidates; ++k){
+                        auto tri_result = sssCandidateOverlap({i,j,k});
+                        if(tri_result.first){
+			    ++m_sss_num_candidate_groups;
+                    	    m_sss_num_candidate_in_group.push_back(3);
+                    	    m_grouped_sss_candidate_indices.push_back({i,j,k});
+                            min_frac = *std::min_element(tri_result.second.cbegin(), tri_result.second.cend());
+			    m_sss_candidate_group_timeoverlap_fraction.push_back(min_frac);
+			    std::cout << "Grouped candidate: (" << i  << ", " << j << ", " << k << ") | Minimum time tick overlap fraction: " << min_frac << std::endl;
+                        }
+                    } //k loop
+                }
+            }//j loop
+        }//i loop
+    } 
 
 
 }

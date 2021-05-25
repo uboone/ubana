@@ -85,6 +85,7 @@
 #include <numeric>
 #include <algorithm>
 #include <map>
+#include <vector>
 #include <set>
 #include <sys/stat.h>
 
@@ -1031,13 +1032,13 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 	    std::vector<double> m_sss_candidate_min_impact_parameter_to_shower; //min impact parameter of all hits in cluster to the recob::shower direction line (on 2D plane)
 	    std::vector<double> m_sss_candidate_min_conversion_dist_to_shower_start;  //min distance between hits and recob::shower start (on 2D plane)
 	    std::vector<double> m_sss_candidate_min_ioc_to_shower_start;        //min ratio of impact_parameter_to_shower/conversion_dist_to_shower_start of all hits in the cluster
-	    std::vector<double> m_sss_candidate_ioc_based_length;
-	    std::vector<double> m_sss_candidate_wire_tick_based_length;
-	    std::vector<double> m_sss_candidate_mean_ADC_first_half;
+	    std::vector<double> m_sss_candidate_ioc_based_length;		//length of the cluster, calculated based on the IOC of hit
+	    std::vector<double> m_sss_candidate_wire_tick_based_length;		//length of the cluster, calculated based on the wire & tick span of the cluster
+	    std::vector<double> m_sss_candidate_mean_ADC_first_half;		// mean ADC per hit for the first half of cluster (cluster divided into halves based on hit IOC)
 	    std::vector<double> m_sss_candidate_mean_ADC_second_half;
-	    std::vector<double> m_sss_candidate_mean_ADC_first_to_second_ratio;
-	    std::vector<double> m_sss_candidate_track_angle_wrt_shower_direction;
-	    std::vector<double> m_sss_candidate_linear_fit_chi2;
+	    std::vector<double> m_sss_candidate_mean_ADC_first_to_second_ratio; // ratio of the mean ADC per hit, first half of cluster over second half.
+	    std::vector<double> m_sss_candidate_track_angle_wrt_shower_direction;   //treat cluster as a track, angle between track direction and the shower direction
+	    std::vector<double> m_sss_candidate_linear_fit_chi2;		// chi2 from linear fit of the  {wire, tick} distribution of the cluster
             std::vector<double> m_sss_candidate_energy;
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
@@ -1048,6 +1049,21 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int>    m_sss_candidate_parent_pdg;
             std::vector<int>    m_sss_candidate_trackid; /* track ID of the matched MCParticle */
             std::vector<double> m_sss_candidate_overlay_fraction; /* fraction of overlay in the unasso cluster hits */
+
+	    //------- grouped sss candidate --------------
+	    int m_sss_num_candidate_groups;	         /* number of groups */ 
+	    std::vector<int>    m_sss_num_candidate_in_group;                 /* number of sss candidate/on how many planes sss candidates are matched in the group */
+	    std::vector<std::vector<int>> m_grouped_sss_candidate_indices; /* indices of sss_candidates that are matched as a group */
+	    std::vector<double> m_sss_candidate_group_timeoverlap_fraction;   /* minimum fraction of the time overlap of grouped sss_candidates */
+
+	    //--------- sss candidate tools  ----------
+	    //@brief: given indices of sss_candidates, determine if they overlap in time 
+	    std::pair<bool, std::vector<double>> sssCandidateOverlap(const std::vector<int> & candidate_indices);
+
+	    
+	    // @brief: group candidate clusters into pairs, using the time information
+	    // @brief: candidate clusters on different plane that overlap in time tick will be grouped together
+	    void group_sss_candidate();
 
     //------------ sss3d_showers variables are for reco::showers which are in the events, but not in the slice ----
 

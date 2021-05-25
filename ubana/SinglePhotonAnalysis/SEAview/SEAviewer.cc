@@ -9,6 +9,10 @@ namespace seaview{
 	//first round, grab min ioc, impact, conversion distance, and ADC_histogram, and indx of the hits with min/max IOC
 	double max_ioc_to_shower_start = DBL_MIN;
 	size_t num_hits = cl.f_hits.size();
+	if( num_hits < 2){
+	    std::cerr << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster only has " << num_hits << " hits, skipping it... " << std::endl;
+	    return;
+        }
 
 	cl.f_ADC_hist.StatOverflows(kTRUE); 
 
@@ -28,7 +32,8 @@ namespace seaview{
 	    if( ioc_to_shower_start < cl.f_min_ioc_to_shower_start){
                 cl.f_min_ioc_to_shower_start = ioc_to_shower_start;
 	        cl.start_hit_idx = i; 
-	    }else if( ioc_to_shower_start > max_ioc_to_shower_start){
+	    }
+	    if( ioc_to_shower_start > max_ioc_to_shower_start){ //be careful, should not be "else if" here.
 	        max_ioc_to_shower_start = ioc_to_shower_start;
 		cl.end_hit_idx = i;
 	    }
@@ -89,11 +94,15 @@ namespace seaview{
 
         //fit to wire-tick plot of the cluster, see how straight cluster is
         TF1 *f1 = new TF1("f1", "1 ++ x", cl.f_score.min_wire, cl.f_score.max_wire);
-        int fit_status = cl.f_graph.Fit(f1, "RQ"); //if fit status is 0, the fit is ok.
-	f1 = cl.f_graph.GetFunction("f1");
+	//TGraph* graph_copy = (TGraph*)cl.f_graph.Clone("temp");
+        //int fit_status = graph_copy->Fit(f1, "RQ0"); //if fit status is 0, the fit is ok.
+        int fit_status = cl.f_graph.Fit(f1, "RQ0"); //if fit status is 0, the fit is ok.
 	if(fit_status == 0){
+	    //f1 = graph_copy->GetFunction("f1");
+	    f1 = cl.f_graph.GetFunction("f1");
 	    cl.f_fit_chi2 = f1->GetChisquare();
 	}
+        std::cout << "SEAviewer::TrackLikeClusterAnalyzer\t|| End" << std::endl;
     }
 
 
@@ -725,8 +734,6 @@ namespace seaview{
             vec_clusters[c].setScore(ssscorz);
 	    vec_clusters[c].setWireTickBasedLength(sqrt(pow((ssscorz.max_wire-ssscorz.min_wire)*wire_con, 2.0) + pow((ssscorz.max_tick - ssscorz.min_tick)*tick_con, 2.0)));
 
-	    TrackLikeClusterAnalyzer(vec_clusters[c], shr_start_pt[pl], shr_other_pt[pl]);
-
             //This is just checking if its in, we can do this earlier; TODO
             //TODO: is_in_shower, get back to primary shower (at least available)
             //Sim Stuff
@@ -740,6 +747,9 @@ namespace seaview{
             if(ssscorz.pass){
 
                 if(num_hits_in_cluster>0){
+	    	   
+		    TrackLikeClusterAnalyzer(vec_clusters[c], shr_start_pt[pl], shr_other_pt[pl]);
+
                     TGraph * tmp = (TGraph*)vec_clusters[c].getGraph()->Clone(("tmp_"+std::to_string(pl)+std::to_string(c)).c_str());
 
                     int Npts = 20;
@@ -1140,6 +1150,7 @@ namespace seaview{
         return new TGraph(t_wire.size(),&t_wire[0],&t_tick[0]);
     }
 
+    
     void SEAviewer::SetClusterLegend(int cluster, double energy, int is_matched, int matched_pdg, double overlay_fraction){
 
 	//grab the plane number, and impact parameter of the cluster
@@ -1164,6 +1175,7 @@ namespace seaview{
 	}
 	vec_clusters.at(cluster).setLegend(legend);
     }
+
 
     void SEAviewer::format_legend(std::string &leg, double arg1, double arg2, double arg3){
 	std::ostringstream ss1, ss2, ss3;
