@@ -1,4 +1,4 @@
-#include "hyperonConfig.fcl"
+#include "wireConfig.fcl"
 #include "services_microboone.fcl"
 
 process_name: HyperonSelection
@@ -11,7 +11,7 @@ fileNames:[ "/pnfs/uboone/persistent/users/cthorpe/hyperons/v08_00_00_13d/all/ma
 
 services:
 {
-TFileService: { fileName: "HyperonTrees.root" }
+TFileService: { fileName: "WireTrees.root" }
 @table::microboone_services
 FileCatalogMetadata: @local::art_file_catalog_mc
 }
@@ -20,9 +20,9 @@ FileCatalogMetadata: @local::art_file_catalog_mc
 physics:
 {
 analyzers: { 
-ana: @local::analyseEvents
+wire: @local::getWires
 }
-path0 : [ ana ]
+path0 : [ wire ] 
 end_paths : [ path0 ] 
 }
 
@@ -38,5 +38,4 @@ services.SpaceCharge.EnableSimEfieldSCE: true
 services.SpaceCharge.RepresentationType: "Voxelized_TH3"
 services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
 
-physics.analyzers.ana.IsData: false
 

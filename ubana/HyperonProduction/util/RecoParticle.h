@@ -5,6 +5,9 @@
 #include "TVector3.h"
 #include <iostream>
 
+// Local includes
+#include "ubana/HyperonProduction/Alg/FV.h"
+
 #ifdef __MAKE_ROOT_DICT__
 #include "TObject.h"
 #endif
@@ -29,11 +32,12 @@ double X,Y,Z;
 double Displacement; //distance from RECO PV
 
 //track info
-double TrackLength;
-double TrackDirectionX,TrackDirectionY,TrackDirectionZ;
-double TrackStartX,TrackStartY,TrackStartZ;
-double TrackEndX,TrackEndY,TrackEndZ;
-double TrackMuonClosestApproachPosition,TrackMuonClosestApproachDistance;
+double TrackLength=0;
+double TrackDirectionX=0,TrackDirectionY=0,TrackDirectionZ=0;
+double TrackStartX=0,TrackStartY=0,TrackStartZ=0;
+double TrackEndX=0,TrackEndY=0,TrackEndZ=0;
+double TrackMuonClosestApproachPosition=0,TrackMuonClosestApproachDistance=0;
+double TrackContained;
 
 
 //track PID info
@@ -90,6 +94,10 @@ TrackStartZ = Start.Z();
 TrackEndX = End.X();
 TrackEndY = End.Y();
 TrackEndZ = End.Z();
+
+
+// Set containment
+TrackContained = inActiveTPC(TVector3(TrackEndX,TrackEndY,TrackEndZ));
 
 }
 

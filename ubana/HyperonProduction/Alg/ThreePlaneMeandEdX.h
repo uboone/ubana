@@ -47,7 +47,6 @@ double PlaneWeight( art::Ptr<recob::Track> track , int i_pl ){
 
 double ThreePlaneMeandEdX( art::Ptr<recob::Track> track, std::vector<std::pair<int,double>> dEdXs ){
 
-
 	double dEdX=0;
 	double Weight=0;
 
@@ -63,6 +62,8 @@ double ThreePlaneMeandEdX( art::Ptr<recob::Track> track, std::vector<std::pair<i
 
 
 	}
+
+	if( Weight == 0 ) return -1;	
 
 	return dEdX/Weight;
 }

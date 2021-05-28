@@ -16,17 +16,22 @@ MetadataLabel: "pandora"
 PIDLabel: "pandorapid"
 CaloLabel: "pandoracali"
 HitLabel: "gaushit"
+SpacePointLabel: "pandora"
 TrackHitAssnLabel: "pandora" 
 ShowerHitAssnLabel: "pandora"
 HitTruthAssnLabel: "gaushitTruthMatch"
+PFPSpacePointAssnLabel: "pandora"
+
 POTSummaryLabel: "generator"
-
-
 
 #Selection Config
 
+# Momentum thresholds for lambda decay protons/pions
+DecayProtonThreshold: 0.0
+DecayPionThreshold: 0.0
+
 # Minimum number of daughters of the primary
-MinDaughters: 3
+MinDaughters: 2
 
 # Minimum number of tracks to search for
 MinDaughterTracks: 3
@@ -47,29 +52,27 @@ MinimumMuonLength: 15
 SecondaryTrackLengthCut: 65
 TertiaryTrackLengthCut: 35
 
-
-
 # Misc
 Print: false
 PrintPdg: 3122
 PrintChargedLambda: false
 Debug: false
 
-
+HyperonEnrichment: 1.0
 
 #Vertex Fitter Config
-options: {
-debugLevel: 0
-sipCut: 3.0
-}
-propagator: {
-minStep: 1.0
-maxElossFrac: 0.1
-maxNit: 10
-tcut: 10.
-wrongDirDistTolerance: 0.01
-propPinvErr: false
-}
+    options: {
+      debugLevel: 0
+      sipCut: 3.0
+    }
+    propagator: {
+      minStep: 1.0
+      maxElossFrac: 0.1
+      maxNit: 10
+      tcut: 10.
+      wrongDirDistTolerance: 0.01
+      propPinvErr: false
+    }
 
 
 

@@ -1,0 +1,25 @@
+BEGIN_PROLOG
+
+getWires:
+
+{
+
+module_type: WireTreeMaker
+
+# Module Labels
+PFParticleLabel: "pandora"
+TrackLabel: "pandora"
+CaloLabel: "pandoracali"
+WireLabel: "butcher"
+
+# Misc
+Debug: false
+
+}
+
+END_PROLOG
+
+
+
+
+

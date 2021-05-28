@@ -1,11 +1,10 @@
 <lcgdict>
+<class name="std::vector<TVector3>"/>
 <class name="std::vector<TLorentzVector>"/>
 <class name="SimParticle"/>
 <class name="std::vector<SimParticle>"/>
 <class name="RecoParticle"/>
 <class name="std::vector<RecoParticle>"/>
-<class name="FittedVertex"/>
-<class name="std::vector<FittedVertex>"/>
 </lcgdict>
 
 
