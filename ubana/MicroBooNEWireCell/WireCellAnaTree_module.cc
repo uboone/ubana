@@ -2087,11 +2087,11 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	float ProtonKE = 0; //temp proton kinetic energy
 	f_reco_Nproton = 0;
 	for (size_t j=0; j<fProtonID.size(); j++){
-		f_reco_Nproton ++;
 		auto const& p = fParticleMap[fProtonID.at(j)];
 		const TLorentzVector& pos = p.Position(0);
 		const TLorentzVector& momentum = p.Momentum(0);
 		float tempKE = momentum.E() - momentum.M();
+		if(tempKE > 0.035) f_reco_Nproton ++; // 35 MeV threshold
 		if( ProtonKE>=tempKE ) continue;
 		ProtonKE = tempKE;
 		f_reco_protonvtxX = pos.X(); // cm	
