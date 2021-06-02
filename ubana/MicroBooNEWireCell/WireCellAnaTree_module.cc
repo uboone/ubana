@@ -2414,26 +2414,27 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	// flux truth, see MCFlux.h for more details
 	// and the description at http://www.hep.utexas.edu/~zarko/wwwgnumi/v19/v19/output_gnumi.html
 	art::Handle< std::vector<simb::MCFlux> > mcfluxListHandle;
-	e.getByLabel("generator",mcfluxListHandle);
-	std::vector<art::Ptr<simb::MCFlux> > mcfluxlist;
-	art::fill_ptr_vector(mcfluxlist, mcfluxListHandle);
-	art::Ptr<simb::MCFlux> mcflux;
-	if (mcfluxlist.size()>0) {
-		mcflux = mcfluxlist.at(0);
-		f_mcflux_run = mcflux->frun;
-		f_mcflux_evtno = mcflux->fevtno;
-		f_mcflux_ndecay = mcflux->fndecay;
-		f_mcflux_ntype = mcflux->fntype;
-		f_mcflux_nuEnergy = mcflux->fnenergyn; // neutrino energy for a decay
-		f_mcflux_vx = mcflux->fvx; // vertex of hadron decay
-		f_mcflux_vy = mcflux->fvy;
-		f_mcflux_vz = mcflux->fvz;
-		f_mcflux_genx = mcflux->fgenx;
-		f_mcflux_geny = mcflux->fgeny;
-		f_mcflux_genz = mcflux->fgenz;
-		f_mcflux_dk2gen = mcflux->fdk2gen; // distance from decay to ray origin
-		f_mcflux_gen2vtx = mcflux->fgen2vtx; // distance from ray origin to event vtx
-	}
+	if (e.getByLabel("generator",mcfluxListHandle)){
+	  std::vector<art::Ptr<simb::MCFlux> > mcfluxlist;
+	  art::fill_ptr_vector(mcfluxlist, mcfluxListHandle);
+	  art::Ptr<simb::MCFlux> mcflux;
+	  if (mcfluxlist.size()>0) {
+	  	mcflux = mcfluxlist.at(0);
+	  	f_mcflux_run = mcflux->frun;
+	  	f_mcflux_evtno = mcflux->fevtno;
+	  	f_mcflux_ndecay = mcflux->fndecay;
+	  	f_mcflux_ntype = mcflux->fntype;
+	  	f_mcflux_nuEnergy = mcflux->fnenergyn; // neutrino energy for a decay
+	  	f_mcflux_vx = mcflux->fvx; // vertex of hadron decay
+	  	f_mcflux_vy = mcflux->fvy;
+	  	f_mcflux_vz = mcflux->fvz;
+	  	f_mcflux_genx = mcflux->fgenx;
+	  	f_mcflux_geny = mcflux->fgeny;
+	  	f_mcflux_genz = mcflux->fgenz;
+	  	f_mcflux_dk2gen = mcflux->fdk2gen; // distance from decay to ray origin
+	  	f_mcflux_gen2vtx = mcflux->fgen2vtx; // distance from ray origin to event vtx
+	  }
+        }
 
 	}
 	//
