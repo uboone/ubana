@@ -1,0 +1,67 @@
+#include "reco_uboone_data_mcc9_8_driver_stage2_beamOff.fcl"
+
+process_name: DataRecoStage3Calo
+
+services.SpaceCharge.EnableCalSpatialSCE: true
+services.SpaceCharge.EnableCalEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: false
+services.SpaceCharge.EnableSimEfieldSCE: false
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root" #This should be changes once a real calibration map exists
+services.TFileService.fileName: "XYZcorrection.root"
+
+services.UBElectronLifetimeService.ElectronLifetimeProvider.DatabaseRetrievalAlg.DBTag: "v3r0"
+services.UBElectronLifetimeService.ElectronLifetimeProvider.DatabaseRetrievalAlg.DBUrl: "https://dbdata0vm.fnal.gov:8443/uboonecon_dev/app/"
+services.UBElectronLifetimeService.ElectronLifetimeProvider.DatabaseRetrievalAlg.UseSQLite: false
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents:   -1        # Number of events to create
+  inputCommands: ["keep *_*_*_*", "drop *_pandoracal*__Reco2WithCalo"]
+}
+
+physics.analyzers: {
+  XYZcorrection:
+  {
+    module_type: "XYZcorrection"
+    TrackModuleLabel:        "pandora"
+    SpacePointModuleLabel:        "pandora"
+    CalorimetryModuleLabel:  "pandoracaloT0"
+    CalorimetrySCEModuleLabel:  "pandoracaloSCET0"
+    CalibrationModuleLabel:  "pandoracaliT0"
+    CalibrationSCEModuleLabel:  "pandoracaliSCET0"
+    t0_corr:  "true"
+    HitsModuleLabel:  "gaushit"
+    SaveTrackInfo: true      
+    ModBoxA: 0.93
+    ModBoxB: 0.212
+  }
+  @table::microboone_reco_data_analyzers
+}
+
+microboone_cali_ana: [
+    XYZcorrection
+]
+
+#physics.producers.pandoracaliSCE.CaloAlg.CalAreaConstants: [ 0.00431, 0.00402, 0.00426 ]
+#physics.producers.pandoracaliSCET0.CaloAlg.CalAreaConstants: [ 0.00431, 0.00402, 0.00426 ]
+
+physics.reco: [ 
+                #trajcluster,
+                #pmtrack,
+                #pandoraPatRec,
+                pandoracalo,
+                pandoracaloT0,
+                pandoracaloSCE,
+                pandoracaloSCET0,
+                pandoracali,
+                pandoracaliT0,
+                pandoracaliSCE,
+                pandoracaliSCET0
+              ]
+
+physics.ana: [ @sequence::microboone_cali_ana ]
+physics.end_paths:     [ ana ]
