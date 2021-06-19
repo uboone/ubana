@@ -227,7 +227,8 @@ wcls: {
 
               // Electron lifetime
               ElectronLifetime: 1000 // unit: ms, configured in the jsonnet file
-              ELifetimeCorrection: false // or true; using lifetime database
+              #ELifetimeCorrection: false // or true; using lifetime database
+              ELifetimeCorrection: true // using lifetime database
       	  }
       }
    }
