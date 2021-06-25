@@ -17,6 +17,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "art_root_io/TFileService.h"
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
