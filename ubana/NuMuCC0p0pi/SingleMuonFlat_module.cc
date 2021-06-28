@@ -61,6 +61,7 @@
 
 #include "nusimdata/SimulationBase/simb.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCFlux.h"
 #include "nusimdata/SimulationBase/GTruth.h"
 
 #include "TTree.h"
@@ -177,10 +178,67 @@ private:
   std::vector<double> RDecBR1gamma;
   std::vector<double> RDecBR1eta;
 
+  std::vector<double> RootinoFix;
+  std::vector<double> splines_general_Spline;
+
+  std::vector<double> MaCCQE_tune;
+  std::vector<double> RPA_CCQE_tune;
+  std::vector<double> NormCCMEC_tune;
+  std::vector<double> XSecShape_CCMEC_tune;
+
+  //Geant4 weights
+  std::vector<double> piplusReacLow;
+  std::vector<double> piplusReacHigh;
+  std::vector<double> piplusAbs;
+  std::vector<double> piplusCex;
+  std::vector<double> piplusDCex;
+  std::vector<double> piplusPiProd;
+  std::vector<double> piplusElast;
+
+  std::vector<double> piminusReacLow;
+  std::vector<double> piminusReacHigh;
+  std::vector<double> piminusAbs;
+  std::vector<double> piminusCex;
+  std::vector<double> piminusDCex;
+  std::vector<double> piminusPiProd;
+  std::vector<double> piminusElast;
+
+  std::vector<double> protonReac;
+  std::vector<double> protonElast;
+
+  std::vector<double> neutronAbs_max;
+  std::vector<double> neutronElast_max;
+  std::vector<double> neutronInela_max;
+  std::vector<double> neutronPiprod_max;
+  std::vector<double> neutronPprod_max;
+
+  std::vector<double> neutronAbs_100;
+  std::vector<double> neutronElast_100;
+  std::vector<double> neutronInela_100;
+  std::vector<double> neutronPiprod_100;
+  std::vector<double> neutronPprod_100;
+
+  std::vector<double> neutronAbs_200;
+  std::vector<double> neutronElast_200;
+  std::vector<double> neutronInela_200;
+  std::vector<double> neutronPiprod_200;
+  std::vector<double> neutronPprod_200;
+
+  // flux parameters
+  std::vector<double> expskin;
+  std::vector<double> horncurrent;
+  std::vector<double> nucleoninexsec;
+  std::vector<double> nucleonqexsec;
+  std::vector<double> nucleontotxsec;
+  std::vector<double> pioninexsec;
+  std::vector<double> pionqexsec;
+  std::vector<double> piontotxsec;
+
   double EventWeight = 1; // Spine reweight using Steven's tool
 
   int Nr_MCNu = 0;
 
+  int nu_parent_pdg = -999; //parent of the neutrino: mu-13 / pi-211 / k0-130 / k-321
   bool MC_beamNeutrino = false; // MCTruth beam origin
   bool MC_FV = false; // MCTruth vertex in FV = true, out of FV = false
   bool MC_if_in_active = false; // MCTruth vertex in active volume = true, out of active volume = false
@@ -463,7 +521,9 @@ private:
   bool                                IsMC;
   bool                                T0Corr;
   bool                                UsingCRT;
-  bool                                if_ReWeight;
+  bool                                if_GENIE_ReWeight;
+  bool                                if_G4_ReWeight;
+  bool                                if_Flux_ReWeight;
   double                              fBeamStart;
   double                              fBeamEnd;
   double                              fDTOffset;
@@ -471,7 +531,9 @@ private:
   std::string                         m_DAQHeaderProducer;
   std::string                         m_generatorLabel;
   std::string                         m_geantLabel;
-  std::string                         m_eventweightLabel;
+  std::string                         m_GENIEeventweightLabel;
+  std::string                         m_G4eventweightLabel;
+  std::string                         m_FluxeventweightLabel;
   std::string                         m_pandoraLabel;
   std::string                         m_T0ProducerLabel;
   std::string                         m_hitProducerLabel;
@@ -489,6 +551,8 @@ private:
   std::string                         m_FlashLabel;
 
   std::vector<std::string>            genie_pars;
+  std::vector<std::string>            flux_pars;
+  std::vector<std::string>            g4_pars;
 
   double _min_track_len;
 
@@ -504,7 +568,9 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   IsMC(pset.get<bool>("IsMC")),
   T0Corr(pset.get<bool>("T0Corr")),
   UsingCRT(pset.get<bool>("UsingCRT")),
-  if_ReWeight(pset.get<bool>("if_ReWeight")),
+  if_GENIE_ReWeight(pset.get<bool>("if_GENIE_ReWeight")),
+  if_G4_ReWeight(pset.get<bool>("if_G4_ReWeight")),
+  if_Flux_ReWeight(pset.get<bool>("if_Flux_ReWeight")),
   fBeamStart(pset.get<double>("BeamStart")),
   fBeamEnd(pset.get<double>("BeamEnd")),
   fDTOffset(pset.get<double>("DTOffset")),
@@ -512,7 +578,9 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   m_DAQHeaderProducer(pset.get<std::string>("DAQHeaderProducer")),
   m_generatorLabel(pset.get<std::string>("GeneratorLabel")),
   m_geantLabel(pset.get<std::string>("GeantLabel")),
-  m_eventweightLabel(pset.get<std::string>("EventweightLabel")),
+  m_GENIEeventweightLabel(pset.get<std::string>("GENIE_EventweightLabel")),
+  m_G4eventweightLabel(pset.get<std::string>("G4_EventweightLabel")),
+  m_FluxeventweightLabel(pset.get<std::string>("Flux_EventweightLabel")),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
   m_T0ProducerLabel(pset.get<std::string>("T0ProducerLabel")),
   m_hitProducerLabel(pset.get<std::string>("HitProducerLabel")),
@@ -529,8 +597,14 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
   _trk_mom_calculator{_min_track_len}
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
-  if (IsMC && if_ReWeight){
+  if (IsMC && if_GENIE_ReWeight){
     genie_pars = pset.get< std::vector<std::string> >( "genie_parameter_list" );
+  }
+  if (IsMC && if_G4_ReWeight){
+    g4_pars = pset.get< std::vector<std::string> >( "g4_parameter_list" );
+  }
+  if (IsMC && if_Flux_ReWeight){
+    flux_pars = pset.get< std::vector<std::string> >( "flux_parameter_list" );
   }
 
   _fiducial_volume.Configure(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
@@ -636,19 +710,32 @@ void SingleMuon::analyze(art::Event const& evt)
   }
 
   //// Get necessary MC handles
+  std::vector<art::Ptr<simb::MCFlux>> MCFluxCollection;
+  art::Handle< std::vector<simb::MCFlux>> Handle_MCFlux;
+
   std::vector<art::Ptr<simb::MCTruth> > MCTruthCollection;
   art::Handle< std::vector<simb::MCTruth> > Handle_MCTruth;
 
   std::vector<art::Ptr<simb::MCParticle> > MCParticleCollection;
   art::Handle< std::vector<simb::MCParticle> > Handle_MCParticle;
 
-  std::vector<art::Ptr<evwgh::MCEventWeight> > WeightCollection;
-  art::Handle< std::vector<evwgh::MCEventWeight> > Handle_Weight;
+  std::vector<art::Ptr<evwgh::MCEventWeight> > GENIEWeightCollection;
+  art::Handle< std::vector<evwgh::MCEventWeight> > Handle_GENIEWeight;
+
+  std::vector<art::Ptr<evwgh::MCEventWeight> > G4WeightCollection;
+  art::Handle< std::vector<evwgh::MCEventWeight> > Handle_G4Weight;
+
+  std::vector<art::Ptr<evwgh::MCEventWeight> > FluxWeightCollection;
+  art::Handle< std::vector<evwgh::MCEventWeight> > Handle_FluxWeight;
 
   // Neutrino Origin
   const simb::Origin_t Neutrino_Origin = simb::kBeamNeutrino;
 
   if(IsMC){
+    // MCFlux
+    evt.getByLabel(m_generatorLabel,Handle_MCFlux);
+    art::fill_ptr_vector(MCFluxCollection, Handle_MCFlux);
+
     // MC Truth
     evt.getByLabel(m_generatorLabel, Handle_MCTruth);
     art::fill_ptr_vector(MCTruthCollection, Handle_MCTruth);
@@ -658,13 +745,22 @@ void SingleMuon::analyze(art::Event const& evt)
     art::fill_ptr_vector(MCParticleCollection, Handle_MCParticle);
 
     // Genie Reweight
-    if(if_ReWeight){
-      evt.getByLabel(m_eventweightLabel, Handle_Weight);
-      art::fill_ptr_vector(WeightCollection, Handle_Weight);
-    } 
+    if(if_GENIE_ReWeight){
+      evt.getByLabel(m_GENIEeventweightLabel, Handle_GENIEWeight);
+      art::fill_ptr_vector(GENIEWeightCollection, Handle_GENIEWeight);
+    }
 
     // Flux Reweight
+     if(if_Flux_ReWeight){
+      evt.getByLabel(m_FluxeventweightLabel, Handle_FluxWeight);
+      art::fill_ptr_vector(FluxWeightCollection, Handle_FluxWeight);
+    }
+
     // Geant Reweight
+    if(if_G4_ReWeight){
+      evt.getByLabel(m_G4eventweightLabel, Handle_G4Weight);
+      art::fill_ptr_vector(G4WeightCollection, Handle_G4Weight);
+    }
 
     // Neutrino Origin
     //Neutrino_Origin = simb::kBeamNeutrino;
@@ -1442,11 +1538,21 @@ void SingleMuon::analyze(art::Event const& evt)
     if (MCTruthCollection.size() < 1){
       throw cet::exception("[Numu0pi0p]")<< "There is no MC truth info!" << std::endl;
     }
-    if (if_ReWeight){
-      if(MCTruthCollection.size() != WeightCollection.size()){
-        throw cet::exception("[Numu0pi0p]")<< "Reweight is not consistent with MCTruth!" << std::endl;
+    if (if_GENIE_ReWeight){
+      if(MCTruthCollection.size() != GENIEWeightCollection.size()){
+        throw cet::exception("[Numu0pi0p]")<< "GENIE Reweight is not consistent with MCTruth!" << std::endl;
       }
-    } 
+    }
+    if (if_G4_ReWeight){
+      if(MCTruthCollection.size() != G4WeightCollection.size()){
+        throw cet::exception("[Numu0pi0p]")<< "G4 Reweight is not consistent with MCTruth!" << std::endl;
+      }
+    }
+    if (if_Flux_ReWeight){
+      if(MCTruthCollection.size() != FluxWeightCollection.size()){
+        throw cet::exception("[Numu0pi0p]")<< "Flux Reweight is not consistent with MCTruth!" << std::endl;
+      }
+    }
 
     // we first find the matching one if there is any, otherwise the the reco will be paired with the first MC interaction
     // set up which MC to fill with reco
@@ -1483,66 +1589,141 @@ void SingleMuon::analyze(art::Event const& evt)
 //TODO add if_MC_reco_match to ttree
 
     // Fill a pair of reco and truth together
-    if (if_ReWeight){
+    if (if_GENIE_ReWeight){
       //-- Xsec reweight
-      std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(matched_MCid)->fWeight;
+      std::map<std::string, std::vector<double>> evtwgt_map = GENIEWeightCollection.at(matched_MCid)->fWeight;
+      //for (auto const evt_weight : evtwgt_map){
+      //  std::cout<<"name: "<< evt_weight.first <<std::endl;
+      //}
       for (const auto& this_par: genie_pars){
         const std::vector<double> &weights = evtwgt_map.at(this_par);
 
-        if (this_par == "MaCCQE") { MaCCQE = weights; }
-        if (this_par == "CoulombCCQE") { CoulombCCQE = weights; }
-        if (this_par == "MaNCEL") { MaNCEL = weights; }
-        if (this_par == "EtaNCEL") { EtaNCEL = weights; }
+        if (this_par == "MaCCQE_UBGenie") { MaCCQE = weights; }
+        if (this_par == "CoulombCCQE_UBGenie") { CoulombCCQE = weights; }
+        if (this_par == "MaNCEL_UBGenie") { MaNCEL = weights; }
+        if (this_par == "EtaNCEL_UBGenie") { EtaNCEL = weights; }
 
-        if (this_par == "NormCCMEC") { NormCCMEC = weights; }
-        if (this_par == "NormNCMEC") { NormNCMEC = weights; }
-        if (this_par == "FracPN_CCMEC") { FracPN_CCMEC = weights; }
-        if (this_par == "FracDelta_CCMEC") { FracDelta_CCMEC = weights; }
+        if (this_par == "NormCCMEC_UBGenie") { NormCCMEC = weights; }
+        if (this_par == "NormNCMEC_UBGenie") { NormNCMEC = weights; }
+        if (this_par == "FracPN_CCMEC_UBGenie") { FracPN_CCMEC = weights; }
+        if (this_par == "FracDelta_CCMEC_UBGenie") { FracDelta_CCMEC = weights; }
 
-        if (this_par == "MaCCRES") { MaCCRES = weights; }
-        if (this_par == "MvCCRES") { MvCCRES = weights; }
-        if (this_par == "MaNCRES") { MaNCRES = weights; }
-        if (this_par == "MvNCRES") { MvNCRES = weights; }
+        if (this_par == "MaCCRES_UBGenie") { MaCCRES = weights; }
+        if (this_par == "MvCCRES_UBGenie") { MvCCRES = weights; }
+        if (this_par == "MaNCRES_UBGenie") { MaNCRES = weights; }
+        if (this_par == "MvNCRES_UBGenie") { MvNCRES = weights; }
 
-        if (this_par == "NonRESBGvpCC1pi") { NonRESBGvpCC1pi = weights; }
-        if (this_par == "NonRESBGvpCC2pi") { NonRESBGvpCC2pi = weights; }
-        if (this_par == "NonRESBGvpNC1pi") { NonRESBGvpNC1pi = weights; }
-        if (this_par == "NonRESBGvpNC2pi") { NonRESBGvpNC2pi = weights; }
-        if (this_par == "NonRESBGvnCC1pi") { NonRESBGvnCC1pi = weights; }
-        if (this_par == "NonRESBGvnCC2pi") { NonRESBGvnCC2pi = weights; }
-        if (this_par == "NonRESBGvnNC1pi") { NonRESBGvnNC1pi = weights; }
-        if (this_par == "NonRESBGvnNC2pi") { NonRESBGvnNC2pi = weights; }
-        if (this_par == "NonRESBGvbarpCC1pi") { NonRESBGvbarpCC1pi = weights; }
-        if (this_par == "NonRESBGvbarpCC2pi") { NonRESBGvbarpCC2pi = weights; }
-        if (this_par == "NonRESBGvbarpNC1pi") { NonRESBGvbarpNC1pi = weights; }
-        if (this_par == "NonRESBGvbarpNC2pi") { NonRESBGvbarpNC2pi = weights; }
-        if (this_par == "NonRESBGvbarnCC1pi") { NonRESBGvbarnCC1pi = weights; }
-        if (this_par == "NonRESBGvbarnCC2pi") { NonRESBGvbarnCC2pi = weights; }
-        if (this_par == "NonRESBGvbarnNC1pi") { NonRESBGvbarnNC1pi = weights; }
-        if (this_par == "NonRESBGvbarnNC2pi") { NonRESBGvbarnNC2pi = weights; }
-        if (this_par == "AhtBY") { AhtBY = weights; }
-        if (this_par == "BhtBY") { BhtBY = weights; }
-        if (this_par == "CV1uBY") { CV1uBY = weights; }
-        if (this_par == "CV2uBY") { CV2uBY = weights; }
+        if (this_par == "NonRESBGvpCC1pi_UBGenie") { NonRESBGvpCC1pi = weights; }
+        if (this_par == "NonRESBGvpCC2pi_UBGenie") { NonRESBGvpCC2pi = weights; }
+        if (this_par == "NonRESBGvpNC1pi_UBGenie") { NonRESBGvpNC1pi = weights; }
+        if (this_par == "NonRESBGvpNC2pi_UBGenie") { NonRESBGvpNC2pi = weights; }
+        if (this_par == "NonRESBGvnCC1pi_UBGenie") { NonRESBGvnCC1pi = weights; }
+        if (this_par == "NonRESBGvnCC2pi_UBGenie") { NonRESBGvnCC2pi = weights; }
+        if (this_par == "NonRESBGvnNC1pi_UBGenie") { NonRESBGvnNC1pi = weights; }
+        if (this_par == "NonRESBGvnNC2pi_UBGenie") { NonRESBGvnNC2pi = weights; }
+        if (this_par == "NonRESBGvbarpCC1pi_UBGenie") { NonRESBGvbarpCC1pi = weights; }
+        if (this_par == "NonRESBGvbarpCC2pi_UBGenie") { NonRESBGvbarpCC2pi = weights; }
+        if (this_par == "NonRESBGvbarpNC1pi_UBGenie") { NonRESBGvbarpNC1pi = weights; }
+        if (this_par == "NonRESBGvbarpNC2pi_UBGenie") { NonRESBGvbarpNC2pi = weights; }
+        if (this_par == "NonRESBGvbarnCC1pi_UBGenie") { NonRESBGvbarnCC1pi = weights; }
+        if (this_par == "NonRESBGvbarnCC2pi_UBGenie") { NonRESBGvbarnCC2pi = weights; }
+        if (this_par == "NonRESBGvbarnNC1pi_UBGenie") { NonRESBGvbarnNC1pi = weights; }
+        if (this_par == "NonRESBGvbarnNC2pi_UBGenie") { NonRESBGvbarnNC2pi = weights; }
+        if (this_par == "AhtBY_UBGenie") { AhtBY = weights; }
+        if (this_par == "BhtBY_UBGenie") { BhtBY = weights; }
+        if (this_par == "CV1uBY_UBGenie") { CV1uBY = weights; }
+        if (this_par == "CV2uBY_UBGenie") { CV2uBY = weights; }
 
-        if (this_par == "AGKYxF1pi") { AGKYxF1pi = weights; }
-        if (this_par == "AGKYpT1pi") { AGKYpT1pi = weights; }
+        if (this_par == "AGKYxF1pi_UBGenie") { AGKYxF1pi = weights; }
+        if (this_par == "AGKYpT1pi_UBGenie") { AGKYpT1pi = weights; }
 
-        if (this_par == "MFP_pi") { MFP_pi = weights; }
-        if (this_par == "MFP_N") { MFP_N = weights; }
-        if (this_par == "FrCEx_pi") { FrCEx_pi = weights; }
-        if (this_par == "FrInel_pi") { FrInel_pi = weights; }
-        if (this_par == "FrAbs_pi") { FrAbs_pi = weights; }
-        if (this_par == "FrCEx_N") { FrCEx_N = weights; }
-        if (this_par == "FrInel_N") { FrInel_N = weights; }
-        if (this_par == "FrAbs_N") { FrAbs_N = weights; }
+        if (this_par == "MFP_pi_UBGenie") { MFP_pi = weights; }
+        if (this_par == "MFP_N_UBGenie") { MFP_N = weights; }
+        if (this_par == "FrCEx_pi_UBGenie") { FrCEx_pi = weights; }
+        if (this_par == "FrInel_pi_UBGenie") { FrInel_pi = weights; }
+        if (this_par == "FrAbs_pi_UBGenie") { FrAbs_pi = weights; }
+        if (this_par == "FrCEx_N_UBGenie") { FrCEx_N = weights; }
+        if (this_par == "FrInel_N_UBGenie") { FrInel_N = weights; }
+        if (this_par == "FrAbs_N_UBGenie") { FrAbs_N = weights; }
 
-        if (this_par == "RDecBR1gamma") { RDecBR1gamma = weights; }
-        if (this_par == "RDecBR1eta") { RDecBR1eta = weights; }
+        if (this_par == "RDecBR1gamma_UBGenie") { RDecBR1gamma = weights; }
+        if (this_par == "RDecBR1eta_UBGenie") { RDecBR1eta = weights; }
+
+        // additional fix
+        if (this_par == "RootinoFix_UBGenie") { RootinoFix = weights; }
+        if (this_par == "splines_general_Spline") { splines_general_Spline = weights; }
+
+        // for fake data
+        if (this_par == "MaCCQE_tune_UBGenie") { MaCCQE_tune = weights; }
+        if (this_par == "RPA_CCQE_tune_UBGenie") { RPA_CCQE_tune = weights; }
+        if (this_par == "NormCCMEC_tune_UBGenie") { NormCCMEC_tune = weights; }
+        if (this_par == "XSecShape_CCMEC_tune_UBGenie") { XSecShape_CCMEC_tune = weights; }
       } // GENIE
     } // if rewight
 
+    if (if_Flux_ReWeight){
+      std::map<std::string, std::vector<double>> Fluxevtwgt_map = FluxWeightCollection.at(matched_MCid)->fWeight;
+      for (const auto& this_par: flux_pars){
+        const std::vector<double> &weights = Fluxevtwgt_map.at(this_par);
+
+        if (this_par == "expskin_FluxUnisim") { expskin = weights; }
+        if (this_par == "horncurrent_FluxUnisim") { horncurrent = weights; }
+        if (this_par == "nucleoninexsec_FluxUnisim") { nucleoninexsec = weights; }
+        if (this_par == "nucleonqexsec_FluxUnisim") { nucleonqexsec = weights; }
+        if (this_par == "nucleontotxsec_FluxUnisim") { nucleontotxsec = weights; }
+        if (this_par == "pioninexsec_FluxUnisim") { pioninexsec = weights; }
+        if (this_par == "pionqexsec_FluxUnisim") { pionqexsec = weights; }
+        if (this_par == "piontotxsec_FluxUnisim") { piontotxsec = weights; }
+
+      } // flux
+    } // if flux reweight
+
+    if (if_G4_ReWeight){
+      std::map<std::string, std::vector<double>> G4evtwgt_map = G4WeightCollection.at(matched_MCid)->fWeight;
+      for (const auto& this_par: g4_pars){
+        const std::vector<double> &g4_weights = G4evtwgt_map.at(this_par);
+        if (this_par == "reinteractions_piplusReacLow_Geant4") { piplusReacLow = g4_weights; }
+        if (this_par == "reinteractions_piplusReacHigh_Geant4") { piplusReacHigh = g4_weights; }
+        if (this_par == "reinteractions_piplusAbs_Geant4") { piplusAbs = g4_weights; }
+        if (this_par == "reinteractions_piplusCex_Geant4") { piplusCex = g4_weights; }
+        if (this_par == "reinteractions_piplusDCex_Geant4") { piplusDCex = g4_weights; }
+        if (this_par == "reinteractions_piplusPiProd_Geant4") { piplusPiProd = g4_weights; }
+        if (this_par == "reinteractions_piplusElast_Geant4") { piplusElast = g4_weights; }
+
+        if (this_par == "reinteractions_piminusReacLow_Geant4") { piminusReacLow = g4_weights; }
+        if (this_par == "reinteractions_piminusReacHigh_Geant4") { piminusReacHigh = g4_weights; }
+        if (this_par == "reinteractions_piminusAbs_Geant4") { piminusAbs = g4_weights; }
+        if (this_par == "reinteractions_piminusCex_Geant4") { piminusCex = g4_weights; }
+        if (this_par == "reinteractions_piminusDCex_Geant4") { piminusDCex = g4_weights; }
+        if (this_par == "reinteractions_piminusPiProd_Geant4") { piminusPiProd = g4_weights; }
+        if (this_par == "reinteractions_piminusElast_Geant4") { piminusElast = g4_weights; }
+
+        if (this_par == "reinteractions_protonReac_Geant4") { protonReac = g4_weights; }
+        if (this_par == "reinteractions_protonElast_Geant4") { protonElast = g4_weights; }
+
+        if (this_par == "reinteractions_neutronAbs_max_Geant4") { neutronAbs_max = g4_weights; }
+        if (this_par == "reinteractions_neutronElast_max_Geant4") { neutronElast_max = g4_weights; }
+        if (this_par == "reinteractions_neutronInela_max_Geant4") { neutronInela_max = g4_weights; }
+        if (this_par == "reinteractions_neutronPiprod_max_Geant4") { neutronPiprod_max = g4_weights; }
+        if (this_par == "reinteractions_neutronPprod_max_Geant4") { neutronPprod_max = g4_weights; }
+
+        if (this_par == "reinteractions_neutronAbs_100_Geant4") { neutronAbs_100 = g4_weights; }
+        if (this_par == "reinteractions_neutronElast_100_Geant4") { neutronElast_100 = g4_weights; }
+        if (this_par == "reinteractions_neutronInela_100_Geant4") { neutronInela_100 = g4_weights; }
+        if (this_par == "reinteractions_neutronPiprod_100_Geant4") { neutronPiprod_100 = g4_weights; }
+        if (this_par == "reinteractions_neutronPprod_100_Geant4") { neutronPprod_100 = g4_weights; }
+
+        if (this_par == "reinteractions_neutronAbs_200_Geant4") { neutronAbs_200 = g4_weights; }
+        if (this_par == "reinteractions_neutronElast_200_Geant4") { neutronElast_200 = g4_weights; }
+        if (this_par == "reinteractions_neutronInela_200_Geant4") { neutronInela_200 = g4_weights; }
+        if (this_par == "reinteractions_neutronPiprod_200_Geant4") { neutronPiprod_200 = g4_weights; }
+        if (this_par == "reinteractions_neutronPprod_200_Geant4") { neutronPprod_200 = g4_weights; }
+
+      } // G4 parameters
+    } // if G4 reweight
+
     // The neutrino info
+    nu_parent_pdg = MCFluxCollection[matched_MCid]->fptype;
     if (MCTruthCollection[matched_MCid]->Origin() == Neutrino_Origin){ MC_beamNeutrino = true;}
     MC_int_mode = MCTruthCollection[matched_MCid]->GetNeutrino().Mode();
     MC_nupdg = MCTruthCollection[matched_MCid]->GetNeutrino().Nu().PdgCode();
@@ -1665,66 +1846,141 @@ void SingleMuon::analyze(art::Event const& evt)
     if (MCTruthCollection.size() > 1){
       for (unsigned int i_mc = 0; i_mc < MCTruthCollection.size(); i_mc++){
         if (i_mc != matched_MCid){
-          if (if_ReWeight){
+          if (if_GENIE_ReWeight){
             //-- Xsec reweight
-            std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(i_mc)->fWeight;
+            std::map<std::string, std::vector<double>> evtwgt_map = GENIEWeightCollection.at(i_mc)->fWeight;
+            //for (auto const evt_weight : evtwgt_map){
+            //  std::cout<<"name: "<< evt_weight.first <<std::endl;
+            //}
             for (const auto& this_par: genie_pars){
               const std::vector<double> &weights = evtwgt_map.at(this_par);
 
-              if (this_par == "MaCCQE") { MaCCQE = weights; }
-              if (this_par == "CoulombCCQE") { CoulombCCQE = weights; }
-              if (this_par == "MaNCEL") { MaNCEL = weights; }
-              if (this_par == "EtaNCEL") { EtaNCEL = weights; }
+              if (this_par == "MaCCQE_UBGenie") { MaCCQE = weights; }
+              if (this_par == "CoulombCCQE_UBGenie") { CoulombCCQE = weights; }
+              if (this_par == "MaNCEL_UBGenie") { MaNCEL = weights; }
+              if (this_par == "EtaNCEL_UBGenie") { EtaNCEL = weights; }
 
-              if (this_par == "NormCCMEC") { NormCCMEC = weights; }
-              if (this_par == "NormNCMEC") { NormNCMEC = weights; }
-              if (this_par == "FracPN_CCMEC") { FracPN_CCMEC = weights; }
-              if (this_par == "FracDelta_CCMEC") { FracDelta_CCMEC = weights; }
+              if (this_par == "NormCCMEC_UBGenie") { NormCCMEC = weights; }
+              if (this_par == "NormNCMEC_UBGenie") { NormNCMEC = weights; }
+              if (this_par == "FracPN_CCMEC_UBGenie") { FracPN_CCMEC = weights; }
+              if (this_par == "FracDelta_CCMEC_UBGenie") { FracDelta_CCMEC = weights; }
 
-              if (this_par == "MaCCRES") { MaCCRES = weights; }
-              if (this_par == "MvCCRES") { MvCCRES = weights; }
-              if (this_par == "MaNCRES") { MaNCRES = weights; }
-              if (this_par == "MvNCRES") { MvNCRES = weights; }
+              if (this_par == "MaCCRES_UBGenie") { MaCCRES = weights; }
+              if (this_par == "MvCCRES_UBGenie") { MvCCRES = weights; }
+              if (this_par == "MaNCRES_UBGenie") { MaNCRES = weights; }
+              if (this_par == "MvNCRES_UBGenie") { MvNCRES = weights; }
 
-              if (this_par == "NonRESBGvpCC1pi") { NonRESBGvpCC1pi = weights; }
-              if (this_par == "NonRESBGvpCC2pi") { NonRESBGvpCC2pi = weights; }
-              if (this_par == "NonRESBGvpNC1pi") { NonRESBGvpNC1pi = weights; }
-              if (this_par == "NonRESBGvpNC2pi") { NonRESBGvpNC2pi = weights; }
-              if (this_par == "NonRESBGvnCC1pi") { NonRESBGvnCC1pi = weights; }
-              if (this_par == "NonRESBGvnCC2pi") { NonRESBGvnCC2pi = weights; }
-              if (this_par == "NonRESBGvnNC1pi") { NonRESBGvnNC1pi = weights; }
-              if (this_par == "NonRESBGvnNC2pi") { NonRESBGvnNC2pi = weights; }
-              if (this_par == "NonRESBGvbarpCC1pi") { NonRESBGvbarpCC1pi = weights; }
-              if (this_par == "NonRESBGvbarpCC2pi") { NonRESBGvbarpCC2pi = weights; }
-              if (this_par == "NonRESBGvbarpNC1pi") { NonRESBGvbarpNC1pi = weights; }
-              if (this_par == "NonRESBGvbarpNC2pi") { NonRESBGvbarpNC2pi = weights; }
-              if (this_par == "NonRESBGvbarnCC1pi") { NonRESBGvbarnCC1pi = weights; }
-              if (this_par == "NonRESBGvbarnCC2pi") { NonRESBGvbarnCC2pi = weights; }
-              if (this_par == "NonRESBGvbarnNC1pi") { NonRESBGvbarnNC1pi = weights; }
-              if (this_par == "NonRESBGvbarnNC2pi") { NonRESBGvbarnNC2pi = weights; }
-              if (this_par == "AhtBY") { AhtBY = weights; }
-              if (this_par == "BhtBY") { BhtBY = weights; }
-              if (this_par == "CV1uBY") { CV1uBY = weights; }
-              if (this_par == "CV2uBY") { CV2uBY = weights; }
+              if (this_par == "NonRESBGvpCC1pi_UBGenie") { NonRESBGvpCC1pi = weights; }
+              if (this_par == "NonRESBGvpCC2pi_UBGenie") { NonRESBGvpCC2pi = weights; }
+              if (this_par == "NonRESBGvpNC1pi_UBGenie") { NonRESBGvpNC1pi = weights; }
+              if (this_par == "NonRESBGvpNC2pi_UBGenie") { NonRESBGvpNC2pi = weights; }
+              if (this_par == "NonRESBGvnCC1pi_UBGenie") { NonRESBGvnCC1pi = weights; }
+              if (this_par == "NonRESBGvnCC2pi_UBGenie") { NonRESBGvnCC2pi = weights; }
+              if (this_par == "NonRESBGvnNC1pi_UBGenie") { NonRESBGvnNC1pi = weights; }
+              if (this_par == "NonRESBGvnNC2pi_UBGenie") { NonRESBGvnNC2pi = weights; }
+              if (this_par == "NonRESBGvbarpCC1pi_UBGenie") { NonRESBGvbarpCC1pi = weights; }
+              if (this_par == "NonRESBGvbarpCC2pi_UBGenie") { NonRESBGvbarpCC2pi = weights; }
+              if (this_par == "NonRESBGvbarpNC1pi_UBGenie") { NonRESBGvbarpNC1pi = weights; }
+              if (this_par == "NonRESBGvbarpNC2pi_UBGenie") { NonRESBGvbarpNC2pi = weights; }
+              if (this_par == "NonRESBGvbarnCC1pi_UBGenie") { NonRESBGvbarnCC1pi = weights; }
+              if (this_par == "NonRESBGvbarnCC2pi_UBGenie") { NonRESBGvbarnCC2pi = weights; }
+              if (this_par == "NonRESBGvbarnNC1pi_UBGenie") { NonRESBGvbarnNC1pi = weights; }
+              if (this_par == "NonRESBGvbarnNC2pi_UBGenie") { NonRESBGvbarnNC2pi = weights; }
+              if (this_par == "AhtBY_UBGenie") { AhtBY = weights; }
+              if (this_par == "BhtBY_UBGenie") { BhtBY = weights; }
+              if (this_par == "CV1uBY_UBGenie") { CV1uBY = weights; }
+              if (this_par == "CV2uBY_UBGenie") { CV2uBY = weights; }
 
-              if (this_par == "AGKYxF1pi") { AGKYxF1pi = weights; }
-              if (this_par == "AGKYpT1pi") { AGKYpT1pi = weights; }
+              if (this_par == "AGKYxF1pi_UBGenie") { AGKYxF1pi = weights; }
+              if (this_par == "AGKYpT1pi_UBGenie") { AGKYpT1pi = weights; }
 
-              if (this_par == "MFP_pi") { MFP_pi = weights; }
-              if (this_par == "MFP_N") { MFP_N = weights; }
-              if (this_par == "FrCEx_pi") { FrCEx_pi = weights; }
-              if (this_par == "FrInel_pi") { FrInel_pi = weights; }
-              if (this_par == "FrAbs_pi") { FrAbs_pi = weights; }
-              if (this_par == "FrCEx_N") { FrCEx_N = weights; }
-              if (this_par == "FrInel_N") { FrInel_N = weights; }
-              if (this_par == "FrAbs_N") { FrAbs_N = weights; }
+              if (this_par == "MFP_pi_UBGenie") { MFP_pi = weights; }
+              if (this_par == "MFP_N_UBGenie") { MFP_N = weights; }
+              if (this_par == "FrCEx_pi_UBGenie") { FrCEx_pi = weights; }
+              if (this_par == "FrInel_pi_UBGenie") { FrInel_pi = weights; }
+              if (this_par == "FrAbs_pi_UBGenie") { FrAbs_pi = weights; }
+              if (this_par == "FrCEx_N_UBGenie") { FrCEx_N = weights; }
+              if (this_par == "FrInel_N_UBGenie") { FrInel_N = weights; }
+              if (this_par == "FrAbs_N_UBGenie") { FrAbs_N = weights; }
 
-              if (this_par == "RDecBR1gamma") { RDecBR1gamma = weights; }
-              if (this_par == "RDecBR1eta") { RDecBR1eta = weights; }
+              if (this_par == "RDecBR1gamma_UBGenie") { RDecBR1gamma = weights; }
+              if (this_par == "RDecBR1eta_UBGenie") { RDecBR1eta = weights; }
+
+              // additional fix
+              if (this_par == "RootinoFix_UBGenie") { RootinoFix = weights; }
+              if (this_par == "splines_general_Spline") { splines_general_Spline = weights; }
+
+              // for fake data
+              if (this_par == "MaCCQE_tune_UBGenie") { MaCCQE_tune = weights; }
+              if (this_par == "RPA_CCQE_tune_UBGenie") { RPA_CCQE_tune = weights; }
+              if (this_par == "NormCCMEC_tune_UBGenie") { NormCCMEC_tune = weights; }
+              if (this_par == "XSecShape_CCMEC_tune_UBGenie") { XSecShape_CCMEC_tune = weights; }
             } // GENIE
           } // if rewight
 
+          if (if_Flux_ReWeight){
+            std::map<std::string, std::vector<double>> Fluxevtwgt_map = FluxWeightCollection.at(i_mc)->fWeight;
+            for (const auto& this_par: flux_pars){
+              const std::vector<double> &weights = Fluxevtwgt_map.at(this_par);
+
+              if (this_par == "expskin_FluxUnisim") { expskin = weights; }
+              if (this_par == "horncurrent_FluxUnisim") { horncurrent = weights; }
+              if (this_par == "nucleoninexsec_FluxUnisim") { nucleoninexsec = weights; }
+              if (this_par == "nucleonqexsec_FluxUnisim") { nucleonqexsec = weights; }
+              if (this_par == "nucleontotxsec_FluxUnisim") { nucleontotxsec = weights; }
+              if (this_par == "pioninexsec_FluxUnisim") { pioninexsec = weights; }
+              if (this_par == "pionqexsec_FluxUnisim") { pionqexsec = weights; }
+              if (this_par == "piontotxsec_FluxUnisim") { piontotxsec = weights; }
+
+            }
+          }
+
+          if (if_G4_ReWeight){
+            std::map<std::string, std::vector<double>> G4evtwgt_map = G4WeightCollection.at(i_mc)->fWeight;
+            for (const auto& this_par: g4_pars){
+              const std::vector<double> &g4_weights = G4evtwgt_map.at(this_par);
+                if (this_par == "reinteractions_piplusReacLow_Geant4") { piplusReacLow = g4_weights; }
+                if (this_par == "reinteractions_piplusReacHigh_Geant4") { piplusReacHigh = g4_weights; }
+                if (this_par == "reinteractions_piplusAbs_Geant4") { piplusAbs = g4_weights; }
+                if (this_par == "reinteractions_piplusCex_Geant4") { piplusCex = g4_weights; }
+                if (this_par == "reinteractions_piplusDCex_Geant4") { piplusDCex = g4_weights; }
+                if (this_par == "reinteractions_piplusPiProd_Geant4") { piplusPiProd = g4_weights; }
+                if (this_par == "reinteractions_piplusElast_Geant4") { piplusElast = g4_weights; }
+
+                if (this_par == "reinteractions_piminusReacLow_Geant4") { piminusReacLow = g4_weights; }
+                if (this_par == "reinteractions_piminusReacHigh_Geant4") { piminusReacHigh = g4_weights; }
+                if (this_par == "reinteractions_piminusAbs_Geant4") { piminusAbs = g4_weights; }
+                if (this_par == "reinteractions_piminusCex_Geant4") { piminusCex = g4_weights; }
+                if (this_par == "reinteractions_piminusDCex_Geant4") { piminusDCex = g4_weights; }
+                if (this_par == "reinteractions_piminusPiProd_Geant4") { piminusPiProd = g4_weights; }
+                if (this_par == "reinteractions_piminusElast_Geant4") { piminusElast = g4_weights; }
+
+                if (this_par == "reinteractions_protonReac_Geant4") { protonReac = g4_weights; }
+                if (this_par == "reinteractions_protonElast_Geant4") { protonElast = g4_weights; }
+
+                if (this_par == "reinteractions_neutronAbs_max_Geant4") { neutronAbs_max = g4_weights; }
+                if (this_par == "reinteractions_neutronElast_max_Geant4") { neutronElast_max = g4_weights; }
+                if (this_par == "reinteractions_neutronInela_max_Geant4") { neutronInela_max = g4_weights; }
+                if (this_par == "reinteractions_neutronPiprod_max_Geant4") { neutronPiprod_max = g4_weights; }
+                if (this_par == "reinteractions_neutronPprod_max_Geant4") { neutronPprod_max = g4_weights; }
+
+                if (this_par == "reinteractions_neutronAbs_100_Geant4") { neutronAbs_100 = g4_weights; }
+                if (this_par == "reinteractions_neutronElast_100_Geant4") { neutronElast_100 = g4_weights; }
+                if (this_par == "reinteractions_neutronInela_100_Geant4") { neutronInela_100 = g4_weights; }
+                if (this_par == "reinteractions_neutronPiprod_100_Geant4") { neutronPiprod_100 = g4_weights; }
+                if (this_par == "reinteractions_neutronPprod_100_Geant4") { neutronPprod_100 = g4_weights; }
+
+                if (this_par == "reinteractions_neutronAbs_200_Geant4") { neutronAbs_200 = g4_weights; }
+                if (this_par == "reinteractions_neutronElast_200_Geant4") { neutronElast_200 = g4_weights; }
+                if (this_par == "reinteractions_neutronInela_200_Geant4") { neutronInela_200 = g4_weights; }
+                if (this_par == "reinteractions_neutronPiprod_200_Geant4") { neutronPiprod_200 = g4_weights; }
+                if (this_par == "reinteractions_neutronPprod_200_Geant4") { neutronPprod_200 = g4_weights; }
+
+            } //g4 par
+          } // if g4 reweight
+
           // The neutrino info
+          nu_parent_pdg = MCFluxCollection[i_mc]->fptype;
           if (MCTruthCollection[i_mc]->Origin() == Neutrino_Origin){ MC_beamNeutrino = true;}
           MC_int_mode = MCTruthCollection[i_mc]->GetNeutrino().Mode();
           MC_nupdg = MCTruthCollection[i_mc]->GetNeutrino().Nu().PdgCode();
@@ -1897,6 +2153,61 @@ void SingleMuon::analyze(art::Event const& evt)
     RDecBR1gamma.clear();
     RDecBR1eta.clear();
 
+    RootinoFix.clear();
+    splines_general_Spline.clear();
+
+    MaCCQE_tune.clear();
+    RPA_CCQE_tune.clear();
+    NormCCMEC_tune.clear();
+    XSecShape_CCMEC_tune.clear();
+
+    piplusReacLow.clear();
+    piplusReacHigh.clear();
+    piplusAbs.clear();
+    piplusCex.clear();
+    piplusDCex.clear();
+    piplusPiProd.clear();
+    piplusElast.clear();
+
+    piminusReacLow.clear();
+    piminusReacHigh.clear();
+    piminusAbs.clear();
+    piminusCex.clear();
+    piminusDCex.clear();
+    piminusPiProd.clear();
+    piminusElast.clear();
+
+    protonReac.clear();
+    protonElast.clear();
+
+    neutronAbs_max.clear();
+    neutronElast_max.clear();
+    neutronInela_max.clear();
+    neutronPiprod_max.clear();
+    neutronPprod_max.clear();
+
+    neutronAbs_100.clear();
+    neutronElast_100.clear();
+    neutronInela_100.clear();
+    neutronPiprod_100.clear();
+    neutronPprod_100.clear();
+
+    neutronAbs_200.clear();
+    neutronElast_200.clear();
+    neutronInela_200.clear();
+    neutronPiprod_200.clear();
+    neutronPprod_200.clear();
+
+    expskin.clear();
+    horncurrent.clear();
+    nucleoninexsec.clear();
+    nucleonqexsec.clear();
+    nucleontotxsec.clear();
+    pioninexsec.clear();
+    pionqexsec.clear();
+    piontotxsec.clear();
+
+    nu_parent_pdg = -999;
     MC_beamNeutrino = false;
     MC_nupdg = -999;
     MC_ccnc = -999;
@@ -2253,8 +2564,63 @@ void SingleMuon::Initialize_event()
     my_event_->Branch("RDecBR1gamma", &RDecBR1gamma);
     my_event_->Branch("RDecBR1eta", &RDecBR1eta);
 
+    my_event_->Branch("RootinoFix", &RootinoFix);
+    my_event_->Branch("splines_general_Spline", &splines_general_Spline);
+
+    my_event_->Branch("MaCCQE_tune", &MaCCQE_tune);
+    my_event_->Branch("RPA_CCQE_tune", &RPA_CCQE_tune);
+    my_event_->Branch("NormCCMEC_tune", &NormCCMEC_tune);
+    my_event_->Branch("XSecShape_CCMEC_tune", &XSecShape_CCMEC_tune);
+
+    my_event_->Branch("piplusReacLow", &piplusReacLow);
+    my_event_->Branch("piplusReacHigh", &piplusReacHigh);
+    my_event_->Branch("piplusAbs", &piplusAbs);
+    my_event_->Branch("piplusCex", &piplusCex);
+    my_event_->Branch("piplusDCex", &piplusDCex);
+    my_event_->Branch("piplusPiProd", &piplusPiProd);
+    my_event_->Branch("piplusElast", &piplusElast);
+
+    my_event_->Branch("piminusReacLow", &piminusReacLow);
+    my_event_->Branch("piminusReacHigh", &piminusReacHigh);
+    my_event_->Branch("piminusAbs", &piminusAbs);
+    my_event_->Branch("piminusCex", &piminusCex);
+    my_event_->Branch("piminusDCex", &piminusDCex);
+    my_event_->Branch("piminusPiProd", &piminusPiProd);
+    my_event_->Branch("piminusElast", &piminusElast);
+
+    my_event_->Branch("protonReac", &protonReac);
+    my_event_->Branch("protonElast", &protonElast);
+
+    my_event_->Branch("neutronAbs_max", &neutronAbs_max);
+    my_event_->Branch("neutronElast_max", &neutronElast_max);
+    my_event_->Branch("neutronInela_max", &neutronInela_max);
+    my_event_->Branch("neutronPiprod_max", &neutronPiprod_max);
+    my_event_->Branch("neutronPprod_max", &neutronPprod_max);
+
+    my_event_->Branch("neutronAbs_100", &neutronAbs_100);
+    my_event_->Branch("neutronElast_100", &neutronElast_100);
+    my_event_->Branch("neutronInela_100", &neutronInela_100);
+    my_event_->Branch("neutronPiprod_100", &neutronPiprod_100);
+    my_event_->Branch("neutronPprod_100", &neutronPprod_100);
+
+    my_event_->Branch("neutronAbs_200", &neutronAbs_200);
+    my_event_->Branch("neutronElast_200", &neutronElast_200);
+    my_event_->Branch("neutronInela_200", &neutronInela_200);
+    my_event_->Branch("neutronPiprod_200", &neutronPiprod_200);
+    my_event_->Branch("neutronPprod_200", &neutronPprod_200);
+
+    my_event_->Branch("expskin" ,&expskin);
+    my_event_->Branch("horncurrent", &horncurrent);
+    my_event_->Branch("nucleoninexsec", &nucleoninexsec);
+    my_event_->Branch("nucleonqexsec", &nucleonqexsec);
+    my_event_->Branch("nucleontotxsec", &nucleontotxsec);
+    my_event_->Branch("pioninexsec", &pioninexsec);
+    my_event_->Branch("pionqexsec", &pionqexsec);
+    my_event_->Branch("piontotxsec", &piontotxsec);
+
     my_event_->Branch("EventWeight", &EventWeight);
     my_event_->Branch("TopologyType", &TopologyType);
+    my_event_->Branch("nu_parent_pdg", &nu_parent_pdg);
     my_event_->Branch("MC_beamNeutrino", &MC_beamNeutrino);
     my_event_->Branch("MC_int_mode", &MC_int_mode);
     my_event_->Branch("MC_nupdg", &MC_nupdg);

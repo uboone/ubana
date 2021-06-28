@@ -708,12 +708,13 @@ void EveryTrack::analyze(art::Event const& evt)
     bwdMCS_NoSCE.push_back(mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->bwdMomentum());
     bwdMCSLL_NoSCE.push_back(mcsfitresult_mu_NoSCE_v.at(daughter_Tracks[i_trk].key())->bwdLogLikelihood());
 
-    std::cout<<"(1) bestMCS: "<< bestMCS.back()<<", bestMCSLL: "<< bestMCSLL.back()<<", fwd: "<< fwdMCS.back() << ", fwdLL: "<< fwdMCSLL.back()<<", bwd: "<<bwdMCS.back()<<", bwdLL: "<<bwdMCSLL.back()<<std::endl;
-    std::cout<<"(2) bestMCS: "<< bestMCS_bulk.back()<<", bestMCSLL: "<< bestMCSLL_bulk.back()<<", fwd: "<< fwdMCS_bulk.back() << ", fwdLL: "<< fwdMCSLL_bulk.back()<<", bwd: "<<bwdMCS_bulk.back()<<", bwdLL: "<<bwdMCSLL_bulk.back()<<std::endl;
-    std::cout<<"(3) bestMCS: "<< bestMCS_NoSCE.back()<<", bestMCSLL: "<< bestMCSLL_NoSCE.back()<<", fwd: "<< fwdMCS_NoSCE.back() << ", fwdLL: "<< fwdMCSLL_NoSCE.back()<<", bwd: "<<bwdMCS_NoSCE.back()<<", bwdLL: "<<bwdMCSLL_NoSCE.back()<<std::endl;
+    //std::cout<<"(1) bestMCS: "<< bestMCS.back()<<", bestMCSLL: "<< bestMCSLL.back()<<", fwd: "<< fwdMCS.back() << ", fwdLL: "<< fwdMCSLL.back()<<", bwd: "<<bwdMCS.back()<<", bwdLL: "<<bwdMCSLL.back()<<std::endl;
+    //std::cout<<"(2) bestMCS: "<< bestMCS_bulk.back()<<", bestMCSLL: "<< bestMCSLL_bulk.back()<<", fwd: "<< fwdMCS_bulk.back() << ", fwdLL: "<< fwdMCSLL_bulk.back()<<", bwd: "<<bwdMCS_bulk.back()<<", bwdLL: "<<bwdMCSLL_bulk.back()<<std::endl;
+    //std::cout<<"(3) bestMCS: "<< bestMCS_NoSCE.back()<<", bestMCSLL: "<< bestMCSLL_NoSCE.back()<<", fwd: "<< fwdMCS_NoSCE.back() << ", fwdLL: "<< fwdMCSLL_NoSCE.back()<<", bwd: "<<bwdMCS_NoSCE.back()<<", bwdLL: "<<bwdMCSLL_NoSCE.back()<<std::endl;
 
     //-- PID
      PID pid;
+     pid.Chi2(PIDTotrackAsso, daughter_Tracks[i_trk], Trk_start_SCEcorr, Trk_end_SCEcorr, 0, 1, 2);
      PID_Chi2Mu_3pl.push_back(pid.PID_Chi2Mu_3pl); // Chi2 of muon assumption of 3 planes in PID
      PID_Chi2P_3pl.push_back(pid.PID_Chi2P_3pl); // Chi2 of proton assumption of 3 planes in PID
      PID_Chi2Pi_3pl.push_back(pid.PID_Chi2Pi_3pl); // Chi2 of pion assumption of 3 planes in PID
