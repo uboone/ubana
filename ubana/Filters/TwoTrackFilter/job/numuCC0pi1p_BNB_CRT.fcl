@@ -80,7 +80,7 @@ physics:
 
         IsMC: false
         UsingCRT: true
-        if_GENIE_ReWeight: true
+        if_GENIE_ReWeight: false
         if_G4_ReWeight: false
         if_Flux_ReWeight: false
      
