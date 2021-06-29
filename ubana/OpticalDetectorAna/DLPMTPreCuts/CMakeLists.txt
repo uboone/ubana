@@ -13,7 +13,10 @@ art_make_library( LIBRARY_NAME uboone_LEEPreCutAlgo
 simple_plugin( DLPMTPreCuts "module"
 	       uboone_LEEPreCutAlgo
 	       lardataobj_RecoBase
+               larcore_Geometry_Geometry_service
+               larcorealg_Geometry
 	       ubobj_Optical
+	       ubevt_Database
 	       ${ART_FRAMEWORK_CORE}
 	       ${ART_FRAMEWORK_IO_SOURCES}
                ${ART_FRAMEWORK_PRINCIPAL}

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE project [
+<!ENTITY name "nucc_ncdelta_overlay_run3_G_mcc9">
+<!ENTITY version "v08_00_00_20">
+<!ENTITY qualifier "e17:prof">
+<!ENTITY dataset "prodgenie_nc_delta_uboone_overlay_mcc9.1_run3_G_reco2_v16v18">
+<!ENTITY user "wvdp">
+]>
+
+<project name="&name;">
+    <!-- Doesn't matter for non-generating jobs -->
+    <numevents>1000000</numevents>
+
+    <!--  Operating System  -->
+    <os>SL6</os>
+
+    <!--  Batch resources  -->
+    <resource>DEDICATED,OPPORTUNISTIC</resource>
+
+
+    <!--  Larsoft information  -->
+    <larsoft>
+        <tag>&version;</tag>
+        <qual>&qualifier;</qual>
+        <local>/pnfs/uboone/resilient/users/&user;/submission/ubc_v8_0_0_20_27Aug.tar</local>
+    </larsoft>
+
+    <!--  Project stages  -->
+    <stage name="nucc">
+        <fcl>nucc_analyser_mc.fcl</fcl>
+        <outdir>/pnfs/uboone/scratch/users/&user;/&version;/&name;</outdir>
+        <logdir>/pnfs/uboone/scratch/users/&user;/log/&version;/&name;</logdir>
+        <workdir>/pnfs/uboone/scratch/users/&user;/work/&version;/&name;</workdir>
+        <bookdir>/uboone/data/users/&user;/book/&version;/&name;</bookdir>>
+        <inputdef>&dataset;</inputdef>
+        <numjobs>23</numjobs>
+        <disk>10GB</disk>
+        <memory>1900</memory>
+        <maxfilesperjob>100</maxfilesperjob>
+        <jobsub>--expected-lifetime=6h -Q --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub>
+        <jobsub_start>--append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub_start> 
+      
+       <schema>root</schema>
+    </stage>
+
+</project>
+

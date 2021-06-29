@@ -35,7 +35,6 @@ art_make( BASENAME_ONLY
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        
                         ${FHICLCPP}
 			cetlib cetlib_except
                         ${CLHEP}
@@ -68,7 +67,6 @@ art_make( BASENAME_ONLY
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        
                         ${FHICLCPP}
 			cetlib cetlib_except
                         ${CLHEP}

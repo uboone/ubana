@@ -88,13 +88,24 @@ namespace ubana {
     if (_use_pida_cut) {
       for (auto track : _tracks) {
 
-        double length, pida;
+        double length;
+	double pida=9999;
 
         length = track->Length();
 
         auto iter = _track_to_pid.find(track);
-        if(iter != _track_to_pid.end()) {
-          pida = iter->second->PIDA();
+        if(iter != _track_to_pid.end()) {		   
+	  std::vector<anab::sParticleIDAlgScores> AlgScoresVec = iter->second->ParticleIDAlgScores();
+			   
+	  // Loop though AlgScoresVec and find the variables we want
+	  for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+	    anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+	    int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+	    if (planenum!=2) continue;
+	    if (AlgScore.fVariableType==anab::kPIDA){
+	      pida = AlgScore.fValue;
+	    }
+	  }
         } else {
           possible_tracks.emplace_back(track);
           continue;

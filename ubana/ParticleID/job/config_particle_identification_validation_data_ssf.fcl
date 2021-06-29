@@ -1,0 +1,30 @@
+#include "config_particle_identification_fiducialvolume.fcl"
+#include "config_particle_identification_producerlabels.fcl"
+#include "config_particle_identification_braggalgo.fcl"
+
+#
+# configuration fcl file for particleId fcl parameters
+#
+
+BEGIN_PROLOG
+
+particleidvalidconfig:
+{
+
+  module_type: "ParticleIdValidationPlots"
+
+  ProducerLabels: @local::producerlabels_mcc9
+
+  FiducialVolume: @local::pidfidvol
+
+  NHitsForTrackDirection: 5
+
+  IsDataPlotsOnly: true
+
+  IsUBXSecSelected: false
+
+  # bragg algorithm fcl parameters
+  BraggAlgo: @local::braggalgo
+}
+
+END_PROLOG

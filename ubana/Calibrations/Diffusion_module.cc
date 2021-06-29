@@ -50,6 +50,8 @@
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
+
+#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
 	
 #include <cstring> // std::memcpy()
 #include <vector>
@@ -847,18 +849,46 @@ void microboone::Diffusion::analyze(const art::Event& evt)
        trkmommschi2[i]	   = trkm.GetMomentumMultiScatterChi2(ptrack);
        trkmommsllhd[i]	   = trkm.GetMomentumMultiScatterLLHD(ptrack);
      } // if we have trajectory
+
      
      // find particle ID info
      art::FindMany<anab::ParticleID> fmpid(trackListHandle, evt, fParticleIDModuleLabel);
      if(fmpid.isValid()) {
        std::vector<const anab::ParticleID*> pids = fmpid.at(i);
-       for (size_t ipid = 0; ipid < pids.size(); ++ipid){
-     	 if (!pids[ipid]->PlaneID().isValid) continue;
-     	 int planenum = pids[ipid]->PlaneID().Plane;
-     	 if (planenum<0||planenum>2) continue;
-     	 trkpidpdg[i][planenum]  = pids[ipid]->Pdg();
-     	 trkpidchi[i][planenum]  = pids[ipid]->MinChi2();
-     	 trkpidpida[i][planenum] = pids[ipid]->PIDA();
+       if (pids.size() == 0){
+	 mf::LogError("Diffusion:limits")
+	   << "No track-PID association found for " << fTrackModuleLabel
+	   << " track " << i << ". Not saving particleID information."; 
+       }
+       // Set dummy values
+       double pidpdg[3] = {-1,-1,-1};
+       double pidchi[3] = {99999.,99999.,99999.};
+       for (size_t ipid=0; ipid<pids.size(); ipid++){ 
+	 std::vector<anab::sParticleIDAlgScores> AlgScoresVec = pids[ipid]->ParticleIDAlgScores();
+
+	 // Loop though AlgScoresVec and find the variables we want
+	 for (size_t i_algscore=0; i_algscore<AlgScoresVec.size(); i_algscore++){
+	   anab::sParticleIDAlgScores AlgScore = AlgScoresVec.at(i_algscore);
+	   int planenum = UBPID::uB_getSinglePlane(AlgScore.fPlaneMask);
+	   if (planenum<0 || planenum>2) continue;
+
+	   if (AlgScore.fAlgName == "Chi2" && (TMath::Abs(AlgScore.fAssumedPdg) == 13||TMath::Abs(AlgScore.fAssumedPdg) == 2212||TMath::Abs(AlgScore.fAssumedPdg) == 211||TMath::Abs(AlgScore.fAssumedPdg) == 321)){
+	       if (AlgScore.fValue<pidchi[planenum]){
+		 pidchi[planenum] = AlgScore.fValue;
+		 pidpdg[planenum] = TMath::Abs(AlgScore.fAssumedPdg);
+	       }
+	   }
+	   else if (AlgScore.fVariableType==anab::kPIDA){
+	     trkpidpida[i][planenum] = AlgScore.fValue;
+	   }
+	      
+	 } // end loop though AlgScoresVec
+       } // end loop through ipid
+
+       // Finally, set min chi2
+       for (size_t planenum=0; planenum<3; planenum++){
+	 trkpidchi[i][planenum] = pidchi[planenum];
+	 trkpidpdg[i][planenum] = pidpdg[planenum];
        }
      } // fmpid.isValid()
      

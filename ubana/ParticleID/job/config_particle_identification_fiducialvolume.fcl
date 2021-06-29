@@ -1,0 +1,20 @@
+#
+# configuration fcl file for particleId fcl parameters
+#
+
+BEGIN_PROLOG
+
+pidfidvol:
+{
+  
+  # fiducial volume dimensions
+  X_LOW:  10
+  X_HIGH: 10
+  Y_LOW:  10
+  Y_HIGH: 10
+  Z_LOW:  10
+  Z_HIGH: 10
+
+}
+
+END_PROLOG
