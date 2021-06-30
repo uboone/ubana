@@ -255,6 +255,8 @@ namespace single_photon
             
             }
 
+            if(m_is_textgen) continue; //quick hack, fix in files
+
 
             if(m_is_verbose) std::cout<<"We are working with : ";
             m_mctruth_num_daughter_particles = truth->NParticles(); //MCTruth_NParticles

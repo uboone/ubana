@@ -32,6 +32,7 @@ namespace single_photon
         m_delaunay_max_hits = pset.get<int>("maxDelaunayHits",1000);
         m_is_data = pset.get<bool>("isData",false);
         m_is_overlayed = pset.get<bool>("isOverlayed",false);
+        m_is_textgen = pset.get<bool>("isTextGen",false);
 
         m_fill_trees          = pset.get<bool>("FillTrees",true);
         m_run_pi0_filter      = pset.get<bool>("RunPi0Filter",false);
@@ -98,7 +99,8 @@ namespace single_photon
         m_exiting_proton_energy_threshold = pset.get<double>("exiting_proton_energy");
 
         m_mass_pi0_mev =  139.57;
-        m_true_eventweight_label = pset.get<std::string>("true_eventweight_label","mcweight");
+        m_true_eventweight_label = pset.get<std::string>("true_eventweight_label","eventweightreint");
+        m_true_eventweight_label2 = pset.get<std::string>("true_eventweight_label2","eventweightreint");
 
         //SEAviwer Settings
         m_SEAviewHitThreshold = pset.get<double>("SEAviewHitThreshold",25);
@@ -649,17 +651,17 @@ namespace single_photon
 
             art::Handle<uboone::UbooneOpticalFilter> uBooNE_common_optFltr;
             if(evt.getByLabel("opfiltercommon", uBooNE_common_optFltr)){
-                  m_flash_optfltr_pe_beam     = uBooNE_common_optFltr->PE_Beam();
-                  m_flash_optfltr_pe_beam_tot = uBooNE_common_optFltr->PE_Beam_Total();
-                  m_flash_optfltr_pe_veto     = uBooNE_common_optFltr->PE_Veto();
-                  m_flash_optfltr_pe_veto_tot = uBooNE_common_optFltr->PE_Veto_Total();
-              }else{
-                  m_flash_optfltr_pe_beam     = -999;
-                  m_flash_optfltr_pe_beam_tot = -999;
-                  m_flash_optfltr_pe_veto     = -999;
-                  m_flash_optfltr_pe_veto_tot = -999;
-               std::cout<<"No opfiltercommon product:"<<std::endl;
-             }
+                m_flash_optfltr_pe_beam     = uBooNE_common_optFltr->PE_Beam();
+                m_flash_optfltr_pe_beam_tot = uBooNE_common_optFltr->PE_Beam_Total();
+                m_flash_optfltr_pe_veto     = uBooNE_common_optFltr->PE_Veto();
+                m_flash_optfltr_pe_veto_tot = uBooNE_common_optFltr->PE_Veto_Total();
+            }else{
+                m_flash_optfltr_pe_beam     = -999;
+                m_flash_optfltr_pe_beam_tot = -999;
+                m_flash_optfltr_pe_veto     = -999;
+                m_flash_optfltr_pe_veto_tot = -999;
+                std::cout<<"No opfiltercommon product:"<<std::endl;
+            }
 
 
 
@@ -713,14 +715,15 @@ namespace single_photon
             if(!m_is_data){
 
 
-                std::vector<art::Ptr<simb::GTruth>> gTruthVector;
-                art::ValidHandle<std::vector<simb::GTruth>> const & gTruthHandle= evt.getValidHandle<std::vector<simb::GTruth>>(m_generatorLabel);
-                art::fill_ptr_vector(gTruthVector,gTruthHandle);
-                std::cout<<"ARSE"<<std::endl;
-                for(size_t p=0; p< gTruthVector.size();p++){
-                    std::cout<<gTruthVector[p]<<" "<<*gTruthVector[p]<<std::endl;
-                }
 
+                std::vector<art::Ptr<simb::GTruth>> gTruthVector;
+                if(!m_is_textgen){// if Text is in the generator label, skip it.
+                    art::ValidHandle<std::vector<simb::GTruth>> const & gTruthHandle= evt.getValidHandle<std::vector<simb::GTruth>>(m_generatorLabel);
+                    art::fill_ptr_vector(gTruthVector,gTruthHandle);
+                    for(size_t p=0; p< gTruthVector.size();p++){
+                        std::cout<<gTruthVector[p]<<" "<<*gTruthVector[p]<<std::endl;
+                    }
+                }
 
 
                 art::ValidHandle<std::vector<simb::MCTruth>> const & mcTruthHandle= evt.getValidHandle<std::vector<simb::MCTruth>>(m_generatorLabel);
@@ -816,109 +819,120 @@ namespace single_photon
                 this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
 
                 if(m_is_verbose)std::cout<<"Starting AnalyzeEventWeight"<<std::endl;
-                this->AnalyzeEventWeight(evt);
 
-                //added since last time?
-                std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+                if(!m_is_textgen){// if Text is in the generator label, skip it.
+                    this->AnalyzeEventWeight(evt);
 
-                /*   std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
-                     std::map<int, std::vector<art::Ptr<recob::PFParticle>>> sliceIdToPFPMap; //this is an alternative, stores all the PFP's but organized by slice ID
-                     std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
-                     this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec, sliceIdToPFPMap);
-                     std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
-                     if (showers.size()>0){
-                     std::cout<<"the shower at 0 is in slice "<<this->GetShowerSlice(showers[0], showerToNuPFParticleMap, allPFPSliceIdVec)<<std::endl;
-                     }
-                     */
+                    //added since last time?
+                    std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
 
-                //this one was for testing, leaving out for now
-                // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
+                    /*   std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> allPFPSliceIdVec; //stores a pair of all PFP's in the event and the slice ind
+                         std::map<int, std::vector<art::Ptr<recob::PFParticle>>> sliceIdToPFPMap; //this is an alternative, stores all the PFP's but organized by slice ID
+                         std::cout<<"SinglePhoton::AnalyzeSlice()\t||\t Starting"<<std::endl;
+                         this->AnalyzeSlices( pfParticleToMetadataMap, pfParticleMap, allPFPSliceIdVec, sliceIdToPFPMap);
+                         std::cout<<"There are "<< allPFPSliceIdVec.size()<<" pfp-slice id matches stored in the vector"<<std::endl;
+                         if (showers.size()>0){
+                         std::cout<<"the shower at 0 is in slice "<<this->GetShowerSlice(showers[0], showerToNuPFParticleMap, allPFPSliceIdVec)<<std::endl;
+                         }
+                         */
 
-                //if(!m_run_pi0_filter){
-                //    this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-                //}
+                    //this one was for testing, leaving out for now
+                    // this->FindSignalSlice( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap);
 
-                std::cout<<"filling info in ncdelta slice tree"<<std::endl;
-                this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
+                    //if(!m_run_pi0_filter){
+                    //    this->SecondShowerSearch(tracks,  trackToNuPFParticleMap, showers, showerToNuPFParticleMap, pfParticleToHitsMap, PFPToSliceIdMap, sliceIDToHitsMap,mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+                    //}
 
-                if (m_print_out_event){
-                    if (m_matched_signal_shower_num != 1 || m_matched_signal_track_num != 1){
-                        out_stream <<"run subrunevent "<<m_run_number<<" "<<m_subrun_number<<" "<<m_event_number<<"\n";
-                    }
-                }
-                std::cout<<"Going to grab eventweightSplines for CCQE genie fix, won't be necessary long term"<<std::endl;
-                art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw ;
-                if(    evt.getByLabel("eventweight4to4aFix",ev_evw)){
+                    std::cout<<"filling info in ncdelta slice tree"<<std::endl;
+                    this->AnalyzeRecoMCSlices( m_truthmatching_signaldef, MCParticleToTrackIdMap, showerToNuPFParticleMap , allPFPSliceIdVec, showerToMCParticleMap, trackToNuPFParticleMap, trackToMCParticleMap,  PFPToSliceIdMap);
 
-                    std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
-                    if(ev_evw->size() > 1) std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"<< "WARNING: eventweight slice genie fix has more than one entry\n";
-                    //m_genie_spline_weight=weight_map;
-                    //
-
-                    for (auto const& x : weight_map){
-                        std::cout << x.first  // string (key)
-                            << ':' 
-                            << x.second.size() << std::endl ;
-                        if(x.second.size()==1 && x.first == "splines_general_Spline"){
-                            m_genie_spline_weight = x.second.front();
-                            std::cout<<"Its a spline fix, value: "<<m_genie_spline_weight<<std::endl;
-                        }
-                        if(x.second.size()==1 && ( x.first == "TunedCentralValue_Genie" || x.first == "TunedCentralValue_UBGenie")){
-                            m_genie_CV_tune_weight = x.second.front();
-                            std::cout<<"Its a CV fix, value:  "<<m_genie_CV_tune_weight<<std::endl;
+                    if (m_print_out_event){
+                        if (m_matched_signal_shower_num != 1 || m_matched_signal_track_num != 1){
+                            out_stream <<"run subrunevent "<<m_run_number<<" "<<m_subrun_number<<" "<<m_event_number<<"\n";
                         }
                     }
+                    std::cout<<"Going to grab eventweightSplines for CCQE genie fix, won't be necessary long term"<<std::endl;
+                    art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw ;
+                    if(    evt.getByLabel("eventweight4to4aFix",ev_evw)){
 
-                }else{
-                    std::cout<<"No data producet called eventweightSplines"<<std::endl;
-                    m_genie_spline_weight =1.0;
-                    m_genie_CV_tune_weight =1.0;
-                }
-
-
-                //PhotoNu Bit - Run only if flag is on
-
-                m_photonu_weight_low = -999;
-                m_photonu_weight_high = -999;
-                if(m_runPhotoNuTruth){
-
-
-                    art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw_ph ;
-                    if(    evt.getByLabel("eventweight",ev_evw_ph)){
-
-                        std::map<std::string, std::vector<double>> const & weight_map = ev_evw_ph->front().fWeight;
+                        std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
+                        if(ev_evw->size() > 1) std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"<< "WARNING: eventweight slice genie fix has more than one entry\n";
+                        //m_genie_spline_weight=weight_map;
+                        //
 
                         for (auto const& x : weight_map){
                             std::cout << x.first  // string (key)
                                 << ':' 
                                 << x.second.size() << std::endl ;
-                            if(x.first == "photonuclear_photon_PhotoNuclear"){
-                                auto vec  = x.second;
-                                double ph_low = vec[1];
-                                double ph_high = vec[0];
-                                std::cout<<"PhotoNuBit: "<<ph_low<<" "<<ph_high<<std::endl;
-                                m_photonu_weight_low = ph_low;
-                                m_photonu_weight_high = ph_high;
+                            if(x.second.size()==1 && x.first == "splines_general_Spline"){
+                                m_genie_spline_weight = x.second.front();
+                                std::cout<<"Its a spline fix, value: "<<m_genie_spline_weight<<std::endl;
+                            }
+                            if(x.second.size()==1 && ( x.first == "TunedCentralValue_Genie" || x.first == "TunedCentralValue_UBGenie")){
+                                m_genie_CV_tune_weight = x.second.front();
+                                std::cout<<"Its a CV fix, value:  "<<m_genie_CV_tune_weight<<std::endl;
                             }
                         }
+
+                    }else{
+                        std::cout<<"No data producet called eventweightSplines"<<std::endl;
+                        m_genie_spline_weight =1.0;
+                        m_genie_CV_tune_weight =1.0;
+                    }
+
+
+                    //PhotoNu Bit - Run only if flag is on
+
+                    m_photonu_weight_low = -999;
+                    m_photonu_weight_high = -999;
+                    if(m_runPhotoNuTruth){
+
+
+                        art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw_ph ;
+                        if(    evt.getByLabel("eventweight",ev_evw_ph)){
+
+                            std::map<std::string, std::vector<double>> const & weight_map = ev_evw_ph->front().fWeight;
+
+                            for (auto const& x : weight_map){
+                                std::cout << x.first  // string (key)
+                                    << ':' 
+                                    << x.second.size() << std::endl ;
+                                if(x.first == "photonuclear_photon_PhotoNuclear"){
+                                    auto vec  = x.second;
+                                    double ph_low = vec[1];
+                                    double ph_high = vec[0];
+                                    std::cout<<"PhotoNuBit: "<<ph_low<<" "<<ph_high<<std::endl;
+                                    m_photonu_weight_low = ph_low;
+                                    m_photonu_weight_high = ph_high;
+                                }
+                            }
+
+                        }
+
+
 
                     }
 
 
-
-                }
-
-
-                art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw =  e.getValidHandle<std::vector<evwgh::MCEventWeight>>(m_true_eventweight_label);
-                std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
-                if(ev_evw->size() > 1) {
-                  std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
-                       << "WARNING: eventweight has more than one entry\n";
-                        }
-                 fmcweight=weight_map;
+                    art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw_true =  evt.getValidHandle<std::vector<evwgh::MCEventWeight>>(m_true_eventweight_label);
+                    std::map<std::string, std::vector<double>> const & weight_map = ev_evw_true->front().fWeight;
+                    if(ev_evw_true->size() > 1) {
+                        std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
+                            << "WARNING: eventweight has more than one entry\n";
+                    }
+                    fmcweight=weight_map;
 
 
+                    art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw_true2 =  evt.getValidHandle<std::vector<evwgh::MCEventWeight>>(m_true_eventweight_label2);
+                    std::map<std::string, std::vector<double>> const & weight_map2 = ev_evw_true2->front().fWeight;
+                    if(ev_evw_true2->size() > 1) {
+                        std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
+                            << "WARNING: eventweight has more than one entry\n";
+                    }
+                    fmcweight2=weight_map2;
 
+
+                }//end textgen 
 
                 std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
             }
@@ -1230,6 +1244,7 @@ namespace single_photon
 
         true_eventweight_tree = tfs->make<TTree>("true_eventweight_tree", "true_eventweight_tree");
         true_eventweight_tree->Branch("mcweight", "std::map<std::string, std::vector<double>>",&fmcweight);
+        true_eventweight_tree->Branch("mcweight2", "std::map<std::string, std::vector<double>>",&fmcweight2);
 
 
         // --------------------- POT Releated variables -----------------
@@ -1283,7 +1298,7 @@ namespace single_photon
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
 
-        
+
         vertex_tree->Branch("m_flash_optfltr_pe_beam",&m_flash_optfltr_pe_beam);
         vertex_tree->Branch("m_flash_optfltr_pe_veto",&m_flash_optfltr_pe_veto);
         vertex_tree->Branch("m_flash_optfltr_pe_veto_tot",&m_flash_optfltr_pe_veto_tot);
@@ -1421,6 +1436,7 @@ namespace single_photon
         //------------- EventWeight Related Variables -----------------
         this->ClearEventWeightBranches();
         fmcweight.clear();
+        fmcweight2.clear();
 
         //MetaData Related Varibles
         this->ClearSlices();
@@ -1436,7 +1452,7 @@ namespace single_photon
         m_subrun = sr.subRun();
 
         double this_pot = 0;
-        
+
         //reset subrun count 
         m_subrun_counts = 0;
 
@@ -1469,7 +1485,7 @@ namespace single_photon
 
 
     bool SinglePhoton::endSubRun(art::SubRun&sr){
-        
+
 
         run_subrun_tree->Fill();
         return true;
