@@ -22,8 +22,8 @@ art_make(BASENAME_ONLY
 		     ${MF_UTILITIES}
 		     ${FHICLCPP}
 		     ${CETLIB}
-		     ${ROOT_BASIC_LIB_LIST}
-		     ${Boost_SYSTEM_LIBRARY}
+
+
 	MODULE_LIBRARIES
 		     lardataobj_RecoBase
 		     lardataobj_AnalysisBase
@@ -45,8 +45,8 @@ art_make(BASENAME_ONLY
 		     ${MF_UTILITIES}
 		     ${FHICLCPP}
 		     ${CETLIB}
-		     ${ROOT_BASIC_LIB_LIST}
-		     ${Boost_SYSTEM_LIBRARY}
+
+
          )
 
 install_headers()

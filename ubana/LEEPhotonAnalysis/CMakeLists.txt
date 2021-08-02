@@ -35,11 +35,11 @@ art_make( BASENAME_ONLY
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        
+
                         ${FHICLCPP}
 			cetlib cetlib_except
                         ${CLHEP}
-                        ${ROOT_BASIC_LIB_LIST}
+
 
           MODULE_LIBRARIES
 			ubraw_RawData
@@ -50,7 +50,7 @@ art_make( BASENAME_ONLY
                         larevt_Filters
                         lardataobj_RawData
 			lardataobj_RecoBase
-			larcoreobj_SummaryData	
+			larcoreobj_SummaryData
 			larsim_MCCheater_BackTrackerService_service
 			larpandora_LArPandoraInterface
 			nusimdata_SimulationBase
@@ -68,11 +68,11 @@ art_make( BASENAME_ONLY
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        
+
                         ${FHICLCPP}
 			cetlib cetlib_except
                         ${CLHEP}
-                        ${ROOT_BASIC_LIB_LIST}
+
         )
 
 add_subdirectory(job)

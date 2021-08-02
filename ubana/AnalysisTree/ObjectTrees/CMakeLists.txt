@@ -26,13 +26,13 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 			               art_Persistency_Provenance canvas
 			               art_Utilities canvas
 			               ${MF_MESSAGELOGGER}
-			               
+
 	                       ${FHICLCPP}
 			               cetlib cetlib_except
                            ${ROOT_GEOM}
                            ${ROOT_XMLIO}
                            ${ROOT_GDML}
-			               ${ROOT_BASIC_LIB_LIST}
+
         )
 
 install_headers()

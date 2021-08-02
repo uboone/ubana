@@ -1,9 +1,9 @@
 # CMakeLists are the devil and anybody who tells you they understand them is a liar
-# This one is stolen from the AnalysisTree directory, which is a good bet for 
+# This one is stolen from the AnalysisTree directory, which is a good bet for
 # a first try.
 
-art_make( 
-  MODULE_LIBRARIES 
+art_make(
+  MODULE_LIBRARIES
     larcorealg_Geometry
     larcore_Geometry_Geometry_service
     larsim_Simulation
@@ -12,8 +12,8 @@ art_make(
     lardata_Utilities
     larevt_Filters
     lardataobj_RawData
-    lardataobj_RecoBase 
-    lardata_RecoObjects 
+    lardataobj_RecoBase
+    lardata_RecoObjects
     larreco_RecoAlg
     larpandora_LArPandoraInterface
     SignalShapingServiceMicroBooNE_service
@@ -33,12 +33,12 @@ art_make(
     art_Utilities canvas
     ${MF_MESSAGELOGGER}
     ${FHICLCPP}
-    cetlib 
+    cetlib
     cetlib_except
     ${ROOT_GEOM}
     ${ROOT_XMLIO}
     ${ROOT_GDML}
-    ${ROOT_BASIC_LIB_LIST}
+
   )
 
 # install_headers()

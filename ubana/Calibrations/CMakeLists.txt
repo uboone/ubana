@@ -11,11 +11,11 @@ art_make( BASENAME_ONLY
 			${ART_FRAMEWORK_CORE}
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			
+
 			cetlib cetlib_except
-      ${Boost_SYSTEM_LIBRARY}
-			${ROOT_BASIC_LIB_LIST}
-          MODULE_LIBRARIES 
+
+
+          MODULE_LIBRARIES
 			ubana_Calibrations
                         lardataalg_DetectorInfo
 			lardataobj_RawData
@@ -48,16 +48,16 @@ art_make( BASENAME_ONLY
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			
+
 	                ${FHICLCPP}
 			cetlib cetlib_except
 			${CLHEP}
                         ${ROOT_GEOM}
                         ${ROOT_XMLIO}
                         ${ROOT_GDML}
-			${ROOT_BASIC_LIB_LIST}
+
 			${ROOT_MINUIT}
-			${ROOT_MINUIT2}	
+			${ROOT_MINUIT2}
         )
 
 FILE(GLOB data_files calibrationList_*.dat )

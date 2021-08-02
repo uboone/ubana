@@ -20,7 +20,6 @@ set( hitfinder_tool_lib_list
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         art_Persistency_Common
                         art_Persistency_Provenance
-                        ${ART_FRAMEWORK_SERVICES_BASIC}
                         ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
                         ${ART_ROOT_IO_TFILESERVICE_SERVICE}
@@ -28,14 +27,14 @@ set( hitfinder_tool_lib_list
                         art_Utilities
                         canvas
                         ${MF_MESSAGELOGGER}
-                        
+
                         ${FHICLCPP}
                         cetlib cetlib_except
                         ${Boost_FILESYSTEM_LIBRARY}
-                        ${Boost_SYSTEM_LIBRARY}      
+
                         ${CLHEP}
-                        ${ROOT_BASIC_LIB_LIST}
-   
+
+
     )
 
 art_make( BASENAME_ONLY
@@ -73,7 +72,7 @@ art_make( BASENAME_ONLY
 		   ${LARDATA_LIB}
 		   ${ART_FRAMEWORK_CORE}
 		   ${ART_FRAMEWORK_PRINCIPAL}
-                   ${ART_FRAMEWORK_BASIC}
+
 		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
 		   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
@@ -84,13 +83,13 @@ art_make( BASENAME_ONLY
 		   ${ART_PERSISTENCY_PROVENANCE}
 		   ${ART_UTILITIES}
 		   ${MF_MESSAGELOGGER}
-		   
+
 		   ${FHICLCPP}
 		   cetlib cetlib_except
 		   ${ROOT_GEOM}
 		   ${ROOT_XMLIO}
 		   ${ROOT_GDML}
-		   ${ROOT_BASIC_LIB_LIST}
+
 
           TOOL_LIBRARIES
                    ${hitfinder_tool_lib_list}
@@ -116,13 +115,13 @@ art_make( BASENAME_ONLY
 		   lardataobj_RecoBase
                    lardataobj_AnalysisBase
                    lardata_Utilities
-                   larsim_Simulation lardataobj_Simulation 
+                   larsim_Simulation lardataobj_Simulation
                    nusimdata_SimulationBase
 		   ${UBOONECODE_LIB}
 		   ${LARDATA_LIB}
 		   ${ART_FRAMEWORK_CORE}
 		   ${ART_FRAMEWORK_PRINCIPAL}
-                   ${ART_FRAMEWORK_BASIC}
+
 		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
 		   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
@@ -130,13 +129,13 @@ art_make( BASENAME_ONLY
 		   ${ART_PERSISTENCY_PROVENANCE}
 		   ${ART_UTILITIES}
 		   ${MF_MESSAGELOGGER}
-		   
+
 		   ${FHICLCPP}
 		   cetlib cetlib_except
 		   ${ROOT_GEOM}
 		   ${ROOT_XMLIO}
 		   ${ROOT_GDML}
-		   ${ROOT_BASIC_LIB_LIST}
+
 		)
 
 install_headers()

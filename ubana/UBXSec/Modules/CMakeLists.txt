@@ -13,7 +13,7 @@ art_make( BASENAME_ONLY
                    uboonecode_uboone_UBXSec_Algorithms
                    ubobj_UBXSec
                    ubobj_Trigger
-                   HitCosmicTag_Base 
+                   HitCosmicTag_Base
                    HitCosmicTag_Algorithms
                    ubana_BasicTool_GeoAlgo
                    uboone_UBFlashFinder
@@ -44,7 +44,7 @@ art_make( BASENAME_ONLY
 		   ${LARDATA_LIB}
 		   ${ART_FRAMEWORK_CORE}
 		   ${ART_FRAMEWORK_PRINCIPAL}
-                   ${ART_FRAMEWORK_BASIC}
+
 		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
 		   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
@@ -55,17 +55,17 @@ art_make( BASENAME_ONLY
 		   ${ART_PERSISTENCY_PROVENANCE}
 		   ${ART_UTILITIES}
 		   ${MF_MESSAGELOGGER}
-		   
+
 		   ${FHICLCPP}
 		   cetlib cetlib_except
 		   ${ROOT_GEOM}
 		   ${ROOT_XMLIO}
 		   ${ROOT_GDML}
-		   ${ROOT_BASIC_LIB_LIST}
+
                    ${ROOT_EG}
 
           MODULE_LIBRARIES
-                   uboonecode_uboone_UBXSec_Algorithms 
+                   uboonecode_uboone_UBXSec_Algorithms
                    ubobj_UBXSec
 		   ubobj_Trigger
                    HitCosmicTag_Base
@@ -90,13 +90,13 @@ art_make( BASENAME_ONLY
 		   lardataobj_RecoBase
                    lardataobj_AnalysisBase
                    lardata_Utilities
-                   larsim_Simulation lardataobj_Simulation 
+                   larsim_Simulation lardataobj_Simulation
                    nusimdata_SimulationBase
 		   ${UBOONECODE_LIB}
 		   ${LARDATA_LIB}
 		   ${ART_FRAMEWORK_CORE}
 		   ${ART_FRAMEWORK_PRINCIPAL}
-                   ${ART_FRAMEWORK_BASIC}
+
 		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
 		   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
@@ -104,13 +104,13 @@ art_make( BASENAME_ONLY
 		   ${ART_PERSISTENCY_PROVENANCE}
 		   ${ART_UTILITIES}
 		   ${MF_MESSAGELOGGER}
-		   
+
 		   ${FHICLCPP}
 		   cetlib cetlib_except
 		   ${ROOT_GEOM}
 		   ${ROOT_XMLIO}
 		   ${ROOT_GDML}
-		   ${ROOT_BASIC_LIB_LIST}
+
                    ${ROOT_EG}
                    )
 
