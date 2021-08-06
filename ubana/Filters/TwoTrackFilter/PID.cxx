@@ -6,7 +6,7 @@
 #include "PID.h"
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 
-void PID::Chi2(art::FindManyP<anab::ParticleID> PIDTotrackAsso, art::Ptr<recob::Track> track, TVector3 Trk_start_SCEcorr, TVector3 Trk_end_SCEcorr, int hits_dEdx_size_pl0, int hits_dEdx_size_pl1, int hits_dEdx_size_pl2){
+void PID3pl::Chi2(art::FindManyP<anab::ParticleID> PIDTotrackAsso, art::Ptr<recob::Track> track, TVector3 Trk_start_SCEcorr, TVector3 Trk_end_SCEcorr, int hits_dEdx_size_pl0, int hits_dEdx_size_pl1, int hits_dEdx_size_pl2){
   // Gain PID info of the track
   if(!PIDTotrackAsso.isValid()){
     throw cet::exception("[Numu0pi0p]") << "No matched PID - track information!" << std::endl;

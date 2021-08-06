@@ -8,7 +8,7 @@
 #include "BackTrackerTruthMatch.h"
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 
-void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<recob::Hit> >& hit_handle, const art::Event& e, std::vector<art::Ptr<recob::Hit> >& trk_hits_ptrs)
+void BackTrackerTruthMatching::MatchToMCParticle(const art::Handle<std::vector<recob::Hit> >& hit_handle, const art::Event& e, std::vector<art::Ptr<recob::Hit> >& trk_hits_ptrs)
 {
 
 	art::InputTag MCParticleModuleLabel { "largeant" };
@@ -97,13 +97,13 @@ void BackTrackerTruthMatch::MatchToMCParticle(const art::Handle<std::vector<reco
 }
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 
-art::Ptr< simb::MCParticle > BackTrackerTruthMatch::ReturnMCParticle() {
+art::Ptr< simb::MCParticle > BackTrackerTruthMatching::ReturnMCParticle() {
 
 	return fmaxp_me;
 }
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 
-bool BackTrackerTruthMatch::ParticleAlreadyMatchedInThisHit(std::vector<int> AlreadyMatched_TrackIDs ,int cTrackID )
+bool BackTrackerTruthMatching::ParticleAlreadyMatchedInThisHit(std::vector<int> AlreadyMatched_TrackIDs ,int cTrackID )
 {
 	// to avoid from matching the same particle more than once, we introduce a vector of matched TrackId-s for each hit 
 	// and require that the matched particle has not been mathced already for this hit  
@@ -116,39 +116,39 @@ bool BackTrackerTruthMatch::ParticleAlreadyMatchedInThisHit(std::vector<int> Alr
 	return false; 
 }
 // _________________________________________________________________________________________________________________________________________________________________________________________________
-double BackTrackerTruthMatch::ReturnCosmicPercent() {
+double BackTrackerTruthMatching::ReturnCosmicPercent() {
 
         return fcosmic;
 }
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 
-double BackTrackerTruthMatch::ReturnPurity() {
+double BackTrackerTruthMatching::ReturnPurity() {
 
 	return fpurity;
 }
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 
-double BackTrackerTruthMatch::ReturnCompleteness() {
+double BackTrackerTruthMatching::ReturnCompleteness() {
 
 	return fcompleteness;
 }
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 
-int BackTrackerTruthMatch::ReturnMCParticleID() {
+int BackTrackerTruthMatching::ReturnMCParticleID() {
 
 	return fMCParticleID;
 }
 
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 
-double BackTrackerTruthMatch::ReturnTrueAssDepositedEnergy() {
+double BackTrackerTruthMatching::ReturnTrueAssDepositedEnergy() {
 
 	return fmaxe;
 }
 
 // _________________________________________________________________________________________________________________________________________________________________________________________________
 
-double BackTrackerTruthMatch::ReturnTotalTrueDepositedEnergy() {
+double BackTrackerTruthMatching::ReturnTotalTrueDepositedEnergy() {
 
 	return ftote;
 }

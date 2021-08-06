@@ -39,15 +39,15 @@
 
 //#include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
-class BackTrackerTruthMatch {
+class BackTrackerTruthMatching {
 
 	public:
 
 		// Default constructor
-		BackTrackerTruthMatch(){}
+		BackTrackerTruthMatching(){}
 
 		// Default destructor
-		~BackTrackerTruthMatch(){}
+		~BackTrackerTruthMatching(){}
 
 		void MatchToMCParticle(const art::Handle<std::vector<recob::Hit> >& hit_handle, const art::Event& e, std::vector<art::Ptr<recob::Hit> >& trk_hits_ptrs);
 		art::Ptr< simb::MCParticle > ReturnMCParticle();  

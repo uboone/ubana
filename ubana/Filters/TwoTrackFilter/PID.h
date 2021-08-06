@@ -27,15 +27,15 @@
 
 #include "TVector3.h"
 
-class PID {
+class PID3pl {
 
 	public:
 
 	  // Default constructor
-	  PID(){}
+	  PID3pl(){}
 
 	  // Default destructor
-	  ~PID(){}
+	  ~PID3pl(){}
 
           void Chi2(art::FindManyP<anab::ParticleID> PIDTotrackAsso, art::Ptr<recob::Track> track, TVector3 Trk_start_SCEcorr, TVector3 Trk_end_SCEcorr, int hits_dEdx_size_pl0 = -1, int hits_dEdx_size_pl1 = -1, int hits_dEdx_size_pl2 = -1);
 

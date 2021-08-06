@@ -1125,7 +1125,7 @@ void SingleMuon::analyze(art::Event const& evt)
           }
 
           //--PID
-          PID pid;
+          PID3pl pid;
           pid.Chi2(PIDTotrackAsso,daughter_Tracks[i_trk], Trk_start_SCEcorr[i_trk], Trk_end_SCEcorr[i_trk],hits_dEdx_size_pl0, hits_dEdx_size_pl1, hits_dEdx_size_pl2);
 
           PID_Chi2Mu_3pl[i_trk] = pid.PID_Chi2Mu_3pl; // Chi2 of muon assumption of 3 planes in PID
@@ -1139,7 +1139,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
           if(IsMC){
             std::vector<art::Ptr<recob::Hit> > trk_hits_ptrs = hits_per_track.at(daughter_Tracks[i_trk].key());
-            BackTrackerTruthMatch backtrackertruthmatch;
+            BackTrackerTruthMatching backtrackertruthmatch;
             backtrackertruthmatch.MatchToMCParticle(Handle_Hit,evt,trk_hits_ptrs);
             auto MCparticle = backtrackertruthmatch.ReturnMCParticle();
             trk_cosmic_percent[i_trk] = backtrackertruthmatch.ReturnCosmicPercent();
