@@ -1,0 +1,4 @@
+#include "run_wcanatree.fcl"
+
+physics.analyzers.wcpselection.FileType: "data_bnb_run1_C1"
+physics.analyzers.wcpweights.FileType: "data_bnb_run1_C1"

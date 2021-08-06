@@ -1,4 +1,16 @@
 #include "reco_uboone_data_mcc9_8.fcl"
+#include "mcreco.fcl"
+#include "proximityclustering.fcl"
+
+EventFilterTool: {
+    tool_type: "EventFilter"
+}
+
+SecondShowerTaggerTool: {
+    tool_type: "SecondShowerTagger"
+    Clusterproducer: "proximity"
+    Hitproducer: "gaushit"
+}
 
 CalorimetryAnalysisTool: {
     tool_type: "CalorimetryAnalysis"
@@ -10,11 +22,12 @@ CalorimetryAnalysisTool: {
     Hproducer: "gaushit"
     BacktrackTag: "gaushitTruthMatch"
     MCRproducer: "mcreco"
+    MCPproducer: "largeant"
+    MCTproducer: "generator"
+    GetCaloID: false
+    ADCtoE: @local::microboone_reco_data_producers.shrreco3d.ADCtoE
+    mcsfitmu: @local::microboone_reco_data_producers.pandoraMCSMu.fitter
 }
-
-# calorimetry analysis tool for using ACPT tagged tracks
-CalorimetryAnalysisToolACPT: @local::CalorimetryAnalysisTool
-CalorimetryAnalysisToolACPT.T0producer: "acpttrigtagger"
 
 VertexAnalysisTool: {
     tool_type: "VertexAnalysis"
@@ -43,6 +56,8 @@ ShowerAnalysisTool: {
     tool_type: "ShowerAnalysis"
     TRKproducer: "shrreco3dKalmanShower"     # "pandoraKalmanShower"     #remove or leave empty of there are no track fits of the shower
     CALproducer: "shrreco3dKalmanShowercali" # "pandoraKalmanShowercalo" #remove or leave empty of there are no track fits of the shower
+    ADCtoE: @local::microboone_reco_data_producers.shrreco3d.ADCtoE
+    RecalibrateHits: true
 }
 
 TrackAnalysisTool: {
@@ -50,6 +65,9 @@ TrackAnalysisTool: {
     TRKproducer: "pandoraTrack"
     CALOproducer: "pandoraTrackcali"     # "pandoraKalmanShower"     #remove or leave empty of there are no track fits of the shower
     PIDproducer: "pandoraTrackcalipid" # "pandoraKalmanShowercalo" #remove or leave empty of there are no track fits of the shower
+    mcsfitmu: @local::microboone_reco_data_producers.pandoraMCSMu.fitter
+    ADCtoE: @local::microboone_reco_data_producers.shrreco3d.ADCtoE
+    RecalibrateHits: true
 }
 
 
@@ -60,23 +78,81 @@ CosmicIPTool: {
     TrkShrScore: 0.5
 }
 
+NeutrinoEnergyTool: {
+    tool_type: "NeutrinoEnergy"
+    TRKproducer: "pandoraTrack"
+    CALOproducer: "pandoraTrackcali"
+    PDRproducer: "pandora"
+    TrkShrScore: 0.5
+    ShrEnergyBias: 0.8
+    ADCtoMeVMIP: 0.002876 # MCC9.2 collection plane values
+}
+
+Pi0TaggerTool: {
+    tool_type: "Pi0Tagger"
+    onlyshower: false
+    dotmin: 0.5
+    dmin: 2.
+    trkshrscore: 0.8
+    TRKproducer: "shrreco3dKalmanShower"     # "pandoraKalmanShower"     #remove or leave empty of there are no track fits of the shower
+    CALproducer: "shrreco3dKalmanShowercali" # "pandoraKalmanShowercalo" #remove or leave empty of there are no track fits of the shower
+    Hitproducer: "gaushit"
+    ADCtoE: @local::microboone_reco_data_producers.shrreco3d.ADCtoE
+    RecalibrateHits: true
+}
+
 DefaultAnalysisTool: {
     tool_type: "DefaultAnalysis"
     CRTVetoproducer: ""
     CLSproducer: "pandora"
     MCTproducer: "generator"
+    MCFluxproducer: "generator"
     Hproducer: "gaushit"
     BacktrackTag: "gaushitTruthMatch"
     MCRproducer: "mcreco"
     SLCproducer: "pandora"
     MCPproducer: "largeant"
     ProtonThreshold: 0.04 # GeV
+    fidvolXstart: 5.
+    fidvolXend: 5.
+    fidvolYstart: 6.
+    fidvolYend: 6.
+    fidvolZstart: 20.
+    fidvolZend: 50.
+}
+
+MCSTool: {
+    tool_type: "MCS"
+    CRTVetoproducer: ""
+    CLSproducer: "pandora"
+    MCTproducer: "generator"
+    SpacePointproducer: "pandora"
+    PFPproducer: "pandora"
+    Hproducer: "gaushit"
+    BacktrackTag: "gaushitTruthMatch"
+    MCRproducer: "mcreco"
+    SLCproducer: "pandora"
+    MCPproducer: "largeant"
+    ProtonThreshold: 0.04 # GeV
+    fidvolXstart: 10.
+    fidvolXend: 10.
+    fidvolYstart: 15.
+    fidvolYend: 15.
+    fidvolZstart: 10.
+    fidvolZend: 50.
+}
+
+MCFilterAnalysisTool: {
+    tool_type: "MCFilter"
+    MCTproducer: "generator"
+    MCRproducer: "mcreco"
 }
 
 Pi0TruthAnalysisTool: {
     tool_type: "Pi0TruthAnalysis"
     MCTproducer: "generator"
     MCSproducer: "mcreco"
+    MCPproducer: "largeant"
 }
 
 CRTApproachAnalysisTool: {
@@ -100,6 +176,8 @@ PMTNoiseTool: {
 
 BDTTool: {
     tool_type: "BDT"
+    #TrigResProducer: ""
+    TrigResProducer: "TriggerResults::DataFiltersPostStage2"
 }
 
 ContainmentAnalysis: {
@@ -111,11 +189,12 @@ FlashMatchingTool: {
     tool_type: "FlashMatching"
     PFPproducer: "pandora"
     T0producer: "flashmatch"
+    FLASHproducer: "simpleFlashBeam"
 }
 
 shrreco3dDATA: @local::ShrReco3DPandora
 shrreco3dDATA.BacktrackTag:  ""
-shrreco3dDATA.ADCtoE:   [238.4,238.4,238.4] # e-/ADC
+shrreco3dDATA.ADCtoE:  @local::microboone_reco_data_producers.shrreco3d.ADCtoE # [238.4,238.4,238.4] # e-/ADC
 shrreco3dDATA.NeutrinoEvent: false
 
 shrreco3dMC: @local::ShrReco3DPandora
@@ -139,23 +218,13 @@ shrreco3dKalmanShower.trackMaker.fitter.tryNoSkipWhenFails:  false
 shrreco3dKalmanShower.trackMaker.fitter.negDistTolerance:    -0.01
 shrreco3dKalmanShower.trackMaker.fitter.pickBestHitOnWire:   true
 
-shrreco3dKalmanShowercalodata: @local::microboone_calodata
-shrreco3dKalmanShowercalodata.CaloAlg.CalAreaConstants: [4.31e-3, 4.02e-3, 4.26e-3]
+shrreco3dKalmanShowercalodata: @local::microboone_reco_data_producers.pandoracaloSCE
 shrreco3dKalmanShowercalodata.TrackModuleLabel:         "shrreco3dKalmanShower"
 shrreco3dKalmanShowercalodata.SpacePointModuleLabel:    "shrreco3dKalmanShower"
 
-shrreco3dKalmanShowercalomc: @local::microboone_calomc
-shrreco3dKalmanShowercalomc.CaloAlg.CalAreaConstants: [4.08e-3,3.97e-3,4.08e-3]
-shrreco3dKalmanShowercalomc.TrackModuleLabel:         "shrreco3dKalmanShower"
-shrreco3dKalmanShowercalomc.SpacePointModuleLabel:    "shrreco3dKalmanShower"
-
-shrreco3dKalmanShowercalidata: @local::microboone_calibrationdedx_data
+shrreco3dKalmanShowercalidata: @local::microboone_reco_data_producers.pandoracaliSCE
 shrreco3dKalmanShowercalidata.TrackModuleLabel:       "shrreco3dKalmanShower"
 shrreco3dKalmanShowercalidata.CalorimetryModuleLabel: "shrreco3dKalmanShowercalo"
-
-shrreco3dKalmanShowercalimc: @local::microboone_calibrationdedx
-shrreco3dKalmanShowercalimc.TrackModuleLabel:       "shrreco3dKalmanShower"
-shrreco3dKalmanShowercalimc.CalorimetryModuleLabel: "shrreco3dKalmanShowercalo"
 
 NuSelectionFilter:{
     module_type: NeutrinoSelectionFilter
@@ -181,16 +250,22 @@ NuSelectionFilter:{
         # you can add more analysis tools here
         slicepurcompl: @local::SlicePurComplTool
         containment:   @local::ContainmentAnalysis
-        shower:        @local::ShowerAnalysisTool
-        showerstart:        @local::ShowerStartPointTool
+        #shower:        @local::ShowerAnalysisTool
+        #showerstart:        @local::ShowerStartPointTool
         track:         @local::TrackAnalysisTool
         #vertex:         @local::VertexAnalysisTool
         #calorimetry:   @local::CalorimetryAnalysisTool
         pmtnoise:      @local::PMTNoiseTool
+	mcs:           @local::MCSTool
         pi0truth:      @local::Pi0TruthAnalysisTool
         cosmicip:      @local::CosmicIPTool
-        flashmatch:    @local::FlashMatchingTool
-        zbdt:          @local::BDTTool #note: analysis tools are run in alphabetical order and this needs to be the last one
+        nuenergy:      @local::NeutrinoEnergyTool
+        flashmatchid:  @local::FlashMatchingTool
+        pi0tagger:     @local::Pi0TaggerTool
+        #zbdt:          @local::BDTTool #note: analysis tools are run in alphabetical order and this needs to be the last one
+        secondshower:  @local::SecondShowerTaggerTool
+        eventfilter:   @local::EventFilterTool
+        mcfilter:      @local::MCFilterAnalysisTool
     }
 }
 
@@ -228,11 +303,13 @@ CC0PiNpSelectionTool: {
     PIDproducer: "pandoraTrackcalipid"
     CALproducerTrkFit: "shrreco3dKalmanShowercali"
     TRKproducerTrkFit: "shrreco3dKalmanShower"
-
-}
-
-CCincSelectionTool: {
-    tool_type: "CCincSelection"
+    Clusterproducer: "proximity"
+    Hitproducer: "gaushit"
+    mcsfitmu: @local::microboone_reco_data_producers.pandoraMCSMu.fitter
+    LocaldEdx: false # use dQdx and convert to dEdx with fixed conversion
+    # ADC to E conversion taken from reco2 production fhicl file
+    ADCtoE: @local::microboone_reco_data_producers.shrreco3d.ADCtoE
+    RecalibrateHits: true
 }
 
 # run 3 neutrino selection [ w/ crt veto ]
@@ -244,3 +321,12 @@ NuSelectionFilterRun3.AnalysisTools: {
         crtApproach:@local::CRTApproachAnalysisTool
         }
 NuSelectionFilterRun3.AnalysisTools.default.CRTVetoproducer: "crtveto"
+
+# neutrino slice clustering
+NeutrinoSliceHits: {
+    module_type: "SaveSliceHits"
+    Hitproducer: "gaushit"
+    Clusterproducer: "pandora"
+    Pfpproducer: "pandora"
+    Sliceproducer: "pandora"
+}

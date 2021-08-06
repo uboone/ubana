@@ -57,7 +57,13 @@ namespace single_photon
 	    //m_mctruth_neutrino_QSqr: "m_mctruth_neutrino_QSqr"
 	    m_gtruth_is_sea_quark=false;
 	    m_gtruth_tgt_pdg=0;
-	    m_gtruth_weight=-9999;
+	    m_gtruth_tgt_Z = -9999;
+        m_gtruth_tgt_A = -9999;
+        m_gtruth_tgt_p4_x = -9999;
+        m_gtruth_tgt_p4_y = -9999;
+        m_gtruth_tgt_p4_z = -9999;
+        m_gtruth_tgt_p4_E = -9999;
+        m_gtruth_weight=-9999;
 	    m_gtruth_probability=-9999;
 	    m_gtruth_xsec=-9999;
 	    m_gtruth_diff_xsec=-9999;
@@ -75,6 +81,10 @@ namespace single_photon
 	    m_gtruth_num_proton=-9999;
 	    m_gtruth_num_neutron=-9999;
 	    m_gtruth_is_charm=false;
+	    m_gtruth_is_strange=false;
+        m_gtruth_charm_hadron_pdg = -9999;
+        m_gtruth_strange_hadron_pdg = -9999;
+        m_gtruth_decay_mode = -9999;
 	    m_gtruth_gx=-9999;
 	    m_gtruth_gy=-9999;
 	    m_gtruth_gy=-9999;
@@ -91,6 +101,7 @@ namespace single_photon
 	    m_gtruth_hit_nuc_p4_y=-9999;
 	    m_gtruth_hit_nuc_p4_z=-9999;
 	    m_gtruth_hit_nuc_p4_E=-9999;
+	    m_gtruth_hit_nuc_pos=-9999;
 	    m_gtruth_fs_had_syst_p4_x=-9999;
 	    m_gtruth_fs_had_syst_p4_y=-9999;
 	    m_gtruth_fs_had_syst_p4_z=-9999;
@@ -159,6 +170,12 @@ namespace single_photon
      //---------------------gtruth
     eventweight_tree->Branch("GTruth_IsSeaQuark",  &m_gtruth_is_sea_quark );
     eventweight_tree->Branch("GTruth_tgtPDG",  &m_gtruth_tgt_pdg );
+    eventweight_tree->Branch("GTruth_tgtA",  &m_gtruth_tgt_A );
+    eventweight_tree->Branch("GTruth_tgtZ",  &m_gtruth_tgt_Z );
+    eventweight_tree->Branch("GTruth_TgtP4x",  &m_gtruth_tgt_p4_x );
+    eventweight_tree->Branch("GTruth_TgtP4y",  &m_gtruth_tgt_p4_y );
+    eventweight_tree->Branch("GTruth_TgtP4z",  &m_gtruth_tgt_p4_z );
+    eventweight_tree->Branch("GTruth_TgtP4E",  &m_gtruth_tgt_p4_E );
     eventweight_tree->Branch("GTruth_weight",  &m_gtruth_weight );
     eventweight_tree->Branch("GTruth_probability",  &m_gtruth_probability );
     eventweight_tree->Branch("GTruth_Xsec",  &m_gtruth_xsec );
@@ -177,6 +194,10 @@ namespace single_photon
     eventweight_tree->Branch("GTruth_NumProton",  &m_gtruth_num_proton );
     eventweight_tree->Branch("GTruth_NumNeutron", &m_gtruth_num_neutron );
     eventweight_tree->Branch("GTruth_IsCharm",  &m_gtruth_is_charm );
+    eventweight_tree->Branch("GTruth_IsStrange",  &m_gtruth_is_strange );
+    eventweight_tree->Branch("GTruth_StrangeHadronPDG",  &m_gtruth_strange_hadron_pdg );
+    eventweight_tree->Branch("GTruth_CharmHadronPDG",  &m_gtruth_charm_hadron_pdg );
+    eventweight_tree->Branch("GTruth_DecayMode",&m_gtruth_decay_mode);
     eventweight_tree->Branch("GTruth_gX",  &m_gtruth_gx );
     eventweight_tree->Branch("GTruth_gY", &m_gtruth_gy );
     eventweight_tree->Branch("GTruth_gT", &m_gtruth_gt );
@@ -192,6 +213,7 @@ namespace single_photon
     eventweight_tree->Branch("GTruth_HitNucP4y", &m_gtruth_hit_nuc_p4_y );
     eventweight_tree->Branch("GTruth_HitNucP4z", &m_gtruth_hit_nuc_p4_z );
     eventweight_tree->Branch("GTruth_HitNucP4E", &m_gtruth_hit_nuc_p4_E );
+    eventweight_tree->Branch("GTruth_HitNucPos", &m_gtruth_hit_nuc_pos );
     eventweight_tree->Branch("GTruth_FShadSystP4x", &m_gtruth_fs_had_syst_p4_x );
     eventweight_tree->Branch("GTruth_FShadSystP4y", &m_gtruth_fs_had_syst_p4_y );
     eventweight_tree->Branch("GTruth_FShadSystP4z",  &m_gtruth_fs_had_syst_p4_z );
@@ -312,6 +334,13 @@ namespace single_photon
 
   m_gtruth_is_sea_quark = gTruth->fIsSeaQuark;
   m_gtruth_tgt_pdg = gTruth->ftgtPDG;
+  m_gtruth_tgt_A = gTruth->ftgtA;
+  m_gtruth_tgt_Z = gTruth->ftgtZ;
+  m_gtruth_tgt_p4_x = gTruth->fTgtP4.X();
+  m_gtruth_tgt_p4_y = gTruth->fTgtP4.Y();
+  m_gtruth_tgt_p4_z = gTruth->fTgtP4.Z();
+  m_gtruth_tgt_p4_E = gTruth->fTgtP4.E();
+
   m_gtruth_weight = gTruth->fweight;
   m_gtruth_probability = gTruth->fprobability;
   m_gtruth_xsec = gTruth->fXsec;
@@ -331,6 +360,10 @@ namespace single_photon
   m_gtruth_num_proton = gTruth->fNumProton;
   m_gtruth_num_neutron = gTruth->fNumNeutron;
   m_gtruth_is_charm = gTruth->fIsCharm;
+  m_gtruth_is_strange = gTruth->fIsStrange;
+  m_gtruth_decay_mode = gTruth->fDecayMode;
+  m_gtruth_strange_hadron_pdg = gTruth->fStrangeHadronPdg;
+  m_gtruth_charm_hadron_pdg = gTruth->fCharmHadronPdg;
   m_gtruth_gx = gTruth->fgX;
   m_gtruth_gy = gTruth->fgY;
   m_gtruth_gt = gTruth->fgT;
@@ -346,6 +379,7 @@ namespace single_photon
   m_gtruth_hit_nuc_p4_y = gTruth->fHitNucP4.Y();
   m_gtruth_hit_nuc_p4_z = gTruth->fHitNucP4.Z();
   m_gtruth_hit_nuc_p4_E = gTruth->fHitNucP4.E();
+  m_gtruth_hit_nuc_pos = gTruth->fHitNucPos;
   m_gtruth_fs_had_syst_p4_x = gTruth->fFShadSystP4.X();
   m_gtruth_fs_had_syst_p4_y = gTruth->fFShadSystP4.Y();
   m_gtruth_fs_had_syst_p4_z = gTruth->fFShadSystP4.Z();

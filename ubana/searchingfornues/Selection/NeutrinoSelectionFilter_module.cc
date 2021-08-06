@@ -73,13 +73,14 @@ private:
   art::InputTag fPCAproducer; // PCAxis associated to PFP
   art::InputTag fMCTproducer;
   bool fVerbose;
-  bool fData;
+  bool fData, fFakeData;
   bool fFilter;
   std::string fBDT_branch;
   float fBDT_cut;
 
   // TTree
   TTree *_tree;
+  int _run, _sub, _evt;
   int _selected;
 
   TTree *_subrun_tree;
@@ -146,7 +147,6 @@ NeutrinoSelectionFilter::NeutrinoSelectionFilter(fhicl::ParameterSet const &p)
     : EDFilter{p} // ,
 // More initializers here.
 {
-
   fPFPproducer = p.get<art::InputTag>("PFPproducer");
   fSHRproducer = p.get<art::InputTag>("SHRproducer");
   fHITproducer = p.get<art::InputTag>("HITproducer");
@@ -158,6 +158,7 @@ NeutrinoSelectionFilter::NeutrinoSelectionFilter(fhicl::ParameterSet const &p)
   fMCTproducer = p.get<art::InputTag>("MCTproducer");
   fVerbose = p.get<bool>("Verbose");
   fData = p.get<bool>("IsData");
+  fFakeData = p.get<bool>("IsFakeData",false);
   fFilter = p.get<bool>("Filter", false);
   fBDT_branch = p.get<std::string>("BDT_branch", "");
   fBDT_cut = p.get<float>("BDT_cut", -1);
@@ -165,12 +166,15 @@ NeutrinoSelectionFilter::NeutrinoSelectionFilter(fhicl::ParameterSet const &p)
   art::ServiceHandle<art::TFileService> tfs;
   _tree = tfs->make<TTree>("NeutrinoSelectionFilter", "Neutrino Selection TTree");
   _tree->Branch("selected", &_selected, "selected/I");
+  _tree->Branch("run", &_run, "run/I");
+  _tree->Branch("sub", &_sub, "sub/I");
+  _tree->Branch("evt", &_evt, "evt/I");
 
   _subrun_tree = tfs->make<TTree>("SubRun", "SubRun TTree");
   _subrun_tree->Branch("run", &_run_sr, "run/I");
   _subrun_tree->Branch("subRun", &_sub_sr, "subRun/I");
 
-  if (!fData)
+  if ( (!fData) || (fFakeData) )
     _subrun_tree->Branch("pot", &_pot, "pot/F");
 
   // configure and construct Selection Tool
@@ -205,6 +209,9 @@ bool NeutrinoSelectionFilter::filter(art::Event &e)
   {
     std::cout << "new event : [run,event] : [" << e.run() << ", " << e.event() << "]" << std::endl;
   }
+  _evt = e.event();
+  _sub = e.subRun();
+  _run = e.run();
 
 
   // grab PFParticles in event
@@ -217,7 +224,7 @@ bool NeutrinoSelectionFilter::filter(art::Event &e)
 												    proxy::withAssociated<recob::PCAxis>(fPCAproducer),
 												    proxy::withAssociated<recob::Shower>(fSHRproducer),
 												    proxy::withAssociated<recob::SpacePoint>(fPFPproducer));
-  
+
   BuildPFPMap(pfp_proxy);
 
   for (size_t i = 0; i < _analysisToolsVec.size(); i++)
@@ -391,6 +398,9 @@ void NeutrinoSelectionFilter::ResetTTree()
 {
 
   _selected = 0;
+  _run = std::numeric_limits<int>::lowest();
+  _sub = std::numeric_limits<int>::lowest();
+  _evt = std::numeric_limits<int>::lowest();
 
   _selectionTool->resetTTree(_tree);
   for (size_t i = 0; i < _analysisToolsVec.size(); i++)
@@ -399,7 +409,7 @@ void NeutrinoSelectionFilter::ResetTTree()
 
 bool NeutrinoSelectionFilter::endSubRun(art::SubRun &subrun)
 {
-  if (!fData)
+  if ( (!fData) || (fFakeData) )
   {
     art::Handle<sumdata::POTSummary> potSummaryHandle;
     _pot = subrun.getByLabel(fMCTproducer, potSummaryHandle) ? static_cast<float>(potSummaryHandle->totpot) : 0.f;
