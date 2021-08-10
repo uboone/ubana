@@ -32,9 +32,9 @@ table_fragment_end
 product                 version
 ubreco                  v09_27_00
 ubraw                   v09_26_01
-larana                  v09_02_10
-larpandora              v09_07_00
-cetbuildtools	        v7_17_01	-	only_for_build
+larana                  v09_02_10_04
+larpandora              v09_07_00_04
+cetbuildtools	        v8_14_02	-	only_for_build
 end_product_list
 
 qualifier      ubreco         ubraw          larana         larpandora

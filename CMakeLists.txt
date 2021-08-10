@@ -12,7 +12,7 @@
 #  make package (builds distribution tarfile)
 # ======================================================================
 
-cmake_minimum_required (VERSION 3.12...3.18 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
 project(ubana LANGUAGES CXX)
 
@@ -39,6 +39,7 @@ find_ups_product( lardataobj )
 find_ups_product( lardataalg )
 find_ups_product( lardata )
 find_ups_product( larsim )
+find_ups_product( larevt )
 find_ups_boost( )
 find_ups_product( canvas )
 find_ups_product( ubreco v1_00_00 )
