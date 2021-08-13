@@ -1350,7 +1350,7 @@ void SingleMuon::analyze(art::Event const& evt)
     }
 
     //sanity check that matched_MCid is valid
-    if (matched_MCid < 0 || matched_MCid >= MCTruthCollection.size()){
+    if (matched_MCid >= MCTruthCollection.size()){
       throw cet::exception("[Numu0pi0p]")<< "Something is wrong at the MC reco matching stage!" << std::endl;
     }
 
