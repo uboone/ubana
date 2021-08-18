@@ -44,7 +44,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
                         ${UBDut}
-                        ${PQ}
+                        PQ
                         ${Boost_SERIALIZATION_LIBRARY}
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_IO_SOURCES}
@@ -81,7 +81,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
 			ubevt_Database
                         uboone_MicroBooNEWireCell
                         ${UBDut}
-                        ${PQ}
+                        PQ
                         ${Boost_SERIALIZATION_LIBRARY}
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_IO_SOURCES}

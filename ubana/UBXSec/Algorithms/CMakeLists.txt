@@ -65,8 +65,8 @@ art_make( BASENAME_ONLY
                    lardata_Utilities
                    larpandora_LArPandoraInterface
                    nusimdata_SimulationBase
-                   ${PANDORASDK}
-                   ${PANDORAMONITORING}
+                   PANDORASDK
+                   PANDORAMONITORING
                    #larpandora_LArPandoraContent
                    ${UBOONECODE_LIB}
 		   ${LARDATA_LIB}
@@ -83,7 +83,6 @@ art_make( BASENAME_ONLY
 		   ${ART_PERSISTENCY_PROVENANCE}
 		   ${ART_UTILITIES}
 		   ${MF_MESSAGELOGGER}
-
 		   ${FHICLCPP}
 		   cetlib cetlib_except
 		   ${ROOT_GEOM}

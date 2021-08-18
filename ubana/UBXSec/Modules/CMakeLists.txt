@@ -37,14 +37,13 @@ art_make( BASENAME_ONLY
                    lardata_Utilities
                    larpandora_LArPandoraInterface
                    nusimdata_SimulationBase
-                   ${PANDORASDK}
-                   ${PANDORAMONITORING}
+                   PANDORASDK
+                   PANDORAMONITORING
                    #larpandora_LArPandoraContent
                    ${UBOONECODE_LIB}
 		   ${LARDATA_LIB}
 		   ${ART_FRAMEWORK_CORE}
 		   ${ART_FRAMEWORK_PRINCIPAL}
-
 		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
 		   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
@@ -55,13 +54,11 @@ art_make( BASENAME_ONLY
 		   ${ART_PERSISTENCY_PROVENANCE}
 		   ${ART_UTILITIES}
 		   ${MF_MESSAGELOGGER}
-
 		   ${FHICLCPP}
 		   cetlib cetlib_except
 		   ${ROOT_GEOM}
 		   ${ROOT_XMLIO}
 		   ${ROOT_GDML}
-
                    ${ROOT_EG}
 
           MODULE_LIBRARIES

@@ -1,8 +1,8 @@
 # Either set these here or set environment variables
 
-include_directories ( $ENV{SWTRIGGER_INCDIR} )
-find_library( SWTRIG_LIBBASE NAMES SWTriggerBase PATHS $ENV{SWTRIGGER_LIBDIR} )
-find_library( SWTRIG_LIBFEMU NAMES FEMBeamTrigger PATHS $ENV{SWTRIGGER_LIBDIR} )
+##include_directories ( $ENV{SWTRIGGER_INCDIR} )
+cet_find_library( SWTRIG_LIBBASE NAMES SWTriggerBase PATHS $ENV{SWTRIGGER_LIBDIR} )
+cet_find_library( SWTRIG_LIBFEMU NAMES FEMBeamTrigger PATHS $ENV{SWTRIGGER_LIBDIR} )
 
 add_subdirectory(fcl)
 
@@ -74,8 +74,8 @@ simple_plugin( SWTrigger "module"
                ${ART_PERSISTENCY_COMMON}
                ${ART_PERSISTENCY_PROVENANCE}
                ${ART_UTILITIES}
-               ${SWTRIG_LIBFEMU}
-               ${SWTRIG_LIBBASE}
+               SWTRIG_LIBFEMU
+               SWTRIG_LIBBASE
                ROOT::Tree
                BASENAME_ONLY
              )

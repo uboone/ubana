@@ -22,7 +22,7 @@ art_make( BASENAME_ONLY
 			larsim_MCCheater_ParticleInventoryService_service
 			larpandora_LArPandoraInterface
 			nusimdata_SimulationBase
-			${UB_DATA_TYPES}
+			UB_DATA_TYPES
 			${Boost_SERIALIZATION_LIBRARY}
                         nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
@@ -55,7 +55,7 @@ art_make( BASENAME_ONLY
 			larpandora_LArPandoraInterface
 			nusimdata_SimulationBase
 			ubana_LEEPhotonAnalysis
-			${UB_DATA_TYPES}
+			UB_DATA_TYPES
 			${Boost_SERIALIZATION_LIBRARY}
                         nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
