@@ -5,7 +5,7 @@ art_make(BASENAME_ONLY
 	  	     larcorealg_Geometry
 		       larcore_Geometry_Geometry_service
 	         ubcore_Geometry
-           UBOpReadoutMap_service
+           ubcore::UBOpReadoutMap_service
 		       lardataobj_RecoBase
            lardataobj_AnalysisBase
            lardata_Utilities
@@ -37,7 +37,7 @@ art_make(BASENAME_ONLY
 	  	     larcorealg_Geometry
 		       larcore_Geometry_Geometry_service
 	         uboone_Geometry
-           UBOpReadoutMap_service
+           ubcore::UBOpReadoutMap_service
 		       lardataobj_RecoBase
            lardataobj_AnalysisBase
            lardata_Utilities

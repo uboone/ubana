@@ -19,7 +19,7 @@ art_make( BASENAME_ONLY
 			ubana_Calibrations
                         lardataalg_DetectorInfo
 			lardataobj_RawData
-			CalData
+			ubevt::CalData
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			larsim_MCCheater_ParticleInventoryService_service
@@ -33,7 +33,7 @@ art_make( BASENAME_ONLY
 			lardata_Utilities
 			larevt_Filters
                         lardata_Utilities_LArFFT_service
-			SignalShapingServiceMicroBooNE_service
+			ubevt::SignalShapingServiceMicroBooNE_service
             larevt_CalibrationDBI_Providers
             nusimdata_SimulationBase
 			${LARRECO_LIB}

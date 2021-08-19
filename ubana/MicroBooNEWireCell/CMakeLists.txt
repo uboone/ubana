@@ -1,7 +1,7 @@
 
 #
 simple_plugin( CellTreeUB "module"
-               UBOpReadoutMap_service
+               ubcore::UBOpReadoutMap_service
 	       ubobj_Trigger
 	       ubobj_MuCS
 	       nusimdata_SimulationBase
@@ -37,7 +37,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         lardata_Utilities
                         ubcore_Geometry
 			ubraw_RawData
-                        UBOpReadoutMap_service
+                        ubcore::UBOpReadoutMap_service
                         lardataobj_OpticalDetectorData
                         lardataobj_RawData
 			lardataobj_RecoBase
@@ -71,7 +71,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         lardata_Utilities
                         ubcore_Geometry
 			ubraw_RawData
-                        UBOpReadoutMap_service
+                        ubcore::UBOpReadoutMap_service
                         lardataobj_OpticalDetectorData
                         lardataobj_RawData
 			lardataobj_RecoBase

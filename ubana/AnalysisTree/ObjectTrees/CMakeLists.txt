@@ -10,7 +10,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 			               lardata_RecoObjects
 			               larreco_RecoAlg
 			               larpandora_LArPandoraInterface
-			               SignalShapingServiceMicroBooNE_service
+			               ubevt::SignalShapingServiceMicroBooNE_service
                            nusimdata_SimulationBase
                            ubraw_RawData
 			               ubobj_Trigger

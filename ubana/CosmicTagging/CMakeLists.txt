@@ -6,7 +6,7 @@ link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
 art_make( BASENAME_ONLY
           LIBRARY_NAME     uboonecode_uboone_CosmicTagging
 	  LIB_LIBRARIES
-		   ubana_BasicTool_GeoAlgo
+		   ubcore::ubana_BasicTool_GeoAlgo
 		   ubana_SelectionTool_OpT0FinderBase
 		   ubana_SelectionTool_OpT0FinderAlgorithms
 	  	   larcorealg_Geometry
@@ -45,7 +45,7 @@ art_make( BASENAME_ONLY
                    larsim_MCCheater_BackTrackerService_service
 		   larpandora_LArPandoraInterface
 
-		   ubana_BasicTool_GeoAlgo
+		   ubcore::ubana_BasicTool_GeoAlgo
 		   ubana_SelectionTool_OpT0FinderBase
 		   ubana_SelectionTool_OpT0FinderAlgorithms
 
