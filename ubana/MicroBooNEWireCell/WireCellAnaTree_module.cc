@@ -1135,19 +1135,40 @@ void WireCellAnaTree::initOutput()
 
   // PFDump
   if(f_PFDump) {
-      fPFeval->Branch("truth_Ntrack", &truth_Ntrack);
-      fPFeval->Branch("truth_id", &truth_id, "truth_id[truth_Ntrack]/I");
-      fPFeval->Branch("truth_pdg", &truth_pdg, "truth_pdg[truth_Ntrack]/I");
-      fPFeval->Branch("truth_process", &truth_process);
-      fPFeval->Branch("truth_mother", &truth_mother, "truth_mother[truth_Ntrack]/I");
-      fPFeval->Branch("truth_startXYZT", &truth_startXYZT, "truth_startXYZT[truth_Ntrack][4]/F");
-      fPFeval->Branch("truth_endXYZT", &truth_endXYZT, "truth_endXYZT[truth_Ntrack][4]/F");
-      fPFeval->Branch("truth_startMomentum", &truth_startMomentum, "truth_startMomentum[truth_Ntrack][4]/F");
-      fPFeval->Branch("truth_endMomentum", &truth_endMomentum, "truth_endMomentum[truth_Ntrack][4]/F");
-      fPFeval->Branch("truth_daughters", &truth_daughters);
-      fMC_trackPosition = new TObjArray();
-      fMC_trackPosition->SetOwner(kTRUE);
-      fPFeval->Branch("fMC_trackPosition", &fMC_trackPosition);
+
+      if( fMC==true ){
+        fPFeval->Branch("truth_Ntrack", &truth_Ntrack);
+        fPFeval->Branch("truth_id", &truth_id, "truth_id[truth_Ntrack]/I");
+        fPFeval->Branch("truth_pdg", &truth_pdg, "truth_pdg[truth_Ntrack]/I");
+        fPFeval->Branch("truth_process", &truth_process);
+        fPFeval->Branch("truth_mother", &truth_mother, "truth_mother[truth_Ntrack]/I");
+        fPFeval->Branch("truth_startXYZT", &truth_startXYZT, "truth_startXYZT[truth_Ntrack][4]/F");
+        fPFeval->Branch("truth_endXYZT", &truth_endXYZT, "truth_endXYZT[truth_Ntrack][4]/F");
+        fPFeval->Branch("truth_startMomentum", &truth_startMomentum, "truth_startMomentum[truth_Ntrack][4]/F");
+        fPFeval->Branch("truth_endMomentum", &truth_endMomentum, "truth_endMomentum[truth_Ntrack][4]/F");
+        fPFeval->Branch("truth_daughters", &truth_daughters);
+        fMC_trackPosition = new TObjArray();
+        fMC_trackPosition->SetOwner(kTRUE);
+        fPFeval->Branch("fMC_trackPosition", &fMC_trackPosition);
+
+        fPFeval->Branch("mc_isnu", &mc_isnu);
+        fPFeval->Branch("mc_nGeniePrimaries", &mc_nGeniePrimaries);
+        fPFeval->Branch("mc_nu_pdg", &mc_nu_pdg);
+        fPFeval->Branch("mc_nu_ccnc", &mc_nu_ccnc);
+        fPFeval->Branch("mc_nu_mode", &mc_nu_mode);
+        fPFeval->Branch("mc_nu_intType", &mc_nu_intType);
+        fPFeval->Branch("mc_nu_target", &mc_nu_target);
+        fPFeval->Branch("mc_hitnuc", &mc_hitnuc);
+        fPFeval->Branch("mc_hitquark", &mc_hitquark);
+        fPFeval->Branch("mc_nu_Q2", &mc_nu_Q2);
+        fPFeval->Branch("mc_nu_W", &mc_nu_W);
+        fPFeval->Branch("mc_nu_X", &mc_nu_X);
+        fPFeval->Branch("mc_nu_Y", &mc_nu_Y);
+        fPFeval->Branch("mc_nu_Pt", &mc_nu_Pt);
+        fPFeval->Branch("mc_nu_Theta", &mc_nu_Theta);
+        fPFeval->Branch("mc_nu_pos", &mc_nu_pos, "mc_nu_pos[4]/F");
+        fPFeval->Branch("mc_nu_mom", &mc_nu_mom, "mc_nu_mom[4]/F");
+      }
 
       fPFeval->Branch("reco_Ntrack", &reco_Ntrack);
       fPFeval->Branch("reco_id", &reco_id, "reco_id[reco_Ntrack]/I");
@@ -1160,23 +1181,6 @@ void WireCellAnaTree::initOutput()
       fPFeval->Branch("reco_endMomentum", &reco_endMomentum, "reco_endMomentum[reco_Ntrack][4]/F");
       fPFeval->Branch("reco_daughters", &reco_daughters);
 
-      fPFeval->Branch("mc_isnu", &mc_isnu);
-      fPFeval->Branch("mc_nGeniePrimaries", &mc_nGeniePrimaries);
-      fPFeval->Branch("mc_nu_pdg", &mc_nu_pdg);
-      fPFeval->Branch("mc_nu_ccnc", &mc_nu_ccnc);
-      fPFeval->Branch("mc_nu_mode", &mc_nu_mode);
-      fPFeval->Branch("mc_nu_intType", &mc_nu_intType);
-      fPFeval->Branch("mc_nu_target", &mc_nu_target);
-      fPFeval->Branch("mc_hitnuc", &mc_hitnuc);
-      fPFeval->Branch("mc_hitquark", &mc_hitquark);
-      fPFeval->Branch("mc_nu_Q2", &mc_nu_Q2);
-      fPFeval->Branch("mc_nu_W", &mc_nu_W);
-      fPFeval->Branch("mc_nu_X", &mc_nu_X);
-      fPFeval->Branch("mc_nu_Y", &mc_nu_Y);
-      fPFeval->Branch("mc_nu_Pt", &mc_nu_Pt);
-      fPFeval->Branch("mc_nu_Theta", &mc_nu_Theta);
-      fPFeval->Branch("mc_nu_pos", &mc_nu_pos, "mc_nu_pos[4]/F");
-      fPFeval->Branch("mc_nu_mom", &mc_nu_mom, "mc_nu_mom[4]/F");
   }
 
 
@@ -3190,12 +3194,12 @@ void WireCellAnaTree::resetOutput()
 
 	if(f_PFDump){
           truth_Ntrack = 0;
-          truth_process->clear();
-          truth_daughters->clear();
+          if (truth_process) truth_process->clear(); // not nullptr
+          if (truth_daughters) truth_daughters->clear();
           reco_Ntrack = 0;
           reco_process->clear();
           reco_daughters->clear();
-          fMC_trackPosition->Clear();
+          if (fMC_trackPosition) fMC_trackPosition->Clear();
 
           mc_isnu = 0;
           mc_nGeniePrimaries = -1;
