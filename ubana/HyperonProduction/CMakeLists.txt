@@ -1,4 +1,6 @@
+add_subdirectory(Connectedness)
 add_subdirectory(Modules)
-add_subdirectory(util)
+add_subdirectory(Objects)
 add_subdirectory(Alg)
 add_subdirectory(job)
+add_subdirectory(Headers)

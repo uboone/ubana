@@ -17,8 +17,6 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-//#include "art_root_io/TFileService.h"
-//#include "art_root_io/TFileDirectory.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 
 
@@ -62,9 +60,6 @@
 //track momentum calculators
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 
-//vertex fitter
-#include "larreco/RecoAlg/Geometric3DVertexFitter.h"
-
 
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
@@ -83,13 +78,9 @@
 //algorithms
 #include "ubana/HyperonProduction/Alg/ParticleTypes.h"
 #include "ubana/HyperonProduction/Alg/FV.h"
-#include "ubana/HyperonProduction/Alg/Muon_ID.h"
-#include "ubana/HyperonProduction/Alg/Track_Length_Cut.h"
-#include "ubana/HyperonProduction/Alg/Gap_Cut.h"
 #include "ubana/HyperonProduction/Alg/MeandEdX.h"
 #include "ubana/HyperonProduction/Alg/ThreePlaneMeandEdX.h"
-#include "ubana/HyperonProduction/Alg/Good_Reco.h"
-#include "ubana/HyperonProduction/Alg/Position_To_Wire.h"
+#include "ubana/HyperonProduction/Alg/ConnectednessHelper.h"
 
 //PID components
 #include "ubana/HyperonProduction/Alg/LLR_PID.h"
@@ -213,6 +204,8 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
       std::vector<SimParticle> fSigmaZeroDecayPhoton; //photon produced by Sigma zero decay
       std::vector<SimParticle> fSigmaZeroDecayLambda;	//lambda produced by Sigma zero decay
 
+      std::vector<SimParticle> fKaonDecay; //hyperon decay products
+
       double fDecayOpeningAngle; //opening angle between hyperon decay products
       double fLeptonPionAngle; //openining angle between lepton and pion
       double fLeptonNucleonAngle; //opening angle between lepton and nucleon
@@ -226,6 +219,7 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
       std::vector<int>daughter_IDs; //ids of semistable hyperon decay products
       std::vector<int>Sigma0_daughter_IDs; //ids of sigma0 decay products
       std::vector<int>primary_IDs; //ids of particles produced at primary vertex
+      std::vector<int>Kaon_daughter_IDs; //ids of sigma0 decay products
 
       //create map between particles and their ID's
       std::map<int,art::Ptr<simb::MCParticle>> partByID;
@@ -252,6 +246,28 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
       std::vector<RecoParticle> fTrackPrimaryDaughters;
       std::vector<RecoParticle> fShowerPrimaryDaughters;
       int fMuonIndex=-1; //index of muon candidate in fTrackPrimaryDaughters , -1 if no muon candidate found
+
+      ////////////////////////////
+      //   Connectedness test   //
+      ////////////////////////////
+
+      std::vector<std::vector<int>> Conn_SeedIndexes_Plane0;
+      std::vector<std::vector<int>> Conn_OutputIndexes_Plane0;
+      std::vector<std::vector<int>> Conn_OutputSizes_Plane0;
+      std::vector<std::vector<int>> Conn_SeedChannels_Plane0;
+      std::vector<std::vector<int>> Conn_SeedTicks_Plane0;
+
+      std::vector<std::vector<int>> Conn_SeedIndexes_Plane1;
+      std::vector<std::vector<int>> Conn_OutputIndexes_Plane1;
+      std::vector<std::vector<int>> Conn_OutputSizes_Plane1;
+      std::vector<std::vector<int>> Conn_SeedChannels_Plane1;
+      std::vector<std::vector<int>> Conn_SeedTicks_Plane1;
+
+      std::vector<std::vector<int>> Conn_SeedIndexes_Plane2;
+      std::vector<std::vector<int>> Conn_OutputIndexes_Plane2;
+      std::vector<std::vector<int>> Conn_OutputSizes_Plane2;
+      std::vector<std::vector<int>> Conn_SeedChannels_Plane2;
+      std::vector<std::vector<int>> Conn_SeedTicks_Plane2;
 
       ///////////////////////////
       //  Truth Matching info  //
@@ -344,6 +360,7 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
       std::string fMetadataLabel;
       std::string fShowerHitAssnLabel;
       std::string fPFPSpacePointAssnLabel;
+      std::string fWireLabel;
 
 
       //POT module label
@@ -382,9 +399,7 @@ class hyperon::HyperonSelection : public art::EDAnalyzer {
       searchingfornues::LLRPID llr_pid_calculator;
       searchingfornues::ProtonMuonLookUpParameters protonmuon_parameters;
 
-      //vertex fitter
-      trkf::Geometric3DVertexFitter * fitter;
-
+      ConnectednessHelper Conn_Helper;
 
 
 };
@@ -408,9 +423,6 @@ bool hyperon::HyperonSelection::PerformSelection(){
 
    }
 
-   if(fIsSignal) std::cout << "Selected Signal" << std::endl;
-
-
    return true;
 
 }
@@ -423,7 +435,8 @@ bool hyperon::HyperonSelection::PerformSelection(){
 
 
 hyperon::HyperonSelection::HyperonSelection(fhicl::ParameterSet const& p)
-   : EDAnalyzer{p}   // ,
+   : EDAnalyzer{p},
+   Conn_Helper(p.get<bool>("DrawConnectedness",false))   // ,
    // More initializers here.
 {
 
@@ -445,6 +458,7 @@ hyperon::HyperonSelection::HyperonSelection(fhicl::ParameterSet const& p)
    fShowerHitAssnLabel = p.get<std::string>("ShowerHitAssnLabel");
    fPFPSpacePointAssnLabel = p.get<std::string>("PFPSpacePointAssnLabel");
    fMetadataLabel = p.get<std::string>("MetadataLabel");
+   fWireLabel = p.get<std::string>("WireLabel");
 
    //POT module label
    fPOTSummaryLabel = p.get<std::string>("POTSummaryLabel");
@@ -486,13 +500,6 @@ hyperon::HyperonSelection::HyperonSelection(fhicl::ParameterSet const& p)
    llr_pid_calculator.set_dedx_binning(2, protonmuon_parameters.dedx_edges_pl_2);
    llr_pid_calculator.set_par_binning(2, protonmuon_parameters.parameters_edges_pl_2);
    llr_pid_calculator.set_lookup_tables(2, protonmuon_parameters.dedx_pdf_pl_2);
-
-   //setup vertex algo for vertex fitter
-   fhicl::Table<trkf::Geometric3DVertexFitter::Config> options(p.get<fhicl::ParameterSet>("options"));
-   fhicl::Table<trkf::TrackStatePropagator::Config> propagator(p.get<fhicl::ParameterSet>("propagator"));
-   fitter = new trkf::Geometric3DVertexFitter(options, propagator);
-
-
 
 }
 
@@ -556,6 +563,8 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
    fLeptonPionAngle=-1; //openining angle between lepton and pion
    fLeptonNucleonAngle=-1; //opening angle between lepton and nucleon
 
+   fKaonDecay.clear();
+
    ///////////////
    // Reco Info //
    ///////////////
@@ -578,6 +587,27 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
    fTrueDecayProtonIndex=-1;
    fTrueDecayPionIndex=-1;
 
+   ////////////////////////////
+   //   Connectedness test   //
+   ////////////////////////////
+
+   Conn_SeedIndexes_Plane0.clear();
+   Conn_OutputIndexes_Plane0.clear();
+   Conn_OutputSizes_Plane0.clear();
+   Conn_SeedChannels_Plane0.clear();
+   Conn_SeedTicks_Plane0.clear();
+
+   Conn_SeedIndexes_Plane1.clear();
+   Conn_OutputIndexes_Plane1.clear();
+   Conn_OutputSizes_Plane1.clear();
+   Conn_SeedChannels_Plane1.clear();
+   Conn_SeedTicks_Plane1.clear();
+
+   Conn_SeedIndexes_Plane2.clear();
+   Conn_OutputIndexes_Plane2.clear();
+   Conn_OutputSizes_Plane2.clear();
+   Conn_SeedChannels_Plane2.clear();
+   Conn_SeedTicks_Plane2.clear();
 
    /////////////////////////
    // Event ID information /
@@ -599,18 +629,9 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
       art::Handle<std::vector<simb::MCTruth>> mctruthListHandle;
       std::vector<art::Ptr<simb::MCTruth> > mcTrVect;
 
-
-
-      if(e.getByLabel(fGenieGenModuleLabel,mctruthListHandle)){
-
-         art::fill_ptr_vector(mcTrVect,mctruthListHandle);
-
-      }
-
-
+      if(e.getByLabel(fGenieGenModuleLabel,mctruthListHandle)) art::fill_ptr_vector(mcTrVect,mctruthListHandle);    
 
       if(!mcTrVect.size()) {
-         std::cout << "EMPTY EVENT" << std::endl;
          FinishEvent();
          return;
       }
@@ -625,12 +646,11 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
       mode = Nu.Mode();
       ccnc = Nu.CCNC();
 
-
       if(ccnc == 0) fCCNC = "CC";
       else fCCNC = "NC";
 
-      //NOTE: Hyperon events produced in GENIE use mode == 0
-      //NuWro uses 1095 
+      // NOTE: Hyperon events produced in GENIE use mode == 0
+      // NuWro uses 1095 
       if(mode == 0) fMode = "QEL";
       else if(mode == 1) fMode = "RES";
       else if(mode == 2) fMode = "DIS";
@@ -638,31 +658,22 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
       else if(mode == 5) fMode = "ElectronScattering";
       else if(mode == 10) fMode = "MEC";
       else if(mode == 11) fMode = "Diffractive";
-      //if hyperon production was used in the event generator, set the weight to 1/enrichment
-      else if(mode == 1095) { fMode = "HYP"; fWeight *= 1.0/fHyperonEnrichment; }
+      else if(mode == 1095) { fMode = "HYP";  fWeight *= 1.0/fHyperonEnrichment; }
       else fMode = "Other";	
 
       for(int k_particles=0;k_particles<MCtruth->NParticles();k_particles++){
 
          simb::MCParticle Part = MCtruth->GetParticle(k_particles);
 
-
-         //Get list of particles from true PV, if lepton or neutrino set PV
+         // Get list of particles from true PV, if lepton or neutrino set PV
          if((isLepton(Part.PdgCode()) || isNeutrino(Part.PdgCode())) && Part.StatusCode() == 1){ 
-
-
-            fTruePrimaryVertex.SetXYZ( Part.Vx() , Part.Vy() , Part.Vz() );
+            fTruePrimaryVertex.SetXYZ(Part.Vx(),Part.Vy(),Part.Vz());
             fInActiveTPC=inActiveTPC(fTruePrimaryVertex);
-
-
          }//if lepton
 
-
-         //neutrino in the interaction
+         // Record info about the neutrino
          if(isNeutrino(Part.PdgCode()) && Part.StatusCode() == 0){
-
             SimParticle P;
-
             P.SetKinematics(Part.Momentum(),Part.Mass());				
             P.SetPositions(Part.Position(),Part.EndPosition());	
             P.PDG = Part.PdgCode();
@@ -670,11 +681,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
             fNeutrino.push_back( P );
          }
 
-
-
       }//k_particles (particles associated with MC truth)
-
-      //std::cout << "PV=" << fTruePrimaryVertex.X() << " " << fTruePrimaryVertex.Y()  << " " << fTruePrimaryVertex.Z() << std::endl;
 
    } // !fIsData
 
@@ -704,6 +711,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
       //id nubmers of Sigma Zero decay products
       Sigma0_daughter_IDs.clear();
 
+      Kaon_daughter_IDs.clear();
 
       //map between particle ID numbers (g4p->TrackId()) and pointers to simb::MCParticle
       partByID.clear();
@@ -743,7 +751,6 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
                      for(int i_d=0;i_d<g4p->NumberDaughters();i_d++){
 
-
                         daughter_IDs.push_back( g4p->Daughter(i_d) );
 
                      }
@@ -755,7 +762,14 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
                   }
                }		
 
+            }
+            else if(isKaon(g4p->PdgCode()) && g4p->EndProcess() == "Decay"){
 
+               for(int i_d=0;i_d<g4p->NumberDaughters();i_d++){
+
+                  Kaon_daughter_IDs.push_back( g4p->Daughter(i_d) );
+
+               }
 
 
             }
@@ -766,8 +780,6 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
          part_and_id = std::make_pair(g4p->TrackId() , g4p);
 
          partByID.insert( part_and_id );
-
-
 
       }
 
@@ -809,6 +821,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
          //pion produced at primary vertex
          if( isPion(part->PdgCode()) ) fPrimaryPion.push_back( P );
 
+         //kaon from primary vertex
          if( isKaon(part->PdgCode()) ) fPrimaryKaon.push_back( P );
 
 
@@ -844,6 +857,31 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
          }
 
          daughter_IDs = daughter_IDs_tmp;
+
+      }
+
+
+      if(fPrimaryKaon.size() == 1){
+
+         std::vector<int> Kaon_daughter_IDs_tmp;
+
+         for(size_t i_d=0;i_d<Kaon_daughter_IDs.size();i_d++){
+
+            //geant does not always keep all particles it simulates, first check daughter is actually in list of IDs
+            if(partByID.find(Kaon_daughter_IDs[i_d]) == partByID.end()) continue;
+
+            art::Ptr<simb::MCParticle> part = partByID[Kaon_daughter_IDs[i_d]];
+
+            if(part->PdgCode() > 10000) continue; //anything with very large pdg code is a nucleus, skip these
+
+            if(part->Position().X() == fPrimaryKaon.at(0).EndX && part->Position().Y() == fPrimaryKaon.at(0).EndY && part->Position().Z() == fPrimaryKaon.at(0).EndZ){
+
+               Kaon_daughter_IDs_tmp.push_back(Kaon_daughter_IDs.at(i_d));
+
+            }
+         }
+
+         Kaon_daughter_IDs = Kaon_daughter_IDs_tmp;
 
       }
 
@@ -971,12 +1009,41 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
       }
 
+
+      // Add Kaon daughters
+
+      //now go through list of hyperon daughters, get info about the decay
+      for(size_t i_d=0;i_d<Kaon_daughter_IDs.size();i_d++){
+         //geant does not always keep all particles it simulates, first check daughter is actually in list of IDs
+         if(partByID.find(Kaon_daughter_IDs[i_d]) == partByID.end()) continue;
+
+         art::Ptr<simb::MCParticle> part = partByID[Kaon_daughter_IDs[i_d]];
+
+         if(part->PdgCode() > 10000) continue; //anything with very large pdg code is a nucleus, skip these
+
+         SimParticle KaonDecay = MakeSimParticle(*part);
+         KaonDecay.Origin = getOrigin(part->TrackId());
+         fKaonDecay.push_back( KaonDecay );
+
+      }
+
+
    }//if !IsData
 
 
    ///////////////////////////////////////////////////////////////////////////
    //Get Reconstructed Info
    //////////////////////////////////////////////////////////////////////////
+
+   //genie uses QEL for hyperon events, NuWro uses HYP
+   if(fNeutrino.size() == 1 && fInActiveTPC && fIsLambdaCharged && fNeutrino.at(0).PDG == -14 && ( fMode == "QEL" || fMode == "HYP")){ 
+
+      //add kinematic thresholds
+      if(fDecay.at(0).PDG == 2212 && fDecay.at(0).ModMomentum > fDecayProtonThreshold && fDecay.at(1).PDG == -211 && fDecay.at(1).ModMomentum > fDecayPionThreshold) fIsSignal = true;
+      else if(fDecay.at(1).PDG == 2212 && fDecay.at(1).ModMomentum > fDecayProtonThreshold && fDecay.at(0).PDG == -211 && fDecay.at(0).ModMomentum > fDecayPionThreshold) fIsSignal = true;
+      else fIsSignal = false;
+
+   } 
 
    if(fDebug) std::cout << "Getting Reco'd Particles" << std::endl;
 
@@ -1098,6 +1165,9 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
    }
 
 
+   std::vector<TVector3> TrackStarts;
+
+
    //go through rest of particles, get lots of useful info!
    for(const art::Ptr<recob::PFParticle> &pfp : pfparticleVect){
 
@@ -1144,7 +1214,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
             //sets track length/position related variables in ThisPrimaryDaughter
             SetTrackVariables(ThisPrimaryDaughter , trk);
-
+            TrackStarts.push_back(TVector3(trk->Start().X(),trk->Start().Y(),trk->Start().Z())); 
 
             /////////////////////
             //   Truth match   //
@@ -1220,7 +1290,7 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
                   P.Origin = getOrigin(matchedParticle->TrackId());
 
                   ThisPrimaryDaughter.HasTruth = true;
-                  ThisPrimaryDaughter.TrackEdepPurity = maxe/tote;
+                  ThisPrimaryDaughter.TrackTruthPurity = maxe/tote;
 
                   ThisPrimaryDaughter.TrackTruePDG = P.PDG;
                   ThisPrimaryDaughter.TrackTrueE = P.E;
@@ -1354,8 +1424,6 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
 
 
 
-
-
       if(ThisPrimaryDaughter.PDG == 13 && pfpTracks.size() == 1){
 
          fTrackPrimaryDaughters.push_back( ThisPrimaryDaughter );
@@ -1376,13 +1444,66 @@ void hyperon::HyperonSelection::analyze(art::Event const& e)
    for(size_t i_tr=0;i_tr<fTrackPrimaryDaughters.size();i_tr++) fTrackPrimaryDaughters[i_tr].Index = i_tr;
    for(size_t i_sh=0;i_sh<fShowerPrimaryDaughters.size();i_sh++) fShowerPrimaryDaughters[i_sh].Index = i_sh;
 
+   // Run connectedness test
+
+   art::Handle<std::vector<recob::Wire>> wireHandle;
+   std::vector<art::Ptr<recob::Wire>> wireVect;
+
+   // Fill Wire vector
+   if(e.getByLabel(fWireLabel,wireHandle)) art::fill_ptr_vector(wireVect,wireHandle);
+   else
+      std::cout << "Wire handle not setup" << std::endl;
+
+   if(fTrackPrimaryDaughters.size() >= 3){
+
+      Conn_Helper.LoadWireActivity(wireVect);
+
+      Conn_Helper.AddStartPositions(TrackStarts);
+
+      std::vector<ConnectednessOutcome> Outcomes = Conn_Helper.RunTest();
+
+      for(size_t i=0;i<Outcomes.size();i++){
+
+         ConnectednessOutcome Outcome = Outcomes.at(i);
+
+         std::vector<int> this_SeedIndexes = Outcome.SeedIndexes;
+         std::vector<int> this_OutputIndexes = Outcome.OutputIndexes;
+         std::vector<int> this_OutputSizes = Outcome.OutputSizes;
+         std::vector<int> this_SeedChannels = Outcome.SeedChannels;
+         std::vector<int> this_SeedTicks = Outcome.SeedTicks;
+
+         if(Outcome.Plane == 0){
+            Conn_SeedIndexes_Plane0.push_back(this_SeedIndexes);
+            Conn_OutputIndexes_Plane0.push_back(this_OutputIndexes);
+            Conn_OutputSizes_Plane0.push_back(this_OutputSizes);
+            Conn_SeedChannels_Plane0.push_back(this_SeedChannels);
+            Conn_SeedTicks_Plane0.push_back(this_SeedTicks);
+         } 
+         else if(Outcome.Plane == 1){
+            Conn_SeedIndexes_Plane1.push_back(this_SeedIndexes);
+            Conn_OutputIndexes_Plane1.push_back(this_OutputIndexes);
+            Conn_OutputSizes_Plane1.push_back(this_OutputSizes);
+            Conn_SeedChannels_Plane1.push_back(this_SeedChannels);
+            Conn_SeedTicks_Plane1.push_back(this_SeedTicks);
+         } 
+         else if(Outcome.Plane == 2){
+            Conn_SeedIndexes_Plane2.push_back(this_SeedIndexes);
+            Conn_OutputIndexes_Plane2.push_back(this_OutputIndexes);
+            Conn_OutputSizes_Plane2.push_back(this_OutputSizes);
+            Conn_SeedChannels_Plane2.push_back(this_SeedChannels);
+            Conn_SeedTicks_Plane2.push_back(this_SeedTicks);
+         } 
+
+
+      }
+
+
+   }
 
    //store truth matching info for muon, decay proton and pion
    StoreTrackTruth();
 
    if(fPrint) PrintInfo();
-
-   //fSelectedEvent = PerformSelection();
 
    FinishEvent();
 
@@ -1447,24 +1568,26 @@ void hyperon::HyperonSelection::PrintInfo(){
 
 int hyperon::HyperonSelection::getOrigin(int idnum){
 
-
    //search list of primaries
    for(size_t i_p=0;i_p<primary_IDs.size();i_p++){
-
-      if(primary_IDs.at(i_p)	== idnum){ 
+      if(primary_IDs.at(i_p) == idnum){ 
          return 1;
       }
-
    }
 
    //search list of hyperon decay products	
    for(size_t i_d=0;i_d<daughter_IDs.size();i_d++){
-
-      if(daughter_IDs.at(i_d)	== idnum){ 
+      if(daughter_IDs.at(i_d) == idnum){ 
          return 2;
       }
    }
 
+   //search list of kaon decay products	
+   for(size_t i_d=0;i_d<Kaon_daughter_IDs.size();i_d++){
+      if(Kaon_daughter_IDs.at(i_d) == idnum){ 
+         return 4;
+      }
+   }
 
    return 3;
 
@@ -1712,6 +1835,7 @@ void hyperon::HyperonSelection::beginJob(){
    fOutputTree->Branch("SigmaZeroDecayPhoton","vector<SimParticle>",&fSigmaZeroDecayPhoton);
    fOutputTree->Branch("SigmaZeroDecayLambda","vector<SimParticle>",&fSigmaZeroDecayLambda);
 
+   fOutputTree->Branch("KaonDecay","vector<SimParticle>",&fKaonDecay);
 
    //angles between particles involved
 
@@ -1735,9 +1859,27 @@ void hyperon::HyperonSelection::beginJob(){
    fOutputTree->Branch("TrueDecayProtonIndex",&fTrueDecayProtonIndex);
    fOutputTree->Branch("TrueDecayPionIndex",&fTrueDecayPionIndex);
 
+   ////////////////////////////
+   //   Connectedness test   //
+   ////////////////////////////
 
+   fOutputTree->Branch("ConnSeedIndexes_Plane0",&Conn_SeedIndexes_Plane0);
+   fOutputTree->Branch("ConnOutputIndexes_Plane0",&Conn_OutputIndexes_Plane0);
+   fOutputTree->Branch("ConnOutputSizes_Plane0",&Conn_OutputSizes_Plane0);
+   fOutputTree->Branch("ConnSeedChannels_Plane0",&Conn_SeedChannels_Plane0);
+   fOutputTree->Branch("ConnSeedTicks_Plane0",&Conn_SeedTicks_Plane0);
 
+   fOutputTree->Branch("ConnSeedIndexes_Plane1",&Conn_SeedIndexes_Plane1);
+   fOutputTree->Branch("ConnOutputIndexes_Plane1",&Conn_OutputIndexes_Plane1);
+   fOutputTree->Branch("ConnOutputSizes_Plane1",&Conn_OutputSizes_Plane1);
+   fOutputTree->Branch("ConnSeedChannels_Plane1",&Conn_SeedChannels_Plane1);
+   fOutputTree->Branch("ConnSeedTicks_Plane1",&Conn_SeedTicks_Plane1);
 
+   fOutputTree->Branch("ConnSeedIndexes_Plane2",&Conn_SeedIndexes_Plane2);
+   fOutputTree->Branch("ConnOutputIndexes_Plane2",&Conn_OutputIndexes_Plane2);
+   fOutputTree->Branch("ConnOutputSizes_Plane2",&Conn_OutputSizes_Plane2);
+   fOutputTree->Branch("ConnSeedChannels_Plane2",&Conn_SeedChannels_Plane2);
+   fOutputTree->Branch("ConnSeedTicks_Plane2",&Conn_SeedTicks_Plane2);
 
    //////////////////////////////////////////
    //            Metadata Tree		//

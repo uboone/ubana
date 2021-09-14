@@ -16,12 +16,10 @@ TFileService: { fileName: "HyperonTrees.root" }
 FileCatalogMetadata: @local::art_file_catalog_mc
 }
 
-
 physics:
 {
-analyzers: { 
-ana: @local::analyseEvents
-}
+analyzers: { ana: @local::analyseEvents }
+
 path0 : [ ana ]
 end_paths : [ path0 ] 
 }
@@ -30,7 +28,6 @@ services.DetectorClocksService.InheritClockConfig: false
 services.DetectorClocksService.TriggerOffsetTPC: -400
 services.DetectorPropertiesService.NumberTimeSamples: 6400
 services.DetectorPropertiesService.ReadOutWindowSize: 6400
-
 services.SpaceCharge.EnableCalSpatialSCE: true #enable bkwd (reco -> true)
 services.SpaceCharge.EnableCalEfieldSCE: true
 services.SpaceCharge.EnableSimSpatialSCE: true # disable fwd (true -> reco)
@@ -39,4 +36,3 @@ services.SpaceCharge.RepresentationType: "Voxelized_TH3"
 services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
 
 physics.analyzers.ana.IsData: false
-

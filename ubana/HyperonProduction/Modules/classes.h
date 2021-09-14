@@ -1,4 +1,4 @@
 #include "TVector3.h"
 #include "TLorentzVector.h"
-#include "ubana/HyperonProduction/util/SimParticle.h"
-#include "ubana/HyperonProduction/util/RecoParticle.h"
+#include "ubana/HyperonProduction/Objects/SimParticle.h"
+#include "ubana/HyperonProduction/Objects/RecoParticle.h"

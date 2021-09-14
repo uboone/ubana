@@ -3,80 +3,49 @@ BEGIN_PROLOG
 analyseEvents:
 
 {
-module_type: HyperonSelection
+module_type: HyperonNtuples
 
-#Module Labels
 GenieGenModuleLabel: "generator"
-GeantLabel: "largeant"
-PFParticleLabel: "pandora"
-TrackLabel: "pandora"
-VertexLabel: "pandora"
-ShowerLabel: "pandora"
-MetadataLabel: "pandora" 
-PIDLabel: "pandorapid"
-CaloLabel: "pandoracali"
-HitLabel: "gaushit"
-SpacePointLabel: "pandora"
+
+POTSummaryLabel: "generator"
+Debug: false
+
+Generator: {
+       GeneratorModuleLabel: "generator"
+       }
+
+
+Geant4: {
+       G4ModuleLabel: "largeant"
+       NeutronScatterProtonThresh: 0.15
+       NeutronScatterPionThresh: 0.05
+       DecayProtonThresh: 0.0
+       DecayPionThresh: 0.0
+     }
+
+Reco: {
+G4ModuleLabel: "largeant"
+PFParticleModuleLabel: "pandora"
+TrackModuleLabel: "pandora"
+VertexModuleLabel: "pandora"
+ShowerModuleLabel: "pandora"
+MetadataModuleLabel: "pandora" 
+PIDModuleLabel: "pandorapid"
+CaloModuleLabel: "pandoracali"
+HitModuleLabel: "gaushit"
 TrackHitAssnLabel: "pandora" 
 ShowerHitAssnLabel: "pandora"
 HitTruthAssnLabel: "gaushitTruthMatch"
-PFPSpacePointAssnLabel: "pandora"
+}
 
-POTSummaryLabel: "generator"
+WireLabel: "butcher"
+DrawConnectedness: false
 
-#Selection Config
-
-# Momentum thresholds for lambda decay protons/pions
-DecayProtonThreshold: 0.0
-DecayPionThreshold: 0.0
-
-# Minimum number of daughters of the primary
-MinDaughters: 2
-
-# Minimum number of tracks to search for
-MinDaughterTracks: 3
-
-# Maximum number of showerlike daughters permitted
-MaxDaughterShowers: 0
-
-# Minimum track/shower score for a pfp to be classified as tracklike
-TrackScore: 0.5
-
-#Minimum LLR PID Score for Muon ID
-MuonPIDScore: -1.0
-
-#Minimum Length for Muon ID
-MinimumMuonLength: 15
-
-#Track Length Cut (Not applied to muon candidate)
-SecondaryTrackLengthCut: 65
-TertiaryTrackLengthCut: 35
-
-# Misc
-Print: false
-PrintPdg: 3122
-PrintChargedLambda: false
-Debug: false
-
-HyperonEnrichment: 1.0
-
-#Vertex Fitter Config
-    options: {
-      debugLevel: 0
-      sipCut: 3.0
-    }
-    propagator: {
-      minStep: 1.0
-      maxElossFrac: 0.1
-      maxNit: 10
-      tcut: 10.
-      wrongDirDistTolerance: 0.01
-      propPinvErr: false
-    }
-
-
+#WeightLabel: "eventweightreint"
 
 }
+
+
 
 END_PROLOG
 
