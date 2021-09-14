@@ -301,8 +301,8 @@ bool SubModuleG4Truth::FindNeutronScatter(){
 
          double P = sqrt(part2->Px()*part2->Px() + part2->Py()*part2->Py() + part2->Pz()*part2->Pz());
 
-         if(part2->PdgCode() == 2212 && P > 0.15) nProtons++; 
-         if(abs(part2->PdgCode()) == 211 && P > 0.05) nPions++; 
+         if(part2->PdgCode() == 2212 && P > NeutronScatterProtonThresh) nProtons++; 
+         if(abs(part2->PdgCode()) == 211 && P > NeutronScatterPionThresh) nPions++; 
 
       }
 
