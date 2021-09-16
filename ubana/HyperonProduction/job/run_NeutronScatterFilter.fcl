@@ -1,0 +1,33 @@
+#include "services_microboone.fcl"
+#include "neutronFilterConfig.fcl"
+
+process_name: NeutronScatterFilter
+
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+}
+
+physics:
+{
+  analyzers: {}
+  filters: { NeutronScatterFilter: @local::filterEvents }
+        
+  filter: [ NeutronScatterFilter ]
+  stream: [ out1 ]
+  trigger_paths: [ filter ]
+  end_paths: [ stream ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "%ifb_%tc_cthorpe-neutronscatterfilter.root"
+    dataTier:    "generated"
+    compressionLevel: 1
+    SelectEvents: [ filter ]
+  }
+}

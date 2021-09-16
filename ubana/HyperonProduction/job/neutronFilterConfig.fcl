@@ -1,0 +1,19 @@
+BEGIN_PROLOG
+
+filterEvents:
+
+{
+module_type: NeutronScatterFilter
+Debug: false
+
+Geant4: {
+G4ModuleLabel: "largeant"
+NeutronScatterProtonThresh: 0.15
+NeutronScatterPionThresh: 0.05
+DecayProtonThresh: 0.0
+DecayPionThresh: 0.0
+}
+
+}
+
+END_PROLOG
