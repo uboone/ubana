@@ -4,24 +4,20 @@ analyseEvents:
 
 {
 module_type: HyperonNtuples
-
-GenieGenModuleLabel: "generator"
-
-POTSummaryLabel: "generator"
 Debug: false
 
 Generator: {
-       GeneratorModuleLabel: "generator"
-       }
+GeneratorModuleLabel: "generator"
+}
 
 
 Geant4: {
-       G4ModuleLabel: "largeant"
-       NeutronScatterProtonThresh: 0.15
-       NeutronScatterPionThresh: 0.05
-       DecayProtonThresh: 0.0
-       DecayPionThresh: 0.0
-     }
+G4ModuleLabel: "largeant"
+NeutronScatterProtonThresh: 0.15
+NeutronScatterPionThresh: 0.05
+DecayProtonThresh: 0.0
+DecayPionThresh: 0.0
+}
 
 Reco: {
 G4ModuleLabel: "largeant"
@@ -41,15 +37,10 @@ HitTruthAssnLabel: "gaushitTruthMatch"
 WireLabel: "butcher"
 DrawConnectedness: false
 
-#WeightLabel: "eventweightreint"
+# WeightLabel: "eventweightreint"
+
+POTSummaryLabel: "generator"
 
 }
 
-
-
 END_PROLOG
-
-
-
-
-

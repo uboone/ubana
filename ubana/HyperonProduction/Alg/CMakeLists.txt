@@ -10,6 +10,11 @@ art_make(
       art_Utilities canvas
       cetlib cetlib_except
       uboonecode_uboone_EventConnectedness
+      ${ART_FRAMEWORK_CORE}
+      ${ART_FRAMEWORK_PRINCIPAL}
+      ${ART_FRAMEWORK_SERVICES_REGISTRY}
+      ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+      ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 
       DICT_LIBRARIES
       ${ROOT_BASIC_LIB_LIST}

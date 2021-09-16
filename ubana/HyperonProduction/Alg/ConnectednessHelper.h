@@ -1,9 +1,18 @@
 #ifndef _ConnectednessHelper_h_
 #define _ConnectednessHelper_h_
 
-#include "lardataobj/RecoBase/Wire.h"
+
+#include "art/Framework/Principal/Event.h"
+#include "art/Framework/Principal/Handle.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindMany.h"
+#include "canvas/Utilities/InputTag.h"
+#include "fhiclcpp/ParameterSet.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCNeutrino.h"
+#include "cetlib_except/exception.h"
+
+#include "lardataobj/RecoBase/Wire.h"
 
 #include "ubana/HyperonProduction/Connectedness/Alg/ClusterBuilder.h"
 #include "Position_To_Wire.h"
@@ -63,7 +72,9 @@ struct Wiremap {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct ConnectednessOutcome {
+// Result performing the test on a single set of three tracks
+
+struct CTSingleOutcome {
 
 int Plane;
 
@@ -78,6 +89,33 @@ std::vector<int> SeedTicks;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// List of results from all the combinations of three tracks in event
+// for all three planes
+
+struct CTOutcome {
+
+      std::vector<std::vector<int>> SeedIndexes_Plane0;
+      std::vector<std::vector<int>> OutputIndexes_Plane0;
+      std::vector<std::vector<int>> OutputSizes_Plane0;
+      std::vector<std::vector<int>> SeedChannels_Plane0;
+      std::vector<std::vector<int>> SeedTicks_Plane0;
+
+      std::vector<std::vector<int>> SeedIndexes_Plane1;
+      std::vector<std::vector<int>> OutputIndexes_Plane1;
+      std::vector<std::vector<int>> OutputSizes_Plane1;
+      std::vector<std::vector<int>> SeedChannels_Plane1;
+      std::vector<std::vector<int>> SeedTicks_Plane1;
+
+      std::vector<std::vector<int>> SeedIndexes_Plane2;
+      std::vector<std::vector<int>> OutputIndexes_Plane2;
+      std::vector<std::vector<int>> OutputSizes_Plane2;
+      std::vector<std::vector<int>> SeedChannels_Plane2;
+      std::vector<std::vector<int>> SeedTicks_Plane2;
+
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class ConnectednessHelper {
 
    public:
@@ -86,11 +124,15 @@ class ConnectednessHelper {
       void LoadWireActivity(std::vector<art::Ptr<recob::Wire>> wires);
       void AddStartPositions(std::vector<TVector3> positions);
   
-      std::vector<ConnectednessOutcome> RunTest();
+      std::vector<CTSingleOutcome> RunTest();
 
-      std::vector<ConnectednessOutcome> RunClustering(std::vector<int> indexes);        
+      std::vector<CTSingleOutcome> RunClustering(std::vector<int> indexes);        
+
+      CTOutcome PrepareAndTestEvent(art::Event const& e,std::string wirelabel,std::vector<TVector3> trackstarts);
 
    private: 
+
+      
 
       Connectedness::ClusterBuilder C_Plane0;
       Connectedness::ClusterBuilder C_Plane1;

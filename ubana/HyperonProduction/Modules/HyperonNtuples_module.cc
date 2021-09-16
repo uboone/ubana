@@ -85,7 +85,7 @@ class hyperon::HyperonNtuples : public art::EDAnalyzer {
 
       // Output trees
       TTree * OutputTree;
-      TTree * fMetaTree;
+      TTree * MetaTree;
 
       // Basic event info
       unsigned int fEventID;
@@ -136,27 +136,23 @@ class hyperon::HyperonNtuples : public art::EDAnalyzer {
       //   Connectedness test   //
       ////////////////////////////
 
-      std::vector<std::vector<int>> Conn_SeedIndexes_Plane0;
-      std::vector<std::vector<int>> Conn_OutputIndexes_Plane0;
-      std::vector<std::vector<int>> Conn_OutputSizes_Plane0;
-      std::vector<std::vector<int>> Conn_SeedChannels_Plane0;
-      std::vector<std::vector<int>> Conn_SeedTicks_Plane0;
+      std::vector<std::vector<int>> t_Conn_SeedIndexes_Plane0;
+      std::vector<std::vector<int>> t_Conn_OutputIndexes_Plane0;
+      std::vector<std::vector<int>> t_Conn_OutputSizes_Plane0;
+      std::vector<std::vector<int>> t_Conn_SeedChannels_Plane0;
+      std::vector<std::vector<int>> t_Conn_SeedTicks_Plane0;
 
-      std::vector<std::vector<int>> Conn_SeedIndexes_Plane1;
-      std::vector<std::vector<int>> Conn_OutputIndexes_Plane1;
-      std::vector<std::vector<int>> Conn_OutputSizes_Plane1;
-      std::vector<std::vector<int>> Conn_SeedChannels_Plane1;
-      std::vector<std::vector<int>> Conn_SeedTicks_Plane1;
+      std::vector<std::vector<int>> t_Conn_SeedIndexes_Plane1;
+      std::vector<std::vector<int>> t_Conn_OutputIndexes_Plane1;
+      std::vector<std::vector<int>> t_Conn_OutputSizes_Plane1;
+      std::vector<std::vector<int>> t_Conn_SeedChannels_Plane1;
+      std::vector<std::vector<int>> t_Conn_SeedTicks_Plane1;
 
-      std::vector<std::vector<int>> Conn_SeedIndexes_Plane2;
-      std::vector<std::vector<int>> Conn_OutputIndexes_Plane2;
-      std::vector<std::vector<int>> Conn_OutputSizes_Plane2;
-      std::vector<std::vector<int>> Conn_SeedChannels_Plane2;
-      std::vector<std::vector<int>> Conn_SeedTicks_Plane2;
-
-      int t_TrueMuonIndex = -1;
-      int t_TrueDecayProtonIndex = -1;
-      int t_TrueDecayPionIndex = -1;
+      std::vector<std::vector<int>> t_Conn_SeedIndexes_Plane2;
+      std::vector<std::vector<int>> t_Conn_OutputIndexes_Plane2;
+      std::vector<std::vector<int>> t_Conn_OutputSizes_Plane2;
+      std::vector<std::vector<int>> t_Conn_SeedChannels_Plane2;
+      std::vector<std::vector<int>> t_Conn_SeedTicks_Plane2;
 
       std::vector<std::string> t_SysDials;
       std::vector<std::vector<double>> t_SysWeights;
@@ -170,7 +166,7 @@ class hyperon::HyperonNtuples : public art::EDAnalyzer {
       int fNSignal;      
       int fNGoodReco;
 
-      double fPOT=0; //total POT of the sample
+      double fPOT = 0; //total POT of the sample
 
       //////////////////////////
       //   FHICL PARAMETERS   //
@@ -179,15 +175,15 @@ class hyperon::HyperonNtuples : public art::EDAnalyzer {
       fhicl::ParameterSet f_Generator;
       fhicl::ParameterSet f_G4;
       fhicl::ParameterSet f_Reco;
+      std::string fWireLabel;
 
       std::string fWeightLabel;
 
       bool fIsData;
 
-      std::string fWireLabel;
       std::string fPOTSummaryLabel;
 
-      bool fDebug=false;
+      bool fDebug = false;
 
       ///////////////////////
       //      Objects      //
@@ -258,27 +254,23 @@ void hyperon::HyperonNtuples::analyze(art::Event const& e)
 
    t_RecoPrimaryVertex.SetXYZ(-1000,-1000,-1000); //position of reco'd primary vertex
 
-   t_TrueMuonIndex = -1;
-   t_TrueDecayProtonIndex = -1;
-   t_TrueDecayPionIndex = -1;
+   t_Conn_SeedIndexes_Plane0.clear();
+   t_Conn_OutputIndexes_Plane0.clear();
+   t_Conn_OutputSizes_Plane0.clear();
+   t_Conn_SeedChannels_Plane0.clear();
+   t_Conn_SeedTicks_Plane0.clear();
 
-   Conn_SeedIndexes_Plane0.clear();
-   Conn_OutputIndexes_Plane0.clear();
-   Conn_OutputSizes_Plane0.clear();
-   Conn_SeedChannels_Plane0.clear();
-   Conn_SeedTicks_Plane0.clear();
+   t_Conn_SeedIndexes_Plane1.clear();
+   t_Conn_OutputIndexes_Plane1.clear();
+   t_Conn_OutputSizes_Plane1.clear();
+   t_Conn_SeedChannels_Plane1.clear();
+   t_Conn_SeedTicks_Plane1.clear();
 
-   Conn_SeedIndexes_Plane1.clear();
-   Conn_OutputIndexes_Plane1.clear();
-   Conn_OutputSizes_Plane1.clear();
-   Conn_SeedChannels_Plane1.clear();
-   Conn_SeedTicks_Plane1.clear();
-
-   Conn_SeedIndexes_Plane2.clear();
-   Conn_OutputIndexes_Plane2.clear();
-   Conn_OutputSizes_Plane2.clear();
-   Conn_SeedChannels_Plane2.clear();
-   Conn_SeedTicks_Plane2.clear();
+   t_Conn_SeedIndexes_Plane2.clear();
+   t_Conn_OutputIndexes_Plane2.clear();
+   t_Conn_OutputSizes_Plane2.clear();
+   t_Conn_SeedChannels_Plane2.clear();
+   t_Conn_SeedTicks_Plane2.clear();
  
    // General Event Info
 
@@ -353,80 +345,53 @@ void hyperon::HyperonNtuples::analyze(art::Event const& e)
    t_ShowerPrimaryDaughters = RecoD.ShowerPrimaryDaughters;
    t_RecoPrimaryVertex = RecoD.RecoPrimaryVertex;
 
-   // Run connectedness test
+   // Results of connectedness test on different combinations of tracks
 
-   art::Handle<std::vector<recob::Wire>> Handle_Wire;
-   std::vector<art::Ptr<recob::Wire>> Vect_Wire;
+   if(fDebug) std::cout << "Performing Connectedness Tests" << std::endl;
 
-   if(!e.getByLabel(fWireLabel,Handle_Wire)) 
-      throw cet::exception("HyperonNtuples") << "Wire data product not found!" << std::endl;
+   CTOutcome ConnData = Conn_Helper.PrepareAndTestEvent(e,fWireLabel,RecoD.TrackStarts);   
 
-     art::fill_ptr_vector(Vect_Wire,Handle_Wire);
+   t_Conn_SeedIndexes_Plane0 = ConnData.SeedIndexes_Plane0;
+   t_Conn_OutputIndexes_Plane0 = ConnData.OutputIndexes_Plane0;
+   t_Conn_OutputSizes_Plane0 = ConnData.OutputSizes_Plane0;
+   t_Conn_SeedChannels_Plane0 = ConnData.SeedChannels_Plane0;
+   t_Conn_SeedTicks_Plane0 = ConnData.SeedTicks_Plane0;
+   t_Conn_SeedIndexes_Plane1 = ConnData.SeedIndexes_Plane1;
+   t_Conn_OutputIndexes_Plane1 = ConnData.OutputIndexes_Plane1;
+   t_Conn_OutputSizes_Plane1 = ConnData.OutputSizes_Plane1;
+   t_Conn_SeedChannels_Plane1 = ConnData.SeedChannels_Plane1;
+   t_Conn_SeedTicks_Plane1 = ConnData.SeedTicks_Plane1;
+   t_Conn_SeedIndexes_Plane2 = ConnData.SeedIndexes_Plane2;
+   t_Conn_OutputIndexes_Plane2 = ConnData.OutputIndexes_Plane2;
+   t_Conn_OutputSizes_Plane2 = ConnData.OutputSizes_Plane2;
+   t_Conn_SeedChannels_Plane2 = ConnData.SeedChannels_Plane2;
+   t_Conn_SeedTicks_Plane2 = ConnData.SeedTicks_Plane2;
 
-   if(t_TrackPrimaryDaughters.size() >= 3){
-
-      Conn_Helper.LoadWireActivity(Vect_Wire);
-      Conn_Helper.AddStartPositions(RecoD.TrackStarts);
-
-      std::vector<ConnectednessOutcome> Outcomes = Conn_Helper.RunTest();
-
-      for(size_t i=0;i<Outcomes.size();i++){
-
-         ConnectednessOutcome Outcome = Outcomes.at(i);
-
-         std::vector<int> this_SeedIndexes = Outcome.SeedIndexes;
-         std::vector<int> this_OutputIndexes = Outcome.OutputIndexes;
-         std::vector<int> this_OutputSizes = Outcome.OutputSizes;
-         std::vector<int> this_SeedChannels = Outcome.SeedChannels;
-         std::vector<int> this_SeedTicks = Outcome.SeedTicks;
-
-         if(Outcome.Plane == 0){
-            Conn_SeedIndexes_Plane0.push_back(this_SeedIndexes);
-            Conn_OutputIndexes_Plane0.push_back(this_OutputIndexes);
-            Conn_OutputSizes_Plane0.push_back(this_OutputSizes);
-            Conn_SeedChannels_Plane0.push_back(this_SeedChannels);
-            Conn_SeedTicks_Plane0.push_back(this_SeedTicks);
-         } 
-         else if(Outcome.Plane == 1){
-            Conn_SeedIndexes_Plane1.push_back(this_SeedIndexes);
-            Conn_OutputIndexes_Plane1.push_back(this_OutputIndexes);
-            Conn_OutputSizes_Plane1.push_back(this_OutputSizes);
-            Conn_SeedChannels_Plane1.push_back(this_SeedChannels);
-            Conn_SeedTicks_Plane1.push_back(this_SeedTicks);
-         } 
-         else if(Outcome.Plane == 2){
-            Conn_SeedIndexes_Plane2.push_back(this_SeedIndexes);
-            Conn_OutputIndexes_Plane2.push_back(this_OutputIndexes);
-            Conn_OutputSizes_Plane2.push_back(this_OutputSizes);
-            Conn_SeedChannels_Plane2.push_back(this_SeedChannels);
-            Conn_SeedTicks_Plane2.push_back(this_SeedTicks);
-         } 
-      }
-   }
-
+   // Systematics weights if requested
 
    if(fWeightLabel != "None"){
 
-   // Try to get some systematics info
-   art::Handle<std::vector<evwgh::MCEventWeight>> Handle_EventWeight;
-   std::vector<art::Ptr<evwgh::MCEventWeight>> Vect_EventWeight;
+      // Try to get some systematics info
+      art::Handle<std::vector<evwgh::MCEventWeight>> Handle_EventWeight;
+      std::vector<art::Ptr<evwgh::MCEventWeight>> Vect_EventWeight;
 
-   if(!e.getByLabel(fWeightLabel,Handle_EventWeight)) 
-      throw cet::exception("HyperonNtuples") << "No EventWeight Found!" << std::endl;
+      if(!e.getByLabel(fWeightLabel,Handle_EventWeight)) 
+         throw cet::exception("HyperonNtuples") << "No EventWeight Found!" << std::endl;
 
-   art::fill_ptr_vector(Vect_EventWeight,Handle_EventWeight);
+      art::fill_ptr_vector(Vect_EventWeight,Handle_EventWeight);
 
-   if(!Vect_EventWeight.size())
-      throw cet::exception("HyperonNtuples") << "Weight vector empty!" << std::endl;
+      if(!Vect_EventWeight.size())
+         throw cet::exception("HyperonNtuples") << "Weight vector empty!" << std::endl;
 
-   std::map<std::string,std::vector<double>> theWeights = Vect_EventWeight.at(0)->fWeight;
-   std::map<std::string,std::vector<double>>::iterator it;
-   for(it = theWeights.begin(); it != theWeights.end();it++){
-      t_SysDials.push_back(it->first);
-      t_SysWeights.push_back(it->second);
+      std::map<std::string,std::vector<double>> theWeights = Vect_EventWeight.at(0)->fWeight;
+      std::map<std::string,std::vector<double>>::iterator it;
+
+      for(it = theWeights.begin(); it != theWeights.end();it++){
+         t_SysDials.push_back(it->first);
+         t_SysWeights.push_back(it->second);
+      }
+
    }
-
-}
 
    FinishEvent();
 
@@ -450,13 +415,17 @@ void hyperon::HyperonNtuples::FinishEvent(){
 
 }
 
+///////////////////////////////////////////////////////////////	
+
 void hyperon::HyperonNtuples::beginJob(){
 
    if(fDebug) std::cout << "Begin job" << std::endl;
 
    art::ServiceHandle<art::TFileService> tfs;
 
-   /////////////////////////////////////////////////////////////////////////////////////////////////
+   //////////////////////////////////////////
+   //             Output Tree	           //
+   //////////////////////////////////////////
 
    OutputTree=tfs->make<TTree>("OutputTree","Truth Info Tree");
 
@@ -497,25 +466,22 @@ void hyperon::HyperonNtuples::beginJob(){
    OutputTree->Branch("NPrimaryShowerDaughters",&t_NPrimaryShowerDaughters);
    OutputTree->Branch("TracklikePrimaryDaughters","vector<RecoParticle>",&t_TrackPrimaryDaughters);
    OutputTree->Branch("ShowerlikePrimaryDaughters","vector<RecoParticle>",&t_ShowerPrimaryDaughters);
-   OutputTree->Branch("TrueMuonIndex",&t_TrueMuonIndex);
-   OutputTree->Branch("TrueDecayProtonIndex",&t_TrueDecayProtonIndex);
-   OutputTree->Branch("TrueDecayPionIndex",&t_TrueDecayPionIndex);
-
-   OutputTree->Branch("ConnSeedIndexes_Plane0",&Conn_SeedIndexes_Plane0);
-   OutputTree->Branch("ConnOutputIndexes_Plane0",&Conn_OutputIndexes_Plane0);
-   OutputTree->Branch("ConnOutputSizes_Plane0",&Conn_OutputSizes_Plane0);
-   OutputTree->Branch("ConnSeedChannels_Plane0",&Conn_SeedChannels_Plane0);
-   OutputTree->Branch("ConnSeedTicks_Plane0",&Conn_SeedTicks_Plane0);
-   OutputTree->Branch("ConnSeedIndexes_Plane1",&Conn_SeedIndexes_Plane1);
-   OutputTree->Branch("ConnOutputIndexes_Plane1",&Conn_OutputIndexes_Plane1);
-   OutputTree->Branch("ConnOutputSizes_Plane1",&Conn_OutputSizes_Plane1);
-   OutputTree->Branch("ConnSeedChannels_Plane1",&Conn_SeedChannels_Plane1);
-   OutputTree->Branch("ConnSeedTicks_Plane1",&Conn_SeedTicks_Plane1);
-   OutputTree->Branch("ConnSeedIndexes_Plane2",&Conn_SeedIndexes_Plane2);
-   OutputTree->Branch("ConnOutputIndexes_Plane2",&Conn_OutputIndexes_Plane2);
-   OutputTree->Branch("ConnOutputSizes_Plane2",&Conn_OutputSizes_Plane2);
-   OutputTree->Branch("ConnSeedChannels_Plane2",&Conn_SeedChannels_Plane2);
-   OutputTree->Branch("ConnSeedTicks_Plane2",&Conn_SeedTicks_Plane2);
+   
+   OutputTree->Branch("ConnSeedIndexes_Plane0",&t_Conn_SeedIndexes_Plane0);
+   OutputTree->Branch("ConnOutputIndexes_Plane0",&t_Conn_OutputIndexes_Plane0);
+   OutputTree->Branch("ConnOutputSizes_Plane0",&t_Conn_OutputSizes_Plane0);
+   OutputTree->Branch("ConnSeedChannels_Plane0",&t_Conn_SeedChannels_Plane0);
+   OutputTree->Branch("ConnSeedTicks_Plane0",&t_Conn_SeedTicks_Plane0);
+   OutputTree->Branch("ConnSeedIndexes_Plane1",&t_Conn_SeedIndexes_Plane1);
+   OutputTree->Branch("ConnOutputIndexes_Plane1",&t_Conn_OutputIndexes_Plane1);
+   OutputTree->Branch("ConnOutputSizes_Plane1",&t_Conn_OutputSizes_Plane1);
+   OutputTree->Branch("ConnSeedChannels_Plane1",&t_Conn_SeedChannels_Plane1);
+   OutputTree->Branch("ConnSeedTicks_Plane1",&t_Conn_SeedTicks_Plane1);
+   OutputTree->Branch("ConnSeedIndexes_Plane2",&t_Conn_SeedIndexes_Plane2);
+   OutputTree->Branch("ConnOutputIndexes_Plane2",&t_Conn_OutputIndexes_Plane2);
+   OutputTree->Branch("ConnOutputSizes_Plane2",&t_Conn_OutputSizes_Plane2);
+   OutputTree->Branch("ConnSeedChannels_Plane2",&t_Conn_SeedChannels_Plane2);
+   OutputTree->Branch("ConnSeedTicks_Plane2",&t_Conn_SeedTicks_Plane2);
 
    OutputTree->Branch("SysDials",&t_SysDials);
    OutputTree->Branch("SysWeights",&t_SysWeights);
@@ -531,14 +497,14 @@ void hyperon::HyperonNtuples::beginJob(){
 
    fPOT=0;
 
-   fMetaTree=tfs->make<TTree>("MetaTree","Metadata Info Tree");
+   MetaTree=tfs->make<TTree>("MetaTree","Metadata Info Tree");
 
-   fMetaTree->Branch("NEvents",&fNEvents);
-   fMetaTree->Branch("NHyperons",&fNHyperons);
-   fMetaTree->Branch("NSignal",&fNSignal);
-   fMetaTree->Branch("NGoodReco",&fNGoodReco);
+   MetaTree->Branch("NEvents",&fNEvents);
+   MetaTree->Branch("NHyperons",&fNHyperons);
+   MetaTree->Branch("NSignal",&fNSignal);
+   MetaTree->Branch("NGoodReco",&fNGoodReco);
 
-   fMetaTree->Branch("POT",&fPOT);
+   MetaTree->Branch("POT",&fPOT);
 
    if(fDebug) std::cout << "Finished begin job" << std::endl;
 
@@ -548,7 +514,7 @@ void hyperon::HyperonNtuples::beginJob(){
 
 void hyperon::HyperonNtuples::endJob()
 {
-   fMetaTree->Fill();
+   MetaTree->Fill();
 }
 
 void hyperon::HyperonNtuples::beginSubRun(const art::SubRun& sr)

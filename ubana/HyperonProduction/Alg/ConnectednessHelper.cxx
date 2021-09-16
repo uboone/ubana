@@ -57,20 +57,20 @@ void ConnectednessHelper::AddStartPositions(std::vector<TVector3> positions){
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<ConnectednessOutcome> ConnectednessHelper::RunClustering(std::vector<int> indexes){
+std::vector<CTSingleOutcome> ConnectednessHelper::RunClustering(std::vector<int> indexes){
 
 
    // Setup the output structs   
 
-   ConnectednessOutcome Outcome_Plane0;
+   CTSingleOutcome Outcome_Plane0;
    Outcome_Plane0.Plane = 0;
    Outcome_Plane0.SeedIndexes = indexes;  
 
-   ConnectednessOutcome Outcome_Plane1;
+   CTSingleOutcome Outcome_Plane1;
    Outcome_Plane1.Plane = 1;
    Outcome_Plane1.SeedIndexes = indexes;  
 
-   ConnectednessOutcome Outcome_Plane2;
+   CTSingleOutcome Outcome_Plane2;
    Outcome_Plane2.Plane = 2;
    Outcome_Plane2.SeedIndexes = indexes;  
 
@@ -139,9 +139,9 @@ std::vector<ConnectednessOutcome> ConnectednessHelper::RunClustering(std::vector
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<ConnectednessOutcome> ConnectednessHelper::RunTest(){
+std::vector<CTSingleOutcome> ConnectednessHelper::RunTest(){
 
-   std::vector<ConnectednessOutcome> AllOutcomes;
+   std::vector<CTSingleOutcome> AllOutcomes;
 
    // Need at least three tracks for the test
    if(Positions_3D.size() < 3) return AllOutcomes;
@@ -154,7 +154,7 @@ std::vector<ConnectednessOutcome> ConnectednessHelper::RunTest(){
       for(int j=i+1;j<nseeds;j++){
          for(int k=j+1;k<nseeds;k++){
 
-            std::vector<ConnectednessOutcome> Outcomes = RunClustering({i,j,k});
+            std::vector<CTSingleOutcome> Outcomes = RunClustering({i,j,k});
 
             AllOutcomes.push_back(Outcomes.at(0));
             AllOutcomes.push_back(Outcomes.at(1));
@@ -169,6 +169,65 @@ std::vector<ConnectednessOutcome> ConnectednessHelper::RunTest(){
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+CTOutcome ConnectednessHelper::PrepareAndTestEvent(art::Event const& e,std::string wirelabel,std::vector<TVector3> trackstarts){
 
+   CTOutcome theOutcome;
+
+   if(trackstarts.size() < 3) return theOutcome;
+
+   art::Handle<std::vector<recob::Wire>> Handle_Wire;
+   std::vector<art::Ptr<recob::Wire>> Vect_Wire;
+
+   if(!e.getByLabel(wirelabel,Handle_Wire)) 
+      throw cet::exception("ConnectednessHelper") << "Wire data product not found!" << std::endl;
+
+   art::fill_ptr_vector(Vect_Wire,Handle_Wire);
+
+   LoadWireActivity(Vect_Wire);
+   AddStartPositions(trackstarts);
+
+   // Vector containing the result for each combintation of three tracks
+   std::vector<CTSingleOutcome> Outcomes = RunTest(); 
+
+
+   // iterate over each combination of three tracks, store the result
+   for(size_t i=0;i<Outcomes.size();i++){
+
+      CTSingleOutcome this_Outcome = Outcomes.at(i);
+
+      std::vector<int> this_SeedIndexes = this_Outcome.SeedIndexes;
+      std::vector<int> this_OutputIndexes = this_Outcome.OutputIndexes;
+      std::vector<int> this_OutputSizes = this_Outcome.OutputSizes;
+      std::vector<int> this_SeedChannels = this_Outcome.SeedChannels;
+      std::vector<int> this_SeedTicks = this_Outcome.SeedTicks;
+
+      if(this_Outcome.Plane == 0){
+         theOutcome.SeedIndexes_Plane0.push_back(this_SeedIndexes);
+         theOutcome.OutputIndexes_Plane0.push_back(this_OutputIndexes);
+         theOutcome.OutputSizes_Plane0.push_back(this_OutputSizes);
+         theOutcome.SeedChannels_Plane0.push_back(this_SeedChannels);
+         theOutcome.SeedTicks_Plane0.push_back(this_SeedTicks);
+      } 
+      else if(this_Outcome.Plane == 1){
+         theOutcome.SeedIndexes_Plane1.push_back(this_SeedIndexes);
+         theOutcome.OutputIndexes_Plane1.push_back(this_OutputIndexes);
+         theOutcome.OutputSizes_Plane1.push_back(this_OutputSizes);
+         theOutcome.SeedChannels_Plane1.push_back(this_SeedChannels);
+         theOutcome.SeedTicks_Plane1.push_back(this_SeedTicks);
+      } 
+      else if(this_Outcome.Plane == 2){
+         theOutcome.SeedIndexes_Plane2.push_back(this_SeedIndexes);
+         theOutcome.OutputIndexes_Plane2.push_back(this_OutputIndexes);
+         theOutcome.OutputSizes_Plane2.push_back(this_OutputSizes);
+         theOutcome.SeedChannels_Plane2.push_back(this_SeedChannels);
+         theOutcome.SeedTicks_Plane2.push_back(this_SeedTicks);
+      } 
+   }
+
+   return theOutcome;
+
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #endif
