@@ -1,3 +1,5 @@
+include_directories( $ENV{EIGEN_INC} )
+
 cet_enable_asserts()
 
 art_make( TOOL_LIBRARIES lardataobj_RecoBase
