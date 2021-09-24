@@ -20,12 +20,6 @@
 #include "lardataobj/RecoBase/OpHit.h"
 #include "ubobj/Optical/UbooneOpticalFilter.h"
 
-#include "larcore/Geometry/Geometry.h"
-
-#include "ubevt/Database/LightYieldService.h"
-#include "ubevt/Database/LightYieldProvider.h"
-#include "ubevt/Database/UbooneLightYieldProvider.h"
-
 // from dlpmtprecutalgo in UPS
 #include "LEEPreCutAlgo.h"
 
@@ -61,11 +55,9 @@ private:
   int fWinEndTick;
   int fVetoStartTick;
   int fVetoEndTick;
-  float fPEThreshold, fPEThresholdScaled;    
+  float fPEThreshold;    
   float fPMTMaxFrac;
   bool  fStoreOpticalFilterObj;
-
-  bool fScaleLY;
 
   std::set<int> fIgnoreChannelList;
 };
@@ -89,11 +81,6 @@ dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
   fVetoEndTick   = p.get< int >("VetoEndTick",    190);
   fPMTMaxFrac    = p.get< float > ("PMTMaxFrac",  0.6);
 
-  // Addition to account for LY scaling
-  fScaleLY      = p.get< bool > ("ScaleLY",false);
-  fPEThresholdScaled = fPEThreshold;
-
-
   std::vector<int> tmpvec = p.get< std::vector<int> >("IgnoreChannelList",std::vector<int>());
   fIgnoreChannelList = std::set<int>(tmpvec.begin(),tmpvec.end());
 
@@ -102,31 +89,6 @@ dl::DLPMTPreCuts::DLPMTPreCuts(fhicl::ParameterSet const & p)
 bool dl::DLPMTPreCuts::filter(art::Event & e)
 {
   
-  // if we are to scale by the LY, adjust fPEThreshold appropriately
-  if (fScaleLY == true) {
-    
-    float scaling = 0.;
-    int nfactors = 0;
-
-    const ::art::ServiceHandle<geo::Geometry> geo;
-
-    const lariov::LightYieldProvider& ly_provider = art::ServiceHandle<lariov::LightYieldService>()->GetProvider();
-    for (unsigned int i=0; i!= geo->NOpDets(); ++i) {
-      if (geo->IsValidOpChannel(i) && i<32) {
-	scaling += ly_provider.LYScaling(i);
-	nfactors += 1;
-      }
-    }
-    
-    if (nfactors != 32) std::cout << "ERROR != 32 PMTs " << std::endl;
-    
-    scaling /= nfactors;
-
-    fPEThresholdScaled = fPEThreshold * scaling;
-    
-    std::cout << "scaling now is " << fPEThresholdScaled << std::endl;
-  }
-
   // Implementation of required member function here.
   art::Handle< std::vector<recob::OpHit> > ophitHandle;
   e.getByLabel( fOpHitProducer, ophitHandle );
@@ -150,25 +112,30 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
   
   std::vector<float> flashbins = m_algo.MakeTimeBin( ophit_peaktime_v, ophit_pe_v, fBinTickWidth, fWinStartTick, fWinEndTick );
   std::vector<float> vetobins  = m_algo.MakeTimeBin( ophit_peaktime_v, ophit_pe_v, fBinTickWidth, fVetoStartTick, fVetoEndTick );
-  
-  std::vector<float> beamPEinfo = m_algo.GetTotalPE( fPEThresholdScaled , flashbins );
-  std::vector<float> vetoPEinfo = m_algo.GetTotalPE( fPEThresholdScaled , vetobins );
-  
+  //  std::cout<<"looping over beam pe"<<std::endl;  
+  std::vector<float> beamPEinfo = m_algo.GetTotalPE( fPEThreshold , flashbins );
+  // std::cout<<"done looping over beam pe"<<std::endl;
+  // std::cout<<"looping over veto pe"<<std::endl;
+  std::vector<float> vetoPEinfo = m_algo.GetTotalPE( fPEThreshold , vetobins );
+  // std::cout<<"done loopoing over veto pe"<<std::endl;
+
   float maxfrac     = m_algo.PMTMaxFrac( ophit_peaktime_v, ophit_pe_v, ophit_femch_v, beamPEinfo, fBinTickWidth,  fWinStartTick);
 
   if(fStoreOpticalFilterObj)
     {
+
       float total_beam_PE=0; for(auto const& pe : flashbins) total_beam_PE+= pe;
       float total_veto_PE=0; for(auto const& pe : vetobins) total_veto_PE+= pe;
       std::unique_ptr<uboone::UbooneOpticalFilter> ubopfilter_obj( new uboone::UbooneOpticalFilter(beamPEinfo[0],vetoPEinfo[0],maxfrac,
 												   total_beam_PE,total_veto_PE));
       e.put(std::move(ubopfilter_obj));
     }
+  return true;
+
+  //  if ( beamPEinfo[0]>fPEThreshold && vetoPEinfo[0]<fPEThreshold && maxfrac < fPMTMaxFrac )
+  // return true;
   
-  if ( beamPEinfo[0]>fPEThresholdScaled && vetoPEinfo[0]<fPEThresholdScaled && maxfrac < fPMTMaxFrac )
-    return true;
-  
-  return false;  
+  // return false;  
 }
 
 DEFINE_ART_MODULE(dl::DLPMTPreCuts)
