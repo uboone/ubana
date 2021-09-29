@@ -9,14 +9,14 @@ art_make( BASENAME_ONLY
                            HitCosmicTag_Base
   		                     ${ART_FRAMEWORK_CORE}
    		                     ${ART_FRAMEWORK_PRINCIPAL}
-		                       ${ART_FRAMEWORK_BASIC}
+
                            ${ART_FRAMEWORK_SERVICES_REGISTRY}
    		                     ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
      		                   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
      		                   ${ART_PERSISTENCY_COMMON}
                            ${ART_PERSISTENCY_PROVENANCE}
                            ${ART_UTILITIES}
-                           ${ROOT_BASIC_LIB_LIST}
+
                            ${FHICLCPP}
                            cetlib cetlib_except
 	      )

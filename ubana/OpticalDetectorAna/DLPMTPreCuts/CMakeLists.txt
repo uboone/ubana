@@ -24,7 +24,7 @@ simple_plugin( DLPMTPreCuts "module"
                art_Persistency_Provenance canvas
                art_Utilities canvas
 	       #${DLPMTPRECUTALGO_LIBBASE}
-	       ${ROOT_BASIC_LIB_LIST}	       
+
                BASENAME_ONLY
              )
 

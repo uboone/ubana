@@ -2,7 +2,7 @@
 
 # The *parent* line must the first non-commented line and defines this product and version
 # The version must be of the form vxx_yy_zz (e.g. v01_02_03)
-parent ubana v09_30_00
+parent ubana v09_31_00
 
 defaultqual e20
 
@@ -30,18 +30,16 @@ table_fragment_end
 # Add the dependent product and version
 
 product                 version
-ubreco                  v09_30_00
-ubraw                   v09_30_00
-larana                  v09_02_17
-larpandora              v09_08_00
-cetbuildtools	        v7_17_01	-	only_for_build
+ubreco                  v09_31_00
+ubraw                   v09_31_00
+larana                  v09_03_00
+larpandora              v09_09_00
+cetbuildtools	        v8_17_03	-	only_for_build
 end_product_list
 
 qualifier      ubreco         ubraw          larana         larpandora
 c7:debug       c7:debug       c7:debug       c7:debug       c7:debug
 c7:prof        c7:prof        c7:prof        c7:prof        c7:prof
-e19:debug      e19:debug      e19:debug      e19:debug      e19:debug
-e19:prof       e19:prof       e19:prof       e19:prof       e19:prof
 e20:debug      e20:debug      e20:debug      e20:debug      e20:debug
 e20:prof       e20:prof       e20:prof       e20:prof       e20:prof
 end_qualifier_list

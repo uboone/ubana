@@ -15,7 +15,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 			               lardata_RecoObjects
 			               larreco_RecoAlg
 			               larpandora_LArPandoraInterface
-			               SignalShapingServiceMicroBooNE_service
+			               ubevt::SignalShapingServiceMicroBooNE_service
                            nusimdata_SimulationBase
                            ubraw_RawData
 			               ubobj_Trigger
@@ -31,13 +31,13 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 			               art_Persistency_Provenance canvas
 			               art_Utilities canvas
 			               ${MF_MESSAGELOGGER}
-			               
+
 	                       ${FHICLCPP}
 			               cetlib cetlib_except
                            ${ROOT_GEOM}
                            ${ROOT_XMLIO}
                            ${ROOT_GDML}
-			               ${ROOT_BASIC_LIB_LIST}
+
         )
 
 # install_headers()

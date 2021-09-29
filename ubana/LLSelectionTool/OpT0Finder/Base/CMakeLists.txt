@@ -27,9 +27,7 @@ art_make( BASENAME_ONLY
         ${CETLIB}
         ${CLHEP}
         ${BOOST_LIB}
-        ${Boost_SYSTEM_LIBRARY}
-        ubana_BasicTool_GeoAlgo
-        ${ROOT_BASIC_LIB_LIST}
+        ubcore::ubana_BasicTool_GeoAlgo
         ${FHICLCPP}
         cetlib cetlib_except
 	)
