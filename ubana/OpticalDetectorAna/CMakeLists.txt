@@ -4,13 +4,13 @@ art_make( BASENAME_ONLY
 	  LIB_LIBRARIES
 			larana_OpticalDetector
 			larana_OpticalDetector_OpHitFinder
-                        ${ROOT_BASIC_LIB_LIST}
+
 
 	  MODULE_LIBRARIES larcorealg_Geometry
 	  	        larcore_Geometry_Geometry_service
 		        lardata_Utilities
 	                ubcore_Geometry
-			UBOpReadoutMap_service
+			ubcore::UBOpReadoutMap_service
                         lardataobj_OpticalDetectorData
 			larana_OpticalDetector
                         lardataobj_RawData
@@ -29,15 +29,15 @@ art_make( BASENAME_ONLY
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        
+
                         ${FHICLCPP}
                         cetlib cetlib_except
                         ${ROOT_GEOM}
                         ${ROOT_XMLIO}
                         ${ROOT_GDML}
-                        ${ROOT_BASIC_LIB_LIST}
+
 			nusimdata_SimulationBase
-        )							   
+        )
 
 install_headers()
 install_source()

@@ -33,4 +33,4 @@ art_make_library( LIBRARY_NAME  uboonecode_uboone_XGBoost
                 )
 
 install_headers()
-install_source()
+install_source( EXTRAS CONTRIBUTORS.md )

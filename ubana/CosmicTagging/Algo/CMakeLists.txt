@@ -8,19 +8,19 @@ art_make( BASENAME_ONLY
 	  LIB_LIBRARIES
                 	  larsim_PhotonPropagation
 			  larsim_PhotonPropagation_PhotonVisibilityService_service
-			  ubana_BasicTool_GeoAlgo
+			  ubcore::ubana_BasicTool_GeoAlgo
 			  ubana_SelectionTool_OpT0FinderBase
-                          UBOpReadoutMap_service
+                          ubcore::UBOpReadoutMap_service
   		          ${ART_FRAMEWORK_CORE}
    		          ${ART_FRAMEWORK_PRINCIPAL}
-		          ${ART_FRAMEWORK_BASIC}
+
                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
    		          ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
      		          ${ART_ROOT_IO_TFILESERVICE_SERVICE}
      		          ${ART_PERSISTENCY_COMMON}
                           ${ART_PERSISTENCY_PROVENANCE}
                           ${ART_UTILITIES}
-                          ${ROOT_BASIC_LIB_LIST}
+
                           ${FHICLCPP}
                           cetlib cetlib_except
 	)

@@ -41,7 +41,7 @@
 #include "TTree.h"
 
 
-class DeDxAna;
+#include <numeric>
 
 
 class DeDxAna : public art::EDAnalyzer {
