@@ -14,7 +14,6 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
                            ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                           ${ART_FRAMEWORK_SERVICES_BASIC}
                            ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
                            ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                            ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
@@ -23,14 +22,14 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            art_Utilities
                            canvas
                            ${MF_MESSAGELOGGER}
-                           
+
                            ${FHICLCPP}
                            ${CETLIB}
                            cetlib_except
                            ${Boost_FILESYSTEM_LIBRARY}
-                           ${Boost_SYSTEM_LIBRARY}
+
                            ${CLHEP}
-                           ${ROOT_BASIC_LIB_LIST}
+
 
           TOOL_LIBRARIES   lardataobj_RecoBase
                            lardataalg_DetectorInfo
@@ -45,7 +44,6 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
                            ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                           ${ART_FRAMEWORK_SERVICES_BASIC}
                            ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
                            ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                            ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
@@ -54,14 +52,14 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            art_Utilities
                            canvas
                            ${MF_MESSAGELOGGER}
-                           
+
                            ${FHICLCPP}
                            ${CETLIB}
                            cetlib_except
                            ${Boost_FILESYSTEM_LIBRARY}
-                           ${Boost_SYSTEM_LIBRARY}
+
                            ${CLHEP}
-                           ${ROOT_BASIC_LIB_LIST}
+
         )
 
 install_headers()

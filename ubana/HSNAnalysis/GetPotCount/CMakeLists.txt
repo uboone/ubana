@@ -1,7 +1,7 @@
 # basic source code CMakeLists.txt
 
 art_make(BASENAME_ONLY
-	LIB_LIBRARIES 
+	LIB_LIBRARIES
 		lardataobj_RecoBase
 		lardataobj_AnalysisBase
 		larcorealg_Geometry
@@ -13,9 +13,9 @@ art_make(BASENAME_ONLY
 		${FHICLCPP}
 		cetlib cetlib_except
 		${CLHEP}
-		${ROOT_BASIC_LIB_LIST}
+
 		${G4_LIB_LIST}
-	MODULE_LIBRARIES  
+	MODULE_LIBRARIES
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
 		larsim_Simulation
@@ -31,7 +31,6 @@ art_make(BASENAME_ONLY
 		${ART_FRAMEWORK_CORE}
 		${ART_FRAMEWORK_PRINCIPAL}
 		${ART_FRAMEWORK_SERVICES_REGISTRY}
-		${ART_FRAMEWORK_SERVICES_BASIC}
 		${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
 		${ART_ROOT_IO_TFILESERVICE_SERVICE}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
@@ -43,7 +42,7 @@ art_make(BASENAME_ONLY
 		${FHICLCPP}
 		cetlib cetlib_except
 		${CLHEP}
-		${ROOT_BASIC_LIB_LIST}
+
 		${G4_LIB_LIST}
 	)
 

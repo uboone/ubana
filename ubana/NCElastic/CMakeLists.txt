@@ -1,8 +1,8 @@
 link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB})
 
 art_make(BASENAME_ONLY
-         LIBRARY_NAME uboonecode_uboone_NCElastic 
-         LIB_LIBRARIES 	  		   
+         LIBRARY_NAME uboonecode_uboone_NCElastic
+         LIB_LIBRARIES
            uboonecode_uboone_XGBoost
 	  	     larcorealg_Geometry
 		       larcore_Geometry_Geometry_service
@@ -11,7 +11,7 @@ art_make(BASENAME_ONLY
            lardata_Utilities
 			     larreco_RecoAlg
 			     larpandora_LArPandoraInterface
-           larsim_Simulation lardataobj_Simulation 
+           larsim_Simulation lardataobj_Simulation
            nusimdata_SimulationBase
 		       art_Persistency_Common canvas
 		       art_Persistency_Provenance canvas
@@ -20,7 +20,7 @@ art_make(BASENAME_ONLY
 		       ${LARDATA_LIB}
 		       ${ART_FRAMEWORK_CORE}
 		       ${ART_FRAMEWORK_PRINCIPAL}
-           ${ART_FRAMEWORK_BASIC}
+
 		       ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		       ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
 		       ${ART_ROOT_IO_TFILESERVICE_SERVICE}
@@ -31,9 +31,9 @@ art_make(BASENAME_ONLY
 		       ${ROOT_GEOM}
 		       ${ROOT_XMLIO}
 		       ${ROOT_GDML}
-		       ${ROOT_BASIC_LIB_LIST}
- 
-         MODULE_LIBRARIES 	  		   
+
+
+         MODULE_LIBRARIES
            uboonecode_uboone_XGBoost
            uboonecode_uboone_NCElasticAlgorithms
 	  	     larcorealg_Geometry
@@ -43,7 +43,7 @@ art_make(BASENAME_ONLY
            lardata_Utilities
 			     larreco_RecoAlg
 			     larpandora_LArPandoraInterface
-           larsim_Simulation lardataobj_Simulation 
+           larsim_Simulation lardataobj_Simulation
            nusimdata_SimulationBase
 		       art_Persistency_Common canvas
 		       art_Persistency_Provenance canvas
@@ -52,7 +52,7 @@ art_make(BASENAME_ONLY
 		       ${LARDATA_LIB}
 		       ${ART_FRAMEWORK_CORE}
 		       ${ART_FRAMEWORK_PRINCIPAL}
-           ${ART_FRAMEWORK_BASIC}
+
 		       ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		       ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
 		       ${ART_ROOT_IO_TFILESERVICE_SERVICE}
@@ -62,7 +62,7 @@ art_make(BASENAME_ONLY
 		       ${ROOT_GEOM}
 		       ${ROOT_XMLIO}
 		       ${ROOT_GDML}
-		       ${ROOT_BASIC_LIB_LIST}
+
 		    )
 
 install_headers()

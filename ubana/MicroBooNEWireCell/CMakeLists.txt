@@ -1,7 +1,7 @@
 
 #
 simple_plugin( CellTreeUB "module"
-               UBOpReadoutMap_service
+               ubcore::UBOpReadoutMap_service
 	       ubobj_Trigger
 	       ubobj_MuCS
 	       nusimdata_SimulationBase
@@ -23,7 +23,7 @@ simple_plugin( CellTreeUB "module"
                art_Persistency_Provenance canvas
                art_Utilities canvas
 	       ${MF_MESSAGELOGGER}
-	       ${ROOT_BASIC_LIB_LIST}
+
                BASENAME_ONLY
              )
 
@@ -37,14 +37,14 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         lardata_Utilities
                         ubcore_Geometry
 			ubraw_RawData
-                        UBOpReadoutMap_service
+                        ubcore::UBOpReadoutMap_service
                         lardataobj_OpticalDetectorData
                         lardataobj_RawData
 			lardataobj_RecoBase
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
                         ${UBDut}
-                        ${PQ}
+                        PQ
                         ${Boost_SERIALIZATION_LIBRARY}
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_IO_SOURCES}
@@ -56,14 +56,14 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        
+
                         ${FHICLCPP}
                         cetlib cetlib_except
                         ${ROOT_GEOM}
                         ${ROOT_XMLIO}
                         ${ROOT_GDML}
-                        ${Boost_SYSTEM_LIBRARY}
-                        ${ROOT_BASIC_LIB_LIST}
+
+
 
           MODULE_LIBRARIES lardata_Utilities_DatabaseUtil_service
                         larcorealg_Geometry
@@ -71,7 +71,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         lardata_Utilities
                         ubcore_Geometry
 			ubraw_RawData
-                        UBOpReadoutMap_service
+                        ubcore::UBOpReadoutMap_service
                         lardataobj_OpticalDetectorData
                         lardataobj_RawData
 			lardataobj_RecoBase
@@ -81,7 +81,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
 			ubevt_Database
                         uboone_MicroBooNEWireCell
                         ${UBDut}
-                        ${PQ}
+                        PQ
                         ${Boost_SERIALIZATION_LIBRARY}
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_IO_SOURCES}
@@ -93,14 +93,14 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        
+
                         ${FHICLCPP}
                         cetlib cetlib_except
                         ${ROOT_GEOM}
                         ${ROOT_XMLIO}
                         ${ROOT_GDML}
-                        ${Boost_SYSTEM_LIBRARY}
-                        ${ROOT_BASIC_LIB_LIST}
+
+
 	  SERVICE_LIBRARIES
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
@@ -109,7 +109,6 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         art_Persistency_Common canvas
                         art_Persistency_Provenance canvas
-                        ${ART_FRAMEWORK_SERVICES_BASIC}
                         ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
                         ${ART_ROOT_IO_TFILESERVICE_SERVICE}
@@ -128,8 +127,8 @@ art_make( EXCLUDE CellTreeUB_module.cc
                               art_Persistency_Provenance canvas
                               art_Utilities canvas
                               ${FHICLCPP}
-                              ${ROOT_BASIC_LIB_LIST}
-)                                                           
+
+)
 
 install_headers()
 install_source()

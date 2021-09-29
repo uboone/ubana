@@ -19,11 +19,11 @@ art_make(BASENAME_ONLY
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
-  
+
   ${FHICLCPP}
   cetlib cetlib_except
-  ${ROOT_BASIC_LIB_LIST}
-  ${Boost_SYSTEM_LIBRARY}
+
+
   MODULE_LIBRARIES
   TPCNeutrinoIDAlgs
   lardataalg_DetectorInfo
@@ -45,11 +45,11 @@ art_make(BASENAME_ONLY
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
-  
+
   ${FHICLCPP}
   cetlib cetlib_except
-  ${ROOT_BASIC_LIB_LIST}
-  ${Boost_SYSTEM_LIBRARY}
+
+
   )
 
 add_subdirectory(Algorithms)

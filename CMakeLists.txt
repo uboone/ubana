@@ -12,9 +12,9 @@
 #  make package (builds distribution tarfile)
 # ======================================================================
 
-cmake_minimum_required (VERSION 3.12...3.18 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
-project(ubana LANGUAGES CXX)
+project(ubana VERSION 09.28.02.01 LANGUAGES CXX)
 
 # cetbuildtools contains our cmake modules
 find_package(cetbuildtools REQUIRED)
@@ -39,19 +39,24 @@ find_ups_product( lardataobj )
 find_ups_product( lardataalg )
 find_ups_product( lardata )
 find_ups_product( larsim )
+find_ups_product( larevt )
 find_ups_boost( )
 find_ups_product( canvas )
-find_ups_product( ubreco v1_00_00 )
-find_ups_product( ubraw v1_00_00 )
-find_ups_product( larana v1_00_00 )
-find_ups_product( larpandora v1_00_00 )
-find_ups_product( art v1_00_00 )
+find_ups_product( ubreco )
+find_ups_product( ubraw )
+find_ups_product( ubevt )
+find_ups_product( ubcore )
+find_ups_product( larana )
+find_ups_product( larpandora )
+find_ups_product( pandora )
+find_ups_product( art )
 find_ups_product(art_root_io)
 find_ups_product( larcore )
 find_ups_product( nutools )
 find_ups_product(nug4)
 find_ups_product( nurandom )
 find_ups_product( eigen )
+find_ups_product( swtrigger )
 
 # macros for dictionary and simple_plugin
 include(ArtDictionary)
