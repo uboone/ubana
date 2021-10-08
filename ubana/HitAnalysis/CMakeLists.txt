@@ -30,7 +30,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            ${ROOT_GEOM}
                            ${ROOT_XMLIO}
                            ${ROOT_GDML}
-                           ${ROOT_BASIC_LIB_LIST}
+
         )
 
 #install_headers()

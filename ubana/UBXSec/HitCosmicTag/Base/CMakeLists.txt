@@ -3,7 +3,7 @@ link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} ${ROOTLIB} )
 art_make( BASENAME_ONLY
    	      LIBRARY_NAME     HitCosmicTag_Base
 	      LIB_LIBRARIES
-	      ${ROOT_BASIC_LIB_LIST}
+
 	      ${FHICLCPP}
               cetlib cetlib_except
 	    )

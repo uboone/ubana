@@ -11,7 +11,7 @@ art_make( BASENAME_ONLY
 			ubobj_Trigger
                         larcorealg_Geometry
                         larcore_Geometry_Geometry_service
-			ubana_BasicTool_GeoAlgo
+			ubcore::ubana_BasicTool_GeoAlgo
                         lardata_Utilities
                         larevt_Filters
                         lardataalg_DetectorInfo
@@ -22,7 +22,7 @@ art_make( BASENAME_ONLY
 			larsim_MCCheater_ParticleInventoryService_service
 			larpandora_LArPandoraInterface
 			nusimdata_SimulationBase
-			${UB_DATA_TYPES}
+			UB_DATA_TYPES
 			${Boost_SERIALIZATION_LIBRARY}
                         nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
@@ -38,23 +38,23 @@ art_make( BASENAME_ONLY
                         ${FHICLCPP}
 			cetlib cetlib_except
                         ${CLHEP}
-                        ${ROOT_BASIC_LIB_LIST}
+
 
           MODULE_LIBRARIES
 			ubraw_RawData
                         larcorealg_Geometry
                         larcore_Geometry_Geometry_service
-			ubana_BasicTool_GeoAlgo
+			ubcore::ubana_BasicTool_GeoAlgo
                         lardata_Utilities
                         larevt_Filters
                         lardataobj_RawData
 			lardataobj_RecoBase
-			larcoreobj_SummaryData	
+			larcoreobj_SummaryData
 			larsim_MCCheater_BackTrackerService_service
 			larpandora_LArPandoraInterface
 			nusimdata_SimulationBase
 			ubana_LEEPhotonAnalysis
-			${UB_DATA_TYPES}
+			UB_DATA_TYPES
 			${Boost_SERIALIZATION_LIBRARY}
                         nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
@@ -70,7 +70,7 @@ art_make( BASENAME_ONLY
                         ${FHICLCPP}
 			cetlib cetlib_except
                         ${CLHEP}
-                        ${ROOT_BASIC_LIB_LIST}
+
         )
 
 add_subdirectory(job)
