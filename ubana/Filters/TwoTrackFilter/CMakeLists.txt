@@ -42,8 +42,8 @@ art_make( BASENAME_ONLY
                    lardata_Utilities
                    larpandora_LArPandoraInterface
                    nusimdata_SimulationBase
-                   ${PANDORASDK}
-                   ${PANDORAMONITORING}
+                   PANDORASDK
+                   PANDORAMONITORING
                    #larpandora_LArPandoraContent
                    ${UBOONECODE_LIB}
 		   ${LARDATA_LIB}
@@ -142,7 +142,7 @@ art_make_library(
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
-       larpandora_LarPandoraEventBuilding
+       larpandora_LArPandoraEventBuilding
        LArPandoraContent
        larpandora_LArPandoraInterface
        nusimdata_SimulationBase
@@ -177,7 +177,7 @@ art_make_library(
     lardataobj_RecoBase
     lardataobj_AnalysisBase
  lardata_Utilities
- larpandora_LarPandoraEventBuilding
+ larpandora_LArPandoraEventBuilding
  LArPandoraContent
  larpandora_LArPandoraInterface
  nusimdata_SimulationBase
@@ -219,7 +219,7 @@ art_make_library(
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
-       larpandora_LarPandoraEventBuilding
+       larpandora_LArPandoraEventBuilding
        LArPandoraContent
        larpandora_LArPandoraInterface
        nusimdata_SimulationBase
@@ -252,7 +252,7 @@ art_make_library(
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
-       larpandora_LarPandoraEventBuilding
+       larpandora_LArPandoraEventBuilding
        LArPandoraContent
        larpandora_LArPandoraInterface
        nusimdata_SimulationBase
