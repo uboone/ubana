@@ -1,0 +1,162 @@
+# FHiCL document used to run the "driver" executable. To learn more
+#  about the FHiCL language, please look at
+#  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
+
+#include "geometry_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+#include "sam_microboone.fcl"
+#include "services_microboone_basic.fcl"
+
+events_to_generate: 200
+run_number: 101
+
+services:{
+  TFileService: { fileName: "NuMuCC0pi1p.root" }
+  ExptGeoHelperInterface:         @local::microboone_geometry_helper
+  Geometry:                       @local::microboone_geo
+  @table::microboone_services
+}
+
+physics:
+{	
+  producers:
+  {
+    crttrigger:
+      {
+          module_type:            "CRTTriggerTimeProducer"
+          TrackProducerLabel:     "pandora"
+          data_label_crtT0asso:   "crttrackmatch"
+          data_label_flash_beam:  "simpleFlashBeam"
+          data_label_flash_cosmic: "simpleFlashCosmic"
+          data_label_crthit:      "crthitcorr"
+          data_label_DAQHeader:   "daq"
+          verbose:      0         # =0 no print outs
+          saveTTree:    1         # =0 saves no tree, =1 saves no vectors, =2 saves all in TTree
+          run_MC:       0         # 0: data is real data, 1: data contains MC (overlay)
+          store_t0:     1         # add a t0 object as a tag
+    }
+  }
+  analyzers:
+  {
+    CCnumu0pi1p:
+      {
+        module_type: "OneMuOnePFlat"
+       
+        #FiducialVolumeSettings:     @local::FiducialVolumeSettings 
+        FiducialVolumeSettings: {
+
+          # First entry are the borders for the first volume,
+          # second entry for the second fiducial volume
+  
+          #BorderXLow:   [5.]
+          #BorderXHigh:  [5.]
+          #BorderYLow:   [5.]
+          #BorderYHigh:  [5.]
+          #BorderZLow:   [5.]
+          #BorderZHigh:  [5.]
+ 
+          #BorderXLow:   [5., 5.]
+          #BorderXHigh:  [5., 5.]
+          #BorderYLow:   [20., 20.]
+          #BorderYHigh:  [20., 20.]
+          #BorderZLow:   [15., 742.]
+          #BorderZHigh:  [300.8, 10.]
+ 
+          #BorderXLow:   [5., 5.]
+          #BorderXHigh:  [5., 5.]
+          #BorderYLow:   [20., 20.]
+          #BorderYHigh:  [20., 20.]
+          #BorderZLow:   [15., 736.]
+          #BorderZHigh:  [10., 294.8] 
+
+          BorderXLow:   [10., 10.]
+          BorderXHigh:  [5., 5.]
+          BorderYLow:   [19., 19.]
+          BorderYHigh:  [19., 19.]
+          BorderZLow:   [15., 736.]
+          BorderZHigh:  [10., 294.8]
+        }
+
+        IsMC: false
+        UsingCRT: true
+        if_GENIE_ReWeight: false
+        if_G4_ReWeight: false
+        if_Flux_ReWeight: false
+     
+        CRTTrackAssLabel: "crttrackmatch"
+        DAQHeaderProducer: "daq"
+        CRTVetoLabel: "crtveto"
+        CRTHitProducer: "crthitcorr"
+        BeamStart: 3.195  # us
+        BeamEnd: 4.875 # us
+        #DTOffset: 68600. # us
+        #DTOffset_overlay: 69000. # us
+        DTOffset: 0. # us
+        DTOffset_overlay: 0. # us
+
+        T0Corr: true
+        #CRTcorrT0Label: "crtt0Correction"
+        CRTcorrT0Label: "crttrigger"
+
+        FlashLabel: "simpleFlashBeam"
+
+        GeneratorLabel: "generator"
+	#EventweightLabel: "eventweight"
+        GeantLabel: "largeant"
+	GENIE_EventweightLabel: "eventweightGenieKnobs"
+        G4_EventweightLabel: "eventweightreint"
+        Flux_EventweightLabel: "eventweightflux"
+        GeantLabel: "largeant"
+
+        PandoraLabel: "pandora"
+
+        T0ProducerLabel: "flashmatch"
+
+        HitProducerLabel: "gaushit"
+        HitsPerTrackAssLabel: "pandora"
+ 
+        TrackProducerLabel: "pandora" 
+        ShowerProducerLabel: "pandora" 
+        MCSmuProducerLabel: "pandoraMCSMu" 
+        MCSmuNoSCEProducerLabel: "pandoraMCSMuNoSCE"
+ 
+        calorimetryProducerLabel: "pandoracaliSCE"
+        #SCEcorr_MCSmuProducerLabel: "MCS" 
+       
+        PIDTrackAssLabel: "pandoracalipidSCE"
+ 
+        verbose: 1 # = 0 no print out; = 1 debug print out 
+        saveTTree: 1 # =0 saves no tree, =1 saves TTree
+      
+      }
+  }
+
+  prod:             [ crttrigger ]
+  ana: [CCnumu0pi1p]
+
+  trigger_paths:    [ prod ]
+  end_paths: [ ana]
+
+}
+
+services.SpaceCharge.EnableCalSpatialSCE: true #enable bkwd (reco -> true)
+services.SpaceCharge.EnableCalEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: false # disable fwd (true -> reco)
+services.SpaceCharge.EnableSimEfieldSCE: false
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+#services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root" #fwd map (mis-naming)
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+
+#services.DetectorPropertiesService.NumberTimeSamples:        6400
+#services.DetectorPropertiesService.ReadOutWindowSize:        6400
+services.DetectorClocksService.InheritClockConfig:           false
+#services.DetectorClocksService.TriggerOffsetTPC: -1600
+
+
+source:
+{
+  module_type: RootInput
+}
+
+process_name: NuMuCC0pi1p
