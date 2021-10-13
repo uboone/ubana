@@ -16,7 +16,7 @@ art_make_library(LIBRARY_NAME TreeInterface
 		 nusimdata_SimulationBase
 #GENIE STUFF########################################
 			xml2
-			 ${LOG4CPP}
+			 log4cpp
                  	 GFwEG
                  	 GFwAlg
                  	 GFwMsg
@@ -25,13 +25,13 @@ art_make_library(LIBRARY_NAME TreeInterface
                  	 dk2nuTree
                  	 #${DK2NUDATA}
                  	 ${DK2NUGENIE}
-			${LOG4CPP}
+			log4cpp
 ####################################################
 		#$(CETLIB)
 		      ${FHICLCPP}
 		      cetlib cetlib_except
 		      #${MF_MESSAGELOGGER}
-		      ${CLHEP}
+		      CLHEP::CLHEP
                       ${ROOT_BASIC_LIB_LIST}
                       ${Boost_SYSTEM_LIBRARY}
 	        ) 
@@ -76,10 +76,10 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
                 	GFwMsg
                		GFwGHEP
                		GTlFlx
-			${LOG4CPP}
+			log4cpp
                		dk2nuTree
 			${DK2NUGENIE}
-			${LOG4CPP}
+			log4cpp
 ####################################################
                         ${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}

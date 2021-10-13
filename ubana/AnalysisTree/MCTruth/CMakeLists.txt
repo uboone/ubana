@@ -28,7 +28,7 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            cetlib_except
                            ${Boost_FILESYSTEM_LIBRARY}
 
-                           ${CLHEP}
+                           CLHEP::CLHEP
 
 
           TOOL_LIBRARIES   lardataobj_RecoBase
@@ -58,7 +58,7 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            cetlib_except
                            ${Boost_FILESYSTEM_LIBRARY}
 
-                           ${CLHEP}
+                           CLHEP::CLHEP
 
         )
 

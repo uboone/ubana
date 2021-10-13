@@ -10,7 +10,7 @@ art_make( BASENAME_ONLY
 			  larsim_PhotonPropagation_PhotonVisibilityService_service
 			  larcorealg_Geometry
 			  ubcore::ubana_BasicTool_GeoAlgo
-			  ubana_SelectionTool_OpT0FinderBase
+			  ubreco_SelectionTool_OpT0FinderBase
 			  ubobj_Trigger
                           ubcore::UBOpReadoutMap_service
   		          ${ART_FRAMEWORK_CORE}

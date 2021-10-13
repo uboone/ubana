@@ -1,5 +1,7 @@
 cet_enable_asserts()
 
+include_directories( $ENV{EIGEN_INC} )
+
 art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          lardataobj_Simulation
                          lardataobj_MCBase
@@ -31,7 +33,7 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          cetlib_except
                          ${Boost_FILESYSTEM_LIBRARY}
                          ${Boost_SYSTEM_LIBRARY}
-                         ${CLHEP}
+                         CLHEP::CLHEP
                          ${ROOT_BASIC_LIB_LIST}
                          ${ROOT_EG}
                          ${ROOT_MINUIT}

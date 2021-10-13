@@ -27,7 +27,7 @@ art_make(BASENAME_ONLY
 		${MF_UTILITIES}
 		${FHICLCPP}
 		cetlib cetlib_except
-		${CLHEP}
+		CLHEP::CLHEP
 
 		${G4_LIB_LIST}
 	)

@@ -25,7 +25,7 @@ art_make( BASENAME_ONLY
         ${MF_MESSAGELOGGER}
         ${MF_UTILITIES}
         ${CETLIB}
-        ${CLHEP}
+        CLHEP::CLHEP
         ${BOOST_LIB}
         ubcore::ubana_BasicTool_GeoAlgo
         ${FHICLCPP}

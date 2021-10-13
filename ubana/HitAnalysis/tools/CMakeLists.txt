@@ -28,7 +28,7 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          cetlib_except
                          ${Boost_FILESYSTEM_LIBRARY}
 
-                         ${CLHEP}
+                         CLHEP::CLHEP
 
                          ${ROOT_MINUIT}
         )

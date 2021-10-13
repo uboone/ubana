@@ -32,7 +32,7 @@ set( hitfinder_tool_lib_list
                         cetlib cetlib_except
                         ${Boost_FILESYSTEM_LIBRARY}
 
-                        ${CLHEP}
+                        CLHEP::CLHEP
 
 
     )
@@ -43,8 +43,8 @@ art_make( BASENAME_ONLY
                    ubobj_UBXSec
                    ubcore::ubana_BasicTool_GeoAlgo
                    ubreco::uboone_UBFlashFinder
-		   ubana_SelectionTool_OpT0FinderBase
-		   ubana_SelectionTool_OpT0FinderAlgorithms
+		   ubreco_SelectionTool_OpT0FinderBase
+		   ubreco_SelectionTool_OpT0FinderAlgorithms
 	  	   larcorealg_Geometry
 		   larcore_Geometry_Geometry_service
                    ubraw_RawData
@@ -100,8 +100,8 @@ art_make( BASENAME_ONLY
 		   larpandora_LArPandoraInterface
                    #                   larpandora_LArPandoraContent
 		   ubcore::ubana_BasicTool_GeoAlgo
-		   ubana_SelectionTool_OpT0FinderBase
-		   ubana_SelectionTool_OpT0FinderAlgorithms
+		   ubreco_SelectionTool_OpT0FinderBase
+		   ubreco_SelectionTool_OpT0FinderAlgorithms
                    ubreco::uboone_UBFlashFinder
                    ubraw_RawData
                    ubevt::SignalShapingServiceMicroBooNE_service

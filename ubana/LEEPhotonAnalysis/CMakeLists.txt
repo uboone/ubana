@@ -37,7 +37,7 @@ art_make( BASENAME_ONLY
                         ${MF_MESSAGELOGGER}
                         ${FHICLCPP}
 			cetlib cetlib_except
-                        ${CLHEP}
+                        CLHEP::CLHEP
 
 
           MODULE_LIBRARIES
@@ -69,7 +69,7 @@ art_make( BASENAME_ONLY
                         ${MF_MESSAGELOGGER}
                         ${FHICLCPP}
 			cetlib cetlib_except
-                        ${CLHEP}
+                        CLHEP::CLHEP
 
         )
 

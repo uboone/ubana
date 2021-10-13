@@ -34,12 +34,12 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            ${FHICLCPP}
                            ${CETLIB}
                            cetlib_except
-                           ${CLHEP}
+                           CLHEP::CLHEP
                            ${ROOT_GEOM}
                            ${ROOT_XMLIO}
                            ${ROOT_GDML}
                            ${ROOT_BASIC_LIB_LIST}
-            		   ${PANDORASDK}	
+            		   PANDORASDK
 			   larpandora_LArPandoraInterface
         )
 

@@ -16,8 +16,8 @@ art_make(
                         larreco_RecoAlg
                         larreco_ClusterFinder
                         larreco_Calorimetry
-                        ${PANDORASDK}
-                        ${PANDORAMONITORING}
+                        PANDORASDK
+                        PANDORAMONITORING
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
@@ -37,8 +37,6 @@ art_make(
                         ${ROOT_GEOM}
                         ${ROOT_BASIC_LIB_LIST}
                         ${ROOT_GENVECTOR}
-                        ubana_SelectionTool_OpT0FinderBase
-                        ubana_SelectionTool_OpT0FinderAlgorithms
 	  TOOL_LIBRARIES
 			larevt_CalibrationDBI_IOVData
 			ubevt_Utilities	
@@ -54,8 +52,8 @@ art_make(
                         larreco_RecoAlg
                         larreco_ClusterFinder
                         larreco_Calorimetry
-                        ${PANDORASDK}
-                        ${PANDORAMONITORING}
+                        PANDORASDK
+                        PANDORAMONITORING
                         nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
@@ -92,7 +90,7 @@ art_make(
 			#larpandora_LArPandoraObjects
                         #LArPandoraContent
                         #larpandoraobj
-            		${PANDORASDK}	
+            		PANDORASDK
 			larcore_Geometry_Geometry_service	
 			art_Utilities canvas
                         ${MF_MESSAGELOGGER}

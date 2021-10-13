@@ -51,7 +51,7 @@ art_make( BASENAME_ONLY
 
 	                ${FHICLCPP}
 			cetlib cetlib_except
-			${CLHEP}
+			CLHEP::CLHEP
                         ${ROOT_GEOM}
                         ${ROOT_XMLIO}
                         ${ROOT_GDML}

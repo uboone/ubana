@@ -18,11 +18,11 @@ art_make( BASENAME_ONLY
 			larsim_MCCheater_ParticleInventoryService_service
 			larpandora_LArPandoraInterface
             ubana_SinglePhotonAnalysis_SEAview
-            ${PANDORASDK}
-            ${PANDORAMONITORING}
+            PANDORASDK
+            PANDORAMONITORING
             LArPandoraContent 
 			nusimdata_SimulationBase
-			${UB_DATA_TYPES}
+			UB_DATA_TYPES
 			${Boost_SERIALIZATION_LIBRARY}
                         nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
@@ -38,7 +38,7 @@ art_make( BASENAME_ONLY
                         
                         ${FHICLCPP}
 			cetlib cetlib_except
-                        ${CLHEP}
+                        CLHEP::CLHEP
                         ${ROOT_BASIC_LIB_LIST}
                         ${ROOT_GEOM} 
           MODULE_LIBRARIES
@@ -58,7 +58,7 @@ art_make( BASENAME_ONLY
 			nusimdata_SimulationBase
 			ubana_LEEPhotonAnalysis
             ubana_SinglePhotonAnalysis_SEAview
-			${UB_DATA_TYPES}
+			UB_DATA_TYPES
 			${Boost_SERIALIZATION_LIBRARY}
                         nurandom_RandomUtils_NuRandomService_service
                         ${ART_FRAMEWORK_CORE}
@@ -74,7 +74,7 @@ art_make( BASENAME_ONLY
                         
                         ${FHICLCPP}
 			cetlib cetlib_except
-                        ${CLHEP}
+                        CLHEP::CLHEP
                         ${ROOT_BASIC_LIB_LIST}
                         ${ROOT_GEOM} )
                       

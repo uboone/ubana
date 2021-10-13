@@ -7,8 +7,8 @@ art_make( BASENAME_ONLY
           LIBRARY_NAME     uboonecode_uboone_CosmicTagging
 	  LIB_LIBRARIES
 		   ubcore::ubana_BasicTool_GeoAlgo
-		   ubana_SelectionTool_OpT0FinderBase
-		   ubana_SelectionTool_OpT0FinderAlgorithms
+		   ubreco_SelectionTool_OpT0FinderBase
+		   ubreco_SelectionTool_OpT0FinderAlgorithms
 	  	   larcorealg_Geometry
 		   larcore_Geometry_Geometry_service
                    ubana_CosmicTagging_CosmicTaggingAlgorithms
@@ -46,8 +46,8 @@ art_make( BASENAME_ONLY
 		   larpandora_LArPandoraInterface
 
 		   ubcore::ubana_BasicTool_GeoAlgo
-		   ubana_SelectionTool_OpT0FinderBase
-		   ubana_SelectionTool_OpT0FinderAlgorithms
+		   ubreco_SelectionTool_OpT0FinderBase
+		   ubreco_SelectionTool_OpT0FinderAlgorithms
 
                    ubana_CosmicTagging_CosmicTaggingAlgorithms
 
