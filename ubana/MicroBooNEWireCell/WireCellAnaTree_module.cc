@@ -2092,6 +2092,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		const TLorentzVector& pos = p.Position(0);
 		const TLorentzVector& momentum = p.Momentum(0);
 		float tempKE = momentum.E() - momentum.M();
+		if(tempKE > 0.035) f_reco_Nproton ++; // 35 MeV threshold
 		if( ProtonKE>=tempKE ) continue;
 		ProtonKE = tempKE;
 		f_reco_protonvtxX = pos.X(); // cm	
@@ -2101,7 +2102,6 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		f_reco_protonMomentum[1] = momentum.Py();	
 		f_reco_protonMomentum[2] = momentum.Pz();	
 		f_reco_protonMomentum[3] = momentum.E(); // GeV
-		f_reco_Nproton ++;
 	}
 
  	//shower	
@@ -2401,38 +2401,41 @@ void WireCellAnaTree::analyze(art::Event const& e)
 
 	// neutrino scattering code. Integer, see GTruth.h for more details.
 	art::Handle< std::vector<simb::GTruth> > gtruthListHandle;
-	e.getByLabel("generator",gtruthListHandle);
-	std::vector<art::Ptr<simb::GTruth> > glist;
-	art::fill_ptr_vector(glist, gtruthListHandle);
-	art::Ptr<simb::GTruth> gtruth;
-	if (glist.size()>0) {
-		gtruth = glist.at(0);
+	if(e.getByLabel("generator",gtruthListHandle)){
+	  std::vector<art::Ptr<simb::GTruth> > glist;
+	  art::fill_ptr_vector(glist, gtruthListHandle);
+	  art::Ptr<simb::GTruth> gtruth;
+	  if (glist.size()>0) {
+	  	gtruth = glist.at(0);
                 f_truth_nuScatType = gtruth->fGscatter;
-	}
+	  }
+        }
+        // by default, f_truth_nuScatType = -1
 
 	// flux truth, see MCFlux.h for more details
 	// and the description at http://www.hep.utexas.edu/~zarko/wwwgnumi/v19/v19/output_gnumi.html
 	art::Handle< std::vector<simb::MCFlux> > mcfluxListHandle;
-	e.getByLabel("generator",mcfluxListHandle);
-	std::vector<art::Ptr<simb::MCFlux> > mcfluxlist;
-	art::fill_ptr_vector(mcfluxlist, mcfluxListHandle);
-	art::Ptr<simb::MCFlux> mcflux;
-	if (mcfluxlist.size()>0) {
-		mcflux = mcfluxlist.at(0);
-		f_mcflux_run = mcflux->frun;
-		f_mcflux_evtno = mcflux->fevtno;
-		f_mcflux_ndecay = mcflux->fndecay;
-		f_mcflux_ntype = mcflux->fntype;
-		f_mcflux_nuEnergy = mcflux->fnenergyn; // neutrino energy for a decay
-		f_mcflux_vx = mcflux->fvx; // vertex of hadron decay
-		f_mcflux_vy = mcflux->fvy;
-		f_mcflux_vz = mcflux->fvz;
-		f_mcflux_genx = mcflux->fgenx;
-		f_mcflux_geny = mcflux->fgeny;
-		f_mcflux_genz = mcflux->fgenz;
-		f_mcflux_dk2gen = mcflux->fdk2gen; // distance from decay to ray origin
-		f_mcflux_gen2vtx = mcflux->fgen2vtx; // distance from ray origin to event vtx
-	}
+	if (e.getByLabel("generator",mcfluxListHandle)){
+	  std::vector<art::Ptr<simb::MCFlux> > mcfluxlist;
+	  art::fill_ptr_vector(mcfluxlist, mcfluxListHandle);
+	  art::Ptr<simb::MCFlux> mcflux;
+	  if (mcfluxlist.size()>0) {
+	  	mcflux = mcfluxlist.at(0);
+	  	f_mcflux_run = mcflux->frun;
+	  	f_mcflux_evtno = mcflux->fevtno;
+	  	f_mcflux_ndecay = mcflux->fndecay;
+	  	f_mcflux_ntype = mcflux->fntype;
+	  	f_mcflux_nuEnergy = mcflux->fnenergyn; // neutrino energy for a decay
+	  	f_mcflux_vx = mcflux->fvx; // vertex of hadron decay
+	  	f_mcflux_vy = mcflux->fvy;
+	  	f_mcflux_vz = mcflux->fvz;
+	  	f_mcflux_genx = mcflux->fgenx;
+	  	f_mcflux_geny = mcflux->fgeny;
+	  	f_mcflux_genz = mcflux->fgenz;
+	  	f_mcflux_dk2gen = mcflux->fdk2gen; // distance from decay to ray origin
+	  	f_mcflux_gen2vtx = mcflux->fgen2vtx; // distance from ray origin to event vtx
+	  }
+        }
 
 	}
 	//
@@ -2532,15 +2535,16 @@ void WireCellAnaTree::endSubRun(art::SubRun const& sr)
   // POT counting
   if( fPOT_counting==true ){
 	art::Handle<sumdata::POTSummary> pots;
-	if(! sr.getByLabel(fPOT_inputTag, pots)){
-		std::cout << "WARNING:  no sumdata::POTSummary inputTag " << fPOT_inputTag << std::endl;
-		return;
+	if(sr.getByLabel(fPOT_inputTag, pots)){
+	  sumdata::POTSummary const& p1(*pots);
+	  fpot_tor875 = p1.totpot;
+	  fpot_tor875good = p1.totgoodpot;
+	  fspill_tor875 = p1.totspills;
+	  fspill_tor875good = p1.goodspills;
 	}
-	sumdata::POTSummary const& p1(*pots);
-	fpot_tor875 = p1.totpot;
-	fpot_tor875good = p1.totgoodpot;
-	fspill_tor875 = p1.totspills;
-	fspill_tor875good = p1.goodspills;
+        else{
+	  std::cout << "WARNING:  no sumdata::POTSummary inputTag " << fPOT_inputTag << std::endl;
+        }
   }
   fTreePot->Fill(); 
   // check if MC POT is cumulative for each file as MCC8 overlay

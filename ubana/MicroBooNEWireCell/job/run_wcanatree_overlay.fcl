@@ -6,3 +6,5 @@ physics.analyzers.wcpselection.POT_inputTag:	"generator"
 
 physics.analyzers.wcpweights.SaveWeights:	true
 physics.analyzers.wcpweights.SaveFullWeights:	true
+
+physics.ana: [wcpselection, wcpweights]

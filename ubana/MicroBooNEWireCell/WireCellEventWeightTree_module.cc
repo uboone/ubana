@@ -336,7 +336,7 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e, const bool 
   // To make the NuMI wights fit the BNB analysis, a few assumptions
   // have been made here:
   // 1. absorb ppfx_cv_UBPPFXCV into spline weight
-  // 2. keep ppfx_ms_UBPPFX as it is, set all other ppfx_* vectors to unity
+  // 2. all other ppfx_* divided by ppfx_cv_UBPPFXCV
   // 3. re-map the 12 ppfx_* vectors to 12 BNB flux weights
   // 4. create a virtual knob with all values 1 in the vector (BNB has 13 flux knobs)
   double ppfx_cv_UBPPFXCV = 1.0; 
@@ -392,12 +392,13 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e, const bool 
       std::vector<float> weights_asFloat(weights.begin(), weights.end());
 
       if (fIsNuMI) {
-
-        if (knob.rfind("ppfx_", 0) == 0 and knob != "ppfx_cv_UBPPFXCV" and knob != "ppfx_ms_UBPPFX") {
-          weights_asFloat = std::vector<float>(weights_asFloat.size(), 1.0);
+        // For NuMI, the 12 ppfx_* knobs are divided by ppfx_cv_UBPPFXCV,
+        // and ppfx_cv_UBPPFXCV is absorbed into spline weight
+        if (knob.rfind("ppfx_", 0) == 0 and knob != "ppfx_cv_UBPPFXCV") {
+          std::transform(weights_asFloat.begin(), weights_asFloat.end(), weights_asFloat.begin(),
+                         std::bind(std::divides<float>(), std::placeholders::_1, ppfx_cv_UBPPFXCV));
         }
-
-        if (knob == "splines_general_Spline") {
+        else if (knob == "splines_general_Spline") {
           std::transform(weights_asFloat.begin(), weights_asFloat.end(), weights_asFloat.begin(),
                          std::bind(std::multiplies<float>(), std::placeholders::_1, ppfx_cv_UBPPFXCV));
         }
