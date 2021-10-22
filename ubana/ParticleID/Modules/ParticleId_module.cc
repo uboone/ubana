@@ -634,7 +634,7 @@ void UBPID::ParticleId::produce(art::Event & e)
      * Fill ParticleID object and push back to event
      */
 
-    anab::ParticleID PID_object(AlgScoresVec);
+    anab::ParticleID PID_object(AlgScoresVec, geo::PlaneID());
     particleIDCollection->push_back(PID_object);
 
     util::CreateAssn(*this, e, *particleIDCollection, track, *trackParticleIdAssn);
