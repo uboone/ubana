@@ -696,12 +696,24 @@ namespace single_photon
 
                 m_reco_shower_end_dist_to_active_TPC[i_shr] = 99999;
                 m_reco_shower_end_dist_to_SCB[i_shr] = 99999;
+
+
+
+
                 for(auto &sp: shr_spacepoints){
                     std::vector<double> tmp_spt = {sp->XYZ()[0],sp->XYZ()[1] , sp->XYZ()[2]};
                     m_reco_shower_end_dist_to_active_TPC[i_shr] = std::min(m_reco_shower_end_dist_to_active_TPC[i_shr], distToTPCActive(tmp_spt));
                     double tmo;
                     this->distToSCB(tmo,tmp_spt);
                     m_reco_shower_end_dist_to_SCB[i_shr] = std::min(m_reco_shower_end_dist_to_SCB[i_shr],tmo);
+
+
+                    if(showers.size()==1){
+                            m_reco_shower_spacepoint_x.push_back(sp->XYZ()[0]);
+                            m_reco_shower_spacepoint_y.push_back(sp->XYZ()[1]);
+                            m_reco_shower_spacepoint_z.push_back(sp->XYZ()[2]);
+                    }
+
                 }
             }
 

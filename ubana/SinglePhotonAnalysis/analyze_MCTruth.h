@@ -255,7 +255,6 @@ namespace single_photon
             
             }
 
-            if(m_is_textgen) continue; //quick hack, fix in files
 
 
             if(m_is_verbose) std::cout<<"We are working with : ";
@@ -295,6 +294,7 @@ namespace single_photon
                 m_mctruth_daughters_process[j] = par.Process();
                 m_mctruth_daughters_end_process[j] = par.EndProcess();
 
+                if(m_is_textgen) continue; //quick hack, fix in files
 
                 switch(m_mctruth_daughters_pdg[j]){
                     case(22):
@@ -403,6 +403,7 @@ namespace single_photon
                 }
             }
 
+            if(m_is_textgen) continue; //quick hack, fix in files
 
             for(size_t p=0; p< m_mctruth_exiting_proton_energy.size(); p++){
                 if( m_mctruth_exiting_proton_energy[p] > m_mctruth_leading_exiting_proton_energy ){

@@ -1600,6 +1600,12 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_reco_shower_plane1_meanRMS;
             std::vector<double> m_reco_shower_plane2_meanRMS;
 
+           std::vector<int> m_reco_shower_hit_wire;
+           std::vector<int> m_reco_shower_hit_plane;
+           std::vector<double> m_reco_shower_hit_tick;
+           std::vector<double> m_reco_shower_spacepoint_x;
+           std::vector<double> m_reco_shower_spacepoint_z;
+           std::vector<double> m_reco_shower_spacepoint_y;
 
 
             std::vector<size_t>  m_reco_shower_ordered_energy_index;

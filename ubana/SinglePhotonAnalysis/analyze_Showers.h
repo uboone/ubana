@@ -124,6 +124,12 @@ namespace single_photon
         m_reco_shower_plane1_meanRMS.clear();
         m_reco_shower_plane2_meanRMS.clear();
 
+        m_reco_shower_hit_tick.clear();
+        m_reco_shower_hit_wire.clear();
+        m_reco_shower_hit_plane.clear();
+        m_reco_shower_spacepoint_x.clear();
+        m_reco_shower_spacepoint_y.clear();
+        m_reco_shower_spacepoint_z.clear();
 
 
         m_reco_shower_dQdx_plane0.clear();
@@ -423,7 +429,13 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_reclustered_energy_plane2",&m_reco_shower_reclustered_energy_plane2);
         vertex_tree->Branch("reco_shower_reclustered_energy_max",&m_reco_shower_reclustered_energy_max);
 
+        vertex_tree->Branch("reco_shower_hit_tick",&m_reco_shower_hit_tick);
+        vertex_tree->Branch("reco_shower_hit_wire",&m_reco_shower_hit_wire);
+        vertex_tree->Branch("reco_shower_hit_plane",&m_reco_shower_hit_plane);
 
+        vertex_tree->Branch("reco_shower_spacepoint_x",&m_reco_shower_spacepoint_x);
+        vertex_tree->Branch("reco_shower_spacepoint_y",&m_reco_shower_spacepoint_y);
+        vertex_tree->Branch("reco_shower_spacepoint_z",&m_reco_shower_spacepoint_z);
 
         vertex_tree->Branch("reco_shower_ordered_energy_index",&m_reco_shower_ordered_energy_index);
         vertex_tree->Branch("i_shr",&m_reco_shower_ordered_energy_index);
@@ -745,6 +757,26 @@ namespace single_photon
             m_reco_shower_plane0_meanRMS[i_shr] = getMeanHitWidthPlane(hits, 0);
             m_reco_shower_plane1_meanRMS[i_shr] = getMeanHitWidthPlane(hits, 1);
             m_reco_shower_plane2_meanRMS[i_shr] = getMeanHitWidthPlane(hits, 2);
+
+
+            //currently only run on 1 shower events
+            if(showers.size()==1){
+               for(auto &h: hits){ 
+
+                    int plane= h->View();
+                    int wire = h->WireID().Wire;
+                    int tick = h->PeakTime();
+
+                    m_reco_shower_hit_tick.push_back(tick);
+                    m_reco_shower_hit_plane.push_back(plane);
+                    m_reco_shower_hit_wire.push_back(wire);
+
+
+
+
+               }
+
+            }
 
 
 
