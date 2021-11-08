@@ -41,6 +41,17 @@ namespace single_photon
 
         if(m_run_pi0_filter) m_is_data = true;// If running in filter mode, treat all as data
 
+
+        std::cout<<"SinglePhoton::reconfigure || whats configured? "<<std::endl;
+        std::cout<<"SinglePhoton::reconfigure || m_is_data: "<<m_is_data<<std::endl;
+        std::cout<<"SinglePhoton::reconfigure || m_is_overlayed: "<<m_is_overlayed<<std::endl;
+        std::cout<<"SinglePhoton::reconfigure || m_is_textgen: "<<m_is_textgen<<std::endl;
+        std::cout<<"SinglePhoton::reconfigure || m_fill_trees: "<<m_fill_trees<<std::endl;
+        std::cout<<"SinglePhoton::reconfigure || m_run_pi0_filter: "<<m_run_pi0_filter<<std::endl;
+        std::cout<<"SinglePhoton::reconfigure || m_run_pi0_filter_2g1p: "<<m_run_pi0_filter_2g1p<<std::endl;
+        std::cout<<"SinglePhoton::reconfigure || m_run_pi0_filter_2g0p: "<<m_run_pi0_filter_2g0p<<std::endl;
+
+
         m_runPhotoNuTruth = pset.get<bool>("RunPhotoNu",false); 
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
