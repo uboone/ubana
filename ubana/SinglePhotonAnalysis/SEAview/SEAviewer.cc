@@ -1,6 +1,111 @@
 #include "SEAviewer.h"
+#include <algorithm>
+#include <cmath>
+
 namespace seaview{
-    //default
+
+    void SEAviewer::TrackLikeClusterAnalyzer(cluster &cl, const std::vector<double> &shower_start_pt_2D, const std::vector<double> &shower_other_pt_2D){
+
+	//first round, grab min ioc, impact, conversion distance, and ADC_histogram, and indx of the hits with min/max IOC
+	double max_ioc_to_shower_start = DBL_MIN;
+	size_t num_hits = cl.f_hits.size();
+
+
+	for(size_t i = 0; i!= num_hits; ++i){
+	    auto &h = cl.f_hits[i]; //type of h: art_ptr<recob::Hit>
+	    double h_tick = (double)h->PeakTime();
+            double h_wire = (double)h->WireID().Wire;
+
+	    //geometric properties
+	    double impact_parameter_to_shower = dist_line_point(shower_start_pt_2D, shower_other_pt_2D, {h_wire, h_tick});
+            double conversion_dist_to_shower_start = dist_point_point(h_wire, h_tick, shower_start_pt_2D[0], shower_start_pt_2D[1]);
+	    double ioc_to_shower_start = impact_parameter_to_shower/conversion_dist_to_shower_start;
+            cl.f_min_impact_parameter_to_shower = std::min(cl.f_min_impact_parameter_to_shower, impact_parameter_to_shower);
+            cl.f_min_conversion_dist_to_shower_start = std::min(cl.f_min_conversion_dist_to_shower_start, conversion_dist_to_shower_start);
+
+	    //remember two hits with min/max IOC
+	    if( ioc_to_shower_start < cl.f_min_ioc_to_shower_start){
+                cl.f_min_ioc_to_shower_start = ioc_to_shower_start;
+	        cl.start_hit_idx = i; 
+	    }
+	    if( ioc_to_shower_start > max_ioc_to_shower_start){ //be careful, should not be "else if" here.
+	        max_ioc_to_shower_start = ioc_to_shower_start;
+		cl.end_hit_idx = i;
+	    }
+
+
+	} //end of hit loop
+
+
+	// second round: group hits in two categories, first half and second half
+	// get the direction of the cluster
+	auto start_hit_ptr = cl.f_hits.at(cl.start_hit_idx), end_hit_ptr = cl.f_hits.at(cl.end_hit_idx);
+	std::vector<double> start_hit_point = { (double)start_hit_ptr->WireID().Wire, (double)start_hit_ptr->PeakTime()};	
+	std::vector<double> end_hit_point= { (double)end_hit_ptr->WireID().Wire, (double)end_hit_ptr->PeakTime()};	
+ 	std::vector<double> mid_point = { (start_hit_point[0] + end_hit_point[0])/2, (start_hit_point[1] + end_hit_point[1])/2};
+ 	std::vector<double> start_to_mid_vec = { (- start_hit_point[0] + end_hit_point[0])/2, ( - start_hit_point[1] + end_hit_point[1])/2};
+	cl.f_ioc_based_length = sqrt(pow((start_hit_point[0]-end_hit_point[0])*wire_con, 2.0) + pow((start_hit_point[1]-end_hit_point[1])*tick_con, 2.0));
+
+	cl.f_hit_group.resize(num_hits);	
+	for(size_t i = 0; i!=num_hits; ++i){
+	    auto h = cl.f_hits[i]; //type of h: art_ptr<recob::Hit>
+	    double h_tick = (double)h->PeakTime();
+            double h_wire = (double)h->WireID().Wire;
+
+	    std::vector<double> mid_to_h_vec = { h_wire - mid_point[0], h_tick - mid_point[1]};
+
+	    if( start_to_mid_vec[0]*mid_to_h_vec[0]*pow(wire_con, 2.0) + start_to_mid_vec[1] * mid_to_h_vec[1] *pow(tick_con, 2.0)<= 0 ){
+		cl.f_hit_group[i] = 1;
+		cl.f_mean_ADC_first_half += h->SummedADC();
+	    }
+	    else{
+		cl.f_hit_group[i] = 2;
+		cl.f_mean_ADC_second_half += h->SummedADC();
+	    }
+	}
+	cl.f_track_treated = true;
+
+ 	size_t nhits_first_half = std::count(cl.f_hit_group.begin(), cl.f_hit_group.end(), 1);
+	size_t nhits_second_half = std::count(cl.f_hit_group.begin(), cl.f_hit_group.end(), 2);
+	if(nhits_first_half) cl.f_mean_ADC_first_half /= nhits_first_half;
+	if(nhits_second_half) cl.f_mean_ADC_second_half /= nhits_second_half;
+	cl.f_mean_ADC_first_to_second_ratio = (cl.f_mean_ADC_second_half != 0 ? cl.f_mean_ADC_first_half/cl.f_mean_ADC_second_half : 0.0);
+
+	if( num_hits < 2){
+	    std::cerr << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster only has " << num_hits << " hits, can't calculate direction, skipping it... " << std::endl;
+	    return;
+        }
+
+	//angle between the track cluster and the shower direction
+	//cluster direction unit vector
+	double start_to_mid_length = sqrt( pow(start_to_mid_vec[0]*wire_con, 2.0) + pow(start_to_mid_vec[1]*tick_con, 2.0));
+	std::vector<double> cluster_dir = {start_to_mid_vec[0]*wire_con/start_to_mid_length, start_to_mid_vec[1]*tick_con/start_to_mid_length};
+	//shower direction unit vector
+	double shower_direction_length = sqrt(pow((shower_start_pt_2D[0] - shower_other_pt_2D[0])*wire_con, 2.0) + pow((shower_start_pt_2D[1] - shower_other_pt_2D[1])*tick_con, 2.0));
+ 	std::vector<double> shower_dir = { (shower_other_pt_2D[0] - shower_start_pt_2D[0])*wire_con/shower_direction_length, (shower_other_pt_2D[1] - shower_start_pt_2D[1])*tick_con/shower_direction_length};
+	//angle between two unit vector, in radian
+	cl.f_angle_wrt_shower_direction = acos( cluster_dir[0]*shower_dir[0] + cluster_dir[1]*shower_dir[1]);
+
+
+	if(cl.f_score.min_wire == cl.f_score.max_wire){
+	    std::cout << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster spans only on 1 wire: " << cl.f_score.min_wire << ", setting its straight-line fit chi2 to 0.." << std::endl;
+	    return;
+	}
+        //fit to wire-tick plot of the cluster, see how straight cluster is
+        TF1 *f1 = new TF1("f1", "1 ++ x", cl.f_score.min_wire, cl.f_score.max_wire);
+	//TGraph* graph_copy = (TGraph*)cl.f_graph.Clone("temp");
+        //int fit_status = graph_copy->Fit(f1, "RQ0"); //if fit status is 0, the fit is ok.
+        int fit_status = cl.f_graph.Fit(f1, "RQ0"); //if fit status is 0, the fit is ok.
+	if(fit_status == 0){
+	    //f1 = graph_copy->GetFunction("f1");
+	    f1 = cl.f_graph.GetFunction("f1");
+	    cl.f_fit_chi2 = f1->GetChisquare();
+	}
+        //std::cout << "SEAviewer::TrackLikeClusterAnalyzer\t|| End" << std::endl;
+    }
+
+
+    // constructor
     SEAviewer::SEAviewer(std::string intag, geo::GeometryCore const * ingeom, detinfo::DetectorProperties const * intheDetector ): tag(intag), geom(ingeom), theDetector(intheDetector){
         chan_max = {-9999,-9999,-9999};
         chan_min = {9999,9999,9999};
@@ -24,7 +129,7 @@ namespace seaview{
         has_been_clustered = false;
         hit_threshold = -10;
 
-        rangen = new TRandom3(0);
+        rangen = new TRandom3(0); //same seed everytime
     }
 
 
@@ -53,7 +158,7 @@ namespace seaview{
         std::vector<std::vector<double>>  vec_chan(3);
 
         for(auto&h:all_hits){
-            if(map_slice_hits.count(h)==0){
+            if(map_slice_hits.count(h)==0){   // if h is not in the map, push its plane ID, wire ID, and time tick to the vectors
                 double wire = (double)h->WireID().Wire;
                 vec_chan[(int)h->View()].push_back(wire);
                 vec_tick[(int)h->View()].push_back((double)h->PeakTime());
@@ -65,7 +170,7 @@ namespace seaview{
         }
 
         for(int i=0; i<3; i++){
-            vec_all_graphs.emplace_back(vec_tick[i].size(),&vec_chan[i][0],&vec_tick[i][0]); 
+            vec_all_graphs.emplace_back(vec_tick[i].size(),&vec_chan[i][0],&vec_tick[i][0]); //implicitly converted to TGraph
         }
 
         vec_all_ticks = vec_tick;
@@ -85,14 +190,15 @@ namespace seaview{
 
         int n_all =slice_hits.size();
 
-        for(auto&h:slice_hits){
+        for(auto&h:slice_hits){ //type of h: recob::Hit
             if(map_unassociated_hits[h]){
 
                 if(h->SummedADC() < hit_threshold){
                     n_below_thresh++;
                     continue;
                 }
-                
+
+		// if summed ADC of the hit passes threshold                
                 n_unassoc++;
                 double wire = (double)h->WireID().Wire;
                 double tick = (double)h->PeakTime();
@@ -103,6 +209,7 @@ namespace seaview{
                 vec_hits[(int)h->View()].push_back(h);
                 tick_max = std::max(tick_max, tick);
                 tick_min = std::min(tick_min, tick);
+		//chan_max, chan_min stores: max, min unassociated channel for each plane
                 chan_max[(int)h->View()] = std::max( chan_max[(int)h->View()],wire);
                 chan_min[(int)h->View()] = std::min( chan_min[(int)h->View()],wire);
 
@@ -123,8 +230,10 @@ namespace seaview{
     }
 
 
-    int SEAviewer::addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string legend){
+    int SEAviewer::addPFParticleHits(std::vector<art::Ptr<recob::Hit>>& hits, std::string legend, double arg1, double arg2, double arg3){
         n_pfps++;
+
+	format_legend(legend, arg1, arg2, arg3);
 
         vec_pfp_legend.push_back(legend);
 
@@ -173,8 +282,8 @@ namespace seaview{
 
     std::vector<std::vector<double>> SEAviewer::to2D(std::vector<double> & threeD){
 
-        auto const TPC = (*geom).begin_TPC();
-        auto ID = TPC.ID();
+        auto const TPC = (*geom).begin_TPC();  //returns iterator pointing to the first TPC of detector
+        auto ID = TPC.ID(); 
         int fCryostat = ID.Cryostat;
         int fTPC = ID.TPC;
 
@@ -201,6 +310,7 @@ namespace seaview{
 
         for(int i=0; i<3; i++){
 
+	    // use vector here, so that to plot the single point using TGraph
             std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
             std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
 
@@ -258,24 +368,34 @@ namespace seaview{
         //******************************* First plot "Vertex" ***************************************
 
         //Calculate some things
+	//Guanqun: what does tick_min - tick_shift actually mean?
+        double real_tick_min =  (fabs(vertex_tick[0] - (tick_min-tick_shift))*tick_con > plot_distance)  ? vertex_tick[0]-plot_distance/tick_con  : tick_min-tick_shift  ;
+        double real_tick_max =  (fabs(vertex_tick[0] - (tick_max+tick_shift))*tick_con > plot_distance)  ? vertex_tick[0]+plot_distance/tick_con  : tick_max+tick_shift  ;
+        //double real_tick_min = tick_min-tick_shift  ;
+        //double real_tick_max = tick_max+tick_shift  ;
 
-        double real_tick_min =  (fabs(vertex_tick[0] - (tick_min-tick_shift))/25.0 > plot_distance)  ? vertex_tick[0]-25.0*plot_distance  : tick_min-tick_shift  ;
-        double real_tick_max =  (fabs(vertex_tick[0] - (tick_max+tick_shift))/25.0 > plot_distance)  ? vertex_tick[0]+25.0*plot_distance  : tick_max+tick_shift  ;
+
+        std::vector<double> real_wire_min(3); //real x axis edges for 3 planes
+        std::vector<double> real_wire_max(3);
 
         for(int i=0; i<3; i++){
             TPad * pader = (TPad*)can->cd(i+1);
 
             if(i==0 || i ==4 || i == 8) pader->SetLeftMargin(0.1);
 
+	    //only show area surrounding the vertex up to std::min(plot_distance, distance_bw_vertex_channel_min/max)
+            real_wire_min[i] =  (fabs(vertex_chan[i] - (chan_min[i]-chan_shift))*wire_con > plot_distance ) ? vertex_chan[i]-plot_distance/wire_con  : chan_min[i]-chan_shift  ;
+            real_wire_max[i] =  (fabs(vertex_chan[i] - (chan_max[i]+chan_shift))*wire_con > plot_distance ) ? vertex_chan[i]+plot_distance/wire_con  : chan_max[i]+chan_shift  ;
 
-            double real_wire_min =  (fabs(vertex_chan[i] - (chan_min[i]-chan_shift))*0.3 > plot_distance ) ? vertex_chan[i]-plot_distance/0.3  : chan_min[i]-chan_shift  ;
-            double real_wire_max =  (fabs(vertex_chan[i] - (chan_max[i]+chan_shift))*0.3 > plot_distance ) ? vertex_chan[i]+plot_distance/0.3  : chan_max[i]+chan_shift  ;
+ 	    //fix the area to show, always show area large enough to hold all track/showers
+            //real_wire_min[i] =   chan_min[i]-chan_shift  ;
+            //real_wire_max[i] =   chan_max[i]+chan_shift  ;
 
             vertex_graph[i].SetMarkerStyle(29);
             vertex_graph[i].SetMarkerSize(2);
             vertex_graph[i].SetMarkerColor(kMagenta-3);
             vertex_graph[i].GetYaxis()->SetRangeUser(real_tick_min,real_tick_max);
-            vertex_graph[i].GetXaxis()->SetLimits(real_wire_min, real_wire_max);
+            vertex_graph[i].GetXaxis()->SetLimits(real_wire_min[i], real_wire_max[i]);
             vertex_graph[i].SetTitle(("Plane " +std::to_string(i)).c_str());
             vertex_graph[i].GetYaxis()->SetTitle("Peak Hit Time Tick");
             vertex_graph[i].GetXaxis()->SetTitle( ("Wire Number Plane " +std::to_string(i)).c_str());
@@ -307,20 +427,22 @@ namespace seaview{
             int ok = m_bad_channel_list[i].second;       
 
             if(ok>1)continue;
-            auto hs = geom->ChannelToWire(badchan);
+            auto hs = geom->ChannelToWire(badchan); //type of hs: vector containing the ID of all the connected wires
 
             int thisp = (int)hs[0].Plane;
             double bc = hs[0].Wire;
 
-            if(chan_min[thisp]-chan_shift < bc && bc < chan_max[thisp]+chan_shift ){
+            if(real_wire_min[thisp] < bc && bc < real_wire_max[thisp] ){
+            //if(chan_min[thisp]-chan_shift < bc && bc < chan_max[thisp]+chan_shift ){
                 can->cd(thisp+1);
-                TLine *l = new TLine(bc,tick_min-tick_shift,bc,tick_max+tick_shift);
+  		TLine *l = new TLine(bc, real_tick_min, bc, real_tick_max);
+                //TLine *l = new TLine(bc,tick_min-tick_shift,bc,tick_max+tick_shift);
                 l->SetLineColor(kGray+1);
                 l->Draw("same");
-                can->cd(thisp+5);
-                l->Draw("same");
-                can->cd(thisp+9);
-                l->Draw("same");
+                //can->cd(thisp+5);// Guanqun: how many values can plane ID take?
+                //l->Draw("same");
+                //can->cd(thisp+9);
+                //l->Draw("same");
             }
         }
 
@@ -381,9 +503,11 @@ namespace seaview{
 
                 double x2_plot;
                 if(other_pt[i][0]<start_pt[i][0]){
-                    x2_plot = chan_max[i]+chan_shift;
+                    //x2_plot = chan_max[i]+chan_shift; //guanqun: my guess is this needs to be updated as well to use real_wire_max/min
+		    x2_plot = real_wire_max[i];
                 }else{
-                    x2_plot = chan_min[i]-chan_shift;    
+                    //x2_plot = chan_min[i]-chan_shift;
+                    x2_plot = real_wire_min[i];    
                 }
                 double y2_plot = slope*x2_plot+inter;
 
@@ -399,8 +523,21 @@ namespace seaview{
 
         }
 
-        //If its be clusterized, plot clusters here. Lets try a color surrounding the black.
+        /********************************* Unassociated Hits ****************************/
+        for(int i=0; i<3; i++){
+            can->cd(i+1);
+            if(vec_unass_graphs[i].GetN()>0){//need a check in case this track has no hits on this plane.
 
+                vec_unass_graphs[i].Draw("p same"); 
+                vec_unass_graphs[i].SetMarkerColor(kBlack);
+                vec_unass_graphs[i].SetFillColor(kBlack);
+                vec_unass_graphs[i].SetMarkerStyle(20);
+                vec_unass_graphs[i].SetMarkerSize(plot_point_size);
+            }
+        }
+
+	/******************************* Clustered Hits ***********************************/
+	// draw cluster hits after drawing all unassociated hits such that clustered hits would be colored while un-clustered ones will be black.
         if(has_been_clustered){ 
 
             std::vector<int> cluster_colors(vec_clusters.size()+1,0);
@@ -422,7 +559,8 @@ namespace seaview{
                     c.getGraph()->SetMarkerColor(cluster_colors[c_offset]);
                     c.getGraph()->SetFillColor(cluster_colors[c_offset]);
                     c.getGraph()->SetMarkerStyle(20);
-                    c.getGraph()->SetMarkerSize(plot_point_size*2.0);
+                    //c.getGraph()->SetMarkerSize(plot_point_size);
+                    c.getGraph()->SetMarkerSize(plot_point_size*1.5);
                     //std::cout<<"Printing cluster "<<c.getID()<<" on plane "<<pl<<" col "<<cluster_colors[c_offset]<<std::endl;
                     //auto ll = c.getPTS();
                     //for(auto &p :ll){
@@ -434,18 +572,6 @@ namespace seaview{
         }//end clusters
 
 
-        /********************************* Unassociated Hits ****************************/
-        for(int i=0; i<3; i++){
-            can->cd(i+1);
-            if(vec_unass_graphs[i].GetN()>0){//need a check in case this track has no hits on this plane.
-
-                vec_unass_graphs[i].Draw("p same"); 
-                vec_unass_graphs[i].SetMarkerColor(kBlack);
-                vec_unass_graphs[i].SetFillColor(kBlack);
-                vec_unass_graphs[i].SetMarkerStyle(20);
-                vec_unass_graphs[i].SetMarkerSize(plot_point_size);
-            }
-        }
 
         //****** just plto vertex again with elipse;
         for(int i=0; i<3; i++){
@@ -453,7 +579,7 @@ namespace seaview{
             vertex_graph[i].Draw("p same");
 
             double rad_cm = 12.0;
-            TEllipse ell_p(vertex_chan[i],vertex_tick[i],rad_cm/0.3,rad_cm*25);
+            TEllipse ell_p(vertex_chan[i],vertex_tick[i],rad_cm/wire_con,rad_cm/tick_con);
             ell_p.SetLineColor(kRed);
             ell_p.SetFillStyle(0);
             ell_p.Draw("same");
@@ -470,7 +596,8 @@ namespace seaview{
           std::string pot_draw = "Run: "+std::to_string(m_run_number)+" SubRun: "+std::to_string(m_subrun_number)+" Event: "+std::to_string(m_event_number);
           pottex.DrawLatex(.1,.94, pot_draw.c_str());
           */
-        TLegend l_top(0.1,0.1,0.9,0.9);
+        TLegend l_top(0.1,0.0,0.9,1.0);
+	l_top.SetTextSize(0.05);
 
         for(int p=0; p<n_pfps; p++){
 
@@ -484,6 +611,19 @@ namespace seaview{
             }
 
         }
+
+	// draw legend for clustered hits if there is any
+	for(const auto &cluster : vec_clusters){
+
+	    // only consider clusters that are second shower candidates
+	    if(cluster.getLegend().empty()) continue;
+
+	    // if the cluster is out of the plotting range, do not include it in the legend
+	    if(cluster.InRange(real_tick_max, real_tick_min, real_wire_max[cluster.getPlane()], real_wire_min[cluster.getPlane()])){
+	        l_top.AddEntry(cluster.getGraph(), cluster.getLegend().c_str(), "f");
+	    }
+  	}
+
         l_top.SetHeader(print_name.c_str(),"C");
         l_top.SetLineWidth(0);
         l_top.SetLineColor(kWhite);
@@ -548,7 +688,53 @@ namespace seaview{
         return 0;
     }
 
-    std::vector<double> SEAviewer::analyzeClusters(double eps, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,std::vector<seaview::cluster>& vec_in_clusters ){
+    std::vector<double> SEAviewer::analyzeTrackLikeClusters(double eps, const std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,std::vector<seaview::cluster>& vec_in_clusters ){
+
+
+        // Grab the shower start and shower direction
+        std::vector<double> shr_start_3D= {vec_showers[0]->ShowerStart().X(), vec_showers[0]->ShowerStart().Y(),vec_showers[0]->ShowerStart().Z()};
+        std::vector<double> shr_other_3D=  {vec_showers[0]->ShowerStart().X()+vec_showers[0]->Direction().X(),vec_showers[0]->ShowerStart().Y()+vec_showers[0]->Direction().Y(), vec_showers[0]->ShowerStart().Z()+vec_showers[0]->Direction().Z()};
+
+        std::vector<std::vector<double>> shr_start_pt =   this->to2D(shr_start_3D);
+        std::vector<std::vector<double>> shr_other_pt =   this->to2D(shr_other_3D);
+
+
+
+        //Loop over all clusters
+        for(size_t c=0; c< vec_clusters.size(); c++){
+
+            auto hitz = vec_clusters[c].getHits(); // type of hitz: std::vector<art::Ptr<recob::Hit>>
+            int num_hits_in_cluster = vec_clusters[c].getHits().size();
+            int pl = vec_clusters[c].getPlane();
+
+            //Need to modify this a bit
+            auto ssscorz = SeaviewScoreCluster(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers.front());
+            vec_clusters[c].setScore(ssscorz);
+	    vec_clusters[c].setWireTickBasedLength(sqrt(pow((ssscorz.max_wire-ssscorz.min_wire)*wire_con, 2.0) + pow((ssscorz.max_tick - ssscorz.min_tick)*tick_con, 2.0)));
+	    BasicClusterCalorimetry(vec_clusters[c]);
+            TrackLikeClusterAnalyzer(vec_clusters[c], shr_start_pt[pl], shr_other_pt[pl]);
+
+            //This is just checking if its in, we can do this earlier; TODO
+            //TODO: is_in_shower, get back to primary shower (at least available)
+            //Sim Stuff
+            //Draw Direction on plot
+            //Delauney on here might be good, that said, we have a LOT of things. Hmm, cap at 50 hits maybe? 
+            int is_in_shower = SeaviewCompareToShowers(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers, showerToPFParticleMap, pfParticleToHitsMap,eps);
+            vec_clusters[c].setShowerRemerge(is_in_shower);
+
+            std::string sname = "Cluster "+std::to_string(c)+", Hits: "+std::to_string(num_hits_in_cluster)+", PCA "+std::to_string(ssscorz.pca_0)+", Theta:" +std::to_string(ssscorz.pca_theta)+", Wires: "+std::to_string(ssscorz.n_wires)+ ", Ticks: "+std::to_string(ssscorz.n_ticks)+", ReMerged: "+std::to_string(is_in_shower);
+            std::cout<<sname<<std::endl;
+
+        
+        }//cluster loop
+
+        vec_in_clusters = vec_clusters;
+
+        return {0};
+
+    }
+
+    std::vector<double> SEAviewer::analyzeShowerLikeClusters(double eps, const std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,std::vector<seaview::cluster>& vec_in_clusters ){
 
         /*
         std::vector<std::vector<double>> percent_matched(vec_clusters.size(),  std::vector<double>(vec_clusters.size(),0.0));
@@ -574,29 +760,25 @@ namespace seaview{
 
         //This is where I will copy over a lot of the old SSS codebase
            std::vector<double> shr_start_3D= {vec_showers[0]->ShowerStart().X(), vec_showers[0]->ShowerStart().Y(),vec_showers[0]->ShowerStart().Z()};
-       //     std::vector<double> shr_other_3D=  {vec_showers[0]->ShowerStart().X()+vec_showers[0]->Direction().X(),vec_showers[0]->ShowerStart().Y()+vec_showers[0]->Direction().Y(), vec_showers[0]->ShowerStart().Z()+vec_showers[0]->Direction().Z()};
+           std::vector<double> shr_other_3D=  {vec_showers[0]->ShowerStart().X()+vec_showers[0]->Direction().X(),vec_showers[0]->ShowerStart().Y()+vec_showers[0]->Direction().Y(), vec_showers[0]->ShowerStart().Z()+vec_showers[0]->Direction().Z()};
 
             std::vector<std::vector<double>> shr_start_pt =   this->to2D(shr_start_3D);
-         //   std::vector<std::vector<double>> shr_other_pt =   this->to2D(shr_other_3D);
+            std::vector<std::vector<double>> shr_other_pt =   this->to2D(shr_other_3D);
 
 
 
         //Loop over all clusters
         for(size_t c=0; c< vec_clusters.size(); c++){
 
-            auto hitz = vec_clusters[c].getHits();
+            auto hitz = vec_clusters[c].getHits(); // type of hitz: std::vector<art::Ptr<recob::Hit>>
             int num_hits_in_cluster = vec_clusters[c].getHits().size();
             int pl = vec_clusters[c].getPlane();
-
-            double mean_summed_ADC = 0.0;
-            for(auto &h:hitz){
-                mean_summed_ADC +=h->SummedADC();
-            }
-            mean_summed_ADC = mean_summed_ADC/(double)num_hits_in_cluster;
 
             //Need to modify this a bit
             auto ssscorz = SeaviewScoreCluster(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers.front());
             vec_clusters[c].setScore(ssscorz);
+	    vec_clusters[c].setWireTickBasedLength(sqrt(pow((ssscorz.max_wire-ssscorz.min_wire)*wire_con, 2.0) + pow((ssscorz.max_tick - ssscorz.min_tick)*tick_con, 2.0)));
+	    BasicClusterCalorimetry(vec_clusters[c]);
 
             //This is just checking if its in, we can do this earlier; TODO
             //TODO: is_in_shower, get back to primary shower (at least available)
@@ -611,6 +793,8 @@ namespace seaview{
             if(ssscorz.pass){
 
                 if(num_hits_in_cluster>0){
+	    	   
+
                     TGraph * tmp = (TGraph*)vec_clusters[c].getGraph()->Clone(("tmp_"+std::to_string(pl)+std::to_string(c)).c_str());
 
                     int Npts = 20;
@@ -638,7 +822,7 @@ namespace seaview{
                         slope = 0;
                         con = fmin;
                     }else{
-                        core->Fit("pol1","Q","same",fmin,fmax);
+                        core->Fit("pol1","Q","same",fmin,fmax); // fit to polynomial of degree 1, and plot it on the same pad
                         con = core->GetFunction("pol1")->GetParameter(0);
                         slope = core->GetFunction("pol1")->GetParameter(1);
                     }
@@ -648,7 +832,7 @@ namespace seaview{
                     //rudimentary!
                     for(double k=chan_min[pl]; k< chan_max[pl];k++){
                         double y = slope*k+con;
-                        double dist = sqrt(pow(k*0.3-vertex_chan[pl]*0.3,2)+pow(y/25.0-vertex_tick[pl]/25.0,2));
+			double dist = dist_point_point(k, y, vertex_chan[pl], vertex_tick[pl]);
                         impact_parameter = std::min(impact_parameter,dist);
                     }
 
@@ -658,9 +842,9 @@ namespace seaview{
                     //recob::Shower start point, convered to wire tick.
                     std::vector<double> vec_c = {(double)(vertex_chan[pl]-ssscorz.close_wire), (double)(vertex_tick[pl]-ssscorz.close_tick)};
                     std::vector<double> vec_s = {(double)vertex_chan[pl]-shr_start_pt[pl][0], (double)vertex_tick[pl]-shr_start_pt[pl][1]};
-                    double l_c = sqrt(pow(0.3*vec_c[0],2)+pow(vec_c[1]/25.0,2));
-                    double l_s = sqrt(pow(0.3*vec_s[0],2)+pow(vec_s[1]/25.0,2));
-                    double kinda_angle = acos((0.3*vec_s[0]*0.3*vec_c[0]+vec_c[1]*vec_s[1]/(25.0*25.0) )/(l_c*l_s));
+                    double l_c = sqrt(pow(wire_con*vec_c[0],2)+pow(vec_c[1]*tick_con,2));
+                    double l_s = sqrt(pow(wire_con*vec_s[0],2)+pow(vec_s[1]*tick_con,2));
+                    double kinda_angle = acos((wire_con*vec_s[0]*wire_con*vec_c[0]+vec_c[1]*vec_s[1]*tick_con*tick_con )/(l_c*l_s));
 
 
                     std::cout<<"SSSNEW "<<this->tag<<std::endl;
@@ -678,17 +862,15 @@ namespace seaview{
                     std::cout<<pl<<" Mean Wire "<<ssscorz.mean_wire<<std::endl;
                     std::cout<<pl<<" Max Wire "<<ssscorz.max_wire<<std::endl;
                     std::cout<<pl<<" Min Wire "<<ssscorz.min_wire<<std::endl;
-                    std::cout<<pl<<" Mean Summed ADC "<<mean_summed_ADC<<std::endl;
                     std::cout<<pl<<" Kinda Angle "<<kinda_angle<<std::endl;
             
                     vec_clusters[c].setShowerRemerge(is_in_shower);
-                    vec_clusters[c].f_ImpactParameter = impact_parameter;
-                    vec_clusters[c].f_FitSlope =slope;
-                    vec_clusters[c].f_FitCons =con;
-                    vec_clusters[c].f_MeanADC = mean_summed_ADC;
-                    vec_clusters[c].f_AngleWRTShower = kinda_angle;
+                    vec_clusters[c].setImpactParam(impact_parameter);
+                    vec_clusters[c].setFitSlope(slope);
+                    vec_clusters[c].setFitCons(con);
+                    vec_clusters[c].setAngleWRTShower(kinda_angle);
                 }
-            }
+            } // if ssscorz has passed
         
         }//cluster loop
 
@@ -735,7 +917,7 @@ namespace seaview{
 
         for(size_t p = 0; p< vec_clusters[c].getPts().size(); p++){
         std::vector<double> pt = (vec_clusters[c].getPts())[p];
-        double dist = this->dist_line_point({x1_plot*0.3,y1_plot/25.0}, {x2_plot*0.3,y2_plot/25.0}, {pt[0]*0.3, pt[1]/25});
+        double dist = this->dist_line_point({x1_plot*wire_con,y1_plot*tick_con}, {x2_plot*wire_con,y2_plot*tick_con}, {pt[0]*wire_con, pt[1]*tick_con});
 
         if(dist< min_d){
         min_p = (int)p;
@@ -757,15 +939,16 @@ namespace seaview{
 
     }
 
-    double SEAviewer::dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& point){
-        double x1 =X1.at(0);
-        double y1 =X1.at(1);
+    double SEAviewer::dist_line_point( const std::vector<double>&X1, const std::vector<double>& X2, const std::vector<double>& point){
+	// convert {wire, tick} coordinate to [cm, cm] coordinate
+        double x1 =X1.at(0)*wire_con;
+        double y1 =X1.at(1)*tick_con;
 
-        double x2 =X2.at(0);
-        double y2 =X2.at(1);
+        double x2 =X2.at(0)*wire_con;
+        double y2 =X2.at(1)*tick_con;
 
-        double x0 =point.at(0);
-        double y0 =point.at(1);
+        double x0 =point.at(0)*wire_con;
+        double y0 =point.at(1)*tick_con;
 
         double x10 = x1-x0;
         double y10 = y1-y0;
@@ -828,6 +1011,7 @@ namespace seaview{
         std::map<int,bool> wire_count;
         std::map<int,bool> tick_count;
 
+
         for(auto &h: hits){
             double h_tick = (double)h->PeakTime();
             double h_wire = (double)h->WireID().Wire;
@@ -850,8 +1034,8 @@ namespace seaview{
             score.mean_dist_tick += fabs(h_tick-vertex_tick);
             score.mean_dist_wire += fabs(h_wire-vertex_wire);
 
-            //wierd dits
-            double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
+            //wierd dits  
+            double dd = dist_point_point(h_wire, h_tick, vertex_wire, vertex_tick);
             score.mean_dist += dd;
             if(dd< score.min_dist){
                 score.close_wire = h_wire;
@@ -889,6 +1073,7 @@ namespace seaview{
         // **************** Metrics of Pointing: Does this cluster "point" back to the vertex? *************************
         // **************** First off, PCA
 
+
         TPrincipal* principal = new TPrincipal(2,"D");
         double mod_wire = 1.0;
         double mod_tick = 1.0;
@@ -919,6 +1104,7 @@ namespace seaview{
         score.impact_parameter = fabs(slope*vertex_wire*mod_wire +vertex_tick/mod_tick+c)/sqrt(slope*slope+1.0*1.0);
 
 
+	
         if(score.n_wires < n_min_wires || score.n_ticks < n_min_ticks || score.pca_0 >= n_max_pca){
             score.pass = false;
         }
@@ -931,12 +1117,12 @@ namespace seaview{
         return score;
     }
 
-    int SEAviewer::SeaviewCompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,   const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, double eps){
+    int SEAviewer::SeaviewCompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick, std::vector<art::Ptr<recob::Shower>>& showers, const std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showerToPFParticleMap, const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, double eps){
 
 
         for(size_t s =0; s< showers.size(); s++){
             art::Ptr<recob::Shower> shower = showers[s];
-            art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap.at(shower);
+            art::Ptr<recob::PFParticle> pfp = showerToPFParticleMap.at(shower);  //key has to be in the map, otherwise out-of-range error
             std::vector<art::Ptr<recob::Hit>> showerhits = pfParticleToHitsMap.at(pfp);
 
             bool in_primary_shower = false;
@@ -948,13 +1134,12 @@ namespace seaview{
 
                 for(auto &sh: showerhits){
 
-                    if(sh->View() != hit->View()) continue;
+                    if(sh->View() != hit->View()) continue;  //Guanqun: if not on the same plane?
 
                     double sh_wire = (double)sh->WireID().Wire;
                     double sh_tick = (double)sh->PeakTime();
 
-
-                    double dist = sqrt(pow(sh_wire*0.3-h_wire*0.3,2)+pow(sh_tick/25.0-h_tick/25.0,2));
+		    double dist = dist_point_point(sh_wire, sh_tick, h_wire, h_tick);
 
                     if(dist<=eps){
                         in_primary_shower = true;
@@ -963,7 +1148,7 @@ namespace seaview{
 
                 }
 
-            }
+            } // end of hitz loop
 
             if(in_primary_shower){
                 return (int)s;
@@ -992,16 +1177,17 @@ namespace seaview{
             double h_wire = (double)hit->WireID().Wire;
             double h_tick = (double)hit->PeakTime();
 
-            double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
+	    double dd = dist_point_point(h_wire, h_tick, vertex_wire, vertex_tick);
             all_wire.push_back(h_wire);   
             all_tick.push_back(h_tick);   
             all_dist.push_back(dd);
         }
 
+	// sorted_in has indices of elements in all_dist in descending order
         std::vector<size_t> sorted_in = seaview_sort_indexes(all_dist);
         size_t max_e = std::min((size_t)Npts,hitz.size());
 
-        for(size_t i =0; i<max_e; i++){
+        for(size_t i =0; i<max_e; i++){ // get the position ({wire, tick}) of the closest 'max_e' points.
             t_wire.push_back(all_wire[sorted_in[hitz.size()-1-i]]);
             t_tick.push_back(all_tick[sorted_in[hitz.size()-1-i]]);
         }
@@ -1009,6 +1195,65 @@ namespace seaview{
         return new TGraph(t_wire.size(),&t_wire[0],&t_tick[0]);
     }
 
+    
+    void SEAviewer::BasicClusterCalorimetry(cluster& cl){
 
+	//grab all hits in cluster
+	const std::vector<art::Ptr<recob::Hit>>& hitz = cl.getHits();
+	cl.f_ADC_hist.StatOverflows(kTRUE);
+
+	for(auto& h : hitz){
+	    cl.f_ADC_hist.Fill(h->SummedADC());
+	}
+
+        cl.f_meanADC = cl.f_ADC_hist.GetMean();
+        cl.f_ADC_RMS = cl.f_ADC_hist.GetRMS();
+	return;
+    }
+
+
+
+    void SEAviewer::SetClusterLegend(int cluster, double energy, int is_matched, int matched_pdg, double overlay_fraction){
+
+	//grab the plane number, and impact parameter of the cluster
+	int plane = vec_clusters.at(cluster).getPlane();
+        double min_ioc_to_shower  = vec_clusters.at(cluster).getMinHitIOC();
+
+	//need to use stringstream to control the number of digits..
+	std::ostringstream ss1, ss2, ss3;
+ 	ss1 << std::setprecision(1) << std::fixed << energy;
+	ss2 << std::setprecision(1) << std::fixed << min_ioc_to_shower;
+	ss3 << std::setprecision(2) << std::fixed << overlay_fraction;
+	
+	std::string legend;
+	//add the truth information to the legend if the cluster is matched to a MCParticle
+	if(is_matched == 1){
+	    legend = "#splitline{" + std::to_string(plane) + ", " + ss1.str() + "MeV, Min IOC: " 
+			+ ss2.str() + "}{#splitline{Matched: " + (is_matched == 1 ? "true" : "false") +", PDG: " 
+			+ std::to_string(matched_pdg) + "}{Ovelay Frac: "+ ss3.str() + "}}";
+	}
+	else{
+	    legend = std::to_string(plane) + ", " + ss1.str() + "MeV, Min IOC: " + ss2.str();
+	}
+	vec_clusters.at(cluster).setLegend(legend);
+    }
+
+
+    void SEAviewer::format_legend(std::string &leg, double arg1, double arg2, double arg3){
+	std::ostringstream ss1, ss2, ss3;
+	ss1 << std::setprecision(1) << std::fixed << arg1;
+	ss2 << std::setprecision(2) << std::fixed << arg2;
+ 	ss3 << std::setprecision(1) << std::fixed << arg3;
+
+	if(leg == "Shower"){
+	    leg = "#splitline{" + leg + ": " + ss1.str() + " MeV | " + ss2.str() + " cm }{conv. dist | "
+			+ ss3.str() + " impact par.}";
+	    //leg += ": " + ss1.str() + " MeV, " + ss2.str() + " cm conv. dist.";
+
+	}else{
+	    //for tracks, 3rd argument is not used
+	    leg += ": "+ ss1.str() + " cm | " + ss2.str() + " PCA";
+        }
+    }
 
 }

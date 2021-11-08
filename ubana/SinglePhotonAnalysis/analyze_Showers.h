@@ -681,8 +681,8 @@ namespace single_photon
             m_reco_shower_start_to_nearest_dead_wire_plane0[i_shr] = distanceToNearestDeadWire(0, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
             m_reco_shower_start_to_nearest_dead_wire_plane1[i_shr] = distanceToNearestDeadWire(1, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
             m_reco_shower_start_to_nearest_dead_wire_plane2[i_shr] = distanceToNearestDeadWire(2, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
-            std::vector<int> t_num(3,0);
-            std::vector<int> t_numhits(3,0);
+            std::vector<int> t_num(3,0);   // num of triangles on each plane
+            std::vector<int> t_numhits(3,0);  // num of hits on each plane
             std::vector<double> t_area(3,0.0);
 
             //Right, this basically loops over all hits in all planes and for each plane forms the Delaunay triangilization of it and calculates the 2D area inscribed by the convex hull
@@ -965,7 +965,7 @@ namespace single_photon
             //end optical flash code
 
 
-            m_reco_shower_num_daughters[i_shr] = pfp->NumDaughters();
+            m_reco_shower_num_daughters[i_shr] = pfp->NumDaughters();  //corresponding PFParticle
             if(m_reco_shower_num_daughters[i_shr]>0){
                 //currently just look at 1 daughter
                 m_reco_shower_daughter_trackscore[i_shr] = PFPToTrackScoreMap[pfParticleMap[pfp->Daughters().front()]];
@@ -1055,7 +1055,7 @@ namespace single_photon
             for(size_t p=0; p<calo.size();p++){
     
                 int plane = calo[p]->PlaneID().Plane;
-                if(plane<0 || plane > 3) continue;
+                if(plane<0 || plane > 3) continue; // Guanqun: plane == 3 is allowed??
 
                 std::vector<double> t_dEdx; //in XX cm only  (4 for now)
                 std::vector<double> t_res;
@@ -1065,6 +1065,7 @@ namespace single_photon
 
                     double rr = calo[p]->ResidualRange().back() - calo[p]->ResidualRange()[ix]; 
                     if(rr <= res_range_lim){
+			// Guanqun: why is here a gains[plane], it's not converting ADC to E?
                         t_dEdx.push_back(gains[plane]*m_work_function*calo[p]->dQdx()[ix]*1e-6 /m_recombination_factor);
                         //t_dQdx.push_back(*calo[p]->dQdx()[x]);
                         t_res.push_back(rr);
@@ -1458,6 +1459,7 @@ namespace single_photon
     }
 
 
+    // shower_dir needs to be unit vector
     double SinglePhoton::getAnglewrtWires(TVector3 shower_dir,int plane){
 
         TVector3 wire_dir = getWireVec(plane);
@@ -1527,7 +1529,7 @@ namespace single_photon
             //skip invalid planes       
             if (plane != this_plane) continue;
 
-            widths += thishitptr->RMS();
+            widths += thishitptr->RMS(); // recob::Hit->RMS() returns RMS of the hit shape in tick units
             nhits++;
 
 
@@ -1640,11 +1642,11 @@ namespace single_photon
 
         //find index of median location
         double median;
-        if (size%2 == 0){
+        if (size%2 == 0){  // if vector has odd elements
             int ind = size/2;
             median = thisvector[ind];  
-        } else{
-            int ind1 = size/2;
+        } else{   // if vector has even number of elements
+            int ind1 = size/2; 
             int ind2 = size/2-1;
             median = (thisvector[ind1]+thisvector[ind2])/2.0;
         }

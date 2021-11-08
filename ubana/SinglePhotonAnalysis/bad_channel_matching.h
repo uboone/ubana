@@ -28,6 +28,7 @@ namespace single_photon
 
         double t = -(x10*x21+y10*y21+z10*z21)/fabs(x21*x21+y21*y21+z21*z21 );
 
+	// right, but can be simplified
         double d2 = pow(x1-x0,2)+pow(y1-y0,2)+pow(z1-z0,2)+2*t*((x2-x1)*(x1-x0)+(y2-y1)*(y1-y0)+(z2-z1)*(z1-z0))+t*t*( pow(x2-x1,2)+pow(y2-y1,2)+pow(z2-z1,2));
 
 
@@ -35,6 +36,8 @@ namespace single_photon
 
     }
 
+
+    // minimum distance between point and dead wire
     double distanceToNearestDeadWire(int plane, double Ypoint, double Zpoint,
                 const geo::GeometryCore * geom,
                 std::vector<std::pair<int,int>> & bad_channel_list_fixed_mcc9 ){
@@ -46,13 +49,14 @@ namespace single_photon
                    int is_ok = bad_channel_list_fixed_mcc9[i].second;       
                         if(is_ok>1)continue;
 
-                   auto wireids = geom->ChannelToWire(channel);
+                   auto wireids = geom->ChannelToWire(channel); //type of wireids: IDs of all the connected wires to the channel
                    auto result = geom->WireEndPoints(wireids[0]);
                         
                     //std::cout<<"KNK: "<<bc<<" "<<hs[0]<<" "<<result.start().X()<<" "<<result.start().Y()<<" "<<result.start().Z()<<" "<<result.end().X()<<" "<<result.end().Y()<<" "<<result.end().Z()<<std::endl; 
 //                    std::cout<<wireids[0].Plane<<" "<<result.start().X()<<std::endl;
                     if(plane != (int)wireids[0].Plane) continue;
 
+		    // for the dead wires on the same plane 
                     std::vector<double> start = {0.0,result.start().Y(),result.start().Z()};
                     std::vector<double> end = {0.0,result.end().Y(),result.end().Z()};
                     std::vector<double> point = {0.0,Ypoint,Zpoint};
@@ -66,6 +70,7 @@ namespace single_photon
 
 
     //Typenamed for recob::Track and recob::Shower
+    //Guanqun: this function didn't do anything?
     template<typename T>
         int badChannelMatching(std::vector<int>& badchannels, 
                 std::vector<T>& objects, 
