@@ -41,7 +41,6 @@ namespace single_photon
 
         if(m_run_pi0_filter) m_is_data = true;// If running in filter mode, treat all as data
 
-
         std::cout<<"SinglePhoton::reconfigure || whats configured? "<<std::endl;
         std::cout<<"SinglePhoton::reconfigure || m_is_data: "<<m_is_data<<std::endl;
         std::cout<<"SinglePhoton::reconfigure || m_is_overlayed: "<<m_is_overlayed<<std::endl;
@@ -470,10 +469,6 @@ namespace single_photon
 
         {
 
-
-
-
-
             // These are the vectors to hold the tracks and showers for the final-states of the reconstructed neutrino
             //At this point, nuParticles is a std::vector< art::Ptr<recon::PFParticle>> of the PFParticles that we are interested in.
             //tracks is a vector of recob::Tracks and same for showers.
@@ -807,6 +802,9 @@ namespace single_photon
                 this->showerRecoMCmatching(showers, showerToMCParticleMap, showerToNuPFParticleMap, pfParticleToHitsMap, mcparticles_per_hit, matchedMCParticleVector, pfParticleMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap, PFPToNuSliceMap);
 
                 //photoNuclearTesting(matchedMCParticleVector);
+
+
+
 
                 //looking at metadata
                 //std::map<art::Ptr<recob::PFParticle>, double >  pfParticleToNuScoreMap;//is filled during analyze slices
