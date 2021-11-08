@@ -9,12 +9,7 @@ namespace seaview{
 	//first round, grab min ioc, impact, conversion distance, and ADC_histogram, and indx of the hits with min/max IOC
 	double max_ioc_to_shower_start = DBL_MIN;
 	size_t num_hits = cl.f_hits.size();
-	if( num_hits < 2){
-	    std::cerr << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster only has " << num_hits << " hits, skipping it... " << std::endl;
-	    return;
-        }
 
-	cl.f_ADC_hist.StatOverflows(kTRUE); 
 
 	for(size_t i = 0; i!= num_hits; ++i){
 	    auto &h = cl.f_hits[i]; //type of h: art_ptr<recob::Hit>
@@ -38,13 +33,9 @@ namespace seaview{
 		cl.end_hit_idx = i;
 	    }
 
-	    //calorimetric properties
-	    cl.f_ADC_hist.Fill(h->SummedADC());
 
 	} //end of hit loop
 
-        cl.f_meanADC = cl.f_ADC_hist.GetMean();
-	cl.f_ADC_RMS = cl.f_ADC_hist.GetRMS();
 
 	// second round: group hits in two categories, first half and second half
 	// get the direction of the cluster
@@ -76,10 +67,14 @@ namespace seaview{
 
  	size_t nhits_first_half = std::count(cl.f_hit_group.begin(), cl.f_hit_group.end(), 1);
 	size_t nhits_second_half = std::count(cl.f_hit_group.begin(), cl.f_hit_group.end(), 2);
-	cl.f_mean_ADC_first_half /= nhits_first_half;
-	cl.f_mean_ADC_second_half /= nhits_second_half;
+	if(nhits_first_half) cl.f_mean_ADC_first_half /= nhits_first_half;
+	if(nhits_second_half) cl.f_mean_ADC_second_half /= nhits_second_half;
 	cl.f_mean_ADC_first_to_second_ratio = (cl.f_mean_ADC_second_half != 0 ? cl.f_mean_ADC_first_half/cl.f_mean_ADC_second_half : 0.0);
 
+	if( num_hits < 2){
+	    std::cerr << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster only has " << num_hits << " hits, can't calculate direction, skipping it... " << std::endl;
+	    return;
+        }
 
 	//angle between the track cluster and the shower direction
 	//cluster direction unit vector
@@ -92,6 +87,10 @@ namespace seaview{
 	cl.f_angle_wrt_shower_direction = acos( cluster_dir[0]*shower_dir[0] + cluster_dir[1]*shower_dir[1]);
 
 
+	if(cl.f_score.min_wire == cl.f_score.max_wire){
+	    std::cout << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster spans only on 1 wire: " << cl.f_score.min_wire << ", setting its straight-line fit chi2 to 0.." << std::endl;
+	    return;
+	}
         //fit to wire-tick plot of the cluster, see how straight cluster is
         TF1 *f1 = new TF1("f1", "1 ++ x", cl.f_score.min_wire, cl.f_score.max_wire);
 	//TGraph* graph_copy = (TGraph*)cl.f_graph.Clone("temp");
@@ -102,7 +101,7 @@ namespace seaview{
 	    f1 = cl.f_graph.GetFunction("f1");
 	    cl.f_fit_chi2 = f1->GetChisquare();
 	}
-        std::cout << "SEAviewer::TrackLikeClusterAnalyzer\t|| End" << std::endl;
+        //std::cout << "SEAviewer::TrackLikeClusterAnalyzer\t|| End" << std::endl;
     }
 
 
@@ -689,7 +688,53 @@ namespace seaview{
         return 0;
     }
 
-    std::vector<double> SEAviewer::analyzeClusters(double eps, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,std::vector<seaview::cluster>& vec_in_clusters ){
+    std::vector<double> SEAviewer::analyzeTrackLikeClusters(double eps, const std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,std::vector<seaview::cluster>& vec_in_clusters ){
+
+
+        // Grab the shower start and shower direction
+        std::vector<double> shr_start_3D= {vec_showers[0]->ShowerStart().X(), vec_showers[0]->ShowerStart().Y(),vec_showers[0]->ShowerStart().Z()};
+        std::vector<double> shr_other_3D=  {vec_showers[0]->ShowerStart().X()+vec_showers[0]->Direction().X(),vec_showers[0]->ShowerStart().Y()+vec_showers[0]->Direction().Y(), vec_showers[0]->ShowerStart().Z()+vec_showers[0]->Direction().Z()};
+
+        std::vector<std::vector<double>> shr_start_pt =   this->to2D(shr_start_3D);
+        std::vector<std::vector<double>> shr_other_pt =   this->to2D(shr_other_3D);
+
+
+
+        //Loop over all clusters
+        for(size_t c=0; c< vec_clusters.size(); c++){
+
+            auto hitz = vec_clusters[c].getHits(); // type of hitz: std::vector<art::Ptr<recob::Hit>>
+            int num_hits_in_cluster = vec_clusters[c].getHits().size();
+            int pl = vec_clusters[c].getPlane();
+
+            //Need to modify this a bit
+            auto ssscorz = SeaviewScoreCluster(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers.front());
+            vec_clusters[c].setScore(ssscorz);
+	    vec_clusters[c].setWireTickBasedLength(sqrt(pow((ssscorz.max_wire-ssscorz.min_wire)*wire_con, 2.0) + pow((ssscorz.max_tick - ssscorz.min_tick)*tick_con, 2.0)));
+	    BasicClusterCalorimetry(vec_clusters[c]);
+            TrackLikeClusterAnalyzer(vec_clusters[c], shr_start_pt[pl], shr_other_pt[pl]);
+
+            //This is just checking if its in, we can do this earlier; TODO
+            //TODO: is_in_shower, get back to primary shower (at least available)
+            //Sim Stuff
+            //Draw Direction on plot
+            //Delauney on here might be good, that said, we have a LOT of things. Hmm, cap at 50 hits maybe? 
+            int is_in_shower = SeaviewCompareToShowers(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers, showerToPFParticleMap, pfParticleToHitsMap,eps);
+            vec_clusters[c].setShowerRemerge(is_in_shower);
+
+            std::string sname = "Cluster "+std::to_string(c)+", Hits: "+std::to_string(num_hits_in_cluster)+", PCA "+std::to_string(ssscorz.pca_0)+", Theta:" +std::to_string(ssscorz.pca_theta)+", Wires: "+std::to_string(ssscorz.n_wires)+ ", Ticks: "+std::to_string(ssscorz.n_ticks)+", ReMerged: "+std::to_string(is_in_shower);
+            std::cout<<sname<<std::endl;
+
+        
+        }//cluster loop
+
+        vec_in_clusters = vec_clusters;
+
+        return {0};
+
+    }
+
+    std::vector<double> SEAviewer::analyzeShowerLikeClusters(double eps, const std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,std::vector<seaview::cluster>& vec_in_clusters ){
 
         /*
         std::vector<std::vector<double>> percent_matched(vec_clusters.size(),  std::vector<double>(vec_clusters.size(),0.0));
@@ -733,6 +778,7 @@ namespace seaview{
             auto ssscorz = SeaviewScoreCluster(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers.front());
             vec_clusters[c].setScore(ssscorz);
 	    vec_clusters[c].setWireTickBasedLength(sqrt(pow((ssscorz.max_wire-ssscorz.min_wire)*wire_con, 2.0) + pow((ssscorz.max_tick - ssscorz.min_tick)*tick_con, 2.0)));
+	    BasicClusterCalorimetry(vec_clusters[c]);
 
             //This is just checking if its in, we can do this earlier; TODO
             //TODO: is_in_shower, get back to primary shower (at least available)
@@ -748,7 +794,6 @@ namespace seaview{
 
                 if(num_hits_in_cluster>0){
 	    	   
-		    TrackLikeClusterAnalyzer(vec_clusters[c], shr_start_pt[pl], shr_other_pt[pl]);
 
                     TGraph * tmp = (TGraph*)vec_clusters[c].getGraph()->Clone(("tmp_"+std::to_string(pl)+std::to_string(c)).c_str());
 
@@ -1072,7 +1117,7 @@ namespace seaview{
         return score;
     }
 
-    int SEAviewer::SeaviewCompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,   const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, double eps){
+    int SEAviewer::SeaviewCompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick, std::vector<art::Ptr<recob::Shower>>& showers, const std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showerToPFParticleMap, const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, double eps){
 
 
         for(size_t s =0; s< showers.size(); s++){
@@ -1151,6 +1196,23 @@ namespace seaview{
     }
 
     
+    void SEAviewer::BasicClusterCalorimetry(cluster& cl){
+
+	//grab all hits in cluster
+	const std::vector<art::Ptr<recob::Hit>>& hitz = cl.getHits();
+	cl.f_ADC_hist.StatOverflows(kTRUE);
+
+	for(auto& h : hitz){
+	    cl.f_ADC_hist.Fill(h->SummedADC());
+	}
+
+        cl.f_meanADC = cl.f_ADC_hist.GetMean();
+        cl.f_ADC_RMS = cl.f_ADC_hist.GetRMS();
+	return;
+    }
+
+
+
     void SEAviewer::SetClusterLegend(int cluster, double energy, int is_matched, int matched_pdg, double overlay_fraction){
 
 	//grab the plane number, and impact parameter of the cluster

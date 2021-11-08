@@ -509,6 +509,26 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             void ResizeTemplates(size_t);
             void CreateTemplateBranches();
 
+	    //---------------- Potential Track Stub --------------------
+	    void ClearStubs();
+	    void CreateStubBranches();
+
+	    /* @brief: given indices of clusters, determine if they overlap in time
+	     * @ arguments: cluster_planes, cluster_max_ticks, cluster_min_ticks are full vector containing plane, max/min tick information of all clusters
+	     * 		    candidate_indices provided the indices of clusters of which we'd like to check the overlap
+	     */ 
+	    std::pair<bool, std::vector<double>> clusterCandidateOverlap(const std::vector<int> & candidate_indices, const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks);
+
+
+	    /* @brief: given all clusters, and their plane, tick information, find all possible matching clusters using time information
+	     * @brief: candidate clusters on different plane that overlap in time tick will be grouped together
+	     * @return: return.first -> number of possible matches
+	     * 		return.second.first -> 2D vector, indices of clusters in every possible match
+	     * 		return.second.second -> 1D vector, time overlap fraction of clusters in every possible match
+	     */	   
+	    std::pair<int, std::pair<std::vector<std::vector<int>>, std::vector<double>>> GroupClusterCandidate(int num_clusters,  const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks);
+ 
+
 
             //---------------- SecondShower----
             void ClearSecondShowers(); /* reset and clear variable/vectors related to second shower */
@@ -537,8 +557,8 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
 
 	    /* brief: analyze hits (second shower), find out which primary MCParticle is the best-match for these hits
- 	     * and return a vector of 6 elements: 
- 	     * {has_found_match, PDG for the match, PDG for the mother particle of match, track ID of match, fraction of overlay in hits, energy fraction of the matched particle on best-plane}
+ 	     * and return a vector of 7 elements: 
+ 	     * {has_found_match, PDG for the ancestor match, PDG for the mother particle of ancestor match, track ID of ancestor match, true energy of ancestor match, fraction of overlay in hits, fraction of energy deposited by the matched ancestor particle on the best-plane}
  	     */
             std::vector<double>SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
                     art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
@@ -935,12 +955,25 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::set<std::vector<int>> m_selected_set;  //set of selected events  	 
  
             //SEAviwer bits
-            double m_SEAviewPlotDistance;
+            bool m_runSEAview;
+            double m_SEAviewPlotDistance;   //parameters related to shower-like object finding
             double m_SEAviewHitThreshold;
             double  m_SEAviewDbscanMinPts;
             double m_SEAviewDbscanEps;
             double m_SEAviewMaxPtsLinFit;
             bool   m_SEAviewMakePDF;
+	    int m_SEAviewNumRecoShower;
+	    int m_SEAviewNumRecoTrack;
+
+	    bool m_runSEAviewStub;
+	    double m_SEAviewStubHitThreshold; //parameters related to track-like object finding
+	    double m_SEAviewStubPlotDistance;
+	    double m_SEAviewStubDbscanMinPts;
+	    double m_SEAviewStubDbscanEps;
+	    bool m_SEAviewStubMakePDF;
+	    int m_SEAviewStubNumRecoShower;
+	    int m_SEAviewStubNumRecoTrack;
+
 
             bool m_runCRT;
             double m_DTOffset;
@@ -1001,6 +1034,56 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             int m_test_matched_hits;
             int m_reco_slice_objects;
+
+            //------- Potential Unreconstructed Track Stub related variables ----
+            int m_trackstub_num_unassociated_hits; /* number of hits in the slice that're associated with neither shower nor tracks */
+            int m_trackstub_unassociated_hits_below_threshold; /*number of unassociated hits that also didn't pass hit threshold,in the slice*/
+            int m_trackstub_associated_hits; /* total number of hits from showers and tracks in the slice */
+
+
+            int m_trackstub_num_candidates; /* number of unasso hit clusters which are not close enough to reco showers */
+            std::vector<int> m_trackstub_candidate_num_hits;
+            std::vector<int> m_trackstub_candidate_num_wires; //number of wires spanned by the candidate cluster
+            std::vector<int>  m_trackstub_candidate_num_ticks;
+            std::vector<int>  m_trackstub_candidate_plane; /* on which plan the unasso cluster is */
+            std::vector<double> m_trackstub_candidate_PCA;
+            std::vector<double> m_trackstub_candidate_mean_ADC;
+	    std::vector<double> m_trackstub_candidate_ADC_RMS;
+            std::vector<double> m_trackstub_candidate_veto_score;
+            std::vector<double> m_trackstub_candidate_mean_tick;
+            std::vector<double> m_trackstub_candidate_max_tick;
+            std::vector<double> m_trackstub_candidate_min_tick;
+            std::vector<double> m_trackstub_candidate_min_wire;
+            std::vector<double> m_trackstub_candidate_max_wire;
+            std::vector<double> m_trackstub_candidate_mean_wire;
+            std::vector<double> m_trackstub_candidate_min_dist;  // min distance from unasso cluter to the vertex */
+	    std::vector<double> m_trackstub_candidate_min_impact_parameter_to_shower; //min impact parameter of all hits in cluster to the recob::shower direction line (on 2D plane)
+	    std::vector<double> m_trackstub_candidate_min_conversion_dist_to_shower_start;  //min distance between hits and recob::shower start (on 2D plane)
+	    std::vector<double> m_trackstub_candidate_min_ioc_to_shower_start;        //min ratio of impact_parameter_to_shower/conversion_dist_to_shower_start of all hits in the cluster
+	    std::vector<double> m_trackstub_candidate_ioc_based_length;		//length of the cluster, calculated based on the IOC of hit
+	    std::vector<double> m_trackstub_candidate_wire_tick_based_length;		//length of the cluster, calculated based on the wire & tick span of the cluster
+	    std::vector<double> m_trackstub_candidate_mean_ADC_first_half;		// mean ADC per hit for the first half of cluster (cluster divided into halves based on hit IOC)
+	    std::vector<double> m_trackstub_candidate_mean_ADC_second_half;
+	    std::vector<double> m_trackstub_candidate_mean_ADC_first_to_second_ratio; // ratio of the mean ADC per hit, first half of cluster over second half.
+	    std::vector<double> m_trackstub_candidate_track_angle_wrt_shower_direction;   //treat cluster as a track, angle between track direction and the shower direction
+	    std::vector<double> m_trackstub_candidate_linear_fit_chi2;		// chi2 from linear fit of the  {wire, tick} distribution of the cluster
+            std::vector<double> m_trackstub_candidate_energy;
+            std::vector<int>    m_trackstub_candidate_remerge; // index of the recob::shower candidate cluster is close to (expect it to be -1)
+            std::vector<int>    m_trackstub_candidate_matched; /* has matched this unasso cluter to a primary MCParticle: 0-No, 1-Yes */
+	    std::vector<double> m_trackstub_candidate_matched_energy_fraction_best_plane; /* matched energy fraction of the best-matched MCParticle on best-plane */ 
+            std::vector<int>    m_trackstub_candidate_pdg;   /* pdg of the matched MCParticle */
+            std::vector<int>    m_trackstub_candidate_parent_pdg;
+            std::vector<int>    m_trackstub_candidate_trackid; /* track ID of the matched MCParticle */
+	    std::vector<double> m_trackstub_candidate_true_energy;  /* true energy of the matched MCParticle */
+            std::vector<double> m_trackstub_candidate_overlay_fraction; /* fraction of overlay in the unasso cluster hits */
+
+	    //------- grouped stub clusters --------------
+	    int m_trackstub_num_candidate_groups;	         /* number of groups */ 
+	    std::vector<std::vector<int>> m_grouped_trackstub_candidate_indices; /* indices of stub clusters that are matched as a group */
+	    std::vector<double> m_trackstub_candidate_group_timeoverlap_fraction;   /* minimum fraction of the time overlap of grouped stub clusters */
+
+
+
             //------- Second shower related variables ----
             int m_sss_num_unassociated_hits; /* number of hits in the slice that're associated with neither shower nor tracks */
             int m_sss_num_unassociated_hits_below_threshold; /*number of unassociated hits that also didn't pass hit threshold,in the slice*/
@@ -1029,16 +1112,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_sss_candidate_max_wire;
             std::vector<double> m_sss_candidate_mean_wire;
             std::vector<double> m_sss_candidate_min_dist;  // min distance from unasso cluter to the vertex */
-	    std::vector<double> m_sss_candidate_min_impact_parameter_to_shower; //min impact parameter of all hits in cluster to the recob::shower direction line (on 2D plane)
-	    std::vector<double> m_sss_candidate_min_conversion_dist_to_shower_start;  //min distance between hits and recob::shower start (on 2D plane)
-	    std::vector<double> m_sss_candidate_min_ioc_to_shower_start;        //min ratio of impact_parameter_to_shower/conversion_dist_to_shower_start of all hits in the cluster
-	    std::vector<double> m_sss_candidate_ioc_based_length;		//length of the cluster, calculated based on the IOC of hit
 	    std::vector<double> m_sss_candidate_wire_tick_based_length;		//length of the cluster, calculated based on the wire & tick span of the cluster
-	    std::vector<double> m_sss_candidate_mean_ADC_first_half;		// mean ADC per hit for the first half of cluster (cluster divided into halves based on hit IOC)
-	    std::vector<double> m_sss_candidate_mean_ADC_second_half;
-	    std::vector<double> m_sss_candidate_mean_ADC_first_to_second_ratio; // ratio of the mean ADC per hit, first half of cluster over second half.
-	    std::vector<double> m_sss_candidate_track_angle_wrt_shower_direction;   //treat cluster as a track, angle between track direction and the shower direction
-	    std::vector<double> m_sss_candidate_linear_fit_chi2;		// chi2 from linear fit of the  {wire, tick} distribution of the cluster
             std::vector<double> m_sss_candidate_energy;
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
@@ -1048,22 +1122,10 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int>    m_sss_candidate_pdg;   /* pdg of the matched MCParticle */
             std::vector<int>    m_sss_candidate_parent_pdg;
             std::vector<int>    m_sss_candidate_trackid; /* track ID of the matched MCParticle */
+	    std::vector<double> m_sss_candidate_true_energy;
             std::vector<double> m_sss_candidate_overlay_fraction; /* fraction of overlay in the unasso cluster hits */
 
-	    //------- grouped sss candidate --------------
-	    int m_sss_num_candidate_groups;	         /* number of groups */ 
-	    std::vector<int>    m_sss_num_candidate_in_group;                 /* number of sss candidate/on how many planes sss candidates are matched in the group */
-	    std::vector<std::vector<int>> m_grouped_sss_candidate_indices; /* indices of sss_candidates that are matched as a group */
-	    std::vector<double> m_sss_candidate_group_timeoverlap_fraction;   /* minimum fraction of the time overlap of grouped sss_candidates */
 
-	    //--------- sss candidate tools  ----------
-	    //@brief: given indices of sss_candidates, determine if they overlap in time 
-	    std::pair<bool, std::vector<double>> sssCandidateOverlap(const std::vector<int> & candidate_indices);
-
-	    
-	    // @brief: group candidate clusters into pairs, using the time information
-	    // @brief: candidate clusters on different plane that overlap in time tick will be grouped together
-	    void group_sss_candidate();
 
     //------------ sss3d_showers variables are for reco::showers which are in the events, but not in the slice ----
 

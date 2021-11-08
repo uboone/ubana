@@ -104,12 +104,25 @@ namespace single_photon
 
 
         //SEAviwer Settings
-        m_SEAviewHitThreshold = pset.get<double>("SEAviewHitThreshold",25);
-        m_SEAviewPlotDistance = pset.get<double>("SEAviewPlotDistance",80);
-        m_SEAviewDbscanMinPts = pset.get<double>("SEAviewDBSCANMinPts",8);
-        m_SEAviewDbscanEps = pset.get<double>("SEAviewDBSCANEps",4);
-        m_SEAviewMaxPtsLinFit = pset.get<double>("SEAviewMaxHitsLinFit",20.0);
-        m_SEAviewMakePDF = pset.get<bool>("SEAviewMakePDF",false);
+	// for shower clustering
+	m_runSEAview = pset.get<bool>("runSEAviewShower", false);
+        m_SEAviewHitThreshold = pset.get<double>("SEAviewShowerHitThreshold",25);
+        m_SEAviewPlotDistance = pset.get<double>("SEAviewShowerPlotDistance",80);
+        m_SEAviewDbscanMinPts = pset.get<double>("SEAviewShowerDBSCANMinPts",8);
+        m_SEAviewDbscanEps = pset.get<double>("SEAviewShowerDBSCANEps",4);
+        m_SEAviewMaxPtsLinFit = pset.get<double>("SEAviewShowerMaxHitsLinFit",20.0);
+        m_SEAviewMakePDF = pset.get<bool>("SEAviewShowerMakePDF",false);
+	m_SEAviewNumRecoShower = pset.get<int>("SEAviewShowerNumRecoShower", -1);
+        m_SEAviewNumRecoTrack = pset.get<int>("SEAviewShowerNumRecoTrack", -1);
+	// for track clustering
+	m_runSEAviewStub = pset.get<bool>("runSEAviewStub", false);
+        m_SEAviewStubHitThreshold = pset.get<double>("SEAviewStubHitThreshold",25);
+        m_SEAviewStubPlotDistance = pset.get<double>("SEAviewStubPlotDistance",80);
+        m_SEAviewStubDbscanMinPts = pset.get<double>("SEAviewStubDBSCANMinPts",1);
+        m_SEAviewStubDbscanEps = pset.get<double>("SEAviewStubDBSCANEps",1);
+        m_SEAviewStubMakePDF = pset.get<bool>("SEAviewStubMakePDF",false);
+	m_SEAviewStubNumRecoShower = pset.get<int>("SEAviewStubNumRecoShower", -1);
+        m_SEAviewStubNumRecoTrack = pset.get<int>("SEAviewStubNumRecoTrack", -1);
 
         this->setTPCGeom(); 
 
@@ -934,9 +947,173 @@ namespace single_photon
 
 
 
-            if(showers.size()==1 && tracks.size() ==0 && !m_run_pi0_filter){    
-            //if(showers.size()==1 && !m_run_pi0_filter){    
+	    // if satisfy the criteria for stub clustering
+	    std::cout << "SEAview check: " << m_SEAviewStubNumRecoShower << " " << showers.size() << " " << m_SEAviewStubNumRecoTrack << " " << tracks.size() << std::endl;
+            if(!m_run_pi0_filter && m_runSEAviewStub && (m_SEAviewStubNumRecoShower == -1 || (int)showers.size()== m_SEAviewStubNumRecoShower) && (m_SEAviewStubNumRecoTrack == -1 || (int)tracks.size() == m_SEAviewStubNumRecoTrack)){    
 
+		// grab all hits in the slice of the reco shower
+                art::Ptr<recob::Shower> p_shr = showers.front();
+                art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
+                std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
+
+
+                int p_sliceid = PFPToSliceIdMap[p_pfp];
+                auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
+
+                std::string uniq_tag = "HitThres_"+ std::to_string(static_cast<int>(m_SEAviewStubHitThreshold)) + "_" + std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
+
+                //Setup seaviewr object
+                seaview::SEAviewer sevd("Stub_"+uniq_tag, geom, theDetector );
+                //Pass in any bad channels you like
+                sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
+                //Give it a vertex to center around
+                sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
+
+                //Add the hits from just this slice, as well sa ALL hits 
+                sevd.addSliceHits(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
+                sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
+                sevd.setHitThreshold(m_SEAviewStubHitThreshold); 
+
+                //Add all the "nice " PFParticle Hits, as well as what to label
+                //sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
+                sevd.addPFParticleHits(p_hits, "Shower", m_reco_shower_energy_max[0], m_reco_shower_conversion_distance[0], m_reco_shower_impact_parameter[0]);  //std::vector<art::Ptr<recob::Hit>> and std::string
+
+                //and add the SingleShower we like
+                sevd.addShower(p_shr); // art::Ptr<recob::Shower>
+
+                //Add all track PFP
+
+		int i_trk = 0;
+                for(auto &trk: tracks){
+                    art::Ptr<recob::PFParticle> p_pfp_trk = trackToNuPFParticleMap[trk];
+                    std::vector<art::Ptr<recob::Hit>> p_hits_trk = pfParticleToHitsMap[p_pfp_trk];
+                    //sevd.addPFParticleHits(p_hits_trk,"track");
+                    sevd.addPFParticleHits(p_hits_trk,"track", m_reco_track_length[i_trk], m_reco_track_spacepoint_principal0[i_trk]);
+                    sevd.addTrack(trk);
+		    ++i_trk;
+                }
+
+                //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 
+                auto vnh= sevd.calcUnassociatedHits();
+                m_trackstub_num_unassociated_hits =vnh[1]+vnh[2];
+                m_trackstub_unassociated_hits_below_threshold = vnh[2];
+                m_trackstub_associated_hits = vnh[0]-vnh[1]-vnh[2];
+
+                //Recluster, group unassociated hits into different clusters
+                sevd.runseaDBSCAN(m_SEAviewStubDbscanMinPts, m_SEAviewStubDbscanEps);
+
+                //And some plotting
+                // If we want to plot pdfs again later, then we can't plot here
+                //if(m_SEAviewStubMakePDF) sevd.Print(m_SEAviewStubPlotDistance);
+
+                //Analyze formed clusters and save info
+                std::vector<seaview::cluster> vec_SEAclusters ;
+                sevd.analyzeTrackLikeClusters(m_SEAviewStubDbscanEps, showerToNuPFParticleMap, pfParticleToHitsMap, vec_SEAclusters);
+
+
+                //And save to file.
+                std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Clusters to chat about"<<std::endl;
+
+                m_trackstub_num_candidates = 0;
+                for(size_t c=0; c< vec_SEAclusters.size(); c++){
+                    auto& clu = vec_SEAclusters.at(c); //type: seaview::cluster
+                    int pl = clu.getPlane();
+                    auto hitz = clu.getHits();
+                    double Ep = this->CalcEShowerPlane(hitz,pl); 
+                    int remerge = clu.getShowerRemerge();
+                    seaview::cluster_score * ssscorz = clu.getScore();
+
+                    std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.getMinHitImpactParam()<<" "<<clu.getMinHitConvDist()<<" "<<clu.getMinHitIOC()<<" "<<clu.getMeanADC()<<" "<<clu.getADCrms()<<" "<< clu.getLinearChi() << " " << remerge<<std::endl;
+
+		    //if the cluster is too close to the recob::shower, then do not include it
+                    if(remerge>=0 && remerge< (int)m_reco_shower_reclustered_energy_plane2.size()){
+			//decide not to add energy of the cluster to reco shower if it's matched
+			//
+                        //if(pl==0)m_reco_shower_reclustered_energy_plane0[remerge]+=Ep;
+                        //if(pl==1)m_reco_shower_reclustered_energy_plane1[remerge]+=Ep;
+                        //if(pl==2)m_reco_shower_reclustered_energy_plane2[remerge]+=Ep;
+
+                        continue;// Dont include this as a viable cluster!
+                    }
+
+                    ++m_trackstub_num_candidates;
+                    //Fill All the bits
+
+                    m_trackstub_candidate_num_hits.push_back((int)hitz.size());
+                    m_trackstub_candidate_num_wires.push_back((int)ssscorz->n_wires);
+                    m_trackstub_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
+                    m_trackstub_candidate_plane.push_back(pl);
+                    m_trackstub_candidate_PCA.push_back(ssscorz->pca_0);
+                    m_trackstub_candidate_mean_tick.push_back(ssscorz->mean_tick);
+                    m_trackstub_candidate_max_tick.push_back(ssscorz->max_tick);
+                    m_trackstub_candidate_min_tick.push_back(ssscorz->min_tick);
+                    m_trackstub_candidate_min_wire.push_back(ssscorz->min_wire);
+                    m_trackstub_candidate_max_wire.push_back(ssscorz->max_wire);
+                    m_trackstub_candidate_mean_wire.push_back(ssscorz->mean_wire);
+                    m_trackstub_candidate_min_dist.push_back(ssscorz->min_dist);
+	            m_trackstub_candidate_min_impact_parameter_to_shower.push_back(clu.getMinHitImpactParam());
+		    m_trackstub_candidate_min_conversion_dist_to_shower_start.push_back(clu.getMinHitConvDist());
+		    m_trackstub_candidate_min_ioc_to_shower_start.push_back(clu.getMinHitIOC());
+		    m_trackstub_candidate_ioc_based_length.push_back(clu.getIOCbasedLength());
+		    m_trackstub_candidate_wire_tick_based_length.push_back(clu.getWireTickBasedLength());
+		    m_trackstub_candidate_mean_ADC_first_half.push_back(clu.getMeanADCFirstHalf());
+		    m_trackstub_candidate_mean_ADC_second_half.push_back(clu.getMeanADCSecondHalf());
+		    m_trackstub_candidate_mean_ADC_first_to_second_ratio.push_back(clu.getMeanADCRatio());
+		    m_trackstub_candidate_track_angle_wrt_shower_direction.push_back(clu.getTrackAngleToShowerDirection());
+		    m_trackstub_candidate_linear_fit_chi2.push_back(clu.getLinearChi());
+                    m_trackstub_candidate_mean_ADC.push_back(clu.getMeanADC());
+		    m_trackstub_candidate_ADC_RMS.push_back(clu.getADCrms());
+                    m_trackstub_candidate_energy.push_back(Ep);
+                    m_trackstub_candidate_remerge.push_back(remerge);
+
+
+                    //MCTruth matching for pi0's
+                    if(m_is_data){
+                        m_trackstub_candidate_matched.push_back(-1);
+                        m_trackstub_candidate_pdg.push_back(-1);
+                        m_trackstub_candidate_parent_pdg.push_back(-1);
+                        m_trackstub_candidate_trackid.push_back(-1);
+			m_trackstub_candidate_true_energy.push_back(-1);
+                        m_trackstub_candidate_overlay_fraction.push_back(-1);
+			m_trackstub_candidate_matched_energy_fraction_best_plane.push_back(-1);
+                    }else{
+
+                        auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+                        m_trackstub_candidate_matched.push_back(ssmatched[0]);
+                        m_trackstub_candidate_pdg.push_back(ssmatched[1]);
+                        m_trackstub_candidate_parent_pdg.push_back(ssmatched[2]);
+                        m_trackstub_candidate_trackid.push_back(ssmatched[3]);
+			m_trackstub_candidate_true_energy.push_back(ssmatched[4]);
+                        m_trackstub_candidate_overlay_fraction.push_back(ssmatched[5]);
+			m_trackstub_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[6]);
+
+			//Guanqun: print out (best-matched) truth information of the cluster
+			std::cout << "Cluster: " << m_trackstub_num_candidates-1  << " plane: " << m_trackstub_candidate_plane.back() << ", energy: " << m_trackstub_candidate_energy.back() << ", min IOC of hit(wrt shower): " << m_trackstub_candidate_min_ioc_to_shower_start.back() << "\n";
+			std::cout << "Cluster is matched: " << m_trackstub_candidate_matched.back() << ", matched PDG: " << m_trackstub_candidate_pdg.back() << " track ID: " << m_trackstub_candidate_trackid.back() << " overlay fraction: " << m_trackstub_candidate_overlay_fraction.back() << std::endl; 
+			std::cout << "===============================================================" << std::endl;
+                    }
+
+		    sevd.SetClusterLegend(c, m_trackstub_candidate_energy.back(),  m_trackstub_candidate_matched.back(), m_trackstub_candidate_pdg.back() , m_trackstub_candidate_overlay_fraction.back() );
+
+                } //end of cluster loop
+
+		// Plot the event
+		if(m_SEAviewStubMakePDF){
+		    sevd.Print(m_SEAviewStubPlotDistance);
+		}
+
+		//group clusters
+		std::pair<int, std::pair<std::vector<std::vector<int>>, std::vector<double>> > group_result = GroupClusterCandidate(m_trackstub_num_candidates,  m_trackstub_candidate_plane, m_trackstub_candidate_max_tick, m_trackstub_candidate_max_tick);
+		m_trackstub_num_candidate_groups = group_result.first;
+		m_grouped_trackstub_candidate_indices = group_result.second.first;
+		m_trackstub_candidate_group_timeoverlap_fraction = group_result.second.second;
+
+            }
+
+		std::cout << "SEAview shower check : " <<m_runSEAview<<" || "<< m_SEAviewNumRecoShower << " " << showers.size() << " " << m_SEAviewNumRecoTrack << " " << tracks.size() << std::endl; 
+	    // if satisfy the criteria for shower clustering
+            if(!m_run_pi0_filter &&  m_runSEAview && (m_SEAviewNumRecoShower == -1 || (int)showers.size()== m_SEAviewNumRecoShower) && (m_SEAviewNumRecoTrack == -1 || (int)tracks.size() == m_SEAviewNumRecoTrack) ){    
+		std::cout<<"YARP"<<std::endl;
                 art::Ptr<recob::Shower> p_shr = showers.front();
                 art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
                 std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
@@ -948,7 +1125,7 @@ namespace single_photon
                 std::string uniq_tag = "HitThres_"+ std::to_string(static_cast<int>(m_SEAviewHitThreshold)) + "_" + std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
 
                 //Setup seaviewr object
-                seaview::SEAviewer sevd("test_"+uniq_tag, geom, theDetector );
+                seaview::SEAviewer sevd("Shower_"+uniq_tag, geom, theDetector );
                 //Pass in any bad channels you like
                 sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
                 //Give it a vertex to center around
@@ -986,13 +1163,10 @@ namespace single_photon
                 //Recluster, group unassociated hits into different clusters
                 sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
 
-                //And some plotting
-                // If we want to plot pdfs again later, then we can't plot here
-                //if(m_SEAviewMakePDF) sevd.Print(m_SEAviewPlotDistance);
 
                 //This is the place I will put the new Second Shower Search
                 std::vector<seaview::cluster> vec_SEAclusters ;
-                sevd.analyzeClusters(m_SEAviewDbscanEps, showerToNuPFParticleMap, pfParticleToHitsMap, vec_SEAclusters);
+                sevd.analyzeShowerLikeClusters(m_SEAviewDbscanEps, showerToNuPFParticleMap, pfParticleToHitsMap, vec_SEAclusters);
 
 
                 //And save to file.
@@ -1007,7 +1181,7 @@ namespace single_photon
                     int remerge = clu.getShowerRemerge();
                     seaview::cluster_score * ssscorz = clu.getScore();
 
-                    std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.getImpactParam()<<" "<<clu.getFitSlope()<<" "<<clu.getFitCons()<<" "<<clu.getMeanADC()<<" "<<clu.getAngleWRTShower()<<" "<<remerge<<std::endl;
+                    std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.getImpactParam()<<" "<<clu.getFitSlope()<<" "<<clu.getFitCons()<<" "<<clu.getMeanADC() << " " << clu.getADCrms() << " "<<clu.getAngleWRTShower()<<" "<<remerge<<std::endl;
 
 		    //if the cluster is too close to the recob::shower, then do not include it
                     if(remerge>=0 && remerge< (int)m_reco_shower_reclustered_energy_plane2.size()){
@@ -1018,7 +1192,7 @@ namespace single_photon
                         continue;// Dont include this as a viable cluster!
                     }
 
-                    m_sss_num_candidates ++;
+                    ++m_sss_num_candidates;
                     //Fill All the bits
 
                     m_sss_candidate_num_hits.push_back((int)hitz.size());
@@ -1036,16 +1210,7 @@ namespace single_photon
                     m_sss_candidate_max_wire.push_back(ssscorz->max_wire);
                     m_sss_candidate_mean_wire.push_back(ssscorz->mean_wire);
                     m_sss_candidate_min_dist.push_back(ssscorz->min_dist);
-	            m_sss_candidate_min_impact_parameter_to_shower.push_back(clu.getMinHitImpactParam());
-		    m_sss_candidate_min_conversion_dist_to_shower_start.push_back(clu.getMinHitConvDist());
-		    m_sss_candidate_min_ioc_to_shower_start.push_back(clu.getMinHitIOC());
-		    m_sss_candidate_ioc_based_length.push_back(clu.getIOCbasedLength());
 		    m_sss_candidate_wire_tick_based_length.push_back(clu.getWireTickBasedLength());
-		    m_sss_candidate_mean_ADC_first_half.push_back(clu.getMeanADCFirstHalf());
-		    m_sss_candidate_mean_ADC_second_half.push_back(clu.getMeanADCSecondHalf());
-		    m_sss_candidate_mean_ADC_first_to_second_ratio.push_back(clu.getMeanADCRatio());
-		    m_sss_candidate_track_angle_wrt_shower_direction.push_back(clu.getTrackAngleToShowerDirection());
-		    m_sss_candidate_linear_fit_chi2.push_back(clu.getLinearChi());
                     m_sss_candidate_mean_ADC.push_back(clu.getMeanADC());
 		    m_sss_candidate_ADC_RMS.push_back(clu.getADCrms());
                     m_sss_candidate_energy.push_back(Ep);
@@ -1059,6 +1224,7 @@ namespace single_photon
                         m_sss_candidate_pdg.push_back(-1);
                         m_sss_candidate_parent_pdg.push_back(-1);
                         m_sss_candidate_trackid.push_back(-1);
+			m_sss_candidate_true_energy.push_back(-1);
                         m_sss_candidate_overlay_fraction.push_back(-1);
 			m_sss_candidate_matched_energy_fraction_best_plane.push_back(-1);
                     }else{
@@ -1068,11 +1234,12 @@ namespace single_photon
                         m_sss_candidate_pdg.push_back(ssmatched[1]);
                         m_sss_candidate_parent_pdg.push_back(ssmatched[2]);
                         m_sss_candidate_trackid.push_back(ssmatched[3]);
-                        m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
-			m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[5]);
+			m_sss_candidate_true_energy.push_back(ssmatched[4]);
+                        m_sss_candidate_overlay_fraction.push_back(ssmatched[5]);
+			m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[6]);
 
 			//Guanqun: print out (best-matched) truth information of the cluster
-			std::cout << "Cluster: " << m_sss_num_candidates-1  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << ", min IOC of hit(wrt shower): " << m_sss_candidate_min_ioc_to_shower_start.back() << "\n";
+			std::cout << "Cluster: " << m_sss_num_candidates-1  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << "\n";
 			std::cout << "Cluster is matched: " << m_sss_candidate_matched.back() << ", matched PDG: " << m_sss_candidate_pdg.back() << " track ID: " << m_sss_candidate_trackid.back() << " overlay fraction: " << m_sss_candidate_overlay_fraction.back() << std::endl; 
 			std::cout << "===============================================================" << std::endl;
                     }
@@ -1086,8 +1253,6 @@ namespace single_photon
 		    sevd.Print(m_SEAviewPlotDistance);
 		}
 
-		//group clusters
-		group_sss_candidate();
             }
 
             for(int i =0; i<(int)showers.size(); i++){
@@ -1306,6 +1471,7 @@ namespace single_photon
 
         this->CreateSecondShowerBranches();
         this->CreateSecondShowerBranches3D();
+	this->CreateStubBranches();
         // --------------------- Flash Related Variables ----------------------
         this->CreateFlashBranches();
 
@@ -1469,6 +1635,8 @@ namespace single_photon
 
         this->ClearSecondShowers();
         this->ClearSecondShowers3D();
+	this->ClearStubs();
+
         //------------- Flash related Variables ------------------
         this->ClearFlashes();
 

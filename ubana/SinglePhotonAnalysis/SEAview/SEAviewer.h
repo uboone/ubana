@@ -168,16 +168,19 @@ namespace seaview {
 	TH1D* getADCHist() {return &f_ADC_hist;}
         const TGraph * getGraph() const { return &f_graph;}
 	const std::string &getLegend() const {return f_legend; }
-        std::vector<art::Ptr<recob::Hit>>  getHits(){return f_hits;}
+        const std::vector<art::Ptr<recob::Hit>>&  getHits(){return f_hits;}
         int getShowerRemerge() const {return f_shower_remerge;}
         int setShowerRemerge(int remerge_in){
                 f_shower_remerge = remerge_in;
                 return f_shower_remerge;
         }
 	double getMeanADC() const { return f_meanADC; }
+	double getADCrms() const {return f_ADC_RMS;}
 
-	//second-shower relatd function
+	//----------------------- second-shower relatd function -----------------------
 	void setImpactParam(double d) {f_ImpactParameter = d; } 
+
+	/* brief: set the angle between direction of second shower candidate cluster and direction of the primary shower*/
 	void setAngleWRTShower(double d) {f_AngleWRTShower = d;}
 	void setFitSlope(double d) { f_FitSlope = d;}
 	void setFitCons(double d) {  f_FitCons = d;}
@@ -187,7 +190,7 @@ namespace seaview {
 	double getImpactParam() const {return f_ImpactParameter; } 
 
 
-	// track search related function
+	// ----------------------- track search related function -----------------------
 	double getMinHitImpactParam() const {return f_min_impact_parameter_to_shower; }
 	double getMinHitConvDist() const { return f_min_conversion_dist_to_shower_start; }
 	double getMinHitIOC() const {return f_min_ioc_to_shower_start;}
@@ -199,7 +202,6 @@ namespace seaview {
 	double getMeanADCRatio() const {return f_mean_ADC_first_to_second_ratio; }
 	double getTrackAngleToShowerDirection() const {return f_angle_wrt_shower_direction; }
 	double getLinearChi() const {return f_fit_chi2; }
-	double getADCrms() const {return f_ADC_RMS;}
 
   
     	// determine if the cluster is within the plot range
@@ -219,20 +221,22 @@ namespace seaview {
         std::vector<art::Ptr<recob::Hit>> f_hits;
 	std::vector<int> f_hit_group;   //group the hits in two groups: first half, second half (directionality-wise)
         cluster_score f_score;
-        int f_shower_remerge;  //index of the reco shower if the cluseter is close enough to a reco shower, otherwise -1.
+        int f_shower_remerge = -1;  //index of the reco shower if the cluseter is close enough to a reco shower, otherwise -1.
         TGraph f_graph;        //2D {wire, tick} graph
 	TH1D f_ADC_hist;    // histograms of ADC of every hit
         std::string f_legend; //legend of the f_graph
 
+
+	// -------- track-like properties -------------------------
+	
 	//add a few parameters that are useful to find tracks in no recob::track events
-	double f_min_impact_parameter_to_shower = 1e10;  //mininum impact parameter of hits to the recob::shower direction
+	double f_min_impact_parameter_to_shower = 1e10;  // mininum impact parameter of hits to the recob::shower direction
+							 // will be default value if the cluster didn't pass cut on ssscore
         double f_min_conversion_dist_to_shower_start = 1e10;   //minimum distance of hits to the recob::shower start
         double f_min_ioc_to_shower_start = 1e10;               //minimum ioc of all hits to the recob::shower direction
 	double f_ioc_based_length = -1.0;  // length of the cluster, calculated based on the IOC of hits
 	double f_wire_tick_based_length = -1.0;
 
-	//geometric properties
-	//track-related properties
 	size_t start_hit_idx = SIZE_MAX; //index of the start hit
 	size_t end_hit_idx = SIZE_MAX;   //index of the end hit
 	double f_mean_ADC_first_half = 0.0;
@@ -241,17 +245,20 @@ namespace seaview {
 
 	double f_angle_wrt_shower_direction = -1.0; // angle between the cluster direction and the shower direction, in radian
 						   // for track search, for proton track veto
-	double f_fit_chi2 = -1.0; //chi2 of the linear fit to the cluster (2D) 
+	double f_fit_chi2 = 0.0; //chi2 of the linear fit to the cluster (2D) 
 	double f_ADC_RMS = -1.0;  //RMS of the summed ADC of hits
 	double f_meanADC = -1.0;  // mean of hits ADC
 
 	
+	//-------- shower-like properties -------------------------------
+
         double f_ImpactParameter = -1.0; //impact parameter of the vertex wrt to the cluster
         double f_FitSlope = 0.0; //slope of the fitted shower/cluster direction
         double f_FitCons = 0.0;  //intercept of the fitted shower/cluster direction
 
         double f_AngleWRTShower = -1.0; //angle between cluster-vertex direction and primary_shower_start-vertex direction, assuming cluster and primary shower both point back to the vertex
-				 // specific for second shower search for 1g1p analysis
+				        // specific for second shower search for 1g1p analysis
+
     };  // end of class cluster
 
 
@@ -313,10 +320,17 @@ namespace seaview {
             }
 
 
+	    //@brief: given a cluster, loop through all its hits, calc and update info on mean ADC, ADC RMS.
+	    void BasicClusterCalorimetry(cluster& cl);
 
-	    // @brief: analyze all the clusters, draw them on the canvas, together with fitted direction of the cluseter
+	    // @brief: given primary shower, analyze all the clusters in a track-like way with the assumtion that primary shower will point back to the cluster
 	    // @param: vec_c: vector of clusters to be filled 
-            std::vector<double> analyzeClusters(double eps, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, std::vector<seaview::cluster> &vec_c );
+            std::vector<double> analyzeTrackLikeClusters(double eps, const std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, std::vector<seaview::cluster> &vec_c );
+
+
+	    // @brief: given primary shower, analyze all the clusters, draw them on the canvas, together with fitted direction of the cluseter (with the assumption that the cluster and primary shower both pointing back to the vertex)
+	    // @param: vec_c: vector of clusters to be filled 
+            std::vector<double> analyzeShowerLikeClusters(double eps, const std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, std::vector<seaview::cluster> &vec_c );
 
 
 	    // @brief: analyze cluster cl as a track candidate, and save track-related information in the cluster object
@@ -326,7 +340,7 @@ namespace seaview {
 
 	    // @brief: check if there is a hit in hitz close enought to one of the reco showers, if so return the index of that reco shower
 	    // @param: hitz is usually a cluster of unassociated hits
-            int SeaviewCompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,   const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, double eps);
+            int SeaviewCompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,   std::vector<art::Ptr<recob::Shower>>& showers, const std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showerToPFParticleMap, const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap, double eps);
 
 	    // Guanqun: @brief: analyze a cluster of hits and summarize its property into an cluster_score 
 	    // argument shower is not used in the function body
