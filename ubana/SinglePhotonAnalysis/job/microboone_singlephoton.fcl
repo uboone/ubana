@@ -14,12 +14,24 @@ singlephoton_analyzer:{
 
     Verbose: false
 
-    SEAviewHitThreshold: 25
-    SEAviewDBSCANMinPts: 8
-    SEAviewDBSCANEps: 4
-    SEAviewPlotDistance: 80
-    SEAviewMaxHitsLinFit: 20.0
-    SEAviewMakePDF: false 
+    runSEAviewShower: true
+    SEAviewShowerHitThreshold: 25
+    SEAviewShowerDBSCANMinPts: 8
+    SEAviewShowerDBSCANEps: 4
+    SEAviewShowerPlotDistance: 80
+    SEAviewShowerMaxHitsLinFit: 20.0
+    SEAviewShowerMakePDF: false 
+    SEAviewShowerNumRecoShower: 1
+    SEAviewShowerNumRecoTrack: -1
+
+    runSEAviewStub: true
+    SEAviewStubHitThreshold: 25
+    SEAviewStubDBSCANMinPts: 1
+    SEAviewStubDBSCANEps: 1
+    SEAviewStubPlotDistance: 80
+    SEAviewStubMakePDF: false 
+    SEAviewStubNumRecoShower: 1
+    SEAviewStubNumRecoTrack: 0
 
     FillTrees: true
     RunPi0Filter: false
