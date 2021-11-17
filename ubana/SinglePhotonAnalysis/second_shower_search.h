@@ -1362,7 +1362,7 @@ namespace single_photon
 
         } // end loop over hit
         if(found_a_match){
-            std::cout<<"!"<<std::endl;
+            std::cout<<"Found a match!"<<std::endl;
         }
         double fraction_num_hits_overlay = (double)n_not_associated_hits/(double)hitz.size();
 
@@ -2109,7 +2109,7 @@ namespace single_photon
 
    
     std::pair<int, std::pair<std::vector<std::vector<int>>, std::vector<double>>> SinglePhoton::GroupClusterCandidate(int num_clusters,  const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks){
-	std::cout << "SinglePhoton::group_cluster_candidate\t|| Total of " << num_clusters << " to be grouped" << std::endl;
+	std::cout << "SinglePhoton::GroupClusterCandidate\t|| Total of " << num_clusters << " to be grouped" << std::endl;
 
 	int num_cluster_groups=0; // number of matched cluster groups in total
 	std::vector<std::vector<int>> grouped_cluster_indices;
@@ -2144,6 +2144,8 @@ namespace single_photon
                 }
             }//j loop
         }//i loop
+
+	std::cout << "SinglePhoton::GroupClusterCandidate\t|| Formed " << num_cluster_groups << " cluster groups" << std::endl;
 
 	return {num_cluster_groups, {grouped_cluster_indices, cluster_group_timeoverlap_fraction}};
     } 

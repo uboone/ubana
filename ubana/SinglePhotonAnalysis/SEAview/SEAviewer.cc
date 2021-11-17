@@ -723,7 +723,7 @@ namespace seaview{
             vec_clusters[c].setShowerRemerge(is_in_shower);
 
             std::string sname = "Cluster "+std::to_string(c)+", Hits: "+std::to_string(num_hits_in_cluster)+", PCA "+std::to_string(ssscorz.pca_0)+", Theta:" +std::to_string(ssscorz.pca_theta)+", Wires: "+std::to_string(ssscorz.n_wires)+ ", Ticks: "+std::to_string(ssscorz.n_ticks)+", ReMerged: "+std::to_string(is_in_shower);
-            std::cout<<sname<<std::endl;
+            std::cout<<sname << "\n" <<std::endl;
 
         
         }//cluster loop
@@ -787,7 +787,7 @@ namespace seaview{
             //Delauney on here might be good, that said, we have a LOT of things. Hmm, cap at 50 hits maybe? 
             int is_in_shower = SeaviewCompareToShowers(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers, showerToPFParticleMap, pfParticleToHitsMap,eps);
 
-            std::string sname = "#splitline{Cluster "+std::to_string(c)+"}{#splitline{Hits: "+std::to_string(num_hits_in_cluster)+"}{#splitline{PCA "+std::to_string(ssscorz.pca_0)+"}{#splitline{Theta:" +std::to_string(ssscorz.pca_theta)+"}{#splitline{Wires: "+std::to_string(ssscorz.n_wires)+ "}{#splitline{Ticks: "+std::to_string(ssscorz.n_ticks)+"}{#splitline{ReMerged: "+std::to_string(is_in_shower)+"}{}}}}}}}";
+            std::string sname = "Cluster "+std::to_string(c)+" Hits: "+std::to_string(num_hits_in_cluster)+" PCA: "+std::to_string(ssscorz.pca_0)+" Theta: " +std::to_string(ssscorz.pca_theta)+" Wires: "+std::to_string(ssscorz.n_wires)+ " Ticks: "+std::to_string(ssscorz.n_ticks)+" ReMerged: "+std::to_string(is_in_shower);
             std::cout<<sname<<std::endl;
 
             if(ssscorz.pass){
