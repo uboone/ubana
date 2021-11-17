@@ -6,6 +6,7 @@
 #include "analyze_MCTruth.h"
 #include "analyze_EventWeight.h"
 #include "analyze_Slice.h"
+#include "analyze_Geant4.h"
 #include "fiducial_volume.h"
 #include "second_shower_search.h"
 #include "isolation.h"
@@ -54,6 +55,7 @@ namespace single_photon
     	m_selected_event_list = pset.get<std::string>("SelectEventList", "");
 
         m_runPhotoNuTruth = pset.get<bool>("RunPhotoNu",false); 
+        m_runTrueEventweight = pset.get<bool>("RunTrueEventWeight",false); 
 
         m_pandoraLabel = pset.get<std::string>("PandoraLabel");
         m_trackLabel = pset.get<std::string>("TrackLabel");
@@ -772,9 +774,11 @@ namespace single_photon
                 art::ValidHandle<std::vector<simb::MCParticle>> const & mcParticleHandle= evt.getValidHandle<std::vector<simb::MCParticle>>(m_geantModuleLabel);
                 art::fill_ptr_vector(mcParticleVector,mcParticleHandle);
 
+            
+                this->AnalyzeGeant4(mcParticleVector);
+
 
                 //testbed(mcParticleVector,evt);
-
                 /*      std::map<int,art::Ptr<simb::MCParticle> > crap_map;
                         for(size_t j=0;j< mcParticleVector.size();j++){
                         const art::Ptr<simb::MCParticle> mcp = mcParticleVector[j];
@@ -956,6 +960,7 @@ namespace single_photon
 
                     }
 
+                    if(m_runTrueEventweight){
 
                     art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw_true =  evt.getValidHandle<std::vector<evwgh::MCEventWeight>>(m_true_eventweight_label);
                     std::map<std::string, std::vector<double>> const & weight_map = ev_evw_true->front().fWeight;
@@ -973,7 +978,7 @@ namespace single_photon
                             << "WARNING: eventweight has more than one entry\n";
                     }
                     fmcweight2=weight_map2;
-
+                    }
 
                 }//end textgen 
 
@@ -1148,13 +1153,14 @@ namespace single_photon
 		    sevd.Print(m_SEAviewStubPlotDistance);
 		}
 
-		//group clusters
-		std::pair<int, std::pair<std::vector<std::vector<int>>, std::vector<double>> > group_result = GroupClusterCandidate(m_trackstub_num_candidates,  m_trackstub_candidate_plane, m_trackstub_candidate_max_tick, m_trackstub_candidate_max_tick);
+		//group clusters HERE
+		std::pair<int, std::pair<std::vector<std::vector<double>>, std::vector<double>> > group_result = GroupClusterCandidate(m_trackstub_num_candidates,  m_trackstub_candidate_plane, m_trackstub_candidate_max_tick, m_trackstub_candidate_min_tick);
 		m_trackstub_num_candidate_groups = group_result.first;
 		m_grouped_trackstub_candidate_indices = group_result.second.first;
+        std::cout<<"YARP_DEBUGGER "<<m_grouped_trackstub_candidate_indices.size()<<" "<<&m_grouped_trackstub_candidate_indices<<std::endl;
 		m_trackstub_candidate_group_timeoverlap_fraction = group_result.second.second;
-
-            }
+        
+        }
 
 		std::cout << "SEAview shower check : " <<m_runSEAview<<" || "<< m_SEAviewNumRecoShower << " " << showers.size() << " " << m_SEAviewNumRecoTrack << " " << tracks.size() << std::endl; 
 	    // if satisfy the criteria for shower clustering
@@ -1406,18 +1412,21 @@ namespace single_photon
                     ncdelta_slice_tree->Fill();
                     eventweight_tree->Fill();
                     true_eventweight_tree->Fill();
+                    geant4_tree->Fill();
 
                 }else if(filter_pass_2g0p && m_run_pi0_filter_2g0p) {
                     vertex_tree->Fill();
                     ncdelta_slice_tree->Fill();
                     eventweight_tree->Fill();
                     true_eventweight_tree->Fill();
+                    geant4_tree->Fill();
 
                 }else if(!m_run_pi0_filter){
                     vertex_tree->Fill();
                     ncdelta_slice_tree->Fill();
                     eventweight_tree->Fill();
                     true_eventweight_tree->Fill();
+                    geant4_tree->Fill();
                 }
             }
 
@@ -1461,6 +1470,7 @@ namespace single_photon
         eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
         ncdelta_slice_tree = tfs->make<TTree>("ncdelta_slice_tree", "ncdelta_slice_tree");
         run_subrun_tree = tfs->make<TTree>("run_subrun_tree","run_subrun_tree");
+        geant4_tree = tfs->make<TTree>("geant4_tree","geant4_tree");
 
         //run_subrun_tree
         m_run = 0;
@@ -1471,10 +1481,10 @@ namespace single_photon
         run_subrun_tree->Branch("subrun_pot",&m_subrun_pot,"subrun_pot/D");
         run_subrun_tree->Branch("subrun_counts",&m_subrun_counts,"subrun_counts/I");
 
-
         true_eventweight_tree = tfs->make<TTree>("true_eventweight_tree", "true_eventweight_tree");
         true_eventweight_tree->Branch("mcweight", "std::map<std::string, std::vector<double>>",&fmcweight);
         true_eventweight_tree->Branch("mcweight2", "std::map<std::string, std::vector<double>>",&fmcweight2);
+
 
 
         // --------------------- POT Releated variables -----------------
@@ -1578,6 +1588,8 @@ namespace single_photon
         // ---------------------- Eventweight CTruth Related Variables ---------
         this->CreateEventWeightBranches();
 
+        //------ Geant 4--
+        this->CreateGeant4Branches();
 
         //std::string bad_channel_file = "/pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt";
 
@@ -1607,7 +1619,8 @@ namespace single_photon
             }
         }
 
- 
+
+
         //------------------- List of Selected Events to run --------
         if(m_runSelectedEvent){
 	    std::cout << "SinglePhoton \t||\t Running in selected-event only mode " << std::endl;
@@ -1705,6 +1718,8 @@ namespace single_photon
         this->ClearEventWeightBranches();
         fmcweight.clear();
         fmcweight2.clear();
+
+        this->ClearGeant4Branches();
 
         //MetaData Related Varibles
         this->ClearSlices();

@@ -234,6 +234,7 @@ namespace single_photon
 	vertex_tree->Branch("trackstub_num_candidate_groups", &m_trackstub_num_candidate_groups, "trackstub_num_candidate_groups/I");
 	vertex_tree->Branch("grouped_trackstub_candidate_indices", &m_grouped_trackstub_candidate_indices);
 	vertex_tree->Branch("trackstub_candidate_group_timeoverlap_fraction", &m_trackstub_candidate_group_timeoverlap_fraction);
+    
     }
 
 
@@ -2110,11 +2111,11 @@ namespace single_photon
     }
 
    
-    std::pair<int, std::pair<std::vector<std::vector<int>>, std::vector<double>>> SinglePhoton::GroupClusterCandidate(int num_clusters,  const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks){
+    std::pair<int, std::pair<std::vector<std::vector<double>>, std::vector<double>>> SinglePhoton::GroupClusterCandidate(int num_clusters,  const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks){
 	std::cout << "SinglePhoton::group_cluster_candidate\t|| Total of " << num_clusters << " to be grouped" << std::endl;
 
 	int num_cluster_groups=0; // number of matched cluster groups in total
-	std::vector<std::vector<int>> grouped_cluster_indices;
+	std::vector<std::vector<double>> grouped_cluster_indices;
 	std::vector<double> cluster_group_timeoverlap_fraction;
 	if(num_clusters <= 1)
 	    return {num_cluster_groups, {grouped_cluster_indices, cluster_group_timeoverlap_fraction}};
@@ -2127,7 +2128,7 @@ namespace single_photon
                 if( pair_result.first){
 
 		    ++num_cluster_groups;
-		    grouped_cluster_indices.push_back({i,j});
+		    grouped_cluster_indices.push_back({(double)i,(double)j});
                     double min_frac = *std::min_element(pair_result.second.cbegin(), pair_result.second.cend());
 		    cluster_group_timeoverlap_fraction.push_back(min_frac);
 		    std::cout << "Grouped cluster candidate: (" << i  << ", " << j << ") | Minimum time tick overlap fraction: " << min_frac << std::endl;
@@ -2137,7 +2138,7 @@ namespace single_photon
                         auto tri_result = clusterCandidateOverlap({i,j,k}, cluster_planes, cluster_max_ticks, cluster_min_ticks);
                         if(tri_result.first){
 			    ++num_cluster_groups;
-                    	    grouped_cluster_indices.push_back({i,j,k});
+                    	    grouped_cluster_indices.push_back({(double)i,(double)j,(double)k});
                             min_frac = *std::min_element(tri_result.second.cbegin(), tri_result.second.cend());
 			    cluster_group_timeoverlap_fraction.push_back(min_frac);
 			    std::cout << "Grouped cluster candidate: (" << i  << ", " << j << ", " << k << ") | Minimum time tick overlap fraction: " << min_frac << std::endl;

@@ -180,14 +180,14 @@ namespace single_photon
         }
 
 
-// check if two vectors have same elements (regardless of the order), and arrange their elements in order
-template<typename T>
-bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
-{
-        std::sort(v1.begin(), v1.end());
+    // check if two vectors have same elements (regardless of the order), and arrange their elements in order
+    template<typename T>
+        bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
+        {
+            std::sort(v1.begin(), v1.end());
             std::sort(v2.begin(), v2.end());
-                return v1 == v2;
-}
+            return v1 == v2;
+        }
 
 
 
@@ -292,7 +292,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
     class SinglePhoton : public art::EDFilter
     {
         public:
-	    // name alias from pandora
+            // name alias from pandora
             typedef art::ValidHandle< std::vector<recob::PFParticle> > PFParticleHandle;
             typedef std::vector< art::Ptr<recob::PFParticle> > PFParticleVector;
             typedef std::vector< art::Ptr<recob::Track> > TrackVector;
@@ -331,15 +331,15 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
              *
              */
             void endJob() override;
-	     /**
- 	      * @brief: grab run, subrun number, and subrun POT, fill the TTree */
+            /**
+             * @brief: grab run, subrun number, and subrun POT, fill the TTree */
             bool beginSubRun(art::SubRun& sr) override;
             bool endSubRun(art::SubRun& sr) override;
 
         private:
-	    /**
- 	     * @brief: reset/clear data members
- 	     */
+            /**
+             * @brief: reset/clear data members
+             */
             void ClearVertex();
             /**
              *  @brief  Produce a mapping from PFParticle ID to the art ptr to the PFParticle itself for fast navigation
@@ -377,21 +377,21 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
              */
             void CollectTracksAndShowers(const PFParticleVector &particles,const PFParticleIdMap pfParticleMap,  const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap);
 
-	    /**
- 	     * @brief: analyze associated tracks/showers for an PFParticle
- 	     * @param: pParticle: PFParticle to be analyzed
- 	     * @param: associatedTracks: a vector of asso track for pParticle
- 	     * @param: associatedShowers: a vector of asso shower for pParticle
- 	     * @param: tracks: associated track will be added into tracks
- 	     * @param: showers: associated shower will be added into showers
- 	     * @param: trackToNuPFParticleMap/showerToNuPFParticleMap: map of associated track/shower to the PFParticle
- 	     */
+            /**
+             * @brief: analyze associated tracks/showers for an PFParticle
+             * @param: pParticle: PFParticle to be analyzed
+             * @param: associatedTracks: a vector of asso track for pParticle
+             * @param: associatedShowers: a vector of asso shower for pParticle
+             * @param: tracks: associated track will be added into tracks
+             * @param: showers: associated shower will be added into showers
+             * @param: trackToNuPFParticleMap/showerToNuPFParticleMap: map of associated track/shower to the PFParticle
+             */
             void FillTracksAndShowers( const std::vector< art::Ptr<recob::Track> > & associatedTracks, const std::vector< art::Ptr<recob::Shower> > & associatedShowers, const art::Ptr<recob::PFParticle> &pParticle , const PFParticleHandle &pfParticleHandle, const art::Event &evt, TrackVector &tracks, ShowerVector &showers,  std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>  &trackToNuPFParticleMap, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>> &showerToNuPFParticleMap);
 
-	    /**
- 	     * @brief: get vertex for particle
- 	     * @param: particle: a primary neutrino
- 	     */
+            /**
+             * @brief: get vertex for particle
+             * @param: particle: a primary neutrino
+             */
             void GetVertex(const lar_pandora::PFParticlesToVertices & particlestoVertices, const art::Ptr<recob::PFParticle> & particle );
 
             void CollectCalo(const art::Event &evt,const art::Ptr<recob::Shower> &shower);
@@ -460,7 +460,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             TVector3 getWireVec(int plane); /* unit vector orthogonal to the  wire direction of plane -- usually named as wire_dir */
             double getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir); /* dot product of wire_dir and shower direction vectors */
             double getAnglewrtWires(TVector3 shower_dir, int plane); /* returns angles between wire direction of plane  and shower_dir) 
-								      *  shower_dir needs to be unit vector */
+                                                                      *  shower_dir needs to be unit vector */
 
             double getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits); /* returns (generally) best median dEdx of all 3 												* planes, usually plane 2  */
             int getAmalgamateddEdxNHits(double amalgamateddEdx, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits); /* returns the number of hits on the plane picked by function getAmalgamateddEdx */
@@ -509,25 +509,25 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             void ResizeTemplates(size_t);
             void CreateTemplateBranches();
 
-	    //---------------- Potential Track Stub --------------------
-	    void ClearStubs();
-	    void CreateStubBranches();
+            //---------------- Potential Track Stub --------------------
+            void ClearStubs();
+            void CreateStubBranches();
 
-	    /* @brief: given indices of clusters, determine if they overlap in time
-	     * @ arguments: cluster_planes, cluster_max_ticks, cluster_min_ticks are full vector containing plane, max/min tick information of all clusters
-	     * 		    candidate_indices provided the indices of clusters of which we'd like to check the overlap
-	     */ 
-	    std::pair<bool, std::vector<double>> clusterCandidateOverlap(const std::vector<int> & candidate_indices, const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks);
+            /* @brief: given indices of clusters, determine if they overlap in time
+             * @ arguments: cluster_planes, cluster_max_ticks, cluster_min_ticks are full vector containing plane, max/min tick information of all clusters
+             * 		    candidate_indices provided the indices of clusters of which we'd like to check the overlap
+             */ 
+            std::pair<bool, std::vector<double>> clusterCandidateOverlap(const std::vector<int> & candidate_indices, const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks);
 
 
-	    /* @brief: given all clusters, and their plane, tick information, find all possible matching clusters using time information
-	     * @brief: candidate clusters on different plane that overlap in time tick will be grouped together
-	     * @return: return.first -> number of possible matches
-	     * 		return.second.first -> 2D vector, indices of clusters in every possible match
-	     * 		return.second.second -> 1D vector, time overlap fraction of clusters in every possible match
-	     */	   
-	    std::pair<int, std::pair<std::vector<std::vector<int>>, std::vector<double>>> GroupClusterCandidate(int num_clusters,  const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks);
- 
+            /* @brief: given all clusters, and their plane, tick information, find all possible matching clusters using time information
+             * @brief: candidate clusters on different plane that overlap in time tick will be grouped together
+             * @return: return.first -> number of possible matches
+             * 		return.second.first -> 2D vector, indices of clusters in every possible match
+             * 		return.second.second -> 1D vector, time overlap fraction of clusters in every possible match
+             */	   
+            std::pair<int, std::pair<std::vector<std::vector<double>>, std::vector<double>>> GroupClusterCandidate(int num_clusters,  const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks);
+
 
 
             //---------------- SecondShower----
@@ -544,7 +544,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             void SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & normaltrkmap,art::Event const & evt);
 
 
-	    /* this function is now redundant, not in use anymore */
+            /* this function is now redundant, not in use anymore */
             void SecondShowerSearch(
                     const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
                     const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
@@ -556,10 +556,10 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
                     std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
 
 
-	    /* brief: analyze hits (second shower), find out which primary MCParticle is the best-match for these hits
- 	     * and return a vector of 7 elements: 
- 	     * {has_found_match, PDG for the ancestor match, PDG for the mother particle of ancestor match, track ID of ancestor match, true energy of ancestor match, fraction of overlay in hits, fraction of energy deposited by the matched ancestor particle on the best-plane}
- 	     */
+            /* brief: analyze hits (second shower), find out which primary MCParticle is the best-match for these hits
+             * and return a vector of 7 elements: 
+             * {has_found_match, PDG for the ancestor match, PDG for the mother particle of ancestor match, track ID of ancestor match, true energy of ancestor match, fraction of overlay in hits, fraction of energy deposited by the matched ancestor particle on the best-plane}
+             */
             std::vector<double>SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
                     art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
                     std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
@@ -567,18 +567,18 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
                     std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap);
 
 
-	    /* analyze a cluster of hits, and return corresponding sss_score */
+            /* analyze a cluster of hits, and return corresponding sss_score */
             sss_score ScoreCluster(int,int,std::vector<art::Ptr<recob::Hit>>&,double,double, const art::Ptr<recob::Shower>&);
 
             /* get the nearest N hits surrounding given position, and return a TGraph of wire-tick for these hits 
- 	     * This function is currently used in function 'SecondShowerSearch'
- 	     * @parameter: plane, cluster are not in use
- 	     * @note: need to make sure all the hits in hitz are on the same plane as vertex_wire
- 	     */
+             * This function is currently used in function 'SecondShowerSearch'
+             * @parameter: plane, cluster are not in use
+             * @note: need to make sure all the hits in hitz are on the same plane as vertex_wire
+             */
             TGraph* GetNearestNpts(int plane,int cluter,std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,int Npt);
 
 
-	    /* brief: returns index of the first shower in showers which is close enough to one of hit in hitz */
+            /* brief: returns index of the first shower in showers which is close enough to one of hit in hitz */
             int CompareToShowers(int,int,std::vector<art::Ptr<recob::Hit>>& hitz,double,double,
                     const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showertopfparticlemap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfparticletohitsmap,                    double eps);
             //---------------- Isolation ----------------- 
@@ -586,7 +586,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             void ClearIsolation();  /* clear vector members related to isolation */
             void CreateIsolationBranches();  /* create branches for vectors related to isolation in vertex_tree */
 
-	    /* for a slice, study the min distance between track hits, shower hits, and unassociated hits */
+            /* for a slice, study the min distance between track hits, shower hits, and unassociated hits */
             void IsolationStudy(
                     const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
                     const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
@@ -599,15 +599,15 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h, double evt_timeGPS_nsec,  std::map<art::Ptr<recob::OpFlash>, std::vector< art::Ptr<crt::CRTHit>>> crtvetoToFlashMap);
 
             //  void AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes,  art::Handle<std::vector<crt::CRTHit>> crthit_h);
-	    
+
             void ClearFlashes();  /* clear and reset all the flash-related vectors/variables */
             void ResizeFlashes(size_t); /* resize flash-related vectors */
             void CreateFlashBranches(); /* create branches for flashes in vertex_tree */
 
             //----------------  Tracks ----------------------------
-	    /* @brief: analyze each reco track in vector 'tracks', and save info to track-related data members */
+            /* @brief: analyze each reco track in vector 'tracks', and save info to track-related data members */
             void AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & tracktopfparticlemap,
-                               std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitsMap,
+                    std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitsMap,
                     std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfparticletospacepointmap , std::map<int, art::Ptr<simb::MCParticle> > &  MCParticleToTrackIdMap, std::map<int, double> &sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool> &PFPToClearCosmicMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
@@ -622,9 +622,9 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             void AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>, std::vector<art::Ptr<anab::Calorimetry>>> &trackToCaloMap);
 
 
-	    /* @brief: analyze MCParticle related to recob::Track if it has one 
- 	     * variables starting with 'm_sim_track_' will be updated
- 	     * */
+            /* @brief: analyze MCParticle related to recob::Track if it has one 
+             * variables starting with 'm_sim_track_' will be updated
+             * */
             void RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  std::map<art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>> & trackToPFParticleMap, std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector, std::map< int, art::Ptr<simb::MCParticle> > &      MCParticleToTrackIdMap, 
                     std::map<int, double>& sliceIdToNuScoreMap,
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
@@ -632,7 +632,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
                     std::vector<double>& vec);
 
 
-	    /* collect information from anab::sParticleIDAlgScores of reco track */
+            /* collect information from anab::sParticleIDAlgScores of reco track */
             void CollectPID(std::vector<art::Ptr<recob::Track>> & tracks,std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap);
             TGraph proton_length2energy_tgraph;
 
@@ -659,12 +659,12 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             void RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,  std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
                     std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector);
 
-	    /**
-	     * @brief: match showers to MCParticles 
-	     * @arguments filled during function execution:
-	     * 		mcParticleVector: vector of mother particles of showers
-	     * 		objectToMCParticleMap: map of shower to its mother particle
-	     */
+            /**
+             * @brief: match showers to MCParticles 
+             * @arguments filled during function execution:
+             * 		mcParticleVector: vector of mother particles of showers
+             * 		objectToMCParticleMap: map of shower to its mother particle
+             */
             void showerRecoMCmatching(std::vector<art::Ptr<recob::Shower>>& objectVector,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<simb::MCParticle>>& objectToMCParticleMap,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& objectToPFParticleMap,
@@ -679,7 +679,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
                     std::map<art::Ptr<recob::PFParticle>,bool>& PFPToNuSliceMap);
 
 
-	    /* tranverse through mcParticleVector, and print out infos for photons */
+            /* tranverse through mcParticleVector, and print out infos for photons */
             int   photoNuclearTesting(std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector);
 
             // ------------ Fid Volume and SCB------------------------- //
@@ -712,21 +712,21 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             int isInTPCActive(std::vector<double>&); /* if point is in active TPC volume */
             int isInTPCActive(double cut,std::vector<double>&);
             double distToTPCActive(std::vector<double>&vec); /* if point in active TPC, returns distance from point to closest TPC wall
-							     * otherwise, returns -999 */
+                                                              * otherwise, returns -999 */
 
             int isInSCB(std::vector<double>&);  /* if point is inside SCB */
             int isInSCB(double cut,std::vector<double>&);
             int distToSCB(double & dist, std::vector<double> &vec); /* calc the minimum distance from point to the SC boundary,save to dist. 
-								     * return value (0, or 1) indicates whether the point is in SCB */
+                                                                     * return value (0, or 1) indicates whether the point is in SCB */
             int setTPCGeom();
-	    /* This function is wrong, and Not used */
+            /* This function is wrong, and Not used */
             bool loadSCB_YX(std::vector<TGeoPolygon*>&zpolygons);
 
             //---------------- MCTruths ----------------------------
 
-	    /**
- 	     * @brief: analyze simb::MCTruth neutrino interaction, update truth related variable ('m_mctruth_***' )
- 	     */
+            /**
+             * @brief: analyze simb::MCTruth neutrino interaction, update truth related variable ('m_mctruth_***' )
+             */
             void AnalyzeMCTruths(std::vector<art::Ptr<simb::MCTruth>> & mcTruthVector,  std::vector<art::Ptr<simb::MCParticle>> & mcParticleVector );
             void ClearMCTruths();
             void ResizeMCTruths(size_t);  /* resize mctruth daughters vectors */
@@ -736,8 +736,8 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             //---------------- EventWeight ----------------------------
 
-	    /**
- 	     * @brief: fill event weight related variables */
+            /**
+             * @brief: fill event weight related variables */
             void AnalyzeEventWeight(art::Event const & e );
             void ClearEventWeightBranches();  /* reset eventweight related variable */
             void CreateEventWeightBranches();  /* create branches for eventweight related variable in eventweight_tree */
@@ -745,20 +745,31 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             //These three are shameless steals from LArPandorHelper But overlays dont work so this is a direct clone. We will filter out later.
 
 
+            //---------------- Geant4 ----------------------------
 
-	    /**
- 	     * @brief: given an event and a label, collect all the SimChannel with that label
- 	     * @ param: simChannelVector: a vector of SimChannel [to be filled]
- 	     */
+            /**
+             * @brief: fill event weight related variables */
+            void ClearGeant4Branches();  /* reset eventweight related variable */
+            void CreateGeant4Branches();  /* create branches for eventweight related variable in eventweight_tree */
+            void AnalyzeGeant4( const    std::vector<art::Ptr<simb::MCParticle>> &mcParticleVector);    
+
+
+
+
+
+            /**
+             * @brief: given an event and a label, collect all the SimChannel with that label
+             * @ param: simChannelVector: a vector of SimChannel [to be filled]
+             */
             void CollectSimChannels(const art::Event &evt, const std::string &label,  std::vector< art::Ptr<sim::SimChannel> >  &simChannelVector);
 
-	    /**
- 	     * @brief: given a event, and a label, grab all MCParticle with that label, and fill the corresponding map for future use
-	     * @param: evt: event, label: given label
-	     * @param: truthToParticles: a map of MCTruth to a vector of MCParticle [to be filled]
-	     * @param: particlesToTruth: a map of MCParticle to MCTruth [to be filled]
-	     * @param: MCParticleToTrackIdMap: a map pf MCParticle track ID to itself [to be filled]
-	     */
+            /**
+             * @brief: given a event, and a label, grab all MCParticle with that label, and fill the corresponding map for future use
+             * @param: evt: event, label: given label
+             * @param: truthToParticles: a map of MCTruth to a vector of MCParticle [to be filled]
+             * @param: particlesToTruth: a map of MCParticle to MCTruth [to be filled]
+             * @param: MCParticleToTrackIdMap: a map pf MCParticle track ID to itself [to be filled]
+             */
             void CollectMCParticles(const art::Event &evt, const std::string &label, std::map< art::Ptr<simb::MCTruth>, std::vector<art::Ptr<simb::MCParticle>>> &truthToParticles,        std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>>              &particlesToTruth, std::map< int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIdMap);
             void BuildMCParticleHitMaps(const art::Event &evt, const std::string &label, const std::vector<art::Ptr<recob::Hit>> &hitVector,   std::map< art::Ptr<simb::MCParticle>,  std::vector<art::Ptr<recob::Hit> >  >  &particlesToHits,         std::map< art::Ptr<recob::Hit>, art::Ptr<simb::MCParticle> >                  &hitsToParticles, const lar_pandora::LArPandoraHelper::DaughterMode daughterMode, std::map< int, art::Ptr<simb::MCParticle> > & MCParticleToTrackIdMap);
 
@@ -772,10 +783,10 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
 
             /** 
- 	     * brief: analyze metadata of PFParticles, and fill in all these maps
- 	     * argument: primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap,PFPToSliceIdMap
- 	     * PFPToNuSliceMap, PFPToTrackScoreMap will be filled in the function boby
- 	     */
+             * brief: analyze metadata of PFParticles, and fill in all these maps
+             * argument: primaryPFPSliceIdVec, sliceIdToNuScoreMap, PFPToClearCosmicMap,PFPToSliceIdMap
+             * PFPToNuSliceMap, PFPToTrackScoreMap will be filled in the function boby
+             */
             void AnalyzeSlices(std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> > & pfParticleToMetadataMap,
                     PFParticleIdMap &pfParticleMap,
                     std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & primaryPFPSliceIdVec,   
@@ -787,18 +798,18 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             // void GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap,
             //        std::map<int, int>& sliceIdToNumPFPsMap );
-	    
+
             std::vector<int>  GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap ); /* get number of PFParticles per slice */
             //void  GetPFPsPerSlice( std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap , std::vector<int> &sliceIdToNumPFPsvec);
 
-	    /* brief: returns slice index corresponding to this shower, or -1 if it's clear cosmic */
+            /* brief: returns slice index corresponding to this shower, or -1 if it's clear cosmic */
             int GetShowerSlice(art::Ptr<recob::Shower>& this_shower, std::map< art::Ptr<recob::Shower> , art::Ptr<recob::PFParticle>>& showerToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
 
             int GetTrackSlice(art::Ptr<recob::Track>& this_track, std::map< art::Ptr<recob::Track> , art::Ptr<recob::PFParticle>>& trackToPFParticleMap, std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec);
             //can also look at things like shower energy, conversion length, etc.
 
 
-	    /* returns numbr of PFParticles that correspond to showers (and not cosmic) per slice */
+            /* returns numbr of PFParticles that correspond to showers (and not cosmic) per slice */
             std::vector<int> GetNumShowersPerSlice(std::map< art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& showerToPFParticleMap,
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap );
             //        void GetNumShowersPerSlice(std::map< art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>>& showerToPFParticleMap,
@@ -806,13 +817,13 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             //                std::map<int, int>& sliceIdToNumShowersMap );
 
 
-	    /* returns numbr of PFParticles that correspond to tracks  (and not cosmic) per slice */
+            /* returns numbr of PFParticles that correspond to tracks  (and not cosmic) per slice */
             std::vector<int> GetNumTracksPerSlice(std::map< art::Ptr<recob::Track>,art::Ptr<recob::PFParticle>>& trackToPFParticleMap,   
                     std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap);
 
-	    /** @brief: look at reco showers and reco tracks in the event, together with MCParticle info
- 	     * to determine how many eligible tracks and showers there are in the event 
- 	     */
+            /** @brief: look at reco showers and reco tracks in the event, together with MCParticle info
+             * to determine how many eligible tracks and showers there are in the event 
+             */
             void AnalyzeRecoMCSlices(std::string signal_def, std::map<int, art::Ptr<simb::MCParticle>> & MCParticleToTrackIDMap,
                     std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle> > & showerToPFParticleMap, 
                     std::vector<std::pair<art::Ptr<recob::PFParticle>,int>> & allPFPSliceIdVec, 
@@ -842,7 +853,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             //std::map<art::Ptr<recob::PFParticle>, double > & pfParticleToNuScoreMap;//is filled during analyze slices
 
 
-      //-------  matched shower: reco shower that matches to a primary photon + max energy of 3 plane > 20 + definition being ncdelta----- 
+            //-------  matched shower: reco shower that matches to a primary photon + max energy of 3 plane > 20 + definition being ncdelta----- 
             std::vector<double> m_matched_signal_shower_overlay_fraction;
             //std::vector<double> m_matched_signal_shower_conversion_length;
             std::vector<double> m_matched_signal_shower_true_E;  /* energy of the best-matched MCparticle for the shower */
@@ -854,11 +865,11 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int> m_matched_signal_shower_tracks_in_slice; /* number of showers in the same slice as of this reco shower */
             std::vector<int> m_matched_signal_shower_showers_in_slice; /* number of tracks in the same slice as of this reco shower */
 
-      //-------  matched shower -------------------------------------
+            //-------  matched shower -------------------------------------
 
 
 
-      //-------- for reco tracks that match to a primary proton ---------
+            //-------- for reco tracks that match to a primary proton ---------
             std::vector<double> m_matched_signal_track_true_E; /*  the true energy of matched MCparticle (proton) */
             std::vector<double> m_matched_signal_track_nuscore;  /* nu score of the slice containing the reco track */
             std::vector<int> m_matched_signal_track_sliceId;
@@ -872,7 +883,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             //int m_matched_signal_total_num_slices;
 
-      //---------for reco tracks that match to a primary proton ---------
+            //---------for reco tracks that match to a primary proton ---------
 
             bool m_reco_1g1p_is_same_slice;
             bool m_reco_1g1p_is_multiple_slices;
@@ -892,23 +903,23 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             double triangle_area(double a1, double a2, double b1, double b2, double c1, double c2); /* returns area of triangles */
             int quick_delaunay_fit(int n, double *X, double *Y, int *num_triangles, double * area); /* get number of Delaunay triangle found
-												    * and total area of these triangles, 
-												    * save to num_triangles & area */
+                                                                                                     * and total area of these triangles, 
+                                                                                                     * save to num_triangles & area */
             int delaunay_hit_wrapper(const std::vector<art::Ptr<recob::Hit>>& hits, std::vector<int> & num_hits, std::vector<int>& num_triangles, std::vector<double> & area); /* given hits, calc number of hits, Delaunay triangles and total areas on each plane */
 
             // given a MCParticle, get its corrected vertex
             int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected);
             int spacecharge_correction(const simb::MCParticle & mcparticle, std::vector<double> & corrected);
-	    // given a particle, and input location calculate its corrected true position, so we can compare it to reco
+            // given a particle, and input location calculate its corrected true position, so we can compare it to reco
             int spacecharge_correction(const art::Ptr<simb::MCParticle> & mcparticle, std::vector<double> & corrected, std::vector<double> & input);
 
             //databased http://dbdata0vm.fnal.gov:8186/uboonecon_prod/app/data?f=channelstatus_data&t=357812824
             std::vector<std::pair<int,int>> bad_channel_list_fixed_mcc9;
             std::map<int,bool> bad_channel_map_fixed_mcc9;
 
-	    
-	    /* @brief: given run/subrun/event number, determine if this event is in the selected event list */
-	    bool IsEventInList(int run, int subrun, int event);
+
+            /* @brief: given run/subrun/event number, determine if this event is in the selected event list */
+            bool IsEventInList(int run, int subrun, int event);
 
             TRandom3 *rangen;
             std::string m_shower3dLabel;
@@ -953,11 +964,12 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             bool m_run_pi0_filter_2g0p;
 
             bool m_runPhotoNuTruth;
+            bool m_runTrueEventweight;
 
-	    bool m_runSelectedEvent;  //if it should run only selected events
-	    std::string m_selected_event_list; //full path for the file containing run/subrun/event number of selected events
+            bool m_runSelectedEvent;  //if it should run only selected events
+            std::string m_selected_event_list; //full path for the file containing run/subrun/event number of selected events
             std::set<std::vector<int>> m_selected_set;  //set of selected events  	 
- 
+
             //SEAviwer bits
             bool m_runSEAview;
             double m_SEAviewPlotDistance;   //parameters related to shower-like object finding
@@ -966,17 +978,17 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             double m_SEAviewDbscanEps;
             double m_SEAviewMaxPtsLinFit;
             bool   m_SEAviewMakePDF;
-	    int m_SEAviewNumRecoShower;
-	    int m_SEAviewNumRecoTrack;
+            int m_SEAviewNumRecoShower;
+            int m_SEAviewNumRecoTrack;
 
-	    bool m_runSEAviewStub;
-	    double m_SEAviewStubHitThreshold; //parameters related to track-like object finding
-	    double m_SEAviewStubPlotDistance;
-	    double m_SEAviewStubDbscanMinPts;
-	    double m_SEAviewStubDbscanEps;
-	    bool m_SEAviewStubMakePDF;
-	    int m_SEAviewStubNumRecoShower;
-	    int m_SEAviewStubNumRecoTrack;
+            bool m_runSEAviewStub;
+            double m_SEAviewStubHitThreshold; //parameters related to track-like object finding
+            double m_SEAviewStubPlotDistance;
+            double m_SEAviewStubDbscanMinPts;
+            double m_SEAviewStubDbscanEps;
+            bool m_SEAviewStubMakePDF;
+            int m_SEAviewStubNumRecoShower;
+            int m_SEAviewStubNumRecoTrack;
 
 
             bool m_runCRT;
@@ -1017,7 +1029,9 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             TTree* vertex_tree;
             TTree* eventweight_tree;
             TTree* ncdelta_slice_tree;
-    
+
+            TTree* geant4_tree;
+
             TTree* true_eventweight_tree;
             std::map<std::string, std::vector<double>> fmcweight;
             std::map<std::string, std::vector<double>> fmcweight2;
@@ -1056,7 +1070,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int>  m_trackstub_candidate_plane; /* on which plan the unasso cluster is */
             std::vector<double> m_trackstub_candidate_PCA;
             std::vector<double> m_trackstub_candidate_mean_ADC;
-	    std::vector<double> m_trackstub_candidate_ADC_RMS;
+            std::vector<double> m_trackstub_candidate_ADC_RMS;
             std::vector<double> m_trackstub_candidate_veto_score;
             std::vector<double> m_trackstub_candidate_mean_tick;
             std::vector<double> m_trackstub_candidate_max_tick;
@@ -1065,30 +1079,30 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_trackstub_candidate_max_wire;
             std::vector<double> m_trackstub_candidate_mean_wire;
             std::vector<double> m_trackstub_candidate_min_dist;  // min distance from unasso cluter to the vertex */
-	    std::vector<double> m_trackstub_candidate_min_impact_parameter_to_shower; //min impact parameter of all hits in cluster to the recob::shower direction line (on 2D plane)
-	    std::vector<double> m_trackstub_candidate_min_conversion_dist_to_shower_start;  //min distance between hits and recob::shower start (on 2D plane)
-	    std::vector<double> m_trackstub_candidate_min_ioc_to_shower_start;        //min ratio of impact_parameter_to_shower/conversion_dist_to_shower_start of all hits in the cluster
-	    std::vector<double> m_trackstub_candidate_ioc_based_length;		//length of the cluster, calculated based on the IOC of hit
-	    std::vector<double> m_trackstub_candidate_wire_tick_based_length;		//length of the cluster, calculated based on the wire & tick span of the cluster
-	    std::vector<double> m_trackstub_candidate_mean_ADC_first_half;		// mean ADC per hit for the first half of cluster (cluster divided into halves based on hit IOC)
-	    std::vector<double> m_trackstub_candidate_mean_ADC_second_half;
-	    std::vector<double> m_trackstub_candidate_mean_ADC_first_to_second_ratio; // ratio of the mean ADC per hit, first half of cluster over second half.
-	    std::vector<double> m_trackstub_candidate_track_angle_wrt_shower_direction;   //treat cluster as a track, angle between track direction and the shower direction
-	    std::vector<double> m_trackstub_candidate_linear_fit_chi2;		// chi2 from linear fit of the  {wire, tick} distribution of the cluster
+            std::vector<double> m_trackstub_candidate_min_impact_parameter_to_shower; //min impact parameter of all hits in cluster to the recob::shower direction line (on 2D plane)
+            std::vector<double> m_trackstub_candidate_min_conversion_dist_to_shower_start;  //min distance between hits and recob::shower start (on 2D plane)
+            std::vector<double> m_trackstub_candidate_min_ioc_to_shower_start;        //min ratio of impact_parameter_to_shower/conversion_dist_to_shower_start of all hits in the cluster
+            std::vector<double> m_trackstub_candidate_ioc_based_length;		//length of the cluster, calculated based on the IOC of hit
+            std::vector<double> m_trackstub_candidate_wire_tick_based_length;		//length of the cluster, calculated based on the wire & tick span of the cluster
+            std::vector<double> m_trackstub_candidate_mean_ADC_first_half;		// mean ADC per hit for the first half of cluster (cluster divided into halves based on hit IOC)
+            std::vector<double> m_trackstub_candidate_mean_ADC_second_half;
+            std::vector<double> m_trackstub_candidate_mean_ADC_first_to_second_ratio; // ratio of the mean ADC per hit, first half of cluster over second half.
+            std::vector<double> m_trackstub_candidate_track_angle_wrt_shower_direction;   //treat cluster as a track, angle between track direction and the shower direction
+            std::vector<double> m_trackstub_candidate_linear_fit_chi2;		// chi2 from linear fit of the  {wire, tick} distribution of the cluster
             std::vector<double> m_trackstub_candidate_energy;
             std::vector<int>    m_trackstub_candidate_remerge; // index of the recob::shower candidate cluster is close to (expect it to be -1)
             std::vector<int>    m_trackstub_candidate_matched; /* has matched this unasso cluter to a primary MCParticle: 0-No, 1-Yes */
-	    std::vector<double> m_trackstub_candidate_matched_energy_fraction_best_plane; /* matched energy fraction of the best-matched MCParticle on best-plane */ 
+            std::vector<double> m_trackstub_candidate_matched_energy_fraction_best_plane; /* matched energy fraction of the best-matched MCParticle on best-plane */ 
             std::vector<int>    m_trackstub_candidate_pdg;   /* pdg of the matched MCParticle */
             std::vector<int>    m_trackstub_candidate_parent_pdg;
             std::vector<int>    m_trackstub_candidate_trackid; /* track ID of the matched MCParticle */
-	    std::vector<double> m_trackstub_candidate_true_energy;  /* true energy of the matched MCParticle */
+            std::vector<double> m_trackstub_candidate_true_energy;  /* true energy of the matched MCParticle */
             std::vector<double> m_trackstub_candidate_overlay_fraction; /* fraction of overlay in the unasso cluster hits */
 
-	    //------- grouped stub clusters --------------
-	    int m_trackstub_num_candidate_groups;	         /* number of groups */ 
-	    std::vector<std::vector<int>> m_grouped_trackstub_candidate_indices; /* indices of stub clusters that are matched as a group */
-	    std::vector<double> m_trackstub_candidate_group_timeoverlap_fraction;   /* minimum fraction of the time overlap of grouped stub clusters */
+            //------- grouped stub clusters --------------
+            int m_trackstub_num_candidate_groups;	         /* number of groups */ 
+            std::vector<std::vector<double>> m_grouped_trackstub_candidate_indices; /* indices of stub clusters that are matched as a group */
+            std::vector<double> m_trackstub_candidate_group_timeoverlap_fraction;   /* minimum fraction of the time overlap of grouped stub clusters */
 
 
 
@@ -1108,7 +1122,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int>  m_sss_candidate_plane; /* on which plan the unasso cluster is */
             std::vector<double> m_sss_candidate_PCA;
             std::vector<double> m_sss_candidate_mean_ADC;
-	    std::vector<double> m_sss_candidate_ADC_RMS;
+            std::vector<double> m_sss_candidate_ADC_RMS;
             std::vector<double> m_sss_candidate_impact_parameter;
             std::vector<double> m_sss_candidate_fit_slope; //slope of the cluster direction
             std::vector<double> m_sss_candidate_veto_score;
@@ -1120,22 +1134,22 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_sss_candidate_max_wire;
             std::vector<double> m_sss_candidate_mean_wire;
             std::vector<double> m_sss_candidate_min_dist;  // min distance from unasso cluter to the vertex */
-	    std::vector<double> m_sss_candidate_wire_tick_based_length;		//length of the cluster, calculated based on the wire & tick span of the cluster
+            std::vector<double> m_sss_candidate_wire_tick_based_length;		//length of the cluster, calculated based on the wire & tick span of the cluster
             std::vector<double> m_sss_candidate_energy;
             std::vector<double> m_sss_candidate_angle_to_shower;
             std::vector<double> m_sss_candidate_closest_neighbour;
             std::vector<int>    m_sss_candidate_remerge; // index of the recob::shower candidate cluster is close to (expect it to be -1)
             std::vector<int>    m_sss_candidate_matched; /* has matched this unasso cluter to a primary MCParticle: 0-No, 1-Yes */
-	    std::vector<double> m_sss_candidate_matched_energy_fraction_best_plane; /* matched energy fraction of the best-matched MCParticle on best-plane */ 
+            std::vector<double> m_sss_candidate_matched_energy_fraction_best_plane; /* matched energy fraction of the best-matched MCParticle on best-plane */ 
             std::vector<int>    m_sss_candidate_pdg;   /* pdg of the matched MCParticle */
             std::vector<int>    m_sss_candidate_parent_pdg;
             std::vector<int>    m_sss_candidate_trackid; /* track ID of the matched MCParticle */
-	    std::vector<double> m_sss_candidate_true_energy;
+            std::vector<double> m_sss_candidate_true_energy;
             std::vector<double> m_sss_candidate_overlay_fraction; /* fraction of overlay in the unasso cluster hits */
 
 
 
-    //------------ sss3d_showers variables are for reco::showers which are in the events, but not in the slice ----
+            //------------ sss3d_showers variables are for reco::showers which are in the events, but not in the slice ----
 
             int m_sss3d_num_showers;  /* number of showers in the event but not in the slice */
             std::vector<double> m_sss3d_shower_start_x; /* shower start in X axis, for all showers in the event but not in the slice*/
@@ -1148,14 +1162,14 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_sss3d_shower_conversion_dist; /* dist between shower start and vertex*/
 
             std::vector<double> m_sss3d_shower_invariant_mass; /* invariant mass of primary recob::shower, and each shower in the event, 
-								* calculated assuming vertex is where their mother particle decays */
+                                                                * calculated assuming vertex is where their mother particle decays */
 
             std::vector<double> m_sss3d_shower_implied_invariant_mass; /* similar to invariance mass, except this invariant mass  
-									* is calced direclty using shower direction of two showers */
+                                                                        * is calced direclty using shower direction of two showers */
 
             std::vector<double> m_sss3d_shower_impact_parameter; /* dist between vertex and shower direction line */
             std::vector<double> m_sss3d_shower_ioc_ratio; /* ratio of impact parameter over conversion dist 
-							   * 0 if the conversion distance is 0*/
+                                                           * 0 if the conversion distance is 0*/
             std::vector<double> m_sss3d_shower_energy_max; /* max energy of all planes (E summed from hits) */
             std::vector<double> m_sss3d_shower_score;
             std::vector<int> m_sss3d_slice_nu;
@@ -1164,7 +1178,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             bool bool_make_sss_plots;
 
 
-    //------ max_energy, conversion dist, ioc of the sss3d shower that has the smallest ioc parameter ----
+            //------ max_energy, conversion dist, ioc of the sss3d shower that has the smallest ioc parameter ----
             double m_sss3d_ioc_ranked_en;
             double m_sss3d_ioc_ranked_conv;
             double m_sss3d_ioc_ranked_invar;
@@ -1174,7 +1188,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             double m_sss3d_ioc_ranked_implied_opang;
             int m_sss3d_ioc_ranked_id; //index of the sss3d_shower that has the smallest ioc.
 
-    // --- same parameters, of the sss3d shower whose implied invariant mass together with primary recob::shower is closest to pi0 mass --
+            // --- same parameters, of the sss3d shower whose implied invariant mass together with primary recob::shower is closest to pi0 mass --
             double m_sss3d_invar_ranked_en;
             double m_sss3d_invar_ranked_conv;
             double m_sss3d_invar_ranked_invar;
@@ -1185,12 +1199,12 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             int m_sss3d_invar_ranked_id;
 
 
-   //--------------- sss2d showers are essentially group of cluters on 3 planes, that have the potential to be a shower -------
-   //--------------- they are not recob::showers --------------------------
+            //--------------- sss2d showers are essentially group of cluters on 3 planes, that have the potential to be a shower -------
+            //--------------- they are not recob::showers --------------------------
 
-   // sss2d_ioc_ranked variables are the varaibles (mean shower energy, conv. dist, ioc, etc) of the sss2d shower that has the smallest ioc 
-   // sss2d_conv_ranked variables are the varaibles (energy, conv. dist, ioc, etc) of the sss2d shower that has the smallest conv. distance 
-   // sss2d_invar_ranked variables are the varaibles of the sss2d shower whose invariant mass together with primary shower is closest to pi0. 
+            // sss2d_ioc_ranked variables are the varaibles (mean shower energy, conv. dist, ioc, etc) of the sss2d shower that has the smallest ioc 
+            // sss2d_conv_ranked variables are the varaibles (energy, conv. dist, ioc, etc) of the sss2d shower that has the smallest conv. distance 
+            // sss2d_invar_ranked variables are the varaibles of the sss2d shower whose invariant mass together with primary shower is closest to pi0. 
             double m_sss2d_ioc_ranked_en;
             double m_sss2d_ioc_ranked_conv;
             double m_sss2d_ioc_ranked_ioc;
@@ -1430,7 +1444,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int> m_reco_track_num_trajpoints;	/* number of valid points in the track */
             std::vector<int> m_reco_track_num_spacepoints;	/* number of recob::spacepoints coresponding to the reco track */
             std::vector<double> m_reco_track_proton_kinetic_energy; /* energy of the track, under the asssumption it's a proton track 
-								     * set to -9999 if m_run_pi0_filter is set to true */
+                                                                     * set to -9999 if m_run_pi0_filter is set to true */
 
             std::vector<size_t>  m_reco_track_ordered_energy_index; /* index of m_reco_track_proton_kinetic_energy such that element values are in descending order */
             std::vector<size_t>  m_reco_track_ordered_displacement_index; /* index of m_reco_track_length so that track length are in descending order */
@@ -1442,10 +1456,10 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_reco_track_spacepoint_max_dist; /* max distance between a track and its coresponding spacepoints */
 
 
-	    // ---- corresponding variables on the best plane of reco track, which is defined as such------
-	    // if plane 2 have good hits, then plane 2 is the best-plane
-	    // otherwise, which plane of plane 0 and 1 has more good hits will be best plane
-	    // if none of 3 planes has good hits, then best-plane is set to -1
+            // ---- corresponding variables on the best plane of reco track, which is defined as such------
+            // if plane 2 have good hits, then plane 2 is the best-plane
+            // otherwise, which plane of plane 0 and 1 has more good hits will be best plane
+            // if none of 3 planes has good hits, then best-plane is set to -1
             std::vector<int> m_reco_track_best_calo_plane;
             std::vector<double> m_reco_track_mean_dEdx_best_plane;
             std::vector<double> m_reco_track_mean_dEdx_start_half_best_plane;
@@ -1519,7 +1533,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             std::vector<int> m_sim_track_matched;  /* if reco track has been matched to a MCParticle, 1-YES, 0-NO */
 
-	    //-------- energy, mass, pdg ..etc.. of the matched MCParticle of reco track -----
+            //-------- energy, mass, pdg ..etc.. of the matched MCParticle of reco track -----
             std::vector<double> m_sim_track_overlay_fraction;
             std::vector<double> m_sim_track_energy;
             std::vector<double> m_sim_track_mass;
@@ -1527,13 +1541,13 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int> m_sim_track_pdg;
             std::vector<int> m_sim_track_parent_pdg;
 
-	   /* event origin types:
-	    * kUnknown: ???	
-	    * kBeamNeutrino: Beam neutrinos.
-	    * kCosmicRay: Cosmic rays.
-	    * kSuperNovaNeutrino: Supernova neutrinos.
-	    * kSingleParticle: single particles thrown at the detector
-	    */
+            /* event origin types:
+             * kUnknown: ???	
+             * kBeamNeutrino: Beam neutrinos.
+             * kCosmicRay: Cosmic rays.
+             * kSuperNovaNeutrino: Supernova neutrinos.
+             * kSingleParticle: single particles thrown at the detector
+             */
             std::vector<int> m_sim_track_origin;   /* truth origin of the matched MCParticle */
             std::vector<std::string> m_sim_track_process;
             std::vector<double> m_sim_track_startx;  /* space-charge corrected start point of the match MCParticle */
@@ -1546,9 +1560,9 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_sim_track_endy;
             std::vector<double> m_sim_track_endz;
             std::vector<double> m_sim_track_length; /* track length calculated based on the SC-corrected start and end point of the matched MCParticle */
-            
+
             std::vector<int> m_sim_track_trackID;
-	    //-------- energy, mass, pdg ..etc.. of the matched MCParticle of reco track -----
+            //-------- energy, mass, pdg ..etc.. of the matched MCParticle of reco track -----
 
 
 
@@ -1558,27 +1572,27 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             /*-------------------------------------------------------------------------------------*/
             std::vector<double> m_isolation_min_dist_trk_shr; /* minimum distance betwee shower hits and track hits on each plane 
-							       * if there is no shower hits, set to 999
-							       * if there is shower hits but no track hits, set to -999
-							       */	
+                                                               * if there is no shower hits, set to 999
+                                                               * if there is shower hits but no track hits, set to -999
+                                                               */	
             std::vector<double> m_isolation_nearest_shr_hit_to_trk_wire; /* the wire number of shower hit closest to track hits */	
             std::vector<double> m_isolation_nearest_shr_hit_to_trk_time; /* the time tick of shower hit closest to track hits in the slice */
 
 
             std::vector<double> m_isolation_num_shr_hits_win_1cm_trk; /* number of shower hits whose min distance to track hits <= 1cm 
-								       * of each plane (this is a 3 element vector) */	    
+                                                                       * of each plane (this is a 3 element vector) */	    
             std::vector<double> m_isolation_num_shr_hits_win_2cm_trk;	    
             std::vector<double> m_isolation_num_shr_hits_win_5cm_trk;	    
             std::vector<double> m_isolation_num_shr_hits_win_10cm_trk;	    
 
 
             std::vector<double> m_isolation_min_dist_trk_unassoc; /* of all unassociated hits, min distance to closest track hits 
-								   * set to -999 if there is no unassociated hits or track hits on plane
-								   */
+                                                                   * set to -999 if there is no unassociated hits or track hits on plane
+                                                                   */
             std::vector<double> m_isolation_nearest_unassoc_hit_to_trk_wire;/* wire number of the unassociated hit that of all is nearest to track hits in the slice */	
             std::vector<double> m_isolation_nearest_unassoc_hit_to_trk_time; /* time tick of the unasso hit that is nearest to track hits in the slice */
             std::vector<double> m_isolation_num_unassoc_hits_win_1cm_trk; /* number of unasso hits whose min distance to track hits <= 1cm
-									   * on each plane (this vector has 3 elements) */ 
+                                                                           * on each plane (this vector has 3 elements) */ 
             std::vector<double> m_isolation_num_unassoc_hits_win_2cm_trk;	    
             std::vector<double> m_isolation_num_unassoc_hits_win_5cm_trk;	    
             std::vector<double> m_isolation_num_unassoc_hits_win_10cm_trk;	    
@@ -1699,7 +1713,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             std::vector<int> m_sim_shower_matched;  /* whether shower has been matched to a MCParticle, 0 - False, 1 - True */
 
-	    // ----- energy, mass, pdg ... of the best-matched MCParticle for the shower ------
+            // ----- energy, mass, pdg ... of the best-matched MCParticle for the shower ------
             std::vector<double> m_sim_shower_energy;
             std::vector<double> m_sim_shower_kinetic_energy;
             std::vector<double> m_sim_shower_mass;
@@ -1710,7 +1724,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int> m_sim_shower_origin;
             std::vector<std::string> m_sim_shower_process;
             std::vector<std::string> m_sim_shower_end_process;
- 	    // ----- energy, mass, pdg ... of the best-matched MCParticle for the shower ------
+            // ----- energy, mass, pdg ... of the best-matched MCParticle for the shower ------
 
 
             std::vector<double> m_sim_shower_start_x;  /* space charge corrected shower starting point */
@@ -1728,7 +1742,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<int> m_sim_shower_is_true_shower;
             std::vector<int> m_sim_shower_best_matched_plane;
             std::vector<double> m_sim_shower_matched_energy_fraction_plane0; /* fraction of energy of the best-matched mother for shower on 
-									      * plane 0 over all energy deposited on plane 0 by the shower */
+                                                                              * plane 0 over all energy deposited on plane 0 by the shower */
             std::vector<double> m_sim_shower_matched_energy_fraction_plane1;
             std::vector<double> m_sim_shower_matched_energy_fraction_plane2;
             std::vector<double> m_sim_shower_overlay_fraction; /* fraction of hits from overlay over all hits in the shower */
@@ -1837,7 +1851,7 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
 
             std::vector<double> m_reco_shower_reclustered_energy_max;
             std::vector<double> m_reco_shower_reclustered_energy_plane0; /* total energy of the reco shower, and unassociated hit clusters 
-									  * close enough to it */
+                                                                          * close enough to it */
             std::vector<double> m_reco_shower_reclustered_energy_plane1;
             std::vector<double> m_reco_shower_reclustered_energy_plane2;
 
@@ -1854,12 +1868,12 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_reco_shower_plane1_meanRMS;
             std::vector<double> m_reco_shower_plane2_meanRMS;
 
-           std::vector<int> m_reco_shower_hit_wire;
-           std::vector<int> m_reco_shower_hit_plane;
-           std::vector<double> m_reco_shower_hit_tick;
-           std::vector<double> m_reco_shower_spacepoint_x;
-           std::vector<double> m_reco_shower_spacepoint_z;
-           std::vector<double> m_reco_shower_spacepoint_y;
+            std::vector<int> m_reco_shower_hit_wire;
+            std::vector<int> m_reco_shower_hit_plane;
+            std::vector<double> m_reco_shower_hit_tick;
+            std::vector<double> m_reco_shower_spacepoint_x;
+            std::vector<double> m_reco_shower_spacepoint_z;
+            std::vector<double> m_reco_shower_spacepoint_y;
 
 
             std::vector<size_t>  m_reco_shower_ordered_energy_index; /* indices of 'm_reco_shower_energy_max' such that energy max is in descending order */
@@ -1920,6 +1934,29 @@ bool marks_compare_vec_nonsense(std::vector<T>& v1, std::vector<T>& v2)
             std::vector<double> m_reco_track_pid_chi2_p_plane1;
             std::vector<double> m_reco_track_pid_chi2_p_plane2;
             std::vector<double> m_reco_track_pid_three_plane_proton_pid;
+
+
+            //Geant4
+            std::vector<int> m_geant4_pdg;
+            std::vector<int>          m_geant4_trackid;
+            std::vector<int>          m_geant4_mother;
+            std::vector<int>         m_geant4_statuscode;
+            std::vector<double>          m_geant4_E;
+            std::vector<double>          m_geant4_mass;
+            std::vector<double>          m_geant4_px;
+            std::vector<double>          m_geant4_py;
+            std::vector<double>          m_geant4_pz;
+            std::vector<double>          m_geant4_vx;
+            std::vector<double>          m_geant4_vy;
+            std::vector<double>          m_geant4_vz;
+            std::vector<double>          m_geant4_dx;
+            std::vector<double>          m_geant4_dy;
+            std::vector<double>          m_geant4_dz;
+
+
+            std::vector<double>          m_geant4_costheta;
+
+
 
 
             double m_genie_spline_weight;
