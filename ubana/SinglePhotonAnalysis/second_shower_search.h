@@ -1365,7 +1365,7 @@ namespace single_photon
 
         } // end loop over hit
         if(found_a_match){
-            std::cout<<"!"<<std::endl;
+            std::cout<<"Found a match!"<<std::endl;
         }
         double fraction_num_hits_overlay = (double)n_not_associated_hits/(double)hitz.size();
 
@@ -2147,6 +2147,8 @@ namespace single_photon
                 }
             }//j loop
         }//i loop
+
+	std::cout << "SinglePhoton::GroupClusterCandidate\t|| Formed " << num_cluster_groups << " cluster groups" << std::endl;
 
 	return {num_cluster_groups, {grouped_cluster_indices, cluster_group_timeoverlap_fraction}};
     } 

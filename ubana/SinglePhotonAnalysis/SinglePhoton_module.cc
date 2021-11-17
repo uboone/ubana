@@ -998,8 +998,10 @@ namespace single_photon
 
 
 
-	    // if satisfy the criteria for stub clustering
-	    std::cout << "SEAview check: " << m_SEAviewStubNumRecoShower << " " << showers.size() << " " << m_SEAviewStubNumRecoTrack << " " << tracks.size() << std::endl;
+	    // ------------- stub clustering ---------------------------
+	    std::cout << "----------------- Stub clustering --------------------------- " << std::endl;
+	    std::cout << "SEAview Stub formation: " << (m_runSEAviewStub ? "true" : "false" ) << " nshower requirement: " << m_SEAviewStubNumRecoShower << ", actual num shower: " << showers.size() << " | ntrack requirement: " << m_SEAviewStubNumRecoTrack << ", actual num track: " << tracks.size() << std::endl;
+
             if(!m_run_pi0_filter && m_runSEAviewStub && (m_SEAviewStubNumRecoShower == -1 || (int)showers.size()== m_SEAviewStubNumRecoShower) && (m_SEAviewStubNumRecoTrack == -1 || (int)tracks.size() == m_SEAviewStubNumRecoTrack)){    
 
 		// grab all hits in the slice of the reco shower
@@ -1063,7 +1065,7 @@ namespace single_photon
 
 
                 //And save to file.
-                std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Clusters to chat about"<<std::endl;
+                std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Stub clusters to chat about"<<std::endl;
 
                 m_trackstub_num_candidates = 0;
                 for(size_t c=0; c< vec_SEAclusters.size(); c++){
@@ -1157,15 +1159,17 @@ namespace single_photon
 		std::pair<int, std::pair<std::vector<std::vector<double>>, std::vector<double>> > group_result = GroupClusterCandidate(m_trackstub_num_candidates,  m_trackstub_candidate_plane, m_trackstub_candidate_max_tick, m_trackstub_candidate_min_tick);
 		m_trackstub_num_candidate_groups = group_result.first;
 		m_grouped_trackstub_candidate_indices = group_result.second.first;
-        std::cout<<"YARP_DEBUGGER "<<m_grouped_trackstub_candidate_indices.size()<<" "<<&m_grouped_trackstub_candidate_indices<<std::endl;
 		m_trackstub_candidate_group_timeoverlap_fraction = group_result.second.second;
         
         }
 
-		std::cout << "SEAview shower check : " <<m_runSEAview<<" || "<< m_SEAviewNumRecoShower << " " << showers.size() << " " << m_SEAviewNumRecoTrack << " " << tracks.size() << std::endl; 
-	    // if satisfy the criteria for shower clustering
+
+	    // --------------- shower clustering --------------------------
+	    std::cout << "------------- Shower clustering --------------------" << std::endl;
+	    std::cout << "SEAview Shower cluster formation: " << (m_runSEAview ? "true" : "false" ) << " nshower requirement: " << m_SEAviewNumRecoShower << ", actual num shower: " << showers.size() << " | ntrack requirement: " << m_SEAviewNumRecoTrack << ", actual num track: " << tracks.size() << std::endl;
+
             if(!m_run_pi0_filter &&  m_runSEAview && (m_SEAviewNumRecoShower == -1 || (int)showers.size()== m_SEAviewNumRecoShower) && (m_SEAviewNumRecoTrack == -1 || (int)tracks.size() == m_SEAviewNumRecoTrack) ){    
-		std::cout<<"YARP"<<std::endl;
+
                 art::Ptr<recob::Shower> p_shr = showers.front();
                 art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
                 std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
@@ -1222,7 +1226,7 @@ namespace single_photon
 
 
                 //And save to file.
-                std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Clusters to chat about"<<std::endl;
+                std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Shower clusters to chat about"<<std::endl;
 
                 m_sss_num_candidates = 0;
                 for(size_t c=0; c< vec_SEAclusters.size(); c++){
