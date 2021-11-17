@@ -1952,7 +1952,8 @@ namespace single_photon
             std::vector<double>          m_geant4_dx;
             std::vector<double>          m_geant4_dy;
             std::vector<double>          m_geant4_dz;
-
+            std::vector<std::string>          m_geant4_process;
+            std::vector<std::string>          m_geant4_end_process;
 
             std::vector<double>          m_geant4_costheta;
 
