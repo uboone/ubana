@@ -52,6 +52,7 @@ outputs:
         fileName: "FilteredNuEvents.root"
         compressionLevel: 0
         SelectEvents: [p1]
+        dataTier: "ana"
         }
     
     out1:
@@ -76,6 +77,7 @@ physics:
  
  #define the producer and filter modules for this path, order matters, 
  ana:  [  ]
+ #ana:  [rootout]
  p1: [nuselection]
  e1: [rootout]
  #define the output stream, there could be more than one if using filters 
@@ -88,7 +90,7 @@ physics:
  #end_paths is a keyword and contains the paths that do not modify the art::Event, 
  #ie analyzers and output streams.  these all run simultaneously
  #end_paths:     [ stream1, ana ] 
- end_paths:     [  ana] #,e1  ] 
+ end_paths:     [  ana ] #, e1  ] 
 }
 
 physics.filters.nuselection.AnalysisTools.default.BacktrackTag: "gaushitTruthMatch"
