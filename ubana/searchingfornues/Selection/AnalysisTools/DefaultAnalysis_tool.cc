@@ -140,6 +140,14 @@ private:
   float _reco_nu_vtx_x, _reco_nu_vtx_y, _reco_nu_vtx_z;
   float _reco_nu_vtx_sce_x, _reco_nu_vtx_sce_y, _reco_nu_vtx_sce_z;
 
+  // Zack added this in
+  std::vector<float> _hit_peak_time;
+  std::vector<float> _hit_summedADC;
+  std::vector<float> _hit_integral;
+  std::vector<float> _hit_channel;
+  std::vector<float> _hit_view;
+  std::vector<float> _hit_wireID;
+
   // has the swtrigger fired?
   int _swtrig;
   // common optical filter decision
@@ -273,6 +281,17 @@ private:
   float _true_p_visible;
   float _true_e_visible;
   float _leeweight;
+
+  // ==========================
+  // === Zack added this in ===
+  // ==========================
+  std::vector<float> _hit_peak_time_v;
+  std::vector<float> _hit_summedADC_v;
+  std::vector<float> _hit_integral_v;
+  std::vector<float> _hit_channel_v;
+  std::vector<float> _hit_view_v;
+  std::vector<float> _hit_wireID_v;
+  // ==========================
 };
 
 //----------------------------------------------------------------------------
@@ -400,6 +419,24 @@ void DefaultAnalysis::analyzeEvent(art::Event const &e, bool fData)
 
   art::ValidHandle<std::vector<recob::Hit>> inputHits = e.getValidHandle<std::vector<recob::Hit>>(fHproducer);
   evnhits = inputHits->size();
+
+  art::Handle< std::vector<recob::Hit> > hitListHandle;
+  std::vector<art::Ptr<recob::Hit> > hitlist;
+  if (e.getByLabel(fHproducer,hitListHandle))
+    art::fill_ptr_vector(hitlist, hitListHandle);
+
+  std::cout<<"View = "<<hitlist[0]->WireID().Plane<<std::endl;
+
+  for (int i=0; i < evnhits; i++) {
+    if (hitlist[i]->WireID().Plane == 2) {
+      _hit_peak_time_v.push_back(hitlist[i]->PeakTime());
+      _hit_summedADC_v.push_back(hitlist[i]->SummedADC());
+      _hit_integral_v.push_back(hitlist[i]->Integral());
+      _hit_channel_v.push_back(hitlist[i]->Channel());
+      _hit_view_v.push_back(hitlist[i]->WireID().Plane);
+      _hit_wireID_v.push_back(hitlist[i]->WireID().Wire);
+    }
+  }
 }
 
 void DefaultAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_pfp_v, bool fData, bool selected)
@@ -986,6 +1023,13 @@ void DefaultAnalysis::setBranches(TTree *_tree)
   _tree->Branch("endmuonprocess", &_endmuonprocess);
 
   _tree->Branch("endmuonmichel", &_endmuonmichel, "endmuonmichel/F");
+
+  _tree->Branch("hit_peak_time_v", "std::vector< float >", &_hit_peak_time_v);
+  _tree->Branch("hit_summedADC_v", "std::vector< float >", &_hit_summedADC_v);
+  _tree->Branch("hit_integral_v", "std::vector< float >", &_hit_integral_v);
+  _tree->Branch("hit_channel_v", "std::vector< float >", &_hit_channel_v);
+  _tree->Branch("hit_view_v", "std::vector< float >", &_hit_view_v);
+  _tree->Branch("hit_wireID_v", "std::vector< float >", &_hit_wireID_v);
 }
 
 void DefaultAnalysis::resetTTree(TTree *_tree)
@@ -1147,6 +1191,13 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
   _true_p_visible = 0;
 
   _true_e_visible = 0;
+
+  _hit_peak_time_v.clear();
+  _hit_summedADC_v.clear();
+  _hit_integral_v.clear();
+  _hit_channel_v.clear();
+  _hit_view_v.clear();
+  _hit_wireID_v.clear();
 }
 
 void DefaultAnalysis::SaveTruth(art::Event const &e)

@@ -74,6 +74,8 @@ physics:
         pandoraTrackpid:                  @local::particleidconfig
         pandoraTrackcali:                 @local::microboone_reco_data_producers.pandoracaliSCE
         pandoraTrackcalipid:              @local::particleidconfig
+
+        eventweight:        @local::microboone_eventweight_dec20 #I added this in!
  }
  filters:
  {

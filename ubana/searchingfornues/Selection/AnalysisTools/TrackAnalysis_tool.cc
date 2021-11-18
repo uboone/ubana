@@ -97,6 +97,7 @@ private:
 
   TParticlePDG *proton = TDatabasePDG::Instance()->GetParticle(2212);
   TParticlePDG *muon = TDatabasePDG::Instance()->GetParticle(13);
+  TParticlePDG *pion = TDatabasePDG::Instance()->GetParticle(211);
 
   searchingfornues::LLRPID llr_pid_calculator;
   searchingfornues::ProtonMuonLookUpParameters protonmuon_parameters;
@@ -178,8 +179,11 @@ private:
 
   std::vector<float> _trk_mcs_muon_mom_v;
   std::vector<float> _trk_range_muon_mom_v;
+  std::vector<float> _trk_mcs_pion_mom_v;
+  std::vector<float> _trk_range_pion_mom_v;
   std::vector<float> _trk_energy_proton_v;
   std::vector<float> _trk_energy_muon_v;
+  std::vector<float> _trk_energy_pion_v;
   std::vector<float> _trk_calo_energy_u_v;
   std::vector<float> _trk_calo_energy_v_v;
   std::vector<float> _trk_calo_energy_y_v;
@@ -398,13 +402,19 @@ void TrackAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t
       // Kinetic energy using tabulated stopping power (GeV)
       float mcs_momentum_muon = _mcsfitter.fitMcs(trk->Trajectory(), 13).bestMomentum();
       float range_momentum_muon = _trkmom.GetTrackMomentum(searchingfornues::GetSCECorrTrackLength(trk), 13);
+      float mcs_momentum_pion = _mcsfitter.fitMcs(trk->Trajectory(), 211).bestMomentum();
+      float range_momentum_pion = _trkmom.GetTrackMomentum(searchingfornues::GetSCECorrTrackLength(trk), 211);
       float energy_proton = std::sqrt(std::pow(_trkmom.GetTrackMomentum(searchingfornues::GetSCECorrTrackLength(trk), 2212), 2) + std::pow(proton->Mass(), 2)) - proton->Mass();
+      float energy_pion = std::sqrt(std::pow(_trkmom.GetTrackMomentum(searchingfornues::GetSCECorrTrackLength(trk), 211), 2) + std::pow(pion->Mass(), 2)) - pion->Mass();
       float energy_muon = std::sqrt(std::pow(mcs_momentum_muon, 2) + std::pow(muon->Mass(), 2)) - muon->Mass();
 
       _trk_mcs_muon_mom_v.push_back(mcs_momentum_muon);
       _trk_range_muon_mom_v.push_back(range_momentum_muon);
+      _trk_mcs_pion_mom_v.push_back(mcs_momentum_pion);
+      _trk_range_pion_mom_v.push_back(range_momentum_pion);
       _trk_energy_proton_v.push_back(energy_proton);
       _trk_energy_muon_v.push_back(energy_muon);
+      _trk_energy_pion_v.push_back(energy_pion);
       _trk_calo_energy_u_v.push_back(-1);
       _trk_calo_energy_v_v.push_back(-1);
       _trk_calo_energy_y_v.push_back(-1);
@@ -580,8 +590,11 @@ void TrackAnalysis::fillDefault()
 
   _trk_mcs_muon_mom_v.push_back(std::numeric_limits<float>::lowest());
   _trk_range_muon_mom_v.push_back(std::numeric_limits<float>::lowest());
+  _trk_mcs_pion_mom_v.push_back(std::numeric_limits<float>::lowest());
+  _trk_range_pion_mom_v.push_back(std::numeric_limits<float>::lowest());
   _trk_energy_proton_v.push_back(std::numeric_limits<float>::lowest());
   _trk_energy_muon_v.push_back(std::numeric_limits<float>::lowest());
+  _trk_energy_pion_v.push_back(std::numeric_limits<float>::lowest());
   _trk_calo_energy_u_v.push_back(std::numeric_limits<float>::lowest());
   _trk_calo_energy_v_v.push_back(std::numeric_limits<float>::lowest());
   _trk_calo_energy_y_v.push_back(std::numeric_limits<float>::lowest());
@@ -659,8 +672,11 @@ void TrackAnalysis::setBranches(TTree *_tree)
   _tree->Branch("trk_len_v", "std::vector< float >", &_trk_len_v);
   _tree->Branch("trk_mcs_muon_mom_v", "std::vector< float >", &_trk_mcs_muon_mom_v);
   _tree->Branch("trk_range_muon_mom_v", "std::vector< float >", &_trk_range_muon_mom_v);
+  _tree->Branch("trk_mcs_pion_mom_v", "std::vector< float >", &_trk_mcs_pion_mom_v);
+  _tree->Branch("trk_range_pion_mom_v", "std::vector< float >", &_trk_range_pion_mom_v);
   _tree->Branch("trk_energy_proton_v", "std::vector< float >", &_trk_energy_proton_v);
   _tree->Branch("trk_energy_muon_v", "std::vector< float >", &_trk_energy_muon_v);
+  _tree->Branch("trk_energy_pion_v", "std::vector< float >", &_trk_energy_pion_v);
   _tree->Branch("trk_calo_energy_u_v", "std::vector< float >", &_trk_calo_energy_u_v);
   _tree->Branch("trk_calo_energy_v_v", "std::vector< float >", &_trk_calo_energy_v_v);
   _tree->Branch("trk_calo_energy_y_v", "std::vector< float >", &_trk_calo_energy_y_v);
@@ -740,7 +756,10 @@ void TrackAnalysis::resetTTree(TTree *_tree)
 
   _trk_mcs_muon_mom_v.clear();
   _trk_range_muon_mom_v.clear();
+  _trk_mcs_pion_mom_v.clear();
+  _trk_range_pion_mom_v.clear();
   _trk_energy_muon_v.clear();
+  _trk_energy_pion_v.clear();
   _trk_energy_proton_v.clear();
   _trk_calo_energy_u_v.clear();
   _trk_calo_energy_v_v.clear();

@@ -1,6 +1,8 @@
 #include "reco_uboone_data_mcc9_8.fcl"
 #include "mcreco.fcl"
 #include "proximityclustering.fcl"
+#include "eventweight_microboone_genie_knobs.fcl"
+#include "eventweight_microboone_dec20.fcl"
 
 EventFilterTool: {
     tool_type: "EventFilter"
@@ -8,15 +10,15 @@ EventFilterTool: {
 
 SecondShowerTaggerTool: {
     tool_type: "SecondShowerTagger"
-    Clusterproducer: "pandora"
+    Clusterproducer: "proximity"
     Hitproducer: "gaushit"
 }
 
 CalorimetryAnalysisTool: {
     tool_type: "CalorimetryAnalysis"
-    TRKproducer: "pandora"
-    CALOproducer: "pandoracali"
-    PIDproducer: "pandoracalipid"
+    TRKproducer: "pandoraTrack"
+    CALOproducer: "pandoraTrackcali"
+    PIDproducer: "pandoraTrackcalipid"
 
     CLSproducer: "pandora"
     Hproducer: "gaushit"
@@ -62,9 +64,9 @@ ShowerAnalysisTool: {
 
 TrackAnalysisTool: {
     tool_type: "TrackAnalysis"
-    TRKproducer: "pandora"
-    CALOproducer: "pandoracali"     # "pandoraKalmanShower"     #remove or leave empty of there are no track fits of the shower
-    PIDproducer: "pandoracalipid" # "pandoraKalmanShowercalo" #remove or leave empty of there are no track fits of the shower
+    TRKproducer: "pandoraTrack"
+    CALOproducer: "pandoraTrackcali"     # "pandoraKalmanShower"     #remove or leave empty of there are no track fits of the shower
+    PIDproducer: "pandoraTrackcalipid" # "pandoraKalmanShowercalo" #remove or leave empty of there are no track fits of the shower
     mcsfitmu: @local::microboone_reco_data_producers.pandoraMCSMu.fitter
     ADCtoE: @local::microboone_reco_data_producers.shrreco3d.ADCtoE
     RecalibrateHits: true
@@ -80,8 +82,8 @@ CosmicIPTool: {
 
 NeutrinoEnergyTool: {
     tool_type: "NeutrinoEnergy"
-    TRKproducer: "pandora"
-    CALOproducer: "pandoracali"
+    TRKproducer: "pandoraTrack"
+    CALOproducer: "pandoraTrackcali"
     PDRproducer: "pandora"
     TrkShrScore: 0.5
     ShrEnergyBias: 0.8
@@ -176,8 +178,8 @@ PMTNoiseTool: {
 
 BDTTool: {
     tool_type: "BDT"
-    #TrigResProducer: ""
-    TrigResProducer: "TriggerResults::DataFiltersPostStage2"
+    TrigResProducer: ""
+    #TrigResProducer: "TriggerResults::DataFiltersPostStage2"
 }
 
 ContainmentAnalysis: {
@@ -240,7 +242,7 @@ NuSelectionFilter:{
     SLCproducer: "pandora"
     VTXproducer: "pandora"
     PCAproducer: "pandora"
-    TRKproducer: "pandora"
+    TRKproducer: "pandoraTrack"
     MCTproducer: "generator"
     SelectionTool: {
         tool_type: "EmptySelection"
@@ -255,15 +257,15 @@ NuSelectionFilter:{
         track:         @local::TrackAnalysisTool
         #vertex:         @local::VertexAnalysisTool
         #calorimetry:   @local::CalorimetryAnalysisTool
-        pmtnoise:      @local::PMTNoiseTool
+        pmtnoise:      @local::PMTNoiseTool #this was ON before
 	mcs:           @local::MCSTool
-        pi0truth:      @local::Pi0TruthAnalysisTool
+        pi0truth:      @local::Pi0TruthAnalysisTool #this was ON before
         cosmicip:      @local::CosmicIPTool
         nuenergy:      @local::NeutrinoEnergyTool
         flashmatchid:  @local::FlashMatchingTool
-        pi0tagger:     @local::Pi0TaggerTool
+        pi0tagger:     @local::Pi0TaggerTool #this was ON before
         #zbdt:          @local::BDTTool #note: analysis tools are run in alphabetical order and this needs to be the last one
-        secondshower:  @local::SecondShowerTaggerTool
+        secondshower:  @local::SecondShowerTaggerTool #this was ON before
         eventfilter:   @local::EventFilterTool
         mcfilter:      @local::MCFilterAnalysisTool
     }
@@ -298,12 +300,12 @@ CC0PiNpSelectionTool: {
     tool_type: "CC0piNpSelection"
     TrkShrscore: 0.5
     CLSproducer: "pandora"
-    TRKproducer: "pandora"
-    CALproducer: "pandoracali"
-    PIDproducer: "pandoracalipid"
+    TRKproducer: "pandoraTrack"
+    CALproducer: "pandoraTrackcali"
+    PIDproducer: "pandoraTrackcalipid"
     CALproducerTrkFit: "shrreco3dKalmanShowercali"
     TRKproducerTrkFit: "shrreco3dKalmanShower"
-    Clusterproducer: "pandora"
+    Clusterproducer: "proximity"
     Hitproducer: "gaushit"
     mcsfitmu: @local::microboone_reco_data_producers.pandoraMCSMu.fitter
     LocaldEdx: false # use dQdx and convert to dEdx with fixed conversion
@@ -330,3 +332,5 @@ NeutrinoSliceHits: {
     Pfpproducer: "pandora"
     Sliceproducer: "pandora"
 }
+
+EventweightGenieKnobs: @local::microboone_eventweight_genie_knobs
