@@ -2,6 +2,7 @@ cet_enable_asserts()
 include_directories ( $ENV{GENIE_INC}/GENIE )
 include_directories ( $ENV{DK2NUDATA_INC} )
 link_directories( $ENV{DK2NUDATA_LIB})
+#link_directories( $ENV{LIBXML2_FQ_DIR}/lib )
 file(GLOB INTERFACEFILES *Interface* )
 simple_plugin( TreeReader
                "source"
@@ -15,7 +16,7 @@ art_make_library(LIBRARY_NAME TreeInterface
                  LIBRARIES
 		 nusimdata_SimulationBase
 #GENIE STUFF########################################
-			xml2
+			#${XML2}
 			 ${LOG4CPP}
                  	 GFwEG
                  	 GFwAlg
@@ -70,7 +71,7 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 #GENIE STUFF########################################
-			xml2
+			#${XML2}
 			GFwEG
                  	GFwAlg
                 	GFwMsg

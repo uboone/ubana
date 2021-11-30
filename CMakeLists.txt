@@ -100,6 +100,9 @@ else()
   endif()
 endif()
 
+# Find eigen headers
+include_directories( $ENV{EIGEN_INC} )
+
 # ADD SOURCE CODE SUBDIRECTORIES HERE
 add_subdirectory(ubana)
 
