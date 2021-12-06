@@ -44,7 +44,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
                         ${UBDut}
-                        PQ
+                        PostgreSQL::PostgreSQL
                         Boost::serialization
                         art::Framework_Core
                         art::Framework_IO_Sources
@@ -81,7 +81,7 @@ art_make( EXCLUDE CellTreeUB_module.cc
 			ubevt_Database
                         uboone_MicroBooNEWireCell
                         ${UBDut}
-                        PQ
+                        PostgreSQL::PostgreSQL
                         Boost::serialization
                         art::Framework_Core
                         art::Framework_IO_Sources
