@@ -10,15 +10,15 @@ art_make( LIBRARY_NAME SPEcalibrationCode
           EXCLUDE SPEcalibration_module.cc FEMemulator_module.cc SWTrigger_module.cc CalibrationFit.C
           lardataobj_RawData
           ubcore::UBOpReadoutMap_service
-          LIB_LIBRARIES ${ART_FRAMEWORK_CORE}
-               ${ART_FRAMEWORK_IO_SOURCES}
-               ${ART_FRAMEWORK_PRINCIPAL}
-               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-               ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-               ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-               art_Persistency_Common canvas
-               art_Persistency_Provenance canvas
-               art_Utilities canvas
+          LIB_LIBRARIES art::Framework_Core
+               art::Framework_IO_Sources
+               art::Framework_Principal
+               art::Framework_Services_Registry
+               art_root_io::tfile_support ROOT::Core
+               art_root_io::TFileService_service
+               art::Persistency_Common canvas::canvas
+               art::Persistency_Provenance canvas::canvas
+               art::Utilities canvas::canvas
 
                BASENAME_ONLY
         )
@@ -29,15 +29,15 @@ simple_plugin( SPEcalibration "module"
                OpticalSubEvents
                ubcore::UBOpReadoutMap_service
                lardataobj_RawData
-               ${ART_FRAMEWORK_CORE}
-               ${ART_FRAMEWORK_IO_SOURCES}
-               ${ART_FRAMEWORK_PRINCIPAL}
-               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-               ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-               ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-               art_Persistency_Common canvas
-               art_Persistency_Provenance canvas
-               art_Utilities canvas
+               art::Framework_Core
+               art::Framework_IO_Sources
+               art::Framework_Principal
+               art::Framework_Services_Registry
+               art_root_io::tfile_support ROOT::Core
+               art_root_io::TFileService_service
+               art::Persistency_Common canvas::canvas
+               art::Persistency_Provenance canvas::canvas
+               art::Utilities canvas::canvas
                ROOT::Tree
                BASENAME_ONLY
              )
@@ -47,15 +47,15 @@ simple_plugin( FEMemulator "module"
                OpticalSubEvents
                ubcore::UBOpReadoutMap_service
                lardataobj_RawData
-               ${ART_FRAMEWORK_CORE}
-               ${ART_FRAMEWORK_IO_SOURCES}
-               ${ART_FRAMEWORK_PRINCIPAL}
-               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-               ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-               ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-               art_Persistency_Common canvas
-               art_Persistency_Provenance canvas
-               art_Utilities canvas
+               art::Framework_Core
+               art::Framework_IO_Sources
+               art::Framework_Principal
+               art::Framework_Services_Registry
+               art_root_io::tfile_support ROOT::Core
+               art_root_io::TFileService_service
+               art::Persistency_Common canvas::canvas
+               art::Persistency_Provenance canvas::canvas
+               art::Utilities canvas::canvas
                ROOT::Tree
                BASENAME_ONLY
              )
@@ -65,15 +65,15 @@ simple_plugin( SWTrigger "module"
                ubobj_Trigger
                lardataobj_RawData
                lardataobj_RecoBase
-               ${ART_FRAMEWORK_CORE}
-               ${ART_FRAMEWORK_IO_SOURCES}
-               ${ART_FRAMEWORK_PRINCIPAL}
-               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-               ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-               ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-               ${ART_PERSISTENCY_COMMON}
-               ${ART_PERSISTENCY_PROVENANCE}
-               ${ART_UTILITIES}
+               art::Framework_Core
+               art::Framework_IO_Sources
+               art::Framework_Principal
+               art::Framework_Services_Registry
+               art_root_io::tfile_support ROOT::Core
+               art_root_io::TFileService_service
+               art::Persistency_Common
+               art::Persistency_Provenance
+               art::Utilities
                SWTRIG_LIBFEMU
                SWTRIG_LIBBASE
                ROOT::Tree

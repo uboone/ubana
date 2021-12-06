@@ -13,22 +13,22 @@ art_make( BASENAME_ONLY
 		larcorealg_Geometry
     larcore_Geometry_Geometry_service
 		lardata_Utilities
-		nusimdata_SimulationBase
-		${ART_FRAMEWORK_CORE}
-		${ART_FRAMEWORK_PRINCIPAL}
-		${ART_FRAMEWORK_SERVICES_REGISTRY}
-		${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-		${ART_ROOT_IO_TFILESERVICE_SERVICE}
-		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		art_Persistency_Common canvas
-		art_Persistency_Provenance canvas
-		art_Utilities canvas
-		${ART_UTILITIES}
-		${MF_MESSAGELOGGER}
-		${MF_UTILITIES}
-		${FHICLCPP}
-		cetlib cetlib_except
-		${CLHEP}
+		nusimdata::SimulationBase
+		art::Framework_Core
+		art::Framework_Principal
+		art::Framework_Services_Registry
+		art_root_io::tfile_support ROOT::Core
+		art_root_io::TFileService_service
+		art::Framework_Services_Optional_RandomNumberGenerator_service
+		art::Persistency_Common canvas::canvas
+		art::Persistency_Provenance canvas::canvas
+		art::Utilities canvas::canvas
+		art::Utilities
+		messagefacility::MF_MessageLogger
+		
+		fhiclcpp::fhiclcpp
+		cetlib::cetlib cetlib_except
+		CLHEP::CLHEP
 
 		${G4_LIB_LIST}
 

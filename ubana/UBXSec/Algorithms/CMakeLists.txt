@@ -14,27 +14,23 @@ set( hitfinder_tool_lib_list
                         lardataobj_RecoBase
                         larcore_Geometry_Geometry_service
                         lardata_Utilities
-                        nurandom_RandomUtils_NuRandomService_service
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        art_Persistency_Common
-                        art_Persistency_Provenance
-                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-                        ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}
-                        art_Utilities
-                        canvas
-                        ${MF_MESSAGELOGGER}
-
-                        ${FHICLCPP}
-                        cetlib cetlib_except
-                        ${Boost_FILESYSTEM_LIBRARY}
-
-                        ${CLHEP}
-
-
+                        nurandom::RandomUtils_NuRandomService_service
+                        art::Framework_Core
+                        art::Framework_Principal
+                        art::Framework_Services_Registry
+                        art::Persistency_Common
+                        art::Persistency_Provenance
+                        art_root_io::tfile_support ROOT::Core
+                        art::Framework_Services_Optional_RandomNumberGenerator_service
+                        art_root_io::TFileService_service
+                        art::Utilities
+                        canvas::canvas
+                        messagefacility::MF_MessageLogger
+                        fhiclcpp::fhiclcpp
+                        cetlib::cetlib
+                        cetlib_except::cetlib_except
+                        Boost::filesystem
+                        CLHEP::CLHEP
     )
 
 art_make( BASENAME_ONLY
@@ -64,31 +60,30 @@ art_make( BASENAME_ONLY
                    lardataobj_Simulation
                    lardata_Utilities
                    larpandora_LArPandoraInterface
-                   nusimdata_SimulationBase
+                   nusimdata::SimulationBase
                    PANDORASDK
                    PANDORAMONITORING
                    #larpandora_LArPandoraContent
                    ${UBOONECODE_LIB}
 		   ${LARDATA_LIB}
-		   ${ART_FRAMEWORK_CORE}
-		   ${ART_FRAMEWORK_PRINCIPAL}
-
-		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-		   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-                   art_Persistency_Common canvas
-                   art_Persistency_Provenance canvas
-                   art_Utilities canvas
-                   ${ART_PERSISTENCY_COMMON}
-		   ${ART_PERSISTENCY_PROVENANCE}
-		   ${ART_UTILITIES}
-		   ${MF_MESSAGELOGGER}
-		   ${FHICLCPP}
-		   cetlib cetlib_except
-		   ${ROOT_GEOM}
-		   ${ROOT_XMLIO}
-		   ${ROOT_GDML}
-
+		   art::Framework_Core
+		   art::Framework_Principal
+		   art::Framework_Services_Registry
+		   art_root_io::tfile_support ROOT::Core
+		   art_root_io::TFileService_service
+                   art::Persistency_Common canvas::canvas
+                   art::Persistency_Provenance canvas::canvas
+                   art::Utilities canvas::canvas
+                   art::Persistency_Common
+		   art::Persistency_Provenance
+		   art::Utilities
+		   messagefacility::MF_MessageLogger
+		   fhiclcpp::fhiclcpp
+		   cetlib::cetlib
+                   cetlib_except::cetlib_except
+		   ROOT::Geom
+		   ROOT::XMLIO
+		   ROOT::Gdml
 
           TOOL_LIBRARIES
                    ${hitfinder_tool_lib_list}
@@ -113,26 +108,22 @@ art_make( BASENAME_ONLY
                    lardataobj_AnalysisBase
                    lardata_Utilities
                    larsim_Simulation lardataobj_Simulation
-                   nusimdata_SimulationBase
-		   ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
-		   ${ART_FRAMEWORK_CORE}
-		   ${ART_FRAMEWORK_PRINCIPAL}
-
-		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-		   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-		   ${ART_PERSISTENCY_COMMON}
-		   ${ART_PERSISTENCY_PROVENANCE}
-		   ${ART_UTILITIES}
-		   ${MF_MESSAGELOGGER}
-
-		   ${FHICLCPP}
-		   cetlib cetlib_except
-		   ${ROOT_GEOM}
-		   ${ROOT_XMLIO}
-		   ${ROOT_GDML}
-
+                   nusimdata::SimulationBase
+		   art::Framework_Core
+		   art::Framework_Principal
+		   art::Framework_Services_Registry
+		   art_root_io::tfile_support ROOT::Core
+		   art_root_io::TFileService_service
+		   art::Persistency_Common
+		   art::Persistency_Provenance
+		   art::Utilities
+		   messagefacility::MF_MessageLogger
+		   fhiclcpp::fhiclcpp
+		   cetlib::cetlib
+                   cetlib_except::cetlib_except
+		   ROOT::Geom
+		   ROOT::XMLIO
+		   ROOT::Gdml
 		)
 
 install_headers()

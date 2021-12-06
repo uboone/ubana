@@ -6,20 +6,20 @@ art_make(
 			larcorealg_Geometry
 			lardataalg_DetectorInfo
 			lardataobj_RecoBase
-                        ${ART_FRAMEWORK_CORE}
-			${ART_ROOT_IO}
+                        art::Framework_Core
+			art_root_io::art_root_io
 			${ART_FRAMEWORK_MODULES}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-                        art_Persistency_Common
-                        art_Persistency_Provenance
-                        art_Utilities canvas
-			${MF_MESSAGELOGGER}
+                        art::Framework_Principal
+                        art::Framework_Services_Registry
+                        art_root_io::tfile_support ROOT::Core
+                        art_root_io::TFileService_service
+                        art::Persistency_Common
+                        art::Persistency_Provenance
+                        art::Utilities canvas::canvas
+			messagefacility::MF_MessageLogger
                         ${BOOST_LIB}
-                        ${FHICLCPP}
-                        cetlib cetlib_except
+                        fhiclcpp::fhiclcpp
+                        cetlib::cetlib cetlib_except
 
 )
 
@@ -30,8 +30,8 @@ install_fhicl()
 # Libraries I didn't need
 #			ub_RawDigitAdderAna
 #
-#			${ART_FRAMEWORK_IO_SOURCES}
-#                        art_Persistency_Provenance canvas
-#                        ${MF_MESSAGELOGGER}
+#			art::Framework_IO_Sources
+#                        art::Persistency_Provenance canvas::canvas
+#                        messagefacility::MF_MessageLogger
 #
 #

@@ -28,8 +28,8 @@ file(GLOB SOURCES
 art_make_library( LIBRARY_NAME  uboonecode_uboone_XGBoost
                   SOURCE ${SOURCES}
                   LIBRARIES
-		  cetlib cetlib_except
-                    
+		  cetlib::cetlib
+                  cetlib_except::cetlib_except
                 )
 
 install_headers()

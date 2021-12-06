@@ -4,7 +4,7 @@ simple_plugin( CellTreeUB "module"
                ubcore::UBOpReadoutMap_service
 	       ubobj_Trigger
 	       ubobj_MuCS
-	       nusimdata_SimulationBase
+	       nusimdata::SimulationBase
                lardata_Utilities_DatabaseUtil_service
                lardataobj_RawData
 	       lardataobj_RecoBase
@@ -13,16 +13,16 @@ simple_plugin( CellTreeUB "module"
 	       larcorealg_Geometry
 	       larcore_Geometry_Geometry_service
 	       ubraw_RawData
-               ${ART_FRAMEWORK_CORE}
-               ${ART_FRAMEWORK_IO_SOURCES}
-               ${ART_FRAMEWORK_PRINCIPAL}
-               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-               ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-               ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-               art_Persistency_Common canvas
-               art_Persistency_Provenance canvas
-               art_Utilities canvas
-	       ${MF_MESSAGELOGGER}
+               art::Framework_Core
+               art::Framework_IO_Sources
+               art::Framework_Principal
+               art::Framework_Services_Registry
+               art_root_io::tfile_support ROOT::Core
+               art_root_io::TFileService_service
+               art::Persistency_Common canvas::canvas
+               art::Persistency_Provenance canvas::canvas
+               art::Utilities canvas::canvas
+	       messagefacility::MF_MessageLogger
 
                BASENAME_ONLY
              )
@@ -45,23 +45,23 @@ art_make( EXCLUDE CellTreeUB_module.cc
 			larevt_CalibrationDBI_IOVData
                         ${UBDut}
                         PQ
-                        ${Boost_SERIALIZATION_LIBRARY}
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_IO_SOURCES}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-                        art_Persistency_Common canvas
-                        art_Persistency_Provenance canvas
-                        art_Utilities canvas
-                        ${MF_MESSAGELOGGER}
+                        Boost::serialization
+                        art::Framework_Core
+                        art::Framework_IO_Sources
+                        art::Framework_Principal
+                        art::Framework_Services_Registry
+                        art_root_io::tfile_support ROOT::Core
+                        art_root_io::TFileService_service
+                        art::Persistency_Common canvas::canvas
+                        art::Persistency_Provenance canvas::canvas
+                        art::Utilities canvas::canvas
+                        messagefacility::MF_MessageLogger
 
-                        ${FHICLCPP}
-                        cetlib cetlib_except
-                        ${ROOT_GEOM}
-                        ${ROOT_XMLIO}
-                        ${ROOT_GDML}
+                        fhiclcpp::fhiclcpp
+                        cetlib::cetlib cetlib_except
+                        ROOT::Geom
+                        ROOT::XMLIO
+                        ROOT::Gdml
 
 
 
@@ -82,51 +82,51 @@ art_make( EXCLUDE CellTreeUB_module.cc
                         uboone_MicroBooNEWireCell
                         ${UBDut}
                         PQ
-                        ${Boost_SERIALIZATION_LIBRARY}
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_IO_SOURCES}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-                        art_Persistency_Common canvas
-                        art_Persistency_Provenance canvas
-                        art_Utilities canvas
-                        ${MF_MESSAGELOGGER}
+                        Boost::serialization
+                        art::Framework_Core
+                        art::Framework_IO_Sources
+                        art::Framework_Principal
+                        art::Framework_Services_Registry
+                        art_root_io::tfile_support ROOT::Core
+                        art_root_io::TFileService_service
+                        art::Persistency_Common canvas::canvas
+                        art::Persistency_Provenance canvas::canvas
+                        art::Utilities canvas::canvas
+                        messagefacility::MF_MessageLogger
 
-                        ${FHICLCPP}
-                        cetlib cetlib_except
-                        ${ROOT_GEOM}
-                        ${ROOT_XMLIO}
-                        ${ROOT_GDML}
+                        fhiclcpp::fhiclcpp
+                        cetlib::cetlib cetlib_except
+                        ROOT::Geom
+                        ROOT::XMLIO
+                        ROOT::Gdml
 
 
 	  SERVICE_LIBRARIES
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
 			ubevt_Database
-			${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        art_Persistency_Common canvas
-                        art_Persistency_Provenance canvas
-                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+			art::Framework_Principal
+                        art::Framework_Services_Registry
+                        art::Persistency_Common canvas::canvas
+                        art::Persistency_Provenance canvas::canvas
+                        art_root_io::tfile_support ROOT::Core
+                        art::Framework_Services_Optional_RandomNumberGenerator_service
+                        art_root_io::TFileService_service
                         ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}
-                        art_Utilities canvas
+                        art::Utilities canvas::canvas
                               larevt_CalibrationDBI_IOVData
                               lardataobj_RawData
                               larcorealg_Geometry
 			      larcore_Geometry_Geometry_service
-                              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                              ${ART_FRAMEWORK_CORE}
-                              ${ART_FRAMEWORK_PRINCIPAL}
-                              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-                              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-                              art_Persistency_Common canvas
-                              art_Persistency_Provenance canvas
-                              art_Utilities canvas
-                              ${FHICLCPP}
+                              art::Framework_Services_Registry
+                              art::Framework_Core
+                              art::Framework_Principal
+                              art_root_io::tfile_support ROOT::Core
+                              art_root_io::TFileService_service
+                              art::Persistency_Common canvas::canvas
+                              art::Persistency_Provenance canvas::canvas
+                              art::Utilities canvas::canvas
+                              fhiclcpp::fhiclcpp
 
 )
 
