@@ -4,7 +4,7 @@ art_make_library( LIBRARY_NAME uboone_subeventalgo
 		         scintresponse.cc WaveformData.cc
 		  LIBRARIES uboone_cfdiscriminator
 		  	    ubobj_Optical
-		            ${ART_FRAMEWORK_CORE}
+		            art::Framework_Core
 
 		)
 

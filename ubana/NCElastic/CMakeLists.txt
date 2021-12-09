@@ -12,26 +12,22 @@ art_make(BASENAME_ONLY
 			     larreco_RecoAlg
 			     larpandora_LArPandoraInterface
            larsim_Simulation lardataobj_Simulation
-           nusimdata_SimulationBase
-		       art_Persistency_Common canvas
-		       art_Persistency_Provenance canvas
-		       art_Utilities canvas
-		       ${UBOONECODE_LIB}
-		       ${LARDATA_LIB}
-		       ${ART_FRAMEWORK_CORE}
-		       ${ART_FRAMEWORK_PRINCIPAL}
-
-		       ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		       ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-		       ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-		       ${MF_MESSAGELOGGER}
-		       ${MF_UTILITIES}
-		       ${FHICLCPP}
-		       cetlib cetlib_except
-		       ${ROOT_GEOM}
-		       ${ROOT_XMLIO}
-		       ${ROOT_GDML}
-
+           nusimdata::SimulationBase
+		       art::Persistency_Common canvas::canvas
+		       art::Persistency_Provenance canvas::canvas
+		       art::Utilities canvas::canvas
+		       art::Framework_Core
+		       art::Framework_Principal
+		       art::Framework_Services_Registry
+		       art_root_io::tfile_support ROOT::Core
+		       art_root_io::TFileService_service
+		       messagefacility::MF_MessageLogger
+		       fhiclcpp::fhiclcpp
+		       cetlib::cetlib
+                       cetlib_except::cetlib_except
+		       ROOT::Geom
+		       ROOT::XMLIO
+		       ROOT::Gdml
 
          MODULE_LIBRARIES
            uboonecode_uboone_XGBoost
@@ -44,24 +40,24 @@ art_make(BASENAME_ONLY
 			     larreco_RecoAlg
 			     larpandora_LArPandoraInterface
            larsim_Simulation lardataobj_Simulation
-           nusimdata_SimulationBase
-		       art_Persistency_Common canvas
-		       art_Persistency_Provenance canvas
-		       art_Utilities canvas
+           nusimdata::SimulationBase
+		       art::Persistency_Common canvas::canvas
+		       art::Persistency_Provenance canvas::canvas
+		       art::Utilities canvas::canvas
 		       ${UBOONECODE_LIB}
 		       ${LARDATA_LIB}
-		       ${ART_FRAMEWORK_CORE}
-		       ${ART_FRAMEWORK_PRINCIPAL}
-
-		       ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		       ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-		       ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-		       ${MF_MESSAGELOGGER}
-		       ${FHICLCPP}
-		       cetlib cetlib_except
-		       ${ROOT_GEOM}
-		       ${ROOT_XMLIO}
-		       ${ROOT_GDML}
+		       art::Framework_Core
+		       art::Framework_Principal
+		       art::Framework_Services_Registry
+		       art_root_io::tfile_support ROOT::Core
+		       art_root_io::TFileService_service
+		       messagefacility::MF_MessageLogger
+		       fhiclcpp::fhiclcpp
+		       cetlib::cetlib
+                       cetlib_except::cetlib_except
+		       ROOT::Geom
+		       ROOT::XMLIO
+		       ROOT::Gdml
 
 		    )
 

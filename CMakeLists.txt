@@ -57,6 +57,7 @@ find_ups_product(nug4)
 find_ups_product( nurandom )
 find_ups_product( eigen )
 find_ups_product( swtrigger )
+find_package(PostgreSQL REQUIRED PUBLIC)
 
 # macros for dictionary and simple_plugin
 include(ArtDictionary)

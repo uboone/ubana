@@ -9,19 +9,19 @@ art_make(BASENAME_ONLY
   larcorealg_Geometry
   larcore_Geometry_Geometry_service
   lardata_Utilities
-  art_Persistency_Common canvas
-  art_Persistency_Provenance canvas
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+  art::Persistency_Common canvas::canvas
+  art::Persistency_Provenance canvas::canvas
+  art::Framework_Core
+  art::Framework_Principal
+  art::Framework_Services_Registry
+  art_root_io::tfile_support ROOT::Core
+  art_root_io::TFileService_service
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
-  art_Utilities canvas
-  ${MF_MESSAGELOGGER}
+  art::Utilities canvas::canvas
+  messagefacility::MF_MessageLogger
 
-  ${FHICLCPP}
-  cetlib cetlib_except
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib cetlib_except
 
 
   MODULE_LIBRARIES
@@ -32,22 +32,22 @@ art_make(BASENAME_ONLY
   larcorealg_Geometry
   larcore_Geometry_Geometry_service
   lardata_Utilities
-  nusimdata_SimulationBase
+  nusimdata::SimulationBase
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
-  art_Persistency_Common canvas
-  art_Persistency_Provenance canvas
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+  art::Persistency_Common canvas::canvas
+  art::Persistency_Provenance canvas::canvas
+  art::Framework_Core
+  art::Framework_Principal
+  art::Framework_Services_Registry
+  art_root_io::tfile_support ROOT::Core
+  art_root_io::TFileService_service
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
-  art_Utilities canvas
-  ${MF_MESSAGELOGGER}
+  art::Utilities canvas::canvas
+  messagefacility::MF_MessageLogger
 
-  ${FHICLCPP}
-  cetlib cetlib_except
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib cetlib_except
 
 
   )
