@@ -1023,9 +1023,11 @@ namespace single_photon
                 sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
 
                 //Add the hits from just this slice, as well sa ALL hits 
-                sevd.addSliceHits(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
+                sevd.addHitsToConsider(hitVector);   // std::vector<art::Ptr<recob::Hit>> 
+	        sevd.filterConsideredHits(150); //only consider hits within 150cm of the vertex on 2D view
                 sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
                 sevd.setHitThreshold(m_SEAviewStubHitThreshold); 
+		//std::cout << "All hits: " << hitVector.size() << ", shower hits: " << p_slice_hits.size() << std::endl;
 
                 //Add all the "nice " PFParticle Hits, as well as what to label
                 //sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
@@ -1188,9 +1190,10 @@ namespace single_photon
                 sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
 
                 //Add the hits from just this slice, as well sa ALL hits 
-                sevd.addSliceHits(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
+                sevd.addHitsToConsider(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
                 sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
                 sevd.setHitThreshold(m_SEAviewHitThreshold); 
+		//std::cout << "All hits: " << hitVector.size() << ", slice hits: " << p_slice_hits.size() << std::endl;
 
                 //Add all the "nice " PFParticle Hits, as well as what to label
                 //sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string

@@ -138,13 +138,28 @@ namespace seaview{
         return 0;
     }
 
-    int SEAviewer::addSliceHits(std::vector<art::Ptr<recob::Hit>>& hits){
-        slice_hits = hits;   
-        for(auto &h: slice_hits){
+    int SEAviewer::addHitsToConsider(std::vector<art::Ptr<recob::Hit>>& hits){
+        considered_hits = hits;   
+        for(auto &h: considered_hits){
             map_unassociated_hits[h] = true;
-            map_slice_hits[h] = true;
+            map_considered_hits[h] = true;
         }
         return 0;
+    }
+
+    int SEAviewer::filterConsideredHits(double dist_to_vertex){
+	for(auto &h: considered_hits){
+	    int p = h->View();
+	    double wire = (double)h->WireID().Wire;
+	    double tick = (double)h->PeakTime();
+	    double dist = dist_point_point(wire, tick, vertex_chan[p], vertex_tick[p]);
+
+	    if(dist > dist_to_vertex){
+		map_unassociated_hits.erase(h);
+		map_considered_hits.erase(h);
+	    }
+	}
+	return 0;
     }
 
     int SEAviewer::setHitThreshold(double h){
@@ -158,7 +173,7 @@ namespace seaview{
         std::vector<std::vector<double>>  vec_chan(3);
 
         for(auto&h:all_hits){
-            if(map_slice_hits.count(h)==0){   // if h is not in the map, push its plane ID, wire ID, and time tick to the vectors
+            if(map_considered_hits.count(h)==0){   // if h is not in the map, push its plane ID, wire ID, and time tick to the vectors
                 double wire = (double)h->WireID().Wire;
                 vec_chan[(int)h->View()].push_back(wire);
                 vec_tick[(int)h->View()].push_back((double)h->PeakTime());
@@ -188,10 +203,11 @@ namespace seaview{
         std::vector<std::vector<art::Ptr<recob::Hit>>> vec_hits(3);
 
 
-        int n_all =slice_hits.size();
+        int n_all =map_considered_hits.size();
 
-        for(auto&h:slice_hits){ //type of h: recob::Hit
-            if(map_unassociated_hits[h]){
+	for(const auto &pair: map_considered_hits ){
+	    auto& h = pair.first;  //type of h: recob::Hit
+            if(map_unassociated_hits.count(h) !=0 && map_unassociated_hits[h]){
 
                 if(h->SummedADC() < hit_threshold){
                     n_below_thresh++;

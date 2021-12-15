@@ -274,10 +274,16 @@ namespace seaview {
             int loadVertex(double m_vertex_pos_x, double m_vertex_pos_y, double m_vertex_pos_z);
             int addTrueVertex(double x, double y,double z);
 
-	    /* @brief: add all the given hits (expect all hits of one slice) */
-            int addSliceHits(std::vector<art::Ptr<recob::Hit>>& hits);
+	    /* @brief: add all the given hits to be considered for clustering 
+ 	     * @note: these hits are subject to further selection by filterConsideredHits() before clustering
+ 	     */
+            int addHitsToConsider(std::vector<art::Ptr<recob::Hit>>& hits);
             int addAllHits(std::vector<art::Ptr<recob::Hit>>& hits);
- 	
+
+	    /* @brief: filter given hits before further clustering - only use hits near vertex for clustering
+ 	     * @param: dist_to_vertex - distance to vertex in cm
+ 	     */
+	    int filterConsideredHits(double dist_to_vertex);  	
 
 	    /* @brief: add hits for PFParticles
  	     * @param: leg - legend for this PFParticle, for plotting purposes
@@ -314,7 +320,7 @@ namespace seaview {
             double dist_line_point( const std::vector<double>&X1, const std::vector<double>& X2, const std::vector<double>& point);
 
 
-            //distance between two {wire, tick} points
+            //distance between two {wire, tick} points, in cm
     	    double dist_point_point(double w1, double t1, double w2, double t2) const{
         	return  sqrt(pow(w1*wire_con-w2*wire_con,2)+pow(t1*tick_con-t2*tick_con,2));
             }
@@ -399,10 +405,10 @@ namespace seaview {
             std::vector<double> true_vertex_chan; 
             std::vector<TGraph> true_vertex_graph;
 
-            std::vector<art::Ptr<recob::Hit>> slice_hits; //all hits in a slice
+            std::vector<art::Ptr<recob::Hit>> considered_hits; //all hits considered for clustering
             std::vector<art::Ptr<recob::Hit>> all_hits;
             std::map<art::Ptr<recob::Hit>,bool> map_unassociated_hits;
-            std::map<art::Ptr<recob::Hit>, bool> map_slice_hits;
+            std::map<art::Ptr<recob::Hit>, bool> map_considered_hits;
 
 	    //Plane: index
             std::vector<TGraph> vec_unass_graphs; //graph of [tick vs wire] for unassociated hits that pass the hit threshold
