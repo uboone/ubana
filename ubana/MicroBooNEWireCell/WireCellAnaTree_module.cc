@@ -151,6 +151,8 @@ private:
   Int_t		f_mcflux_evtno;
   Int_t		f_mcflux_ndecay;
   Int_t		f_mcflux_ntype;
+  Int_t		f_mcflux_ptype;
+  Int_t		f_mcflux_tptype;
   Float_t	f_mcflux_nuEnergy;
   Float_t	f_mcflux_vx;
   Float_t	f_mcflux_vy;
@@ -1085,6 +1087,8 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("mcflux_evtno", 		&f_mcflux_evtno);
   fPFeval->Branch("mcflux_ndecay", 		&f_mcflux_ndecay);
   fPFeval->Branch("mcflux_ntype", 		&f_mcflux_ntype);
+  fPFeval->Branch("mcflux_ptype", 		&f_mcflux_ptype);
+  fPFeval->Branch("mcflux_tptype", 		&f_mcflux_tptype);
   fPFeval->Branch("mcflux_nuEnergy", 		&f_mcflux_nuEnergy);
   fPFeval->Branch("mcflux_vx", 			&f_mcflux_vx);
   fPFeval->Branch("mcflux_vy", 			&f_mcflux_vy);
@@ -2428,6 +2432,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	  	f_mcflux_evtno = mcflux->fevtno;
 	  	f_mcflux_ndecay = mcflux->fndecay;
 	  	f_mcflux_ntype = mcflux->fntype;
+	  	f_mcflux_ptype = mcflux->fptype;
+	  	f_mcflux_tptype = mcflux->ftptype;
 	  	f_mcflux_nuEnergy = mcflux->fnenergyn; // neutrino energy for a decay
 	  	f_mcflux_vx = mcflux->fvx; // vertex of hadron decay
 	  	f_mcflux_vy = mcflux->fvy;
@@ -3257,6 +3263,8 @@ void WireCellAnaTree::resetOutput()
 	f_mcflux_evtno = -1; 
 	f_mcflux_ndecay = -1; 
 	f_mcflux_ntype = -1; 
+	f_mcflux_ptype = -1; 
+	f_mcflux_tptype = -1; 
 	f_mcflux_nuEnergy = -1; 
 	f_mcflux_vx = -1; 
 	f_mcflux_vy = -1; 
