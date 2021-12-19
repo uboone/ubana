@@ -60,6 +60,7 @@ namespace single_photon
         m_trackstub_unassociated_hits_below_threshold = 0; 
         m_trackstub_associated_hits=0; 
         m_trackstub_num_candidates=0; 
+	m_trackstub_candidate_in_nu_slice.clear();
         m_trackstub_candidate_num_hits.clear();
         m_trackstub_candidate_num_wires.clear(); 
         m_trackstub_candidate_num_ticks.clear();
@@ -195,6 +196,7 @@ namespace single_photon
         vertex_tree->Branch("trackstub_unassociated_hits_below_threshold",&m_trackstub_unassociated_hits_below_threshold,"trackstub_unassociated_hits_below_threshold/I");
         vertex_tree->Branch("trackstub_associated_hits",&m_trackstub_associated_hits,"trackstub_associated_hits/I");
 	vertex_tree->Branch("trackstub_num_candidates", &m_trackstub_num_candidates, "trackstub_num_candidates/I");
+	vertex_tree->Branch("trackstub_candidate_in_nu_slice", &m_trackstub_candidate_in_nu_slice);
 	vertex_tree->Branch("trackstub_candidate_num_hits", &m_trackstub_candidate_num_hits);
 	vertex_tree->Branch("trackstub_candidate_num_wires", &m_trackstub_candidate_num_wires);
 	vertex_tree->Branch("trackstub_candidate_num_ticks", &m_trackstub_candidate_num_ticks);

@@ -1065,6 +1065,7 @@ namespace single_photon
 
 
             int m_trackstub_num_candidates; /* number of unasso hit clusters which are not close enough to reco showers */
+	    std::vector<int> m_trackstub_candidate_in_nu_slice; /* check if candidate is in neutrino slice: 1->YES, 0->Parts in neutrino slice, -1->Not at all */
             std::vector<int> m_trackstub_candidate_num_hits;
             std::vector<int> m_trackstub_candidate_num_wires; //number of wires spanned by the candidate cluster
             std::vector<int>  m_trackstub_candidate_num_ticks;

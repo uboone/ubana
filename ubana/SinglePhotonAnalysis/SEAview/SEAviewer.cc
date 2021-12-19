@@ -4,6 +4,24 @@
 
 namespace seaview{
 
+    int cluster::InNuSlice(const std::map<int, std::vector<art::Ptr<recob::Hit>> >& sliceIDToHitsMap, int nuSliceID){
+
+	const std::vector<art::Ptr<recob::Hit>>& slice_hits = sliceIDToHitsMap.at(nuSliceID);
+	bool found_hit_in_slice = false, found_hit_not_in_slice = false;
+ 	for(auto hit : f_hits){
+	    auto iter = std::find(slice_hits.begin(), slice_hits.end(), hit);
+	    if( iter  == slice_hits.end())
+		found_hit_not_in_slice = true;
+	    else{
+		found_hit_in_slice = true;
+	    }
+
+	    if(found_hit_in_slice && found_hit_not_in_slice) return 0;
+	}
+	
+	return found_hit_in_slice ? 1 : -1;
+    }
+
     void SEAviewer::TrackLikeClusterAnalyzer(cluster &cl, const std::vector<double> &shower_start_pt_2D, const std::vector<double> &shower_other_pt_2D){
 
 	//first round, grab min ioc, impact, conversion distance, and ADC_histogram, and indx of the hits with min/max IOC
@@ -139,8 +157,7 @@ namespace seaview{
     }
 
     int SEAviewer::addHitsToConsider(std::vector<art::Ptr<recob::Hit>>& hits){
-        considered_hits = hits;   
-        for(auto &h: considered_hits){
+        for(auto &h: hits){
             map_unassociated_hits[h] = true;
             map_considered_hits[h] = true;
         }
@@ -148,7 +165,15 @@ namespace seaview{
     }
 
     int SEAviewer::filterConsideredHits(double dist_to_vertex){
-	for(auto &h: considered_hits){
+
+	//collect all hits that are under consideration for clustering
+	std::vector<art::Ptr<recob::Hit>> current_hits;
+	for(auto map_iter = map_considered_hits.begin(); map_iter != map_considered_hits.end(); ++map_iter){
+	    current_hits.push_back(map_iter->first);
+	}
+
+	//remove hits that are too far from vertex
+	for(auto &h: current_hits){
 	    int p = h->View();
 	    double wire = (double)h->WireID().Wire;
 	    double tick = (double)h->PeakTime();
@@ -167,12 +192,11 @@ namespace seaview{
         return 0;    
     }
     int SEAviewer::addAllHits(std::vector<art::Ptr<recob::Hit>>& hits){
-        all_hits = hits;
 
         std::vector<std::vector<double>>  vec_tick(3);
         std::vector<std::vector<double>>  vec_chan(3);
 
-        for(auto&h:all_hits){
+        for(auto&h: hits){
             if(map_considered_hits.count(h)==0){   // if h is not in the map, push its plane ID, wire ID, and time tick to the vectors
                 double wire = (double)h->WireID().Wire;
                 vec_chan[(int)h->View()].push_back(wire);

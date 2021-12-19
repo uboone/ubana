@@ -203,6 +203,10 @@ namespace seaview {
 	double getTrackAngleToShowerDirection() const {return f_angle_wrt_shower_direction; }
 	double getLinearChi() const {return f_fit_chi2; }
 
+        /* brief: check if this cluster is fully in given slice or not
+	 * return: 1 -> Fully in given Slice;   -1 --> Fully not in given slice;  0: parts in given slices, parts not
+	 */
+	int InNuSlice(const std::map<int, std::vector<art::Ptr<recob::Hit>> >& sliceIDToHitsMap, int nuSliceID);
   
     	// determine if the cluster is within the plot range
     	// tick_max, tick_min, wire_max, and wire_min are the edges of the X axis(wire) and Y axis(tick)
@@ -405,8 +409,8 @@ namespace seaview {
             std::vector<double> true_vertex_chan; 
             std::vector<TGraph> true_vertex_graph;
 
-            std::vector<art::Ptr<recob::Hit>> considered_hits; //all hits considered for clustering
-            std::vector<art::Ptr<recob::Hit>> all_hits;
+            //std::vector<art::Ptr<recob::Hit>> considered_hits; //all hits considered for clustering
+            //std::vector<art::Ptr<recob::Hit>> all_hits;
             std::map<art::Ptr<recob::Hit>,bool> map_unassociated_hits;
             std::map<art::Ptr<recob::Hit>, bool> map_considered_hits;
 
