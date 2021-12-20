@@ -7,18 +7,18 @@ art_make( BASENAME_ONLY
     	    LIBRARY_NAME     HitCosmicTag_Algorithms
 	        LIB_LIBRARIES
                            HitCosmicTag_Base
-  		                     ${ART_FRAMEWORK_CORE}
-   		                     ${ART_FRAMEWORK_PRINCIPAL}
+  		                     art::Framework_Core
+   		                     art::Framework_Principal
 
-                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
-   		                     ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-     		                   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-     		                   ${ART_PERSISTENCY_COMMON}
-                           ${ART_PERSISTENCY_PROVENANCE}
-                           ${ART_UTILITIES}
-
-                           ${FHICLCPP}
-                           cetlib cetlib_except
+                           art::Framework_Services_Registry
+   		                     art_root_io::tfile_support ROOT::Core
+     		                   art_root_io::TFileService_service
+     		                   art::Persistency_Common
+                           art::Persistency_Provenance
+                           art::Utilities
+                           fhiclcpp::fhiclcpp
+                           cetlib::cetlib
+                           cetlib_except::cetlib_except
 	      )
 
 install_headers()

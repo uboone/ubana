@@ -14,7 +14,7 @@
 
 cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
-project(ubana VERSION 09.35.01 LANGUAGES CXX)
+project(ubana VERSION 09.40.00 LANGUAGES CXX)
 
 # cetbuildtools contains our cmake modules
 find_package(cetbuildtools REQUIRED)
@@ -65,6 +65,7 @@ find_ups_product( postgresql )
 find_ups_product( eigen )
 find_ups_product( ubobj )
 find_ups_product( swtrigger )
+find_package(PostgreSQL REQUIRED PUBLIC)
 
 # macros for dictionary and simple_plugin
 include(ArtDictionary)

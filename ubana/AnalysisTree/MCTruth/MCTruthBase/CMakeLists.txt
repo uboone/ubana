@@ -6,14 +6,14 @@ art_make( LIB_LIBRARIES lardataobj_RecoBase
                         larcore_Geometry_Geometry_service
                         lardata_RecoObjects
                         lardata_Utilities
-                        nusimdata_SimulationBase
-                        canvas
-                        ${MF_MESSAGELOGGER}
+                        nusimdata::SimulationBase
+                        canvas::canvas
+                        messagefacility::MF_MessageLogger
 
-                        ${FHICLCPP}
-                        ${CETLIB}
-                        cetlib_except
-                        ${Boost_FILESYSTEM_LIBRARY}
+                        fhiclcpp::fhiclcpp
+                        cetlib::cetlib
+                        cetlib_except::cetlib_except
+                        Boost::filesystem
 
                         CLHEP::CLHEP
 

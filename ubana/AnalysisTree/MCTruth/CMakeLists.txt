@@ -10,23 +10,23 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            larsim_MCCheater_BackTrackerService_service
                            larsim_MCCheater_ParticleInventoryService_service
                            ubana_AnalysisTree_MCTruth_MCTruthBase
-                           nug4_ParticleNavigation
-                           ${ART_FRAMEWORK_CORE}
-                           ${ART_FRAMEWORK_PRINCIPAL}
-                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                           ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-                           ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                           art_Persistency_Common
-                           art_Persistency_Provenance
-                           art_Utilities
-                           canvas
-                           ${MF_MESSAGELOGGER}
+                           nug4::ParticleNavigation
+                           art::Framework_Core
+                           art::Framework_Principal
+                           art::Framework_Services_Registry
+                           art_root_io::tfile_support ROOT::Core
+                           art_root_io::TFileService_service
+                           art::Framework_Services_Optional_RandomNumberGenerator_service
+                           art::Persistency_Common
+                           art::Persistency_Provenance
+                           art::Utilities
+                           canvas::canvas
+                           messagefacility::MF_MessageLogger
 
-                           ${FHICLCPP}
-                           ${CETLIB}
-                           cetlib_except
-                           ${Boost_FILESYSTEM_LIBRARY}
+                           fhiclcpp::fhiclcpp
+                           cetlib::cetlib
+                           cetlib_except::cetlib_except
+                           Boost::filesystem
 
                            CLHEP::CLHEP
 
@@ -40,23 +40,23 @@ art_make( MODULE_LIBRARIES lardataobj_RecoBase
                            larsim_MCCheater_BackTrackerService_service
                            larsim_MCCheater_ParticleInventoryService_service
                            ubana_AnalysisTree_MCTruth_MCTruthBase
-                           nug4_ParticleNavigation
-                           ${ART_FRAMEWORK_CORE}
-                           ${ART_FRAMEWORK_PRINCIPAL}
-                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                           ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-                           ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                           art_Persistency_Common
-                           art_Persistency_Provenance
-                           art_Utilities
-                           canvas
-                           ${MF_MESSAGELOGGER}
+                           nug4::ParticleNavigation
+                           art::Framework_Core
+                           art::Framework_Principal
+                           art::Framework_Services_Registry
+                           art_root_io::tfile_support ROOT::Core
+                           art_root_io::TFileService_service
+                           art::Framework_Services_Optional_RandomNumberGenerator_service
+                           art::Persistency_Common
+                           art::Persistency_Provenance
+                           art::Utilities
+                           canvas::canvas
+                           messagefacility::MF_MessageLogger
 
-                           ${FHICLCPP}
-                           ${CETLIB}
-                           cetlib_except
-                           ${Boost_FILESYSTEM_LIBRARY}
+                           fhiclcpp::fhiclcpp
+                           cetlib::cetlib
+                           cetlib_except::cetlib_except
+                           Boost::filesystem
 
                            CLHEP::CLHEP
 
