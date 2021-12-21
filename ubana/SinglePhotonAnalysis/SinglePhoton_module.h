@@ -112,7 +112,6 @@ namespace single_photon
 
     }
 
-
     // invariant mass of a particle that decays to two showers
     double  implied_invar_mass(double vx, double vy, double vz, art::Ptr<recob::Shower> & s1, double E1,  art::Ptr<recob::Shower> &s2, double E2){
 
