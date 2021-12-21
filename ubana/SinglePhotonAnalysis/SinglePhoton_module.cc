@@ -66,8 +66,8 @@ namespace single_photon
         //Ability to save some FULL eventweight components, rather than run later. Useful for systematic studies. Harcoded to two currently (TODO)
         m_runTrueEventweight = pset.get<bool>("RunTrueEventWeight",false); 
         m_true_eventweight_label = pset.get<std::string>("true_eventweight_label","eventweightreint");
-        m_true_eventweight_label2 = pset.get<std::string>("true_eventweight_label2","eventweightreint");
 
+        m_Spline_CV_label = pset.get<std::string>("SplineCVLabel", "eventweight");//4to4aFix");
 
 
         //Input ArtRoot data products 
@@ -855,7 +855,7 @@ namespace single_photon
                 std::cout<<"Going to grab eventweightSplines for CCQE genie fix, won't be necessary long term"<<std::endl;
                 //Mark: It was long term....
                 art::Handle<std::vector<evwgh::MCEventWeight>>  ev_evw ;
-                if(    evt.getByLabel("eventweight4to4aFix",ev_evw)){
+                if(    evt.getByLabel(m_Spline_CV_label,ev_evw)){
 
                     std::map<std::string, std::vector<double>> const & weight_map = ev_evw->front().fWeight;
                     if(ev_evw->size() > 1) std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"<< "WARNING: eventweight slice genie fix has more than one entry\n";
@@ -920,14 +920,6 @@ namespace single_photon
                             << "WARNING: eventweight has more than one entry\n";
                     }
                     fmcweight=weight_map;
-
-                    art::ValidHandle<std::vector<evwgh::MCEventWeight>> const & ev_evw_true2 =  evt.getValidHandle<std::vector<evwgh::MCEventWeight>>(m_true_eventweight_label2);
-                    std::map<std::string, std::vector<double>> const & weight_map2 = ev_evw_true2->front().fWeight;
-                    if(ev_evw_true2->size() > 1) {
-                        std::cout << __LINE__ << " " << __PRETTY_FUNCTION__ << "\n"
-                            << "WARNING: eventweight has more than one entry\n";
-                    }
-                    fmcweight2=weight_map2;
                 }
 
             }//end NOT textgen 
@@ -1424,7 +1416,6 @@ namespace single_photon
 
         true_eventweight_tree = tfs->make<TTree>("true_eventweight_tree", "true_eventweight_tree");
         true_eventweight_tree->Branch("mcweight", "std::map<std::string, std::vector<double>>",&fmcweight);
-        true_eventweight_tree->Branch("mcweight2", "std::map<std::string, std::vector<double>>",&fmcweight2);
 
         // --------------------- POT Releated variables -----------------
         m_number_of_events = 0;
@@ -1623,7 +1614,6 @@ namespace single_photon
         this->ClearMCTruths();
         this->ClearEventWeightBranches();
         fmcweight.clear();
-        fmcweight2.clear();
         this->ClearGeant4Branches();
         this->ClearSlices();
 

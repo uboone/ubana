@@ -62,6 +62,7 @@ namespace single_photon
         m_mctruth_leading_exiting_proton_energy = -9999;
 
         m_mctruth_exiting_pi0_E.clear();
+        m_mctruth_exiting_pi0_mom.clear();
         m_mctruth_exiting_pi0_px.clear();
         m_mctruth_exiting_pi0_py.clear();
         m_mctruth_exiting_pi0_pz.clear();
@@ -76,6 +77,8 @@ namespace single_photon
         m_mctruth_pi0_subleading_photon_start = {-9999,-9999,-9999};
         m_mctruth_pi0_leading_photon_exiting_TPC = -999;
         m_mctruth_pi0_subleading_photon_exiting_TPC = -999;
+        m_mctruth_pi0_leading_photon_mom = {-9999,-9999,-9999};
+        m_mctruth_pi0_subleading_photon_mom = {-9999,-9999,-9999};
 
         m_mctruth_exiting_delta0_num_daughters.clear();
 
@@ -83,11 +86,25 @@ namespace single_photon
         m_mctruth_exiting_photon_trackID.clear();
         m_mctruth_exiting_photon_from_delta_decay.clear();
         m_mctruth_exiting_photon_energy.clear();
+        m_mctruth_exiting_photon_px.clear();
+        m_mctruth_exiting_photon_py.clear();
+        m_mctruth_exiting_photon_pz.clear();
 
         m_mctruth_exiting_proton_mother_trackID.clear();
         m_mctruth_exiting_proton_trackID.clear();
         m_mctruth_exiting_proton_from_delta_decay.clear();
         m_mctruth_exiting_proton_energy.clear();
+        m_mctruth_exiting_proton_px.clear();
+        m_mctruth_exiting_proton_py.clear();
+        m_mctruth_exiting_proton_pz.clear();
+
+        m_mctruth_exiting_neutron_mother_trackID.clear();
+        m_mctruth_exiting_neutron_trackID.clear();
+        m_mctruth_exiting_neutron_from_delta_decay.clear();
+        m_mctruth_exiting_neutron_energy.clear();
+        m_mctruth_exiting_neutron_px.clear();
+        m_mctruth_exiting_neutron_py.clear();
+        m_mctruth_exiting_neutron_pz.clear();
 
     }
 
@@ -176,11 +193,26 @@ namespace single_photon
         vertex_tree->Branch("mctruth_exiting_photon_mother_trackID",&m_mctruth_exiting_photon_mother_trackID);
         vertex_tree->Branch("mctruth_exiting_photon_from_delta_decay",&m_mctruth_exiting_photon_from_delta_decay);
         vertex_tree->Branch("mctruth_exiting_photon_energy",&m_mctruth_exiting_photon_energy);
+        vertex_tree->Branch("mctruth_exiting_photon_px",&m_mctruth_exiting_photon_px);
+        vertex_tree->Branch("mctruth_exiting_photon_py",&m_mctruth_exiting_photon_py);
+        vertex_tree->Branch("mctruth_exiting_photon_pz",&m_mctruth_exiting_photon_pz);
 
         vertex_tree->Branch("mctruth_exiting_proton_trackID",&m_mctruth_exiting_proton_trackID);
         vertex_tree->Branch("mctruth_exiting_proton_mother_trackID",&m_mctruth_exiting_proton_mother_trackID);
         vertex_tree->Branch("mctruth_exiting_proton_from_delta_decay",&m_mctruth_exiting_proton_from_delta_decay);
         vertex_tree->Branch("mctruth_exiting_proton_energy",&m_mctruth_exiting_proton_energy);
+        vertex_tree->Branch("mctruth_exiting_proton_px",&m_mctruth_exiting_proton_px);
+        vertex_tree->Branch("mctruth_exiting_proton_py",&m_mctruth_exiting_proton_py);
+        vertex_tree->Branch("mctruth_exiting_proton_pz",&m_mctruth_exiting_proton_pz);
+
+        vertex_tree->Branch("mctruth_exiting_neutron_trackID",&m_mctruth_exiting_neutron_trackID);
+        vertex_tree->Branch("mctruth_exiting_neutron_mother_trackID",&m_mctruth_exiting_neutron_mother_trackID);
+        vertex_tree->Branch("mctruth_exiting_neutron_from_delta_decay",&m_mctruth_exiting_neutron_from_delta_decay);
+        vertex_tree->Branch("mctruth_exiting_neutron_energy",&m_mctruth_exiting_neutron_energy);
+        vertex_tree->Branch("mctruth_exiting_neutron_px",&m_mctruth_exiting_neutron_px);
+        vertex_tree->Branch("mctruth_exiting_neutron_py",&m_mctruth_exiting_neutron_py);
+        vertex_tree->Branch("mctruth_exiting_neutron_pz",&m_mctruth_exiting_neutron_pz);
+
 
         vertex_tree->Branch("mctruth_is_reconstructable_1g1p",&m_mctruth_is_reconstructable_1g1p);
 
@@ -188,11 +220,12 @@ namespace single_photon
         vertex_tree->Branch("mctruth_num_reconstructable_protons",&m_mctruth_num_reconstructable_protons);
 
         vertex_tree->Branch("mctruth_pi0_leading_photon_energy",&m_mctruth_pi0_leading_photon_energy);
-        vertex_tree->Branch("mctruth_pi0_leading_photon_end_process",&m_mctruth_pi0_leading_photon_end_process);
+        vertex_tree->Branch("mctruth_pi0_leading_photon_mom",&m_mctruth_pi0_leading_photon_mom);
         vertex_tree->Branch("mctruth_pi0_leading_photon_start",&m_mctruth_pi0_leading_photon_start);
         vertex_tree->Branch("mctruth_pi0_leading_photon_end",&m_mctruth_pi0_leading_photon_end);
         vertex_tree->Branch("mctruth_pi0_leading_photon_exiting_TPC",&m_mctruth_pi0_leading_photon_exiting_TPC);
         vertex_tree->Branch("mctruth_pi0_subleading_photon_energy",&m_mctruth_pi0_subleading_photon_energy);
+        vertex_tree->Branch("mctruth_pi0_subleading_photon_mom",&m_mctruth_pi0_subleading_photon_mom);
         vertex_tree->Branch("mctruth_pi0_subleading_photon_end_process",&m_mctruth_pi0_subleading_photon_end_process);
         vertex_tree->Branch("mctruth_pi0_subleading_photon_start",&m_mctruth_pi0_subleading_photon_start);
         vertex_tree->Branch("mctruth_pi0_subleading_photon_end",&m_mctruth_pi0_subleading_photon_end);
@@ -200,6 +233,7 @@ namespace single_photon
 
 
         vertex_tree->Branch("mctruth_exiting_pi0_E",&m_mctruth_exiting_pi0_E);
+        vertex_tree->Branch("mctruth_exiting_pi0_mom",&m_mctruth_exiting_pi0_mom);
         vertex_tree->Branch("mctruth_exiting_pi0_px",&m_mctruth_exiting_pi0_px);
         vertex_tree->Branch("mctruth_exiting_pi0_py",&m_mctruth_exiting_pi0_py);
         vertex_tree->Branch("mctruth_exiting_pi0_pz",&m_mctruth_exiting_pi0_pz);
@@ -305,6 +339,9 @@ namespace single_photon
                                 m_mctruth_exiting_photon_mother_trackID.push_back(par.Mother());
                                 m_mctruth_exiting_photon_trackID.push_back(par.TrackId());
                                 m_mctruth_exiting_photon_energy.push_back(par.E());
+                                m_mctruth_exiting_photon_px.push_back(par.Px());
+                                m_mctruth_exiting_photon_py.push_back(par.Py());
+                                m_mctruth_exiting_photon_pz.push_back(par.Pz());
                             }
                          if(m_is_verbose)   std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Photon "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and photon energy "<<par.E()<<std::endl;
 
@@ -325,6 +362,7 @@ namespace single_photon
                             // Make sure the pi0 actually exits the nucleus
                             if (par.StatusCode() == 1) {
                                 m_mctruth_exiting_pi0_E.push_back(par.E());
+                                m_mctruth_exiting_pi0_mom.push_back(sqrt(pow(par.Px(),2)+pow(par.Py(),2)+pow(par.Pz(),2)));
                                 m_mctruth_exiting_pi0_px.push_back(par.Px());
                                 m_mctruth_exiting_pi0_py.push_back(par.Py());
                                 m_mctruth_exiting_pi0_pz.push_back(par.Pz());
@@ -345,6 +383,9 @@ namespace single_photon
                                 m_mctruth_exiting_proton_mother_trackID.push_back(par.Mother());
                                 m_mctruth_exiting_proton_trackID.push_back(par.TrackId());
                                 m_mctruth_exiting_proton_energy.push_back(par.E());
+                                m_mctruth_exiting_proton_px.push_back(par.Px());
+                                m_mctruth_exiting_proton_py.push_back(par.Py());
+                                m_mctruth_exiting_proton_pz.push_back(par.Pz());
                             }
 
 
@@ -368,6 +409,13 @@ namespace single_photon
                         {
 
                             m_mctruth_num_exiting_neutrons++;  // Guanqun: neutron always exits the nucleus? should check it
+                                m_mctruth_exiting_neutron_mother_trackID.push_back(par.Mother());
+                                m_mctruth_exiting_neutron_trackID.push_back(par.TrackId());
+                                m_mctruth_exiting_neutron_energy.push_back(par.E());
+                                m_mctruth_exiting_neutron_px.push_back(par.Px());
+                                m_mctruth_exiting_neutron_py.push_back(par.Py());
+                                m_mctruth_exiting_neutron_pz.push_back(par.Pz());
+
                       if(m_is_verbose)      std::cout<<"SingleProton::AnalyzeMCTruths()\t||\t Neutron "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and neutron energy "<<par.E()<<std::endl;
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
@@ -604,9 +652,11 @@ namespace single_photon
                     m_mctruth_pi0_leading_photon_end = corrected_1_end;
                     m_mctruth_pi0_subleading_photon_start = corrected_2_start;
                     m_mctruth_pi0_subleading_photon_end = corrected_2_end;
-		    //note: the order of subleading/leading photon is reversed
-                    m_mctruth_pi0_subleading_photon_exiting_TPC =exit1; 
-                    m_mctruth_pi0_leading_photon_exiting_TPC = exit2;
+         		    //note: the order of subleading/leading photon is reversed// Fixed as of 2022 reprocess!
+                    m_mctruth_pi0_leading_photon_exiting_TPC =exit1; 
+                    m_mctruth_pi0_subleading_photon_exiting_TPC = exit2;
+                    m_mctruth_pi0_leading_photon_mom = {dau1->Px(),dau1->Py(),dau1->Pz()};
+                    m_mctruth_pi0_subleading_photon_mom = {dau2->Px(),dau2->Py(),dau2->Pz()};
 
                 }else{
                     m_mctruth_pi0_leading_photon_energy = e2;
@@ -617,8 +667,10 @@ namespace single_photon
                     m_mctruth_pi0_leading_photon_end = corrected_2_end;
                     m_mctruth_pi0_subleading_photon_start = corrected_1_start;
                     m_mctruth_pi0_subleading_photon_end = corrected_1_end;
-                    m_mctruth_pi0_subleading_photon_exiting_TPC = exit2;
-                    m_mctruth_pi0_leading_photon_exiting_TPC = exit1;
+                    m_mctruth_pi0_leading_photon_exiting_TPC = exit2;
+                    m_mctruth_pi0_subleading_photon_exiting_TPC = exit1;
+                    m_mctruth_pi0_subleading_photon_mom = {dau1->Px(),dau1->Py(),dau1->Pz()};
+                    m_mctruth_pi0_leading_photon_mom = {dau2->Px(),dau2->Py(),dau2->Pz()};
 
                 }
 

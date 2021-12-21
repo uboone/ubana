@@ -945,7 +945,6 @@ namespace single_photon
             std::string m_CRTTzeroLabel;
             std::string m_CRTHitProducer;
             std::string m_true_eventweight_label;
-            std::string m_true_eventweight_label2;
 
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
@@ -989,6 +988,7 @@ namespace single_photon
             int m_SEAviewStubNumRecoShower;
             int m_SEAviewStubNumRecoTrack;
 
+            std::string m_Spline_CV_label; //"eventweight4to4aFix"
 
             bool m_runCRT;
             double m_DTOffset;
@@ -1033,7 +1033,6 @@ namespace single_photon
 
             TTree* true_eventweight_tree;
             std::map<std::string, std::vector<double>> fmcweight;
-            std::map<std::string, std::vector<double>> fmcweight2;
 
             //------------ POT related variables --------------
             int m_number_of_events;
@@ -1813,10 +1812,26 @@ namespace single_photon
             std::vector<int> m_mctruth_exiting_photon_mother_trackID;
             std::vector<int> m_mctruth_exiting_photon_from_delta_decay;
             std::vector<double> m_mctruth_exiting_photon_energy;
+            std::vector<double> m_mctruth_exiting_photon_px;
+            std::vector<double> m_mctruth_exiting_photon_py;
+            std::vector<double> m_mctruth_exiting_photon_pz;
+
             std::vector<int> m_mctruth_exiting_proton_trackID;
             std::vector<int> m_mctruth_exiting_proton_mother_trackID;
             std::vector<int> m_mctruth_exiting_proton_from_delta_decay;
             std::vector<double> m_mctruth_exiting_proton_energy;
+            std::vector<double> m_mctruth_exiting_proton_px;
+            std::vector<double> m_mctruth_exiting_proton_py;
+            std::vector<double> m_mctruth_exiting_proton_pz;
+
+            std::vector<int> m_mctruth_exiting_neutron_trackID;
+            std::vector<int> m_mctruth_exiting_neutron_mother_trackID;
+            std::vector<int> m_mctruth_exiting_neutron_from_delta_decay;
+            std::vector<double> m_mctruth_exiting_neutron_energy;
+            std::vector<double> m_mctruth_exiting_neutron_px;
+            std::vector<double> m_mctruth_exiting_neutron_py;
+            std::vector<double> m_mctruth_exiting_neutron_pz;
+
 
             int  m_mctruth_num_reconstructable_protons;
 
@@ -1825,6 +1840,7 @@ namespace single_photon
 
 
             std::vector<double>        m_mctruth_exiting_pi0_E;
+            std::vector<double>        m_mctruth_exiting_pi0_mom;
             std::vector<double>        m_mctruth_exiting_pi0_px;
             std::vector<double>        m_mctruth_exiting_pi0_py;
             std::vector<double>        m_mctruth_exiting_pi0_pz;
@@ -1839,6 +1855,8 @@ namespace single_photon
             std::vector<double> m_mctruth_pi0_leading_photon_start;
             int    m_mctruth_pi0_leading_photon_exiting_TPC;
             int    m_mctruth_pi0_subleading_photon_exiting_TPC;
+            std::vector<double> m_mctruth_pi0_leading_photon_mom;
+            std::vector<double> m_mctruth_pi0_subleading_photon_mom;
 
             std::string  m_truthmatching_signaldef;
 
