@@ -1118,6 +1118,7 @@ namespace single_photon
             //ReadBDT * sssVetov1;
 
             int m_sss_num_candidates; /* number of unasso hit clusters which are not close enough to reco showers */
+	    std::vector<int> m_sss_candidate_in_nu_slice;
             std::vector<int> m_sss_candidate_num_hits;
             std::vector<int> m_sss_candidate_num_wires; //number of wires spanned by the candidate cluster
             std::vector<int>  m_sss_candidate_num_ticks;

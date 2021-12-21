@@ -23,6 +23,7 @@ namespace single_photon
 
         m_sss_num_candidates = 0;
 
+	m_sss_candidate_in_nu_slice.clear();
         m_sss_candidate_num_hits.clear();
         m_sss_candidate_num_wires.clear();
         m_sss_candidate_num_ticks.clear();
@@ -113,6 +114,7 @@ namespace single_photon
 
         vertex_tree->Branch("sss_num_candidates",&m_sss_num_candidates,"sss_num_candidates/I");
         vertex_tree->Branch("sss_candidate_veto_score",&m_sss_candidate_veto_score);
+	vertex_tree->Branch("sss_candidate_in_nu_slice", &m_sss_candidate_in_nu_slice);
         vertex_tree->Branch("sss_candidate_num_hits",&m_sss_candidate_num_hits);
         vertex_tree->Branch("sss_candidate_num_wires",&m_sss_candidate_num_wires);
         vertex_tree->Branch("sss_candidate_num_ticks",&m_sss_candidate_num_ticks);

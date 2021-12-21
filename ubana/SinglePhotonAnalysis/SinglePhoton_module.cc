@@ -437,8 +437,8 @@ namespace single_photon
 
 
 
-        /***************** Guanqun SEAview test ***********************************
- 	 *
+        /**************************************************************************
+ 	 * For SEAview: grab cosmic-related PFPaticles and recob::Hits
  	 *
  	 **************************************************************************/
 	 std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > cr_pfParticleToClustersMap;
@@ -490,7 +490,7 @@ namespace single_photon
         }//for each pfp
 	 std::cout << "Guanqun SEAview test: initial crParticle size: " << num_primary_cosmic_particle << ", current size: " << crParticles.size() << std::endl;
         /********************************************************************
- 	 * End of Guanqun SEAview test
+ 	 * End of SEAview: grab cosmic-related PFPaticles and recob::Hits
  	 *
  	 **************************************************************************/
 
@@ -1255,11 +1255,14 @@ namespace single_photon
                 //Give it a vertex to center around
                 sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
 
-                //Add the hits from just this slice, as well sa ALL hits 
-                sevd.addHitsToConsider(p_slice_hits);   // std::vector<art::Ptr<recob::Hit>> 
+                //Add hits to consider for clustering 
+                sevd.addHitsToConsider(hitVector);
+		sevd.filterConsideredHits(150); 
+		sevd.addHitsToConsider(p_slice_hits);
+
+		//Add all hits in the events
                 sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
                 sevd.setHitThreshold(m_SEAviewHitThreshold); 
-		//std::cout << "All hits: " << hitVector.size() << ", slice hits: " << p_slice_hits.size() << std::endl;
 
                 //Add all the "nice " PFParticle Hits, as well as what to label
                 //sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
@@ -1269,7 +1272,6 @@ namespace single_photon
                 sevd.addShower(p_shr); // art::Ptr<recob::Shower>
 
                 //Add all track PFP
-
 		int i_trk = 0;
                 for(auto &trk: tracks){
                     art::Ptr<recob::PFParticle> p_pfp_trk = trackToNuPFParticleMap[trk];
@@ -1280,11 +1282,18 @@ namespace single_photon
 		    ++i_trk;
                 }
 
+		//Add all cosmic-relatd PFP
+		for(auto &cr: crParticles){
+                    std::vector<art::Ptr<recob::Hit>> p_hits_cr = cr_pfParticleToHitsMap[cr];
+                    sevd.addPFParticleHits(p_hits_cr,"cosmic");
+                }
+
                 //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 
                 auto vnh= sevd.calcUnassociatedHits();
                 m_sss_num_unassociated_hits =vnh[1]+vnh[2];
                 m_sss_num_unassociated_hits_below_threshold = vnh[2];
                 m_sss_num_associated_hits = vnh[0]-vnh[1]-vnh[2];
+
                 //Recluster, group unassociated hits into different clusters
                 sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
 
@@ -1318,8 +1327,11 @@ namespace single_photon
                     }
 
                     ++m_sss_num_candidates;
-                    //Fill All the bits
 
+		    //determine if this cluster is in neutrino slice
+		    m_sss_candidate_in_nu_slice.push_back(clu.InNuSlice(sliceIDToHitsMap, p_sliceid));
+
+                    //Fill All the bits
                     m_sss_candidate_num_hits.push_back((int)hitz.size());
                     m_sss_candidate_num_wires.push_back((int)ssscorz->n_wires);
                     m_sss_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
