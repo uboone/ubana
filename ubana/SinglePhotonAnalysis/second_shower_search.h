@@ -23,6 +23,7 @@ namespace single_photon
 
         m_sss_num_candidates = 0;
 
+	m_sss_candidate_in_nu_slice.clear();
         m_sss_candidate_num_hits.clear();
         m_sss_candidate_num_wires.clear();
         m_sss_candidate_num_ticks.clear();
@@ -60,6 +61,7 @@ namespace single_photon
         m_trackstub_unassociated_hits_below_threshold = 0; 
         m_trackstub_associated_hits=0; 
         m_trackstub_num_candidates=0; 
+	m_trackstub_candidate_in_nu_slice.clear();
         m_trackstub_candidate_num_hits.clear();
         m_trackstub_candidate_num_wires.clear(); 
         m_trackstub_candidate_num_ticks.clear();
@@ -112,6 +114,7 @@ namespace single_photon
 
         vertex_tree->Branch("sss_num_candidates",&m_sss_num_candidates,"sss_num_candidates/I");
         vertex_tree->Branch("sss_candidate_veto_score",&m_sss_candidate_veto_score);
+	vertex_tree->Branch("sss_candidate_in_nu_slice", &m_sss_candidate_in_nu_slice);
         vertex_tree->Branch("sss_candidate_num_hits",&m_sss_candidate_num_hits);
         vertex_tree->Branch("sss_candidate_num_wires",&m_sss_candidate_num_wires);
         vertex_tree->Branch("sss_candidate_num_ticks",&m_sss_candidate_num_ticks);
@@ -195,6 +198,7 @@ namespace single_photon
         vertex_tree->Branch("trackstub_unassociated_hits_below_threshold",&m_trackstub_unassociated_hits_below_threshold,"trackstub_unassociated_hits_below_threshold/I");
         vertex_tree->Branch("trackstub_associated_hits",&m_trackstub_associated_hits,"trackstub_associated_hits/I");
 	vertex_tree->Branch("trackstub_num_candidates", &m_trackstub_num_candidates, "trackstub_num_candidates/I");
+	vertex_tree->Branch("trackstub_candidate_in_nu_slice", &m_trackstub_candidate_in_nu_slice);
 	vertex_tree->Branch("trackstub_candidate_num_hits", &m_trackstub_candidate_num_hits);
 	vertex_tree->Branch("trackstub_candidate_num_wires", &m_trackstub_candidate_num_wires);
 	vertex_tree->Branch("trackstub_candidate_num_ticks", &m_trackstub_candidate_num_ticks);
@@ -1365,7 +1369,7 @@ namespace single_photon
 
         } // end loop over hit
         if(found_a_match){
-            std::cout<<"!"<<std::endl;
+            std::cout<<"Found a match!"<<std::endl;
         }
         double fraction_num_hits_overlay = (double)n_not_associated_hits/(double)hitz.size();
 
@@ -2147,6 +2151,8 @@ namespace single_photon
                 }
             }//j loop
         }//i loop
+
+	std::cout << "SinglePhoton::GroupClusterCandidate\t|| Formed " << num_cluster_groups << " cluster groups" << std::endl;
 
 	return {num_cluster_groups, {grouped_cluster_indices, cluster_group_timeoverlap_fraction}};
     } 

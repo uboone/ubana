@@ -4,6 +4,24 @@
 
 namespace seaview{
 
+    int cluster::InNuSlice(const std::map<int, std::vector<art::Ptr<recob::Hit>> >& sliceIDToHitsMap, int nuSliceID){
+
+	const std::vector<art::Ptr<recob::Hit>>& slice_hits = sliceIDToHitsMap.at(nuSliceID);
+	bool found_hit_in_slice = false, found_hit_not_in_slice = false;
+ 	for(auto hit : f_hits){
+	    auto iter = std::find(slice_hits.begin(), slice_hits.end(), hit);
+	    if( iter  == slice_hits.end())
+		found_hit_not_in_slice = true;
+	    else{
+		found_hit_in_slice = true;
+	    }
+
+	    if(found_hit_in_slice && found_hit_not_in_slice) return 0;
+	}
+	
+	return found_hit_in_slice ? 1 : -1;
+    }
+
     void SEAviewer::TrackLikeClusterAnalyzer(cluster &cl, const std::vector<double> &shower_start_pt_2D, const std::vector<double> &shower_other_pt_2D){
 
 	//first round, grab min ioc, impact, conversion distance, and ADC_histogram, and indx of the hits with min/max IOC
@@ -138,13 +156,35 @@ namespace seaview{
         return 0;
     }
 
-    int SEAviewer::addSliceHits(std::vector<art::Ptr<recob::Hit>>& hits){
-        slice_hits = hits;   
-        for(auto &h: slice_hits){
+    int SEAviewer::addHitsToConsider(std::vector<art::Ptr<recob::Hit>>& hits){
+        for(auto &h: hits){
             map_unassociated_hits[h] = true;
-            map_slice_hits[h] = true;
+            map_considered_hits[h] = true;
         }
         return 0;
+    }
+
+    int SEAviewer::filterConsideredHits(double dist_to_vertex){
+
+	//collect all hits that are under consideration for clustering
+	std::vector<art::Ptr<recob::Hit>> current_hits;
+	for(auto map_iter = map_considered_hits.begin(); map_iter != map_considered_hits.end(); ++map_iter){
+	    current_hits.push_back(map_iter->first);
+	}
+
+	//remove hits that are too far from vertex
+	for(auto &h: current_hits){
+	    int p = h->View();
+	    double wire = (double)h->WireID().Wire;
+	    double tick = (double)h->PeakTime();
+	    double dist = dist_point_point(wire, tick, vertex_chan[p], vertex_tick[p]);
+
+	    if(dist > dist_to_vertex){
+		map_unassociated_hits.erase(h);
+		map_considered_hits.erase(h);
+	    }
+	}
+	return 0;
     }
 
     int SEAviewer::setHitThreshold(double h){
@@ -152,13 +192,12 @@ namespace seaview{
         return 0;    
     }
     int SEAviewer::addAllHits(std::vector<art::Ptr<recob::Hit>>& hits){
-        all_hits = hits;
 
         std::vector<std::vector<double>>  vec_tick(3);
         std::vector<std::vector<double>>  vec_chan(3);
 
-        for(auto&h:all_hits){
-            if(map_slice_hits.count(h)==0){   // if h is not in the map, push its plane ID, wire ID, and time tick to the vectors
+        for(auto&h: hits){
+            if(map_considered_hits.count(h)==0){   // if h is not in the map, push its plane ID, wire ID, and time tick to the vectors
                 double wire = (double)h->WireID().Wire;
                 vec_chan[(int)h->View()].push_back(wire);
                 vec_tick[(int)h->View()].push_back((double)h->PeakTime());
@@ -188,10 +227,11 @@ namespace seaview{
         std::vector<std::vector<art::Ptr<recob::Hit>>> vec_hits(3);
 
 
-        int n_all =slice_hits.size();
+        int n_all =map_considered_hits.size();
 
-        for(auto&h:slice_hits){ //type of h: recob::Hit
-            if(map_unassociated_hits[h]){
+	for(const auto &pair: map_considered_hits ){
+	    auto& h = pair.first;  //type of h: recob::Hit
+            if(map_unassociated_hits.count(h) !=0 && map_unassociated_hits[h]){
 
                 if(h->SummedADC() < hit_threshold){
                     n_below_thresh++;
@@ -723,7 +763,7 @@ namespace seaview{
             vec_clusters[c].setShowerRemerge(is_in_shower);
 
             std::string sname = "Cluster "+std::to_string(c)+", Hits: "+std::to_string(num_hits_in_cluster)+", PCA "+std::to_string(ssscorz.pca_0)+", Theta:" +std::to_string(ssscorz.pca_theta)+", Wires: "+std::to_string(ssscorz.n_wires)+ ", Ticks: "+std::to_string(ssscorz.n_ticks)+", ReMerged: "+std::to_string(is_in_shower);
-            std::cout<<sname<<std::endl;
+            std::cout<<sname << "\n" <<std::endl;
 
         
         }//cluster loop
@@ -787,7 +827,7 @@ namespace seaview{
             //Delauney on here might be good, that said, we have a LOT of things. Hmm, cap at 50 hits maybe? 
             int is_in_shower = SeaviewCompareToShowers(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers, showerToPFParticleMap, pfParticleToHitsMap,eps);
 
-            std::string sname = "#splitline{Cluster "+std::to_string(c)+"}{#splitline{Hits: "+std::to_string(num_hits_in_cluster)+"}{#splitline{PCA "+std::to_string(ssscorz.pca_0)+"}{#splitline{Theta:" +std::to_string(ssscorz.pca_theta)+"}{#splitline{Wires: "+std::to_string(ssscorz.n_wires)+ "}{#splitline{Ticks: "+std::to_string(ssscorz.n_ticks)+"}{#splitline{ReMerged: "+std::to_string(is_in_shower)+"}{}}}}}}}";
+            std::string sname = "Cluster "+std::to_string(c)+" Hits: "+std::to_string(num_hits_in_cluster)+" PCA: "+std::to_string(ssscorz.pca_0)+" Theta: " +std::to_string(ssscorz.pca_theta)+" Wires: "+std::to_string(ssscorz.n_wires)+ " Ticks: "+std::to_string(ssscorz.n_ticks)+" ReMerged: "+std::to_string(is_in_shower);
             std::cout<<sname<<std::endl;
 
             if(ssscorz.pass){
