@@ -1,5 +1,5 @@
-set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl)
-link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
+#set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl)
+#link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
 
 include_directories (
     xgboost 
@@ -30,6 +30,9 @@ art_make_library( LIBRARY_NAME  uboonecode_uboone_XGBoost
                   LIBRARIES
 		  cetlib::cetlib
                   cetlib_except::cetlib_except
+                  ROOT::Core
+                  ROOT::RIO
+                  ROOT::Thread
                 )
 
 install_headers()
