@@ -35,27 +35,25 @@ simple_plugin( WireCellAnaTree "module"
                lardataobj_RawData
                lardataobj_RecoBase
                lardataobj_MCBase
-               nusimdata_SimulationBase
+               nusimdata::SimulationBase
                lardata_Utilities
                lardataalg_DetectorInfo
                larreco_RecoAlg
-               ${ART_FRAMEWORK_CORE}
-               ${ART_FRAMEWORK_PRINCIPAL}
-               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-               ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-               ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-               art_Persistency_Common
-               art_Persistency_Provenance
-               art_Utilities
-               canvas
-               ${MF_MESSAGELOGGER}
-               
-               ${FHICLCPP}
-               cetlib cetlib_except
-               ${ROOT_GEOM}
-               ${ROOT_XMLIO}
-               ${ROOT_GDML}
-               ${ROOT_EG}
+               art::Framework_Core
+               art::Framework_Principal
+               art::Framework_Services_Registry
+               art::Persistency_Common
+               art::Persistency_Provenance
+               art::Utilities
+               canvas::canvas
+               messagefacility::MF_MessageLogger
+               fhiclcpp::fhiclcpp
+               cetlib::cetlib
+               cetlib_except::cetlib_except
+               ROOT::Geom
+               ROOT::XMLIO
+               ROOT::Gdml
+               ROOT::EG
                ${ROOT_BASIC_LIB_LIST}
                BASENAME_ONLY
              )
@@ -67,27 +65,25 @@ simple_plugin( WireCellEventWeightTree "module"
                lardataobj_RawData
                lardataobj_RecoBase
                lardataobj_MCBase
-               nusimdata_SimulationBase
+               nusimdata::SimulationBase
                lardata_Utilities
                lardataalg_DetectorInfo
                larreco_RecoAlg
-               ${ART_FRAMEWORK_CORE}
-               ${ART_FRAMEWORK_PRINCIPAL}
-               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-               ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-               ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-               art_Persistency_Common
-               art_Persistency_Provenance
-               art_Utilities
-               canvas
-               ${MF_MESSAGELOGGER}
-               
-               ${FHICLCPP}
-               cetlib cetlib_except
-               ${ROOT_GEOM}
-               ${ROOT_XMLIO}
-               ${ROOT_GDML}
-               ${ROOT_EG}
+               art::Framework_Core
+               art::Framework_Principal
+               art::Framework_Services_Registry
+               art::Persistency_Common
+               art::Persistency_Provenance
+               art::Utilities
+               canvas::canvas
+               messagefacility::MF_MessageLogger
+               fhiclcpp::fhiclcpp
+               cetlib::cetlib
+               cetlib_except::cetlib_except
+               ROOT::Geom
+               ROOT::XMLIO
+               ROOT::Gdml
+               ROOT::EG
                ${ROOT_BASIC_LIB_LIST}
                BASENAME_ONLY
              )
@@ -99,27 +95,25 @@ simple_plugin( WireCellPFDump "module"
                lardataobj_RawData
                lardataobj_RecoBase
                lardataobj_MCBase
-               nusimdata_SimulationBase
+               nusimdata::SimulationBase
                lardata_Utilities
                lardataalg_DetectorInfo
                larreco_RecoAlg
-               ${ART_FRAMEWORK_CORE}
-               ${ART_FRAMEWORK_PRINCIPAL}
-               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-               ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-               ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-               art_Persistency_Common
-               art_Persistency_Provenance
-               art_Utilities
-               canvas
-               ${MF_MESSAGELOGGER}
-               
-               ${FHICLCPP}
-               cetlib cetlib_except
-               ${ROOT_GEOM}
-               ${ROOT_XMLIO}
-               ${ROOT_GDML}
-               ${ROOT_EG}
+               art::Framework_Core
+               art::Framework_Principal
+               art::Framework_Services_Registry
+               art::Persistency_Common
+               art::Persistency_Provenance
+               art::Utilities
+               canvas::canvas
+               messagefacility::MF_MessageLogger
+               fhiclcpp::fhiclcpp
+               cetlib::cetlib
+               cetlib_except::cetlib_except
+               ROOT::Geom
+               ROOT::XMLIO
+               ROOT::Gdml
+               ROOT::EG
                ${ROOT_BASIC_LIB_LIST}
                BASENAME_ONLY
              )
@@ -155,14 +149,12 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
                         art::Persistency_Provenance canvas::canvas
                         art::Utilities canvas::canvas
                         messagefacility::MF_MessageLogger
-
                         fhiclcpp::fhiclcpp
-                        cetlib::cetlib cetlib_except
+                        cetlib::cetlib
+                        cetlib_except::cetlib_except
                         ROOT::Geom
                         ROOT::XMLIO
                         ROOT::Gdml
-
-
 
           MODULE_LIBRARIES lardata_Utilities_DatabaseUtil_service
                         larcorealg_Geometry
@@ -193,9 +185,9 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
                         art::Persistency_Provenance canvas::canvas
                         art::Utilities canvas::canvas
                         messagefacility::MF_MessageLogger
-
                         fhiclcpp::fhiclcpp
-                        cetlib::cetlib cetlib_except
+                        cetlib::cetlib
+                        cetlib_except::cetlib_except
                         ROOT::Geom
                         ROOT::XMLIO
                         ROOT::Gdml
@@ -212,7 +204,6 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
                         art_root_io::tfile_support ROOT::Core
                         art::Framework_Services_Optional_RandomNumberGenerator_service
                         art_root_io::TFileService_service
-                        ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}
                         art::Utilities canvas::canvas
                               larevt_CalibrationDBI_IOVData
                               lardataobj_RawData
