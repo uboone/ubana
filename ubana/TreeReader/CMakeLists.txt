@@ -16,16 +16,16 @@ art_make_library(LIBRARY_NAME TreeInterface
 		 nusimdata_SimulationBase
 #GENIE STUFF########################################
 			xml2
-			 log4cpp
-                 	 GFwEG
-                 	 GFwAlg
-                 	 GFwMsg
-                 	 GFwGHEP
-                 	 GTlFlx
+			 log4cpp::log4cpp
+                 	 GENIE::GFwEG
+                 	 GENIE::GFwAlg
+                 	 GENIE::GFwMsg
+                 	 GENIE::GFwGHEP
+                 	 GENIE::GTlFlx
                  	 dk2nuTree
                  	 #${DK2NUDATA}
                  	 ${DK2NUGENIE}
-			log4cpp
+			log4cpp::log4cpp
 ####################################################
 		#$(CETLIB)
 		      ${FHICLCPP}
@@ -71,15 +71,15 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
 			${ART_ROOT_IO_TFILESERVICE_SERVICE}
 #GENIE STUFF########################################
 			xml2
-			GFwEG
-                 	GFwAlg
-                	GFwMsg
-               		GFwGHEP
-               		GTlFlx
-			log4cpp
+			GENIE::GFwEG
+                 	GENIE::GFwAlg
+                	GENIE::GFwMsg
+               		GENIE::GFwGHEP
+               		GENIE::GTlFlx
+			log4cpp::log4cpp
                		dk2nuTree
 			${DK2NUGENIE}
-			log4cpp
+			log4cpp::log4cpp
 ####################################################
                         ${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}

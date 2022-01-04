@@ -1,5 +1,7 @@
 cet_enable_asserts()
 
+link_libraries( -L$ENV{LARRECO_LIB} larreco_RecoAlg )
+
 art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          lardataobj_Simulation
                          lardataobj_MCBase
