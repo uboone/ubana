@@ -1,11 +1,3 @@
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-include_directories( $ENV{PANDORA_INC} )
-include_directories( $ENV{LARPANDORACONTENT_INC} )
-
-# define ROOTLIB
-set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl)
-
-link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
 
 art_make( BASENAME_ONLY
           LIBRARY_NAME     NuMuCC0pi0p
@@ -41,33 +33,33 @@ art_make( BASENAME_ONLY
                    lardataobj_AnalysisBase
                    lardata_Utilities
                    larpandora_LArPandoraInterface
-                   nusimdata_SimulationBase
+                   nusimdata::SimulationBase
                    PANDORASDK
                    PANDORAMONITORING
                    #larpandora_LArPandoraContent
                    ${UBOONECODE_LIB}
 		   ${LARDATA_LIB}
-		   ${ART_FRAMEWORK_CORE}
-		   ${ART_FRAMEWORK_PRINCIPAL}
+		   art::Framework_Core
+		   art::Framework_Principal
                    ${ART_FRAMEWORK_BASIC}
-		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
+		   art::Framework_Services_Registry
 		   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                   art_Persistency_Common canvas
-                   art_Persistency_Provenance canvas
-                   art_Utilities canvas
-                   ${ART_PERSISTENCY_COMMON}
-		   ${ART_PERSISTENCY_PROVENANCE}
-		   ${ART_UTILITIES}
-		   ${MF_MESSAGELOGGER}
 		   
-		   ${FHICLCPP}
-		   cetlib cetlib_except
-		   ${ROOT_GEOM}
-		   ${ROOT_XMLIO}
-		   ${ROOT_GDML}
+                   art::Persistency_Common canvas
+                   art::Persistency_Provenance canvas
+                   art::Utilities canvas
+                   art::Persistency_Common
+		   art::Persistency_Provenance
+		   art::Utilities
+		   messagefacility::MF_MessageLogger
+		   fhiclcpp::fhiclcpp
+		   cetlib::cetlib
+                   cetlib_except::cetlib_except
+		   ROOT::Geom
+		   ROOT::XMLIO
+		   ROOT::Gdml
 		   ${ROOT_BASIC_LIB_LIST}
-                   ${ROOT_EG}
+                   ROOT::EG
 
           MODULE_LIBRARIES
                    #uboonecode_uboone_UBXSec_Algorithms 
@@ -84,12 +76,10 @@ art_make( BASENAME_ONLY
                    larsim_MCCheater_BackTrackerService_service
 		   larpandora_LArPandoraInterface
                    #                   larpandora_LArPandoraContent
-
 		   ubana_BasicTool_GeoAlgo
 		   ubreco_SelectionTool_OpT0FinderBase
 		   ubreco_SelectionTool_OpT0FinderAlgorithms
                    uboone_UBFlashFinder
-
                    ubraw_RawData
                    larreco_RecoAlg
                    SignalShapingServiceMicroBooNE_service
@@ -101,27 +91,23 @@ art_make( BASENAME_ONLY
                    lardataobj_AnalysisBase
                    lardata_Utilities
                    larsim_Simulation lardataobj_Simulation 
-                   nusimdata_SimulationBase
+                   nusimdata::SimulationBase
 		   ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
-		   ${ART_FRAMEWORK_CORE}
-		   ${ART_FRAMEWORK_PRINCIPAL}
-                   ${ART_FRAMEWORK_BASIC}
-		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		   ${ART_PERSISTENCY_COMMON}
-		   ${ART_PERSISTENCY_PROVENANCE}
-		   ${ART_UTILITIES}
-		   ${MF_MESSAGELOGGER}
-		   
-		   ${FHICLCPP}
-		   cetlib cetlib_except
-		   ${ROOT_GEOM}
-		   ${ROOT_XMLIO}
-		   ${ROOT_GDML}
+		   art::Framework_Core
+		   art::Framework_Principal
+		   art::Framework_Services_Registry
+		   art::Persistency_Common
+		   art::Persistency_Provenance
+		   art::Utilities
+		   messagefacility::MF_MessageLogger
+		   fhiclcpp::fhiclcpp
+		   cetlib::cetlib
+                   cetlib_except::cetlib_except
+		   ROOT::Geom
+		   ROOT::XMLIO
+		   ROOT::Gdml
 		   ${ROOT_BASIC_LIB_LIST}
-                   ${ROOT_EG}
+                   ROOT::EG
                    )
 
 art_make_library(
@@ -133,29 +119,28 @@ art_make_library(
        lardataobj_RawData
        larcorealg_Geometry
        larcore_Geometry_Geometry_service
-       ${ART_FRAMEWORK_CORE}
-       ${ART_FRAMEWORK_IO_SOURCES}
-       ${ART_FRAMEWORK_PRINCIPAL}
-       art_Persistency_Common canvas
-       art_Persistency_Provenance canvas
-       art_Utilities canvas
+       art::Framework_Core
+       art::Framework_IO_Sources
+       art::Framework_Principal
+       art::Persistency_Common canvas
+       art::Persistency_Provenance canvas
+       art::Utilities canvas
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
        larpandora_LArPandoraEventBuilding
        LArPandoraContent
        larpandora_LArPandoraInterface
-       nusimdata_SimulationBase
+       nusimdata::SimulationBase
        LArPandoraContent
-       ${ART_FRAMEWORK_SERVICES_REGISTRY}
-       ${MF_MESSAGELOGGER}
-       ${FHICLCPP}
+       art::Framework_Services_Registry
+       messagefacility::MF_MessageLogger
+       fhiclcpp::fhiclcpp
        ${ROOT_BASIC_LIB_LIST}
-       ${ROOT_GEOM}
-       ${Boost_FILESYSTEM_LIBRARY}
-       ${Boost_SYSTEM_LIBRARY}
-       cetlib cetlib_except
-
+       ROOT::Geom
+       Boost::filesystem
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 )
 
 
@@ -168,29 +153,28 @@ art_make_library(
          lardataobj_RawData
          larcorealg_Geometry
        larcore_Geometry_Geometry_service
-       ${ART_FRAMEWORK_CORE}
-       ${ART_FRAMEWORK_IO_SOURCES}
-       ${ART_FRAMEWORK_PRINCIPAL}
-       art_Persistency_Common canvas
-       art_Persistency_Provenance canvas
-       art_Utilities canvas
+       art::Framework_Core
+       art::Framework_IO_Sources
+       art::Framework_Principal
+       art::Persistency_Common canvas
+       art::Persistency_Provenance canvas
+       art::Utilities canvas
     lardataobj_RecoBase
     lardataobj_AnalysisBase
  lardata_Utilities
  larpandora_LArPandoraEventBuilding
  LArPandoraContent
  larpandora_LArPandoraInterface
- nusimdata_SimulationBase
+ nusimdata::SimulationBase
  LArPandoraContent
-       ${larevt_SpaceChargeServices}
-       ${ART_FRAMEWORK_SERVICES_REGISTRY}
-       ${MF_MESSAGELOGGER}
-       ${FHICLCPP}
+       art::Framework_Services_Registry
+       messagefacility::MF_MessageLogger
+       fhiclcpp::fhiclcpp
        ${ROOT_BASIC_LIB_LIST}
-       ${ROOT_GEOM}
-       ${Boost_FILESYSTEM_LIBRARY}
-       ${Boost_SYSTEM_LIBRARY}
-       cetlib cetlib_except
+       ROOT::Geom
+       Boost::filesystem
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 
 )
 
@@ -200,7 +184,8 @@ art_make_library(
    SOURCE
        Topology.cxx
    LIBRARIES
-       cetlib cetlib_except
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 
 )
 
@@ -213,18 +198,19 @@ art_make_library(
        lardataobj_RawData
        larcorealg_Geometry
        larcore_Geometry_Geometry_service
-       art_Persistency_Common canvas
-       art_Persistency_Provenance canvas
-       art_Utilities canvas
+       art::Persistency_Common canvas
+       art::Persistency_Provenance canvas
+       art::Utilities canvas
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
        larpandora_LArPandoraEventBuilding
        LArPandoraContent
        larpandora_LArPandoraInterface
-       nusimdata_SimulationBase
+       nusimdata::SimulationBase
        LArPandoraContent
-       cetlib cetlib_except
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 
 )
 
@@ -238,33 +224,33 @@ art_make_library(
        lardataobj_RawData
        larcorealg_Geometry
        larcore_Geometry_Geometry_service
-       ${ART_FRAMEWORK_CORE}
-       ${ART_FRAMEWORK_IO_SOURCES}
-       ${ART_FRAMEWORK_PRINCIPAL}
-       art_Persistency_Common canvas
-       art_Persistency_Provenance canvas
-       art_Utilities canvas
+       art::Framework_Core
+       art::Framework_IO_Sources
+       art::Framework_Principal
+       art::Persistency_Common canvas
+       art::Persistency_Provenance canvas
+       art::Utilities canvas
        larcorealg_Geometry
        larcore_Geometry_Geometry_service
-       art_Persistency_Common canvas
-       art_Persistency_Provenance canvas
-       art_Utilities canvas
+       art::Persistency_Common canvas
+       art::Persistency_Provenance canvas
+       art::Utilities canvas
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
        larpandora_LArPandoraEventBuilding
        LArPandoraContent
        larpandora_LArPandoraInterface
-       nusimdata_SimulationBase
+       nusimdata::SimulationBase
        LArPandoraContent
-       ${ART_FRAMEWORK_SERVICES_REGISTRY}
-       ${MF_MESSAGELOGGER}
-       ${FHICLCPP}
+       art::Framework_Services_Registry
+       messagefacility::MF_MessageLogger
+       fhiclcpp::fhiclcpp
        ${ROOT_BASIC_LIB_LIST}
-       ${ROOT_GEOM}
-       ${Boost_FILESYSTEM_LIBRARY}
-       ${Boost_SYSTEM_LIBRARY}
-       cetlib cetlib_except
+       ROOT::Geom
+       Boost::filesystem
+       
+       cetlib::cetlib cetlib_except
 
 )
 
