@@ -18,25 +18,21 @@ art_make(
                         larreco_Calorimetry
                         PANDORASDK
                         PANDORAMONITORING
-                        nusimdata_SimulationBase
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_BASIC}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}	
-                        art_Persistency_Common
-                        art_Persistency_Provenance
-                        art_Utilities
-                        canvas
-                        ${MF_MESSAGELOGGER}
-                        ${FHICLCPP}
-                        cetlib cetlib_except
-                        ${Boost_SYSTEM_LIBRARY}
-                        ${Boost_FILESYSTEM_LIBRARY}
-                        ${ROOT_GEOM}
+                        nusimdata::SimulationBase
+                        art::Framework_Core
+                        art::Framework_Principal
+                        art::Framework_Services_Registry
+                        art::Persistency_Common
+                        art::Persistency_Provenance
+                        art::Utilities
+                        canvas::canvas
+                        messagefacility::MF_MessageLogger
+                        fhiclcpp::fhiclcpp
+                        cetlib::cetlib cetlib_except
+                        Boost::filesystem
+                        ROOT::Geom
                         ${ROOT_BASIC_LIB_LIST}
-                        ${ROOT_GENVECTOR}
+                        ROOT::GenVector
 	  TOOL_LIBRARIES
 			larevt_CalibrationDBI_IOVData
 			ubevt_Utilities	
@@ -54,25 +50,21 @@ art_make(
                         larreco_Calorimetry
                         PANDORASDK
                         PANDORAMONITORING
-                        nusimdata_SimulationBase
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_BASIC}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}	
-                        art_Persistency_Common
-                        art_Persistency_Provenance
-                        art_Utilities
-                        canvas
-                        ${MF_MESSAGELOGGER}
-                        ${FHICLCPP}
-                        cetlib cetlib_except
-                        ${Boost_SYSTEM_LIBRARY}
-                        ${Boost_FILESYSTEM_LIBRARY}
-                        ${ROOT_GEOM}
+                        nusimdata::SimulationBase
+                        art::Framework_Core
+                        art::Framework_Principal
+                        art::Framework_Services_Registry
+                        art::Persistency_Common
+                        art::Persistency_Provenance
+                        art::Utilities
+                        canvas::canvas
+                        messagefacility::MF_MessageLogger
+                        fhiclcpp::fhiclcpp
+                        cetlib::cetlib cetlib_except
+                        Boost::filesystem
+                        ROOT::Geom
                         ${ROOT_BASIC_LIB_LIST}
-                        ${ROOT_GENVECTOR}
+                        ROOT::GenVector
                         ubreco_SelectionTool_OpT0FinderBase
                         ubreco_SelectionTool_OpT0FinderAlgorithms
 
@@ -80,10 +72,10 @@ art_make(
 			larevt_CalibrationDBI_IOVData
 			#larpandora_LArPandoraEventBuilding
 			art_Framework_Core
-			art_Framework_Services_Registry
-			art_Framework_Principal
-			art_Persistency_Provenance
-			${ART_FRAMEWORK_CORE}
+			art::Framework_Services_Registry
+			art::Framework_Principal
+			art::Persistency_Provenance
+			art::Framework_Core
 			larcorealg_Geometry	
 			lardataobj_RecoBase
 		   	larcorealg_Geometry		
@@ -92,15 +84,11 @@ art_make(
                         #larpandoraobj
             		PANDORASDK
 			larcore_Geometry_Geometry_service	
-			art_Utilities canvas
-                        ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
-                        ${CETLIB} cetlib_except
-                        ${Boost_SYSTEM_LIBRARY}
+			art::Utilities canvas
+                        messagefacility::MF_MessageLogger
+                        cetlib::cetlib cetlib_except::cetlib_except
                         ${ROOT_BASIC_LIB_LIST}
-		   	${ART_FRAMEWORK_SERVICES_REGISTRY}
-		   	${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}	
+		   	art::Framework_Services_Registry
                         ubreco_SelectionTool_OpT0FinderBase
                         ubreco_SelectionTool_OpT0FinderAlgorithms
 )
