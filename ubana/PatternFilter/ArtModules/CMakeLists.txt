@@ -8,7 +8,6 @@ art_make(
 			lardataobj_RecoBase
                         art::Framework_Core
 			art_root_io::art_root_io
-			${ART_FRAMEWORK_MODULES}
                         art::Framework_Principal
                         art::Framework_Services_Registry
                         art_root_io::tfile_support ROOT::Core
@@ -17,7 +16,6 @@ art_make(
                         art::Persistency_Provenance
                         art::Utilities canvas::canvas
 			messagefacility::MF_MessageLogger
-                        ${BOOST_LIB}
                         fhiclcpp::fhiclcpp
                         cetlib::cetlib cetlib_except
 

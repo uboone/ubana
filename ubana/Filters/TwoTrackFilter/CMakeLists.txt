@@ -38,7 +38,6 @@ art_make( BASENAME_ONLY
                    PANDORAMONITORING
                    #larpandora_LArPandoraContent
                    ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
 		   art::Framework_Core
 		   art::Framework_Principal
                    ${ART_FRAMEWORK_BASIC}

@@ -18,8 +18,6 @@ art_make(
                         ubraw_RawData
 			ubobj_Trigger
 			ubobj_Optical
-                        ${LARRECO_LIB}
-                        ${LARDATA_LIB}
                         art::Framework_Core
 			art::Framework_Principal
 			art::Framework_Services_Registry
@@ -29,7 +27,6 @@ art_make(
 			art::Persistency_Provenance canvas::canvas
 			art::Utilities canvas::canvas
 			messagefacility::MF_MessageLogger
-
 	                fhiclcpp::fhiclcpp
 			cetlib::cetlib cetlib_except
                         ROOT::Geom

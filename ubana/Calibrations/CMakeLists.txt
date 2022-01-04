@@ -36,8 +36,6 @@ art_make( BASENAME_ONLY
 			ubevt::SignalShapingServiceMicroBooNE_service
             larevt_CalibrationDBI_Providers
             nusimdata::SimulationBase
-			${LARRECO_LIB}
-			${LARDATA_LIB}
                         art::Framework_Core
 			art::Framework_Principal
 			art::Framework_Services_Registry
@@ -48,16 +46,14 @@ art_make( BASENAME_ONLY
 			art::Persistency_Provenance canvas::canvas
 			art::Utilities canvas::canvas
 			messagefacility::MF_MessageLogger
-
 	                fhiclcpp::fhiclcpp
 			cetlib::cetlib cetlib_except
 			CLHEP::CLHEP
                         ROOT::Geom
                         ROOT::XMLIO
                         ROOT::Gdml
-
-			${ROOT_MINUIT}
-			${ROOT_MINUIT2}
+			ROOT::Minuit
+			ROOT::Minuit2
         )
 
 FILE(GLOB data_files calibrationList_*.dat )

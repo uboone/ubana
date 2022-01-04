@@ -9,15 +9,12 @@ art_make( LIB_LIBRARIES lardataobj_RecoBase
                         nusimdata::SimulationBase
                         canvas::canvas
                         messagefacility::MF_MessageLogger
-
                         fhiclcpp::fhiclcpp
                         cetlib::cetlib
                         cetlib_except::cetlib_except
                         Boost::filesystem
-
                         CLHEP::CLHEP
-
-                        ${ROOT_MINUIT}
+                        ROOT::Minuit
         )
 
 install_headers()

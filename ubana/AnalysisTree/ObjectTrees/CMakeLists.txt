@@ -15,8 +15,6 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            ubraw_RawData
 			               ubobj_Trigger
 			               ubobj_Optical
-                           ${LARRECO_LIB}
-                           ${LARDATA_LIB}
                            art::Framework_Core
 			               art::Framework_Principal
 			               art::Framework_Services_Registry
