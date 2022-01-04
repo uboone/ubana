@@ -187,8 +187,8 @@ microboone_eventweight_genie: {
       "MFP_pi", "MFP_N", "FrCEx_pi", "FrInel_pi", "FrAbs_pi",
       "FrCEx_N", "FrInel_N", "FrAbs_N",
 
-      # Delta resonance decays
-      "RDecBR1gamma", "RDecBR1eta"
+      # eta, remove BR1gamma
+      "RDecBR1eta"
     ]
     parameter_sigma: [
       4.16128, # MaCCQE uses +/-0.12 GeV about the tuned central value
@@ -197,7 +197,7 @@ microboone_eventweight_genie: {
       1.4, # NormCCMEC uses +/-70%
       2.0, # NormNCMEC uses +/-100%
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     ]
     mode: multisim
     number_of_multisims: 1000

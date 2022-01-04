@@ -65,8 +65,7 @@ namespace single_photon
 
         //Ability to save some FULL eventweight components, rather than run later. Useful for systematic studies. Harcoded to two currently (TODO)
         m_runTrueEventweight = pset.get<bool>("RunTrueEventWeight",false); 
-        m_true_eventweight_label = pset.get<std::string>("true_eventweight_label","eventweightreint");
-
+        m_true_eventweight_label = pset.get<std::string>("true_eventweight_label","eventweight");
         m_Spline_CV_label = pset.get<std::string>("SplineCVLabel", "eventweight");//4to4aFix");
 
 
@@ -438,30 +437,30 @@ namespace single_photon
 
 
         /**************************************************************************
- 	 * For SEAview: grab cosmic-related PFPaticles and recob::Hits
- 	 *
- 	 **************************************************************************/
-	 std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > cr_pfParticleToClustersMap;
-	 std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Hit>> > cr_pfParticleToHitsMap;
+         * For SEAview: grab cosmic-related PFPaticles and recob::Hits
+         *
+         **************************************************************************/
+        std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > cr_pfParticleToClustersMap;
+        std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Hit>> > cr_pfParticleToHitsMap;
 
-  	 //first, collect all daughters of primary cosmic
-	 int num_primary_cosmic_particle = crParticles.size();
-   	 for(int i =0; i!=num_primary_cosmic_particle; ++i){
-	     auto& pParticle = crParticles[i];
-  	     for(const size_t daughterId : pParticle->Daughters())
-             {
-                 if (pfParticleMap.find(daughterId) == pfParticleMap.end())
+        //first, collect all daughters of primary cosmic
+        int num_primary_cosmic_particle = crParticles.size();
+        for(int i =0; i!=num_primary_cosmic_particle; ++i){
+            auto& pParticle = crParticles[i];
+            for(const size_t daughterId : pParticle->Daughters())
+            {
+                if (pfParticleMap.find(daughterId) == pfParticleMap.end())
                     throw cet::exception("SinglePhoton") << "  Invalid PFParticle collection!";
 
-                 crParticles.push_back(pfParticleMap.at(daughterId));
-             }
-	 }
+                crParticles.push_back(pfParticleMap.at(daughterId));
+            }
+        }
 
- 	 //second, build PFP to hits map for cosmic-related PFParticles
-	 for(size_t i=0; i< crParticles.size(); ++i){
+        //second, build PFP to hits map for cosmic-related PFParticles
+        for(size_t i=0; i< crParticles.size(); ++i){
             auto pfp = crParticles[i];
             cr_pfParticleToClustersMap[pfp] = clusters_per_pfparticle.at(pfp.key());
-	 }
+        }
         for(size_t i=0; i< crParticles.size(); ++i){
             auto pfp = crParticles[i];
 
@@ -488,11 +487,11 @@ namespace single_photon
             //std::cout<<"saving a total of "<<hits_for_pfp.size()<<" hits for pfp "<<pfp->Self()<<std::endl;
 
         }//for each pfp
-	 std::cout << "Guanqun SEAview test: initial crParticle size: " << num_primary_cosmic_particle << ", current size: " << crParticles.size() << std::endl;
+        std::cout << "Guanqun SEAview test: initial crParticle size: " << num_primary_cosmic_particle << ", current size: " << crParticles.size() << std::endl;
         /********************************************************************
- 	 * End of SEAview: grab cosmic-related PFPaticles and recob::Hits
- 	 *
- 	 **************************************************************************/
+         * End of SEAview: grab cosmic-related PFPaticles and recob::Hits
+         *
+         **************************************************************************/
 
 
         //  Test ground for some slice stuff, dont have it run automatically, ignore for now, mark
@@ -1002,9 +1001,9 @@ namespace single_photon
 
 
         // ################################################### Proton Stub ###########################################
-	// ------------- stub clustering ---------------------------
-	std::cout << "----------------- Stub clustering --------------------------- " << std::endl;
-	std::cout << "SEAview Stub formation: " << (m_runSEAviewStub ? "true" : "false" ) << " nshower requirement: " << m_SEAviewStubNumRecoShower << ", actual num shower: " << showers.size() << " | ntrack requirement: " << m_SEAviewStubNumRecoTrack << ", actual num track: " << tracks.size() << std::endl;
+        // ------------- stub clustering ---------------------------
+        std::cout << "----------------- Stub clustering --------------------------- " << std::endl;
+        std::cout << "SEAview Stub formation: " << (m_runSEAviewStub ? "true" : "false" ) << " nshower requirement: " << m_SEAviewStubNumRecoShower << ", actual num shower: " << showers.size() << " | ntrack requirement: " << m_SEAviewStubNumRecoTrack << ", actual num track: " << tracks.size() << std::endl;
 
         if(!m_run_pi0_filter && m_runSEAviewStub && (m_SEAviewStubNumRecoShower == -1 || (int)showers.size()== m_SEAviewStubNumRecoShower) && (m_SEAviewStubNumRecoTrack == -1 || (int)tracks.size() == m_SEAviewStubNumRecoTrack)){    
 
@@ -1027,8 +1026,8 @@ namespace single_photon
 
             //Add the hits from just this slice, as well as hits within 150cm of the vertex 
             sevd.addHitsToConsider(hitVector);   // std::vector<art::Ptr<recob::Hit>> 
-	    sevd.filterConsideredHits(150); //remve hits that're not within 150cm of the vertex on 2D view
-	    sevd.addHitsToConsider(p_slice_hits);
+            sevd.filterConsideredHits(150); //remve hits that're not within 150cm of the vertex on 2D view
+            sevd.addHitsToConsider(p_slice_hits);
 
             sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
             sevd.setHitThreshold(m_SEAviewStubHitThreshold); 
@@ -1041,7 +1040,7 @@ namespace single_photon
             //and add the SingleShower we like
             sevd.addShower(p_shr); // art::Ptr<recob::Shower>
 
-           //Add all track PFP
+            //Add all track PFP
             int i_trk = 0;
             for(auto &trk: tracks){
                 art::Ptr<recob::PFParticle> p_pfp_trk = trackToNuPFParticleMap[trk];
@@ -1051,8 +1050,8 @@ namespace single_photon
                 sevd.addTrack(trk);
                 ++i_trk;
             }
-		
-	    //Add all cosmic-relatd PFP
+
+            //Add all cosmic-relatd PFP
             for(auto &cr: crParticles){
                 std::vector<art::Ptr<recob::Hit>> p_hits_cr = cr_pfParticleToHitsMap[cr];
                 sevd.addPFParticleHits(p_hits_cr,"cosmic");
@@ -1076,7 +1075,7 @@ namespace single_photon
             std::vector<seaview::cluster> vec_SEAclusters ;
             sevd.analyzeTrackLikeClusters(m_SEAviewStubDbscanEps, showerToNuPFParticleMap, pfParticleToHitsMap, vec_SEAclusters);
 
-                
+
             //And save to file.
             std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Stub clusters to chat about"<<std::endl;
 
@@ -1101,69 +1100,69 @@ namespace single_photon
 
                     continue;// Dont include this as a viable cluster!
                 }
-                    
-		++m_trackstub_num_candidates;
-		    //determine if this cluster is in neutrino slice
-		    m_trackstub_candidate_in_nu_slice.push_back(clu.InNuSlice(sliceIDToHitsMap, p_sliceid));
 
-                    //Fill All the bits
-                    m_trackstub_candidate_num_hits.push_back((int)hitz.size());
-                    m_trackstub_candidate_num_wires.push_back((int)ssscorz->n_wires);
-                    m_trackstub_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
-                    m_trackstub_candidate_plane.push_back(pl);
-                    m_trackstub_candidate_PCA.push_back(ssscorz->pca_0);
-                    m_trackstub_candidate_mean_tick.push_back(ssscorz->mean_tick);
-                    m_trackstub_candidate_max_tick.push_back(ssscorz->max_tick);
-                    m_trackstub_candidate_min_tick.push_back(ssscorz->min_tick);
-                    m_trackstub_candidate_min_wire.push_back(ssscorz->min_wire);
-                    m_trackstub_candidate_max_wire.push_back(ssscorz->max_wire);
-                    m_trackstub_candidate_mean_wire.push_back(ssscorz->mean_wire);
-                    m_trackstub_candidate_min_dist.push_back(ssscorz->min_dist);
-	            m_trackstub_candidate_min_impact_parameter_to_shower.push_back(clu.getMinHitImpactParam());
-		    m_trackstub_candidate_min_conversion_dist_to_shower_start.push_back(clu.getMinHitConvDist());
-		    m_trackstub_candidate_min_ioc_to_shower_start.push_back(clu.getMinHitIOC());
-		    m_trackstub_candidate_ioc_based_length.push_back(clu.getIOCbasedLength());
-		    m_trackstub_candidate_wire_tick_based_length.push_back(clu.getWireTickBasedLength());
-		    m_trackstub_candidate_mean_ADC_first_half.push_back(clu.getMeanADCFirstHalf());
-		    m_trackstub_candidate_mean_ADC_second_half.push_back(clu.getMeanADCSecondHalf());
-		    m_trackstub_candidate_mean_ADC_first_to_second_ratio.push_back(clu.getMeanADCRatio());
-		    m_trackstub_candidate_track_angle_wrt_shower_direction.push_back(clu.getTrackAngleToShowerDirection());
-		    m_trackstub_candidate_linear_fit_chi2.push_back(clu.getLinearChi());
-                    m_trackstub_candidate_mean_ADC.push_back(clu.getMeanADC());
-		    m_trackstub_candidate_ADC_RMS.push_back(clu.getADCrms());
-                    m_trackstub_candidate_energy.push_back(Ep);
-                    m_trackstub_candidate_remerge.push_back(remerge);
+                ++m_trackstub_num_candidates;
+                //determine if this cluster is in neutrino slice
+                m_trackstub_candidate_in_nu_slice.push_back(clu.InNuSlice(sliceIDToHitsMap, p_sliceid));
+
+                //Fill All the bits
+                m_trackstub_candidate_num_hits.push_back((int)hitz.size());
+                m_trackstub_candidate_num_wires.push_back((int)ssscorz->n_wires);
+                m_trackstub_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
+                m_trackstub_candidate_plane.push_back(pl);
+                m_trackstub_candidate_PCA.push_back(ssscorz->pca_0);
+                m_trackstub_candidate_mean_tick.push_back(ssscorz->mean_tick);
+                m_trackstub_candidate_max_tick.push_back(ssscorz->max_tick);
+                m_trackstub_candidate_min_tick.push_back(ssscorz->min_tick);
+                m_trackstub_candidate_min_wire.push_back(ssscorz->min_wire);
+                m_trackstub_candidate_max_wire.push_back(ssscorz->max_wire);
+                m_trackstub_candidate_mean_wire.push_back(ssscorz->mean_wire);
+                m_trackstub_candidate_min_dist.push_back(ssscorz->min_dist);
+                m_trackstub_candidate_min_impact_parameter_to_shower.push_back(clu.getMinHitImpactParam());
+                m_trackstub_candidate_min_conversion_dist_to_shower_start.push_back(clu.getMinHitConvDist());
+                m_trackstub_candidate_min_ioc_to_shower_start.push_back(clu.getMinHitIOC());
+                m_trackstub_candidate_ioc_based_length.push_back(clu.getIOCbasedLength());
+                m_trackstub_candidate_wire_tick_based_length.push_back(clu.getWireTickBasedLength());
+                m_trackstub_candidate_mean_ADC_first_half.push_back(clu.getMeanADCFirstHalf());
+                m_trackstub_candidate_mean_ADC_second_half.push_back(clu.getMeanADCSecondHalf());
+                m_trackstub_candidate_mean_ADC_first_to_second_ratio.push_back(clu.getMeanADCRatio());
+                m_trackstub_candidate_track_angle_wrt_shower_direction.push_back(clu.getTrackAngleToShowerDirection());
+                m_trackstub_candidate_linear_fit_chi2.push_back(clu.getLinearChi());
+                m_trackstub_candidate_mean_ADC.push_back(clu.getMeanADC());
+                m_trackstub_candidate_ADC_RMS.push_back(clu.getADCrms());
+                m_trackstub_candidate_energy.push_back(Ep);
+                m_trackstub_candidate_remerge.push_back(remerge);
 
 
-                    //MCTruth matching for pi0's
-                    if(m_is_data){
-                        m_trackstub_candidate_matched.push_back(-1);
-                        m_trackstub_candidate_pdg.push_back(-1);
-                        m_trackstub_candidate_parent_pdg.push_back(-1);
-                        m_trackstub_candidate_trackid.push_back(-1);
-			m_trackstub_candidate_true_energy.push_back(-1);
-                        m_trackstub_candidate_overlay_fraction.push_back(-1);
-			m_trackstub_candidate_matched_energy_fraction_best_plane.push_back(-1);
-                    }else{
+                //MCTruth matching for pi0's
+                if(m_is_data){
+                    m_trackstub_candidate_matched.push_back(-1);
+                    m_trackstub_candidate_pdg.push_back(-1);
+                    m_trackstub_candidate_parent_pdg.push_back(-1);
+                    m_trackstub_candidate_trackid.push_back(-1);
+                    m_trackstub_candidate_true_energy.push_back(-1);
+                    m_trackstub_candidate_overlay_fraction.push_back(-1);
+                    m_trackstub_candidate_matched_energy_fraction_best_plane.push_back(-1);
+                }else{
 
-                        auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-                        m_trackstub_candidate_matched.push_back(ssmatched[0]);
-                        m_trackstub_candidate_pdg.push_back(ssmatched[1]);
-                        m_trackstub_candidate_parent_pdg.push_back(ssmatched[2]);
-                        m_trackstub_candidate_trackid.push_back(ssmatched[3]);
-			m_trackstub_candidate_true_energy.push_back(ssmatched[4]);
-                        m_trackstub_candidate_overlay_fraction.push_back(ssmatched[5]);
-			m_trackstub_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[6]);
+                    auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+                    m_trackstub_candidate_matched.push_back(ssmatched[0]);
+                    m_trackstub_candidate_pdg.push_back(ssmatched[1]);
+                    m_trackstub_candidate_parent_pdg.push_back(ssmatched[2]);
+                    m_trackstub_candidate_trackid.push_back(ssmatched[3]);
+                    m_trackstub_candidate_true_energy.push_back(ssmatched[4]);
+                    m_trackstub_candidate_overlay_fraction.push_back(ssmatched[5]);
+                    m_trackstub_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[6]);
 
-			//Guanqun: print out (best-matched) truth information of the cluster
-			std::cout << "Cluster: " << m_trackstub_num_candidates-1  << " plane: " << m_trackstub_candidate_plane.back() << ", energy: " << m_trackstub_candidate_energy.back() << ", min IOC of hit(wrt shower): " << m_trackstub_candidate_min_ioc_to_shower_start.back() << "\n";
-			std::cout << "Cluster is matched: " << m_trackstub_candidate_matched.back() << ", matched PDG: " << m_trackstub_candidate_pdg.back() << " track ID: " << m_trackstub_candidate_trackid.back() << " overlay fraction: " << m_trackstub_candidate_overlay_fraction.back() << std::endl; 
-			std::cout << "===============================================================" << std::endl;
-                    }
+                    //Guanqun: print out (best-matched) truth information of the cluster
+                    std::cout << "Cluster: " << m_trackstub_num_candidates-1  << " plane: " << m_trackstub_candidate_plane.back() << ", energy: " << m_trackstub_candidate_energy.back() << ", min IOC of hit(wrt shower): " << m_trackstub_candidate_min_ioc_to_shower_start.back() << "\n";
+                    std::cout << "Cluster is matched: " << m_trackstub_candidate_matched.back() << ", matched PDG: " << m_trackstub_candidate_pdg.back() << " track ID: " << m_trackstub_candidate_trackid.back() << " overlay fraction: " << m_trackstub_candidate_overlay_fraction.back() << std::endl; 
+                    std::cout << "===============================================================" << std::endl;
+                }
 
                 sevd.SetClusterLegend(c, m_trackstub_candidate_energy.back(),  m_trackstub_candidate_matched.back(), m_trackstub_candidate_pdg.back() , m_trackstub_candidate_overlay_fraction.back() );
 
-        
+
             } //end of cluster loop
 
             // Plot the event
@@ -1179,78 +1178,79 @@ namespace single_photon
         }
 
 
-	    // --------------- shower clustering --------------------------
-	    std::cout << "------------- Shower clustering --------------------" << std::endl;
-	    std::cout << "SEAview Shower cluster formation: " << (m_runSEAview ? "true" : "false" ) << " nshower requirement: " << m_SEAviewNumRecoShower << ", actual num shower: " << showers.size() << " | ntrack requirement: " << m_SEAviewNumRecoTrack << ", actual num track: " << tracks.size() << std::endl;
+        // --------------- shower clustering --------------------------
+        std::cout << "------------- Shower clustering --------------------" << std::endl;
+        std::cout << "SEAview Shower cluster formation: " << (m_runSEAview ? "true" : "false" ) << " nshower requirement: " << m_SEAviewNumRecoShower << ", actual num shower: " << showers.size() << " | ntrack requirement: " << m_SEAviewNumRecoTrack << ", actual num track: " << tracks.size() << std::endl;
 
-            if(!m_run_pi0_filter &&  m_runSEAview && (m_SEAviewNumRecoShower == -1 || (int)showers.size()== m_SEAviewNumRecoShower) && (m_SEAviewNumRecoTrack == -1 || (int)tracks.size() == m_SEAviewNumRecoTrack) ){    
+        if(!m_run_pi0_filter &&  m_runSEAview && (m_SEAviewNumRecoShower == -1 || (int)showers.size()== m_SEAviewNumRecoShower) && (m_SEAviewNumRecoTrack == -1 || (int)tracks.size() == m_SEAviewNumRecoTrack) ){    
 
-                art::Ptr<recob::Shower> p_shr = showers.front();
-                art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
-                std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
+            art::Ptr<recob::Shower> p_shr = showers.front();
+            art::Ptr<recob::PFParticle> p_pfp = showerToNuPFParticleMap[p_shr];
+            std::vector<art::Ptr<recob::Hit>> p_hits = pfParticleToHitsMap[p_pfp];
 
 
-                int p_sliceid = PFPToSliceIdMap[p_pfp];
-                auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
+            int p_sliceid = PFPToSliceIdMap[p_pfp];
+            auto p_slice_hits =    sliceIDToHitsMap[p_sliceid];
 
-                std::string uniq_tag = "HitThres_"+ std::to_string(static_cast<int>(m_SEAviewHitThreshold)) + "_" + std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
+            std::string uniq_tag = "HitThres_"+ std::to_string(static_cast<int>(m_SEAviewHitThreshold)) + "_" + std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
 
-                //Setup seaviewr object
-                seaview::SEAviewer sevd("Shower_"+uniq_tag, geom, theDetector );
-                //Pass in any bad channels you like
-                sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
-                //Give it a vertex to center around
-                sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
+            //Setup seaviewr object
+            seaview::SEAviewer sevd("Shower_"+uniq_tag, geom, theDetector );
+            //Pass in any bad channels you like
+            sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
+            //Give it a vertex to center around
+            sevd.loadVertex(m_vertex_pos_x,m_vertex_pos_y, m_vertex_pos_z);
 
-                //Add hits to consider for clustering 
-                sevd.addHitsToConsider(hitVector);
-		sevd.filterConsideredHits(150); 
-		sevd.addHitsToConsider(p_slice_hits);
+            //Add hits to consider for clustering 
+            //sevd.addHitsToConsider(hitVector);// DONT do this yet, need something smarter for SSV
+            //sevd.filterConsideredHits(150); 
+            sevd.addHitsToConsider(p_slice_hits);
 
-		//Add all hits in the events
-                sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
-                sevd.setHitThreshold(m_SEAviewHitThreshold); 
+            //Add all hits in the events
+            sevd.addAllHits(hitVector); // std::vector<art::Ptr<recob::Hit>> 
+            sevd.setHitThreshold(m_SEAviewHitThreshold); 
 
-                //Add all the "nice " PFParticle Hits, as well as what to label
-                //sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
-                sevd.addPFParticleHits(p_hits, "Shower", m_reco_shower_energy_max[0], m_reco_shower_conversion_distance[0], m_reco_shower_impact_parameter[0]);  //std::vector<art::Ptr<recob::Hit>> and std::string
+            //Add all the "nice " PFParticle Hits, as well as what to label
+            //sevd.addPFParticleHits(p_hits, "Shower");  //std::vector<art::Ptr<recob::Hit>> and std::string
+            sevd.addPFParticleHits(p_hits, "Shower", m_reco_shower_energy_max[0], m_reco_shower_conversion_distance[0], m_reco_shower_impact_parameter[0]);  //std::vector<art::Ptr<recob::Hit>> and std::string
 
-                //and add the SingleShower we like
-                sevd.addShower(p_shr); // art::Ptr<recob::Shower>
+            //and add the SingleShower we like
+            sevd.addShower(p_shr); // art::Ptr<recob::Shower>
 
-                //Add all track PFP
-		int i_trk = 0;
-                for(auto &trk: tracks){
-                    art::Ptr<recob::PFParticle> p_pfp_trk = trackToNuPFParticleMap[trk];
-                    std::vector<art::Ptr<recob::Hit>> p_hits_trk = pfParticleToHitsMap[p_pfp_trk];
-                    //sevd.addPFParticleHits(p_hits_trk,"track");
-                    sevd.addPFParticleHits(p_hits_trk,"track", m_reco_track_length[i_trk], m_reco_track_spacepoint_principal0[i_trk]);
-                    sevd.addTrack(trk);
-		    ++i_trk;
-                }
+            //Add all track PFP
+            int i_trk = 0;
+            for(auto &trk: tracks){
+                art::Ptr<recob::PFParticle> p_pfp_trk = trackToNuPFParticleMap[trk];
+                std::vector<art::Ptr<recob::Hit>> p_hits_trk = pfParticleToHitsMap[p_pfp_trk];
+                //sevd.addPFParticleHits(p_hits_trk,"track");
+                sevd.addPFParticleHits(p_hits_trk,"track", m_reco_track_length[i_trk], m_reco_track_spacepoint_principal0[i_trk]);
+                sevd.addTrack(trk);
+                ++i_trk;
+            }
 
-		//Add all cosmic-relatd PFP
-		for(auto &cr: crParticles){
-                    std::vector<art::Ptr<recob::Hit>> p_hits_cr = cr_pfParticleToHitsMap[cr];
-                    sevd.addPFParticleHits(p_hits_cr,"cosmic");
-                }
+            //Add all cosmic-relatd PFP // DONT do this yet, see line 1206
+            /*for(auto &cr: crParticles){
+                std::vector<art::Ptr<recob::Hit>> p_hits_cr = cr_pfParticleToHitsMap[cr];
+                sevd.addPFParticleHits(p_hits_cr,"cosmic");
+            }
+            */
 
-                //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 
-                auto vnh= sevd.calcUnassociatedHits();
-                m_sss_num_unassociated_hits =vnh[1]+vnh[2];
-                m_sss_num_unassociated_hits_below_threshold = vnh[2];
-                m_sss_num_associated_hits = vnh[0]-vnh[1]-vnh[2];
+            //We then calculate Unassociated hits, i.e the hits not associated to the "Shower" or tracksyou passed in. 
+            auto vnh= sevd.calcUnassociatedHits();
+            m_sss_num_unassociated_hits =vnh[1]+vnh[2];
+            m_sss_num_unassociated_hits_below_threshold = vnh[2];
+            m_sss_num_associated_hits = vnh[0]-vnh[1]-vnh[2];
 
-                //Recluster, group unassociated hits into different clusters
-                sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
+            //Recluster, group unassociated hits into different clusters
+            sevd.runseaDBSCAN(m_SEAviewDbscanMinPts, m_SEAviewDbscanEps);
 
 
             //This is the place I will put the new Second Shower Search
             std::vector<seaview::cluster> vec_SEAclusters ;
             sevd.analyzeShowerLikeClusters(m_SEAviewDbscanEps, showerToNuPFParticleMap, pfParticleToHitsMap, vec_SEAclusters);
 
-                //And save to file.
-                std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Shower clusters to chat about"<<std::endl;
+            //And save to file.
+            std::cout<<"After SEAview we have "<<vec_SEAclusters.size()<<" Shower clusters to chat about"<<std::endl;
 
             m_sss_num_candidates = 0;
             for(size_t c=0; c< vec_SEAclusters.size(); c++){
@@ -1272,61 +1272,61 @@ namespace single_photon
                     continue;// Dont include this as a viable cluster!
                 }
 
-                    ++m_sss_num_candidates;
+                ++m_sss_num_candidates;
 
-		    //determine if this cluster is in neutrino slice
-		    m_sss_candidate_in_nu_slice.push_back(clu.InNuSlice(sliceIDToHitsMap, p_sliceid));
+                //determine if this cluster is in neutrino slice
+                m_sss_candidate_in_nu_slice.push_back(clu.InNuSlice(sliceIDToHitsMap, p_sliceid));
 
-                    //Fill All the bits
-                    m_sss_candidate_num_hits.push_back((int)hitz.size());
-                    m_sss_candidate_num_wires.push_back((int)ssscorz->n_wires);
-                    m_sss_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
-                    m_sss_candidate_plane.push_back(pl);
-                    m_sss_candidate_PCA.push_back(ssscorz->pca_0);
-                    m_sss_candidate_impact_parameter.push_back(clu.getImpactParam());
-                    m_sss_candidate_fit_slope.push_back(clu.getFitSlope());
-                    m_sss_candidate_fit_constant.push_back(clu.getFitCons());
-                    m_sss_candidate_mean_tick.push_back(ssscorz->mean_tick);
-                    m_sss_candidate_max_tick.push_back(ssscorz->max_tick);
-                    m_sss_candidate_min_tick.push_back(ssscorz->min_tick);
-                    m_sss_candidate_min_wire.push_back(ssscorz->min_wire);
-                    m_sss_candidate_max_wire.push_back(ssscorz->max_wire);
-                    m_sss_candidate_mean_wire.push_back(ssscorz->mean_wire);
-                    m_sss_candidate_min_dist.push_back(ssscorz->min_dist);
-		    m_sss_candidate_wire_tick_based_length.push_back(clu.getWireTickBasedLength());
-                    m_sss_candidate_mean_ADC.push_back(clu.getMeanADC());
-		    m_sss_candidate_ADC_RMS.push_back(clu.getADCrms());
-                    m_sss_candidate_energy.push_back(Ep);
-                    m_sss_candidate_angle_to_shower.push_back(clu.getAngleWRTShower());
-                    m_sss_candidate_remerge.push_back(remerge);
+                //Fill All the bits
+                m_sss_candidate_num_hits.push_back((int)hitz.size());
+                m_sss_candidate_num_wires.push_back((int)ssscorz->n_wires);
+                m_sss_candidate_num_ticks.push_back((int)ssscorz->n_ticks);
+                m_sss_candidate_plane.push_back(pl);
+                m_sss_candidate_PCA.push_back(ssscorz->pca_0);
+                m_sss_candidate_impact_parameter.push_back(clu.getImpactParam());
+                m_sss_candidate_fit_slope.push_back(clu.getFitSlope());
+                m_sss_candidate_fit_constant.push_back(clu.getFitCons());
+                m_sss_candidate_mean_tick.push_back(ssscorz->mean_tick);
+                m_sss_candidate_max_tick.push_back(ssscorz->max_tick);
+                m_sss_candidate_min_tick.push_back(ssscorz->min_tick);
+                m_sss_candidate_min_wire.push_back(ssscorz->min_wire);
+                m_sss_candidate_max_wire.push_back(ssscorz->max_wire);
+                m_sss_candidate_mean_wire.push_back(ssscorz->mean_wire);
+                m_sss_candidate_min_dist.push_back(ssscorz->min_dist);
+                m_sss_candidate_wire_tick_based_length.push_back(clu.getWireTickBasedLength());
+                m_sss_candidate_mean_ADC.push_back(clu.getMeanADC());
+                m_sss_candidate_ADC_RMS.push_back(clu.getADCrms());
+                m_sss_candidate_energy.push_back(Ep);
+                m_sss_candidate_angle_to_shower.push_back(clu.getAngleWRTShower());
+                m_sss_candidate_remerge.push_back(remerge);
 
 
-                    //MCTruth matching for pi0's
-                    if(m_is_data){
-                        m_sss_candidate_matched.push_back(-1);
-                        m_sss_candidate_pdg.push_back(-1);
-                        m_sss_candidate_parent_pdg.push_back(-1);
-                        m_sss_candidate_trackid.push_back(-1);
-			m_sss_candidate_true_energy.push_back(-1);
-                        m_sss_candidate_overlay_fraction.push_back(-1);
-			m_sss_candidate_matched_energy_fraction_best_plane.push_back(-1);
-                    }else{
+                //MCTruth matching for pi0's
+                if(m_is_data){
+                    m_sss_candidate_matched.push_back(-1);
+                    m_sss_candidate_pdg.push_back(-1);
+                    m_sss_candidate_parent_pdg.push_back(-1);
+                    m_sss_candidate_trackid.push_back(-1);
+                    m_sss_candidate_true_energy.push_back(-1);
+                    m_sss_candidate_overlay_fraction.push_back(-1);
+                    m_sss_candidate_matched_energy_fraction_best_plane.push_back(-1);
+                }else{
 
-                        auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
-                        m_sss_candidate_matched.push_back(ssmatched[0]);
-                        m_sss_candidate_pdg.push_back(ssmatched[1]);
-                        m_sss_candidate_parent_pdg.push_back(ssmatched[2]);
-                        m_sss_candidate_trackid.push_back(ssmatched[3]);
-			m_sss_candidate_true_energy.push_back(ssmatched[4]);
-                        m_sss_candidate_overlay_fraction.push_back(ssmatched[5]);
-			m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[6]);
+                    auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleMap,  MCParticleToTrackIdMap);
+                    m_sss_candidate_matched.push_back(ssmatched[0]);
+                    m_sss_candidate_pdg.push_back(ssmatched[1]);
+                    m_sss_candidate_parent_pdg.push_back(ssmatched[2]);
+                    m_sss_candidate_trackid.push_back(ssmatched[3]);
+                    m_sss_candidate_true_energy.push_back(ssmatched[4]);
+                    m_sss_candidate_overlay_fraction.push_back(ssmatched[5]);
+                    m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[6]);
 
-			//Guanqun: print out (best-matched) truth information of the cluster
-			std::cout << "Cluster: " << m_sss_num_candidates-1  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << "\n";
-			std::cout << "Cluster is matched: " << m_sss_candidate_matched.back() << ", matched PDG: " << m_sss_candidate_pdg.back() << " track ID: " << m_sss_candidate_trackid.back() << " overlay fraction: " << m_sss_candidate_overlay_fraction.back() << std::endl; 
-			std::cout << "===============================================================" << std::endl;
-                    }
-               
+                    //Guanqun: print out (best-matched) truth information of the cluster
+                    std::cout << "Cluster: " << m_sss_num_candidates-1  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << "\n";
+                    std::cout << "Cluster is matched: " << m_sss_candidate_matched.back() << ", matched PDG: " << m_sss_candidate_pdg.back() << " track ID: " << m_sss_candidate_trackid.back() << " overlay fraction: " << m_sss_candidate_overlay_fraction.back() << std::endl; 
+                    std::cout << "===============================================================" << std::endl;
+                }
+
 
                 sevd.SetClusterLegend(c, m_sss_candidate_energy.back(),  m_sss_candidate_matched.back(), m_sss_candidate_pdg.back() , m_sss_candidate_overlay_fraction.back() );
 
@@ -1369,7 +1369,7 @@ namespace single_photon
 
 
         // ################################################### Some info for Slice outside of Neutrino Slices #########################################################
-        
+
         size_t n_neutrino_slice=0;
         size_t n_neutrino_candidate_pfp_id=0;
 
@@ -1445,17 +1445,17 @@ namespace single_photon
 
         //---------------------- END OF LOOP, fill vertex ---------------------
 
-        
-        
+
+
         bool filter_pass_2g1p = Pi0PreselectionFilter();
         bool filter_pass_2g0p = Pi0PreselectionFilter2g0p();
-            
+
         if (m_fill_trees &&  (  (filter_pass_2g1p && m_run_pi0_filter_2g1p) || (filter_pass_2g0p && m_run_pi0_filter_2g0p) || !m_run_pi0_filter ) ) {
-                vertex_tree->Fill();
-                ncdelta_slice_tree->Fill();
-                eventweight_tree->Fill();
-                true_eventweight_tree->Fill();
-                geant4_tree->Fill();
+            vertex_tree->Fill();
+            ncdelta_slice_tree->Fill();
+            eventweight_tree->Fill();
+            true_eventweight_tree->Fill();
+            geant4_tree->Fill();
         }
 
 
@@ -1570,7 +1570,7 @@ namespace single_photon
         this->CreateEventWeightBranches();
         this->CreateGeant4Branches();
         this->CreateTrackBranches();
-       
+
         //hardcode some info (TODO change)
         std::string gpvm_location ="/pnfs/uboone/resilient/users/markross/tars/";
 

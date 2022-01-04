@@ -10,5 +10,6 @@ physics.filters.singlephotonana.TruncMeanFraction: 10.0
 services.DetectorClocksService.TrigModuleName:               "triggersim"
 
 physics.filters.singlephotonana.RunTrueEventWeight: "true"
-physics.filters.singlephotonana.true_eventweight_label: "eventweight"
+physics.filters.singlephotonana.true_eventweight_label: "eventweightglee"
+physics.filters.singlephotonana.SplineCVLabel: "eventweightglee"
 

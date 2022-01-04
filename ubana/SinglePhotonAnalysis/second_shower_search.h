@@ -1966,8 +1966,8 @@ namespace single_photon
                 std::vector<double>  candidates_pca(uniq_candidates2.size(),0);
                 std::vector<double>  candidates_angle_to_shower(uniq_candidates2.size(),0);
                 std::vector<int>     candidates_num_planes(uniq_candidates2.size(),0);
-                std::vector<double> candidates_eff_invar(uniq_candidates2.size(),0);
-                std::vector<double> candidates_eff_invar_diff(uniq_candidates2.size(),0);
+                std::vector<double>  candidates_eff_invar(uniq_candidates2.size(),0);
+                std::vector<double>  candidates_eff_invar_diff(uniq_candidates2.size(),0);
 
                 //rank by min_impat/max_min_dist and select
                 //rank by Energy energy
@@ -1992,14 +1992,20 @@ namespace single_photon
                     double max_pca = 0;
                     double min_angle = 999;
 
+        
+                    //int is_min_slice = 999;
+                    //std::vector<int> is_in_slice; 
+
                     for(int c=0; c< nt;++c){
                         int ic = uniq_candidates2[j][c];
 
                         //std::cout<<"----- plane: "<<m_sss_candidate_plane.at(ic)<<" nhits: "<<m_sss_candidate_num_hits.at(ic)<<" imp: "<<m_sss_candidate_impact_parameter.at(ic)<<" en: "<<m_sss_candidate_energy.at(ic)<<" a2s: "<<m_sss_candidate_angle_to_shower.at(ic)<<" conv: "<<m_sss_candidate_min_dist.at(ic)<<" pdg: "<<m_sss_candidate_parent_pdg.at(ic)<<std::endl;
 
-
                         double eff_invar = sqrt(2.0*m_sss_candidate_energy.at(ic)*m_reco_shower_energy_max.at(0)*(1.0-cos(m_sss_candidate_angle_to_shower.at(ic))));
                         double eff_invar_diff = fabs(eff_invar-139.5);
+
+                        //is_min_slice = std::min(is_in_slice, m_sss_candidate_in_nu_slice[ic] );
+                        //is_in_slice.push_back(m_sss_candidate_in_nu_slice[ic]); 
 
                         mean_min_dist +=m_sss_candidate_min_dist.at(ic)/(double)nt;
                         mean_energy +=m_sss_candidate_energy.at(ic)/(double)nt;
@@ -2024,6 +2030,8 @@ namespace single_photon
                     candidates_num_planes[j] =nt; 
                     candidates_eff_invar_diff[j] = mean_invar_diff;
                     candidates_eff_invar[j] = mean_invar;
+                    //candidates_min_slice[j] = is_min_slice;
+                    //candidates_in_slice[j] = is_in_slice;
                 }
 
                 std::vector<size_t> ranked_ioc = sort_indexes_rev<double>(candidates_ioc);

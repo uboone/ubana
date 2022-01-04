@@ -23,13 +23,13 @@ source: {
 
 physics: {
  producers: {
-   eventweight:  @local::microboone_eventweight
+   eventweightglee:  @local::microboone_eventweight
    rns: {
      module_type: "RandomNumberSaver"
    }
  }
  
- simulate: [ rns, eventweight ]
+ simulate: [ rns, eventweightglee ]
  stream1: [ out1 ]
  trigger_paths: [ simulate ]
  end_paths: [ stream1 ]
