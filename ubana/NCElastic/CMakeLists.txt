@@ -1,5 +1,3 @@
-link_libraries( ${LIB_NAME} ${ROOTLIB})
-
 art_make(BASENAME_ONLY
          LIBRARY_NAME uboonecode_uboone_NCElastic
          LIB_LIBRARIES

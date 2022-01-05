@@ -1,8 +1,3 @@
-# define ROOTLIB
-set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl)
-
-link_libraries( ${LIB_NAME} ${ROOTLIB} )
-
 art_make( BASENAME_ONLY
 	  LIBRARY_NAME     uboonecode_uboone_SelectionTool_OpT0FinderApp
 	  LIB_LIBRARIES

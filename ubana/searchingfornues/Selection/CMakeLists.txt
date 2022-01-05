@@ -37,7 +37,6 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            ROOT::Geom
                            ROOT::XMLIO
                            ROOT::Gdml
-                           ${ROOT_BASIC_LIB_LIST}
             		   PANDORASDK
 			   larpandora_LArPandoraInterface
         )

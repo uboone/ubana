@@ -55,7 +55,6 @@ simple_plugin( WireCellAnaTree "module"
                ROOT::XMLIO
                ROOT::Gdml
                ROOT::EG
-               ${ROOT_BASIC_LIB_LIST}
                BASENAME_ONLY
              )
 
@@ -86,7 +85,6 @@ simple_plugin( WireCellEventWeightTree "module"
                ROOT::XMLIO
                ROOT::Gdml
                ROOT::EG
-               ${ROOT_BASIC_LIB_LIST}
                BASENAME_ONLY
              )
 
@@ -117,7 +115,6 @@ simple_plugin( WireCellPFDump "module"
                ROOT::XMLIO
                ROOT::Gdml
                ROOT::EG
-               ${ROOT_BASIC_LIB_LIST}
                BASENAME_ONLY
              )
 

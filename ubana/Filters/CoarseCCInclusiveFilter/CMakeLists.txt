@@ -20,7 +20,6 @@ art_make(BASENAME_ONLY
 		     
 		     fhiclcpp::fhiclcpp
 		     cetlib::cetlib
-		     ${ROOT_BASIC_LIB_LIST}
                      ROOT::EG
 		     
 	MODULE_LIBRARIES
@@ -42,7 +41,6 @@ art_make(BASENAME_ONLY
 		     
 		     fhiclcpp::fhiclcpp
 		     cetlib::cetlib
-		     ${ROOT_BASIC_LIB_LIST}
                      ROOT::EG
 		     
                      CoarseNuCCHelpers

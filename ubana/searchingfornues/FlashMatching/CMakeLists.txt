@@ -33,8 +33,6 @@ art_make(
                         
                         Boost::filesystem
                         ROOT::Geom
-                        ${ROOT_BASIC_LIB_LIST}
-                        ${ROOT_GENVECTOR}
 	  TOOL_LIBRARIES
 			larevt_CalibrationDBI_IOVData
 			ubevt_Utilities	
@@ -67,8 +65,6 @@ art_make(
                         
                         Boost::filesystem
                         ROOT::Geom
-                        ${ROOT_BASIC_LIB_LIST}
-                        ${ROOT_GENVECTOR}
                         ubreco_SelectionTool_OpT0FinderBase
                         ubreco_SelectionTool_OpT0FinderAlgorithms
 
@@ -93,7 +89,6 @@ art_make(
                         
                         cetlib::cetlib cetlib_except::cetlib_except
                         
-                        ${ROOT_BASIC_LIB_LIST}
 		   	art::Framework_Services_Registry
                         	
                         ubreco_SelectionTool_OpT0FinderBase

@@ -31,7 +31,6 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          Boost::filesystem
                          
                          CLHEP::CLHEP
-                         ${ROOT_BASIC_LIB_LIST}
                          ROOT::EG
                          ubreco_ShowerReco_ProximityClustering_Algorithms
                          uboonecode_uboone_XGBoost

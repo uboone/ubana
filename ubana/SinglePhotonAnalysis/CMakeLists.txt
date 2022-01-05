@@ -36,7 +36,6 @@ art_make( BASENAME_ONLY
                         fhiclcpp::fhiclcpp
 			cetlib::cetlib cetlib_except
                         CLHEP::CLHEP
-                        ${ROOT_BASIC_LIB_LIST}
                         ROOT::Geom 
           MODULE_LIBRARIES
             ubraw_RawData
@@ -71,7 +70,6 @@ art_make( BASENAME_ONLY
                         fhiclcpp::fhiclcpp
 			cetlib::cetlib cetlib_except
                         CLHEP::CLHEP
-                        ${ROOT_BASIC_LIB_LIST}
                         ROOT::Geom )
                       
 add_subdirectory(SEAview)

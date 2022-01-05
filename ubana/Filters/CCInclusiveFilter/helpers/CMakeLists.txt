@@ -27,7 +27,6 @@ art_make(
 	                    fhiclcpp::fhiclcpp
 			            cetlib::cetlib cetlib_except
                         
-                        ${ROOT_BASIC_LIB_LIST}
           )
           
 install_headers()

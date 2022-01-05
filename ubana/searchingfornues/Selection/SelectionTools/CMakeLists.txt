@@ -27,7 +27,6 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          Boost::filesystem
                          
                          CLHEP::CLHEP
-                         ${ROOT_BASIC_LIB_LIST}
                          ROOT::EG
         )
 

@@ -30,8 +30,7 @@ art_make_library(LIBRARY_NAME TreeInterface
 		      cetlib::cetlib cetlib_except
 		      #messagefacility::MF_MessageLogger
 		      CLHEP::CLHEP
-                      ${ROOT_BASIC_LIB_LIST}
-                      
+                      ROOT::Tree
 	        ) 
 
 art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
@@ -54,8 +53,6 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
                         fhiclcpp::fhiclcpp
 			cetlib::cetlib cetlib_except
                         
-                        ${ROOT_BASIC_LIB_LIST}
-
           MODULE_LIBRARIES 
 	  		TreeReader
 	  		TreeInterface
@@ -83,8 +80,6 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
                         
                         fhiclcpp::fhiclcpp
 			cetlib::cetlib cetlib_except
-                        
-                        ${ROOT_BASIC_LIB_LIST}
         )                                                           
 
 install_headers()

@@ -1,8 +1,3 @@
-# define ROOTLIB
-set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -lMinuit -pthread -lm -ldl)
-
-link_libraries( ${LIB_NAME} ${ROOTLIB} )
-
 art_make( BASENAME_ONLY
     	    LIBRARY_NAME     HitCosmicTag_Algorithms
 	        LIB_LIBRARIES
@@ -16,6 +11,7 @@ art_make( BASENAME_ONLY
      		                   art::Persistency_Common
                            art::Persistency_Provenance
                            art::Utilities
+                           ROOT::Physics
                            fhiclcpp::fhiclcpp
                            cetlib::cetlib
                            cetlib_except::cetlib_except
