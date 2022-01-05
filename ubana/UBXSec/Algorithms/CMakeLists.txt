@@ -7,7 +7,7 @@ cet_enable_asserts()
 # define ROOTLIB
 set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl)
 
-link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
+link_libraries( ${LIB_NAME} ${ROOTLIB} )
 
 set( hitfinder_tool_lib_list
                         larcorealg_Geometry

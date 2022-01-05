@@ -1,5 +1,5 @@
 set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore  -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl)
-link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} ${ROOTLIB} )
+link_libraries( ${LIB_NAME} ${ROOTLIB} )
 art_make( BASENAME_ONLY
    	  LIBRARY_NAME     ubana_SelectionTool_OpT0FinderBase
 	  LIB_LIBRARIES
@@ -26,7 +26,6 @@ art_make( BASENAME_ONLY
         
         cetlib::cetlib
         CLHEP::CLHEP
-        ${BOOST_LIB}
         ubcore::ubana_BasicTool_GeoAlgo
         fhiclcpp::fhiclcpp
         cetlib::cetlib cetlib_except

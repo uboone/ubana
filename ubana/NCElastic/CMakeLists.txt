@@ -1,4 +1,4 @@
-link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB})
+link_libraries( ${LIB_NAME} ${ROOTLIB})
 
 art_make(BASENAME_ONLY
          LIBRARY_NAME uboonecode_uboone_NCElastic

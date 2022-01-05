@@ -16,7 +16,6 @@ art_make(
                         art::Persistency_Provenance
                         art::Utilities canvas::canvas
 			messagefacility::MF_MessageLogger
-                        ${BOOST_LIB}
                         fhiclcpp::fhiclcpp
                         cetlib::cetlib cetlib_except
 

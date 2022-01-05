@@ -3,7 +3,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 # define ROOTLIB
 set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl)
 
-link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB})
+link_libraries( ${LIB_NAME} ${ROOTLIB})
 
 art_make( BASENAME_ONLY
   LIBRARY_NAME ubana_ParticleID
