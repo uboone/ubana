@@ -6,14 +6,13 @@ file(GLOB INTERFACEFILES *Interface* )
 simple_plugin( TreeReader
                "source"
 	       TreeReader
-               ${ART_FRAMEWORK_PERSISTENCY_COMMON}
                BASENAME_ONLY
              )
 
 art_make_library(LIBRARY_NAME TreeInterface 
                  SOURCE	      ${INTERFACEFILES}
                  LIBRARIES
-		 nusimdata_SimulationBase
+		 nusimdata::SimulationBase
 #GENIE STUFF########################################
 			xml2
 			 log4cpp::log4cpp
@@ -27,48 +26,47 @@ art_make_library(LIBRARY_NAME TreeInterface
                  	 ${DK2NUGENIE}
 			log4cpp::log4cpp
 ####################################################
-		#$(CETLIB)
-		      ${FHICLCPP}
-		      cetlib cetlib_except
-		      #${MF_MESSAGELOGGER}
+		      fhiclcpp::fhiclcpp
+		      cetlib::cetlib cetlib_except
+		      #messagefacility::MF_MessageLogger
 		      CLHEP::CLHEP
                       ${ROOT_BASIC_LIB_LIST}
-                      ${Boost_SYSTEM_LIBRARY}
+                      
 	        ) 
 
 art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
 	  BASENAME_ONLY
           LIBRARY_NAME TreeReader
-          LIB_LIBRARIES	nusimdata_SimulationBase
+          LIB_LIBRARIES	nusimdata::SimulationBase
 	  		TreeInterface
 			larcoreobj_SummaryData
-	  		${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_IO_SOURCES}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-			${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-			${ART_ROOT_IO_TFILESERVICE_SERVICE}
-		      art_Persistency_Common canvas 
-                      art_Persistency_Provenance canvas 
-                      art_Utilities canvas
-			${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
-                        ${FHICLCPP}
-			cetlib cetlib_except
-                        ${Boost_SYSTEM_LIBRARY}
+	  		art::Framework_Core
+                        art::Framework_IO_Sources
+                        art::Framework_Principal
+                        art::Framework_Services_Registry
+			art_root_io::tfile_support ROOT::Core
+			art_root_io::TFileService_service
+		      art::Persistency_Common canvas 
+                      art::Persistency_Provenance canvas 
+                      art::Utilities canvas
+			messagefacility::MF_MessageLogger
+                        
+                        fhiclcpp::fhiclcpp
+			cetlib::cetlib cetlib_except
+                        
                         ${ROOT_BASIC_LIB_LIST}
 
           MODULE_LIBRARIES 
 	  		TreeReader
 	  		TreeInterface
-                        nusimdata_SimulationBase
+                        nusimdata::SimulationBase
 			larcoreobj_SummaryData
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_IO_SOURCES}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-			${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-			${ART_ROOT_IO_TFILESERVICE_SERVICE}
+                        art::Framework_Core
+                        art::Framework_IO_Sources
+                        art::Framework_Principal
+                        art::Framework_Services_Registry
+			art_root_io::tfile_support ROOT::Core
+			art_root_io::TFileService_service
 #GENIE STUFF########################################
 			xml2
 			GENIE::GFwEG
@@ -81,11 +79,11 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
 			${DK2NUGENIE}
 			log4cpp::log4cpp
 ####################################################
-                        ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
-                        ${FHICLCPP}
-			cetlib cetlib_except
-                        ${Boost_SYSTEM_LIBRARY}
+                        messagefacility::MF_MessageLogger
+                        
+                        fhiclcpp::fhiclcpp
+			cetlib::cetlib cetlib_except
+                        
                         ${ROOT_BASIC_LIB_LIST}
         )                                                           
 

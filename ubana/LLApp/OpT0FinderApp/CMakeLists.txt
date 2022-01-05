@@ -19,8 +19,6 @@ art_make( BASENAME_ONLY
                    lardataobj_AnalysisBase
                    lardata_Utilities
                    larpandora_LArPandoraInterface
-                   ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
 		   art::Framework_Core
 		   art::Framework_Principal
 
@@ -55,8 +53,6 @@ art_make( BASENAME_ONLY
                    lardata_Utilities
                    larsim_Simulation lardataobj_Simulation
                    nusimdata::SimulationBase
-		   ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
 		   art::Framework_Core
 		   art::Framework_Principal
 

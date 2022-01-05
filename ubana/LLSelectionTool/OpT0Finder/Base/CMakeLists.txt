@@ -6,7 +6,7 @@ art_make( BASENAME_ONLY
 	    larcorealg_Geometry
 	    larcore_Geometry_Geometry_service
             lardataalg_DetectorInfo
-        art_Framework_Core
+        art::Framework_Core
         art::Framework_Services_Registry
         art::Framework_Principal
         art::Persistency_Provenance

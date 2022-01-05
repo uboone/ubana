@@ -16,7 +16,6 @@ art_make(BASENAME_ONLY
 		     art::Framework_Services_Registry
 		     art_root_io::tfile_support ROOT::Core
 		     art_root_io::TFileService_service
-		     ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
 		     art::Utilities canvas::canvas
 		     messagefacility::MF_MessageLogger
 
@@ -37,7 +36,6 @@ art_make(BASENAME_ONLY
 		     art::Framework_Services_Registry
 		     art_root_io::tfile_support ROOT::Core
 		     art_root_io::TFileService_service
-		     ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
 		     art::Utilities canvas::canvas
 		     messagefacility::MF_MessageLogger
 

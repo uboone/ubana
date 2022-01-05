@@ -9,22 +9,20 @@ art_make(BASENAME_ONLY
 		     larcorealg_Geometry
 		     larcore_Geometry_Geometry_service
 		     lardata_Utilities
-		     art_Persistency_Common canvas
-		     art_Persistency_Provenance canvas
-		     ${ART_FRAMEWORK_CORE}
-		     ${ART_FRAMEWORK_PRINCIPAL}
-		     ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		     ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		     ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		     ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
-		     art_Utilities canvas
-		     ${MF_MESSAGELOGGER}
-		     ${MF_UTILITIES}
-		     ${FHICLCPP}
-		     ${CETLIB}
+		     art::Persistency_Common canvas
+		     art::Persistency_Provenance canvas
+		     art::Framework_Core
+		     art::Framework_Principal
+		     art::Framework_Services_Registry
+		     
+		     art::Utilities canvas
+		     messagefacility::MF_MessageLogger
+		     
+		     fhiclcpp::fhiclcpp
+		     cetlib::cetlib
 		     ${ROOT_BASIC_LIB_LIST}
-                     ${ROOT_EG}
-		     ${Boost_SYSTEM_LIBRARY}
+                     ROOT::EG
+		     
 	MODULE_LIBRARIES
 		     lardataobj_RecoBase
 		     lardataobj_AnalysisBase
@@ -33,22 +31,20 @@ art_make(BASENAME_ONLY
 		     lardata_Utilities
          uboonecode_uboone_UBXSec_Algorithms
          ubobj_UBXSec
-		     art_Persistency_Common canvas
-		     art_Persistency_Provenance canvas
-		     ${ART_FRAMEWORK_CORE}
-		     ${ART_FRAMEWORK_PRINCIPAL}
-		     ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		     ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		     ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		     ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
-		     art_Utilities canvas
-		     ${MF_MESSAGELOGGER}
-		     ${MF_UTILITIES}
-		     ${FHICLCPP}
-		     ${CETLIB}
+		     art::Persistency_Common canvas
+		     art::Persistency_Provenance canvas
+		     art::Framework_Core
+		     art::Framework_Principal
+		     art::Framework_Services_Registry
+		     
+		     art::Utilities canvas
+		     messagefacility::MF_MessageLogger
+		     
+		     fhiclcpp::fhiclcpp
+		     cetlib::cetlib
 		     ${ROOT_BASIC_LIB_LIST}
-                     ${ROOT_EG}
-		     ${Boost_SYSTEM_LIBRARY}
+                     ROOT::EG
+		     
                      CoarseNuCCHelpers
          )
 

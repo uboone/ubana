@@ -2,12 +2,10 @@ cet_enable_asserts()
 
 include_directories( $ENV{EIGEN_INC} )
 
-link_libraries( -L$ENV{LARRECO_LIB} larreco_RecoAlg )
-
 art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          lardataobj_Simulation
                          lardataobj_MCBase
-                         nusimdata_SimulationBase
+                         nusimdata::SimulationBase
                          larcorealg_Geometry
                          larcore_Geometry_Geometry_service
                          larpandora_LArPandoraInterface
@@ -15,34 +13,30 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          lardata_Utilities
 			 larreco_RecoAlg
                          larsim_EventWeight_Base
-                         ${ART_FRAMEWORK_CORE}
-                         ${ART_FRAMEWORK_PRINCIPAL}
-                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                         ${ART_FRAMEWORK_SERVICES_BASIC}
-                         ${ART_FRAMEWORK_SERVICES_SYSTEM}
-                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                         art_Persistency_Common
-                         art_Persistency_Provenance
-                         art_Utilities
-                         canvas
+                         art::Framework_Core
+                         art::Framework_Principal
+                         art::Framework_Services_Registry
+                         
+                         art::Framework_Services_Optional_RandomNumberGenerator_service
+                         art::Persistency_Common
+                         art::Persistency_Provenance
+                         art::Utilities
+                         canvas::canvas
 			 hep_concurrency
-                         ${MF_MESSAGELOGGER}
-                         ${MF_UTILITIES}
-                         ${FHICLCPP}
-                         ${CETLIB}
-                         cetlib_except
-                         ${Boost_FILESYSTEM_LIBRARY}
-                         ${Boost_SYSTEM_LIBRARY}
+                         messagefacility::MF_MessageLogger
+                         
+                         fhiclcpp::fhiclcpp
+                         cetlib::cetlib
+                         cetlib_except::cetlib_except
+                         Boost::filesystem
+                         
                          CLHEP::CLHEP
                          ${ROOT_BASIC_LIB_LIST}
-                         ${ROOT_EG}
-                         ${ROOT_MINUIT}
+                         ROOT::EG
                          ubreco_ShowerReco_ProximityClustering_Algorithms
                          uboonecode_uboone_XGBoost
-                         art_Persistency_Common
-                         art_Framework_Services_System_TriggerNamesService_service
+                         art::Persistency_Common
+                         art::Framework_Services_System_TriggerNamesService_service
         )
 
 install_headers()

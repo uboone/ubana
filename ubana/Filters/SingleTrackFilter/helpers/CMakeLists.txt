@@ -11,22 +11,20 @@ art_make(
                         lardataobj_RecoBase
                         lardataobj_AnalysisBase
                         lardata_Utilities
-                        nusimdata_SimulationBase
-                        ${ART_FRAMEWORK_CORE}
-			            ${ART_FRAMEWORK_PRINCIPAL}
-			            ${ART_FRAMEWORK_SERVICES_REGISTRY}
-			            ${ART_FRAMEWORK_SERVICES_BASIC}
-			            ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-			            ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-			            art_Framework_Services_Registry
-			            art_Persistency_Common
-			            art_Persistency_Provenance
-			            art_Utilities
-                        canvas
-			            ${MF_MESSAGELOGGER}
-	                    ${FHICLCPP}
-			            cetlib cetlib_except
-                        ${Boost_SYSTEM_LIBRARY}
+                        nusimdata::SimulationBase
+                        art::Framework_Core
+			            art::Framework_Principal
+			            art::Framework_Services_Registry
+			            
+			            art::Framework_Services_Registry
+			            art::Persistency_Common
+			            art::Persistency_Provenance
+			            art::Utilities
+                        canvas::canvas
+			            messagefacility::MF_MessageLogger
+	                    fhiclcpp::fhiclcpp
+			            cetlib::cetlib cetlib_except
+                        
                         ${ROOT_BASIC_LIB_LIST}
           )
           

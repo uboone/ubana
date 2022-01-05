@@ -64,8 +64,6 @@ art_make( BASENAME_ONLY
                    PANDORASDK
                    PANDORAMONITORING
                    #larpandora_LArPandoraContent
-                   ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
 		   art::Framework_Core
 		   art::Framework_Principal
 		   art::Framework_Services_Registry

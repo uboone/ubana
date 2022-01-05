@@ -44,8 +44,6 @@ art_make(BASENAME_ONLY
 		       art::Persistency_Common canvas::canvas
 		       art::Persistency_Provenance canvas::canvas
 		       art::Utilities canvas::canvas
-		       ${UBOONECODE_LIB}
-		       ${LARDATA_LIB}
 		       art::Framework_Core
 		       art::Framework_Principal
 		       art::Framework_Services_Registry

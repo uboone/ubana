@@ -31,31 +31,27 @@ art_make( BASENAME_ONLY
   lardataobj_Simulation
   lardata_Utilities
   larpandora_LArPandoraInterface
-  nusimdata_SimulationBase
+  nusimdata::SimulationBase
   PANDORASDK
   PANDORAMONITORING
-  ${UBOONECODE_LIB}
-  ${LARDATA_LIB}
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_BASIC}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-  art_Persistency_Common canvas
-  art_Persistency_Provenance canvas
-  art_Utilities canvas
-  ${ART_PERSISTENCY_COMMON}
-  ${ART_PERSISTENCY_PROVENANCE}
-  ${ART_UTILITIES}
-  ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
-  ${FHICLCPP}
-  ${CETLIB}
-  cetlib cetlib_except
-  ${ROOT_GEOM}
-  ${ROOT_XMLIO}
-  ${ROOT_GDML}
+  art::Framework_Core
+  art::Framework_Principal
+  art::Framework_Services_Registry
+  
+  art::Persistency_Common canvas
+  art::Persistency_Provenance canvas
+  art::Utilities canvas
+  art::Persistency_Common
+  art::Persistency_Provenance
+  art::Utilities
+  messagefacility::MF_MessageLogger
+  
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  cetlib::cetlib cetlib_except
+  ROOT::Geom
+  ROOT::XMLIO
+  ROOT::Gdml
   ${ROOT_BASIC_LIB_LIST}
 
   MODULE_LIBRARIES
@@ -80,25 +76,21 @@ art_make( BASENAME_ONLY
   lardata_Utilities
   larana_ParticleIdentification
   larsim_Simulation lardataobj_Simulation 
-  nusimdata_SimulationBase
-  ${UBOONECODE_LIB}
-  ${LARDATA_LIB}
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_BASIC}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-  ${ART_PERSISTENCY_COMMON}
-  ${ART_PERSISTENCY_PROVENANCE}
-  ${ART_UTILITIES}
-  ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
-  ${FHICLCPP}
-  ${CETLIB}
-  ${ROOT_GEOM}
-  ${ROOT_XMLIO}
-  ${ROOT_GDML}
+  nusimdata::SimulationBase
+  art::Framework_Core
+  art::Framework_Principal
+  art::Framework_Services_Registry
+  
+  art::Persistency_Common
+  art::Persistency_Provenance
+  art::Utilities
+  messagefacility::MF_MessageLogger
+  
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  ROOT::Geom
+  ROOT::XMLIO
+  ROOT::Gdml
   ${ROOT_BASIC_LIB_LIST}
   )
 

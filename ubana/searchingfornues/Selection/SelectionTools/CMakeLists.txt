@@ -1,39 +1,34 @@
 cet_enable_asserts()
 
-link_libraries( -L$ENV{LARRECO_LIB} larreco_RecoAlg )
-
 art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          lardataobj_Simulation
                          lardataobj_MCBase
-                         nusimdata_SimulationBase
+                         nusimdata::SimulationBase
                          larcorealg_Geometry
                          larcore_Geometry_Geometry_service
                          lardata_RecoObjects
                          lardata_Utilities
                          larreco_RecoAlg
                          larpandora_LArPandoraInterface
-                         ${ART_FRAMEWORK_CORE}
-                         ${ART_FRAMEWORK_PRINCIPAL}
-                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                         ${ART_FRAMEWORK_SERVICES_BASIC}
-                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                         art_Persistency_Common
-                         art_Persistency_Provenance
-                         art_Utilities
-                         canvas
-                         ${MF_MESSAGELOGGER}
-                         ${MF_UTILITIES}
-                         ${FHICLCPP}
-                         ${CETLIB}
-                         cetlib_except
-                         ${Boost_FILESYSTEM_LIBRARY}
-                         ${Boost_SYSTEM_LIBRARY}
+                         art::Framework_Core
+                         art::Framework_Principal
+                         art::Framework_Services_Registry
+                         
+                         art::Framework_Services_Optional_RandomNumberGenerator_service
+                         art::Persistency_Common
+                         art::Persistency_Provenance
+                         art::Utilities
+                         canvas::canvas
+                         messagefacility::MF_MessageLogger
+                         
+                         fhiclcpp::fhiclcpp
+                         cetlib::cetlib
+                         cetlib_except::cetlib_except
+                         Boost::filesystem
+                         
                          CLHEP::CLHEP
                          ${ROOT_BASIC_LIB_LIST}
-                         ${ROOT_EG}
-                         ${ROOT_MINUIT}
+                         ROOT::EG
         )
 
 install_headers()

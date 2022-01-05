@@ -36,33 +36,29 @@ art_make( BASENAME_ONLY
                    lardataobj_AnalysisBase
                    lardata_Utilities
                    larpandora_LArPandoraInterface
-                   nusimdata_SimulationBase
+                   nusimdata::SimulationBase
                    PANDORASDK
                    PANDORAMONITORING
                    #larpandora_LArPandoraContent
-                   ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
-		   ${ART_FRAMEWORK_CORE}
-		   ${ART_FRAMEWORK_PRINCIPAL}
-                   ${ART_FRAMEWORK_BASIC}
-		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                   art_Persistency_Common canvas
-                   art_Persistency_Provenance canvas
-                   art_Utilities canvas
-                   ${ART_PERSISTENCY_COMMON}
-		   ${ART_PERSISTENCY_PROVENANCE}
-		   ${ART_UTILITIES}
-		   ${MF_MESSAGELOGGER}
+		   art::Framework_Core
+		   art::Framework_Principal
+		   art::Framework_Services_Registry
 		   
-		   ${FHICLCPP}
-		   cetlib cetlib_except
-		   ${ROOT_GEOM}
-		   ${ROOT_XMLIO}
-		   ${ROOT_GDML}
+                   art::Persistency_Common canvas
+                   art::Persistency_Provenance canvas
+                   art::Utilities canvas
+                   art::Persistency_Common
+		   art::Persistency_Provenance
+		   art::Utilities
+		   messagefacility::MF_MessageLogger
+		   
+		   fhiclcpp::fhiclcpp
+		   cetlib::cetlib cetlib_except
+		   ROOT::Geom
+		   ROOT::XMLIO
+		   ROOT::Gdml
 		   ${ROOT_BASIC_LIB_LIST}
-                   ${ROOT_EG}
+                   ROOT::EG
 
           MODULE_LIBRARIES
                    uboonecode_uboone_UBXSec_Algorithms
@@ -91,27 +87,23 @@ art_make( BASENAME_ONLY
                    lardataobj_AnalysisBase
                    lardata_Utilities
                    larsim_Simulation lardataobj_Simulation 
-                   nusimdata_SimulationBase
-		   ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
-		   ${ART_FRAMEWORK_CORE}
-		   ${ART_FRAMEWORK_PRINCIPAL}
-                   ${ART_FRAMEWORK_BASIC}
-		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		   ${ART_PERSISTENCY_COMMON}
-		   ${ART_PERSISTENCY_PROVENANCE}
-		   ${ART_UTILITIES}
-		   ${MF_MESSAGELOGGER}
+                   nusimdata::SimulationBase
+		   art::Framework_Core
+		   art::Framework_Principal
+		   art::Framework_Services_Registry
 		   
-		   ${FHICLCPP}
-		   cetlib cetlib_except
-		   ${ROOT_GEOM}
-		   ${ROOT_XMLIO}
-		   ${ROOT_GDML}
+		   art::Persistency_Common
+		   art::Persistency_Provenance
+		   art::Utilities
+		   messagefacility::MF_MessageLogger
+		   
+		   fhiclcpp::fhiclcpp
+		   cetlib::cetlib cetlib_except
+		   ROOT::Geom
+		   ROOT::XMLIO
+		   ROOT::Gdml
 		   ${ROOT_BASIC_LIB_LIST}
-                   ${ROOT_EG}
+                   ROOT::EG
                    )
 
 

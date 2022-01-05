@@ -16,8 +16,6 @@ art_make( LIB_LIBRARIES lardataobj_RecoBase
                         Boost::filesystem
 
                         CLHEP::CLHEP
-
-                        ${ROOT_MINUIT}
         )
 
 install_headers()

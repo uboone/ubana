@@ -7,7 +7,7 @@ art_make(BASENAME_ONLY
 		larcorealg_Geometry
     larcore_Geometry_Geometry_service
 		lardata_Utilities
-		${SIMULATIONBASE}
+		nusimdata::SimulationBase
 		messagefacility::MF_MessageLogger
 		
 		fhiclcpp::fhiclcpp

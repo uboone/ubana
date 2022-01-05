@@ -8,7 +8,6 @@ art_make(
 			lardataobj_RecoBase
                         art::Framework_Core
 			art_root_io::art_root_io
-			${ART_FRAMEWORK_MODULES}
                         art::Framework_Principal
                         art::Framework_Services_Registry
                         art_root_io::tfile_support ROOT::Core
