@@ -13,9 +13,10 @@ art_make(BASENAME_ONLY
 			     larpandora_LArPandoraInterface
            larsim_Simulation lardataobj_Simulation
            nusimdata::SimulationBase
-		       art::Persistency_Common canvas::canvas
-		       art::Persistency_Provenance canvas::canvas
-		       art::Utilities canvas::canvas
+		       art::Persistency_Common
+		       art::Persistency_Provenance
+		       art::Utilities
+                       canvas::canvas
 		       art::Framework_Core
 		       art::Framework_Principal
 		       art::Framework_Services_Registry
@@ -41,9 +42,10 @@ art_make(BASENAME_ONLY
 			     larpandora_LArPandoraInterface
            larsim_Simulation lardataobj_Simulation
            nusimdata::SimulationBase
-		       art::Persistency_Common canvas::canvas
-		       art::Persistency_Provenance canvas::canvas
-		       art::Utilities canvas::canvas
+		       art::Persistency_Common
+		       art::Persistency_Provenance
+		       art::Utilities
+                       canvas::canvas
 		       art::Framework_Core
 		       art::Framework_Principal
 		       art::Framework_Services_Registry

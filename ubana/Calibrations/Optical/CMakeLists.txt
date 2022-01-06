@@ -16,9 +16,10 @@ art_make( LIBRARY_NAME SPEcalibrationCode
                art::Framework_Services_Registry
                art_root_io::tfile_support ROOT::Core
                art_root_io::TFileService_service
-               art::Persistency_Common canvas::canvas
-               art::Persistency_Provenance canvas::canvas
-               art::Utilities canvas::canvas
+               art::Persistency_Common
+               art::Persistency_Provenance
+               art::Utilities
+               canvas::canvas
 
                BASENAME_ONLY
         )
@@ -35,9 +36,10 @@ simple_plugin( SPEcalibration "module"
                art::Framework_Services_Registry
                art_root_io::tfile_support ROOT::Core
                art_root_io::TFileService_service
-               art::Persistency_Common canvas::canvas
-               art::Persistency_Provenance canvas::canvas
-               art::Utilities canvas::canvas
+               art::Persistency_Common
+               art::Persistency_Provenance
+               art::Utilities
+               canvas::canvas
                ROOT::Tree
                BASENAME_ONLY
              )
@@ -53,9 +55,10 @@ simple_plugin( FEMemulator "module"
                art::Framework_Services_Registry
                art_root_io::tfile_support ROOT::Core
                art_root_io::TFileService_service
-               art::Persistency_Common canvas::canvas
-               art::Persistency_Provenance canvas::canvas
-               art::Utilities canvas::canvas
+               art::Persistency_Common
+               art::Persistency_Provenance
+               art::Utilities
+               canvas::canvas
                ROOT::Tree
                BASENAME_ONLY
              )

@@ -27,11 +27,9 @@ art_make( BASENAME_ONLY
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry
-  #art::Persistency_Common canvas_Persistency_Common
-  #art::Persistency_Provenance canvas_Persistency_Provenance
-  #art::Utilities canvas_Utilities
-  art::Persistency_Common canvas
-  art::Utilities canvas
+  art::Persistency_Common
+  art::Utilities
+  canvas::canvas
   messagefacility::MF_MessageLogger
   fhiclcpp::fhiclcpp
   cetlib::cetlib

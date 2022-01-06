@@ -15,7 +15,6 @@ art_make(
                         art::Framework_Core
 			            art::Framework_Principal
 			            art::Framework_Services_Registry
-			            art::Framework_Services_Registry
 			            art::Persistency_Common
 			            art::Persistency_Provenance
 			            art::Utilities

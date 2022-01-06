@@ -9,14 +9,15 @@ art_make(BASENAME_ONLY
 		     larcorealg_Geometry
 		     larcore_Geometry_Geometry_service
 		     lardata_Utilities
-		     art::Persistency_Common canvas::canvas
-		     art::Persistency_Provenance canvas::canvas
+		     art::Persistency_Common
+		     art::Persistency_Provenance
 		     art::Framework_Core
 		     art::Framework_Principal
 		     art::Framework_Services_Registry
 		     art_root_io::tfile_support ROOT::Core
 		     art_root_io::TFileService_service
-		     art::Utilities canvas::canvas
+		     art::Utilities
+                     canvas::canvas
 		     messagefacility::MF_MessageLogger
 		     
 		     fhiclcpp::fhiclcpp
@@ -31,14 +32,15 @@ art_make(BASENAME_ONLY
 		     lardata_Utilities
          uboonecode_uboone_UBXSec_Algorithms
          ubobj_UBXSec
-		     art::Persistency_Common canvas::canvas
-		     art::Persistency_Provenance canvas::canvas
+		     art::Persistency_Common
+		     art::Persistency_Provenance
 		     art::Framework_Core
 		     art::Framework_Principal
 		     art::Framework_Services_Registry
 		     art_root_io::tfile_support ROOT::Core
 		     art_root_io::TFileService_service
-		     art::Utilities canvas::canvas
+		     art::Utilities
+                     canvas::canvas
 		     messagefacility::MF_MessageLogger
 		     
 		     fhiclcpp::fhiclcpp

@@ -82,7 +82,8 @@ art_make(
                         #larpandoraobj
             		PANDORASDK
 			larcore_Geometry_Geometry_service	
-			art::Utilities canvas
+			art::Utilities
+                        canvas::canvas
                         messagefacility::MF_MessageLogger
                         cetlib::cetlib
                         cetlib_except::cetlib_except

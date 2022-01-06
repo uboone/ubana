@@ -15,17 +15,17 @@ art_make(
                         lardata_Utilities
                         nusimdata::SimulationBase
                         art::Framework_Core
-			            art::Framework_Principal
-			            art::Framework_Services_Registry
-			            art::Framework_Services_Registry
-			            art::Persistency_Common
-			            art::Persistency_Provenance
-			            art::Utilities
+                        art::Framework_Principal
+			art::Framework_Services_Registry
+			art::Framework_Services_Registry
+			art::Persistency_Common
+			art::Persistency_Provenance
+			art::Utilities
                         canvas::canvas
-			            messagefacility::MF_MessageLogger
-	                    fhiclcpp::fhiclcpp
-			            cetlib::cetlib
-                                    cetlib_except::cetlib_except
+			messagefacility::MF_MessageLogger
+	                fhiclcpp::fhiclcpp
+			cetlib::cetlib
+                        cetlib_except::cetlib_except
           )
           
 install_headers()

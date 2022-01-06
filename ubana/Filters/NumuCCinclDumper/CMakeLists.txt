@@ -47,9 +47,10 @@ art_make_library(
        lardataobj_RawData
        larcorealg_Geometry
        larcore_Geometry_Geometry_service
-       art::Persistency_Common canvas
-       art::Persistency_Provenance canvas
-       art::Utilities canvas
+       art::Persistency_Common
+       art::Persistency_Provenance
+       art::Utilities
+       canvas::canvas
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
@@ -78,9 +79,10 @@ art_make_library(
        art::Framework_Core
        art::Framework_IO_Sources
        art::Framework_Principal
-       art::Persistency_Common canvas
-       art::Persistency_Provenance canvas
-       art::Utilities canvas
+       art::Persistency_Common
+       art::Persistency_Provenance
+       art::Utilities
+       canvas::canvas
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities

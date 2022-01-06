@@ -20,9 +20,10 @@ simple_plugin( CellTreeUB "module"
                art::Framework_Services_Registry
                art_root_io::tfile_support ROOT::Core
                art_root_io::TFileService_service
-               art::Persistency_Common canvas::canvas
-               art::Persistency_Provenance canvas::canvas
-               art::Utilities canvas::canvas
+               art::Persistency_Common
+               art::Persistency_Provenance
+               art::Utilities
+               canvas::canvas
 	       messagefacility::MF_MessageLogger
 
                BASENAME_ONLY
@@ -142,9 +143,10 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
                         art::Framework_Services_Registry
                         art_root_io::tfile_support ROOT::Core
                         art_root_io::TFileService_service
-                        art::Persistency_Common canvas::canvas
-                        art::Persistency_Provenance canvas::canvas
-                        art::Utilities canvas::canvas
+                        art::Persistency_Common
+                        art::Persistency_Provenance
+                        art::Utilities
+                        canvas::canvas
                         messagefacility::MF_MessageLogger
                         fhiclcpp::fhiclcpp
                         cetlib::cetlib
@@ -178,9 +180,10 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
                         art::Framework_Services_Registry
                         art_root_io::tfile_support ROOT::Core
                         art_root_io::TFileService_service
-                        art::Persistency_Common canvas::canvas
-                        art::Persistency_Provenance canvas::canvas
-                        art::Utilities canvas::canvas
+                        art::Persistency_Common
+                        art::Persistency_Provenance
+                        art::Utilities
+                        canvas::canvas
                         messagefacility::MF_MessageLogger
                         fhiclcpp::fhiclcpp
                         cetlib::cetlib
@@ -193,29 +196,23 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
 	  SERVICE_LIBRARIES
 			larevt_CalibrationDBI_Providers
 			larevt_CalibrationDBI_IOVData
+                        lardataobj_RawData
+                        larcorealg_Geometry
+			larcore_Geometry_Geometry_service
 			ubevt_Database
+                        art::Framework_Core
 			art::Framework_Principal
                         art::Framework_Services_Registry
-                        art::Persistency_Common canvas::canvas
-                        art::Persistency_Provenance canvas::canvas
-                        art_root_io::tfile_support ROOT::Core
+                        art::Persistency_Common
+                        art::Persistency_Provenance
+                        art_root_io::TFileService_service
+                        art_root_io::tfile_support
                         art::Framework_Services_Optional_RandomNumberGenerator_service
                         art_root_io::TFileService_service
-                        art::Utilities canvas::canvas
-                              larevt_CalibrationDBI_IOVData
-                              lardataobj_RawData
-                              larcorealg_Geometry
-			      larcore_Geometry_Geometry_service
-                              art::Framework_Services_Registry
-                              art::Framework_Core
-                              art::Framework_Principal
-                              art_root_io::tfile_support ROOT::Core
-                              art_root_io::TFileService_service
-                              art::Persistency_Common canvas::canvas
-                              art::Persistency_Provenance canvas::canvas
-                              art::Utilities canvas::canvas
-                              fhiclcpp::fhiclcpp
-
+                        art::Utilities
+                        canvas::canvas
+                        fhiclcpp::fhiclcpp
+                        ROOT::Core
 )
 
 install_headers()

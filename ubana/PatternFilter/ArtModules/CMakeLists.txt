@@ -14,7 +14,8 @@ art_make(
                         art_root_io::TFileService_service
                         art::Persistency_Common
                         art::Persistency_Provenance
-                        art::Utilities canvas::canvas
+                        art::Utilities
+                        canvas::canvas
 			messagefacility::MF_MessageLogger
                         fhiclcpp::fhiclcpp
                         cetlib::cetlib
@@ -25,12 +26,3 @@ art_make(
 install_headers()
 install_source()
 install_fhicl()
-
-# Libraries I didn't need
-#			ub_RawDigitAdderAna
-#
-#			art::Framework_IO_Sources
-#                        art::Persistency_Provenance canvas::canvas
-#                        messagefacility::MF_MessageLogger
-#
-#

@@ -25,9 +25,10 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 			               art::Framework_Services_Registry
 			               art_root_io::tfile_support ROOT::Core
 			               art_root_io::TFileService_service
-			               art::Persistency_Common canvas::canvas
-			               art::Persistency_Provenance canvas::canvas
-			               art::Utilities canvas::canvas
+			               art::Persistency_Common
+			               art::Persistency_Provenance
+			               art::Utilities
+                                       canvas::canvas
 			               messagefacility::MF_MessageLogger
 
 	                       fhiclcpp::fhiclcpp

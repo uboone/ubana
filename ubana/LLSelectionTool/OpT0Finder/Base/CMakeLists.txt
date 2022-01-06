@@ -10,7 +10,6 @@ art_make( BASENAME_ONLY
         art::Persistency_Provenance
         art::Utilities
         canvas::canvas
-        art::Utilities canvas::canvas
         art::Framework_Core
         art::Framework_IO_Sources
         art::Framework_Principal
