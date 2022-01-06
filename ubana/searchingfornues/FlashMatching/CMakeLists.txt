@@ -28,7 +28,8 @@ art_make(
                         canvas::canvas
                         messagefacility::MF_MessageLogger
                         fhiclcpp::fhiclcpp
-                        cetlib::cetlib cetlib_except
+                        cetlib::cetlib
+                        cetlib_except::cetlib_except
                         Boost::filesystem
                         ROOT::Geom
 	  TOOL_LIBRARIES
@@ -58,7 +59,8 @@ art_make(
                         canvas::canvas
                         messagefacility::MF_MessageLogger
                         fhiclcpp::fhiclcpp
-                        cetlib::cetlib cetlib_except
+                        cetlib::cetlib
+                        cetlib_except::cetlib_except
                         Boost::filesystem
                         ROOT::Geom
                         ubreco_SelectionTool_OpT0FinderBase

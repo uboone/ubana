@@ -15,7 +15,8 @@ art_make( BASENAME_ONLY
                           art::Persistency_Provenance
                           art::Utilities
                           fhiclcpp::fhiclcpp
-                          cetlib::cetlib cetlib_except
+                          cetlib::cetlib
+                          cetlib_except::cetlib_except
 	)
 
 install_headers()

@@ -11,7 +11,8 @@ art_make(BASENAME_ONLY
 		messagefacility::MF_MessageLogger
 		
 		fhiclcpp::fhiclcpp
-		cetlib::cetlib cetlib_except
+		cetlib::cetlib
+                cetlib_except::cetlib_except
 		CLHEP::CLHEP
 	MODULE_LIBRARIES
 		larreco_RecoAlg
@@ -38,7 +39,8 @@ art_make(BASENAME_ONLY
 		messagefacility::MF_MessageLogger
 		
 		fhiclcpp::fhiclcpp
-		cetlib::cetlib cetlib_except
+		cetlib::cetlib
+                cetlib_except::cetlib_except
 		CLHEP::CLHEP
 	)
 

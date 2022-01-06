@@ -25,7 +25,8 @@ art_make(
 			art::Utilities canvas::canvas
 			messagefacility::MF_MessageLogger
 	                fhiclcpp::fhiclcpp
-			cetlib::cetlib cetlib_except
+			cetlib::cetlib
+                        cetlib_except::cetlib_except
                         ROOT::Geom
                         ROOT::XMLIO
                         ROOT::Gdml

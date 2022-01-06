@@ -3,7 +3,6 @@ art_make( LIB_LIBRARIES
 				 larcorealg_Geometry
 				 lardataalg_DetectorInfo
                                  fhiclcpp::fhiclcpp
-                                 cetlib::cetlib cetlib_except
-
-
+                                 cetlib::cetlib
+                                 cetlib_except::cetlib_except
 )

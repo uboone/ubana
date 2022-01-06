@@ -236,7 +236,8 @@ art_make_library(
        ROOT::Geom
        Boost::filesystem
        
-       cetlib::cetlib cetlib_except
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 
 )
 

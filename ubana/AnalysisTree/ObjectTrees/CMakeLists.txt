@@ -26,7 +26,8 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 			               messagefacility::MF_MessageLogger
 
 	                       fhiclcpp::fhiclcpp
-			               cetlib::cetlib cetlib_except
+			               cetlib::cetlib
+                                       cetlib_except::cetlib_except
                            ROOT::Geom
                            ROOT::XMLIO
                            ROOT::Gdml
