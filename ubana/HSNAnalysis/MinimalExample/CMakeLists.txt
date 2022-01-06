@@ -13,8 +13,6 @@ art_make(BASENAME_ONLY
 		fhiclcpp::fhiclcpp
 		cetlib::cetlib cetlib_except
 		CLHEP::CLHEP
-
-		${G4_LIB_LIST}
 	MODULE_LIBRARIES
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
@@ -42,8 +40,6 @@ art_make(BASENAME_ONLY
 		fhiclcpp::fhiclcpp
 		cetlib::cetlib cetlib_except
 		CLHEP::CLHEP
-
-		${G4_LIB_LIST}
 	)
 
 install_headers()

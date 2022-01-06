@@ -28,8 +28,6 @@ art_make(BASENAME_ONLY
 		fhiclcpp::fhiclcpp
 		cetlib::cetlib cetlib_except
 		CLHEP::CLHEP
-
-		${G4_LIB_LIST}
 	)
 
 install_headers()
