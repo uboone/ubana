@@ -14,14 +14,11 @@ art_make(BASENAME_ONLY
 		     art::Framework_Core
 		     art::Framework_Principal
 		     art::Framework_Services_Registry
-		     
 		     art::Utilities canvas
 		     messagefacility::MF_MessageLogger
-		     
 		     fhiclcpp::fhiclcpp
 		     cetlib::cetlib
                      ROOT::EG
-		     
 	MODULE_LIBRARIES
 		     lardataobj_RecoBase
 		     lardataobj_AnalysisBase
@@ -35,14 +32,11 @@ art_make(BASENAME_ONLY
 		     art::Framework_Core
 		     art::Framework_Principal
 		     art::Framework_Services_Registry
-		     
 		     art::Utilities canvas
 		     messagefacility::MF_MessageLogger
-		     
 		     fhiclcpp::fhiclcpp
 		     cetlib::cetlib
                      ROOT::EG
-		     
                      CoarseNuCCHelpers
          )
 

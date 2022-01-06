@@ -24,7 +24,6 @@ art_make(
 			art::Persistency_Provenance canvas::canvas
 			art::Utilities canvas::canvas
 			messagefacility::MF_MessageLogger
-
 	                fhiclcpp::fhiclcpp
 			cetlib::cetlib cetlib_except
                         ROOT::Geom

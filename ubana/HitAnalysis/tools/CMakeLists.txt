@@ -1,4 +1,3 @@
-include_directories( $ENV{EIGEN_INC} )
 
 cet_enable_asserts()
 
@@ -22,12 +21,10 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          art::Utilities
                          canvas::canvas
                          messagefacility::MF_MessageLogger
-                         
                          fhiclcpp::fhiclcpp
                          cetlib::cetlib
                          cetlib_except::cetlib_except
                          Boost::filesystem
-
                          CLHEP::CLHEP
         )
 

@@ -1,6 +1,3 @@
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-include_directories( $ENV{PANDORA_INC} )
-include_directories( $ENV{LARPANDORACONTENT_INC} )
 
 cet_enable_asserts()
 
@@ -12,7 +9,6 @@ art_make( BASENAME_ONLY
   ubreco_SelectionTool_OpT0FinderBase
   ubreco_SelectionTool_OpT0FinderAlgorithms
   larana_ParticleIdentification
-
   larcorealg_Geometry
   larcore_Geometry_Geometry_service
   ubraw_RawData
@@ -32,7 +28,6 @@ art_make( BASENAME_ONLY
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry
-  
   art::Persistency_Common canvas
   art::Persistency_Provenance canvas
   art::Utilities canvas
@@ -40,7 +35,6 @@ art_make( BASENAME_ONLY
   art::Persistency_Provenance
   art::Utilities
   messagefacility::MF_MessageLogger
-  
   fhiclcpp::fhiclcpp
   cetlib::cetlib
   cetlib::cetlib cetlib_except
@@ -53,12 +47,10 @@ art_make( BASENAME_ONLY
   larsim_MCCheater_BackTracker_service
   larpandora_LArPandoraInterface
   #                   larpandora_LArPandoraContent
-
   ubana_BasicTool_GeoAlgo
   uboone_UBFlashFinder
   ubreco_SelectionTool_OpT0FinderBase
   ubreco_SelectionTool_OpT0FinderAlgorithms
-
   ubraw_RawData
   SignalShapingServiceMicroBooNE_service
   larevt_CalibrationDBI_IOVData
@@ -74,12 +66,10 @@ art_make( BASENAME_ONLY
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry
-  
   art::Persistency_Common
   art::Persistency_Provenance
   art::Utilities
   messagefacility::MF_MessageLogger
-  
   fhiclcpp::fhiclcpp
   cetlib::cetlib
   ROOT::Geom

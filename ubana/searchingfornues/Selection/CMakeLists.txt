@@ -1,5 +1,5 @@
-include_directories( $ENV{PANDORA_INC} )
-include_directories( $ENV{LARPANDORACONTENT_INC} )
+#include_directories( $ENV{PANDORA_INC} )
+#include_directories( $ENV{LARPANDORACONTENT_INC} )
 
 add_subdirectory(SelectionTools)
 add_subdirectory(AnalysisTools)
@@ -23,13 +23,11 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            art::Framework_Principal
                            art::Framework_Services_Registry
                            art::Framework_Services_Optional_RandomNumberGenerator_service
-                           
                            art::Persistency_Common
                            art::Persistency_Provenance
                            art::Utilities
                            canvas::canvas
                            messagefacility::MF_MessageLogger
-                           
                            fhiclcpp::fhiclcpp
                            cetlib::cetlib
                            cetlib_except::cetlib_except

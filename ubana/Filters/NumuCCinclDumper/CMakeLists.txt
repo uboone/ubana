@@ -2,10 +2,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 cet_add_compiler_flags(CXX -Wno-dynamic-exception-spec -Wno-return-type-c-linkage -Wno-undefined-var-template )
 endif()
 
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-include_directories( $ENV{PANDORA_INC} )
-include_directories( $ENV{LARPANDORACONTENT_INC} )
-
 art_make( 
           EXCLUDE
             ConsolidatedOutputAnalyserAllTracks_module.cc
@@ -30,7 +26,6 @@ art_make(
                         art::Framework_Core
 			            art::Framework_Principal
 			            art::Framework_Services_Registry
-			            
 			            art::Framework_Services_Registry
 			            art::Persistency_Common
 			            art::Persistency_Provenance
@@ -38,8 +33,8 @@ art_make(
                         canvas::canvas
 			            messagefacility::MF_MessageLogger
 	                    fhiclcpp::fhiclcpp
-			            cetlib::cetlib cetlib_except
-                        
+			            cetlib::cetlib
+                                    cetlib_except::cetlib_except
                         NuCCHelpers
           )
 
@@ -63,7 +58,8 @@ art_make_library(
        larpandora_LArPandoraInterface
        nusimdata::SimulationBase
        LArPandoraContent
-       cetlib::cetlib cetlib_except
+       cetlib::cetlib
+       cetlib_except::cetlib_except
        ROOT::Geom
 		   ROOT::XMLIO
 		   ROOT::Gdml
@@ -98,8 +94,8 @@ art_make_library(
        fhiclcpp::fhiclcpp
        ROOT::Geom
        Boost::filesystem
-       
-       cetlib::cetlib cetlib_except
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 )
 
 

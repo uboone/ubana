@@ -21,12 +21,12 @@ art_make( BASENAME_ONLY
         art::Persistency_Provenance
         art::Utilities
         messagefacility::MF_MessageLogger
-        
         cetlib::cetlib
         CLHEP::CLHEP
         ubcore::ubana_BasicTool_GeoAlgo
         fhiclcpp::fhiclcpp
-        cetlib::cetlib cetlib_except
+        cetlib::cetlib
+        cetlib_except::cetlib_except
 	)
 install_headers()
 install_source()

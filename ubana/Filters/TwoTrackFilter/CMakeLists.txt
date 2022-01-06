@@ -1,7 +1,3 @@
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-include_directories( $ENV{PANDORA_INC} )
-include_directories( $ENV{LARPANDORACONTENT_INC} )
-
 art_make( BASENAME_ONLY
           LIBRARY_NAME     NuMuCC0pi0p
           LIB_LIBRARIES
@@ -51,9 +47,9 @@ art_make( BASENAME_ONLY
 		   art::Persistency_Provenance
 		   art::Utilities
 		   messagefacility::MF_MessageLogger
-		   
 		   fhiclcpp::fhiclcpp
-		   cetlib::cetlib cetlib_except
+		   cetlib::cetlib
+                   cetlib_except::cetlib_except
 		   ROOT::Geom
 		   ROOT::XMLIO
 		   ROOT::Gdml
@@ -74,12 +70,10 @@ art_make( BASENAME_ONLY
                    larsim_MCCheater_BackTrackerService_service
 		   larpandora_LArPandoraInterface
                    #                   larpandora_LArPandoraContent
-
 		   ubana_BasicTool_GeoAlgo
 		   ubreco_SelectionTool_OpT0FinderBase
 		   ubreco_SelectionTool_OpT0FinderAlgorithms
                    uboone_UBFlashFinder
-
                    ubraw_RawData
                    larreco_RecoAlg
                    SignalShapingServiceMicroBooNE_service
@@ -95,14 +89,13 @@ art_make( BASENAME_ONLY
 		   art::Framework_Core
 		   art::Framework_Principal
 		   art::Framework_Services_Registry
-		   
 		   art::Persistency_Common
 		   art::Persistency_Provenance
 		   art::Utilities
 		   messagefacility::MF_MessageLogger
-		   
 		   fhiclcpp::fhiclcpp
-		   cetlib::cetlib cetlib_except
+		   cetlib::cetlib
+                   cetlib_except::cetlib_except
 		   ROOT::Geom
 		   ROOT::XMLIO
 		   ROOT::Gdml
@@ -137,9 +130,8 @@ art_make_library(
        fhiclcpp::fhiclcpp
        ROOT::Geom
        Boost::filesystem
-       
-       cetlib::cetlib cetlib_except
-
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 )
 
 
@@ -171,9 +163,8 @@ art_make_library(
        fhiclcpp::fhiclcpp
        ROOT::Geom
        Boost::filesystem
-       
-       cetlib::cetlib cetlib_except
-
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 )
 
 art_make_library(
@@ -182,8 +173,8 @@ art_make_library(
    SOURCE
        Topology.cxx
    LIBRARIES
-       cetlib::cetlib cetlib_except
-
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 )
 
 art_make_library(
@@ -206,8 +197,8 @@ art_make_library(
        larpandora_LArPandoraInterface
        nusimdata::SimulationBase
        LArPandoraContent
-       cetlib::cetlib cetlib_except
-
+       cetlib::cetlib
+       cetlib_except::cetlib_except
 )
 
 art_make_library(

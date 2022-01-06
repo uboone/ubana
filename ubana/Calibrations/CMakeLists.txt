@@ -46,7 +46,6 @@ art_make( BASENAME_ONLY
 			art::Persistency_Provenance canvas::canvas
 			art::Utilities canvas::canvas
 			messagefacility::MF_MessageLogger
-
 	                fhiclcpp::fhiclcpp
 			cetlib::cetlib cetlib_except
 			CLHEP::CLHEP

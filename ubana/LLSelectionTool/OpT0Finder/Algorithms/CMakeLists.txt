@@ -10,16 +10,15 @@ art_make( BASENAME_ONLY
                           ubcore::UBOpReadoutMap_service
   		          art::Framework_Core
    		          art::Framework_Principal
-
                           art::Framework_Services_Registry
    		          art_root_io::tfile_support ROOT::Core
      		          art_root_io::TFileService_service
 			  art::Persistency_Common canvas::canvas
 			  art::Persistency_Provenance canvas::canvas
 			  art::Utilities canvas::canvas
-
                           fhiclcpp::fhiclcpp
-                          cetlib::cetlib cetlib_except
+                          cetlib::cetlib
+                          cetlib_except::cetlib_except
 	)
 
 install_headers()

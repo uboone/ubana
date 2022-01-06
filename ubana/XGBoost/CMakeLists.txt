@@ -29,6 +29,9 @@ art_make_library( LIBRARY_NAME  uboonecode_uboone_XGBoost
                   LIBRARIES
 		  cetlib::cetlib
                   cetlib_except::cetlib_except
+                  ROOT::Core
+                  ROOT::RIO
+                  ROOT::Thread
                 )
 
 install_headers()

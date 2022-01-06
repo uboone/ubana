@@ -1,7 +1,5 @@
 cet_enable_asserts()
-include_directories ( $ENV{GENIE_INC}/GENIE )
-include_directories ( $ENV{DK2NUDATA_INC} )
-link_directories( $ENV{DK2NUDATA_LIB})
+find_package(dk2nugenie REQUIRED)
 file(GLOB INTERFACEFILES *Interface* )
 simple_plugin( TreeReader
                "source"
@@ -21,13 +19,13 @@ art_make_library(LIBRARY_NAME TreeInterface
                  	 GENIE::GFwMsg
                  	 GENIE::GFwGHEP
                  	 GENIE::GTlFlx
-                 	 dk2nuTree
-                 	 #${DK2NUDATA}
-                 	 ${DK2NUGENIE}
+                 	 dk2nu::Tree
+                 	 dk2nu::Genie
 			log4cpp::log4cpp
 ####################################################
 		      fhiclcpp::fhiclcpp
-		      cetlib::cetlib cetlib_except
+		      cetlib::cetlib
+                      cetlib_except::cetlib_except
 		      #messagefacility::MF_MessageLogger
 		      CLHEP::CLHEP
                       ROOT::Tree
@@ -45,14 +43,14 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
                         art::Framework_Services_Registry
 			art_root_io::tfile_support ROOT::Core
 			art_root_io::TFileService_service
-		      art::Persistency_Common canvas 
-                      art::Persistency_Provenance canvas 
-                      art::Utilities canvas
+		      art::Persistency_Common
+                      art::Persistency_Provenance
+                      art::Utilities
+                        canvas::canvas
 			messagefacility::MF_MessageLogger
-                        
                         fhiclcpp::fhiclcpp
-			cetlib::cetlib cetlib_except
-                        
+		        cetlib::cetlib
+                        cetlib_except::cetlib_except
           MODULE_LIBRARIES 
 	  		TreeReader
 	  		TreeInterface
@@ -72,14 +70,14 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
                		GENIE::GFwGHEP
                		GENIE::GTlFlx
 			log4cpp::log4cpp
-               		dk2nuTree
-			${DK2NUGENIE}
+               		dk2nu::Tree
+			dk2nu::Genie
 			log4cpp::log4cpp
 ####################################################
                         messagefacility::MF_MessageLogger
-                        
                         fhiclcpp::fhiclcpp
-			cetlib::cetlib cetlib_except
+		        cetlib::cetlib
+                        cetlib_except::cetlib_except
         )                                                           
 
 install_headers()

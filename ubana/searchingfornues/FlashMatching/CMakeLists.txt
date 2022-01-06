@@ -22,7 +22,6 @@ art_make(
                         art::Framework_Core
                         art::Framework_Principal
                         art::Framework_Services_Registry
-                        	
                         art::Persistency_Common
                         art::Persistency_Provenance
                         art::Utilities
@@ -30,7 +29,6 @@ art_make(
                         messagefacility::MF_MessageLogger
                         fhiclcpp::fhiclcpp
                         cetlib::cetlib cetlib_except
-                        
                         Boost::filesystem
                         ROOT::Geom
 	  TOOL_LIBRARIES
@@ -54,7 +52,6 @@ art_make(
                         art::Framework_Core
                         art::Framework_Principal
                         art::Framework_Services_Registry
-                        	
                         art::Persistency_Common
                         art::Persistency_Provenance
                         art::Utilities
@@ -62,7 +59,6 @@ art_make(
                         messagefacility::MF_MessageLogger
                         fhiclcpp::fhiclcpp
                         cetlib::cetlib cetlib_except
-                        
                         Boost::filesystem
                         ROOT::Geom
                         ubreco_SelectionTool_OpT0FinderBase
@@ -86,11 +82,9 @@ art_make(
 			larcore_Geometry_Geometry_service	
 			art::Utilities canvas
                         messagefacility::MF_MessageLogger
-                        
-                        cetlib::cetlib cetlib_except::cetlib_except
-                        
+                        cetlib::cetlib
+                        cetlib_except::cetlib_except
 		   	art::Framework_Services_Registry
-                        	
                         ubreco_SelectionTool_OpT0FinderBase
                         ubreco_SelectionTool_OpT0FinderAlgorithms
 )

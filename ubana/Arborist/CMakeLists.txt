@@ -26,14 +26,13 @@ art_make( BASENAME_ONLY
                         art::Framework_Principal
                         art::Framework_Services_Registry
                         art::Framework_Services_Optional_RandomNumberGenerator_service
-                        
                         art::Persistency_Common canvas
                         art::Persistency_Provenance canvas
                         art::Utilities canvas
                         messagefacility::MF_MessageLogger
-                        
                         fhiclcpp::fhiclcpp
-			cetlib::cetlib cetlib_except
+			cetlib::cetlib
+                        cetlib_except::cetlib_except
                         CLHEP::CLHEP
                         ROOT::Geom 
           MODULE_LIBRARIES
@@ -59,14 +58,13 @@ art_make( BASENAME_ONLY
                         art::Framework_Principal
                         art::Framework_Services_Registry
                         art::Framework_Services_Optional_RandomNumberGenerator_service
-                        
                         art::Persistency_Common canvas
                         art::Persistency_Provenance canvas
                         art::Utilities canvas
                         messagefacility::MF_MessageLogger
-                        
                         fhiclcpp::fhiclcpp
-			cetlib::cetlib cetlib_except
+			cetlib::cetlib
+                        cetlib_except::cetlib_except
                         CLHEP::CLHEP
                         ROOT::Geom )
                       

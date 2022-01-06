@@ -42,15 +42,14 @@ simple_plugin( WireCellAnaTree "module"
                art::Framework_Core
                art::Framework_Principal
                art::Framework_Services_Registry
-               
                art::Persistency_Common
                art::Persistency_Provenance
                art::Utilities
                canvas::canvas
                messagefacility::MF_MessageLogger
-               
                fhiclcpp::fhiclcpp
-               cetlib::cetlib cetlib_except
+               cetlib::cetlib
+               cetlib_except::cetlib_except
                ROOT::Geom
                ROOT::XMLIO
                ROOT::Gdml
@@ -72,15 +71,14 @@ simple_plugin( WireCellEventWeightTree "module"
                art::Framework_Core
                art::Framework_Principal
                art::Framework_Services_Registry
-               
                art::Persistency_Common
                art::Persistency_Provenance
                art::Utilities
                canvas::canvas
                messagefacility::MF_MessageLogger
-               
                fhiclcpp::fhiclcpp
-               cetlib::cetlib cetlib_except
+               cetlib::cetlib
+               cetlib_except::cetlib_except
                ROOT::Geom
                ROOT::XMLIO
                ROOT::Gdml
@@ -102,15 +100,14 @@ simple_plugin( WireCellPFDump "module"
                art::Framework_Core
                art::Framework_Principal
                art::Framework_Services_Registry
-               
                art::Persistency_Common
                art::Persistency_Provenance
                art::Utilities
                canvas::canvas
                messagefacility::MF_MessageLogger
-               
                fhiclcpp::fhiclcpp
-               cetlib::cetlib cetlib_except
+               cetlib::cetlib
+               cetlib_except::cetlib_except
                ROOT::Geom
                ROOT::XMLIO
                ROOT::Gdml
@@ -149,14 +146,12 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
                         art::Persistency_Provenance canvas::canvas
                         art::Utilities canvas::canvas
                         messagefacility::MF_MessageLogger
-
                         fhiclcpp::fhiclcpp
-                        cetlib::cetlib cetlib_except
+                        cetlib::cetlib
+                        cetlib_except::cetlib_except
                         ROOT::Geom
                         ROOT::XMLIO
                         ROOT::Gdml
-
-
 
           MODULE_LIBRARIES lardata_Utilities_DatabaseUtil_service
                         larcorealg_Geometry
@@ -187,9 +182,9 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
                         art::Persistency_Provenance canvas::canvas
                         art::Utilities canvas::canvas
                         messagefacility::MF_MessageLogger
-
                         fhiclcpp::fhiclcpp
-                        cetlib::cetlib cetlib_except
+                        cetlib::cetlib
+                        cetlib_except::cetlib_except
                         ROOT::Geom
                         ROOT::XMLIO
                         ROOT::Gdml

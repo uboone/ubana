@@ -16,7 +16,6 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          art::Framework_Core
                          art::Framework_Principal
                          art::Framework_Services_Registry
-                         
                          art::Framework_Services_Optional_RandomNumberGenerator_service
                          art::Persistency_Common
                          art::Persistency_Provenance
@@ -24,12 +23,10 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          canvas::canvas
 			 hep_concurrency
                          messagefacility::MF_MessageLogger
-                         
                          fhiclcpp::fhiclcpp
                          cetlib::cetlib
                          cetlib_except::cetlib_except
                          Boost::filesystem
-                         
                          CLHEP::CLHEP
                          ROOT::EG
                          ubreco_ShowerReco_ProximityClustering_Algorithms
