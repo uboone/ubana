@@ -43,7 +43,7 @@ art_make( BASENAME_ONLY
     larcoreobj_SummaryData	
     larsim_MCCheater_BackTrackerService_service
     larpandora_LArPandoraInterface
-    SignalShapingServiceMicroBooNE_service
+    ubevt::SignalShapingServiceMicroBooNE_service
     nusimdata::SimulationBase
     UB_DATA_TYPES
     Boost::serialization

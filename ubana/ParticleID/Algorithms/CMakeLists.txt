@@ -4,15 +4,15 @@ cet_enable_asserts()
 art_make( BASENAME_ONLY
   LIBRARY_NAME     ubana_ParticleID_Algorithms
   LIB_LIBRARIES
-  ubana_BasicTool_GeoAlgo
-  uboone_UBFlashFinder
+  ubcore::ubana_BasicTool_GeoAlgo
+  ubreco::uboone_UBFlashFinder
   ubreco_SelectionTool_OpT0FinderBase
   ubreco_SelectionTool_OpT0FinderAlgorithms
   larana_ParticleIdentification
   larcorealg_Geometry
   larcore_Geometry_Geometry_service
   ubraw_RawData
-  SignalShapingServiceMicroBooNE_service
+  ubevt::SignalShapingServiceMicroBooNE_service
   larevt_CalibrationDBI_IOVData
   larevt_CalibrationDBI_Providers
   larsim_Simulation
@@ -45,12 +45,12 @@ art_make( BASENAME_ONLY
   larsim_MCCheater_BackTracker_service
   larpandora_LArPandoraInterface
   #                   larpandora_LArPandoraContent
-  ubana_BasicTool_GeoAlgo
-  uboone_UBFlashFinder
+  ubcore::ubana_BasicTool_GeoAlgo
+  ubreco::uboone_UBFlashFinder
   ubreco_SelectionTool_OpT0FinderBase
   ubreco_SelectionTool_OpT0FinderAlgorithms
   ubraw_RawData
-  SignalShapingServiceMicroBooNE_service
+  ubevt::SignalShapingServiceMicroBooNE_service
   larevt_CalibrationDBI_IOVData
   larevt_CalibrationDBI_Providers
   larcore_Geometry
