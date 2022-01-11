@@ -18,7 +18,7 @@ art_make( BASENAME_ONLY
   lardata_RecoObjects
   larreco_RecoAlg
   larpandora_LArPandoraInterface
-  SignalShapingServiceMicroBooNE_service
+  ubevt::SignalShapingServiceMicroBooNE_service
   lardataobj_RawData
   lardataobj_RecoBase
   lardataobj_AnalysisBase

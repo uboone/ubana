@@ -36,6 +36,7 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
 cet_report_compiler_flags()
 
 # these are minimum required versions, not the actual product versions
+find_ups_product( spdlog )
 find_ups_product( larreco )
 find_ups_product( larcorealg )
 find_ups_product( larcoreobj )
@@ -74,23 +75,6 @@ include(BuildPlugins)
 
 cet_find_library( PANDORASDK NAMES PandoraSDK PATHS ENV PANDORA_LIB )
 cet_find_library( PANDORAMONITORING NAMES PandoraMonitoring PATHS ENV PANDORA_LIB )
-
-# find larpandoracontent headers if building at the same time
-#message(STATUS "larpandora: checking for MRB_SOURCE")
-set( mrb_source $ENV{MRB_SOURCE} )
-if( LARPANDORACONTENT_INC )
-  #message(STATUS "larpandora: found LARPANDORACONTENT_INC: $ENV{LARPANDORACONTENT_INC}")
-  # note that mrb v1_07_00 or later will define LARPANDORACONTENT_INC
-  if( mrb_source )
-    include_directories( ${LARPANDORACONTENT_INC} )
-  endif()
-else()
-  if( mrb_source )
-    include_directories( ${mrb_source}/larpandoracontent )
-  else()
-    message(FATAL_ERROR "LARPANDORACONTENT_INC is undefined, please setup larpandoracontent")
-  endif()
-endif()
 
 # ADD SOURCE CODE SUBDIRECTORIES HERE
 add_subdirectory(ubana)

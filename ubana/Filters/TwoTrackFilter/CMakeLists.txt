@@ -11,14 +11,14 @@ art_make( BASENAME_ONLY
                    ubobj_Trigger
                    HitCosmicTag_Base 
                    HitCosmicTag_Algorithms
-                   ubana_BasicTool_GeoAlgo
-                   uboone_UBFlashFinder
+                   ubcore::ubana_BasicTool_GeoAlgo
+                   ubreco::uboone_UBFlashFinder
 		   ubreco_SelectionTool_OpT0FinderBase
 		   ubreco_SelectionTool_OpT0FinderAlgorithms
 	  	   larcorealg_Geometry
 		   larcore_Geometry_Geometry_service
                    ubraw_RawData
-                   SignalShapingServiceMicroBooNE_service
+                   ubevt::SignalShapingServiceMicroBooNE_service
                    larevt_CalibrationDBI_IOVData
                    larevt_CalibrationDBI_Providers
                    larsim_MCCheater_BackTrackerService_service
@@ -68,13 +68,13 @@ art_make( BASENAME_ONLY
                    larsim_MCCheater_BackTrackerService_service
 		   larpandora_LArPandoraInterface
                    #                   larpandora_LArPandoraContent
-		   ubana_BasicTool_GeoAlgo
+		   ubcore::ubana_BasicTool_GeoAlgo
 		   ubreco_SelectionTool_OpT0FinderBase
 		   ubreco_SelectionTool_OpT0FinderAlgorithms
-                   uboone_UBFlashFinder
+                   ubreco::uboone_UBFlashFinder
                    ubraw_RawData
                    larreco_RecoAlg
-                   SignalShapingServiceMicroBooNE_service
+                   ubevt::SignalShapingServiceMicroBooNE_service
                    larevt_CalibrationDBI_IOVData
                    larevt_CalibrationDBI_Providers
 	  	   larcorealg_Geometry
@@ -208,7 +208,7 @@ art_make_library(
    SOURCE
        FiducialVolume.cxx
    LIBRARIES
-       ubana_BasicTool_GeoAlgo
+       ubcore::ubana_BasicTool_GeoAlgo
        lardataobj_RawData
        larcorealg_Geometry
        larcore_Geometry_Geometry_service
