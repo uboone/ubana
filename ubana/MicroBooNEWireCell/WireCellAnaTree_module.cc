@@ -3053,6 +3053,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 				}
 			}
 
+      f_truth_single_photon = 0;
       if (f_truth_NCDelta || (true_photons==1 && !truth_dalitz)){ f_truth_single_photon = 1; }
 
                         const TLorentzVector& position = nu.Nu().Position(0);
@@ -4375,6 +4376,8 @@ void WireCellAnaTree::ReadBDTvar(art::Ptr<nsm::NuSelectionBDT> bdt)
 	shw_sp_n_stem_size = bdt->GetSPSHWID1().shw_sp_n_stem_size;
 	shw_sp_flag_stem_trajectory = bdt->GetSPSHWID1().shw_sp_flag_stem_trajectory;
 	shw_sp_min_dis = bdt->GetSPSHWID1().shw_sp_min_dis;
+  shw_sp_vec_mean_dedx = bdt->GetSPSHWID2().shw_sp_vec_mean_dedx;
+	shw_sp_vec_median_dedx = bdt->GetSPSHWID2().shw_sp_vec_median_dedx;
 	shw_sp_vec_dQ_dx_2 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_2;
 	shw_sp_vec_dQ_dx_3 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_3;
 	shw_sp_vec_dQ_dx_4 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_4;
