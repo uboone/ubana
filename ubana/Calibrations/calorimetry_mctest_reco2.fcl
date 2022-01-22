@@ -1,0 +1,63 @@
+#include "reco_uboone_mcc9_8_driver_stage2.fcl"
+
+process_name: MCRecoStage3Calo
+
+services.SpaceCharge.EnableCalSpatialSCE: true
+services.SpaceCharge.EnableCalEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: false
+services.SpaceCharge.EnableSimEfieldSCE: false
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root" #This should be changes once a real calibration map exists
+services.TFileService.fileName: "XYZSCET0correction.root"
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents:   -1        # Number of events to create
+  inputCommands: ["keep *_*_*_*", "drop *_pandoracal*__McRecoStage2"]
+}
+
+physics.analyzers: {
+  XYZSCET0correction:
+  {
+    module_type: "XYZSCET0correction"
+    TrackModuleLabel:        "pandora"
+    SpacePointModuleLabel:        "pandora"
+    CalorimetryModuleLabel:  "pandoracaloT0"
+    CalorimetrySCEModuleLabel:  "pandoracaloSCET0"
+    CalibrationModuleLabel:  "pandoracaliT0"
+    CalibrationSCEModuleLabel:  "pandoracaliSCET0"
+    t0_corr:  "true"
+    HitsModuleLabel:  "gaushit"
+    SaveTrackInfo: true      
+    ModBoxA: 0.93
+    ModBoxB: 0.212
+  }
+  #@table::microboone_reco_mc_analyzers
+}
+
+microboone_cali_ana: [
+    XYZSCET0correction
+]
+
+#physics.producers.pandoracaliSCET0.CaloAlg.CalAreaConstants: [ 0.00408, 0.00397, 0.00408 ]
+
+physics.reco: [ 
+                #trajcluster,
+                #pmtrack,
+                #pandoraPatRec,
+                #pandora,
+                pandoracalo,
+                pandoracaloT0,
+                pandoracaloSCE,
+                pandoracaloSCET0,
+                pandoracali,
+                pandoracaliT0,
+                pandoracaliSCE,
+                pandoracaliSCET0
+              ]
+
+physics.ana: [ @sequence::microboone_cali_ana ]
+physics.end_paths:     [ ana ]

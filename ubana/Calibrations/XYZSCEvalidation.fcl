@@ -1,0 +1,113 @@
+#include "services_microboone.fcl"
+#include "filters.fcl"
+#include "signalservices_microboone.fcl"
+#include "caldata_microboone.fcl"
+#include "trackfindermodules_microboone.fcl"
+#include "hitfindermodules_microboone.fcl"
+#include "calorimetry_microboone.fcl"
+#include "triggeralgo_service.fcl"
+#include "photpropservices_microboone.fcl"
+#include "mctruthmatching_uboone.fcl"
+
+
+process_name: XYZSCEvalidation
+
+services:
+{
+  #Load the service that manages root files for histograms.
+  TFileService: { fileName: "XYZSCEvalidation.root" }
+  RandomNumberGenerator: {}                     #ART native random number generator
+  @table::microboone_services
+  message:      @local::standard_info
+  FileCatalogMetadata: @local::art_file_catalog_data
+}
+
+microboone_tfile_metadata:
+{
+  JSONFileName:          "XYZSCEvalidation.root.json"
+  GenerateTFileMetadata: true
+  dataTier:              "root-tuple"
+  fileFormat:            "root"
+}
+
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1            # Number of events to create
+}
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName:    "XYZSCEvalidation.root"    #default file name, can override from command line with -o or --output
+   dataTier: "reconstructed"
+   fastCloning: false
+ } 
+}
+
+physics:
+{
+ producers:{
+
+  }
+ filters:  {} 
+ analyzers:{
+   XYZSCEvalidation:
+   {
+   module_type: "XYZSCEvalidation"
+   MCTruthMatching:  @local::AssociationsTruthTool
+ }
+ }
+ 
+ 
+ #define the producer and filter modules for this path, order matters, 
+ #filters reject all following items.  see lines starting physics.producers below
+ ana:  [ XYZSCEvalidation ]
+ #ana: []
+ 
+ #define the output stream, there could be more than one if using filters 
+ stream1:  [ out1 ]
+
+ #trigger_paths is a keyword and contains the paths that modify the art::event, 
+ #ie filters and producers
+ #trigger_paths: [reco] 
+
+ #end_paths is a keyword and contains the paths that do not modify the art::Event, 
+ #ie analyzers and output streams.  these all run simultaneously
+ #end_paths:     [ stream1, ana ] 
+ end_paths:     [  ana ] 
+}
+
+# define the list of LArSoft modules to run through the simulate path
+
+#physics.analyzers.XYZSCEvalidation:  @local::microboone_XYZSCEvalidation
+
+physics.analyzers.XYZSCEvalidation.HitsModuleLabel:        "gaushit"
+physics.analyzers.XYZSCEvalidation.TrackModuleLabel:        "pandora"
+physics.analyzers.XYZSCEvalidation.CalorimetryModuleLabel:  "pandoracalo"
+physics.analyzers.XYZSCEvalidation.CalorimetrySCEModuleLabel:  "pandoracaloSCE"
+physics.analyzers.XYZSCEvalidation.CalibrationModuleLabel:  "pandoracali"
+physics.analyzers.XYZSCEvalidation.CalibrationSCEModuleLabel:  "pandoracaliSCE"
+physics.analyzers.XYZSCEvalidation.HitsModuleLabel:  "gaushit"
+physics.analyzers.XYZSCEvalidation.ModBoxA: 0.93
+physics.analyzers.XYZSCEvalidation.ModBoxB: 0.212
+physics.analyzers.XYZSCEvalidation.SaveTrackInfo: true
+
+#services space charge
+services.SpaceCharge.EnableCalSpatialSCE: true
+services.SpaceCharge.EnableCalEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: false
+services.SpaceCharge.EnableSimEfieldSCE: false
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root" #This should be changes once a real calibration map exists
+
+services.DetectorPropertiesService.NumberTimeSamples:        6400
+services.DetectorPropertiesService.ReadOutWindowSize:        6400
+services.DetectorClocksService.InheritClockConfig:           false
+services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
+source.inputCommands:        [ "keep *_*_*_*", "drop *_opfiltercommon__McRecoStage1" ]
