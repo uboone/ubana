@@ -1056,6 +1056,11 @@ namespace single_photon
             int m_test_matched_hits;
             int m_reco_slice_objects;
 
+        
+            //textgen
+            std::vector<double> m_textgen_info;
+
+
             //------- Potential Unreconstructed Track Stub related variables ----
             int m_trackstub_num_unassociated_hits; /* number of hits in the slice that're associated with neither shower nor tracks */
             int m_trackstub_unassociated_hits_below_threshold; /*number of unassociated hits that also didn't pass hit threshold,in the slice*/

@@ -3,7 +3,7 @@
 #include "seedservice_microboone.fcl"
 #include "eventweight_microboone_gLEE_2022.fcl"
 
-process_name: EventWeight
+process_name: EventWeightgLEE
 
 services: {
   TimeTracker: {}

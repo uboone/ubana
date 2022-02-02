@@ -982,6 +982,19 @@ namespace single_photon
 
             }//end NOT textgen 
 
+            //if it IS textgen, do we have additonal info saved?
+            if(m_is_textgen){
+
+                art::ValidHandle<std::vector<double>> const & text_info_handle =  evt.getValidHandle<std::vector<double>>(m_generatorLabel);
+
+                std::cout<<"Textgen is here: "<<text_info_handle->size()<<"\n";
+                for(size_t k=0; k<text_info_handle->size(); k++){std::cout<<text_info_handle->at(k)<<" ";
+                    m_textgen_info.push_back(text_info_handle->at(k));
+                }
+                std::cout<<"\n";
+
+            }
+
 
 
             std::cout<<"SinglePhoton::analyze\t||\t finnished loop for this event"<<std::endl;
@@ -1558,6 +1571,9 @@ namespace single_photon
         vertex_tree->Branch("m_flash_optfltr_pe_veto_tot",&m_flash_optfltr_pe_veto_tot);
         vertex_tree->Branch("m_flash_optfltr_pe_beam_tot",&m_flash_optfltr_pe_beam_tot);
 
+    
+        vertex_tree->Branch("textgen_info",&m_textgen_info);
+            
         //create branches as found in individual analyze_XXX.h
         this->CreateIsolationBranches();
         this->CreateSecondShowerBranches();
@@ -1675,6 +1691,8 @@ namespace single_photon
         m_number_of_events_in_subrun = 0;
 
         m_genie_spline_weight = 1.0;
+
+        m_textgen_info.clear();
 
         //------------ Vertex related Variables -------------
         m_reco_vertex_size = 0;
