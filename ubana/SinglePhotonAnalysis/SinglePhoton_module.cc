@@ -985,13 +985,14 @@ namespace single_photon
             //if it IS textgen, do we have additonal info saved?
             if(m_is_textgen){
 
-                art::ValidHandle<std::vector<double>> const & text_info_handle =  evt.getValidHandle<std::vector<double>>(m_generatorLabel);
-
-                std::cout<<"Textgen is here: "<<text_info_handle->size()<<"\n";
+                art::Handle<std::vector<double>> text_info_handle;
+                if(evt.getByLabel(m_generatorLabel, text_info_handle)){
+                std::cout<<"Textgen Additional Info Found: Size: "<<text_info_handle->size()<<"\n";
                 for(size_t k=0; k<text_info_handle->size(); k++){std::cout<<text_info_handle->at(k)<<" ";
                     m_textgen_info.push_back(text_info_handle->at(k));
                 }
                 std::cout<<"\n";
+                }
 
             }
 
@@ -1168,9 +1169,13 @@ namespace single_photon
                     m_trackstub_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[6]);
 
                     //Guanqun: print out (best-matched) truth information of the cluster
+                    
+                    if(m_is_verbose){
+
                     std::cout << "Cluster: " << m_trackstub_num_candidates-1  << " plane: " << m_trackstub_candidate_plane.back() << ", energy: " << m_trackstub_candidate_energy.back() << ", min IOC of hit(wrt shower): " << m_trackstub_candidate_min_ioc_to_shower_start.back() << "\n";
                     std::cout << "Cluster is matched: " << m_trackstub_candidate_matched.back() << ", matched PDG: " << m_trackstub_candidate_pdg.back() << " track ID: " << m_trackstub_candidate_trackid.back() << " overlay fraction: " << m_trackstub_candidate_overlay_fraction.back() << std::endl; 
                     std::cout << "===============================================================" << std::endl;
+                    }
                 }
 
                 sevd.SetClusterLegend(c, m_trackstub_candidate_energy.back(),  m_trackstub_candidate_matched.back(), m_trackstub_candidate_pdg.back() , m_trackstub_candidate_overlay_fraction.back() );
@@ -1274,7 +1279,7 @@ namespace single_photon
                 int remerge = clu.getShowerRemerge();
                 seaview::cluster_score * ssscorz = clu.getScore();
 
-                std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.getImpactParam()<<" "<<clu.getFitSlope()<<" "<<clu.getFitCons()<<" "<<clu.getMeanADC() << " " << clu.getADCrms() << " "<<clu.getAngleWRTShower()<<" "<<remerge<<std::endl;
+                if(m_is_verbose) std::cout<<c<<" "<<pl<<" "<<Ep<<" "<<clu.getImpactParam()<<" "<<clu.getFitSlope()<<" "<<clu.getFitCons()<<" "<<clu.getMeanADC() << " " << clu.getADCrms() << " "<<clu.getAngleWRTShower()<<" "<<remerge<<std::endl;
 
                 //if the cluster is too close to the recob::shower, then do not include it
                 if(remerge>=0 && remerge< (int)m_reco_shower_reclustered_energy_plane2.size()){
@@ -1335,9 +1340,11 @@ namespace single_photon
                     m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[6]);
 
                     //Guanqun: print out (best-matched) truth information of the cluster
+                    if(m_is_verbose){
                     std::cout << "Cluster: " << m_sss_num_candidates-1  << " plane: " << m_sss_candidate_plane.back() << ", energy: " << m_sss_candidate_energy.back() << "\n";
                     std::cout << "Cluster is matched: " << m_sss_candidate_matched.back() << ", matched PDG: " << m_sss_candidate_pdg.back() << " track ID: " << m_sss_candidate_trackid.back() << " overlay fraction: " << m_sss_candidate_overlay_fraction.back() << std::endl; 
                     std::cout << "===============================================================" << std::endl;
+                    }
                 }
 
 

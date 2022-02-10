@@ -90,7 +90,7 @@ namespace seaview{
 	cl.f_mean_ADC_first_to_second_ratio = (cl.f_mean_ADC_second_half != 0 ? cl.f_mean_ADC_first_half/cl.f_mean_ADC_second_half : 0.0);
 
 	if( num_hits < 2){
-	    std::cerr << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster only has " << num_hits << " hits, can't calculate direction, skipping it... " << std::endl;
+	   // std::cerr << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster only has " << num_hits << " hits, can't calculate direction, skipping it... " << std::endl;
 	    return;
         }
 
@@ -106,7 +106,7 @@ namespace seaview{
 
 
 	if(cl.f_score.min_wire == cl.f_score.max_wire){
-	    std::cout << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster spans only on 1 wire: " << cl.f_score.min_wire << ", setting its straight-line fit chi2 to 0.." << std::endl;
+	    //std::cout << "SEAviewer::TrackLikeClusterAnalyzer\t|| this cluster spans only on 1 wire: " << cl.f_score.min_wire << ", setting its straight-line fit chi2 to 0.." << std::endl;
 	    return;
 	}
         //fit to wire-tick plot of the cluster, see how straight cluster is
@@ -719,7 +719,7 @@ namespace seaview{
                 }
                
                 if(hitz.size()!=0){
-                    std::cout<<"SinglePhoton::seaDBSCAN\t||\t Cluster "<<vec_clusters.size()+1<<" has "<<hitz.size()<<" hitz on plane "<<i<<std::endl;
+                    //std::cout<<"SinglePhoton::seaDBSCAN\t||\t Cluster "<<vec_clusters.size()+1<<" has "<<hitz.size()<<" hitz on plane "<<i<<std::endl;
                     vec_clusters.emplace_back(vec_clusters.size()+1,i,t_pts,hitz);
                 }
             }
@@ -744,7 +744,7 @@ namespace seaview{
         for(size_t c=0; c< vec_clusters.size(); c++){
 
             auto hitz = vec_clusters[c].getHits(); // type of hitz: std::vector<art::Ptr<recob::Hit>>
-            int num_hits_in_cluster = vec_clusters[c].getHits().size();
+            //int num_hits_in_cluster = vec_clusters[c].getHits().size();
             int pl = vec_clusters[c].getPlane();
 
             //Need to modify this a bit
@@ -762,8 +762,8 @@ namespace seaview{
             int is_in_shower = SeaviewCompareToShowers(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers, showerToPFParticleMap, pfParticleToHitsMap,eps);
             vec_clusters[c].setShowerRemerge(is_in_shower);
 
-            std::string sname = "Cluster "+std::to_string(c)+", Hits: "+std::to_string(num_hits_in_cluster)+", PCA "+std::to_string(ssscorz.pca_0)+", Theta:" +std::to_string(ssscorz.pca_theta)+", Wires: "+std::to_string(ssscorz.n_wires)+ ", Ticks: "+std::to_string(ssscorz.n_ticks)+", ReMerged: "+std::to_string(is_in_shower);
-            std::cout<<sname << "\n" <<std::endl;
+            //std::string sname = "Cluster "+std::to_string(c)+", Hits: "+std::to_string(num_hits_in_cluster)+", PCA "+std::to_string(ssscorz.pca_0)+", Theta:" +std::to_string(ssscorz.pca_theta)+", Wires: "+std::to_string(ssscorz.n_wires)+ ", Ticks: "+std::to_string(ssscorz.n_ticks)+", ReMerged: "+std::to_string(is_in_shower);
+            //std::cout<<sname << "\n" <<std::endl;
 
         
         }//cluster loop
@@ -827,8 +827,8 @@ namespace seaview{
             //Delauney on here might be good, that said, we have a LOT of things. Hmm, cap at 50 hits maybe? 
             int is_in_shower = SeaviewCompareToShowers(pl,c+1, hitz ,vertex_chan[pl], vertex_tick[pl], vec_showers, showerToPFParticleMap, pfParticleToHitsMap,eps);
 
-            std::string sname = "Cluster "+std::to_string(c)+" Hits: "+std::to_string(num_hits_in_cluster)+" PCA: "+std::to_string(ssscorz.pca_0)+" Theta: " +std::to_string(ssscorz.pca_theta)+" Wires: "+std::to_string(ssscorz.n_wires)+ " Ticks: "+std::to_string(ssscorz.n_ticks)+" ReMerged: "+std::to_string(is_in_shower);
-            std::cout<<sname<<std::endl;
+            //std::string sname = "Cluster "+std::to_string(c)+" Hits: "+std::to_string(num_hits_in_cluster)+" PCA: "+std::to_string(ssscorz.pca_0)+" Theta: " +std::to_string(ssscorz.pca_theta)+" Wires: "+std::to_string(ssscorz.n_wires)+ " Ticks: "+std::to_string(ssscorz.n_ticks)+" ReMerged: "+std::to_string(is_in_shower);
+            //std::cout<<sname<<std::endl;
 
             if(ssscorz.pass){
 
@@ -887,7 +887,7 @@ namespace seaview{
                     double kinda_angle = acos((wire_con*vec_s[0]*wire_con*vec_c[0]+vec_c[1]*vec_s[1]*tick_con*tick_con )/(l_c*l_s));
 
 
-                    std::cout<<"SSSNEW "<<this->tag<<std::endl;
+                    /*std::cout<<"SSSNEW "<<this->tag<<std::endl;
                     std::cout<<pl<<" Num Hits "<<num_hits_in_cluster<<std::endl;
                     std::cout<<pl<<" Num Wires "<< (int)ssscorz.n_wires<<std::endl;
                     std::cout<<pl<<" Num Ticks "<< (int)ssscorz.n_ticks<<std::endl;
@@ -903,7 +903,7 @@ namespace seaview{
                     std::cout<<pl<<" Max Wire "<<ssscorz.max_wire<<std::endl;
                     std::cout<<pl<<" Min Wire "<<ssscorz.min_wire<<std::endl;
                     std::cout<<pl<<" Kinda Angle "<<kinda_angle<<std::endl;
-            
+                        */
                     vec_clusters[c].setShowerRemerge(is_in_shower);
                     vec_clusters[c].setImpactParam(impact_parameter);
                     vec_clusters[c].setFitSlope(slope);
