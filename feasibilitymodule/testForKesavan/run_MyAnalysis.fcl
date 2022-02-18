@@ -1,0 +1,21 @@
+#include "services_microboone.fcl"
+#include "analysisConfig.fcl"
+
+process_name: MyAnalysis
+
+source:{
+	module_type:	RootInput
+			maxEvents:	-1
+}
+services:{
+	@table::microboone_services
+	TFileService: {fileName: "output_myAnalysis.root"}
+	
+}
+physics:{
+  analyzers:{
+	ana: @local::myanalysis
+}
+path0: [ ana ]
+ end_paths: [ path0 ]
+}

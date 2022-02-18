@@ -102,6 +102,7 @@ endif()
 
 # ADD SOURCE CODE SUBDIRECTORIES HERE
 add_subdirectory(ubana)
+add_subdirectory(feasibilitymodule)
 
 # Unit tests.
 add_subdirectory(test)

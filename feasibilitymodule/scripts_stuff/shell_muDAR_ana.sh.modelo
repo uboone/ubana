@@ -1,0 +1,5 @@
+#!/bin/bash
+
+while read file; do
+  lar -c run_feasibility.fcl -s ${file} 
+done < /uboone/app/users/ohanabr/muDAR/gridsub_Fev09_21/muDAR_reco2_list.txt

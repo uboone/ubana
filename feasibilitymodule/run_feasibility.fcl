@@ -1,0 +1,38 @@
+#include "services_microboone.fcl"
+
+process_name: muDARfeasibilityProcess
+source:
+{
+  # Use a ROOT file containing reco2 events
+  module_type: RootInput
+  # Loop over all events in the file
+  maxEvents:   -1
+}
+
+services: {
+  # Make all uncaught exceptions fatal.
+  scheduler: { defaultExceptions: false }
+  TFileService: {fileName:"muDAR_%r_%s_%tc_ana.root"}
+  @table::microboone_services_reco
+  RandomNumberGenerator: {} #ART native random number generator
+  message: @local::standard_info
+}
+
+# Magic words to keep some services happy
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.DetectorClocksService.InheritClockConfig:         false
+services.DetectorClocksService.TriggerOffsetTPC:           -0.400e3
+services.ChannelStatusService.ChannelStatusProvider.UseDB: false
+
+
+physics:{
+  analyzers: {
+    # ParameterSets for zero or more analyzer modules
+    feasibility: { module_type: "muDARfeasibility" }
+  }
+
+  analyze: [ feasibility ]
+  end_paths:    [ analyze ]
+
+}
+
