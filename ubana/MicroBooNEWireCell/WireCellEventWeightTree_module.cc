@@ -286,9 +286,15 @@ void WireCellEventWeightTree::save_weights(art::Event const& e)
 
       if( knob_name == "TunedCentralValue_UBGenie"){
           f_weight_cv = weights.at(0);
+          if (std::isnan(f_weight_cv) or std::isinf(f_weight_cv)) {
+            f_weight_cv = 1.0;
+          }
       }
       if (knob_name == "splines_general_Spline"){
           f_weight_spline = weights.at(0);
+          if (std::isnan(f_weight_spline) or std::isinf(f_weight_spline)) {
+            f_weight_spline = 1.0;
+          }
       }
       if (knob_name == "ppfx_cv_UBPPFXCV" and fIsNuMI){
           double value = weights.at(0);
