@@ -17,6 +17,8 @@
 // LArSoft includes
 #include "larcorealg/Geometry/GeometryCore.h"
 
+#include "art/Framework/Principal/Event.h"
+
 // Root includes
 #include "TH1D.h"
 

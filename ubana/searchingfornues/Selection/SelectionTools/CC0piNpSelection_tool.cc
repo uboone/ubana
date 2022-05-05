@@ -6,6 +6,7 @@
 #include "../CommonDefs/TrackShowerScoreFuncs.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "larreco/RecoAlg/TrajectoryMCSFitter.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 #include "../CommonDefs/Typedefs.h"

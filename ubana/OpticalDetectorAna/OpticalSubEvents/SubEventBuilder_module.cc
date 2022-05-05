@@ -30,6 +30,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcorealg/Geometry/OpDetGeo.h"
 
 #include "ubobj/Optical/FlashList.hh"

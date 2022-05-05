@@ -11,6 +11,7 @@
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 
 // LArSoft includes

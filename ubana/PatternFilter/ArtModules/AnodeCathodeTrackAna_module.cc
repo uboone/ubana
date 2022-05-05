@@ -24,6 +24,7 @@
 #include <iostream>
 
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "ubana/PatternFilter/PMAlgs/AnodeCathodePMAlg.h"
 

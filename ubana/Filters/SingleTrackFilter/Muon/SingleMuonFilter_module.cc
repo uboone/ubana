@@ -25,6 +25,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcorealg/Geometry/geo_vectors_utils.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 

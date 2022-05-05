@@ -9,6 +9,7 @@
 #include "fiducial_volume.h"
 #include "second_shower_search.h"
 #include "isolation.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 
 namespace single_photon
 {

@@ -29,6 +29,7 @@
 #include "larana/OpticalDetector/OpHitFinder/PulseRecoManager.h"
 #include "lardataobj/RecoBase/OpHit.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include <string>

@@ -16,6 +16,7 @@
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "art/Framework/Principal/Event.h"
 
 // LArSoft includes
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()

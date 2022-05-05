@@ -21,6 +21,7 @@
 
 //need the geometry
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 
 //include the truth objects
 #include "lardataobj/RecoBase/Wire.h"

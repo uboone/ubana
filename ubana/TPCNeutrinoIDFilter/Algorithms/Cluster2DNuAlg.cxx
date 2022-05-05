@@ -22,6 +22,7 @@
 
 // Framework Includes
 #include "art/Framework/Core/EDProducer.h"
+#include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "art_root_io/TFileService.h"
 

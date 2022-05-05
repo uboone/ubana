@@ -86,6 +86,7 @@
 #include "larsim/MCCheater/BackTracker.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "ubobj/Trigger/ubdaqSoftwareTriggerData.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/MCBase/MCDataHolder.h"

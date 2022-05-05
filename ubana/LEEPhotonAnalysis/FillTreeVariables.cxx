@@ -5,6 +5,7 @@
 #include "FillTreeVariables.h"
 
 
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"

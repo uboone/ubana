@@ -39,6 +39,7 @@
 #include "art_root_io/TFileService.h"
 
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h" 
 

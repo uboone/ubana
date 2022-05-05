@@ -6,6 +6,7 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "lardata/Utilities/GeometryUtilities.h"
 
 namespace searchingfornues

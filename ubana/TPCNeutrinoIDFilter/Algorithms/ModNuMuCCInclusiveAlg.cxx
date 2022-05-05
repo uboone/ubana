@@ -12,6 +12,7 @@
 
 // The main include
 #include "ubana/TPCNeutrinoIDFilter/Algorithms/ModNuMuCCInclusiveAlg.h"
+#include "art/Framework/Principal/Event.h"
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 

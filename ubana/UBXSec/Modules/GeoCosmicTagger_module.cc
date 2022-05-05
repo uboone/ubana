@@ -26,6 +26,7 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcorealg/Geometry/geo.h"
 
 #include "lardataobj/RecoBase/Track.h"

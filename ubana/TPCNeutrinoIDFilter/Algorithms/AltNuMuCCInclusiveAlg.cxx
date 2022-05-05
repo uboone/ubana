@@ -29,6 +29,8 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 
+#include "art/Framework/Principal/Event.h"
+
 #include <tuple>
 
 //------------------------------------------------------------------------------------------------------------------------------------------
