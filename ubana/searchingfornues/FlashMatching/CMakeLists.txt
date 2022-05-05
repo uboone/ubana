@@ -90,6 +90,10 @@ art_make(
 		   	art::Framework_Services_Registry
                         ubreco_SelectionTool_OpT0FinderBase
                         ubreco_SelectionTool_OpT0FinderAlgorithms
+                        art_root_io::tfile_support
+			art_root_io::TFileService_service
+                        ROOT::Core
+                        ROOT::Tree
 )
 
 install_headers()
