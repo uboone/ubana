@@ -128,7 +128,6 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
                         ubcore_Geometry
 			ubraw_RawData
                         ubcore::UBOpReadoutMap_service
-                        lardataobj_OpticalDetectorData
                         lardataobj_RawData
 			lardataobj_RecoBase
 			larevt_CalibrationDBI_Providers
@@ -162,7 +161,6 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
                         ubcore_Geometry
 			ubraw_RawData
                         ubcore::UBOpReadoutMap_service
-                        lardataobj_OpticalDetectorData
                         lardataobj_RawData
 			lardataobj_RecoBase
                         larcoreobj_SummaryData

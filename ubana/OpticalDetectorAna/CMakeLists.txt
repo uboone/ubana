@@ -11,7 +11,6 @@ art_make( BASENAME_ONLY
 		        lardata_Utilities
 	                ubcore_Geometry
 			ubcore::UBOpReadoutMap_service
-                        lardataobj_OpticalDetectorData
 			larana_OpticalDetector
                         lardataobj_RawData
 			lardataobj_RecoBase
@@ -36,7 +35,7 @@ art_make( BASENAME_ONLY
                         ROOT::Geom
                         ROOT::XMLIO
                         ROOT::Gdml
-
+                        ROOT::Tree
 			nusimdata::SimulationBase
         )
 
