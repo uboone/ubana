@@ -1,0 +1,18 @@
+### run_myanalysis.fcl
+process_name: RunMyAnalysis
+
+services: {
+	  TFileService: {
+	  		fileName: "output.root"
+			}
+}
+physics: {
+	 analyzers: {
+	 	    myanalysis: {
+		    		module_type: MyAnalysis
+				MaxNuEnergy: 4.0
+				}
+		}
+	ana: [ myanalysis ]
+	end_paths: [ ana ]
+}
