@@ -31,6 +31,10 @@ art_make( BASENAME_ONLY
     cetlib::cetlib
     cetlib_except::cetlib_except
     CLHEP::CLHEP
+    ROOT::Graf
+    ROOT::Graf3d
+    ROOT::Gui
+    ROOT::Gpad
     ROOT::Geom
     MODULE_LIBRARIES
     larcorealg_Geometry
