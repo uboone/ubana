@@ -50,6 +50,7 @@ art_make_library(
        art::Persistency_Common
        art::Persistency_Provenance
        art::Utilities
+       art_root_io::TFileService_service
        canvas::canvas
        lardataobj_RecoBase
        lardataobj_AnalysisBase

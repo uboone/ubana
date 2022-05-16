@@ -13,6 +13,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 	art::Persistency_Common 
 	art::Persistency_Provenance
 	art::Utilities
+        art_root_io::TFileService_service
 	canvas::canvas
 	messagefacility::MF_MessageLogger
 	fhiclcpp::fhiclcpp
