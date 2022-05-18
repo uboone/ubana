@@ -36,6 +36,7 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
 cet_report_compiler_flags()
 
 # these are minimum required versions, not the actual product versions
+find_ups_product( eigen )
 find_ups_product( spdlog )
 find_ups_product( larreco )
 find_ups_product( larcorealg )
@@ -63,7 +64,6 @@ find_ups_product( nutools )
 find_ups_product(nug4)
 find_ups_product( nurandom )
 find_ups_product( postgresql )
-find_ups_product( eigen )
 find_ups_product( ubobj )
 find_ups_product( swtrigger )
 find_package(PostgreSQL REQUIRED PUBLIC)
