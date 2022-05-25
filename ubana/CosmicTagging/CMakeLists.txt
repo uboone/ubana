@@ -62,7 +62,7 @@ art_make( BASENAME_ONLY
 		   ROOT::Geom
 		   ROOT::XMLIO
 		   ROOT::Gdml
-
+                   ROOT::Tree
 		)
 
 # install_headers()

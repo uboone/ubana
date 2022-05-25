@@ -24,6 +24,8 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            art::Persistency_Common
                            art::Persistency_Provenance
                            art::Utilities
+                           art_root_io::TFileService_service
+                           art_root_io::tfile_support
                            canvas::canvas
                            messagefacility::MF_MessageLogger
                            fhiclcpp::fhiclcpp
@@ -33,6 +35,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
                            ROOT::Geom
                            ROOT::XMLIO
                            ROOT::Gdml
+                           ROOT::Tree
             		   PANDORASDK
 			   larpandora_LArPandoraInterface
         )

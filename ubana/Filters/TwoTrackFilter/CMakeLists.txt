@@ -43,6 +43,7 @@ art_make( BASENAME_ONLY
                    art::Persistency_Common
                    art::Persistency_Provenance
                    art::Utilities
+                   art_root_io::TFileService_service
                    canvas::canvas
 		   messagefacility::MF_MessageLogger
 		   fhiclcpp::fhiclcpp
@@ -157,6 +158,7 @@ art_make_library(
        art::Persistency_Common
        art::Persistency_Provenance
        art::Utilities
+       art_root_io::TFileService_service
        canvas::canvas
        art::Framework_Services_Registry
        messagefacility::MF_MessageLogger
@@ -189,6 +191,7 @@ art_make_library(
        art::Persistency_Common
        art::Persistency_Provenance
        art::Utilities
+       art_root_io::TFileService_service
        canvas::canvas
        lardataobj_RecoBase
        lardataobj_AnalysisBase
