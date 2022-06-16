@@ -30,7 +30,7 @@ table_fragment_end
 # Add the dependent product and version
 
 product                 version
-ubreco                  v09_53_01
+ubreco                  v09_53_02
 ubraw                   v09_53_01
 larana                  v09_06_05
 larpandora              v09_13_03
