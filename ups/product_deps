@@ -30,10 +30,10 @@ table_fragment_end
 # Add the dependent product and version
 
 product                 version
-ubreco                  v09_54_00
-ubraw                   v09_53_01
-larana                  v09_06_06
-larpandora              v09_13_04
+ubreco                  v09_55_00
+ubraw                   v09_55_00
+larana                  v09_06_07
+larpandora              v09_13_05
 cetbuildtools	        v8_20_00	-	only_for_build
 end_product_list
 
