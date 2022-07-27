@@ -35,9 +35,6 @@ namespace pmtana {
     /// Default constructor
     OpDetWaveformAna(const std::string name="noname");
     
-    /// Default destructor
-    virtual ~OpDetWaveformAna() {}
-
     void ClearEvent    ();
     void ClearWaveform ();
     
