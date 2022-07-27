@@ -20,7 +20,7 @@ namespace pmtana {
   {
     ClearEvent();
     ClearWaveform();
-    _preco_mgr.AddRecoAlgo(&_preco_alg);
+   _preco_mgr.AddRecoAlgo(_preco_alg);
 
     //_preco_mgr.SetPedAlgo(pmtana::kHEAD);
     //_preco_mgr.SePedSampleCosmic (  3 );

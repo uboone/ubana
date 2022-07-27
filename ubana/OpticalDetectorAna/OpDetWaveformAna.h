@@ -60,12 +60,12 @@ namespace pmtana {
     void AnaEventFlash     ( const std::vector<recob::OpFlash>& ev_flash_v);
 
     ::pmtana::PulseRecoManager& GetManager() { return _preco_mgr; };
-    ::pmtana::AlgoThreshold&    GetAlgo()    { return _preco_alg; }
+    ::pmtana::AlgoThreshold*    GetAlgo()    { return _preco_alg; }
 
   private:
 
     ::pmtana::PulseRecoManager  _preco_mgr;
-    ::pmtana::AlgoThreshold     _preco_alg;
+    ::pmtana::AlgoThreshold*     _preco_alg;
 
     std::string _name;
     TTree* _hitana_tree;
