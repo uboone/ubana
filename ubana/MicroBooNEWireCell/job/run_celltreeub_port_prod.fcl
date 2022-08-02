@@ -6,7 +6,7 @@ process_name: CellTreeUB
 
 services:
 {
-  TFileService: { fileName: "%ifb_celltreeDATA.root" }
+  TFileService: { fileName: "celltreeDATA.root" }
   #TimeTracker:   {}
   RandomNumberGenerator: {}
   message:      @local::standard_info
