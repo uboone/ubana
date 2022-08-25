@@ -142,7 +142,7 @@ art_make_library(
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
-       larpandora_LarPandoraEventBuilding
+       larpandora_LArPandoraEventBuilding
        LArPandoraContent
        larpandora_LArPandoraInterface
        nusimdata_SimulationBase
@@ -177,7 +177,7 @@ art_make_library(
     lardataobj_RecoBase
     lardataobj_AnalysisBase
  lardata_Utilities
- larpandora_LarPandoraEventBuilding
+ larpandora_LArPandoraEventBuilding
  LArPandoraContent
  larpandora_LArPandoraInterface
  nusimdata_SimulationBase
@@ -219,7 +219,7 @@ art_make_library(
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
-       larpandora_LarPandoraEventBuilding
+       larpandora_LArPandoraEventBuilding
        LArPandoraContent
        larpandora_LArPandoraInterface
        nusimdata_SimulationBase
@@ -252,7 +252,7 @@ art_make_library(
        lardataobj_RecoBase
        lardataobj_AnalysisBase
        lardata_Utilities
-       larpandora_LarPandoraEventBuilding
+       larpandora_LArPandoraEventBuilding
        LArPandoraContent
        larpandora_LArPandoraInterface
        nusimdata_SimulationBase
