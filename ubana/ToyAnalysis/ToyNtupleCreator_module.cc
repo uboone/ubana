@@ -153,8 +153,6 @@ void hyperon::HyperonNtuples::beginJob(){
    MetaTree->Branch("POT",&m_POT);
 }
 
-
-
 void hyperon::HyperonNtuples::endJob()
 {
    MetaTree->Fill();

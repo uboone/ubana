@@ -1,0 +1,13 @@
+BEGIN_PROLOG
+
+analyseEvents:
+
+{
+module_type: ToyNtupleCreator
+GeneratorLabel: "generator"
+TrackLabel: "pandora"
+POTSummaryLabel: "generator"
+Debug: false
+}
+
+END_PROLOG

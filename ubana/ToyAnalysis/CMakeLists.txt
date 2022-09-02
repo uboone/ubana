@@ -1,3 +1,5 @@
+add_subdirectory(job)
+
 art_make( 
       MODULE_LIBRARIES 
       larcorealg_Geometry
