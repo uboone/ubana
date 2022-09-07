@@ -5,6 +5,7 @@ analyseEvents:
 {
 module_type: ToyNtupleCreator
 GeneratorLabel: "generator"
+PFParticleLabel: "pandora"
 TrackLabel: "pandora"
 POTSummaryLabel: "generator"
 Debug: false

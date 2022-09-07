@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+
+<!-- Production Project -->
+<!DOCTYPE project [
+<!ENTITY release "v08_00_00_61">
+<!ENTITY file_type "mc">
+<!ENTITY run_type "physics">
+<!ENTITY user "cthorpe">
+<!ENTITY name "process_dataset_overlay_cthorpe_make_events_BNB_TEST_reco2_reco2">
+]>
+
+
+<job>
+
+<project name="&name;">
+
+  <!-- Project size -->
+  <numevents>-1</numevents>
+
+  <!-- Operating System -->
+  <os>SL7</os>
+
+  <!-- Batch resources -->
+  <resource>DEDICATED,OPPORTUNISTIC,OFFSITE</resource>
+
+  <!-- Larsoft information -->
+  <larsoft>
+    <tag>&release;</tag>
+    <qual>e17:prof</qual>
+    <local>/pnfs/uboone/resilient/users/cthorpe/ToyAnalysis/tars/ToyAnalysis.tar</local>
+  </larsoft>
+  
+  <check>1</check>
+  <copy>0</copy>
+  <version>prod_&release;</version>
+
+  <!-- Project stages -->
+  <stage name="toy_tree">
+  <inputdef>cthorpe_make_events_BNB_TEST_reco2_reco2</inputdef>
+  <fcl>run_ToyAnalysis.fcl</fcl>
+  <dirlevels>1</dirlevels>
+  <dirsize>100</dirsize>
+  <outdir>/pnfs/uboone/scratch/users/&user;/ToyAnalysis/&release;/&name;/out</outdir>
+  <logdir>/pnfs/uboone/scratch/users/&user;/ToyAnalysis/&release;/&name;/log</logdir>
+  <workdir>/pnfs/uboone/scratch/users/&user;/work/ToyAnalysis/&release;/&name;</workdir>
+  <bookdir>/uboone/data/users/&user;/book/ToyAnalysis/&release;/&name;</bookdir>
+  <datatier>root-tuple</datatier>
+  <datafiletypes>root</datafiletypes>
+  <prestart>1</prestart>
+  <filelistdef>1</filelistdef>
+  <maxfilesperjob>1</maxfilesperjob>
+  <numjobs>5</numjobs>
+  <memory>2000</memory>
+  <disk>10GB</disk>
+  <jobsub>--expected-lifetime=4h </jobsub>
+  </stage>
+
+
+  <!-- file type -->
+  <filetype>&file_type;</filetype>
+
+  <!-- run type -->
+  <runtype>&run_type;</runtype>
+
+</project>
+
+
+</job>

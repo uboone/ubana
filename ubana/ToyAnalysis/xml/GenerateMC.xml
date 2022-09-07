@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+
+<!-- Production xml for generating BNB overlay using GENIE -->
+
+<!-- Production Project -->
+<!DOCTYPE project [
+<!ENTITY release "v08_00_00_61">
+<!ENTITY file_type "mc">
+<!ENTITY run_type "physics">
+<!ENTITY user "cthorpe">
+<!ENTITY name "make_events_BNB_TEST">
+
+]>
+
+<job>
+
+<project name="&name;">
+
+  <!-- Project size -->
+  <numevents>20</numevents>
+
+  <!-- Operating System -->
+  <os>SL7</os>
+
+  <!-- Batch resources -->
+  <resource>DEDICATED,OPPORTUNISTIC</resource>
+
+  <!-- Larsoft information -->
+  <larsoft>
+    <tag>&release;</tag>
+    <qual>e17:prof</qual>
+  </larsoft>
+
+  <version>prod_&release;</version>
+  <check>1</check>
+  <copy>1</copy>
+  
+  <!-- Project stages -->
+  <stage name="reco2">
+    <inputdef>cthorpe_prod_extunbiased_swizzle_crt_inclusive_v6_run3b_pt3_first_5_files</inputdef>
+    <fcl>standard_overlay_gen_griddriver.fcl</fcl>
+    <fcl>wirecell_g4_uboone.fcl</fcl>
+    <fcl>wirecell_detsim_overlay_uboone.fcl</fcl>
+    <fcl>standard_overlay_uboone.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage1a.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage1b.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage1c.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage2.fcl</fcl>
+    <outdir>/pnfs/uboone/scratch/users/&user;/GridTutorial/&name;/gen_test/reco2</outdir>
+    <logdir>/pnfs/uboone/scratch/users/&user;/GridTutorial/&name;/gen_test/reco2</logdir>
+    <workdir>/pnfs/uboone/resilient/users/&user;/GridTutorial/&name;/work/gen_test/reco2</workdir>
+    <bookdir>/uboone/data/users/&user;/book/GridTutorial/&name;/gen_test/reco2</bookdir>
+    <maxfilesperjob>1</maxfilesperjob>
+    <numjobs>5</numjobs>
+    <datatier>reconstructed</datatier>
+    <memory>3500</memory>
+    <schema>gsiftp</schema>
+    <datafiletypes>root</datafiletypes>
+    <disk>20GB</disk>
+    <jobsub>
+    --expected-lifetime=24h -e IFDH_CP_UNLINK_ON_ERROR=1
+    </jobsub>
+    <jobsub_start>--expected-lifetime=24h</jobsub_start>
+  </stage>
+  
+  <!-- file type -->
+  <filetype>&file_type;</filetype>
+
+  <!-- run type -->
+  <runtype>&run_type;</runtype>
+
+</project>
+
+
+</job>

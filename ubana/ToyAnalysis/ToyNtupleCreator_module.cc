@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       HyperonNtuples
+// Class:       ToyNtupleCreator
 // Plugin Type: analyzer (art v3_03_01)
-// File:        HyperonNtuples_module.cc
+// File:        ToyNtupleCreator_module.cc
 //
 // Generated at Mon Jan 20 06:07:14 2020 by Christopher Thorpe using cetskelgen
 // from cetlib version v3_08_00.
@@ -24,9 +24,11 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindMany.h"				
 
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCNeutrino.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
-#include "lardataobj/RecoBase/Wire.h"
-#include "larsim/EventWeight/Base/MCEventWeight.h"
+#include "lardataobj/RecoBase/PFParticle.h"
+#include "lardataobj/RecoBase/Track.h"
 
 //root includes
 #include "TTree.h"
@@ -35,22 +37,22 @@
 
 //local includes
 
-namespace hyperon {
-   class HyperonNtuples;
+namespace tutorial {
+   class ToyNtupleCreator;
 }
 
 
-class hyperon::HyperonNtuples : public art::EDAnalyzer {
+class tutorial::ToyNtupleCreator : public art::EDAnalyzer {
    public:
-      explicit HyperonNtuples(fhicl::ParameterSet const& p);
+      explicit ToyNtupleCreator(fhicl::ParameterSet const& p);
       // The compiler-generated destructor is fine for non-base
       // classes without bare pointers or other resource use.
 
       // Plugins should not be copied or assigned.
-      HyperonNtuples(HyperonNtuples const&) = delete;
-      HyperonNtuples(HyperonNtuples&&) = delete;
-      HyperonNtuples& operator=(HyperonNtuples const&) = delete;
-      HyperonNtuples& operator=(HyperonNtuples&&) = delete;
+      ToyNtupleCreator(ToyNtupleCreator const&) = delete;
+      ToyNtupleCreator(ToyNtupleCreator&&) = delete;
+      ToyNtupleCreator& operator=(ToyNtupleCreator const&) = delete;
+      ToyNtupleCreator& operator=(ToyNtupleCreator&&) = delete;
 
       // Required functions.
       void analyze(art::Event const& e) override;
@@ -71,8 +73,11 @@ class hyperon::HyperonNtuples : public art::EDAnalyzer {
       // Basic event info
       unsigned int t_EventID;
       int t_run,t_subrun,t_event;
-
       double t_Weight;
+
+      std::string t_Mode;
+      std::string t_CCNC;
+      int t_NReconstructedTracks;
 
       /////////////////////////
       // Metadata for sample //
@@ -86,6 +91,7 @@ class hyperon::HyperonNtuples : public art::EDAnalyzer {
       //////////////////////////
 
       std::string f_GeneratorLabel;
+      std::string f_PFParticleLabel;
       std::string f_TrackLabel;
       std::string f_POTSummaryLabel;
       bool f_Debug = false;
@@ -95,9 +101,10 @@ class hyperon::HyperonNtuples : public art::EDAnalyzer {
 // Setup module labels/read in fhicl settings     //
 ////////////////////////////////////////////////////
 
-hyperon::HyperonNtuples::HyperonNtuples(fhicl::ParameterSet const& p)
+tutorial::ToyNtupleCreator::ToyNtupleCreator(fhicl::ParameterSet const& p)
    : EDAnalyzer{p},
    f_GeneratorLabel(p.get<std::string>("GeneratorLabel")),
+   f_PFParticleLabel(p.get<std::string>("PFParticleLabel")),
    f_TrackLabel(p.get<std::string>("TrackLabel")),
    f_POTSummaryLabel(p.get<std::string>("POTSummaryLabel")),
    f_Debug(p.get<bool>("Debug",false))
@@ -105,7 +112,7 @@ hyperon::HyperonNtuples::HyperonNtuples(fhicl::ParameterSet const& p)
 
 }
 
-void hyperon::HyperonNtuples::analyze(art::Event const& e)
+void tutorial::ToyNtupleCreator::analyze(art::Event const& e)
 {
    if(f_Debug) std::cout << "New Event" << std::endl;
 
@@ -117,14 +124,75 @@ void hyperon::HyperonNtuples::analyze(art::Event const& e)
 
    //begin by resetting everything
    t_Weight = 1.0;
+   t_Mode = "NONE";
+   t_CCNC = "NONE";
+   t_NReconstructedTracks=0;
 
+   // Get the generator truth information
+   art::Handle<std::vector<simb::MCTruth>> Handle_MCTruth;
+   std::vector<art::Ptr<simb::MCTruth>> Vect_MCTruth;
+
+   if(!e.getByLabel(f_GeneratorLabel,Handle_MCTruth))  
+      throw cet::exception("ToyNtupleCreator") << "No MC Truth data product!" << std::endl;
+
+   art::fill_ptr_vector(Vect_MCTruth,Handle_MCTruth);  
+
+   for(const art::Ptr<simb::MCTruth> &theMCTruth : Vect_MCTruth){
+
+      simb::MCNeutrino Nu = theMCTruth->GetNeutrino();
+
+      int mode = Nu.Mode();
+      int ccnc = Nu.CCNC();
+
+      if(ccnc == 0) t_CCNC = "CC";
+      else t_CCNC = "NC";
+
+      if(mode == 0) t_Mode = "QEL";
+      else if(mode == 1) t_Mode = "RES";
+      else if(mode == 2) t_Mode = "DIS";
+      else if(mode == 3) t_Mode = "COH";
+      else if(mode == 5) t_Mode = "ElectronScattering";
+      else if(mode == 10) t_Mode = "MEC";
+      else if(mode == 11) t_Mode = "Diffractive";
+      else t_Mode = "Other";
+   }
+
+   // Load the reco'd tracks from the event 
+   art::Handle<std::vector<recob::PFParticle>> Handle_PFParticle;
+   std::vector<art::Ptr<recob::PFParticle>> Vect_PFParticle;
+   art::Handle<std::vector<recob::Track>> Handle_Track;
+   std::vector<art::Ptr<recob::Track>> Vect_Track;
+
+   if(!e.getByLabel(f_PFParticleLabel,Handle_PFParticle)) 
+      throw cet::exception("ToyNtupleCreator") << "No PFParticle Data Products Found!" << std::endl;
+
+   if(!e.getByLabel(f_TrackLabel,Handle_Track)) 
+      throw cet::exception("ToyNtupleCreator") << "No Track Data Products Found!" << std::endl;
+
+   art::fill_ptr_vector(Vect_PFParticle,Handle_PFParticle);
+   art::fill_ptr_vector(Vect_Track,Handle_Track);
+   art::FindManyP<recob::Track> Assoc_PFParticleTrack = art::FindManyP<recob::Track>(Vect_PFParticle,e,f_TrackLabel);
+
+   // Get the ID of the neutrino candidate
+   size_t neutrinoid = -9999;
+   for(const art::Ptr<recob::PFParticle> &pfp : Vect_PFParticle)
+      if(pfp->IsPrimary() && (pfp->PdgCode() == 12 || pfp->PdgCode() == 14))
+         neutrinoid = pfp->Self();
+
+   // Get the number of tracks in the neutrino slice     
+   for(const art::Ptr<recob::PFParticle> &pfp : Vect_PFParticle){
+      if(pfp->Parent() != neutrinoid) continue;
+      std::vector<art::Ptr<recob::Track>> pfpTracks = Assoc_PFParticleTrack.at(pfp.key());
+      if(pfpTracks.size() != 1) continue;
+      t_NReconstructedTracks++;
+   }
 
    OutputTree->Fill();
 }
 
 ///////////////////////////////////////////////////////////////	
 
-void hyperon::HyperonNtuples::beginJob(){
+void tutorial::ToyNtupleCreator::beginJob(){
 
    if(f_Debug) std::cout << "Creating TFileService and Setting Up Trees" << std::endl;
 
@@ -139,7 +207,10 @@ void hyperon::HyperonNtuples::beginJob(){
    OutputTree->Branch("run",&t_run);
    OutputTree->Branch("subrun",&t_subrun);
    OutputTree->Branch("event",&t_event);
+   OutputTree->Branch("CCNC",&t_CCNC);
+   OutputTree->Branch("Mode",&t_Mode);
    OutputTree->Branch("Weight",&t_Weight);
+   OutputTree->Branch("NReconstructedTracks",&t_NReconstructedTracks);
 
    //////////////////////////////////////////
    //             Metadata Tree	           //
@@ -153,18 +224,18 @@ void hyperon::HyperonNtuples::beginJob(){
    MetaTree->Branch("POT",&m_POT);
 }
 
-void hyperon::HyperonNtuples::endJob()
+void tutorial::ToyNtupleCreator::endJob()
 {
    MetaTree->Fill();
 }
 
-void hyperon::HyperonNtuples::beginSubRun(const art::SubRun& sr)
+void tutorial::ToyNtupleCreator::beginSubRun(const art::SubRun& sr)
 {
    if(f_Debug) std::cout << "Getting Subrun POT Info" << std::endl;
    art::Handle<sumdata::POTSummary> POTHandle;
    if(sr.getByLabel(f_POTSummaryLabel,POTHandle)) m_POT += POTHandle->totpot;	
 }
 
-void hyperon::HyperonNtuples::endSubRun(const art::SubRun& sr){}
+void tutorial::ToyNtupleCreator::endSubRun(const art::SubRun& sr){}
 
-DEFINE_ART_MODULE(hyperon::HyperonNtuples)
+DEFINE_ART_MODULE(tutorial::ToyNtupleCreator)
