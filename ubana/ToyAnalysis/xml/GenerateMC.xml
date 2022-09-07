@@ -8,7 +8,7 @@
 <!ENTITY file_type "mc">
 <!ENTITY run_type "physics">
 <!ENTITY user "cthorpe">
-<!ENTITY name "make_events_BNB_TEST">
+<!ENTITY name "make_events_BNB_TEST2">
 
 ]>
 
@@ -17,7 +17,7 @@
 <project name="&name;">
 
   <!-- Project size -->
-  <numevents>20</numevents>
+  <numevents>50</numevents>
 
   <!-- Operating System -->
   <os>SL7</os>
@@ -32,8 +32,8 @@
   </larsoft>
 
   <version>prod_&release;</version>
-  <check>1</check>
-  <copy>1</copy>
+  <check>-1</check>
+  <copy>0</copy>
   
   <!-- Project stages -->
   <stage name="reco2">
@@ -50,12 +50,12 @@
     <logdir>/pnfs/uboone/scratch/users/&user;/GridTutorial/&name;/gen_test/reco2</logdir>
     <workdir>/pnfs/uboone/resilient/users/&user;/GridTutorial/&name;/work/gen_test/reco2</workdir>
     <bookdir>/uboone/data/users/&user;/book/GridTutorial/&name;/gen_test/reco2</bookdir>
+    <datatier>reconstructed</datatier>
+    <datafiletypes>root</datafiletypes>
     <maxfilesperjob>1</maxfilesperjob>
     <numjobs>5</numjobs>
-    <datatier>reconstructed</datatier>
     <memory>3500</memory>
     <schema>gsiftp</schema>
-    <datafiletypes>root</datafiletypes>
     <disk>20GB</disk>
     <jobsub>
     --expected-lifetime=24h -e IFDH_CP_UNLINK_ON_ERROR=1

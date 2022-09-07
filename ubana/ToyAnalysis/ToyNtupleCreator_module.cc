@@ -187,6 +187,7 @@ void tutorial::ToyNtupleCreator::analyze(art::Event const& e)
       t_NReconstructedTracks++;
    }
 
+   m_NEvents++;
    OutputTree->Fill();
 }
 
