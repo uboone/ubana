@@ -6,7 +6,7 @@
 <!ENTITY file_type "mc">
 <!ENTITY run_type "physics">
 <!ENTITY user "cthorpe">
-<!ENTITY name "process_dataset_overlay_cthorpe_make_events_BNB_TEST_reco2_reco2">
+<!ENTITY name "process_dataset_overlay_cthorpe_make_events_BNB_TEST2_reco2_reco2">
 ]>
 
 
@@ -36,7 +36,7 @@
 
   <!-- Project stages -->
   <stage name="toy_tree">
-  <inputdef>cthorpe_make_events_BNB_TEST_reco2_reco2</inputdef>
+  <inputdef>cthorpe_make_events_BNB_TEST2_reco2_reco2</inputdef>
   <fcl>run_ToyAnalysis.fcl</fcl>
   <dirlevels>1</dirlevels>
   <dirsize>100</dirsize>
@@ -46,6 +46,7 @@
   <bookdir>/uboone/data/users/&user;/book/ToyAnalysis/&release;/&name;</bookdir>
   <datatier>root-tuple</datatier>
   <datafiletypes>root</datafiletypes>
+  <mergeana>1</mergeana>
   <prestart>1</prestart>
   <filelistdef>1</filelistdef>
   <maxfilesperjob>1</maxfilesperjob>
