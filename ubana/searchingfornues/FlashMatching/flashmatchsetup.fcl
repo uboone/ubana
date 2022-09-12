@@ -9,7 +9,7 @@ PMTService: {
             AlgName: "DatabaseRetrievalAlg"
             DBFolderName: "detpmtgains_data"
             DBTag: "v1r0"
-            DBUrl: "https://dbdata0vm.fnal.gov:8443/uboonecon_prod/app/"
+            DBUrl: "http://dbdata0vm.fnal.gov:8186/uboonecon_prod/app/"
             }
         DefaultAmplitudeGain: 20
         DefaultAmplitudeGainErr: 1e-2

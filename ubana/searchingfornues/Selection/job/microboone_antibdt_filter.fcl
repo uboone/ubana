@@ -48,7 +48,6 @@ microboone_antibdtfilter:
             CRTVetoproducer: ""
             CLSproducer: "pandora"
             MCTproducer: "generator"
-            MCFluxproducer: "generator"
             Hproducer: "gaushit"
             BacktrackTag: "gaushitTruthMatch"
             MCRproducer: "mcreco"

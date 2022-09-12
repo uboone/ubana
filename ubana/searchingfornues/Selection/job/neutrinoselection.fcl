@@ -119,6 +119,8 @@ DefaultAnalysisTool: {
     fidvolYend: 6.
     fidvolZstart: 20.
     fidvolZend: 50.
+    NuMIOpFiltProcName:    "DataStage1Optical"
+    NuMISWTriggerProcName: "DataOverlayOpticalNuMI"
 }
 
 MCSTool: {
@@ -176,8 +178,8 @@ PMTNoiseTool: {
 
 BDTTool: {
     tool_type: "BDT"
-    #TrigResProducer: ""
-    TrigResProducer: "TriggerResults::DataFiltersPostStage2"
+    TrigResProducer: ""
+    #TrigResProducer: "TriggerResults::DataFiltersPostStage2"
 }
 
 ContainmentAnalysis: {
