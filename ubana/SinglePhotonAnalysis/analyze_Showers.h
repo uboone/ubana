@@ -39,6 +39,11 @@ namespace single_photon
         m_reco_shower_start_dist_to_active_TPC.clear();
         m_reco_shower_start_dist_to_SCB.clear();
         m_reco_shower_start_in_SCB.clear();
+        m_reco_shower_start_wire_plane0.clear();
+        m_reco_shower_start_wire_plane1.clear();
+        m_reco_shower_start_wire_plane2.clear();
+        m_reco_shower_start_tick.clear();
+
         m_reco_shower_end_dist_to_active_TPC.clear();
         m_reco_shower_end_dist_to_SCB.clear();
         
@@ -125,6 +130,7 @@ namespace single_photon
         m_reco_shower_plane2_meanRMS.clear();
 
         m_reco_shower_hit_tick.clear();
+        m_reco_shower_hit_energy.clear();
         m_reco_shower_hit_wire.clear();
         m_reco_shower_hit_plane.clear();
         m_reco_shower_spacepoint_x.clear();
@@ -234,7 +240,12 @@ namespace single_photon
         m_reco_shower_start_dist_to_active_TPC.resize(size);
         m_reco_shower_start_dist_to_SCB.resize(size);
         m_reco_shower_start_in_SCB.resize(size);
- 
+        m_reco_shower_start_wire_plane0.resize(size);
+        m_reco_shower_start_wire_plane1.resize(size);
+        m_reco_shower_start_wire_plane2.resize(size);
+        m_reco_shower_start_tick.resize(size);
+
+
         m_reco_shower_end_dist_to_active_TPC.resize(size);
         m_reco_shower_end_dist_to_SCB.resize(size);
  
@@ -242,6 +253,7 @@ namespace single_photon
         m_reco_shower_startx.resize(size);
         m_reco_shower_starty.resize(size);
         m_reco_shower_startz.resize(size);
+
         m_reco_shower_dirx.resize(size);
         m_reco_shower_diry.resize(size);
         m_reco_shower_dirz.resize(size);
@@ -388,6 +400,11 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_startx", &m_reco_shower_startx);
         vertex_tree->Branch("reco_shower_starty", &m_reco_shower_starty);
         vertex_tree->Branch("reco_shower_startz", &m_reco_shower_startz);
+        vertex_tree->Branch("reco_shower_start_wire_plane0", &m_reco_shower_start_wire_plane0);
+        vertex_tree->Branch("reco_shower_start_wire_plane1", &m_reco_shower_start_wire_plane1);
+        vertex_tree->Branch("reco_shower_start_wire_plane2", &m_reco_shower_start_wire_plane2);
+        vertex_tree->Branch("reco_shower_start_tick", &m_reco_shower_start_tick);
+
         vertex_tree->Branch("reco_shower_start_dist_to_active_TPC", &m_reco_shower_start_dist_to_active_TPC);
         vertex_tree->Branch("reco_shower_start_dist_to_SCB",  &m_reco_shower_start_dist_to_SCB);
         vertex_tree->Branch("reco_shower_start_in_SCB",   &m_reco_shower_start_in_SCB);
@@ -432,7 +449,7 @@ namespace single_photon
         vertex_tree->Branch("reco_shower_hit_tick",&m_reco_shower_hit_tick);
         vertex_tree->Branch("reco_shower_hit_wire",&m_reco_shower_hit_wire);
         vertex_tree->Branch("reco_shower_hit_plane",&m_reco_shower_hit_plane);
-
+        vertex_tree->Branch("reco_shower_hit_energy",&m_reco_shower_hit_energy);
         vertex_tree->Branch("reco_shower_spacepoint_x",&m_reco_shower_spacepoint_x);
         vertex_tree->Branch("reco_shower_spacepoint_y",&m_reco_shower_spacepoint_y);
         vertex_tree->Branch("reco_shower_spacepoint_z",&m_reco_shower_spacepoint_z);
@@ -615,7 +632,11 @@ namespace single_photon
             m_reco_shower_starty[i_shr] = shr_start.Y();
             m_reco_shower_startz[i_shr] = shr_start.Z();
 
- 
+            m_reco_shower_start_wire_plane0[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 0, m_TPC, m_Cryostat, *geom);
+            m_reco_shower_start_wire_plane1[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 1, m_TPC, m_Cryostat, *geom);
+            m_reco_shower_start_wire_plane2[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 2, m_TPC, m_Cryostat, *geom);
+            m_reco_shower_start_tick[i_shr] = calcTime(m_reco_shower_startx[i_shr], 2, m_TPC,m_Cryostat, *theDetector);
+
             std::vector<double> hstart = {m_reco_shower_startx[i_shr],m_reco_shower_starty[i_shr],m_reco_shower_startz[i_shr]};
             m_reco_shower_start_dist_to_active_TPC[i_shr] = distToTPCActive(hstart);
             m_reco_shower_start_in_SCB[i_shr] = this->distToSCB(m_reco_shower_start_dist_to_SCB[i_shr],hstart);
@@ -759,23 +780,30 @@ namespace single_photon
             m_reco_shower_plane2_meanRMS[i_shr] = getMeanHitWidthPlane(hits, 2);
 
 
-            //currently only run on 1 shower events
-            if(showers.size()==1){
+            if(m_bool_save_sp){
+
+                std::vector<int> t_wire;    
+                std::vector<int> t_plane;    
+                std::vector<double> t_tick;    
+                std::vector<double> t_energy;    
+
                for(auto &h: hits){ 
 
                     int plane= h->View();
                     int wire = h->WireID().Wire;
                     int tick = h->PeakTime();
 
-                    m_reco_shower_hit_tick.push_back(tick);
-                    m_reco_shower_hit_plane.push_back(plane);
-                    m_reco_shower_hit_wire.push_back(wire);
-
-
-
+                    t_tick.push_back(tick);
+                    t_plane.push_back(plane);
+                    t_wire.push_back(wire);
+                    t_energy.push_back(QtoEConversionHit(h,plane));
+                            
 
                }
-
+                    m_reco_shower_hit_tick.push_back(t_tick);
+                    m_reco_shower_hit_plane.push_back(t_plane);
+                    m_reco_shower_hit_wire.push_back(t_wire);
+                    m_reco_shower_hit_energy.push_back(t_energy);
             }
 
 

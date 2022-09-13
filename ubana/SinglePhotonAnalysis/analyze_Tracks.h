@@ -64,6 +64,16 @@ namespace single_photon
         m_reco_track_resrange_best_plane.clear();
         m_reco_track_dEdx_best_plane.clear();
 
+        m_reco_track_hit_tick.clear();
+        m_reco_track_hit_energy.clear();
+        m_reco_track_hit_wire.clear();
+        m_reco_track_hit_plane.clear();
+        m_reco_track_spacepoint_x.clear();
+        m_reco_track_spacepoint_y.clear();
+        m_reco_track_spacepoint_z.clear();
+
+
+        
 
         m_reco_track_mean_dEdx_p0.clear();
         m_reco_track_mean_dEdx_start_half_p0.clear();
@@ -373,6 +383,14 @@ namespace single_photon
         vertex_tree->Branch("reco_track_spacepoint_chi",&m_reco_track_spacepoint_chi);
         vertex_tree->Branch("reco_track_spacepoint_max_dist",&m_reco_track_spacepoint_max_dist);
 
+        vertex_tree->Branch("reco_track_hit_tick",&m_reco_track_hit_tick);
+        vertex_tree->Branch("reco_track_hit_wire",&m_reco_track_hit_wire);
+        vertex_tree->Branch("reco_track_hit_plane",&m_reco_track_hit_plane);
+        vertex_tree->Branch("reco_track_hit_energy",&m_reco_track_hit_energy);
+        vertex_tree->Branch("reco_track_spacepoint_x",&m_reco_track_spacepoint_x);
+        vertex_tree->Branch("reco_track_spacepoint_y",&m_reco_track_spacepoint_y);
+        vertex_tree->Branch("reco_track_spacepoint_z",&m_reco_track_spacepoint_z);
+
         vertex_tree->Branch("reco_track_best_calo_plane",&m_reco_track_best_calo_plane);
 
         vertex_tree->Branch("reco_track_mean_dEdx_best_plane",&m_reco_track_mean_dEdx_best_plane);
@@ -663,6 +681,32 @@ namespace single_photon
                 //recob::Track::Point_t const & pos = trajp.position;
                 //recob::Track::Vector_t const & mom = trajp.momentum;
 
+            }
+
+            if(m_bool_save_sp){
+
+                std::vector<int> t_wire;    
+                std::vector<int> t_plane;    
+                std::vector<double> t_tick;    
+                std::vector<double> t_energy;    
+
+               for(auto &h: trk_hits){ 
+
+                    int plane= h->View();
+                    int wire = h->WireID().Wire;
+                    int tick = h->PeakTime();
+
+                    t_tick.push_back(tick);
+                    t_plane.push_back(plane);
+                    t_wire.push_back(wire);
+                    t_energy.push_back(QtoEConversionHit(h,plane));
+                            
+
+               }
+                    m_reco_track_hit_tick.push_back(t_tick);
+                    m_reco_track_hit_plane.push_back(t_plane);
+                    m_reco_track_hit_wire.push_back(t_wire);
+                    m_reco_track_hit_energy.push_back(t_energy);
             }
 
 

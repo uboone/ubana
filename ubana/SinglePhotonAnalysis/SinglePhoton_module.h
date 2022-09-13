@@ -1007,6 +1007,8 @@ namespace single_photon
             double m_track_calo_min_dEdx_hits;
             double m_track_calo_trunc_fraction;
 
+            bool m_bool_save_sp;
+
             detinfo::DetectorProperties const * theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
             detinfo::DetectorClocks    const *  detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
             spacecharge::SpaceCharge const * SCE;
@@ -1442,6 +1444,16 @@ namespace single_photon
             std::vector<double> m_reco_track_calo_energy_plane2;
             std::vector<double> m_reco_track_calo_energy_max;	  /* max energy of 3 plane for the reco track */
 
+            std::vector<std::vector<int>> m_reco_track_hit_wire;
+            std::vector<std::vector<int>> m_reco_track_hit_plane;
+            std::vector<std::vector<double>> m_reco_track_hit_tick;
+            std::vector<std::vector<double>> m_reco_track_hit_energy;
+            std::vector<std::vector<double>> m_reco_track_spacepoint_x;
+            std::vector<std::vector<double>> m_reco_track_spacepoint_z;
+            std::vector<std::vector<double>> m_reco_track_spacepoint_y;
+
+
+
 
             std::vector<double>   m_reco_track_theta_yz; /* theta, phi of the track */
             std::vector<double>   m_reco_track_phi_yx;
@@ -1638,14 +1650,16 @@ namespace single_photon
             std::vector<double> m_reco_shower3d_dEdx_plane1;
             std::vector<double> m_reco_shower3d_dEdx_plane2;
 
-
-
             std::vector<double>   m_reco_shower_startx;
             std::vector<double>   m_reco_shower_starty;
             std::vector<double>   m_reco_shower_startz;
             std::vector<double> m_reco_shower_start_dist_to_active_TPC; /* distance from shower start to closest TPC wall */
             std::vector<double> m_reco_shower_start_dist_to_SCB;
             std::vector<int> m_reco_shower_start_in_SCB;
+            std::vector<double> m_reco_shower_start_wire_plane0;
+            std::vector<double> m_reco_shower_start_wire_plane1;
+            std::vector<double> m_reco_shower_start_wire_plane2;
+            std::vector<double> m_reco_shower_start_tick;
             std::vector<double> m_reco_shower_end_dist_to_active_TPC;
             std::vector<double> m_reco_shower_end_dist_to_SCB;
 
@@ -1893,13 +1907,13 @@ namespace single_photon
             std::vector<double> m_reco_shower_plane1_meanRMS;
             std::vector<double> m_reco_shower_plane2_meanRMS;
 
-            std::vector<int> m_reco_shower_hit_wire;
-            std::vector<int> m_reco_shower_hit_plane;
-            std::vector<double> m_reco_shower_hit_tick;
-            std::vector<double> m_reco_shower_spacepoint_x;
-            std::vector<double> m_reco_shower_spacepoint_z;
-            std::vector<double> m_reco_shower_spacepoint_y;
-
+            std::vector<std::vector<int>> m_reco_shower_hit_wire;
+            std::vector<std::vector<int>> m_reco_shower_hit_plane;
+            std::vector<std::vector<double>> m_reco_shower_hit_tick;
+            std::vector<std::vector<double>> m_reco_shower_hit_energy;
+            std::vector<std::vector<double>> m_reco_shower_spacepoint_x;
+            std::vector<std::vector<double>> m_reco_shower_spacepoint_z;
+            std::vector<std::vector<double>> m_reco_shower_spacepoint_y;
 
             std::vector<size_t>  m_reco_shower_ordered_energy_index; /* indices of 'm_reco_shower_energy_max' such that energy max is in descending order */
             std::vector<std::vector<double>> m_reco_shower_dQdx_plane0; //for each shower, looks at the hits for all clusters in the plane, stores the dQ/dx for each hit 

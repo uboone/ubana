@@ -360,6 +360,17 @@ namespace single_photon
         std::vector< art::Ptr<recob::PFParticle> > nuParticles;
         this->GetFinalStatePFParticleVectors(pfParticleMap, pfParticlesToVerticesMap, crParticles, nuParticles);
 
+        //Fill some more vertex info
+        m_vertex_pos_wire_p0 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 0, m_TPC, m_Cryostat, *geom);
+        m_vertex_pos_wire_p1 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 1, m_TPC, m_Cryostat, *geom);
+        m_vertex_pos_wire_p2 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 2, m_TPC, m_Cryostat, *geom);
+        m_vertex_pos_tick = calcTime(m_vertex_pos_x, 2, m_TPC,m_Cryostat, *theDetector);
+        //std::cout<<calcTime(m_vertex_pos_x, 2, m_TPC,m_Cryostat, *theDetector)<<" "<<calcTime(m_vertex_pos_x, 0, m_TPC,m_Cryostat, *theDetector)<<" "<<calcTime(m_vertex_pos_x, 1, m_TPC,m_Cryostat, *theDetector)<<std::endl;
+
+
+
+
+
 
         //if not running over neutrino slice only, use all pfp's in event
         if (m_run_all_pfps ==true){
@@ -571,6 +582,8 @@ namespace single_photon
         //Helper function (can be found below) to collect tracks and showers in neutrino slice
         this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
 
+        if(tracks.size()+showers.size()<3){m_bool_save_sp = true;}else{m_bool_save_sp = false;}
+
         //Track Calorimetry. Bit odd here but bear with me, good to match and fill here
         art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
         std::map<art::Ptr<recob::Track>, std::vector<art::Ptr<anab::Calorimetry>> > trackToCalorimetryMap;
@@ -734,7 +747,7 @@ namespace single_photon
         //******************************* Common Optical Filter **************************************************************/
         //Raw Optical fltr
         art::Handle<uboone::UbooneOpticalFilter> uBooNE_common_optFltr;
-        if(evt.getByLabel("opfiltercommon", uBooNE_common_optFltr)){
+      if(evt.getByLabel("opfiltercommon", uBooNE_common_optFltr)){
             m_flash_optfltr_pe_beam     = uBooNE_common_optFltr->PE_Beam();
             m_flash_optfltr_pe_beam_tot = uBooNE_common_optFltr->PE_Beam_Total();
             m_flash_optfltr_pe_veto     = uBooNE_common_optFltr->PE_Veto();
@@ -756,6 +769,30 @@ namespace single_photon
         //found in analyze_Tracks.h
         this->AnalyzeTracks(tracks, trackToNuPFParticleMap, pfParticleToHitsMap,  pfParticleToSpacePointsMap,  MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,  PFPToTrackScoreMap, PFPToNuSliceMap,pfParticleMap);
         this->AnalyzeTrackCalo(tracks,   trackToCalorimetryMap);
+
+        for(size_t i_trk = 0; i_trk<tracks.size();i_trk++){
+            const art::Ptr<recob::Track> t = tracks[i_trk];
+            const art::Ptr<recob::PFParticle> pfp = trackToNuPFParticleMap[t];
+            const std::vector< art::Ptr<recob::SpacePoint> > trk_spacepoints = pfParticleToSpacePointsMap[pfp];
+
+            std::vector<double> tmp_sp_x;
+            std::vector<double> tmp_sp_y;
+            std::vector<double> tmp_sp_z;
+
+            if(m_bool_save_sp){
+            for(auto &sp: trk_spacepoints){
+                    tmp_sp_x.push_back(sp->XYZ()[0]);
+                    tmp_sp_y.push_back(sp->XYZ()[1]);
+                    tmp_sp_z.push_back(sp->XYZ()[2]);
+                }
+
+                    m_reco_track_spacepoint_x.push_back(tmp_sp_x);
+                    m_reco_track_spacepoint_y.push_back(tmp_sp_y);
+                    m_reco_track_spacepoint_z.push_back(tmp_sp_z);
+
+            }
+        }
+
 
         //Run over PID?
         if(m_use_PID_algorithms)  this->CollectPID(tracks, trackToPIDMap);
@@ -780,6 +817,10 @@ namespace single_photon
             m_reco_shower_end_dist_to_active_TPC[i_shr] = 99999;
             m_reco_shower_end_dist_to_SCB[i_shr] = 99999;
 
+            std::vector<double> tmp_sp_x;
+            std::vector<double> tmp_sp_y;
+            std::vector<double> tmp_sp_z;
+
             for(auto &sp: shr_spacepoints){
                 std::vector<double> tmp_spt = {sp->XYZ()[0],sp->XYZ()[1] , sp->XYZ()[2]};
                 m_reco_shower_end_dist_to_active_TPC[i_shr] = std::min(m_reco_shower_end_dist_to_active_TPC[i_shr], distToTPCActive(tmp_spt));
@@ -788,13 +829,18 @@ namespace single_photon
                 m_reco_shower_end_dist_to_SCB[i_shr] = std::min(m_reco_shower_end_dist_to_SCB[i_shr],tmo);
 
                 //This section runs for only 1 shower events for purpose of testing delta specifics 
-                if(showers.size()==1){
-                    m_reco_shower_spacepoint_x.push_back(sp->XYZ()[0]);
-                    m_reco_shower_spacepoint_y.push_back(sp->XYZ()[1]);
-                    m_reco_shower_spacepoint_z.push_back(sp->XYZ()[2]);
+
+                if(m_bool_save_sp){
+                    tmp_sp_x.push_back(sp->XYZ()[0]);
+                    tmp_sp_y.push_back(sp->XYZ()[1]);
+                    tmp_sp_z.push_back(sp->XYZ()[2]);
                 }
 
             }
+                    m_reco_shower_spacepoint_x.push_back(tmp_sp_x);
+                    m_reco_shower_spacepoint_y.push_back(tmp_sp_y);
+                    m_reco_shower_spacepoint_z.push_back(tmp_sp_z);
+
         }
 
 
@@ -868,6 +914,11 @@ namespace single_photon
 
             std::cout<<"Starting outside RecoMCTracks "<<std::endl;
             this->RecoMCTracks(tracks, trackToNuPFParticleMap, trackToMCParticleMap, MCParticleToMCTruthMap,mcParticleVector, MCParticleToTrackIdMap, sliceIdToNuScoreMap, PFPToClearCosmicMap,  PFPToSliceIdMap,trk_overlay_vec);
+
+
+
+
+
 
             std::cout<<"Starting outside AnalyzeMCTruths "<<std::endl;
             this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
@@ -1564,6 +1615,12 @@ namespace single_photon
         vertex_tree->Branch("reco_vertex_x", &m_vertex_pos_x);
         vertex_tree->Branch("reco_vertex_y", &m_vertex_pos_y);
         vertex_tree->Branch("reco_vertex_z", &m_vertex_pos_z);
+        vertex_tree->Branch("reco_vertex_wire_p0", &m_vertex_pos_wire_p0);
+        vertex_tree->Branch("reco_vertex_wire_p1", &m_vertex_pos_wire_p1);
+        vertex_tree->Branch("reco_vertex_wire_p2", &m_vertex_pos_wire_p2);
+        vertex_tree->Branch("reco_vertex_tick", &m_vertex_pos_tick);
+
+
         vertex_tree->Branch("reco_vertex_in_SCB", &m_reco_vertex_in_SCB);
         vertex_tree->Branch("reco_vertex_dist_to_SCB",&m_reco_vertex_dist_to_SCB);
         vertex_tree->Branch("reco_vertex_dist_to_active_TPC",&m_reco_vertex_dist_to_active_TPC);
@@ -1879,6 +1936,8 @@ namespace single_photon
             if(isNeutrino){
                 found++;
                 this->GetVertex(pfParticlesToVerticesMap, pParticle );
+                
+
 
             }
 
