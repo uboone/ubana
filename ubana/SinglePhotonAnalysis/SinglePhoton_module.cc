@@ -55,6 +55,8 @@ namespace single_photon
         std::cout<<"SinglePhoton::reconfigure || m_is_overlayed: "<<m_is_overlayed<<std::endl;
         std::cout<<"SinglePhoton::reconfigure || m_is_textgen: "<<m_is_textgen<<std::endl;
 
+        //Save all spacepoints?
+        m_bool_save_sp = pset.get<bool>("SaveSpacepoints",false);
 
         //Instead of running over ALL evnts in a file, can pass in a file to run over just the run:subrun:event listed
         m_runSelectedEvent    = pset.get<bool>("SelectEvent", false);
@@ -582,7 +584,7 @@ namespace single_photon
         //Helper function (can be found below) to collect tracks and showers in neutrino slice
         this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
 
-        if(tracks.size()+showers.size()<3){m_bool_save_sp = true;}else{m_bool_save_sp = false;}
+        if(tracks.size()+showers.size()<3 && m_bool_save_sp ){m_bool_save_sp = true;}else{m_bool_save_sp = false;}
 
         //Track Calorimetry. Bit odd here but bear with me, good to match and fill here
         art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
