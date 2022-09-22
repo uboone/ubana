@@ -3,6 +3,7 @@
 namespace single_photon
 {
 
+    //ask YJ
     int SinglePhoton::setTPCGeom(){
 
         m_tpc_active_x_low  =  0.0;
@@ -40,6 +41,7 @@ namespace single_photon
         return isInTPCActive(0.0,vec);
     }
 
+    /* determine if point vec is inside TPC active volume, returns 1 - in TPC active, 0 - out of TPC active */
     int SinglePhoton::isInTPCActive(double cut,std::vector<double> & vec){
         bool is_x = (vec[0] > m_tpc_active_x_low+cut && vec[0]< m_tpc_active_x_high-cut );
         bool is_y = (vec[1] > m_tpc_active_y_low+cut && vec[1]< m_tpc_active_y_high-cut);
@@ -48,6 +50,7 @@ namespace single_photon
 
     }
 
+    /* returns minimum distance to the TPC active boundary; returns -999 if the point is not in TPC active volume */
     double SinglePhoton::distToTPCActive(std::vector<double>&vec){
         if(isInTPCActive(vec)==0) return -999;
         double min_x = std::min( fabs(vec[0] - m_tpc_active_x_low) ,  fabs(vec[0] - m_tpc_active_x_high));
@@ -58,9 +61,14 @@ namespace single_photon
     }
 
 
+    /* Guanqun: load the SCB polygon in XY plane at various Z position ? */
     bool SinglePhoton::loadSCB_YX(std::vector<TGeoPolygon*>& zpolygons){
         //TGeoManager *geom = new TGeoManager("save scb", "save scb");
         //cout << "size of " << zpolygons.size() << endl;
+
+        //DEPRECIATED SHOULD NOT BE USED!!!
+        std::cout<<"ERROR ERROR ERROR DEPRECIATED DEPRECIATED. "<<std::endl;
+
         double tbi = -10000.; //means "to be initialized"                                                                                                                                
         //torso
         double ptX[6] = {0., tbi, m_SCB_YX_TOP_x2_array, m_SCB_YX_BOT_x2_array, tbi, 0.};
@@ -75,7 +83,7 @@ namespace single_photon
             ptY[3] = m_SCB_YX_BOT_y2_array[z_idx_YX+1];
             polyXY->SetXY(ptX,ptY);
             polyXY->FinishPolygon();
-            zpolygons.push_back(polyXY);
+            zpolygons.push_back(polyXY); // Guanqun: not sure pushing pack pointers works as expect?? 
         }
 
         //cout << "size of " <<zpolygons.size() << endl;
@@ -101,11 +109,12 @@ namespace single_photon
 
         TVector3 pt(&vec[0]);
 
-        Int_t z_idx = (Int_t)pt.Z()/100;
+        Int_t z_idx = (Int_t)pt.Z()/100;  // Int_t: signed integer 4 bytes
 
         Int_t z_idx_YX = z_idx;//YX-view effective z index, it is only different for z > 10m area, where we want to appliy 9m<z<10m YX boundary, still need to keep the original z_idx bc it's needed in ZX-view
         if (z_idx_YX==10) z_idx_YX-=1;
         double tbi = -10000.; //means "to be initialized"
+
 
         double ptX[6] = {0.+cut, tbi, m_SCB_YX_TOP_x2_array-cut, m_SCB_YX_BOT_x2_array-cut, tbi, 0.+cut};
         double ptY[6] = {m_SCB_YX_TOP_y1_array-cut, m_SCB_YX_TOP_y1_array-cut, tbi, tbi, m_SCB_YX_BOT_y1_array+cut, m_SCB_YX_BOT_y1_array+cut};
@@ -127,7 +136,7 @@ namespace single_photon
         //polyXY->Draw();    
 
         Bool_t XY_contain = polyXY->Contains(testpt);
-        dist_yx = polyXY->Safety(testpt, iseg);
+        dist_yx = polyXY->Safety(testpt, iseg); // Compute minimum distance from testpt to any segment.
 
         if(0<z_idx && z_idx<10){
             double up_z = pt.Z()-m_tpc_active_z_low; // gonna bet, if it's middle enough to be up_z or down_z is smaller than the safefy in this z regime (1m,10m), it is safe to set up_z = z-0, down_z=1036.8-z 
