@@ -203,13 +203,11 @@ namespace seaview {
             int runseaDBSCAN(double min_pts, double eps);
 
             double calcWire(double Y, double Z, int plane, int fTPC, int fCryostat, geo::GeometryCore const& geo ){
-                double wire = geo.WireCoordinate(Y, Z, plane, fTPC, fCryostat);
-                return wire;
+                return geo.WireCoordinate(geo::Point_t{0, Y, Z}, geo::PlaneID(fCryostat, fTPC, plane));
             }
 
             double calcTime(double X,int plane,int fTPC,int fCryostat, detinfo::DetectorPropertiesData const& detprop){
-                double time = detprop.ConvertXToTicks(X, plane, fTPC,fCryostat);
-                return time;
+                return detprop.ConvertXToTicks(X, plane, fTPC,fCryostat);
             }
 
 
@@ -294,4 +292,3 @@ namespace seaview {
 }// namespace
 
 #endif
-

@@ -72,13 +72,14 @@
 #include "larsim/MCCheater/BackTracker.h"
 
 //Algorithms include
+#include "ubcore/LLBasicTool/GeoAlgo/GeoAABox.h"
 #include "ubcore/LLBasicTool/GeoAlgo/GeoTrajectory.h"
-#include "ubana/UBXSec/Algorithms/FiducialVolume.h"
 #include "ubana/UBXSec/HitCosmicTag/Base/DataTypes.h"
 #include "ubana/UBXSec/HitCosmicTag/Base/CosmicTagManager.h"
 #include "ubana/UBXSec/HitCosmicTag/Algorithms/StopMuMichel.h"
 #include "ubana/UBXSec/HitCosmicTag/Algorithms/StopMuBragg.h"
 #include "ubana/UBXSec/HitCosmicTag/Algorithms/CosmicSimpleMIP.h"
+#include "ubana/Utilities/FiducialVolume.h"
 
 // Root include
 #include "TString.h"
@@ -120,7 +121,7 @@ private:
   ::recob::MCSFitResult _result;
 
   /// Takes a pointer to a point, and, if outside the dector, puts it at the detector border
-  void ContainPoint(double * point);
+  void ContainPoint(geo::Point_t& point);
 
   /// Takes a recob::Track and returns true if is a stopping muon according to MCS algo
   bool IsStopMuMCS(art::Ptr<recob::Track> t, double & delta_ll);
@@ -156,15 +157,15 @@ private:
 
 
 StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p) 
-  : EDProducer{p}, _mcs_fitter(p.get< fhicl::ParameterSet >("MCSFitter")) {
+  : EDProducer{p}
+  , _fiducial_volume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
+                     geo->DetHalfHeight(),
+                     2.*geo->DetHalfWidth(),
+                     geo->DetLength())
+  , _mcs_fitter(p.get< fhicl::ParameterSet >("MCSFitter")) {
 
 
   _ct_manager.Configure(p.get<cosmictag::Config_t>("CosmicTagManager"));
-
-  _fiducial_volume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                             geo->DetHalfHeight(),
-                             2.*geo->DetHalfWidth(),
-                             geo->DetLength());
 
   std::cout << "[StoppingMuonTagger] FV: " << std::endl;
   _fiducial_volume.PrintConfig();
@@ -416,11 +417,9 @@ void StoppingMuonTagger::produce(art::Event & e) {
     // Now get the highest point
     //
     std::sort(sp_v.begin(), sp_v.end(),
-              [](art::Ptr<recob::SpacePoint> a, art::Ptr<recob::SpacePoint> b) -> bool
+              [](art::Ptr<recob::SpacePoint> const& a, art::Ptr<recob::SpacePoint> const& b) -> bool
               {
-                const double *xyz_a = a->XYZ();
-                const double *xyz_b = b->XYZ();
-                return xyz_a[1] > xyz_b[1];
+                return a->XYZ()[1] > b->XYZ()[1];
               });
 
     if (sp_v.size() == 0) {
@@ -428,15 +427,15 @@ void StoppingMuonTagger::produce(art::Event & e) {
       continue;
     }
 
-    const double *highest_point_c = sp_v.at(0)->XYZ();
-    double highest_point[3] = {highest_point_c[0], highest_point_c[1], highest_point_c[2]};
+    auto highest_point = sp_v.at(0)->position();
     this->ContainPoint(highest_point);
 
     // Creating an approximate start hit on plane 2
-    int highest_w = geo->NearestWire(highest_point, 2) ;//* geo->WirePitch(geo::PlaneID(0,0,2));
-    double highest_t = detProp.ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,2))/4.;//highest_point[0];
-    if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << geo->NearestWire(highest_point, 2) 
-                       << ", time: " << detProp.ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,2))
+    geo::PlaneID const plane_2{0, 0, 2};
+    int highest_w = geo->NearestWireID(highest_point, plane_2).Wire ;//* geo->WirePitch(geo::PlaneID(0,0,2));
+    double highest_t = detProp.ConvertXToTicks(highest_point.X(), plane_2)/4.;//highest_point[0];
+    if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << highest_w
+                          << ", time: " << detProp.ConvertXToTicks(highest_point.X(), plane_2)
                        << std::endl;
     cosmictag::SimpleHit start_highest;
     start_highest.time = highest_t;
@@ -444,10 +443,11 @@ void StoppingMuonTagger::produce(art::Event & e) {
     start_highest.plane = 2;
 
     // Creating an approximate start hit on plane 1 (used if collection coplanar)
-    highest_w = geo->NearestWire(highest_point, 1) ;
-    highest_t = detProp.ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,1))/4.;
-    if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << geo->NearestWire(highest_point, 1) 
-                       << ", time: " << detProp.ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,1))
+    geo::PlaneID const plane_1{0, 0, 1};
+    highest_w = geo->NearestWireID(highest_point, plane_1).Wire;
+    highest_t = detProp.ConvertXToTicks(highest_point.X(), plane_1)/4.;
+    if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << highest_w
+                          << ", time: " << detProp.ConvertXToTicks(highest_point.X(), plane_1)
                        << std::endl;
     cosmictag::SimpleHit start_highest_plane1;
     start_highest_plane1.time = highest_t;
@@ -461,14 +461,14 @@ void StoppingMuonTagger::produce(art::Event & e) {
     art::Ptr<recob::Track> trk = primary_track_v.at(0);
     bool start_fv = _fiducial_volume.InFV(trk->Vertex<TVector3>());
     bool end_fv   = _fiducial_volume.InFV(trk->End<TVector3>());
-    double point_outfv[3] = {-999, -999, -999};
-    if (!start_fv) {point_outfv[0] = trk->Vertex().X(); point_outfv[1] = trk->Vertex().Y(); point_outfv[2] = trk->Vertex().Z();}
-    if (!end_fv) {point_outfv[0] = trk->End().X(); point_outfv[1] = trk->End().Y(); point_outfv[2] = trk->End().Z();}
+    geo::Point_t point_outfv;
+    if (!start_fv) {point_outfv = trk->Vertex();}
+    if (!end_fv) {point_outfv = trk->End();}
     this->ContainPoint(point_outfv);
-    int outfv_w = geo->NearestWire(point_outfv, 2);
-    double outfv_t = detProp.ConvertXToTicks(point_outfv[0], geo::PlaneID(0,0,2))/4.;
-    if (_debug) std::cout << "[StoppingMuonTagger] OutFV point: wire: " << geo->NearestWire(point_outfv, 2) 
-                       << ", time: " << detProp.ConvertXToTicks(point_outfv[0], geo::PlaneID(0,0,2))
+    int outfv_w = geo->NearestWireID(point_outfv, plane_2).Wire;
+    double outfv_t = detProp.ConvertXToTicks(point_outfv.X(), plane_2)/4.;
+    if (_debug) std::cout << "[StoppingMuonTagger] OutFV point: wire: " << outfv_w
+                          << ", time: " << detProp.ConvertXToTicks(point_outfv.X(), plane_2)
                        << std::endl;
     // Creating an approximate start hit
     cosmictag::SimpleHit start_outfv;
@@ -786,28 +786,12 @@ bool StoppingMuonTagger::IsStopMuMCS_bug(art::Ptr<recob::Track> t, double & delt
 
 
 
-void StoppingMuonTagger::ContainPoint(double * point) {
+void StoppingMuonTagger::ContainPoint(geo::Point_t& point) {
 
-  double x = point[0];
-  double y = point[1];
-  double z = point[2];
-
-  double e = std::numeric_limits<double>::epsilon();
-
-  if (x < 0. + e)
-    point[0] = 0. + e;
-  if (x > 2.*geo->DetHalfWidth() - e)
-    point[0] = 2.*geo->DetHalfWidth() - e;
-
-  if (y < -geo->DetHalfWidth() + e)
-    point[1] = -geo->DetHalfWidth() + e;
-  if (y > geo->DetHalfWidth() - e)
-    point[1] = geo->DetHalfWidth() - e;
-
-  if (z < 0. + e) 
-    point[2] = 0.+ e;
-  if (z > geo->DetLength() - e)
-    point[2] = geo->DetLength() - e;
+  constexpr double e = std::numeric_limits<double>::epsilon();
+  point.SetX(std::clamp(point.X(), e, 2.*geo->DetHalfWidth() - e));
+  point.SetY(std::clamp(point.Y(), -geo->DetHalfWidth() + e, geo->DetHalfWidth() - e));
+  point.SetZ(std::clamp(point.Z(), e, geo->DetLength() - e));
 
 }
 

@@ -21,7 +21,7 @@
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
-#include "ubana/UBXSec/Algorithms/FiducialVolume.h"
+#include "ubana/Utilities/FiducialVolume.h"
 
 namespace ubana {
 
@@ -78,9 +78,6 @@ namespace ubana{
     
     /// Default constructor
     StoppingMuonTaggerHelper();
-
-    /// Default destructor
-    ~StoppingMuonTaggerHelper(){}
 
     /// Configure function parameters
     void Configure(fhicl::ParameterSet const& p);
@@ -156,7 +153,7 @@ namespace ubana{
     void SetVertexPoint(double *p) {_vertex.SetX(p[0]); _vertex.SetY(p[1]); _vertex.SetZ(p[2]);}
 
     /// Sets the FV object
-    void SetFiducialVolume(ubana::FiducialVolume fv) {_fv = fv;}
+    void SetFiducialVolume(ubana::FiducialVolume fv) {_fv = std::make_unique<ubana::FiducialVolume>(fv);}
 
     /// Removes max and min value and returns the median
     double GetTruncMedian(std::vector<double> v);
@@ -178,7 +175,7 @@ namespace ubana{
     std::vector<double> _linearity_v;
     bool _linearity_is_set = false;
 
-    ubana::FiducialVolume _fv;
+    std::unique_ptr<ubana::FiducialVolume> _fv;
     TVector3 _vertex;
 
     bool _hits_ordered = false;
@@ -208,4 +205,3 @@ namespace ubana{
 
 #endif
 /** @} */ // end of doxygen group 
-

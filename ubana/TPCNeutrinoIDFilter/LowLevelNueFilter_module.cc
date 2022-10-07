@@ -412,11 +412,11 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
       //float wire1 = FLT_MIN;
       h_flashZWidth->Fill(flash->ZWidth());
       //Find the 4 corners and convert them to wire numbers
-      std::vector<TVector3> points;
-      points.push_back(TVector3(0, flash->YCenter()-flash->YWidth(), flash->ZCenter()-flash->ZWidth()));
-      points.push_back(TVector3(0, flash->YCenter()-flash->YWidth(), flash->ZCenter()+flash->ZWidth()));
-      points.push_back(TVector3(0, flash->YCenter()+flash->YWidth(), flash->ZCenter()-flash->ZWidth()));
-      points.push_back(TVector3(0, flash->YCenter()+flash->YWidth(), flash->ZCenter()+flash->ZWidth()));
+      std::vector<geo::Point_t> points;
+      points.emplace_back(0, flash->YCenter()-flash->YWidth(), flash->ZCenter()-flash->ZWidth());
+      points.emplace_back(0, flash->YCenter()-flash->YWidth(), flash->ZCenter()+flash->ZWidth());
+      points.emplace_back(0, flash->YCenter()+flash->YWidth(), flash->ZCenter()-flash->ZWidth());
+      points.emplace_back(0, flash->YCenter()+flash->YWidth(), flash->ZCenter()+flash->ZWidth());
       for (int pl = 0; pl <3; ++pl){
 	float wire0 = FLT_MAX;
 	float wire1 = FLT_MIN;

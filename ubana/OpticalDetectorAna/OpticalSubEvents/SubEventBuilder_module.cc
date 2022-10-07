@@ -699,18 +699,17 @@ void SubEventBuilder::GetHitGeometryInfo(subevent::Flash const& flash,
 					 double & sumy, double & sumy2,
 					 double & sumz, double & sumz2)
 {
-  double xyz[3];
-  geom.OpDetGeoFromOpChannel( (unsigned int)flash.ch ).GetCenter(xyz);
+  auto const xyz = geom.OpDetGeoFromOpChannel( (unsigned int)flash.ch ).GetCenter();
 
   double PEThisHit = flash.area;
-  for(size_t p=0; p!=geom.Nplanes(); p++){
-    unsigned int w = geom.NearestWire(xyz,p);
+  for(unsigned int p=0; p!=geom.Nplanes(); p++){
+    unsigned int w = geom.NearestWireID(xyz,geo::PlaneID{0, 0, p}).Wire;
     sumw.at(p)  += w*PEThisHit;
     sumw2.at(p) += w*w*PEThisHit;
   }
   
-  sumy+=xyz[1]*PEThisHit; sumy2+=xyz[1]*xyz[1]*PEThisHit;
-  sumz+=xyz[2]*PEThisHit; sumz2+=xyz[2]*xyz[2]*PEThisHit;
+  sumy+=xyz.Y()*PEThisHit; sumy2+=xyz.Y()*xyz.Y()*PEThisHit;
+  sumz+=xyz.Z()*PEThisHit; sumz2+=xyz.Z()*xyz.Z()*PEThisHit;
 }
 
 void SubEventBuilder::makeOpFlashes(detinfo::DetectorClocksData const& clockData,

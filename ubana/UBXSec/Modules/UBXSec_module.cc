@@ -98,7 +98,7 @@
 //#include "ubana/UBXSec/Algorithms/McPfpMatch.h"
 #include "ubana/UBXSec/Algorithms/FindDeadRegions.h"
 #include "ubana/UBXSec/Algorithms/MuonCandidateFinder.h"
-#include "ubana/UBXSec/Algorithms/FiducialVolume.h"
+#include "ubana/Utilities/FiducialVolume.h"
 #include "ubana/UBXSec/Algorithms/NuMuCCEventSelection.h"
 #include "ubana/UBXSec/Algorithms/TrackQuality.h"
 
@@ -152,6 +152,8 @@ private:
 
   /// Calculates flash position
   void GetFlashLocation(std::vector<double>, double&, double&, double&, double&);
+
+  ::art::ServiceHandle<geo::Geometry> _geo;
 
   FindDeadRegions deadRegionsFinder;
   //ubxsec::McPfpMatch mcpfpMatcher;
@@ -275,13 +277,16 @@ private:
 
 
 UBXSec::UBXSec(fhicl::ParameterSet const & p)
-  : EDProducer{p}, _min_track_len{p.get<double>("MinTrackLength", 0.1)}
+  : EDProducer{p}
+  , _fiducial_volume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
+                     _geo->DetHalfHeight(),
+                     2.*_geo->DetHalfWidth(),
+                     _geo->DetLength())
+  , _min_track_len{p.get<double>("MinTrackLength", 0.1)}
   , _trk_mom_calculator{_min_track_len}
 {
 
   //::art::ServiceHandle<cheat::BackTracker> bt;
-  ::art::ServiceHandle<geo::Geometry> geo;
-
   _pfp_producer                   = p.get<std::string>("PFParticleProducer");
   _hitfinderLabel                 = p.get<std::string>("HitProducer");
   _geantModuleLabel               = p.get<std::string>("GeantModule");
@@ -326,11 +331,6 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p)
   _make_pida_csv                  = p.get<bool>("MakePIDACSV", false);
 
   _pecalib.Configure(p.get<fhicl::ParameterSet>("PECalib"));
-
-  _fiducial_volume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"), 
-                             geo->DetHalfHeight(),
-                             2.*geo->DetHalfWidth(),
-                             geo->DetLength());
 
   _fiducial_volume.PrintConfig();
 
@@ -1725,9 +1725,10 @@ void UBXSec::produce(art::Event & e) {
       for (size_t i = 0; i < candidate_track->NumberTrajectoryPoints(); i++) {
         try {
           if (candidate_track->HasValidPoint(i)) {
-            TVector3 trk_pt = candidate_track->LocationAtPoint<TVector3>(i);
-            double wire = geo->NearestWire(trk_pt, 2);
-            double time = detProp.ConvertXToTicks(trk_pt.X(), geo::PlaneID(0,0,2));
+            auto const trk_pt = candidate_track->LocationAtPoint(i);
+            geo::PlaneID const plane_2{0, 0, 2};
+            double wire = geo->NearestWireID(trk_pt, plane_2).Wire;
+            double time = detProp.ConvertXToTicks(trk_pt.X(), plane_2);
             TVector3 p (wire, time, 0.);
             //std::cout << "emplacing track point on wire " << p.X() << ", and time " << p.Y() << std::endl;
             track_v.emplace_back(p);

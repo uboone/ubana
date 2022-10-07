@@ -1158,7 +1158,7 @@ void MCS::Project3Dto2D(const TVector3& pt3d, const int& pl,
 
   auto const* geom = ::lar::providerFrom<geo::Geometry>();
     
-  wirecm = geom->WireCoordinate(pt3d[1],pt3d[2],geo::PlaneID(0,0,pl)) * wire2cm;
+  wirecm = geom->WireCoordinate(geo::vect::toPoint(pt3d),geo::PlaneID(0,0,pl)) * wire2cm;
   timecm = pt3d[0];
 
   return;

@@ -569,26 +569,22 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
     // Loop over the complete collection of trajectory points
     for(int i = 0; i < n; ++i)
     {
-        TVector3 posInTPC(0.,0.,0.);
-        TVector3 posVec = part.Position(i).Vect();
-        double   pos[]  = {posVec.X(),posVec.Y(),posVec.Z()};
-        
-        // Try identifying the TPC we are in
-        unsigned int tpc(0);
-        unsigned int cstat(0);
+        TVector3 pos = part.Position(i).Vect();
 
         // Need to make sure this position is in an active region of the TPC
         // If the particle is not in the cryostat then we skip
-        try
-        {
-            const geo::TPCGeo& tpcGeo = fGeometry->PositionToTPC(pos, tpc, cstat);
+        geo::TPCGeo const* tpcGeo = fGeometry->PositionToTPCptr(geo::vect::toPoint(pos));
+        if (tpcGeo == nullptr) {
+          continue;
+        }
             
-            TVector3 activePos = posVec - tpcGeo.GetActiveVolumeCenter();
+        TVector3 const activePos = pos - tpcGeo->GetActiveVolumeCenter();
             
-            if (std::fabs(activePos.X()) > tpcGeo.ActiveHalfWidth() || std::fabs(activePos.Y()) > tpcGeo.ActiveHalfHeight() || std::fabs(activePos.Z()) > 0.5 * tpcGeo.ActiveLength()) continue;
+        if (std::fabs(activePos.X()) > tpcGeo->ActiveHalfWidth() or
+            std::fabs(activePos.Y()) > tpcGeo->ActiveHalfHeight() or
+            std::fabs(activePos.Z()) > 0.5 * tpcGeo->ActiveLength()) continue;
             
-            posInTPC = TVector3(activePos.X() + tpcGeo.ActiveHalfWidth(), activePos.Y(), activePos.Z());
-        } catch(...) {continue;}
+        double const xpos_in_tpc = activePos.X() + tpcGeo->ActiveHalfWidth();
         
         // Make fiducial cuts.
         // There are two sets here:
@@ -597,7 +593,7 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
         // 2) We then check the timing of the presumed hit and make sure it lies within the
         //    readout window for this simulation
         pos[0] += dx;
-        double ticks = fDetectorProperties->ConvertXToTicks(posInTPC.X(), 0, tpc, cstat);
+        double const ticks = fDetectorProperties->ConvertXToTicks(xpos_in_tpc,  geo::PlaneID{tpcGeo->ID(), 0});
 
         // Currently it appears that the detector properties are not getting initialized properly and the returned
         // number of ticks is garbage so we need to skip this for now. Will be important when we get CR's

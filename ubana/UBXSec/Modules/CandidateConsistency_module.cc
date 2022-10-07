@@ -45,6 +45,7 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
+#include <algorithm>
 #include <memory>
 
 // Data products include
@@ -77,7 +78,6 @@
 //Algorithms include
 #include "ubana/UBXSec/Algorithms/UBXSecHelper.h"
 #include "ubcore/LLBasicTool/GeoAlgo/GeoTrajectory.h"
-#include "ubana/UBXSec/Algorithms/FiducialVolume.h"
 #include "ubana/UBXSec/Algorithms/StoppingMuonTaggerHelper.h"
 #include "ubana/UBXSec/HitCosmicTag/Base/DataTypes.h"
 #include "ubana/UBXSec/HitCosmicTag/Base/CosmicTagManager.h"
@@ -143,7 +143,7 @@ private:
 
   ::flashana::FlashMatchManager       _mgr;
 
-  void ContainPoint(double *);
+  void ContainPoint(geo::Point_t&);
   std::vector<double> GetFlashHypo(art::Ptr<recob::Track>, double);
   bool IsCathodeCrossing(art::Ptr<recob::Track>, double &);
 
@@ -262,21 +262,21 @@ void CandidateConsistency::produce(art::Event & e)
     // Collect objects that are close to the vertex
     //
     std::vector<art::Ptr<recob::Track>>  selected_tracks;
-    std::vector<TVector3>                selected_tracks_vertex;
+    std::vector<geo::Point_t>            selected_tracks_vertex;
     std::vector<art::Ptr<recob::Shower>> selected_showers;
-    std::vector<TVector3>                selected_showers_vertex;
+    std::vector<geo::Point_t>            selected_showers_vertex;
 
     // 1) Tracks
     for (auto t : tracks) {
 
       if ( (t->Vertex<TVector3>() - vtx_xyz).Mag() < _tolerance ) {
         selected_tracks.push_back(t);
-        selected_tracks_vertex.push_back(t->Vertex<TVector3>());
+        selected_tracks_vertex.push_back(t->Vertex());
       }
 
       if ( (t->End<TVector3>() - vtx_xyz).Mag() < _tolerance ) {
         selected_tracks.push_back(t);
-        selected_tracks_vertex.push_back(t->End<TVector3>());
+        selected_tracks_vertex.push_back(t->End());
       }
 
 
@@ -287,7 +287,7 @@ void CandidateConsistency::produce(art::Event & e)
 
       if ( (s->ShowerStart() - vtx_xyz).Mag() < _tolerance ) {
         selected_showers.push_back(s);
-        selected_showers_vertex.push_back(s->ShowerStart());
+        selected_showers_vertex.push_back(geo::vect::toPoint(s->ShowerStart()));
       }
 
     }
@@ -339,10 +339,11 @@ void CandidateConsistency::produce(art::Event & e)
       _ct_manager.Emplace(std::move(sc));
 
       // Creating an approximate start hit given the TPCObject vertex
-      double vertex[3] = {selected_tracks_vertex.at(i).X(), selected_tracks_vertex.at(i).Y(), selected_tracks_vertex.at(i).Z()};
+      auto& vertex = selected_tracks_vertex.at(i);
       this->ContainPoint(vertex);
-      double vertex_t = detProp.ConvertXToTicks(vertex[0], geo::PlaneID(0,0,2))/4.;
-      int vertex_w    = geo->NearestWire(vertex, 2);
+      geo::PlaneID const plane_2{0, 0, 2};
+      double vertex_t = detProp.ConvertXToTicks(vertex.X(), plane_2)/4.;
+      int vertex_w    = geo->NearestWireID(vertex, plane_2).Wire;
 
       cosmictag::SimpleHit start;
       start.time = vertex_t;
@@ -491,10 +492,11 @@ void CandidateConsistency::produce(art::Event & e)
       _ct_manager.Emplace(std::move(sc));
 
       // Creating an approximate start hit
-      double vertex[3] = {selected_showers_vertex.at(i).X(), selected_showers_vertex.at(i).Y(), selected_showers_vertex.at(i).Z()};
+      auto& vertex = selected_showers_vertex.at(i);
       this->ContainPoint(vertex);
-      double vertex_t = detProp.ConvertXToTicks(vertex[0], geo::PlaneID(0,0,2))/4.;
-      int vertex_w    = geo->NearestWire(vertex, 2);
+      geo::PlaneID const plane_2{0, 0, 2};
+      double vertex_t = detProp.ConvertXToTicks(vertex.X(), plane_2)/4.;
+      int vertex_w    = geo->NearestWireID(vertex, plane_2).Wire;
 
       cosmictag::SimpleHit start;
       start.time = vertex_t;
@@ -592,28 +594,12 @@ void CandidateConsistency::produce(art::Event & e)
   if(_debug) std::cout << "[CandidateConsistency] Ends." << std::endl;
 }
 
-void CandidateConsistency::ContainPoint(double * point) {
+void CandidateConsistency::ContainPoint(geo::Point_t& point) {
 
-  double x = point[0];
-  double y = point[1];
-  double z = point[2];
-
-  double e = std::numeric_limits<double>::epsilon();
-
-  if (x < 0. + e)
-    point[0] = 0. + e;
-  if (x > 2.*geo->DetHalfWidth() - e)
-    point[0] = 2.*geo->DetHalfWidth() - e;
-
-  if (y < -geo->DetHalfWidth() + e)
-    point[1] = -geo->DetHalfWidth() + e;
-  if (y > geo->DetHalfWidth() - e)
-    point[1] = geo->DetHalfWidth() - e;
-
-  if (z < 0. + e) 
-    point[2] = 0.+ e;
-  if (z > geo->DetLength() - e)
-    point[2] = geo->DetLength() - e;
+  constexpr double e = std::numeric_limits<double>::epsilon();
+  point.SetX(std::clamp(point.X(), e, 2.*geo->DetHalfWidth() - e));
+  point.SetY(std::clamp(point.Y(), -geo->DetHalfWidth() + e, geo->DetHalfWidth() - e));
+  point.SetZ(std::clamp(point.Z(), e, geo->DetLength() - e));
 
 }
 
