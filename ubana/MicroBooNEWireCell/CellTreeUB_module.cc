@@ -25,6 +25,16 @@
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 
+#include "larevt/CalibrationDBI/Interface/ElectronicsCalibService.h"
+#include "larevt/CalibrationDBI/Interface/ElectronicsCalibProvider.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "ubevt/Database/TPCEnergyCalib/TPCEnergyCalibService.h"
+#include "ubevt/Database/TPCEnergyCalib/TPCEnergyCalibProvider.h"
+#include "ubevt/Database/UbooneElectronLifetimeProvider.h"
+#include "ubevt/Database/UbooneElectronLifetimeService.h"
+
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
@@ -96,6 +106,7 @@ namespace wc{
     void processSimEnergyDepositOutside(const art::Event& evt);
     void processSimChannel(const art::Event& evt);
     void processEventWeight(const art::Event& evt);
+    void processElectronLifetime(const art::Event& evt);
   private:
     // --- fhicl parameters ---
     std::string fTPC_rawLabel;
@@ -172,6 +183,7 @@ namespace wc{
     short shiftRawdigit;
     std::string mcOption;
     bool fSaveMCTrackPoints;
+    bool fSaveElectronLifetime;
 
     TTree *fEventTree;
     int fEvent;
@@ -382,6 +394,8 @@ namespace wc{
     float sc_drift_speed=1.098; // mm/us
     // --- EventWeight ---
     double fEventWeight;
+    // --- Electron Lifetime ---
+    float elifetime;
   }; // class CellTreeUB
 
   CellTreeUB::CellTreeUB(fhicl::ParameterSet const& pset)
@@ -469,6 +483,7 @@ namespace wc{
     shiftRawdigit = pset.get<short>("ShiftRawdigit");
     mcOption = pset.get<std::string>("mcOption");
     fSaveMCTrackPoints = pset.get<bool>("SaveMCTrackPoints");
+    fSaveElectronLifetime = pset.get<bool>("SaveElectronLifetime");
   }
 
   void CellTreeUB::initOutput(){
@@ -724,6 +739,9 @@ namespace wc{
     if(fSaveEventWeight){
       fEventTree->Branch("event_weight",&fEventWeight);
     }
+    if(fSaveElectronLifetime){
+      fEventTree->Branch("elifetime", &elifetime);
+    }
   }
 
   void CellTreeUB::beginJob(){
@@ -774,6 +792,7 @@ namespace wc{
     if(fSaveSimEnergyDepositOutside) processSimEnergyDepositOutside(evt);
     if(fSaveSimChannel) processSimChannel(evt);
     if(fEventWeight) processEventWeight(evt);
+    if(fSaveElectronLifetime) processElectronLifetime(evt);
     fEventTree->Fill();
   }
 
@@ -948,6 +967,9 @@ namespace wc{
     }
     if(fSaveEventWeight){
       fEventWeight=-1.;
+    }
+    if(fSaveElectronLifetime){
+      elifetime=-1.;
     }
   }
 
@@ -1758,6 +1780,30 @@ namespace wc{
 	fEventWeight = element.second.at(0);
       }
     }
+  }
+
+  void CellTreeUB::processElectronLifetime(const art::Event& evt){
+
+    /// access lifetime database and fetch the value 
+    //m_lifetime_to_set = ??? from database
+    const lariov::UBElectronLifetimeProvider& elifetimeCalibProvider
+      = art::ServiceHandle<lariov::UBElectronLifetimeService>()->GetProvider();
+    //float elifetime  = elifetimeCalibProvider.Lifetime(); // [ms]
+    elifetime  = elifetimeCalibProvider.Lifetime(); // [ms]
+    /// end
+
+    /*
+    if (fELifetimeCorrection) {
+      Drifter::set_lifetime(elifetime*units::ms);
+      //std::cout << "www: lifetime from database = " << elifetime << std::endl; 
+      //std::cout << "www: lifetime from database = " << elifetime*units::ms << std::endl;
+    }
+    else {
+      Drifter::set_lifetime(m_lifetime_to_set);
+      //std::cout << "www: defaul lifetime = " << m_lifetime_to_set << std::endl;
+      //std::cout << "www: defaul lifetime = " << 1000.0*units::ms << std::endl;
+    }
+    */
   }
 
   DEFINE_ART_MODULE(CellTreeUB)

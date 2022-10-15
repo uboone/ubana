@@ -76,6 +76,7 @@ celltreeub_mc: {
  ShiftRawdigit		       : 14000
  mcOption		       : "all"
  SaveMCTrackPoints	       : false
+ SaveElectronLifetime          : true
 }
 
 END_PROLOG
