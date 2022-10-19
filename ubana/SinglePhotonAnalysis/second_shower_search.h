@@ -23,13 +23,14 @@ namespace single_photon
 
         m_sss_num_candidates = 0;
 
-
+	m_sss_candidate_in_nu_slice.clear();
         m_sss_candidate_num_hits.clear();
         m_sss_candidate_num_wires.clear();
         m_sss_candidate_num_ticks.clear();
         m_sss_candidate_plane.clear();
         m_sss_candidate_PCA.clear();
         m_sss_candidate_mean_ADC.clear();
+	m_sss_candidate_ADC_RMS.clear();
         m_sss_candidate_impact_parameter.clear();
         m_sss_candidate_fit_slope.clear();
         m_sss_candidate_veto_score.clear();
@@ -41,15 +42,64 @@ namespace single_photon
         m_sss_candidate_max_wire.clear();
         m_sss_candidate_mean_wire.clear();
         m_sss_candidate_min_dist.clear();
+	m_sss_candidate_wire_tick_based_length.clear();
         m_sss_candidate_energy.clear();
         m_sss_candidate_angle_to_shower.clear();
         m_sss_candidate_closest_neighbour.clear();
         m_sss_candidate_matched.clear();
+	m_sss_candidate_matched_energy_fraction_best_plane.clear();
         m_sss_candidate_pdg.clear();
         m_sss_candidate_parent_pdg.clear();
         m_sss_candidate_trackid.clear();
+	m_sss_candidate_true_energy.clear();
         m_sss_candidate_overlay_fraction.clear();
         m_sss_candidate_remerge.clear();
+    }
+
+    void SinglePhoton::ClearStubs(){
+	m_trackstub_num_unassociated_hits = 0; 
+        m_trackstub_unassociated_hits_below_threshold = 0; 
+        m_trackstub_associated_hits=0; 
+        m_trackstub_num_candidates=0; 
+	m_trackstub_candidate_in_nu_slice.clear();
+        m_trackstub_candidate_num_hits.clear();
+        m_trackstub_candidate_num_wires.clear(); 
+        m_trackstub_candidate_num_ticks.clear();
+        m_trackstub_candidate_plane.clear(); 
+        m_trackstub_candidate_PCA.clear();
+        m_trackstub_candidate_mean_ADC.clear();
+        m_trackstub_candidate_ADC_RMS.clear();
+        m_trackstub_candidate_veto_score.clear();
+        m_trackstub_candidate_mean_tick.clear();
+        m_trackstub_candidate_max_tick.clear();
+        m_trackstub_candidate_min_tick.clear();
+        m_trackstub_candidate_min_wire.clear();
+        m_trackstub_candidate_max_wire.clear();
+        m_trackstub_candidate_mean_wire.clear();
+        m_trackstub_candidate_min_dist.clear();  
+        m_trackstub_candidate_min_impact_parameter_to_shower.clear(); 
+        m_trackstub_candidate_min_conversion_dist_to_shower_start.clear();  
+        m_trackstub_candidate_min_ioc_to_shower_start.clear();        
+        m_trackstub_candidate_ioc_based_length.clear();         
+        m_trackstub_candidate_wire_tick_based_length.clear();           
+        m_trackstub_candidate_mean_ADC_first_half.clear();              
+        m_trackstub_candidate_mean_ADC_second_half.clear();
+        m_trackstub_candidate_mean_ADC_first_to_second_ratio.clear(); 
+        m_trackstub_candidate_track_angle_wrt_shower_direction.clear();   
+        m_trackstub_candidate_linear_fit_chi2.clear();          
+        m_trackstub_candidate_energy.clear();
+        m_trackstub_candidate_remerge.clear(); 
+        m_trackstub_candidate_matched.clear(); 
+        m_trackstub_candidate_matched_energy_fraction_best_plane.clear(); 
+        m_trackstub_candidate_pdg.clear();   
+        m_trackstub_candidate_parent_pdg.clear();
+        m_trackstub_candidate_trackid.clear(); 
+	m_trackstub_candidate_true_energy.clear();
+        m_trackstub_candidate_overlay_fraction.clear(); 
+
+        m_trackstub_num_candidate_groups = 0;                
+        m_grouped_trackstub_candidate_indices.clear(); 
+        m_trackstub_candidate_group_timeoverlap_fraction.clear();   
     }
 
     void SinglePhoton::ResizeSecondShowers(size_t size){
@@ -64,12 +114,14 @@ namespace single_photon
 
         vertex_tree->Branch("sss_num_candidates",&m_sss_num_candidates,"sss_num_candidates/I");
         vertex_tree->Branch("sss_candidate_veto_score",&m_sss_candidate_veto_score);
+	vertex_tree->Branch("sss_candidate_in_nu_slice", &m_sss_candidate_in_nu_slice);
         vertex_tree->Branch("sss_candidate_num_hits",&m_sss_candidate_num_hits);
         vertex_tree->Branch("sss_candidate_num_wires",&m_sss_candidate_num_wires);
         vertex_tree->Branch("sss_candidate_num_ticks",&m_sss_candidate_num_ticks);
         vertex_tree->Branch("sss_candidate_plane",&m_sss_candidate_plane);
         vertex_tree->Branch("sss_candidate_PCA",&m_sss_candidate_PCA);
         vertex_tree->Branch("sss_candidate_mean_ADC",&m_sss_candidate_mean_ADC);
+	vertex_tree->Branch("sss_candidate_ADC_RMS", &m_sss_candidate_ADC_RMS);
         vertex_tree->Branch("sss_candidate_impact_parameter",&m_sss_candidate_impact_parameter); 
         vertex_tree->Branch("sss_candidate_fit_slope",&m_sss_candidate_fit_slope);
         vertex_tree->Branch("sss_candidate_fit_constant",&m_sss_candidate_fit_constant);
@@ -80,6 +132,7 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_max_wire",&m_sss_candidate_max_wire);
         vertex_tree->Branch("sss_candidate_min_wire",&m_sss_candidate_min_wire);
         vertex_tree->Branch("sss_candidate_min_dist",&m_sss_candidate_min_dist);
+	vertex_tree->Branch("sss_candidate_wire_tick_based_length", &m_sss_candidate_wire_tick_based_length);
         vertex_tree->Branch("sss_candidate_energy",&m_sss_candidate_energy);
         vertex_tree->Branch("sss_candidate_angle_to_shower",&m_sss_candidate_angle_to_shower);
         vertex_tree->Branch("sss_candidate_closest_neighbour",&m_sss_candidate_closest_neighbour);
@@ -89,7 +142,9 @@ namespace single_photon
         vertex_tree->Branch("sss_candidate_pdg",&m_sss_candidate_pdg);
         vertex_tree->Branch("sss_candidate_parent_pdg",&m_sss_candidate_parent_pdg);
         vertex_tree->Branch("sss_candidate_trackid",&m_sss_candidate_trackid);
+	vertex_tree->Branch("sss_candidate_true_energy", &m_sss_candidate_true_energy);
         vertex_tree->Branch("sss_candidate_overlay_fraction",&m_sss_candidate_overlay_fraction);
+	vertex_tree->Branch("sss_candidate_matched_energy_fraction_best_plane", &m_sss_candidate_matched_energy_fraction_best_plane);
 
 
         vertex_tree->Branch("sss3d_ioc_ranked_en",&m_sss3d_ioc_ranked_en);
@@ -136,6 +191,57 @@ namespace single_photon
         vertex_tree->Branch("sss2d_conv_ranked_num_planes",&m_sss2d_conv_ranked_num_planes);
 
     }
+
+    void SinglePhoton::CreateStubBranches(){
+
+        vertex_tree->Branch("trackstub_num_unassociated_hits",&m_trackstub_num_unassociated_hits,"trackstub_num_unassociated_hits/I");
+        vertex_tree->Branch("trackstub_unassociated_hits_below_threshold",&m_trackstub_unassociated_hits_below_threshold,"trackstub_unassociated_hits_below_threshold/I");
+        vertex_tree->Branch("trackstub_associated_hits",&m_trackstub_associated_hits,"trackstub_associated_hits/I");
+	vertex_tree->Branch("trackstub_num_candidates", &m_trackstub_num_candidates, "trackstub_num_candidates/I");
+	vertex_tree->Branch("trackstub_candidate_in_nu_slice", &m_trackstub_candidate_in_nu_slice);
+	vertex_tree->Branch("trackstub_candidate_num_hits", &m_trackstub_candidate_num_hits);
+	vertex_tree->Branch("trackstub_candidate_num_wires", &m_trackstub_candidate_num_wires);
+	vertex_tree->Branch("trackstub_candidate_num_ticks", &m_trackstub_candidate_num_ticks);
+	vertex_tree->Branch("trackstub_candidate_plane", &m_trackstub_candidate_plane);
+	vertex_tree->Branch("trackstub_candidate_PCA", &m_trackstub_candidate_PCA);
+	vertex_tree->Branch("trackstub_candidate_mean_ADC", &m_trackstub_candidate_mean_ADC);
+	vertex_tree->Branch("trackstub_candidate_ADC_RMS", &m_trackstub_candidate_ADC_RMS);
+	vertex_tree->Branch("trackstub_candidate_veto_score", &m_trackstub_candidate_veto_score);
+	vertex_tree->Branch("trackstub_candidate_mean_tick", &m_trackstub_candidate_mean_tick);
+	vertex_tree->Branch("trackstub_candidate_max_tick", &m_trackstub_candidate_max_tick);
+	vertex_tree->Branch("trackstub_candidate_min_tick", &m_trackstub_candidate_min_tick);
+	vertex_tree->Branch("trackstub_candidate_min_wire", &m_trackstub_candidate_min_wire);
+	vertex_tree->Branch("trackstub_candidate_max_wire", &m_trackstub_candidate_max_wire);
+	vertex_tree->Branch("trackstub_candidate_mean_wire", &m_trackstub_candidate_mean_wire);
+	vertex_tree->Branch("trackstub_candidate_min_dist", &m_trackstub_candidate_min_dist);
+	vertex_tree->Branch("trackstub_candidate_min_impact_parameter_to_shower", &m_trackstub_candidate_min_impact_parameter_to_shower);
+	vertex_tree->Branch("trackstub_candidate_min_conversion_dist_to_shower_start", &m_trackstub_candidate_min_conversion_dist_to_shower_start);
+	vertex_tree->Branch("trackstub_candidate_min_ioc_to_shower_start", &m_trackstub_candidate_min_ioc_to_shower_start);
+	vertex_tree->Branch("trackstub_candidate_ioc_based_length", &m_trackstub_candidate_ioc_based_length);
+	vertex_tree->Branch("trackstub_candidate_wire_tick_based_length", &m_trackstub_candidate_wire_tick_based_length);
+	vertex_tree->Branch("trackstub_candidate_mean_ADC_first_half", &m_trackstub_candidate_mean_ADC_first_half);
+	vertex_tree->Branch("trackstub_candidate_mean_ADC_second_half", &m_trackstub_candidate_mean_ADC_second_half);
+	vertex_tree->Branch("trackstub_candidate_mean_ADC_first_to_second_ratio", &m_trackstub_candidate_mean_ADC_first_to_second_ratio);
+	vertex_tree->Branch("trackstub_candidate_track_angle_wrt_shower_direction", &m_trackstub_candidate_track_angle_wrt_shower_direction);
+	vertex_tree->Branch("trackstub_candidate_linear_fit_chi2", &m_trackstub_candidate_linear_fit_chi2);
+	vertex_tree->Branch("trackstub_candidate_energy", &m_trackstub_candidate_energy);
+	vertex_tree->Branch("trackstub_candidate_remerge", &m_trackstub_candidate_remerge);
+	vertex_tree->Branch("trackstub_candidate_matched", &m_trackstub_candidate_matched);
+	vertex_tree->Branch("trackstub_candidate_matched_energy_fraction_best_plane", &m_trackstub_candidate_matched_energy_fraction_best_plane);
+	vertex_tree->Branch("trackstub_candidate_pdg", &m_trackstub_candidate_pdg);
+	vertex_tree->Branch("trackstub_candidate_parent_pdg", &m_trackstub_candidate_parent_pdg);
+	vertex_tree->Branch("trackstub_candidate_trackid", &m_trackstub_candidate_trackid);
+	vertex_tree->Branch("trackstub_candidate_true_energy", &m_trackstub_candidate_true_energy);
+	vertex_tree->Branch("trackstub_candidate_overlay_fraction", &m_trackstub_candidate_overlay_fraction);
+
+
+	vertex_tree->Branch("trackstub_num_candidate_groups", &m_trackstub_num_candidate_groups, "trackstub_num_candidate_groups/I");
+	vertex_tree->Branch("grouped_trackstub_candidate_indices", &m_grouped_trackstub_candidate_indices);
+	vertex_tree->Branch("trackstub_candidate_group_timeoverlap_fraction", &m_trackstub_candidate_group_timeoverlap_fraction);
+    
+    }
+
+
 
     void SinglePhoton::SecondShowerSearch(
             const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
@@ -820,7 +926,7 @@ namespace single_photon
                                 m_sss_candidate_parent_pdg.push_back(-1);
                                 m_sss_candidate_trackid.push_back(-1);
                                 m_sss_candidate_overlay_fraction.push_back(-1);
-
+				m_sss_candidate_matched_energy_fraction_best_plane.push_back(-1);
                             }else{
                                 auto ssmatched = this->SecondShowerMatching(hitz, mcparticles_per_hit, mcParticleVector, pfParticleIdMap,  MCParticleToTrackIdMap);
                                 m_sss_candidate_matched.push_back(ssmatched[0]);
@@ -828,6 +934,7 @@ namespace single_photon
                                 m_sss_candidate_parent_pdg.push_back(ssmatched[2]);
                                 m_sss_candidate_trackid.push_back(ssmatched[3]);
                                 m_sss_candidate_overlay_fraction.push_back(ssmatched[4]);
+				m_sss_candidate_matched_energy_fraction_best_plane.push_back(ssmatched[5]);
                             }
 
 
@@ -964,9 +1071,9 @@ namespace single_photon
         std::vector<double>t_tick;
         // std::vector<double>t_dist;
 
-        std::vector<double>all_wire;
+        std::vector<double>all_wire; // wire of all hits
         std::vector<double>all_tick;
-        std::vector<double>all_dist;
+        std::vector<double>all_dist; // distance to vertex of all hits
 
 
         for(size_t h = 0; h< hitz.size(); h++){
@@ -980,7 +1087,7 @@ namespace single_photon
             all_dist.push_back(dd);
         }
 
-        std::vector<size_t> sorted_in = sort_indexes(all_dist);
+        std::vector<size_t> sorted_in = sort_indexes(all_dist); // index of all dist in descending order
         size_t max_e = std::min((size_t)Npts,hitz.size());
 
         for(size_t i =0; i<max_e; i++){
@@ -1006,6 +1113,7 @@ namespace single_photon
         score.pass = true;
 
         // ************* Some simple metrics relative to study point (usually vertex) ***************
+        // this can be moved to inclass initializer
         score.max_dist_tick = 0;
         score.min_dist_tick = 1e10;
         score.mean_dist_tick = 0;
@@ -1060,6 +1168,7 @@ namespace single_photon
             score.mean_dist_wire += fabs(h_wire-vertex_wire);
 
             //wierd dits
+            //requires that hit in hits has to be on the same plane as vertex_wire.
             double dd =sqrt(pow(h_wire*0.3-vertex_wire*0.3,2)+pow(h_tick/25.0- vertex_tick/25.0,2));
             score.mean_dist += dd;
             if(dd< score.min_dist){
@@ -1186,11 +1295,13 @@ namespace single_photon
 
 
 
-    std::vector<double>SinglePhoton::SecondShowerMatching(std::vector<art::Ptr<recob::Hit>>& hitz,
+    std::vector<double>SinglePhoton::SecondShowerMatching(
+	    std::vector<art::Ptr<recob::Hit>>& hitz,
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
             std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
             std::map< size_t, art::Ptr<recob::PFParticle>> & pfParticleIdMap,
-            std::map< int ,art::Ptr<simb::MCParticle> >  &  MCParticleToTrackIdMap){
+            std::map< int ,art::Ptr<simb::MCParticle>>  & MCParticleToTrackIdMap
+	){
 
 
         std::vector<double> ans; //matched,pdg,parentpdg,trkid
@@ -1256,9 +1367,9 @@ namespace single_photon
                 }
             }//end loop over particles per hit
 
-        }
+        } // end loop over hit
         if(found_a_match){
-            std::cout<<"!"<<std::endl;
+            std::cout<<"Found a match!"<<std::endl;
         }
         double fraction_num_hits_overlay = (double)n_not_associated_hits/(double)hitz.size();
 
@@ -1270,7 +1381,7 @@ namespace single_photon
             //This will only occur if the whole recob::PFParticle is PURELY associated with an overlay object
             found_a_match =false;
             //Here we will fill every sim_shower_XXX variable with -999 or something like that 
-            return {0,0,0,0,0};
+            return {0,0,0,0,0,0,0};
         }//
 
         /*
@@ -1437,7 +1548,7 @@ namespace single_photon
             par_pdg = match_mother->PdgCode();
         }
 
-        ans = {1,(double)match->PdgCode(), (double)par_pdg, (double)match->TrackId(),fraction_num_hits_overlay};
+        ans = {1,(double)match->PdgCode(), (double)par_pdg, (double)match->TrackId(), match->E(), fraction_num_hits_overlay, best_mother_energy/total_energy_on_plane.at(best_mother_plane)};
 
         return ans;
     }//end sss matching;
@@ -1735,6 +1846,8 @@ namespace single_photon
 
 
                 // std::cout<<"Best invar "<<"--"<<ranked_invar[0]<<" ioc: "<<sss3d_shower_ioc_ratio.at( ranked_invar[0] )<<" invar: "<<sss3d_shower_implied_invariant_mass.at(ranked_invar[0])<<" en: "<<sss3d_shower_energy_max.at(ranked_invar[0])<<" conv: "<<sss3d_shower_conversion_dist.at(ranked_invar[0])<<std::endl;
+
+		// minimum discrepancy between implied invariant mass and pi0 mass
                 m_sss3d_invar_ranked_en = m_sss3d_shower_energy_max.at(ranked_invar[0]);            
                 m_sss3d_invar_ranked_conv = m_sss3d_shower_conversion_dist.at(ranked_invar[0]);            
                 m_sss3d_invar_ranked_invar = m_sss3d_shower_invariant_mass.at(ranked_invar[0]);            
@@ -1853,8 +1966,8 @@ namespace single_photon
                 std::vector<double>  candidates_pca(uniq_candidates2.size(),0);
                 std::vector<double>  candidates_angle_to_shower(uniq_candidates2.size(),0);
                 std::vector<int>     candidates_num_planes(uniq_candidates2.size(),0);
-                std::vector<double> candidates_eff_invar(uniq_candidates2.size(),0);
-                std::vector<double> candidates_eff_invar_diff(uniq_candidates2.size(),0);
+                std::vector<double>  candidates_eff_invar(uniq_candidates2.size(),0);
+                std::vector<double>  candidates_eff_invar_diff(uniq_candidates2.size(),0);
 
                 //rank by min_impat/max_min_dist and select
                 //rank by Energy energy
@@ -1879,14 +1992,20 @@ namespace single_photon
                     double max_pca = 0;
                     double min_angle = 999;
 
+        
+                    //int is_min_slice = 999;
+                    //std::vector<int> is_in_slice; 
+
                     for(int c=0; c< nt;++c){
                         int ic = uniq_candidates2[j][c];
 
                         //std::cout<<"----- plane: "<<m_sss_candidate_plane.at(ic)<<" nhits: "<<m_sss_candidate_num_hits.at(ic)<<" imp: "<<m_sss_candidate_impact_parameter.at(ic)<<" en: "<<m_sss_candidate_energy.at(ic)<<" a2s: "<<m_sss_candidate_angle_to_shower.at(ic)<<" conv: "<<m_sss_candidate_min_dist.at(ic)<<" pdg: "<<m_sss_candidate_parent_pdg.at(ic)<<std::endl;
 
-
                         double eff_invar = sqrt(2.0*m_sss_candidate_energy.at(ic)*m_reco_shower_energy_max.at(0)*(1.0-cos(m_sss_candidate_angle_to_shower.at(ic))));
                         double eff_invar_diff = fabs(eff_invar-139.5);
+
+                        //is_min_slice = std::min(is_in_slice, m_sss_candidate_in_nu_slice[ic] );
+                        //is_in_slice.push_back(m_sss_candidate_in_nu_slice[ic]); 
 
                         mean_min_dist +=m_sss_candidate_min_dist.at(ic)/(double)nt;
                         mean_energy +=m_sss_candidate_energy.at(ic)/(double)nt;
@@ -1911,6 +2030,8 @@ namespace single_photon
                     candidates_num_planes[j] =nt; 
                     candidates_eff_invar_diff[j] = mean_invar_diff;
                     candidates_eff_invar[j] = mean_invar;
+                    //candidates_min_slice[j] = is_min_slice;
+                    //candidates_in_slice[j] = is_in_slice;
                 }
 
                 std::vector<size_t> ranked_ioc = sort_indexes_rev<double>(candidates_ioc);
@@ -1950,5 +2071,98 @@ namespace single_photon
         return ;
     }
 
+
+   
+    std::pair<bool, std::vector<double>> SinglePhoton::clusterCandidateOverlap(const std::vector<int> & candidate_indices, const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks){
+
+        size_t size = candidate_indices.size();
+	if(size == 0){
+	    throw std::runtime_error("SinglePhoton::clusterCandidateOverlap: No cluster candidates to analyze time overlap for..");
+	}
+
+	// at most 3 cluster indices (for 3 planes)
+	std::vector<int> planes;
+        std::vector<double> max_ticks;
+        std::vector<double> min_ticks;
+        std::vector<double> tick_length;
+
+        for(auto i : candidate_indices){
+            planes.push_back(cluster_planes[i]);
+            
+            max_ticks.push_back(cluster_max_ticks[i]);
+            min_ticks.push_back(cluster_min_ticks[i]); 
+            tick_length.push_back(cluster_max_ticks[i] - cluster_min_ticks[i]);
+        }
+
+
+	//if candidates are not on different planes
+	if( size == 2 && planes[0] == planes[1])
+            return {false, std::vector<double>(2, -1.0)};
+        if( size == 3 && (planes[0] == planes[1] || planes[1] == planes[2] || planes[0] == planes[2]))
+            return {false, std::vector<double>(3, -1.0)};
+
+	//calculate the overlapping tick-span
+	double tick_overlap = DBL_MAX;
+
+	//can be simplied as picking the minimum max_tick and maximum min_tick and do the subtraction
+        for(auto max_e : max_ticks)
+            for(auto min_e : min_ticks)
+                if(max_e - min_e < tick_overlap)
+                    tick_overlap = max_e - min_e;
+ 
+	// if tick overlap is negative, meaning these clusters are not overlapping
+   	if(tick_overlap < 0)
+            return {false, std::vector<double>(size, -1.0)};
+        else{
+            std::vector<double> overlap_fraction;
+            for(auto l: tick_length){
+                overlap_fraction.push_back( l==0? 1.0 : tick_overlap/l);
+	    }
+            return {true, overlap_fraction};
+        }
+    }
+
+   
+    std::pair<int, std::pair<std::vector<std::vector<double>>, std::vector<double>>> SinglePhoton::GroupClusterCandidate(int num_clusters,  const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks){
+	std::cout << "SinglePhoton::group_cluster_candidate\t|| Total of " << num_clusters << " to be grouped" << std::endl;
+
+	int num_cluster_groups=0; // number of matched cluster groups in total
+	std::vector<std::vector<double>> grouped_cluster_indices;
+	std::vector<double> cluster_group_timeoverlap_fraction;
+	if(num_clusters <= 1)
+	    return {num_cluster_groups, {grouped_cluster_indices, cluster_group_timeoverlap_fraction}};
+
+        for(int i = 0; i != num_clusters -1; ++i){
+            for(int j = i+1; j != num_clusters; ++j){
+
+		//first, look at candidate pairs
+                auto pair_result = clusterCandidateOverlap({i,j}, cluster_planes, cluster_max_ticks, cluster_min_ticks);
+                if( pair_result.first){
+
+		    ++num_cluster_groups;
+		    grouped_cluster_indices.push_back({(double)i,(double)j});
+                    double min_frac = *std::min_element(pair_result.second.cbegin(), pair_result.second.cend());
+		    cluster_group_timeoverlap_fraction.push_back(min_frac);
+		    std::cout << "Grouped cluster candidate: (" << i  << ", " << j << ") | Minimum time tick overlap fraction: " << min_frac << std::endl;
+
+		    // if the pair is succefully grouped, look at possible trios
+                    for(int k = j+1; k!= num_clusters; ++k){
+                        auto tri_result = clusterCandidateOverlap({i,j,k}, cluster_planes, cluster_max_ticks, cluster_min_ticks);
+                        if(tri_result.first){
+			    ++num_cluster_groups;
+                    	    grouped_cluster_indices.push_back({(double)i,(double)j,(double)k});
+                            min_frac = *std::min_element(tri_result.second.cbegin(), tri_result.second.cend());
+			    cluster_group_timeoverlap_fraction.push_back(min_frac);
+			    std::cout << "Grouped cluster candidate: (" << i  << ", " << j << ", " << k << ") | Minimum time tick overlap fraction: " << min_frac << std::endl;
+                        }
+                    } //k loop
+                }
+            }//j loop
+        }//i loop
+
+	std::cout << "SinglePhoton::GroupClusterCandidate\t|| Formed " << num_cluster_groups << " cluster groups" << std::endl;
+
+	return {num_cluster_groups, {grouped_cluster_indices, cluster_group_timeoverlap_fraction}};
+    } 
 
 }

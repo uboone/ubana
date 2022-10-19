@@ -99,7 +99,7 @@ namespace single_photon
         //  void SinglePhoton::AnalyzeFlashes(const std::vector<art::Ptr<recob::OpFlash>>& flashes, art::Handle<std::vector<crt::CRTHit>> crthit_h){
 
       
-         for(auto pair: crtvetoToFlashMap){
+        for(auto pair: crtvetoToFlashMap){
             std::cout<<"for flash at time "<< pair.first->Time()<<" has "<< pair.second.size() << " associated  CRT hits "<<std::endl;
             if(pair.second.size() > 0){
                 for (auto hit: pair.second){
@@ -133,6 +133,7 @@ namespace single_photon
             m_reco_flash_zcenter[i]=flash->ZCenter();
             m_reco_flash_zwidth[i]=flash->ZWidth();
 
+	    // m_beamgate_flash_end/m_beamgate_flash_start are read from pset
             if(m_reco_flash_time[i] <= m_beamgate_flash_end && m_reco_flash_time[i] >= m_beamgate_flash_start){
                 m_reco_num_flashes_in_beamgate++;
                 m_reco_flash_total_pe_in_beamgate[i]=(flash->TotalPE());
@@ -156,7 +157,7 @@ namespace single_photon
 
                 double _dt_abs   = 100000.0;
                 //  double  _within_resolution = 0;
-                double _beam_flash_time  =  m_reco_flash_time_in_beamgate[0];
+                double _beam_flash_time  =  m_reco_flash_time_in_beamgate[0];  // Guanqun: why use index 0?
 
                 // Loop over the CRT hits.
                 for (int j = 0; j < _nCRThits_in_event; j++)
@@ -201,8 +202,8 @@ namespace single_photon
                         }
                     } // End of conditional for closest CRT hit time.
                 } // End of loop over CRT hits.
-            } //if there are hits
-        }//if there is 1 flash in beamgate
+            } //if there is 1 flash in beamgate
+        }//if runCRT
 
 
     }//analyze flashes

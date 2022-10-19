@@ -66,6 +66,7 @@ class TruncMean{
 
   /**
      @brief Iteratively calculate the truncated mean of a distribution
+     @brief: mean is returned if vecter's size is too small, or reach the max iteration, or median has converged
      @input std::vector<double> v -> vector of values for which truncated mean is asked
      @input size_t nmin -> minimum number of iterations to converge on truncated mean
      @input size_t nmax -> maximum number of iterations to converge on truncated mean
@@ -148,7 +149,7 @@ void TruncMean::CalcTruncMeanProfile(const std::vector<double>& rr_v, const std:
 
 	int Nmax = dq_v.size()-1;
 
-	for (size_t n=0; n < dq_v.size(); n++) {
+	for (size_t n=0; n < dq_v.size(); n++) {   // rr_v and dq_v have the same size
 
 		// current residual range
 		double rr = rr_v.at(n);
@@ -169,12 +170,12 @@ void TruncMean::CalcTruncMeanProfile(const std::vector<double>& rr_v, const std:
 
 			if (dr > _rad) continue;
 
-			dq_local_v.push_back( dq_v[i] );
+			dq_local_v.push_back( dq_v[i] );  //save for ticks that are close enough
 
 		}// for all ticks we want to scan
 
 		if (dq_local_v.size() == 0 ) {
-			dq_trunc_v.push_back( dq_v.at(n) );
+			dq_trunc_v.push_back( dq_v.at(n) ); // if no neighbours, push back dq of itself
 			continue;
 		}
 
@@ -191,7 +192,7 @@ void TruncMean::CalcTruncMeanProfile(const std::vector<double>& rr_v, const std:
 			}
 		}
 
-		dq_trunc_v.push_back( truncated_dq / npts );
+		dq_trunc_v.push_back( truncated_dq / npts ); // push back averaged dq for these sitting within nsigma
 
 		if(dq_trunc_v.back() != dq_trunc_v.back()){
 			std::cout<<"ERROR::TruncMean.cxx || NAN "<<dq_trunc_v.back()<<std::endl;
@@ -223,9 +224,9 @@ double TruncMean::Median(const std::vector<double>& v)
 
 	std::vector<double> vcpy = v;
 
-	std::sort(vcpy.begin(), vcpy.end());
+	std::sort(vcpy.begin(), vcpy.end());  //sort to ascending order
 
-	double median = vcpy[ vcpy.size() / 2 ];
+	double median = vcpy[ vcpy.size() / 2 ]; // what if v has even # of elements? there is a choice
 
 	return median;
 }
