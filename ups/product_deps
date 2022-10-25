@@ -34,16 +34,17 @@ ubreco                  v08_00_00_61
 ubraw                   v08_00_00_61
 larana                  v08_01_00_16
 larpandora              v08_03_00_16
+hep_hpc                 v0_11_00
 cetbuildtools	        v7_13_02	-	only_for_build
 end_product_list
 
-qualifier      ubreco         ubraw         larana         larpandora     
-c2:debug       c2:debug       c2:debug       c2:debug       c2:debug       
-c2:opt         c2:opt         c2:opt         c2:opt         c2:opt         
-c2:prof        c2:prof        c2:prof        c2:prof        c2:prof        
-e17:debug      e17:debug      e17:debug      e17:debug      e17:debug
-e17:opt        e17:opt        e17:opt        e17:opt        e17:opt
-e17:prof       e17:prof       e17:prof       e17:prof       e17:prof
+qualifier      ubreco         ubraw         larana         larpandora       hep_hpc
+c2:debug       c2:debug       c2:debug       c2:debug       c2:debug        c2:debug    
+c2:opt         c2:opt         c2:opt         c2:opt         c2:opt          c2:opt   
+c2:prof        c2:prof        c2:prof        c2:prof        c2:prof         c2:prof  
+e17:debug      e17:debug      e17:debug      e17:debug      e17:debug	    e17:debug
+e17:opt        e17:opt        e17:opt        e17:opt        e17:opt	    e17:opt  
+e17:prof       e17:prof       e17:prof       e17:prof       e17:prof 	    e17:prof 
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:
