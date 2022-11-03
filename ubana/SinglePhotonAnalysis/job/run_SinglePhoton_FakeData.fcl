@@ -2,6 +2,12 @@
 
 physics.filters.singlephotonana.isData: "true"
 physics.filters.singlephotonana.POTLabel: "generator"
-physics.filters.singlephotonana.beamgateStartTime: 3.19
-physics.filters.singlephotonana.beamgateEndTime: 4.87
+
+#No not data! use overlay 
+#physics.filters.singlephotonana.beamgateStartTime: 3.19
+#physics.filters.singlephotonana.beamgateEndTime: 4.87
+
+physics.filters.singlephotonana.beamgateStartTime: 3.57
+physics.filters.singlephotonana.beamgateEndTime: 5.25
+
 physics.filters.singlephotonana.BadChannelProducer: "nfspl1"

@@ -158,7 +158,7 @@ namespace single_photon
                 }//end loop over particles per hit
 
 
-            }
+            } // end loop over hits
 
             double fraction_num_hits_overlay = (double)n_not_associated_hits/(double)obj_hits_ptrs.size();
 
@@ -211,6 +211,8 @@ namespace single_photon
             }//
 
 
+	    /*  ********** if shower has been matched to MCParticle ************************* */
+
             /*
              *
              * Loop over each MCParticle associated to the reco shower to find the source particle
@@ -219,14 +221,14 @@ namespace single_photon
 
             std::map<int, art::Ptr<simb::MCParticle>> mother_MCP_map; //map between MCP track id and the source MCP
 
-            std::vector<art::Ptr<simb::MCParticle>> marks_mother_vector;
-            std::map<art::Ptr<simb::MCParticle>, std::vector<double>> marks_mother_energy_fraction_map;
+            std::vector<art::Ptr<simb::MCParticle>> marks_mother_vector;  // a vector of mother MCP
+            std::map<art::Ptr<simb::MCParticle>, std::vector<double>> marks_mother_energy_fraction_map; // map of mother MCP and its energy on 3 planes
 
             int this_mcp_id = -1; //the track id for the current MCP in parent tree
             int last_mcp_id = -1; //the track id for the previous MCP in parent tree
             int i_mcp = 0;
 
-            int num_bt_mothers =0;
+            int num_bt_mothers =0;  // number of associated MCP that has mothers
 
             //reco_verbose = false;
             //for each MCP that's associated to the reco shower
@@ -280,6 +282,8 @@ namespace single_photon
 
                 //if the MCP at the top of the interaction chain has a valid track id store this in the mother map
                 if (this_mcp_id >= 0){
+
+		    //Guanqun: this line here doesn't really cosider other break cases than finding primary particle
                     if(reco_verbose)   std::cout<<"L1: ("<<i<<" <-> "<<i_mcp<<") Storing the mother mother particle with track id "<<this_mcp_id<<" and pdg code "<<MCParticleToTrackIdMap[this_mcp_id]->PdgCode()<<" and status code "<<MCParticleToTrackIdMap[this_mcp_id]->StatusCode()<<std::endl;
 
                     mother_MCP_map[this_mcp_id] = MCParticleToTrackIdMap[this_mcp_id];//putting it in a map allows for multiple contributing MCP's in the reco shower to have the same mother MCP
@@ -361,6 +365,7 @@ namespace single_photon
 
 
 
+	    // now have found the best mother of the shower
             if(reco_verbose) std::cout<<"---------------------------- L2-------------------------------"<<std::endl;
             const art::Ptr<simb::MCParticle> match = marks_mother_vector[best_mother_index];
 
@@ -368,11 +373,11 @@ namespace single_photon
             this->spacecharge_correction(match, corrected_vertex);
 
 
-            if(match->PdgCode()==22){
+            if(match->PdgCode()==22){ // if it's a gamma
                 std::vector<double> tmp  ={match->EndX(), match->EndY(), match->EndZ()};
                 this->spacecharge_correction(match, corrected_start, tmp );
                 m_sim_shower_is_true_shower[i] = 1;
-            }else if(abs(match->PdgCode())==11){
+            }else if(abs(match->PdgCode())==11){  // if it's e+/e-
                 this->spacecharge_correction(match, corrected_start);
                 m_sim_shower_is_true_shower[i] = 1;
             }else{
@@ -413,7 +418,8 @@ namespace single_photon
             m_sim_shower_py[i] = match->Py();
             m_sim_shower_pz[i] = match->Pz();
 
-            m_sim_shower_best_matched_plane[i] = best_mother_index;
+            // should've use 'best_mother_plane' here
+	    m_sim_shower_best_matched_plane[i] = best_mother_index;
             m_sim_shower_matched_energy_fraction_plane0[i] = marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][0]/total_energy_on_plane[0];
             m_sim_shower_matched_energy_fraction_plane1[i] = marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][1]/total_energy_on_plane[1];
             m_sim_shower_matched_energy_fraction_plane2[i] = marks_mother_energy_fraction_map[marks_mother_vector[best_mother_index]][2]/total_energy_on_plane[2];
@@ -569,6 +575,13 @@ namespace single_photon
     }//end showerRecoMCmatching
 
 
+
+    /* @brief: a simpler MCmatching function for track and shower
+     * @argument to be filled in function body:
+     * 		objectToMCParticleMap: map of object (track, shower) to its best-matching MCParticle
+     * 		mcParticleVector: a vector of best-matching MCParticle corresponding to objectVector
+     * @return: a vector of fraction number, which is the fraction of unassociated hits in all reco hits of PFParticle
+     */	
     //Typenamed for recob::Track and recob::Shower
     template<typename T>
         std::vector<double> recoMCmatching(std::vector<T>& objectVector,
@@ -697,6 +710,9 @@ namespace single_photon
 
 
     //Typenamed for simb::MCTrack and sim::MCShower
+    /* @brief: tranverse through mcParticleVector, for each mcParticle, if an mcObject is found with same track ID
+     *		put the particle and object in the mcParticleToMCObjectMap as a pair
+     */
     template<typename T>
         void perfectRecoMatching(
                 std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,

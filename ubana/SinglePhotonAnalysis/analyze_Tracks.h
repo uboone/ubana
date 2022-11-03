@@ -64,6 +64,16 @@ namespace single_photon
         m_reco_track_resrange_best_plane.clear();
         m_reco_track_dEdx_best_plane.clear();
 
+        m_reco_track_hit_tick.clear();
+        m_reco_track_hit_energy.clear();
+        m_reco_track_hit_wire.clear();
+        m_reco_track_hit_plane.clear();
+        m_reco_track_spacepoint_x.clear();
+        m_reco_track_spacepoint_y.clear();
+        m_reco_track_spacepoint_z.clear();
+
+
+        
 
         m_reco_track_mean_dEdx_p0.clear();
         m_reco_track_mean_dEdx_start_half_p0.clear();
@@ -373,6 +383,14 @@ namespace single_photon
         vertex_tree->Branch("reco_track_spacepoint_chi",&m_reco_track_spacepoint_chi);
         vertex_tree->Branch("reco_track_spacepoint_max_dist",&m_reco_track_spacepoint_max_dist);
 
+        vertex_tree->Branch("reco_track_hit_tick",&m_reco_track_hit_tick);
+        vertex_tree->Branch("reco_track_hit_wire",&m_reco_track_hit_wire);
+        vertex_tree->Branch("reco_track_hit_plane",&m_reco_track_hit_plane);
+        vertex_tree->Branch("reco_track_hit_energy",&m_reco_track_hit_energy);
+        vertex_tree->Branch("reco_track_spacepoint_x",&m_reco_track_spacepoint_x);
+        vertex_tree->Branch("reco_track_spacepoint_y",&m_reco_track_spacepoint_y);
+        vertex_tree->Branch("reco_track_spacepoint_z",&m_reco_track_spacepoint_z);
+
         vertex_tree->Branch("reco_track_best_calo_plane",&m_reco_track_best_calo_plane);
 
         vertex_tree->Branch("reco_track_mean_dEdx_best_plane",&m_reco_track_mean_dEdx_best_plane);
@@ -529,6 +547,7 @@ namespace single_photon
         //    const double tau(theDetector->ElectronLifetime());
 
 
+	//loop over each recob::Track
         for (TrackVector::const_iterator iter = tracks.begin(), iterEnd = tracks.end(); iter != iterEnd; ++iter)
         {
 
@@ -539,7 +558,8 @@ namespace single_photon
 
             int m_trkid = track->ID();
             double m_length = track->Length();
-            auto m_trk_dir = track->Direction();
+            auto m_trk_dir = track->Direction(); // type of m_trk_dir: a std::pair of two 3D vector
+						//first: direction of first point, second: direction of the end of track
 
             if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t On Track: "<<i_trk<<" with TrackID: "<<m_trkid<<" and length: "<<m_length<<""<<std::endl;;
 
@@ -588,9 +608,11 @@ namespace single_photon
 
             TPrincipal* principal = new TPrincipal(3,"ND");
             for(int x = 0; x < m_reco_track_num_spacepoints[i_trk]; x++){
+		// get the position of spacepoint in xyz
                 std::vector<double> tmp_spacepoints = {trk_spacepoints[x]->XYZ()[0],trk_spacepoints[x]->XYZ()[1] , trk_spacepoints[x]->XYZ()[2]};
                 principal->AddRow(&tmp_spacepoints[0]);
 
+		// distance between track direction and spacepoint
                 double dist = dist_line_point(tmp_trk_start,tmp_trk_end,tmp_spacepoints);
                 if(dist> max_dist_from_line) max_dist_from_line = dist;
                 m_reco_track_spacepoint_chi[i_trk] += dist*dist;
@@ -611,6 +633,7 @@ namespace single_photon
             //range based energy calculation assuming
 
             if(!m_run_pi0_filter){
+		// assume this track is a proton track, get its energy
                 m_reco_track_proton_kinetic_energy[i_trk] = proton_length2energy_tgraph.Eval(m_length)/1000.0; 
             }else{
                 m_reco_track_proton_kinetic_energy[i_trk] = -9999;
@@ -624,6 +647,8 @@ namespace single_photon
             m_reco_track_end_to_nearest_dead_wire_plane2[i_trk] = distanceToNearestDeadWire(2, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
 
             m_reco_track_sliceId[i_trk] = PFPToSliceIdMap[pfp];
+	    // Guanqun: how do you make sure the sliceId is positive, not -1, as for cosmic tracks?
+	    // sliceIdToNuScoreMap seems to only have sliceID:nuScore pairs for these with actual nuScores.
             m_reco_track_nuscore[i_trk] = sliceIdToNuScoreMap[ m_reco_track_sliceId[i_trk]] ;
             m_reco_track_isclearcosmic[i_trk] = PFPToClearCosmicMap[pfp];
 
@@ -658,10 +683,36 @@ namespace single_photon
 
             }
 
+            if(m_bool_save_sp){
+
+                std::vector<int> t_wire;    
+                std::vector<int> t_plane;    
+                std::vector<double> t_tick;    
+                std::vector<double> t_energy;    
+
+               for(auto &h: trk_hits){ 
+
+                    int plane= h->View();
+                    int wire = h->WireID().Wire;
+                    int tick = h->PeakTime();
+
+                    t_tick.push_back(tick);
+                    t_plane.push_back(plane);
+                    t_wire.push_back(wire);
+                    t_energy.push_back(QtoEConversionHit(h,plane));
+                            
+
+               }
+                    m_reco_track_hit_tick.push_back(t_tick);
+                    m_reco_track_hit_plane.push_back(t_plane);
+                    m_reco_track_hit_wire.push_back(t_wire);
+                    m_reco_track_hit_energy.push_back(t_energy);
+            }
+
 
             i_trk++;
 
-        }
+        } // end of recob::Track loop
 
         //Lets sort and order the showers
         m_reco_track_ordered_energy_index = sort_indexes(m_reco_track_proton_kinetic_energy);
@@ -803,6 +854,7 @@ namespace single_photon
 
                 m_reco_track_best_calo_plane[i_trk]=-1;
 
+		// guanqun: vectors have been clear and resized, so probably not need to reset their values?
                 m_reco_track_good_calo_p0[i_trk] =  0;
                 m_reco_track_mean_dEdx_p0[i_trk] =  0.0;
                 m_reco_track_mean_dEdx_start_half_p0[i_trk] =  0.0;
@@ -835,7 +887,7 @@ namespace single_photon
                 //First off look over ALL points
                 //--------------------------------- plane 0 ----------- Induction
                 for (size_t k = 0; k < calo_length_p0; ++k) {
-                    double res_range =    calo_p0->ResidualRange()[k];
+                    double res_range =    calo_p0->ResidualRange()[k];  //ResidualRange() returns range from end of track
                     double dEdx =         calo_p0->dEdx()[k];
 
                     m_reco_track_mean_dEdx_p0[i_trk] += dEdx;
@@ -846,7 +898,7 @@ namespace single_photon
                     }
 
                     bool is_sensible = dEdx < m_track_calo_max_dEdx; 
-                    bool is_nan =dEdx != dEdx; 
+                    bool is_nan =dEdx != dEdx; // != has higher precedence than = 
                     bool is_inf = std::isinf(dEdx);
                     bool is_nonzero = dEdx> m_track_calo_min_dEdx;
 
@@ -898,7 +950,8 @@ namespace single_photon
                             //exit(EXIT_FAILURE);
                             m_reco_track_good_calo_p0[i_trk] = 0; 
                         }
-
+		
+			// dEdx/pow(residual_range, -0.42) is the constant A in residual range formula
                         pida_sum_trunc += trunc_dEdx_p0[k]/(pow(res_range_good_p0[k],-0.42));
                     }
                     m_reco_track_trunc_PIDA_p0[i_trk] = pida_sum_trunc;           
@@ -1201,7 +1254,7 @@ namespace single_photon
                     */
                     if (AlgScore.fAlgName == "BraggPeakLLH" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood){
                         if (TMath::Abs(AlgScore.fAssumedPdg == 13)) {
-                            if (planeid == 0) pidScore_BL_mu_plane0 = AlgScore.fValue;
+                            if (planeid == 0) pidScore_BL_mu_plane0 = AlgScore.fValue; //AlgScore.fValue: value produced by algorithm
                             if (planeid == 1) pidScore_BL_mu_plane1 = AlgScore.fValue;
                             if (planeid == 2) pidScore_BL_mu_plane2 = AlgScore.fValue;
                         }
@@ -1237,7 +1290,7 @@ namespace single_photon
                     //if (AlgScore.fAlgName == "ThreePlaneProtonPID" && anab::kVariableType(AlgScore.fVariableType) == anab::kLikelihood && TMath::Abs(AlgScore.fAssumedPdg) == 2212 && AlgScore.fPlaneMask == UBPID::uB_SinglePlaneGetBitset(2) && anab::kTrackDir(AlgScore.fTrackDir) == anab::kForward){
                         pidScore_three_plane_proton = AlgScore.fValue;
                     }
-                }
+                }  // end looping over AlgScoresVec
 
                 m_reco_track_pid_bragg_likelihood_mu_plane0[i_trk] = pidScore_BL_mu_plane0;
                 m_reco_track_pid_bragg_likelihood_mu_plane1[i_trk] = pidScore_BL_mu_plane1;
