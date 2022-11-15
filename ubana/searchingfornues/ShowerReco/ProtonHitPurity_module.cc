@@ -451,10 +451,11 @@ void ProtonHitPurity::ProtonDot(const float& protonWire, const float& protonTime
   std::cout << "3D shower dir : [ " << showerDir[0] << ", " << showerDir[1] << ", " << showerDir[2] << " ]" << std::endl;
   std::cout << "3D shower vtx : [ " << showerVtx[0] << ", " << showerVtx[1] << ", " << showerVtx[2] << " ]" << std::endl;
 
-  auto Vtxwire = geom->WireCoordinate(showerVtx[1],showerVtx[2],geo::PlaneID(0,0,pl)) * _wire2cm;
+  using geo::vect::toPoint;
+  auto Vtxwire = geom->WireCoordinate(toPoint(showerVtx),geo::PlaneID(0,0,pl)) * _wire2cm;
   auto Vtxtime = showerVtx[0];
 
-  auto Dirwire = geom->WireCoordinate(showerDir[1],showerDir[2],geo::PlaneID(0,0,pl)) * _wire2cm;
+  auto Dirwire = geom->WireCoordinate(toPoint(showerDir),geo::PlaneID(0,0,pl)) * _wire2cm;
   auto Dirtime = showerDir[0];
 
   TVector3 showerDir2D(Dirwire,Dirtime,0.);

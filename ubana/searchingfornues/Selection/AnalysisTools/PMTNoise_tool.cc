@@ -242,16 +242,13 @@ namespace analysis
 	peaktime.push_back(ophit.PeakTime());
 	pe.push_back(ophit.PE());
 
-	double PMTxyz[3];
-	unsigned int opch;
+        unsigned int opch=ophit.OpChannel();
 
-	opch=ophit.OpChannel();
-
-	geom->OpDetGeoFromOpChannel(opch).GetCenter(PMTxyz);
+        auto const PMTxyz = geom->OpDetGeoFromOpChannel(opch).GetCenter();
 
 	for( int ipl=0; ipl<3; ipl++){
 	  auto plid=geo::PlaneID(0,0,ipl);
-	  auto wire = geom->WireCoordinate(PMTxyz[1],PMTxyz[2],plid);
+          auto wire = geom->WireCoordinate(PMTxyz,plid);
 	  //auto time = PMTxyz[0]; //should be the same +/- ~cm for all PMTs
 	  //	  std::cout<<"PMT HIT: "<<ophit.PE()<<std::endl;
 	  opwiretmp.push_back(wire);

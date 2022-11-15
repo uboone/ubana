@@ -1020,7 +1020,7 @@ void ACPTTagger::SortHitPoints(detinfo::DetectorPropertiesData const& detProp,
 
   // Sort Hit by x position
   std::sort(hit_v.begin(), hit_v.end(),
-            [](art::Ptr<recob::Hit> a, art::Ptr<recob::Hit> b) -> bool
+            [](art::Ptr<recob::Hit> const& a, art::Ptr<recob::Hit> const& b) -> bool
             {
               return a->PeakTime() > b->PeakTime();
             });
@@ -1030,7 +1030,7 @@ void ACPTTagger::SortHitPoints(detinfo::DetectorPropertiesData const& detProp,
   double time_highest = detProp.ConvertXToTicks(highest_point.X(), geo::PlaneID(0,0,2));
   int wire_highest = -1;
   try {
-    wire_highest = geo->NearestWire(highest_point, planeno);
+    wire_highest = geo->NearestWireID(geo::vect::toPoint(highest_point), geo::PlaneID{0, 0, static_cast<unsigned>(planeno)}).Wire;
   } catch (cet::exception &e) {
   }
 

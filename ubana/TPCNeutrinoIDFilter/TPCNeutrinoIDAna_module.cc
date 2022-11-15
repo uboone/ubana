@@ -226,13 +226,9 @@ void  TPCNeutrinoIDAna::analyze(const art::Event& event)
                         const auto& trackStart = track->Vertex();
                         const auto& trackEnd   = track->End();
                         
-                        // Geometry routines want to see an array...
-                        double trackStartPos[] = {trackStart.X(),trackStart.Y(),trackStart.Z()};
-                        double trackEndPos[]   = {trackEnd.X(),  trackEnd.Y(),  trackEnd.Z()};
-
                         // Starting and ending ticks depend on the x position, we'll use the W plane for reference
-                        size_t startTicks = detProp.ConvertXToTicks(trackStartPos[0], 2, 0, 0);
-                        size_t endTicks   = detProp.ConvertXToTicks(trackEndPos[0], 2, 0, 0);
+                        size_t startTicks = detProp.ConvertXToTicks(trackStart.X(), 2, 0, 0);
+                        size_t endTicks   = detProp.ConvertXToTicks(trackEnd.X(), 2, 0, 0);
                         size_t loTicks    = std::min(startTicks,endTicks);
                         size_t hiTicks    = std::max(startTicks,endTicks);
                         
@@ -241,10 +237,11 @@ void  TPCNeutrinoIDAna::analyze(const art::Event& event)
                         minTicks = std::min(minTicks,loTicks);
                         
                         // now loop over views to get starting/ending wires
-                        for(size_t viewIdx = 0; viewIdx < fGeometry->Nviews(); viewIdx++)
+                        for(unsigned int viewIdx = 0; viewIdx < fGeometry->Nviews(); ++viewIdx)
                         {
-                            size_t startWire  = fGeometry->NearestWire(trackStartPos, viewIdx);
-                            size_t endWire    = fGeometry->NearestWire(trackEndPos,   viewIdx);
+                            geo::PlaneID const planeID{0, 0, viewIdx};
+                            size_t startWire  = fGeometry->NearestWireID(trackStart, planeID).Wire;
+                            size_t endWire    = fGeometry->NearestWireID(trackEnd,   planeID).Wire;
                             
                             size_t lowWire    = std::min(startWire,endWire);
                             size_t hiWire     = std::max(startWire,endWire);

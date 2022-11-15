@@ -63,7 +63,7 @@
 
 // Algorithms include
 #include "ubana/UBXSec/Algorithms/McPfpMatch.h"
-#include "ubana/UBXSec/Algorithms/FiducialVolume.h"
+#include "ubana/Utilities/FiducialVolume.h"
 
 class RecoTrueMatcher;
 
@@ -85,6 +85,8 @@ public:
 
 private:
 
+  ::art::ServiceHandle<geo::Geometry> _geo;
+
   ubana::McPfpMatch _mcpfpMatcher;
   ::ubana::FiducialVolume _fiducial_volume;
 
@@ -105,9 +107,13 @@ private:
 };
 
 
-RecoTrueMatcher::RecoTrueMatcher(fhicl::ParameterSet const & p) : EDProducer{p} {
-
-  ::art::ServiceHandle<geo::Geometry> geo;
+RecoTrueMatcher::RecoTrueMatcher(fhicl::ParameterSet const & p) :
+  EDProducer{p},
+  _fiducial_volume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
+                   _geo->DetHalfHeight(),
+                   2.*_geo->DetHalfWidth(),
+                   _geo->DetLength())
+{
 
   _pfp_producer                   = p.get<std::string>("PFParticleProducer");
   _hitfinderLabel                 = p.get<std::string>("HitProducer");
@@ -121,11 +127,6 @@ RecoTrueMatcher::RecoTrueMatcher(fhicl::ParameterSet const & p) : EDProducer{p} 
 
   _debug                          = p.get<bool>("DebugMode");
   _verbose                        = p.get<bool>("Verbose");
-
-  _fiducial_volume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                             geo->DetHalfHeight(),
-                             2.*geo->DetHalfWidth(),
-                             geo->DetLength());
 
   produces< std::vector<ubana::MCGhost>>();
   produces< art::Assns<simb::MCParticle, ubana::MCGhost>>();

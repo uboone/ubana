@@ -362,12 +362,9 @@ void recotruehelper::GetStartAndEndPoints(const art::Ptr<simb::MCParticle> parti
 
 	for (int nt = 0; nt < numTrajectoryPoints; ++nt)
 	{
-		try
-		{
-			double pos[3] = {particle->Vx(nt), particle->Vy(nt), particle->Vz(nt)};
-			unsigned int which_tpc(std::numeric_limits<unsigned int>::max());
-			unsigned int which_cstat(std::numeric_limits<unsigned int>::max());
-			theGeometry->PositionToTPC(pos, which_tpc, which_cstat);
+                if (theGeometry->PositionToTPCptr(geo::vect::toPoint(particle->Position().Vect())) == nullptr) {
+                        continue;
+                }
 
 			// TODO: Apply fiducial cut due to readout window
 
@@ -378,10 +375,6 @@ void recotruehelper::GetStartAndEndPoints(const art::Ptr<simb::MCParticle> parti
 				foundStartPosition = true;
 			}
 		}
-		catch (cet::exception &e) {
-			continue;
-		}
-	}
 
 	if (!foundStartPosition)
 		throw cet::exception("LArPandora");

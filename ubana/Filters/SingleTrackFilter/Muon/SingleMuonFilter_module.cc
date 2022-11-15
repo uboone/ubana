@@ -36,10 +36,7 @@
 #include "TClonesArray.h"
 #include "TObject.h"
 
-#include "FiducialVolume.h"
-
-class SingleMuonFilter;
-
+#include "ubana/Utilities/FiducialVolume.h"
 
 class SingleMuonFilter : public art::EDFilter {
 public:
@@ -93,15 +90,15 @@ private:
 
 SingleMuonFilter::SingleMuonFilter(fhicl::ParameterSet const& pset): 
   EDFilter{pset},
+  _fiducial_volume(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
+                   geo->DetHalfHeight(),
+                   2.*geo->DetHalfWidth(),
+                   geo->DetLength()),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
   m_trackProducerLabel(pset.get<std::string>("TrackProducerLabel")),
   m_showerProducerLabel(pset.get<std::string>("ShowerProducerLabel"))
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
-  _fiducial_volume.Configure(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                             geo->DetHalfHeight(),
-                             2.*geo->DetHalfWidth(),
-                             geo->DetLength());
 
   _fiducial_volume.PrintConfig();
 }

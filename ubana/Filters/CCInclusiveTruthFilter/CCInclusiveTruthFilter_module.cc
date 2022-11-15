@@ -40,8 +40,8 @@
 #include "nusimdata/SimulationBase/MCNeutrino.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 
-// UBXSec includes
-#include "ubana/UBXSec/Algorithms/FiducialVolume.h"
+// Utilities includes
+#include "ubana/Utilities/FiducialVolume.h"
 
 // cpp includes
 #include <memory>
@@ -78,15 +78,11 @@ private:
 
 CCInclusiveTruthFilter::CCInclusiveTruthFilter(fhicl::ParameterSet const & p)
   : EDFilter{p}
-// Initialize member data here.
-{
-
-  fhicl::ParameterSet const p_fv = p.get<fhicl::ParameterSet>("FiducialVolumeSettings");
-
-  fiducialVolume.Configure(p_fv,
+  , fiducialVolume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
       geo->DetHalfHeight(),
       2.*geo->DetHalfWidth(),
-      geo->DetLength());
+                   geo->DetLength())
+{
 
   fiducialVolume.PrintConfig();
 
