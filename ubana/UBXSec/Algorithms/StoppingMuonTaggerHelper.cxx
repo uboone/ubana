@@ -892,7 +892,7 @@ namespace ubana {
     }
 
     // Vertex must not be in the FV
-    if (_fv.InFV(_vertex))
+    if (_fv and _fv->InFV(_vertex))
       return false;
 
     // Find the hits with the maximum dqds, that one will be the hit

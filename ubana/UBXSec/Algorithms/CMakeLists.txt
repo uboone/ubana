@@ -1,4 +1,3 @@
-
 cet_enable_asserts()
 
 set( hitfinder_tool_lib_list
@@ -29,6 +28,7 @@ art_make( BASENAME_ONLY
           LIBRARY_NAME     uboonecode_uboone_UBXSec_Algorithms
           LIB_LIBRARIES
                    ubobj_UBXSec
+                   ubana_Utilities
                    ubcore::ubana_BasicTool_GeoAlgo
                    ubreco::uboone_UBFlashFinder
 		   ubreco_SelectionTool_OpT0FinderBase
@@ -116,4 +116,3 @@ art_make( BASENAME_ONLY
 
 install_headers()
 install_source()
-

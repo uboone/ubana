@@ -49,6 +49,7 @@ art_make( BASENAME_ONLY
 
           MODULE_LIBRARIES
                    uboonecode_uboone_UBXSec_Algorithms
+                   ubana_Utilities
                    ubobj_UBXSec
 		   ubobj_Trigger
                    HitCosmicTag_Base
@@ -94,4 +95,3 @@ art_make( BASENAME_ONLY
 install_headers()
 install_fhicl()
 install_source()
-

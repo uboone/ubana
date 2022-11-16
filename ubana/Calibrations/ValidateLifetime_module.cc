@@ -107,9 +107,8 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
           if (planenum<0||planenum>2) continue;
           const auto& dir_start = tracklist[i]->VertexDirection();
           const geo::WireGeo& wire = geom->TPC().Plane(planenum).MiddleWire();
-          double wirestart[3], wireend[3];
-          wire.GetStart(wirestart);
-          wire.GetEnd(wireend);
+          auto const wirestart = wire.GetStart();
+          auto const wireend = wire.GetEnd();
           double cosangle = (dir_start.Y()*(wirestart[1]-wireend[1])+dir_start.Z()*(wirestart[2]-wireend[2]))/sqrt((pow(dir_start.Y(),2)+pow(dir_start.Z(),2))*(pow(wirestart[1]-wireend[1],2)+pow(wirestart[2]-wireend[2],2)));
           if (std::abs(cosangle)<0.5){
             double minx = 1e10;

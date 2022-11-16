@@ -443,10 +443,10 @@ void SecondShowerPurity::GammaDot(const float& gammaWire, const float& gammaTime
 
   auto const* geom = ::lar::providerFrom<geo::Geometry>();
 
-  auto Vtxwire = geom->WireCoordinate(showerVtx[1],showerVtx[2],geo::PlaneID(0,0,pl)) * _wire2cm;
+  auto Vtxwire = geom->WireCoordinate(geo::vect::toPoint(showerVtx),geo::PlaneID(0,0,pl)) * _wire2cm;
   auto Vtxtime = showerVtx[0];
 
-  auto Dirwire = geom->WireCoordinate(showerDir[1],showerDir[2],geo::PlaneID(0,0,pl)) * _wire2cm;
+  auto Dirwire = geom->WireCoordinate(geo::vect::toPoint(showerDir),geo::PlaneID(0,0,pl)) * _wire2cm;
   auto Dirtime = showerDir[0];
 
   std::cout << "Shower Dir [x,y,z] -> [ " << showerDir[0] << ", " << showerDir[1] << ", " << showerDir[2] << " ]"  << std::endl;
@@ -477,7 +477,7 @@ float SecondShowerPurity::EigenDot(const int& pl,const TVector3& ShowerDir,const
 
   auto const* geom = ::lar::providerFrom<geo::Geometry>();
 
-  auto Dirwire = geom->WireCoordinate(ShowerDir[1],ShowerDir[2],geo::PlaneID(0,0,pl)) * _wire2cm;
+  auto Dirwire = geom->WireCoordinate(geo::vect::toPoint(ShowerDir),geo::PlaneID(0,0,pl)) * _wire2cm;
   auto Dirtime = ShowerDir[0];
 
   float dot = Dirwire * gammaWireDir + Dirtime * gammaTimeDir;

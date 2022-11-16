@@ -70,18 +70,6 @@ void FindDeadRegions::LoadWireGeometry() {
 
   ::art::ServiceHandle<geo::Geometry> geo;
 
-  unsigned int channel;
-  unsigned int plane;
-  unsigned int wire;
-  float sx;
-  float sy;
-  float sz;
-  float ex;
-  float ey;
-  float ez;
-
-  double xyz[3];
-
   std::cout << "[FindDeadRegions] Loading geometry." << std::endl;
 
   if (!_use_file) {
@@ -91,36 +79,23 @@ void FindDeadRegions::LoadWireGeometry() {
     // **********
 
     // Loop over all the channels
-    for (unsigned int ch = 0; ch < 8256; ch++) {
+    for (unsigned int channel = 0; channel < 8256; ++channel) {
 
-      channel = ch;
+      std::vector<geo::WireID> const wire_v = geo->ChannelToWire(channel);
+      geo::WireGeo const& wire_g = geo->Wire(wire_v[0]);
 
-      std::vector< geo::WireID > wire_v = geo->ChannelToWire(channel);
-
-      wire  = wire_v[0].Wire;
-      plane = wire_v[0].Plane;
-
-      geo::WireGeo wire_g = geo->Wire (wire_v[0]);
-
-      wire_g.GetStart (xyz);
-      sx = xyz[0];
-      sy = xyz[1];
-      sz = xyz[2];
-
-      wire_g.GetEnd (xyz);
-      ex = xyz[0];
-      ey = xyz[1];
-      ez = xyz[2];
+      auto const start = wire_g.GetStart();
+      auto const end = wire_g.GetEnd();
 
       channelVec.push_back(channel);
-      planeVec.push_back(plane);
-      wireVec.push_back(wire);
-      sxVec.push_back(sx);
-      syVec.push_back(sy);
-      szVec.push_back(sz);
-      exVec.push_back(ex);
-      eyVec.push_back(ey);
-      ezVec.push_back(ez); 
+      planeVec.push_back(wire_v[0].Plane);
+      wireVec.push_back(wire_v[0].Wire);
+      sxVec.push_back(start.X());
+      syVec.push_back(start.Y());
+      szVec.push_back(start.Z());
+      exVec.push_back(end.X());
+      eyVec.push_back(end.Y());
+      ezVec.push_back(end.Z());
 
     } // channel loop
   } else {
@@ -167,25 +142,15 @@ void FindDeadRegions::LoadWireGeometry() {
       geofile >> string_ey;
       geofile >> string_ez;
 
-      channel = atoi(string_channel.c_str());
-      plane = atoi(string_plane.c_str());
-      wire = atoi(string_wire.c_str());
-      sx = atof(string_sx.c_str());
-      sy = atof(string_sy.c_str());
-      sz = atof(string_sz.c_str());
-      ex = atof(string_ex.c_str());
-      ey = atof(string_ey.c_str());
-      ez = atof(string_ez.c_str());
-
-      channelVec.push_back(channel);
-      planeVec.push_back(plane);
-      wireVec.push_back(wire);
-      sxVec.push_back(sx);
-      syVec.push_back(sy);
-      szVec.push_back(sz);
-      exVec.push_back(ex);
-      eyVec.push_back(ey);
-      ezVec.push_back(ez);
+      channelVec.push_back(atoi(string_channel.c_str()));
+      planeVec.push_back(atoi(string_plane.c_str()));
+      wireVec.push_back(atoi(string_wire.c_str()));
+      sxVec.push_back(atof(string_sx.c_str()));
+      syVec.push_back(atof(string_sy.c_str()));
+      szVec.push_back(atof(string_sz.c_str()));
+      exVec.push_back(atof(string_ex.c_str()));
+      eyVec.push_back(atof(string_ey.c_str()));
+      ezVec.push_back(atof(string_ez.c_str()));
     }
 
     geofile.close();
@@ -656,4 +621,3 @@ void FindDeadRegions::GetDeadRegionHisto3P(TH2F* deadReg3P){
 }
 
 #endif
-
