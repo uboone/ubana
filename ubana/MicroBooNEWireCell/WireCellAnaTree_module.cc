@@ -2519,16 +2519,18 @@ void WireCellAnaTree::analyze(art::Event const& e)
         art::Handle<std::vector<raw::Trigger> > trigger;
         if(! e.getByLabel("daq", trigger)){
           std::cout << "WARNING: no raw::Trigger label: daq"  << std::endl;
-          return;
-        }
-        std::vector<art::Ptr<raw::Trigger> > t_v;
-        art::fill_ptr_vector(t_v, trigger);
-        if(t_v.size()){
-          f_trigger_bits = t_v[0]->TriggerBits();
-        }
-        else{
           f_trigger_bits = 0;
-        }
+          //return;
+        }else{
+          std::vector<art::Ptr<raw::Trigger> > t_v;
+          art::fill_ptr_vector(t_v, trigger);
+          if(t_v.size()){
+            f_trigger_bits = t_v[0]->TriggerBits();
+          }
+          else{
+            f_trigger_bits = 0;
+          }
+       }
 
 	art::Handle<std::vector<nsm::NuSelectionContainment> > containment_handle;
 	e.getByLabel(fContainmentLabel,containment_handle);
@@ -2725,6 +2727,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
         }
 
         if(f_savesps){
+          //std::cout << "Num Trajectory Points: "<< particle->NumberTrajectoryPoints() << std::endl;
           for (uint i_pos=0; i_pos<particle->NumberTrajectoryPoints(); i_pos++){
               const TLorentzVector& pos = particle->Position(i_pos);
               auto mom = particle->Momentum(i_pos);
@@ -5418,7 +5421,7 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
       }
 
     double TT3_array[32];
-    if(f_isrun3 && f_run>17200 && f_run<17400){if(RWM_T>5450){ f_shiftoffset=137.2;}}
+    if(f_isrun3 && f_run>17200 && f_run<17400){if(RWM_T>5450){ f_shiftoffset=118.3;}}
     float RWM_offset = 5700.0 - f_shiftoffset;
 
     for(uint i=0; i<N_pmt.size(); i++){
