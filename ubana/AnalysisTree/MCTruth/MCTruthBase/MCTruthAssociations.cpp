@@ -578,7 +578,7 @@ double MCTruthAssociations::length(const simb::MCParticle& part, double dx,
           continue;
         }
             
-        TVector3 const activePos = pos - tpcGeo->GetActiveVolumeCenter();
+        auto const activePos = geo::vect::toPoint(pos) - tpcGeo->GetActiveVolumeCenter();
             
         if (std::fabs(activePos.X()) > tpcGeo->ActiveHalfWidth() or
             std::fabs(activePos.Y()) > tpcGeo->ActiveHalfHeight() or

@@ -53,7 +53,7 @@ namespace searchingfornues
   float YZtoPlanecoordinate(const float y, const float z, const int plane)
   {
     auto const* geom = ::lar::providerFrom<geo::Geometry>();
-    double _wire2cm = geom->WirePitch(0, 0, 0);
+    double _wire2cm = geom->WirePitch(geo::PlaneID{0, 0, 0});
     return geom->WireCoordinate(geo::Point_t{0, y, z}, geo::PlaneID(0, 0, plane)) * _wire2cm;
   }
 

@@ -216,8 +216,7 @@ namespace single_photon
         }
 
         //Timing and TPC info
-        auto const TPC = (*geom).begin_TPC();
-        auto ID = TPC.ID();
+        auto const ID = *geom->begin<geo::TPCID>();
         m_Cryostat = ID.Cryostat;
         m_TPC = ID.TPC;
 

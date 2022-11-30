@@ -386,15 +386,14 @@ void CosmicFlashTagger::AddFlashPosition(::flashana::Flash_t & flash) {
   for (unsigned int opdet = 0; opdet < pePerOpDetId.size(); opdet++) {
 
     // Get physical detector location for this opDet
-    double PMTxyz[3] = {0.,0.,0.};
     ::art::ServiceHandle<geo::Geometry> geo;
-    geo->OpDetGeoFromOpDet(opdet).GetCenter(PMTxyz);
+    auto const PMTxyz = geo->OpDetGeoFromOpDet(opdet).GetCenter();
  
     // Add up the position, weighting with PEs
-    sumy    += pePerOpDetId[opdet]*PMTxyz[1];
-    sumy2   += pePerOpDetId[opdet]*PMTxyz[1]*PMTxyz[1];
-    sumz    += pePerOpDetId[opdet]*PMTxyz[2];
-    sumz2   += pePerOpDetId[opdet]*PMTxyz[2]*PMTxyz[2];
+    sumy    += pePerOpDetId[opdet]*PMTxyz.Y();
+    sumy2   += pePerOpDetId[opdet]*PMTxyz.Y()*PMTxyz.Y();
+    sumz    += pePerOpDetId[opdet]*PMTxyz.Z();
+    sumz2   += pePerOpDetId[opdet]*PMTxyz.Z()*PMTxyz.Z();
 
     totalPE += pePerOpDetId[opdet];
   }

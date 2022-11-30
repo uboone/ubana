@@ -348,7 +348,7 @@ void MCS::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_p
   // load backtrack information
   std::vector<searchingfornues::BtPart> btparts_v;
   std::unique_ptr<art::FindManyP<simb::MCParticle, anab::BackTrackerHitMatchingData>> assocMCPart;
-  //float _wire2cm = geom->WirePitch(0,0,0);
+  //float _wire2cm = geom->WirePitc(geo::PlaneID{0,0,0});
   //float _time2cm = detp->SamplingRate() / 1000.0 * detp->DriftVelocity( detp->Efield(), detp->Temperature() );
 
 

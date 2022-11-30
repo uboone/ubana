@@ -475,11 +475,10 @@ namespace single_photon
             }
 
             std::cout<<"SinglePhoton::SSS\t||\tTick Min: "<<tick_min<<" Max: "<<tick_max<<std::endl;
-            auto const TPC = (*geom).begin_TPC();
-            auto ID = TPC.ID();
+            auto const ID = *geom->begin<geo::TPCID>();
             int fCryostat = ID.Cryostat;
             int fTPC = ID.TPC;
-            std::cout<<"SinglePhoton::SSS\t||\t" << TPC.ID() << "= the beginning TPC ID" <<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\t" << ID << "= the beginning TPC ID" <<std::endl;
             std::cout<<"SinglePhoton::SSS\t||\tthe cryostat id = " << fCryostat << std::endl;  
             std::cout<<"SinglePhoton::SSS\t||\tthe tpc id = " << fTPC << std::endl;  
 

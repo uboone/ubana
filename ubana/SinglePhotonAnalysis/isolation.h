@@ -475,11 +475,10 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
             }
 
             std::cout<<"*Tick Min: "<<tick_min<<" Max: "<<tick_max<<std::endl;
-            auto const TPC = (*geom).begin_TPC();
-            auto ID = TPC.ID();
+            auto const ID = *geom->begin<geo::TPCID>();
             int fCryostat = ID.Cryostat;
             int fTPC = ID.TPC;
-            std::cout<<TPC.ID()<<"*= the beginning TPC ID" <<std::endl;
+            std::cout<<ID<<"*= the beginning TPC ID" <<std::endl;
             std::cout<<"*the cryostat id = "<<fCryostat<<std::endl;  
             std::cout<<"*the tpc id = "<<fTPC<<std::endl;  
 
@@ -659,4 +658,3 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
     }
 
 }
-

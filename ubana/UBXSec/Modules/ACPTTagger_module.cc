@@ -915,9 +915,8 @@ double ACPTTagger::RunOpHitFinder(double the_time, double trk_z_start, double tr
 
     size_t opdet = geo->OpDetFromOpChannel(oh->OpChannel());
 
-    double pmt_xyz[3] = {-9999, -9999, -9999};
-    geo->OpDetGeoFromOpChannel(oh->OpChannel()).GetCenter(pmt_xyz);
-    double pmt_z = pmt_xyz[2];
+    auto const pmt_xyz = geo->OpDetGeoFromOpChannel(oh->OpChannel()).GetCenter();
+    double pmt_z = pmt_xyz.Z();
 
     double dz = 1e9;
     if (pmt_z > trk_z_start && pmt_z < trk_z_end) {

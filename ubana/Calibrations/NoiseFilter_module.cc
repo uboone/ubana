@@ -181,7 +181,10 @@ namespace calibration {
 
     //define max # channels, max # channels per plane
     unsigned int maxChannels  = fGeometry->Nchannels();
-    unsigned int wireMaxNum[] = {fGeometry->Nwires(0),fGeometry->Nwires(1),fGeometry->Nwires(2)};
+    constexpr geo::TPCID tpcid{0, 0};
+    unsigned int wireMaxNum[] = {fGeometry->Nwires(geo::PlaneID{tpcid, 0}),
+                                 fGeometry->Nwires(geo::PlaneID{tpcid, 1}),
+                                 fGeometry->Nwires(geo::PlaneID{tpcid, 2})};
     //unsigned int maxTimeSamples = fDetectorProperties->NumberTimeSamples();
 
     //define array to store channel numbers corresponding to wire plane, number, really terrible implementation
@@ -189,7 +192,7 @@ namespace calibration {
     wirePlaneNum.resize(fGeometry->Nplanes());
       
     for(size_t idx = 0; idx < fGeometry->Nplanes(); idx++)
-        wirePlaneNum[idx].resize(fGeometry->Nwires(idx),-1);
+        wirePlaneNum[idx].resize(fGeometry->Nwires(geo::PlaneID(tpcid, idx)),-1);
 
     //define variables related to correlated noise hists
     std::vector< short > waveform;

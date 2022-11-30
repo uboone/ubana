@@ -23,6 +23,7 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "Math/VectorUtil.h"
 #include "TH2D.h"
 
 namespace ub {
@@ -105,11 +106,16 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
           if (!calos[j]->PlaneID().isValid) continue;
           int planenum = calos[j]->PlaneID().Plane;
           if (planenum<0||planenum>2) continue;
-          const auto& dir_start = tracklist[i]->VertexDirection();
+          auto dir_start = tracklist[i]->VertexDirection();
           const geo::WireGeo& wire = geom->TPC().Plane(planenum).MiddleWire();
-          auto const wirestart = wire.GetStart();
-          auto const wireend = wire.GetEnd();
-          double cosangle = (dir_start.Y()*(wirestart[1]-wireend[1])+dir_start.Z()*(wirestart[2]-wireend[2]))/sqrt((pow(dir_start.Y(),2)+pow(dir_start.Z(),2))*(pow(wirestart[1]-wireend[1],2)+pow(wirestart[2]-wireend[2],2)));
+          auto wire_diff = wire.GetStart() - wire.GetEnd();
+          // We want the cosine of the angle between only the Y- and
+          // Z- components of dir_start and wire_diff.  To achieve
+          // this, we set the X component to zero and simply use the
+          // 3D CosTheta facility provided by ROOT.
+          dir_start.SetX(0);
+          wire_diff.SetX(0);
+          double cosangle = ROOT::Math::VectorUtil::CosTheta(dir_start, wire_diff);
           if (std::abs(cosangle)<0.5){
             double minx = 1e10;
             const size_t NHits = calos[j] -> dEdx().size();

@@ -116,35 +116,35 @@ namespace AuxVertex
     */
 
     // Get spatial coordinates and mark vertex as assigned
-    float xyz[3] = {fX,fY,fZ};
-    float prong1_xyz[3] = {fProngX[0],fProngY[0],fProngZ[0]};
-    float prong2_xyz[3] = {fProngX[1],fProngY[1],fProngZ[1]};
+    geo::Point_t xyz{fX,fY,fZ};
+    geo::Point_t prong1_xyz{fProngX[0],fProngY[0],fProngZ[0]};
+    geo::Point_t prong2_xyz{fProngX[1],fProngY[1],fProngZ[1]};
 
     fIsDetLocAssigned = true;
 
     // Check whether coordinates are inside TPC
     double extraEdge = 0;
 
-    bool nuIsInsideX = (xyz[0]>minTpcBound[0]+extraEdge &&
-      xyz[0]<maxTpcBound[0]-extraEdge);
-    bool nuIsInsideY = (xyz[1]>minTpcBound[1]+extraEdge &&
-      xyz[1]<maxTpcBound[1]-extraEdge);
-    bool nuIsInsideZ = (xyz[2]>minTpcBound[2]+extraEdge &&
-      xyz[2]<maxTpcBound[2]-extraEdge);
+    bool nuIsInsideX = (xyz.X()>minTpcBound[0]+extraEdge &&
+                        xyz.X()<maxTpcBound[0]-extraEdge);
+    bool nuIsInsideY = (xyz.Y()>minTpcBound[1]+extraEdge &&
+                        xyz.Y()<maxTpcBound[1]-extraEdge);
+    bool nuIsInsideZ = (xyz.Z()>minTpcBound[2]+extraEdge &&
+                        xyz.Z()<maxTpcBound[2]-extraEdge);
 
-    bool p1IsInsideX = (prong1_xyz[0]>minTpcBound[0]+extraEdge &&
-      prong1_xyz[0]<maxTpcBound[0]-extraEdge);
-    bool p1IsInsideY = (prong1_xyz[1]>minTpcBound[1]+extraEdge &&
-      prong1_xyz[1]<maxTpcBound[1]-extraEdge);
-    bool p1IsInsideZ = (prong1_xyz[2]>minTpcBound[2]+extraEdge &&
-      prong1_xyz[2]<maxTpcBound[2]-extraEdge);
+    bool p1IsInsideX = (prong1_xyz.X()>minTpcBound[0]+extraEdge &&
+                        prong1_xyz.X()<maxTpcBound[0]-extraEdge);
+    bool p1IsInsideY = (prong1_xyz.Y()>minTpcBound[1]+extraEdge &&
+                        prong1_xyz.Y()<maxTpcBound[1]-extraEdge);
+    bool p1IsInsideZ = (prong1_xyz.Z()>minTpcBound[2]+extraEdge &&
+                        prong1_xyz.Z()<maxTpcBound[2]-extraEdge);
 
-    bool p2IsInsideX = (prong2_xyz[0]>minTpcBound[0]+extraEdge &&
-      prong2_xyz[0]<maxTpcBound[0]-extraEdge);
-    bool p2IsInsideY = (prong2_xyz[1]>minTpcBound[1]+extraEdge &&
-      prong2_xyz[1]<maxTpcBound[1]-extraEdge);
-    bool p2IsInsideZ = (prong2_xyz[2]>minTpcBound[2]+extraEdge &&
-      prong2_xyz[2]<maxTpcBound[2]-extraEdge);
+    bool p2IsInsideX = (prong2_xyz.X()>minTpcBound[0]+extraEdge &&
+                        prong2_xyz.X()<maxTpcBound[0]-extraEdge);
+    bool p2IsInsideY = (prong2_xyz.Y()>minTpcBound[1]+extraEdge &&
+                        prong2_xyz.Y()<maxTpcBound[1]-extraEdge);
+    bool p2IsInsideZ = (prong2_xyz.Z()>minTpcBound[2]+extraEdge &&
+                        prong2_xyz.Z()<maxTpcBound[2]-extraEdge);
 
     bool nuIsInside = (nuIsInsideX && nuIsInsideY && nuIsInsideZ);
     bool p1IsInside = (p1IsInsideX && p1IsInsideY && p1IsInsideZ);
@@ -155,27 +155,30 @@ namespace AuxVertex
     if (nuIsInside && p1IsInside && p2IsInside)
     {
       fIsInsideTPC = true;
-      raw::ChannelID_t channel0 = geometry->NearestChannel(xyz,0);
-      raw::ChannelID_t channel1 = geometry->NearestChannel(xyz,1);
-      raw::ChannelID_t channel2 = geometry->NearestChannel(xyz,2);
-      double tick0 = detProp.ConvertXToTicks(xyz[0], 0, 0, 0);
-      double tick1 = detProp.ConvertXToTicks(xyz[0], 1, 0, 0);
-      double tick2 = detProp.ConvertXToTicks(xyz[0], 2, 0, 0);
+      constexpr geo::PlaneID plane_0{0, 0, 0};
+      constexpr geo::PlaneID plane_1{0, 0, 1};
+      constexpr geo::PlaneID plane_2{0, 0, 2};
+      raw::ChannelID_t channel0 = geometry->NearestChannel(xyz,plane_0);
+      raw::ChannelID_t channel1 = geometry->NearestChannel(xyz,plane_1);
+      raw::ChannelID_t channel2 = geometry->NearestChannel(xyz,plane_2);
+      double tick0 = detProp.ConvertXToTicks(xyz.X(), plane_0);
+      double tick1 = detProp.ConvertXToTicks(xyz.X(), plane_1);
+      double tick2 = detProp.ConvertXToTicks(xyz.X(), plane_2);
       fChannelLoc = {(int) channel0,(int) channel1,(int) channel2};
       fTickLoc = { (float) tick0, (float) tick1, (float) tick2};
 
-      raw::ChannelID_t prong1_channel0 = geometry->NearestChannel(prong1_xyz,0);
-      raw::ChannelID_t prong1_channel1 = geometry->NearestChannel(prong1_xyz,1);
-      raw::ChannelID_t prong1_channel2 = geometry->NearestChannel(prong1_xyz,2);
-      double prong1_tick0 = detProp.ConvertXToTicks(prong1_xyz[0], 0, 0, 0);
-      double prong1_tick1 = detProp.ConvertXToTicks(prong1_xyz[0], 1, 0, 0);
-      double prong1_tick2 = detProp.ConvertXToTicks(prong1_xyz[0], 2, 0, 0);
-      raw::ChannelID_t prong2_channel0 = geometry->NearestChannel(prong2_xyz,0);
-      raw::ChannelID_t prong2_channel1 = geometry->NearestChannel(prong2_xyz,1);
-      raw::ChannelID_t prong2_channel2 = geometry->NearestChannel(prong2_xyz,2);
-      double prong2_tick0 = detProp.ConvertXToTicks(prong2_xyz[0], 0, 0, 0);
-      double prong2_tick1 = detProp.ConvertXToTicks(prong2_xyz[0], 1, 0, 0);
-      double prong2_tick2 = detProp.ConvertXToTicks(prong2_xyz[0], 2, 0, 0);
+      raw::ChannelID_t prong1_channel0 = geometry->NearestChannel(prong1_xyz,plane_0);
+      raw::ChannelID_t prong1_channel1 = geometry->NearestChannel(prong1_xyz,plane_1);
+      raw::ChannelID_t prong1_channel2 = geometry->NearestChannel(prong1_xyz,plane_2);
+      double prong1_tick0 = detProp.ConvertXToTicks(prong1_xyz.X(), plane_0);
+      double prong1_tick1 = detProp.ConvertXToTicks(prong1_xyz.X(), plane_1);
+      double prong1_tick2 = detProp.ConvertXToTicks(prong1_xyz.X(), plane_2);
+      raw::ChannelID_t prong2_channel0 = geometry->NearestChannel(prong2_xyz,plane_0);
+      raw::ChannelID_t prong2_channel1 = geometry->NearestChannel(prong2_xyz,plane_1);
+      raw::ChannelID_t prong2_channel2 = geometry->NearestChannel(prong2_xyz,plane_2);
+      double prong2_tick0 = detProp.ConvertXToTicks(prong2_xyz.X(), plane_0);
+      double prong2_tick1 = detProp.ConvertXToTicks(prong2_xyz.X(), plane_1);
+      double prong2_tick2 = detProp.ConvertXToTicks(prong2_xyz.X(), plane_2);
 
       fProngChannelLoc = {{ (int) prong1_channel0, (int) prong1_channel1, (int) prong1_channel2}, { (int) prong2_channel0, (int) prong2_channel1, (int) prong2_channel2}};
       fProngTickLoc = {{ (float) prong1_tick0, (float) prong1_tick1, (float) prong1_tick2}, { (float) prong2_tick0, (float) prong2_tick1, (float) prong2_tick2}};

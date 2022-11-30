@@ -1008,7 +1008,7 @@ bool UBXSecHelper::PointIsCloseToDeadRegion(double *reco_nu_vtx, int plane_no){
   // Get nearest channel
   raw::ChannelID_t ch;
   try {
-    ch = geo->NearestChannel(reco_nu_vtx, plane_no);
+    ch = geo->NearestChannel(geo::vect::toPoint(reco_nu_vtx), geo::PlaneID(0, 0, plane_no));
   } catch(cet::exception &e) {
     std::cout << "[UBXSecHelper::PointIsCloseToDeadRegion] Cant' find nearest channel (catched exception)" << std::endl;
     return false;
@@ -1050,16 +1050,12 @@ int UBXSecHelper::GetClosestPMT(double *charge_center) {
   int pmt_id= -1;
 
   ::art::ServiceHandle<geo::Geometry> geo;
-  double xyz[3];
   double dist;
   double min_dist = 1.e9;
 
   for (size_t opch = 0; opch < 32; opch++) {
-    geo->OpDetGeoFromOpChannel(opch).GetCenter(xyz); 
-    dist = std::sqrt( (charge_center[0] - xyz[0])*(charge_center[0] - xyz[0]) +
-                      (charge_center[1] - xyz[1])*(charge_center[1] - xyz[1]) +
-                      (charge_center[2] - xyz[2])*(charge_center[2] - xyz[2]) );
-
+    auto const xyz = geo->OpDetGeoFromOpChannel(opch).GetCenter();
+    dist = (geo::vect::toPoint(charge_center) - xyz).R();
     if (dist < min_dist) {
       min_dist = dist;
       pmt_id = opch;
@@ -1090,11 +1086,10 @@ double UBXSecHelper::GetFlashZCenter(std::vector<double> hypo_pe) {
     size_t opch = opdet2opch[opdet];
 
     // Get physical detector location for this opChannel
-    double PMTxyz[3];
-    geo->OpDetGeoFromOpChannel(opch).GetCenter(PMTxyz);
+    auto const PMTxyz = geo->OpDetGeoFromOpChannel(opch).GetCenter();
 
     // Add up the position, weighting with PEs
-    sumz    += hypo_pe[opdet]*PMTxyz[2];
+    sumz    += hypo_pe[opdet]*PMTxyz.Z();
 
     totalPE += hypo_pe[opdet];
   }

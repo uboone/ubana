@@ -2243,15 +2243,14 @@ void UBXSec::GetFlashLocation(std::vector<double> pePerOpDet,
   for (unsigned int opdet = 0; opdet < pePerOpDet.size(); opdet++) {
 
     // Get physical detector location for this opChannel
-    double PMTxyz[3];
     ::art::ServiceHandle<geo::Geometry> geo;
-    geo->OpDetGeoFromOpDet(opdet).GetCenter(PMTxyz);
+    auto const PMTxyz = geo->OpDetGeoFromOpDet(opdet).GetCenter();
 
     // Add up the position, weighting with PEs
-    sumy    += pePerOpDet[opdet]*PMTxyz[1];
-    sumy2   += pePerOpDet[opdet]*PMTxyz[1]*PMTxyz[1];
-    sumz    += pePerOpDet[opdet]*PMTxyz[2];
-    sumz2   += pePerOpDet[opdet]*PMTxyz[2]*PMTxyz[2];
+    sumy    += pePerOpDet[opdet]*PMTxyz.Y();
+    sumy2   += pePerOpDet[opdet]*PMTxyz.Y()*PMTxyz.Y();
+    sumz    += pePerOpDet[opdet]*PMTxyz.Z();
+    sumz2   += pePerOpDet[opdet]*PMTxyz.Z()*PMTxyz.Z();
 
     totalPE += pePerOpDet[opdet];
   }
