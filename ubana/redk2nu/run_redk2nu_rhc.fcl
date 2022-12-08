@@ -1,5 +1,6 @@
 #include "time_memory_tracker_microboone.fcl"
 #include "redk2nu.fcl"
+#include "services_microboone.fcl"
 
 process_name: ReDk2Nu
 
