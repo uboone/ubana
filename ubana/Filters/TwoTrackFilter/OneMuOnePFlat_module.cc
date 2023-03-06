@@ -562,10 +562,11 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
     flux_pars = pset.get< std::vector<std::string> >( "flux_parameter_list" );
   }
 
+  auto const& tpc = geo->TPC();
   _fiducial_volume.Configure(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                             geo->DetHalfHeight(),
-                             2.*geo->DetHalfWidth(),
-                             geo->DetLength());
+                             tpc.HalfHeight(),
+                             2.*tpc.HalfWidth(),
+                             tpc.Length());
 
   _fiducial_volume.PrintConfig();
   Hits_TrackAssLabel = pset.get<std::string>("HitsPerTrackAssLabel");
@@ -800,6 +801,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
   std::vector<art::Ptr< simb::MCParticle >> selected_MCparticle(2);
 
+  auto const& tpc = geo->TPC();
   //-------- Get Reco neutrino (pfparticle)
   for(unsigned int i = 0; i < pfParticle_v.size(); i++){
     auto pfp = pfParticle_v[i];
@@ -987,7 +989,7 @@ void SingleMuon::analyze(art::Event const& evt)
           trk_end_z[i_trk] = Trk_end_SCEcorr[i_trk].Z();
 
           //-- Track out of time
-          if( Trk_start_SCEcorr[i_trk].X() < 0 || Trk_start_SCEcorr[i_trk].X() > 2. * geo->DetHalfWidth() || Trk_end_SCEcorr[i_trk].X() < 0 || Trk_end_SCEcorr[i_trk].X() > 2. * geo->DetHalfWidth()){
+          if( Trk_start_SCEcorr[i_trk].X() < 0 || Trk_start_SCEcorr[i_trk].X() > 2. * tpc.HalfWidth() || Trk_end_SCEcorr[i_trk].X() < 0 || Trk_end_SCEcorr[i_trk].X() > 2. * tpc.HalfWidth()){
             trk_OutOfTime[i_trk] = true;
           }
           else{

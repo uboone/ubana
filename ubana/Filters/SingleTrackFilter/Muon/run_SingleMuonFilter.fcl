@@ -10,7 +10,7 @@
 
 services:{
   TFileService: { fileName: "NuMuCC0pi0p.root" }
-  ExptGeoHelperInterface:         @local::microboone_geometry_helper
+  WireReadout:         @local::microboone_wire_readout
   Geometry:                       @local::microboone_geo
   FileCatalogMetadata:  @local::art_file_catalog_data
   @table::microboone_services

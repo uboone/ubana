@@ -68,6 +68,8 @@
 #include "larreco/RecoAlg/TrajectoryMCSFitter.h"
 
 // LArSoft include
+#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "ubreco/UBFlashFinder/PECalib.h"
 #include "larsim/MCCheater/BackTracker.h"
 
@@ -114,6 +116,8 @@ private:
   ::cosmictag::CosmicTagManager _ct_manager;
 
   ::art::ServiceHandle<geo::Geometry> geo;
+  geo::TPCGeo const& _tpc = geo->TPC();
+  geo::WireReadoutGeom const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
 
   ::ubana::FiducialVolume _fiducial_volume;
 
@@ -159,9 +163,9 @@ private:
 StoppingMuonTagger::StoppingMuonTagger(fhicl::ParameterSet const & p) 
   : EDProducer{p}
   , _fiducial_volume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                     geo->DetHalfHeight(),
-                     2.*geo->DetHalfWidth(),
-                     geo->DetLength())
+                     _tpc.HalfHeight(),
+                     2.*_tpc.HalfWidth(),
+                     _tpc.Length())
   , _mcs_fitter(p.get< fhicl::ParameterSet >("MCSFitter")) {
 
 
@@ -400,9 +404,9 @@ void StoppingMuonTagger::produce(art::Event & e) {
     // First exclude spacepoints outside the tpc
     //
     std::vector<art::Ptr<recob::SpacePoint>> temp;
-    ::geoalgo::AABox tpcvol(0., (-1.)*geo->DetHalfHeight(), 
-                            0., geo->DetHalfWidth()*2, 
-                            geo->DetHalfHeight(), geo->DetLength());
+    ::geoalgo::AABox tpcvol(0., (-1.)*_tpc.HalfHeight(),
+                            0., _tpc.HalfWidth()*2,
+                            _tpc.HalfHeight(), _tpc.Length());
 
     for (auto s : sp_v) {
       const double *xyz = s->XYZ();
@@ -432,7 +436,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
 
     // Creating an approximate start hit on plane 2
     geo::PlaneID const plane_2{0, 0, 2};
-    int highest_w = geo->NearestWireID(highest_point, plane_2).Wire ;//* geo->WirePitch(geo::PlaneID(0,0,2));
+    int highest_w = channelMap.Plane(plane_2).NearestWireID(highest_point).Wire ;//* channelMap.Plane(geo::PlaneID(0,0,2)).WirePitch();
     double highest_t = detProp.ConvertXToTicks(highest_point.X(), plane_2)/4.;//highest_point[0];
     if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << highest_w
                           << ", time: " << detProp.ConvertXToTicks(highest_point.X(), plane_2)
@@ -444,7 +448,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
 
     // Creating an approximate start hit on plane 1 (used if collection coplanar)
     geo::PlaneID const plane_1{0, 0, 1};
-    highest_w = geo->NearestWireID(highest_point, plane_1).Wire;
+    highest_w = channelMap.Plane(plane_1).NearestWireID(highest_point).Wire;
     highest_t = detProp.ConvertXToTicks(highest_point.X(), plane_1)/4.;
     if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << highest_w
                           << ", time: " << detProp.ConvertXToTicks(highest_point.X(), plane_1)
@@ -465,7 +469,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
     if (!start_fv) {point_outfv = trk->Vertex();}
     if (!end_fv) {point_outfv = trk->End();}
     this->ContainPoint(point_outfv);
-    int outfv_w = geo->NearestWireID(point_outfv, plane_2).Wire;
+    int outfv_w = channelMap.Plane(plane_2).NearestWireID(point_outfv).Wire;
     double outfv_t = detProp.ConvertXToTicks(point_outfv.X(), plane_2)/4.;
     if (_debug) std::cout << "[StoppingMuonTagger] OutFV point: wire: " << outfv_w
                           << ", time: " << detProp.ConvertXToTicks(point_outfv.X(), plane_2)
@@ -488,8 +492,8 @@ void StoppingMuonTagger::produce(art::Event & e) {
     if (_debug) std::cout << "[StoppingMuonTagger] Now create simple hit vector, size " << hit_v.size() << std::endl;
 
     
-    //std::cout << "Wire inclination for plane 1 (should give 60 degrees): " << geo->WireAngleToVertical(geo::View_t::kV) - 0.5*::util::pi<>()<< std::endl;
-    //std::cout << "Wire pitch for plane 1 (should give 3mm): " << geo->WirePitch(geo::PlaneID(0,0,1)) << std::endl;
+    //std::cout << "Wire inclination for plane 1 (should give 60 degrees): " << channelMap.WireAngleToVertical(geo::View_t::kV) - 0.5*::util::pi<>()<< std::endl;
+    //std::cout << "Wire pitch for plane 1 (should give 3mm): " << channelMap.Plane(geo::PlaneID(0,0,1)).WirePitch() << std::endl;
 
     //
     // Create SimpleHit vector with hits in collection plane only
@@ -502,7 +506,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
       cosmictag::SimpleHit sh;
 
       sh.t = detProp.ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,h->View()));
-      sh.w = h->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,h->View()));
+      sh.w = h->WireID().Wire * channelMap.Plane(geo::PlaneID(0,0,h->View())).WirePitch();
 
       sh.plane = h->View();
       sh.integral = h->Integral();
@@ -789,9 +793,9 @@ bool StoppingMuonTagger::IsStopMuMCS_bug(art::Ptr<recob::Track> t, double & delt
 void StoppingMuonTagger::ContainPoint(geo::Point_t& point) {
 
   constexpr double e = std::numeric_limits<double>::epsilon();
-  point.SetX(std::clamp(point.X(), e, 2.*geo->DetHalfWidth() - e));
-  point.SetY(std::clamp(point.Y(), -geo->DetHalfWidth() + e, geo->DetHalfWidth() - e));
-  point.SetZ(std::clamp(point.Z(), e, geo->DetLength() - e));
+  point.SetX(std::clamp(point.X(), e, 2.*_tpc.HalfWidth() - e));
+  point.SetY(std::clamp(point.Y(), -_tpc.HalfWidth() + e, _tpc.HalfWidth() - e));
+  point.SetZ(std::clamp(point.Z(), e, _tpc.Length() - e));
 
 }
 

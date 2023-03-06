@@ -44,7 +44,7 @@ microboone_tfile_metadata:
   fileFormat:            "root"
 }
 
-services.ExptGeoHelperInterface: @local::microboone_geometry_helper
+services.WireReadout: @local::microboone_wire_readout
 services.GeometryConfigurationWriter: {}
 services.Geometry:               @local::microboone_geo
 services.UBOpReadoutMap:           @local::microboone_opreadoutmap

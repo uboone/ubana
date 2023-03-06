@@ -284,6 +284,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Utilities/make_tool.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -5751,7 +5752,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
   // Save flash information for multiple algorithms
   if (fSaveFlashInfo) {
 
-      auto const* geom = lar::providerFrom<geo::Geometry>(); // geometry is needed to go from OpChannel to OpDet
+      auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
 
       for (unsigned int iFlashAlg=0; iFlashAlg < NFlashAlgos; ++iFlashAlg){
       AnalysisTreeDataStruct::FlashDataStruct& FlashData = fData->GetFlashData(iFlashAlg);
@@ -5784,7 +5785,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
 
         for (int opch = 0; opch < kNOpDets; opch++) {
           Double_t pePerOpChannel = (Double_t) flashlist[iFlashAlg][i]->PE(opch);
-          unsigned int opdet = geom->OpDetFromOpChannel(opch);
+          unsigned int opdet = channelMap.OpDetFromOpChannel(opch);
           FlashData.flsPePerOpDet[i][opdet] = pePerOpChannel;
         }
 
@@ -5796,7 +5797,7 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
         if (fOpFlashModuleLabel[iFlashAlg].find("opflashCosmic") != std::string::npos) {
           for (int opch = 200; opch < 200+kNOpDets; opch++) {
             Double_t pePerOpChannel = (Double_t) flashlist[iFlashAlg][i]->PE(opch);
-            unsigned int opdet = geom->OpDetFromOpChannel(opch);
+            unsigned int opdet = channelMap.OpDetFromOpChannel(opch);
             FlashData.flsPePerOpDet[i][opdet] = pePerOpChannel;
           }
         }
@@ -6510,16 +6511,16 @@ void microboone::AnalysisTree::HitsPurity(detinfo::DetectorClocksData const& clo
 double microboone::AnalysisTree::bdist(const TVector3& pos)
 {
   // Get geometry.
-  auto const* geom = lar::providerFrom<geo::Geometry>();
+  auto const& tpc = lar::providerFrom<geo::Geometry>()->TPC();
 
   double d1 = pos.X();                             // Distance to right side (wires).
-  double d2 = 2.*geom->DetHalfWidth() - pos.X();   // Distance to left side (cathode).
-  double d3 = pos.Y() + geom->DetHalfHeight();     // Distance to bottom.
-  double d4 = geom->DetHalfHeight() - pos.Y();     // Distance to top.
+  double d2 = 2.*tpc.HalfWidth() - pos.X();   // Distance to left side (cathode).
+  double d3 = pos.Y() + tpc.HalfHeight();     // Distance to bottom.
+  double d4 = tpc.HalfHeight() - pos.Y();     // Distance to top.
   double d5 = pos.Z();                             // Distance to front.
-  double d6 = geom->DetLength() - pos.Z();           // Distance to back.
+  double d6 = tpc.Length() - pos.Z();         // Distance to back.
 
-  double result = std::min(std::min(std::min(std::min(std::min(d1, d2), d3), d4), d5), d6);
+  double result = std::min({d1, d2, d3, d4, d5, d6});
   return result;
 }
 
@@ -6533,14 +6534,14 @@ double microboone::AnalysisTree::length(const recob::Track& track)
 double microboone::AnalysisTree::driftedLength(detinfo::DetectorPropertiesData const& detProp,
                                                const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom){
   // Get geometry.
-  auto const* geom = lar::providerFrom<geo::Geometry>();
+  auto const& tpc = lar::providerFrom<geo::Geometry>()->TPC();
 
   //compute the drift x range
   double vDrift = detProp.DriftVelocity()*1e-3; //cm/ns
   double xrange[2] = {detProp.ConvertTicksToX(0,0,0,0),detProp.ConvertTicksToX(detProp.NumberTimeSamples(),0,0,0)};
   
   // Get active volume boundary.
-  double bnd[6] = {0.,2.*geom->DetHalfWidth(),-geom->DetHalfHeight(),geom->DetHalfHeight(),0.,geom->DetLength()};
+  double bnd[6] = {0.,2.*tpc.HalfWidth(),-tpc.HalfHeight(),tpc.HalfHeight(),0.,tpc.Length()};
 
   double result = 0.;
   TVector3 disp;
@@ -6579,14 +6580,14 @@ double microboone::AnalysisTree::driftedLength(detinfo::DetectorPropertiesData c
                                                const simb::MCParticle& p, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi)
 {
   // Get geometry.
-  auto const* geom = lar::providerFrom<geo::Geometry>();
+  auto const& tpc = lar::providerFrom<geo::Geometry>()->TPC();
   
   //compute the drift x range
   double vDrift = detProp.DriftVelocity()*1e-3; //cm/ns
   double xrange[2] = {detProp.ConvertTicksToX(0,0,0,0),detProp.ConvertTicksToX(detProp.NumberTimeSamples(),0,0,0)};
   
   // Get active volume boundary.
-  double bnd[6] = {0.,2.*geom->DetHalfWidth(),-geom->DetHalfHeight(),geom->DetHalfHeight(),0.,geom->DetLength()};
+  double bnd[6] = {0.,2.*tpc.HalfWidth(),-tpc.HalfHeight(),tpc.HalfHeight(),0.,tpc.Length()};
 
   double result = 0.;
   TVector3 disp;
@@ -6624,10 +6625,10 @@ double microboone::AnalysisTree::driftedLength(detinfo::DetectorPropertiesData c
 double microboone::AnalysisTree::length(const simb::MCParticle& p, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi)
 {
   // Get geometry.
-  art::ServiceHandle<geo::Geometry> geom;
+  auto const& tpc = art::ServiceHandle<geo::Geometry>()->TPC();
   
   // Get active volume boundary.
-  double bnd[6] = {0.,2.*geom->DetHalfWidth(),-geom->DetHalfHeight(),geom->DetHalfHeight(),0.,geom->DetLength()};
+  double bnd[6] = {0.,2.*tpc.HalfWidth(),-tpc.HalfHeight(),tpc.HalfHeight(),0.,tpc.Length()};
   double result = 0.;
   TVector3 disp;
   bool first = true;

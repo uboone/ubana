@@ -28,7 +28,7 @@
 #include "lardata/Utilities/LArFFT.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/raw.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
 #include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
@@ -130,7 +130,6 @@ namespace calibration {
 
   //-------------------------------------------------------------------
   void NoiseFilter::beginJob(){
-    //art::ServiceHandle<geo::Geometry> geo;
     art::ServiceHandle<art::TFileService> tfs;
 
     //noise filter variables
@@ -163,7 +162,7 @@ namespace calibration {
   void NoiseFilter::produce(art::Event & evt){
     MF_LOG_INFO ("NoiseFilter Module") << "Processing Run " << fRun << ", Subrun " << fSubrun << ", Event " << fEvent;
 
-    auto const* fGeometry = lar::providerFrom<geo::Geometry>();
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
   //  auto const* fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
     
     //filtered raw digits	
@@ -180,19 +179,19 @@ namespace calibration {
     fEvent = evt.event();
 
     //define max # channels, max # channels per plane
-    unsigned int maxChannels  = fGeometry->Nchannels();
+    unsigned int maxChannels  = channelMap.Nchannels();
     constexpr geo::TPCID tpcid{0, 0};
-    unsigned int wireMaxNum[] = {fGeometry->Nwires(geo::PlaneID{tpcid, 0}),
-                                 fGeometry->Nwires(geo::PlaneID{tpcid, 1}),
-                                 fGeometry->Nwires(geo::PlaneID{tpcid, 2})};
+    unsigned int wireMaxNum[] = {channelMap.Nwires(geo::PlaneID{tpcid, 0}),
+                                 channelMap.Nwires(geo::PlaneID{tpcid, 1}),
+                                 channelMap.Nwires(geo::PlaneID{tpcid, 2})};
     //unsigned int maxTimeSamples = fDetectorProperties->NumberTimeSamples();
 
     //define array to store channel numbers corresponding to wire plane, number, really terrible implementation
     std::vector<std::vector<int>> wirePlaneNum;
-    wirePlaneNum.resize(fGeometry->Nplanes());
+    wirePlaneNum.resize(channelMap.Nplanes({0, 0}));
       
-    for(size_t idx = 0; idx < fGeometry->Nplanes(); idx++)
-        wirePlaneNum[idx].resize(fGeometry->Nwires(geo::PlaneID(tpcid, idx)),-1);
+    for(auto const& planeid : channelMap.Iterate<geo::PlaneID>(tpcid))
+        wirePlaneNum[planeid.Plane].resize(channelMap.Nwires(planeid),-1);
 
     //define variables related to correlated noise hists
     std::vector< short > waveform;
@@ -212,7 +211,7 @@ namespace calibration {
         //get wire IDs
         std::vector<geo::WireID> wids;
         try {
-            wids = fGeometry->ChannelToWire(channel);
+            wids = channelMap.ChannelToWire(channel);
         }
         catch(...)
         {
@@ -223,7 +222,7 @@ namespace calibration {
         // Recover plane and wire in the plane
         unsigned int view = wids[0].Plane;
         unsigned int wire = wids[0].Wire;
-        if( view > fGeometry->Nplanes()) continue;
+        if( view > channelMap.Nplanes({0, 0})) continue;
         if( wire > wireMaxNum[view] ) continue;
         wirePlaneNum[view][wire] = ich;
     }//end loop over raw digit container channels

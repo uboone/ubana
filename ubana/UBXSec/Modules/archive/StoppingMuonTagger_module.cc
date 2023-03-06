@@ -363,7 +363,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
     double highest_point[3] = {highest_point_c[0], highest_point_c[1], highest_point_c[2]};
     //raw::ChannelID_t ch = geo->NearestChannel(highest_point, 2);
     this->ContainPoint(highest_point);
-    int highest_w = geo->NearestWire(highest_point, 2) ;//* geo->WirePitch(geo::PlaneID(0,0,2));
+    int highest_w = geo->NearestWire(highest_point, 2) ;//* geo->Plane(geo::PlaneID(0,0,2)).WirePitch();
     double highest_t = fDetectorProperties->ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,2))/4.;//highest_point[0];
     //size_t time = fDetectorProperties->ConvertXToTicks(highest_point[0], geo::PlaneID(0,0,2));
     if (_debug) std::cout << "[StoppingMuonTagger] Highest point: wire: " << geo->NearestWire(highest_point, 2) 
@@ -385,7 +385,7 @@ void StoppingMuonTagger::produce(art::Event & e) {
     for (auto h : hit_v) {
       ubana::SimpleHit shit;
       shit.t = fDetectorProperties->ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
-      shit.w = h->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2));
+      shit.w = h->WireID().Wire * geo->Plane(geo::PlaneID(0,0,2)).WirePitch();
 
       shit.plane = h->View();
       shit.integral = h->Integral();

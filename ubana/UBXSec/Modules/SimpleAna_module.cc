@@ -13,7 +13,7 @@
  * \ingroup UBXSec
  *
  * \brief Art producer module with simple example to retrieve results
- * 
+ *
  *
  * \author Marco Del Tutto <marco.deltutto@physics.ox.ac.uk>
  *
@@ -121,7 +121,7 @@ void SimpleAna::analyze(art::Event const & e)
     std::cout << "[SimpleAna] Cut: " << iter.first << "  >>>  " << (iter.second ? "PASSED" : "NOT PASSED") << std::endl;
   }
 
-  
+
   //
   // Trigger study
   //
@@ -154,21 +154,21 @@ void SimpleAna::analyze(art::Event const & e)
   auto const& mclist = e.getProduct<std::vector<simb::MCTruth>>("generator");
   int iList = 0;
   ::geoalgo::Vector truth_nu_vtx (mclist[iList].GetNeutrino().Nu().Vx(),mclist[iList].GetNeutrino().Nu().Vy(),mclist[iList].GetNeutrino().Nu().Vz());
-  ::art::ServiceHandle<geo::Geometry> geo;
-  ::geoalgo::AABox tpcvol(0, (-1.)*(geo->DetHalfHeight()), 0.,
-              geo->DetHalfWidth()*2, geo->DetHalfHeight(), geo->DetLength());
+  auto const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
+  ::geoalgo::AABox tpcvol(0, (-1.)*(tpc.HalfHeight()), 0.,
+              tpc.HalfWidth()*2, tpc.HalfHeight(), tpc.Length());
 
   if(tpcvol.Contain(truth_nu_vtx)) in_tpcactive = true;
   else in_tpcactive = false;
 
   if (mclist[iList].GetNeutrino().Nu().E() > 0.05 && mclist[iList].GetNeutrino().Nu().E() < 1.5)
     energy_range = true;
-  else 
+  else
     energy_range = false;
 
   if (mclist[iList].GetNeutrino().CCNC() == 0 && mclist[iList].GetNeutrino().Nu().PdgCode() == 12)
     right_flavour = true;
-  else 
+  else
     right_flavour = false;
 
   _nu_energy = mclist[iList].GetNeutrino().Nu().E();

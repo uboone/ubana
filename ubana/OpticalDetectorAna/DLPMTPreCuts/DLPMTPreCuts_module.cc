@@ -20,6 +20,7 @@
 #include "lardataobj/RecoBase/OpHit.h"
 #include "ubobj/Optical/UbooneOpticalFilter.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 
 #include "ubevt/Database/LightYieldService.h"
@@ -109,10 +110,11 @@ bool dl::DLPMTPreCuts::filter(art::Event & e)
     int nfactors = 0;
 
     const ::art::ServiceHandle<geo::Geometry> geo;
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
 
     const lariov::LightYieldProvider& ly_provider = art::ServiceHandle<lariov::LightYieldService>()->GetProvider();
     for (unsigned int i=0; i!= geo->NOpDets(); ++i) {
-      if (geo->IsValidOpChannel(i) && i<32) {
+      if (channelMap.IsValidOpChannel(i) && i<32) {
 	scaling += ly_provider.LYScaling(i);
 	nfactors += 1;
       }

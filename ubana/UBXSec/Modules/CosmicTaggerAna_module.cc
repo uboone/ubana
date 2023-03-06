@@ -81,7 +81,7 @@ public:
 
 private:
 
-  ::art::ServiceHandle<geo::Geometry> _geo;
+  geo::TPCGeo const& _tpc = art::ServiceHandle<geo::Geometry>()->TPC();
 
   ::ubana::FiducialVolume _fiducial_volume;
 
@@ -132,9 +132,9 @@ private:
 CosmicTaggerAna::CosmicTaggerAna(fhicl::ParameterSet const & p)
   : EDAnalyzer(p)
   , _fiducial_volume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                     _geo->DetHalfHeight(),
-                     2.*_geo->DetHalfWidth(),
-                     _geo->DetLength())
+                     _tpc.HalfHeight(),
+                     2.*_tpc.HalfWidth(),
+                     _tpc.Length())
 {
   _pfp_producer               = p.get<std::string>("PFParticleProducer");
   _hitfinderLabel             = p.get<std::string>("HitProducer");

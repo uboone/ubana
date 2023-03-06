@@ -1,4 +1,3 @@
-
 #ifndef FILLTREEVARIABLES_CXX
 #define FILLTREEVARIABLES_CXX
 
@@ -18,21 +17,22 @@
 #include "RecoMCMatching.h"
 
 
-FillTreeVariables::FillTreeVariables() :
+FillTreeVariables::FillTreeVariables(geo::TPCGeo const& tpc) :
+  ftpc{tpc},
   frmcm(nullptr),
   ftpc_volume(0,
-	      -lar::providerFrom<geo::Geometry>()->DetHalfHeight(),
+              -ftpc.HalfHeight(),
 	      0,
-	      2*lar::providerFrom<geo::Geometry>()->DetHalfWidth(),
-	      lar::providerFrom<geo::Geometry>()->DetHalfHeight(),
-	      lar::providerFrom<geo::Geometry>()->DetLength()),
+              2*ftpc.HalfWidth(),
+              ftpc.HalfHeight(),
+              ftpc.Length()),
   foffset(10),
   ffiducial_volume(foffset,
-		   foffset-lar::providerFrom<geo::Geometry>()->DetHalfHeight(),
+                   foffset-ftpc.HalfHeight(),
 		   foffset,
-		   -foffset+2*lar::providerFrom<geo::Geometry>()->DetHalfWidth(),
-		   -foffset+lar::providerFrom<geo::Geometry>()->DetHalfHeight(),
-		   -foffset+lar::providerFrom<geo::Geometry>()->DetLength()),
+                   -foffset+2*ftpc.HalfWidth(),
+                   -foffset+ftpc.HalfHeight(),
+                   -foffset+ftpc.Length()),
   fwire_plane(2),
   fverbose(false),
   fevent_tree(nullptr),
@@ -1401,11 +1401,11 @@ void FillTreeVariables::GetDeltaMCShowerMCTrackIndices(art::Event const & e,
 double FillTreeVariables::DistToClosestTPCWall(geoalgo::Point_t const & pos) {
 
   double dist = fabs(pos.at(0));
-  if(fabs(pos.at(0) - 2*lar::providerFrom<geo::Geometry>()->DetHalfWidth()) < dist) dist = fabs(pos.at(0) - 2*lar::providerFrom<geo::Geometry>()->DetHalfWidth());
-  if(fabs(pos.at(1) + lar::providerFrom<geo::Geometry>()->DetHalfHeight()) < dist) dist = fabs(pos.at(1) + lar::providerFrom<geo::Geometry>()->DetHalfHeight());
-  if(fabs(pos.at(1) - lar::providerFrom<geo::Geometry>()->DetHalfHeight()) < dist) dist = fabs(pos.at(1) - lar::providerFrom<geo::Geometry>()->DetHalfHeight()); 
+  if(fabs(pos.at(0) - 2*ftpc.HalfWidth()) < dist) dist = fabs(pos.at(0) - 2*ftpc.HalfWidth());
+  if(fabs(pos.at(1) + ftpc.HalfHeight()) < dist) dist = fabs(pos.at(1) + ftpc.HalfHeight());
+  if(fabs(pos.at(1) - ftpc.HalfHeight()) < dist) dist = fabs(pos.at(1) - ftpc.HalfHeight());
   if(fabs(pos.at(2)) < dist) dist = fabs(pos.at(2));
-  if(fabs(pos.at(2) - lar::providerFrom<geo::Geometry>()->DetLength()) < dist) dist = fabs(pos.at(2) - lar::providerFrom<geo::Geometry>()->DetLength());
+  if(fabs(pos.at(2) - ftpc.Length()) < dist) dist = fabs(pos.at(2) - ftpc.Length());
 
   return dist;
 

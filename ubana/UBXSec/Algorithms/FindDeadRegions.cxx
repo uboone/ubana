@@ -9,7 +9,7 @@
 
 // LArSoft includes
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcorealg/Geometry/WireGeo.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/raw.h"
@@ -68,7 +68,7 @@ void FindDeadRegions::LoadWireGeometry() {
 
   std::cout << "[FindDeadRegions] Loading wires from " << (_use_file ? "files." : "database.") << std::endl;
 
-  ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>{}->Get();
 
   std::cout << "[FindDeadRegions] Loading geometry." << std::endl;
 
@@ -81,8 +81,8 @@ void FindDeadRegions::LoadWireGeometry() {
     // Loop over all the channels
     for (unsigned int channel = 0; channel < 8256; ++channel) {
 
-      std::vector<geo::WireID> const wire_v = geo->ChannelToWire(channel);
-      geo::WireGeo const& wire_g = geo->Wire(wire_v[0]);
+      std::vector<geo::WireID> const wire_v = channelMap.ChannelToWire(channel);
+      geo::WireGeo const& wire_g = channelMap.Wire(wire_v[0]);
 
       auto const start = wire_g.GetStart();
       auto const end = wire_g.GetEnd();

@@ -125,7 +125,8 @@ LEEPhotonAnalysis::LEEPhotonAnalysis(fhicl::ParameterSet const & p) :
   fspec_event(UINT_MAX),
   fvq(ftrack_producer,
       fshower_producer,
-      frmcm) {
+      frmcm),
+  fftv{art::ServiceHandle<geo::Geometry>()->TPC()} {
 
   art::ServiceHandle<art::TFileService> tfs;
   fPOTtree = tfs->make<TTree>("get_pot", "");

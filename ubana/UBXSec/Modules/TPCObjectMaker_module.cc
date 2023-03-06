@@ -204,7 +204,7 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
 
   // Get the needed services
   //::art::ServiceHandle<cheat::BackTracker> bt;
-  ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
 
   // Is nc?
   bool _is_nc = false;
@@ -286,8 +286,8 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
       // Check if this is a stopping muon in the TPC 
       ::geoalgo::Vector mcpar_end(mc_par->EndX(), mc_par->EndY(), mc_par->EndZ());
 
-      ::geoalgo::AABox tpc_vol(0., (-1.)*(geo->DetHalfHeight()), 0.,
-                               geo->DetHalfWidth()*2., geo->DetHalfHeight(), geo->DetLength());
+      ::geoalgo::AABox tpc_vol(0., (-1.)*(tpc.HalfHeight()), 0.,
+                               tpc.HalfWidth()*2., tpc.HalfHeight(), tpc.Length());
 
       if((mc_par->PdgCode() == 13 || mc_par->PdgCode() == -13) && tpc_vol.Contain(mcpar_end)) {
         cosmicStoppingOriginPFP.emplace_back(pf_par); 
@@ -303,8 +303,8 @@ void ubana::TPCObjectMaker::produce(art::Event & e){
       // Check if this is a stopping muon in the TPC
       ::geoalgo::Vector mcpar_end(mc_par->EndX(), mc_par->EndY(), mc_par->EndZ());
 
-      ::geoalgo::AABox tpc_vol(0., (-1.)*(geo->DetHalfHeight()), 0.,
-                               geo->DetHalfWidth()*2., geo->DetHalfHeight(), geo->DetLength());
+      ::geoalgo::AABox tpc_vol(0., (-1.)*(tpc.HalfHeight()), 0.,
+                               tpc.HalfWidth()*2., tpc.HalfHeight(), tpc.Length());
             
       if((mc_par->PdgCode() == 13 || mc_par->PdgCode() == -13) && tpc_vol.Contain(mcpar_end)) {
         neutrinoStoppingOriginPFP.emplace_back(pf_par);

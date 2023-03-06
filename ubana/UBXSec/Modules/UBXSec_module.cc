@@ -85,6 +85,7 @@
 #include "ubreco/UBFlashFinder/PECalib.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "lardata/Utilities/AssociationUtil.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "ubobj/Trigger/ubdaqSoftwareTriggerData.h"
@@ -153,7 +154,7 @@ private:
   /// Calculates flash position
   void GetFlashLocation(std::vector<double>, double&, double&, double&, double&);
 
-  ::art::ServiceHandle<geo::Geometry> _geo;
+  geo::TPCGeo const& _tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
 
   FindDeadRegions deadRegionsFinder;
   //ubxsec::McPfpMatch mcpfpMatcher;
@@ -279,9 +280,9 @@ private:
 UBXSec::UBXSec(fhicl::ParameterSet const & p)
   : EDProducer{p}
   , _fiducial_volume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                     _geo->DetHalfHeight(),
-                     2.*_geo->DetHalfWidth(),
-                     _geo->DetLength())
+                     _tpc.HalfHeight(),
+                     2.*_tpc.HalfWidth(),
+                     _tpc.Length())
   , _min_track_len{p.get<double>("MinTrackLength", 0.1)}
   , _trk_mom_calculator{_min_track_len}
 {
@@ -494,7 +495,8 @@ void UBXSec::produce(art::Event & e) {
   // }
 
   //::art::ServiceHandle<cheat::BackTracker> bt;
-  ::art::ServiceHandle<geo::Geometry> geo;
+  art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>{}->Get();
 
   // Prepare the dead region finder
   std::cout << "[UBXSec] Recreate channel status map" << std::endl;
@@ -856,7 +858,7 @@ void UBXSec::produce(art::Event & e) {
     double min_pe = -1;
     //if (_debug) std::cout << "[UBXSec] Reco beam flash pe: " << std::endl;
     for (unsigned int i = 0; i < 32; i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMap.OpDetFromOpChannel(i);
       if (_do_opdet_swap && e.isRealData()) {
         opdet = _opdet_swap_map.at(opdet);
       }
@@ -1454,7 +1456,7 @@ void UBXSec::produce(art::Event & e) {
     double n_intime_pe = 0;
     for (size_t oh = 0; oh < ophit_h->size(); oh++) {
       auto const & ophit = (*ophit_h)[oh];
-      size_t opdet = geo->OpDetFromOpChannel(ophit.OpChannel());
+      size_t opdet = channelMap.OpDetFromOpChannel(ophit.OpChannel());
       //std::cout << "OpHit::  OpDet: " << opdet
       //          << ", PeakTime: " << ophit.PeakTime()
       //          << ", PE: " << _pecalib.BeamPE(opdet,ophit.Area(),ophit.Amplitude()) << std::endl;
@@ -1471,7 +1473,7 @@ void UBXSec::produce(art::Event & e) {
     /*for (size_t oh = 0; oh < ophit_cosmic_h->size(); oh++) {
       auto const & ophit = (*ophit_cosmic_h)[oh];
       if (ophit.PeakTime() < -150 || ophit.PeakTime() > -50) continue;
-      size_t opdet = geo->OpDetFromOpChannel(ophit.OpChannel());
+      size_t opdet = channelMap.OpDetFromOpChannel(ophit.OpChannel());
       std::cout << "Cosmic Disc OpHit::  OpDet: " << opdet
                 << ", PeakTime: " << ophit.PeakTime()
                 << ", PE: " << _pecalib.CosmicPE(opdet,ophit.Area(),ophit.Amplitude()) << std::endl;
@@ -1727,7 +1729,7 @@ void UBXSec::produce(art::Event & e) {
           if (candidate_track->HasValidPoint(i)) {
             auto const trk_pt = candidate_track->LocationAtPoint(i);
             geo::PlaneID const plane_2{0, 0, 2};
-            double wire = geo->NearestWireID(trk_pt, plane_2).Wire;
+            double wire = channelMap.Plane(plane_2).NearestWireID(trk_pt).Wire;
             double time = detProp.ConvertXToTicks(trk_pt.X(), plane_2);
             TVector3 p (wire, time, 0.);
             //std::cout << "emplacing track point on wire " << p.X() << ", and time " << p.Y() << std::endl;
@@ -1755,7 +1757,7 @@ void UBXSec::produce(art::Event & e) {
       // Create a channel to wire map
       std::map<int, int> wire_to_channel;
       for (unsigned int ch = 0; ch < 8256; ch++) {
-        std::vector< geo::WireID > wire_v = geo->ChannelToWire(ch);
+        std::vector< geo::WireID > wire_v = channelMap.ChannelToWire(ch);
         wire_to_channel[wire_v[0].Wire] = ch;
       }
 
@@ -2012,7 +2014,7 @@ void UBXSec::produce(art::Event & e) {
       auto const& flash = (*nuMcflash_h)[0];
       ubxsec_event->numc_flash_spec.resize(geo->NOpDets());
       for (unsigned int i = 0; i < geo->NOpDets(); i++) {
-        unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMap.OpDetFromOpChannel(i);
         ubxsec_event->numc_flash_spec[opdet] = flash.PE(i);
       }
     }
@@ -2240,10 +2242,10 @@ void UBXSec::GetFlashLocation(std::vector<double> pePerOpDet,
   double totalPE = 0.;
   double sumy = 0., sumz = 0., sumy2 = 0., sumz2 = 0.;
 
+  art::ServiceHandle<geo::Geometry> geo;
   for (unsigned int opdet = 0; opdet < pePerOpDet.size(); opdet++) {
 
     // Get physical detector location for this opChannel
-    ::art::ServiceHandle<geo::Geometry> geo;
     auto const PMTxyz = geo->OpDetGeoFromOpDet(opdet).GetCenter();
 
     // Add up the position, weighting with PEs

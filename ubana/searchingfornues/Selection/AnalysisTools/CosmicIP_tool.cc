@@ -17,9 +17,7 @@
 #include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
 #include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
 
-#include "larcore/Geometry/Geometry.h"
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 namespace analysis
@@ -135,10 +133,10 @@ namespace analysis
   {
 
     // std::cout << "[NEW EVENT]" << e.event() << std::endl;
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
     auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e, clockData);
-    float wire2cm = geom->WirePitch(geo::PlaneID{0,0,0});
+    float wire2cm = channelMap.Plane(geo::PlaneID{0,0,0}).WirePitch();
     float time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
     // set defaults

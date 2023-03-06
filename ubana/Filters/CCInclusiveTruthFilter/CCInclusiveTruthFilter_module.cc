@@ -63,7 +63,7 @@ public:
 private:
 
   // initialise services
-  art::ServiceHandle< geo::Geometry > geo;
+  geo::TPCGeo const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
 
   // initialise classes
   ubana::FiducialVolume fiducialVolume;
@@ -79,9 +79,9 @@ private:
 CCInclusiveTruthFilter::CCInclusiveTruthFilter(fhicl::ParameterSet const & p)
   : EDFilter{p}
   , fiducialVolume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-      geo->DetHalfHeight(),
-      2.*geo->DetHalfWidth(),
-                   geo->DetLength())
+                   tpc.HalfHeight(),
+                   2.*tpc.HalfWidth(),
+                   tpc.Length())
 {
 
   fiducialVolume.PrintConfig();

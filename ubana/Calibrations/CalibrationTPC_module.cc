@@ -43,7 +43,7 @@
 
 #include "lardata/Utilities/LArFFT.h"
 #include "lardataobj/RawData/RawDigit.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "ubevt/CalData/ROIAlg.h"
 
@@ -240,15 +240,15 @@ namespace calibration {
   void CalibrationTPC::prepareChannelInfoMaps()
   {
 
-    art::ServiceHandle<geo::Geometry> geom;    
-    uint32_t nchannels = geom->Nchannels();
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
+    uint32_t nchannels = channelMap.Nchannels();
     unsigned int sigType = 0;
     // For each channel, make an entry in the maps
     for (uint32_t ch=0; ch < nchannels; ch++){
       
-      std::vector<geo::WireID> wids = geom->ChannelToWire(ch);
+      std::vector<geo::WireID> wids = channelMap.ChannelToWire(ch);
       unsigned int thePlane = wids[0].Plane;
-      geo::SigType_t signal = geom->SignalType(ch);
+      geo::SigType_t signal = channelMap.SignalType(ch);
 
       if (signal == geo::SigType_t::kInduction)
 	sigType = 2;  // 2 for by-polar pulse

@@ -45,6 +45,7 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 
 #include <memory>
@@ -139,8 +140,9 @@ void NeutrinoMCFlash::produce(art::Event & e)
 
   // opdet=>opchannel mapping
   std::vector<size_t> opdet2opch(geo->NOpDets(),0);
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   for(size_t opch=0; opch<opdet2opch.size(); ++opch){
-    opdet2opch[geo->OpDetFromOpChannel(opch)] = opch;
+    opdet2opch[channelMap.OpDetFromOpChannel(opch)] = opch;
   }
 
   auto const & evt_trigger = (*evt_trigger_h)[0];
@@ -244,11 +246,11 @@ void NeutrinoMCFlash::GetFlashLocation(std::vector<double> pePerOpChannel,
   double totalPE = 0.;
   double sumy = 0., sumz = 0., sumy2 = 0., sumz2 = 0.;
 
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   for (unsigned int opch = 0; opch < pePerOpChannel.size(); opch++) {
 
     // Get physical detector location for this opChannel
-    ::art::ServiceHandle<geo::Geometry> geo;
-    auto const PMTxyz = geo->OpDetGeoFromOpChannel(opch).GetCenter();
+    auto const PMTxyz = channelMap.OpDetGeoFromOpChannel(opch).GetCenter();
 
     // Add up the position, weighting with PEs
     sumy    += pePerOpChannel[opch]*PMTxyz.Y();

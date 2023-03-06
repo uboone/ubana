@@ -25,6 +25,7 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -176,8 +177,6 @@ void CosmicFlashTagger::produce(art::Event & e)
   // Reset the flash match manager
   _mgr.Reset();
 
-  ::art::ServiceHandle<geo::Geometry> geo;
-
   // Get Beam Flashes from the ART event
   ::art::Handle<std::vector<recob::OpFlash> > beamflash_h;
   e.getByLabel(_opflash_producer_beam,beamflash_h);
@@ -195,6 +194,9 @@ void CosmicFlashTagger::produce(art::Event & e)
   lar_pandora::LArPandoraHelper::CollectTracks(e, _pfp_producer, trackVector, PFPtoTracks);
 
   // Loop through beam flashes 
+  ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
+
   _n_beam_flashes = 0;
   beam_flashes.clear();
   for (size_t n = 0; n < beamflash_h->size(); n++) {
@@ -211,7 +213,7 @@ void CosmicFlashTagger::produce(art::Event & e)
       _beam_flash_spec.resize(_n_beam_flashes);
       _beam_flash_spec[_n_beam_flashes-1].resize(geo->NOpDets());
       for (unsigned int i = 0; i < geo->NOpDets(); i++) {
-        unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMap.OpDetFromOpChannel(i);
         _beam_flash_spec[_n_beam_flashes-1][opdet] = flash.PE(i);
       }
       _beam_flash_time.resize(_n_beam_flashes);
@@ -224,7 +226,7 @@ void CosmicFlashTagger::produce(art::Event & e)
     f.pe_v.resize(geo->NOpDets());
     f.pe_err_v.resize(geo->NOpDets());
     for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMap.OpDetFromOpChannel(i);
       if (_do_opdet_swap && e.isRealData()) {
         opdet = _opdet_swap_map.at(opdet);
       }

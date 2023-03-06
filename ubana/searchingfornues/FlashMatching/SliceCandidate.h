@@ -9,6 +9,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 
 #include "larevt/CalibrationDBI/Interface/PmtGainService.h"
 #include "larevt/CalibrationDBI/Interface/PmtGainProvider.h"
@@ -74,6 +75,7 @@ namespace flashmatch {
 	{
 	
 	  art::ServiceHandle<geo::Geometry> geo;
+          auto const& wireReadout = art::ServiceHandle<geo::WireReadout const>()->Get();
 	  // gain service
 	  /* const ::lariov::PmtGainProvider& gain_provider = art::ServiceHandle<lariov::PmtGainService>()->GetProvider(); */
 	  /* // pmt remapping service */
@@ -88,8 +90,8 @@ namespace flashmatch {
 	  m_peSpectrum.resize(nOpDets);
 	
 	  for (size_t OpChannel = 0; OpChannel < nOpDets; ++OpChannel) {
-	    if (!geo->IsValidOpChannel(OpChannel)) continue;
-	    size_t OpDet     = geo->OpDetFromOpChannel(OpChannel);
+            if (!wireReadout.IsValidOpChannel(OpChannel)) continue;
+            size_t OpDet     = wireReadout.OpDetFromOpChannel(OpChannel);
 	    m_peSpectrum.at(OpDet)  = flash.PEs()[OpChannel];
 	  }
 	  /* for (size_t pmt=FEM; pmt < FEM+nOpDets; pmt++) { */
