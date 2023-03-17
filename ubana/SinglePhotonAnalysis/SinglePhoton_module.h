@@ -947,6 +947,7 @@ namespace single_photon
             std::string m_CRTHitProducer;
             std::string m_true_eventweight_label;
 
+            bool m_MakeNuMINtuple;
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
             int     m_delaunay_max_hits;
@@ -1369,6 +1370,8 @@ namespace single_photon
             double m_gtruth_fs_had_syst_p4_y;
             double m_gtruth_fs_had_syst_p4_z;
             double m_gtruth_fs_had_syst_p4_E;
+
+			float _ppfx_cv;
 
             //-------------- Flash related variables -------------
             int m_reco_num_templates;

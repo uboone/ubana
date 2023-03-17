@@ -1,0 +1,8 @@
+#include "run_SinglePhoton.fcl"
+
+physics.filters.singlephotonana.isData: "true"
+physics.filters.singlephotonana.POTLabel: "beamdata"
+physics.filters.singlephotonana.beamgateStartTime: 6
+physics.filters.singlephotonana.beamgateEndTime: 15.8
+physics.filters.singlephotonana.BadChannelProducer: "nfspl1"
+physics.filters.singlephotonana.makeNuMINtuple: "true"

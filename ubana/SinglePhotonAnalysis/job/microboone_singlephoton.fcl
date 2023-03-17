@@ -60,6 +60,8 @@ singlephoton_analyzer:{
     Resolution: 1.0 #same as above
     DAQHeaderProducer: "daq" #ubcrt/UBCRTCosmicFilter/UBCRTCosmicFilter.fcl
 
+	makeNuMINtuple: false
+
     }
 
 singlephoton_filter: @local::singlephoton_analyzer

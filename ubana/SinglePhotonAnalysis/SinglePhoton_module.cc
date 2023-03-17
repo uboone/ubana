@@ -37,6 +37,7 @@ namespace single_photon
         m_is_textgen = pset.get<bool>("isTextGen",false);
 
         //some specific additonal info, default not include
+        m_MakeNuMINtuple = pset.get<bool>("makeNuMINtuple", false);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
         m_delaunay_max_hits = pset.get<int>("maxDelaunayHits",1000);
