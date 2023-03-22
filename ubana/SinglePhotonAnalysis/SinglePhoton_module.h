@@ -1372,6 +1372,9 @@ namespace single_photon
             double m_gtruth_fs_had_syst_p4_E;
 
 			float _ppfx_cv;
+			float _weightSplineTimesTune;
+			float _weightSpline;
+			float _weightTune;
 
             //-------------- Flash related variables -------------
             int m_reco_num_templates;

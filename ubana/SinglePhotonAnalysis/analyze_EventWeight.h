@@ -107,6 +107,9 @@ namespace single_photon
 	    m_gtruth_fs_had_syst_p4_z=-9999;
 	    m_gtruth_fs_had_syst_p4_E=-9999;
 		_ppfx_cv = -1;
+		_weightSplineTimesTune = -1;
+		_weightSpline = -1;
+		_weightTune = -1;
     
   }
   void SinglePhoton::CreateEventWeightBranches(){
@@ -220,6 +223,10 @@ namespace single_photon
     eventweight_tree->Branch("GTruth_FShadSystP4z",  &m_gtruth_fs_had_syst_p4_z );
     eventweight_tree->Branch("GTruth_FShadSystP4E",  &m_gtruth_fs_had_syst_p4_E );
     eventweight_tree->Branch("ppfx_cv",&_ppfx_cv,"ppfx_cv/F");
+    eventweight_tree->Branch("weightSplineTimesTune",&_weightSplineTimesTune,"weightSplineTimesTune/F");
+	eventweight_tree->Branch("weightSpline",&_weightSpline,"weightSpline/F");
+	eventweight_tree->Branch("weightTune",&_weightTune,"weightTune/F");
+
     std::cout<<"SinglePhoton:analyze_Eventweigh:eventweight_tree make branches end"<<std::endl;
   }
 
@@ -424,6 +431,15 @@ namespace single_photon
 
 			  if(evtwgt_map.find("ppfx_cv_UBPPFXCV") != evtwgt_map.end()) _ppfx_cv = evtwgt_map.find("ppfx_cv_UBPPFXCV")->second[0];
 			  std::cout << "ppfx cv weight: "<< _ppfx_cv<<  std::endl;
+
+			  if(evtwgt_map.find("splines_general_Spline") != evtwgt_map.end()) _weightSpline = evtwgt_map.find("splines_general_Spline")->second[0];
+			  evtwgt_map.erase("splines_general_Spline");
+			  if(evtwgt_map.find("TunedCentralValue_UBGenie") != evtwgt_map.end()) _weightTune = evtwgt_map.find("TunedCentralValue_UBGenie")->second[0];
+			  //evtwgt_map.erase("TunedCentralValue_Genie");
+
+			  //std::cout << " [ EventWeightTree ]" << " continue... " << std::endl;
+
+			  if(_weightSpline != -1 && _weightTune != -1) _weightSplineTimesTune = _weightSpline * _weightTune;
 		  }
 	  }
   }
