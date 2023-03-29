@@ -72,7 +72,8 @@ physics:
 
  #define the producer and filter modules for this path, order matters,
  #filters reject all following items.  see lines starting physics.producers below
- simulate: [ rns, generator, InclusiveSinglePhotonGenieFilter, largeant, InclusiveSinglePhotonFilter, ionization, mcreco]
+ #simulate: [ rns, generator, InclusiveSinglePhotonGenieFilter, largeant, InclusiveSinglePhotonFilter, ionization, mcreco]
+ simulate: [ rns, generator, InclusiveSinglePhotonGenieFilter, largeant, ionization, mcreco, InclusiveSinglePhotonFilter]
 
  #define the output stream, there could be more than one if using filters
  stream1:  [ out1 ]
@@ -95,7 +96,10 @@ outputs:
  {
    module_type: RootOutput
    fileName:    "prodgenie_bnb_nu_filtered_InclusiveSinglePhoton_uboone_%tc_gen_g4.root"
-   dataTier:    "generated"
+   #dataTier:    "generated"
+   dataTier:    "simulated"
+   saveMemoryObjectThreshold: 0
+   fastCloning: false
    SelectEvents: [ simulate ]
    compressionLevel: 1
  }
@@ -108,10 +112,12 @@ outputs:
 physics.producers.generator: @local::microboone_genie_simple
 physics.producers.generator.GlobalTimeOffset: 3125.
 physics.producers.generator.RandomTimeOffset: 1600.
-physics.producers.generator.TopVolume: "volCryostat"
+#physics.producers.generator.TopVolume: "volCryostat"
+physics.producers.generator.TopVolume: "volTPC"
 physics.producers.generator.BeamName: "booster"
-physics.producers.generator.EventGeneratorList: "Default+CCMEC+NCMEC"
+#physics.producers.generator.EventGeneratorList: "Default+CCMEC+NCMEC"
 physics.producers.generator.GeomScan:     "flux: 10000 1.3 1"
+physics.producers.generator.FluxCopyMethod: "IFDH"
 
 services.LArG4Parameters.FillSimEnergyDeposits:       true
 #services.LArG4Parameters.NoElectronPropagation:       true
@@ -130,13 +136,3 @@ physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,31
 services.SpaceCharge.EnableSimSpatialSCE:          true
 services.SpaceCharge.EnableSimEfieldSCE:           true
 services.DetectorClocksService.InheritClockConfig: false
-
-#services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
-#services.SpaceCharge.EnableCalEfieldSCE: true
-#services.SpaceCharge.EnableCalSpatialSCE: true
-#services.SpaceCharge.EnableCorrSCE: true
-#services.SpaceCharge.EnableSimSpatialSCE: true
-#services.SpaceCharge.EnableSimEfieldSCE: true
-#services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_fwd_Jan18.root"
-#services.SpaceCharge.ResponseType: "Voxelized_TH3"
-#services.SpaceCharge.service_provider: "SpaceChargeServiceMicroBooNE"

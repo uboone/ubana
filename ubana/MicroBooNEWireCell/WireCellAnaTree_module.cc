@@ -3165,11 +3165,17 @@ void WireCellAnaTree::analyze(art::Event const& e)
 			f_truth_NCDelta = 0;
 			for(int k=0; k<mctruth->NParticles(); k++){
 				simb::MCParticle const & mcp = mctruth->GetParticle(k);
-				if(mcp.PdgCode()==22 && (mcp.StatusCode()==1 || mcp.StatusCode()==14)){
+        if(mcp.PdgCode()==22 && (mcp.StatusCode()==1 || mcp.StatusCode()==14)){
 					const simb::MCParticle mother = mctruth->GetParticle(mcp.Mother());
-					if(abs(mother.PdgCode()) == 2114 || abs(mother.PdgCode()) == 2214 || abs(mother.PdgCode()) == 2224 || abs(mother.PdgCode()) == 1114) {
-					f_truth_NCDelta = 1;
-					break;
+          f_truth_showerMother = mother.PdgCode();
+          if (mother.PdgCode()==22){
+            const simb::MCParticle mothermother = mctruth->GetParticle(mother.Mother());
+            f_truth_showerMother = mothermother.PdgCode();
+          }
+					//if(abs(mother.PdgCode()) == 2114 || abs(mother.PdgCode()) == 2214 || abs(mother.PdgCode()) == 2224 || abs(mother.PdgCode()) == 1114) {
+          if(abs(f_truth_showerMother) == 2114 || abs(f_truth_showerMother) == 2214 || abs(f_truth_showerMother) == 2224 || abs(f_truth_showerMother) == 1114) {
+            f_truth_NCDelta = 1;
+					  break;
 					}
 				}
 			}

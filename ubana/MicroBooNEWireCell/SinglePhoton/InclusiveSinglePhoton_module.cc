@@ -52,6 +52,7 @@ class InclusiveSinglePhoton : public art::EDFilter {
   Float_t	f_truth_showerMomentum[4];
   Int_t   f_truth_showerPdg;
   Int_t   f_truth_showerMother;
+  std::string   f_truth_showerProcess;
   Float_t	f_truth_corr_muonvtxX; // primary muon, vtx = nu vtx
   Float_t	f_truth_corr_muonvtxY;
   Float_t	f_truth_corr_muonvtxZ;
@@ -104,6 +105,7 @@ InclusiveSinglePhoton::InclusiveSinglePhoton(fhicl::ParameterSet const & p) :
     ftree->Branch("truth_showerMomentum", 	&f_truth_showerMomentum, "truth_showerMomentum[4]/F");
     ftree->Branch("truth_showerPdg", 		&f_truth_showerPdg);
     ftree->Branch("truth_showerMother", 		&f_truth_showerMother);
+    ftree->Branch("truth_showerProcess", 		&f_truth_showerProcess);
     ftree->Branch("truth_corr_muonvtxX",	&f_truth_corr_muonvtxX);
     ftree->Branch("truth_corr_muonvtxY", 	&f_truth_corr_muonvtxY);
     ftree->Branch("truth_corr_muonvtxZ", 	&f_truth_corr_muonvtxZ);
@@ -161,6 +163,7 @@ void InclusiveSinglePhoton::Reset() {
 	f_truth_showerMomentum[3] = -1;
   f_truth_showerPdg = -1;
   f_truth_showerMother = -1.;
+  f_truth_showerProcess = "";
 	f_truth_corr_muonvtxX = -1; //
 	f_truth_corr_muonvtxY = -1;
 	f_truth_corr_muonvtxZ = -1;
@@ -233,7 +236,7 @@ bool InclusiveSinglePhoton::filter(art::Event & e) {
     }
 
     bool isnue = false;
-    if (f_truth_isNC!=1 && f_truth_nuPdg==12 ){
+    if (f_truth_isNC!=1 && abs(f_truth_nuPdg)==12 ){
       isnue = true;
       std::cout<<"InclusiveSinglePhotonFilter: Failed, NueCC"<<std::endl;
       return false;
@@ -321,11 +324,8 @@ bool InclusiveSinglePhoton::filter(art::Event & e) {
 			f_truth_corr_showervtxZ = position.Z() + sce_offset.Z();
 			f_truth_corr_showervtxX = (f_truth_corr_showervtxX + 0.6)*1.101/1.098 + position.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
 			const TLorentzVector& showerMom = particle->Momentum(0);
-			f_truth_showerKE = showerMom.E() - showerMom.M();
-			f_truth_showerMomentum[0] = showerMom.Px();
-			f_truth_showerMomentum[1] = showerMom.Py();
-			f_truth_showerMomentum[2] = showerMom.Pz();
-			f_truth_showerMomentum[3] = showerMom.E();
+			float f_truth_showerKE_temp = showerMom.E() - showerMom.M();
+
 
       float ex = particle->EndX();
       float ey = particle->EndY();
@@ -334,9 +334,15 @@ bool InclusiveSinglePhoton::filter(art::Event & e) {
       ex -= end_sce_offset.X();
       ey += end_sce_offset.Y();
       ez += end_sce_offset.Z();
-      if (f_truth_showerKE  > 0.02 &&
+      if (f_truth_showerKE_temp  > 0.02 &&
           ex > 3.0 && ex < 253.0 && ey > -113.0 && ey < 114.0 && ez > 3.0 && ez < 1034.0){
             true_photons+=1;
+            f_truth_showerKE = f_truth_showerKE_temp;
+            f_truth_showerMomentum[0] = showerMom.Px();
+      			f_truth_showerMomentum[1] = showerMom.Py();
+      			f_truth_showerMomentum[2] = showerMom.Pz();
+      			f_truth_showerMomentum[3] = showerMom.E();
+            f_truth_showerProcess = particle->Process();
             if (true_photons==1){
               TVector3 dir(showerMom.Px(),showerMom.Py(),showerMom.Pz());
               TVector3 dis(ex,ey,ez);
@@ -358,8 +364,15 @@ bool InclusiveSinglePhoton::filter(art::Event & e) {
               if (mother.PdgCode()==22){
                 if (mother.Mother()!=-1.){
                   simb::MCParticle mothermother = mcp_h->at( MCPmap[mother.Mother()] );//mct.GetParticle(mother.Mother() );
+                  if (mother.PdgCode()==22){
+                    if (mother.Mother()!=-1.){
+                      simb::MCParticle mothermothermother = mcp_h->at( MCPmap[mothermother.Mother()] );//mct.GetParticle(mother.Mother() );
+                      f_truth_showerMother = mothermothermother.PdgCode();
+                    }
+                  }else{
                   f_truth_showerMother = mothermother.PdgCode();
                 }
+              }
               }else{
                 f_truth_showerMother = mother.PdgCode();
               }
@@ -367,7 +380,7 @@ bool InclusiveSinglePhoton::filter(art::Event & e) {
       }
 
 		}
-    
+
     int ndaughters = particle->NumberDaughters();
       if ( particle->PdgCode() == 111 ) {
         f_truth_Npi0++;
@@ -401,8 +414,14 @@ bool InclusiveSinglePhoton::filter(art::Event & e) {
 				simb::MCParticle const & mcp = mctruth->GetParticle(k);
 				if(mcp.PdgCode()==22 && (mcp.StatusCode()==1 || mcp.StatusCode()==14)){
 					const simb::MCParticle mother = mctruth->GetParticle(mcp.Mother());
-					if(abs(mother.PdgCode()) == 2114 || abs(mother.PdgCode()) == 2214 || abs(mother.PdgCode()) == 2224 || abs(mother.PdgCode()) == 1114) {
-					f_truth_NCDelta = 1;
+          f_truth_showerMother = mother.PdgCode();
+          if (mother.PdgCode()==22){
+            const simb::MCParticle mothermother = mctruth->GetParticle(mother.Mother());
+            f_truth_showerMother = mothermother.PdgCode();
+          }
+					//if(abs(mother.PdgCode()) == 2114 || abs(mother.PdgCode()) == 2214 || abs(mother.PdgCode()) == 2224 || abs(mother.PdgCode()) == 1114) {
+          if(abs(f_truth_showerMother) == 2114 || abs(f_truth_showerMother) == 2214 || abs(f_truth_showerMother) == 2224 || abs(f_truth_showerMother) == 1114) {
+          f_truth_NCDelta = 1;
 					break;
 					}
 				}

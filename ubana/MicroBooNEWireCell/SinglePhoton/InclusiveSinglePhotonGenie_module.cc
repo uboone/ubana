@@ -178,7 +178,7 @@ bool InclusiveSinglePhotonGenie::filter(art::Event & e) {
         }
     }
 
-    if (f_truth_isNC!=1 && f_truth_nuPdg==12 ){
+    if (f_truth_isNC!=1 && abs(f_truth_nuPdg)==12 ){
       std::cout<<"InclusiveSinglePhotonGenieFilter: Failed, NueCC"<<std::endl;
       return false;
     }
@@ -225,7 +225,7 @@ for(size_t i = 0; i < ev_mct->size(); ++i) {
 
 
   if (f_truth_isNC!=1 && abs(f_truth_nuPdg)==14 && f_truth_muonMomentum[3]- 0.105658 > 0.1){
-    std::cout<<"InclusiveSinglePhotonGenieGenieFilter: Failed, NumuCC"<<std::endl;
+    std::cout<<"InclusiveSinglePhotonGenieFilter: Failed, NumuCC"<<std::endl;
     return false;
   }
 
@@ -234,7 +234,7 @@ for(size_t i = 0; i < ev_mct->size(); ++i) {
 	/// truth end
 
 
-  std::cout<<"InclusiveSinglePhotonGenieGenieFilter: Passed"<<std::endl;
+  std::cout<<"InclusiveSinglePhotonGenieFilter: Passed"<<std::endl;
   if(ftree) FillTree(e);
   return true;
 
