@@ -308,6 +308,7 @@ namespace single_photon
 
             for(int j=0; j< m_mctruth_num_daughter_particles; j++){
 
+
                 const simb::MCParticle par = truth->GetParticle(j);
                 m_mctruth_daughters_pdg[j] = par.PdgCode();
                 m_mctruth_daughters_E[j] = par.E();
@@ -346,7 +347,8 @@ namespace single_photon
                          if(m_is_verbose)   std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t Photon "<<par.PdgCode()<<" (id: "<<par.TrackId()<<") with mother trackID: "<<par.Mother()<<". Status Code: "<<par.StatusCode()<<" and photon energy "<<par.E()<<std::endl;
 
                             //if its mother is a delta with statuscode 3, and it has status code 14, then its the internal product of the delta decay.
-                            if((par.StatusCode()==1 || par.StatusCode()==14 )){
+							//CHECK, mother is -1, means no mother; so don't bother;
+                            if((par.StatusCode()==1 || par.StatusCode()==14 ) && par.Mother() != -1){
                                 const  simb::MCParticle mother = truth->GetParticle(par.Mother());
                                 
                                 if(is_delta_map.count(mother.PdgCode())>0 && mother.StatusCode()==3){
@@ -463,6 +465,7 @@ namespace single_photon
 
 
               std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t This event is ";
+
             if(tmp_n_photons_from_delta==1 && tmp_n_protons_from_delta==1){
                 m_mctruth_delta_radiative_1g1p_or_1g1n = 1;
                 std::cout<<"a 1g1p delta radiative event"<<std::endl;
@@ -532,6 +535,7 @@ namespace single_photon
 
             //So for all photons that have status code 1 i.e all exiting ones...
             for(int p =0; p < m_mctruth_num_exiting_photons; ++p){
+				if(m_mctruth_exiting_photon_mother_trackID[p] == -1 ) continue; //forget about intrinsic photons;
                 const simb::MCParticle mother = truth->GetParticle(m_mctruth_exiting_photon_mother_trackID[p]);
 
                 std::cout<<"SinglePhoton::AnalyzeMCTruths()\t||\t -- gamma ("<<m_mctruth_exiting_photon_trackID[p]<<") of status_code 1.. "<<std::endl;
@@ -556,6 +560,7 @@ namespace single_photon
 
             //So for all protons that have status code 1 i.e all exiting ones...
             for(int p =0; p < m_mctruth_num_exiting_protons; ++p){
+				if(m_mctruth_exiting_proton_mother_trackID[p] == -1 ) continue; //forget about intrinsic photons;
                 const simb::MCParticle mother = truth->GetParticle(m_mctruth_exiting_proton_mother_trackID[p]);
 
                 if(m_is_verbose){
@@ -575,8 +580,6 @@ namespace single_photon
                     } 
                     n_generation++;
                 }
-
-
             }
 
 
