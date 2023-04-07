@@ -92,24 +92,21 @@ bool CCInclusiveTruthFilter::filter(art::Event & e)
 {
 
   // get MCTruth information
-  art::Handle< std::vector< simb::MCTruth > > mcTruthHandle;
-  std::vector< art::Ptr< simb::MCTruth > > mcTruthVec;
-
-  e.getByLabel("generator", mcTruthHandle);
+  auto mcTruthHandle = e.getHandle<std::vector<simb::MCTruth>>("generator");
   if (!mcTruthHandle.isValid()) return false;
-  art::fill_ptr_vector(mcTruthVec, mcTruthHandle);
 
   // if event has more than one MCTruth, then ignore it. In practice this 
   // throws away some events but it's a very small number for MicroBooNE
+  auto const& mcTruthVec = *mcTruthHandle;
   if (mcTruthVec.size() != 1){
     std::cout << "[CCIncTruthFilter] There are " << mcTruthVec.size() << " mcTruth informations" << std::endl;
     return false;
   }
 
-  art::Ptr< simb::MCTruth > mcTruth = mcTruthVec.at(0);
+  simb::MCTruth const& mctruth = mcTruthVec[0];
 
   // get mcNeutrino object
-  const simb::MCNeutrino mcNeutrino = mcTruth->GetNeutrino();
+  const simb::MCNeutrino mcNeutrino = mctruth.GetNeutrino();
 
   // and get the genie MCParticle associated with the neutrino
   const simb::MCParticle mcParticle_nu = mcNeutrino.Nu();

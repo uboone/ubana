@@ -100,23 +100,20 @@ void SimpleAna::analyze(art::Event const & e)
   std::cout << "[SimpleAna] Simple UBXSec Validation Module. Starts." << std::endl;
 
   // Implementation of required member function here.
-  art::Handle<std::vector<ubana::SelectionResult>> selection_h;
-  e.getByLabel("UBXSec",selection_h);
-  if (!selection_h.isValid() || selection_h->empty()) {
+  auto selection_h = e.getHandle<std::vector<ubana::SelectionResult>>("UBXSec");
+  if (!selection_h || selection_h->empty()) {
     std::cout << "[SimpleAna] SelectionResult handle is not valid or empty." << std::endl;
   }
+  std::vector<ubana::SelectionResult> const& selection_v = *selection_h;
 
-  std::vector<art::Ptr<ubana::SelectionResult>> selection_v;
-  art::fill_ptr_vector(selection_v, selection_h);
-
-  if (selection_v.at(0)->GetSelectionStatus()) {
+  if (selection_v[0].GetSelectionStatus()) {
     std::cout << "[SimpleAna] Event is selected" << std::endl;
   } else {
     std::cout << "[SimpleAna] Event is not selected" << std::endl;
-    std::cout << "[SimpleAna] Failure reason " << selection_v.at(0)->GetFailureReason()  << std::endl;
+    std::cout << "[SimpleAna] Failure reason " << selection_v[0].GetFailureReason()  << std::endl;
   }
 
-  std::map<std::string,bool> failure_map = selection_v.at(0)->GetCutFlowStatus();
+  std::map<std::string,bool> failure_map = selection_v[0].GetCutFlowStatus();
 
   std::cout << "[SimpleAna] Now Printing Cut Flow Status" << std::endl;
 
@@ -154,12 +151,9 @@ void SimpleAna::analyze(art::Event const & e)
   bool energy_range = false;
   bool right_flavour = false;
 
-  art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
-  std::vector<art::Ptr<simb::MCTruth> > mclist;
-  if (e.getByLabel("generator",mctruthListHandle))
-    art::fill_ptr_vector(mclist, mctruthListHandle);
+  auto const& mclist = e.getProduct<std::vector<simb::MCTruth>>("generator");
   int iList = 0;
-  ::geoalgo::Vector truth_nu_vtx (mclist[iList]->GetNeutrino().Nu().Vx(),mclist[iList]->GetNeutrino().Nu().Vy(),mclist[iList]->GetNeutrino().Nu().Vz());
+  ::geoalgo::Vector truth_nu_vtx (mclist[iList].GetNeutrino().Nu().Vx(),mclist[iList].GetNeutrino().Nu().Vy(),mclist[iList].GetNeutrino().Nu().Vz());
   ::art::ServiceHandle<geo::Geometry> geo;
   ::geoalgo::AABox tpcvol(0, (-1.)*(geo->DetHalfHeight()), 0.,
               geo->DetHalfWidth()*2, geo->DetHalfHeight(), geo->DetLength());
@@ -167,17 +161,17 @@ void SimpleAna::analyze(art::Event const & e)
   if(tpcvol.Contain(truth_nu_vtx)) in_tpcactive = true;
   else in_tpcactive = false;
 
-  if (mclist[iList]->GetNeutrino().Nu().E() > 0.05 && mclist[iList]->GetNeutrino().Nu().E() < 1.5)
+  if (mclist[iList].GetNeutrino().Nu().E() > 0.05 && mclist[iList].GetNeutrino().Nu().E() < 1.5)
     energy_range = true;
   else 
     energy_range = false;
 
-  if (mclist[iList]->GetNeutrino().CCNC() == 0 && mclist[iList]->GetNeutrino().Nu().PdgCode() == 12)
+  if (mclist[iList].GetNeutrino().CCNC() == 0 && mclist[iList].GetNeutrino().Nu().PdgCode() == 12)
     right_flavour = true;
   else 
     right_flavour = false;
 
-  _nu_energy = mclist[iList]->GetNeutrino().Nu().E();
+  _nu_energy = mclist[iList].GetNeutrino().Nu().E();
 
 
   //
@@ -185,17 +179,15 @@ void SimpleAna::analyze(art::Event const & e)
   //
 
   double bnb_weight = 1.;
-  art::Handle<std::vector<evwgh::MCEventWeight>> eventweight_h;
-  e.getByLabel("eventweight", eventweight_h);
-  if(!eventweight_h.isValid()){
+  auto eventweight_h = e.getHandle<std::vector<evwgh::MCEventWeight>>("eventweight");
+  if(!eventweight_h){
     std::cout << "[SimpleAna] MCEventWeight product not found..." << std::endl;
   }
-  std::vector<art::Ptr<evwgh::MCEventWeight>> eventweight_v;
-  art::fill_ptr_vector(eventweight_v, eventweight_h);
+  std::vector<evwgh::MCEventWeight> const& eventweight_v = *eventweight_h;
 
   if (eventweight_v.size() > 0) {
-    art::Ptr<evwgh::MCEventWeight> evt_wgt = eventweight_v.at(0);
-    for (auto entry : evt_wgt->fWeight) {
+    evwgh::MCEventWeight const& evt_wgt = eventweight_v[0];
+    for (auto entry : evt_wgt.fWeight) {
       if (entry.first.find("bnbcorrection") != std::string::npos) {
         bnb_weight *= entry.second.at(0);
         std::cout << "[SimpleAna] BNB Correction Weight: " << bnb_weight << std::endl;

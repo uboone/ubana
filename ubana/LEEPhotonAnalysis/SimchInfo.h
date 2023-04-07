@@ -4,6 +4,7 @@
 
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
+#include "canvas/Persistency/Common/Ptr.h"
 
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -32,7 +33,7 @@ class SimchInfo {
 		     std::vector<std::vector<art::Ptr<recob::Hit>>> const & reco_to_hit_v);
   
   std::vector<double> MCQ(detinfo::DetectorClocksData const& clockData,
-                          art::Ptr<recob::Hit> const & hit) const;
+                          recob::Hit const & hit) const;
   std::vector<double> MCQ(detinfo::DetectorClocksData const& clockData,
                           std::vector<art::Ptr<recob::Hit>> const & hit_v) const;
 

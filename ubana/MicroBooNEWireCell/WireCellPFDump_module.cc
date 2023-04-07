@@ -196,10 +196,9 @@ void WireCellPFDump::analyze(art::Event const& e)
     f_event = e.id().event();
 
     // reco start [nested loop]
-    art::Handle< std::vector<simb::MCParticle> > particleHandle;
-    if (! e.getByLabel(fPFInputTag, particleHandle)) return;
-    std::vector< art::Ptr<simb::MCParticle> > particles;
-    art::fill_ptr_vector(particles, particleHandle);
+    auto particleHandle = e.getHandle< std::vector<simb::MCParticle> >(fPFInputTag);
+    if (! particleHandle) return;
+    std::vector<simb::MCParticle> const& particles = *particleHandle;
     std::cout << "particles.size(): " << particles.size() << std::endl;
 
     if(f_PFDump) {
@@ -209,42 +208,41 @@ void WireCellPFDump::analyze(art::Event const& e)
 
         if(f_PFDump) {
             ++reco_Ntrack;
-            reco_id[reco_Ntrack-1] = particle->TrackId();
-            reco_pdg[reco_Ntrack-1] = particle->PdgCode();
+            reco_id[reco_Ntrack-1] = particle.TrackId();
+            reco_pdg[reco_Ntrack-1] = particle.PdgCode();
             reco_process[reco_Ntrack-1] = 0;
-            reco_mother[reco_Ntrack-1] = particle->Mother();
-            auto start_pos = particle->Position();
+            reco_mother[reco_Ntrack-1] = particle.Mother();
+            auto start_pos = particle.Position();
             reco_startXYZT[reco_Ntrack-1][0] = start_pos.X();
             reco_startXYZT[reco_Ntrack-1][1] = start_pos.Y();
             reco_startXYZT[reco_Ntrack-1][2] = start_pos.Z();
             reco_startXYZT[reco_Ntrack-1][3] = start_pos.T();
-            auto end_pos = particle->EndPosition();
+            auto end_pos = particle.EndPosition();
             reco_endXYZT[reco_Ntrack-1][0] = end_pos.X();
             reco_endXYZT[reco_Ntrack-1][1] = end_pos.Y();
             reco_endXYZT[reco_Ntrack-1][2] = end_pos.Z();
             reco_endXYZT[reco_Ntrack-1][3] = end_pos.T();
-            auto start_mom = particle->Momentum();
+            auto start_mom = particle.Momentum();
             reco_startMomentum[reco_Ntrack-1][0] = start_mom.Px();
             reco_startMomentum[reco_Ntrack-1][1] = start_mom.Py();
             reco_startMomentum[reco_Ntrack-1][2] = start_mom.Pz();
             reco_startMomentum[reco_Ntrack-1][3] = start_mom.E();
-            auto end_mom = particle->EndMomentum();
+            auto end_mom = particle.EndMomentum();
             reco_endMomentum[reco_Ntrack-1][0] = end_mom.Px();
             reco_endMomentum[reco_Ntrack-1][1] = end_mom.Py();
             reco_endMomentum[reco_Ntrack-1][2] = end_mom.Pz();
             reco_endMomentum[reco_Ntrack-1][3] = end_mom.E();
-            for (int i=0; i<particle->NumberDaughters(); ++i) {
-                reco_daughters->at(reco_Ntrack-1).push_back(particle->Daughter(i));
+            for (int i=0; i<particle.NumberDaughters(); ++i) {
+                reco_daughters->at(reco_Ntrack-1).push_back(particle.Daughter(i));
             }
         }
     }
 
     if(fMC == true){
         /// truth start
-        art::Handle< std::vector<simb::MCParticle> > particleHandle2;
-        if (! e.getByLabel(fPFtruthInputTag, particleHandle2)) return;
-        std::vector< art::Ptr<simb::MCParticle> > particles2;
-        art::fill_ptr_vector(particles2, particleHandle2);
+        auto particleHandle2 = e.getHandle< std::vector<simb::MCParticle> >(fPFtruthInputTag);
+        if (! particleHandle2) return;
+        std::vector<simb::MCParticle> const& particles2 = *particleHandle2;
         // Get space charge correction
         auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
@@ -255,36 +253,36 @@ void WireCellPFDump::analyze(art::Event const& e)
 
             if(f_PFDump) {
                 ++truth_Ntrack;
-                truth_id[truth_Ntrack-1] = particle->TrackId();
-                truth_pdg[truth_Ntrack-1] = particle->PdgCode();
+                truth_id[truth_Ntrack-1] = particle.TrackId();
+                truth_pdg[truth_Ntrack-1] = particle.PdgCode();
                 truth_process[truth_Ntrack-1] = 0;
-                truth_mother[truth_Ntrack-1] = particle->Mother();
-                auto start_pos = particle->Position();
+                truth_mother[truth_Ntrack-1] = particle.Mother();
+                auto start_pos = particle.Position();
                 auto start_sce_offset = SCE->GetPosOffsets(geo::Point_t(start_pos.X(), start_pos.Y(), start_pos.Z()));
                 truth_startXYZT[truth_Ntrack-1][0] = start_pos.X() - start_sce_offset.X();
                 truth_startXYZT[truth_Ntrack-1][1] = start_pos.Y() + start_sce_offset.Y();
                 truth_startXYZT[truth_Ntrack-1][2] = start_pos.Z() + start_sce_offset.Z();
                 truth_startXYZT[truth_Ntrack-1][3] = start_pos.T();
                 truth_startXYZT[truth_Ntrack-1][0] = (truth_startXYZT[truth_Ntrack-1][0] + 0.6)*1.101/1.098 + start_pos.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
-                auto end_pos = particle->EndPosition();
+                auto end_pos = particle.EndPosition();
                 auto end_sce_offset = SCE->GetPosOffsets(geo::Point_t(end_pos.X(), end_pos.Y(), end_pos.Z()));
                 truth_endXYZT[truth_Ntrack-1][0] = end_pos.X() - end_sce_offset.X();
                 truth_endXYZT[truth_Ntrack-1][1] = end_pos.Y() + end_sce_offset.Y();
                 truth_endXYZT[truth_Ntrack-1][2] = end_pos.Z() + end_sce_offset.Z();
                 truth_endXYZT[truth_Ntrack-1][3] = end_pos.T();
                 truth_endXYZT[truth_Ntrack-1][0] = (truth_endXYZT[truth_Ntrack-1][0] + 0.6)*1.101/1.098 + end_pos.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
-                auto start_mom = particle->Momentum();
+                auto start_mom = particle.Momentum();
                 truth_startMomentum[truth_Ntrack-1][0] = start_mom.Px();
                 truth_startMomentum[truth_Ntrack-1][1] = start_mom.Py();
                 truth_startMomentum[truth_Ntrack-1][2] = start_mom.Pz();
                 truth_startMomentum[truth_Ntrack-1][3] = start_mom.E();
-                auto end_mom = particle->EndMomentum();
+                auto end_mom = particle.EndMomentum();
                 truth_endMomentum[truth_Ntrack-1][0] = end_mom.Px();
                 truth_endMomentum[truth_Ntrack-1][1] = end_mom.Py();
                 truth_endMomentum[truth_Ntrack-1][2] = end_mom.Pz();
                 truth_endMomentum[truth_Ntrack-1][3] = end_mom.E();
-                for (int i=0; i<particle->NumberDaughters(); ++i) {
-                    truth_daughters->at(truth_Ntrack-1).push_back(particle->Daughter(i));
+                for (int i=0; i<particle.NumberDaughters(); ++i) {
+                    truth_daughters->at(truth_Ntrack-1).push_back(particle.Daughter(i));
                 }
             }
 

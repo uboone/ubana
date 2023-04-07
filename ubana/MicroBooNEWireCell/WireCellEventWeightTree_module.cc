@@ -185,10 +185,7 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
  	f_subRun = e.subRun();
 	f_event = e.id().event();
 
-	art::Handle<std::vector<nsm::NuSelectionSTM> > stm_handle;
-	e.getByLabel(fSTMLabel,stm_handle);
-	std::vector<art::Ptr<nsm::NuSelectionSTM> > stm_vec;
-	art::fill_ptr_vector(stm_vec,stm_handle);
+        auto const& stm_vec = e.getProduct<std::vector<nsm::NuSelectionSTM>>(fSTMLabel);
 	std::cout<<"--- NuSelectionSTM ---"<<std::endl;
 	if(stm_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
@@ -203,30 +200,25 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
 		f_stm_FullDead = -1;
 		f_stm_clusterlength = -1.0;
 	} 
-	for(size_t i=0; i<stm_vec.size(); i++){
-		art::Ptr<nsm::NuSelectionSTM> s = stm_vec.at(i);
-		f_stm_eventtype = s->GetEventType();
-		f_stm_lowenergy = s->GetLowEnergy();
-		f_stm_LM = s->GetLM();
-		f_stm_TGM = s->GetTGM();
-		f_stm_STM = s->GetSTM();
-		f_stm_FullDead = s->GetFullDead();
-		f_stm_clusterlength = s->GetClusterLength();
+        for(nsm::NuSelectionSTM const& s : stm_vec) {
+                f_stm_eventtype = s.GetEventType();
+                f_stm_lowenergy = s.GetLowEnergy();
+                f_stm_LM = s.GetLM();
+                f_stm_TGM = s.GetTGM();
+                f_stm_STM = s.GetSTM();
+                f_stm_FullDead = s.GetFullDead();
+                f_stm_clusterlength = s.GetClusterLength();
 	}
 
         f_truth_vtxInside = false;
-	art::Handle<std::vector<nsm::NuSelectionTruth> > truth_handle;
-	e.getByLabel(fTruthLabel,truth_handle);
-	std::vector<art::Ptr<nsm::NuSelectionTruth> > truth_vec;
-	art::fill_ptr_vector(truth_vec,truth_handle);
+        auto const& truth_vec = e.getProduct<std::vector<nsm::NuSelectionTruth>>(fTruthLabel);
 	std::cout<<"--- NuSelectionTruth  ---"<<std::endl;
 	if(truth_vec.size()!=1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
 		return;
 	} 
-	for(size_t i=0; i<truth_vec.size(); i++){
-		art::Ptr<nsm::NuSelectionTruth> t = truth_vec.at(i);
-                f_truth_vtxInside = t->GetIsVtxInside();
+        for(nsm::NuSelectionTruth const& t : truth_vec) {
+                f_truth_vtxInside = t.GetIsVtxInside();
 	}
 
 	/// save GENIE weights
