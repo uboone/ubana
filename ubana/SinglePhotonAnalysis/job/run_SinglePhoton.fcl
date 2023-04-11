@@ -22,7 +22,7 @@ source : {
 services :
 {
     #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
-    TFileService: { fileName: "vertexed_singlephoton_%tc_hist.root" }
+    TFileService: { fileName: "vertexed_singlephoton_hist.root" }
     ExptGeoHelperInterface:    @local::standard_geometry_helper
     Geometry:                  @local::standard_geo
     LArPropertiesService:      @local::standard_properties
