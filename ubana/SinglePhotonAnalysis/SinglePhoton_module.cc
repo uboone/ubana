@@ -1654,19 +1654,24 @@ namespace single_photon
         this->CreateTrackBranches();
 
         //hardcode some info (TODO change)
-        std::string gpvm_location ="/pnfs/uboone/resilient/users/markross/tars/";
+        //
+        cet::search_path sp("FW_SEARCH_PATH");
 
         //Get the info for length->energy conversion from PSTAR database.
         TFile *fileconv;
-        struct stat buffer;   
+        std::string proton_filename;
+        sp.find_file("SinglePhotonAnalysis/proton_conversion.root",proton_filename);
 
         //some useful input data
         if(!m_run_pi0_filter){
-            if(stat("proton_conversion.root", &buffer) == 0){
+            /*if(stat("proton_conversion.root", &buffer) == 0){
                 fileconv = new TFile("proton_conversion.root", "read");
             }else{
                 fileconv = new TFile((gpvm_location+"proton_conversion.root").c_str(), "read");
-            }
+            }*/
+            std::cout << "SinglePhoton \t||\t Loading proton length-> energy file from " <<proton_filename<< std::endl;
+
+            fileconv = new TFile(proton_filename.c_str(),"read");
 
             proton_length2energy_tgraph = *(TGraph*)fileconv->Get("Graph");
             proton_length2energy_tgraph.GetMean();
@@ -1674,14 +1679,17 @@ namespace single_photon
         }
 
         //bad channels 
-        std::string bad_channel_file = "MCC9_channel_list.txt";
+        std::string bad_channel_filename;// = "MCC9_channel_list.txt";
+        sp.find_file("SinglePhotonAnalysis/MCC9_channel_list.txt",bad_channel_filename);
 
         if(!m_run_pi0_filter){
-            if(stat(bad_channel_file.c_str(), &buffer) != 0){
+            /*if(stat(bad_channel_file.c_str(), &buffer) != 0){
                 bad_channel_file = gpvm_location+bad_channel_file;
-            }
+            }*/
 
-            std::ifstream bc_file(bad_channel_file);
+
+            std::cout << "SinglePhoton \t||\t Loading channel id filename from "<<bad_channel_filename<< std::endl;
+            std::ifstream bc_file(bad_channel_filename);
 
             if (bc_file.is_open())
             {
