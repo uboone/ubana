@@ -1,12 +1,6 @@
 BEGIN_PROLOG
 
-microboone_tfile_metadata:
-{
-  JSONFileName:          "vertexed_singlephoton_hist.root.json"
-  GenerateTFileMetadata: true
-  dataTier:              "root-tuple"
-  fileFormat:            "root"
-}
+
 
 singlephoton_analyzer:{
 

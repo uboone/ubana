@@ -20,6 +20,14 @@ source : {
     maxEvents   : -1
 }
 
+microboone_tfile_metadata:
+{
+  JSONFileName:          "vertexed_singlephoton_hist.root.json"
+  GenerateTFileMetadata: true
+  dataTier:              "root-tuple"
+  fileFormat:            "root"
+}
+
 services :
 {
     #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
