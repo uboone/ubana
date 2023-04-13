@@ -49,6 +49,8 @@ simple_plugin( WireCellAnaTree "module"
                art_Utilities
                canvas
                ${MF_MESSAGELOGGER}
+	       larevt_CalibrationDBI_IOVData
+               larevt_CalibrationDBI_Providers
                
                ${FHICLCPP}
                cetlib cetlib_except
@@ -235,3 +237,4 @@ install_headers()
 install_source()
 
 add_subdirectory(job)
+add_subdirectory(SinglePhoton)
