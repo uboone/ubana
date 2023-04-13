@@ -440,7 +440,7 @@ namespace single_photon
 			  //std::cout << " [ EventWeightTree ]" << " continue... " << std::endl;
 
 			  if(_weightSpline != -1 && _weightTune != -1) _weightSplineTimesTune = _weightSpline * _weightTune;
-			  if(_weightSplineTimesTune < 0) _weightSplineTimesTune = 1;//sometimes, we have negative weightTune, just turn them into one.
+			  if(!(_weightSplineTimesTune < 30 || _weightSplineTimesTune > 0) ) _weightSplineTimesTune = 1;//only accept weigths from (0,30); others, e.g. negative, inf weights, go to 1.
 		  }
 	  }
   }
