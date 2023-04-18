@@ -60,7 +60,6 @@ services.DetectorClocksService.InheritClockConfig:       false
 services.DetectorClocksService.TriggerOffsetTPC:         -0.400e3
 
 services.PMTGainService.PmtGainProvider.UseDB: true
-services.PMTGainService.PmtGainProvider.DatabaseRetrievalAlg.DBUrl: "https://dbdata0vm.fnal.gov:8443/uboonecon_prod/app/"
 
 microboone_tfile_metadata:
 {
