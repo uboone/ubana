@@ -1,5 +1,7 @@
 BEGIN_PROLOG
 
+
+
 singlephoton_analyzer:{
 
     module_type:    SinglePhoton
