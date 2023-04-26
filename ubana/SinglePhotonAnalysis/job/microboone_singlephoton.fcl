@@ -26,6 +26,8 @@ singlephoton_analyzer:{
     SEAviewShowerNumRecoShower: 1
     SEAviewShowerNumRecoTrack: -1
 
+    SaveSpacepoints: true
+
     runSEAviewStub: true
     SEAviewStubHitThreshold: 25
     SEAviewStubDBSCANMinPts: 1

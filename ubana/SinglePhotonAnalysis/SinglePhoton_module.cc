@@ -56,7 +56,7 @@ namespace single_photon
         std::cout<<"SinglePhoton::reconfigure || m_is_textgen: "<<m_is_textgen<<std::endl;
 
         //Save all spacepoints?
-        m_bool_save_sp = pset.get<bool>("SaveSpacepoints",false);
+        m_bool_save_sp = pset.get<bool>("SaveSpacepoints",true);
 
         //Instead of running over ALL evnts in a file, can pass in a file to run over just the run:subrun:event listed
         m_runSelectedEvent    = pset.get<bool>("SelectEvent", false);
@@ -584,7 +584,8 @@ namespace single_photon
         //Helper function (can be found below) to collect tracks and showers in neutrino slice
         this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
 
-        if(tracks.size()+showers.size()<3 && m_bool_save_sp ){m_bool_save_sp = true;}else{m_bool_save_sp = false;}
+        bool local_save_sp = true; 
+        if(tracks.size()+showers.size()<3 && m_bool_save_sp ){local_save_sp = true;}else{local_save_sp = false;}
 
         //Track Calorimetry. Bit odd here but bear with me, good to match and fill here
         art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
@@ -781,7 +782,7 @@ namespace single_photon
             std::vector<double> tmp_sp_y;
             std::vector<double> tmp_sp_z;
 
-            if(m_bool_save_sp){
+            if(local_save_sp){
             for(auto &sp: trk_spacepoints){
                     tmp_sp_x.push_back(sp->XYZ()[0]);
                     tmp_sp_y.push_back(sp->XYZ()[1]);
@@ -832,7 +833,7 @@ namespace single_photon
 
                 //This section runs for only 1 shower events for purpose of testing delta specifics 
 
-                if(m_bool_save_sp){
+                if(local_save_sp){
                     tmp_sp_x.push_back(sp->XYZ()[0]);
                     tmp_sp_y.push_back(sp->XYZ()[1]);
                     tmp_sp_z.push_back(sp->XYZ()[2]);
