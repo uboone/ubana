@@ -14,6 +14,7 @@
 #include "larcore/Geometry/Geometry.h"
 
 #include "art/Framework/Principal/Event.h"
+#include "canvas/Persistency/Common/Ptr.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/SpacePoint.h"

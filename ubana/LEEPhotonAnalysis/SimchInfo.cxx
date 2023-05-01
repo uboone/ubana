@@ -3,7 +3,6 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 
-
 void SimchInfo::Reset() {
 
  ftrkid_to_index.clear();
@@ -38,16 +37,16 @@ void SimchInfo::Register(std::vector<unsigned int> const & track_id_v) {
 
 
 std::vector<double> SimchInfo::MCQ(detinfo::DetectorClocksData const& clockData,
-                                   art::Ptr<recob::Hit> const & hit) const {
+                                   recob::Hit const & hit) const {
   
   std::vector<double> res(fnum_parts, 0);
 
-  auto ctm_it = fconsidered_tick_map.find(hit->Channel());
+  auto ctm_it = fconsidered_tick_map.find(hit.Channel());
   if(ctm_it == fconsidered_tick_map.end()) return res;
   std::map<int, std::vector<double>> const & ch_info = ctm_it->second;
 
-  auto itlow = ch_info.lower_bound(int(clockData.TPCTick2TDC(hit->PeakTime()-hit->RMS())));
-  auto const itup  = ch_info.upper_bound(int(clockData.TPCTick2TDC(hit->PeakTime()+hit->RMS())+1));
+  auto itlow = ch_info.lower_bound(int(clockData.TPCTick2TDC(hit.PeakTime()-hit.RMS())));
+  auto const itup  = ch_info.upper_bound(int(clockData.TPCTick2TDC(hit.PeakTime()+hit.RMS())+1));
 
   while(itlow != ch_info.end() && itlow != itup) {
     std::vector<double> const & edep_info = itlow->second;
@@ -69,7 +68,7 @@ std::vector<double> SimchInfo::MCQ(detinfo::DetectorClocksData const& clockData,
   std::vector<double> res(fnum_parts, 0);
 
   for(art::Ptr<recob::Hit> const & hit : hit_v) {
-    std::vector<double> const tmp_res = MCQ(clockData, hit);
+    std::vector<double> const tmp_res = MCQ(clockData, *hit);
     for(size_t i = 0; i < res.size(); ++i) res.at(i) += tmp_res.at(i);
   }
 
