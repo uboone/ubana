@@ -955,6 +955,7 @@ namespace single_photon
             bool m_is_data; // value provided by pset
             bool m_is_overlayed;
             bool m_is_textgen;
+            bool m_is_epemfakedata;
             bool m_run_all_pfps;
             bool m_has_CRT;
             bool m_fill_trees;

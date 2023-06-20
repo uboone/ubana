@@ -35,6 +35,7 @@ namespace single_photon
         m_is_data = pset.get<bool>("isData",false);
         m_is_overlayed = pset.get<bool>("isOverlayed",false);
         m_is_textgen = pset.get<bool>("isTextGen",false);
+        m_is_epemfakedata = pset.get<bool>("isEpEmFakeData",false);
 
         //some specific additonal info, default not include
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
@@ -54,6 +55,7 @@ namespace single_photon
         std::cout<<"SinglePhoton::reconfigure || m_is_data: "<<m_is_data<<std::endl;
         std::cout<<"SinglePhoton::reconfigure || m_is_overlayed: "<<m_is_overlayed<<std::endl;
         std::cout<<"SinglePhoton::reconfigure || m_is_textgen: "<<m_is_textgen<<std::endl;
+        std::cout<<"SinglePhoton::reconfigure || m_is_epEmFakeData: "<<m_is_epemfakedata<<std::endl;
 
         //Save all spacepoints?
         m_bool_save_sp = pset.get<bool>("SaveSpacepoints",true);
@@ -1514,7 +1516,16 @@ namespace single_photon
             }
         }
 
-
+        // EpEM Fake Data Fudge
+        //
+         if(m_is_epemfakedata && m_is_textgen){
+             
+             double wei = m_textgen_info.back();
+             double rando = rangen->Uniform(0.001,0.1);
+             m_genie_spline_weight = rando;
+             m_genie_CV_tune_weight = wei/rando;
+             m_textgen_info.clear();
+         }
 
 
         //---------------------- END OF LOOP, fill vertex ---------------------
