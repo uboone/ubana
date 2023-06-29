@@ -926,7 +926,9 @@ namespace single_photon
 
 
             std::cout<<"Starting outside AnalyzeMCTruths "<<std::endl;
-            this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
+            if(!m_is_epemfakedata){ 
+                this->AnalyzeMCTruths(mcTruthVector, mcParticleVector);
+            }
 
 
             std::cout<<"Starting AnalyzeEventWeight"<<std::endl;
@@ -1519,7 +1521,7 @@ namespace single_photon
         // EpEM Fake Data Fudge
         //
          if(m_is_epemfakedata && m_is_textgen){
-             
+             std::cout<<"Starting on getting some textgen info. "<<m_textgen_info.size()<<std::endl; 
              double wei = m_textgen_info.back();
              double rando = rangen->Uniform(0.001,0.1);
              m_genie_spline_weight = rando;
