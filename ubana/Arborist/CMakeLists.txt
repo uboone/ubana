@@ -19,7 +19,6 @@ art_make( BASENAME_ONLY
             PANDORAMONITORING
             LArPandoraContent 
 			nusimdata::SimulationBase
-			UB_DATA_TYPES
 			Boost::serialization
                         nurandom::RandomUtils_NuRandomService_service
                         art::Framework_Core
@@ -52,7 +51,6 @@ art_make( BASENAME_ONLY
             ubevt::SignalShapingServiceMicroBooNE_service
 			nusimdata::SimulationBase
 			ubana_LEEPhotonAnalysis
-			UB_DATA_TYPES
 			Boost::serialization
                         nurandom::RandomUtils_NuRandomService_service
                         art::Framework_Core

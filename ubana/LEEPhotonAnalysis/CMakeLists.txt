@@ -20,7 +20,6 @@ art_make( BASENAME_ONLY
 			larsim_MCCheater_ParticleInventoryService_service
 			larpandora_LArPandoraInterface
 			nusimdata::SimulationBase
-			UB_DATA_TYPES
 			Boost::serialization
                         nurandom::RandomUtils_NuRandomService_service
                         art::Framework_Core
@@ -54,7 +53,6 @@ art_make( BASENAME_ONLY
 			larpandora_LArPandoraInterface
 			nusimdata::SimulationBase
 			ubana_LEEPhotonAnalysis
-			UB_DATA_TYPES
 			Boost::serialization
                         nurandom::RandomUtils_NuRandomService_service
                         art::Framework_Core
