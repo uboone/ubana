@@ -750,7 +750,7 @@ namespace analysis
 	ccnd1= timeProp[i]*(f_ccnd1_a)-(f_ccnd1_b);
 	ccnd2= max[N_pmt.at(i)]*(f_ccnd2_a)-(f_ccnd2_b);
 	if(Ph_Tot>150){ccnd3=f_ccnd3_a-f_ccnd3_b*Ph_Tot+f_ccnd3_c*Ph_Tot*Ph_Tot;}
-	else if (Ph_Tot<=150){ccnd3=f_ccnd3_d;}
+	else{ccnd3=f_ccnd3_d;}
 	
 	//all the corrections
 	TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)]+ccnd1+ccnd2+ccnd3;
