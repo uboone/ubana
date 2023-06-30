@@ -45,7 +45,6 @@ namespace searchingfornues
 	const auto &clus = hitcoll[ass_clus.key()];
 	auto clus_hit_v = clus.get<recob::Hit>();
 	auto plane = clus->Plane().Plane;
-	//if ( (plane >=0) && (plane < 3) ) {
 	if ( plane < 3 ) {
 	  cluster1_hits_v[plane].clear();
 	  for (size_t h=0; h < clus_hit_v.size(); h++) {
@@ -59,7 +58,6 @@ namespace searchingfornues
 	const auto &clus = hitcoll[ass_clus.key()];
 	auto clus_hit_v = clus.get<recob::Hit>();
 	auto plane = clus->Plane().Plane;
-	//if ( (plane >=0) && (plane < 3) ) {
 	if ( plane < 3 ) {
 	  cluster2_hits_v[plane].clear();
 	  for (size_t h=0; h < clus_hit_v.size(); h++) {

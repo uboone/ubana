@@ -2,7 +2,13 @@ cet_enable_asserts()
 
 include_directories( $ENV{EIGEN_INC} )
 
-art_make( TOOL_LIBRARIES lardataobj_RecoBase
+art_make( TOOL_LIBRARIES 
+                         ubevt_Utilities
+                         ubreco::ShowerReco_ProximityClustering_Algorithms
+                         ubreco::SelectionTool_OpT0FinderBase
+                         ubreco::SelectionTool_OpT0FinderAlgorithms
+                         ubobj::Trigger
+                         lardataobj_RecoBase
                          lardataobj_Simulation
                          lardataobj_MCBase
                          nusimdata::SimulationBase
@@ -11,7 +17,8 @@ art_make( TOOL_LIBRARIES lardataobj_RecoBase
                          larpandora_LArPandoraInterface
                          lardata_RecoObjects
                          lardata_Utilities
-			 larreco_RecoAlg
+                         larevt_CalibrationDBI_IOVData
+                         larreco_RecoAlg
                          larsim_EventWeight_Base
                          art::Framework_Core
                          art::Framework_Principal

@@ -39,6 +39,7 @@ simple_plugin( WireCellAnaTree "module"
                nusimdata::SimulationBase
                lardata_Utilities
                lardataalg_DetectorInfo
+               larevt_CalibrationDBI_IOVData
                larreco_RecoAlg
                art::Framework_Core
                art::Framework_Principal
@@ -217,3 +218,4 @@ install_headers()
 install_source()
 
 add_subdirectory(job)
+add_subdirectory(SinglePhoton)

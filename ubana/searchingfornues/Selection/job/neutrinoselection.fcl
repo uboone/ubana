@@ -1,6 +1,16 @@
 #include "reco_uboone_data_mcc9_8.fcl"
 #include "mcreco.fcl"
 #include "proximityclustering.fcl"
+#include "eventweight_microboone_genie_knobs.fcl"
+
+FidVol: {
+    Xstart: 10.
+    Xend:   10.
+    Ystart: 15.
+    Yend:   15.
+    Zstart: 10.
+    Zend:   50.
+}
 
 EventFilterTool: {
     tool_type: "EventFilter"
@@ -113,12 +123,15 @@ DefaultAnalysisTool: {
     SLCproducer: "pandora"
     MCPproducer: "largeant"
     ProtonThreshold: 0.04 # GeV
-    fidvolXstart: 5.
-    fidvolXend: 5.
-    fidvolYstart: 6.
-    fidvolYend: 6.
-    fidvolZstart: 20.
-    fidvolZend: 50.
+    fidvolXstart: @local::FidVol.Xstart
+    fidvolXend:   @local::FidVol.Xend
+    fidvolYstart: @local::FidVol.Ystart
+    fidvolYend:   @local::FidVol.Yend
+    fidvolZstart: @local::FidVol.Zstart
+    fidvolZend:   @local::FidVol.Zend
+    makeNuMINtuple: false
+    NuMIOpFiltProcName:    "DataStage1Optical"
+    NuMISWTriggerProcName: "DataOverlayOpticalNuMI"
 }
 
 MCSTool: {
@@ -134,12 +147,12 @@ MCSTool: {
     SLCproducer: "pandora"
     MCPproducer: "largeant"
     ProtonThreshold: 0.04 # GeV
-    fidvolXstart: 10.
-    fidvolXend: 10.
-    fidvolYstart: 15.
-    fidvolYend: 15.
-    fidvolZstart: 10.
-    fidvolZend: 50.
+    FidvolXstart: @local::FidVol.Xstart
+    FidvolXend:   @local::FidVol.Xend
+    FidvolYstart: @local::FidVol.Ystart
+    FidvolYend:   @local::FidVol.Yend
+    FidvolZstart: @local::FidVol.Zstart
+    FidvolZend:   @local::FidVol.Zend
 }
 
 MCFilterAnalysisTool: {
@@ -155,6 +168,18 @@ Pi0TruthAnalysisTool: {
     MCPproducer: "largeant"
 }
 
+
+NeutrinoTimingAnalysisTool: {
+    tool_type: "NeutrinoTiming"
+    PFPproducer: "pandora"
+    T0producer: "flashmatch"
+    PMTWFproducer: "pmtreadout:OpdetBeamHighGain"
+    LogicWFproducer: "pmtreadout:UnspecifiedLogic"
+    FLASHproducer: "simpleFlashBeam"
+    SpacePointproducer: "pandora"
+}
+
+
 CRTApproachAnalysisTool: {
     tool_type: "CRTApproachAnalysis"
     TrackAssnModuleLabel:"trackmatch"
@@ -168,6 +193,8 @@ SlicePurComplTool: {
     MCPproducer: "largeant"
     Hproducer: "gaushit"
     HTproducer: "gaushitTruthMatch"
+    OrigHproducer: "gaushit::OverlayStage1a"
+    OrigHTproducer: "gaushitTruthMatch::OverlayRecoStage1b"
 }
 
 PMTNoiseTool: {
@@ -176,8 +203,8 @@ PMTNoiseTool: {
 
 BDTTool: {
     tool_type: "BDT"
-    #TrigResProducer: ""
-    TrigResProducer: "TriggerResults::DataFiltersPostStage2"
+    TrigResProducer: ""
+    #TrigResProducer: "TriggerResults::DataFiltersPostStage2"
 }
 
 ContainmentAnalysis: {
@@ -190,7 +217,32 @@ FlashMatchingTool: {
     PFPproducer: "pandora"
     T0producer: "flashmatch"
     FLASHproducer: "simpleFlashBeam"
+    SpacePointproducer: "pandora"
+    AllPFPproducer: "pandoraPatRec:allOutcomes"
+    AllSpacePointproducer: "pandoraPatRec:allOutcomes"
+    #AllT0producer: "flashmatchAllOutcomes"
+    Hproducer: "gaushit"
+    HTproducer: "gaushitTruthMatch"
+    ChargeToNPhotonsTrack: 164.0
+    ChargeToNPhotonsShower: 512.815
+    FlashMatchConfig: @local::flash_neutrino_id_tool_data.FlashMatchConfig
+    ApplyLifetimeCorr: false
 }
+
+PMTWaveformTool: {
+    tool_type: "PMTWaveform"
+    #FLASHproducer: "simpleFlashBeam::DataOpticalFilter" # for data
+    FLASHproducer: "simpleFlashBeam::OverlayStage1a" # for overlay
+    #FLASHCALIBproducer: "simpleFlashBeam::DataStage1Optical" # for data
+    FLASHCALIBproducer: "simpleFlashBeam::OverlayStage1Optical" # for overlay
+    PMTWFproducer: "pmtreadout:OpdetBeamHighGain"
+}
+
+SimPhotonTool: {
+    tool_type: "SimPhoton"
+    SimPhotonProducer: "lyscaling"
+}
+
 
 shrreco3dDATA: @local::ShrReco3DPandora
 shrreco3dDATA.BacktrackTag:  ""
@@ -258,6 +310,7 @@ NuSelectionFilter:{
         pmtnoise:      @local::PMTNoiseTool
 	mcs:           @local::MCSTool
         pi0truth:      @local::Pi0TruthAnalysisTool
+        nutiming:      @local::NeutrinoTimingAnalysisTool
         cosmicip:      @local::CosmicIPTool
         nuenergy:      @local::NeutrinoEnergyTool
         flashmatchid:  @local::FlashMatchingTool
@@ -310,6 +363,12 @@ CC0PiNpSelectionTool: {
     # ADC to E conversion taken from reco2 production fhicl file
     ADCtoE: @local::microboone_reco_data_producers.shrreco3d.ADCtoE
     RecalibrateHits: true
+    FidvolXstart: @local::FidVol.Xstart
+    FidvolXend:   @local::FidVol.Xend
+    FidvolYstart: @local::FidVol.Ystart
+    FidvolYend:   @local::FidVol.Yend
+    FidvolZstart: @local::FidVol.Zstart
+    FidvolZend:   @local::FidVol.Zend
 }
 
 # run 3 neutrino selection [ w/ crt veto ]
@@ -330,3 +389,5 @@ NeutrinoSliceHits: {
     Pfpproducer: "pandora"
     Sliceproducer: "pandora"
 }
+
+EventweightGenieKnobs: @local::microboone_eventweight_genie_knobs

@@ -56,7 +56,7 @@ namespace single_photon
         std::cout<<"SinglePhoton::reconfigure || m_is_textgen: "<<m_is_textgen<<std::endl;
 
         //Save all spacepoints?
-        m_bool_save_sp = pset.get<bool>("SaveSpacepoints",false);
+        m_bool_save_sp = pset.get<bool>("SaveSpacepoints",true);
 
         //Instead of running over ALL evnts in a file, can pass in a file to run over just the run:subrun:event listed
         m_runSelectedEvent    = pset.get<bool>("SelectEvent", false);
@@ -584,7 +584,8 @@ namespace single_photon
         //Helper function (can be found below) to collect tracks and showers in neutrino slice
         this->CollectTracksAndShowers(nuParticles, pfParticleMap,  pfParticleHandle, evt, tracks, showers, trackToNuPFParticleMap, showerToNuPFParticleMap);
 
-        if(tracks.size()+showers.size()<3 && m_bool_save_sp ){m_bool_save_sp = true;}else{m_bool_save_sp = false;}
+        bool local_save_sp = true; 
+        if(tracks.size()+showers.size()<3 && m_bool_save_sp ){local_save_sp = true;}else{local_save_sp = false;}
 
         //Track Calorimetry. Bit odd here but bear with me, good to match and fill here
         art::FindManyP<anab::Calorimetry> calo_per_track(trackHandle, evt, m_caloLabel);
@@ -781,7 +782,7 @@ namespace single_photon
             std::vector<double> tmp_sp_y;
             std::vector<double> tmp_sp_z;
 
-            if(m_bool_save_sp){
+            if(local_save_sp){
             for(auto &sp: trk_spacepoints){
                     tmp_sp_x.push_back(sp->XYZ()[0]);
                     tmp_sp_y.push_back(sp->XYZ()[1]);
@@ -832,7 +833,7 @@ namespace single_photon
 
                 //This section runs for only 1 shower events for purpose of testing delta specifics 
 
-                if(m_bool_save_sp){
+                if(local_save_sp){
                     tmp_sp_x.push_back(sp->XYZ()[0]);
                     tmp_sp_y.push_back(sp->XYZ()[1]);
                     tmp_sp_z.push_back(sp->XYZ()[2]);
@@ -1654,19 +1655,24 @@ namespace single_photon
         this->CreateTrackBranches();
 
         //hardcode some info (TODO change)
-        std::string gpvm_location ="/pnfs/uboone/resilient/users/markross/tars/";
+        //
+        cet::search_path sp("FW_SEARCH_PATH");
 
         //Get the info for length->energy conversion from PSTAR database.
         TFile *fileconv;
-        struct stat buffer;   
+        std::string proton_filename;
+        sp.find_file("SinglePhotonAnalysis/proton_conversion.root",proton_filename);
 
         //some useful input data
         if(!m_run_pi0_filter){
-            if(stat("proton_conversion.root", &buffer) == 0){
+            /*if(stat("proton_conversion.root", &buffer) == 0){
                 fileconv = new TFile("proton_conversion.root", "read");
             }else{
                 fileconv = new TFile((gpvm_location+"proton_conversion.root").c_str(), "read");
-            }
+            }*/
+            std::cout << "SinglePhoton \t||\t Loading proton length-> energy file from " <<proton_filename<< std::endl;
+
+            fileconv = new TFile(proton_filename.c_str(),"read");
 
             proton_length2energy_tgraph = *(TGraph*)fileconv->Get("Graph");
             proton_length2energy_tgraph.GetMean();
@@ -1674,14 +1680,17 @@ namespace single_photon
         }
 
         //bad channels 
-        std::string bad_channel_file = "MCC9_channel_list.txt";
+        std::string bad_channel_filename;// = "MCC9_channel_list.txt";
+        sp.find_file("SinglePhotonAnalysis/MCC9_channel_list.txt",bad_channel_filename);
 
         if(!m_run_pi0_filter){
-            if(stat(bad_channel_file.c_str(), &buffer) != 0){
+            /*if(stat(bad_channel_file.c_str(), &buffer) != 0){
                 bad_channel_file = gpvm_location+bad_channel_file;
-            }
+            }*/
 
-            std::ifstream bc_file(bad_channel_file);
+
+            std::cout << "SinglePhoton \t||\t Loading channel id filename from "<<bad_channel_filename<< std::endl;
+            std::ifstream bc_file(bad_channel_filename);
 
             if (bc_file.is_open())
             {

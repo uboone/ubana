@@ -1,5 +1,7 @@
 #include "run_SinglePhoton.fcl"
 
+services.FileCatalogMetadata:  @local::art_file_catalog_overlay    # or art_file_catalog_data, or art_file_catalog_overlay
+
 physics.filters.singlephotonana.isData: "true"
 physics.filters.singlephotonana.POTLabel: "generator"
 

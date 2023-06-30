@@ -11,6 +11,7 @@
 #include "shrreco3d.fcl"
 #include "reco_uboone_mcc9_8.fcl"
 #include "microboone_singlephoton.fcl"
+#include "sam_microboone.fcl"
 
 process_name : SinglePhoton      #The process name must NOT contain any underscores
 
@@ -19,15 +20,24 @@ source : {
     maxEvents   : -1
 }
 
+microboone_tfile_metadata:
+{
+  JSONFileName:          "vertexed_singlephoton_hist.root.json"
+  GenerateTFileMetadata: true
+  dataTier:              "root-tuple"
+  fileFormat:            "root"
+}
+
 services :
 {
     #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
-    TFileService: { fileName: "vertexed_singlephoton_%tc_hist.root" }
+    TFileService: { fileName: "vertexed_singlephoton_hist.root" }
     ExptGeoHelperInterface:    @local::standard_geometry_helper
     Geometry:                  @local::standard_geo
     LArPropertiesService:      @local::standard_properties
     DetectorClocksService:     @local::standard_detectorclocks
     DetectorPropertiesService: @local::standard_detproperties
+    FileCatalogMetadata:       @local::art_file_catalog_overlay    # or art_file_catalog_data, or art_file_catalog_mc
     @table::microboone_services
 }
 

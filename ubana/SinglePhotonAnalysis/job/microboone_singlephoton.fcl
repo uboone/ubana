@@ -1,5 +1,7 @@
 BEGIN_PROLOG
 
+
+
 singlephoton_analyzer:{
 
     module_type:    SinglePhoton
@@ -23,6 +25,8 @@ singlephoton_analyzer:{
     SEAviewShowerMakePDF: false 
     SEAviewShowerNumRecoShower: 1
     SEAviewShowerNumRecoTrack: -1
+
+    SaveSpacepoints: true
 
     runSEAviewStub: true
     SEAviewStubHitThreshold: 25
