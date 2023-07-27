@@ -6,7 +6,7 @@ art_make( BASENAME_ONLY
 			ubobj_Trigger
             larcorealg_Geometry
             larcore_Geometry_Geometry_service
-			ubana_BasicTool_GeoAlgo
+			ubcore::ubana_BasicTool_GeoAlgo
             lardata_Utilities
             larevt_Filters
             larpandoraobj
@@ -42,7 +42,7 @@ art_make( BASENAME_ONLY
             ubraw_RawData
                         larcorealg_Geometry
                         larcore_Geometry_Geometry_service
-			ubana_BasicTool_GeoAlgo
+			ubcore::ubana_BasicTool_GeoAlgo
                         lardata_Utilities
                         larevt_Filters
                         lardataobj_RawData
@@ -51,7 +51,7 @@ art_make( BASENAME_ONLY
             larcoreobj_SummaryData	
 			larsim_MCCheater_BackTrackerService_service
 			larpandora_LArPandoraInterface
-            SignalShapingServiceMicroBooNE_service
+            ubevt::SignalShapingServiceMicroBooNE_service
 			nusimdata_SimulationBase
 			ubana_LEEPhotonAnalysis
             ubana_SinglePhotonAnalysis_SEAview
