@@ -32,8 +32,8 @@ table_fragment_end
 product                 version
 ubreco                  v08_00_00_69
 ubraw                   v08_00_00_69
-larana                  v08_01_00_19
-larpandora              v08_03_00_19
+larana                  v08_01_00_20
+larpandora              v08_03_00_20
 cetbuildtools	        v7_13_02	-	only_for_build
 end_product_list
 
