@@ -1,38 +1,57 @@
-include_directories (
-    xgboost 
-    dmlc/include
-    rabit/include 
-    )
+include_directories ( xgboost/src )
 
-link_libraries( -pthread )
-
-file(GLOB SOURCES 
-    xgboost/src/c_api/*.cc
-    xgboost/src/common/*.cc
-    xgboost/src/data/*.cc
-    xgboost/src/gbm/*.cc
-    xgboost/src/metric/*.cc
-    xgboost/src/objective/*.cc
-    xgboost/src/tree/*.cc
-    xgboost/src/*.cc
-    rabit/*.cc
-    rabit/src/*.cc
-    dmlc/*.cc
-    dmlc/src/*.cc
-    dmlc/src/data/*.cc
-    dmlc/src/io/*.cc
+cet_make_library (
+  SOURCE
+  dmlc/src/config.cc
+  dmlc/src/data.cc
+  dmlc/src/io.cc
+  dmlc/src/io/input_split_base.cc
+  dmlc/src/io/line_split.cc
+  dmlc/src/io/local_filesys.cc
+  dmlc/src/io/recordio_split.cc
+  dmlc/src/recordio.cc
+  rabit/src/allreduce_base.cc
+  rabit/src/allreduce_robust.cc
+  rabit/src/c_api.cc
+  rabit/src/engine.cc
+  xgboost/src/c_api/c_api.cc
+  xgboost/src/c_api/c_api_error.cc
+  xgboost/src/cli_main.cc
+  xgboost/src/common/common.cc
+  xgboost/src/common/hist_util.cc
+  xgboost/src/data/data.cc
+  xgboost/src/data/simple_csr_source.cc
+  xgboost/src/data/simple_dmatrix.cc
+  xgboost/src/data/sparse_page_dmatrix.cc
+  xgboost/src/data/sparse_page_raw_format.cc
+  xgboost/src/data/sparse_page_source.cc
+  xgboost/src/data/sparse_page_writer.cc
+  xgboost/src/gbm/gblinear.cc
+  xgboost/src/gbm/gbm.cc
+  xgboost/src/gbm/gbtree.cc
+  xgboost/src/learner.cc
+  xgboost/src/logging.cc
+  xgboost/src/metric/elementwise_metric.cc
+  xgboost/src/metric/metric.cc
+  xgboost/src/metric/multiclass_metric.cc
+  xgboost/src/metric/rank_metric.cc
+  xgboost/src/objective/multiclass_obj.cc
+  xgboost/src/objective/objective.cc
+  xgboost/src/objective/rank_obj.cc
+  xgboost/src/objective/regression_obj.cc
+  xgboost/src/tree/tree_model.cc
+  xgboost/src/tree/tree_updater.cc
+  xgboost/src/tree/updater_colmaker.cc
+  xgboost/src/tree/updater_fast_hist.cc
+  xgboost/src/tree/updater_histmaker.cc
+  xgboost/src/tree/updater_prune.cc
+  xgboost/src/tree/updater_refresh.cc
+  xgboost/src/tree/updater_skmaker.cc
+  xgboost/src/tree/updater_sync.cc
+  LIBRARIES
+  PUBLIC
+  Threads::Threads
 )
-
-
-art_make_library( LIBRARY_NAME  uboonecode_uboone_XGBoost
-                  SOURCE ${SOURCES}
-                  LIBRARIES
-		  cetlib::cetlib
-                  cetlib_except::cetlib_except
-                  ROOT::Core
-                  ROOT::RIO
-                  ROOT::Thread
-                )
 
 install_headers()
 install_source( EXTRAS CONTRIBUTORS.md )

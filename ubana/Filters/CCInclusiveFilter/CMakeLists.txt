@@ -1,35 +1,50 @@
-art_make( 
-          LIBRARY_NAME uboonecode_uboone_Filters
-          # Needed for standalone c++ helper files
-          LIB_LIBRARIES 
+cet_build_plugin(
+  MCC9Pi0Filter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  larsim::EventWeight_Base
+  lardata::RecoBaseProxy
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
-          # Needed for the main module          
-          MODULE_LIBRARIES
-                    larpandora_LArPandoraInterface
-                    larcorealg_Geometry
-                    larreco_RecoAlg
-                    larcore_Geometry_Geometry_service
-                    larsim_Simulation lardataobj_Simulation
-                    lardataobj_RawData
-                    lardataobj_RecoBase
-                    lardataobj_AnalysisBase
-                    lardata_Utilities
-                    nusimdata::SimulationBase
-                    larsim_EventWeight_Base
-                    art::Framework_Core
-                    art::Framework_Principal
-                    art::Framework_Services_Registry
-                    art::Framework_Services_Registry
-                    art::Persistency_Common
-                    art::Persistency_Provenance
-                    art::Utilities
-                    canvas::canvas
-                    messagefacility::MF_MessageLogger
-                    fhiclcpp::fhiclcpp
-                    cetlib::cetlib
-                    cetlib_except::cetlib_except
-                    NuCCHelpers
-          )
+cet_build_plugin(
+  MCC9SliceIDFilter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  larsim::EventWeight_Base
+  lardata::RecoBaseProxy
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  NuCCanalyzer art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::Filters_CCInclusiveFilter_helpers
+)
+
+cet_build_plugin(
+  NuCCfilter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  larpandora::LArPandoraInterface
+  lardataobj::RecoBase
+)
+
+cet_build_plugin(
+  NuCCproducer art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::Filters_CCInclusiveFilter_helpers
+)
 
 add_subdirectory(job)
 add_subdirectory(helpers)

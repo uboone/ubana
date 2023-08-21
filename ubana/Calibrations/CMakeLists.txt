@@ -1,62 +1,193 @@
+cet_make_library(
+  SOURCE
+  CalibrationTPC_Algs.cxx
+  LIBRARIES
+  PUBLIC
+  lardata::Utilities
+  lardataobj::RawData
+)
 
-cet_remove_compiler_flags(CXX -pedantic)
+cet_build_plugin(
+  CalibrationTPC art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::Calibrations
+  ubevt::CalData
+  lardata::Utilities
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  CalibrationdEdX art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubevt::Database_TPCEnergyCalib
+  ubobj::DataOverlay
+  larreco::Calorimetry
+  larevt::SpaceChargeService
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+)
+
+cet_build_plugin(
+  Diffusion art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larreco::RecoAlg
+  larsim::MCCheater_ParticleInventoryService_service
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  ExtractPedestalInformation art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  lardataobj::RawData
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  FilterCrossingMuons art::EDFilter
+  LIBRARIES
+  PRIVATE
+  larreco::RecoAlg
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+)
+
+cet_build_plugin(
+  Kplane2 art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larreco::RecoAlg
+  larsim::MCCheater_BackTrackerService_service
+  larsim::MCCheater_ParticleInventoryService_service
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  LifetimeQAQC art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larsim::Simulation
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+  ROOT::Minuit
+  ROOT::Gpad
+)
+
+cet_build_plugin(
+  Lifetime art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larsim::Simulation
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  NoiseFilter art::EDProducer
+  LIBRARIES
+  PRIVATE
+  larevt::DetPedestalService
+  lardata::Utilities
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  ValidateLifetime art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larreco::Calorimetry
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+)
+
+cet_build_plugin(
+  XYZcorrection art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larreco::RecoAlg
+  larsim::MCCheater_BackTrackerService_service
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  XYZvalidatioin art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larreco::RecoAlg
+  larsim::MCCheater_BackTrackerService_service
+  larsim::MCCheater_ParticleInventoryService_service
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
 add_subdirectory(Optical)
-
-art_make( BASENAME_ONLY
-	  EXCLUDE Lifetime.C
-	  LIBRARY_NAME  ubana_Calibrations
-	  LIB_LIBRARIES
-                        lardata_Utilities_LArFFT_service
-			art::Framework_Core
-			art::Utilities
-                        canvas::canvas
-			messagefacility::MF_MessageLogger
-
-			cetlib::cetlib
-                        cetlib_except::cetlib_except
-
-
-          MODULE_LIBRARIES
-			ubana_Calibrations
-                        lardataalg_DetectorInfo
-			lardataobj_RawData
-			ubevt::CalData
-			larcorealg_Geometry
-			larcore_Geometry_Geometry_service
-			larsim_MCCheater_ParticleInventoryService_service
-      larsim_MCCheater_BackTrackerService_service
-			larsim_Simulation nug4::ParticleNavigation lardataobj_Simulation
-			lardataobj_RecoBase
-			lardataobj_AnalysisBase
-			lardata_RecoObjects
-			larreco_RecoAlg
-                        larreco_Calorimetry
-			lardata_Utilities
-			larevt_Filters
-                        lardata_Utilities_LArFFT_service
-			ubevt::SignalShapingServiceMicroBooNE_service
-            larevt_CalibrationDBI_Providers
-            nusimdata::SimulationBase
-                        art::Framework_Core
-			art::Framework_Principal
-			art::Framework_Services_Registry
-			art_root_io::tfile_support ROOT::Core
-			art::Framework_Services_Optional_RandomNumberGenerator_service
-			art_root_io::TFileService_service
-			art::Persistency_Common
-			art::Persistency_Provenance
-			art::Utilities
-                        canvas::canvas
-			messagefacility::MF_MessageLogger
-	                fhiclcpp::fhiclcpp
-			cetlib::cetlib
-                        cetlib_except::cetlib_except
-			CLHEP::CLHEP
-                        ROOT::Geom
-                        ROOT::XMLIO
-                        ROOT::Gdml
-        )
 
 FILE(GLOB data_files calibrationList_*.dat )
 

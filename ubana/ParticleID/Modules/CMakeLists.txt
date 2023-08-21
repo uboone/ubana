@@ -1,42 +1,37 @@
-art_make( BASENAME_ONLY
-  LIBRARY_NAME ubana_ParticleID
-  LIB_LIBRARIES
-  ubana_ParticleID_Algorithms
+cet_build_plugin(
+  CalibratedEdx art::EDProducer
+  LIBRARIES
+  PRIVATE
+  lardata::Utilities
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+)
 
-  MODULE_LIBRARIES 
-  ubobj_UBXSec
-  uboonecode_uboone_UBXSec_Algorithms
-  ubana_ParticleID_Algorithms
-  larcorealg_Geometry
-  larcore_Geometry_Geometry_service
-  larsim_Simulation nug4::ParticleNavigation lardataobj_Simulation
-  larsim_MCCheater_BackTracker
-  lardata_Utilities
-  larevt_Filters
-  larana_TruncatedMean_Algorithm
-  larana_ParticleIdentification
-  lardata_RecoObjects
-  larreco_RecoAlg
-  larpandora_LArPandoraInterface
-  ubevt::SignalShapingServiceMicroBooNE_service
-  lardataobj_RawData
-  lardataobj_RecoBase
-  lardataobj_AnalysisBase
+cet_build_plugin(
+  ParticleIdValidationPlots art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::ParticleID_Algorithms
+  ubobj::UBXSec
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
   nusimdata::SimulationBase
-  ubraw_RawData
-  art::Framework_Core
-  art::Framework_Principal
-  art::Framework_Services_Registry
-  art::Persistency_Common
-  art::Utilities
-  canvas::canvas
-  messagefacility::MF_MessageLogger
-  fhiclcpp::fhiclcpp
-  cetlib::cetlib
-  ROOT::Geom
-  ROOT::XMLIO
-  ROOT::Gdml
-  )   
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  ParticleId art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::ParticleID_Algorithms
+  larana::ParticleIdentification
+  larana::TruncatedMean_Algorithm
+  larreco::RecoAlg
+  lardata::Utilities
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+)
 
 ### install_headers()
 install_fhicl()

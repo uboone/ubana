@@ -1,100 +1,74 @@
-add_subdirectory(job)
-
-art_make( 
-	  LIB_LIBRARIES
-			larevt_CalibrationDBI_IOVData
-			ubevt_Utilities
-			larcorealg_Geometry
-                        larcore_Geometry_Geometry_service
-                        larsim_Simulation lardataobj_Simulation
-                        lardataobj_RawData
-                        lardataobj_RecoBase
-                        lardataobj_AnalysisBase
-                        lardata_ArtDataHelper
-                        lardata_Utilities
-                        larreco_RecoAlg_ClusterRecoUtil
-                        larreco_RecoAlg
-                        larreco_ClusterFinder
-                        larreco_Calorimetry
-                        PANDORASDK
-                        PANDORAMONITORING
-                        nusimdata::SimulationBase
-                        art::Framework_Core
-                        art::Framework_Principal
-                        art::Framework_Services_Registry
-                        art::Persistency_Common
-                        art::Persistency_Provenance
-                        art::Utilities
-                        canvas::canvas
-                        messagefacility::MF_MessageLogger
-                        fhiclcpp::fhiclcpp
-                        cetlib::cetlib
-                        cetlib_except::cetlib_except
-                        Boost::filesystem
-                        ROOT::Geom
-	  TOOL_LIBRARIES
-			larevt_CalibrationDBI_IOVData
-			ubevt_Utilities	
-			larcorealg_Geometry
-                        larcore_Geometry_Geometry_service
-                        larsim_Simulation lardataobj_Simulation
-                        lardataobj_RawData
-                        lardataobj_RecoBase
-                        lardataobj_AnalysisBase
-                        lardata_ArtDataHelper
-                        lardata_Utilities
-                        larreco_RecoAlg_ClusterRecoUtil
-                        larreco_RecoAlg
-                        larreco_ClusterFinder
-                        larreco_Calorimetry
-                        PANDORASDK
-                        PANDORAMONITORING
-                        nusimdata::SimulationBase
-                        art::Framework_Core
-                        art::Framework_Principal
-                        art::Framework_Services_Registry
-                        art::Persistency_Common
-                        art::Persistency_Provenance
-                        art::Utilities
-                        canvas::canvas
-                        messagefacility::MF_MessageLogger
-                        fhiclcpp::fhiclcpp
-                        cetlib::cetlib
-                        cetlib_except::cetlib_except
-                        Boost::filesystem
-                        ROOT::Geom
-                        ubreco_SelectionTool_OpT0FinderBase
-                        ubreco_SelectionTool_OpT0FinderAlgorithms
-
-     MODULE_LIBRARIES 
-			larevt_CalibrationDBI_IOVData
-			#larpandora_LArPandoraEventBuilding
-			art::Framework_Core
-			art::Framework_Services_Registry
-			art::Framework_Principal
-			art::Persistency_Provenance
-			art::Framework_Core
-			larcorealg_Geometry	
-			lardataobj_RecoBase
-		   	larcorealg_Geometry		
-			#larpandora_LArPandoraObjects
-                        #LArPandoraContent
-                        #larpandoraobj
-            		PANDORASDK
-			larcore_Geometry_Geometry_service	
-			art::Utilities
-                        canvas::canvas
-                        messagefacility::MF_MessageLogger
-                        cetlib::cetlib
-                        cetlib_except::cetlib_except
-		   	art::Framework_Services_Registry
-                        ubreco_SelectionTool_OpT0FinderBase
-                        ubreco_SelectionTool_OpT0FinderAlgorithms
-                        art_root_io::tfile_support
-			art_root_io::TFileService_service
-                        ROOT::Core
-                        ROOT::Tree
+cet_build_plugin(
+  ACPTTrigFlashMatch art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubreco::LLSelectionTool_OpT0Finder_Base
+  larpandora::LArPandoraInterface
+  lardata::Utilities
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
 )
+
+cet_build_plugin(
+  CosmicRejection art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubreco::LLSelectionTool_OpT0Finder_Base
+  larpandora::LArPandoraInterface
+  lardata::Utilities
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  MuCSFlashMatch art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubreco::LLSelectionTool_OpT0Finder_Base
+  larpandora::LArPandoraInterface
+  lardata::Utilities
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_make_library(
+  LIBRARY_NAME FlashMatchingToolBase INTERFACE
+  SOURCE FlashMatchingToolBase_tool.h
+  LIBRARIES
+  INTERFACE
+  ubreco::LLSelectionTool_OpT0Finder_Base
+  larpandora::LArPandoraInterface
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_write_plugin_builder(
+  uboone_tool::FlashMatchingToolBase art::tool Modules
+  INSTALL_BUILDER
+  LIBRARIES CONDITIONAL
+  ubana::FlashMatchingToolBase
+)
+
+include(uboone_tool::FlashMatchingToolBase)
+
+cet_build_plugin(
+  FlashMatchingTool uboone_tool::FlashMatchingToolBase
+  LIBRARIES
+  PRIVATE
+  ubobj::DataOverlay
+  ubevt::Database
+  larevt::PmtGainService
+)
+
+add_subdirectory(job)
 
 install_headers()
 install_fhicl()

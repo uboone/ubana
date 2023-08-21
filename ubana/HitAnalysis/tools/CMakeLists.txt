@@ -1,32 +1,46 @@
+cet_make_library(
+  LIBRARY_NAME IHitEfficiencyHistogramTool INTERFACE
+  SOURCE IHitEfficiencyHistogramTool.h
+  LIBRARIES
+  INTERFACE
+  art_root_io::TFileService_service
+)
 
-cet_enable_asserts()
+cet_write_plugin_builder(
+  uboone_tool::IHitEfficiencyHistogramTool art::tool Modules
+  INSTALL_BUILDER
+  LIBRARIES CONDITIONAL
+  ubana::IHitEfficiencyHistogramTool
+)
 
-include_directories($ENV{EIGEN_INC})
+include(uboone_tool::IHitEfficiencyHistogramTool)
 
-art_make( TOOL_LIBRARIES lardataobj_RecoBase
-                         lardataobj_Simulation
-                         nusimdata::SimulationBase
-                         larcorealg_Geometry
-                         larcore_Geometry_Geometry_service
-                         lardata_RecoObjects
-                         lardata_Utilities
-                         art::Framework_Core
-                         art::Framework_Principal
-                         art::Framework_Services_Registry
-                         art_root_io::tfile_support ROOT::Core
-                         art_root_io::TFileService_service
-                         art::Framework_Services_Optional_RandomNumberGenerator_service
-                         art::Persistency_Common
-                         art::Persistency_Provenance
-                         art::Utilities
-                         canvas::canvas
-                         messagefacility::MF_MessageLogger
-                         fhiclcpp::fhiclcpp
-                         cetlib::cetlib
-                         cetlib_except::cetlib_except
-                         Boost::filesystem
-                         CLHEP::CLHEP
-        )
+cet_build_plugin(
+  ShowerHitEfficiencyAnalysis uboone_tool::IHitEfficiencyHistogramTool
+  LIBRARIES
+  PRIVATE
+  larevt::ChannelStatusService
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  TrackHitEfficiencyAnalysis uboone_tool::IHitEfficiencyHistogramTool
+  LIBRARIES
+  PRIVATE
+  larevt::ChannelStatusService
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  lardataobj::Simulation
+  nusimdata::SimulationBase
+  Eigen3::Eigen
+  ROOT::Tree
+)
 
 install_headers()
 install_source()

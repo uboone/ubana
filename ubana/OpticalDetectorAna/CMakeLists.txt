@@ -1,47 +1,60 @@
+cet_make_library(
+  SOURCE
+  OpDetWaveformAna.cxx
+  LIBRARIES
+  PUBLIC
+  larana::OpticalDetector_OpHitFinder
+)
 
-art_make( BASENAME_ONLY
-	  LIBRARY_NAME  ubana_OpticalDetectorAna
-	  LIB_LIBRARIES
-			larana_OpticalDetector
-			larana_OpticalDetector_OpHitFinder
+cet_build_plugin(
+  FlashTrigger art::EDFilter
+  LIBRARIES
+  PRIVATE
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
+cet_build_plugin(
+  OpDigitSaturationCorrection art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubcore::Geometry_UBOpReadoutMap_service
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
-	  MODULE_LIBRARIES larcorealg_Geometry
-	  	        larcore_Geometry_Geometry_service
-		        lardata_Utilities
-	                ubcore_Geometry
-			ubcore::UBOpReadoutMap_service
-			larana_OpticalDetector
-                        lardataobj_RawData
-			lardataobj_RecoBase
-			larsim_Simulation nug4::ParticleNavigation lardataobj_Simulation
-			nusimdata::SimulationBase
-			larsim_PhotonPropagation
-			ubana_OpticalDetectorAna
-                        art::Framework_Core
-			art::Framework_IO_Sources
-                        art::Framework_Principal
-                        art::Framework_Services_Registry
-                        art_root_io::tfile_support ROOT::Core
-                        art_root_io::TFileService_service
-                        art::Persistency_Common
-                        art::Persistency_Provenance
-                        art::Utilities
-                        canvas::canvas
-                        messagefacility::MF_MessageLogger
-                        fhiclcpp::fhiclcpp
-                        cetlib::cetlib
-                        cetlib_except::cetlib_except
-                        ROOT::Geom
-                        ROOT::XMLIO
-                        ROOT::Gdml
-                        ROOT::Tree
-			nusimdata::SimulationBase
-        )
+cet_build_plugin(
+  SimpleFlashFinder art::EDProducer
+  LIBRARIES
+  PRIVATE
+  lardataobj::RecoBase
+)
+
+cet_build_plugin(
+  UBBasicOpticalAna art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::OpticalDetectorAna
+  lardata::DetectorClocksService
+  larcore::ServiceUtil
+  lardataobj::RawData
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+add_subdirectory(job)
+add_subdirectory(OpticalSubEvents)
+add_subdirectory(DLPMTPreCuts)
 
 install_headers()
 install_source()
 install_fhicl()
-add_subdirectory(job)
-add_subdirectory(OpticalSubEvents)
-add_subdirectory(DLPMTPreCuts)

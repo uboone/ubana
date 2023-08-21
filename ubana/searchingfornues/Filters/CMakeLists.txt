@@ -1,44 +1,22 @@
+cet_build_plugin(
+  CommonOpticalFilter art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubobj::Optical
+  lardataobj::MCBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
-#add_subdirectory(SelectionTools)
-#add_subdirectory(AnalysisTools)
-#add_subdirectory(job)
-
-art_make( MODULE_LIBRARIES larcorealg_Geometry
-                           larcore_Geometry_Geometry_service
-                           larsim_Simulation nug4::ParticleNavigation
-                           lardataobj_Simulation
-			   lardataobj_RecoBase
-			   lardataobj_MCBase	
-                           lardata_Utilities
-			   nusimdata::SimulationBase
-                           larevt_Filters
-                           larsim_MCCheater_BackTrackerService_service
-                           larsim_MCCheater_ParticleInventoryService_service
-                           lardataobj_RawData
-                           larevt_CalibrationDBI_Providers
-                           nurandom::RandomUtils_NuRandomService_service
-                           art::Framework_Core
-                           art::Framework_Principal
-                           art::Framework_Services_Registry
-                           art::Framework_Services_Optional_RandomNumberGenerator_service
-                           art::Persistency_Common
-                           art::Persistency_Provenance
-                           art::Utilities
-                           art_root_io::TFileService_service
-                           art_root_io::tfile_support
-                           canvas::canvas
-                           messagefacility::MF_MessageLogger
-                           fhiclcpp::fhiclcpp
-                           cetlib::cetlib
-                           cetlib_except::cetlib_except
-                           CLHEP::CLHEP
-                           ROOT::Geom
-                           ROOT::XMLIO
-                           ROOT::Gdml
-                           ROOT::Tree
-            		   PANDORASDK
-			   larpandora_LArPandoraInterface
-        )
+cet_build_plugin(
+  TruthFilter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  lardataobj::MCBase
+  larcore::Geometry_Geometry_service
+  nusimdata::SimulationBase
+)
 
 install_headers()
 install_fhicl()

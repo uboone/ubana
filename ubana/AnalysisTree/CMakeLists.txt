@@ -1,45 +1,24 @@
-add_subdirectory(ObjectTrees)
+cet_build_plugin(
+  AnalysisTree art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubobj::Trigger
+  larpandora::LArPandoraInterface
+  larreco::RecoAlg
+  larevt::SpaceChargeService
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+)
 
+add_subdirectory(ObjectTrees)
 add_subdirectory(MCTruth)
 
-art_make( MODULE_LIBRARIES larcorealg_Geometry
-			               larcore_Geometry_Geometry_service
-                           larsim_Simulation
-                           nug4::ParticleNavigation
-                           lardataobj_Simulation
-	                       lardata_Utilities
-			               larevt_Filters
-                                       lardataalg_DetectorInfo
-			               lardataobj_RawData
-			               lardataobj_RecoBase
-			               lardata_RecoObjects
-			               larreco_RecoAlg
-			               larpandora_LArPandoraInterface
-			               ubevt::SignalShapingServiceMicroBooNE_service
-                           nusimdata::SimulationBase
-                           ubraw_RawData
-			               ubobj_Trigger
-			               ubobj_Optical
-                           art::Framework_Core
-			               art::Framework_Principal
-			               art::Framework_Services_Registry
-			               art_root_io::tfile_support ROOT::Core
-			               art_root_io::TFileService_service
-			               art::Persistency_Common
-			               art::Persistency_Provenance
-			               art::Utilities
-                                       canvas::canvas
-			               messagefacility::MF_MessageLogger
-
-	                       fhiclcpp::fhiclcpp
-			               cetlib::cetlib
-                                       cetlib_except::cetlib_except
-                           ROOT::Geom
-                           ROOT::XMLIO
-                           ROOT::Gdml
-
-        )
-
-# install_headers()
 install_fhicl()
 install_source()

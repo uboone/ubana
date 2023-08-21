@@ -1,77 +1,84 @@
-art_make( BASENAME_ONLY
+cet_make_library(
+  SOURCE
+  DetectorObjects.cxx
+  EnergyHelper.cxx
+  FillTreeVariables.cxx
+  GeometryHelper.cxx
+  ParticleAssociations.cxx
+  RecoMCMatching.cxx
+  RecoTrueHelper.cxx
+  SimchInfo.cxx
+  VertexBuilder.cxx
+  VertexQuality.cxx
+  LIBRARIES
+  PUBLIC
+  ubcore::LLBasicTool_GeoAlgo
+  ubobj::Trigger
+  larpandora::LArPandoraInterface
+  larsim::EventWeight_Base
+  larsim::MCCheater_ParticleInventoryService_service
+  larevt::DetPedestalService
+  lardata::Utilities
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  nusimdata::SimulationBase
+  art::Framework_Principal
+  art_root_io::TFileService_service
+  nug4::ParticleNavigation
+  ROOT::Tree
+)
 
-	  EXCLUDE
-			plotMV4.C
-			plotsupimp.C
+cet_build_plugin(
+  GENIETest art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
-          LIB_LIBRARIES
-			ubraw_RawData
-			ubobj_Trigger
-                        larcorealg_Geometry
-                        larcore_Geometry_Geometry_service
-			ubcore::ubana_BasicTool_GeoAlgo
-                        lardata_Utilities
-                        larevt_Filters
-                        lardataalg_DetectorInfo
-                        lardataobj_RawData
-			lardataobj_RecoBase
-			larcoreobj_SummaryData
-			larsim_MCCheater_BackTrackerService_service
-			larsim_MCCheater_ParticleInventoryService_service
-			larpandora_LArPandoraInterface
-			nusimdata::SimulationBase
-			Boost::serialization
-                        nurandom::RandomUtils_NuRandomService_service
-                        art::Framework_Core
-                        art::Framework_Principal
-                        art::Framework_Services_Registry
-                        art_root_io::tfile_support ROOT::Core
-                        art::Framework_Services_Optional_RandomNumberGenerator_service
-                        art_root_io::TFileService_service
-                        art::Persistency_Common
-                        art::Persistency_Provenance
-                        art::Utilities
-                        canvas::canvas
-                        messagefacility::MF_MessageLogger
-                        fhiclcpp::fhiclcpp
-			cetlib::cetlib
-                        cetlib_except::cetlib_except
-                        CLHEP::CLHEP
+cet_build_plugin(
+  LEEPhotonAnalysis art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::LEEPhotonAnalysis
+  lardata::DetectorPropertiesService
+  lardataobj::AnalysisBase
+)
 
+cet_build_plugin(
+  NCDeltaRadiative art::EDFilter
+  LIBRARIES
+  PRIVATE
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
-          MODULE_LIBRARIES
-			ubraw_RawData
-                        larcorealg_Geometry
-                        larcore_Geometry_Geometry_service
-			ubcore::ubana_BasicTool_GeoAlgo
-                        lardata_Utilities
-                        larevt_Filters
-                        lardataobj_RawData
-			lardataobj_RecoBase
-			larcoreobj_SummaryData
-			larsim_MCCheater_BackTrackerService_service
-			larpandora_LArPandoraInterface
-			nusimdata::SimulationBase
-			ubana_LEEPhotonAnalysis
-			Boost::serialization
-                        nurandom::RandomUtils_NuRandomService_service
-                        art::Framework_Core
-                        art::Framework_Principal
-                        art::Framework_Services_Registry
-                        art_root_io::tfile_support ROOT::Core
-                        art::Framework_Services_Optional_RandomNumberGenerator_service
-                        art_root_io::TFileService_service
-                        art::Persistency_Common
-                        art::Persistency_Provenance
-                        art::Utilities
-                        canvas::canvas
-                        messagefacility::MF_MessageLogger
-                        fhiclcpp::fhiclcpp
-			cetlib::cetlib
-                        cetlib_except::cetlib_except
-                        CLHEP::CLHEP
+cet_build_plugin(
+  RecoTrueTest art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::LEEPhotonAnalysis
+  larsim::MCCheater_BackTrackerService_service
+  lardata::DetectorClocksService
+)
 
-        )
+cet_build_plugin(
+  SignalFilter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  nusimdata::SimulationBase
+)
+
+cet_build_plugin(
+  flash art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
 add_subdirectory(job)
 

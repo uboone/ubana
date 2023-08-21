@@ -1,63 +1,44 @@
-art_make(BASENAME_ONLY
-         LIBRARY_NAME uboonecode_uboone_NCElastic
-         LIB_LIBRARIES
-           uboonecode_uboone_XGBoost
-	  	     larcorealg_Geometry
-		       larcore_Geometry_Geometry_service
-		       lardataobj_RecoBase
-           lardataobj_AnalysisBase
-           lardata_Utilities
-			     larreco_RecoAlg
-			     larpandora_LArPandoraInterface
-           larsim_Simulation lardataobj_Simulation
-           nusimdata::SimulationBase
-		       art::Persistency_Common
-		       art::Persistency_Provenance
-		       art::Utilities
-                       canvas::canvas
-		       art::Framework_Core
-		       art::Framework_Principal
-		       art::Framework_Services_Registry
-		       art_root_io::tfile_support ROOT::Core
-		       art_root_io::TFileService_service
-		       messagefacility::MF_MessageLogger
-		       fhiclcpp::fhiclcpp
-		       cetlib::cetlib
-                       cetlib_except::cetlib_except
-		       ROOT::Geom
-		       ROOT::XMLIO
-		       ROOT::Gdml
+cet_build_plugin(
+  DecisionTreeID art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::NCElastic_Algorithms
+  ubana::XGBoost
+  lardata::Utilities
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
-         MODULE_LIBRARIES
-           uboonecode_uboone_XGBoost
-           uboonecode_uboone_NCElasticAlgorithms
-	  	     larcorealg_Geometry
-		       larcore_Geometry_Geometry_service
-		       lardataobj_RecoBase
-           lardataobj_AnalysisBase
-           lardata_Utilities
-			     larreco_RecoAlg
-			     larpandora_LArPandoraInterface
-           larsim_Simulation lardataobj_Simulation
-           nusimdata::SimulationBase
-		       art::Persistency_Common
-		       art::Persistency_Provenance
-		       art::Utilities
-                       canvas::canvas
-		       art::Framework_Core
-		       art::Framework_Principal
-		       art::Framework_Services_Registry
-		       art_root_io::tfile_support ROOT::Core
-		       art_root_io::TFileService_service
-		       messagefacility::MF_MessageLogger
-		       fhiclcpp::fhiclcpp
-		       cetlib::cetlib
-                       cetlib_except::cetlib_except
-		       ROOT::Geom
-		       ROOT::XMLIO
-		       ROOT::Gdml
+cet_build_plugin(
+  QEEventSelectionFilter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  ubana::NCElastic_Algorithms
+  larsim::EventWeight_Base
+  lardata::Utilities
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
-		    )
+cet_build_plugin(
+  QEEventSelection art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::NCElastic_Algorithms
+  larsim::EventWeight_Base
+  lardata::Utilities
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
 
 install_headers()
 install_fhicl()

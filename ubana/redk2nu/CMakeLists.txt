@@ -1,44 +1,13 @@
-art_make(LIB_LIBRARIES
-            larcoreobj_SummaryData
-            lardataobj_Simulation
-            nusimdata::SimulationBase
-            art::Framework_Core
-            art::Framework_Principal
-            art::Framework_Services_Registry
-            art::Persistency_Common
-            art::Persistency_Provenance
-            art::Utilities
-            canvas::canvas
-            cetlib::cetlib
-            cetlib_except::cetlib_except
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            ${ROOT_BASIC_LIB_LIST}
-            dk2nu::Tree
-            dk2nu::Genie
-      MODULE_LIBRARIES
-            larcoreobj_SummaryData
-            lardataobj_Simulation
-            nusimdata::SimulationBase
-            art::Framework_Core  
-            art::Framework_Principal
-            art::Framework_Services_Registry
-            art::Persistency_Common
-            art::Persistency_Provenance
-            art::Utilities
-            canvas::canvas
-            cetlib::cetlib
-            cetlib_except::cetlib_except
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            ${ROOT_BASIC_LIB_LIST}
-            dk2nu::Tree
-            dk2nu::Genie
-            )
-
-#add_subdirectory(job)
+cet_build_plugin(
+  ReDk2Nu art::EDProducer
+  LIBRARIES
+  PRIVATE
+  lardata::Utilities
+  nusimdata::SimulationBase
+  dk2nu::Tree
+  ROOT::Tree
+)
 
 install_headers()
 install_fhicl()
 install_source()
-

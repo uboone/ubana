@@ -1,8 +1,9 @@
-art_make( LIB_LIBRARIES
-				 lardataobj_RecoBase
-				 larcorealg_Geometry
-				 lardataalg_DetectorInfo
-                                 fhiclcpp::fhiclcpp
-                                 cetlib::cetlib
-                                 cetlib_except::cetlib_except
+cet_make_library(
+  SOURCE
+  AnodeCathodePMAlg.cxx
+  LIBRARIES
+  PUBLIC
+  lardataalg::DetectorInfo
+  larcorealg::Geometry
+  fhiclcpp::fhiclcpp
 )

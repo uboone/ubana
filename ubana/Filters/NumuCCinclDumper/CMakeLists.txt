@@ -1,107 +1,29 @@
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-cet_add_compiler_flags(CXX -Wno-dynamic-exception-spec -Wno-return-type-c-linkage -Wno-undefined-var-template )
-endif()
-
-art_make( 
-          EXCLUDE
-            ConsolidatedOutputAnalyserAllTracks_module.cc
-          # Needed for standalone c++ helper files
-          LIB_LIBRARIES 
-            PID
-            BackTrack
-          # Needed for the main module          
-          MODULE_LIBRARIES
-            PID
-            BackTrack
-                        larpandora_LArPandoraInterface
-                        larcorealg_Geometry
-                        larreco_RecoAlg
-                        larcore_Geometry_Geometry_service
-                        larsim_Simulation lardataobj_Simulation
-                        lardataobj_RawData
-                        lardataobj_RecoBase
-                        lardataobj_AnalysisBase
-                        lardata_Utilities
-                        nusimdata::SimulationBase
-                        art::Framework_Core
-			            art::Framework_Principal
-			            art::Framework_Services_Registry
-			            art::Framework_Services_Registry
-			            art::Persistency_Common
-			            art::Persistency_Provenance
-			            art::Utilities
-                        canvas::canvas
-			            messagefacility::MF_MessageLogger
-	                    fhiclcpp::fhiclcpp
-			            cetlib::cetlib
-                                    cetlib_except::cetlib_except
-                        NuCCHelpers
-          )
-
-art_make_library(
-   LIBRARY_NAME
-       PID
-   SOURCE
-       PID.cxx
-   LIBRARIES
-       lardataobj_RawData
-       larcorealg_Geometry
-       larcore_Geometry_Geometry_service
-       art::Persistency_Common
-       art::Persistency_Provenance
-       art::Utilities
-       art_root_io::TFileService_service
-       canvas::canvas
-       lardataobj_RecoBase
-       lardataobj_AnalysisBase
-       lardata_Utilities
-       larpandora_LArPandoraEventBuilding
-       LArPandoraContent
-       larpandora_LArPandoraInterface
-       nusimdata::SimulationBase
-       LArPandoraContent
-       cetlib::cetlib
-       cetlib_except::cetlib_except
-       ROOT::Geom
-		   ROOT::XMLIO
-		   ROOT::Gdml
-       ROOT::EG
+cet_make_library(
+  SOURCE
+  BackTrackerTruthMatch.cxx
+  PID.cxx
+  LIBRARIES
+  PUBLIC
+  lardataobj::RecoBase
+  nusimdata::SimulationBase
+  art::Framework_Principal
+  art_root_io::TFileService_service
+  messagefacility::MF_MessageLogger
+  ROOT::Core
 )
 
-art_make_library(
-   LIBRARY_NAME
-       BackTrack
-   SOURCE
-       BackTrackerTruthMatch.cxx
-   LIBRARIES
-       lardataobj_RawData
-       larcorealg_Geometry
-       larcore_Geometry_Geometry_service
-       art::Framework_Core
-       art::Framework_IO_Sources
-       art::Framework_Principal
-       art::Persistency_Common
-       art::Persistency_Provenance
-       art::Utilities
-       canvas::canvas
-       lardataobj_RecoBase
-       lardataobj_AnalysisBase
-       lardata_Utilities
-       larpandora_LArPandoraEventBuilding
-       LArPandoraContent
-       larpandora_LArPandoraInterface
-       nusimdata::SimulationBase
-       LArPandoraContent
-       art::Framework_Services_Registry
-       messagefacility::MF_MessageLogger
-       fhiclcpp::fhiclcpp
-       ROOT::Geom
-       Boost::filesystem
-       cetlib::cetlib
-       cetlib_except::cetlib_except
+cet_build_plugin(
+  NumuCCinklRun3 art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::Filters_NumuCCinclDumper
+  ubana::Filters_NumuCCinclDumper_helpers
+  ubobj::CRT
+  larevt::SpaceChargeService
+  lardata::Utilities
+  nurandom::RandomUtils_NuRandomService_service
+  ROOT::Tree
 )
-
-
 
 add_subdirectory(job)
 add_subdirectory(helpers)

@@ -1,73 +1,34 @@
-art_make( BASENAME_ONLY
-          LIBRARY_NAME     uboonecode_uboone_CosmicTagging
-	  LIB_LIBRARIES
-		   ubcore::ubana_BasicTool_GeoAlgo
-		   ubreco_SelectionTool_OpT0FinderBase
-		   ubreco_SelectionTool_OpT0FinderAlgorithms
-	  	   larcorealg_Geometry
-		   larcore_Geometry_Geometry_service
-                   ubana_CosmicTagging_CosmicTaggingAlgorithms
-                   #Simulation
-		   #Utilities
-		   #TimeService_service
-		   #MCBase
-		   lardataobj_RecoBase
-                   lardataobj_AnalysisBase
-                   lardata_Utilities
-                   larpandora_LArPandoraInterface
-		   art::Framework_Core
-		   art::Framework_Principal
-		   art::Framework_Services_Registry
-		   art_root_io::tfile_support ROOT::Core
-		   art_root_io::TFileService_service
-		   art::Persistency_Common
-		   art::Persistency_Provenance
-		   art::Utilities
-		   messagefacility::MF_MessageLogger
-		   fhiclcpp::fhiclcpp
-		   cetlib::cetlib
-                   cetlib_except::cetlib_except
-		   ROOT::Geom
-		   ROOT::XMLIO
-		   ROOT::Gdml
+cet_build_plugin(
+  CosmicFlashTaggerAna art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larpandora::LArPandoraInterface
+  larsim::MCCheater_ParticleInventoryService_service
+  lardata::Utilities
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
-
-          MODULE_LIBRARIES
-                   larsim_MCCheater_ParticleInventoryService_service
-                   larsim_MCCheater_BackTrackerService_service
-		   larpandora_LArPandoraInterface
-		   ubcore::ubana_BasicTool_GeoAlgo
-		   ubreco_SelectionTool_OpT0FinderBase
-		   ubreco_SelectionTool_OpT0FinderAlgorithms
-                   ubana_CosmicTagging_CosmicTaggingAlgorithms
-	  	   larcorealg_Geometry
-		   larcore_Geometry_Geometry_service
-		   lardataobj_RecoBase
-                   lardataobj_AnalysisBase
-                   lardata_Utilities
-                   larsim_Simulation lardataobj_Simulation
-                   nusimdata::SimulationBase
-		   art::Framework_Core
-		   art::Framework_Principal
-		   art::Framework_Services_Registry
-		   art_root_io::tfile_support ROOT::Core
-		   art_root_io::TFileService_service
-		   art::Persistency_Common
-		   art::Persistency_Provenance
-		   art::Utilities
-		   messagefacility::MF_MessageLogger
-		   fhiclcpp::fhiclcpp
-		   cetlib::cetlib
-                   cetlib_except::cetlib_except
-		   ROOT::Geom
-		   ROOT::XMLIO
-		   ROOT::Gdml
-                   ROOT::Tree
-		)
-
-# install_headers()
-install_fhicl()
-install_source()
+cet_build_plugin(
+  CosmicFlashTagger art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::CosmicTagging_Algo
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
+  larpandora::LArPandoraInterface
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
 add_subdirectory(Algo)
 add_subdirectory(job)
+
+install_fhicl()
+install_source()

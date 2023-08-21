@@ -1,51 +1,24 @@
-# basic source code CMakeLists.txt
-
-
-art_make(BASENAME_ONLY
-	LIBRARY_NAME TPCNeutrinoIDAlgs
-	LIB_LIBRARIES
-		     lardataobj_RecoBase
-		     lardataobj_AnalysisBase
-		     larcorealg_Geometry
-		     larcore_Geometry_Geometry_service
-		     lardata_Utilities
-		     art::Framework_Core
-		     art::Framework_Principal
-		     art::Framework_Services_Registry
-		     art_root_io::tfile_support ROOT::Core
-		     art_root_io::TFileService_service
-		     art::Persistency_Common
-		     art::Persistency_Provenance
-		     art::Utilities
-                     canvas::canvas
-		     messagefacility::MF_MessageLogger
-		     fhiclcpp::fhiclcpp
-		     cetlib::cetlib
-                     cetlib_except::cetlib_except
-
-
-	MODULE_LIBRARIES
-		     lardataobj_RecoBase
-		     lardataobj_AnalysisBase
-		     larcorealg_Geometry
-		     larcore_Geometry_Geometry_service
-		     lardata_Utilities
-		     art::Framework_Core
-		     art::Framework_Principal
-		     art::Framework_Services_Registry
-		     art_root_io::tfile_support ROOT::Core
-		     art_root_io::TFileService_service
-		     art::Persistency_Common
-		     art::Persistency_Provenance
-		     art::Utilities
-                     canvas::canvas
-		     messagefacility::MF_MessageLogger
-		     fhiclcpp::fhiclcpp
-		     cetlib::cetlib
-                     cetlib_except::cetlib_except
-
-
-         )
+cet_make_library(
+  SOURCE
+  AltNuMuCCInclusiveAlg.cxx
+  ChargedTrackMultiplicityAlg.cxx
+  Cluster2DNuAlg.cxx
+  ModNuMuCCInclusiveAlg.cxx
+  NeutrinoIDAlgFactory.cxx
+  NuMuCCInclusiveAlg.cxx
+  NuMuCCSelectionIIAlg.cxx
+  NuMuCCSelectionIIAlgMCC7.cxx
+  TrackPairPlusVertexAlg.cxx
+  LIBRARIES
+  PUBLIC
+  lardata::DetectorPropertiesService
+  larcore::ServiceUtil
+  larcorealg::Geometry
+  lardataobj::RecoBase
+  art::Framework_Services_Registry
+  art_root_io::TFileService_service
+  fhiclcpp::fhiclcpp
+)
 
 install_headers()
 install_source()

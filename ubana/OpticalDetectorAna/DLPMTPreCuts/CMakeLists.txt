@@ -1,35 +1,23 @@
-# Either set these here or set environment variables
+cet_make_library(
+  SOURCE
+  LEEPreCutAlgo.cxx
+  LIBRARIES
+  PUBLIC
+)
 
-#include_directories ( $ENV{DLPMTPRECUTALGO_INCDIR} )
-#find_library( DLPMTPRECUTALGO_LIBBASE NAMES LEEPreCutAlgo PATHS $ENV{DLPMTPRECUTALGO_LIBDIR} )
+cet_build_plugin(
+  DLPMTPreCuts art::EDFilter
+  LIBRARIES
+  PRIVATE
+  ubana::OpticalDetectorAna_DLPMTPreCuts
+  ubevt::Database
+  ubobj::Optical
+  larevt::CalibrationDBI_IOVData
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+)
 
 add_subdirectory(fcl)
-
-art_make_library( LIBRARY_NAME uboone_LEEPreCutAlgo
-		  SOURCE LEEPreCutAlgo.cxx
-		)
-
-
-simple_plugin( DLPMTPreCuts "module"
-	       uboone_LEEPreCutAlgo
-	       lardataobj_RecoBase
-               larcore_Geometry_Geometry_service
-               larcorealg_Geometry
-	       ubobj_Optical
-	       art::Framework_Core
-	       art::Framework_IO_Sources
-               art::Framework_Principal
-               art::Framework_Services_Registry
-               art_root_io::tfile_support ROOT::Core
-               art_root_io::TFileService_service
-               art::Persistency_Common
-               art::Persistency_Provenance
-               art::Utilities
-               canvas::canvas
-	       #${DLPMTPRECUTALGO_LIBBASE}
-
-               BASENAME_ONLY
-             )
 
 install_fhicl()
 install_headers()

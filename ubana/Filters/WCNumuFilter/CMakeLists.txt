@@ -1,28 +1,17 @@
-
-art_make( MODULE_LIBRARIES larcorealg_Geometry
-	nusimdata::SimulationBase
-	lardataobj_Simulation
-	lardataobj_RecoBase
-	lardataobj_AnalysisBase
-	larcoreobj_SummaryData
-	larpandora_LArPandoraInterface
-	ubobj_WcpPort
-	art::Framework_Core
-	art::Framework_Principal
-	art::Framework_Services_Registry
-	art::Persistency_Common 
-	art::Persistency_Provenance
-	art::Utilities
-        art_root_io::TFileService_service
-	canvas::canvas
-	messagefacility::MF_MessageLogger
-	fhiclcpp::fhiclcpp
-	cetlib::cetlib
-        cetlib_except::cetlib_except
-	ROOT::Geom
-	ROOT::XMLIO
-	ROOT::Gdml
-	ROOT::EG
+cet_build_plugin(
+  WCNumuFilter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  ubobj::WcpPort
+  larpandora::LArPandoraInterface
+  larevt::SpaceChargeService
+  lardata::DetectorPropertiesService
+  lardata::DetectorClocksService
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
 )
 
 install_fhicl()
