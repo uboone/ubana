@@ -2,7 +2,7 @@ cet_build_plugin(
   MuCSGainAna art::EDProducer
   LIBRARIES
   PRIVATE
-  ubreco::LLSelectionTool_OpT0Finder_Base
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
   ubcore::Geometry
   lardata::DetectorPropertiesService
   larcore::Geometry_Geometry_service

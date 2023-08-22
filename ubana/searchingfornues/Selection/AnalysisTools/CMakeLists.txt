@@ -112,7 +112,7 @@ cet_build_plugin(
   FlashMatching uboone_tool::AnalysisToolBase
   LIBRARIES
   PRIVATE
-  ubreco::LLSelectionTool_OpT0Finder_Base
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
   ubevt::Utilities
   ubobj::CRT
   larpandora::LArPandoraInterface
@@ -174,7 +174,7 @@ cet_build_plugin(
   ObviousCosmicFlashMatching uboone_tool::AnalysisToolBase
   LIBRARIES
   PRIVATE
-  ubreco::LLSelectionTool_OpT0Finder_Base
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
   ubevt::Database
   ubobj::CRT
   larpandora::LArPandoraInterface

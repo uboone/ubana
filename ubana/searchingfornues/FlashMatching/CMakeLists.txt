@@ -2,7 +2,7 @@ cet_build_plugin(
   ACPTTrigFlashMatch art::EDAnalyzer
   LIBRARIES
   PRIVATE
-  ubreco::LLSelectionTool_OpT0Finder_Base
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
   larpandora::LArPandoraInterface
   lardata::Utilities
   lardataobj::RecoBase
@@ -15,7 +15,7 @@ cet_build_plugin(
   CosmicRejection art::EDProducer
   LIBRARIES
   PRIVATE
-  ubreco::LLSelectionTool_OpT0Finder_Base
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
   larpandora::LArPandoraInterface
   lardata::Utilities
   lardataobj::RecoBase
@@ -28,7 +28,7 @@ cet_build_plugin(
   MuCSFlashMatch art::EDAnalyzer
   LIBRARIES
   PRIVATE
-  ubreco::LLSelectionTool_OpT0Finder_Base
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
   larpandora::LArPandoraInterface
   lardata::Utilities
   lardataobj::RecoBase
@@ -42,7 +42,7 @@ cet_make_library(
   SOURCE FlashMatchingToolBase_tool.h
   LIBRARIES
   INTERFACE
-  ubreco::LLSelectionTool_OpT0Finder_Base
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
   larpandora::LArPandoraInterface
   larcore::Geometry_Geometry_service
   lardataobj::RecoBase

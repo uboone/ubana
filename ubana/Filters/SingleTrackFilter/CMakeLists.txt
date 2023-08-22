@@ -3,7 +3,7 @@ cet_build_plugin(
   LIBRARIES
   PRIVATE
   ubana::Filters_SingleTrackFilter_helpers
-  ubreco::LLSelectionTool_OpT0Finder_Base
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
   lardataobj::RecoBase
   lardataobj::AnalysisBase
   art_root_io::TFileService_service

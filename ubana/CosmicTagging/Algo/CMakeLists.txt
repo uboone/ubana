@@ -3,7 +3,7 @@ cet_make_library(
   IncompatibilityChecker.cxx
   LIBRARIES
   PUBLIC
-  ubreco::LLSelectionTool_OpT0Finder_Base
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
   fhiclcpp::fhiclcpp
 )
 
