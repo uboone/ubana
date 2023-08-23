@@ -19,6 +19,8 @@
 #include "../CommonDefs/Containment.h"
 #include "../CommonDefs/TrackShowerScoreFuncs.h"
 #include "../CommonDefs/ProximityClustering.h"
+#include "../CommonDefs/Descendents.h"
+#include "../CommonDefs/Scatters.h"
 
 // save info associated to common optical filter
 #include "ubobj/Optical/UbooneOpticalFilter.h"
@@ -101,6 +103,9 @@ private:
   TParticlePDG *electron_neutrino = TDatabasePDG::Instance()->GetParticle(12);
   TParticlePDG *muon_neutrino = TDatabasePDG::Instance()->GetParticle(14);
 
+  //Producers required for the pfp_proxy
+  art::InputTag fPFPproducer;
+
   art::InputTag fCRTVetoproducer; // producer for CRT veto ass tag [anab::T0 <-> recob::OpFlash]
   art::InputTag fCLSproducer;     // cluster associated to PFP
   art::InputTag fMCTproducer;     // MCTruth from neutrino generator
@@ -143,6 +148,8 @@ private:
   float fMuonThreshold;
 
   int _category; // event category
+
+  std::vector<float> _slice_topo_score_v;
 
   float _true_nu_vtx_t, _true_nu_vtx_x, _true_nu_vtx_y, _true_nu_vtx_z;
   float _true_nu_vtx_sce_x, _true_nu_vtx_sce_y, _true_nu_vtx_sce_z;
@@ -245,6 +252,7 @@ private:
   int evnhits;                     // number of hits in event
   int slpdg;                       // PDG code of primary pfp in slice
   int slnhits;                     // number of hits in slice
+  int _slice_id;
   float _topo_score;               /**< topological score of the slice */
   std::vector<int> pfpdg;          // PDG code of pfp in slice
   std::vector<int> pfnhits;        // number of hits in pfp
@@ -262,6 +270,10 @@ private:
   std::vector<uint> _generation;    // generation, 1 is primary
   std::vector<uint> _shr_daughters; // number of shower daughters
   std::vector<uint> _trk_daughters; // number of track daughters
+  std::vector<uint> _n_descendents; // number of descendents (daughters + granddaughters + ...)
+  std::vector<float> _pfp_vtx_x;    // x position of particle vertex
+  std::vector<float> _pfp_vtx_y;    // y position of particle vertex
+  std::vector<float> _pfp_vtx_z;    // z position of particle vertex
 
   unsigned int _n_pfps;
   std::vector<float> _trk_score_v;
@@ -274,10 +286,13 @@ private:
 
   std::vector<int> _mc_pdg;
   std::vector<float> _mc_E;
+  std::vector<uint> _mc_n_elastic; // number of elastic scatters
+  std::vector<uint> _mc_n_inelastic; // number of inelastic scatters
 
   std::vector<float> _mc_px;
   std::vector<float> _mc_py;
   std::vector<float> _mc_pz;
+  std::vector<float> _mc_end_p; // final particle momentum 
 
   std::vector<float> _mc_vx;
   std::vector<float> _mc_vy;
@@ -307,6 +322,7 @@ private:
 ///
 DefaultAnalysis::DefaultAnalysis(const fhicl::ParameterSet &p)
 {
+  fPFPproducer = p.get<art::InputTag>("PFPproducer");
   fCRTVetoproducer = p.get<art::InputTag>("CRTVetoproducer", ""); // default is no CRT veto
   fCLSproducer = p.get<art::InputTag>("CLSproducer");
   fMCTproducer = p.get<art::InputTag>("MCTproducer");
@@ -358,7 +374,63 @@ void DefaultAnalysis::configure(fhicl::ParameterSet const &p)
 void DefaultAnalysis::analyzeEvent(art::Event const &e, bool fData)
 {
   std::cout << "[DefaultAnalysis::analyzeEvent] Run: " << e.run() << ", SubRun: " << e.subRun() << ", Event: " << e.event() << std::endl;
-  
+ 
+  searchingfornues::ProxySliceColl_t const &pfp_proxy = proxy::getCollection<std::vector<recob::PFParticle>>(e, fPFPproducer,
+													     proxy::withAssociated<larpandoraobj::PFParticleMetadata>(fPFPproducer),
+													     proxy::withAssociated<recob::Slice>(fSLCproducer));
+
+  int pfp_slice_id;
+  int temp_pfp_slice_id; //to find the max slice index. used to set the temp slice vector size
+  int max_slice_id = 0;
+  for (const searchingfornues::ProxySliceElem_t &pfp : pfp_proxy)
+  {
+    auto temp_slice_pxy_v = pfp.get<recob::Slice>();
+    if (temp_slice_pxy_v.size() != 0)
+    {
+      temp_pfp_slice_id = temp_slice_pxy_v.at(0)->ID();
+      if (temp_pfp_slice_id > max_slice_id)
+      {
+	max_slice_id = temp_pfp_slice_id;
+      }
+    }
+  }
+
+  std::vector<float> temp_slice_topo_score_v(max_slice_id+1);
+  fill(temp_slice_topo_score_v.begin(), temp_slice_topo_score_v.end(), std::numeric_limits<float>::lowest()); // initialize all slice topo values to 0.i
+
+  for (const searchingfornues::ProxySliceElem_t &pfp : pfp_proxy)
+  {
+    auto metadata_pxy_v = pfp.get<larpandoraobj::PFParticleMetadata>();
+    auto slice_pxy_v = pfp.get<recob::Slice>();
+    if (slice_pxy_v.size() != 0)
+    {
+      pfp_slice_id = slice_pxy_v.at(0)->ID();
+    
+      if (metadata_pxy_v.size() != 0)
+      {
+        for (unsigned int j = 0; j < metadata_pxy_v.size(); ++j)
+        {
+          const art::Ptr<larpandoraobj::PFParticleMetadata> &pfParticleMetadata(metadata_pxy_v.at(j));
+          auto pfParticlePropertiesMap = pfParticleMetadata->GetPropertiesMap();
+          if (!pfParticlePropertiesMap.empty() && temp_slice_topo_score_v.at(pfp_slice_id) == std::numeric_limits<float>::lowest())
+          {
+	    auto it = pfParticlePropertiesMap.begin();
+	    while (it != pfParticlePropertiesMap.end())
+	    {
+              if (it->first == "NuScore")
+  	      {
+	        temp_slice_topo_score_v.at(pfp_slice_id) = pfParticlePropertiesMap.at(it->first);
+	        //continue;
+	      }
+	      it++;
+	    }
+          } // if PFP metadata exists!
+        }
+      }
+    }
+  }
+  _slice_topo_score_v = temp_slice_topo_score_v;
+
   // store common optical filter tag
   if (!fData&&(!fMakeNuMINtuple)) {
     art::Handle<uboone::UbooneOpticalFilter> CommonOpticalFilter_h;
@@ -541,6 +613,8 @@ void DefaultAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem
       slnhits = slicehits.size();
 
       auto metadata_pxy_v = pfp.get<larpandoraobj::PFParticleMetadata>();
+     
+      _slice_id = slice_pxy_v.at(0)->ID();
 
       if (metadata_pxy_v.size() != 0)
       {
@@ -554,7 +628,6 @@ void DefaultAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem
           } // if PFP metadata exists!
         }
       }
-
       // grab vertex
       double xyz[3] = {};
 
@@ -603,6 +676,22 @@ void DefaultAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem
     }
     _shr_daughters.push_back(this_num_shr_d);
     _trk_daughters.push_back(this_num_trk_d);
+    _n_descendents.push_back(searchingfornues::GetNDescendents(particleMap.at(pfp->Self()), particleMap));
+
+    // Get pfp vertex
+    const auto vertices = pfp.get<recob::Vertex>();
+    if(vertices.size() == 1)
+    {
+      _pfp_vtx_x.push_back(vertices.at(0)->position().X());
+      _pfp_vtx_y.push_back(vertices.at(0)->position().Y());
+      _pfp_vtx_z.push_back(vertices.at(0)->position().Z());
+    }
+    else
+    {
+      _pfp_vtx_x.push_back(std::numeric_limits<float>::lowest());
+      _pfp_vtx_y.push_back(std::numeric_limits<float>::lowest());
+      _pfp_vtx_z.push_back(std::numeric_limits<float>::lowest());
+    }
 
     // store track score
     float trkscore = searchingfornues::GetTrackShowerScore(pfp);
@@ -1059,6 +1148,10 @@ void DefaultAnalysis::setBranches(TTree *_tree)
   _tree->Branch("pfp_generation_v", "std::vector< uint >", &_generation);
   _tree->Branch("pfp_trk_daughters_v", "std::vector< uint >", &_trk_daughters);
   _tree->Branch("pfp_shr_daughters_v", "std::vector< uint >", &_shr_daughters);
+  _tree->Branch("pfp_n_descendents_v", "std::vector< uint >", &_n_descendents);
+  _tree->Branch("pfp_vtx_x_v", "std::vector< float >", &_pfp_vtx_x);
+  _tree->Branch("pfp_vtx_y_v", "std::vector< float >", &_pfp_vtx_y);
+  _tree->Branch("pfp_vtx_z_v", "std::vector< float >", &_pfp_vtx_z);
 
   _tree->Branch("trk_score_v", "std::vector< float >", &_trk_score_v);
 
@@ -1077,11 +1170,16 @@ void DefaultAnalysis::setBranches(TTree *_tree)
   _tree->Branch("hits_u", &_hits_u, "hits_u/i");
   _tree->Branch("hits_v", &_hits_v, "hits_v/i");
   _tree->Branch("hits_y", &_hits_y, "hits_y/i");
+  _tree->Branch("slice_id",&_slice_id, "slice_id/i");
+  _tree->Branch("slice_topo_score_v", "std::vector< float >", &_slice_topo_score_v);
   _tree->Branch("topological_score", &_topo_score, "topological_score/F");
   _tree->Branch("slclustfrac", &slclustfrac, "slclustfrac/F");
 
   _tree->Branch("mc_pdg", "std::vector< int >", &_mc_pdg);
   _tree->Branch("mc_E", "std::vector< float >", &_mc_E);
+
+  _tree->Branch("mc_n_elastic", "std::vector< uint >", &_mc_n_elastic);
+  _tree->Branch("mc_n_inelastic", "std::vector< uint >", &_mc_n_inelastic);
 
   _tree->Branch("mc_vx", "std::vector< float >", &_mc_vx);
   _tree->Branch("mc_vy", "std::vector< float >", &_mc_vy);
@@ -1094,6 +1192,8 @@ void DefaultAnalysis::setBranches(TTree *_tree)
   _tree->Branch("mc_px", "std::vector< float >", &_mc_px);
   _tree->Branch("mc_py", "std::vector< float >", &_mc_py);
   _tree->Branch("mc_pz", "std::vector< float >", &_mc_pz);
+
+  _tree->Branch("mc_end_p", "std::vector< float >", &_mc_end_p);
 
   _tree->Branch("mc_completeness", "std::vector< float >", &_mc_completeness);
   _tree->Branch("mc_purity", "std::vector< float >", &_mc_purity);
@@ -1238,7 +1338,9 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
 
   evnhits = std::numeric_limits<int>::lowest();
   slpdg = std::numeric_limits<int>::lowest();
+  _slice_id = std::numeric_limits<int>::lowest();
   _topo_score = std::numeric_limits<float>::lowest();
+  _slice_topo_score_v.clear();
   slnhits = std::numeric_limits<int>::lowest();
   pfpdg.clear();
   pfnhits.clear();
@@ -1254,6 +1356,11 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
   _generation.clear();
   _shr_daughters.clear();
   _trk_daughters.clear();
+  _n_descendents.clear();
+  _pfp_vtx_x.clear();
+  _pfp_vtx_y.clear();
+  _pfp_vtx_z.clear();
+
   slclustfrac = std::numeric_limits<float>::lowest();
 
   _hits_u = 0;
@@ -1261,11 +1368,15 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
   _hits_y = 0;
 
   _mc_E.clear();
+  _mc_n_elastic.clear();
+  _mc_n_inelastic.clear();
   _mc_pdg.clear();
 
   _mc_px.clear();
   _mc_py.clear();
   _mc_pz.clear();
+
+  _mc_end_p.clear();
 
   _mc_vx.clear();
   _mc_vy.clear();
@@ -1527,9 +1638,18 @@ void DefaultAnalysis::SaveTruth(art::Event const &e)
 
     _mc_pdg.push_back(mcp.PdgCode());
 
+    auto nElastic = 0u;
+    auto nInelastic = 0u;
+    const art::Ptr<simb::MCParticle> mcpPtr(mcp_h, p);
+    art::Ptr<simb::MCParticle> finalScatteredParticle;
+    searchingfornues::GetNScatters(mcp_h, mcpPtr, finalScatteredParticle, nElastic, nInelastic);
+    _mc_n_elastic.push_back(nElastic);
+    _mc_n_inelastic.push_back(nInelastic);
+
     _mc_px.push_back(mcp.Px());
     _mc_py.push_back(mcp.Py());
     _mc_pz.push_back(mcp.Pz());
+    _mc_end_p.push_back(finalScatteredParticle->Momentum(std::max(0u, finalScatteredParticle->NumberTrajectoryPoints() - 2)).Vect().Mag());
 
     _mc_vx.push_back(mcp.Vx());
     _mc_vy.push_back(mcp.Vy());
