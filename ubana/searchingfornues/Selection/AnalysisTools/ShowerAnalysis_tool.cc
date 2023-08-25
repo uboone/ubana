@@ -9,15 +9,15 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/Geometry.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
-#include "../CommonDefs/ProximityClustering.h"
-#include "../CommonDefs/TrackFitterFunctions.h"
-#include "../CommonDefs/SCECorrections.h"
-#include "../CommonDefs/LLR_PID.h"
-#include "../CommonDefs/LLRPID_correction_lookup.h"
-#include "../CommonDefs/LLRPID_electron_photon_lookup.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Geometry.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/ProximityClustering.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackFitterFunctions.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/SCECorrections.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/LLR_PID.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/LLRPID_correction_lookup.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/LLRPID_electron_photon_lookup.h"
 
 namespace analysis
 {

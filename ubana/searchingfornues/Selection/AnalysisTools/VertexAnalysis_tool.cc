@@ -4,7 +4,7 @@
 #include <iostream>
 #include "AnalysisToolBase.h"
 
-#include "../CommonDefs/Typedefs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Typedefs.h"
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larreco/RecoAlg/Geometric3DVertexFitter.h"

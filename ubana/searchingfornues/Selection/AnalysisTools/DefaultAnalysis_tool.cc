@@ -13,12 +13,12 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/Geometry.h"
-#include "../CommonDefs/SCECorrections.h"
-#include "../CommonDefs/Containment.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
-#include "../CommonDefs/ProximityClustering.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Geometry.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/SCECorrections.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Containment.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/ProximityClustering.h"
 
 // save info associated to common optical filter
 #include "ubobj/Optical/UbooneOpticalFilter.h"

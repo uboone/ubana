@@ -8,9 +8,9 @@
 #include "lardata/Utilities/FindManyInChainP.h"
 
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
-#include "../CommonDefs/TrackFitterFunctions.h"
-#include "../CommonDefs/ShowerBranchTagger.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackFitterFunctions.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/ShowerBranchTagger.h"
 
 namespace analysis
 {
