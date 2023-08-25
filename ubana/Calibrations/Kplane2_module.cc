@@ -1109,10 +1109,10 @@ void Kplane2::analyze( const art::Event& evt){
 													          }
 													       }
 													       double maxke = -1;
-													       double totke = 0;
+													       // double totke = 0; // unused
 													       int Track_k_id = 0;
 													       for(std::map<int,double>::iterator ii=trk_k_ide.begin();ii!=trk_k_ide.end(); ++ii){
-													           totke += ii->second;
+													           // totke += ii->second; // unused
 														   if((ii->second)>maxke){
 														        maxke = ii->second;
 													                Track_k_id=ii->first;
@@ -1127,10 +1127,10 @@ void Kplane2::analyze( const art::Event& evt){
 														    }
 													         }
 													         double maxmue = -1;
-														 double totmue = 0;
+														 // double totmue = 0; // unused
 														 int Track_mu_id = 0;
 														 for(std::map<int,double>::iterator ii=trk_mu_ide.begin();ii!=trk_mu_ide.end(); ++ii){
-														     totmue += ii->second;
+														     // totmue += ii->second; // unused
 														     if((ii->second)>maxmue){
 															 maxmue = ii->second;
 														         Track_mu_id=ii->first;
@@ -1615,10 +1615,10 @@ void Kplane2::analyze( const art::Event& evt){
 													                           }
 													                         }
 													                         double maxke = -1;
-													                         double totke = 0;
+													                         // double totke = 0; // unused
 													                         int Track_k_id = 0;
 													                         for(std::map<int,double>::iterator ii=trk_k_ide.begin();ii!=trk_k_ide.end(); ++ii){
-													                             totke += ii->second;
+													                             // totke += ii->second; // unused
 														                     if((ii->second)>maxke){
 														                         maxke = ii->second;
 													                                 Track_k_id=ii->first;
@@ -1633,10 +1633,10 @@ void Kplane2::analyze( const art::Event& evt){
 														                       }
 													                           }
 													                           double maxmue = -1;
-														                   double totmue = 0;
+														                   // double totmue = 0; // unused
 														                   int Track_mu_id = 0;
 														                   for(std::map<int,double>::iterator ii=trk_mu_ide.begin();ii!=trk_mu_ide.end(); ++ii){
-														                       totmue += ii->second;
+														                       // totmue += ii->second; // unused
 														                       if((ii->second)>maxmue){
 															                   maxmue = ii->second;
 														                           Track_mu_id=ii->first;
