@@ -25,7 +25,7 @@ void ParticleAssociation::PrintAssociation() const {
 	    << fgoodness << std::endl;
   
   std::cout << "\nConnections:\n";
-  for(std::pair<size_t, size_t> const & pair : fconnected_associations) 
+  for(std::pair<size_t, size_t> const pair : fconnected_associations) 
     std::cout << "Association index: " << pair.first << " object index: " << pair.second << std::endl;
   
 }
@@ -178,7 +178,7 @@ void ParticleAssociations::IgnoreThis(size_t const to_ignore, size_t const conne
   ParticleAssociation const & pa = fassociations.at(to_ignore);
   fignore_association_vec.push_back(to_ignore);
   
-  for(std::pair<size_t, size_t> const & p : pa.GetConnections()) {
+  for(std::pair<size_t, size_t> const p : pa.GetConnections()) {
     if(p.first == connected_index) continue;
     IgnoreThis(p.first, to_ignore, previously_considered);
   }
@@ -190,7 +190,7 @@ void ParticleAssociations::IgnoreAssociationsConnectedTo(size_t const i) {
   
   ParticleAssociation const & pa = fassociations.at(i);
   
-  for(std::pair<size_t, size_t> const & p : pa.GetConnections()) {
+  for(std::pair<size_t, size_t> const p : pa.GetConnections()) {
     std::vector<size_t> previously_considered;  
     IgnoreThis(p.first, i, previously_considered);
   }
@@ -253,7 +253,7 @@ void ParticleAssociations::Test() const {
 
   for(ParticleAssociation const & pae : fassociations) {
     
-    for(std::pair<size_t, size_t> const & pair : pae.GetConnections()) {
+    for(std::pair<size_t, size_t> const pair : pae.GetConnections()) {
       
       size_t const i = pair.first;
       
@@ -333,7 +333,7 @@ void ParticleAssociations::GetShowerAssociations() {
   
   if(fverbose) std::cout << "Loop over filled map\n";
 
-  for(std::pair<double, size_t> const & p : pa_map) {
+  for(std::pair<double, size_t> const p : pa_map) {
     if(fverbose) std::cout << "\tAssociation: " << p.second << " " << "z-position: " << p.first << "\n";
     if(Ignore(p.second)) continue;
     IgnoreAssociationsConnectedTo(p.second);
