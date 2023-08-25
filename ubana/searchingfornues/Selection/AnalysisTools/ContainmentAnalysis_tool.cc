@@ -301,10 +301,8 @@ void ContainmentAnalysis::resetTTree(TTree *_tree)
 {
 
   // implicit conversion to float reported by c14
-  // error: implicit conversion from 'std::numeric_limits<int>::type' (aka 'int') to 'float'
-  //  changes value from 2147483647 to 2147483648
-  _dvtx = std::numeric_limits<int>::max();
-  _dtrk = std::numeric_limits<int>::max();
+  _dvtx = (float)std::numeric_limits<int>::max();
+  _dtrk = (float)std::numeric_limits<int>::max();
 
   return;
 }
