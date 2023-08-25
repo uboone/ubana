@@ -83,6 +83,7 @@ namespace single_photon
 
             //energy for an MCParticle that comprises the most energy when sum over associated hits in PFP
             //total energy of the reco PFP taken from the sum of the hits associated to an MCParticle
+            //  tote used out of this scope???
             double maxe=-1, tote=0;                
 
             std::vector<double> total_energy_on_plane = {0.0,0.0,0.0};

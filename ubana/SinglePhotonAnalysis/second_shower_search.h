@@ -1314,7 +1314,8 @@ namespace single_photon
 
         //energy for an MCParticle that comprises the most energy when sum over associated hits in PFP
         //total energy of the reco PFP taken from the sum of the hits associated to an MCParticle
-        double maxe=-1, tote=0;                
+        // double maxe=-1, tote=0;                // tote is unused
+        double maxe=-1;
 
         std::vector<double> total_energy_on_plane = {0.0,0.0,0.0};
         art::Ptr<simb::MCParticle> best_matched_mcparticle; //pointer for the MCParticle match we will calculate
@@ -1354,7 +1355,7 @@ namespace single_photon
                     map_asso_mcparticles_energy[particle_vec[i_p]][which_plane] += match_vec[i_p]->energy;
                 }
                 //add the energy of the back tracked hit to the total energy for the PFP
-                tote += match_vec[i_p]->energy; //calculate total energy deposited
+                // tote += match_vec[i_p]->energy; //calculate total energy deposited // unused
                 total_energy_on_plane[which_plane]+=match_vec[i_p]->energy;
 
                 //want the MCParticle with the max total energy summed from the back tracker hit energy from hits in PFP
@@ -1981,7 +1982,7 @@ namespace single_photon
                     double mean_energy = 0.0;
 
                     double mean_impact = 0.0;
-                    double mean_conv = 0.0;
+                    // double mean_conv = 0.0; // unused
                     double min_conv = 999;
 
                     double min_impact = 999;
@@ -2009,7 +2010,7 @@ namespace single_photon
                         mean_min_dist +=m_sss_candidate_min_dist.at(ic)/(double)nt;
                         mean_energy +=m_sss_candidate_energy.at(ic)/(double)nt;
                         mean_impact +=m_sss_candidate_impact_parameter.at(ic)/(double)nt;
-                        mean_conv +=m_sss_candidate_min_dist.at(ic)/(double)nt;
+                        // mean_conv +=m_sss_candidate_min_dist.at(ic)/(double)nt; // unused
                         mean_invar +=eff_invar/(double)nt;
                         mean_invar_diff +=eff_invar_diff/(double)nt;
 

@@ -412,11 +412,13 @@ namespace single_photon
             }
         }
 
+        /* count is not used
         unsigned int count = 0;
         for (auto num: sliceIdToNumPFPsvec){
             count += num;
 
         }
+        */
         /*        if (count != (PFPToSliceIdMap.size()-cosmic)){
                   std::cout<<"Error, number of neutrio pfps in sliceIdToNumPFPsvec is "<<count<<" but PFPToSliceIdMap.size() - comsics  = "<<PFPToSliceIdMap.size()-cosmic<<std::endl;
                   }
@@ -478,11 +480,13 @@ namespace single_photon
             }//if there's a fpf-slice match
         }//for each shower
 
+        /* count is not used
         unsigned int count = 0;
         for (auto numshowers: sliceIdToNumShowersvec){
             count += numshowers;
 
         }
+        */
         /*      if (count != (showerToPFParticleMap.size()-cosmics)){
                 std::cout<<"Error, number of showers in sliceIdToNumShowersvec is "<<count<<" but showerToPFParticleMap.size() for neutrino showers = "<<showerToPFParticleMap.size()-cosmics<<std::endl;
                 }
