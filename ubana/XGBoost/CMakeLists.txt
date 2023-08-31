@@ -1,5 +1,3 @@
-include_directories ( xgboost/src )
-
 cet_make_library (
   SOURCE
   dmlc/src/config.cc
