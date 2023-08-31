@@ -1,6 +1,3 @@
-include_directories( $ENV{SWTRIGGER_INCDIR} )
-link_libraries( -L$ENV{SWTRIGGER_LIBDIR} -lFEMBeamTrigger -lSWTriggerBase )
-
 cet_make_library(
   SOURCE
   FEMBasicTriggerAlgo.cxx
@@ -49,6 +46,7 @@ cet_build_plugin(
   lardataobj::RecoBase
   art_root_io::TFileService_service
   ROOT::Tree
+  swtrigger::FEMBeamTrigger
 )
 
 add_subdirectory(fcl)

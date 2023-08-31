@@ -25,11 +25,12 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
 
 cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
+cet_cmake_module_directories(Modules BINARY)
+
 find_package( ubreco REQUIRED EXPORT )
 find_package( larana REQUIRED EXPORT )
 find_package( larpandora REQUIRED EXPORT )
-
-cet_cmake_module_directories(Modules BINARY)
+find_package( swtrigger REQUIRED EXPORT )
 
 # macros for dictionary and simple_plugin
 include(ArtDictionary)
@@ -38,6 +39,9 @@ include(BuildPlugins)
 
 # ADD SOURCE CODE SUBDIRECTORIES HERE
 add_subdirectory(ubana)
+
+# Cmake modules.
+add_subdirectory(Modules)
 
 # Unit tests.
 add_subdirectory(test)
