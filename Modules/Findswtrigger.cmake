@@ -17,7 +17,7 @@ SWTRIGGER_LIBDIR - Library path
 This module creates the following targets, corresponding to the libraries
 in the library directory.
 
-swtrigger::Swtrigger_Base - libSwtrigger_Base.so
+swtrigger::SWTriggerBase - libSWTriggerBase.so
 swtrigger::FEMBeamTrigger - libFEMBeamTrigger.so
 
 
@@ -43,42 +43,41 @@ if(NOT swtrigger_FOUND)
 
   if(swtrigger_FOUND)
 
-    # Internal transitive dependencies.
+    if(NOT TARGET swtrigger::SWTriggerBase)
 
-    set(_swtrigger_tdep_FEMBeamTrigger "SWTriggerBase")
+      # Hunt for this library.
 
-    # Loop over libraries.
+      find_library(_swtrigger_lib_path LIBRARY NAMES SWTriggerBase HINTS ENV SWTRIGGER_LIBDIR REQUIRED NO_CACHE)
+      message("Found swtrigger library ${_swtrigger_lib_path}")
 
-    foreach(_swtrigger_lib_name IN ITEMS SWTriggerBase FEMBeamTrigger )
-      if(NOT TARGET swtrigger::${_swtrigger_lib_name})
+      # Make target.
 
-        # Hunt for this library.
-
-        find_library(_swtrigger_lib_path LIBRARY NAMES ${_swtrigger_lib_name} HINTS ENV SWTRIGGER_LIBDIR REQUIRED NO_CACHE)
-        message("Found swtrigger library ${_swtrigger_lib_path}")
-
-        # Make target.
-
-        message("Making target swtrigger::${_swtrigger_lib_name}")
-        add_library(swtrigger::${_swtrigger_lib_name} SHARED IMPORTED)
-
-        # Calculate internal transitive dependencies.
-
-        set(_swtrigger_tdep)
-        if(_swtrigger_tdep_${_swtrigger_lib_name})
-          set(_swtrigger_tdep "swtrigger::${_swtrigger_tdep_${_swtrigger_lib_name}}")
-        endif()
-
-        set_target_properties(swtrigger::${_swtrigger_lib_name} PROPERTIES
-          INTERFACE_INCLUDE_DIRECTORIES "${_swtrigger_include_dir}"
-          IMPORTED_LOCATION "${_swtrigger_lib_path}"
-          INTERFACE_LINK_LIBRARIES "${_swtrigger_tdep}"
-        )
-      endif()
-
-      # End of loop over libraries.
-
+      message("Making target swtrigger::SWTriggerBase")
+      add_library(swtrigger::SWTriggerBase SHARED IMPORTED)
+      set_target_properties(swtrigger::SWTriggerBase PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_swtrigger_include_dir}"
+        IMPORTED_LOCATION "${_swtrigger_lib_path}"
+      )
       unset(_swtrigger_lib_path)
-    endforeach()
+    endif()
+
+    if(NOT TARGET swtrigger::FEMBeamTrigger)
+
+      # Hunt for this library.
+
+      find_library(_swtrigger_lib_path LIBRARY NAMES FEMBeamTrigger HINTS ENV SWTRIGGER_LIBDIR REQUIRED NO_CACHE)
+      message("Found swtrigger library ${_swtrigger_lib_path}")
+
+      # Make target.
+
+      message("Making target swtrigger::FEMBeamTrigger")
+      add_library(swtrigger::FEMBeamTrigger SHARED IMPORTED)
+      set_target_properties(swtrigger::FEMBeamTrigger PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_swtrigger_include_dir}"
+        IMPORTED_LOCATION "${_swtrigger_lib_path}"
+        INTERFACE_LINK_LIBRARIES "swtrigger::SWTriggerBase"
+      )
+      unset(_swtrigger_lib_path)
+    endif()
   endif()
 endif()
