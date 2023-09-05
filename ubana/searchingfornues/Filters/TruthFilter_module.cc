@@ -111,11 +111,11 @@ bool TruthFilter::filter(art::Event& e)
 
   // loop through particles
 
-  int nelec = 0;
-  int nmuon = 0;
+  // int nelec = 0; // unused
+  // int nmuon = 0; // unused
   int npi0 = 0;
-  int nproton = 0; // with 40 MeV KE threshold
-  int npion = 0;
+  // int nproton = 0; // with 40 MeV KE threshold // unused
+  // int npion = 0; // unused
 
   float protonHighE = 0;
 
@@ -123,15 +123,17 @@ bool TruthFilter::filter(art::Event& e)
   for (size_t i = 0; i < npart; i++)
   {
     auto const &part = mct.GetParticle(i);
+    /* nmuon is unused
     // if muon
     if ((std::abs(part.PdgCode()) == 13) and (part.StatusCode() == 1))
       {
 	nmuon += 1;
       } // if muon
+    */
     // if electron
     if ((std::abs(part.PdgCode()) == 11) and (part.StatusCode() == 1))
       {
-	nelec += 1;
+	// nelec += 1; // unused
       } // if electron
     // if pi0
     if ((part.PdgCode() == 111) and (part.StatusCode() == 1))
@@ -144,14 +146,16 @@ bool TruthFilter::filter(art::Event& e)
 	// if highest energy, update energy
 	if (part.Momentum(0).E() > protonHighE)
 	  protonHighE = part.Momentum(0).E();
-	if (part.Momentum(0).E() > fProtonThreshold)
-	  nproton += 1;
+	// if (part.Momentum(0).E() > fProtonThreshold) // nproton is unused
+	  // nproton += 1;
       } // if proton
+    /* npion is unused
     // if pion
     if ((std::abs(part.PdgCode()) == 211) and (part.StatusCode() == 1))
       {
 	npion += 1;
       } // if pion
+  */
   }// for all MCParticles
   
   if ( (fNpi0 > 0) && (npi0 == 0) ) return false;

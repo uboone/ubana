@@ -178,7 +178,7 @@ void MuCSFlashMatch::analyze(art::Event const& e)
   _best_score = 10000.;
   _mucs_score = -1; // this way we know if a MuCS track was tagged in the event
 
-  size_t nbad = 0;
+  // size_t nbad = 0; // unused
 
   // have we tagged an MUCS track in this event?
   bool mucstagged = false;
@@ -218,11 +218,18 @@ void MuCSFlashMatch::analyze(art::Event const& e)
 
 
 
+    /* nbad is not used
     if (trk_ptr->Length() < 20.) { nbad += 1; continue; }
 
     if ( (_trk_start_x < -10) || (_trk_start_x > 270) ) { nbad += 1; continue; }
 
     if ( (_trk_end_x < -10)   || (_trk_end_x > 270)   ) { nbad += 1; continue; }
+    */
+    if (trk_ptr->Length() < 20.) { continue; }
+
+    if ( (_trk_start_x < -10) || (_trk_start_x > 270) ) {  continue; }
+
+    if ( (_trk_end_x < -10)   || (_trk_end_x > 270)   ) {  continue; }
 
     // associations
     const std::vector< art::Ptr<recob::SpacePoint> >& spacepoint_ptr_v = pfp_spacepoint_assn_v.at(pfp_key);

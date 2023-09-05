@@ -13,10 +13,10 @@
 #include "lardata/Utilities/FindManyInChainP.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
 
-#include "../../FlashMatching/SliceCandidate.h"
+#include "ubana/searchingfornues/FlashMatching/SliceCandidate.h"
 
 namespace analysis
 {

@@ -60,7 +60,7 @@ void SignalFilter::cout_particles(art::Event & e) {
   art::ValidHandle<std::vector<simb::MCTruth>> const & ev_mct =
     e.getValidHandle<std::vector<simb::MCTruth>>("generator");
 
-  for(simb::MCTruth const mct : *ev_mct) {
+  for(simb::MCTruth const& mct : *ev_mct) {
 
     for(int i = 0; i < mct.NParticles(); ++i) {
       simb::MCParticle const & mcp = mct.GetParticle(i);

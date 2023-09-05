@@ -25,9 +25,9 @@
 #include "lardata/Utilities/GeometryUtilities.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
-#include "../Selection/CommonDefs/Typedefs.h"
-#include "../Selection/CommonDefs/TrackShowerScoreFuncs.h"
-#include "../Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Typedefs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
 
 #include "art_root_io/TFileService.h"
 #include "TTree.h"

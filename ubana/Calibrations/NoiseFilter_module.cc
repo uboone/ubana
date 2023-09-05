@@ -271,8 +271,7 @@ namespace calibration {
                 waveNoiseHists[waveNoiseCounter]->SetBinContent(s+1, fHistMod->GetBinContent(s+1) );
 
             //do correlated noise removal
-      		if(waveNoiseCounter == waveNoiseGroupNum-1)
-      		{
+            if(waveNoiseCounter == waveNoiseGroupNum-1) {
                 if( fRunWaveFilterAlg == 1)
                     WaveFilterAlg(waveNoiseHists);
                 for(Int_t k = 0; k < waveNoiseGroupNum; k++)

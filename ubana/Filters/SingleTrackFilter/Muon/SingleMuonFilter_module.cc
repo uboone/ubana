@@ -61,10 +61,10 @@ public:
 private:
 
   // Declare member data here.
-  ::ubana::FiducialVolume _fiducial_volume;
- 
   art::ServiceHandle<geo::Geometry> geo;
   art::ServiceHandle<art::TFileService> tfs;
+
+  ::ubana::FiducialVolume _fiducial_volume;
 
   spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 

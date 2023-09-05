@@ -107,7 +107,7 @@ namespace searchingfornues
 
   std::vector<float> polarAngles(float dir_x, float dir_y, float dir_z, size_t axis, size_t plane)
   {
-    float dir_y_prime, dir_z_prime;
+    float dir_y_prime = 0., dir_z_prime = 0.;
     if (plane == 0)
     {
       dir_y_prime = dir_y * (1/2)           + dir_z * (sqrt(3)/2);

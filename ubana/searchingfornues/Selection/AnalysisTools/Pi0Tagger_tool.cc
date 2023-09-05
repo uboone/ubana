@@ -5,12 +5,12 @@
 #include "AnalysisToolBase.h"
 
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
-#include "../CommonDefs/TrackFitterFunctions.h"
-#include "../CommonDefs/SCECorrections.h"
-#include "../CommonDefs/LLR_PID.h"
-#include "../CommonDefs/LLRPID_correction_lookup.h"
-#include "../CommonDefs/LLRPID_electron_photon_lookup.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackFitterFunctions.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/SCECorrections.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/LLR_PID.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/LLRPID_correction_lookup.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/LLRPID_electron_photon_lookup.h"
 
 namespace analysis
 {

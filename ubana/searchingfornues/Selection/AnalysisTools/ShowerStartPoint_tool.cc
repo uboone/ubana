@@ -11,9 +11,9 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
-#include "../CommonDefs/Geometry.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Geometry.h"
 
 namespace analysis
 {
@@ -186,7 +186,7 @@ void ShowerStartPoint::analyzeSlice(art::Event const &e, std::vector<ProxyPfpEle
     {
       //loop on spacepoints
       float smallest_sp_distance = std::numeric_limits<float>::max();
-      size_t index_smallest_distance;
+      size_t index_smallest_distance = 0;
       for (size_t i = 0; i < spacepoints.size(); i++)
       {
         const auto &spacepoint = spacepoints[i];
@@ -215,7 +215,7 @@ void ShowerStartPoint::analyzeSlice(art::Event const &e, std::vector<ProxyPfpEle
 
     // cluster per pfparticle
     auto clusters = slice_pfp_v[i_pfp].get<recob::Cluster>();
-    for (const auto ass_cluster : clusters)
+    for (const auto & ass_cluster : clusters)
     {
       int i_plane = ass_cluster->Plane().Plane;
       float wire_reco_vtx = searchingfornues::YZtoPlanecoordinate(reco_vtx[1], reco_vtx[2], i_plane);
