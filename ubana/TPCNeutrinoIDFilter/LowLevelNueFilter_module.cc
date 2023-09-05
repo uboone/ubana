@@ -1194,7 +1194,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
     std::cout<<"There are "<<Vertex_vec.size()<<" vertices in this event."<<std::endl;
     for( auto const& vertex : Vertex_vec){
       auto VertexID = vertex->ID();
-      double* vertexXYZ = new double;
+      double vertexXYZ[3];
       vertex->XYZ(vertexXYZ);
       
       std::cout<<"Vertex ID "<<VertexID<<" XYZ = ["<<vertexXYZ[0]<<","<<vertexXYZ[1]<<","<<vertexXYZ[2]<<"]"<<std::endl;
@@ -1219,7 +1219,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 	  if(PrimaryVertex)
 	    {
 	      auto PrimaryVertexID = PrimaryVertex->ID();
-	      double* PrimaryVertexXYZ = new double;
+	      double PrimaryVertexXYZ[3];
 	      PrimaryVertex->XYZ(PrimaryVertexXYZ);
 	      std::cout<<"pfparticle reco pdgcode "<<pdgcode<<" associated vertex ID is"<<PrimaryVertexID<<" XYZ= ["<<PrimaryVertexXYZ[0]<<","<<PrimaryVertexXYZ[1]<<","<<PrimaryVertexXYZ[2]<<"] !!!!!"<<std::endl;
 	      //h_Stat->AddBinContent(14);

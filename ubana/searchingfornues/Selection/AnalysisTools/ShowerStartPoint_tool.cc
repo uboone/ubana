@@ -186,7 +186,7 @@ void ShowerStartPoint::analyzeSlice(art::Event const &e, std::vector<ProxyPfpEle
     {
       //loop on spacepoints
       float smallest_sp_distance = std::numeric_limits<float>::max();
-      size_t index_smallest_distance;
+      size_t index_smallest_distance = 0;
       for (size_t i = 0; i < spacepoints.size(); i++)
       {
         const auto &spacepoint = spacepoints[i];
