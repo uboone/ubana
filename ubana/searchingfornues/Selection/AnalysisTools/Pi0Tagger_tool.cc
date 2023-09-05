@@ -36,7 +36,7 @@ namespace analysis
     /**
      *  @brief  Constructor
      *
-	@param  pset
+     *  @param  pset
      */
     Pi0Tagger(const fhicl::ParameterSet& pset);
 
