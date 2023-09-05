@@ -90,6 +90,7 @@ private:
 
 SingleMuonFilter::SingleMuonFilter(fhicl::ParameterSet const& pset): 
   EDFilter{pset},
+  // c14 reports geo is unitialized here
   _fiducial_volume(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
                    geo->DetHalfHeight(),
                    2.*geo->DetHalfWidth(),

@@ -51,7 +51,8 @@ art::Ptr<simb::MCParticle> getAssocMCParticle(art::FindManyP<simb::MCParticle, a
   //credit: Wes Ketchum
   std::unordered_map<int, double> trkide;
   std::unordered_map<int, float> trkq;
-  double maxe = -1, tote = 0;
+  // double maxe = -1, tote = 0; // tote unused
+  double maxe = -1;
   art::Ptr<simb::MCParticle> maxp_me; //pointer for the particle match we will calculate
   //simb::MCParticle* maxp_me; //pointer for the particle match we will calculate
   for (auto h : hits)
@@ -67,7 +68,7 @@ art::Ptr<simb::MCParticle> getAssocMCParticle(art::FindManyP<simb::MCParticle, a
     {
       trkide[particle_vec[i_p]->TrackId()] += match_vec[i_p]->energy;                    //store energy per track id
       trkq[particle_vec[i_p]->TrackId()] += h->Integral() * match_vec[i_p]->ideFraction; //store hit integral associated to this hit
-      tote += match_vec[i_p]->energy;                                                    //calculate total energy deposited
+      // tote += match_vec[i_p]->energy;                                                    //calculate total energy deposited // unused
       if (trkide[particle_vec[i_p]->TrackId()] > maxe)
       { //keep track of maximum
         maxe = trkide[particle_vec[i_p]->TrackId()];

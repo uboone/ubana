@@ -330,6 +330,7 @@ class TweedieRegression : public ObjFunction {
     std::ostringstream os;
     os << "tweedie-nloglik@" << param_.tweedie_variance_power;
     std::string metric = os.str();
+    // c14 error: address of stack memory associated with local variable 'metric' returned
     return metric.c_str();
   }
 

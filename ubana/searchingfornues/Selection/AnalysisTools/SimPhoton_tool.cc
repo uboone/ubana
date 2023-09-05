@@ -16,8 +16,8 @@
 #include "lardata/Utilities/GeometryUtilities.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
 
 #include <string>
 

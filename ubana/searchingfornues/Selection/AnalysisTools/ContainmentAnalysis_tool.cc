@@ -7,8 +7,8 @@
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/SCECorrections.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/SCECorrections.h"
 #include "larcore/Geometry/Geometry.h"
 
 namespace analysis
@@ -300,6 +300,7 @@ void ContainmentAnalysis::setBranches(TTree *_tree)
 void ContainmentAnalysis::resetTTree(TTree *_tree)
 {
 
+  // implicit conversion to float reported by c14
   _dvtx = std::numeric_limits<int>::max();
   _dtrk = std::numeric_limits<int>::max();
 

@@ -179,7 +179,7 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* h
     
         if (hitMatchPairItr != hitPartAssns.fHitToPartVecMap.end())
         {
-            float totalE(0.);
+            // float totalE(0.); // unused
         
             for (const auto& matchPair : hitMatchPairItr->second)
             {
@@ -192,7 +192,7 @@ std::vector<sim::TrackIDE> MCTruthAssociations::HitToTrackID(const recob::Hit* h
                 info.energy       = data->energy;
                 info.numElectrons = data->numElectrons;
             
-                totalE += data->energy;
+                // totalE += data->energy; // unused
             
                 trackIDEs.push_back(info);
             }

@@ -1833,7 +1833,7 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
     }
   }
 
-  double E_em =0.0;	
+  // double E_em =0.0;	// unused
   double max_E = -999.0;	
   double total_E = 0.0;	
   int TrackID = -999;	
@@ -1853,7 +1853,7 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
       partial_E = ii->second;
       max_E = ii->second;
       TrackID = ii->first;
-      if( TrackID < 0 ) E_em += ii->second;
+      // if( TrackID < 0 ) E_em += ii->second; // unused
     }	
   }
    	

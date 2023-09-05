@@ -181,7 +181,7 @@ namespace analysis
     }
     vecTag.push_back(eventweight_tag_knobs);
     
-    int ctr = 0;
+    // int ctr = 0; // unused
     int GenieCounter = 0;
     int PPFXCounter = 0;
 
@@ -334,7 +334,7 @@ namespace analysis
         // loop through all EventWeight variations
         for(std::map<std::string, std::vector<double>>::iterator it=evtwgt_map.begin(); it!=evtwgt_map.end(); ++it){
 
-          ctr += 1;
+          // ctr += 1; // unused
 
           // variation name
           std::string keyname = it->first;

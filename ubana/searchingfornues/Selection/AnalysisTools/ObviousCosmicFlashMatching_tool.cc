@@ -13,9 +13,9 @@
 #include "lardata/Utilities/FindManyInChainP.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
 // flash-matching tools
-#include "../../FlashMatching/FlashMatchingToolBase_tool.h"
+#include "ubana/searchingfornues/FlashMatching/FlashMatchingToolBase_tool.h"
 
 namespace analysis
 {

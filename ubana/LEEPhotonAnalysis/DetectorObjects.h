@@ -82,7 +82,7 @@ public:
   DetectorObjects();
 
   ~DetectorObjects() {
-    for(std::pair<size_t, DetectorObject *> const & p : fobject_m) delete p.second;
+    for(std::pair<size_t, DetectorObject *> const p : fobject_m) delete p.second;
   }
 
   void AddTracks(art::ValidHandle<std::vector<recob::Track>> const & ev_t, bool const track_original_indices = false);

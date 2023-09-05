@@ -801,7 +801,7 @@ void NumuCCana::fillMCInfo(art::Event const &evt){
         art::fill_ptr_vector(WeightCollection, Handle_Weight);
         std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(0)->fWeight;
         std::cout << "Vector length: " << evtwgt_map.size() << std::endl;
-        for (auto const evt_weight : evtwgt_map){
+        for (auto const& evt_weight : evtwgt_map){
           std::cout << "branching parameter: " << counter_para << " name: " << evt_weight.first << " length: " << evt_weight.second.size() << std::endl;
           my_event_->Branch((evt_weight.first).c_str(),             &para[counter_para]);
           counter_para++;
@@ -811,7 +811,7 @@ void NumuCCana::fillMCInfo(art::Event const &evt){
       if(evt.getByLabel(m_eventweightLabel_G4, Handle_Weight_G4)){
         art::fill_ptr_vector(WeightCollection_G4, Handle_Weight_G4);
         std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection_G4.at(0)->fWeight;
-        for (auto const evt_weight : evtwgt_map){
+        for (auto const& evt_weight : evtwgt_map){
           std::cout << "branching parameter: " << counter_para << " name: " << evt_weight.first << " length: " << evt_weight.second.size() << std::endl;
           //my_event_->Branch((evt_weight.first).c_str(),             &para[counter_para]);
           counter_para++;
@@ -840,7 +840,7 @@ void NumuCCana::fillMCInfo(art::Event const &evt){
       art::fill_ptr_vector(WeightCollection, Handle_Weight);
       std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(0)->fWeight;
       
-      for (auto const evt_weight : evtwgt_map){
+      for (auto const& evt_weight : evtwgt_map){
         if( store_weights_all == 1){
           para[counter_para] = evt_weight.second;
         }
@@ -872,7 +872,7 @@ void NumuCCana::fillMCInfo(art::Event const &evt){
       art::fill_ptr_vector(WeightCollection_G4, Handle_Weight_G4);
       std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection_G4.at(0)->fWeight;
       
-      for (auto const evt_weight : evtwgt_map){
+      for (auto const& evt_weight : evtwgt_map){
         if( store_weights_all == 1){
           para[counter_para] = evt_weight.second;
         }
