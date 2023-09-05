@@ -7,6 +7,7 @@
 #include "../../../dmlc/include/dmlc/omp.h"
 #include "../../logging.h"
 #include "../../objective.h"
+#include <cstring>
 #include <vector>
 #include <algorithm>
 #include <utility>
