@@ -300,9 +300,8 @@ void ContainmentAnalysis::setBranches(TTree *_tree)
 void ContainmentAnalysis::resetTTree(TTree *_tree)
 {
 
-  // implicit conversion to float reported by c14
-  _dvtx = std::numeric_limits<int>::max();
-  _dtrk = std::numeric_limits<int>::max();
+  _dvtx = float(std::numeric_limits<int>::max());
+  _dtrk = float(std::numeric_limits<int>::max());
 
   return;
 }

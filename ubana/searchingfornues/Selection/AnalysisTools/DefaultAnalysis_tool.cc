@@ -19,6 +19,8 @@
 #include "ubana/searchingfornues/Selection/CommonDefs/Containment.h"
 #include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
 #include "ubana/searchingfornues/Selection/CommonDefs/ProximityClustering.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Descendents.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Scatters.h"
 
 // save info associated to common optical filter
 #include "ubobj/Optical/UbooneOpticalFilter.h"
