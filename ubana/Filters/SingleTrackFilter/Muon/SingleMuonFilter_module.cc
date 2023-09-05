@@ -61,10 +61,10 @@ public:
 private:
 
   // Declare member data here.
-  ::ubana::FiducialVolume _fiducial_volume;
- 
   art::ServiceHandle<geo::Geometry> geo;
   art::ServiceHandle<art::TFileService> tfs;
+
+  ::ubana::FiducialVolume _fiducial_volume;
 
   spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
@@ -90,7 +90,6 @@ private:
 
 SingleMuonFilter::SingleMuonFilter(fhicl::ParameterSet const& pset): 
   EDFilter{pset},
-  // c14 reports geo is unitialized here
   _fiducial_volume(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
                    geo->DetHalfHeight(),
                    2.*geo->DetHalfWidth(),

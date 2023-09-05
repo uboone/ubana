@@ -28,8 +28,7 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
   WERROR
   NO_UNDEFINED
   ALLOW_DEPRECATIONS
-  EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs -Wno-expansion-to-defined
-              $<$<CXX_COMPILER_ID:Clang>:-Wno-uninitialized -Wno-return-stack-address>
+  EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs -Wno-expansion-to-defined 
   #-Wno-error=unused-variable 
 )
 
