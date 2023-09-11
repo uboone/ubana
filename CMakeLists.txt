@@ -9,9 +9,10 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 find_package(cetmodules REQUIRED)
-project(ubana VERSION 09.78.03 LANGUAGES CXX)
+project(ubana LANGUAGES CXX)
 
 include(CetCMakeEnv)
+set(${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING 09.78.03-cm1)
 cet_cmake_env()
 
 cet_set_compiler_flags(DIAGS CAUTIOUS
