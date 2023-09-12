@@ -1,5 +1,3 @@
-cet_add_compiler_flags(CXX -Wno-unused-but-set-variable)
-
 cet_make_library(
   LIBRARY_NAME AnalysisToolBase INTERFACE
   SOURCE AnalysisToolBase.h
