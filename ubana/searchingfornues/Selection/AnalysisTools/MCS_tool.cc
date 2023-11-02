@@ -884,7 +884,6 @@ PCAResults MCS::DoPCA(const SpcPointCloud &points) {
     float meanPosition[3] = {0., 0., 0.};
     unsigned int nThreeDHits = 0;
     int outputN_pts = points.size();
-    int outputPDG = points[0].pdg;
     for (unsigned int i = 0; i < points.size(); i++) {
       meanPosition[0] += points[i].x;
       meanPosition[1] += points[i].y;
@@ -895,6 +894,7 @@ PCAResults MCS::DoPCA(const SpcPointCloud &points) {
       PCAResults results;
       return results;
     }
+    int outputPDG = points[0].pdg;
     const float nThreeDHitsAsFloat(static_cast<float>(nThreeDHits));
     meanPosition[0] /= nThreeDHitsAsFloat;
     meanPosition[1] /= nThreeDHitsAsFloat;
