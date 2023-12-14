@@ -20,6 +20,8 @@
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/Slice.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Shower.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "nusimdata/SimulationBase/GTruth.h"
@@ -74,6 +76,9 @@ class pandora::PandoraAnalysis : public art::EDAnalyzer {
         std::vector<int> fPfpClearCosmicVec;
         std::vector<int> fPfpPrimaryVec;
         std::vector<int> fPfpNumChildrenVec;
+        std::vector<int> fPfpNumClustersVec;
+        std::vector<double> fPfpTrackLengthVec;
+        std::vector<double> fPfpShowerLengthVec;
 };
 
 
@@ -127,6 +132,9 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
     std::vector<art::Ptr<recob::PFParticle>> neutrinoPFPs;
     lar_pandora::LArPandoraHelper::SelectNeutrinoPFParticles(pfpVector, neutrinoPFPs);
 
+    art::FindManyP<recob::Cluster> clusterPfpAssn(pfpVector, e, pfpInputTag);
+    art::FindManyP<recob::Track> trackPfpAssn(pfpVector, e, pfpInputTag);
+    art::FindManyP<recob::Shower> showerPfpAssn(pfpVector, e, pfpInputTag);
     art::FindManyP<larpandoraobj::PFParticleMetadata> metadataAssn(pfpHandle, e, pfpInputTag);
     // Currently just looping over all PFPs, should do this by slice and look for nu etc
     for (auto pfp : pfpVector)
@@ -147,6 +155,21 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
         fPfpPdgVec.emplace_back(pfp->PdgCode());
         fPfpPrimaryVec.emplace_back(pfp->IsPrimary());
         fPfpNumChildrenVec.emplace_back(pfp->NumDaughters());
+        std::vector<art::Ptr<recob::Cluster>> pfpClusters{clusterPfpAssn.at(pfp.key())};
+        fPfpNumClustersVec.emplace_back(pfpClusters.size());
+        std::vector<art::Ptr<recob::Track>> pfpTracks{trackPfpAssn.at(pfp.key())};
+        if ((pfp->PdgCode() == 13) && !pfpTracks.empty())
+        {
+            art::Ptr<recob::Track> track{pfpTracks.front()};
+            fPfpTrackLengthVec.emplace_back(track->Length());
+        }
+        std::vector<art::Ptr<recob::Shower>> pfpShowers{showerPfpAssn.at(pfp.key())};
+        if ((pfp->PdgCode() == 11) && !pfpTracks.empty())
+        {
+            art::Ptr<recob::Shower> shower{pfpShowers.front()};
+            fPfpShowerLengthVec.emplace_back(shower->Length());
+        }
+
     }
 
     // pandora slice selection
@@ -198,6 +221,9 @@ void pandora::PandoraAnalysis::reset()
     fPfpPdgVec.clear();
     fPfpPrimaryVec.clear();
     fPfpNumChildrenVec.clear();
+    fPfpNumClustersVec.clear();
+    fPfpTrackLengthVec.clear();
+    fPfpShowerLengthVec.clear();
 }
 
 void pandora::PandoraAnalysis::beginJob()
@@ -216,6 +242,9 @@ void pandora::PandoraAnalysis::beginJob()
     fTree->Branch("pfpClearCosmicVec", &fPfpClearCosmicVec);
     fTree->Branch("pfpPrimaryVec", &fPfpPrimaryVec);
     fTree->Branch("pfpNumChildrenVec", &fPfpNumChildrenVec);
+    fTree->Branch("fPfpNumClustersVec", &fPfpNumClustersVec);
+    fTree->Branch("fPfpTrackLengthVec", &fPfpTrackLengthVec);
+    fTree->Branch("fPfpShowerLengthVec", &fPfpShowerLengthVec);
 }
 
 void pandora::PandoraAnalysis::endJob()
