@@ -133,8 +133,6 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
     lar_pandora::LArPandoraHelper::SelectNeutrinoPFParticles(pfpVector, neutrinoPFPs);
 
     art::FindManyP<recob::Cluster> clusterPfpAssn(pfpVector, e, pfpInputTag);
-    art::FindManyP<recob::Track> trackPfpAssn(pfpVector, e, pfpInputTag);
-    art::FindManyP<recob::Shower> showerPfpAssn(pfpVector, e, pfpInputTag);
     art::FindManyP<larpandoraobj::PFParticleMetadata> metadataAssn(pfpHandle, e, pfpInputTag);
     // Currently just looping over all PFPs, should do this by slice and look for nu etc
     for (auto pfp : pfpVector)
@@ -157,19 +155,30 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
         fPfpNumChildrenVec.emplace_back(pfp->NumDaughters());
         std::vector<art::Ptr<recob::Cluster>> pfpClusters{clusterPfpAssn.at(pfp.key())};
         fPfpNumClustersVec.emplace_back(pfpClusters.size());
+    }
+
+    // Tracks
+    art::FindManyP<recob::Track> trackPfpAssn(pfpHandle, e, pfpInputTag);
+    for (auto pfp : pfpVector)
+    {
         std::vector<art::Ptr<recob::Track>> pfpTracks{trackPfpAssn.at(pfp.key())};
         if ((pfp->PdgCode() == 13) && !pfpTracks.empty())
         {
             art::Ptr<recob::Track> track{pfpTracks.front()};
             fPfpTrackLengthVec.emplace_back(track->Length());
         }
+    }
+
+    // Showers
+    art::FindManyP<recob::Shower> showerPfpAssn(pfpHandle, e, pfpInputTag);
+    for (auto pfp : pfpVector)
+    {
         std::vector<art::Ptr<recob::Shower>> pfpShowers{showerPfpAssn.at(pfp.key())};
-        if ((pfp->PdgCode() == 11) && !pfpTracks.empty())
+        if ((pfp->PdgCode() == 11) && !pfpShowers.empty())
         {
             art::Ptr<recob::Shower> shower{pfpShowers.front()};
             fPfpShowerLengthVec.emplace_back(shower->Length());
         }
-
     }
 
     // pandora slice selection
