@@ -17,6 +17,7 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/Slice.h"
@@ -77,8 +78,19 @@ class pandora::PandoraAnalysis : public art::EDAnalyzer {
         std::vector<int> fPfpPrimaryVec;
         std::vector<int> fPfpNumChildrenVec;
         std::vector<int> fPfpNumClustersVec;
+        std::vector<int> fPfpNumHitsVec;
+        std::vector<int> fPfpNumSpacePointsVec;
         std::vector<double> fPfpTrackLengthVec;
         std::vector<double> fPfpShowerLengthVec;
+        std::vector<double> fPfpStartXVec;
+        std::vector<double> fPfpStartYVec;
+        std::vector<double> fPfpStartZVec;
+        std::vector<double> fPfpStartDirectionXVec;
+        std::vector<double> fPfpStartDirectionYVec;
+        std::vector<double> fPfpStartDirectionZVec;
+        std::vector<double> fPfpTrackThetaVec;
+        std::vector<double> fPfpTrackPhiVec;
+        std::vector<double> fPfpShowerOpeningAngleVec;
 };
 
 
@@ -133,6 +145,7 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
     lar_pandora::LArPandoraHelper::SelectNeutrinoPFParticles(pfpVector, neutrinoPFPs);
 
     art::FindManyP<recob::Cluster> clusterPfpAssn(pfpVector, e, pfpInputTag);
+    art::FindManyP<recob::SpacePoint> pfpSpacepointAssn(pfpHandle, e, pfpInputTag);
     art::FindManyP<larpandoraobj::PFParticleMetadata> metadataAssn(pfpHandle, e, pfpInputTag);
     // Currently just looping over all PFPs, should do this by slice and look for nu etc
     for (auto pfp : pfpVector)
@@ -155,29 +168,64 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
         fPfpNumChildrenVec.emplace_back(pfp->NumDaughters());
         std::vector<art::Ptr<recob::Cluster>> pfpClusters{clusterPfpAssn.at(pfp.key())};
         fPfpNumClustersVec.emplace_back(pfpClusters.size());
+        std::vector<art::Ptr<recob::SpacePoint>> pfpSpacepoints{pfpSpacepointAssn.at(pfp.key())};
+        fPfpNumSpacePointsVec.emplace_back(pfpSpacepoints.size());
     }
 
     // Tracks
     art::FindManyP<recob::Track> trackPfpAssn(pfpHandle, e, pfpInputTag);
-    for (auto pfp : pfpVector)
+    art::Handle< std::vector<recob::Track>> trackHandle;
+    e.getByLabel("pandora", trackHandle);
+    if (trackHandle.isValid())
     {
-        std::vector<art::Ptr<recob::Track>> pfpTracks{trackPfpAssn.at(pfp.key())};
-        if ((pfp->PdgCode() == 13) && !pfpTracks.empty())
+        art::FindManyP<recob::Hit> trackHitAssn(trackHandle, e, pfpInputTag);
+
+        for (auto pfp : pfpVector)
         {
-            art::Ptr<recob::Track> track{pfpTracks.front()};
-            fPfpTrackLengthVec.emplace_back(track->Length());
+            std::vector<art::Ptr<recob::Track>> pfpTracks{trackPfpAssn.at(pfp.key())};
+            if ((pfp->PdgCode() == 13) && !pfpTracks.empty())
+            {
+                art::Ptr<recob::Track> track{pfpTracks.front()};
+                fPfpTrackLengthVec.emplace_back(track->Length());
+                fPfpStartXVec.emplace_back(track->Start().X());
+                fPfpStartYVec.emplace_back(track->Start().Y());
+                fPfpStartZVec.emplace_back(track->Start().Z());
+                fPfpStartDirectionXVec.emplace_back(track->StartDirection().X());
+                fPfpStartDirectionYVec.emplace_back(track->StartDirection().Y());
+                fPfpStartDirectionZVec.emplace_back(track->StartDirection().Z());
+                fPfpTrackThetaVec.emplace_back(track->Theta());
+                fPfpTrackPhiVec.emplace_back(track->Phi());
+                std::vector<art::Ptr<recob::Hit>> pfpHits{trackHitAssn.at(track.key())};
+                fPfpNumHitsVec.emplace_back(pfpHits.size());
+            }
         }
     }
 
     // Showers
     art::FindManyP<recob::Shower> showerPfpAssn(pfpHandle, e, pfpInputTag);
-    for (auto pfp : pfpVector)
+    art::Handle< std::vector<recob::Shower>> showerHandle;
+    e.getByLabel("pandora", showerHandle);
+    if (showerHandle.isValid())
     {
-        std::vector<art::Ptr<recob::Shower>> pfpShowers{showerPfpAssn.at(pfp.key())};
-        if ((pfp->PdgCode() == 11) && !pfpShowers.empty())
+        art::FindManyP<recob::Hit> showerHitAssn(showerHandle, e, pfpInputTag);
+
+        for (auto pfp : pfpVector)
         {
-            art::Ptr<recob::Shower> shower{pfpShowers.front()};
-            fPfpShowerLengthVec.emplace_back(shower->Length());
+            std::vector<art::Ptr<recob::Shower>> pfpShowers{showerPfpAssn.at(pfp.key())};
+            if ((pfp->PdgCode() == 11) && !pfpShowers.empty())
+            {
+                art::Ptr<recob::Shower> shower{pfpShowers.front()};
+                fPfpShowerLengthVec.emplace_back(shower->Length());
+                fPfpStartXVec.emplace_back(shower->ShowerStart().X());
+                fPfpStartYVec.emplace_back(shower->ShowerStart().Y());
+                fPfpStartZVec.emplace_back(shower->ShowerStart().Z());
+                fPfpStartDirectionXVec.emplace_back(shower->Direction().X());
+                fPfpStartDirectionYVec.emplace_back(shower->Direction().Y());
+                fPfpStartDirectionZVec.emplace_back(shower->Direction().Z());
+                fPfpShowerOpeningAngleVec.emplace_back(shower->OpenAngle());
+                std::vector<art::Ptr<recob::Hit>> pfpHits{showerHitAssn.at(shower.key())};
+                fPfpNumHitsVec.emplace_back(pfpHits.size());
+            }
         }
     }
 
@@ -233,6 +281,17 @@ void pandora::PandoraAnalysis::reset()
     fPfpNumClustersVec.clear();
     fPfpTrackLengthVec.clear();
     fPfpShowerLengthVec.clear();
+    fPfpStartXVec.clear();
+    fPfpStartYVec.clear();
+    fPfpStartZVec.clear();
+    fPfpStartDirectionXVec.clear();
+    fPfpStartDirectionYVec.clear();
+    fPfpStartDirectionZVec.clear();
+    fPfpTrackThetaVec.clear();
+    fPfpTrackPhiVec.clear();
+    fPfpShowerOpeningAngleVec.clear();
+    fPfpNumHitsVec.clear();
+    fPfpNumSpacePointsVec.clear();
 }
 
 void pandora::PandoraAnalysis::beginJob()
@@ -254,6 +313,17 @@ void pandora::PandoraAnalysis::beginJob()
     fTree->Branch("fPfpNumClustersVec", &fPfpNumClustersVec);
     fTree->Branch("fPfpTrackLengthVec", &fPfpTrackLengthVec);
     fTree->Branch("fPfpShowerLengthVec", &fPfpShowerLengthVec);
+    fTree->Branch("fPfpStartXVec", &fPfpStartXVec);
+    fTree->Branch("fPfpStartYVec", &fPfpStartYVec);
+    fTree->Branch("fPfpStartZVec", &fPfpStartZVec);
+    fTree->Branch("fPfpStartDirectionXVec", &fPfpStartDirectionXVec);
+    fTree->Branch("fPfpStartDirectionYVec", &fPfpStartDirectionYVec);
+    fTree->Branch("fPfpStartDirectionZVec", &fPfpStartDirectionZVec);
+    fTree->Branch("fPfpTrackThetaVec", &fPfpTrackThetaVec);
+    fTree->Branch("fPfpTrackPhiVec", &fPfpTrackPhiVec);
+    fTree->Branch("fPfpShowerOpeningAngleVec", &fPfpShowerOpeningAngleVec);
+    fTree->Branch("fPfpNumHitsVec", &fPfpNumHitsVec);
+    fTree->Branch("fPfpNumSpacePointsVec", &fPfpNumSpacePointsVec);
 }
 
 void pandora::PandoraAnalysis::endJob()
