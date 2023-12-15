@@ -1197,8 +1197,10 @@ private:
   Float_t         f_match_purity_xz;
   Float_t         f_match_purity_xy;
 
-  Float_t 	  f_weight_spline;
+  Float_t 	f_weight_spline;
   Float_t	  f_weight_cv;
+  Float_t	  f_weight_ppfx;
+  Float_t	  f_weight_flugg;
   Float_t	  f_weight_lee;
 
   Int_t		  f_stm_eventtype;
@@ -1414,6 +1416,8 @@ void WireCellAnaTree::initOutput()
 
   fTreeEval->Branch("weight_spline", 		&f_weight_spline); //MicroBooNE GENIE tune on top of weight_CV; weight_spline*weight_cv = weight
   fTreeEval->Branch("weight_cv",		&f_weight_cv); //MicroBooNE MCC9 untuned GENIE v3
+  fTreeEval->Branch("weight_flugg",		&f_weight_flugg); //MicroBooNE MCC9 untuned GENIE v3
+  fTreeEval->Branch("weight_ppfx",		&f_weight_ppfx); //MicroBooNE MCC9 untuned GENIE v3
   fTreeEval->Branch("weight_lee",		&f_weight_lee); //MicroBooNE MCC9 LEE weight
 
   }
@@ -4391,6 +4395,8 @@ void WireCellAnaTree::resetOutput()
 
  	f_weight_spline = -1.0;
 	f_weight_cv = -1.0;
+	f_weight_flugg = -1.0;
+	f_weight_ppfx = -1.0;
 	f_weight_lee = -1.0;
 
 	f_stm_eventtype = -1;
@@ -4405,7 +4411,7 @@ void WireCellAnaTree::resetOutput()
 void WireCellAnaTree::save_weights(art::Event const& e)
 {
   double ppfx_cv_UBPPFXCV = 1.0; // for NuMI
-
+  double ratio_flugg_dk2nu = 1.0;
   // Use the EventWeight producer label here
   art::Handle<std::vector<evwgh::MCEventWeight> > weightsHandle;
   // e.getByLabel("eventweight", weightsHandle);
@@ -4439,11 +4445,19 @@ void WireCellAnaTree::save_weights(art::Event const& e)
             ppfx_cv_UBPPFXCV = value;
           }
       }
+      if (knob_name == "flugg_unisim_NuMIFluggHist" and fIsNuMI){
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ratio_flugg_dk2nu = value;
+          }
+      }
     }
   }
 
   if (fIsNuMI) {
     f_weight_spline *= ppfx_cv_UBPPFXCV; // absorb NuMI's cv correction into spline
+    f_weight_ppfx = ppfx_cv_UBPPFXCV;    // store ppfx weight as a separate branch as well
+    f_weight_flugg = ratio_flugg_dk2nu*f_weight_cv*f_weight_spline/f_weight_ppfx; // spline weights absorb ppfx, ratios are without ppfx so we need to divide it out
     // std::cout << "weight_spline *= ppfx_cv_UBPPFXCV, where ppfx_cv_UBPPFXCV= " << ppfx_cv_UBPPFXCV << std::endl;
   }
 
