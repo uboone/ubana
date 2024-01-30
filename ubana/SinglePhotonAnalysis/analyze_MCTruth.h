@@ -323,12 +323,19 @@ namespace single_photon
                 m_mctruth_daughters_starty[j] = par.Vy();
                 m_mctruth_daughters_startz[j] = par.Vz();
                 m_mctruth_daughters_time[j] = par.T();
+//				std::cout<<"preCHECK var daughters start x:"<< m_mctruth_daughters_startx[j]<<" and end x: "<<m_mctruth_daughters_endx[j]<<std::endl;
                 m_mctruth_daughters_endx[j] = par.EndX();
+//				std::cout<<"preCHECK var daughters start x:"<< m_mctruth_daughters_startx[j]<<" and end x: "<<m_mctruth_daughters_endx[j]<<std::endl;
                 m_mctruth_daughters_endy[j] = par.EndY();
                 m_mctruth_daughters_endz[j] = par.EndZ();
                 m_mctruth_daughters_endtime[j] = par.EndT();
                 m_mctruth_daughters_process[j] = par.Process();  //Process() and EndProcess() return string
                 m_mctruth_daughters_end_process[j] = par.EndProcess();
+
+				std::cout<<"CHECK daughters start x:"<< par.Vx() <<" time "<< par.T() <<" and end x: "<<par.EndX()<<" end time "<<m_mctruth_daughters_endtime[j]<<std::endl;
+				m_mctruth_daughters_endx[j]=par.EndX();
+				std::cout<<"CHECK var daughters start x:"<< m_mctruth_daughters_startx[j]<<" and end x: "<<m_mctruth_daughters_endx[j]<<std::endl;
+				std::cout<<" time : "<<m_mctruth_daughters_time[j]<<" end time:"<<m_mctruth_daughters_endtime[j]<<std::endl;
 
                 if(m_is_textgen) continue; //quick hack, fix in files
 

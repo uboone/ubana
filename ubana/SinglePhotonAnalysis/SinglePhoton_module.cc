@@ -812,6 +812,7 @@ namespace single_photon
 
         //Some misc things thrown in here rather than in a proper helper function. TODO. fix
         //Calc a fake shower "end" distance. How to define an end distance? good question
+		std::cout<<"CHECK Looking at number of showers: "<< showers.size()<<std::endl;
         for(size_t i_shr = 0; i_shr<showers.size();i_shr++){
             const art::Ptr<recob::Shower> s = showers[i_shr];
             const art::Ptr<recob::PFParticle> pfp = showerToNuPFParticleMap[s];
