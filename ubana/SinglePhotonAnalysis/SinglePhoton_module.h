@@ -947,6 +947,7 @@ namespace single_photon
             std::string m_CRTHitProducer;
             std::string m_true_eventweight_label;
 
+            bool m_MakeNuMINtuple;
             bool m_use_PID_algorithms;
             bool m_use_delaunay;
             int     m_delaunay_max_hits;
@@ -1370,6 +1371,11 @@ namespace single_photon
             double m_gtruth_fs_had_syst_p4_z;
             double m_gtruth_fs_had_syst_p4_E;
 
+			float _ppfx_cv;
+			float _weightSplineTimesTune;
+			float _weightSpline;
+			float _weightTune;
+
             //-------------- Flash related variables -------------
             int m_reco_num_templates;
             std::vector<double> m_reco_template;  /* temp comment: does not seem to be used */
@@ -1572,7 +1578,7 @@ namespace single_photon
             std::vector<double> m_sim_track_starty;
             std::vector<double> m_sim_track_startz;
             std::vector<double> m_sim_track_px;
-            std::vector<double> m_sim_track_py;
+			std::vector<double> m_sim_track_py;
             std::vector<double> m_sim_track_pz;
             std::vector<double> m_sim_track_endx;  /* space-charge corrected end-point of the matched MCParticle */
             std::vector<double> m_sim_track_endy;

@@ -37,6 +37,7 @@ namespace single_photon
         m_is_textgen = pset.get<bool>("isTextGen",false);
 
         //some specific additonal info, default not include
+        m_MakeNuMINtuple = pset.get<bool>("makeNuMINtuple", false);
         m_use_PID_algorithms = pset.get<bool>("usePID",false);
         m_use_delaunay = pset.get<bool>("useDelaunay",false);
         m_delaunay_max_hits = pset.get<int>("maxDelaunayHits",1000);
@@ -812,6 +813,7 @@ namespace single_photon
 
         //Some misc things thrown in here rather than in a proper helper function. TODO. fix
         //Calc a fake shower "end" distance. How to define an end distance? good question
+		std::cout<<"CHECK Looking at number of showers: "<< showers.size()<<std::endl;
         for(size_t i_shr = 0; i_shr<showers.size();i_shr++){
             const art::Ptr<recob::Shower> s = showers[i_shr];
             const art::Ptr<recob::PFParticle> pfp = showerToNuPFParticleMap[s];

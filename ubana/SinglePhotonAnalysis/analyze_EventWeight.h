@@ -106,6 +106,10 @@ namespace single_photon
 	    m_gtruth_fs_had_syst_p4_y=-9999;
 	    m_gtruth_fs_had_syst_p4_z=-9999;
 	    m_gtruth_fs_had_syst_p4_E=-9999;
+		_ppfx_cv = -1;
+		_weightSplineTimesTune = -1;
+		_weightSpline = -1;
+		_weightTune = -1;
     
   }
   void SinglePhoton::CreateEventWeightBranches(){
@@ -218,6 +222,11 @@ namespace single_photon
     eventweight_tree->Branch("GTruth_FShadSystP4y", &m_gtruth_fs_had_syst_p4_y );
     eventweight_tree->Branch("GTruth_FShadSystP4z",  &m_gtruth_fs_had_syst_p4_z );
     eventweight_tree->Branch("GTruth_FShadSystP4E",  &m_gtruth_fs_had_syst_p4_E );
+    eventweight_tree->Branch("ppfx_cv",&_ppfx_cv,"ppfx_cv/F");
+    eventweight_tree->Branch("weightSplineTimesTune",&_weightSplineTimesTune,"weightSplineTimesTune/F");
+	eventweight_tree->Branch("weightSpline",&_weightSpline,"weightSpline/F");
+	eventweight_tree->Branch("weightTune",&_weightTune,"weightTune/F");
+
     std::cout<<"SinglePhoton:analyze_Eventweigh:eventweight_tree make branches end"<<std::endl;
   }
 
@@ -385,6 +394,61 @@ namespace single_photon
   m_gtruth_fs_had_syst_p4_z = gTruth->fFShadSystP4.Z();
   m_gtruth_fs_had_syst_p4_E = gTruth->fFShadSystP4.E();
  
+  //need PPFX_CV for NuMI analysis, Keng
+  //Reference: https://github.com/ubneutrinos/searchingfornues/blob/7f09a774dd37061f0ef105d33150a33fe1afe1a5/Selection/AnalysisTools/EventWeightTree_tool.cc
+  //NEED THESE TWO varaibles
+   // nufilter_tree->SetBranchAddress("ppfx_cv",&ppfx_cv);
+   // nufilter_tree->SetBranchAddress("weightSplineTimesTune",&spline_tune);  already included? CHECK
+  if(m_MakeNuMINtuple){
+	  std::vector<art::InputTag> vecTag;
+	  art::InputTag eventweight_tag_00("eventweightSep24","","EventWeightSep24");
+	  art::InputTag eventweight_tag_01("eventweightSep24","","EventWeightSep24ExtraGENIE1");
+	  art::InputTag eventweight_tag_02("eventweightSep24","","EventWeightSep24ExtraGENIE2");
+	  art::InputTag eventweight_tag_03("eventweightSep24","","EventWeightSep24ExtraGENIE3");
+	  art::InputTag eventweight_tag_04("eventweightSep24","","EventWeightSep24ExtraGENIE4");
+	  art::InputTag eventweight_tag_05("eventweightSep24","","EventWeightSep24ExtraGENIE5");
+	  art::InputTag eventweight_tag_knobs("eventweightGenieKnobs");
+
+	  vecTag.push_back(eventweight_tag_00);
+	  vecTag.push_back(eventweight_tag_01);
+	  vecTag.push_back(eventweight_tag_02);
+	  vecTag.push_back(eventweight_tag_03);
+	  vecTag.push_back(eventweight_tag_04);
+	  vecTag.push_back(eventweight_tag_05);
+	  vecTag.push_back(eventweight_tag_knobs);
+
+	  for(auto& thisTag : vecTag){
+		  art::Handle<std::vector<evwgh::MCEventWeight>> eventweights_handle;
+		  e.getByLabel(thisTag, eventweights_handle);
+		  std::cout << " [ EventWeightTree ]" << " newTag " << thisTag.label() << std::endl;
+		  if(eventweights_handle.isValid()){
+			  std::cout << " PPFX handle isValid! " << std::endl;
+
+			  std::vector<art::Ptr<evwgh::MCEventWeight>> eventweights;
+			  art::fill_ptr_vector(eventweights, eventweights_handle);
+
+			  std::map<std::string, std::vector<double>> evtwgt_map = eventweights.at(0)->fWeight;
+
+			  if(evtwgt_map.find("ppfx_cv_UBPPFXCV") != evtwgt_map.end()) _ppfx_cv = evtwgt_map.find("ppfx_cv_UBPPFXCV")->second[0];
+			  std::cout << "ppfx cv weight: "<< _ppfx_cv<<  std::endl;
+
+			  if(evtwgt_map.find("splines_general_Spline") != evtwgt_map.end()) _weightSpline = evtwgt_map.find("splines_general_Spline")->second[0];
+			  evtwgt_map.erase("splines_general_Spline");
+			  if(evtwgt_map.find("TunedCentralValue_UBGenie") != evtwgt_map.end()) _weightTune = evtwgt_map.find("TunedCentralValue_UBGenie")->second[0];
+			  //evtwgt_map.erase("TunedCentralValue_Genie");
+
+			  //std::cout << " [ EventWeightTree ]" << " continue... " << std::endl;
+
+			  if(_weightSpline != -1 && _weightTune != -1) _weightSplineTimesTune = _weightSpline * _weightTune;
+			  if(!(_weightSplineTimesTune < 30 && _weightSplineTimesTune > 0) ){
+				  std::cout<<"Bad weight, weightSplineTimesTune: "<<_weightSplineTimesTune<<", turn it into 1"<<std::endl;
+				  _weightSplineTimesTune = 1;//only accept weigths from (0,30); others, e.g. negative, inf weights, go to 1.
+			  }
+		  }
+	  }
+  }
+  //Thats what we need for NuMI
+
   //moved to inside singlphoontmodule.cc for filter reasons
   //eventweight_tree->Fill();
   std::cout<<"SinglePhoton::AnalyzeEventWeight-eventweight_tree filled"<<std::endl;
