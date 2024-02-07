@@ -1,0 +1,80 @@
+#include "backtrackerservice.fcl"
+#include "particleinventoryservice.fcl"
+#include "services_microboone.fcl"
+#include "calorimetry_microboone.fcl"
+#include "time_memory_tracker_microboone.fcl"
+#include "blipreco_configs.fcl"
+
+process_name: BlipAna
+
+services: 
+{
+  scheduler:               { defaultExceptions: false }
+  TFileService:            { fileName: "hist_%p_%tc.root" }
+  DetectorClocksService:    @local::microboone_detectorclocks
+  Geometry:                 @local::microboone_geo
+  LArProperties:            @local::microboone_properties
+  TimeTracker:              @local::microboone_time_tracker
+                            @table::microboone_services_reco
+}
+
+# Enable BackTracker to work on overlay MC
+services.BackTrackerService: @local::microboone_backtrackerservice
+services.BackTrackerService.BackTracker.OverrideRealData:             true
+services.ParticleInventoryService: @local::standard_particleinventoryservice
+services.ParticleInventoryService.ParticleInventory.OverrideRealData: true
+# (note: in uboonecode v08_00_00_64 and earlier, 'OverrideRealData' does not
+# work for ParticleInventoryService; instead the service must be initialized
+# per event:
+#     art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+#     pi_serv->Rebuild(evt);
+#     pi_serv->provider()->PrepParticleList(evt);
+
+# Don't retrieve lifetime from DB; this should only be enabled for Runs 4 and 5
+services.UBElectronLifetimeService.ElectronLifetimeProvider.UseDB: false
+services.UBElectronLifetimeService.ElectronLifetimeProvider.DefaultLifetime: 1000 # ms
+
+# Enable SCE service; corrections to blip calorimetry enabled by 
+# switch in BlipRecoAlg ("SCECorrection", turned off by default)
+services.SpaceCharge.EnableCorrSCE:       true
+services.SpaceCharge.EnableCalEfieldSCE:  true
+services.SpaceCharge.EnableCalSpatialSCE: true
+
+# Suppress common warning messages
+services.message.destinations.STDCOUT: {
+  categories: {
+    SIOVChannelStatusProvider: { limit: 0 reportEvery: 0 }
+    DetPedestalRetrievalAlg: { limit: 0 reportEvery: 0 }
+    BackTrackerService: { limit: 0 reportEvery: 0 }
+  }
+  threshold: "WARNING"
+  type: "cout"
+}
+
+# The following overrides are necessary to handle the truncation of 
+# RawDigits from 9600 ticks to 6400 ticks (which happens at reco1).
+services.DetectorPropertiesService.NumberTimeSamples:        6400
+services.DetectorPropertiesService.ReadOutWindowSize:        6400
+services.DetectorPropertiesService.InheritNumberTimeSamples: false
+services.DetectorClocksService.InheritClockConfig:           false
+services.DetectorClocksService.TriggerOffsetTPC:             -400
+
+# Source is an art-ROOT file containing hits and tracks
+source: {
+  module_type: RootInput
+}
+
+# Define and schedule filter/producer/analyzers
+physics:
+{
+  
+  analyzers:{
+    blipana:          @local::microboone_blipana
+  }
+  
+  ana:            [ blipana ]
+  trigger_paths:  [ ] 
+  end_paths:      [ ana ] 
+
+} # physics
+
