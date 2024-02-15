@@ -475,10 +475,11 @@ namespace single_photon
             }
 
             std::cout<<"SinglePhoton::SSS\t||\tTick Min: "<<tick_min<<" Max: "<<tick_max<<std::endl;
-            auto const ID = *geom->begin<geo::TPCID>();
+            auto const TPC = (*geom).begin_TPC();
+            auto ID = TPC.ID();
             int fCryostat = ID.Cryostat;
             int fTPC = ID.TPC;
-            std::cout<<"SinglePhoton::SSS\t||\t" << ID << "= the beginning TPC ID" <<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\t" << TPC.ID() << "= the beginning TPC ID" <<std::endl;
             std::cout<<"SinglePhoton::SSS\t||\tthe cryostat id = " << fCryostat << std::endl;  
             std::cout<<"SinglePhoton::SSS\t||\tthe tpc id = " << fTPC << std::endl;  
 
@@ -496,7 +497,7 @@ namespace single_photon
                 if(i==0 || i ==4 || i == 8) pader->SetLeftMargin(0.1);
 
                 std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
+                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
 
                 vertex_time[i] = time[0];
                 vertex_wire[i] = wire[0];
@@ -887,7 +888,7 @@ namespace single_photon
                             //recob::Shower start point, convered to wire tick.
 
                             double shr_wire = (double)calcWire(m_reco_shower_starty[0], m_reco_shower_startz[0], i, fTPC, fCryostat, *geom);
-                            double shr_time = calcTime(m_reco_shower_startx[0], i, fTPC,fCryostat, theDetector);
+                            double shr_time = calcTime(m_reco_shower_startx[0], i, fTPC,fCryostat, *theDetector);
 
                             std::vector<double> vec_c = {(double)(vertex_wire[i]-ssscorz.close_wire), (double)(vertex_time[i]-ssscorz.close_tick)};
                             std::vector<double> vec_s = {(double)vertex_wire[i]-shr_wire, (double)vertex_time[i]-shr_time};
@@ -1314,8 +1315,7 @@ namespace single_photon
 
         //energy for an MCParticle that comprises the most energy when sum over associated hits in PFP
         //total energy of the reco PFP taken from the sum of the hits associated to an MCParticle
-        // double maxe=-1, tote=0;                // tote is unused
-        double maxe=-1;
+        double maxe=-1, tote=0;                
 
         std::vector<double> total_energy_on_plane = {0.0,0.0,0.0};
         art::Ptr<simb::MCParticle> best_matched_mcparticle; //pointer for the MCParticle match we will calculate
@@ -1355,7 +1355,7 @@ namespace single_photon
                     map_asso_mcparticles_energy[particle_vec[i_p]][which_plane] += match_vec[i_p]->energy;
                 }
                 //add the energy of the back tracked hit to the total energy for the PFP
-                // tote += match_vec[i_p]->energy; //calculate total energy deposited // unused
+                tote += match_vec[i_p]->energy; //calculate total energy deposited
                 total_energy_on_plane[which_plane]+=match_vec[i_p]->energy;
 
                 //want the MCParticle with the max total energy summed from the back tracker hit energy from hits in PFP
@@ -1982,7 +1982,7 @@ namespace single_photon
                     double mean_energy = 0.0;
 
                     double mean_impact = 0.0;
-                    // double mean_conv = 0.0; // unused
+                    double mean_conv = 0.0;
                     double min_conv = 999;
 
                     double min_impact = 999;
@@ -2010,7 +2010,7 @@ namespace single_photon
                         mean_min_dist +=m_sss_candidate_min_dist.at(ic)/(double)nt;
                         mean_energy +=m_sss_candidate_energy.at(ic)/(double)nt;
                         mean_impact +=m_sss_candidate_impact_parameter.at(ic)/(double)nt;
-                        // mean_conv +=m_sss_candidate_min_dist.at(ic)/(double)nt; // unused
+                        mean_conv +=m_sss_candidate_min_dist.at(ic)/(double)nt;
                         mean_invar +=eff_invar/(double)nt;
                         mean_invar_diff +=eff_invar_diff/(double)nt;
 

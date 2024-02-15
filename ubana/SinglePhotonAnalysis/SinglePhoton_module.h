@@ -1010,8 +1010,8 @@ namespace single_photon
 
             bool m_bool_save_sp;
 
--            detinfo::DetectorProperties const * theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
--            detinfo::DetectorClocks    const *  detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
+            detinfo::DetectorProperties const * theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
+            detinfo::DetectorClocks    const *  detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
             spacecharge::SpaceCharge const * SCE;
             geo::GeometryCore const * geom;
             double m_work_function;  //value provided by pset
@@ -1578,7 +1578,7 @@ namespace single_photon
             std::vector<double> m_sim_track_starty;
             std::vector<double> m_sim_track_startz;
             std::vector<double> m_sim_track_px;
-			std::vector<double> m_sim_track_py;
+            std::vector<double> m_sim_track_py;
             std::vector<double> m_sim_track_pz;
             std::vector<double> m_sim_track_endx;  /* space-charge corrected end-point of the matched MCParticle */
             std::vector<double> m_sim_track_endy;
