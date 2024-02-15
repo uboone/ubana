@@ -1,30 +1,168 @@
-cet_build_plugin(
-  NCRadiativeResonant art::EDFilter
-  LIBRARIES
-  PRIVATE
-  art_root_io::TFileService_service
-  nusimdata::SimulationBase
-  ROOT::Tree
-)
+link_libraries( -L$ENV{BOOST_LIB} -lboost_system -lboost_filesystem)
 
-cet_build_plugin(
-  SinglePhoton art::EDFilter
-  LIBRARIES
-  PRIVATE
-  ubana::SinglePhotonAnalysis_SEAview
-  ubobj::CRT
-  larpandora::LArPandoraInterface
-  larsim::EventWeight_Base
-  larevt::SpaceChargeServices_SpaceChargeServiceStandard_service
-  nusimdata::SimulationBase
-  art_root_io::TFileService_service
-  ROOT::Tree
-)
+    art_make( BASENAME_ONLY
 
-                      
+            LIB_LIBRARIES
+
+            ubraw_RawData
+
+            ubobj_Trigger
+
+            larcorealg_Geometry
+
+            larcore_Geometry_Geometry_service
+
+            ubana_BasicTool_GeoAlgo
+
+            lardata_Utilities
+
+            larevt_Filters
+
+            larpandoraobj
+
+            lardataobj_RawData
+
+    lardataobj_RecoBase
+
+    lardataobj_MCBase
+
+    larcoreobj_SummaryData
+
+    larsim_MCCheater_BackTrackerService_service
+
+    larsim_MCCheater_ParticleInventoryService_service
+
+    larpandora_LArPandoraInterface
+
+    ubana_SinglePhotonAnalysis_SEAview
+
+    ${PANDORASDK}
+
+    ${PANDORAMONITORING}
+
+    LArPandoraContent 
+
+    nusimdata_SimulationBase
+
+    ${UB_DATA_TYPES}
+
+    ${Boost_SERIALIZATION_LIBRARY}
+
+    nutools_RandomUtils_NuRandomService_service
+
+    ${ART_FRAMEWORK_CORE}
+
+    ${ART_FRAMEWORK_PRINCIPAL}
+
+    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+
+    ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+
+    ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
+
+    ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+
+    art_Persistency_Common canvas
+
+    art_Persistency_Provenance canvas
+
+    art_Utilities canvas
+
+    ${MF_MESSAGELOGGER}
+
+
+
+    ${FHICLCPP}
+
+    cetlib cetlib_except
+
+    ${CLHEP}
+
+    ${ROOT_BASIC_LIB_LIST}
+
+    ${ROOT_GEOM} 
+
+    MODULE_LIBRARIES
+
+    ubraw_RawData
+
+    larcorealg_Geometry
+
+    larcore_Geometry_Geometry_service
+
+    ubana_BasicTool_GeoAlgo
+
+    lardata_Utilities
+
+    larevt_Filters
+
+    lardataobj_RawData
+
+    lardataobj_RecoBase
+
+    lardataobj_MCBase
+
+    larcoreobj_SummaryData    
+
+    larsim_MCCheater_BackTrackerService_service
+
+    larpandora_LArPandoraInterface
+
+    SignalShapingServiceMicroBooNE_service
+
+    nusimdata_SimulationBase
+
+    ubana_LEEPhotonAnalysis
+
+    ubana_SinglePhotonAnalysis_SEAview
+
+    ${UB_DATA_TYPES}
+
+    ${Boost_SERIALIZATION_LIBRARY}
+
+    nutools_RandomUtils_NuRandomService_service
+
+    ${ART_FRAMEWORK_CORE}
+
+    ${ART_FRAMEWORK_PRINCIPAL}
+
+    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+
+    ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+
+    ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
+
+    ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+
+    art_Persistency_Common canvas
+
+    art_Persistency_Provenance canvas
+
+    art_Utilities canvas
+
+    ${MF_MESSAGELOGGER}
+
+
+
+    ${FHICLCPP}
+
+    cetlib cetlib_except
+
+    ${CLHEP}
+
+    ${ROOT_BASIC_LIB_LIST}
+
+    ${ROOT_GEOM} )
+
+
+
 add_subdirectory(SEAview)
+
 add_subdirectory(job)
 
 install_headers()
+
 install_fhicl()
+
 install_source()
+
