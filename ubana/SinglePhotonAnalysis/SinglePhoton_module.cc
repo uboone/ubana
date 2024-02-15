@@ -15,12 +15,14 @@
 namespace single_photon
 {
 
-    SinglePhoton::SinglePhoton(fhicl::ParameterSet const &pset) : 
-      art::EDFilter(pset),
-      detClocks(art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob()),
-      theDetector(art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(detClocks))
+
+    //Constructor from .fcl parameters
+    SinglePhoton::SinglePhoton(fhicl::ParameterSet const &pset) : art::EDFilter(pset)
     {
         this->reconfigure(pset);
+        //Set up some detector, timing, spacecharge and geometry services
+        theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
+        detClocks   = lar::providerFrom<detinfo::DetectorClocksService>();
         SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
         geom = lar::providerFrom<geo::Geometry>();
 
@@ -217,11 +219,12 @@ namespace single_photon
         }
 
         //Timing and TPC info
-        auto const ID = *geom->begin<geo::TPCID>();
+        auto const TPC = (*geom).begin_TPC();
+        auto ID = TPC.ID();
         m_Cryostat = ID.Cryostat;
         m_TPC = ID.TPC;
 
-        _time2cm = sampling_rate(detClocks) / 1000.0 * theDetector.DriftVelocity( theDetector.Efield(), theDetector.Temperature() );//found in ProtoShowerPandora_tool.cc
+        _time2cm = theDetector->SamplingRate() / 1000.0 * theDetector->DriftVelocity( theDetector->Efield(), theDetector->Temperature() );//found in ProtoShowerPandora_tool.cc
 
 
         //******************************Setup*****************Setup**************************************/
@@ -367,7 +370,7 @@ namespace single_photon
         m_vertex_pos_wire_p0 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 0, m_TPC, m_Cryostat, *geom);
         m_vertex_pos_wire_p1 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 1, m_TPC, m_Cryostat, *geom);
         m_vertex_pos_wire_p2 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 2, m_TPC, m_Cryostat, *geom);
-        m_vertex_pos_tick = calcTime(m_vertex_pos_x, 2, m_TPC,m_Cryostat, theDetector);
+        m_vertex_pos_tick = calcTime(m_vertex_pos_x, 2, m_TPC,m_Cryostat, *theDetector);
         //std::cout<<calcTime(m_vertex_pos_x, 2, m_TPC,m_Cryostat, *theDetector)<<" "<<calcTime(m_vertex_pos_x, 0, m_TPC,m_Cryostat, *theDetector)<<" "<<calcTime(m_vertex_pos_x, 1, m_TPC,m_Cryostat, *theDetector)<<std::endl;
 
 
@@ -2152,9 +2155,9 @@ namespace single_photon
         double kz = input[2];
 
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
-        double g4Ticks = detClocks.TPCG4Time2Tick(mcparticle->T())+theDetector.GetXTicksOffset(0,0,0)-trigger_offset(detClocks);
+        double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
 
-        double xtimeoffset = theDetector.ConvertTicksToX(g4Ticks,0,0,0);
+        double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
 
         //        double xOffset = -scecorr.X() +xtimeoffset+0.6;
         double yOffset = scecorr.Y();
@@ -2164,9 +2167,9 @@ namespace single_photon
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
 
-        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector.ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+-        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
         //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
-        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks.TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector.GetXTicksOffset(0,0,0)<<" "<<trigger_offset(detClocks)<<std::endl;
+        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
     }
 
@@ -2181,10 +2184,10 @@ namespace single_photon
         double ky = mcparticle->Vy();
         double kz = mcparticle->Vz();
 
-        auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
-        double g4Ticks = detClocks.TPCG4Time2Tick(mcparticle->T())+theDetector.GetXTicksOffset(0,0,0)-trigger_offset(detClocks);
+        auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));  // to get position offsets to be used in ionization electron drift
+        double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle->T())+theDetector->GetXTicksOffset(0,0,0)-theDetector->TriggerOffset();
 
-        double xtimeoffset = theDetector.ConvertTicksToX(g4Ticks,0,0,0);
+        double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
 
         //double xOffset = -scecorr.X() +xtimeoffset+0.6;
         double yOffset = scecorr.Y();
@@ -2194,9 +2197,9 @@ namespace single_photon
         corrected[1]=ky+yOffset;
         corrected[2]=kz+zOffset;
 
-        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector.ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
-        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
-        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks.TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector.GetXTicksOffset(0,0,0)<<" "<<trigger_offset(detClocks)<<std::endl;
+        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<kx<<" "<<xOffset<<" "<<theDetector->ConvertTicksToX(g4Ticks, 0, 0, 0)<<" "<<scecorr.X()<<std::endl;
+         //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: "<<xOffset<<" "<<yOffset<<" "<<zOffset<<std::endl;
+        //std::cout<<"SinglePhoton\t||\tTRIGGER_OFF: mcp->T(): "<<mcparticle->T()<<" TPCG4Time2Tick(): "<<detClocks->TPCG4Time2Tick(mcparticle->T())<<". "<<theDetector->GetXTicksOffset(0,0,0)<<" "<<theDetector->TriggerOffset()<<std::endl;
         return 0;
     }
 
@@ -2211,9 +2214,9 @@ namespace single_photon
         double ky = mcparticle.Vy();
         double kz = mcparticle.Vz();
         auto scecorr = SCE->GetPosOffsets( geo::Point_t(kx,ky,kz));
-        double g4Ticks = detClocks.TPCG4Time2Tick(mcparticle.T())+theDetector.GetXTicksOffset(0,0,0)-trigger_offset(detClocks);
+        double g4Ticks = detClocks->TPCG4Time2Tick(mcparticle.T())+theDetector->GetXTicksOffset(0,0,0)-trigger_offset(detClocks);
 
-        double xtimeoffset = theDetector.ConvertTicksToX(g4Ticks,0,0,0);
+        double xtimeoffset = theDetector->ConvertTicksToX(g4Ticks,0,0,0);
 
         corrected[0]=kx - scecorr.X() +xtimeoffset+0.6;
         corrected[1]=ky + scecorr.Y();
@@ -2289,7 +2292,7 @@ namespace single_photon
 
         this->CollectSimChannels(evt, label, simChannelVector);
         this->CollectMCParticles(evt, label, truthToParticles, particlesToTruth, MCParticleToTrackIdMap);
-        lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(evt, hitVector, simChannelVector, hitsToTrackIDEs);
+        lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitVector, simChannelVector, hitsToTrackIDEs);
         lar_pandora::LArPandoraHelper::BuildMCParticleHitMaps(hitsToTrackIDEs, truthToParticles, particlesToHits, hitsToParticles, daughterMode);
 
 

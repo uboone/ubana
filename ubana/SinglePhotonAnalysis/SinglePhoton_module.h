@@ -8,8 +8,8 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art_root_io/TFileService.h"
-#include "art_root_io/TFileDirectory.h"
+#include "art/Framework/Services/Optional/TFileService.h"
+#include "art/Framework/Services/Optional/TFileDirectory.h"
 
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/PFParticle.h"
@@ -192,11 +192,12 @@ namespace single_photon
 
 
     double calcWire(double Y, double Z, int plane, int fTPC, int fCryostat, geo::GeometryCore const& geo ){
-        return geo.WireCoordinate(geo::Point_t{0, Y, Z}, geo::PlaneID(fCryostat, fTPC, plane));
+        double wire = geo.WireCoordinate(Y, Z, plane, fTPC, fCryostat);
+        return wire;
     }
 
 
-    double calcTime(double X,int plane,int fTPC,int fCryostat, detinfo::DetectorPropertiesData const& detprop){
+    double calcTime(double X,int plane,int fTPC,int fCryostat, detinfo::DetectorProperties const& detprop){
         double time = detprop.ConvertXToTicks(X, plane, fTPC,fCryostat);
         return time;
     }
@@ -1009,8 +1010,8 @@ namespace single_photon
 
             bool m_bool_save_sp;
 
-            detinfo::DetectorClocksData const detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
-            detinfo::DetectorPropertiesData const theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
+-            detinfo::DetectorProperties const * theDetector ;// = lar::providerFrom<detinfo::DetectorPropertiesService>();
+-            detinfo::DetectorClocks    const *  detClocks   ;//= lar::providerFrom<detinfo::DetectorClocksService>();
             spacecharge::SpaceCharge const * SCE;
             geo::GeometryCore const * geom;
             double m_work_function;  //value provided by pset
