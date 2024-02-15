@@ -475,11 +475,10 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
             }
 
             std::cout<<"*Tick Min: "<<tick_min<<" Max: "<<tick_max<<std::endl;
-            auto const TPC = (*geom).begin_TPC();
-            auto ID = TPC.ID();
+            auto const ID = *geom->begin<geo::TPCID>();
             int fCryostat = ID.Cryostat;
             int fTPC = ID.TPC;
-            std::cout<<TPC.ID()<<"*= the beginning TPC ID" <<std::endl;
+            std::cout<<ID<<"*= the beginning TPC ID" <<std::endl;
             std::cout<<"*the cryostat id = "<<fCryostat<<std::endl;  
             std::cout<<"*the tpc id = "<<fTPC<<std::endl;  
 
@@ -497,7 +496,7 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
                 if(i==0 ) pader->SetLeftMargin(0.1);
 
                 std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
+                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
                 vertex_time[i] = time[0];
                 vertex_wire[i] = wire[0];
@@ -659,4 +658,3 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
     }
 
 }
-

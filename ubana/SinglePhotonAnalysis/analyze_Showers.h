@@ -635,7 +635,7 @@ namespace single_photon
             m_reco_shower_start_wire_plane0[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 0, m_TPC, m_Cryostat, *geom);
             m_reco_shower_start_wire_plane1[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 1, m_TPC, m_Cryostat, *geom);
             m_reco_shower_start_wire_plane2[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 2, m_TPC, m_Cryostat, *geom);
-            m_reco_shower_start_tick[i_shr] = calcTime(m_reco_shower_startx[i_shr], 2, m_TPC,m_Cryostat, *theDetector);
+            m_reco_shower_start_tick[i_shr] = calcTime(m_reco_shower_startx[i_shr], 2, m_TPC,m_Cryostat, theDetector);
 
             std::vector<double> hstart = {m_reco_shower_startx[i_shr],m_reco_shower_starty[i_shr],m_reco_shower_startz[i_shr]};
             m_reco_shower_start_dist_to_active_TPC[i_shr] = distToTPCActive(hstart);
@@ -1144,7 +1144,7 @@ namespace single_photon
                     pts_x.push_back(calo[p]->ResidualRange().back()-calo[p]->ResidualRange()[ix]);
 
                     double wire = (double)calcWire(kal_pts[ix].Y(), kal_pts[ix].Z(), plane, m_TPC, m_Cryostat, *geom);
-                    double time = calcTime(kal_pts[ix].X(), plane, m_TPC,m_Cryostat, *theDetector);
+                    double time = calcTime(kal_pts[ix].X(), plane, m_TPC,m_Cryostat, theDetector);
 
                     //loop over all hits  
                     for(auto &hit: hitz){
@@ -1414,8 +1414,8 @@ namespace single_photon
             //std::cout<<"for plane/tpc/cryo:"<<plane<<"/"<<m_TPC<<"/"<<m_Cryostat<<", fXTicksOffset: "<<theDetector->GetXTicksOffset(plane, m_TPC, m_Cryostat)<<" fXTicksCoefficient: "<<theDetector->GetXTicksCoefficient(m_TPC, m_Cryostat)<<std::endl;
 
             //convert the cluster start and end positions to time and wire coordinates
-            std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,(thiscluster->StartTick() - theDetector->TriggerOffset())* _time2cm};
-            std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,(thiscluster->EndTick() - theDetector->TriggerOffset())* _time2cm };
+            std::vector<double> cluster_start = {thiscluster->StartWire() * m_wire_spacing,(thiscluster->StartTick() - trigger_offset(detClocks))* _time2cm};
+            std::vector<double> cluster_end = {thiscluster->EndWire() * m_wire_spacing,(thiscluster->EndTick() - trigger_offset(detClocks))* _time2cm };
 
             //check that the cluster has non-zero length
             double length = sqrt(pow(cluster_end[0] - cluster_start[0], 2) + pow(cluster_end[1] - cluster_start[1], 2));
@@ -1435,7 +1435,7 @@ namespace single_photon
             //for each hit in the cluster
             for (art::Ptr<recob::Hit> &thishit: hits){	
                 //get the hit position in cm from the wire and time
-                std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, (thishit->PeakTime() - theDetector->TriggerOffset())* _time2cm};
+	        std::vector<double> thishit_pos = {thishit->WireID().Wire * m_wire_spacing, (thishit->PeakTime() - trigger_offset(detClocks))* _time2cm};
 
                 //check if inside the box
                 bool v2 = isInsidev2(thishit_pos, rectangle);

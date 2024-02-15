@@ -104,13 +104,13 @@ namespace single_photon
                         int ok = bad_channel_list_fixed_mcc9[i].second;       
                         if(ok>1)continue;
                         int dist =hit->Channel()-bc;
-                        auto hs = geom->ChannelToWire(bc);
+                        // auto hs = geom->ChannelToWire(bc);
                         //std::cout<<"AG: "<<hs.size()<<"  BC("<<bc<<"): "<<hs[0]<<" ours: ("<<hit->Channel()<<"): "<<hit->WireID()<<std::endl;
                         //this is the right format for my plotting routine
                         //std::cout<<"KNK: "<<bc<<" "<<hs[0]<<" "<< badchannels[offset+1]<<" "<<badchannels[offset+2]<<std::endl;
-                        std::vector<double> start(3);
-                        std::vector<double> end(3);
-                        auto result = geom->WireEndPoints(hs[0]);
+                        // std::vector<double> start(3);
+                        // std::vector<double> end(3);
+                        // auto result = geom->WireEndPoints(hs[0]);
                         
                 //        std::cout<<"KNK: "<<bc<<" "<<hs[0]<<" "<<result.start().X()<<" "<<result.start().Y()<<" "<<result.start().Z()<<" "<<result.end().X()<<" "<<result.end().Y()<<" "<<result.end().Z()<<std::endl; 
 
