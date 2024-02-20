@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+millicharge_sps:
+{
+  module_type   : "SPSGamma3D"
+  POTModuleLabel: "generator"
+  BlipAlg       : "BlipAlg"
+}
+
+END_PROLOG

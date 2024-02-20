@@ -2,6 +2,7 @@ link_libraries( -L$ENV{BOOST_LIB} -lboost_system -lboost_filesystem)
 
 art_make(
           MODULE_LIBRARIES 
+          ubana_BlipVertexAnalysis_Libaries
           ubreco_BlipRecoAlg
           lardataobj_RecoBase
           larpandora_LArPandoraInterface

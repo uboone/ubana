@@ -1,0 +1,40 @@
+#include "BlipVertexAnalysis_config.fcl"
+#include "services_microboone.fcl"
+#include "blipreco_configs.fcl"
+#include "backtrackerservice.fcl"
+
+#Copied from /uboone/app/users/arellano/builds/uboonecode_v08_00_00_67/blip_millicharge/srcs/ubreco/ubreco/MillichargeAna/
+process_name: BlipVertexAnalysis
+
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+}
+
+services:
+{
+  TFileService: { fileName: "ntuple_%p_%tc.root" }
+  #  @table::
+  @table::microboone_services_reco
+}
+
+physics:
+{
+  analyzers:
+  {
+    ana: @local::millicharge_sps
+  }
+  path0:     [ ana ]
+  end_paths: [ path0 ]
+}
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400
+services.DetectorClocksService.InheritClockConfig:       false
+services.DetectorClocksService.TriggerOffsetTPC:         -0.400e3
+physics.analyzers.ana.module_type: "BlipVertexAnalysis"
+physics.analyzers.ana.BlipAlg: @local::microboone_blipalg
+services.BackTrackerService: @local::microboone_backtrackerservice
+services.BackTrackerService.BackTracker.OverrideRealData:             true
+services.ParticleInventoryService: @local::standard_particleinventoryservice
+services.ParticleInventoryService.ParticleInventory.OverrideRealData: true 
