@@ -4,6 +4,8 @@ art_make_library( LIBRARY_NAME ubana_BlipVertexAnalysis_Libaries
         SOURCE ${local_src_libs}
 
         LIBRARIES
+          lardataobj_RecoBase
+          larpandora_LArPandoraInterface
           art_Persistency_Common canvas
           art_Persistency_Provenance canvas
           art_Utilities canvas

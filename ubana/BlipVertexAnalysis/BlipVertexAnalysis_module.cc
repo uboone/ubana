@@ -17,6 +17,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "Pandora/PdgTable.h"
 
 // extra includes, trying to fix
 #include "lardataobj/RecoBase/Vertex.h"
@@ -39,7 +40,6 @@
 //#include "lardata/Utilities/PtrMaker.h"
 
 // additional framework includes
-//#include "art_root_io/TFileService.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 
 // pot summary
@@ -51,7 +51,9 @@
 
 #include "Libraries/init_branches.h"
 #include "Libraries/variables.h"
-#include "Libraries/BVA_justblips.h"
+#include "Libraries/BVA_onlyblips.h"
+#include "Libraries/BVA_onlypandora.h"
+#include "Libraries/BVA_blipsnearvertex.h"
 
 namespace BVA_ana
 {
@@ -102,21 +104,70 @@ namespace BVA_ana
 	}
 
 	void BlipVertexAnalysis::analyze(art::Event const& e)
-	{
+	{//Main code
 		ClearVars(vars);
 	
 		// Implementation of required member function here.
 		vars.evt = e.id().event();
 		vars.run = e.id().run();
 
+		//CHECK hardcode this
+		std::string m_pandoraLabel = "pandora";
+
+		//Some verticies.········
+		//Collect the PFParticles from the event. 
+		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = e.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
+		std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;//Prepare this vector
+		art::fill_ptr_vector(pfParticleVector,pfParticleHandle);
+
+		//load vertices 
+//		art::ValidHandle<std::vector<recob::Vertex>> const & vertexHandle = e.getValidHandle<std::vector<recob::Vertex>>(m_pandoraLabel);
+//		std::vector<art::Ptr<recob::Vertex>> vertexVector;//Prepare this vector
+//		art::fill_ptr_vector(vertexVector,vertexHandle);
+
+		//load vertices with PFParticle key()
+		art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, e, m_pandoraLabel);
+
+		//take neutrino's vertex
+		int NeutrinoIndex = -1;
+		int NuCounts = 0;
+		for(size_t i=0; i< pfParticleVector.size(); ++i){
+			auto pfp = pfParticleVector[i];
+			// Check if this particle is identified as the neutrino
+			const int pdg(pfp->PdgCode());
+			const bool isNeutrino(std::abs(pdg) == pandora::NU_E || std::abs(pdg) == pandora::NU_MU || std::abs(pdg) == pandora::NU_TAU);
+			if(isNeutrino){
+			NeutrinoIndex = i;
+			NuCounts++;
+			}
+		}
+		
+		if( NuCounts ==1 ){
+			const lar_pandora::VertexVector &vertexVector = vertices_per_pfparticle.at(pfParticleVector[NeutrinoIndex].key());
+			AnalyzePandora(vertexVector, vars);
+		} else {
+
+		std::cout <<"Warning, number of neutrino candidates in this event is "<<NuCounts<<std::endl;
+		}
+
+		//CHECK Hard code a vertex
+		NeutrinoIndex = 0;
+		const lar_pandora::VertexVector &vertexVector = vertices_per_pfparticle.at(pfParticleVector[NeutrinoIndex].key());
+		AnalyzePandora(vertexVector, vars);
+	
+		//grab blip varaibles;
 		fBlipAlg->RunBlipReco(e);
 		AnalyzeBlips( fBlipAlg, vars);
+
+		AnalyzeBlipsNearVertex( vars );
+
+
 
 		vars.f_output_tree->Fill();
 	}
 
 	void BlipVertexAnalysis::endSubRun(const art::SubRun& sr)
-	{
+	{//wrap up, fill up event info. here;
 
 		ClearVarsEvt(vars_evt);
 		vars_evt._totpot_run    = sr.run();

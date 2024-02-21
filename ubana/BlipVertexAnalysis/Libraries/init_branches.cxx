@@ -41,6 +41,8 @@ namespace BVA_ana
 		vars.m_vertex_pos_y=-99999;
 		vars.m_vertex_pos_z=-99999;
 
+		vars.sps_dist->clear();
+
 	}
 
 	void CreateVarsBranches(var_all& vars){
@@ -77,6 +79,9 @@ namespace BVA_ana
 		vars.f_output_tree->Branch("reco_vertex_x", vars.m_vertex_pos_x);
 		vars.f_output_tree->Branch("reco_vertex_y", vars.m_vertex_pos_y);
 		vars.f_output_tree->Branch("reco_vertex_z", vars.m_vertex_pos_z);
+		
+		//add vertex-blips
+		vars.f_output_tree->Branch("sps_dist",vars.sps_dist);
 	}
 
 	void ClearVarsEvt(var_evt& vars){

@@ -72,6 +72,8 @@ namespace BVA_ana
 			double true_E;
 			double dep_e;
 
+			//new vertex-blip variable
+			std::vector<double> *sps_dist = new std::vector<double>;
 	};
 
 
