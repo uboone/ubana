@@ -17,6 +17,7 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
@@ -58,6 +59,7 @@ class pandora::PandoraAnalysis : public art::EDAnalyzer {
         void respondToOpenInputFile(art::FileBlock const &block) override;
 
         void reset();
+        void fillMCInfo(art::Event const& e);
 
     private:
 
@@ -70,9 +72,8 @@ class pandora::PandoraAnalysis : public art::EDAnalyzer {
         int fIsNC;
         int fNPi0;
         int fNPiC;
-        double fFlashMatchScore;
-        double fTopologicalScore;
-        double fNPfps;
+        std::vector<double> fTopologicalScore;
+        std::vector<double> fNPfps;
         std::vector<int> fPfpPdgVec;
         std::vector<int> fPfpClearCosmicVec;
         std::vector<int> fPfpPrimaryVec;
@@ -91,6 +92,13 @@ class pandora::PandoraAnalysis : public art::EDAnalyzer {
         std::vector<double> fPfpTrackThetaVec;
         std::vector<double> fPfpTrackPhiVec;
         std::vector<double> fPfpShowerOpeningAngleVec;
+        std::vector<double> fMcStartXVec;
+        std::vector<double> fMcStartYVec;
+        std::vector<double> fMcStartZVec;
+        std::vector<double> fMcDirXVec;
+        std::vector<double> fMcDirYVec;
+        std::vector<double> fMcDirZVec;
+        std::map<int, int> fMCToHitMap;
 };
 
 
@@ -103,12 +111,11 @@ pandora::PandoraAnalysis::PandoraAnalysis(fhicl::ParameterSet const& p)
 void pandora::PandoraAnalysis::analyze(art::Event const& e)
 {
     this->reset();
+    this->fillMCInfo(e);
     fRun = e.id().run();
     fSubRun = e.id().subRun();
     fEvent = e.id().event();
     ++fLocalEvent;
-    fFlashMatchScore = -std::numeric_limits<double>::max();
-    fTopologicalScore = -std::numeric_limits<double>::max();
 
     // generator truth
     art::Handle< std::vector<simb::MCTruth>> mcTruthHandle;
@@ -138,8 +145,9 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
     if (!e.getByLabel(pfpInputTag, pfpHandle))
         return;
     art::fill_ptr_vector(pfpVector, pfpHandle);
+    std::cout << "PFPs: " << pfpVector.size() << std::endl;
 
-    fNPfps = pfpVector.size();
+    fNPfps.emplace_back(pfpVector.size());
 
     std::vector<art::Ptr<recob::PFParticle>> neutrinoPFPs;
     lar_pandora::LArPandoraHelper::SelectNeutrinoPFParticles(pfpVector, neutrinoPFPs);
@@ -156,7 +164,7 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
         const auto &properties{pfpMetadata.front()->GetPropertiesMap()};
         if (properties.find("NuScore") != properties.end())
         {
-            fTopologicalScore = pfpMetadata.front()->GetPropertiesMap().at("NuScore");
+            fTopologicalScore.emplace_back(pfpMetadata.front()->GetPropertiesMap().at("NuScore"));
             fPfpClearCosmicVec.emplace_back(0);
         }
         if (properties.find("IsClearCosmic") != properties.end())
@@ -176,6 +184,10 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
     art::FindManyP<recob::Track> trackPfpAssn(pfpHandle, e, pfpInputTag);
     art::Handle< std::vector<recob::Track>> trackHandle;
     e.getByLabel("pandora", trackHandle);
+
+    art::Handle<std::vector<recob::Hit>> hitHandle;
+    e.getByLabel("gaushit", hitHandle);
+
     if (trackHandle.isValid())
     {
         art::FindManyP<recob::Hit> trackHitAssn(trackHandle, e, pfpInputTag);
@@ -197,6 +209,50 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
                 fPfpTrackPhiVec.emplace_back(track->Phi());
                 std::vector<art::Ptr<recob::Hit>> pfpHits{trackHitAssn.at(track.key())};
                 fPfpNumHitsVec.emplace_back(pfpHits.size());
+
+                art::FindManyP<simb::MCParticle, anab::BackTrackerHitMatchingData> mcHitAssn(hitHandle, e, "gaushitTruthMatch");
+                std::map<const art::Ptr<simb::MCParticle>, int> sharedHitsMap;
+                for (const art::Ptr<recob::Hit> &hit : pfpHits)
+                {
+                    const std::vector<art::Ptr<simb::MCParticle>> &matchedMC{mcHitAssn.at(hit.key())};
+                    auto data{mcHitAssn.data(hit.key())};
+                    int j{0};
+                    for (const art::Ptr<simb::MCParticle> &mc : matchedMC)
+                    {
+                        auto datum{data.at(j)};
+                        ++j;
+                        if (datum->isMaxIDE != 1)
+                            continue;
+
+                        if (sharedHitsMap.find(mc) == sharedHitsMap.end())
+                            sharedHitsMap[mc] = 0;
+                        sharedHitsMap[mc]++;
+                        //sharedHitsMap[mc->TrackId()]++;
+                    }
+                }
+                int mcBestHits{0};
+                double mcX{0.}, mcY{0.}, mcZ{0.}, mcDirX{0.}, mcDirY{0.}, mcDirZ{0.};
+                for (auto const& [mc, nHits] : sharedHitsMap)
+                {
+                    if (nHits > mcBestHits)
+                    {
+                        mcBestHits = nHits; 
+                        mcX = mc->Position().X();
+                        mcY = mc->Position().Y();
+                        mcZ = mc->Position().Z();
+                        const TLorentzVector &mom{mc->Momentum()};
+                        const TLorentzVector dir{mom * (1. / mom.Mag())};
+                        mcDirX = dir.X();
+                        mcDirY = dir.Y();
+                        mcDirZ = dir.Z();
+                    }
+                }
+                fMcStartXVec.emplace_back(mcX);
+                fMcStartYVec.emplace_back(mcY);
+                fMcStartZVec.emplace_back(mcZ);
+                fMcDirXVec.emplace_back(mcDirX);
+                fMcDirYVec.emplace_back(mcDirY);
+                fMcDirZVec.emplace_back(mcDirZ);
             }
         }
     }
@@ -225,57 +281,93 @@ void pandora::PandoraAnalysis::analyze(art::Event const& e)
                 fPfpShowerOpeningAngleVec.emplace_back(shower->OpenAngle());
                 std::vector<art::Ptr<recob::Hit>> pfpHits{showerHitAssn.at(shower.key())};
                 fPfpNumHitsVec.emplace_back(pfpHits.size());
+
+                art::FindManyP<simb::MCParticle, anab::BackTrackerHitMatchingData> mcHitAssn(hitHandle, e, "gaushitTruthMatch");
+                std::map<const art::Ptr<simb::MCParticle>, int> sharedHitsMap;
+                for (const art::Ptr<recob::Hit> &hit : pfpHits)
+                {
+                    const std::vector<art::Ptr<simb::MCParticle>> &matchedMC{mcHitAssn.at(hit.key())};
+                    auto data{mcHitAssn.data(hit.key())};
+                    int j{0};
+                    for (const art::Ptr<simb::MCParticle> &mc : matchedMC)
+                    {
+                        auto datum{data.at(j)};
+                        ++j;
+                        if (datum->isMaxIDE != 1)
+                            continue;
+
+                        if (sharedHitsMap.find(mc) == sharedHitsMap.end())
+                            sharedHitsMap[mc] = 0;
+                        sharedHitsMap[mc]++;
+                    }
+                }
+                int mcBestHits{0};
+                double mcX{0.}, mcY{0.}, mcZ{0.}, mcDirX{0.}, mcDirY{0.}, mcDirZ{0.};
+                for (auto const& [mc, nHits] : sharedHitsMap)
+                {
+                    if (nHits > mcBestHits)
+                    {
+                        mcBestHits = nHits; 
+                        mcX = mc->Position().X();
+                        mcY = mc->Position().Y();
+                        mcZ = mc->Position().Z();
+                        const TLorentzVector &mom{mc->Momentum()};
+                        const TLorentzVector dir{mom * (1. / mom.Mag())};
+                        mcDirX = dir.X();
+                        mcDirY = dir.Y();
+                        mcDirZ = dir.Z();
+                    }
+                }
+                fMcStartXVec.emplace_back(mcX);
+                fMcStartYVec.emplace_back(mcY);
+                fMcStartZVec.emplace_back(mcZ);
+                fMcDirXVec.emplace_back(mcDirX);
+                fMcDirYVec.emplace_back(mcDirY);
+                fMcDirZVec.emplace_back(mcDirZ);
             }
         }
     }
-
-    // pandora slice selection
-/*    art::Handle<std::vector<recob::Slice>> sliceHandle;
-    std::vector<art::Ptr<recob::Slice>> sliceVector;
-    art::InputTag sliceInputTag("pandora", "allOutcomes");
-    if (!e.getByLabel(sliceInputTag, sliceHandle))
-        return;
-
-    art::fill_ptr_vector(sliceVector, sliceHandle);
-    art::FindManyP<recob::PFParticle> pfpAssn(sliceHandle, e, sliceInputTag);
-
-    art::InputTag pfpInputTagAll("pandora", "allOutcomes");
-    art::Handle<std::vector<recob::PFParticle>> pfpHandleAll;
-    if (!e.getByLabel(pfpInputTagAll, pfpHandleAll))
-        return;
-
-    art::FindManyP<larpandoraobj::PFParticleMetadata> metadataAssnAll(pfpHandleAll, e, pfpInputTagAll);
-
-    for (const art::Ptr<recob::Slice> &slice : sliceVector)
-    {
-        const std::vector<art::Ptr<recob::PFParticle>> slicePFPs{pfpAssn.at(slice.key())};
-        for (const art::Ptr<recob::PFParticle> &pfp : slicePFPs)
-        {
-            if (!pfp->IsPrimary())
-                continue;
-            std::vector<art::Ptr<larpandoraobj::PFParticleMetadata>> pfpMeta{metadataAssnAll.at(pfp.key())};
-            if (pfpMeta.empty())
-                continue;
-            const larpandoraobj::PFParticleMetadata::PropertiesMap &pfpProperties{pfpMeta.front()->GetPropertiesMap()};
-            if (!pfpProperties.empty() && (pfpProperties.find("NuScore") != pfpProperties.end()))
-            {
-                const double thisScore{pfpProperties.at("NuScore")};
-                if (thisScore > fTopologicalScore)
-                {
-                    fTopologicalScore = thisScore;
-                }
-            }
-        }
-    }*/
 
     std::cout << "Length: " << fPfpPdgVec.size() << std::endl;
 
     fTree->Fill();
 }
 
+void pandora::PandoraAnalysis::fillMCInfo(art::Event const& e)
+{
+    art::Handle<std::vector<recob::Hit>> hitHandle;
+    std::vector<art::Ptr<recob::Hit>> hitVector;
+
+    e.getByLabel("gaushit", hitHandle);
+    art::fill_ptr_vector(hitVector, hitHandle);
+    art::FindManyP<simb::MCParticle, anab::BackTrackerHitMatchingData> mcHitAssn(hitHandle, e, "gaushitTruthMatch");
+    
+    for (const art::Ptr<recob::Hit> &hit : hitVector)
+    {
+        const std::vector<art::Ptr<simb::MCParticle>> &matchedMC{mcHitAssn.at(hit.key())};
+        auto data{mcHitAssn.data(hit.key())};
+        int i{0};
+        for (const art::Ptr<simb::MCParticle> &mc : matchedMC)
+        {
+            auto datum{data.at(i)};
+            ++i;
+            if (datum->isMaxIDE != 1)
+                continue;
+
+            if (fMCToHitMap.find(mc->TrackId()) == fMCToHitMap.end())
+                fMCToHitMap[mc->TrackId()] = 0;
+            fMCToHitMap[mc->TrackId()]++;
+        }
+    }
+    for (auto const& [mc, nHits] : fMCToHitMap)
+        std::cout << mc << ": " << nHits << std::endl;
+}
+
 void pandora::PandoraAnalysis::reset()
 {
     fPfpPdgVec.clear();
+    fNPfps.clear();
+    fTopologicalScore.clear();
     fPfpPrimaryVec.clear();
     fPfpNumChildrenVec.clear();
     fPfpNumClustersVec.clear();
@@ -292,6 +384,13 @@ void pandora::PandoraAnalysis::reset()
     fPfpShowerOpeningAngleVec.clear();
     fPfpNumHitsVec.clear();
     fPfpNumSpacePointsVec.clear();
+    fMcStartXVec.clear();
+    fMcStartYVec.clear();
+    fMcStartZVec.clear();
+    fMcDirXVec.clear();
+    fMcDirYVec.clear();
+    fMcDirZVec.clear();
+    fMCToHitMap.clear();
 }
 
 void pandora::PandoraAnalysis::beginJob()
@@ -303,9 +402,8 @@ void pandora::PandoraAnalysis::beginJob()
     fTree->Branch("event", &fEvent);
     fTree->Branch("localEvent", &fLocalEvent);
     fTree->Branch("isnc", &fIsNC);
-    fTree->Branch("flashScore", &fFlashMatchScore);
+    fTree->Branch("fNPfps", &fNPfps);
     fTree->Branch("topScore", &fTopologicalScore);
-    fTree->Branch("nPfps", &fNPfps);
     fTree->Branch("pfpPdgVec", &fPfpPdgVec);
     fTree->Branch("pfpClearCosmicVec", &fPfpClearCosmicVec);
     fTree->Branch("pfpPrimaryVec", &fPfpPrimaryVec);
@@ -324,6 +422,12 @@ void pandora::PandoraAnalysis::beginJob()
     fTree->Branch("fPfpShowerOpeningAngleVec", &fPfpShowerOpeningAngleVec);
     fTree->Branch("fPfpNumHitsVec", &fPfpNumHitsVec);
     fTree->Branch("fPfpNumSpacePointsVec", &fPfpNumSpacePointsVec);
+    fTree->Branch("fMcStartXVec", &fMcStartXVec);
+    fTree->Branch("fMcStartYVec", &fMcStartYVec);
+    fTree->Branch("fMcStartZVec", &fMcStartZVec);
+    fTree->Branch("fMcDirXVec", &fMcDirXVec);
+    fTree->Branch("fMcDirYVec", &fMcDirYVec);
+    fTree->Branch("fMcDirZVec", &fMcDirZVec);
 }
 
 void pandora::PandoraAnalysis::endJob()
