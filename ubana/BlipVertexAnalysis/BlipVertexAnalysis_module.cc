@@ -113,17 +113,14 @@ namespace BVA_ana
 
 		//CHECK hardcode this
 		std::string m_pandoraLabel = "pandora";
+		std::string m_trackLabel = "pandora";
+		std::string m_showerLabel = "pandora";
 
 		//Some verticies.········
 		//Collect the PFParticles from the event. 
 		art::ValidHandle<std::vector<recob::PFParticle>> const & pfParticleHandle = e.getValidHandle<std::vector<recob::PFParticle>>(m_pandoraLabel);
 		std::vector<art::Ptr<recob::PFParticle>> pfParticleVector;//Prepare this vector
 		art::fill_ptr_vector(pfParticleVector,pfParticleHandle);
-
-		//load vertices 
-//		art::ValidHandle<std::vector<recob::Vertex>> const & vertexHandle = e.getValidHandle<std::vector<recob::Vertex>>(m_pandoraLabel);
-//		std::vector<art::Ptr<recob::Vertex>> vertexVector;//Prepare this vector
-//		art::fill_ptr_vector(vertexVector,vertexHandle);
 
 		//load vertices with PFParticle key()
 		art::FindManyP<recob::Vertex> vertices_per_pfparticle(pfParticleHandle, e, m_pandoraLabel);
@@ -144,7 +141,7 @@ namespace BVA_ana
 		
 		if( NuCounts ==1 ){
 			const lar_pandora::VertexVector &vertexVector = vertices_per_pfparticle.at(pfParticleVector[NeutrinoIndex].key());
-			AnalyzePandora(vertexVector, vars);
+			GrabPandoraVertex(vertexVector, vars);
 		} else {
 
 		std::cout <<"Warning, number of neutrino candidates in this event is "<<NuCounts<<std::endl;
@@ -153,9 +150,52 @@ namespace BVA_ana
 		//CHECK Hard code a vertex
 		NeutrinoIndex = 0;
 		const lar_pandora::VertexVector &vertexVector = vertices_per_pfparticle.at(pfParticleVector[NeutrinoIndex].key());
-		AnalyzePandora(vertexVector, vars);
-	
-		//grab blip varaibles;
+		GrabPandoraVertex(vertexVector, vars);
+		//CHECK hardcode finished
+		
+		//Now Track and Shower
+		std::vector<art::Ptr<recob::PFParticle>> pfNuDaughtersVector;
+		std::vector<art::Ptr<recob::PFParticle>> pfpTrackVector;
+		std::vector<art::Ptr<recob::PFParticle>> pfpShowerVector;
+		std::vector<art::Ptr<recob::PFParticle>> pfpNIDVector;
+
+		for (const size_t daughterId : pfParticleVector[NeutrinoIndex]->Daughters()){
+			pfNuDaughtersVector.push_back( findpfpDaughter(pfParticleVector, daughterId));
+		}
+
+
+		art::FindManyP< recob::Track > pfPartToTrackAssoc(pfParticleHandle, e, m_trackLabel);
+		std::vector< art::Ptr<recob::Track> > TrackVector;
+
+		art::FindManyP< recob::Shower > pfPartToShowerAssoc(pfParticleHandle, e, m_trackLabel);
+		std::vector< art::Ptr<recob::Shower> > ShowerVector;
+
+		for(art::Ptr<recob::PFParticle> tmp_pfp : pfNuDaughtersVector){
+			std::vector< art::Ptr<recob::Track> > associatedTracks(pfPartToTrackAssoc.at(tmp_pfp.key()));
+			if(associatedTracks.size() == 1){
+				pfpTrackVector.push_back(tmp_pfp);
+				TrackVector.push_back( associatedTracks.front() );
+				continue;
+			}
+
+			std::vector< art::Ptr<recob::Shower> > associatedShowers(pfPartToShowerAssoc.at(tmp_pfp.key()));
+			if(associatedShowers.size() == 1){
+				pfpShowerVector.push_back(tmp_pfp);
+				ShowerVector.push_back( associatedShowers.front() );
+				continue;
+			}
+			pfpNIDVector.push_back(tmp_pfp);
+		}
+
+		vars.m_num_tracks = TrackVector.size();
+		vars.m_num_showers = ShowerVector.size();
+		std::cout<<"CHECK Found pfp-track:"<<vars.m_num_tracks <<std::endl;
+		std::cout<<"CHECK Found pfp-shower:"<<vars.m_num_showers <<std::endl;
+		std::cout<<"CHECK Found pfp-empty:"<<pfpNIDVector.size()<<std::endl;
+
+
+
+		//BLIP: grab blip varaibles;
 		fBlipAlg->RunBlipReco(e);
 		AnalyzeBlips( fBlipAlg, vars);
 

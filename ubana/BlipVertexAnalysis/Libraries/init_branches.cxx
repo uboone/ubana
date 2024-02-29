@@ -40,6 +40,8 @@ namespace BVA_ana
 		vars.m_vertex_pos_x=-99999;
 		vars.m_vertex_pos_y=-99999;
 		vars.m_vertex_pos_z=-99999;
+		vars.m_num_tracks = 0;
+		vars.m_num_showers = 0;
 
 		vars.sps_dist->clear();
 
@@ -75,10 +77,12 @@ namespace BVA_ana
 		vars.f_output_tree->Branch("elec_E",vars.elec_E);
 
 		//add_reco_vertex
-		vars.f_output_tree->Branch("reco_vertex_size", vars.m_reco_vertex_size);
-		vars.f_output_tree->Branch("reco_vertex_x", vars.m_vertex_pos_x);
-		vars.f_output_tree->Branch("reco_vertex_y", vars.m_vertex_pos_y);
-		vars.f_output_tree->Branch("reco_vertex_z", vars.m_vertex_pos_z);
+		vars.f_output_tree->Branch("reco_vertex_size", &vars.m_reco_vertex_size, "reco_vertex_size/I");
+		vars.f_output_tree->Branch("reco_vertex_x", &vars.m_vertex_pos_x, "reco_vertex_x/D");
+		vars.f_output_tree->Branch("reco_vertex_y", &vars.m_vertex_pos_y, "reco_vertex_y/D");
+		vars.f_output_tree->Branch("reco_vertex_z", &vars.m_vertex_pos_z, "reco_vertex_z/D");
+		vars.f_output_tree->Branch("reco_asso_tracks",  &vars.m_num_tracks ,"reco_asso_tracks/I");
+		vars.f_output_tree->Branch("reco_asso_showers", &vars.m_num_showers,"reco_asso_showers/I");
 		
 		//add vertex-blips
 		vars.f_output_tree->Branch("sps_dist",vars.sps_dist);

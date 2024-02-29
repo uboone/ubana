@@ -26,17 +26,29 @@
 
 namespace BVA_ana
 {
-	void AnalyzePandora(lar_pandora::VertexVector, var_all& vars);
+//Utility return daughter pfp, given the daughte id.
+	art::Ptr<recob::PFParticle> findpfpDaughter(const std::vector<art::Ptr<recob::PFParticle>>& pfParticleVector, size_t daughter_id);
+
+
+//Main content
+	void GrabPandoraVertex(lar_pandora::VertexVector vertexVector, var_all& vars);
+
+
+//	//T = art::Ptr<recob::Track> or art::Ptr<recob::Shower>
+//	template<typename T>
+//	T GrabPandoraObjects( std::vector< T >& associatedTracks, var_all& vars){
+//		const unsigned int nTracks(associatedTracks.size());
+//	if (nTracks == 1 )
+//	{
+//		std::cout<<"CHECK 1 track "<<std::endl;
+//		return associatedTracks.front();
+//	}
+//	std::cout<<"CHECK # of tracks: "<<nTracks<<std::endl;
+//	return {};
+//
+//	}
 
 
 }
-
-
-
-
-
-
-
-
 
 #endif

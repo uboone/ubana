@@ -65,6 +65,9 @@ namespace BVA_ana
 			double m_vertex_pos_x;
 			double m_vertex_pos_y;
 			double m_vertex_pos_z;
+			int m_num_tracks;
+			int m_num_showers;
+
 
 			double true_x;
 			double true_y;

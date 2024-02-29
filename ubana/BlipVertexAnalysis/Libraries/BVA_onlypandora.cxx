@@ -4,9 +4,25 @@
 
 namespace BVA_ana
 {
-    void AnalyzePandora(lar_pandora::VertexVector vertexVector, var_all& vars){
+//Utility
+art::Ptr<recob::PFParticle> findpfpDaughter(const std::vector<art::Ptr<recob::PFParticle>>& pfParticleVector, size_t daughter_id){
+	
+	for(const art::Ptr<recob::PFParticle> pfp:pfParticleVector){
+		if( pfp->Self() == daughter_id ){
+			return pfp;
+		}
+	}
+	throw cet::exception("BlipVertexAnalysis") << " A PFParticle contains a daughterID that gives no PFParticle."<<std::endl;
 
 
+}
+
+
+//Main content
+    void GrabPandoraVertex(lar_pandora::VertexVector vertexVector, var_all& vars){
+
+
+		//fill in reco. vertex
 		vars.m_reco_vertex_size = vertexVector.size();
 		std::cout<<"CHECK number of vertex "<<vars.m_reco_vertex_size<<std::endl;
 
@@ -22,7 +38,12 @@ namespace BVA_ana
 				std::cout<<"CHECK vertex location ("<<xyz[0]<<","<<xyz[1]<<","<<xyz[2]<<")"<<std::endl;
 
 		}
+		//fill in connected showers / tracks
+
     }
+
+
+
 }
 
 
