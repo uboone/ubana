@@ -43,7 +43,10 @@ namespace BVA_ana
 		vars.m_num_tracks = 0;
 		vars.m_num_showers = 0;
 
-		vars.sps_dist->clear();
+		vars.sps_dist.clear();
+		vars.sps_dist_sorted.clear();
+		vars.sps_dist_mean10cmrings.clear();
+		vars.sps_counts_10cmrings.clear();
 
 	}
 
@@ -85,7 +88,10 @@ namespace BVA_ana
 		vars.f_output_tree->Branch("reco_asso_showers", &vars.m_num_showers,"reco_asso_showers/I");
 		
 		//add vertex-blips
-		vars.f_output_tree->Branch("sps_dist",vars.sps_dist);
+		vars.f_output_tree->Branch("sps_dist",&vars.sps_dist);
+		vars.f_output_tree->Branch("sps_dist_sorted",&vars.sps_dist_sorted);
+		vars.f_output_tree->Branch("sps_dist_mean10cmrings",&vars.sps_dist_mean10cmrings);
+		vars.f_output_tree->Branch("sps_counts_10cmrings",&vars.sps_counts_10cmrings);
 	}
 
 	void ClearVarsEvt(var_evt& vars){
@@ -98,11 +104,11 @@ namespace BVA_ana
 	}
 
 	void CreateVarsEvtBranches(var_evt& vars){
-		vars.fPOT->Branch("totpot",vars._totpot);
-		vars.fPOT->Branch("run",vars._totpot_run);
-		vars.fPOT->Branch("subrun",vars._totpot_subrun);
-		vars.fPOT->Branch("begintime",vars._begintime);
-		vars.fPOT->Branch("endtime",vars._endtime);
+		vars.fPOT->Branch("totpot",	&vars._totpot			,"totpot/D");
+		vars.fPOT->Branch("run",	&vars._totpot_run		,"run/D");
+		vars.fPOT->Branch("subrun",	&vars._totpot_subrun	,"subrun/D");
+		vars.fPOT->Branch("begintime",&vars._begintime	,"begintime/D");
+		vars.fPOT->Branch("endtime",&vars._endtime		,"endtime/D");
 
 	}
 

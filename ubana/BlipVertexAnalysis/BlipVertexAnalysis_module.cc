@@ -193,7 +193,9 @@ namespace BVA_ana
 		std::cout<<"CHECK Found pfp-shower:"<<vars.m_num_showers <<std::endl;
 		std::cout<<"CHECK Found pfp-empty:"<<pfpNIDVector.size()<<std::endl;
 
-
+		for(size_t index = 0; index < ShowerVector.size(); index ++){
+			AnalyzeShower(pfpShowerVector[index], ShowerVector[index]);
+		}
 
 		//BLIP: grab blip varaibles;
 		fBlipAlg->RunBlipReco(e);

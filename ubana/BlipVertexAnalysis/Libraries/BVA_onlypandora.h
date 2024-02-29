@@ -33,6 +33,7 @@ namespace BVA_ana
 //Main content
 	void GrabPandoraVertex(lar_pandora::VertexVector vertexVector, var_all& vars);
 
+	void AnalyzeShower(art::Ptr<recob::PFParticle> pfpShowerVector , art::Ptr<recob::Shower> shower); 
 
 //	//T = art::Ptr<recob::Track> or art::Ptr<recob::Shower>
 //	template<typename T>

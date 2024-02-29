@@ -20,8 +20,6 @@ art::Ptr<recob::PFParticle> findpfpDaughter(const std::vector<art::Ptr<recob::PF
 
 //Main content
     void GrabPandoraVertex(lar_pandora::VertexVector vertexVector, var_all& vars){
-
-
 		//fill in reco. vertex
 		vars.m_reco_vertex_size = vertexVector.size();
 		std::cout<<"CHECK number of vertex "<<vars.m_reco_vertex_size<<std::endl;
@@ -38,9 +36,12 @@ art::Ptr<recob::PFParticle> findpfpDaughter(const std::vector<art::Ptr<recob::PF
 				std::cout<<"CHECK vertex location ("<<xyz[0]<<","<<xyz[1]<<","<<xyz[2]<<")"<<std::endl;
 
 		}
-		//fill in connected showers / tracks
-
     }
+
+	void AnalyzeShower(art::Ptr<recob::PFParticle> pfpShowerVector , art::Ptr<recob::Shower> shower){
+
+	}
+
 
 
 

@@ -76,7 +76,10 @@ namespace BVA_ana
 			double dep_e;
 
 			//new vertex-blip variable
-			std::vector<double> *sps_dist = new std::vector<double>;
+			std::vector<double> sps_dist;
+			std::vector<double> sps_dist_sorted;
+			std::vector<double> sps_dist_mean10cmrings;
+			std::vector<int> sps_counts_10cmrings;
 	};
 
 
