@@ -1,9 +1,12 @@
+#ifndef UBANA_SINGLEPHOTONANALYSIS_ANALYZE_SHOWERS_H
+#define UBANA_SINGLEPHOTONANALYSIS_ANALYZE_SHOWERS_H
+
 #include "SinglePhoton_module.h"
 #include "reco_truth_matching.h"
 
 namespace single_photon
 {
-    void SinglePhoton::ClearShowers(){
+    inline void SinglePhoton::ClearShowers(){
         m_reco_asso_showers=0;
         m_reco_shower_num_daughters.clear();
         m_reco_shower_daughter_trackscore.clear();
@@ -195,7 +198,7 @@ namespace single_photon
 
     }
 
-    void SinglePhoton::ResizeShowers(size_t size){
+    inline void SinglePhoton::ResizeShowers(size_t size){
         m_reco_shower_num_daughters.resize(size);
         m_reco_shower_daughter_trackscore.resize(size);
 
@@ -387,7 +390,7 @@ namespace single_photon
 
     }
 
-    void SinglePhoton::CreateShowerBranches(){
+    inline void SinglePhoton::CreateShowerBranches(){
         vertex_tree->Branch("reco_asso_showers",&m_reco_asso_showers,"reco_asso_showers/I");
         vertex_tree->Branch("reco_shower_num_daughters",&m_reco_shower_num_daughters);
         vertex_tree->Branch("reco_shower_daughter_trackscore",&m_reco_shower_daughter_trackscore);
@@ -580,7 +583,7 @@ namespace single_photon
         vertex_tree->Branch("sim_shower_is_nusclice", & m_sim_shower_is_nuslice);
     }
 
-    void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap , 
+    inline void SinglePhoton::AnalyzeShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> & showerToPFParticleMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap, std::map<art::Ptr<recob::PFParticle>,  std::vector<art::Ptr<recob::Cluster>> > & pfParticleToClusterMap,std::map<art::Ptr<recob::Cluster>,  std::vector<art::Ptr<recob::Hit>> >  & clusterToHitMap ,
             std::map<int, double>& sliceIdToNuScoreMap,
             std::map<art::Ptr<recob::PFParticle>,bool>& PFPToClearCosmicMap,
             std::map<art::Ptr<recob::PFParticle>, int>& PFPToSliceIdMap, 
@@ -632,9 +635,9 @@ namespace single_photon
             m_reco_shower_starty[i_shr] = shr_start.Y();
             m_reco_shower_startz[i_shr] = shr_start.Z();
 
-            m_reco_shower_start_wire_plane0[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 0, m_TPC, m_Cryostat, *geom);
-            m_reco_shower_start_wire_plane1[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 1, m_TPC, m_Cryostat, *geom);
-            m_reco_shower_start_wire_plane2[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 2, m_TPC, m_Cryostat, *geom);
+            m_reco_shower_start_wire_plane0[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 0, m_TPC, m_Cryostat, *m_channelMap);
+            m_reco_shower_start_wire_plane1[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 1, m_TPC, m_Cryostat, *m_channelMap);
+            m_reco_shower_start_wire_plane2[i_shr] = (double)calcWire(m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr], 2, m_TPC, m_Cryostat, *m_channelMap);
             m_reco_shower_start_tick[i_shr] = calcTime(m_reco_shower_startx[i_shr], 2, m_TPC,m_Cryostat, theDetector);
 
             std::vector<double> hstart = {m_reco_shower_startx[i_shr],m_reco_shower_starty[i_shr],m_reco_shower_startz[i_shr]};
@@ -699,9 +702,9 @@ namespace single_photon
             m_reco_shower3d_phi_yx[i_shr] = atan2(m_reco_shower3d_diry[i_shr],m_reco_shower3d_dirx[i_shr]);
 
 
-            m_reco_shower_start_to_nearest_dead_wire_plane0[i_shr] = distanceToNearestDeadWire(0, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
-            m_reco_shower_start_to_nearest_dead_wire_plane1[i_shr] = distanceToNearestDeadWire(1, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
-            m_reco_shower_start_to_nearest_dead_wire_plane2[i_shr] = distanceToNearestDeadWire(2, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],geom, bad_channel_list_fixed_mcc9);
+            m_reco_shower_start_to_nearest_dead_wire_plane0[i_shr] = distanceToNearestDeadWire(0, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],m_channelMap, bad_channel_list_fixed_mcc9);
+            m_reco_shower_start_to_nearest_dead_wire_plane1[i_shr] = distanceToNearestDeadWire(1, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],m_channelMap, bad_channel_list_fixed_mcc9);
+            m_reco_shower_start_to_nearest_dead_wire_plane2[i_shr] = distanceToNearestDeadWire(2, m_reco_shower_starty[i_shr], m_reco_shower_startz[i_shr],m_channelMap, bad_channel_list_fixed_mcc9);
             std::vector<int> t_num(3,0);   // num of triangles on each plane
             std::vector<int> t_numhits(3,0);  // num of hits on each plane
             std::vector<double> t_area(3,0.0);
@@ -1036,7 +1039,7 @@ namespace single_photon
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeShowers()\t||\t Finished."<<std::endl;;
     }
 
-    void SinglePhoton::AnalyzeKalmanShowers( const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> &showerToPFParticleMap,                         std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> &  pfParticlesToShowerKalmanMap, std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>>&  kalmanTrackToCaloMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap){
+    inline void SinglePhoton::AnalyzeKalmanShowers( const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,art::Ptr<recob::PFParticle>> &showerToPFParticleMap,                         std::map<art::Ptr<recob::PFParticle>,art::Ptr<recob::Track>> &  pfParticlesToShowerKalmanMap, std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>>>&  kalmanTrackToCaloMap, std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitMap){
 
         std::cout<<"Singlephoton::AnalyzeKalmanShowerrs\t||\tStarting to Analyze Showers ("<<showers.size()<<") via Kalman "<<std::endl;
 
@@ -1143,7 +1146,7 @@ namespace single_photon
                     pts_within.push_back(0);   
                     pts_x.push_back(calo[p]->ResidualRange().back()-calo[p]->ResidualRange()[ix]);
 
-                    double wire = (double)calcWire(kal_pts[ix].Y(), kal_pts[ix].Z(), plane, m_TPC, m_Cryostat, *geom);
+                    double wire = (double)calcWire(kal_pts[ix].Y(), kal_pts[ix].Z(), plane, m_TPC, m_Cryostat, *m_channelMap);
                     double time = calcTime(kal_pts[ix].X(), plane, m_TPC,m_Cryostat, theDetector);
 
                     //loop over all hits  
@@ -1212,7 +1215,7 @@ namespace single_photon
 
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    void SinglePhoton::RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,  
+    inline void SinglePhoton::RecoMCShowers(const std::vector<art::Ptr<recob::Shower>>& showers,
             std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap, 
             std::map<art::Ptr<recob::Shower>, art::Ptr<simb::MCParticle> > & showerToMCParticleMap,
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
@@ -1312,7 +1315,7 @@ namespace single_photon
 
     }
 
-    double SinglePhoton::CalcEShower(const std::vector<art::Ptr<recob::Hit>> &hits){    
+    inline double SinglePhoton::CalcEShower(const std::vector<art::Ptr<recob::Hit>> &hits){
         double energy[3] = {0., 0., 0.};
 
         //std::cout<<"SinglePhoton::AnalyzeShowers() \t||\t Looking at shower with "<<hits.size() <<" hits on all planes"<<std::endl;
@@ -1346,7 +1349,7 @@ namespace single_photon
 
     }
 
-    double SinglePhoton::GetQHit(art::Ptr<recob::Hit> thishitptr, int plane){
+    inline double SinglePhoton::GetQHit(art::Ptr<recob::Hit> thishitptr, int plane){
         double gain;
         //choose gain based on whether data/mc and by plane
         if (m_is_data == false &&  m_is_overlayed == false){
@@ -1362,12 +1365,12 @@ namespace single_photon
         return Q;
     }
 
-    double SinglePhoton::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr, int plane){
+    inline double SinglePhoton::QtoEConversionHit(art::Ptr<recob::Hit> thishitptr, int plane){
         return QtoEConversion(GetQHit(thishitptr, plane));
 
     }
 
-    double SinglePhoton::QtoEConversion(double Q){
+    inline double SinglePhoton::QtoEConversion(double Q){
         //return the energy value converted to MeV (the factor of 1e-6)
         double E = Q* m_work_function *1e-6 /m_recombination_factor;
         return E;
@@ -1375,7 +1378,7 @@ namespace single_photon
     }
 
 
-    std::vector<double> SinglePhoton::CalcdEdxFromdQdx(std::vector<double> dqdx){
+    inline std::vector<double> SinglePhoton::CalcdEdxFromdQdx(std::vector<double> dqdx){
         int n = dqdx.size();
         std::vector<double> dedx(n,0.0);
         for (int i = 0; i < n; i++){
@@ -1387,7 +1390,7 @@ namespace single_photon
     }
 
 
-    std::vector<double> SinglePhoton::CalcdQdxShower(
+    inline std::vector<double> SinglePhoton::CalcdQdxShower(
             const art::Ptr<recob::Shower>& shower,
             const std::vector<art::Ptr<recob::Cluster>> & clusters, 
             std::map<art::Ptr<recob::Cluster>,    std::vector<art::Ptr<recob::Hit>> > &  clusterToHitMap ,int plane){
@@ -1450,7 +1453,7 @@ namespace single_photon
         return dqdx;
     }
 
-    double SinglePhoton::getPitch(TVector3 shower_dir, int plane){
+    inline double SinglePhoton::getPitch(TVector3 shower_dir, int plane){
         //get the wire direction for this plane - values are hardcoded which isn't great but the TPC geom object gave weird values
         TVector3 wire_dir = getWireVec(plane);
 
@@ -1467,7 +1470,7 @@ namespace single_photon
         return m_wire_spacing/cos;
     }
 
-    TVector3 SinglePhoton::getWireVec(int plane){
+    inline TVector3 SinglePhoton::getWireVec(int plane){
         TVector3 wire_dir;
         if (plane == 0){
             wire_dir = {0., -sqrt(3) / 2., 1 / 2.};
@@ -1480,7 +1483,7 @@ namespace single_photon
 
     }
 
-    double SinglePhoton::getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir){
+    inline double SinglePhoton::getCoswrtWires(TVector3 shower_dir, TVector3 wire_dir){
         //take the dot product between the wire direction and the shower direction
         double cos = wire_dir.Dot(shower_dir);
         return cos;
@@ -1488,7 +1491,7 @@ namespace single_photon
 
 
     // shower_dir needs to be unit vector
-    double SinglePhoton::getAnglewrtWires(TVector3 shower_dir,int plane){
+    inline double SinglePhoton::getAnglewrtWires(TVector3 shower_dir,int plane){
 
         TVector3 wire_dir = getWireVec(plane);
         double cos_theta =  getCoswrtWires(shower_dir, wire_dir);
@@ -1500,7 +1503,7 @@ namespace single_photon
     }
 
 
-    double SinglePhoton::getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
+    inline double SinglePhoton::getAmalgamateddEdx(double angle_wrt_plane0, double angle_wrt_plane1, double angle_wrt_plane2, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
         //if the shower is within 10 degrees of the wires on plane 2, consider planes 1 and 0
         if(angle_wrt_plane2< degToRad(10)){
             //if it's too close to the wires on either of the planes, then stick with plane 2
@@ -1524,7 +1527,7 @@ namespace single_photon
         return median_plane2;
     }
 
-    int SinglePhoton::getAmalgamateddEdxNHits(double amalgamateddEdx, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
+    inline int SinglePhoton::getAmalgamateddEdxNHits(double amalgamateddEdx, double median_plane0, double median_plane1, double median_plane2, int plane0_nhits, int plane1_nhits, int plane2_nhits){
         if (amalgamateddEdx == median_plane0){
             return plane0_nhits;
         }
@@ -1538,16 +1541,16 @@ namespace single_photon
 
     }   
 
-    double SinglePhoton::degToRad(double deg){
+    inline double SinglePhoton::degToRad(double deg){
         return deg * M_PI/180;
     }
 
-    double SinglePhoton::radToDeg(double rad){
+    inline double SinglePhoton::radToDeg(double rad){
         return rad * 180/M_PI;
     }
 
 
-    double SinglePhoton::getMeanHitWidthPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){
+    inline double SinglePhoton::getMeanHitWidthPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){
         int nhits = 0;
         double widths = 0;
         for (art::Ptr<recob::Hit> thishitptr : hits){
@@ -1568,7 +1571,7 @@ namespace single_photon
 
 
 
-    int SinglePhoton::getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){
+    inline int SinglePhoton::getNHitsPlane(std::vector<art::Ptr<recob::Hit>> hits, int this_plane){
         int nhits = 0;
         for (art::Ptr<recob::Hit> thishitptr : hits){
             //check the plane
@@ -1584,7 +1587,7 @@ namespace single_photon
 
     }
 
-    std::vector<std::vector<double>> SinglePhoton::buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length){
+    inline std::vector<std::vector<double>> SinglePhoton::buildRectangle(std::vector<double> cluster_start, std::vector<double> cluster_axis, double width, double length){
         std::vector<std::vector<double>> corners;
 
         //get the axis perpedicular to the cluster axis
@@ -1608,7 +1611,7 @@ namespace single_photon
         return corners;
     }
 
-    bool SinglePhoton::insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
+    inline bool SinglePhoton::insideBox(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
         //for a rectangle this is a known value but this is the most general
         int n_vertices = (int)rectangle.size();
         bool inside = false;
@@ -1631,7 +1634,7 @@ namespace single_photon
     //determines if a point is inside the rectangle by summing the areas of the four triangles made by 
     //if the point is inside, the sum of the triangles should exactly equal the area of the rectangle
     //also returns true if the point is on the boundary
-    bool SinglePhoton::isInsidev2(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
+    inline bool SinglePhoton::isInsidev2(std::vector<double> thishit_pos, std::vector<std::vector<double >> rectangle){
         int n_vertices = (int)rectangle.size();
         //bool inside = false;
         int i, j = 0;
@@ -1653,12 +1656,12 @@ namespace single_photon
     }
 
     //area of a triangle given three vertices
-    double SinglePhoton::areaTriangle(double x1, double y1, double x2, double y2, double x3, double y3){
+    inline double SinglePhoton::areaTriangle(double x1, double y1, double x2, double y2, double x3, double y3){
         double num = x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2);
         return abs(num)/2;
     }
 
-    double SinglePhoton::getMedian(std::vector<double> thisvector){
+    inline double SinglePhoton::getMedian(std::vector<double> thisvector){
         //So return median if odd, average of median in even, if size==0, return the point. 
         
         //here the size corresponds to the max index
@@ -1684,3 +1687,5 @@ namespace single_photon
     }
 
 }
+
+#endif

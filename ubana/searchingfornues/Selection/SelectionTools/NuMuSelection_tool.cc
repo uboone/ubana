@@ -235,10 +235,10 @@ namespace selection
     bool NuMuSelection::isFiducial(const double x[3]) const
     {
         
-        art::ServiceHandle<geo::Geometry> geo;
+        auto const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
         std::vector<double> bnd = {
-            0., 2. * geo->DetHalfWidth(), -geo->DetHalfHeight(), geo->DetHalfHeight(),
-            0., geo->DetLength()};
+            0., 2. * tpc.HalfWidth(), -tpc.HalfHeight(), tpc.HalfHeight(),
+            0., tpc.Length()};
         
         bool is_x =
         x[0] > (bnd[0] + fFidvolXstart) && x[0] < (bnd[1] - fFidvolXend);

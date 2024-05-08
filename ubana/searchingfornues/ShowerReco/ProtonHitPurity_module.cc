@@ -20,9 +20,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 
-#include "larcore/Geometry/Geometry.h"
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 #include "ubana/searchingfornues/Selection/CommonDefs/Typedefs.h"
@@ -184,10 +182,10 @@ ProtonHitPurity::ProtonHitPurity(fhicl::ParameterSet const& p)
   _tree->Branch("qmatched",&_qmatched,"qmatched/F");
 
   // get detector specific properties
-  auto const* geom = ::lar::providerFrom<geo::Geometry>();
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
   auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
   auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
-  _wire2cm = geom->WirePitch(geo::PlaneID{0,0,0});
+  _wire2cm = channelMap.Plane(geo::PlaneID{0,0,0}).WirePitch();
   _time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
   // Call appropriate consumes<>() for any products to be retrieved by this module.
@@ -446,16 +444,16 @@ void ProtonHitPurity::ProtonDot(const float& protonWire, const float& protonTime
         const TVector3& showerVtx, const TVector3& showerDir,
         float &dot, float& d2d) {
 
-  auto const* geom = ::lar::providerFrom<geo::Geometry>();
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
 
   std::cout << "3D shower dir : [ " << showerDir[0] << ", " << showerDir[1] << ", " << showerDir[2] << " ]" << std::endl;
   std::cout << "3D shower vtx : [ " << showerVtx[0] << ", " << showerVtx[1] << ", " << showerVtx[2] << " ]" << std::endl;
 
   using geo::vect::toPoint;
-  auto Vtxwire = geom->WireCoordinate(toPoint(showerVtx),geo::PlaneID(0,0,pl)) * _wire2cm;
+  auto Vtxwire = channelMap.Plane(geo::PlaneID(0,0,pl)).WireCoordinate(toPoint(showerVtx)) * _wire2cm;
   auto Vtxtime = showerVtx[0];
 
-  auto Dirwire = geom->WireCoordinate(toPoint(showerDir),geo::PlaneID(0,0,pl)) * _wire2cm;
+  auto Dirwire = channelMap.Plane(geo::PlaneID(0,0,pl)).WireCoordinate(toPoint(showerDir)) * _wire2cm;
   auto Dirtime = showerDir[0];
 
   TVector3 showerDir2D(Dirwire,Dirtime,0.);

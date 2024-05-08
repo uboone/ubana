@@ -18,7 +18,7 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
@@ -94,6 +94,8 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
   auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
   auto const samplingRate = sampling_rate(clockData);
   auto const triggerOffset = trigger_offset(clockData);
+
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
   for (size_t i = 0; i<tracklist.size(); ++i){
     const auto& trkstart = tracklist[i]->Vertex();
     const auto& trkend = tracklist[i]->End();
@@ -107,7 +109,7 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
           int planenum = calos[j]->PlaneID().Plane;
           if (planenum<0||planenum>2) continue;
           auto dir_start = tracklist[i]->VertexDirection();
-          const geo::WireGeo& wire = geom->TPC().Plane(planenum).MiddleWire();
+          const geo::WireGeo& wire = channelMap.Plane(geo::PlaneID(0, 0, planenum)).MiddleWire();
           auto wire_diff = wire.GetStart() - wire.GetEnd();
           // We want the cosine of the angle between only the Y- and
           // Z- components of dir_start and wire_diff.  To achieve

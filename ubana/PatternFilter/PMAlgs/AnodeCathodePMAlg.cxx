@@ -12,7 +12,7 @@
 #include "AnodeCathodePMAlg.h"
 
 #include "fhiclcpp/ParameterSet.h"
-#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/WireReadoutGeom.h"
 #include "lardataalg/DetectorInfo/DetectorPropertiesData.h"
 #include "lardataobj/RecoBase/Hit.h"
 
@@ -25,7 +25,7 @@ pm::AnodeCathodePMAlg::AnodeCathodePMAlg()
 }
 
 void pm::AnodeCathodePMAlg::Configure(fhicl::ParameterSet         const& p,
-				      geo::GeometryCore           const& geo,
+                                      geo::WireReadoutGeom          const& channelMap,
                                       detinfo::DetectorPropertiesData const& detp)
 {
 
@@ -35,7 +35,7 @@ void pm::AnodeCathodePMAlg::Configure(fhicl::ParameterSet         const& p,
 			    p.get<unsigned int>("TPCID",0),
 			    p.get<unsigned int>("PlaneID"));
   fStartWire = geo::WireID(fPlaneID,p.get<unsigned int>("StartWire",0));
-  fEndWire = geo::WireID(fPlaneID,p.get<unsigned int>("EndWire",geo.Nwires(fPlaneID)-1));
+  fEndWire = geo::WireID(fPlaneID,p.get<unsigned int>("EndWire",channelMap.Nwires(fPlaneID)-1));
   
   //check wire indices: end > start
   if(fEndWire.Wire < fStartWire.Wire){
@@ -44,8 +44,8 @@ void pm::AnodeCathodePMAlg::Configure(fhicl::ParameterSet         const& p,
     fStartWire = tmp;
   }
 
-  if(fEndWire.Wire > geo.Nwires(fPlaneID)-1 )
-    fEndWire = geo::WireID(fPlaneID,geo.Nwires(fPlaneID)-1);
+  if(fEndWire.Wire > channelMap.Nwires(fPlaneID)-1 )
+    fEndWire = geo::WireID(fPlaneID,channelMap.Nwires(fPlaneID)-1);
   
   //fill nwires to run over. By default, this is all wires in the plane
   fNwires = fEndWire.Wire - fStartWire.Wire + 1;

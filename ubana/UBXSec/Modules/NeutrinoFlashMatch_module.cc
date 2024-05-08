@@ -51,6 +51,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -213,6 +214,7 @@ void NeutrinoFlashMatch::produce(art::Event & e)
     std::cout << "[NeutrinoFlashMatch] WARNING!!! Swapping OpDets. I hope you know what you are doing." << std::endl;
   }        
   ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
 
   _mgr.Reset();
   _result.clear();
@@ -247,7 +249,7 @@ void NeutrinoFlashMatch::produce(art::Event & e)
     f.pe_v.resize(geo->NOpDets());
     f.pe_err_v.resize(geo->NOpDets());
     for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMap.OpDetFromOpChannel(i);
       if (_do_opdet_swap && e.isRealData()) {
         opdet = _opdet_swap_map.at(opdet);
       }
@@ -313,7 +315,7 @@ void NeutrinoFlashMatch::produce(art::Event & e)
       auto const& flash = (*nuMcflash_h)[0];
       _numc_flash_spec.resize(geo->NOpDets());
       for (unsigned int i = 0; i < geo->NOpDets(); i++) {
-        unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMap.OpDetFromOpChannel(i);
         _numc_flash_spec[opdet] = flash.PE(i);
       }
     }

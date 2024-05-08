@@ -96,9 +96,10 @@ void AltNuMuCCInclusiveAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fVertexModuleLabel       = pset.get<std::string> ("VertexModuleLabel",             "pandoraNu");
     fOpFlashModuleLabel      = pset.get<std::string> ("OpFlashModuleLabel",           "opFlashSat");
     
-    fDistToEdgeX             = fGeometry->DetHalfWidth()   - pset.get<double>("DistToEdgeX",    2.);
-    fDistToEdgeY             = fGeometry->DetHalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
-    fDistToEdgeZ             = fGeometry->DetLength() / 2. - pset.get<double>("DistToEdgeZ",   10.);
+    auto const& tpc = fGeometry->TPC();
+    fDistToEdgeX             = tpc.HalfWidth()   - pset.get<double>("DistToEdgeX",    2.);
+    fDistToEdgeY             = tpc.HalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
+    fDistToEdgeZ             = tpc.Length() / 2. - pset.get<double>("DistToEdgeZ",   10.);
     
     fFlashWidth              = pset.get<double>      ("FlashWidth",                            10.);
     fBeamMin                 = pset.get<double>      ("BeamMin",                              3.55);
@@ -485,9 +486,10 @@ double AltNuMuCCInclusiveAlg::projectedLength(const recob::Track* track) const
     
 bool AltNuMuCCInclusiveAlg::inFV(const TVector3& pos) const
 {
-    double distInX = pos.X() - fGeometry->DetHalfWidth();
+    auto const& tpc = fGeometry->TPC();
+    double distInX = pos.X() - tpc.HalfWidth();
     double distInY = pos.Y();
-    double distInZ = pos.Z() - 0.5 * fGeometry->DetLength();
+    double distInZ = pos.Z() - 0.5 * tpc.Length();
     
     if (fabs(distInX) < fDistToEdgeX && fabs(distInY) < fDistToEdgeY && fabs(distInZ) < fDistToEdgeZ) return true;
     

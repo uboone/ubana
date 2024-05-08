@@ -29,6 +29,7 @@
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireError
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcorealg/Geometry/Exceptions.h"
 
@@ -320,7 +321,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
   //bool HaveEPFParticle = false;
   //bool Have3DShower = false;
   //bool PassFilter = false;
-  art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
 
   art::Handle<std::vector<simb::MCTruth>> MCtruthHandle;
   std::vector<art::Ptr<simb::MCTruth>> MCtruth_vec;
@@ -424,7 +425,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
         for (size_t i = 0; i<points.size(); ++i){
           geo::WireID wireID;
           try{
-            wireID = geo->NearestWireID(points[i], pid);
+            wireID = channelMap.Plane(pid).NearestWireID(points[i]);
           }
           catch(geo::InvalidWireError const& e) {
             wireID = e.suggestedWireID(); // pick the closest valid wire
@@ -1462,12 +1463,13 @@ void ub::LowLevelNueFilter::GetTruthInfo(detinfo::DetectorClocksData const& cloc
 bool ub::LowLevelNueFilter::inFV(double x, double y, double z)
 {
   geo::GeometryCore const* fGeometry(lar::providerFrom<geo::Geometry>());
-  double fDistToEdgeX             = fGeometry->DetHalfWidth()   - 20.;
-  double fDistToEdgeY             = fGeometry->DetHalfHeight()  - 20.;
-  double fDistToEdgeZ             = fGeometry->DetLength() / 2. - 10.;
-  double distInX = x - fGeometry->DetHalfWidth();
+  auto const& tpc = fGeometry->TPC();
+  double fDistToEdgeX             = tpc.HalfWidth()   - 20.;
+  double fDistToEdgeY             = tpc.HalfHeight()  - 20.;
+  double fDistToEdgeZ             = tpc.Length() / 2. - 10.;
+  double distInX = x - tpc.HalfWidth();
   double distInY = y;
-  double distInZ = z - 0.5 * fGeometry->DetLength();
+  double distInZ = z - 0.5 * tpc.Length();
   
   if (std::abs(distInX) < fDistToEdgeX && std::abs(distInY) < fDistToEdgeY && std::abs(distInZ) < fDistToEdgeZ) return true;
   

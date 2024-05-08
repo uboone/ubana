@@ -85,7 +85,7 @@ public:
 
 private:
 
-  ::art::ServiceHandle<geo::Geometry> _geo;
+  geo::TPCGeo const& _tpc = ::art::ServiceHandle<geo::Geometry>{}->TPC();
 
   ubana::McPfpMatch _mcpfpMatcher;
   ::ubana::FiducialVolume _fiducial_volume;
@@ -110,9 +110,9 @@ private:
 RecoTrueMatcher::RecoTrueMatcher(fhicl::ParameterSet const & p) :
   EDProducer{p},
   _fiducial_volume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                   _geo->DetHalfHeight(),
-                   2.*_geo->DetHalfWidth(),
-                   _geo->DetLength())
+                   _tpc.HalfHeight(),
+                   2.*_tpc.HalfWidth(),
+                   _tpc.Length())
 {
 
   _pfp_producer                   = p.get<std::string>("PFParticleProducer");

@@ -20,9 +20,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
 
-#include "larcore/Geometry/Geometry.h"
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 #include "ubana/searchingfornues/Selection/CommonDefs/Typedefs.h"
@@ -172,10 +170,10 @@ SecondShowerPurity::SecondShowerPurity(fhicl::ParameterSet const& p)
   */
 
   // get detector specific properties
-  auto const* geom = ::lar::providerFrom<geo::Geometry>();
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
   auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
   auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
-  _wire2cm = geom->WirePitch(geo::PlaneID{0,0,0});
+  _wire2cm = channelMap.Plane(geo::PlaneID{0,0,0}).WirePitch();
   _time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
   // Call appropriate consumes<>() for any products to be retrieved by this module.
@@ -441,12 +439,12 @@ void SecondShowerPurity::GammaDot(const float& gammaWire, const float& gammaTime
           const TVector3& showerVtx, const TVector3& showerDir,
           float &dot, float& d2d) {
 
-  auto const* geom = ::lar::providerFrom<geo::Geometry>();
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
 
-  auto Vtxwire = geom->WireCoordinate(geo::vect::toPoint(showerVtx),geo::PlaneID(0,0,pl)) * _wire2cm;
+  auto Vtxwire = channelMap.Plane(geo::PlaneID(0,0,pl)).WireCoordinate(geo::vect::toPoint(showerVtx)) * _wire2cm;
   auto Vtxtime = showerVtx[0];
 
-  auto Dirwire = geom->WireCoordinate(geo::vect::toPoint(showerDir),geo::PlaneID(0,0,pl)) * _wire2cm;
+  auto Dirwire = channelMap.Plane(geo::PlaneID(0,0,pl)).WireCoordinate(geo::vect::toPoint(showerDir)) * _wire2cm;
   auto Dirtime = showerDir[0];
 
   std::cout << "Shower Dir [x,y,z] -> [ " << showerDir[0] << ", " << showerDir[1] << ", " << showerDir[2] << " ]"  << std::endl;
@@ -475,9 +473,9 @@ void SecondShowerPurity::GammaDot(const float& gammaWire, const float& gammaTime
 
 float SecondShowerPurity::EigenDot(const int& pl,const TVector3& ShowerDir,const float& gammaWireDir,const float& gammaTimeDir) {
 
-  auto const* geom = ::lar::providerFrom<geo::Geometry>();
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
 
-  auto Dirwire = geom->WireCoordinate(geo::vect::toPoint(ShowerDir),geo::PlaneID(0,0,pl)) * _wire2cm;
+  auto Dirwire = channelMap.Plane(geo::PlaneID(0,0,pl)).WireCoordinate(geo::vect::toPoint(ShowerDir)) * _wire2cm;
   auto Dirtime = ShowerDir[0];
 
   float dot = Dirwire * gammaWireDir + Dirtime * gammaTimeDir;

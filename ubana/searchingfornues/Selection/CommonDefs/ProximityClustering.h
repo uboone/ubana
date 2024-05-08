@@ -20,10 +20,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Vertex.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "larcore/Geometry/Geometry.h"
-#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 namespace searchingfornues {
@@ -241,10 +238,10 @@ namespace searchingfornues {
     double _wire2cm, _time2cm;
     
     // get detector specific properties
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
     auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
-    _wire2cm = geom->WirePitch(geo::PlaneID{0,0,0});
+    _wire2cm = channelMap.Plane(geo::PlaneID{0,0,0}).WirePitch();
     _time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
     
     

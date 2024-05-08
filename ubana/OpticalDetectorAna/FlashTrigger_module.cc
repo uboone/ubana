@@ -24,6 +24,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "lardataobj/RecoBase/OpFlash.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include <limits>
@@ -216,13 +217,13 @@ void FlashTrigger::AnalyzeFlash(const recob::OpFlash& flash)
   ClearAnalysisVariables();
   
   // Geometry service
-  art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
 
-  for(unsigned int opch=0; opch<geo->MaxOpChannel(); ++opch) {
+  for(unsigned int opch=0; opch<channelMap.MaxOpChannel(); ++opch) {
 
     if(opch>32) continue;
 
-    auto const opdet = geo->OpDetFromOpChannel(opch);
+    auto const opdet = channelMap.OpDetFromOpChannel(opch);
 
     auto const pe = flash.PE(opch);
 

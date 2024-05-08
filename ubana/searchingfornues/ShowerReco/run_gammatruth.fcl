@@ -10,7 +10,7 @@ services:
   # Load the service that manages root files for histograms.
   TFileService:            { fileName: "gammahits_ana.root" }
   TimeTracker:             {}
-  ExptGeoHelperInterface:         @local::microboone_geometry_helper
+  WireReadout:         @local::microboone_wire_readout
   Geometry:                       @local::microboone_geo
   DetectorPropertiesService:             @local::microboone_detproperties
   LArProperties:                  @local::microboone_properties

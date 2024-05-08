@@ -32,6 +32,7 @@
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcorealg/Geometry/WireReadoutGeom.h"
 
 #include "canvas/Utilities/ensurePointer.h"
 #include "canvas/Persistency/Common/FindManyP.h"
@@ -271,7 +272,7 @@ namespace seaview {
         public:
 
             /// Default constructor
-            SEAviewer(std::string tag,geo::GeometryCore const * geom,
+            SEAviewer(std::string tag,geo::GeometryCore const * geom, geo::WireReadoutGeom const * channelMap,
                       detinfo::DetectorPropertiesData theDetector );
 
             void configure(const fhicl::ParameterSet& pset){};
@@ -304,8 +305,8 @@ namespace seaview {
             int Print(double plot_distance);
             int runseaDBSCAN(double min_pts, double eps);
 
-            double calcWire(double Y, double Z, int plane, int fTPC, int fCryostat, geo::GeometryCore const& geo ){
-                return geo.WireCoordinate(geo::Point_t{0, Y, Z}, geo::PlaneID(fCryostat, fTPC, plane));
+            double calcWire(double Y, double Z, int plane, int fTPC, int fCryostat, geo::WireReadoutGeom const& channelMap ){
+                return channelMap.Plane(geo::PlaneID(fCryostat, fTPC, plane)).WireCoordinate(geo::Point_t{0, Y, Z});
             }
 
             double calcTime(double X,int plane,int fTPC,int fCryostat, detinfo::DetectorPropertiesData const& detprop){
@@ -384,6 +385,7 @@ namespace seaview {
             std::vector<std::vector<std::vector<double>>> vec_chans; //vector of wires on each plane for all PFParticle
 
             geo::GeometryCore const * geom;
+            geo::WireReadoutGeom const * channelMap;
             detinfo::DetectorPropertiesData theDetector ;
 
             double tick_shift;

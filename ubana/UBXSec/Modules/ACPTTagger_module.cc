@@ -38,6 +38,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art_root_io/TFileService.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -116,6 +117,7 @@ private:
   std::string _swtrigger_producer;
 
   ::art::ServiceHandle<geo::Geometry> geo;
+  geo::WireReadoutGeom const* _channelMap = &art::ServiceHandle<geo::WireReadout const>()->Get();
 
   ::pmtana::PECalib _pecalib;
 
@@ -735,8 +737,8 @@ void ACPTTagger::produce(art::Event & e)
     if(_debug) std::cout << "Cosmic score is: " << cosmicScore << std::endl << std::endl;
      
     cosmicTagTrackVector->emplace_back(endPt1, endPt2, cosmicScore, anab::CosmicTagID_t::kGeometry_XY);
-    util::CreateAssn(*this, e, *cosmicTagTrackVector, track_v, *assnOutCosmicTagTrack );
-    util::CreateAssn(*this, e, *cosmicTagTrackVector, pfp, *assnOutCosmicTagPFParticle); 
+    util::CreateAssn(e, *cosmicTagTrackVector, track_v, *assnOutCosmicTagTrack );
+    util::CreateAssn(e, *cosmicTagTrackVector, pfp, *assnOutCosmicTagPFParticle);
     
   } // PFP loop
 
@@ -910,12 +912,12 @@ double ACPTTagger::RunOpHitFinder(double the_time, double trk_z_start, double tr
 
     double time_diff = std::abs(oh->PeakTime() - the_time);
 
-    if (!geo->IsValidOpChannel(oh->OpChannel())) continue;
+    if (!_channelMap->IsValidOpChannel(oh->OpChannel())) continue;
     if (oh->OpChannel() < 200 || oh->OpChannel() > 231) continue;
 
-    size_t opdet = geo->OpDetFromOpChannel(oh->OpChannel());
+    size_t opdet = _channelMap->OpDetFromOpChannel(oh->OpChannel());
 
-    auto const pmt_xyz = geo->OpDetGeoFromOpChannel(oh->OpChannel()).GetCenter();
+    auto const pmt_xyz = _channelMap->OpDetGeoFromOpChannel(oh->OpChannel()).GetCenter();
     double pmt_z = pmt_xyz.Z();
 
     double dz = 1e9;
@@ -1029,7 +1031,7 @@ void ACPTTagger::SortHitPoints(detinfo::DetectorPropertiesData const& detProp,
   double time_highest = detProp.ConvertXToTicks(highest_point.X(), geo::PlaneID(0,0,2));
   int wire_highest = -1;
   try {
-    wire_highest = geo->NearestWireID(geo::vect::toPoint(highest_point), geo::PlaneID{0, 0, static_cast<unsigned>(planeno)}).Wire;
+    wire_highest = _channelMap->Plane({0, 0, static_cast<unsigned>(planeno)}).NearestWireID(geo::vect::toPoint(highest_point)).Wire;
   } catch (cet::exception &e) {
   }
 
@@ -1055,10 +1057,10 @@ void ACPTTagger::SortHitPoints(detinfo::DetectorPropertiesData const& detProp,
   sorted_points.resize(2);
   TVector3 pt1(detProp.ConvertTicksToX(hit_v.at(0)->PeakTime(), geo::PlaneID(0,0,2)),
                0.,
-               hit_v.at(0)->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2)));
+               hit_v.at(0)->WireID().Wire * _channelMap->Plane(geo::PlaneID(0,0,2)).WirePitch());
   TVector3 pt2(detProp.ConvertTicksToX(hit_v.at(hit_v.size()-1)->PeakTime(), geo::PlaneID(0,0,2)),
                0.,
-               hit_v.at(hit_v.size()-1)->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2)));
+               hit_v.at(hit_v.size()-1)->WireID().Wire * _channelMap->Plane(geo::PlaneID(0,0,2)).WirePitch());
   sorted_points.at(0) = std::move(pt1);
   sorted_points.at(1) = std::move(pt2);
 
@@ -1117,7 +1119,7 @@ bool ACPTTagger::GetSign(std::vector<TVector3> sorted_points)
 bool ACPTTagger::IsInUpperDet(double y_up) 
 {
 
-  if (y_up > geo->DetHalfHeight() - _UP) {
+  if (y_up > geo->TPC().HalfHeight() - _UP) {
     return true;
   }
 
@@ -1127,7 +1129,7 @@ bool ACPTTagger::IsInUpperDet(double y_up)
 bool ACPTTagger::IsInLowerDet(double y_down) 
 {
 
-  if (y_down < -geo->DetHalfHeight() + _DOWN) {
+  if (y_down < -geo->TPC().HalfHeight() + _DOWN) {
     return true;
   }
 
@@ -1144,21 +1146,22 @@ TVector3 ACPTTagger::ContainPoint(TVector3 p)
   double z = p.Z();
 
   double e = std::numeric_limits<double>::epsilon();
+  auto const& tpc = geo->TPC();
 
   if (x < 0. + e)
     p_out.SetX(0. + e);
-  if (x > 2.*geo->DetHalfWidth() - e)
-    p_out.SetX(2.*geo->DetHalfWidth() - e);
+  if (x > 2.*tpc.HalfWidth() - e)
+    p_out.SetX(2.*tpc.HalfWidth() - e);
 
-  if (y < -geo->DetHalfHeight() + e)
-    p_out.SetY(-geo->DetHalfHeight() + e);
-  if (y > geo->DetHalfHeight() - e)
-    p_out.SetY(geo->DetHalfHeight() - e);
+  if (y < -tpc.HalfHeight() + e)
+    p_out.SetY(-tpc.HalfHeight() + e);
+  if (y > tpc.HalfHeight() - e)
+    p_out.SetY(tpc.HalfHeight() - e);
 
   if (z < 0. + e)
     p_out.SetZ(0.+ e);
-  if (z > geo->DetLength() - e)
-    p_out.SetZ(geo->DetLength() - e);
+  if (z > tpc.Length() - e)
+    p_out.SetZ(tpc.Length() - e);
 
   return p_out;
 }

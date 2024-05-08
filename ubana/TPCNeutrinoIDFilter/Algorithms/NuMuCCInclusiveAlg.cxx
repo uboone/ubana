@@ -60,9 +60,10 @@ void NuMuCCInclusiveAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fVertexModuleLabel       = pset.get<std::string> ("VertexModuleLabel");
     fOpFlashModuleLabel      = pset.get<std::string> ("OpFlashModuleLabel");
     
-    fDistToEdgeX             = fGeometry->DetHalfWidth()   - pset.get<double>("DistToEdgeX",   10.);
-    fDistToEdgeY             = fGeometry->DetHalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
-    fDistToEdgeZ             = fGeometry->DetLength() / 2. - pset.get<double>("DistToEdgeZ",   10.);
+    auto const& tpc = fGeometry->TPC();
+    fDistToEdgeX             = tpc.HalfWidth()   - pset.get<double>("DistToEdgeX",   10.);
+    fDistToEdgeY             = tpc.HalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
+    fDistToEdgeZ             = tpc.Length() / 2. - pset.get<double>("DistToEdgeZ",   10.);
     
     fFlashWidth              = pset.get<double>      ("FlashWidth",                            80.);
     fBeamMin                 = pset.get<double>      ("BeamMin",                              3.55);
@@ -251,9 +252,10 @@ bool NuMuCCInclusiveAlg::findNeutrinoCandidates(art::Event & event) const
     
 bool NuMuCCInclusiveAlg::inFV(double x, double y, double z) const
 {
-    double distInX = x - fGeometry->DetHalfWidth();
+    auto const& tpc = fGeometry->TPC();
+    double distInX = x - tpc.HalfWidth();
     double distInY = y;
-    double distInZ = z - 0.5 * fGeometry->DetLength();
+    double distInZ = z - 0.5 * tpc.Length();
     
     if (fabs(distInX) < fDistToEdgeX && fabs(distInY) < fDistToEdgeY && fabs(distInZ) < fDistToEdgeZ) return true;
     

@@ -10,6 +10,7 @@
 #include "fiducial_volume.h"
 #include "second_shower_search.h"
 #include "isolation.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 
 namespace single_photon
@@ -23,7 +24,7 @@ namespace single_photon
         this->reconfigure(pset);
         SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
         geom = lar::providerFrom<geo::Geometry>();
-
+        m_channelMap = &art::ServiceHandle<geo::WireReadout const>()->Get();
     }
 
     //Reconfigure the internal class parameters from .fcl parameters
@@ -363,9 +364,9 @@ namespace single_photon
         this->GetFinalStatePFParticleVectors(pfParticleMap, pfParticlesToVerticesMap, crParticles, nuParticles);
 
         //Fill some more vertex info
-        m_vertex_pos_wire_p0 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 0, m_TPC, m_Cryostat, *geom);
-        m_vertex_pos_wire_p1 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 1, m_TPC, m_Cryostat, *geom);
-        m_vertex_pos_wire_p2 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 2, m_TPC, m_Cryostat, *geom);
+        m_vertex_pos_wire_p0 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 0, m_TPC, m_Cryostat, *m_channelMap);
+        m_vertex_pos_wire_p1 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 1, m_TPC, m_Cryostat, *m_channelMap);
+        m_vertex_pos_wire_p2 =calcWire(m_vertex_pos_y, m_vertex_pos_z, 2, m_TPC, m_Cryostat, *m_channelMap);
         m_vertex_pos_tick = calcTime(m_vertex_pos_x, 2, m_TPC,m_Cryostat, theDetector);
         //std::cout<<calcTime(m_vertex_pos_x, 2, m_TPC,m_Cryostat, *theDetector)<<" "<<calcTime(m_vertex_pos_x, 0, m_TPC,m_Cryostat, *theDetector)<<" "<<calcTime(m_vertex_pos_x, 1, m_TPC,m_Cryostat, *theDetector)<<std::endl;
 
@@ -664,8 +665,8 @@ namespace single_photon
         //**********************************************************************************************/
 
         //and now get the simb::MCparticle to both MCtrack and MCshower maps (just for the MCparticles matched ok).
-        if(!m_run_pi0_filter) badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
-        badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,geom,bad_channel_list_fixed_mcc9);
+        if(!m_run_pi0_filter) badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,bad_channel_list_fixed_mcc9);
+        badChannelMatching<art::Ptr<recob::Track>>(badChannelVector, tracks, trackToNuPFParticleMap, pfParticleToHitsMap,bad_channel_list_fixed_mcc9);
 
 
         //*******************************Slices***************************************************************/
@@ -1086,7 +1087,7 @@ namespace single_photon
             std::string uniq_tag = "HitThres_"+ std::to_string(static_cast<int>(m_SEAviewStubHitThreshold)) + "_" + std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
 
             //Setup seaviewr object
-            seaview::SEAviewer sevd("Stub_"+uniq_tag, geom, theDetector );
+            seaview::SEAviewer sevd("Stub_"+uniq_tag, geom, m_channelMap, theDetector );
             //Pass in any bad channels you like
             sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
             //Give it a vertex to center around
@@ -1267,7 +1268,7 @@ namespace single_photon
             std::string uniq_tag = "HitThres_"+ std::to_string(static_cast<int>(m_SEAviewHitThreshold)) + "_" + std::to_string(m_run_number)+"_"+std::to_string(m_subrun_number)+"_"+std::to_string(m_event_number);
 
             //Setup seaviewr object
-            seaview::SEAviewer sevd("Shower_"+uniq_tag, geom, theDetector );
+            seaview::SEAviewer sevd("Shower_"+uniq_tag, geom, m_channelMap, theDetector );
             //Pass in any bad channels you like
             sevd.setBadChannelList(bad_channel_list_fixed_mcc9);
             //Give it a vertex to center around
@@ -1891,9 +1892,9 @@ namespace single_photon
                 m_reco_vertex_dist_to_active_TPC = this->distToTPCActive(tmp);
 
                 if(!m_run_pi0_filter){
-                    m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-                    m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
-                    m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,geom,bad_channel_list_fixed_mcc9);
+                    m_reco_vertex_to_nearest_dead_wire_plane0 = distanceToNearestDeadWire(0, m_vertex_pos_y, m_vertex_pos_z,m_channelMap, bad_channel_list_fixed_mcc9);
+                    m_reco_vertex_to_nearest_dead_wire_plane1 = distanceToNearestDeadWire(1, m_vertex_pos_y, m_vertex_pos_z,m_channelMap, bad_channel_list_fixed_mcc9);
+                    m_reco_vertex_to_nearest_dead_wire_plane2 = distanceToNearestDeadWire(2, m_vertex_pos_y, m_vertex_pos_z,m_channelMap, bad_channel_list_fixed_mcc9);
                 }
 
             }else{

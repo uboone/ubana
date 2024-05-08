@@ -16,6 +16,7 @@
 #include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
 #include "ubana/searchingfornues/Selection/CommonDefs/PIDFuncs.h"
 
+#include "larcore/Geometry/Geometry.h"
 #include "lardataobj/AnalysisBase/T0.h"
 
 #include "larreco/RecoAlg/TrajectoryMCSFitter.h"

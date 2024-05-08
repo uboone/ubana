@@ -41,6 +41,7 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
@@ -148,6 +149,7 @@ private:
   bool IsCathodeCrossing(art::Ptr<recob::Track>, double &);
 
   ::art::ServiceHandle<geo::Geometry> geo;
+  geo::WireReadoutGeom const* _channelMap = &art::ServiceHandle<geo::WireReadout const>()->Get();
 
   ::cosmictag::CosmicTagManager _ct_manager;
 
@@ -194,7 +196,7 @@ void CandidateConsistency::produce(art::Event & e)
   // Construct map wire->channel for collection plane
   std::map<int,int> wire_to_channel;
   for (unsigned int ch = 0; ch < 8256; ch++) {
-    for ( auto wire_id : geo->ChannelToWire(ch)) {
+    for ( auto wire_id : _channelMap->ChannelToWire(ch)) {
       if (wire_id.Plane == 2) {
         wire_to_channel[wire_id.Wire] = ch;
       }
@@ -322,7 +324,7 @@ void CandidateConsistency::produce(art::Event & e)
         
         cosmictag::SimpleHit sh;
         sh.t = detProp.ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
-        sh.w = h->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2));
+        sh.w = h->WireID().Wire * _channelMap->Plane(geo::PlaneID(0,0,2)).WirePitch();
 
         sh.plane = h->View();
         sh.integral = h->Integral();
@@ -343,7 +345,7 @@ void CandidateConsistency::produce(art::Event & e)
       this->ContainPoint(vertex);
       geo::PlaneID const plane_2{0, 0, 2};
       double vertex_t = detProp.ConvertXToTicks(vertex.X(), plane_2)/4.;
-      int vertex_w    = geo->NearestWireID(vertex, plane_2).Wire;
+      int vertex_w    = _channelMap->Plane(plane_2).NearestWireID(vertex).Wire;
 
       cosmictag::SimpleHit start;
       start.time = vertex_t;
@@ -474,7 +476,7 @@ void CandidateConsistency::produce(art::Event & e)
         
         cosmictag::SimpleHit sh;
         sh.t = detProp.ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
-        sh.w = h->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2));
+        sh.w = h->WireID().Wire * _channelMap->Plane(geo::PlaneID(0,0,2)).WirePitch();
 
         sh.plane = h->View();
         sh.integral = h->Integral();
@@ -496,7 +498,7 @@ void CandidateConsistency::produce(art::Event & e)
       this->ContainPoint(vertex);
       geo::PlaneID const plane_2{0, 0, 2};
       double vertex_t = detProp.ConvertXToTicks(vertex.X(), plane_2)/4.;
-      int vertex_w    = geo->NearestWireID(vertex, plane_2).Wire;
+      int vertex_w    = _channelMap->Plane(plane_2).NearestWireID(vertex).Wire;
 
       cosmictag::SimpleHit start;
       start.time = vertex_t;
@@ -596,10 +598,11 @@ void CandidateConsistency::produce(art::Event & e)
 
 void CandidateConsistency::ContainPoint(geo::Point_t& point) {
 
+  auto const& tpc = geo->TPC();
   constexpr double e = std::numeric_limits<double>::epsilon();
-  point.SetX(std::clamp(point.X(), e, 2.*geo->DetHalfWidth() - e));
-  point.SetY(std::clamp(point.Y(), -geo->DetHalfWidth() + e, geo->DetHalfWidth() - e));
-  point.SetZ(std::clamp(point.Z(), e, geo->DetLength() - e));
+  point.SetX(std::clamp(point.X(), e, 2.*tpc.HalfWidth() - e));
+  point.SetY(std::clamp(point.Y(), -tpc.HalfWidth() + e, tpc.HalfWidth() - e));
+  point.SetZ(std::clamp(point.Z(), e, tpc.Length() - e));
 
 }
 
@@ -609,8 +612,9 @@ bool CandidateConsistency::IsCathodeCrossing(art::Ptr<recob::Track> trk_ptr, dou
 
   x_offset = -1.;
 
-  double _BOTTOM = -geo->DetHalfHeight() + 25.; //cm
-  double _TOP    = geo->DetHalfHeight() - 25.; //cm 
+  auto const& tpc = geo->TPC();
+  double _BOTTOM = -tpc.HalfHeight() + 25.; //cm
+  double _TOP    = tpc.HalfHeight() - 25.; //cm
 
   std::vector<TVector3> sorted_trk;
 
@@ -640,7 +644,7 @@ bool CandidateConsistency::IsCathodeCrossing(art::Ptr<recob::Track> trk_ptr, dou
 
     if (top.X() > bottom.X()){
       // Track crosses 
-      x_offset = geo->DetHalfWidth()*2 - top.X();
+      x_offset = tpc.HalfWidth()*2 - top.X();
       return true;
     }
   }
@@ -653,7 +657,7 @@ bool CandidateConsistency::IsCathodeCrossing(art::Ptr<recob::Track> trk_ptr, dou
 
     if (top.X() < bottom.X()){
       // Track crosses 
-      x_offset = geo->DetHalfWidth()*2 - bottom.X();
+      x_offset = tpc.HalfWidth()*2 - bottom.X();
       return true;
     }
   }

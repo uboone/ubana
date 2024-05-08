@@ -1,12 +1,14 @@
 #include "FindPandoraVertexAlg.h"
 
+#include "larcore/Geometry/WireReadout.h"
+
 namespace FindPandoraVertex
 {
   // Constructor/destructor
   FindPandoraVertexAlg::FindPandoraVertexAlg(fhicl::ParameterSet const & pset)
   {
     reconfigure(pset);
-    fGeometry = lar::providerFrom<geo::Geometry>();
+    fChannelMap = &art::ServiceHandle<geo::WireReadout const>()->Get();
   }
   FindPandoraVertexAlg::~FindPandoraVertexAlg()
   {}
@@ -177,7 +179,7 @@ namespace FindPandoraVertex
 
               // Time to dump all associations in the neutrino vertex
               AuxVertex::DecayVertex nuV(nuVertex,t1Vertex,t2Vertex,t1Track,t2Track,t1Hits,t2Hits,t1Mcs,t2Mcs);
-              nuV.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,fGeometry,detProp);
+              nuV.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,*fChannelMap,detProp);
               nuV.PrintInformation();
               if (nuV.fIsInsideTPC)
               {
