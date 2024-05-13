@@ -3,7 +3,7 @@
 #include "proximityclustering.fcl"
 #include "eventweight_microboone_genie_knobs.fcl"
 
-# #include "blipreco_configs.fcl"
+#include "blipreco_configs.fcl"
 
 FidVol: {
     Xstart: 10.
@@ -82,10 +82,10 @@ TrackAnalysisTool: {
     RecalibrateHits: true
 }
 
-#BlipAnalysisTool: {
-#    tool_type: "BlipAnalysis"
-#    BlipAlg: @local::microboone_blipalg
-#}
+BlipAnalysisTool: {
+    tool_type: "BlipAnalysis"
+    BlipAlg: @local::microboone_blipalg
+}
 
 NeutronAnalysisTool: {
     tool_type: "NeutronAnalysis"
@@ -159,6 +159,7 @@ DefaultAnalysisTool: {
     fidvolZstart: @local::FidVol.Zstart
     fidvolZend:   @local::FidVol.Zend
     makeNuMINtuple: false
+    ignoreMCFlux: false
     NuMIOpFiltProcName:    "DataStage1Optical"
     NuMISWTriggerProcName: "DataOverlayOpticalNuMI"
 }
@@ -249,7 +250,6 @@ FlashMatchingTool: {
     SpacePointproducer: "pandora"
     AllPFPproducer: "pandoraPatRec:allOutcomes"
     AllSpacePointproducer: "pandoraPatRec:allOutcomes"
-    #AllT0producer: "flashmatchAllOutcomes"
     Hproducer: "gaushit"
     HTproducer: "gaushitTruthMatch"
     ChargeToNPhotonsTrack: 164.0
