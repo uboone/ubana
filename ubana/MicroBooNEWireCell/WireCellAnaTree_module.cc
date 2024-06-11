@@ -236,6 +236,12 @@ private:
   /// BDT input vars
   TTree* fBDT;
 
+  //single track kdar tagger
+  float flag_st_kdar;
+  float n_prim_tracks_1;
+  float n_prim_tracks_3;
+  float n_prim_tracks_5;
+
   //single photon vars
   float shw_sp_flag;
   float shw_sp_filled;
@@ -1278,6 +1284,7 @@ private:
   TH1F *H_maxH;
   TH1F *H_t0_Beam;
   TH2F *H_TimeVsPh;
+  TH1F *ns_time;
 };
 
 
@@ -1351,11 +1358,15 @@ void WireCellAnaTree::initOutput()
 
   if(!fMC){
     //ns beam timing plots for validation
-    H_time= tfs->make<TH1F>("H_time","Time PMT",500, 0,6000);
-    H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",800,2000,2100);
-    H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",800,3000,8450);
+    //H_time= tfs->make<TH1F>("H_time","Time PMT",500, 0,6000);
+    //H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",800,2000,2100);
+    //H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",800,3000,8450);
+    H_time= tfs->make<TH1F>("H_time","Time PMT",2000, 0,20000);
+    H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",2400,1800,2100);
+    H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",300,0,150);
     H_TimeVsPh= tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,500);
-  }
+    ns_time= tfs->make<TH1F>("H_evtTimeNS","evtTimeNS",16000, 8000,24000); 
+ }
 
   fTreeEval = tfs->make<TTree>("T_eval", "T_eval");
 
@@ -1588,6 +1599,13 @@ void WireCellAnaTree::initOutput()
   fBDT->Branch("nuvtx_diff",			&f_nuvtx_diff);
   fBDT->Branch("showervtx_diff",		&f_showervtx_diff);
   fBDT->Branch("muonvtx_diff",			&f_muonvtx_diff);
+
+  //singel track kdar
+  fBDT->Branch("flag_st_kdar",&flag_st_kdar,"flag_st_kdar/F");
+  fBDT->Branch("n_prim_tracks_1",&n_prim_tracks_1,"n_prim_tracks_1/F");
+  fBDT->Branch("n_prim_tracks_3",&n_prim_tracks_3,"n_prim_tracks_3/F");
+  fBDT->Branch("n_prim_tracks_5",&n_prim_tracks_5,"n_prim_tracks_5/F");
+
 
   //single photon shower
   fBDT->Branch("shw_sp_flag",&shw_sp_flag,"shw_sp_flag/F");
@@ -3406,6 +3424,12 @@ void WireCellAnaTree::resetOutput()
 		f_showervtx_diff = -1;
 		f_muonvtx_diff = -1;
 
+  //single track kdar
+  flag_st_kdar = -1;
+  n_prim_tracks_1 = -1;
+  n_prim_tracks_3 = -1;
+  n_prim_tracks_5 = -1;
+
     // single photon shower identification
   shw_sp_flag = -1;
   shw_sp_num_mip_tracks = -1;
@@ -4478,6 +4502,11 @@ void WireCellAnaTree::save_LEEweights(art::Event const& e)
 
 void WireCellAnaTree::ReadBDTvar(art::Ptr<nsm::NuSelectionBDT> bdt)
 {
+  flag_st_kdar = bdt->Getstkdar().flag_st_kdar;
+  n_prim_tracks_1 = bdt->Getstkdar().n_prim_tracks_1;
+  n_prim_tracks_3 = bdt->Getstkdar().n_prim_tracks_3;
+  n_prim_tracks_5 = bdt->Getstkdar().n_prim_tracks_5;
+
   shw_sp_num_mip_tracks = bdt->GetSPID().shw_sp_num_mip_tracks;
   shw_sp_num_muons = bdt->GetSPID().shw_sp_num_muons;
   shw_sp_num_pions = bdt->GetSPID().shw_sp_num_pions;
@@ -5353,7 +5382,7 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
   std::vector<float> *sps_z = new std::vector<float>;
 
   art::Handle< std::vector<simb::MCParticle> > particleHandle;
-  if (! e.getByLabel(fPFInputTag, particleHandle)) return;
+  if (! e.getByLabel(fPFInputTag, particleHandle)){ std::cout<<"Can't Find Particles"<<std::endl; return;}
   std::vector< art::Ptr<simb::MCParticle> > particles;
   art::fill_ptr_vector(particles, particleHandle);
 
@@ -5397,6 +5426,7 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
 
   //================================================================================================================
   double gap=18.936;
+  //double MaxLim=0.8;
   double MaxLim=2.5;
   std::vector<int> N_pmt;
   double ccnd1, ccnd2,ccnd3;
@@ -5408,12 +5438,26 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
   //===================================================================================================================
   Ph_Tot=0.;
   N_pmt.clear();
-  for(int q=0; q<32; q++){max[q]=max[q]/calib[q];
-  if((max[q]>MaxLim && q!=17 && q!=28) && (time[q]>3000.0 && time[q]<5000.0)){N_pmt.push_back(q); Ph_Tot=Ph_Tot+max[q];}}
+  for(int q=0; q<32; q++){std::cout<<"max[q] "<<max[q]<<"  max[q]/calib[q] "<<max[q]/calib[q]<<  "time[q] "<<time[q]<<std::endl; max[q]=max[q]/calib[q];
+  //if((max[q]>MaxLim && q!=17 && q!=28) && (time[q]>3000.0 && time[q]<5000.0)){N_pmt.push_back(q); Ph_Tot=Ph_Tot+max[q];}}
+  if(( max[q]>MaxLim && q!=17 && q!=28) ){N_pmt.push_back(q); Ph_Tot=Ph_Tot+max[q];}}
   //--------------------------------------------------------------------------------------------------------------------
+  std::cout<<"N_pmt.size()"<<N_pmt.size()<<std::endl;
   if(N_pmt.size()>2){
     RWM_T=BeamT0;
-    nuToF=z*0.033356;
+    //double a1 = 0.46; // x beam coordinate
+    //double b1 = 0.05; // y beam coordinate
+    //double c1 = 0.885; // z beam coordinate 
+    //double dist_FFz = abs(z/c1)*sqrt(a1*a1 + b1*b1 + c1*c1);
+    //double dist_FFx = abs(x/a1)*sqrt(a1*a1 + b1*b1 + c1*c1);
+    //double dist_FFy = abs((y+116)/b1)*sqrt(a1*a1 + b1*b1 + c1*c1);
+    //std::cout<<"dist_FFz "<<dist_FFz<<"  dist_FFx "<<dist_FFx<<"  dist_FFy "<<dist_FFy<<std::endl;
+    //double dist = std::min({dist_FFz,dist_FFx,dist_FFy});
+    //dist = z;
+    //double dist = x*0.3895 + y*0.05383 + z*0.9195;
+    double dist = x*0.38882088424071787 - y*0.05841612670969197 + z*0.9193866844142893;
+    std::cout<<"x comp "<<x*0.38882088424071787<<" y comp  "<<-y*0.05841612670969197<<"  z comp "<<z*0.9193866844142893<<"  nominal z "<<z<<std::endl;
+    nuToF=dist*0.033356;
     std::vector<double> timeProp = std::vector<double>(N_pmt.size(),0);
     for(uint i=0; i<N_pmt.size(); i++){
         tp=5000000000.0;
@@ -5438,6 +5482,11 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
 
       //all the corrections
       TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)]+ccnd1+ccnd2+ccnd3;
+      //TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)];
+      std::cout<<std::endl;
+      std::cout<<i<<"  (time[N_pmt.at(i)]) "<<(time[N_pmt.at(i)])<<"  RWM_T "<<RWM_T<<"  RWM_offset "<<RWM_offset<<"  nuToF "<<nuToF<<"  timeProp[i] "<<timeProp[i]<<"  offset[N_pmt.at(i)] "<<offset[N_pmt.at(i)]<<std::endl;
+      std::cout<<"   ccnd1 "<<ccnd1<<"  ccnd2 "<<ccnd2<<"  ccnd3 "<<ccnd3<<std::endl; 
+      std::cout<<std::endl;
     }
     Med_TT3=TMath::Median((Long64_t)N_pmt.size(),TT3_array);
     //Fill a 2d histogram with  TT3_array[i] vs max[N_pmt.at(i)] this is usefull to check for any errors
@@ -5447,6 +5496,7 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
   }
   f_evtTimeNS = Med_TT3;
   std::cout<<"evtTimeNS: "<< Med_TT3<<std::endl;
+  ns_time->Fill(Med_TT3);
   //Merge Peaks
   double Shift=3166.9;
   double TThelp=Med_TT3-Shift+gap*0.5;
@@ -5486,7 +5536,7 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
       auto const wf = wf_handle->at(i);
       auto ch = wf.ChannelNumber();
       if (ch >= 32) continue;
-
+      std::cout<<"PMT "<<ch<<" wf size: "<<wf.size()<<std::endl;
       for (size_t n=0; n < wf.size(); n++){
         if (n < 1500){
           _wf_v[ch][n] = (wf_handle->at(i))[n];
@@ -5498,8 +5548,8 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
 
     //=======================================================================================================
     //=======================================================================================================
-      double Help_wf_v[32][500];
-      double x_wf_v[500], Raw_wf_v[500], Base_wf_v[500], Norm_wf_v[500];
+      double Help_wf_v[32][1500];
+      double x_wf_v[1500], Raw_wf_v[1500], Base_wf_v[1500], Norm_wf_v[1500];
       double maxZ,max0,base;   int basebinmax,tick;
       double tca,tcb,tcc, TT[32], max[32];
 
@@ -5517,7 +5567,7 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     //=====================================================================================================
     //=======================================================================================================
 
-    for(int q=0; q<32; q++){for(int i=0; i<500; i++){Help_wf_v[q][i]=_wf_v[q][i];}}
+    for(int q=0; q<32; q++){for(int i=0; i<1500; i++){Help_wf_v[q][i]=_wf_v[q][i];}}
     _wf_v.clear(); _wf_v.shrink_to_fit();
 
 
@@ -5526,9 +5576,9 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     for(int q=0; q<32; q++){TT[q]=-9999.; max[q]=-9999.;
     maxZ=0.; max0=0.; base=0.; tick=0; tickB=0; tickF=0; TF=0; TB=0;
     //Getting raw waveform (Raw_wf_v[i]) only for i<500 since the beam window is between 3 and 5 us -> [i>3*64 && i<5*64]
-    for(int i=0; i<500; i++){x_wf_v[i]=i*1.0; Raw_wf_v[i]=Help_wf_v[q][i];}
+    for(int i=0; i<1500; i++){x_wf_v[i]=i*1.0; Raw_wf_v[i]=Help_wf_v[q][i];}
     //Getting raw wf max amplitude and max amp tick
-    for(int i=3*64; i<5*64; i++){if(maxZ<Raw_wf_v[i]){maxZ=Raw_wf_v[i]; tick=i;}}
+    for(int i=3*64; i<23*64; i++){if(maxZ<Raw_wf_v[i]){maxZ=Raw_wf_v[i]; tick=i;}}
     //Baseline removal
     TH1F *basehelp= new TH1F("basehelp","basehelp",400, 1900,2200);
     basebinmax=0; for(int i=0; i<3*64; i++){basehelp->Fill(Raw_wf_v[i]);}
@@ -5536,10 +5586,10 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     basehelp->Delete();
     //Getting wf max amp after baseline removal (this is proportional to number of Photons in the rising endge)
     //getting wf baseline subtracted and wf baseline subtracted and normalized for the max amp.
-    for(int i=0; i<500; i++){max0=maxZ-base;
+    for(int i=0; i<1500; i++){max0=maxZ-base;
     Base_wf_v[i]=Raw_wf_v[i]-base; Norm_wf_v[i]=Base_wf_v[i]/max0;}
     //fitting the normalized baseline subtracted wf
-    TGraph *gr = new TGraph(500,x_wf_v,Norm_wf_v);
+    TGraph *gr = new TGraph(1500,x_wf_v,Norm_wf_v);
     TF1 *fit = new TF1("fit","[2]*exp(-TMath::Power(([0]-x)/[1],4))",tick-10, tick);
     fit->SetParameters(tick,2,1);  gr->Fit("fit","Q","",tick-10, tick);
     tca=fit->GetParameter(0);  tcb=fit->GetParameter(1);  tcc=fit->GetParameter(2);
@@ -5551,17 +5601,17 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
       else if(maxZ>saturation) {
 
         //counting the number of ticks above the saturation
-        for(int i=3*64; i<7*64; i++){
+        for(int i=3*64; i<23*64; i++){
         if(TF==0){if(Raw_wf_v[i+1]>4094 && Raw_wf_v[i]<=4094){tickF=i; TF=1;}}
         if(TB==0){if(Raw_wf_v[i]>4094 && Raw_wf_v[i+1]<=4094){tickB=i; TB=1;}}}
         FB=tickB-tickF;  if(FB>99){FB=99;}
         //amplitude discrete correction
         maxZhelp1=maxZ/Frac[FB]; tick=tickF; Nss=0; is=0;
-        for(int i=3*64; i<7*64; i++){if(Raw_wf_v[i]<4095){Nss=Nss+1;}}
+        for(int i=3*64; i<23*64; i++){if(Raw_wf_v[i]<4095){Nss=Nss+1;}}
 
         double txSS[256],tySS[256],txSS2[256],tySS2[256];
 
-        for(int i=3*64; i<7*64; i++){if(Raw_wf_v[i]<4095){txSS[is]=i*1.0; tySS[is]=Raw_wf_v[i]/maxZhelp1; is=is+1;}}
+        for(int i=3*64; i<23*64; i++){if(Raw_wf_v[i]<4095){txSS[is]=i*1.0; tySS[is]=Raw_wf_v[i]/maxZhelp1; is=is+1;}}
         TGraph *g1 = new TGraph(Nss,txSS,tySS);
         TF1 *fitS1 = new TF1("fitS1","[9]*(exp(-TMath::Power(([0]-(x-[8]))/[1],4))*0.5*(TMath::Erf(-(x-[8])-[7])+1.0)+([5]+[4]*exp(-TMath::Power(([2]-(x-[8]))/[3],2)))*exp((-(x-[8]))/[6])*0.5*(TMath::Erf([7]+(x-[8]))+1.0))",tick-30, tick+250);
         fitS1->SetParameters(pLL[0],pLL[1],pLL[2],pLL[3],pLL[4],pLL[5],pLL[6],pLL[7],tick,1.);
@@ -5608,15 +5658,21 @@ double WireCellAnaTree::getBeamWF(art::Event const& e)
     for (size_t i=0; i < wf_handle_beam->size(); i++) {
       auto const wf = wf_handle_beam->at(i);
       auto ch = wf.ChannelNumber();
-      //std::cout<<"Channel: "<<ch<<std::endl;
-      if (ch != 39) continue;
-
+      std::cout<<"Channel: "<<ch<<std::endl;
+      //if (ch != 39) continue; //BNB
+      if (ch != 37) continue; //NuMI?
+      //if (ch != 138) continue;
+      std::cout<<std::endl;
+      std::cout<<"wf.size() "<<wf.size()<<std::endl;
       for (size_t n=0; n < wf.size(); n++){
         if (n < 1500){
           wf_w_03->emplace_back((wf_handle_beam->at(i))[n]);
-        }
+          //std::cout<<(wf_handle_beam->at(i))[n]<<std::endl;
+	}
       }// for all channels
     }// for all waveforms
+    std::cout<<std::endl;
+    std::cout<<std::endl;
 
     //=======================================================================================================
     //=======================================================================================================
@@ -5628,22 +5684,27 @@ double WireCellAnaTree::getBeamWF(art::Event const& e)
     beamBase=0.; BBmax=0.; Btick=0; TT=-9999.;
     for(int i=0; i<4*64; i++){beamBase=beamBase+wf_w_03->at(i);}
     beamBase=beamBase/(4.0*64.0);
+    std::cout<<"beamBase "<<beamBase<<std::endl;
     //baseline subtraction
     for(int i=0; i<500; i++){wx[i]=i*1.0; wy[i]=wf_w_03->at(i)-beamBase;
     //max amplitude
     if(BBmax<wy[i]){BBmax=wy[i]; Btick=i;}}
     H_maxH->Fill(BBmax);
-    if(BBmax>2000 && BBmax<2100){
+    std::cout<<"BBmax "<<BBmax<<std::endl;
+    //if(BBmax>2000 && BBmax<2100){
+    if(BBmax>1800 && BBmax<2100){//need to reevaluate?
     //wf normalization
     for(int i=0; i<500; i++){wy[i]=wy[i]/BBmax;}
     //wf max check
     tickMax=0;
     for(int i=Btick-20; i<Btick+10; i++){if(wy[i-1]<1 && wy[i]==1){tickMax=i;}}
+    std::cout<<"tickMax "<<tickMax<<std::endl;
     //wf fit
     TGraph *gr0 = new TGraph(500,wx,wy);
     TF1 *fit = new TF1("fit","[2]*exp(-TMath::Power((x-[0])/[1],4))",tickMax-6, tickMax);
     fit->SetParameters(tickMax,2,1);     gr0->Fit("fit","Q","",tickMax-6, tickMax);
     pca=fit->GetParameter(0); pcb=fit->GetParameter(1); pcc=fit->GetParameter(2);
+    std::cout<<"pca "<<pca<<"  pcb "<<pcb<<"  pcc "<<pcc<<std::endl;
     //timing is the risign edge half height
     TT=(pca-abs(pcb*TMath::Power(-log(0.5/pcc),0.25)))/0.064;
     H_t0_Beam->Fill(TT);
