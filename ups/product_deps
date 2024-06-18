@@ -248,10 +248,10 @@ fwdir	product_dir	scripts
 #
 ####################################
 product		version		qual	flags		<table_format=2>
-larana		v09_15_06	-
-larpandora	v09_22_06	-
-ubraw		v09_90_02	-
-ubreco		v09_90_02	-
+larana		v09_15_07	-
+larpandora	v09_22_07	-
+ubraw		v09_91_00	-
+ubreco		v09_91_00	-
 cetmodules	v3_24_01	-	only_for_build
 end_product_list
 ####################################
