@@ -1,0 +1,60 @@
+#include "run_wcanatree.fcl"
+
+physics.analyzers.wcpselection.MC:		true
+physics.analyzers.wcpselection.SaveWeights:	true
+physics.analyzers.wcpselection.POT_inputTag:	"generator"
+
+physics.analyzers.wcpweights.SaveWeights:	true
+physics.analyzers.wcpweights.SaveFullWeights:	true
+
+physics.ana: [wcpselection, wcpweights]
+
+# handle reweighting from old flux
+
+physics.analyzers.wcpselection.IsNuMI:               true
+physics.analyzers.wcpweights.IsNuMI:                 true
+physics.analyzers.wcpselection.NuMIOldReweight:      true
+physics.analyzers.wcpweights.NuMIOldReweight:        true
+
+physics.analyzers.wcpselection.WeightLabel:          "eventweightSep24::EventWeightSep24OldRW"
+physics.analyzers.wcpweights.WeightLabel:            "eventweightSep24::EventWeightSep24OldRW"
+physics.analyzers.wcpweights.MCEventWeightLabels:  [ "eventweightSep24::EventWeightSep24OldRW"
+                                                    ,"eventweightSep24::EventWeightSep24OldRWExtraGENIE1"
+                                                    ,"eventweightSep24::EventWeightSep24OldRWExtraGENIE2"
+                                                    ,"eventweightSep24::EventWeightSep24OldRWExtraGENIE3"
+                                                    ,"eventweightSep24::EventWeightSep24OldRWExtraGENIE4"
+                                                    ,"eventweightSep24::EventWeightSep24OldRWExtraGENIE5" ]
+physics.analyzers.wcpselection.SaveLeeWeights:       false
+physics.analyzers.wcpweights.SaveLeeWeights:         false
+
+physics.analyzers.wcpweights.GenieKnobs:        [ "All_UBGenie"
+                                                , "AxFFCCQEshape_UBGenie"
+                                                , "DecayAngMEC_UBGenie"
+                                                , "NormCCCOH_UBGenie"
+                                                , "NormNCCOH_UBGenie"
+                                                , "RPA_CCQE_UBGenie"
+                                                , "RootinoFix_UBGenie"
+                                                , "ThetaDelta2NRad_UBGenie"
+                                                , "Theta_Delta2Npi_UBGenie"
+                                                , "TunedCentralValue_UBGenie"
+                                                , "VecFFCCQEshape_UBGenie"
+                                                , "XSecShape_CCMEC_UBGenie"
+                                                , "expskin_FluxUnisim"
+                                                , "horncurrent_FluxUnisim"
+                                                , "kminus_PrimaryHadronNormalization"
+                                                , "kplus_PrimaryHadronFeynmanScaling"
+                                                , "kzero_PrimaryHadronSanfordWang"
+                                                , "nucleoninexsec_FluxUnisim"
+                                                , "nucleonqexsec_FluxUnisim"
+                                                , "nucleontotxsec_FluxUnisim"
+                                                , "piminus_PrimaryHadronSWCentralSplineVariation"
+                                                , "pioninexsec_FluxUnisim"
+                                                , "pionqexsec_FluxUnisim"
+                                                , "piontotxsec_FluxUnisim"
+                                                , "piplus_PrimaryHadronSWCentralSplineVariation"
+                                                , "reinteractions_piminus_Geant4"
+                                                , "reinteractions_piplus_Geant4"
+                                                , "reinteractions_proton_Geant4"
+                                                , "splines_general_Spline"
+                                                , "xsr_scc_Fa3_SCC"
+                                                , "xsr_scc_Fv3_SCC" ]

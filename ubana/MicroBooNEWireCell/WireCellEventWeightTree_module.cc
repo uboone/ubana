@@ -114,6 +114,8 @@ private:
 
   Bool_t          f_truth_vtxInside;
 
+  // handling for reweighting to new NuMI flux (4.10.4) for files generated using old flux(4.9.2)
+  Bool_t fNuMIOldReweight;
 };
 
 
@@ -140,6 +142,7 @@ void WireCellEventWeightTree::reconfigure(fhicl::ParameterSet const& pset)
   fSaveFullWeights = pset.get<bool>("SaveFullWeights", false); // all weights
   fSaveGenieWeights = pset.get<bool>("SaveGenieWeights", false); // all weights
   fIsNuMI = pset.get<bool>("IsNuMI", false); // if true, converts NuMI's weights into BNB style
+  fNuMIOldReweight = pset.get<bool>("NuMIOldReweight", false); // if true, converts underlying numi flux distribution from old (4.9.2) to new (4.10.4)
   fSTMLabel = pset.get<std::string>("STMLabel");
   fTruthLabel = pset.get<std::string>("TruthLabel");
   fFileType = pset.get<std::string>("FileType", "empty");
@@ -302,6 +305,12 @@ void WireCellEventWeightTree::save_weights(art::Event const& e)
             ppfx_cv_UBPPFXCV = value;
           }
       }
+      if (knob_name == "ppfx_oldrw_cv_UBOLDPPFXCV" and fIsNuMI and fNuMIOldReweight){
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
+      }
     }
   }
 
@@ -368,6 +377,14 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e, const bool 
           got_ppfx_cv_UBPPFXCV = true;
           break;
         }
+        if (knob == "ppfx_oldrw_cv_UBOLDPPFXCV" && fNuMIOldReweight) {
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
+          got_ppfx_cv_UBPPFXCV = true;
+          break;
+        }
       }
      
     }
@@ -400,7 +417,7 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e, const bool 
       if (fIsNuMI) {
         // For NuMI, the 12 ppfx_* knobs are divided by ppfx_cv_UBPPFXCV,
         // and ppfx_cv_UBPPFXCV is absorbed into spline weight
-        if (knob.rfind("ppfx_", 0) == 0 and knob != "ppfx_cv_UBPPFXCV") {
+        if (knob.rfind("ppfx_", 0) == 0 and knob != "ppfx_cv_UBPPFXCV" and knob != "ppfx_oldrw_cv_UBOLDPPFXCV") {
           std::transform(weights_asFloat.begin(), weights_asFloat.end(), weights_asFloat.begin(),
                          std::bind(std::divides<float>(), std::placeholders::_1, ppfx_cv_UBPPFXCV));
         }
@@ -436,6 +453,8 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e, const bool 
         else if (knob == "ppfx_thinnpi_PPFXThinNeutronPion") knob = "pioninexsec_FluxUnisim";
         else if (knob == "ppfx_thinpi_PPFXThinPion") knob = "pionqexsec_FluxUnisim";
         else if (knob == "ppfx_totabs_PPFXTotAbsorp") knob = "piontotxsec_FluxUnisim";
+        // for reweighting old flux files
+        else if (knob == "ppfx_oldrw_ms_UBOLDPPFX" && fNuMIOldReweight) knob = "kminus_PrimaryHadronNormalization";
       }
 
       if (partial && fgenie_knobs.find(knob) == fgenie_knobs.end()) {
