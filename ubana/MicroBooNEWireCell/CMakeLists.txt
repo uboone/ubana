@@ -236,5 +236,6 @@ art_make( EXCLUDE CellTreeUB_module.cc WireCellAnaTree_module.cc WireCellEventWe
 install_headers()
 install_source()
 
+add_subdirectory(utils)
 add_subdirectory(job)
 add_subdirectory(SinglePhoton)
