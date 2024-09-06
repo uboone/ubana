@@ -120,6 +120,8 @@ private:
   bool f_BDTvars;
   bool f_KINEvars;
   bool fIsNuMI;
+  // handling for reweighting to new NuMI flux (4.10.4) for files generated using old flux(4.9.2)
+  Bool_t fNuMIOldReweight;
 
   bool fPFValidation; // switch of particle flow validation
   std::string fPFInputTag; // inputTag -- label:instance:process
@@ -1312,6 +1314,7 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fSaveWeights = pset.get<bool>("SaveWeights", false); // GENIE weights
   fSaveLeeWeights = pset.get<bool>("SaveLeeWeights", false); // LEE weights
   fIsNuMI = pset.get<bool>("IsNuMI", false); // is true, convert to BNB style
+  fNuMIOldReweight = pset.get<bool>("NuMIOldReweight", false); // if true, converts underlying numi flux distribution from old (4.9.2) to new (4.10.4)
   fSTMLabel = pset.get<std::string>("STMLabel");
   fFileType = pset.get<std::string>("FileType", "empty");
   fWeightLabel = pset.get<std::string>("WeightLabel", "");
@@ -4434,6 +4437,12 @@ void WireCellAnaTree::save_weights(art::Event const& e)
           }
       }
       if (knob_name == "ppfx_cv_UBPPFXCV" and fIsNuMI){
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
+      }
+      if (knob_name == "ppfx_oldrw_cv_UBOLDPPFXCV" and fIsNuMI and fNuMIOldReweight){
           double value = weights.at(0);
           if (not std::isnan(value) and not std::isinf(value)) {
             ppfx_cv_UBPPFXCV = value;
