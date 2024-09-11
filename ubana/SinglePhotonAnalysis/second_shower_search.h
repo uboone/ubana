@@ -817,7 +817,7 @@ namespace single_photon
 
                     double mean_summed_ADC = 0.0;
                     for(auto &h:hitz){
-                        mean_summed_ADC +=h->SummedADC();
+                        mean_summed_ADC +=h->ROISummedADC();
                     }
                     mean_summed_ADC = mean_summed_ADC/(double)num_hits_in_cluster;
 

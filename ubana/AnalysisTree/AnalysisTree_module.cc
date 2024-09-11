@@ -5056,8 +5056,8 @@ void microboone::AnalysisTree::analyze(const art::Event& evt)
       fData->cluster_EndAngle[ic] = cluster.EndAngle();
       fData->cluster_Integral[ic] = cluster.Integral();
       fData->cluster_IntegralAverage[ic] = cluster.IntegralAverage();
-      fData->cluster_SummedADC[ic] = cluster.SummedADC();
-      fData->cluster_SummedADCaverage[ic] = cluster.SummedADCaverage();
+      fData->cluster_SummedADC[ic] = cluster.ROISummedADC();
+      fData->cluster_SummedADCaverage[ic] = cluster.ROISummedADCaverage();
       fData->cluster_MultipleHitDensity[ic] = cluster.MultipleHitDensity();
       fData->cluster_Width[ic] = cluster.Width();
       fData->cluster_NHits[ic] = cluster.NHits();
