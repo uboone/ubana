@@ -743,7 +743,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
 	 cluster_EndAngle[ic] = cluster.EndAngle();
 	 cluster_Integral[ic] = cluster.Integral();
 	 cluster_IntegralAverage[ic] = cluster.IntegralAverage();
-	 cluster_SummedADC[ic] = cluster.ROISummedADC();
+	 cluster_SummedADC[ic] = cluster.SummedADC();
 	 cluster_SummedADCaverage[ic] = cluster.SummedADCaverage();
 	 cluster_MultipleHitDensity[ic] = cluster.MultipleHitDensity();
 	 cluster_Width[ic] = cluster.Width();

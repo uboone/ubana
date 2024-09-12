@@ -704,20 +704,20 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 		      if(MCSample){
 			if(origin==1 && pdgcode ==11)
 			  {ClusterFlashMatchNue0 = true;
-			    std::cout<<"plane 0 cluster integral is "<<cluster->Integral()<<" summed ADC is "<<cluster->ROISummedADC()<<"lepton momentym is "<<lep_mom_truth<<std::endl;
+			    std::cout<<"plane 0 cluster integral is "<<cluster->Integral()<<" summed ADC is "<<cluster->SummedADC()<<"lepton momentym is "<<lep_mom_truth<<std::endl;
 			    h_clusterIntegralEnergy_Nue_0->Fill(cluster->Integral()*0.007867,lep_mom_truth*1000.); //*200 e/ADC * 23.6eV/e /10^6(MeV) /0.6 (recombination)
-			    h_clusterSummedADCEnergy_Nue_0->Fill(cluster->ROISummedADC()*0.007867,lep_mom_truth*1000.);
+			    h_clusterSummedADCEnergy_Nue_0->Fill(cluster->SummedADC()*0.007867,lep_mom_truth*1000.);
 			    
 			  }
 			if(origin==1 && pdgcode !=11)
 			  {ClusterFlashMatchNuOthers0 =true;
 			    h_clusterIntegralEnergy_NuOthers_0->Fill(cluster->Integral()*0.007867,lep_mom_truth*1000.);
-			    h_clusterSummedADCEnergy_NuOthers_0->Fill(cluster->ROISummedADC()*0.007867,lep_mom_truth*1000.);
+			    h_clusterSummedADCEnergy_NuOthers_0->Fill(cluster->SummedADC()*0.007867,lep_mom_truth*1000.);
 			  }
 			if(origin==2)
 			  {ClusterFlashMatchCosmic0 = true;
 			    h_clusterIntegralEnergy_Cosmic_0->Fill(cluster->Integral()*0.007867,lep_mom_truth*1000.);
-			    h_clusterSummedADCEnergy_Cosmic_0->Fill(cluster->ROISummedADC()*0.007867,lep_mom_truth*1000.);
+			    h_clusterSummedADCEnergy_Cosmic_0->Fill(cluster->SummedADC()*0.007867,lep_mom_truth*1000.);
 			  }
 		      }//MC sample
 		      
@@ -757,19 +757,19 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 			if(origin==1 && pdgcode ==11)
 			  {
 			    ClusterFlashMatchNue1 = true;
-			    std::cout<<"plane 1 cluster integral is "<<cluster->Integral()<<" summed ADC is "<<cluster->ROISummedADC()<<"lepton momentym is "<<lep_mom_truth<<std::endl;
+			    std::cout<<"plane 1 cluster integral is "<<cluster->Integral()<<" summed ADC is "<<cluster->SummedADC()<<"lepton momentym is "<<lep_mom_truth<<std::endl;
 			    h_clusterIntegralEnergy_Nue_1->Fill(cluster->Integral()*0.007867,lep_mom_truth*1000.);
-			    h_clusterSummedADCEnergy_Nue_1->Fill(cluster->ROISummedADC()*0.007867,lep_mom_truth*1000.);
+			    h_clusterSummedADCEnergy_Nue_1->Fill(cluster->SummedADC()*0.007867,lep_mom_truth*1000.);
 			  }
 			if(origin==1 && pdgcode !=11)
 			  {ClusterFlashMatchNuOthers1 =true;
 			    h_clusterIntegralEnergy_NuOthers_1->Fill(cluster->Integral()*0.007867,lep_mom_truth*1000.);
-			    h_clusterSummedADCEnergy_NuOthers_1->Fill(cluster->ROISummedADC()*0.007867,lep_mom_truth*1000.);
+			    h_clusterSummedADCEnergy_NuOthers_1->Fill(cluster->SummedADC()*0.007867,lep_mom_truth*1000.);
 			  }
 			if(origin==2)
 			  {ClusterFlashMatchCosmic1 = true;
 			    h_clusterIntegralEnergy_Cosmic_1->Fill(cluster->Integral()*0.007867,lep_mom_truth*1000.);
-			    h_clusterSummedADCEnergy_Cosmic_1->Fill(cluster->ROISummedADC()*0.007867,lep_mom_truth*1000.);
+			    h_clusterSummedADCEnergy_Cosmic_1->Fill(cluster->SummedADC()*0.007867,lep_mom_truth*1000.);
 			  }
 		      }//MC sample
 		    }	
@@ -787,13 +787,13 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 		      if(MCSample){
 			if(origin==1&&pdgcode==11)
 			  {ClusterFlashMatchNue2 = true;
-			    std::cout<<"plane 2 cluster integral is "<<cluster->Integral()<<" summed ADC is "<<cluster->ROISummedADC()<<"lepton momentym is "<<lep_mom_truth<<std::endl;
+			    std::cout<<"plane 2 cluster integral is "<<cluster->Integral()<<" summed ADC is "<<cluster->SummedADC()<<"lepton momentym is "<<lep_mom_truth<<std::endl;
 			    h_StartAngleNue2->Fill(cluster->StartAngle());
 			    h_EndAngleNue2->Fill(cluster->EndAngle());
 			    h_StartOpenAngleNue2->Fill(cluster->StartOpeningAngle());
 			    h_EndOpenAngleNue2->Fill(cluster->EndOpeningAngle());
 			    h_clusterIntegralEnergy_Nue_2->Fill(cluster->Integral()*0.007867,lep_mom_truth*1000.);
-			    h_clusterSummedADCEnergy_Nue_2->Fill(cluster->ROISummedADC()*0.007867,lep_mom_truth*1000.);
+			    h_clusterSummedADCEnergy_Nue_2->Fill(cluster->SummedADC()*0.007867,lep_mom_truth*1000.);
 			  }
 			if(origin==1 && pdgcode !=11)
 			  {ClusterFlashMatchNuOthers2 =true;
@@ -802,7 +802,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 			    h_StartOpenAngleNuOthers2->Fill(cluster->StartOpeningAngle());
 			    h_EndOpenAngleNuOthers2->Fill(cluster->EndOpeningAngle());
 			    h_clusterIntegralEnergy_NuOthers_2->Fill(cluster->Integral()*0.007867,lep_mom_truth*1000.);
-			    h_clusterSummedADCEnergy_NuOthers_2->Fill(cluster->ROISummedADC()*0.007867,lep_mom_truth*1000.);
+			    h_clusterSummedADCEnergy_NuOthers_2->Fill(cluster->SummedADC()*0.007867,lep_mom_truth*1000.);
 			  }
 			if(origin==2)
 			  {ClusterFlashMatchCosmic2 = true;
@@ -811,7 +811,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 			    h_StartOpenAngleCosmic2->Fill(cluster->StartOpeningAngle());
 			    h_EndOpenAngleCosmic2->Fill(cluster->EndOpeningAngle());
 			    h_clusterIntegralEnergy_Cosmic_2->Fill(cluster->Integral()*0.007867,lep_mom_truth*1000.);
-			    h_clusterSummedADCEnergy_Cosmic_2->Fill(cluster->ROISummedADC()*0.007867,lep_mom_truth*1000.);
+			    h_clusterSummedADCEnergy_Cosmic_2->Fill(cluster->SummedADC()*0.007867,lep_mom_truth*1000.);
 			  }
 		      }
 		    }

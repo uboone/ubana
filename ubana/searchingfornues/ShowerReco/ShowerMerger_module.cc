@@ -406,7 +406,7 @@ void ShowerMerger::produce(art::Event& e)
       auto end_angle    = out_clus_v[ newPl ].EndAngle();
       auto end_open     = out_clus_v[ newPl ].EndOpeningAngle();
       auto integral     = newclus->Integral()  + out_clus_v[ newPl ].Integral();
-      auto summedADC    = newclus->ROISummedADC() + out_clus_v[ newPl ].ROISummedADC();
+      auto summedADC    = newclus->SummedADC() + out_clus_v[ newPl ].SummedADC();
       auto nhits        = newclus->NHits() + out_clus_v[ newPl ].NHits();
       out_clus_v[ newPl ] = recob::Cluster(start_wire, start_wireS, start_tick, start_tickS, start_charge, start_angle, start_open,
              end_wire  , end_wireS  , end_tick  , end_tickS  , end_charge  , end_angle  , end_open,
@@ -471,7 +471,7 @@ void ShowerMerger::produce(art::Event& e)
         auto end_angle    = newclus->EndAngle();
         auto end_open     = newclus->EndOpeningAngle();
         auto integral     = newclus->Integral()  + out_clus_v[ newPl ].Integral();
-        auto summedADC    = newclus->ROISummedADC() + out_clus_v[ newPl ].ROISummedADC();
+        auto summedADC    = newclus->SummedADC() + out_clus_v[ newPl ].SummedADC();
         auto nhits        = newclus->NHits() + out_clus_v[ newPl ].NHits();
         out_clus_v[ newPl ] = recob::Cluster(start_wire, start_wireS, start_tick, start_tickS, start_charge, start_angle, start_open,
                end_wire  , end_wireS  , end_tick  , end_tickS  , end_charge  , end_angle  , end_open,
