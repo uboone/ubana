@@ -292,7 +292,7 @@ void TrackHitEfficiencyAnalysis::initializeHists(art::ServiceHandle<art::TFileSe
         fNSimChannelHitsVec.at(plane)    = dir.make<TH1F>(("NSimChan"    + std::to_string(plane)).c_str(), ";# hits",                100,    0.,  1200.);
         fNRecobHitVec.at(plane)          = dir.make<TH1F>(("NRecobHit"   + std::to_string(plane)).c_str(), ";# hits",                100,    0.,  1200.);
         fHitEfficiencyVec.at(plane)      = dir.make<TH1F>(("PlnEffic"    + std::to_string(plane)).c_str(), ";# hits",                101,    0.,  1.01);
-        fSimDivHitChgVec.at(plane)       = dir.make<TH1F>(("SimDivHit"   + std::to_string(plane)).c_str(), ";# e / SummedADC",       200,    0.,  400.);
+        fSimDivHitChgVec.at(plane)       = dir.make<TH1F>(("SimDivHit"   + std::to_string(plane)).c_str(), ";# e / ROISummedADC",       200,    0.,  400.);
         fSimDivHitChg1Vec.at(plane)      = dir.make<TH1F>(("SimDivHit1"  + std::to_string(plane)).c_str(), ";# e / Integral",        200,    0.,  400.);
 
         fHitVsSimChgVec.at(plane)        = dir.make<TH2F>(("HitVSimQ"  + std::to_string(plane)).c_str(), "# e vs Hit SumADC;SumADC;# e",     50, 0.,   1000., 50, 0., 100000.);
@@ -714,7 +714,7 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                             nElectronsTotalBest = 0.;
                             hitPeakTimeBest     = bestHit->PeakTime();
                             hitIntegralBest     = bestHit->Integral();
-                            hitSummedADCBest    = bestHit->SummedADC();
+                            hitSummedADCBest    = bestHit->ROISummedADC();
                             hitRMSBest          = bestHit->RMS();
                             hitMultiplicityBest = bestHit->Multiplicity();
                             hitLocalIndexBest   = bestHit->LocalIndex();
@@ -763,7 +763,7 @@ void TrackHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                             unsigned short hitStopTick  = rejectedHit->PeakTime() + fSigmaVec[plane] * rejectedHit->RMS();
         
                             mf::LogDebug("TrackHitEfficiencyAnalysis") << "**> TPC: " << rejectedHit->WireID().TPC << ", Plane " << rejectedHit->WireID().Plane << ", wire: " << rejectedHit->WireID().Wire << ", hit start/stop         tick: " << hitStartTick << "/" << hitStopTick << ", start/stop ticks: " << startTick << "/" << stopTick << std::endl;
-                            mf::LogDebug("TrackHitEfficiencyAnalysis") << "    TPC/Plane/Wire: " << wids[0].TPC << "/" << plane << "/" << wids[0].Wire << ", Track # hits: " << partToChanInfo.second.size() << ", # hits: " <<      hitIter->second.size() << ", # electrons: " << totalElectrons << ", pulse Height: " << rejectedHit->PeakAmplitude() << ", charge: " << rejectedHit->Integral()      << ", " << rejectedHit->SummedADC() << std::endl;
+                            mf::LogDebug("TrackHitEfficiencyAnalysis") << "    TPC/Plane/Wire: " << wids[0].TPC << "/" << plane << "/" << wids[0].Wire << ", Track # hits: " << partToChanInfo.second.size() << ", # hits: " <<      hitIter->second.size() << ", # electrons: " << totalElectrons << ", pulse Height: " << rejectedHit->PeakAmplitude() << ", charge: " << rejectedHit->Integral()      << ", " << rejectedHit->ROISummedADC() << std::endl;
                         }
                         else
                         {

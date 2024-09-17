@@ -142,7 +142,7 @@ void ana::HitTreeAna::FillHitInfo(recob::Hit const& hit)
   fRms = hit.RMS();
   fPeak_amplitude = hit.PeakAmplitude();
   fSigma_peak_amplitude = hit.SigmaPeakAmplitude();
-  fSummedADC = hit.SummedADC();
+  fSummedADC = hit.ROISummedADC();
   fHit_integral = hit.Integral();
   fHit_sigma_integral = hit.SigmaIntegral();
   fMultiplicity = hit.Multiplicity();

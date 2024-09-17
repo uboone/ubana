@@ -1,0 +1,4 @@
+#include "run_celltreeub_port_prod.fcl"
+
+physics.analyzers.Event.PMT_HG_beamProducer:    "doublePMTFilter"
+physics.analyzers.Event.PMT_HG_cosmicProducer:  "cosmicPMTFilter"

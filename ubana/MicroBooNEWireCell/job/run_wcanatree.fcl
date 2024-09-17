@@ -39,6 +39,7 @@ physics:
       SaveWeights:	false # cv, spline
       SaveLeeWeights:	false # lee
       IsNuMI:		false
+      NuMIOldReweight:		false
 
       # WeightLabel:      "eventweight::EventWeightMar18"
       WeightLabel:      "eventweightSep24::EventWeightSep24"
@@ -85,6 +86,7 @@ physics:
       SaveLeeWeights:   false # lee
       SaveFullWeights:  false # various universes
       IsNuMI:		false
+      NuMIOldReweight:		false
 
       # MCEventWeightLabels: [ "eventweight::EventWeightMar18" ] # moduleLabel:instanceName:processName
       MCEventWeightLabels: [ "eventweightSep24::EventWeightSep24"
