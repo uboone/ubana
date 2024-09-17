@@ -64,5 +64,6 @@ cet_build_plugin(
 install_headers()
 install_source()
 
+add_subdirectory(utils)
 add_subdirectory(job)
 add_subdirectory(SinglePhoton)
