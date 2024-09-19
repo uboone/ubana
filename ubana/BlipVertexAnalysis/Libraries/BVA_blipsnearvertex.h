@@ -3,6 +3,7 @@
 
 #include "TVectorD.h"
 #include "variables.h"
+#include "unordered_map"
 
 namespace BVA_ana
 {
@@ -10,8 +11,11 @@ namespace BVA_ana
 	void AnalyzeBlipsNearVertex(var_all& vars);
 
 	//subfunctions
-	void SummarizeDist(var_all& vars, unordered_map<int, vector<int>>groups_dist);
-	void SummarizeAngInRad(var_all& vars, TVector3 vertex, unordered_map<int, vector<int>>groups_dist);
+	void SummarizeDist(var_all& vars, std::unordered_map<int, std::vector<int>>groups_dist);
+	double GetThetaYZDegree(TVector3 vertex, TVector3 blip);
+	double GetPhiXZDegree(TVector3 vertex, TVector3 blip);
+///	double GetPhiXZDegree(TVector3 vertex, TVector3 blip, TVector3 beam);
+//	void SummarizeAngInRad(var_all& vars, TVector3 vertex, std::vector<double>groups_dist);
 }
 
 
