@@ -22,7 +22,7 @@ art::Ptr<recob::PFParticle> findpfpDaughter(const std::vector<art::Ptr<recob::PF
     void GrabPandoraVertex(lar_pandora::VertexVector vertexVector, var_all& vars){
 		//fill in reco. vertex
 		vars.m_reco_vertex_size = vertexVector.size();
-		std::cout<<"CHECK number of vertex "<<vars.m_reco_vertex_size<<std::endl;
+//		std::cout<<"CHECK number of vertex "<<vars.m_reco_vertex_size<<std::endl;
 
 		if (!vertexVector.empty())
 		{
@@ -33,7 +33,7 @@ art::Ptr<recob::PFParticle> findpfpDaughter(const std::vector<art::Ptr<recob::PF
 				vars.m_vertex_pos_y = xyz[1];
 				vars.m_vertex_pos_z = xyz[2];
 
-				std::cout<<"CHECK vertex location ("<<xyz[0]<<","<<xyz[1]<<","<<xyz[2]<<")"<<std::endl;
+//				std::cout<<"CHECK vertex location ("<<xyz[0]<<","<<xyz[1]<<","<<xyz[2]<<")"<<std::endl;
 
 		}
     }

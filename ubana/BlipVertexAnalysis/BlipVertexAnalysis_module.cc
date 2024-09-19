@@ -189,9 +189,9 @@ namespace BVA_ana
 
 		vars.m_num_tracks = TrackVector.size();
 		vars.m_num_showers = ShowerVector.size();
-		std::cout<<"CHECK Found pfp-track:"<<vars.m_num_tracks <<std::endl;
-		std::cout<<"CHECK Found pfp-shower:"<<vars.m_num_showers <<std::endl;
-		std::cout<<"CHECK Found pfp-empty:"<<pfpNIDVector.size()<<std::endl;
+//		std::cout<<"CHECK Found pfp-track:"<<vars.m_num_tracks <<std::endl;
+//		std::cout<<"CHECK Found pfp-shower:"<<vars.m_num_showers <<std::endl;
+//		std::cout<<"CHECK Found pfp-empty:"<<pfpNIDVector.size()<<std::endl;
 
 		for(size_t index = 0; index < ShowerVector.size(); index ++){
 			AnalyzeShower(pfpShowerVector[index], ShowerVector[index]);
@@ -235,7 +235,7 @@ namespace BVA_ana
 		vars.f_output_tree = tfs->make<TTree>("BlipVertexAnalysis","BlipVertexAnalysis");
 		vars_evt.fPOT = tfs->make<TTree>("pottree","pot tree");
 
-		std::cout<<"CHECK running customized package"<<std::endl;
+//		std::cout<<"CHECK running customized package"<<std::endl;
 		CreateVarsBranches(vars);
 		CreateVarsEvtBranches(vars_evt);
 	}

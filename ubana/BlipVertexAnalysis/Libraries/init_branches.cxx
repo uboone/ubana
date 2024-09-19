@@ -45,8 +45,8 @@ namespace BVA_ana
 
 		vars.sps_dist.clear();
 		vars.sps_dist_sorted.clear();
-		vars.sps_dist_mean10cmrings.clear();
-		vars.sps_counts_10cmrings.clear();
+		vars.sps_dist_mean30cmrings.clear();
+		vars.sps_counts_30cmrings.clear();
 
 	}
 
@@ -90,8 +90,10 @@ namespace BVA_ana
 		//add vertex-blips
 		vars.f_output_tree->Branch("sps_dist",&vars.sps_dist);
 		vars.f_output_tree->Branch("sps_dist_sorted",&vars.sps_dist_sorted);
-		vars.f_output_tree->Branch("sps_dist_mean10cmrings",&vars.sps_dist_mean10cmrings);
-		vars.f_output_tree->Branch("sps_counts_10cmrings",&vars.sps_counts_10cmrings);
+		vars.f_output_tree->Branch("sps_dist_mean30cmrings",&vars.sps_dist_mean30cmrings);
+		vars.f_output_tree->Branch("sps_counts_30cmrings",&vars.sps_counts_30cmrings);
+		vars.f_output_tree->Branch("sps_ang_unitthetaYZ",&vars.sps_ang_unitthetaYZ);
+		vars.f_output_tree->Branch("sps_ang_unitphiXZ",&vars.sps_ang_unitphiXZ);
 	}
 
 	void ClearVarsEvt(var_evt& vars){

@@ -6,7 +6,12 @@
 
 namespace BVA_ana
 {
+	//Look at blips near the vertex;
 	void AnalyzeBlipsNearVertex(var_all& vars);
+
+	//subfunctions
+	void SummarizeDist(var_all& vars, unordered_map<int, vector<int>>groups_dist);
+	void SummarizeAngInRad(var_all& vars, TVector3 vertex, unordered_map<int, vector<int>>groups_dist);
 }
 
 
