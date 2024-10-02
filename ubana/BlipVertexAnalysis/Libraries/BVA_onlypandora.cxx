@@ -22,7 +22,7 @@ art::Ptr<recob::PFParticle> findpfpDaughter(const std::vector<art::Ptr<recob::PF
     void GrabPandoraVertex(lar_pandora::VertexVector vertexVector, var_all& vars){
 		//fill in reco. vertex
 		vars.m_reco_vertex_size = vertexVector.size();
-//		std::cout<<"CHECK number of vertex "<<vars.m_reco_vertex_size<<std::endl;
+		//std::cout<<"CHECK number of vertex "<<vars.m_reco_vertex_size<<std::endl;
 
 		if (!vertexVector.empty())
 		{

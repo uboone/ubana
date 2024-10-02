@@ -142,15 +142,11 @@ namespace BVA_ana
 		if( NuCounts ==1 ){
 			const lar_pandora::VertexVector &vertexVector = vertices_per_pfparticle.at(pfParticleVector[NeutrinoIndex].key());
 			GrabPandoraVertex(vertexVector, vars);
-		} else {
-
-		std::cout <<"Warning, number of neutrino candidates in this event is "<<NuCounts<<std::endl;
-		}
 
 		//CHECK Hard code a vertex
-		NeutrinoIndex = 0;
-		const lar_pandora::VertexVector &vertexVector = vertices_per_pfparticle.at(pfParticleVector[NeutrinoIndex].key());
-		GrabPandoraVertex(vertexVector, vars);
+//		NeutrinoIndex = 0;
+//		const lar_pandora::VertexVector &vertexVector = vertices_per_pfparticle.at(pfParticleVector[NeutrinoIndex].key());
+//		GrabPandoraVertex(vertexVector, vars);
 		//CHECK hardcode finished
 		
 		//Now Track and Shower
@@ -203,7 +199,10 @@ namespace BVA_ana
 
 		AnalyzeBlipsNearVertex( vars );
 
+		} else {
 
+		std::cout <<"Warning, number of neutrino candidates in this event is "<<NuCounts<<std::endl;
+		}
 
 		vars.f_output_tree->Fill();
 	}
