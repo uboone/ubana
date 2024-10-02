@@ -23,7 +23,7 @@
 #include "ubana/searchingfornues/Selection/CommonDefs/LLRPID_correction_lookup.h"
 #include "ubana/searchingfornues/Selection/CommonDefs/LLRPID_electron_photon_lookup.h"
 
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 
 // backtracking tools
@@ -358,10 +358,10 @@ CC0piNpSelection::CC0piNpSelection(const fhicl::ParameterSet &pset)
     configure(pset);
 
     // get detector specific properties
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
     auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
-    _wire2cm = geom->WirePitch(geo::PlaneID{0,0,0});
+    _wire2cm = channelMap.Plane(geo::PlaneID{0,0,0}).WirePitch();
     _time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
     fRecalibrateHits = pset.get<bool>("RecalibrateHits", false);

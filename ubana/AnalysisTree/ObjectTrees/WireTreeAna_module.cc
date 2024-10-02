@@ -20,7 +20,7 @@
 #include "TTree.h"
 
 //need the geometry
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 
 //include the truth objects
@@ -88,7 +88,7 @@ private:
   void SetupROITree();
 
   void FillEventInfo(art::Event const&);
-  void FillWireInfo(recob::Wire const&, geo::GeometryCore const&);
+  void FillWireInfo(recob::Wire const&, geo::WireReadoutGeom const&);
   void FillROIInfo(recob::Wire::RegionsOfInterest_t::datarange_t const&);
 
 };
@@ -141,13 +141,13 @@ void ana::WireTreeAna::FillEventInfo(art::Event const& e)
 }
 
 void ana::WireTreeAna::FillWireInfo(recob::Wire const& wire,
-				    geo::GeometryCore const& geom)
+                                    geo::WireReadoutGeom const& channelMap)
 {
 
   fChannel = wire.Channel();
   fView = wire.View();
 
-  geo::WireID wid = geom.ChannelToWire(fChannel).at(0);
+  geo::WireID wid = channelMap.ChannelToWire(fChannel).at(0);
 
   fWire = wid.Wire;
   fPlane = wid.Plane;
@@ -210,9 +210,10 @@ void ana::WireTreeAna::analyze(art::Event const & e)
   auto const& wire_vec(*wire_handle);
 
   //loop over hits and fill the tree
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   for(size_t i_w=0; i_w<wire_vec.size(); ++i_w){
     fWireIndex = i_w;
-    FillWireInfo(wire_vec[i_w],*(lar::providerFrom<geo::Geometry>()) );
+    FillWireInfo(wire_vec[i_w], channelMap);
     fWireTree->Fill();
   }//end loop over hits
 

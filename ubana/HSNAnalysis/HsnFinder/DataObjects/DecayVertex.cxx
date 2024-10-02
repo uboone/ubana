@@ -8,6 +8,7 @@
 // Decay vertex header
 #include "DecayVertex.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
+#include "larcorealg/Geometry/WireReadoutGeom.h"
 
 namespace AuxVertex
 {
@@ -107,7 +108,7 @@ namespace AuxVertex
   void DecayVertex::SetDetectorCoordinates(
     const std::vector<double>& minTpcBound,
     const std::vector<double>& maxTpcBound,
-    geo::GeometryCore const* geometry,
+    geo::WireReadoutGeom const& channelMap,
     detinfo::DetectorPropertiesData const& detProp)
   {
     /* This functions call special geometry and detectorProperties objects
@@ -158,24 +159,24 @@ namespace AuxVertex
       constexpr geo::PlaneID plane_0{0, 0, 0};
       constexpr geo::PlaneID plane_1{0, 0, 1};
       constexpr geo::PlaneID plane_2{0, 0, 2};
-      raw::ChannelID_t channel0 = geometry->NearestChannel(xyz,plane_0);
-      raw::ChannelID_t channel1 = geometry->NearestChannel(xyz,plane_1);
-      raw::ChannelID_t channel2 = geometry->NearestChannel(xyz,plane_2);
+      raw::ChannelID_t channel0 = channelMap.NearestChannel(xyz,plane_0);
+      raw::ChannelID_t channel1 = channelMap.NearestChannel(xyz,plane_1);
+      raw::ChannelID_t channel2 = channelMap.NearestChannel(xyz,plane_2);
       double tick0 = detProp.ConvertXToTicks(xyz.X(), plane_0);
       double tick1 = detProp.ConvertXToTicks(xyz.X(), plane_1);
       double tick2 = detProp.ConvertXToTicks(xyz.X(), plane_2);
       fChannelLoc = {(int) channel0,(int) channel1,(int) channel2};
       fTickLoc = { (float) tick0, (float) tick1, (float) tick2};
 
-      raw::ChannelID_t prong1_channel0 = geometry->NearestChannel(prong1_xyz,plane_0);
-      raw::ChannelID_t prong1_channel1 = geometry->NearestChannel(prong1_xyz,plane_1);
-      raw::ChannelID_t prong1_channel2 = geometry->NearestChannel(prong1_xyz,plane_2);
+      raw::ChannelID_t prong1_channel0 = channelMap.NearestChannel(prong1_xyz,plane_0);
+      raw::ChannelID_t prong1_channel1 = channelMap.NearestChannel(prong1_xyz,plane_1);
+      raw::ChannelID_t prong1_channel2 = channelMap.NearestChannel(prong1_xyz,plane_2);
       double prong1_tick0 = detProp.ConvertXToTicks(prong1_xyz.X(), plane_0);
       double prong1_tick1 = detProp.ConvertXToTicks(prong1_xyz.X(), plane_1);
       double prong1_tick2 = detProp.ConvertXToTicks(prong1_xyz.X(), plane_2);
-      raw::ChannelID_t prong2_channel0 = geometry->NearestChannel(prong2_xyz,plane_0);
-      raw::ChannelID_t prong2_channel1 = geometry->NearestChannel(prong2_xyz,plane_1);
-      raw::ChannelID_t prong2_channel2 = geometry->NearestChannel(prong2_xyz,plane_2);
+      raw::ChannelID_t prong2_channel0 = channelMap.NearestChannel(prong2_xyz,plane_0);
+      raw::ChannelID_t prong2_channel1 = channelMap.NearestChannel(prong2_xyz,plane_1);
+      raw::ChannelID_t prong2_channel2 = channelMap.NearestChannel(prong2_xyz,plane_2);
       double prong2_tick0 = detProp.ConvertXToTicks(prong2_xyz.X(), plane_0);
       double prong2_tick1 = detProp.ConvertXToTicks(prong2_xyz.X(), plane_1);
       double prong2_tick2 = detProp.ConvertXToTicks(prong2_xyz.X(), plane_2);

@@ -32,8 +32,7 @@
 #include <memory>
 #include <iostream>
 
-#include "larcore/Geometry/Geometry.h"
-#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "ubana/PatternFilter/PMAlgs/AnodeCathodePMAlg.h"
 
@@ -95,7 +94,6 @@ bool pm::AnodeCathodeTrackFilter::filter(art::Event & e)
 void pm::AnodeCathodeTrackFilter::reconfigure(fhicl::ParameterSet const & p)
 {
 
-  auto const* geo     = lar::providerFrom<geo::Geometry>();  
   fHitLabel = art::InputTag( p.get<std::string>("HitLabel") );
   fFractionMatchingThreshold = p.get<float>("FractionMatchingThreshold");
 
@@ -112,8 +110,9 @@ void pm::AnodeCathodeTrackFilter::reconfigure(fhicl::ParameterSet const & p)
 	fFractionMatchingThreshold = 0.0;
     }
   
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
   auto const detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
-  fAlg.Configure(p.get<fhicl::ParameterSet>("AnodeCathodPMAlg"),*geo, detprop);
+  fAlg.Configure(p.get<fhicl::ParameterSet>("AnodeCathodPMAlg"),channelMap, detprop);
 
   fVerbose = p.get<bool>("Verbose",false);
 }

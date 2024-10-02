@@ -1101,15 +1101,15 @@ double microboone::Diffusion::length(const recob::Track& track)
 double microboone::Diffusion::length(const simb::MCParticle& part, TVector3& start, TVector3& end)
 {
   // Get geometry.
-  auto const* geom = lar::providerFrom<geo::Geometry>();
+  auto const& tpc = lar::providerFrom<geo::Geometry>()->TPC();
   
   // Get active volume boundary.
   double xmin = 0.;
-  double xmax = 2.*geom->DetHalfWidth();
-  double ymin = -geom->DetHalfHeight();
-  double ymax = geom->DetHalfHeight();
+  double xmax = 2.*tpc.HalfWidth();
+  double ymin = -tpc.HalfHeight();
+  double ymax = tpc.HalfHeight();
   double zmin = 0.;
-  double zmax = geom->DetLength();
+  double zmax = tpc.Length();
   double vDrift = 160*pow(10,-6);
 
   double result = 0.;

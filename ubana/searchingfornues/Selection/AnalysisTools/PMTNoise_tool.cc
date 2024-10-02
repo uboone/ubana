@@ -13,9 +13,8 @@
 
 #include "canvas/Persistency/Common/FindManyP.h"
 
-#include "larcore/Geometry/Geometry.h"
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcorealg/Geometry/OpDetGeo.h"
+#include "larcore/Geometry/WireReadout.h"
 
 namespace analysis
 {
@@ -189,7 +188,7 @@ namespace analysis
     art::ValidHandle<std::vector<recob::Hit> > inputHits = e.getValidHandle<std::vector<recob::Hit> >(HitInputTag);
     art::InputTag OpHitCosmicInputTag("ophitCosmic");
     art::ValidHandle<std::vector<recob::OpHit> > inputOpHits = e.getValidHandle<std::vector<recob::OpHit> >(OpHitCosmicInputTag);
-    art::ServiceHandle<geo::Geometry> geom;
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
 
     art::InputTag PfInputTag("pandora");
     art::ValidHandle<std::vector<recob::PFParticle> > inputPfParticle = e.getValidHandle<std::vector<recob::PFParticle> >(PfInputTag);
@@ -244,11 +243,11 @@ namespace analysis
 
         unsigned int opch=ophit.OpChannel();
 
-        auto const PMTxyz = geom->OpDetGeoFromOpChannel(opch).GetCenter();
+        auto const PMTxyz = channelMap.OpDetGeoFromOpChannel(opch).GetCenter();
 
 	for( int ipl=0; ipl<3; ipl++){
 	  auto plid=geo::PlaneID(0,0,ipl);
-          auto wire = geom->WireCoordinate(PMTxyz,plid);
+          auto wire = channelMap.Plane(plid).WireCoordinate(PMTxyz);
 	  //auto time = PMTxyz[0]; //should be the same +/- ~cm for all PMTs
 	  //	  std::cout<<"PMT HIT: "<<ophit.PE()<<std::endl;
 	  opwiretmp.push_back(wire);

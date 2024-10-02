@@ -5,9 +5,7 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
-#include "larcore/Geometry/Geometry.h"
-#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcore/Geometry/WireReadout.h"
 
 namespace searchingfornues
 {
@@ -52,9 +50,9 @@ namespace searchingfornues
 
   float YZtoPlanecoordinate(const float y, const float z, const int plane)
   {
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
-    double _wire2cm = geom->WirePitch(geo::PlaneID{0, 0, 0});
-    return geom->WireCoordinate(geo::Point_t{0, y, z}, geo::PlaneID(0, 0, plane)) * _wire2cm;
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
+    double _wire2cm = channelMap.Plane(geo::PlaneID{0, 0, 0}).WirePitch();
+    return channelMap.Plane(geo::PlaneID(0, 0, plane)).WireCoordinate(geo::Point_t{0, y, z}) * _wire2cm;
   }
 
   float getPitch(float dir_y, float dir_z, int plane)

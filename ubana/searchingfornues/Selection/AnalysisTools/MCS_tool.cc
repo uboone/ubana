@@ -34,7 +34,7 @@
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 
@@ -51,10 +51,6 @@
 
 //#include "/grid/fermiapp/products/larsoft/eigen/v3_3_4a/include/eigen3/Eigen/Dense" //Needed on uboonegpvm
 #include <Eigen/Dense>
-
-#include "larcore/Geometry/Geometry.h"
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/Utilities/GeometryUtilities.h"
 
 struct PCAResults {
   TVector3 centroid;
@@ -332,7 +328,6 @@ void MCS::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_p
 //                                                                                        proxy::withAssociated<recob::Hit>(fCLSproducer));
   ProxyClusColl_t const &clus_proxy = proxy::getCollection<std::vector<recob::Cluster>>(e, fCLSproducer,
                                                                                         proxy::withAssociated<recob::Hit>(fCLSproducer));
-  art::ServiceHandle<geo::Geometry> geom;
   //auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
   // somehow proxies don't work for the slice-hit association, so go back to old assns
   art::ValidHandle<std::vector<recob::Slice>> inputSlice = e.getValidHandle<std::vector<recob::Slice>>(fSLCproducer);
@@ -1156,9 +1151,8 @@ void MCS::Project3Dto2D(const TVector3& pt3d, const int& pl,
   const float& wire2cm, const float& time2cm,
   float& wirecm, float& timecm) {
 
-  auto const* geom = ::lar::providerFrom<geo::Geometry>();
-    
-  wirecm = geom->WireCoordinate(geo::vect::toPoint(pt3d),geo::PlaneID(0,0,pl)) * wire2cm;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
+  wirecm = channelMap.Plane(geo::PlaneID(0,0,pl)).WireCoordinate(geo::vect::toPoint(pt3d)) * wire2cm;
   timecm = pt3d[0];
 
   return;

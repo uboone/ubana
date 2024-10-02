@@ -35,9 +35,8 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
-#include "larcorealg/Geometry/GeometryCore.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
@@ -102,7 +101,7 @@ private:
     int fSubRun;
 
     // Other variables that will be shared between different methods.
-    geo::GeometryCore const*             fGeometry;           ///< pointer to the Geometry service
+    geo::WireReadoutGeom const* fChannelMap;
 
 }; // class  TPCNeutrinoIDAna
 
@@ -159,7 +158,7 @@ void  TPCNeutrinoIDAna::reconfigure(fhicl::ParameterSet const& pset)
     // **TODO** learn how to recover from art framework
     fInputFileName = pset.get<std::string>("FullyQualifiedInputFile");
     
-    fGeometry = lar::providerFrom<geo::Geometry>();
+    fChannelMap = &art::ServiceHandle<geo::WireReadout>()->Get();
     
     return;
 }
@@ -237,11 +236,11 @@ void  TPCNeutrinoIDAna::analyze(const art::Event& event)
                         minTicks = std::min(minTicks,loTicks);
                         
                         // now loop over views to get starting/ending wires
-                        for(unsigned int viewIdx = 0; viewIdx < fGeometry->Nviews(); ++viewIdx)
+                        for(unsigned int viewIdx = 0; viewIdx < fChannelMap->Nviews(); ++viewIdx)
                         {
                             geo::PlaneID const planeID{0, 0, viewIdx};
-                            size_t startWire  = fGeometry->NearestWireID(trackStart, planeID).Wire;
-                            size_t endWire    = fGeometry->NearestWireID(trackEnd,   planeID).Wire;
+                            size_t startWire  = fChannelMap->Plane(planeID).NearestWireID(trackStart).Wire;
+                            size_t endWire    = fChannelMap->Plane(planeID).NearestWireID(trackEnd).Wire;
                             
                             size_t lowWire    = std::min(startWire,endWire);
                             size_t hiWire     = std::max(startWire,endWire);

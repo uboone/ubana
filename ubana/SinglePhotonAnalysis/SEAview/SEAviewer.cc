@@ -1,4 +1,7 @@
 #include "SEAviewer.h"
+
+#include "larcorealg/Geometry/WireReadoutGeom.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -123,7 +126,7 @@ namespace seaview{
     }
 
     //default
-    SEAviewer::SEAviewer(std::string intag, geo::GeometryCore const * ingeom, detinfo::DetectorPropertiesData intheDetector ): tag(intag), geom(ingeom), theDetector(intheDetector){
+    SEAviewer::SEAviewer(std::string intag, geo::GeometryCore const * ingeom, geo::WireReadoutGeom const * inchannelmap, detinfo::DetectorPropertiesData intheDetector ): tag(intag), geom(ingeom), channelMap(inchannelmap), theDetector(intheDetector){
         chan_max = {-9999,-9999,-9999};
         chan_min = {9999,9999,9999};
         tick_max = -99999;
@@ -328,7 +331,7 @@ namespace seaview{
         std::vector<std::vector<double>> ans(3);
 
         for(int i=0; i<3; i++){
-            double wire = (double)calcWire(threeD[1], threeD[2], i, fTPC, fCryostat, *geom);
+            double wire = (double)calcWire(threeD[1], threeD[2], i, fTPC, fCryostat, *channelMap);
             double time = calcTime(threeD[0], i, fTPC,fCryostat, theDetector);
 
             ans[i] = {wire,time};
@@ -348,7 +351,7 @@ namespace seaview{
         for(int i=0; i<3; i++){
 
 	    // use vector here, so that to plot the single point using TGraph
-            std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
+            std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *channelMap)};
             std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
             vertex_tick[i] = time[0];
@@ -375,7 +378,7 @@ namespace seaview{
 
         for(int i=0; i<3; i++){
 
-            std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
+            std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *channelMap)};
             std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
             true_vertex_tick[i] = time[0];
@@ -463,7 +466,7 @@ namespace seaview{
             int ok = m_bad_channel_list[i].second;       
 
             if(ok>1)continue;
-            auto hs = geom->ChannelToWire(badchan); //type of hs: vector containing the ID of all the connected wires
+            auto hs = channelMap->ChannelToWire(badchan); //type of hs: vector containing the ID of all the connected wires
 
             int thisp = (int)hs[0].Plane;
             double bc = hs[0].Wire;

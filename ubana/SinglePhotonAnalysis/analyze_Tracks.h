@@ -1,3 +1,6 @@
+#ifndef UBANA_SINGLEPHOTONANALYSIS_ANALYZE_TRACKS_H
+#define UBANA_SINGLEPHOTONANALYSIS_ANALYZE_TRACKS_H
+
 #include "SinglePhoton_module.h"
 #include "TPrincipal.h"
 #include "TVectorD.h"
@@ -8,7 +11,7 @@ namespace single_photon
 {
 
 
-    void SinglePhoton::ClearTracks(){
+    inline void SinglePhoton::ClearTracks(){
         m_reco_asso_tracks=0;
         m_reco_track_length.clear();
         m_reco_track_num_daughters.clear();
@@ -178,7 +181,7 @@ namespace single_photon
 
     }
 
-    void SinglePhoton::ResizeTracks(size_t size){
+    inline void SinglePhoton::ResizeTracks(size_t size){
         m_reco_track_length.resize(size);
         m_reco_track_dirx.resize(size);
         m_reco_track_num_daughters.resize(size);
@@ -338,7 +341,7 @@ namespace single_photon
         m_sim_track_isclearcosmic.resize(size);
     }
 
-    void SinglePhoton::CreateTrackBranches(){
+    inline void SinglePhoton::CreateTrackBranches(){
         vertex_tree->Branch("reco_asso_tracks",&m_reco_asso_tracks,"reco_asso_tracks/I");
         vertex_tree->Branch("reco_track_num_daughters",&m_reco_track_num_daughters);
         vertex_tree->Branch("reco_track_daughter_trackscore",&m_reco_track_daughter_trackscore);
@@ -519,7 +522,7 @@ namespace single_photon
 
 
 
-    void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
+    inline void SinglePhoton::AnalyzeTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToNuPFParticleMap,
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>>> & pfParticleToHitsMap, 
             std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::SpacePoint>>> & pfParticleToSpacePointsMap, 
@@ -642,9 +645,9 @@ namespace single_photon
             if(m_length == 0.0) m_reco_track_proton_kinetic_energy[i_trk]=0.0;
 
             // Dead Wire Approximity
-            m_reco_track_end_to_nearest_dead_wire_plane0[i_trk] = distanceToNearestDeadWire(0, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
-            m_reco_track_end_to_nearest_dead_wire_plane1[i_trk] = distanceToNearestDeadWire(1, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
-            m_reco_track_end_to_nearest_dead_wire_plane2[i_trk] = distanceToNearestDeadWire(2, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],geom,bad_channel_list_fixed_mcc9);
+            m_reco_track_end_to_nearest_dead_wire_plane0[i_trk] = distanceToNearestDeadWire(0, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],m_channelMap, bad_channel_list_fixed_mcc9);
+            m_reco_track_end_to_nearest_dead_wire_plane1[i_trk] = distanceToNearestDeadWire(1, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],m_channelMap, bad_channel_list_fixed_mcc9);
+            m_reco_track_end_to_nearest_dead_wire_plane2[i_trk] = distanceToNearestDeadWire(2, m_reco_track_endy[i_trk], m_reco_track_endz[i_trk],m_channelMap, bad_channel_list_fixed_mcc9);
 
             m_reco_track_sliceId[i_trk] = PFPToSliceIdMap[pfp];
 	    // Guanqun: how do you make sure the sliceId is positive, not -1, as for cosmic tracks?
@@ -722,7 +725,7 @@ namespace single_photon
         if(m_is_verbose) std::cout<<"SinglePhoton::AnalyzeTracks()\t||\t Finished."<<std::endl;;
     }
 
-    void SinglePhoton::RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,  
+    inline void SinglePhoton::RecoMCTracks(const std::vector<art::Ptr<recob::Track>>& tracks,
             std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap, 
             std::map<art::Ptr<recob::Track>, art::Ptr<simb::MCParticle> > & trackToMCParticleMap,
             std::map< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>> & MCParticleToMCTruthMap,
@@ -810,7 +813,7 @@ namespace single_photon
 
 
 
-        void SinglePhoton::AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>> > &trackToCaloMap)
+        inline void SinglePhoton::AnalyzeTrackCalo(const std::vector<art::Ptr<recob::Track>> &tracks, std::map<art::Ptr<recob::Track>,std::vector<art::Ptr<anab::Calorimetry>> > &trackToCaloMap)
         {
 
             if(m_is_verbose) std::cout<<"SinglePhoton::CollectCalo(recob::Track)\t||\t Starting calo module for recob::Track"<<std::endl;;
@@ -1204,7 +1207,7 @@ namespace single_photon
 
 
 
-        void SinglePhoton::CollectPID( std::vector<art::Ptr<recob::Track>> & tracks,
+        inline void SinglePhoton::CollectPID( std::vector<art::Ptr<recob::Track>> & tracks,
                 std::map< art::Ptr<recob::Track>, art::Ptr<anab::ParticleID>> & trackToPIDMap){
 
             for(size_t i_trk=0; i_trk<tracks.size(); ++i_trk){
@@ -1317,3 +1320,5 @@ namespace single_photon
         }
 
     }
+
+#endif

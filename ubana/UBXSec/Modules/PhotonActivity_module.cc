@@ -28,6 +28,7 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 
 #include "TTree.h"
@@ -128,17 +129,17 @@ void PhotonActivity::produce(art::Event & e)
     return;
   }
 
-  ::art::ServiceHandle<geo::Geometry> geo; 
-
+  art::ServiceHandle<geo::Geometry> geo;
   if(evt_simphot_h->size() != geo->NOpDets()) {
     std::cerr << "Unexpected # of channels in simphotons!" << std::endl;
     return;
   }
 
   // opdet=>opchannel mapping
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   std::vector<size_t> opdet2opch(geo->NOpDets(),0);
   for(size_t opch=0; opch<opdet2opch.size(); ++opch){
-    opdet2opch[geo->OpDetFromOpChannel(opch)] = opch;
+    opdet2opch[channelMap.OpDetFromOpChannel(opch)] = opch;
   }
 
   
@@ -226,11 +227,11 @@ void PhotonActivity::GetFlashLocation(std::vector<double> pePerOpChannel,
   double totalPE = 0.;
   double sumy = 0., sumz = 0., sumy2 = 0., sumz2 = 0.;
 
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   for (unsigned int opch = 0; opch < pePerOpChannel.size(); opch++) {
 
     // Get physical detector location for this opChannel
-    ::art::ServiceHandle<geo::Geometry> geo;
-    auto const PMTxyz = geo->OpDetGeoFromOpChannel(opch).GetCenter();
+    auto const PMTxyz = channelMap.OpDetGeoFromOpChannel(opch).GetCenter();
 
     // Add up the position, weighting with PEs
     sumy    += pePerOpChannel[opch]*PMTxyz.Y();

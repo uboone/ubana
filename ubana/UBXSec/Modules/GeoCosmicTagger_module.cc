@@ -108,11 +108,11 @@ void GeoCosmicTagger::produce(art::Event & e) {
   std::unique_ptr< std::vector< anab::CosmicTag>>                  cosmicTagVector        (new std::vector<anab::CosmicTag>);
   std::unique_ptr< art::Assns<anab::CosmicTag, ubana::TPCObject>>  assnOutCosmicTagTPCObj (new art::Assns<anab::CosmicTag,ubana::TPCObject>);
 
-  auto const* geo = lar::providerFrom<geo::Geometry>();
+  auto const& tpc = lar::providerFrom<geo::Geometry>()->TPC();
 
-  fDetHalfHeight = geo->DetHalfHeight();
-  fDetWidth      = 2.*geo->DetHalfWidth();
-  fDetLength     = geo->DetLength();
+  fDetHalfHeight = tpc.HalfHeight();
+  fDetWidth      = 2.*tpc.HalfWidth();
+  fDetLength     = tpc.Length();
 
   // Get TPCObjects from the Event
   art::Handle<std::vector<ubana::TPCObject>> tpcobj_h;

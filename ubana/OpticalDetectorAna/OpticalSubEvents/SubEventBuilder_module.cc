@@ -29,6 +29,7 @@
 #include "lardataobj/RecoBase/OpHit.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcorealg/Geometry/OpDetGeo.h"
@@ -83,6 +84,7 @@ private:
                          art::Event& event, subevent::WaveformData& hgwfms, subevent::WaveformData& lgwfms, subevent::SubEventList& cosmic_subevents );
   void GetHitGeometryInfo(subevent::Flash const& flash,
   			  geo::GeometryCore const& geom,
+                          geo::WireReadoutGeom const& channelMapAlg,
   			  std::vector<double> & sumw,
   			  std::vector<double> & sumw2,
   			  double & sumy, double & sumy2,
@@ -694,16 +696,18 @@ void SubEventBuilder::prepBeamWaveforms(detinfo::DetectorClocksData const& clock
 
 void SubEventBuilder::GetHitGeometryInfo(subevent::Flash const& flash,
 					 geo::GeometryCore const& geom,
+                                         geo::WireReadoutGeom const& channelMap,
 					 std::vector<double> & sumw,
 					 std::vector<double> & sumw2,
 					 double & sumy, double & sumy2,
 					 double & sumz, double & sumz2)
 {
-  auto const xyz = geom.OpDetGeoFromOpChannel( (unsigned int)flash.ch ).GetCenter();
+  auto const xyz = channelMap.OpDetGeoFromOpChannel( (unsigned int)flash.ch ).GetCenter();
 
   double PEThisHit = flash.area;
-  for(unsigned int p=0; p!=geom.Nplanes(); p++){
-    unsigned int w = geom.NearestWireID(xyz,geo::PlaneID{0, 0, p}).Wire;
+  for(auto const& pgeom : channelMap.Iterate<geo::PlaneGeo>(geo::TPCID{0, 0})) {
+    unsigned int w = pgeom.NearestWireID(xyz).Wire;
+    unsigned int const p = pgeom.ID().Plane;
     sumw.at(p)  += w*PEThisHit;
     sumw2.at(p) += w*w*PEThisHit;
   }
@@ -720,6 +724,7 @@ void SubEventBuilder::makeOpFlashes(detinfo::DetectorClocksData const& clockData
 {
   
   geo::GeometryCore const* geom = lar::providerFrom<geo::Geometry>();
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   double dt_beam = clockData.BeamGateTime() - clockData.TriggerTime();
 
   for ( subevent::SubEventListIter isubevent=subevents.begin(); isubevent!=subevents.end(); isubevent++ ) {
@@ -757,7 +762,7 @@ void SubEventBuilder::makeOpFlashes(detinfo::DetectorClocksData const& clockData
 
     // geo stuff I copied
     //std::vector<double> PEs(geom->MaxOpChannel()+1,0.0);
-    unsigned int Nplanes = geom->Nplanes();
+    unsigned int Nplanes = channelMap.Nplanes({0, 0});
     std::vector<double> sumw(Nplanes,0), sumw2(Nplanes,0);
     double sumy=0, sumz=0, sumy2=0, sumz2=0;
     
@@ -766,11 +771,11 @@ void SubEventBuilder::makeOpFlashes(detinfo::DetectorClocksData const& clockData
     for ( subevent::FlashListIter iflash=asubevent.flashes.begin(); iflash!=asubevent.flashes.end(); iflash++ ) {
       // if ( (*iflash).ch>=32 )
       // 	std::cout << "weird channel: " << (*iflash).ch << std::endl;
-      int iopdet = geom->OpDetFromOpChannel( (unsigned int)(*iflash).ch );
+      int iopdet = channelMap.OpDetFromOpChannel( (unsigned int)(*iflash).ch );
       // if ( iopdet >=32 )
       // 	std::cout << "weird opdet: " << iopdet << " " << (*iflash).ch << std::endl;
       PEperOpDet.at( iopdet ) += (*iflash).area; // need calibration constants here
-      GetHitGeometryInfo( (*iflash), *geom, sumw, sumw2, sumy, sumy2, sumz, sumz2 );
+      GetHitGeometryInfo( (*iflash), *geom, channelMap, sumw, sumw2, sumy, sumy2, sumz, sumz2 );
     }
     double meany = sumy/asubevent.totpe;
     double meanz = sumz/asubevent.totpe;

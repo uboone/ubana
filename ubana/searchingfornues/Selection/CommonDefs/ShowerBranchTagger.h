@@ -1,10 +1,7 @@
 #ifndef SHOWERBRANCHTAGGER_H
 #define SHOWERBRANCHTAGGER_H
 
-#include "larcore/Geometry/Geometry.h"
-#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 #include "TMatrixDSymEigen.h" 
@@ -25,9 +22,9 @@ namespace searchingfornues
 		     const float& wire2cm, const float& time2cm,
 		     float& wirecm, float& timecm) {
 
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
     
-    wirecm = geom->WireCoordinate(geo::vect::toPoint(pt3d),geo::PlaneID(0,0,pl)) * wire2cm;
+    wirecm = channelMap.Plane(geo::PlaneID(0,0,pl)).WireCoordinate(geo::vect::toPoint(pt3d)) * wire2cm;
     timecm = pt3d[0];
 
     return;
@@ -351,10 +348,10 @@ namespace searchingfornues
 		       const std::vector<searchingfornues::ProxyPfpElem_t>& slice_pfp_v) {
 
     // get detector specific properties
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
     auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e, clockData);
-    float _wire2cm = geom->WirePitch(geo::PlaneID{0,0,0});
+    float _wire2cm = channelMap.Plane(geo::PlaneID{0,0,0}).WirePitch();
     float _time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
     // get shower candidate

@@ -561,10 +561,10 @@ bool NuCCanalyzer::IsContained(float x, float y, float z, const std::vector<floa
   float fidvolYend = borders[4];
   float fidvolZend = borders[5];
 
-  art::ServiceHandle<geo::Geometry> geo;
+  geo::TPCGeo const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
   std::vector<double> bnd = {
-      0., 2. * geo->DetHalfWidth(), -geo->DetHalfHeight(), geo->DetHalfHeight(),
-      0., geo->DetLength()};
+      0., 2. * tpc.HalfWidth(), -tpc.HalfHeight(), tpc.HalfHeight(),
+      0., tpc.Length()};
 
   bool is_x = x > (bnd[0] + fidvolXstart) && x < (bnd[1] - fidvolXend);
   bool is_y = y > (bnd[2] + fidvolYstart) && y < (bnd[3] - fidvolYend);

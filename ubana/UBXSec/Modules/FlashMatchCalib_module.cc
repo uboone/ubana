@@ -24,6 +24,7 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -155,6 +156,7 @@ void FlashMatchCalib::analyze(art::Event const & e)
   std::cout << "********* T0TrackCalib::analyze starts" << std::endl;
 
   art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   art::ServiceHandle<geo::UBOpReadoutMap> ub_geo;
 
   art::Handle<std::vector<anab::T0> > t0_h;
@@ -234,7 +236,7 @@ void FlashMatchCalib::analyze(art::Event const & e)
     f.pe_v.resize(geo->NOpDets());
     f.pe_err_v.resize(geo->NOpDets());
     for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMap.OpDetFromOpChannel(i);
       if (_do_opdet_swap) {
           opdet = _opdet_swap_map.at(opdet);
       }

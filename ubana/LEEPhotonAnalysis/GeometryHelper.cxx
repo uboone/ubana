@@ -53,10 +53,10 @@ bool GeometryHelper::isFiducial(const TVector3 &x) const {
 
 bool GeometryHelper::isFiducial(const double x[3]) const {
 
-  art::ServiceHandle<geo::Geometry> geo;
+  auto const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
   std::vector<double> bnd = {
-      0., 2. * geo->DetHalfWidth(), -geo->DetHalfHeight(), geo->DetHalfHeight(),
-      0., geo->DetLength()};
+      0., 2. * tpc.HalfWidth(), -tpc.HalfHeight(), tpc.HalfHeight(),
+      0., tpc.Length()};
 
 
   bool is_x =
@@ -78,10 +78,10 @@ bool GeometryHelper::isActive(const std::vector<double> &x) const {
 
 bool GeometryHelper::isActive(const double x[3]) const {
 
-  art::ServiceHandle<geo::Geometry> geo;
+  auto const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
   std::vector<double> bnd = {
-      0., 2. * geo->DetHalfWidth(), -geo->DetHalfHeight(), geo->DetHalfHeight(),
-      0., geo->DetLength()};
+      0., 2. * tpc.HalfWidth(), -tpc.HalfHeight(), tpc.HalfHeight(),
+      0., tpc.Length()};
 
   bool is_x = x[0] > bnd[0] && x[0] < bnd[1];
   bool is_y = x[1] > bnd[2] && x[1] < bnd[3];

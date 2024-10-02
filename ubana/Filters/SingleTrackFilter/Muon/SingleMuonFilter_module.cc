@@ -61,7 +61,7 @@ public:
 private:
 
   // Declare member data here.
-  art::ServiceHandle<geo::Geometry> geo;
+  geo::TPCGeo const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
   art::ServiceHandle<art::TFileService> tfs;
 
   ::ubana::FiducialVolume _fiducial_volume;
@@ -73,7 +73,7 @@ private:
   double POT_miss1E10;
 
   TTree * my_event_;
-  
+
   void Initialize_event();
 
   int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
@@ -88,12 +88,12 @@ private:
 };
 
 
-SingleMuonFilter::SingleMuonFilter(fhicl::ParameterSet const& pset): 
+SingleMuonFilter::SingleMuonFilter(fhicl::ParameterSet const& pset):
   EDFilter{pset},
   _fiducial_volume(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                   geo->DetHalfHeight(),
-                   2.*geo->DetHalfWidth(),
-                   geo->DetLength()),
+                   tpc.HalfHeight(),
+                   2.*tpc.HalfWidth(),
+                   tpc.Length()),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
   m_trackProducerLabel(pset.get<std::string>("TrackProducerLabel")),
   m_showerProducerLabel(pset.get<std::string>("ShowerProducerLabel"))
@@ -130,7 +130,7 @@ bool SingleMuonFilter::filter(art::Event & evt)
 
   //pfp shower association
   art::FindManyP<recob::Shower> pfpToShowerAsso(Handle_pfParticle, evt, m_showerProducerLabel);
-  
+
   // Get mapping from ID to PFParticle
   std::unordered_map<size_t, art::Ptr<recob::PFParticle> > pfParticleIdMap;
   for (unsigned int i = 0; i < Handle_pfParticle->size(); ++i){
@@ -148,15 +148,15 @@ bool SingleMuonFilter::filter(art::Event & evt)
 
   TVector3 Trk_start;
   TVector3 Trk_end;
-  TVector3 Trk_start_SCEcorr; 
+  TVector3 Trk_start_SCEcorr;
   TVector3 Trk_end_SCEcorr;
- 
+
 
   // Reject an event if
   // - No neutrino slice
   // - Not 1-track 0-shower topology
   // - Vtx not in FV
- 
+
   //bool if_Nu_Slice = false;
   //-------- Get Reco neutrino (pfparticle)
   for(unsigned int i = 0; i < pfParticle_v.size(); i++){
@@ -191,7 +191,7 @@ bool SingleMuonFilter::filter(art::Event & evt)
           }
         } // finish looping of pfp
       }
-     
+
       //number of tracks and showers
       n_dau_tracks = daughter_Tracks.size();
       n_dau_showers = daughter_Showers.size();
@@ -215,12 +215,12 @@ bool SingleMuonFilter::filter(art::Event & evt)
         } //not in FV
       } // if 1trk, 0shw
       else{
-        return false;        
+        return false;
       } // not 1trk, 0 shw
-      
+
     } // if pfp < 4
   } // Finish loop all the pfp particles
-  
+
   return false; // If the function hasn't return before this, it means that there's no neutrino slice
 
 }
