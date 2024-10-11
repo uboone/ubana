@@ -147,6 +147,12 @@ namespace searchingfornues
     std::vector<float> correct_many_hits_one_plane(std::vector<float> dedx_values, std::vector<std::vector<float>> corr_par_values, std::vector<bool> is_to_correct, size_t plane)
     {
       std::vector<float> dedx_values_corrected;
+     if (dedx_values.size() != is_to_correct.size())
+     {
+        std::cerr << "Warning: Size mismatch in event. Skipping correction for this event." << std::endl;
+        return dedx_values;  // Return original dedx_values without correction
+     }
+
       for(size_t i=0; i<dedx_values.size(); i++)
       {
         float aux_dedx = dedx_values[i];
