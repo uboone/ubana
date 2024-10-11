@@ -879,6 +879,11 @@ PCAResults MCS::DoPCA(const SpcPointCloud &points) {
     float meanPosition[3] = {0., 0., 0.};
     unsigned int nThreeDHits = 0;
     int outputN_pts = points.size();
+    if (points.empty()) 
+    {
+        std::cerr << "Error: points vector is empty." << std::endl;
+        return PCAResults();  // Return a default-constructed PCAResults object
+    }
     int outputPDG = points[0].pdg;
     for (unsigned int i = 0; i < points.size(); i++) {
       meanPosition[0] += points[i].x;
