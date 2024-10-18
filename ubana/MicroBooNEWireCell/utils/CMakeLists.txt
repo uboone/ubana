@@ -1,4 +1,5 @@
-FILE(GLOB util_files *.sh )
+# FILE(GLOB util_files *.sh )
+# 
+# install_fw( LIST ${util_files} )
 
-install_fw( LIST ${util_files} )
-
+install_scripts()
