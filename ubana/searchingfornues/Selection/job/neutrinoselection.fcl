@@ -93,7 +93,7 @@ NeutronAnalysisTool: {
     PFPproducer: "pandora"
     PCAproducer: "pandora"
     VTXproducer: "pandora"
-    SHRproducer: "pandora" #"shrreco3d"
+    SHRproducer: "shrreco3d"
     CLSproducer: "pandora"
     MCTproducer: "generator"
     MCPproducer: "largeant"
@@ -351,7 +351,7 @@ NuSelectionFilter:{
         nuenergy:      @local::NeutrinoEnergyTool
         #flashmatchid:  @local::FlashMatchingTool
         pi0tagger:     @local::Pi0TaggerTool
-        #zbdt:          @local::BDTTool #note: analysis tools are run in alphabetical order and this needs to be the last one
+        # zbdt:          @local::BDTTool #note: analysis tools are run in alphabetical order and this needs to be the last one
         secondshower:  @local::SecondShowerTaggerTool
         eventfilter:   @local::EventFilterTool
         mcfilter:      @local::MCFilterAnalysisTool
