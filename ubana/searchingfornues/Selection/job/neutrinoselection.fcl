@@ -294,7 +294,7 @@ shrreco3dKalmanShower:                                       @local::trackproduc
 shrreco3dKalmanShower.inputCollection:                       "pandora"
 shrreco3dKalmanShower.trackFromPF:                           false
 shrreco3dKalmanShower.showerFromPF:                          true
-shrreco3dKalmanShower.showerInputTag:                        "pandora" #"shrreco3d"
+shrreco3dKalmanShower.showerInputTag:                        "shrreco3d" #"pandora"
 shrreco3dKalmanShower.trackMaker.options.defaultPdgId:       11
 shrreco3dKalmanShower.trackMaker.fitter.skipNegProp:         true
 shrreco3dKalmanShower.trackMaker.fitter.maxChi2:             10
@@ -322,7 +322,7 @@ NuSelectionFilter:{
     BDT_branch: ""
     BDT_cut: -1
     PFPproducer: "pandora"
-    SHRproducer: "pandora" #"shrreco3d" #"pandora" #if you change this, remember to change also the inputs to ShowerAnalysisTool!
+    SHRproducer: "shrreco3d" #"pandora" #if you change this, remember to change also the inputs to ShowerAnalysisTool!
     HITproducer: "pandora"
     CLSproducer: "pandora"
     SLCproducer: "pandora"
@@ -337,7 +337,7 @@ NuSelectionFilter:{
         default: @local::DefaultAnalysisTool
         # you can add more analysis tools here
         slicepurcompl: @local::SlicePurComplTool
-        nugraphcounts: @local::NuGraphCountsTool
+        # nugraphcounts: @local::NuGraphCountsTool
         containment:   @local::ContainmentAnalysis
         #shower:        @local::ShowerAnalysisTool
         #showerstart:        @local::ShowerStartPointTool

@@ -66,6 +66,7 @@ physics:
         nuslicehits: @local::NeutrinoSliceHits
         proximity: @local::ProximityClustering
 
+        shrreco3d:                        @local::microboone_reco_data_producers.shrreco3d
         shrreco3dKalmanShower:            @local::shrreco3dKalmanShower
         shrreco3dKalmanShowercalo:        @local::shrreco3dKalmanShowercalodata
         shrreco3dKalmanShowercali:        @local::shrreco3dKalmanShowercalidata
@@ -87,7 +88,7 @@ physics:
  #define the producer and filter modules for this path, order matters,
  ana:  [ ]
 
- p1: [ nuslicehits, proximity, shrreco3dKalmanShower, shrreco3dKalmanShowercalo, shrreco3dKalmanShowercali, pandoraTrack, pandoraTrackcalo, pandoraTrackpid, pandoraTrackcali, pandoraTrackcalipid, nuselection]
+ p1: [ nuslicehits, proximity, shrreco3d, shrreco3dKalmanShower, shrreco3dKalmanShowercalo, shrreco3dKalmanShowercali, pandoraTrack, pandoraTrackcalo, pandoraTrackpid, pandoraTrackcali, pandoraTrackcalipid, nuselection]
 
  e1: [ rootout ]
 
