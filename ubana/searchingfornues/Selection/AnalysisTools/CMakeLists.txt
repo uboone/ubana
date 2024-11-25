@@ -169,6 +169,14 @@ cet_build_plugin(
 )
 
 cet_build_plugin(
+  NuGraphCounts uboone_tool::AnalysisToolBase
+  LIBRARIES
+  PRIVATE
+  lardata::Utilities
+  lardataobj::AnalysisBase
+)
+
+cet_build_plugin(
   ObviousCosmicFlashMatching uboone_tool::AnalysisToolBase
   LIBRARIES
   PRIVATE

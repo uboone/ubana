@@ -103,6 +103,14 @@ private:
   // TTree variables
   // per event
   int origevnunhits;
+  int origevnunhits2;
+  int origevlepnhits;
+  int origevpronhits;
+  int origevpi1nhits;
+  int origevpi0nhits;
+  int origevneunhits;
+  int origevgamnhits;
+  int origevothnhits;
   int evnunhits;
   int evlepnhits;
   int evpronhits;
@@ -296,8 +304,34 @@ void SlicePurCompl::analyzeEvent(art::Event const &e, bool fData)
       if (assocMCPartOrig->at(hit_ptr.key()).size()) nOrigNuHits++;
     }
     origevnunhits = nOrigNuHits;
+
+    int nlephitsOrig = 0, nprohitsOrig = 0, npi1hitsOrig = 0, npi0hitsOrig = 0, nneuhitsOrig = 0, ngamhitsOrig = 0, nothhitsOrig = 0;
+    std::vector<art::Ptr<recob::Hit>> inHitsOrigPtrV;
+    for (unsigned int ih = 0; ih < hitsOrig->size(); ih++)
+      inHitsOrigPtrV.push_back({hitsOrig, ih});
+    incrementCounts(inHitsOrigPtrV, assocMCPartOrig,
+		    lepid, proid, pi1id, pi0id, neuid, gamid, othid,
+		    nlephitsOrig, nprohitsOrig, npi1hitsOrig, npi0hitsOrig, nneuhitsOrig, ngamhitsOrig, nothhitsOrig);
+    origevnunhits2 = nlephitsOrig + nprohitsOrig + npi1hitsOrig + npi0hitsOrig + nneuhitsOrig + ngamhitsOrig + nothhitsOrig;
+    origevlepnhits = nlephitsOrig;
+    origevpronhits = nprohitsOrig;
+    origevpi1nhits = npi1hitsOrig;
+    origevpi0nhits = npi0hitsOrig;
+    origevneunhits = nneuhitsOrig;
+    origevgamnhits = ngamhitsOrig;
+    origevothnhits = nothhitsOrig;
+
   } else {
     origevnunhits = evnunhits;
+    origevnunhits2 = evnunhits;
+    origevlepnhits = evlepnhits;
+    origevpronhits = evpronhits;
+    origevpi1nhits = evpi1nhits;
+    origevpi0nhits = evpi0nhits;
+    origevneunhits = evneunhits;
+    origevgamnhits = evgamnhits;
+    origevothnhits = evothnhits;
+
   }
   return;
 }
@@ -382,6 +416,14 @@ void SlicePurCompl::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t
 void SlicePurCompl::setBranches(TTree *_tree)
 {
   _tree->Branch("origevnunhits", &origevnunhits, "origevnunhits/I");
+  _tree->Branch("origevnunhits2", &origevnunhits2, "origevnunhits2/I");
+  _tree->Branch("origevlepnhits", &origevlepnhits, "origevlepnhits/I");
+  _tree->Branch("origevpronhits", &origevpronhits, "origevpronhits/I");
+  _tree->Branch("origevpi1nhits", &origevpi1nhits, "origevpi1nhits/I");
+  _tree->Branch("origevpi0nhits", &origevpi0nhits, "origevpi0nhits/I");
+  _tree->Branch("origevneunhits", &origevneunhits, "origevneunhits/I");
+  _tree->Branch("origevgamnhits", &origevgamnhits, "origevgamnhits/I");
+  _tree->Branch("origevothnhits", &origevothnhits, "origevothnhits/I");
 
   _tree->Branch("evnunhits", &evnunhits, "evnunhits/I");
   _tree->Branch("evlepnhits", &evlepnhits, "evlepnhits/I");
@@ -417,6 +459,14 @@ void SlicePurCompl::setBranches(TTree *_tree)
 void SlicePurCompl::resetTTree(TTree *_tree)
 {
   origevnunhits = std::numeric_limits<int>::min();
+  origevnunhits2 = std::numeric_limits<int>::min();
+  origevlepnhits = std::numeric_limits<int>::min();
+  origevpronhits = std::numeric_limits<int>::min();
+  origevpi1nhits = std::numeric_limits<int>::min();
+  origevpi0nhits = std::numeric_limits<int>::min();
+  origevneunhits = std::numeric_limits<int>::min();
+  origevgamnhits = std::numeric_limits<int>::min();
+  origevothnhits = std::numeric_limits<int>::min();
   nu_purity_from_pfp = std::numeric_limits<int>::min();
   nu_completeness_from_pfp = std::numeric_limits<int>::min();
   //
