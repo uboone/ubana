@@ -1,17 +1,15 @@
-
 #include "ubana/HitAnalysis/tools/IHitEfficiencyHistogramTool.h"
 
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Utilities/ToolMacros.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Core/ModuleMacros.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileDirectory.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
-#include "larcore/Geometry/Geometry.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
@@ -160,9 +158,7 @@ private:
     mutable std::vector<int>   fHitStopTickVec;
     
     // Useful services, keep copies for now (we can update during begin run periods)
-    const geo::GeometryCore*           fGeometry;             ///< pointer to Geometry service
-    const detinfo::DetectorProperties* fDetectorProperties;   ///< Detector properties service
-    const detinfo::DetectorClocks*     fClockService;         ///< Detector clocks service
+    const geo::WireReadoutGeom*          fWireReadoutGeom;
 };
     
 //----------------------------------------------------------------------------
@@ -174,9 +170,7 @@ private:
 ///
 ShowerHitEfficiencyAnalysis::ShowerHitEfficiencyAnalysis(fhicl::ParameterSet const & pset) : fTree(nullptr)
 {
-    fGeometry           = lar::providerFrom<geo::Geometry>();
-    fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    fClockService       = lar::providerFrom<detinfo::DetectorClocksService>();
+    fWireReadoutGeom      = &art::ServiceHandle<geo::WireReadout const>()->Get();
     
     configure(pset);
     
@@ -216,27 +210,28 @@ void ShowerHitEfficiencyAnalysis::initializeHists(art::ServiceHandle<art::TFileS
     // Make a directory for these histograms
     art::TFileDirectory dir = tfs->mkdir(dirName.c_str());
     
-    fTotalElectronsHistVec.resize(fGeometry->Nplanes());
-    fMaxElectronsHistVec.resize(fGeometry->Nplanes());
-    fHitElectronsVec.resize(fGeometry->Nplanes());
-    fHitSumADCVec.resize(fGeometry->Nplanes());
-    fHitIntegralHistVec.resize(fGeometry->Nplanes());
-    fHitPulseHeightVec.resize(fGeometry->Nplanes());
-    fHitPulseWidthVec.resize(fGeometry->Nplanes());
-    fSimNumTDCVec.resize(fGeometry->Nplanes());
-    fHitNumTDCVec.resize(fGeometry->Nplanes());
-    fNMatchedHitVec.resize(fGeometry->Nplanes());
-    fDeltaMidTDCVec.resize(fGeometry->Nplanes());
-    fHitVsSimChgVec.resize(fGeometry->Nplanes());
-    fHitVsSimIntVec.resize(fGeometry->Nplanes());
-    fNSimChannelHitsVec.resize(fGeometry->Nplanes());
-    fNRecobHitVec.resize(fGeometry->Nplanes());
-    fHitEfficiencyVec.resize(fGeometry->Nplanes());
+    unsigned int const nplanes = fWireReadoutGeom->Nplanes({0, 0});
+    fTotalElectronsHistVec.resize(nplanes);
+    fMaxElectronsHistVec.resize(nplanes);
+    fHitElectronsVec.resize(nplanes);
+    fHitSumADCVec.resize(nplanes);
+    fHitIntegralHistVec.resize(nplanes);
+    fHitPulseHeightVec.resize(nplanes);
+    fHitPulseWidthVec.resize(nplanes);
+    fSimNumTDCVec.resize(nplanes);
+    fHitNumTDCVec.resize(nplanes);
+    fNMatchedHitVec.resize(nplanes);
+    fDeltaMidTDCVec.resize(nplanes);
+    fHitVsSimChgVec.resize(nplanes);
+    fHitVsSimIntVec.resize(nplanes);
+    fNSimChannelHitsVec.resize(nplanes);
+    fNRecobHitVec.resize(nplanes);
+    fHitEfficiencyVec.resize(nplanes);
 
-    fHitEfficVec.resize(fGeometry->Nplanes());
-    fHitEfficPHVec.resize(fGeometry->Nplanes());
+    fHitEfficVec.resize(nplanes);
+    fHitEfficPHVec.resize(nplanes);
 
-    for(size_t plane = 0; plane < fGeometry->Nplanes(); plane++)
+    for(size_t plane = 0; plane < nplanes; plane++)
     {
         fTotalElectronsHistVec.at(plane)  = dir.make<TH1F>(("TotalElecs"  + std::to_string(plane)).c_str(), ";# electrons", 250,   0.,  100000.);
         fMaxElectronsHistVec.at(plane)    = dir.make<TH1F>(("MaxElecs"    + std::to_string(plane)).c_str(), ";# electrons", 250,   0.,  20000.);
@@ -410,6 +405,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
     std::vector<int> nSimChannelHitVec = {0,0,0};
     std::vector<int> nRecobHitVec      = {0,0,0};
 
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(event);
     for(const auto& partToChanInfo : partToChanToTDCToIDEMap)
     {
         TrackIDToMCParticleMap::const_iterator trackIDToMCPartItr = trackIDToMCParticleMap.find(partToChanInfo.first);
@@ -435,7 +431,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             
             // The below try-catch block may no longer be necessary
             // Decode the channel and make sure we have a valid one
-            std::vector<geo::WireID> wids = fGeometry->ChannelToWire(chanToTDCToIDEMap.first);
+            std::vector<geo::WireID> wids = fWireReadoutGeom->ChannelToWire(chanToTDCToIDEMap.first);
             
             // Recover plane and wire in the plane
             unsigned int plane = wids[0].Plane;
@@ -459,8 +455,8 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
             unsigned short stopTDC  = tdcToIDEMap.rbegin()->first;
             
             // Convert to ticks to get in same units as hits
-            unsigned short startTick = fClockService->TPCTDC2Tick(startTDC) + fOffsetVec.at(plane);
-            unsigned short stopTick  = fClockService->TPCTDC2Tick(stopTDC)  + fOffsetVec.at(plane);
+            unsigned short startTick = clockData.TPCTDC2Tick(startTDC) + fOffsetVec.at(plane);
+            unsigned short stopTick  = clockData.TPCTDC2Tick(stopTDC)  + fOffsetVec.at(plane);
             unsigned short midTick   = (startTick + stopTick) / 2;
 
             fSimNumTDCVec.at(plane)->Fill(stopTick - startTick, 1.);
@@ -518,7 +514,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                     nElectronsTotalBest = 0.;
                     hitPeakTimeBest     = bestHit->PeakTime();
                     hitIntegralBest     = bestHit->Integral();
-                    hitSummedADCBest    = bestHit->SummedADC();
+                    hitSummedADCBest    = bestHit->ROISummedADC();
                     hitRMSBest          = bestHit->RMS();
                     hitBaselineBest     = 0.;  // To do...
                     
@@ -527,7 +523,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                     // Get the number of electrons
                     for(unsigned short tick = hitStartTickBest; tick <= hitStopTickBest; tick++)
                     {
-                        unsigned short hitTDC = fClockService->TPCTick2TDC(tick - fOffsetVec.at(plane));
+                        unsigned short hitTDC = clockData.TPCTick2TDC(tick - fOffsetVec.at(plane));
                         
                         TDCToIDEMap::iterator ideIterator = tdcToIDEMap.find(hitTDC);
                         
@@ -555,7 +551,7 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
                     unsigned short hitStopTick  = rejectedHit->PeakTime() + fSigmaVec.at(plane) * rejectedHit->RMS();
 
                     std::cout << "**> TPC: " << rejectedHit->WireID().TPC << ", Plane " << rejectedHit->WireID().Plane << ", wire: " << rejectedHit->WireID().Wire << ", hit start/stop tick: " << hitStartTick << "/" << hitStopTick << ", start/stop ticks: " << startTick << "/" << stopTick << std::endl;
-                    std::cout << "    TPC/Plane/Wire: " << wids[0].TPC << "/" << plane << "/" << wids[0].Wire << ", Shower # hits: " << partToChanInfo.second.size() << ", # hits: " << hitIter->second.size() << ", # electrons: " << totalElectrons << ", pulse Height: " << rejectedHit->PeakAmplitude() << ", charge: " << rejectedHit->Integral() << ", " << rejectedHit->SummedADC() << std::endl;
+                    std::cout << "    TPC/Plane/Wire: " << wids[0].TPC << "/" << plane << "/" << wids[0].Wire << ", Shower # hits: " << partToChanInfo.second.size() << ", # hits: " << hitIter->second.size() << ", # electrons: " << totalElectrons << ", pulse Height: " << rejectedHit->PeakAmplitude() << ", charge: " << rejectedHit->Integral() << ", " << rejectedHit->ROISummedADC() << std::endl;
                 }
                 else
                 {
@@ -590,7 +586,8 @@ void ShowerHitEfficiencyAnalysis::fillHistograms(const art::Event& event) const
         }
     }
     
-    for(size_t idx = 0; idx < fGeometry->Nplanes();idx++)
+    unsigned int const nplanes = fWireReadoutGeom->Nplanes({0, 0});
+    for(size_t idx = 0; idx < nplanes;idx++)
     {
         if (nSimChannelHitVec.at(idx) > 10)
         {

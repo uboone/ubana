@@ -3,7 +3,7 @@
  * \file simple_csr_source.cc
  */
 #include "../../../dmlc/include/dmlc/base.h"
-#include "../../xgboost/logging.h"
+#include "../../../xgboost/logging.h"
 #include "./simple_csr_source.h"
 
 namespace xgboost {

@@ -13,16 +13,17 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Framework/Services/Optional/TFileService.h" 
+#include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "Math/VectorUtil.h"
 #include "TH2D.h"
 
 namespace ub {
@@ -63,8 +64,7 @@ private:
   TH1D *hz;
 
   art::ServiceHandle<geo::Geometry> geom;
-  detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  double XDriftVelocity = detprop->DriftVelocity()*1e-3; //cm/ns
+  double XDriftVelocity;
 
 };
 
@@ -75,7 +75,10 @@ ub::ValidateLifetime::ValidateLifetime(fhicl::ParameterSet const & p)
   fTrackModuleLabel(p.get<std::string>("TrackModuleLabel")),
   fCalorimetryModuleLabel(p.get<std::string>("CalorimetryModuleLabel")),
   caloAlg(p.get< fhicl::ParameterSet >("CaloAlg"))
-{}
+{
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
+  XDriftVelocity = detProp.DriftVelocity()*1e-3; //cm/ns
+}
 
 void ub::ValidateLifetime::analyze(art::Event const & evt)
 {
@@ -87,6 +90,12 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
   
   art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
 
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
+  auto const samplingRate = sampling_rate(clockData);
+  auto const triggerOffset = trigger_offset(clockData);
+
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
   for (size_t i = 0; i<tracklist.size(); ++i){
     const auto& trkstart = tracklist[i]->Vertex();
     const auto& trkend = tracklist[i]->End();
@@ -99,12 +108,16 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
           if (!calos[j]->PlaneID().isValid) continue;
           int planenum = calos[j]->PlaneID().Plane;
           if (planenum<0||planenum>2) continue;
-          const auto& dir_start = tracklist[i]->VertexDirection();
-          const geo::WireGeo& wire = geom->TPC().Plane(planenum).MiddleWire();
-          double wirestart[3], wireend[3];
-          wire.GetStart(wirestart);
-          wire.GetEnd(wireend);
-          double cosangle = (dir_start.Y()*(wirestart[1]-wireend[1])+dir_start.Z()*(wirestart[2]-wireend[2]))/sqrt((pow(dir_start.Y(),2)+pow(dir_start.Z(),2))*(pow(wirestart[1]-wireend[1],2)+pow(wirestart[2]-wireend[2],2)));
+          auto dir_start = tracklist[i]->VertexDirection();
+          const geo::WireGeo& wire = channelMap.Plane(geo::PlaneID(0, 0, planenum)).MiddleWire();
+          auto wire_diff = wire.GetStart() - wire.GetEnd();
+          // We want the cosine of the angle between only the Y- and
+          // Z- components of dir_start and wire_diff.  To achieve
+          // this, we set the X component to zero and simply use the
+          // 3D CosTheta facility provided by ROOT.
+          dir_start.SetX(0);
+          wire_diff.SetX(0);
+          double cosangle = ROOT::Math::VectorUtil::CosTheta(dir_start, wire_diff);
           if (std::abs(cosangle)<0.5){
             double minx = 1e10;
             const size_t NHits = calos[j] -> dEdx().size();
@@ -120,11 +133,11 @@ void ub::ValidateLifetime::analyze(art::Event const & evt)
               double x = TrkPos1.X()-minx; //subtract the minx to get correct t0
               double t = x/(XDriftVelocity*1000); //change the velocity units to cm/ns to cm/us
               dqdxtime[planenum]->Fill(t, (calos[j] -> dQdx())[iHit]);
-              double dqdxcor = (calos[j] -> dQdx())[iHit]*caloAlg.LifetimeCorrection(t/(detprop->SamplingRate()*1.e-3)+detprop->TriggerOffset());
+              double dqdxcor = (calos[j] -> dQdx())[iHit]*caloAlg.LifetimeCorrection(clockData, detProp, t/(samplingRate*1.e-3)+triggerOffset);
               dqdxtimecor[planenum]->Fill(t, dqdxcor);
               hdqdx[planenum]->Fill((calos[j] -> dQdx())[iHit]);
               hdqdxcor[planenum]->Fill(dqdxcor);
-              double dedx = caloAlg.dEdx_AREA((calos[j] -> dQdx())[iHit], t/(detprop->SamplingRate()*1.e-3)+detprop->TriggerOffset(), planenum);
+              double dedx = caloAlg.dEdx_AREA(clockData, detProp, (calos[j] -> dQdx())[iHit], t/(samplingRate*1.e-3)+triggerOffset, planenum);
               hdedx[planenum]->Fill(dedx); 
               //if (planenum==2&&(calos[j] -> dQdx())[iHit]<50){
               //if (planenum==2&&dqdxcor<140){

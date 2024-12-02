@@ -7,6 +7,7 @@
 #include "../../../dmlc/include/dmlc/omp.h"
 #include "../../logging.h"
 #include "../../objective.h"
+#include <cstring>
 #include <vector>
 #include <algorithm>
 #include <utility>
@@ -330,7 +331,9 @@ class TweedieRegression : public ObjFunction {
     std::ostringstream os;
     os << "tweedie-nloglik@" << param_.tweedie_variance_power;
     std::string metric = os.str();
-    return metric.c_str();
+    // c14 error: address of stack memory associated with local variable 'metric' returned
+    // HBG - Used strdup to fix dangling pointer at cost of memory leak.
+    return strdup(metric.c_str());
   }
 
  private:

@@ -17,8 +17,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "lardataobj/RecoBase/PFParticle.h"
@@ -32,6 +32,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -101,7 +102,7 @@ private:
 };
 
 
-CosmicFlashMatch::CosmicFlashMatch(fhicl::ParameterSet const & p)
+CosmicFlashMatch::CosmicFlashMatch(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _particleLabel           = p.get<std::string>("PFParticleModule",      "pandoraNu");
   _debug                   = p.get<bool>       ("DebugMode",             true);
@@ -148,6 +149,7 @@ void CosmicFlashMatch::produce(art::Event & e)
   std::unique_ptr< art::Assns<ubana::FlashMatch, recob::PFParticle>> assnOutFlashMatchPFParticle(new art::Assns<ubana::FlashMatch, recob::PFParticle>);
 
   ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
 
   _mgr.Reset();
   _result.clear();
@@ -184,7 +186,7 @@ void CosmicFlashMatch::produce(art::Event & e)
     f.pe_v.resize(geo->NOpDets());
     f.pe_err_v.resize(geo->NOpDets());
     for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMap.OpDetFromOpChannel(i);
       f.pe_v[opdet] = flash.PE(i);
       f.pe_err_v[opdet] = sqrt(flash.PE(i));
     }
@@ -227,7 +229,7 @@ void CosmicFlashMatch::produce(art::Event & e)
     f.pe_v.resize(geo->NOpDets());
     f.pe_err_v.resize(geo->NOpDets());
     for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMap.OpDetFromOpChannel(i);
       f.pe_v[opdet] = flash.PE(i);
       f.pe_err_v[opdet] = sqrt(flash.PE(i));
     }

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <string>
 #include "SubEventModConfig.hh"
 #include "ubobj/Optical/SubEvent.hh"
 #include "ubobj/Optical/Flash.hh"

@@ -15,12 +15,13 @@
 #include <tuple>
 #include <chrono>
 
+#include "larcorealg/Geometry/fwd.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
+#include "fhiclcpp/fwd.h"
+
 namespace pm      { class AnodeCathodePMAlg; }
-namespace geo     { class GeometryCore; }
-namespace detinfo { class DetectorProperties; }
-namespace fhicl   { class ParameterSet; }
+namespace detinfo { class DetectorPropertiesData; }
 namespace recob   { class Hit; }
 
 class pm::AnodeCathodePMAlg{
@@ -32,8 +33,8 @@ class pm::AnodeCathodePMAlg{
   AnodeCathodePMAlg();
   
   void Configure(fhicl::ParameterSet         const&,
-		 geo::GeometryCore           const&,
-		 detinfo::DetectorProperties const&);
+                 geo::WireReadoutGeom          const&,
+                 detinfo::DetectorPropertiesData const&);
   
   void RunPatternMatching(std::vector<recob::Hit> const&,float &);
   

@@ -28,7 +28,6 @@
 //#include "cetlib/search_path.h"
 #include "cetlib/cpu_timer.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
@@ -38,7 +37,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/View.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Utilities/make_tool.h"
 #include "canvas/Utilities/InputTag.h"
@@ -115,7 +114,6 @@ private:
 
     // Other variables that will be shared between different methods.
     const geo::GeometryCore*           fGeometry;       // pointer to Geometry service
-    const detinfo::DetectorProperties* fDetectorProperties;
     const lariov::DetPedestalProvider& fPedestalRetrievalAlg; ///< Keep track of an instance to the pedestal retrieval alg
 }; // class HitEfficiencyAna
 
@@ -132,7 +130,6 @@ HitEfficiencyAna::HitEfficiencyAna(fhicl::ParameterSet const& parameterSet)
 
 {
     fGeometry = lar::providerFrom<geo::Geometry>();
-    fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
     // Read in the parameters from the .fcl file.
     this->reconfigure(parameterSet);

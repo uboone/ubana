@@ -12,7 +12,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindOneP.h"
@@ -20,13 +20,18 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "nusimdata/SimulationBase/MCTruth.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireError
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
+#include "larcorealg/Geometry/Exceptions.h"
 
 
 #include "TH1F.h"
@@ -260,7 +265,8 @@ private:
  
   
 
-  void GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits, int& origin, int& pdgcode);
+  void GetTruthInfo(detinfo::DetectorClocksData const& clockData,
+                    std::vector<art::Ptr<recob::Hit>> hits, int& origin, int& pdgcode);
   bool inFV(double x, double y, double z);
   void doEfficiencies();
 
@@ -315,7 +321,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
   //bool HaveEPFParticle = false;
   //bool Have3DShower = false;
   //bool PassFilter = false;
-  art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
 
   art::Handle<std::vector<simb::MCTruth>> MCtruthHandle;
   std::vector<art::Ptr<simb::MCTruth>> MCtruth_vec;
@@ -407,11 +413,11 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
       //float wire1 = FLT_MIN;
       h_flashZWidth->Fill(flash->ZWidth());
       //Find the 4 corners and convert them to wire numbers
-      std::vector<TVector3> points;
-      points.push_back(TVector3(0, flash->YCenter()-flash->YWidth(), flash->ZCenter()-flash->ZWidth()));
-      points.push_back(TVector3(0, flash->YCenter()-flash->YWidth(), flash->ZCenter()+flash->ZWidth()));
-      points.push_back(TVector3(0, flash->YCenter()+flash->YWidth(), flash->ZCenter()-flash->ZWidth()));
-      points.push_back(TVector3(0, flash->YCenter()+flash->YWidth(), flash->ZCenter()+flash->ZWidth()));
+      std::vector<geo::Point_t> points;
+      points.emplace_back(0, flash->YCenter()-flash->YWidth(), flash->ZCenter()-flash->ZWidth());
+      points.emplace_back(0, flash->YCenter()-flash->YWidth(), flash->ZCenter()+flash->ZWidth());
+      points.emplace_back(0, flash->YCenter()+flash->YWidth(), flash->ZCenter()-flash->ZWidth());
+      points.emplace_back(0, flash->YCenter()+flash->YWidth(), flash->ZCenter()+flash->ZWidth());
       for (int pl = 0; pl <3; ++pl){
 	float wire0 = FLT_MAX;
 	float wire1 = FLT_MIN;
@@ -419,7 +425,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
         for (size_t i = 0; i<points.size(); ++i){
           geo::WireID wireID;
           try{
-            wireID = geo->NearestWireID(points[i], pid);
+            wireID = channelMap.Plane(pid).NearestWireID(points[i]);
           }
           catch(geo::InvalidWireError const& e) {
             wireID = e.suggestedWireID(); // pick the closest valid wire
@@ -459,6 +465,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
     art::FindManyP<recob::Hit>  fmhc(clusterHandle, e, fCluster_tag);
  
     std::vector<art::Ptr<recob::Cluster>> FlashMatchedClusterVec;
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
     for( auto const& cluster : Cluster_vec){
       auto ID = cluster->ID();
       auto plane = cluster->Plane().Plane;
@@ -503,7 +510,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 	  }
 
 	  if(MCSample){
-	    GetTruthInfo(fmhc.at(cluster.key()), origin, pdgcode);}
+            GetTruthInfo(clockData, fmhc.at(cluster.key()), origin, pdgcode);}
           //massive clean
 	  //std::cout<<"ClusterID="<<ID<<" plane="<<plane<<"nhits = "<<nHits<<" startwire = "<<StartWire<<" starttick = "<<StartTick<<" End wire "<<EndWire<< " origin = "<<origin<<" pdgcode = "<<pdgcode<<std::endl;
 	  if(StartWire>=EndWire)
@@ -954,8 +961,8 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 		int origin1=0;
 		int pdgcode0=0;
 		int pdgcode1=0;
-		GetTruthInfo(fmhc.at(cluster0.key()),origin0,pdgcode0);
-		GetTruthInfo(fmhc.at(cluster1.key()),origin1,pdgcode1);
+                GetTruthInfo(clockData, fmhc.at(cluster0.key()),origin0,pdgcode0);
+                GetTruthInfo(clockData, fmhc.at(cluster1.key()),origin1,pdgcode1);
 		if(origin0==1 && origin1==1 && pdgcode0==11 && pdgcode1==11)
 		  {h_TwoCluster_TimeDiff_nue->Fill(TimeDiffTwoClusters);}
 		if(origin0==2 || origin1==2)
@@ -987,7 +994,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 	      auto iStartTick = iCluster->StartTick();
 	      h_NumberOfGoodCluster_data->SetBinContent(pl+1,h_NumberOfGoodCluster_data->GetBinContent(pl+1)+1);
 	      if(MCSample)
-		{GetTruthInfo(fmhc.at(iCluster.key()), iOrigin, iPdgcode);}
+                {GetTruthInfo(clockData, fmhc.at(iCluster.key()), iOrigin, iPdgcode);}
 	      std::cout<<"plane="<<pl<<" cluster id="<<iID<<" origin="<<iOrigin<<" pdgcode="<<iPdgcode<<" Start Angle="<<iAngle<<" nHits="<<inhits<<" width="<<iWidth<<" Start time="<<iStartTick<<std::endl;
 	      if(MCSample){
 		if(iOrigin==1 && iPdgcode ==11)
@@ -1031,7 +1038,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 	    int iOrigin=0;
 	    int iPdgcode=0;
 	    if(MCSample){
-	      GetTruthInfo(fmhc.at(iCluster.key()), iOrigin, iPdgcode);
+              GetTruthInfo(clockData, fmhc.at(iCluster.key()), iOrigin, iPdgcode);
 	    }
 	    std::cout<<"cluster "<<i<< " is at plane "<<iPlane<<" start time is "<<iTime<<std::endl;
 	    if(iOrigin==0 && iPdgcode==0)
@@ -1044,7 +1051,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 		int jOrigin=0;
 		int jPdgcode=0; 
 		if(MCSample){
-		  GetTruthInfo(fmhc.at(jCluster.key()), jOrigin, jPdgcode);}
+                  GetTruthInfo(clockData, fmhc.at(jCluster.key()), jOrigin, jPdgcode);}
 		std::cout<<"cluster "<<j<< " is at plane "<<jPlane<<" start time is "<<jTime<<std::endl; 
 		if(jPlane==iPlane)
 		  continue;
@@ -1188,7 +1195,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
     std::cout<<"There are "<<Vertex_vec.size()<<" vertices in this event."<<std::endl;
     for( auto const& vertex : Vertex_vec){
       auto VertexID = vertex->ID();
-      double* vertexXYZ = new double;
+      double vertexXYZ[3];
       vertex->XYZ(vertexXYZ);
       
       std::cout<<"Vertex ID "<<VertexID<<" XYZ = ["<<vertexXYZ[0]<<","<<vertexXYZ[1]<<","<<vertexXYZ[2]<<"]"<<std::endl;
@@ -1213,7 +1220,7 @@ void ub::LowLevelNueFilter::analyze(art::Event const & e)
 	  if(PrimaryVertex)
 	    {
 	      auto PrimaryVertexID = PrimaryVertex->ID();
-	      double* PrimaryVertexXYZ = new double;
+	      double PrimaryVertexXYZ[3];
 	      PrimaryVertex->XYZ(PrimaryVertexXYZ);
 	      std::cout<<"pfparticle reco pdgcode "<<pdgcode<<" associated vertex ID is"<<PrimaryVertexID<<" XYZ= ["<<PrimaryVertexXYZ[0]<<","<<PrimaryVertexXYZ[1]<<","<<PrimaryVertexXYZ[2]<<"] !!!!!"<<std::endl;
 	      //h_Stat->AddBinContent(14);
@@ -1414,7 +1421,8 @@ void ub::LowLevelNueFilter::beginJob()
   h_ClusterCenterVsWidth_YplaneSpecialCut = tfs->make<TH2F>("h_ClusterCenterVsWidth_YplaneSpecialCut","V plane good cluster center",300,0,3000,100,0,1000);
 }
 
-void ub::LowLevelNueFilter::GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits, int& origin, int& pdgcode){
+void ub::LowLevelNueFilter::GetTruthInfo(detinfo::DetectorClocksData const& clockData,
+                                         std::vector<art::Ptr<recob::Hit>> hits, int& origin, int& pdgcode){
   
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
@@ -1426,7 +1434,7 @@ void ub::LowLevelNueFilter::GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits,
   for(size_t h = 0; h < hits.size(); ++h){
     art::Ptr<recob::Hit> hit = hits[h];
     //std::vector<sim::IDE> ides;
-    std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(hit);
+    std::vector<sim::TrackIDE> TrackIDs = bt_serv->HitToEveTrackIDEs(clockData, hit);
     
     for(size_t e = 0; e < TrackIDs.size(); ++e){
       trkide[TrackIDs[e].trackID] += TrackIDs[e].energy;
@@ -1434,10 +1442,10 @@ void ub::LowLevelNueFilter::GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits,
   }
   // Work out which IDE despoited the most charge in the hit if there was more than one.
   double maxe = -1;
-  double tote = 0;
+  // double tote = 0; // unused
   int Trackid = 0;
   for (std::map<int,double>::iterator ii = trkide.begin(); ii!=trkide.end(); ++ii){
-    tote += ii->second;
+    // tote += ii->second; // unused
     if ((ii->second)>maxe){
       maxe = ii->second;
       //if(pfPartIdx < max_pfparticles) origin=ii->first;
@@ -1455,12 +1463,13 @@ void ub::LowLevelNueFilter::GetTruthInfo(std::vector<art::Ptr<recob::Hit>> hits,
 bool ub::LowLevelNueFilter::inFV(double x, double y, double z)
 {
   geo::GeometryCore const* fGeometry(lar::providerFrom<geo::Geometry>());
-  double fDistToEdgeX             = fGeometry->DetHalfWidth()   - 20.;
-  double fDistToEdgeY             = fGeometry->DetHalfHeight()  - 20.;
-  double fDistToEdgeZ             = fGeometry->DetLength() / 2. - 10.;
-  double distInX = x - fGeometry->DetHalfWidth();
+  auto const& tpc = fGeometry->TPC();
+  double fDistToEdgeX             = tpc.HalfWidth()   - 20.;
+  double fDistToEdgeY             = tpc.HalfHeight()  - 20.;
+  double fDistToEdgeZ             = tpc.Length() / 2. - 10.;
+  double distInX = x - tpc.HalfWidth();
   double distInY = y;
-  double distInZ = z - 0.5 * fGeometry->DetLength();
+  double distInZ = z - 0.5 * tpc.Length();
   
   if (std::abs(distInX) < fDistToEdgeX && std::abs(distInY) < fDistToEdgeY && std::abs(distInZ) < fDistToEdgeZ) return true;
   

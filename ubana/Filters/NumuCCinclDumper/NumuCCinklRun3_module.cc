@@ -27,7 +27,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "canvas/Persistency/Common/FindManyP.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Vertex.h"
@@ -801,7 +801,7 @@ void NumuCCana::fillMCInfo(art::Event const &evt){
         art::fill_ptr_vector(WeightCollection, Handle_Weight);
         std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(0)->fWeight;
         std::cout << "Vector length: " << evtwgt_map.size() << std::endl;
-        for (auto const evt_weight : evtwgt_map){
+        for (auto const& evt_weight : evtwgt_map){
           std::cout << "branching parameter: " << counter_para << " name: " << evt_weight.first << " length: " << evt_weight.second.size() << std::endl;
           my_event_->Branch((evt_weight.first).c_str(),             &para[counter_para]);
           counter_para++;
@@ -811,7 +811,7 @@ void NumuCCana::fillMCInfo(art::Event const &evt){
       if(evt.getByLabel(m_eventweightLabel_G4, Handle_Weight_G4)){
         art::fill_ptr_vector(WeightCollection_G4, Handle_Weight_G4);
         std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection_G4.at(0)->fWeight;
-        for (auto const evt_weight : evtwgt_map){
+        for (auto const& evt_weight : evtwgt_map){
           std::cout << "branching parameter: " << counter_para << " name: " << evt_weight.first << " length: " << evt_weight.second.size() << std::endl;
           //my_event_->Branch((evt_weight.first).c_str(),             &para[counter_para]);
           counter_para++;
@@ -840,7 +840,7 @@ void NumuCCana::fillMCInfo(art::Event const &evt){
       art::fill_ptr_vector(WeightCollection, Handle_Weight);
       std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection.at(0)->fWeight;
       
-      for (auto const evt_weight : evtwgt_map){
+      for (auto const& evt_weight : evtwgt_map){
         if( store_weights_all == 1){
           para[counter_para] = evt_weight.second;
         }
@@ -872,7 +872,7 @@ void NumuCCana::fillMCInfo(art::Event const &evt){
       art::fill_ptr_vector(WeightCollection_G4, Handle_Weight_G4);
       std::map<std::string, std::vector<double>> evtwgt_map = WeightCollection_G4.at(0)->fWeight;
       
-      for (auto const evt_weight : evtwgt_map){
+      for (auto const& evt_weight : evtwgt_map){
         if( store_weights_all == 1){
           para[counter_para] = evt_weight.second;
         }
@@ -941,7 +941,7 @@ bool NumuCCana::GetVertex(art::Event const &evt)
     Nu_Vx_ = neutrino_vtx.X();
     Nu_Vy_ = neutrino_vtx.Y();
     Nu_Vz_ = neutrino_vtx.Z();
-    auto NuVtx_offset = SCE->GetCalPosOffsets(geo::Point_t(neutrino_vtx.X(), neutrino_vtx.Y(), neutrino_vtx.Z()));
+    auto NuVtx_offset = SCE->GetCalPosOffsets(geo::Point_t(neutrino_vtx.X(), neutrino_vtx.Y(), neutrino_vtx.Z()), 0);
     Nu_Vx_sce_ = (neutrino_vtx.X() - NuVtx_offset.X() );
     Nu_Vy_sce_ = (neutrino_vtx.Y() + NuVtx_offset.Y() );
     Nu_Vz_sce_ = (neutrino_vtx.Z() + NuVtx_offset.Z() );
@@ -1002,7 +1002,7 @@ bool NumuCCana::GetVertex(art::Event const &evt)
         Vz_.push_back(pfp_vtx.Z());
         VtxDistance_.push_back(pandoraInterfaceHelper.Distance3D(pfp_vtx.X(), pfp_vtx.Y(), pfp_vtx.Z(), Nu_Vx_, Nu_Vy_, Nu_Vz_));
         
-        auto Vtx_offset = SCE->GetCalPosOffsets(geo::Point_t(pfp_vtx.X(), pfp_vtx.Y(), pfp_vtx.Z()));
+        auto Vtx_offset = SCE->GetCalPosOffsets(geo::Point_t(pfp_vtx.X(), pfp_vtx.Y(), pfp_vtx.Z()), 0);
         Vx_sce_.push_back(pfp_vtx.X() - Vtx_offset.X() );
         Vy_sce_.push_back(pfp_vtx.Y() + Vtx_offset.Y() );
         Vz_sce_.push_back(pfp_vtx.Z() + Vtx_offset.Z() );
@@ -1018,14 +1018,14 @@ bool NumuCCana::GetVertex(art::Event const &evt)
         TrackStart_x_.push_back(this_track->Start().X());
         TrackStart_y_.push_back(this_track->Start().Y());
         TrackStart_z_.push_back(this_track->Start().Z());
-        auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(this_track->Start().X(), this_track->Start().Y(), this_track->Start().Z()));
+        auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(this_track->Start().X(), this_track->Start().Y(), this_track->Start().Z()), 0);
         TrackStart_x_sce_.push_back(this_track->Start().X() - Trk_start_offset.X() );
         TrackStart_y_sce_.push_back(this_track->Start().Y() + Trk_start_offset.Y() );
         TrackStart_z_sce_.push_back(this_track->Start().Z() + Trk_start_offset.Z() );
         TrackEnd_x_.push_back(this_track->End().X());
         TrackEnd_y_.push_back(this_track->End().Y());
         TrackEnd_z_.push_back(this_track->End().Z());
-        auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(this_track->End().X(), this_track->End().Y(), this_track->End().Z()));
+        auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(this_track->End().X(), this_track->End().Y(), this_track->End().Z()), 0);
         TrackEnd_x_sce_.push_back(this_track->End().X() - Trk_end_offset.X() );
         TrackEnd_y_sce_.push_back(this_track->End().Y() + Trk_end_offset.Y() );
         TrackEnd_z_sce_.push_back(this_track->End().Z() + Trk_end_offset.Z() );

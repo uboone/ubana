@@ -45,6 +45,7 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 
 #include <memory>
@@ -79,7 +80,7 @@ private:
 };
 
 
-NeutrinoMCFlash::NeutrinoMCFlash(fhicl::ParameterSet const & p)
+NeutrinoMCFlash::NeutrinoMCFlash(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _mctruth_label = p.get<std::string>("MCTruthProduct", "generator");
   _trigger_label = p.get<std::string>("TriggerProduct", "triggersim");
@@ -139,17 +140,18 @@ void NeutrinoMCFlash::produce(art::Event & e)
 
   // opdet=>opchannel mapping
   std::vector<size_t> opdet2opch(geo->NOpDets(),0);
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   for(size_t opch=0; opch<opdet2opch.size(); ++opch){
-    opdet2opch[geo->OpDetFromOpChannel(opch)] = opch;
+    opdet2opch[channelMap.OpDetFromOpChannel(opch)] = opch;
   }
 
   auto const & evt_trigger = (*evt_trigger_h)[0];
   auto const trig_time = evt_trigger.TriggerTime();
-  auto const * ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   if (_debug) std::cout << "trig_time: " << trig_time << std::endl;
-  if (_debug) std::cout << "ts->G4ToElecTime(0): " << ts->G4ToElecTime(0) << std::endl;
-  if (_debug) std::cout << "ts->G4ToElecTime(1000): " << ts->G4ToElecTime(1000) << std::endl;
+  if (_debug) std::cout << "clockData.G4ToElecTime(0): " << clockData.G4ToElecTime(0) << std::endl;
+  if (_debug) std::cout << "clockData.G4ToElecTime(1000): " << clockData.G4ToElecTime(1000) << std::endl;
 
   double nuTime = -1.e9;
   if (_debug) std::cout << "We have " << evt_mctruth_h->size() << " mctruth events." << std::endl;
@@ -166,16 +168,16 @@ void NeutrinoMCFlash::produce(art::Event & e)
       if (_debug){
         std::cout << "Particle pdg: " << par.PdgCode() << std::endl;
         std::cout << "Particle time: " << par.Trajectory().T(0) << std::endl;
-        std::cout << "    converted: " << ts->G4ToElecTime(par.Trajectory().T(0)) - trig_time << std::endl;
+        std::cout << "    converted: " << clockData.G4ToElecTime(par.Trajectory().T(0)) - trig_time << std::endl;
         std::cout << "new Particle time: " << par.T() << std::endl;
-        std::cout << "new    converted: " << ts->G4ToElecTime(par.T()) - trig_time << std::endl;
+        std::cout << "new    converted: " << clockData.G4ToElecTime(par.T()) - trig_time << std::endl;
         std::cout << std::endl;
       }
       if (   par.PdgCode() == 14 
           || par.PdgCode() == -14
           || par.PdgCode() == 12
           || par.PdgCode() == -12) 
-        nuTime = par.T();//ts->G4ToElecTime(par.T()) - trig_time;
+        nuTime = par.T();//clockData.G4ToElecTime(par.T()) - trig_time;
     }
   }
 
@@ -201,10 +203,10 @@ void NeutrinoMCFlash::produce(art::Event & e)
       if (oneph.Time > nuTime - 100){ 
       //if (oneph.Time > -1946030 + 10000) continue;
       //if (oneph.Time > -1946030 - 10000) {
-      //if(ts->G4ToElecTime(oneph.Time) - trig_time > -1930) continue;
-      //if(ts->G4ToElecTime(oneph.Time) - trig_time > -1960) {
+      //if(clockData.G4ToElecTime(oneph.Time) - trig_time > -1930) continue;
+      //if(clockData.G4ToElecTime(oneph.Time) - trig_time > -1960) {
         //if (_debug) std::cout << " photon time " << oneph.Time << std::endl;
-        if (_debug) std::cout << " photon time " << ts->G4ToElecTime(oneph.Time) - trig_time << std::endl;
+        if (_debug) std::cout << " photon time " << clockData.G4ToElecTime(oneph.Time) - trig_time << std::endl;
         pmt_v[0][opdet2opch[opdet]] += 1;
       }
     }
@@ -213,9 +215,9 @@ void NeutrinoMCFlash::produce(art::Event & e)
   double Ycenter, Zcenter, Ywidth, Zwidth;
   GetFlashLocation(pmt_v[0], Ycenter, Zcenter, Ywidth, Zwidth);
 
-  recob::OpFlash flash(ts->G4ToElecTime(nuTime) - trig_time,       // time w.r.t. trigger
+  recob::OpFlash flash(clockData.G4ToElecTime(nuTime) - trig_time, // time w.r.t. trigger
                        0,                                          // time width
-                       ts->G4ToElecTime(nuTime),                   // flash time in elec clock
+                       clockData.G4ToElecTime(nuTime),             // flash time in elec clock
                        0.,                                         // frame (?)
                        pmt_v[0],                                   // pe per pmt
                        0, 0, 1,                                    // this are just default values
@@ -244,18 +246,17 @@ void NeutrinoMCFlash::GetFlashLocation(std::vector<double> pePerOpChannel,
   double totalPE = 0.;
   double sumy = 0., sumz = 0., sumy2 = 0., sumz2 = 0.;
 
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   for (unsigned int opch = 0; opch < pePerOpChannel.size(); opch++) {
 
     // Get physical detector location for this opChannel
-    double PMTxyz[3];
-    ::art::ServiceHandle<geo::Geometry> geo;
-    geo->OpDetGeoFromOpChannel(opch).GetCenter(PMTxyz);
+    auto const PMTxyz = channelMap.OpDetGeoFromOpChannel(opch).GetCenter();
 
     // Add up the position, weighting with PEs
-    sumy    += pePerOpChannel[opch]*PMTxyz[1];
-    sumy2   += pePerOpChannel[opch]*PMTxyz[1]*PMTxyz[1];
-    sumz    += pePerOpChannel[opch]*PMTxyz[2];
-    sumz2   += pePerOpChannel[opch]*PMTxyz[2]*PMTxyz[2];
+    sumy    += pePerOpChannel[opch]*PMTxyz.Y();
+    sumy2   += pePerOpChannel[opch]*PMTxyz.Y()*PMTxyz.Y();
+    sumz    += pePerOpChannel[opch]*PMTxyz.Z();
+    sumz2   += pePerOpChannel[opch]*PMTxyz.Z()*PMTxyz.Z();
 
     totalPE += pePerOpChannel[opch];
   }

@@ -117,6 +117,7 @@ class FastHistMaker: public TreeUpdater {
     // constructor
     explicit Builder(const TrainParam& param) : param(param) {
     }
+    virtual ~Builder() = default;
     // update one tree, growing
     virtual void Update(const GHistIndexMatrix& gmat,
                         const std::vector<bst_gpair>& gpair,

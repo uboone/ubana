@@ -1,37 +1,25 @@
-# basic source code CMakeLists.txt
+cet_build_plugin(
+  AnodeCathodeTrackAna art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::PatternFilter_PMAlgs
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
-art_make(
-	MODULE_LIBRARIES
-			ubana_PatternFilter_PMAlgs
-			larcorealg_Geometry
-			lardataalg_DetectorInfo
-			lardataobj_RecoBase
-                        ${ART_FRAMEWORK_CORE}
-			${ART_FRAMEWORK_IO_ROOT}
-			${ART_FRAMEWORK_MODULES}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                        art_Persistency_Common
-                        art_Persistency_Provenance
-                        art_Utilities canvas
-			${MF_MESSAGELOGGER}
-                        ${BOOST_LIB}
-                        ${FHICLCPP}
-                        cetlib cetlib_except
-			${ROOT_BASIC_LIB_LIST}
-)							   
+cet_build_plugin(
+  AnodeCathodeTrackFilter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  ubana::PatternFilter_PMAlgs
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  art_root_io::TFileService_service
+)
 
 install_headers()
 install_source()
 install_fhicl()
-
-# Libraries I didn't need
-#			ub_RawDigitAdderAna
-#
-#			${ART_FRAMEWORK_IO_SOURCES}
-#                        art_Persistency_Provenance canvas
-#                        ${MF_MESSAGELOGGER}
-#                        
-#                        ${ROOT_BASIC_LIB_LIST}

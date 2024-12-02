@@ -5,6 +5,7 @@
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 
 
 namespace searchingfornues
@@ -37,7 +38,7 @@ namespace searchingfornues
     if (SCE->EnableCalSpatialSCE() == true)
     {
 
-      auto offset = SCE->GetCalPosOffsets(geo::Point_t(x, y, z));
+      auto offset = SCE->GetCalPosOffsets(geo::Point_t(x, y, z), 0);
       x -= offset.X();
       y += offset.Y();
       z += offset.Z();
@@ -87,10 +88,10 @@ namespace searchingfornues
   {
     ApplySCEMappingXYZ(x, y, z);
 
-    auto const &detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    auto const &detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
-    double g4Ticks = detClocks->TPCG4Time2Tick(t) + detProperties->GetXTicksOffset(0, 0, 0) - detProperties->TriggerOffset();
-    float _xtimeoffset = detProperties->ConvertTicksToX(g4Ticks, 0, 0, 0);
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
+    double g4Ticks = clockData.TPCG4Time2Tick(t) + detProp.GetXTicksOffset(0, 0, 0) - trigger_offset(clockData);
+    float _xtimeoffset = detProp.ConvertTicksToX(g4Ticks, 0, 0, 0);
 
     x += _xtimeoffset;
     x += 0.6;
@@ -122,7 +123,7 @@ namespace searchingfornues
 
     if (SCE->EnableCalSpatialSCE() == true)
     {
-      auto offset = SCE->GetCalPosOffsets(geo::Point_t(x, y, z));
+      auto offset = SCE->GetCalPosOffsets(geo::Point_t(x, y, z), 0);
       out[0] = (x - offset.X());
       out[1] = (y + offset.Y());
       out[2] = (z + offset.Z());
@@ -131,10 +132,10 @@ namespace searchingfornues
 
   float x_offset(float t)
   {
-    auto const &detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    auto const &detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
-    double g4Ticks = detClocks->TPCG4Time2Tick(t) + detProperties->GetXTicksOffset(0, 0, 0) - detProperties->TriggerOffset();
-    float xoffset = detProperties->ConvertTicksToX(g4Ticks, 0, 0, 0);
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
+    double g4Ticks = clockData.TPCG4Time2Tick(t) + detProp.GetXTicksOffset(0, 0, 0) - trigger_offset(clockData);
+    float xoffset = detProp.ConvertTicksToX(g4Ticks, 0, 0, 0);
     xoffset += 0.6;
     return xoffset;
   }
@@ -152,15 +153,15 @@ namespace searchingfornues
 
   float GetLocalEFieldMag(const float x, const float y, const float z)
   {
-
-    const detinfo::DetectorProperties* detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
     auto const *sce = lar::providerFrom<spacecharge::SpaceChargeService>();
 
-    double E_field_nominal = detprop->Efield();        // Electric Field in the drift region in KV/cm
+    double E_field_nominal = detProp.Efield();        // Electric Field in the drift region in KV/cm
 
     //correct Efield for SCE
     geo::Vector_t E_field_offsets = {0.,0.,0.};
-    E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{x,y, z});
+    E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{x,y, z}, 0);
     TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
     float E_field = E_field_vector.Mag();
 

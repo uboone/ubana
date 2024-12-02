@@ -1,4 +1,7 @@
 #include "SEAviewer.h"
+
+#include "larcorealg/Geometry/WireReadoutGeom.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -74,11 +77,11 @@ namespace seaview{
 
 	    if( start_to_mid_vec[0]*mid_to_h_vec[0]*pow(wire_con, 2.0) + start_to_mid_vec[1] * mid_to_h_vec[1] *pow(tick_con, 2.0)<= 0 ){
 		cl.f_hit_group[i] = 1;
-		cl.f_mean_ADC_first_half += h->SummedADC();
+		cl.f_mean_ADC_first_half += h->ROISummedADC();
 	    }
 	    else{
 		cl.f_hit_group[i] = 2;
-		cl.f_mean_ADC_second_half += h->SummedADC();
+		cl.f_mean_ADC_second_half += h->ROISummedADC();
 	    }
 	}
 	cl.f_track_treated = true;
@@ -122,9 +125,8 @@ namespace seaview{
         //std::cout << "SEAviewer::TrackLikeClusterAnalyzer\t|| End" << std::endl;
     }
 
-
-    // constructor
-    SEAviewer::SEAviewer(std::string intag, geo::GeometryCore const * ingeom, detinfo::DetectorProperties const * intheDetector ): tag(intag), geom(ingeom), theDetector(intheDetector){
+    //default
+    SEAviewer::SEAviewer(std::string intag, geo::GeometryCore const * ingeom, geo::WireReadoutGeom const * inchannelmap, detinfo::DetectorPropertiesData intheDetector ): tag(intag), geom(ingeom), channelMap(inchannelmap), theDetector(intheDetector){
         chan_max = {-9999,-9999,-9999};
         chan_min = {9999,9999,9999};
         tick_max = -99999;
@@ -233,7 +235,7 @@ namespace seaview{
 	    auto& h = pair.first;  //type of h: recob::Hit
             if(map_unassociated_hits.count(h) !=0 && map_unassociated_hits[h]){
 
-                if(h->SummedADC() < hit_threshold){
+                if(h->ROISummedADC() < hit_threshold){
                     n_below_thresh++;
                     continue;
                 }
@@ -322,16 +324,15 @@ namespace seaview{
 
     std::vector<std::vector<double>> SEAviewer::to2D(std::vector<double> & threeD){
 
-        auto const TPC = (*geom).begin_TPC();  //returns iterator pointing to the first TPC of detector
-        auto ID = TPC.ID(); 
+        auto const ID = *geom->begin<geo::TPCID>();  //returns iterator pointing to the first TPC ID of detector
         int fCryostat = ID.Cryostat;
         int fTPC = ID.TPC;
 
         std::vector<std::vector<double>> ans(3);
 
         for(int i=0; i<3; i++){
-            double wire = (double)calcWire(threeD[1], threeD[2], i, fTPC, fCryostat, *geom);
-            double time = calcTime(threeD[0], i, fTPC,fCryostat, *theDetector);
+            double wire = (double)calcWire(threeD[1], threeD[2], i, fTPC, fCryostat, *channelMap);
+            double time = calcTime(threeD[0], i, fTPC,fCryostat, theDetector);
 
             ans[i] = {wire,time};
         }
@@ -343,16 +344,15 @@ namespace seaview{
 
     int SEAviewer::loadVertex(double m_vertex_pos_x, double m_vertex_pos_y, double m_vertex_pos_z){
 
-        auto const TPC = (*geom).begin_TPC();
-        auto ID = TPC.ID();
+        auto const ID = *geom->begin<geo::TPCID>();  //returns iterator pointing to the first TPC ID of detector
         int fCryostat = ID.Cryostat;
         int fTPC = ID.TPC;
 
         for(int i=0; i<3; i++){
 
 	    // use vector here, so that to plot the single point using TGraph
-            std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-            std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
+            std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *channelMap)};
+            std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
             vertex_tick[i] = time[0];
             vertex_chan[i] = wire[0];
@@ -372,15 +372,14 @@ namespace seaview{
 
         plot_true_vertex = true;
 
-        auto const TPC = (*geom).begin_TPC();
-        auto ID = TPC.ID();
+        auto const ID = *geom->begin<geo::TPCID>();  //returns iterator pointing to the first TPC ID of detector
         int fCryostat = ID.Cryostat;
         int fTPC = ID.TPC;
 
         for(int i=0; i<3; i++){
 
-            std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-            std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
+            std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *channelMap)};
+            std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
             true_vertex_tick[i] = time[0];
             true_vertex_chan[i] = wire[0];
@@ -467,7 +466,7 @@ namespace seaview{
             int ok = m_bad_channel_list[i].second;       
 
             if(ok>1)continue;
-            auto hs = geom->ChannelToWire(badchan); //type of hs: vector containing the ID of all the connected wires
+            auto hs = channelMap->ChannelToWire(badchan); //type of hs: vector containing the ID of all the connected wires
 
             int thisp = (int)hs[0].Plane;
             double bc = hs[0].Wire;
@@ -1243,7 +1242,7 @@ namespace seaview{
 	cl.f_ADC_hist.StatOverflows(kTRUE);
 
 	for(auto& h : hitz){
-	    cl.f_ADC_hist.Fill(h->SummedADC());
+	    cl.f_ADC_hist.Fill(h->ROISummedADC());
 	}
 
         cl.f_meanADC = cl.f_ADC_hist.GetMean();

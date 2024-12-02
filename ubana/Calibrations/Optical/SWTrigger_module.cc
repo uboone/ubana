@@ -14,7 +14,7 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "ubobj/Trigger/ubdaqSoftwareTriggerData.h"
@@ -146,7 +146,7 @@ private:
 
 
 SWTrigger::SWTrigger(fhicl::ParameterSet const & p)
-// :
+  : EDFilter{p}
 // Initialize member data here.
 {
   // Declare handle to analyzer file
@@ -259,8 +259,8 @@ SWTrigger::SWTrigger(fhicl::ParameterSet const & p)
 bool SWTrigger::filter(art::Event & evt)
 {
 
-  auto const* timeService = lar::providerFrom<detinfo::DetectorClocksService>();
-  auto const& opt_clock = timeService->OpticalClock();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
+  auto const& opt_clock = clockData.OpticalClock();
 
   // Implementation of required member function here.
   run    = (int)evt.run();

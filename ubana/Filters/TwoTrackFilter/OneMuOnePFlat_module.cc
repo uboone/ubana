@@ -19,7 +19,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include "ubobj/CRT/CRTHit.hh"
 #include "ubobj/RawData/DAQHeaderTimeUBooNE.h"
@@ -37,6 +37,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
@@ -108,8 +109,6 @@ private:
   art::ServiceHandle<art::TFileService> tfs;
 
   spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
-  detinfo::DetectorProperties const* detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  detinfo::DetectorClocks const* detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
 
   TTree * POTtree;
   int run, subrun;
@@ -563,10 +562,11 @@ SingleMuon::SingleMuon(fhicl::ParameterSet const& pset)
     flux_pars = pset.get< std::vector<std::string> >( "flux_parameter_list" );
   }
 
+  auto const& tpc = geo->TPC();
   _fiducial_volume.Configure(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                             geo->DetHalfHeight(),
-                             2.*geo->DetHalfWidth(),
-                             geo->DetLength());
+                             tpc.HalfHeight(),
+                             2.*tpc.HalfWidth(),
+                             tpc.Length());
 
   _fiducial_volume.PrintConfig();
   Hits_TrackAssLabel = pset.get<std::string>("HitsPerTrackAssLabel");
@@ -586,13 +586,16 @@ void SingleMuon::analyze(art::Event const& evt)
   std::cout<<"Run: "<< evt_run <<" | Subrun: " << evt_subrun <<" | Event: " << evt_evt<<std::endl;
   std::cout<<"-------------------------"<<std::endl;
 
+  auto const clockData =  art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
+
   // prepare X offset for position correction (SCE)
   double xtimeoffset = 0;
   if(IsMC){
     auto const& mct_h = evt.getValidHandle<std::vector<simb::MCTruth> >("generator");
     auto gen = mct_h->at(0);
-    double g4Ticks = detClocks->TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProperties->GetXTicksOffset(0,0,0) - detProperties->TriggerOffset();
-    xtimeoffset = detProperties->ConvertTicksToX(g4Ticks,0,0,0) + 0.6; //6mm X=0 differeneces in wireplanes, wirecell and reconstruction
+    double g4Ticks = clockData.TPCG4Time2Tick(gen.GetNeutrino().Nu().T()) + detProp.GetXTicksOffset(0,0,0) - trigger_offset(clockData);
+    xtimeoffset = detProp.ConvertTicksToX(g4Ticks,0,0,0) + 0.6; //6mm X=0 differeneces in wireplanes, wirecell and reconstruction
   }
   else{
     xtimeoffset = 0;
@@ -798,6 +801,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
   std::vector<art::Ptr< simb::MCParticle >> selected_MCparticle(2);
 
+  auto const& tpc = geo->TPC();
   //-------- Get Reco neutrino (pfparticle)
   for(unsigned int i = 0; i < pfParticle_v.size(); i++){
     auto pfp = pfParticle_v[i];
@@ -965,7 +969,7 @@ void SingleMuon::analyze(art::Event const& evt)
 
           //-- Track start and end (The track start of the muon candidate track will be the vertex)
           Trk_start[i_trk] = daughter_Tracks[i_trk]->Start<TVector3>();
-          auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start[i_trk].X(), Trk_start[i_trk].Y(), Trk_start[i_trk].Z()));
+          auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start[i_trk].X(), Trk_start[i_trk].Y(), Trk_start[i_trk].Z()), 0);
           Trk_start_SCEcorr[i_trk].SetX(Trk_start[i_trk].X() - Trk_start_offset.X() + xtimeoffset);
           Trk_start_SCEcorr[i_trk].SetY(Trk_start[i_trk].Y() + Trk_start_offset.Y());
           Trk_start_SCEcorr[i_trk].SetZ(Trk_start[i_trk].Z() + Trk_start_offset.Z());
@@ -975,7 +979,7 @@ void SingleMuon::analyze(art::Event const& evt)
           trk_start_z[i_trk] = Trk_start_SCEcorr[i_trk].Z();
 
           Trk_end[i_trk] = daughter_Tracks[i_trk]->End<TVector3>();
-          auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end[i_trk].X(), Trk_end[i_trk].Y(), Trk_end[i_trk].Z()));
+          auto Trk_end_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_end[i_trk].X(), Trk_end[i_trk].Y(), Trk_end[i_trk].Z()), 0);
           Trk_end_SCEcorr[i_trk].SetX(Trk_end[i_trk].X() - Trk_end_offset.X() + xtimeoffset);
           Trk_end_SCEcorr[i_trk].SetY(Trk_end[i_trk].Y() + Trk_end_offset.Y());
           Trk_end_SCEcorr[i_trk].SetZ(Trk_end[i_trk].Z() + Trk_end_offset.Z());
@@ -985,7 +989,7 @@ void SingleMuon::analyze(art::Event const& evt)
           trk_end_z[i_trk] = Trk_end_SCEcorr[i_trk].Z();
 
           //-- Track out of time
-          if( Trk_start_SCEcorr[i_trk].X() < 0 || Trk_start_SCEcorr[i_trk].X() > 2. * geo->DetHalfWidth() || Trk_end_SCEcorr[i_trk].X() < 0 || Trk_end_SCEcorr[i_trk].X() > 2. * geo->DetHalfWidth()){
+          if( Trk_start_SCEcorr[i_trk].X() < 0 || Trk_start_SCEcorr[i_trk].X() > 2. * tpc.HalfWidth() || Trk_end_SCEcorr[i_trk].X() < 0 || Trk_end_SCEcorr[i_trk].X() > 2. * tpc.HalfWidth()){
             trk_OutOfTime[i_trk] = true;
           }
           else{

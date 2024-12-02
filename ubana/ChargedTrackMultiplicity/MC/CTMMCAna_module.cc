@@ -19,8 +19,8 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindMany.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Utilities/InputTag.h"
@@ -48,7 +48,6 @@
 #include "lardataobj/RawData/BeamInfo.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
@@ -63,7 +62,6 @@
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/MCSFitResult.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "ubobj/Trigger/ubdaqSoftwareTriggerData.h"
@@ -179,7 +177,8 @@
     { std::fill(std::begin(data), std::end(data), value); }
 
      //backTracker
-     void truthMatcher( std::vector<art::Ptr<recob::Hit>> all_hits, std::vector<art::Ptr<recob::Hit>> track_hits, const simb::MCParticle *&MCparticle, double &Efrac, double &Ecomplet);
+    void truthMatcher(detinfo::DetectorClocksData const& clockData,
+                      std::vector<art::Ptr<recob::Hit>> all_hits, std::vector<art::Ptr<recob::Hit>> track_hits, const simb::MCParticle *&MCparticle, double &Efrac, double &Ecomplet);
 
      //Function for calculation KE for diffenert particles and ranges
      float T(int pdg, float range);  
@@ -563,7 +562,6 @@
      *  @brief Standard useful properties
      */
     geo::GeometryCore const*            fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const*  fDetector;           ///< Pointer to the detector properties
     /// @}
     
    };
@@ -572,8 +570,7 @@
     // Constructor
    CTMMCAna::CTMMCAna(fhicl::ParameterSet const& pset): 
    EDAnalyzer(pset),
-   fGeometry(lar::providerFrom<geo::Geometry>()),
-   fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
+    fGeometry(lar::providerFrom<geo::Geometry>())
   {
       this->reconfigure(pset);
   }
@@ -1777,9 +1774,10 @@
     fGenieGenModuleLabel     = pset.get< std::string > ("GenieGenModuleLabel", "generator");    
     fTrackMCSFitLabel        = pset.get< std::string > ("TrackMCSFitLabel", "pandoraNuMCSMu");
 
-    fDistToEdgeX             = fGeometry->DetHalfWidth()   - pset.get<double>("DistToEdgeX",   10.);
-    fDistToEdgeY             = fGeometry->DetHalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
-    fDistToEdgeZ             = fGeometry->DetLength() / 2. - pset.get<double>("DistToEdgeZ",   10.);
+    auto const& tpc = fGeometry->TPC();
+    fDistToEdgeX             = tpc.HalfWidth()   - pset.get<double>("DistToEdgeX",   10.);
+    fDistToEdgeY             = tpc.HalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
+    fDistToEdgeZ             = tpc.Length() / 2. - pset.get<double>("DistToEdgeZ",   10.);
     
     fFlashWidth              = pset.get<double>      ("FlashWidth", 80.);
     fBeamMin                 = pset.get<double>      ("BeamMin", 3.2);
@@ -1796,9 +1794,10 @@
  //========================================================================	
 bool CTMMCAna::inFV(double x, double y, double z) const
 {
-    double distInX = x - fGeometry->DetHalfWidth();
+    auto const& tpc = fGeometry->TPC();
+    double distInX = x - tpc.HalfWidth();
     double distInY = y;
-    double distInZ = z - 0.5 * fGeometry->DetLength();
+    double distInZ = z - 0.5 * tpc.Length();
     
     if (fabs(distInX) < fDistToEdgeX && fabs(distInY) < fDistToEdgeY && fabs(distInZ) < fDistToEdgeZ) return true;
     
@@ -1819,7 +1818,8 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
     }
 }
  //=========================================================================
-  void CTMMCAna::truthMatcher( std::vector<art::Ptr<recob::Hit>> all_hits, std::vector<art::Ptr<recob::Hit>> track_hits, const simb::MCParticle *&MCparticle, double &Efrac, double &Ecomplet)
+  void CTMMCAna::truthMatcher(detinfo::DetectorClocksData const& clockData,
+                              std::vector<art::Ptr<recob::Hit>> all_hits, std::vector<art::Ptr<recob::Hit>> track_hits, const simb::MCParticle *&MCparticle, double &Efrac, double &Ecomplet)
   {		
   //art::ServiceHandle<cheat::BackTracker> bt;	
   std::map<int,double> trkID_E;	
@@ -1828,14 +1828,14 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
     art::Ptr<recob::Hit> hit = track_hits[j];
     //const auto& hit = *track_hits[j];
     //std::vector<sim::TrackIDE> TrackIDs = bt->HitToTrackID(hit);
-    std::vector<sim::TrackIDE> TrackIDs = fMCTruthMatching->HitToTrackID(hit);
+        std::vector<sim::TrackIDE> TrackIDs = fMCTruthMatching->HitToTrackID(clockData, hit);
     for(size_t k = 0; k < TrackIDs.size(); k++)
     {	
       trkID_E[TrackIDs[k].trackID] += TrackIDs[k].energy;
     }
   }
 
-  double E_em =0.0;	
+  // double E_em =0.0;	// unused
   double max_E = -999.0;	
   double total_E = 0.0;	
   int TrackID = -999;	
@@ -1855,7 +1855,7 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
       partial_E = ii->second;
       max_E = ii->second;
       TrackID = ii->first;
-      if( TrackID < 0 ) E_em += ii->second;
+      // if( TrackID < 0 ) E_em += ii->second; // unused
     }	
   }
    	
@@ -1873,7 +1873,7 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
   {	
     art::Ptr<recob::Hit> hit = all_hits[k];	
     //std::vector<sim::TrackIDE> TrackIDs = bt->HitToTrackID(hit);	
-    std::vector<sim::TrackIDE> TrackIDs = fMCTruthMatching->HitToTrackID(hit);	
+        std::vector<sim::TrackIDE> TrackIDs = fMCTruthMatching->HitToTrackID(clockData, hit);
     for(size_t l = 0; l < TrackIDs.size(); ++l)
     {	
       if(TrackIDs[l].trackID==TrackID) totenergy += TrackIDs[l].energy;	
@@ -1920,6 +1920,7 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
         art::fill_ptr_vector(flashlist, flashListHandle);
     
     // Require valid handles, otherwise nothing to do
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
     if (vertexVecHandle.isValid() && vertexVecHandle->size() > 0 && trackVecHandle.isValid() && trackVecHandle->size() > 0)
     {
         // Recover associations to PFParticles...
@@ -2169,7 +2170,7 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
       double tmpEfrac = 0;	
       double tmpEcomplet =0;	
       const simb::MCParticle *particle;	
-      truthMatcher( hitlist, longtrackhits, particle, tmpEfrac, tmpEcomplet );	
+                            truthMatcher(clockData, hitlist, longtrackhits, particle, tmpEfrac, tmpEcomplet );
 
       //if (!particle) continue;	
       
@@ -2426,7 +2427,7 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
           double tmpEcompletm =0;	
           const simb::MCParticle *mparticle;	
 
-          truthMatcher( hitlist, alltrackhits, mparticle, tmpEfracm, tmpEcompletm );	
+                                        truthMatcher(clockData, hitlist, alltrackhits, mparticle, tmpEfracm, tmpEcompletm );
           if (!mparticle) continue;
 	
 	  parID.push_back(mparticle->TrackId());
@@ -2999,7 +3000,6 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
 	
       if((PH==1 && MCS==1) || (PH==-1 && MCS==1) || (PH==1 && MCS==-1) || (PH==-1 && MCS==-1))
       {
-
 	  fDataTreeFinalSel->Fill();	  
            }//if((PH==1 && MCS==1) || (PH==-1 && MCS==1) || (PH==1 && MCS==-1) || (PH==-1 && MCS==-1))  
           }//if(_fnlongcolhits >= MinColHits)
@@ -3021,4 +3021,3 @@ double CTMMCAna::FlashTrackDist(double flash, double start, double end) const
  } // namespace CTMMCAna_module
  
   #endif //CTMMCANA_H
-  

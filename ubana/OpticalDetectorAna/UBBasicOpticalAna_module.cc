@@ -16,9 +16,10 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardataobj/RecoBase/OpHit.h"
 #include "lardataobj/RecoBase/OpFlash.h"
@@ -54,7 +55,7 @@ private:
   std::vector< bool             > _do_wfana_v;
   std::vector< bool             > _store_wf_v;
   std::vector< bool             > _store_ev_wf_v;
-  std::vector< ::pmtana::OpDetWaveformAna > _ana_v;
+  std::vector< std::unique_ptr<::pmtana::OpDetWaveformAna> > _ana_v;
   // Declare member data here.
 
 };
@@ -78,7 +79,7 @@ UBBasicOpticalAna::UBBasicOpticalAna(fhicl::ParameterSet const & p)
   assert( _module_v.size () == _store_ev_wf_v.size  () );
 
   for(auto const& name : _module_v)
-    _ana_v.emplace_back( name );
+    _ana_v.push_back( std::make_unique<::pmtana::OpDetWaveformAna>(name) );
   
 }
 
@@ -88,19 +89,19 @@ void UBBasicOpticalAna::beginJob()
   for(size_t i=0; i<_ana_v.size(); ++i) {
    
     
-    if( _do_hitana_v [i]     ) _ana_v[i].AnaHit         ( fs->make<TTree> ( "hitana_tree"  , "" ) );
-    if( _do_wfana_v  [i]     ) _ana_v[i].AnaWaveform    ( fs->make<TTree> ( "hitwf_tree"   , "" ) );
-    if( _store_wf_v  [i]     ) _ana_v[i].SaveWaveform   ( fs->make<TTree> ( "wf_tree"      , "" ) );
-    if( _store_ev_wf_v[i]    ) _ana_v[i].SaveEvWaveform ( fs->make<TTree> ( "ev_wf_tree"   , "" ) );
-    if (_hit_producer != ""  ) _ana_v[i].SaveEvHit      ( fs->make<TTree> ( "ev_hit_tree"  , "" ) );
-    if (_flash_producer != "") _ana_v[i].SaveEvFlash    ( fs->make<TTree> ( "ev_flash_tree", "" ) );
+    if( _do_hitana_v [i]     ) _ana_v[i]->AnaHit         ( fs->make<TTree> ( "hitana_tree"  , "" ) );
+    if( _do_wfana_v  [i]     ) _ana_v[i]->AnaWaveform    ( fs->make<TTree> ( "hitwf_tree"   , "" ) );
+    if( _store_wf_v  [i]     ) _ana_v[i]->SaveWaveform   ( fs->make<TTree> ( "wf_tree"      , "" ) );
+    if( _store_ev_wf_v[i]    ) _ana_v[i]->SaveEvWaveform ( fs->make<TTree> ( "ev_wf_tree"   , "" ) );
+    if (_hit_producer != ""  ) _ana_v[i]->SaveEvHit      ( fs->make<TTree> ( "ev_hit_tree"  , "" ) );
+    if (_flash_producer != "") _ana_v[i]->SaveEvFlash    ( fs->make<TTree> ( "ev_flash_tree", "" ) );
 
   }    
 }
 
 void UBBasicOpticalAna::analyze(art::Event const & e)
 {
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   auto run = e.run();
   auto sub = e.subRun();
@@ -109,9 +110,9 @@ void UBBasicOpticalAna::analyze(art::Event const & e)
   // Implementation of required member function here.
   for(size_t i=0; i<_module_v.size(); ++i) {
 
-    _ana_v[i].SetEventInfo(run,sub,evt);
+    _ana_v[i]->SetEventInfo(run,sub,evt);
    
-    _ana_v[i].TickPeriod(ts->OpticalClock().TickPeriod());
+    _ana_v[i]->TickPeriod(clockData.OpticalClock().TickPeriod());
  
     art::Handle< std::vector< raw::OpDetWaveform > > wf_handle;
     e.getByLabel( _module_v[i], wf_handle );
@@ -119,24 +120,24 @@ void UBBasicOpticalAna::analyze(art::Event const & e)
     if (_hit_producer != "") {
       art::Handle< std::vector< recob::OpHit > > hit_handle;
       e.getByLabel( _hit_producer, hit_handle );
-      _ana_v[i].AnaEventHit(*hit_handle);
+      _ana_v[i]->AnaEventHit(*hit_handle);
     }// if hit producer is specified
 
     if (_flash_producer != "") {
       art::Handle< std::vector< recob::OpFlash > > flash_handle;
       e.getByLabel( _flash_producer, flash_handle );
-      _ana_v[i].AnaEventFlash(*flash_handle);
+      _ana_v[i]->AnaEventFlash(*flash_handle);
     }// if hit producer is specified
 
     if(!wf_handle.isValid()) continue;
 
     if (_store_ev_wf_v[i] == true) 
-      _ana_v[i].AnaEventWaveform(*wf_handle);
+      _ana_v[i]->AnaEventWaveform(*wf_handle);
 
     for(auto const& wf : *wf_handle) {
       if(!wf.size()) continue;
-      _ana_v[i].AnaWaveform( wf.ChannelNumber(),
-			     wf.TimeStamp() - ts->TriggerTime(),
+      _ana_v[i]->AnaWaveform( wf.ChannelNumber(),
+                             wf.TimeStamp() - clockData.TriggerTime(),
 			     wf );
     }
   }

@@ -1,10 +1,9 @@
-art_make( LIB_LIBRARIES
-				 lardataobj_RecoBase
-				 larcorealg_Geometry
-				 lardataalg_DetectorInfo
-                                 ${BOOST_LIB}
-                                 ${FHICLCPP}
-                                 cetlib cetlib_except
-                                 ${ROOT_BASIC_LIB_LIST}
-                                 ${Boost_SYSTEM_LIBRARY}
+cet_make_library(
+  SOURCE
+  AnodeCathodePMAlg.cxx
+  LIBRARIES
+  PUBLIC
+  lardataalg::DetectorInfo
+  larcorealg::Geometry
+  fhiclcpp::fhiclcpp
 )

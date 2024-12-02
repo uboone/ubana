@@ -243,8 +243,7 @@ namespace lee {
 		else
 			_gain = _mc_gain;
 
-		detinfo::DetectorProperties const *detprop =
-			lar::providerFrom<detinfo::DetectorPropertiesService>();
+                auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt);
 		// art::ServiceHandle<geo::Geometry> geom;
 
 		auto const &pfparticle_handle =
@@ -269,7 +268,7 @@ namespace lee {
 		std::vector<art::Ptr<recob::Cluster>> clusters =
 			clusters_per_pfpart.at(pfp_id);
 
-		double drift = detprop->DriftVelocity() * 1e-3;
+                double drift = detProp.DriftVelocity() * 1e-3;
 		//std::cout << drift << std::endl;
 		//std::cout << "[dQdx] Clusters size " << clusters.size() << std::endl;
 
@@ -289,7 +288,7 @@ namespace lee {
 			// To get the time in ns -> 4.8 ms / 9600 ticks * 1e6 = 500
 			// 0.3 wire spacing
 
-			double fromTickToNs = 4.8 / detprop->ReadOutWindowSize() * 1e6;
+                        double fromTickToNs = 4.8 / detProp.ReadOutWindowSize() * 1e6;
 			double wireSpacing = 0.3;
 
 			std::vector<double> cluster_start = {

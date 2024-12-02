@@ -29,8 +29,8 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "fhiclcpp/ParameterSet.h"
 // art includes
 #include "canvas/Utilities/InputTag.h"
@@ -57,7 +57,6 @@
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 // Auxiliary objects includes
 #include "ubana/HSNAnalysis/HsnFinder/DataObjects/DecayVertex.h"
 #include "ubana/HSNAnalysis/HsnFinder/DataObjects/EventTreeFiller.h"
@@ -82,7 +81,6 @@ namespace RecoTruthDistance
     bool fVerbose;
     // microboone services
     const geo::GeometryCore* fGeometry;
-    const detinfo::DetectorProperties* fDetectorProperties;
   };
 
 } // END namespace RecoTruthDistance

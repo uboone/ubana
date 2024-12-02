@@ -45,7 +45,7 @@
 // been any re-organisation of header files.
 
 // ART includes
-#include "art/Framework/Services/Optional/TFileService.h" // used for ROOT file
+#include "art_root_io/TFileService.h" // used for ROOT file
 
 // LArSoft includes
 #include "lardataobj/RecoBase/Track.h"
@@ -179,17 +179,9 @@ void UsingHandlesAna::analyze(art::Event const & e)
   // How do you know what data products you can access? Check
   // whats in the file! You can do this by running
   // lar -c eventdump.fcl my_input_artroot_file.root
-  art::Handle< std::vector<recob::Track> > trackHandle;
+  auto const& tracks = e.getProduct<std::vector<recob::Track>>(fTrackLabel);
 
-  // getByLabel will fill the track handle with a
-  // std::vector<recob::Track> with the label defined in
-  // fTrackLabel (which comes from the fhicl file)
-  e.getByLabel(fTrackLabel, trackHandle);
-
-  // --------------------------------------------------------------------------
-  // FIRST METHOD FOR USING THE HANDLE
-  // just access it directly
-  for (recob::Track const& thisTrack : (*trackHandle)){
+  for (recob::Track const& thisTrack : tracks){
 
     // this way, you already have the recob::Track object and so
     // you can just get the stuff directly
@@ -203,28 +195,6 @@ void UsingHandlesAna::analyze(art::Event const & e)
 
   }
   // --------------------------------------------------------------------------
-
-  // --------------------------------------------------------------------------
-  // SECOND METHOD FOR USING THE HANDLE
-  // access via a ptr vector
-  std::vector< art::Ptr<recob::Track> > trackPtrVector;
-  art::fill_ptr_vector(trackPtrVector, trackHandle);
-  for (size_t i = 0; i < trackPtrVector.size(); i++){
-    
-    art::Ptr<recob::Track> thisTrack = trackPtrVector.at(i);
-
-    // now we have an art::Ptr to an object. The accessor for this is ->, just
-    // like a regular pointer, i.e:
-
-    track_length = thisTrack->Length();
-    track_theta  = thisTrack->Theta();
-    track_phi    = thisTrack->Phi();
-
-    track_length_fromptrvec_v.push_back(track_length);
-    track_theta_fromptrvec_v.push_back(track_theta);
-    track_phi_fromptrvec_v.push_back(track_phi);
-
-  }
 
   out_tree->Fill();
 

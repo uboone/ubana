@@ -6,7 +6,8 @@ services:
 {
   TFileService:            { fileName: "pmt_waveform_ana.root" }
   TimeTracker:             {}
-  ExptGeoHelperInterface:         @local::microboone_geometry_helper
+  WireReadout:         @local::microboone_wire_readout
+  GeometryConfigurationWriter:    {}
   Geometry:                       @local::microboone_geo
   DetectorPropertiesService:      @local::microboone_detproperties
   LArProperties:                  @local::microboone_properties

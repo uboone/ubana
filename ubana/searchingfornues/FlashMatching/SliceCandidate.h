@@ -9,6 +9,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 
 #include "larevt/CalibrationDBI/Interface/PmtGainService.h"
 #include "larevt/CalibrationDBI/Interface/PmtGainProvider.h"
@@ -74,6 +75,7 @@ namespace flashmatch {
 	{
 	
 	  art::ServiceHandle<geo::Geometry> geo;
+          auto const& wireReadout = art::ServiceHandle<geo::WireReadout const>()->Get();
 	  // gain service
 	  /* const ::lariov::PmtGainProvider& gain_provider = art::ServiceHandle<lariov::PmtGainService>()->GetProvider(); */
 	  /* // pmt remapping service */
@@ -88,8 +90,8 @@ namespace flashmatch {
 	  m_peSpectrum.resize(nOpDets);
 	
 	  for (size_t OpChannel = 0; OpChannel < nOpDets; ++OpChannel) {
-	    if (!geo->IsValidOpChannel(OpChannel)) continue;
-	    size_t OpDet     = geo->OpDetFromOpChannel(OpChannel);
+            if (!wireReadout.IsValidOpChannel(OpChannel)) continue;
+            size_t OpDet     = wireReadout.OpDetFromOpChannel(OpChannel);
 	    m_peSpectrum.at(OpDet)  = flash.PEs()[OpChannel];
 	  }
 	  /* for (size_t pmt=FEM; pmt < FEM+nOpDets; pmt++) { */
@@ -468,15 +470,16 @@ namespace flashmatch {
 
       //--------------------------------------------------------------------
       // implementing electron lifetime correction [D. Caratelli 08/12/2022]
-      const detinfo::DetectorProperties* detprop;
-      detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
+      auto const detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
 
       //handle to electron lifetime calibration provider
       const lariov::UBElectronLifetimeProvider& elifetimeCalibProvider
 	= art::ServiceHandle<lariov::UBElectronLifetimeService>()->GetProvider();
 
       float elifetime  = elifetimeCalibProvider.Lifetime(); // [ms]
-      float driftvelocity = detprop->DriftVelocity(); // [cm/us]
+      double efield = detprop.Efield();
+      double temp   = detprop.Temperature();
+      float driftvelocity = detprop.DriftVelocity(efield, temp); // [cm/us]
 
       //std::cout << "LIFETIMECORRECTION [FlashNeutrinoId][GetDepositionVector] lifetime is : "
       //      << elifetime << " [ms] and drift velocity is " << driftvelocity << " [cm/us]" << std::endl;
@@ -538,15 +541,16 @@ namespace flashmatch {
 
       //--------------------------------------------------------------------
       // implementing electron lifetime correction [D. Caratelli 08/12/2022]
-      const detinfo::DetectorProperties* detprop;
-      detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
+      auto const detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
 
       //handle to electron lifetime calibration provider
       const lariov::UBElectronLifetimeProvider& elifetimeCalibProvider
 	= art::ServiceHandle<lariov::UBElectronLifetimeService>()->GetProvider();
 
       float elifetime  = elifetimeCalibProvider.Lifetime(); // [ms]
-      float driftvelocity = detprop->DriftVelocity(); // [cm/us]
+      double efield = detprop.Efield();
+      double temp   = detprop.Temperature();
+      float driftvelocity = detprop.DriftVelocity(efield, temp); // [cm/us]
 
       //std::cout << "LIFETIMECORRECTION [FlashNeutrinoId][GetDepositionVector] lifetime is : "
       //      << elifetime << " [ms] and drift velocity is " << driftvelocity << " [cm/us]" << std::endl;

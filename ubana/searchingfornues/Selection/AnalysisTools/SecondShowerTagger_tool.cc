@@ -4,13 +4,13 @@
 #include <iostream>
 #include "AnalysisToolBase.h"
 
-#include "art/Persistency/Common/PtrMaker.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/Utilities/FindManyInChainP.h"
 
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
-#include "../CommonDefs/TrackFitterFunctions.h"
-#include "../CommonDefs/ShowerBranchTagger.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackFitterFunctions.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/ShowerBranchTagger.h"
 
 namespace analysis
 {
@@ -103,10 +103,11 @@ namespace analysis
     configure(pset);
 
     // get detector specific properties
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
-    auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    _wire2cm = geom->WirePitch(0,0,0);
-    _time2cm = detp->SamplingRate() / 1000.0 * detp->DriftVelocity( detp->Efield(), detp->Temperature() );
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
+    _wire2cm = channelMap.Plane(geo::PlaneID{0,0,0}).WirePitch();
+    _time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
   }
   
@@ -225,7 +226,7 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
 	for (size_t hi=0; hi < gaushit_hit_v.size(); hi++) {
 	  auto hit = gaushit_hit_v.at(hi);
 	  //gammaWire += hit->WireID().Wire * _wire2cm * hit->Integral();
-	  //gammaTime += (hit->PeakTime() - detp->TriggerOffset())  * _time2cm * hit->Integral();
+	  //gammaTime += (hit->PeakTime() - trigger_offset(clockData))  * _time2cm * hit->Integral();
 	  charge += hit->Integral();
 	  auto vtxdistance = searchingfornues::HitPtDistance(nuvtx,hit,_wire2cm,_time2cm);
 	  if (vtxdistance < vtxdistancemin) { vtxdistancemin = vtxdistance; }

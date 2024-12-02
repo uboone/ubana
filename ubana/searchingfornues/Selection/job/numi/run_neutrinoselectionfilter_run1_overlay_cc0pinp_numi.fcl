@@ -8,6 +8,7 @@ physics.filters.nuselection.AnalysisTools.shower:   @local::ShowerAnalysisTool
 
 # Set NuMI flag 
 physics.filters.nuselection.AnalysisTools.default.makeNuMINtuple: true
+
 # Set Common Optical filter label
 physics.filters.nuselection.AnalysisTools.default.NuMIOpFiltProcName:    "OverlayStage1Optical"
 

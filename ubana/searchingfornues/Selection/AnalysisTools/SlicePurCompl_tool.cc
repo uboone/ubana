@@ -8,7 +8,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
 
 namespace analysis
 {

@@ -1,3 +1,6 @@
+#ifndef UBANA_SINGLEPHOTONANALYSIS_ISOLATION_H
+#define UBANA_SINGLEPHOTONANALYSIS_ISOLATION_H
+
 #include "SinglePhoton_module.h"
 #include "TCanvas.h"
 #include "TGraph.h"
@@ -15,18 +18,18 @@
 #include "TH1.h"
 
 // override function of sorts for max_element function comparison
-bool  map_max_fn(const std::pair<art::Ptr<recob::Hit>,double> p1, const std::pair<art::Ptr<recob::Hit>,  double> p2){
+inline bool  map_max_fn(const std::pair<art::Ptr<recob::Hit>,double> p1, const std::pair<art::Ptr<recob::Hit>,  double> p2){
 	return (p1.second < p2.second);
 }
 
 // override function of sorts for min_element function comparison
-bool  map_min_fn(const std::pair<art::Ptr<recob::Hit>,double> p1, const std::pair<art::Ptr<recob::Hit>,  double> p2){
+inline bool  map_min_fn(const std::pair<art::Ptr<recob::Hit>,double> p1, const std::pair<art::Ptr<recob::Hit>,  double> p2){
 	return (p1.second > p2.second);
 }
 
 namespace single_photon{
 
-void SinglePhoton::ClearIsolation(){
+inline void SinglePhoton::ClearIsolation(){
     m_isolation_min_dist_trk_shr.clear();
     m_isolation_min_dist_trk_unassoc.clear();
 
@@ -47,7 +50,7 @@ void SinglePhoton::ClearIsolation(){
     m_isolation_nearest_unassoc_hit_to_trk_time.clear();
 }
 
-void SinglePhoton::CreateIsolationBranches(){
+inline void SinglePhoton::CreateIsolationBranches(){
     vertex_tree->Branch("isolation_min_dist_trk_shr", &m_isolation_min_dist_trk_shr);
     vertex_tree->Branch("isolation_min_dist_trk_unassoc", &m_isolation_min_dist_trk_unassoc);
 
@@ -80,7 +83,7 @@ void SinglePhoton::CreateIsolationBranches(){
  * 6. map named pfParticleToSliceIDMap	of .i. art ptr to recob pfparticle	.ii. int
  * 7. map named sliceIDToHitsMap	of .i. int and				.ii. art ptr to recob hit
 */
-void SinglePhoton::IsolationStudy(
+inline void SinglePhoton::IsolationStudy(
 	const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
 	const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
         const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
@@ -475,11 +478,10 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
             }
 
             std::cout<<"*Tick Min: "<<tick_min<<" Max: "<<tick_max<<std::endl;
-            auto const TPC = (*geom).begin_TPC();
-            auto ID = TPC.ID();
+            auto const ID = *geom->begin<geo::TPCID>();
             int fCryostat = ID.Cryostat;
             int fTPC = ID.TPC;
-            std::cout<<TPC.ID()<<"*= the beginning TPC ID" <<std::endl;
+            std::cout<<ID<<"*= the beginning TPC ID" <<std::endl;
             std::cout<<"*the cryostat id = "<<fCryostat<<std::endl;  
             std::cout<<"*the tpc id = "<<fTPC<<std::endl;  
 
@@ -496,8 +498,8 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
 
                 if(i==0 ) pader->SetLeftMargin(0.1);
 
-                std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
+                std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *m_channelMap)};
+                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
                 vertex_time[i] = time[0];
                 vertex_wire[i] = wire[0];
@@ -536,7 +538,7 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
                 int ok = bad_channel_list_fixed_mcc9[i].second;       
 
                 if(ok>1)continue;
-                auto hs = geom->ChannelToWire(badchan);
+                auto hs = m_channelMap->ChannelToWire(badchan);
 
                 int thisp = (int)hs[0].Plane;
                 double bc = hs[0].Wire;
@@ -660,3 +662,4 @@ std::cout << "Isolation: Acquiring unassociated hits coordinates and comparing w
 
 }
 
+#endif

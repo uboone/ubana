@@ -18,7 +18,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/View.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "art/Framework/Core/FileBlock.h"
@@ -35,9 +35,8 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
-#include "larcorealg/Geometry/GeometryCore.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
@@ -102,8 +101,7 @@ private:
     int fSubRun;
 
     // Other variables that will be shared between different methods.
-    geo::GeometryCore const*             fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const* fDetectorProperties; ///< Pointer to the detector properties
+    geo::WireReadoutGeom const* fChannelMap;
 
 }; // class  TPCNeutrinoIDAna
 
@@ -160,8 +158,7 @@ void  TPCNeutrinoIDAna::reconfigure(fhicl::ParameterSet const& pset)
     // **TODO** learn how to recover from art framework
     fInputFileName = pset.get<std::string>("FullyQualifiedInputFile");
     
-    fGeometry = lar::providerFrom<geo::Geometry>();
-    fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    fChannelMap = &art::ServiceHandle<geo::WireReadout>()->Get();
     
     return;
 }
@@ -191,6 +188,7 @@ void  TPCNeutrinoIDAna::analyze(const art::Event& event)
     // In principle we can have several producers running over various configurations of vertices and tracks.
     // The output associations we want to check are then encapsuated in the input vectors of strings
     // So the outer loop is over the indices
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(event);
     for(size_t assnIdx = 0; assnIdx < fVertexModuleLabelVec.size(); assnIdx++)
     {
         // Recover a handle to the collection of vertices
@@ -227,13 +225,9 @@ void  TPCNeutrinoIDAna::analyze(const art::Event& event)
                         const auto& trackStart = track->Vertex();
                         const auto& trackEnd   = track->End();
                         
-                        // Geometry routines want to see an array...
-                        double trackStartPos[] = {trackStart.X(),trackStart.Y(),trackStart.Z()};
-                        double trackEndPos[]   = {trackEnd.X(),  trackEnd.Y(),  trackEnd.Z()};
-
                         // Starting and ending ticks depend on the x position, we'll use the W plane for reference
-                        size_t startTicks = fDetectorProperties->ConvertXToTicks(trackStartPos[0], 2, 0, 0);
-                        size_t endTicks   = fDetectorProperties->ConvertXToTicks(trackEndPos[0], 2, 0, 0);
+                        size_t startTicks = detProp.ConvertXToTicks(trackStart.X(), 2, 0, 0);
+                        size_t endTicks   = detProp.ConvertXToTicks(trackEnd.X(), 2, 0, 0);
                         size_t loTicks    = std::min(startTicks,endTicks);
                         size_t hiTicks    = std::max(startTicks,endTicks);
                         
@@ -242,10 +236,11 @@ void  TPCNeutrinoIDAna::analyze(const art::Event& event)
                         minTicks = std::min(minTicks,loTicks);
                         
                         // now loop over views to get starting/ending wires
-                        for(size_t viewIdx = 0; viewIdx < fGeometry->Nviews(); viewIdx++)
+                        for(unsigned int viewIdx = 0; viewIdx < fChannelMap->Nviews(); ++viewIdx)
                         {
-                            size_t startWire  = fGeometry->NearestWire(trackStartPos, viewIdx);
-                            size_t endWire    = fGeometry->NearestWire(trackEndPos,   viewIdx);
+                            geo::PlaneID const planeID{0, 0, viewIdx};
+                            size_t startWire  = fChannelMap->Plane(planeID).NearestWireID(trackStart).Wire;
+                            size_t endWire    = fChannelMap->Plane(planeID).NearestWireID(trackEnd).Wire;
                             
                             size_t lowWire    = std::min(startWire,endWire);
                             size_t hiWire     = std::max(startWire,endWire);

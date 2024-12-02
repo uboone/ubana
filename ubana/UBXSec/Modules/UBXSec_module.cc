@@ -37,8 +37,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 // Data products include
@@ -85,7 +85,9 @@
 #include "ubreco/UBFlashFinder/PECalib.h"
 #include "larsim/MCCheater/BackTracker.h"
 #include "lardata/Utilities/AssociationUtil.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "ubobj/Trigger/ubdaqSoftwareTriggerData.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/MCBase/MCDataHolder.h"
@@ -97,7 +99,7 @@
 //#include "ubana/UBXSec/Algorithms/McPfpMatch.h"
 #include "ubana/UBXSec/Algorithms/FindDeadRegions.h"
 #include "ubana/UBXSec/Algorithms/MuonCandidateFinder.h"
-#include "ubana/UBXSec/Algorithms/FiducialVolume.h"
+#include "ubana/Utilities/FiducialVolume.h"
 #include "ubana/UBXSec/Algorithms/NuMuCCEventSelection.h"
 #include "ubana/UBXSec/Algorithms/TrackQuality.h"
 
@@ -152,6 +154,8 @@ private:
   /// Calculates flash position
   void GetFlashLocation(std::vector<double>, double&, double&, double&, double&);
 
+  geo::TPCGeo const& _tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
+
   FindDeadRegions deadRegionsFinder;
   //ubxsec::McPfpMatch mcpfpMatcher;
   ::ubana::FiducialVolume _fiducial_volume;
@@ -163,8 +167,6 @@ private:
   const TDatabasePDG* _database_pdg = TDatabasePDG::Instance();
 
   // Services
-  ::detinfo::DetectorProperties const* _detector_properties;
-  ::detinfo::DetectorClocks const* _detector_clocks;
   spacecharge::SpaceCharge const* _SCE;
 
   // To be set via fcl parameters
@@ -276,13 +278,16 @@ private:
 
 
 UBXSec::UBXSec(fhicl::ParameterSet const & p)
-  : _min_track_len{p.get<double>("MinTrackLength", 0.1)}
+  : EDProducer{p}
+  , _fiducial_volume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
+                     _tpc.HalfHeight(),
+                     2.*_tpc.HalfWidth(),
+                     _tpc.Length())
+  , _min_track_len{p.get<double>("MinTrackLength", 0.1)}
   , _trk_mom_calculator{_min_track_len}
 {
 
   //::art::ServiceHandle<cheat::BackTracker> bt;
-  ::art::ServiceHandle<geo::Geometry> geo;
-
   _pfp_producer                   = p.get<std::string>("PFParticleProducer");
   _hitfinderLabel                 = p.get<std::string>("HitProducer");
   _geantModuleLabel               = p.get<std::string>("GeantModule");
@@ -328,11 +333,6 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p)
 
   _pecalib.Configure(p.get<fhicl::ParameterSet>("PECalib"));
 
-  _fiducial_volume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"), 
-                             geo->DetHalfHeight(),
-                             2.*geo->DetHalfWidth(),
-                             geo->DetLength());
-
   _fiducial_volume.PrintConfig();
 
   _muon_finder.Configure(p.get<fhicl::ParameterSet>("MuonCandidateFinderSettings"));
@@ -343,14 +343,14 @@ UBXSec::UBXSec(fhicl::ParameterSet const & p)
 
   _event_selection.PrintConfig();
 
-  _detector_properties = lar::providerFrom<detinfo::DetectorPropertiesService>(); 
-  _detector_clocks = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
   _SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
-  std::cout << "E Field: " << _detector_properties->Efield() << std::endl;
-  std::cout << "Temperature: " << _detector_properties->Temperature() << std::endl;
-  std::cout << "Drift Velocity: " << _detector_properties->DriftVelocity(_detector_properties->Efield(), _detector_properties->Temperature())<< std::endl;
-  std::cout << "Sampling Rate: " << _detector_properties->SamplingRate() << std::endl;
+  std::cout << "E Field: " << detProp.Efield() << std::endl;
+  std::cout << "Temperature: " << detProp.Temperature() << std::endl;
+  std::cout << "Drift Velocity: " << detProp.DriftVelocity(detProp.Efield(), detProp.Temperature())<< std::endl;
+  std::cout << "Sampling Rate: " << sampling_rate(clockData) << std::endl;
 
 
   art::ServiceHandle<art::TFileService> fs;
@@ -495,7 +495,8 @@ void UBXSec::produce(art::Event & e) {
   // }
 
   //::art::ServiceHandle<cheat::BackTracker> bt;
-  ::art::ServiceHandle<geo::Geometry> geo;
+  art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>{}->Get();
 
   // Prepare the dead region finder
   std::cout << "[UBXSec] Recreate channel status map" << std::endl;
@@ -507,11 +508,12 @@ void UBXSec::produce(art::Event & e) {
   deadRegionsFinder.CreateBWires();
 
   // Use '_detp' to find 'efield' and 'temp'
-  auto const* _detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  double efield = _detp -> Efield();
-  double temp   = _detp -> Temperature();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e, clockData);
+  double efield = detProp.Efield();
+  double temp   = detProp.Temperature();
   // Determine the drift velocity from 'efield' and 'temp'
-  _drift_velocity = _detp -> DriftVelocity(efield,temp);
+  _drift_velocity = detProp.DriftVelocity(efield,temp);
   if (_debug) std::cout << "[UBXSec] Using drift velocity = " << _drift_velocity << " cm/us, with E = " << efield << ", and T = " << temp << std::endl;
 
   // Collect tracks
@@ -856,7 +858,7 @@ void UBXSec::produce(art::Event & e) {
     double min_pe = -1;
     //if (_debug) std::cout << "[UBXSec] Reco beam flash pe: " << std::endl;
     for (unsigned int i = 0; i < 32; i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMap.OpDetFromOpChannel(i);
       if (_do_opdet_swap && e.isRealData()) {
         opdet = _opdet_swap_map.at(opdet);
       }
@@ -931,12 +933,12 @@ void UBXSec::produce(art::Event & e) {
 								mclist[iList]->GetNeutrino().Nu().Vy(),
 								mclist[iList]->GetNeutrino().Nu().Vz()));
 
-      double g4Ticks = _detector_clocks->TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T()) 
-                       + _detector_properties->GetXTicksOffset(0,0,0) 
-                       - _detector_properties->TriggerOffset();
+      double g4Ticks = clockData.TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T())
+                       + detProp.GetXTicksOffset(0,0,0)
+                       - trigger_offset(clockData);
 
       // The following offsets to be summed to the original true vertex
-      double xOffset = _detector_properties->ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.X();
+      double xOffset = detProp.ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.X();
       double yOffset = sce_corr.Y();
       double zOffset = sce_corr.Z();
 
@@ -1014,12 +1016,12 @@ void UBXSec::produce(art::Event & e) {
   //                                                        mclist[iList]->GetNeutrino().Nu().Vy(),
   //                                                        mclist[iList]->GetNeutrino().Nu().Vz());
 
-  //     double g4Ticks = _detector_clocks->TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T()) 
-  //                      + _detector_properties->GetXTicksOffset(0,0,0) 
-  //                      - _detector_properties->TriggerOffset();
+  //     double g4Ticks = clockData.TPCG4Time2Tick(mclist[iList]->GetNeutrino().Nu().T())
+  //                      + detProp.GetXTicksOffset(0,0,0)
+  //                      - trigger_offset(clockData);
 
   //     // The following offsets to be summed to the original true vertex
-  //     double xOffset = _detector_properties->ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.at(0);
+  //     double xOffset = detProp.ConvertTicksToX(g4Ticks, 0, 0, 0) - sce_corr.at(0);
   //     double yOffset = sce_corr.at(1);
   //     double zOffset = sce_corr.at(2);
 
@@ -1123,8 +1125,8 @@ void UBXSec::produce(art::Event & e) {
     std::cout << "[UBXSec] Cannot locate OpHits from ophitCosmic." << std::endl;
   }
 
-  std::cout << "[UBXSec] Trigger Time: " << _detector_clocks->TriggerTime() << std::endl;
-  std::cout << "[UBXSec] Tick Period:  " << _detector_clocks->OpticalClock().TickPeriod() << std::endl;
+  std::cout << "[UBXSec] Trigger Time: " << clockData.TriggerTime() << std::endl;
+  std::cout << "[UBXSec] Tick Period:  " << clockData.OpticalClock().TickPeriod() << std::endl;
 
 
 
@@ -1454,7 +1456,7 @@ void UBXSec::produce(art::Event & e) {
     double n_intime_pe = 0;
     for (size_t oh = 0; oh < ophit_h->size(); oh++) {
       auto const & ophit = (*ophit_h)[oh];
-      size_t opdet = geo->OpDetFromOpChannel(ophit.OpChannel());
+      size_t opdet = channelMap.OpDetFromOpChannel(ophit.OpChannel());
       //std::cout << "OpHit::  OpDet: " << opdet
       //          << ", PeakTime: " << ophit.PeakTime()
       //          << ", PE: " << _pecalib.BeamPE(opdet,ophit.Area(),ophit.Amplitude()) << std::endl;
@@ -1471,7 +1473,7 @@ void UBXSec::produce(art::Event & e) {
     /*for (size_t oh = 0; oh < ophit_cosmic_h->size(); oh++) {
       auto const & ophit = (*ophit_cosmic_h)[oh];
       if (ophit.PeakTime() < -150 || ophit.PeakTime() > -50) continue;
-      size_t opdet = geo->OpDetFromOpChannel(ophit.OpChannel());
+      size_t opdet = channelMap.OpDetFromOpChannel(ophit.OpChannel());
       std::cout << "Cosmic Disc OpHit::  OpDet: " << opdet
                 << ", PeakTime: " << ophit.PeakTime()
                 << ", PE: " << _pecalib.CosmicPE(opdet,ophit.Area(),ophit.Amplitude()) << std::endl;
@@ -1725,9 +1727,10 @@ void UBXSec::produce(art::Event & e) {
       for (size_t i = 0; i < candidate_track->NumberTrajectoryPoints(); i++) {
         try {
           if (candidate_track->HasValidPoint(i)) {
-            TVector3 trk_pt = candidate_track->LocationAtPoint<TVector3>(i);
-            double wire = geo->NearestWire(trk_pt, 2);
-            double time = _detector_properties->ConvertXToTicks(trk_pt.X(), geo::PlaneID(0,0,2));
+            auto const trk_pt = candidate_track->LocationAtPoint(i);
+            geo::PlaneID const plane_2{0, 0, 2};
+            double wire = channelMap.Plane(plane_2).NearestWireID(trk_pt).Wire;
+            double time = detProp.ConvertXToTicks(trk_pt.X(), plane_2);
             TVector3 p (wire, time, 0.);
             //std::cout << "emplacing track point on wire " << p.X() << ", and time " << p.Y() << std::endl;
             track_v.emplace_back(p);
@@ -1754,7 +1757,7 @@ void UBXSec::produce(art::Event & e) {
       // Create a channel to wire map
       std::map<int, int> wire_to_channel;
       for (unsigned int ch = 0; ch < 8256; ch++) {
-        std::vector< geo::WireID > wire_v = geo->ChannelToWire(ch);
+        std::vector< geo::WireID > wire_v = channelMap.ChannelToWire(ch);
         wire_to_channel[wire_v[0].Wire] = ch;
       }
 
@@ -2011,7 +2014,7 @@ void UBXSec::produce(art::Event & e) {
       auto const& flash = (*nuMcflash_h)[0];
       ubxsec_event->numc_flash_spec.resize(geo->NOpDets());
       for (unsigned int i = 0; i < geo->NOpDets(); i++) {
-        unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMap.OpDetFromOpChannel(i);
         ubxsec_event->numc_flash_spec[opdet] = flash.PE(i);
       }
     }
@@ -2239,18 +2242,17 @@ void UBXSec::GetFlashLocation(std::vector<double> pePerOpDet,
   double totalPE = 0.;
   double sumy = 0., sumz = 0., sumy2 = 0., sumz2 = 0.;
 
+  art::ServiceHandle<geo::Geometry> geo;
   for (unsigned int opdet = 0; opdet < pePerOpDet.size(); opdet++) {
 
     // Get physical detector location for this opChannel
-    double PMTxyz[3];
-    ::art::ServiceHandle<geo::Geometry> geo;
-    geo->OpDetGeoFromOpDet(opdet).GetCenter(PMTxyz);
+    auto const PMTxyz = geo->OpDetGeoFromOpDet(opdet).GetCenter();
 
     // Add up the position, weighting with PEs
-    sumy    += pePerOpDet[opdet]*PMTxyz[1];
-    sumy2   += pePerOpDet[opdet]*PMTxyz[1]*PMTxyz[1];
-    sumz    += pePerOpDet[opdet]*PMTxyz[2];
-    sumz2   += pePerOpDet[opdet]*PMTxyz[2]*PMTxyz[2];
+    sumy    += pePerOpDet[opdet]*PMTxyz.Y();
+    sumy2   += pePerOpDet[opdet]*PMTxyz.Y()*PMTxyz.Y();
+    sumz    += pePerOpDet[opdet]*PMTxyz.Z();
+    sumz2   += pePerOpDet[opdet]*PMTxyz.Z()*PMTxyz.Z();
 
     totalPE += pePerOpDet[opdet];
   }

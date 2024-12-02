@@ -16,8 +16,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
@@ -26,6 +26,7 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcorealg/Geometry/geo.h"
 
 #include "lardataobj/RecoBase/Track.h"
@@ -79,7 +80,7 @@ private:
 };
 
 
-GeoCosmicTagger::GeoCosmicTagger(fhicl::ParameterSet const & p) {
+GeoCosmicTagger::GeoCosmicTagger(fhicl::ParameterSet const & p) : EDProducer{p} {
 
   _track_producer                 = p.get<std::string>("TrackProducer");
   _pfp_producer                   = p.get<std::string>("PFParticleProducer");
@@ -107,11 +108,11 @@ void GeoCosmicTagger::produce(art::Event & e) {
   std::unique_ptr< std::vector< anab::CosmicTag>>                  cosmicTagVector        (new std::vector<anab::CosmicTag>);
   std::unique_ptr< art::Assns<anab::CosmicTag, ubana::TPCObject>>  assnOutCosmicTagTPCObj (new art::Assns<anab::CosmicTag,ubana::TPCObject>);
 
-  auto const* geo = lar::providerFrom<geo::Geometry>();
+  auto const& tpc = lar::providerFrom<geo::Geometry>()->TPC();
 
-  fDetHalfHeight = geo->DetHalfHeight();
-  fDetWidth      = 2.*geo->DetHalfWidth();
-  fDetLength     = geo->DetLength();
+  fDetHalfHeight = tpc.HalfHeight();
+  fDetWidth      = 2.*tpc.HalfWidth();
+  fDetLength     = tpc.Length();
 
   // Get TPCObjects from the Event
   art::Handle<std::vector<ubana::TPCObject>> tpcobj_h;

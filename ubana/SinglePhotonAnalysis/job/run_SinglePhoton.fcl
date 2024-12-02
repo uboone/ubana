@@ -32,7 +32,7 @@ services :
 {
     #  scheduler:               { defaultExceptions: false }    # Make all uncaught exceptions fatal.
     TFileService: { fileName: "vertexed_singlephoton_hist.root" }
-    ExptGeoHelperInterface:    @local::standard_geometry_helper
+    WireReadout:    @local::standard_wire_readout
     Geometry:                  @local::standard_geo
     LArPropertiesService:      @local::standard_properties
     DetectorClocksService:     @local::standard_detectorclocks

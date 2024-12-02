@@ -4,6 +4,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCNeutrino.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "ubcore/Geometry/UBOpReadoutMap.h"
 #include "ubcore/Geometry/UBOpChannelTypes.h"
@@ -38,9 +39,10 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "canvas/Persistency/Common/FindOneP.h"
 #include "canvas/Persistency/Common/FindMany.h"
@@ -1451,9 +1453,10 @@ namespace wc{
 
   void CellTreeUB::processPMT_gainData(const art::Event& evt){
     art::ServiceHandle<geo::Geometry> geo;
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
     const lariov::PmtGainProvider& gain_provider = art::ServiceHandle<lariov::PmtGainService>()->GetProvider();
     for(unsigned int a = 0; a != geo->NOpDets(); ++a){
-      if(geo->IsValidOpChannel(a)){
+      if(channelMap.IsValidOpChannel(a)){
 	fOp_gain.push_back(gain_provider.Gain(a));
 	fOp_gainerror.push_back(gain_provider.GainErr(a));
       }
@@ -1462,8 +1465,9 @@ namespace wc{
 
   void CellTreeUB::processPMT_gainMC(const art::Event& evt){
     art::ServiceHandle<geo::Geometry> geo;
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
     for(unsigned int a = 0; a != geo->NOpDets(); ++a){
-      if(geo->IsValidOpChannel(a)){
+      if(channelMap.IsValidOpChannel(a)){
 	fOp_gain.push_back(120.0);
 	fOp_gainerror.push_back(0.05);
       }

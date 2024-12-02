@@ -15,7 +15,7 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "art/Utilities/make_tool.h"
@@ -171,7 +171,7 @@ void ACPTTrigFlashMatch::analyze(art::Event const& e)
   _best_score = 10000.;
   _acpt_score = -1; // this way we know if a MuCS track was tagged in the event
 
-  size_t nbad = 0;
+  // size_t nbad = 0; // unused
 
   // have we tagged an ACPT track in this event?
   bool acpttagged = false;
@@ -211,11 +211,18 @@ void ACPTTrigFlashMatch::analyze(art::Event const& e)
     _trk_end_z = trk_ptr->End().Z();
 
 
+    /* nbad is not used
     if (trk_ptr->Length() < 20.) { nbad += 1; continue; }
 
     if ( (_trk_start_x < -10) || (_trk_start_x > 270) ) { nbad += 1; continue; }
 
     if ( (_trk_end_x < -10)   || (_trk_end_x > 270)   ) { nbad += 1; continue; }
+    */
+    if (trk_ptr->Length() < 20.) {  continue; }
+
+    if ( (_trk_start_x < -10) || (_trk_start_x > 270) ) { continue; }
+
+    if ( (_trk_end_x < -10)   || (_trk_end_x > 270)   ) {  continue; }
 
     // associations
     const std::vector< art::Ptr<recob::SpacePoint> >& spacepoint_ptr_v = pfp_spacepoint_assn_v.at(pfp_key);

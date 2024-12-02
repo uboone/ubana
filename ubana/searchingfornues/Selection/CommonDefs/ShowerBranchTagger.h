@@ -1,9 +1,7 @@
 #ifndef SHOWERBRANCHTAGGER_H
 #define SHOWERBRANCHTAGGER_H
 
-#include "larcore/Geometry/Geometry.h"
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/Utilities/GeometryUtilities.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 #include "TMatrixDSymEigen.h" 
@@ -24,9 +22,9 @@ namespace searchingfornues
 		     const float& wire2cm, const float& time2cm,
 		     float& wirecm, float& timecm) {
 
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
     
-    wirecm = geom->WireCoordinate(pt3d[1],pt3d[2],geo::PlaneID(0,0,pl)) * wire2cm;
+    wirecm = channelMap.Plane(geo::PlaneID(0,0,pl)).WireCoordinate(geo::vect::toPoint(pt3d)) * wire2cm;
     timecm = pt3d[0];
 
     return;
@@ -42,10 +40,10 @@ namespace searchingfornues
 		      const float& wire2cm, const float& time2cm,		      
 		      float& hitwire, float& hittime) {
 
-    auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
 
     hitwire = hit->WireID().Wire * wire2cm;
-    hittime = (hit->PeakTime() - detp->TriggerOffset())  * time2cm;
+    hittime = (hit->PeakTime() - trigger_offset(clockData))  * time2cm;
 
     return;
   }
@@ -61,7 +59,7 @@ namespace searchingfornues
   float HitPtDistance(const TVector3& pt3d, const art::Ptr<recob::Hit> &hit,
 		      const float& wire2cm, const float& time2cm) {
 
-    auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
     
     // what plane are we on?
     auto pl = hit->WireID().Plane;
@@ -70,7 +68,7 @@ namespace searchingfornues
     Project3Dto2D(pt3d,pl,wire2cm,time2cm,ptwire,pttime);
     
     float hitwire = hit->WireID().Wire * wire2cm;
-    float hittime = (hit->PeakTime() - detp->TriggerOffset())  * time2cm;
+    float hittime = (hit->PeakTime() - trigger_offset(clockData))  * time2cm;
     
     float distance = sqrt( (ptwire-hitwire)*(ptwire-hitwire) + (pttime-hittime)*(pttime-hittime) );
 
@@ -88,7 +86,7 @@ namespace searchingfornues
   float ClusterVtxAlignment(const TVector3& pt3d, const std::vector<art::Ptr<recob::Hit>> &hits,
 		      const float& wire2cm, const float& time2cm) {
 
-    auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
     
     if (hits.size() == 0) return 0;
 
@@ -112,7 +110,7 @@ namespace searchingfornues
     Project3Dto2D(pt3d,pl,wire2cm,time2cm,pt2dW,pt2dT);
     
     float Shitwire = (hits[closesthitidx])->WireID().Wire * wire2cm;
-    float Shittime = ((hits[closesthitidx])->PeakTime() - detp->TriggerOffset())  * time2cm;
+    float Shittime = ((hits[closesthitidx])->PeakTime() - trigger_offset(clockData))  * time2cm;
 
     float vtx2start_w = (Shitwire-pt2dW);
     float vtx2start_t = (Shittime-pt2dT);
@@ -125,7 +123,7 @@ namespace searchingfornues
     for (size_t i=0; i < hits.size(); i++) {
       if (i == closesthitidx) continue;
       float hitwire = (hits[i])->WireID().Wire * wire2cm;
-      float hittime = ((hits[i])->PeakTime() - detp->TriggerOffset())  * time2cm;
+      float hittime = ((hits[i])->PeakTime() - trigger_offset(clockData))  * time2cm;
       
       dwire += (hitwire-Shitwire) * (hits[i])->Integral();
       dtime += (hittime-Shittime) * (hits[i])->Integral();
@@ -157,7 +155,7 @@ namespace searchingfornues
   float ClusterVtxDirection(const TVector3& pt3d, const std::vector<art::Ptr<recob::Hit>> &hits,
 		      const float& wire2cm, const float& time2cm) {
 
-    auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
     
     if (hits.size() == 0) return 0;
     
@@ -175,7 +173,7 @@ namespace searchingfornues
     float dtime = 0;
     for (size_t i=0; i < hits.size(); i++) {
       float hitwire = (hits[i])->WireID().Wire * wire2cm;
-      float hittime = ((hits[i])->PeakTime() - detp->TriggerOffset())  * time2cm;
+      float hittime = ((hits[i])->PeakTime() - trigger_offset(clockData))  * time2cm;
       
       dwire += (hitwire-pt2dW) * (hits[i])->Integral();
       dtime += (hittime-pt2dT) * (hits[i])->Integral();
@@ -278,7 +276,7 @@ namespace searchingfornues
 	    const float wire2cm, const float time2cm,
 	    TVectorD& eigenVal, TMatrixD& eigenVec) {
     
-    auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
     
     // x -> wire
     // y -> time
@@ -290,7 +288,7 @@ namespace searchingfornues
       
       auto hit = hits.at(h);
       auto wire = hit->WireID().Wire * wire2cm;
-      auto time = ( hit->PeakTime() - detp->TriggerOffset() )   * time2cm;
+      auto time = ( hit->PeakTime() - trigger_offset(clockData) )   * time2cm;
       
       wavg += wire;
       tavg += time;
@@ -309,7 +307,7 @@ namespace searchingfornues
 
     auto hit = hits.at(h);
     auto wire = hit->WireID().Wire * wire2cm;
-    auto time = ( hit->PeakTime() - detp->TriggerOffset() )   * time2cm;
+    auto time = ( hit->PeakTime() - trigger_offset(clockData) )   * time2cm;
     
     double x = wire - wavg;
     double y = time - tavg;
@@ -350,10 +348,11 @@ namespace searchingfornues
 		       const std::vector<searchingfornues::ProxyPfpElem_t>& slice_pfp_v) {
 
     // get detector specific properties
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
-    auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    float _wire2cm = geom->WirePitch(0,0,0);
-    float _time2cm = detp->SamplingRate() / 1000.0 * detp->DriftVelocity( detp->Efield(), detp->Temperature() );
+    auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e, clockData);
+    float _wire2cm = channelMap.Plane(geo::PlaneID{0,0,0}).WirePitch();
+    float _time2cm = sampling_rate(clockData) / 1000.0 * detProp.DriftVelocity( detProp.Efield(), detProp.Temperature() );
 
     // get shower candidate
     if (slice_pfp_v.size() <= shr_pfp_idx) return ;
@@ -405,7 +404,7 @@ namespace searchingfornues
       for (size_t hi=0; hi < gaushit_hit_v.size(); hi++) {
 	auto hit = gaushit_hit_v.at(hi);
 	gammaWire += hit->WireID().Wire * _wire2cm * hit->Integral();
-	gammaTime += (hit->PeakTime() - detp->TriggerOffset())  * _time2cm * hit->Integral();
+	gammaTime += (hit->PeakTime() - trigger_offset(clockData))  * _time2cm * hit->Integral();
 	charge += hit->Integral();
       }
       gammaWire /= charge;

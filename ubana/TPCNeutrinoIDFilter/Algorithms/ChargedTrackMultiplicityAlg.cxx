@@ -16,6 +16,7 @@
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "art/Framework/Principal/Event.h"
 
 // LArSoft includes
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
@@ -40,9 +41,7 @@
 namespace neutrinoid {
 
 ChargedTrackMultiplicityAlg::ChargedTrackMultiplicityAlg(fhicl::ParameterSet const &pset) :
-    fMyProducerModule(0),
-    fGeometry(lar::providerFrom<geo::Geometry>()),
-    fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
+    fGeometry(lar::providerFrom<geo::Geometry>())
 {
     this->reconfigure(pset);
 }
@@ -62,9 +61,10 @@ void ChargedTrackMultiplicityAlg::reconfigure(fhicl::ParameterSet const &inputPs
     fVertexModuleLabel        = pset.get<std::string> ("VertexModuleLabel");
     fOpFlashModuleLabel       = pset.get<std::string> ("OpFlashModuleLabel");
     
-    fDistToEdgeX              = fGeometry->DetHalfWidth()   - pset.get<double>("DistToEdgeX",   6.);
-    fDistToEdgeY              = fGeometry->DetHalfHeight()  - pset.get<double>("DistToEdgeY",   10.);
-    fDistToEdgeZ              = fGeometry->DetLength() / 2. - pset.get<double>("DistToEdgeZ",   6.);
+    auto const& tpc = fGeometry->TPC();
+    fDistToEdgeX              = tpc.HalfWidth()   - pset.get<double>("DistToEdgeX",   6.);
+    fDistToEdgeY              = tpc.HalfHeight()  - pset.get<double>("DistToEdgeY",   10.);
+    fDistToEdgeZ              = tpc.Length() / 2. - pset.get<double>("DistToEdgeZ",   6.);
     
     fFlashWidth               = pset.get<double>      ("FlashWidth",                            100.);
     fBeamMin                  = pset.get<double>      ("BeamMin",                              3.2);
@@ -94,18 +94,16 @@ void ChargedTrackMultiplicityAlg::beginJob(art::ServiceHandle<art::TFileService>
     return;
 }
     
-void ChargedTrackMultiplicityAlg::produces(art::EDProducer* owner)
+void ChargedTrackMultiplicityAlg::produces(art::ProducesCollector& collector)
 {
-    fMyProducerModule = owner;
-
-    fMyProducerModule->produces< art::Assns<recob::Track, recob::Vertex> >();
-    //fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
+    collector.produces< art::Assns<recob::Track, recob::Vertex> >();
+    //collector.produces< art::Assns<recob::Vertex, recob::PFParticle> >();
 
     if(fCreateAnalysisCollection){
-      fMyProducerModule->produces< std::vector<recob::Vertex> >();
-      fMyProducerModule->produces< std::vector<recob::Track> >();
-      fMyProducerModule->produces< std::vector<recob::Hit> >();
-      fMyProducerModule->produces< art::Assns<recob::Track, recob::Hit> >();
+      collector.produces< std::vector<recob::Vertex> >();
+      collector.produces< std::vector<recob::Track> >();
+      collector.produces< std::vector<recob::Hit> >();
+      collector.produces< art::Assns<recob::Track, recob::Hit> >();
     }
 }
 
@@ -310,7 +308,7 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
 	  
 	  if((int)i_trk==FinalTrackCandidate){
 	    //std::cout << "Adding final track " << i_trk << std::endl;
-	    util::CreateAssn(*fMyProducerModule,event,*anaTrackCollection,*anaVertexCollection,*vertexTrackAssociations,
+            util::CreateAssn(event,*anaTrackCollection,*anaVertexCollection,*vertexTrackAssociations,
 			     anaVertexCollection->size()-1,anaVertexCollection->size());
 	  }
 	  
@@ -326,7 +324,7 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
 	    anaHitCollection->push_back(*hitptr);
 
 	  //create track<-->hit associations
-	  util::CreateAssn(*fMyProducerModule,event,*anaTrackCollection,*anaHitCollection,*anaTrackHitAssociations,prev_size,anaHitCollection->size());
+          util::CreateAssn(event,*anaTrackCollection,*anaHitCollection,*anaTrackHitAssociations,prev_size,anaHitCollection->size());
 	  
 	}//end keep track condition
 
@@ -353,9 +351,10 @@ bool ChargedTrackMultiplicityAlg::findNeutrinoCandidates(art::Event & event) con
     
 bool ChargedTrackMultiplicityAlg::inFV(double x, double y, double z) const
 {
-    double distInX = x - fGeometry->DetHalfWidth();
+    auto const& tpc = fGeometry->TPC();
+    double distInX = x - tpc.HalfWidth();
     double distInY = y;
-    double distInZ = z - 0.5 * fGeometry->DetLength();
+    double distInZ = z - 0.5 * tpc.Length();
     
     if (fabs(distInX) < fDistToEdgeX && fabs(distInY) < fDistToEdgeY && fabs(distInZ) < fDistToEdgeZ) return true;
     

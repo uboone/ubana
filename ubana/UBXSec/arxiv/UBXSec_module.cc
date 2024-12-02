@@ -37,8 +37,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 // Data products include
@@ -250,7 +250,7 @@ private:
 };
 
 
-UBXSec::UBXSec(fhicl::ParameterSet const & p) {
+UBXSec::UBXSec(fhicl::ParameterSet const & p) : EDProducer{p} {
 
   ::art::ServiceHandle<cheat::BackTracker> bt;
   ::art::ServiceHandle<geo::Geometry> geo;

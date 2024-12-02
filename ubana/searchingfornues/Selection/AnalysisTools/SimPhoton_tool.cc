@@ -16,8 +16,8 @@
 #include "lardata/Utilities/GeometryUtilities.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
 
 #include <string>
 
@@ -101,10 +101,9 @@ namespace analysis
 
     // load PMT coordinates
     art::ServiceHandle<geo::Geometry> geom;
-    double xyz[3];
     for (size_t pmt=0; pmt < 32; pmt++) {
-      geom->OpDetGeoFromOpDet(pmt).GetCenter(xyz);
-      std::cout << "PMT OpDet " << pmt << " has coordinates [" << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << "]" << std::endl;
+      auto const xyz = geom->OpDetGeoFromOpDet(pmt).GetCenter();
+      std::cout << "PMT OpDet " << pmt << " has coordinates [" << xyz.X() << ", " << xyz.Y() << ", " << xyz.Z() << "]" << std::endl;
     }
 
   }

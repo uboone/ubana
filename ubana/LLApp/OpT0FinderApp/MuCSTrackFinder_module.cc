@@ -16,8 +16,8 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include <memory>
@@ -25,6 +25,7 @@
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -89,7 +90,7 @@ private:
 
 
 MuCSTrackFinder::MuCSTrackFinder(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
   _track_producer          = p.get<std::string>("TrackProducer");
@@ -158,6 +159,7 @@ void MuCSTrackFinder::produce(art::Event & e)
   _result.clear();
   
   ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMapAlg = art::ServiceHandle<geo::WireReadout const>()->Get();
   ::art::ServiceHandle<geo::UBOpReadoutMap> ub_geo;
   
   ::art::Handle<std::vector<recob::OpFlash> > beamflash_h;
@@ -193,7 +195,7 @@ void MuCSTrackFinder::produce(art::Event & e)
       f.pe_v.resize(geo->NOpDets());
       f.pe_err_v.resize(geo->NOpDets());
       for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-        unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMapAlg.OpDetFromOpChannel(i);
         f.pe_v[opdet] = flash.PE(i) / _gain_correction[i];
         f.pe_err_v[opdet] = sqrt(flash.PE(i) / _gain_correction[i]);
       }
@@ -222,7 +224,7 @@ void MuCSTrackFinder::produce(art::Event & e)
       f.pe_v.resize(geo->NOpDets());
       f.pe_err_v.resize(geo->NOpDets());
       for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-        unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMapAlg.OpDetFromOpChannel(i);
         if(flash.PE(i) == 0.) {
           std::cout << "op det " << opdet << "has 0 pe for this flash" << std::endl;
           f.pe_v[opdet]=-1.;

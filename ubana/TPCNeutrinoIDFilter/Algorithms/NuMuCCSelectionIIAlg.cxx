@@ -14,6 +14,7 @@
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "art/Framework/Principal/Event.h"
 
 // LArSoft includes
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
@@ -41,9 +42,7 @@
 namespace neutrinoid {
 
 NuMuCCSelectionIIAlg::NuMuCCSelectionIIAlg(fhicl::ParameterSet const &pset) :
-    fMyProducerModule(0),
-    fGeometry(lar::providerFrom<geo::Geometry>()),
-    fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
+    fGeometry(lar::providerFrom<geo::Geometry>())
 {
     this->reconfigure(pset);
 }
@@ -64,9 +63,10 @@ void NuMuCCSelectionIIAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fOpFlashModuleLabel      = pset.get<std::string> ("OpFlashModuleLabel");
     fCalorimetryModuleLabel  = pset.get<std::string> ("CalorimetryModuleLabel");
     
-    fDistToEdgeX             = fGeometry->DetHalfWidth()   - pset.get<double>("DistToEdgeX",   20.);
-    fDistToEdgeY             = fGeometry->DetHalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
-    fDistToEdgeZ             = fGeometry->DetLength() / 2. - pset.get<double>("DistToEdgeZ",   10.);
+    auto const& tpc = fGeometry->TPC();
+    fDistToEdgeX             = tpc.HalfWidth()   - pset.get<double>("DistToEdgeX",   20.);
+    fDistToEdgeY             = tpc.HalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
+    fDistToEdgeZ             = tpc.Length() / 2. - pset.get<double>("DistToEdgeZ",   10.);
     
     fBeamMin                 = pset.get<double>      ("BeamMin",                              3.3);
     fBeamMax                 = pset.get<double>      ("BeamMax",                              4.9);
@@ -155,11 +155,10 @@ void NuMuCCSelectionIIAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs)
     return;
 }
     
-void NuMuCCSelectionIIAlg::produces(art::EDProducer* owner)
+void NuMuCCSelectionIIAlg::produces(art::ProducesCollector& producesCollector)
 {
-    fMyProducerModule = owner;
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
+    producesCollector.produces< art::Assns<recob::Vertex, recob::Track> >();
+    producesCollector.produces< art::Assns<recob::Vertex, recob::PFParticle> >();
 }
 
     
@@ -695,7 +694,7 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
     if (ivtx!=-1 && itrk!=-1){
       if (fDebug) std::cout<<ivtx<<" "<<itrk<<std::endl;
       //outputfile[isample]<<run<<" "<<subrun<<" "<<event<<" "<<ivtx<<" "<<trkindex[ivtx][itrk]<<" "<<trkindex[ivtx].size()<<std::endl;
-      util::CreateAssn(*fMyProducerModule, evt, tracklist[itrk], vtxlist[ivtx], *vertexTrackAssociations);
+      util::CreateAssn(evt, tracklist[itrk], vtxlist[ivtx], *vertexTrackAssociations);
     }
     
     // Add associations to event.
@@ -707,9 +706,10 @@ bool NuMuCCSelectionIIAlg::findNeutrinoCandidates(art::Event & evt) const
     
 bool NuMuCCSelectionIIAlg::inFV(double x, double y, double z) const
 {
-    double distInX = x - fGeometry->DetHalfWidth();
+    auto const& tpc = fGeometry->TPC();
+    double distInX = x - tpc.HalfWidth();
     double distInY = y;
-    double distInZ = z - 0.5 * fGeometry->DetLength();
+    double distInZ = z - 0.5 * tpc.Length();
     
     if (std::abs(distInX) < fDistToEdgeX && std::abs(distInY) < fDistToEdgeY && std::abs(distInZ) < fDistToEdgeZ) return true;
     

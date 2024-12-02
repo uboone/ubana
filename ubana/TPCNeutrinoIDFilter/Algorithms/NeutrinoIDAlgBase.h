@@ -13,15 +13,15 @@
 // Framework Includes
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 // foward declaration for producers
 namespace art
 {
-    class EDProducer;
+    class ProducesCollector;
     class Event;
 }
 
@@ -33,6 +33,9 @@ namespace neutrinoid
 class NeutrinoIDAlgBase
 {
 public:
+
+    virtual ~NeutrinoIDAlgBase() = default;
+
     /**
      *  @brief Require that a handler is definied in case the algorithm control parameters are to be reset
      */
@@ -42,7 +45,7 @@ public:
      *  @brief Each algorithm may have different objects it wants "produced" so use this to 
      *         let the top level producer module "know" what it is outputting
      */
-    virtual void produces(art::EDProducer*) = 0;
+    virtual void produces(art::ProducesCollector&) = 0;
     
     /**
      *  @brief Allow call at owner module's "beginJob" phase

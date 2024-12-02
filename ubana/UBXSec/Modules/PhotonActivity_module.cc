@@ -16,8 +16,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -28,6 +28,7 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 
 #include "TTree.h"
@@ -71,7 +72,7 @@ private:
 };
 
 
-PhotonActivity::PhotonActivity(fhicl::ParameterSet const & p)
+PhotonActivity::PhotonActivity(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _mctruth_label = p.get<std::string>("MCTruthProduct", "generator");
   _trigger_label = p.get<std::string>("TriggerProduct", "triggersim");
@@ -128,23 +129,23 @@ void PhotonActivity::produce(art::Event & e)
     return;
   }
 
-  ::art::ServiceHandle<geo::Geometry> geo; 
-
+  art::ServiceHandle<geo::Geometry> geo;
   if(evt_simphot_h->size() != geo->NOpDets()) {
     std::cerr << "Unexpected # of channels in simphotons!" << std::endl;
     return;
   }
 
   // opdet=>opchannel mapping
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   std::vector<size_t> opdet2opch(geo->NOpDets(),0);
   for(size_t opch=0; opch<opdet2opch.size(); ++opch){
-    opdet2opch[geo->OpDetFromOpChannel(opch)] = opch;
+    opdet2opch[channelMap.OpDetFromOpChannel(opch)] = opch;
   }
 
   
   auto const & evt_trigger = (*evt_trigger_h)[0];
   auto const trig_time = evt_trigger.TriggerTime();
-  auto const * ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   /*
   double nuTime = 0.;
@@ -162,12 +163,12 @@ void PhotonActivity::produce(art::Event & e)
       if (_debug){
         std::cout << "Particle pdg: " << par.PdgCode() << std::endl;
         std::cout << "Particle time: " << par.Trajectory().T(0) << std::endl;
-        std::cout << "    converted: " << ts->G4ToElecTime(par.Trajectory().T(0)) - trig_time << std::endl;
+        std::cout << "    converted: " << clockData.G4ToElecTime(par.Trajectory().T(0)) - trig_time << std::endl;
         std::cout << "new Particle time: " << par.T() << std::endl;
-        std::cout << "new    converted: " << ts->G4ToElecTime(par.T()) - trig_time << std::endl;
+        std::cout << "new    converted: " << clockData.G4ToElecTime(par.T()) - trig_time << std::endl;
         std::cout << std::endl;
       }
-      if (par.PdgCode() == 14) nuTime = par.T();//ts->G4ToElecTime(par.T()) - trig_time;
+      if (par.PdgCode() == 14) nuTime = par.T();//clockData.G4ToElecTime(par.T()) - trig_time;
     }
   }
 
@@ -190,7 +191,7 @@ void PhotonActivity::produce(art::Event & e)
 
     for(auto const& oneph : simph) {
 
-      double t = ts->G4ToElecTime(oneph.Time) - trig_time;
+      double t = clockData.G4ToElecTime(oneph.Time) - trig_time;
       if (_debug) std::cout << "Photon G4 time is " << oneph.Time << "  while the TPC time is " << t << std::endl;
 
       if (t > _beam_window_start && t < _beam_window_end) {
@@ -226,18 +227,17 @@ void PhotonActivity::GetFlashLocation(std::vector<double> pePerOpChannel,
   double totalPE = 0.;
   double sumy = 0., sumz = 0., sumy2 = 0., sumz2 = 0.;
 
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   for (unsigned int opch = 0; opch < pePerOpChannel.size(); opch++) {
 
     // Get physical detector location for this opChannel
-    double PMTxyz[3];
-    ::art::ServiceHandle<geo::Geometry> geo;
-    geo->OpDetGeoFromOpChannel(opch).GetCenter(PMTxyz);
+    auto const PMTxyz = channelMap.OpDetGeoFromOpChannel(opch).GetCenter();
 
     // Add up the position, weighting with PEs
-    sumy    += pePerOpChannel[opch]*PMTxyz[1];
-    sumy2   += pePerOpChannel[opch]*PMTxyz[1]*PMTxyz[1];
-    sumz    += pePerOpChannel[opch]*PMTxyz[2];
-    sumz2   += pePerOpChannel[opch]*PMTxyz[2]*PMTxyz[2];
+    sumy    += pePerOpChannel[opch]*PMTxyz.Y();
+    sumy2   += pePerOpChannel[opch]*PMTxyz.Y()*PMTxyz.Y();
+    sumz    += pePerOpChannel[opch]*PMTxyz.Z();
+    sumz2   += pePerOpChannel[opch]*PMTxyz.Z()*PMTxyz.Z();
 
     totalPE += pePerOpChannel[opch];
   }

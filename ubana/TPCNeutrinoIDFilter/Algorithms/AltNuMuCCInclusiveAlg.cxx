@@ -29,6 +29,8 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 
+#include "art/Framework/Principal/Event.h"
+
 #include <tuple>
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -73,10 +75,7 @@ enum class TH2DLabels : size_t
 };
 
 AltNuMuCCInclusiveAlg::AltNuMuCCInclusiveAlg(fhicl::ParameterSet const &pset) :
-    fMyProducerModule(0),
-    fGeometry(lar::providerFrom<geo::Geometry>()),
-    fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>()),
-    fClocks(lar::providerFrom<detinfo::DetectorClocksService>())
+    fGeometry(lar::providerFrom<geo::Geometry>())
 {
     this->reconfigure(pset);
 }
@@ -97,9 +96,10 @@ void AltNuMuCCInclusiveAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fVertexModuleLabel       = pset.get<std::string> ("VertexModuleLabel",             "pandoraNu");
     fOpFlashModuleLabel      = pset.get<std::string> ("OpFlashModuleLabel",           "opFlashSat");
     
-    fDistToEdgeX             = fGeometry->DetHalfWidth()   - pset.get<double>("DistToEdgeX",    2.);
-    fDistToEdgeY             = fGeometry->DetHalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
-    fDistToEdgeZ             = fGeometry->DetLength() / 2. - pset.get<double>("DistToEdgeZ",   10.);
+    auto const& tpc = fGeometry->TPC();
+    fDistToEdgeX             = tpc.HalfWidth()   - pset.get<double>("DistToEdgeX",    2.);
+    fDistToEdgeY             = tpc.HalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
+    fDistToEdgeZ             = tpc.Length() / 2. - pset.get<double>("DistToEdgeZ",   10.);
     
     fFlashWidth              = pset.get<double>      ("FlashWidth",                            10.);
     fBeamMin                 = pset.get<double>      ("BeamMin",                              3.55);
@@ -155,11 +155,10 @@ void AltNuMuCCInclusiveAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs)
     return;
 }
     
-void AltNuMuCCInclusiveAlg::produces(art::EDProducer* owner)
+void AltNuMuCCInclusiveAlg::produces(art::ProducesCollector& collector)
 {
-    fMyProducerModule = owner;
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
+    collector.produces< art::Assns<recob::Vertex, recob::Track> >();
+    collector.produces< art::Assns<recob::Vertex, recob::PFParticle> >();
 }
 
     
@@ -438,8 +437,8 @@ bool AltNuMuCCInclusiveAlg::findNeutrinoCandidates(art::Event & event) const
                     if (trackVtxDoca < fMaxTrackDoca && trackVtxArcLen < fMaxTrackArcLen && projLength > fMinTrackLen && inFidVolStart && trackEndCheck)
                     {
                         nTrackMatchGood++;
-                        util::CreateAssn(*fMyProducerModule, event, track,      primaryVertexVec[0], *vertexTrackAssociations);
-                        util::CreateAssn(*fMyProducerModule, event, pfParticle, primaryVertexVec[0], *vertexPFParticleAssociations);
+                        util::CreateAssn(event, track,      primaryVertexVec[0], *vertexTrackAssociations);
+                        util::CreateAssn(event, pfParticle, primaryVertexVec[0], *vertexPFParticleAssociations);
                     }
                 }
             }
@@ -487,9 +486,10 @@ double AltNuMuCCInclusiveAlg::projectedLength(const recob::Track* track) const
     
 bool AltNuMuCCInclusiveAlg::inFV(const TVector3& pos) const
 {
-    double distInX = pos.X() - fGeometry->DetHalfWidth();
+    auto const& tpc = fGeometry->TPC();
+    double distInX = pos.X() - tpc.HalfWidth();
     double distInY = pos.Y();
-    double distInZ = pos.Z() - 0.5 * fGeometry->DetLength();
+    double distInZ = pos.Z() - 0.5 * tpc.Length();
     
     if (fabs(distInX) < fDistToEdgeX && fabs(distInY) < fDistToEdgeY && fabs(distInZ) < fDistToEdgeZ) return true;
     

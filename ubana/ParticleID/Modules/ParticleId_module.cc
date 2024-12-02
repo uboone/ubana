@@ -100,7 +100,8 @@ class UBPID::ParticleId : public art::EDProducer {
 };
 
 
-UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p)
+UBPID::ParticleId::ParticleId(fhicl::ParameterSet const & p) :
+  art::EDProducer(p)
 {
 
   /*std::cout << "[ParticleID] Note: A plane ID of -1 is expected when a track has no calorimetry" << std::endl;
@@ -633,7 +634,7 @@ void UBPID::ParticleId::produce(art::Event & e)
      * Fill ParticleID object and push back to event
      */
 
-    anab::ParticleID PID_object(AlgScoresVec);
+    anab::ParticleID PID_object(AlgScoresVec, geo::PlaneID());
     particleIDCollection->push_back(PID_object);
 
     util::CreateAssn(*this, e, *particleIDCollection, track, *trackParticleIdAssn);

@@ -1,11 +1,10 @@
-
-
 #ifndef VERTEXQUALITY_CXX
 #define VERTEXQUALITY_CXX
 
 #include "VertexQuality.h"
 
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
@@ -18,12 +17,13 @@ VertexQuality::VertexQuality(std::string const & track_producer,
   ftrack_producer(track_producer),
   fshower_producer(shower_producer),
   frmcm(&rmcm),
+  ftpc{lar::providerFrom<geo::Geometry>()->TPC()},
   ftpc_volume(0,
-	      -lar::providerFrom<geo::Geometry>()->DetHalfHeight(),
+              -ftpc.HalfHeight(),
 	      0,
-	      2*lar::providerFrom<geo::Geometry>()->DetHalfWidth(),
-	      lar::providerFrom<geo::Geometry>()->DetHalfHeight(),
-	      lar::providerFrom<geo::Geometry>()->DetLength()),
+              2*ftpc.HalfWidth(),
+              ftpc.HalfHeight(),
+              ftpc.Length()),
   fvertex_tree(nullptr),
   fvertex_tree_event(nullptr) {
 

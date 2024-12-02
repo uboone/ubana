@@ -15,14 +15,16 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
+#include "canvas/Persistency/Common/Ptr.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
 
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -73,6 +75,7 @@ public:
 
 
 InclusiveSinglePhotonGenie::InclusiveSinglePhotonGenie(fhicl::ParameterSet const & p) :
+  EDFilter(p),
   ftree(nullptr) {
 
   if(true) {

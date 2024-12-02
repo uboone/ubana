@@ -8,12 +8,13 @@
 #define FLASHMATCHINGTOOLBASE_H
 
 #include "art/Utilities/ToolMacros.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "fhiclcpp/ParameterSet.h"
 
 #include "larcore/Geometry/Geometry.h"
 
 #include "art/Framework/Principal/Event.h"
+#include "canvas/Persistency/Common/Ptr.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/SpacePoint.h"

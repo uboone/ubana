@@ -16,7 +16,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
@@ -114,6 +114,8 @@ private:
 
   Bool_t          f_truth_vtxInside;
 
+  // handling for reweighting to new NuMI flux (4.10.4) for files generated using old flux(4.9.2)
+  Bool_t fNuMIOldReweight;
 };
 
 
@@ -140,6 +142,7 @@ void WireCellEventWeightTree::reconfigure(fhicl::ParameterSet const& pset)
   fSaveFullWeights = pset.get<bool>("SaveFullWeights", false); // all weights
   fSaveGenieWeights = pset.get<bool>("SaveGenieWeights", false); // all weights
   fIsNuMI = pset.get<bool>("IsNuMI", false); // if true, converts NuMI's weights into BNB style
+  fNuMIOldReweight = pset.get<bool>("NuMIOldReweight", false); // if true, converts underlying numi flux distribution from old (4.9.2) to new (4.10.4)
   fSTMLabel = pset.get<std::string>("STMLabel");
   fTruthLabel = pset.get<std::string>("TruthLabel");
   fFileType = pset.get<std::string>("FileType", "empty");
@@ -185,10 +188,7 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
  	f_subRun = e.subRun();
 	f_event = e.id().event();
 
-	art::Handle<std::vector<nsm::NuSelectionSTM> > stm_handle;
-	e.getByLabel(fSTMLabel,stm_handle);
-	std::vector<art::Ptr<nsm::NuSelectionSTM> > stm_vec;
-	art::fill_ptr_vector(stm_vec,stm_handle);
+        auto const& stm_vec = e.getProduct<std::vector<nsm::NuSelectionSTM>>(fSTMLabel);
 	std::cout<<"--- NuSelectionSTM ---"<<std::endl;
 	if(stm_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
@@ -203,30 +203,25 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
 		f_stm_FullDead = -1;
 		f_stm_clusterlength = -1.0;
 	} 
-	for(size_t i=0; i<stm_vec.size(); i++){
-		art::Ptr<nsm::NuSelectionSTM> s = stm_vec.at(i);
-		f_stm_eventtype = s->GetEventType();
-		f_stm_lowenergy = s->GetLowEnergy();
-		f_stm_LM = s->GetLM();
-		f_stm_TGM = s->GetTGM();
-		f_stm_STM = s->GetSTM();
-		f_stm_FullDead = s->GetFullDead();
-		f_stm_clusterlength = s->GetClusterLength();
+        for(nsm::NuSelectionSTM const& s : stm_vec) {
+                f_stm_eventtype = s.GetEventType();
+                f_stm_lowenergy = s.GetLowEnergy();
+                f_stm_LM = s.GetLM();
+                f_stm_TGM = s.GetTGM();
+                f_stm_STM = s.GetSTM();
+                f_stm_FullDead = s.GetFullDead();
+                f_stm_clusterlength = s.GetClusterLength();
 	}
 
         f_truth_vtxInside = false;
-	art::Handle<std::vector<nsm::NuSelectionTruth> > truth_handle;
-	e.getByLabel(fTruthLabel,truth_handle);
-	std::vector<art::Ptr<nsm::NuSelectionTruth> > truth_vec;
-	art::fill_ptr_vector(truth_vec,truth_handle);
+        auto const& truth_vec = e.getProduct<std::vector<nsm::NuSelectionTruth>>(fTruthLabel);
 	std::cout<<"--- NuSelectionTruth  ---"<<std::endl;
 	if(truth_vec.size()!=1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
 		return;
 	} 
-	for(size_t i=0; i<truth_vec.size(); i++){
-		art::Ptr<nsm::NuSelectionTruth> t = truth_vec.at(i);
-                f_truth_vtxInside = t->GetIsVtxInside();
+        for(nsm::NuSelectionTruth const& t : truth_vec) {
+                f_truth_vtxInside = t.GetIsVtxInside();
 	}
 
 	/// save GENIE weights
@@ -302,6 +297,12 @@ void WireCellEventWeightTree::save_weights(art::Event const& e)
             ppfx_cv_UBPPFXCV = value;
           }
       }
+      if (knob_name == "ppfx_oldrw_cv_UBOLDPPFXCV" and fIsNuMI and fNuMIOldReweight){
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
+      }
     }
   }
 
@@ -368,6 +369,14 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e, const bool 
           got_ppfx_cv_UBPPFXCV = true;
           break;
         }
+        if (knob == "ppfx_oldrw_cv_UBOLDPPFXCV" && fNuMIOldReweight) {
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
+          got_ppfx_cv_UBPPFXCV = true;
+          break;
+        }
       }
      
     }
@@ -400,7 +409,7 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e, const bool 
       if (fIsNuMI) {
         // For NuMI, the 12 ppfx_* knobs are divided by ppfx_cv_UBPPFXCV,
         // and ppfx_cv_UBPPFXCV is absorbed into spline weight
-        if (knob.rfind("ppfx_", 0) == 0 and knob != "ppfx_cv_UBPPFXCV") {
+        if (knob.rfind("ppfx_", 0) == 0 and knob != "ppfx_cv_UBPPFXCV" and knob != "ppfx_oldrw_cv_UBOLDPPFXCV") {
           std::transform(weights_asFloat.begin(), weights_asFloat.end(), weights_asFloat.begin(),
                          std::bind(std::divides<float>(), std::placeholders::_1, ppfx_cv_UBPPFXCV));
         }
@@ -436,6 +445,8 @@ void WireCellEventWeightTree::FillEventWeights(art::Event const & e, const bool 
         else if (knob == "ppfx_thinnpi_PPFXThinNeutronPion") knob = "pioninexsec_FluxUnisim";
         else if (knob == "ppfx_thinpi_PPFXThinPion") knob = "pionqexsec_FluxUnisim";
         else if (knob == "ppfx_totabs_PPFXTotAbsorp") knob = "piontotxsec_FluxUnisim";
+        // for reweighting old flux files
+        else if (knob == "ppfx_oldrw_ms_UBOLDPPFX" && fNuMIOldReweight) knob = "kminus_PrimaryHadronNormalization";
       }
 
       if (partial && fgenie_knobs.find(knob) == fgenie_knobs.end()) {

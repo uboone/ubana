@@ -1,11 +1,9 @@
-
-
 #ifndef FILLTREEVARIABLES_H
 #define FILLTREEVARIABLES_H
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileDirectory.h"
 
 #include "TTree.h"
 
@@ -45,6 +43,7 @@ class FillTreeVariables {
   std::string fhit_producer;
   std::string frmcmassociation_producer;
   std::string fopflash_producer;
+  geo::TPCGeo const& ftpc;
   RecoMCMatching const * frmcm;
 
   geoalgo::AABox ftpc_volume;
@@ -338,7 +337,7 @@ class FillTreeVariables {
 
 public:
 
-  FillTreeVariables();
+  FillTreeVariables(geo::TPCGeo const& tpc);
 
   void SetVerbose(bool const verbose = true) {fverbose = verbose;}
   void SetProducers(std::string const & mcordata,

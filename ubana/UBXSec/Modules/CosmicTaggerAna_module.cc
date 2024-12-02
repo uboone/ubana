@@ -36,8 +36,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 #include "lardataobj/RecoBase/OpFlash.h"
@@ -53,7 +53,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 
 #include "ubana/UBXSec/Algorithms/UBXSecHelper.h"
-#include "ubana/UBXSec/Algorithms/FiducialVolume.h"
+#include "ubana/Utilities/FiducialVolume.h"
 
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
@@ -80,6 +80,8 @@ public:
   void analyze(art::Event const & e) override;
 
 private:
+
+  geo::TPCGeo const& _tpc = art::ServiceHandle<geo::Geometry>()->TPC();
 
   ::ubana::FiducialVolume _fiducial_volume;
 
@@ -128,12 +130,12 @@ private:
 
 
 CosmicTaggerAna::CosmicTaggerAna(fhicl::ParameterSet const & p)
-  :
-  EDAnalyzer(p) 
+  : EDAnalyzer(p)
+  , _fiducial_volume(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
+                     _tpc.HalfHeight(),
+                     2.*_tpc.HalfWidth(),
+                     _tpc.Length())
 {
-
-  ::art::ServiceHandle<geo::Geometry> geo;
-
   _pfp_producer               = p.get<std::string>("PFParticleProducer");
   _hitfinderLabel             = p.get<std::string>("HitProducer");
   _geantModuleLabel           = p.get<std::string>("GeantModule");
@@ -173,11 +175,6 @@ CosmicTaggerAna::CosmicTaggerAna(fhicl::ParameterSet const & p)
   _tree1->Branch("n_pfp_stopmu_tagged",  &_n_pfp_stopmu_tagged,  "n_pfp_stopmu_tagged/I");
   _tree1->Branch("nu_pfp_stopmu_tagged", &_nu_pfp_stopmu_tagged, "nu_pfp_stopmu_tagged/I");
   _tree1->Branch("nu_pfp_is_reco",       &_nu_pfp_is_reco,       "nu_pfp_is_reco/O");
-
-  _fiducial_volume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"), 
-                             geo->DetHalfHeight(),
-                             2.*geo->DetHalfWidth(),
-                             geo->DetLength());
 
   if (_debug) _fiducial_volume.PrintConfig();
 }

@@ -25,8 +25,8 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDProducer.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h" 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -56,10 +56,10 @@ private:
 
     // Statistics.
     int                                              fNumEvent;             ///< Number of events seen.
-    
+
     // Pointer to the algorithm to do the work
     std::unique_ptr< neutrinoid::NeutrinoIDAlgBase > fNeutrinoIDPtr;        ///< Algorithm to to the work
-    
+
 };
 
 DEFINE_ART_MODULE(TPCNeutrinoID)
@@ -71,18 +71,18 @@ DEFINE_ART_MODULE(TPCNeutrinoID)
 ///
 /// pset - Fcl parameters.
 ///
-TPCNeutrinoID::TPCNeutrinoID(fhicl::ParameterSet const & pset) :
+TPCNeutrinoID::TPCNeutrinoID(fhicl::ParameterSet const & pset) : EDProducer{pset},
                       fNumEvent(0)
 {
     // Instantiate the algorithm we'll use to do the work
     fNeutrinoIDPtr = neutrinoid::NeutrinoIDAlgFactory().MakeNeutrinoIDAlg(pset);
-    
+
     // "Set" fhicl parameters this module uses
     reconfigure(pset);
-    
+
     // We are a producer, say so here
     //produces<std::vector<recob::Track> >();
-    fNeutrinoIDPtr->produces(this);
+    fNeutrinoIDPtr->produces(producesCollector());
 
     // Report.
     mf::LogInfo("TPCNeutrinoID") << "TPCNeutrinoID instantiated\n";
@@ -127,10 +127,10 @@ void TPCNeutrinoID::beginJob()
 void TPCNeutrinoID::produce(art::Event & event)
 {
     ++fNumEvent;
-    
+
     // Call the algorithm to do the work
     fNeutrinoIDPtr->findNeutrinoCandidates(event);
-    
+
     return;
 }
 

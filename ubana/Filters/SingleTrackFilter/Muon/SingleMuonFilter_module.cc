@@ -17,7 +17,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -25,6 +25,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcorealg/Geometry/geo_vectors_utils.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
@@ -35,10 +36,7 @@
 #include "TClonesArray.h"
 #include "TObject.h"
 
-#include "FiducialVolume.h"
-
-class SingleMuonFilter;
-
+#include "ubana/Utilities/FiducialVolume.h"
 
 class SingleMuonFilter : public art::EDFilter {
 public:
@@ -63,10 +61,10 @@ public:
 private:
 
   // Declare member data here.
-  ::ubana::FiducialVolume _fiducial_volume;
- 
-  art::ServiceHandle<geo::Geometry> geo;
+  geo::TPCGeo const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
   art::ServiceHandle<art::TFileService> tfs;
+
+  ::ubana::FiducialVolume _fiducial_volume;
 
   spacecharge::SpaceCharge const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
@@ -75,7 +73,7 @@ private:
   double POT_miss1E10;
 
   TTree * my_event_;
-  
+
   void Initialize_event();
 
   int n_pfp_nuDaughters; // number of pfp which are the daughters of the neutrino
@@ -90,17 +88,17 @@ private:
 };
 
 
-SingleMuonFilter::SingleMuonFilter(fhicl::ParameterSet const& pset): 
+SingleMuonFilter::SingleMuonFilter(fhicl::ParameterSet const& pset):
   EDFilter{pset},
+  _fiducial_volume(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
+                   tpc.HalfHeight(),
+                   2.*tpc.HalfWidth(),
+                   tpc.Length()),
   m_pandoraLabel(pset.get<std::string>("PandoraLabel")),
   m_trackProducerLabel(pset.get<std::string>("TrackProducerLabel")),
   m_showerProducerLabel(pset.get<std::string>("ShowerProducerLabel"))
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
-  _fiducial_volume.Configure(pset.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
-                             geo->DetHalfHeight(),
-                             2.*geo->DetHalfWidth(),
-                             geo->DetLength());
 
   _fiducial_volume.PrintConfig();
 }
@@ -132,7 +130,7 @@ bool SingleMuonFilter::filter(art::Event & evt)
 
   //pfp shower association
   art::FindManyP<recob::Shower> pfpToShowerAsso(Handle_pfParticle, evt, m_showerProducerLabel);
-  
+
   // Get mapping from ID to PFParticle
   std::unordered_map<size_t, art::Ptr<recob::PFParticle> > pfParticleIdMap;
   for (unsigned int i = 0; i < Handle_pfParticle->size(); ++i){
@@ -150,15 +148,15 @@ bool SingleMuonFilter::filter(art::Event & evt)
 
   TVector3 Trk_start;
   TVector3 Trk_end;
-  TVector3 Trk_start_SCEcorr; 
+  TVector3 Trk_start_SCEcorr;
   TVector3 Trk_end_SCEcorr;
- 
+
 
   // Reject an event if
   // - No neutrino slice
   // - Not 1-track 0-shower topology
   // - Vtx not in FV
- 
+
   //bool if_Nu_Slice = false;
   //-------- Get Reco neutrino (pfparticle)
   for(unsigned int i = 0; i < pfParticle_v.size(); i++){
@@ -193,7 +191,7 @@ bool SingleMuonFilter::filter(art::Event & evt)
           }
         } // finish looping of pfp
       }
-     
+
       //number of tracks and showers
       n_dau_tracks = daughter_Tracks.size();
       n_dau_showers = daughter_Showers.size();
@@ -202,7 +200,7 @@ bool SingleMuonFilter::filter(art::Event & evt)
       if(n_dau_tracks == 1 && n_dau_showers == 0){
         // Add spatial correction to the track start and end
         Trk_start = daughter_Tracks.front()->Vertex<TVector3>();
-        auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()));
+        auto Trk_start_offset = SCE->GetCalPosOffsets(geo::Point_t(Trk_start.X(), Trk_start.Y(), Trk_start.Z()), 0);
         Trk_start_SCEcorr.SetX(Trk_start.X() - Trk_start_offset.X());
         Trk_start_SCEcorr.SetY(Trk_start.Y() + Trk_start_offset.Y());
         Trk_start_SCEcorr.SetZ(Trk_start.Z() + Trk_start_offset.Z());
@@ -217,12 +215,12 @@ bool SingleMuonFilter::filter(art::Event & evt)
         } //not in FV
       } // if 1trk, 0shw
       else{
-        return false;        
+        return false;
       } // not 1trk, 0 shw
-      
+
     } // if pfp < 4
   } // Finish loop all the pfp particles
-  
+
   return false; // If the function hasn't return before this, it means that there's no neutrino slice
 
 }

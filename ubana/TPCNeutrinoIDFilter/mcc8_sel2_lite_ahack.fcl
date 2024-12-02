@@ -89,7 +89,6 @@ outputs:
  } 
 }
 
-services.Geometry.ForceUseFCLOnly: true
 
 services.FileCatalogMetadata.applicationVersion: "develop"
 services.FileCatalogMetadata.fileType: "mc"

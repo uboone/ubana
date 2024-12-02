@@ -1,23 +1,18 @@
-cet_enable_asserts()
-
-art_make( LIB_LIBRARIES lardataobj_RecoBase
-                        larcorealg_Geometry
-                        larcore_Geometry_Geometry_service
-                        lardata_RecoObjects
-                        lardata_Utilities
-                        nusimdata_SimulationBase
-                        canvas
-                        ${MF_MESSAGELOGGER}
-                        
-                        ${FHICLCPP}
-                        ${CETLIB}
-                        cetlib_except
-                        ${Boost_FILESYSTEM_LIBRARY}
-                        ${Boost_SYSTEM_LIBRARY}
-                        ${CLHEP}
-                        ${ROOT_BASIC_LIB_LIST}
-                        ${ROOT_MINUIT}
-        )
+cet_make_library(
+  SOURCE
+  MCTruthAssociations.cpp
+  MCTruthEmEveIdCalculator.cxx
+  MCTruthEveIdCalculator.cxx
+  MCTruthParticleHistory.cxx
+  MCTruthParticleList.cxx
+  LIBRARIES
+  PUBLIC
+  lardataalg::DetectorInfo
+  larcorealg::Geometry
+  lardataobj::RecoBase
+  nug4::ParticleNavigation
+  nusimdata::SimulationBase
+)
 
 install_headers()
 install_source()

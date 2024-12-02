@@ -22,7 +22,7 @@
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Utilities/make_tool.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -33,6 +33,7 @@
 
 // LArSoft includes
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -43,7 +44,6 @@
 
 #include "cetlib/cpu_timer.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
@@ -127,7 +127,6 @@ private:
 
     // Other variables that will be shared between different methods.
     const geo::GeometryCore*                 fGeometry;       // pointer to Geometry service
-    const detinfo::DetectorProperties*       fDetectorProperties;
 }; // class MCTruthTestAna
 
 
@@ -142,7 +141,6 @@ MCTruthTestAna::MCTruthTestAna(fhicl::ParameterSet const& parameterSet)
 
 {
     fGeometry           = lar::providerFrom<geo::Geometry>();
-    fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
     // Read in the parameters from the .fcl file.
     this->reconfigure(parameterSet);
@@ -221,6 +219,7 @@ void MCTruthTestAna::analyze(const art::Event& event)
     // and do hit-by-hit comparisons...
     art::Handle<std::vector<recob::Hit> > hitHandle;
     event.getByLabel(fHitProducerLabel, hitHandle);
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(event);
 
     if (hitHandle.isValid())
     {
@@ -232,8 +231,8 @@ void MCTruthTestAna::analyze(const art::Event& event)
             int nIDEMisMatches(0);
             
             // Check the claimed parentage of the current hit
-            std::vector<sim::TrackIDE> trackIDEVec = fMCTruthMatching->HitToTrackID(hit);
-            std::vector<sim::TrackIDE> btTrkIDEVec = backTracker->HitToTrackIDEs(hit);
+            std::vector<sim::TrackIDE> trackIDEVec = fMCTruthMatching->HitToTrackID(clockData, hit);
+            std::vector<sim::TrackIDE> btTrkIDEVec = backTracker->HitToTrackIDEs(clockData, hit);
             
             int deltaIDs = int(btTrkIDEVec.size()) - int(trackIDEVec.size());
             
@@ -287,8 +286,8 @@ void MCTruthTestAna::analyze(const art::Event& event)
             nTotalMisMatches += nIDEMisMatches;
             
             // Now check the eve ID's...
-            std::vector<sim::TrackIDE> eveIDEVec   = fMCTruthMatching->HitToEveID(hit);
-            std::vector<sim::TrackIDE> btEveIDEVec = backTracker->HitToEveTrackIDEs(hit);
+            std::vector<sim::TrackIDE> eveIDEVec   = fMCTruthMatching->HitToEveID(clockData, hit);
+            std::vector<sim::TrackIDE> btEveIDEVec = backTracker->HitToEveTrackIDEs(clockData, hit);
             
             // Look for match in returned sizes...
             int deltaEveIDs = int(btEveIDEVec.size()) - int(eveIDEVec.size());
@@ -352,8 +351,8 @@ void MCTruthTestAna::analyze(const art::Event& event)
             
             std::vector<art::Ptr<recob::Hit>> trackHitVec = hitTrackAssns.at(track.key());
             
-            std::set<int> trackIDSet = fMCTruthMatching->GetSetOfTrackIDs(trackHitVec);
-            std::set<int> btTrkIDSet = backTracker->GetSetOfTrackIds(trackHitVec);
+            std::set<int> trackIDSet = fMCTruthMatching->GetSetOfTrackIDs(clockData, trackHitVec);
+            std::set<int> btTrkIDSet = backTracker->GetSetOfTrackIds(clockData, trackHitVec);
             
             // Check for case were we might have negative track IDs from the BackTracker
             if (btTrkIDSet.size() > trackIDSet.size())
@@ -381,7 +380,7 @@ void MCTruthTestAna::analyze(const art::Event& event)
 
             for(const auto& tkID : btTrkIDVec)
             {
-                std::vector<art::Ptr<recob::Hit>> hitVec = backTracker->TrackIdToHits_Ps(tkID, hitPtrVector);
+                std::vector<art::Ptr<recob::Hit>> hitVec = backTracker->TrackIdToHits_Ps(clockData, tkID, hitPtrVector);
                 trkHitVecVec.push_back(hitVec);
             }
             // Apply majority logic - we declare the MCParticle with the most hits to be the "winner"
@@ -401,8 +400,8 @@ void MCTruthTestAna::analyze(const art::Event& event)
             
             std::set<int> mcTrackIdxSet = {bestMCTrackID};
             
-            double btTrkEffic = backTracker->HitCollectionEfficiency(mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
-            double trackEffic = fMCTruthMatching->HitCollectionEfficiency(mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
+            double btTrkEffic = backTracker->HitCollectionEfficiency(clockData, mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
+            double trackEffic = fMCTruthMatching->HitCollectionEfficiency(clockData, mcTrackIdxSet, trackHitVec, bestMCTrackHitVec, geo::k3D);
             
             if (btTrkEffic != trackEffic)
             {
@@ -414,8 +413,8 @@ void MCTruthTestAna::analyze(const art::Event& event)
             fAssocEfficiencyHist->Fill(std::min(1.01,trackEffic), 1.);
             fEfficiencyCompHist->Fill(std::min(1.01,btTrkEffic), std::min(1.01,trackEffic), 1.);
             
-            double btTrkPurity = backTracker->HitCollectionPurity(mcTrackIdxSet, trackHitVec);
-            double trackPurity = fMCTruthMatching->HitCollectionPurity(mcTrackIdxSet, trackHitVec);
+            double btTrkPurity = backTracker->HitCollectionPurity(clockData, mcTrackIdxSet, trackHitVec);
+            double trackPurity = fMCTruthMatching->HitCollectionPurity(clockData, mcTrackIdxSet, trackHitVec);
             
             if (btTrkPurity != trackPurity)
             {
@@ -444,4 +443,3 @@ void MCTruthTestAna::endJob()
 // This macro has to be defined for this module to be invoked from a
 // .fcl file; see MCTruthTestAna.fcl for more information.
 DEFINE_ART_MODULE(MCTruthTestAna)
-

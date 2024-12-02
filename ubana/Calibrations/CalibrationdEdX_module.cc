@@ -18,6 +18,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
@@ -87,13 +88,12 @@ private:
   double GetYZCorrection(TVector3& xyz, TH2F *his);
   double GetXCorrection(TVector3& xyz, TH1F *his);
 
-  const detinfo::DetectorProperties* detprop;
-
 };
 
 
 ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
-  : fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
+  : EDProducer(p)
+  , fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
   , fCalorimetryModuleLabel(p.get< std::string >("CalorimetryModuleLabel"))
   , fCalibrationFileName   (p.get< std::string >("CalibrationFileName"))
   , fCorr_YZ               (p.get< std::vector<std::string> >("Corr_YZ"))
@@ -111,7 +111,6 @@ ub::CalibrationdEdX::CalibrationdEdX(fhicl::ParameterSet const & p)
     throw art::Exception(art::errors::Configuration)
       <<"Size of Corr_YZ and Corr_X need to be 3.";
   }
-  detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
 
   //create calorimetry product and its association with track
   produces< std::vector<anab::Calorimetry>              >();
@@ -150,6 +149,8 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
     throw art::Exception(art::errors::ProductNotFound)
       <<"Could not get assocated Calorimetry objects";
   }
+
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt);
 
   for (size_t trkIter = 0; trkIter < tracklist.size(); ++trkIter){   
     for (size_t i = 0; i<fmcal.at(trkIter).size(); ++i){
@@ -214,8 +215,10 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
         for (size_t j = 0; j<vdQdx.size(); ++j){
 	  float yzcorrection = energyCalibProvider.YZdqdxCorrection(planeID.Plane, vXYZ[j].Y(), vXYZ[j].Z());
 	  float xcorrection  = energyCalibProvider.XdqdxCorrection(planeID.Plane, vXYZ[j].X());
-    float elifetime  = elifetimeCalibProvider.Lifetime(); // [ms]
-    float driftvelocity = detprop->DriftVelocity(); // [cm/us]
+	  float elifetime  = elifetimeCalibProvider.Lifetime(); // [ms]
+	  double efield = detProp.Efield();
+	  double temp   = detProp.Temperature();
+	  float driftvelocity = detProp.DriftVelocity(efield, temp); // [cm/us]
        	  if (!yzcorrection) yzcorrection = 1.0;
 	  if (!xcorrection) xcorrection = 1.0;
 	  
@@ -241,18 +244,18 @@ void ub::CalibrationdEdX::produce(art::Event & evt)
           /*
           //set time to be trgger time so we don't do lifetime correction
           //we will turn off lifetime correction in caloAlg, this is just to be double sure
-          vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detprop->TriggerOffset(), planeID.Plane, 0);
+          vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], trigger_offset(clockData), planeID.Plane, 0);
           */
 
           //Calculate dE/dx using the new recombination constants
           double dQdx_e = caloAlg.ElectronsFromADCArea(vdQdx[j], planeID.Plane);
-          double rho = detprop->Density();            // LAr density in g/cm^3
+          double rho = detProp.Density();            // LAr density in g/cm^3
           double Wion = 1000./util::kGeVToElectrons;  // 23.6 eV = 1e, Wion in MeV/e
-          double E_field_nominal = detprop->Efield();        // Electric Field in the drift region in KV/cm
+          double E_field_nominal = detProp.Efield();        // Electric Field in the drift region in KV/cm
           
           //correct Efield for SCE
           geo::Vector_t E_field_offsets = {0.,0.,0.};
-          if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()});
+          if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()}, 0);
           TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
           double E_field = E_field_vector.Mag();
           

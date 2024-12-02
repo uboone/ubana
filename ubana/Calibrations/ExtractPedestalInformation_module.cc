@@ -18,28 +18,20 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 
 // LArSoft includes 
 #include "lardataobj/RecoBase/Hit.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/DetectorInfoServices/DetectorClocksServiceStandard.h"
-#include "ubevt/Utilities/SignalShapingServiceMicroBooNE.h"
 #include "lardataobj/RawData/RawDigit.h"
-#include "lardataobj/RawData/raw.h"
-#include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
-#include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
-#include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"
 
 // ROOT includes
 #include "TTree.h"
 #include "TFile.h"
 #include "TH1D.h"
-#include "TH2D.h"
 #include "TF1.h"
 
 // C++ includes

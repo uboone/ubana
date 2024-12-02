@@ -1,6 +1,8 @@
 #ifndef BACTRACKINGFUNCS_H
 #define BACTRACKINGFUNCS_H
 
+#include <numeric>
+
 // services for detector properties
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -8,6 +10,7 @@
 
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 
 #include "lardataobj/MCBase/MCShower.h"
 #include "lardataobj/MCBase/MCTrack.h"
@@ -23,10 +26,10 @@ void ApplyDetectorOffsets(const float _vtx_t, const float _vtx_x, const float _v
                           float &_xtimeoffset, float &_xsceoffset, float &_ysceoffset, float &_zsceoffset)
 {
 
-  auto const &detProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  auto const &detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
-  double g4Ticks = detClocks->TPCG4Time2Tick(_vtx_t) + detProperties->GetXTicksOffset(0, 0, 0) - detProperties->TriggerOffset();
-  _xtimeoffset = detProperties->ConvertTicksToX(g4Ticks, 0, 0, 0);
+  auto const detClocks = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProperties = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(detClocks);
+  double g4Ticks = detClocks.TPCG4Time2Tick(_vtx_t) + detProperties.GetXTicksOffset(0, 0, 0) - trigger_offset(detClocks);
+  _xtimeoffset = detProperties.ConvertTicksToX(g4Ticks, 0, 0, 0);
 
   auto const *SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
   auto offset = SCE->GetPosOffsets(geo::Point_t(_vtx_x, _vtx_y, _vtx_z));
@@ -48,7 +51,8 @@ art::Ptr<simb::MCParticle> getAssocMCParticle(art::FindManyP<simb::MCParticle, a
   //credit: Wes Ketchum
   std::unordered_map<int, double> trkide;
   std::unordered_map<int, float> trkq;
-  double maxe = -1, tote = 0;
+  // double maxe = -1, tote = 0; // tote unused
+  double maxe = -1;
   art::Ptr<simb::MCParticle> maxp_me; //pointer for the particle match we will calculate
   //simb::MCParticle* maxp_me; //pointer for the particle match we will calculate
   for (auto h : hits)
@@ -64,7 +68,7 @@ art::Ptr<simb::MCParticle> getAssocMCParticle(art::FindManyP<simb::MCParticle, a
     {
       trkide[particle_vec[i_p]->TrackId()] += match_vec[i_p]->energy;                    //store energy per track id
       trkq[particle_vec[i_p]->TrackId()] += h->Integral() * match_vec[i_p]->ideFraction; //store hit integral associated to this hit
-      tote += match_vec[i_p]->energy;                                                    //calculate total energy deposited
+      // tote += match_vec[i_p]->energy;                                                    //calculate total energy deposited // unused
       if (trkide[particle_vec[i_p]->TrackId()] > maxe)
       { //keep track of maximum
         maxe = trkide[particle_vec[i_p]->TrackId()];

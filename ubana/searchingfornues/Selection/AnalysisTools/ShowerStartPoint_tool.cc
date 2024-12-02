@@ -11,9 +11,9 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
-#include "../CommonDefs/Geometry.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Geometry.h"
 
 namespace analysis
 {
@@ -93,7 +93,7 @@ private:
   std::vector<float> _shr_hits_start_Y_wire_v;
   std::vector<float> _shr_hits_start_Y_x_v;
 
-  detinfo::DetectorProperties const *detprop;
+  detinfo::DetectorPropertiesData const detprop;
 
   float wireSpacing;
 
@@ -107,9 +107,9 @@ private:
 ///
 /// pset - Fcl parameters.
 ///
-ShowerStartPoint::ShowerStartPoint(const fhicl::ParameterSet &p)
+ShowerStartPoint::ShowerStartPoint(const fhicl::ParameterSet &p) :
+  detprop(art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob())
 {
-  detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   wireSpacing = 0.3;
   fCLSproducer = p.get<art::InputTag>("CLSproducer");
 }
@@ -186,7 +186,7 @@ void ShowerStartPoint::analyzeSlice(art::Event const &e, std::vector<ProxyPfpEle
     {
       //loop on spacepoints
       float smallest_sp_distance = std::numeric_limits<float>::max();
-      size_t index_smallest_distance;
+      size_t index_smallest_distance = 0;
       for (size_t i = 0; i < spacepoints.size(); i++)
       {
         const auto &spacepoint = spacepoints[i];
@@ -215,7 +215,7 @@ void ShowerStartPoint::analyzeSlice(art::Event const &e, std::vector<ProxyPfpEle
 
     // cluster per pfparticle
     auto clusters = slice_pfp_v[i_pfp].get<recob::Cluster>();
-    for (const auto ass_cluster : clusters)
+    for (const auto & ass_cluster : clusters)
     {
       int i_plane = ass_cluster->Plane().Plane;
       float wire_reco_vtx = searchingfornues::YZtoPlanecoordinate(reco_vtx[1], reco_vtx[2], i_plane);
@@ -231,7 +231,7 @@ void ShowerStartPoint::analyzeSlice(art::Event const &e, std::vector<ProxyPfpEle
         const auto &hit = hits[i];
 
         float wire_coord_hit = hit->WireID().Wire * wireSpacing;
-        float x_hit = detprop->ConvertTicksToX(hit->PeakTime(), ass_cluster->Plane());
+        float x_hit = detprop.ConvertTicksToX(hit->PeakTime(), ass_cluster->Plane());
 
         float distance_wrt_vertex = searchingfornues::distance2d(x_hit, wire_coord_hit,
                                                reco_vtx[0], wire_reco_vtx);

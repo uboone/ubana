@@ -1,47 +1,85 @@
-include_directories( $ENV{PANDORA_INC} )
-include_directories( $ENV{LARPANDORACONTENT_INC} )
+cet_build_plugin(
+  GammaTruthStudies art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larevt::SpaceChargeService
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::MCBase
+  nusimdata::SimulationBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
-#add_subdirectory(SelectionTools)
-#add_subdirectory(AnalysisTools)
-#add_subdirectory(job)
+cet_build_plugin(
+  ProtonHitPurity art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larevt::SpaceChargeService
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::MCBase
+  nusimdata::SimulationBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
-art_make( MODULE_LIBRARIES larcorealg_Geometry
-                           larcore_Geometry_Geometry_service
-                           larsim_Simulation nutools_ParticleNavigation
-                           lardataobj_Simulation
-			   lardataobj_RecoBase
-			   lardataobj_MCBase	
-                           lardata_Utilities
-			   nusimdata_SimulationBase
-                           larevt_Filters
-                           larsim_MCCheater_BackTrackerService_service
-                           larsim_MCCheater_ParticleInventoryService_service
-                           lardataobj_RawData
-                           larevt_CalibrationDBI_Providers
-                           nutools_RandomUtils_NuRandomService_service
-                           ${ART_FRAMEWORK_CORE}
-                           ${ART_FRAMEWORK_PRINCIPAL}
-                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                           art_Persistency_Common
-                           art_Persistency_Provenance
-                           art_Utilities
-                           canvas
-                           ${MF_MESSAGELOGGER}
-                           ${MF_UTILITIES}
-                           ${FHICLCPP}
-                           ${CETLIB}
-                           cetlib_except
-                           ${CLHEP}
-                           ${ROOT_GEOM}
-                           ${ROOT_XMLIO}
-                           ${ROOT_GDML}
-                           ${ROOT_BASIC_LIB_LIST}
-            		   ${PANDORASDK}	
-			   larpandora_LArPandoraInterface
-        )
+cet_build_plugin(
+  ProtonTruthStudies art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larevt::SpaceChargeService
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::MCBase
+  nusimdata::SimulationBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  SaveSliceHits art::EDProducer
+  LIBRARIES
+  PRIVATE
+  lardata::Utilities
+  lardataobj::RecoBase
+)
+
+cet_build_plugin(
+  SecondShowerPurity art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larevt::SpaceChargeService
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::MCBase
+  nusimdata::SimulationBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  ShowerMerger art::EDProducer
+  LIBRARIES
+  PRIVATE
+  larevt::SpaceChargeService
+  lardata::RecoBaseProxy
+  larcore::ServiceUtil
+  lardataalg::DetectorInfo
+  lardataobj::RecoBase
+  lardataobj::MCBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
 install_headers()
 install_fhicl()

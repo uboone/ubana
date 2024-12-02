@@ -13,12 +13,13 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 
 #include "lardataobj/AnalysisBase/CosmicTag.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Cluster.h"
@@ -50,7 +51,8 @@
 
 
 //___________________________________________________________________________________________________
-void UBXSecHelper::GetTrackPurityAndEfficiency( lar_pandora::HitVector recoHits, double & trackPurity, double & trackEfficiency ) {
+void UBXSecHelper::GetTrackPurityAndEfficiency(detinfo::DetectorClocksData const& clockData,
+                                               lar_pandora::HitVector recoHits, double & trackPurity, double & trackEfficiency ) {
 
   art::ServiceHandle<cheat::BackTrackerService> bt;
 
@@ -60,7 +62,7 @@ void UBXSecHelper::GetTrackPurityAndEfficiency( lar_pandora::HitVector recoHits,
   for(size_t h = 0; h < recoHits.size(); h++){
 
     art::Ptr<recob::Hit> recoHit = recoHits[h];
-    std::vector<sim::TrackIDE> eveIDs = bt->HitToEveTrackIDEs(recoHit);
+    std::vector<sim::TrackIDE> eveIDs = bt->HitToEveTrackIDEs(clockData, recoHit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){
       //std::cout<<"[Hit "<< h<<"] hit plane: "<<recoHit->View()<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<"   pdg "<< (bt->TrackIDToParticle(eveIDs[e].trackID))->PdgCode()<<"   process "<<(bt->TrackIDToParticle(eveIDs[e].trackID))->Process()<<std::endl;
@@ -994,10 +996,11 @@ double UBXSecHelper::GetCosTheta(TVector3 dir) {
 bool UBXSecHelper::PointIsCloseToDeadRegion(double *reco_nu_vtx, int plane_no){
 
   ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& tpc = geo->TPC();
 
   // Check point first
-  if (reco_nu_vtx[2] < 0. || reco_nu_vtx[2] > geo->DetLength() 
-      || reco_nu_vtx[1] < -geo->DetHalfHeight() || reco_nu_vtx[1] > geo->DetHalfHeight()) {
+  if (reco_nu_vtx[2] < 0. || reco_nu_vtx[2] > tpc.Length()
+      || reco_nu_vtx[1] < -tpc.HalfHeight() || reco_nu_vtx[1] > tpc.HalfHeight()) {
 
     std::cout << "[UBXSecHelper::PointIsCloseToDeadRegion] Point is outside the dector in Z or Y, really?" << std::endl; 
     std::cout << "[UBXSecHelper::PointIsCloseToDeadRegion] Point: " << reco_nu_vtx[0] << ", " << reco_nu_vtx[1] << ", " << reco_nu_vtx[2] << std::endl;
@@ -1006,8 +1009,9 @@ bool UBXSecHelper::PointIsCloseToDeadRegion(double *reco_nu_vtx, int plane_no){
 
   // Get nearest channel
   raw::ChannelID_t ch;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>{}->Get();
   try {
-    ch = geo->NearestChannel(reco_nu_vtx, plane_no);
+    ch = channelMap.NearestChannel(geo::vect::toPoint(reco_nu_vtx), geo::PlaneID(0, 0, plane_no));
   } catch(cet::exception &e) {
     std::cout << "[UBXSecHelper::PointIsCloseToDeadRegion] Cant' find nearest channel (catched exception)" << std::endl;
     return false;
@@ -1048,17 +1052,13 @@ int UBXSecHelper::GetClosestPMT(double *charge_center) {
 
   int pmt_id= -1;
 
-  ::art::ServiceHandle<geo::Geometry> geo;
-  double xyz[3];
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
   double dist;
   double min_dist = 1.e9;
 
   for (size_t opch = 0; opch < 32; opch++) {
-    geo->OpDetGeoFromOpChannel(opch).GetCenter(xyz); 
-    dist = std::sqrt( (charge_center[0] - xyz[0])*(charge_center[0] - xyz[0]) +
-                      (charge_center[1] - xyz[1])*(charge_center[1] - xyz[1]) +
-                      (charge_center[2] - xyz[2])*(charge_center[2] - xyz[2]) );
-
+    auto const xyz = channelMap.OpDetGeoFromOpChannel(opch).GetCenter();
+    dist = (geo::vect::toPoint(charge_center) - xyz).R();
     if (dist < min_dist) {
       min_dist = dist;
       pmt_id = opch;
@@ -1077,11 +1077,12 @@ double UBXSecHelper::GetFlashZCenter(std::vector<double> hypo_pe) {
   double sumz = 0.;
 
   ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>{}->Get();
 
   // opdet=>opchannel mapping
   std::vector<size_t> opdet2opch(geo->NOpDets(),0);
   for(size_t opch=0; opch<opdet2opch.size(); ++opch){
-    opdet2opch[geo->OpDetFromOpChannel(opch)] = opch;
+    opdet2opch[channelMap.OpDetFromOpChannel(opch)] = opch;
   }
 
   for (unsigned int opdet = 0; opdet < hypo_pe.size(); opdet++) {
@@ -1089,11 +1090,10 @@ double UBXSecHelper::GetFlashZCenter(std::vector<double> hypo_pe) {
     size_t opch = opdet2opch[opdet];
 
     // Get physical detector location for this opChannel
-    double PMTxyz[3];
-    geo->OpDetGeoFromOpChannel(opch).GetCenter(PMTxyz);
+    auto const PMTxyz = channelMap.OpDetGeoFromOpChannel(opch).GetCenter();
 
     // Add up the position, weighting with PEs
-    sumz    += hypo_pe[opdet]*PMTxyz[2];
+    sumz    += hypo_pe[opdet]*PMTxyz.Z();
 
     totalPE += hypo_pe[opdet];
   }
@@ -1283,4 +1283,3 @@ art::Ptr<simb::MCTruth> UBXSecHelper::TrackIDToMCTruth(art::Event const & e, std
     art::Ptr<simb::MCTruth> null_ptr;
     return null_ptr;
 }
-

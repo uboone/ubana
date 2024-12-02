@@ -15,7 +15,7 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 // Supporting libraries
 #include "fhiclcpp/ParameterSet.h"
@@ -37,6 +37,7 @@
 #include "TH1D.h"
 
 // LArSoft 
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
@@ -509,7 +510,6 @@ void SPEcalibration::analyzePulseFindingMode(const art::Event& evt)
 {
   // initialize data handles and services
   art::ServiceHandle<geo::UBOpReadoutMap> ub_PMT_channel_map;
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
   art::Handle< std::vector< raw::OpDetWaveform > > LogicHandle;
   art::Handle< std::vector< raw::OpDetWaveform > > wfHandle;
   art::Handle< raw::DAQHeader > dhHandle;
@@ -533,7 +533,8 @@ void SPEcalibration::analyzePulseFindingMode(const art::Event& evt)
   nsamples = 0;
 
   // get trigger time
-  double trig_timestamp = ts->TriggerTime(); // usec from beginning of run (or subrun?)
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
+  double trig_timestamp = clockData.TriggerTime(); // usec from beginning of run (or subrun?)
 
   // event timestamp
   const raw::DAQHeader& dh = (*dhHandle);

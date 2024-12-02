@@ -16,13 +16,14 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -92,7 +93,7 @@ private:
 
 
 MuCST0Finder::MuCST0Finder(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
 
@@ -168,6 +169,7 @@ void MuCST0Finder::produce(art::Event & e)
   // _mgr.PrintConfig();
 
   ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMapAlg = art::ServiceHandle<geo::WireReadout const>()->Get();
   ::art::ServiceHandle<geo::UBOpReadoutMap> ub_geo;
 
   ::art::Handle<std::vector<anab::CosmicTag> > ctag_h;
@@ -214,7 +216,7 @@ void MuCST0Finder::produce(art::Event & e)
       f.pe_v.resize(geo->NOpDets());
       f.pe_err_v.resize(geo->NOpDets());
       for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-	unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMapAlg.OpDetFromOpChannel(i);
 	f.pe_v[opdet] = flash.PE(i) / _gain_correction[i];
 	f.pe_err_v[opdet] = sqrt(flash.PE(i) / _gain_correction[i]);
         if (opdet == 25) _pmt25_pe = f.pe_v[opdet];
@@ -251,7 +253,7 @@ void MuCST0Finder::produce(art::Event & e)
       f.pe_v.resize(geo->NOpDets());
       f.pe_err_v.resize(geo->NOpDets());
       for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-	unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMapAlg.OpDetFromOpChannel(i);
 	if(flash.PE(i) == 0.) {
           std::cout << "op det " << opdet << "has 0 pe for this flash" << std::endl;
 	  f.pe_v[opdet]=-1.;
@@ -310,8 +312,9 @@ void MuCST0Finder::produce(art::Event & e)
 
   ::geoalgo::Vector mucs_track_start(mucs_track_ptr->LocationAtPoint<TVector3>(0));
   ::geoalgo::Vector mucs_track_end(mucs_track_ptr->LocationAtPoint<TVector3>(mucs_track_ptr->NumberTrajectoryPoints()-1));
-  ::geoalgo::AABox fidvol(10, (-1.)*(geo->DetHalfHeight())+10., 10.,
-			  geo->DetHalfWidth()*2-10., geo->DetHalfHeight()-10., geo->DetLength() -10.);
+  auto const& tpc = geo->TPC();
+  ::geoalgo::AABox fidvol(10, (-1.)*(tpc.HalfHeight())+10., 10.,
+                          tpc.HalfWidth()*2-10., tpc.HalfHeight()-10., tpc.Length() -10.);
   if(fidvol.Contain(mucs_track_start) || fidvol.Contain(mucs_track_end)) {
     //std::cerr << "Start/End not close enough to the detector edge!" << storage->event_id() << std::endl;
     std::cerr << "Start: (" << mucs_track_start[0] << "," << mucs_track_start[1] << "," << mucs_track_start[2] << ")" << std::endl;

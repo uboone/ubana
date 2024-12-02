@@ -11,7 +11,6 @@
 
 // LArSoft includes
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
@@ -19,7 +18,6 @@
 // LArSoft includes
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcore/Geometry/Geometry.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 #include "lardata/Utilities/AssociationUtil.h"
@@ -70,7 +68,7 @@ public:
      *  @brief Each algorithm may have different objects it wants "produced" so use this to
      *         let the top level producer module "know" what it is outputting
      */
-    virtual void produces(art::EDProducer*);
+    virtual void produces(art::ProducesCollector&);
 
     /**
      *  @brief Given the list of hits this will search for candidate Seed objects and return them
@@ -108,14 +106,11 @@ private:
     TH1D*                      fFlashPE;                 ///< flash photoelectrons
     TH1D*                      fFlashTime;               ///< flash timing
     
-    art::EDProducer*           fMyProducerModule;        ///< The producer module driving us
-    
     /// @{
     /**
      *  @brief Standard useful properties
      */
     geo::GeometryCore const*            fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const*  fDetector;           ///< Pointer to the detector properties
     /// @}
 };
 

@@ -20,7 +20,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -244,7 +245,7 @@ size_t OpDigitSaturationCorrection::FindMatchingLGPulse(const unsigned int opdet
 }
 
 OpDigitSaturationCorrection::OpDigitSaturationCorrection(fhicl::ParameterSet const & p)
-  : _tree(nullptr)
+  : EDProducer{p}, _tree(nullptr)
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.
@@ -324,6 +325,7 @@ void OpDigitSaturationCorrection::SetUpChannelMap()
 
   // Get generic geometry
   ::art::ServiceHandle<geo::Geometry> geom;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
 
   // Get Optical Readout Channel Map Geometry
   ::art::ServiceHandle<geo::UBOpReadoutMap> ub_geom;
@@ -346,7 +348,7 @@ void OpDigitSaturationCorrection::SetUpChannelMap()
     bool skip=true;
     for(size_t i=0; i<geom->Cryostat().NOpDet(); ++i) {
       try{
-	skip = !(geom->OpDetFromOpChannel(ch) < geom->Cryostat().NOpDet());
+        skip = !(channelMap.OpDetFromOpChannel(ch) < geom->Cryostat().NOpDet());
       }catch(...){
 	skip = true;
       }
@@ -358,7 +360,7 @@ void OpDigitSaturationCorrection::SetUpChannelMap()
     _opch_to_chtype_m[ch] = ub_geom->GetChannelType(ch);
 
     if(skip) _opch_to_opdet_m[ch] = -1;
-    else _opch_to_opdet_m[ch] = geom->OpDetFromOpChannel(ch);
+    else _opch_to_opdet_m[ch] = channelMap.OpDetFromOpChannel(ch);
 
     // if this channel is found in the user-defined baseline map, add baseline value
     for (size_t i=0; i < _baseline_chan_v.size(); i++){
@@ -553,10 +555,10 @@ void OpDigitSaturationCorrection::produce(art::Event & e)
   }
 
   // load trigger data
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
 
   // get the trigger time
-  _TrigTime = ts->TriggerTime();
+  _TrigTime = clockData.TriggerTime();
 
   if (_verbose)
     std::cout << "Check that channel numbers and mappings are as expected" << std::endl;

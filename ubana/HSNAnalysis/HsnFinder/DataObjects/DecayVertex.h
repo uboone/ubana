@@ -18,9 +18,10 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include "canvas/Persistency/Common/Ptr.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "lardataobj/RecoBase/TrackTrajectory.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -35,7 +36,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardataalg/DetectorInfo/DetectorPropertiesData.h"
 // #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 
 namespace AuxVertex
@@ -71,8 +72,8 @@ namespace AuxVertex
     void SetDetectorCoordinates(
       const std::vector<double>& minTpcBound,
       const std::vector<double>& maxTpcBound,
-      geo::GeometryCore const* geometry,
-      detinfo::DetectorProperties const* detectorProperties);
+      geo::WireReadoutGeom const& channelMap,
+      detinfo::DetectorPropertiesData const& detProp);
     void SetChannelLoc(int channel0, int channel1, int channel2);
     void SetTickLoc(float tick0, float tick1, float tick2);
     void SetProngChannelLoc(int par, int channel0, int channel1, int channel2);

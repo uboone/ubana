@@ -18,12 +18,12 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include <memory>
 #include <iostream>
 
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "ubana/PatternFilter/PMAlgs/AnodeCathodePMAlg.h"
 
@@ -140,11 +140,11 @@ void pm::AnodeCathodeTrackAna::analyze(art::Event const & e)
 
 void pm::AnodeCathodeTrackAna::reconfigure(fhicl::ParameterSet const & p)
 {
-  auto const* geo     = lar::providerFrom<geo::Geometry>();  
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();  
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
+  auto const detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
   fHitLabel = art::InputTag( p.get<std::string>("HitLabel") );
   
-  fAlg.Configure(p.get<fhicl::ParameterSet>("AnodeCathodPMAlg"),*geo,*detprop);
+  fAlg.Configure(p.get<fhicl::ParameterSet>("AnodeCathodPMAlg"),channelMap,detprop);
 
   fTrackLabels = p.get< std::vector<art::InputTag> >("TrackLabels");
   fTrackMinDeltaX = p.get<float>("TrackMinDeltaX");

@@ -17,11 +17,14 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "nutools/ParticleNavigation/ParticleList.h"
-#include "nutools/ParticleNavigation/EveIdCalculator.h"
+#include "nug4/ParticleNavigation/ParticleList.h"
+#include "nug4/ParticleNavigation/EveIdCalculator.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardataobj/Simulation/SimChannel.h"
+namespace detinfo {
+  class DetectorClocksData;
+}
 
 #include "lardataobj/RecoBase/Hit.h"
 
@@ -74,47 +77,59 @@ public:
 
     // this method will return the Geant4 track IDs of 
     // the particles contributing ionization electrons to the identified hit
-    virtual std::vector<sim::TrackIDE> HitToTrackID(recob::Hit const& hit)           const = 0;
-    virtual std::vector<sim::TrackIDE> HitToTrackID(art::Ptr<recob::Hit> const& hit) const = 0;
+    virtual std::vector<sim::TrackIDE> HitToTrackID(detinfo::DetectorClocksData const& clockData,
+                                                    recob::Hit const& hit)           const = 0;
+    virtual std::vector<sim::TrackIDE> HitToTrackID(detinfo::DetectorClocksData const& clockData,
+                                                    art::Ptr<recob::Hit> const& hit) const = 0;
     
     // method to return a subset of allhits that are matched to a list of TrackIDs
-    virtual const std::vector<std::vector<art::Ptr<recob::Hit>>> TrackIDsToHits(std::vector<art::Ptr<recob::Hit>> const& allhits,
+    virtual std::vector<std::vector<art::Ptr<recob::Hit>>> TrackIDsToHits(detinfo::DetectorClocksData const& clockData,
+                                                                          std::vector<art::Ptr<recob::Hit>> const& allhits,
 									std::vector<int> const& tkIDs) const = 0;
     
     // method to return the EveIDs of particles contributing ionization
     // electrons to the identified hit
-    virtual std::vector<sim::TrackIDE> HitToEveID(recob::Hit           const& hit) const = 0;
-    virtual std::vector<sim::TrackIDE> HitToEveID(art::Ptr<recob::Hit> const& hit) const = 0;
+    virtual std::vector<sim::TrackIDE> HitToEveID(detinfo::DetectorClocksData const& clockData,
+                                                  recob::Hit           const& hit) const = 0;
+    virtual std::vector<sim::TrackIDE> HitToEveID(detinfo::DetectorClocksData const& clockData,
+                                                  art::Ptr<recob::Hit> const& hit) const = 0;
 
     // method to return the XYZ position of the weighted average energy deposition for a given hit
-    virtual std::vector<double>  HitToXYZ(art::Ptr<recob::Hit> const& hit) const = 0;
+    virtual std::vector<double>  HitToXYZ(detinfo::DetectorClocksData const& clockData,
+                                          art::Ptr<recob::Hit> const& hit) const = 0;
     
     // method to return the XYZ position of a space point (unweighted average XYZ of component hits).
-    virtual std::vector<double> SpacePointToXYZ(art::Ptr<recob::SpacePoint> const& spt,
+    virtual std::vector<double> SpacePointToXYZ(detinfo::DetectorClocksData const& clockData,
+                                                art::Ptr<recob::SpacePoint> const& spt,
                                                 art::Event                  const& evt,
                                                 std::string                 const& label) const = 0;
 
     // method to return the XYZ position of a space point (unweighted average XYZ of component hits).
-    virtual std::vector<double> SpacePointHitsToXYZ(art::PtrVector<recob::Hit> const& hits) const = 0;
+    virtual std::vector<double> SpacePointHitsToXYZ(detinfo::DetectorClocksData const& clockData,
+                                                    art::PtrVector<recob::Hit> const& hits) const = 0;
     
     // method to return the fraction of hits in a collection that come from the specified Geant4 track ids 
-    virtual double HitCollectionPurity(std::set<int>                              trackIDs,
+    virtual double HitCollectionPurity(detinfo::DetectorClocksData const& clockData,
+                                       std::set<int>                              trackIDs,
                                        std::vector< art::Ptr<recob::Hit> > const& hits) const = 0;
     
     // method to return the fraction of all hits in an event from a specific set of Geant4 track IDs that are 
     // represented in a collection of hits
-    virtual double HitCollectionEfficiency(std::set<int>                              trackIDs,
+    virtual double HitCollectionEfficiency(detinfo::DetectorClocksData const& clockData,
+                                           std::set<int>                              trackIDs,
                                            std::vector< art::Ptr<recob::Hit> > const& hits,
                                            std::vector< art::Ptr<recob::Hit> > const& allhits,
                                            geo::View_t                         const& view) const = 0;
 
     // method to return the fraction of charge in a collection that come from the specified Geant4 track ids 
-    virtual double HitChargeCollectionPurity(std::set<int>                              trackIDs,
+    virtual double HitChargeCollectionPurity(detinfo::DetectorClocksData const& clockData,
+                                             std::set<int>                              trackIDs,
                                              std::vector< art::Ptr<recob::Hit> > const& hits) const = 0;
     
     // method to return the fraction of all charge in an event from a specific set of Geant4 track IDs that are 
     // represented in a collection of hits
-    virtual double HitChargeCollectionEfficiency(std::set<int>                              trackIDs,
+    virtual double HitChargeCollectionEfficiency(detinfo::DetectorClocksData const& clockData,
+                                                 std::set<int>                              trackIDs,
                                                  std::vector< art::Ptr<recob::Hit> > const& hits,
                                                  std::vector< art::Ptr<recob::Hit> > const& allhits,
                                                  geo::View_t                         const& view) const = 0;
@@ -126,10 +141,12 @@ public:
     virtual std::set<int> GetSetOfTrackIDs() const = 0;
 
     // method to return all EveIDs corresponding to the given list of hits
-    virtual std::set<int> GetSetOfEveIDs(std::vector< art::Ptr<recob::Hit> > const& hits) const = 0;
+    virtual std::set<int> GetSetOfEveIDs(detinfo::DetectorClocksData const& clockData,
+                                         std::vector< art::Ptr<recob::Hit> > const& hits) const = 0;
 
     // method to return all TrackIDs corresponding to the given list of hits
-    virtual std::set<int> GetSetOfTrackIDs(std::vector< art::Ptr<recob::Hit> > const& hits) const = 0;
+    virtual std::set<int> GetSetOfTrackIDs(detinfo::DetectorClocksData const& clockData,
+                                           std::vector< art::Ptr<recob::Hit> > const& hits) const = 0;
 };
     
 } // namespace

@@ -14,8 +14,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 #include "lardataobj/RecoBase/Track.h"
@@ -75,7 +75,7 @@ private:
 };
 
 
-DecisionTreeID::DecisionTreeID(fhicl::ParameterSet const & p)
+DecisionTreeID::DecisionTreeID(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   ftrackmodulelabel     = p.get<std::string>("TrackModuleLabel");
   fmodelname            = p.get<std::string>("ModelFile");

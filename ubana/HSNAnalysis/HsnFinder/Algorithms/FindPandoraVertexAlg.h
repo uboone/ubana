@@ -31,8 +31,8 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "fhiclcpp/ParameterSet.h"
 
 // art includes
@@ -52,12 +52,10 @@
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/MCSFitResult.h"
-#include "larcorealg/Geometry/geo.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcorealg/Geometry/fwd.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Auxiliary objects includes
 #include "ubana/HSNAnalysis/HsnFinder/DataObjects/DecayVertex.h"
@@ -90,8 +88,7 @@ namespace FindPandoraVertex
     bool fVerbose;
 
     // microboone services
-    const geo::GeometryCore* fGeometry;
-    const detinfo::DetectorProperties* fDetectorProperties;
+    const geo::WireReadoutGeom* fChannelMap;
   };
 
 } // END namespace FindPandoraVertex

@@ -7,7 +7,7 @@
 #ifndef XGBOOST_COMMON_ROW_SET_H_
 #define XGBOOST_COMMON_ROW_SET_H_
 
-#include "../../xgboost/data.h"
+#include "../../../xgboost/data.h"
 #include <algorithm>
 #include <vector>
 

@@ -11,12 +11,11 @@
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 
 // LArSoft includes
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "lardataalg/DetectorInfo/DetectorProperties.h"
-#include "lardataalg/DetectorInfo/DetectorClocks.h"
 
 // Root includes
 #include "TH1D.h"
@@ -67,7 +66,7 @@ public:
      *  @brief Each algorithm may have different objects it wants "produced" so use this to
      *         let the top level producer module "know" what it is outputting
      */
-    virtual void produces(art::EDProducer*);
+    virtual void produces(art::ProducesCollector&);
 
     /**
      *  @brief Given the list of hits this will search for candidate Seed objects and return them
@@ -116,15 +115,11 @@ private:
     std::vector<TH1D*>         fTH1DVec;                 ///< histogram container
     std::vector<TH2D*>         fTH2DVec;                 ///< 2D histogram container
     
-    art::EDProducer*           fMyProducerModule;        ///< The producer module driving us
-    
     /// @{
     /**
      *  @brief Standard useful properties
      */
     geo::GeometryCore const*            fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const*  fDetector;           ///< Pointer to the detector properties
-    detinfo::DetectorClocks const*      fClocks;             ///< Pointer to the clock services
     /// @}
 };
 

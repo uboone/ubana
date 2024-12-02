@@ -2,8 +2,8 @@
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/PtrVector.h"
@@ -419,10 +419,10 @@ void XYZvalidatioin::analyze( const art::Event& evt){
 	           }
 			 
 		   double maxke = -1;
-	           double totke = 0;
+	           // double totke = 0; // unused
 		   int Track_mu_id = 0;
 	           for(std::map<int,double>::iterator ii=trk_mu_ide.begin();ii!=trk_mu_ide.end(); ++ii){
-		       totke += ii->second;
+		       // totke += ii->second; // unused
 		       if((ii->second)>maxke){
 		           maxke = ii->second;
 		           Track_mu_id=ii->first;

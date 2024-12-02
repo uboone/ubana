@@ -34,27 +34,23 @@
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
-#include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/Geometry.h"
-#include "../CommonDefs/SCECorrections.h"
-#include "../CommonDefs/Containment.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
-#include "../CommonDefs/ProximityClustering.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Geometry.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/SCECorrections.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Containment.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/ProximityClustering.h"
 
 #include "canvas/Persistency/Common/TriggerResults.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
 //#include "/grid/fermiapp/products/larsoft/eigen/v3_3_4a/include/eigen3/Eigen/Dense" //Needed on uboonegpvm
 #include <Eigen/Dense>
-
-#include "larcore/Geometry/Geometry.h"
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "lardata/Utilities/GeometryUtilities.h"
 
 struct PCAResults {
   TVector3 centroid;
@@ -332,7 +328,6 @@ void MCS::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_p
 //                                                                                        proxy::withAssociated<recob::Hit>(fCLSproducer));
   ProxyClusColl_t const &clus_proxy = proxy::getCollection<std::vector<recob::Cluster>>(e, fCLSproducer,
                                                                                         proxy::withAssociated<recob::Hit>(fCLSproducer));
-  art::ServiceHandle<geo::Geometry> geom;
   //auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
   // somehow proxies don't work for the slice-hit association, so go back to old assns
   art::ValidHandle<std::vector<recob::Slice>> inputSlice = e.getValidHandle<std::vector<recob::Slice>>(fSLCproducer);
@@ -348,7 +343,7 @@ void MCS::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_p
   // load backtrack information
   std::vector<searchingfornues::BtPart> btparts_v;
   std::unique_ptr<art::FindManyP<simb::MCParticle, anab::BackTrackerHitMatchingData>> assocMCPart;
-  //float _wire2cm = geom->WirePitch(0,0,0);
+  //float _wire2cm = geom->WirePitc(geo::PlaneID{0,0,0});
   //float _time2cm = detp->SamplingRate() / 1000.0 * detp->DriftVelocity( detp->Efield(), detp->Temperature() );
 
 
@@ -884,6 +879,11 @@ PCAResults MCS::DoPCA(const SpcPointCloud &points) {
     float meanPosition[3] = {0., 0., 0.};
     unsigned int nThreeDHits = 0;
     int outputN_pts = points.size();
+    if (points.empty()) 
+    {
+        std::cerr << "Error: points vector is empty." << std::endl;
+        return PCAResults();  // Return a default-constructed PCAResults object
+    }
     int outputPDG = points[0].pdg;
     for (unsigned int i = 0; i < points.size(); i++) {
       meanPosition[0] += points[i].x;
@@ -1156,9 +1156,8 @@ void MCS::Project3Dto2D(const TVector3& pt3d, const int& pl,
   const float& wire2cm, const float& time2cm,
   float& wirecm, float& timecm) {
 
-  auto const* geom = ::lar::providerFrom<geo::Geometry>();
-    
-  wirecm = geom->WireCoordinate(pt3d[1],pt3d[2],geo::PlaneID(0,0,pl)) * wire2cm;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout>()->Get();
+  wirecm = channelMap.Plane(geo::PlaneID(0,0,pl)).WireCoordinate(geo::vect::toPoint(pt3d)) * wire2cm;
   timecm = pt3d[0];
 
   return;

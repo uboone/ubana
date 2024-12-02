@@ -1,38 +1,19 @@
-art_make( BASENAME_ONLY
-	LIBRARY_NAME PreSelectDataObjects
-	LIB_LIBRARIES 
-		larreco_RecoAlg
-		larreco_RecoAlg_Cluster3DAlgs
-		larsim_Simulation
-		lardataobj_RawData
-		lardata_RecoObjects
-		lardataobj_RecoBase
-		lardataobj_MCBase
-		lardataobj_AnalysisBase
-		larcorealg_Geometry
-    larcore_Geometry_Geometry_service
-		lardata_Utilities
-		nusimdata_SimulationBase
-		${ART_FRAMEWORK_CORE}
-		${ART_FRAMEWORK_PRINCIPAL}
-		${ART_FRAMEWORK_SERVICES_REGISTRY}
-		${ART_FRAMEWORK_SERVICES_BASIC}
-		${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		art_Persistency_Common canvas
-		art_Persistency_Provenance canvas
-		art_Utilities canvas
-		${ART_UTILITIES}
-		${MF_MESSAGELOGGER}
-		${MF_UTILITIES}
-		${FHICLCPP}
-		cetlib cetlib_except
-		${CLHEP}
-		${ROOT_BASIC_LIB_LIST}
-		${G4_LIB_LIST}
-		${Boost_SYSTEM_LIBRARY}
-	)
+cet_make_library(
+  SOURCE
+  CandidateTreeFiller.cxx
+  DecayVertex.cxx
+  DrawTreeFiller.cxx
+  EventTreeFiller.cxx
+  LIBRARIES
+  PUBLIC
+  larreco::RecoAlg
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  art::Framework_Services_Registry
+  art_root_io::TFileService_service
+  ROOT::MathCore
+)
 
 install_headers()
 install_fhicl()

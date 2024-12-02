@@ -1,16 +1,16 @@
-
-
 #ifndef VERTEXQUALITY_H
 #define VERTEXQUALITY_H
 
 #include "ParticleAssociations.h"
 #include "RecoMCMatching.h"
 
+#include "larcorealg/Geometry/fwd.h"
+
 #include "art/Framework/Principal/Event.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileDirectory.h"
 
 #include "TTree.h"
 
@@ -21,7 +21,7 @@ class VertexQuality {
   std::string fshower_producer;
   
   RecoMCMatching const * frmcm;
-
+  geo::TPCGeo const & ftpc;
   geoalgo::AABox ftpc_volume;
 
   TTree * fvertex_tree;

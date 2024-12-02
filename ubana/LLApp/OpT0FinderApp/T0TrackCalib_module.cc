@@ -16,14 +16,15 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -187,6 +188,8 @@ void T0TrackCalib::analyze(art::Event const & e)
 
   // See if there is an interesting flash
   // Loop over all the flashes in the event
+
+  auto const& channelMapAlg = art::ServiceHandle<geo::WireReadout const>()->Get();
   for(size_t i=0; i<flash_ptr_coll_v.size(); ++i) {
 
     if(flash_ptr_coll_v.at(i).size()>1 || track_ptr_coll_v.at(i).size()>1) { 
@@ -217,7 +220,7 @@ void T0TrackCalib::analyze(art::Event const & e)
     f.pe_v.resize(geo->NOpDets());
     f.pe_err_v.resize(geo->NOpDets());
     for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMapAlg.OpDetFromOpChannel(i);
       if(beam_flash) {
 	f.pe_v[opdet] = flash_ptr->PE(i) / _gain_correction[i];
 	f.pe_err_v[opdet] = sqrt(flash_ptr->PE(i) / _gain_correction[i]);

@@ -1,55 +1,55 @@
-# basic source code CMakeLists.txt
+cet_build_plugin(
+  LowLevelNueFilter art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larsim::MCCheater_BackTrackerService_service
+  larsim::MCCheater_ParticleInventoryService_service
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+)
 
+cet_build_plugin(
+  OpFlashFilter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+)
 
-art_make(BASENAME_ONLY
-  LIBRARY_NAME TPCNeutrinoIDFilter
-  LIB_LIBRARIES
-  lardataobj_RecoBase
-  lardataobj_AnalysisBase
-  larcorealg_Geometry
-  larcore_Geometry_Geometry_service
-  lardata_Utilities
-  art_Persistency_Common canvas
-  art_Persistency_Provenance canvas
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
-  art_Utilities canvas
-  ${MF_MESSAGELOGGER}
-  
-  ${FHICLCPP}
-  cetlib cetlib_except
-  ${ROOT_BASIC_LIB_LIST}
-  ${Boost_SYSTEM_LIBRARY}
-  MODULE_LIBRARIES
-  TPCNeutrinoIDAlgs
-  lardataobj_RecoBase
-  lardataobj_AnalysisBase
-  larcorealg_Geometry
-  larcore_Geometry_Geometry_service
-  lardata_Utilities
-  nusimdata_SimulationBase
-  larsim_MCCheater_BackTrackerService_service
-  larsim_MCCheater_ParticleInventoryService_service
-  art_Persistency_Common canvas
-  art_Persistency_Provenance canvas
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILEDIRECTORY_SERVICE}
-  art_Utilities canvas
-  ${MF_MESSAGELOGGER}
-  
-  ${FHICLCPP}
-  cetlib cetlib_except
-  ${ROOT_BASIC_LIB_LIST}
-  ${Boost_SYSTEM_LIBRARY}
-  )
+cet_build_plugin(
+  TPCNeutrinoIDAna art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  TPCNeutrinoIDFilter art::EDFilter
+  LIBRARIES
+  PRIVATE
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+)
+
+cet_build_plugin(
+  TPCNeutrinoID art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::TPCNeutrinoIDFilter_Algorithms
+  larsim::MCCheater_ParticleInventoryService_service
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+)
 
 add_subdirectory(Algorithms)
 

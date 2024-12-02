@@ -37,7 +37,7 @@
 
 #include "larcoreobj/SummaryData/POTSummary.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "TTree.h"
 
 using ProxyPfpColl_t = decltype(proxy::getCollection<std::vector<recob::PFParticle>>(std::declval<art::Event>(), std::declval<art::InputTag>(),

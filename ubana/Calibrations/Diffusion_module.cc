@@ -18,13 +18,14 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindMany.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCFlux.h"
 #include "lardataobj/Simulation/SimChannel.h"
@@ -47,7 +48,6 @@
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
@@ -91,7 +91,8 @@ namespace microboone {
 
   private:
     
-    void   HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe);
+    void   HitsPurity(detinfo::DetectorClocksData const& clockData,
+                      std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe);
     void   ResetVars();
     double length(const recob::Track& track);
     double length(const simb::MCParticle& part, TVector3& start, TVector3& end);
@@ -510,7 +511,8 @@ void microboone::Diffusion::analyze(const art::Event& evt)
   }  
 
   //services
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(evt, clockData);
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   
@@ -571,7 +573,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
     //and crashes, so check that the simIDEs have non-zero size before 
     //extracting hit true XYZ from simIDEs
     if (isMC){
-      const std::vector<const sim::IDE*> ides = bt_serv->HitToSimIDEs_Ps(hitlist[i]);
+      const std::vector<const sim::IDE*> ides = bt_serv->HitToSimIDEs_Ps(clockData, *hitlist[i]);
       if (ides.size()>0){
          std::vector<double> xyz = bt_serv->SimIDEsToXYZ(ides);
          hit_trueX[i] = xyz[0];
@@ -809,32 +811,8 @@ void microboone::Diffusion::analyze(const art::Event& evt)
 
     double tlen = 0., mom = 0.;
     int TrackID = -1; 
-    int ntraj = 0;
 
-    //we need to use Bezier methods for Bezier tracks
-    if (fTrackModuleLabel.find("beziertracker")!=std::string::npos) {
-       trkf::BezierTrack btrack(*ptrack);
-       ntraj = btrack.NSegments();
-       if(ntraj > 0) {
-         double xyz[3];
-         btrack.GetTrackPoint(0,xyz);
-         pos.SetXYZ(xyz[0],xyz[1],xyz[2]);
-         btrack.GetTrackDirection(0,xyz);
-         dir_start.SetXYZ(xyz[0],xyz[1],xyz[2]);
-         btrack.GetTrackDirection(1,xyz);
-         dir_end.SetXYZ(xyz[0],xyz[1],xyz[2]);
-         btrack.GetTrackPoint(1,xyz);
-         end.SetXYZ(xyz[0],xyz[1],xyz[2]);
-
-         tlen = btrack.GetLength();
-         if (btrack.GetTrajectory().NumberTrajectoryPoints() > 0)
-            mom = btrack.GetTrajectory().StartMomentum(); // ?!? always 1!!!
-         // fill bezier track reco branches
-         TrackID = i;  //bezier has some screwed up track IDs
-       }
-     }  	 
-     else {   //use the normal methods for other kinds of tracks
-        ntraj = track.NumberTrajectoryPoints();
+    int ntraj = track.NumberTrajectoryPoints();
         if (ntraj > 0) {
      	  pos	   = track.Vertex<TVector3>();
      	  dir_start = track.VertexDirection<TVector3>();
@@ -846,10 +824,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
      	     mom = track.VertexMomentum();
      	  //fill non-bezier-track reco branches
      	  TrackID = track.ID();
-        }
-     }
      
-     if (ntraj > 0) {
        double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
        double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
        trkId[i]		   = TrackID;
@@ -986,7 +961,7 @@ void microboone::Diffusion::analyze(const art::Event& evt)
        for (size_t ipl = 0; ipl < 3; ++ipl){
      	 double maxe = 0;
 	 float purity;
-     	 HitsPurity(hits[ipl],trkidtruth[i][ipl],purity,maxe);
+         HitsPurity(clockData, hits[ipl],trkidtruth[i][ipl],purity,maxe);
      	 if (trkidtruth[i][ipl]>0){
      	   const simb::MCParticle *particle = pi_serv->TrackIdToParticle_P(trkidtruth[i][ipl]);
      	   trkpdgtruth[i][ipl] = particle->PdgCode();
@@ -1075,11 +1050,13 @@ void microboone::Diffusion::analyze(const art::Event& evt)
    }//if (mcevts_truth)
   }//if (!isdata) 
   
-  taulife = detprop->ElectronLifetime();
+
+  taulife = detProp.ElectronLifetime();
   fTree->Fill();
 }
 
-void microboone::Diffusion::HitsPurity(std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
+void microboone::Diffusion::HitsPurity(detinfo::DetectorClocksData const& clockData,
+                                       std::vector< art::Ptr<recob::Hit> > const& hits, Int_t& trackid, Float_t& purity, double& maxe){
 
   trackid = -1;
   purity = -1;
@@ -1093,7 +1070,7 @@ void microboone::Diffusion::HitsPurity(std::vector< art::Ptr<recob::Hit> > const
     art::Ptr<recob::Hit> hit = hits[h];
     std::vector<sim::IDE> ides;
     //bt_serv->HitToSimIDEs(hit,ides);
-    std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
+    std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(clockData, hit);
 
     for(size_t e = 0; e < eveIDs.size(); ++e){
       trkide[eveIDs[e].trackID] += eveIDs[e].energy;
@@ -1124,15 +1101,15 @@ double microboone::Diffusion::length(const recob::Track& track)
 double microboone::Diffusion::length(const simb::MCParticle& part, TVector3& start, TVector3& end)
 {
   // Get geometry.
-  auto const* geom = lar::providerFrom<geo::Geometry>();
+  auto const& tpc = lar::providerFrom<geo::Geometry>()->TPC();
   
   // Get active volume boundary.
   double xmin = 0.;
-  double xmax = 2.*geom->DetHalfWidth();
-  double ymin = -geom->DetHalfHeight();
-  double ymax = geom->DetHalfHeight();
+  double xmax = 2.*tpc.HalfWidth();
+  double ymin = -tpc.HalfHeight();
+  double ymax = tpc.HalfHeight();
   double zmin = 0.;
-  double zmax = geom->DetLength();
+  double zmax = tpc.Length();
   double vDrift = 160*pow(10,-6);
 
   double result = 0.;

@@ -17,11 +17,11 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
+#include "canvas/Persistency/Common/Ptr.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-//#include "art_root_io/TFileService.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardataobj/RawData/TriggerData.h"
@@ -97,8 +97,8 @@ public:
   void ProtonID(int trackId);
   void save_weights(art::Event const& e);
   void save_LEEweights(art::Event const& e);
-  void ReadBDTvar(art::Ptr<nsm::NuSelectionBDT> bdt);
-  void ReadKINEvar(art::Ptr<nsm::NuSelectionKINE> kine);
+  void ReadBDTvar(nsm::NuSelectionBDT const& bdt);
+  void ReadKINEvar(nsm::NuSelectionKINE const& kine);
   void nsbeamtiming(art::Event const& e);
   void getPMTwf(art::Event const& e, double maxP[32],double timeP[32]);
   double getBeamWF(art::Event const& e);
@@ -130,6 +130,8 @@ private:
   bool f_BDTvars;
   bool f_KINEvars;
   bool fIsNuMI;
+  // handling for reweighting to new NuMI flux (4.10.4) for files generated using old flux(4.9.2)
+  Bool_t fNuMIOldReweight;
 
   bool fPFValidation; // switch of particle flow validation
   std::string fPFInputTag; // inputTag -- label:instance:process
@@ -1755,6 +1757,7 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fSaveWeights = pset.get<bool>("SaveWeights", false); // GENIE weights
   fSaveLeeWeights = pset.get<bool>("SaveLeeWeights", false); // LEE weights
   fIsNuMI = pset.get<bool>("IsNuMI", false); // is true, convert to BNB style
+  fNuMIOldReweight = pset.get<bool>("NuMIOldReweight", false); // if true, converts underlying numi flux distribution from old (4.9.2) to new (4.10.4)
   fSTMLabel = pset.get<std::string>("STMLabel");
   fFileType = pset.get<std::string>("FileType", "empty");
   fWeightLabel = pset.get<std::string>("WeightLabel", "");
@@ -3406,14 +3409,14 @@ void WireCellAnaTree::analyze(art::Event const& e)
  	f_subRun = e.subRun();
 	f_event = e.id().event();
 
-        art::Handle<std::vector<raw::Trigger> > trigger;
-        if(! e.getByLabel("daq", trigger)){
+        auto triggerH = e.getHandle<std::vector<raw::Trigger>>("daq");
+        if(! triggerH){
           std::cout << "WARNING: no raw::Trigger label: daq"  << std::endl;
           f_trigger_bits = 0;
           //return;
         }else{
           std::vector<art::Ptr<raw::Trigger> > t_v;
-          art::fill_ptr_vector(t_v, trigger);
+          art::fill_ptr_vector(t_v, triggerH);
           if(t_v.size()){
             f_trigger_bits = t_v[0]->TriggerBits();
           }
@@ -3422,10 +3425,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
           }
        }
 
-	art::Handle<std::vector<nsm::NuSelectionContainment> > containment_handle;
-	e.getByLabel(fContainmentLabel,containment_handle);
-	std::vector<art::Ptr<nsm::NuSelectionContainment> > containment_vec;
-	art::fill_ptr_vector(containment_vec,containment_handle);
+        auto const& containment_vec = e.getProduct<std::vector<nsm::NuSelectionContainment>>(fContainmentLabel);
 	std::cout<<"--- NuSelectionContainment ---"<<std::endl;
 	if(containment_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
@@ -3448,45 +3448,37 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		f_match_charge = -1;
 		f_match_energy = -1;
 	}
-	for(size_t i=0; i<containment_vec.size(); i++){
-		art::Ptr<nsm::NuSelectionContainment> c = containment_vec.at(i);
-		f_flash_found = c->GetFlashFound();
+        for(nsm::NuSelectionContainment const& c : containment_vec) {
+                f_flash_found = c.GetFlashFound();
 		f_flash_found_asInt = f_flash_found? 1:0;
-		f_flash_time = c->GetFlashTime();
-		f_flash_measPe = c->GetFlashMeasPe();
-		f_flash_predPe = c->GetFlashPredPe();
-		f_match_found = c->GetMatchFound();
+                f_flash_time = c.GetFlashTime();
+                f_flash_measPe = c.GetFlashMeasPe();
+                f_flash_predPe = c.GetFlashPredPe();
+                f_match_found = c.GetMatchFound();
 		f_match_found_asInt = f_match_found? 1:0;
-		f_match_type = c->GetMatchType();
-		f_match_isFC = c->GetIsFC();
-		f_match_isTgm = c->GetIsTGM();
-		f_match_notFC_FV = c->GetNotFCFV();
-		f_match_notFC_SP = c->GetNotFCSP();
-		f_match_notFC_DC = c->GetNotFCDC();
-		f_match_charge = c->GetCharge();
-		f_match_energy = c->GetEnergy();
+                f_match_type = c.GetMatchType();
+                f_match_isFC = c.GetIsFC();
+                f_match_isTgm = c.GetIsTGM();
+                f_match_notFC_FV = c.GetNotFCFV();
+                f_match_notFC_SP = c.GetNotFCSP();
+                f_match_notFC_DC = c.GetNotFCDC();
+                f_match_charge = c.GetCharge();
+                f_match_energy = c.GetEnergy();
 	}
 
-	art::Handle<std::vector<nsm::NuSelectionCharge> > charge_handle;
-	e.getByLabel(fChargeLabel,charge_handle);
-	std::vector<art::Ptr<nsm::NuSelectionCharge> > charge_vec;
-	art::fill_ptr_vector(charge_vec,charge_handle);
+        auto const& charge_vec = e.getProduct<std::vector<nsm::NuSelectionCharge>>(fChargeLabel);
 	std::cout<<"--- NuSelectionCharge  ---"<<std::endl;
 	if(charge_vec.size()!=1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
 		return;
 	}
-	for(size_t i=0; i<charge_vec.size(); i++){
-		art::Ptr<nsm::NuSelectionCharge> c = charge_vec.at(i);
-		f_match_chargeU = c->GetChargeU();
-		f_match_chargeV = c->GetChargeV();
-		f_match_chargeY = c->GetChargeY();
+        for(nsm::NuSelectionCharge const& c : charge_vec) {
+                f_match_chargeU = c.GetChargeU();
+                f_match_chargeV = c.GetChargeV();
+                f_match_chargeY = c.GetChargeY();
 	}
 
-	art::Handle<std::vector<nsm::NuSelectionSTM> > stm_handle;
-	e.getByLabel(fSTMLabel,stm_handle);
-	std::vector<art::Ptr<nsm::NuSelectionSTM> > stm_vec;
-	art::fill_ptr_vector(stm_vec,stm_handle);
+        auto const& stm_vec = e.getProduct<std::vector<nsm::NuSelectionSTM>>(fSTMLabel);
 	std::cout<<"--- NuSelectionSTM ---"<<std::endl;
 	if(stm_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
@@ -3501,60 +3493,51 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		f_stm_FullDead = -1;
 		f_stm_clusterlength = -1.0;
 	}
-	for(size_t i=0; i<stm_vec.size(); i++){
-		art::Ptr<nsm::NuSelectionSTM> s = stm_vec.at(i);
-		f_stm_eventtype = s->GetEventType();
-		f_stm_lowenergy = s->GetLowEnergy();
-		f_stm_LM = s->GetLM();
-		f_stm_TGM = s->GetTGM();
-		f_stm_STM = s->GetSTM();
-		f_stm_FullDead = s->GetFullDead();
-		f_stm_clusterlength = s->GetClusterLength();
+        for(nsm::NuSelectionSTM const& s : stm_vec) {
+                f_stm_eventtype = s.GetEventType();
+                f_stm_lowenergy = s.GetLowEnergy();
+                f_stm_LM = s.GetLM();
+                f_stm_TGM = s.GetTGM();
+                f_stm_STM = s.GetSTM();
+                f_stm_FullDead = s.GetFullDead();
+                f_stm_clusterlength = s.GetClusterLength();
 	}
 
 	if(fMC==true){
 
-	art::Handle<std::vector<nsm::NuSelectionTruth> > truth_handle;
-	e.getByLabel(fTruthLabel,truth_handle);
-	std::vector<art::Ptr<nsm::NuSelectionTruth> > truth_vec;
-	art::fill_ptr_vector(truth_vec,truth_handle);
+        auto const& truth_vec = e.getProduct<std::vector<nsm::NuSelectionTruth>>(fTruthLabel);
 	std::cout<<"--- NuSelectionTruth  ---"<<std::endl;
 	if(truth_vec.size()!=1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
 		return;
 	}
-	for(size_t i=0; i<truth_vec.size(); i++){
-		art::Ptr<nsm::NuSelectionTruth> t = truth_vec.at(i);
-		f_truth_nuEnergy = t->GetNuEnergy();
-		f_truth_energyInside = t->GetEnergyInside();
-		f_truth_electronInside = t->GetElectronInside();
-		f_truth_nuPdg = t->GetNuPdg();
-		f_truth_isCC = t->GetIsCC();
-		f_truth_isEligible = t->GetIsEligible();
-		f_truth_isFC = t->GetIsFC();
-		f_truth_vtxInside = t->GetIsVtxInside();
-		f_truth_vtxX = t->GetVtxX();
-		f_truth_vtxY = t->GetVtxY();
-		f_truth_vtxZ = t->GetVtxZ();
-		f_truth_nuTime = t->GetTime();
+        for(nsm::NuSelectionTruth const& t : truth_vec) {
+                f_truth_nuEnergy = t.GetNuEnergy();
+                f_truth_energyInside = t.GetEnergyInside();
+                f_truth_electronInside = t.GetElectronInside();
+                f_truth_nuPdg = t.GetNuPdg();
+                f_truth_isCC = t.GetIsCC();
+                f_truth_isEligible = t.GetIsEligible();
+                f_truth_isFC = t.GetIsFC();
+                f_truth_vtxInside = t.GetIsVtxInside();
+                f_truth_vtxX = t.GetVtxX();
+                f_truth_vtxY = t.GetVtxY();
+                f_truth_vtxZ = t.GetVtxZ();
+                f_truth_nuTime = t.GetTime();
 	}
 
-	art::Handle<std::vector<nsm::NuSelectionMatch> > match_handle;
-	e.getByLabel(fMatchLabel,match_handle);
-	std::vector<art::Ptr<nsm::NuSelectionMatch> > match_vec;
-	art::fill_ptr_vector(match_vec,match_handle);
+        auto const& match_vec = e.getProduct<std::vector<nsm::NuSelectionMatch>>(fMatchLabel);
 	std::cout<<"--- NuSelectionMatch  ---"<<std::endl;
 	if(match_vec.size()!=1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
 		return;
 	}
-	for(size_t i=0; i<match_vec.size(); i++){
-		art::Ptr<nsm::NuSelectionMatch> m = match_vec.at(i);
-		f_match_completeness = m->GetCompleteness();
-		f_match_completeness_energy = m->GetCompletenessEnergy();
-		f_match_purity = m->GetPurity();
-		f_match_purity_xz = m->GetPurityXZ();
-		f_match_purity_xy = m->GetPurityXY();
+        for(nsm::NuSelectionMatch const& m : match_vec) {
+                f_match_completeness = m.GetCompleteness();
+                f_match_completeness_energy = m.GetCompletenessEnergy();
+                f_match_purity = m.GetPurity();
+                f_match_purity_xz = m.GetPurityXZ();
+                f_match_purity_xy = m.GetPurityXY();
 	}
 
 	/// save GENIE weights
@@ -3575,52 +3558,50 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	/// PF validation starts
 	// reco start [nested loop]
       if( f_wirecellPF ){
-	art::Handle< std::vector<simb::MCParticle> > particleHandle;
-	if (! e.getByLabel(fPFInputTag, particleHandle)) return;
-    	std::vector< art::Ptr<simb::MCParticle> > particles;
-    	art::fill_ptr_vector(particles, particleHandle);
-        std::cout << "particles.size(): " << particles.size() << std::endl;
+        auto particleHandle = e.getHandle<std::vector<simb::MCParticle>>(fPFInputTag);
+        if (! particleHandle ) return;
+        std::cout << "particles.size(): " << particleHandle->size() << std::endl;
 
 
-	for (auto const& particle: particles){
+        for (auto const& particle: *particleHandle){
 
         if(f_PFDump) {
             ++reco_Ntrack;
-            reco_id[reco_Ntrack-1] = particle->TrackId();
-            reco_pdg[reco_Ntrack-1] = particle->PdgCode();
-            reco_process->push_back(particle->Process());
-            reco_mother[reco_Ntrack-1] = particle->Mother();
-            auto start_pos = particle->Position();
+            reco_id[reco_Ntrack-1] = particle.TrackId();
+            reco_pdg[reco_Ntrack-1] = particle.PdgCode();
+            reco_process->push_back(particle.Process());
+            reco_mother[reco_Ntrack-1] = particle.Mother();
+            auto start_pos = particle.Position();
             reco_startXYZT[reco_Ntrack-1][0] = start_pos.X();
             reco_startXYZT[reco_Ntrack-1][1] = start_pos.Y();
             reco_startXYZT[reco_Ntrack-1][2] = start_pos.Z();
             reco_startXYZT[reco_Ntrack-1][3] = start_pos.T();
-            auto end_pos = particle->EndPosition();
+            auto end_pos = particle.EndPosition();
             reco_endXYZT[reco_Ntrack-1][0] = end_pos.X();
             reco_endXYZT[reco_Ntrack-1][1] = end_pos.Y();
             reco_endXYZT[reco_Ntrack-1][2] = end_pos.Z();
             reco_endXYZT[reco_Ntrack-1][3] = end_pos.T();
-            auto start_mom = particle->Momentum();
+            auto start_mom = particle.Momentum();
             reco_startMomentum[reco_Ntrack-1][0] = start_mom.Px();
             reco_startMomentum[reco_Ntrack-1][1] = start_mom.Py();
             reco_startMomentum[reco_Ntrack-1][2] = start_mom.Pz();
             reco_startMomentum[reco_Ntrack-1][3] = start_mom.E();
-            auto end_mom = particle->EndMomentum();
+            auto end_mom = particle.EndMomentum();
             reco_endMomentum[reco_Ntrack-1][0] = end_mom.Px();
             reco_endMomentum[reco_Ntrack-1][1] = end_mom.Py();
             reco_endMomentum[reco_Ntrack-1][2] = end_mom.Pz();
             reco_endMomentum[reco_Ntrack-1][3] = end_mom.E();
             reco_daughters->push_back(std::vector<int>());
-            for (int i=0; i<particle->NumberDaughters(); ++i) {
-                reco_daughters->back().push_back(particle->Daughter(i));
+            for (int i=0; i<particle.NumberDaughters(); ++i) {
+                reco_daughters->back().push_back(particle.Daughter(i));
             }
         }
 
         if(f_savesps){
           //std::cout << "Num Trajectory Points: "<< particle->NumberTrajectoryPoints() << std::endl;
-          for (uint i_pos=0; i_pos<particle->NumberTrajectoryPoints(); i_pos++){
-              const TLorentzVector& pos = particle->Position(i_pos);
-              auto mom = particle->Momentum(i_pos);
+          for (uint i_pos=0; i_pos<particle.NumberTrajectoryPoints(); i_pos++){
+              const TLorentzVector& pos = particle.Position(i_pos);
+              auto mom = particle.Momentum(i_pos);
               f_sps_x->push_back(pos.X());
               f_sps_y->push_back(pos.Y());
               f_sps_z->push_back(pos.Z());
@@ -3630,15 +3611,15 @@ void WireCellAnaTree::analyze(art::Event const& e)
             }
         }
 
-		int trkID = particle->TrackId();
-		fParticleMap[trkID] = (*particle);
-		if(particle->Mother() == 0){
+		int trkID = particle.TrackId();
+		fParticleMap[trkID] = particle;
+		if(particle.Mother() == 0){
 			if(fPrimaryID.size()<1){ // fill once
-			const TLorentzVector& position = particle->Position(0);
+                        const TLorentzVector& position = particle.Position(0);
 			f_reco_nuvtxX = position.X(); // units: cm inherit from larsoft
 			f_reco_nuvtxY = position.Y(); // units: cm inherit from larsoft
 			f_reco_nuvtxZ = position.Z(); // units: cm inherit from larsoft
-			f_neutrino_type = particle->StatusCode(); // neutrino type
+                        f_neutrino_type = particle.StatusCode(); // neutrino type
 			}
 			fPrimaryID.push_back(trkID);
 		}
@@ -3649,7 +3630,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		// 3: low-energy gamma or distant activity < 80 cm to main cluster
 		// 4: same as 3, but distance > 80 cm, not included
 
-		/*std::cout<<"DEBUG -- mc_included information: "<<particle->Mass()<<std::endl;*/
+                /*std::cout<<"DEBUG -- mc_included information: "<<particle.Mass()<<std::endl;*/
 
 		// not an actual mass reconstruction since PID tells us the mass if you believe
 		// END
@@ -3734,10 +3715,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
 
 	if(fMC == true){
 	/// truth start
-	art::Handle< std::vector<simb::MCParticle> > particleHandle2;
-	if (! e.getByLabel(fPFtruthInputTag, particleHandle2)) return;
-    	std::vector< art::Ptr<simb::MCParticle> > particles2;
-    	art::fill_ptr_vector(particles2, particleHandle2);
+        auto particleHandle2 = e.getHandle<std::vector<simb::MCParticle>>(fPFtruthInputTag);
+        if (! particleHandle2 ) return;
 	// Get space charge correction
 	auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
@@ -3798,17 +3777,13 @@ void WireCellAnaTree::analyze(art::Event const& e)
          int mother_2 = -1;
 
          // Generator Info
-         art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
-         e.getByLabel("generator",mctruthListHandle);
-         std::vector<art::Ptr<simb::MCTruth> > mclist;
-         art::fill_ptr_vector(mclist, mctruthListHandle);
-         art::Ptr<simb::MCTruth> mctruth;
+         auto const& mclist = e.getProduct<std::vector<simb::MCTruth>>("generator");
          if (mclist.size()>0) {
-             mctruth = mclist.at(0);
-             if (mctruth->NeutrinoSet()) {
-                 simb::MCNeutrino nu = mctruth->GetNeutrino();
+             simb::MCTruth const& mctruth = mclist[0];
+             if (mctruth.NeutrinoSet()) {
+                 simb::MCNeutrino nu = mctruth.GetNeutrino();
                  mc_isnu = 1;
-                 mc_nGeniePrimaries = mctruth->NParticles();
+                 mc_nGeniePrimaries = mctruth.NParticles();
                  mc_nu_pdg = nu.Nu().PdgCode();
                  mc_nu_ccnc = nu.CCNC();
                  mc_nu_mode = nu.Mode();
@@ -3829,7 +3804,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
                  //cout << "nu: " << mc_nu_pdg << ", nPrim: " << mc_nGeniePrimaries
                  //     << ", ccnc: " << mc_nu_ccnc << endl;
                  //for (int i=0; i<mc_nGeniePrimaries; i++) {
-                 //    simb::MCParticle particle = mctruth->GetParticle(i);
+                 //    simb::MCParticle particle = mctruth.GetParticle(i);
                  //    cout << "id: " << particle.TrackId()
                  //         << ", pdg: " << particle.PdgCode()
                  //         << endl;
@@ -3837,40 +3812,40 @@ void WireCellAnaTree::analyze(art::Event const& e)
              }
          }
 
-	for (auto const& particle: particles2){
+        for (auto const& particle: *particleHandle2){
 
         if(f_PFDump) {
-            auto start_mom = particle->Momentum();
-            //std::cout << particle->Mother()
+            auto start_mom = particle.Momentum();
+            //std::cout << particle.Mother()
             //<< ", " << start_mom.E()
             //<< ", " << f_PFDump_min_truth_energy
             //<< std::endl;
-            if (!(particle->Mother()==0) && !(start_mom.E()>f_PFDump_min_truth_energy)) {
+            if (!(particle.Mother()==0) && !(start_mom.E()>f_PFDump_min_truth_energy)) {
                 continue;
             }
 
             ++truth_Ntrack;
-            truth_id[truth_Ntrack-1] = particle->TrackId();
-            truth_pdg[truth_Ntrack-1] = particle->PdgCode();
-            truth_process->push_back(particle->Process());
-            truth_mother[truth_Ntrack-1] = particle->Mother();
+            truth_id[truth_Ntrack-1] = particle.TrackId();
+            truth_pdg[truth_Ntrack-1] = particle.PdgCode();
+            truth_process->push_back(particle.Process());
+            truth_mother[truth_Ntrack-1] = particle.Mother();
             truth_startMomentum[truth_Ntrack-1][0] = start_mom.Px();
             truth_startMomentum[truth_Ntrack-1][1] = start_mom.Py();
             truth_startMomentum[truth_Ntrack-1][2] = start_mom.Pz();
             truth_startMomentum[truth_Ntrack-1][3] = start_mom.E();
-            auto end_mom = particle->EndMomentum();
+            auto end_mom = particle.EndMomentum();
             truth_endMomentum[truth_Ntrack-1][0] = end_mom.Px();
             truth_endMomentum[truth_Ntrack-1][1] = end_mom.Py();
             truth_endMomentum[truth_Ntrack-1][2] = end_mom.Pz();
             truth_endMomentum[truth_Ntrack-1][3] = end_mom.E();
-            auto start_pos = particle->Position();
+            auto start_pos = particle.Position();
             auto start_sce_offset = SCE->GetPosOffsets(geo::Point_t(start_pos.X(), start_pos.Y(), start_pos.Z()));
             truth_startXYZT[truth_Ntrack-1][0] = start_pos.X() - start_sce_offset.X();
             truth_startXYZT[truth_Ntrack-1][1] = start_pos.Y() + start_sce_offset.Y();
             truth_startXYZT[truth_Ntrack-1][2] = start_pos.Z() + start_sce_offset.Z();
             truth_startXYZT[truth_Ntrack-1][3] = start_pos.T();
             truth_startXYZT[truth_Ntrack-1][0] = (truth_startXYZT[truth_Ntrack-1][0] + 0.6)*1.101/1.098 + start_pos.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
-            auto end_pos = particle->EndPosition();
+            auto end_pos = particle.EndPosition();
             auto end_sce_offset = SCE->GetPosOffsets(geo::Point_t(end_pos.X(), end_pos.Y(), end_pos.Z()));
             truth_endXYZT[truth_Ntrack-1][0] = end_pos.X() - end_sce_offset.X();
             truth_endXYZT[truth_Ntrack-1][1] = end_pos.Y() + end_sce_offset.Y();
@@ -3878,23 +3853,23 @@ void WireCellAnaTree::analyze(art::Event const& e)
             truth_endXYZT[truth_Ntrack-1][3] = end_pos.T();
             truth_endXYZT[truth_Ntrack-1][0] = (truth_endXYZT[truth_Ntrack-1][0] + 0.6)*1.101/1.098 + end_pos.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
             truth_daughters->push_back(std::vector<int>());
-            for (int i=0; i<particle->NumberDaughters(); ++i) {
-                truth_daughters->back().push_back(particle->Daughter(i));
+            for (int i=0; i<particle.NumberDaughters(); ++i) {
+                truth_daughters->back().push_back(particle.Daughter(i));
             }
             if(f_save_track_position) {
-                size_t numberTrajectoryPoints = particle->NumberTrajectoryPoints();
+                size_t numberTrajectoryPoints = particle.NumberTrajectoryPoints();
                 TClonesArray *Lposition = new TClonesArray("TLorentzVector", numberTrajectoryPoints);
                 // Read the position and momentum along this particle track
                 for(unsigned int j=0; j<numberTrajectoryPoints; j++) {
-                    new ((*Lposition)[j]) TLorentzVector(particle->Position(j));
+                    new ((*Lposition)[j]) TLorentzVector(particle.Position(j));
                 }
                 fMC_trackPosition->Add(Lposition);
             }
         }
 
-		if( particle->Mother() == 0 && (particle->PdgCode() == 11 || particle->PdgCode() == -11) ){
-      f_truth_showerPdg = particle->PdgCode();
-			const TLorentzVector& position = particle->Position(0);
+                if( particle.Mother() == 0 && (particle.PdgCode() == 11 || particle.PdgCode() == -11) ){
+      f_truth_showerPdg = particle.PdgCode();
+                        const TLorentzVector& position = particle.Position(0);
 			//f_truth_corr_showervtxX = position.X(); // units: cm inherit from larsoft
 			//f_truth_corr_showervtxY = position.Y(); // units: cm inherit from larsoft
 			//f_truth_corr_showervtxZ = position.Z(); // units: cm inherit from larsoft
@@ -3905,7 +3880,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 			f_truth_corr_showervtxX = (f_truth_corr_showervtxX + 0.6)*1.101/1.098 + position.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
 			std::cout<<"Shower info: "<<position.X() <<", "<<position.Y() <<", "<<position.Z()<<", "<<position.T()<<" ns"<<std::endl;
 			std::cout<<"Shower vertex SCE offset: "<<sce_offset.X() <<", "<<sce_offset.Y() <<", "<<sce_offset.Z()<<std::endl;
-			const TLorentzVector& showerMom = particle->Momentum(0);
+                        const TLorentzVector& showerMom = particle.Momentum(0);
 			f_truth_showerKE = showerMom.E() - showerMom.M();
 			f_truth_showerMomentum[0] = showerMom.Px();
 			f_truth_showerMomentum[1] = showerMom.Py();
@@ -3913,8 +3888,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
 			f_truth_showerMomentum[3] = showerMom.E();
 
 		}
-		if( particle->Mother()==0 && (particle->PdgCode() == 13 || particle->PdgCode() == -13) ){
-			const TLorentzVector& position = particle->Position(0);
+                if( particle.Mother()==0 && (particle.PdgCode() == 13 || particle.PdgCode() == -13) ){
+                        const TLorentzVector& position = particle.Position(0);
 			f_truth_muonvtxX = position.X();
 			f_truth_muonvtxY = position.Y();
 			f_truth_muonvtxZ = position.Z();
@@ -3924,22 +3899,22 @@ void WireCellAnaTree::analyze(art::Event const& e)
 			f_truth_corr_muonvtxZ = position.Z() + sce_offset.Z();
 			f_truth_corr_muonvtxX = (f_truth_corr_muonvtxX + 0.6)*1.101/1.098 + position.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
 
-			const TLorentzVector& endposition = particle->EndPosition();
+                        const TLorentzVector& endposition = particle.EndPosition();
 			f_truth_muonendX = endposition.X();
 			f_truth_muonendY = endposition.Y();
 			f_truth_muonendZ = endposition.Z();
 
-			const TLorentzVector& momentum = particle->Momentum(0);
+                        const TLorentzVector& momentum = particle.Momentum(0);
 			f_truth_muonMomentum[0] = momentum.Px();
 			f_truth_muonMomentum[1] = momentum.Py();
 			f_truth_muonMomentum[2] = momentum.Pz();
 			f_truth_muonMomentum[3] = momentum.E();
 		}
 
-    if( particle->PdgCode() == 22 && particle->Process()!="eBrem" && particle->Process()!="annihil" && particle->StatusCode() == 1 &&
+    if( particle.PdgCode() == 22 && particle.Process()!="eBrem" && particle.Process()!="annihil" && particle.StatusCode() == 1 &&
         !(f_truth_isCC==1 && f_truth_nuPdg==12)){
-      f_truth_showerPdg = particle->PdgCode();
-			const TLorentzVector& position = particle->Position(0);
+      f_truth_showerPdg = particle.PdgCode();
+                        const TLorentzVector& position = particle.Position(0);
 			//f_truth_corr_showervtxX = position.X(); // units: cm inherit from larsoft
 			//f_truth_corr_showervtxY = position.Y(); // units: cm inherit from larsoft
 			//f_truth_corr_showervtxZ = position.Z(); // units: cm inherit from larsoft
@@ -3950,16 +3925,16 @@ void WireCellAnaTree::analyze(art::Event const& e)
 			f_truth_corr_showervtxX = (f_truth_corr_showervtxX + 0.6)*1.101/1.098 + position.T()*1e-3*1.101*0.1; //T: ns; 1.101 mm/us
 			std::cout<<"Shower info: "<<position.X() <<", "<<position.Y() <<", "<<position.Z()<<", "<<position.T()<<" ns"<<std::endl;
 			std::cout<<"Shower vertex SCE offset: "<<sce_offset.X() <<", "<<sce_offset.Y() <<", "<<sce_offset.Z()<<std::endl;
-			const TLorentzVector& showerMom = particle->Momentum(0);
+                        const TLorentzVector& showerMom = particle.Momentum(0);
 			f_truth_showerKE = showerMom.E() - showerMom.M();
 			f_truth_showerMomentum[0] = showerMom.Px();
 			f_truth_showerMomentum[1] = showerMom.Py();
 			f_truth_showerMomentum[2] = showerMom.Pz();
 			f_truth_showerMomentum[3] = showerMom.E();
 
-      float ex = particle->EndX();
-      float ey = particle->EndY();
-      float ez = particle->EndZ();
+      float ex = particle.EndX();
+      float ey = particle.EndY();
+      float ez = particle.EndZ();
       auto end_sce_offset = SCE->GetPosOffsets(geo::Point_t(ex, ey, ez));
       ex -= end_sce_offset.X();
       ey += end_sce_offset.Y();
@@ -3976,18 +3951,18 @@ void WireCellAnaTree::analyze(art::Event const& e)
               dir_1 = dir;
               start_1 = dis;
               f_truth_photon_dis = start_1.Mag();
-              mother_2 = particle->Mother();
+              mother_2 = particle.Mother();
             }
 
-            if (true_photons==2 && particle->Mother()==mother_2){
+            if (true_photons==2 && particle.Mother()==mother_2){
               TVector3 dir_2(showerMom.Px(),showerMom.Py(),showerMom.Pz());
               TVector3 start_2(ex,ey,ez);
               f_truth_photon_angle = (dir_1.Angle(dir_2))*(180./TMath::Pi());
               f_truth_photon_dis = (start_1-start_2).Mag();
             }
 
-            if (particle->Mother()!=-1){
-              simb::MCParticle mother = mcp_h->at( MCPmap[particle->Mother()] );
+            if (particle.Mother()!=-1){
+              simb::MCParticle mother = mcp_h->at( MCPmap[particle.Mother()] );
               if (mother.PdgCode()==22){
                 if (mother.Mother()!=-1.){
                   simb::MCParticle mothermother = mcp_h->at( MCPmap[mother.Mother()] );
@@ -4003,11 +3978,11 @@ void WireCellAnaTree::analyze(art::Event const& e)
 
 
 
-                int ndaughters = particle->NumberDaughters();
-                if( particle->Mother()==0 && particle->PdgCode() == 111 && ndaughters == 2) {
+                int ndaughters = particle.NumberDaughters();
+                if( particle.Mother()==0 && particle.PdgCode() == 111 && ndaughters == 2) {
 
-                        int gamma_0_trkId = particle->Daughter(0);
-                        int gamma_1_trkId = particle->Daughter(1);
+                        int gamma_0_trkId = particle.Daughter(0);
+                        int gamma_1_trkId = particle.Daughter(1);
                         simb::MCParticle d0 = mcp_h->at( MCPmap[gamma_0_trkId] ); // 1st gamma
                         simb::MCParticle d1 = mcp_h->at( MCPmap[gamma_1_trkId] ); // 2nd gamma
                         f_truth_NprimPio ++;
@@ -4016,13 +3991,13 @@ void WireCellAnaTree::analyze(art::Event const& e)
                         auto dir0 = d0.Momentum().Vect().Unit();
                         auto dir1 = d1.Momentum().Vect().Unit();
                         f_truth_pio_angle = dir0.Angle(dir1) / 3.1416 * 180;
-                        std::cout << "mass: " << particle->Mass() << " , gamma energys: " << d0.E(0) << " " << d1.E(0) << " , angle: " << f_truth_pio_angle << std::endl;
+                        std::cout << "mass: " << particle.Mass() << " , gamma energys: " << d0.E(0) << " " << d1.E(0) << " , angle: " << f_truth_pio_angle << std::endl;
                 }
 
-      if ( particle->PdgCode() == 111 ) {
+      if ( particle.PdgCode() == 111 ) {
         f_truth_Npi0++;
       for (int i_d=0; i_d<ndaughters; i_d++){
-        simb::MCParticle daughter = mcp_h->at( MCPmap[particle->Daughter(i_d)] );
+        simb::MCParticle daughter = mcp_h->at( MCPmap[particle.Daughter(i_d)] );
         if (ndaughters>2 && abs(daughter.PdgCode())==11){ truth_dalitz = true;}
       }
   	}
@@ -4044,9 +4019,9 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	//art::Ptr<simb::MCTruth> mctruth;
 
 	if (mclist.size()>0) {
-		mctruth = mclist.at(0);
-		if (mctruth->NeutrinoSet()) {
-			simb::MCNeutrino nu = mctruth->GetNeutrino();
+                simb::MCTruth const& mctruth = mclist[0];
+                if (mctruth.NeutrinoSet()) {
+                        simb::MCNeutrino nu = mctruth.GetNeutrino();
 			f_truth_nuIntType = nu.InteractionType();
 			// one can access more neutrino GENIE info
 
@@ -4055,13 +4030,13 @@ void WireCellAnaTree::analyze(art::Event const& e)
 			// Type 1: Delta --> Gamma
 			// Type 2: Delta --> Gamma (internal) --> Gamma (final state)
 			f_truth_NCDelta = 0;
-			for(int k=0; k<mctruth->NParticles(); k++){
-				simb::MCParticle const & mcp = mctruth->GetParticle(k);
+			for(int k=0; k<mctruth.NParticles(); k++){
+				simb::MCParticle const & mcp = mctruth.GetParticle(k);
         if(mcp.PdgCode()==22 && (mcp.StatusCode()==1 || mcp.StatusCode()==14)){
-					const simb::MCParticle mother = mctruth->GetParticle(mcp.Mother());
+					const simb::MCParticle mother = mctruth.GetParticle(mcp.Mother());
           f_truth_showerMother = mother.PdgCode();
           if (mother.PdgCode()==22){
-            const simb::MCParticle mothermother = mctruth->GetParticle(mother.Mother());
+            const simb::MCParticle mothermother = mctruth.GetParticle(mother.Mother());
             f_truth_showerMother = mothermother.PdgCode();
           }
 					//if(abs(mother.PdgCode()) == 2114 || abs(mother.PdgCode()) == 2214 || abs(mother.PdgCode()) == 2224 || abs(mother.PdgCode()) == 1114) {
@@ -4097,42 +4072,33 @@ void WireCellAnaTree::analyze(art::Event const& e)
   }
 
 	// neutrino scattering code. Integer, see GTruth.h for more details.
-	art::Handle< std::vector<simb::GTruth> > gtruthListHandle;
-	if(e.getByLabel("generator",gtruthListHandle)){
-	  std::vector<art::Ptr<simb::GTruth> > glist;
-	  art::fill_ptr_vector(glist, gtruthListHandle);
-	  art::Ptr<simb::GTruth> gtruth;
-	  if (glist.size()>0) {
-	  	gtruth = glist.at(0);
-                f_truth_nuScatType = gtruth->fGscatter;
+        if(auto gtruthListHandle = e.getHandle<std::vector<simb::GTruth>>("generator")){
+          if (gtruthListHandle->size()>0) {
+                f_truth_nuScatType = gtruthListHandle->front().fGscatter;
 	  }
         }
         // by default, f_truth_nuScatType = -1
 
 	// flux truth, see MCFlux.h for more details
 	// and the description at http://www.hep.utexas.edu/~zarko/wwwgnumi/v19/v19/output_gnumi.html
-	art::Handle< std::vector<simb::MCFlux> > mcfluxListHandle;
-	if (e.getByLabel("generator",mcfluxListHandle)){
-	  std::vector<art::Ptr<simb::MCFlux> > mcfluxlist;
-	  art::fill_ptr_vector(mcfluxlist, mcfluxListHandle);
-	  art::Ptr<simb::MCFlux> mcflux;
-	  if (mcfluxlist.size()>0) {
-	  	mcflux = mcfluxlist.at(0);
-	  	f_mcflux_run = mcflux->frun;
-	  	f_mcflux_evtno = mcflux->fevtno;
-	  	f_mcflux_ndecay = mcflux->fndecay;
-	  	f_mcflux_ntype = mcflux->fntype;
-	  	f_mcflux_ptype = mcflux->fptype;
-	  	f_mcflux_tptype = mcflux->ftptype;
-	  	f_mcflux_nuEnergy = mcflux->fnenergyn; // neutrino energy for a decay
-	  	f_mcflux_vx = mcflux->fvx; // vertex of hadron decay
-	  	f_mcflux_vy = mcflux->fvy;
-	  	f_mcflux_vz = mcflux->fvz;
-	  	f_mcflux_genx = mcflux->fgenx;
-	  	f_mcflux_geny = mcflux->fgeny;
-	  	f_mcflux_genz = mcflux->fgenz;
-	  	f_mcflux_dk2gen = mcflux->fdk2gen; // distance from decay to ray origin
-	  	f_mcflux_gen2vtx = mcflux->fgen2vtx; // distance from ray origin to event vtx
+        if (auto mcfluxListHandle = e.getHandle<std::vector<simb::MCFlux>>("generator")){
+          if (mcfluxListHandle->size()>0) {
+                simb::MCFlux const& mcflux = mcfluxListHandle->front();
+                f_mcflux_run = mcflux.frun;
+                f_mcflux_evtno = mcflux.fevtno;
+                f_mcflux_ndecay = mcflux.fndecay;
+                f_mcflux_ntype = mcflux.fntype;
+                f_mcflux_ptype = mcflux.fptype;
+                f_mcflux_tptype = mcflux.ftptype;
+                f_mcflux_nuEnergy = mcflux.fnenergyn; // neutrino energy for a decay
+                f_mcflux_vx = mcflux.fvx; // vertex of hadron decay
+                f_mcflux_vy = mcflux.fvy;
+                f_mcflux_vz = mcflux.fvz;
+                f_mcflux_genx = mcflux.fgenx;
+                f_mcflux_geny = mcflux.fgeny;
+                f_mcflux_genz = mcflux.fgenz;
+                f_mcflux_dk2gen = mcflux.fdk2gen; // distance from decay to ray origin
+                f_mcflux_gen2vtx = mcflux.fgen2vtx; // distance from ray origin to event vtx
 	  }
         }
 
@@ -4182,46 +4148,41 @@ void WireCellAnaTree::analyze(art::Event const& e)
 
       /// BDT input variables
       if(f_BDTvars){
-	art::Handle< std::vector<nsm::NuSelectionBDT> > bdthandle;
-	if (! e.getByLabel(fPFInputTag, bdthandle)) return;
-	std::vector<art::Ptr<nsm::NuSelectionBDT> > bdtvec;
-	art::fill_ptr_vector(bdtvec,bdthandle);
+        auto bdthandle = e.getHandle<std::vector<nsm::NuSelectionBDT>>(fPFInputTag);
+        if (! bdthandle) return;
 	std::cout<<"--- NuSelectionBDT ---"<<std::endl;
-	if(bdtvec.size()>1) {
+        if(bdthandle->size()>1) {
 		std::cout<<"WARNING: >1 set of BDT input variables" << std::endl;
 		return;
 	}
-	for(size_t i=0; i<bdtvec.size(); i++){
-		art::Ptr<nsm::NuSelectionBDT> bdt = bdtvec.at(i);
+        for(nsm::NuSelectionBDT const& bdt : *bdthandle) {
 		ReadBDTvar(bdt);
 	std::cout<<"BDT input vars check: \n"<<
 	"Cosmic Tagger: "<<
-	bdt->GetCosmicTagger().cosmic_filled<<" "<<
-	bdt->GetCosmicTagger().cosmic_flag<<" "<<
-	bdt->GetCosmicTagger().cosmic_n_solid_tracks<<" "<<
-	bdt->GetCosmicTagger().cosmic_energy_main_showers<<" "<<
-	bdt->GetCosmicTagger().cosmic_energy_direct_showers<<" "<<
-	bdt->GetCosmicTagger().cosmic_energy_indirect_showers<<" "<<
-	bdt->GetCosmicTagger().cosmic_n_direct_showers<<" "<<
-	bdt->GetCosmicTagger().cosmic_n_indirect_showers<<" "<<
-	bdt->GetCosmicTagger().cosmic_n_main_showers<<"\n";
+        bdt.GetCosmicTagger().cosmic_filled<<" "<<
+        bdt.GetCosmicTagger().cosmic_flag<<" "<<
+        bdt.GetCosmicTagger().cosmic_n_solid_tracks<<" "<<
+        bdt.GetCosmicTagger().cosmic_energy_main_showers<<" "<<
+        bdt.GetCosmicTagger().cosmic_energy_direct_showers<<" "<<
+        bdt.GetCosmicTagger().cosmic_energy_indirect_showers<<" "<<
+        bdt.GetCosmicTagger().cosmic_n_direct_showers<<" "<<
+        bdt.GetCosmicTagger().cosmic_n_indirect_showers<<" "<<
+        bdt.GetCosmicTagger().cosmic_n_main_showers<<"\n";
 	}
       }
 
       if(f_KINEvars){
-	art::Handle< std::vector<nsm::NuSelectionKINE> > kinehandle;
-	if (! e.getByLabel(fPFInputTag, kinehandle)) return;
-	std::vector<art::Ptr<nsm::NuSelectionKINE> > kinevec;
-	art::fill_ptr_vector(kinevec,kinehandle);
+        auto kinehandle = e.getHandle<std::vector<nsm::NuSelectionKINE>>(fPFInputTag);
+        if (! kinehandle) return;
 	std::cout<<"--- NuSelectionKINE ---"<<std::endl;
-	if(kinevec.size()>1) {
+        if(kinehandle->size()>1) {
 		std::cout<<"WARNING: >1 set of KINE input variables" << std::endl;
 		return;
 	}
-	for(size_t i=0; i<kinevec.size(); i++){
-		art::Ptr<nsm::NuSelectionKINE> kine = kinevec.at(i);
+        for(nsm::NuSelectionKINE const& kine : *kinehandle) {
 		ReadKINEvar(kine);
 	std::cout<<"KINE input vars check: \n"<<
+
 	kine->GetKineInfo().kine_reco_Enu<<" "<<
 	kine->GetKineInfo().kine_reco_add_energy<<" ";
         if(kine->GetKineInfo().kine_energy_particle->empty()){
@@ -5771,6 +5732,12 @@ void WireCellAnaTree::save_weights(art::Event const& e)
             ppfx_cv_UBPPFXCV = value;
           }
       }
+      if (knob_name == "ppfx_oldrw_cv_UBOLDPPFXCV" and fIsNuMI and fNuMIOldReweight){
+          double value = weights.at(0);
+          if (not std::isnan(value) and not std::isinf(value)) {
+            ppfx_cv_UBPPFXCV = value;
+          }
+      }
     }
   }
 
@@ -5808,8 +5775,9 @@ void WireCellAnaTree::save_LEEweights(art::Event const& e)
 }
 
 
-void WireCellAnaTree::ReadBDTvar(art::Ptr<nsm::NuSelectionBDT> bdt)
+void WireCellAnaTree::ReadBDTvar(nsm::NuSelectionBDT const& bdt)
 {
+
   
   ssm_flag_st_kdar = bdt->Getstkdar().ssm_flag_st_kdar;
   ssm_Nsm = bdt->Getstkdar().ssm_Nsm;
@@ -6207,854 +6175,855 @@ void WireCellAnaTree::ReadBDTvar(art::Ptr<nsm::NuSelectionBDT> bdt)
   ssmsp_containing_shower_ke = bdt->Getstkdar().ssmsp_containing_shower_ke;
   ssmsp_containing_shower_flag = bdt->Getstkdar().ssmsp_containing_shower_flag;
 
-  shw_sp_num_mip_tracks = bdt->GetSPID().shw_sp_num_mip_tracks;
-  shw_sp_num_muons = bdt->GetSPID().shw_sp_num_muons;
-  shw_sp_num_pions = bdt->GetSPID().shw_sp_num_pions;
-  shw_sp_num_protons = bdt->GetSPID().shw_sp_num_protons;
-  shw_sp_proton_length_1 = bdt->GetSPID().shw_sp_proton_length_1;
-  shw_sp_proton_dqdx_1 = bdt->GetSPID().shw_sp_proton_dqdx_1;
-  shw_sp_proton_energy_1 = bdt->GetSPID().shw_sp_proton_energy_1;
-  shw_sp_proton_length_2 = bdt->GetSPID().shw_sp_proton_length_2;
-  shw_sp_proton_dqdx_2 = bdt->GetSPID().shw_sp_proton_dqdx_2;
-  shw_sp_proton_energy_2 = bdt->GetSPID().shw_sp_proton_energy_2;
-  shw_sp_n_good_showers = bdt->GetSPID().shw_sp_n_good_showers;
-  shw_sp_n_20mev_showers = bdt->GetSPID().shw_sp_n_20mev_showers;
-  shw_sp_n_br1_showers = bdt->GetSPID().shw_sp_n_br1_showers;
-  shw_sp_n_br2_showers = bdt->GetSPID().shw_sp_n_br2_showers;
-  shw_sp_n_br3_showers = bdt->GetSPID().shw_sp_n_br3_showers;
-  shw_sp_n_br4_showers = bdt->GetSPID().shw_sp_n_br4_showers;
-  shw_sp_n_20br1_showers = bdt->GetSPID().shw_sp_n_20br1_showers;
-  shw_sp_20mev_showers = bdt->GetSPID().shw_sp_20mev_showers;
-  shw_sp_br1_showers = bdt->GetSPID().shw_sp_br1_showers;
-  shw_sp_br2_showers = bdt->GetSPID().shw_sp_br2_showers;
-  shw_sp_br3_showers = bdt->GetSPID().shw_sp_br3_showers;
-  shw_sp_br4_showers = bdt->GetSPID().shw_sp_br4_showers;
-  shw_sp_shw_vtx_dis = bdt->GetSPID().shw_sp_shw_vtx_dis;
-  shw_sp_max_shw_dis = bdt->GetSPID().shw_sp_max_shw_dis;
-  shw_sp_filled = bdt->GetSPSHWID1().shw_sp_filled;
-	shw_sp_flag = bdt->GetSPSHWID1().shw_sp_flag;
-	shw_sp_energy = bdt->GetSPSHWID1().shw_sp_energy;
-	shw_sp_vec_dQ_dx_0 = bdt->GetSPSHWID1().shw_sp_vec_dQ_dx_0;
-	shw_sp_vec_dQ_dx_1 = bdt->GetSPSHWID1().shw_sp_vec_dQ_dx_1;
-	shw_sp_max_dQ_dx_sample = bdt->GetSPSHWID1().shw_sp_max_dQ_dx_sample;
-	shw_sp_n_below_threshold = bdt->GetSPSHWID1().shw_sp_n_below_threshold;
-	shw_sp_n_below_zero = bdt->GetSPSHWID1().shw_sp_n_below_zero;
-	shw_sp_n_lowest = bdt->GetSPSHWID1().shw_sp_n_lowest;
-	shw_sp_n_highest = bdt->GetSPSHWID1().shw_sp_n_highest;
-	shw_sp_lowest_dQ_dx = bdt->GetSPSHWID1().shw_sp_lowest_dQ_dx;
-	shw_sp_highest_dQ_dx = bdt->GetSPSHWID1().shw_sp_highest_dQ_dx;
-	shw_sp_medium_dQ_dx = bdt->GetSPSHWID1().shw_sp_medium_dQ_dx;
-	shw_sp_stem_length = bdt->GetSPSHWID1().shw_sp_stem_length;
-	shw_sp_length_main = bdt->GetSPSHWID1().shw_sp_length_main;
-	shw_sp_length_total = bdt->GetSPSHWID1().shw_sp_length_total;
-	shw_sp_angle_beam = bdt->GetSPSHWID1().shw_sp_angle_beam;
-	shw_sp_iso_angle = bdt->GetSPSHWID1().shw_sp_iso_angle;
-	shw_sp_n_vertex = bdt->GetSPSHWID1().shw_sp_n_vertex;
-	shw_sp_n_good_tracks = bdt->GetSPSHWID1().shw_sp_n_good_tracks;
-	shw_sp_E_indirect_max_energy = bdt->GetSPSHWID1().shw_sp_E_indirect_max_energy;
-	shw_sp_flag_all_above = bdt->GetSPSHWID1().shw_sp_flag_all_above;
-	shw_sp_min_dQ_dx_5 = bdt->GetSPSHWID1().shw_sp_min_dQ_dx_5;
-	shw_sp_n_other_vertex = bdt->GetSPSHWID1().shw_sp_n_other_vertex;
-	shw_sp_n_stem_size = bdt->GetSPSHWID1().shw_sp_n_stem_size;
-	shw_sp_flag_stem_trajectory = bdt->GetSPSHWID1().shw_sp_flag_stem_trajectory;
-	shw_sp_min_dis = bdt->GetSPSHWID1().shw_sp_min_dis;
-  shw_sp_vec_mean_dedx = bdt->GetSPSHWID2().shw_sp_vec_mean_dedx;
-	shw_sp_vec_median_dedx = bdt->GetSPSHWID2().shw_sp_vec_median_dedx;
-	shw_sp_vec_dQ_dx_2 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_2;
-	shw_sp_vec_dQ_dx_3 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_3;
-	shw_sp_vec_dQ_dx_4 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_4;
-	shw_sp_vec_dQ_dx_5 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_5;
-	shw_sp_vec_dQ_dx_6 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_6;
-	shw_sp_vec_dQ_dx_7 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_7;
-	shw_sp_vec_dQ_dx_8 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_8;
-	shw_sp_vec_dQ_dx_9 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_9;
-	shw_sp_vec_dQ_dx_10 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_10;
-	shw_sp_vec_dQ_dx_11 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_11;
-	shw_sp_vec_dQ_dx_12 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_12;
-	shw_sp_vec_dQ_dx_13 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_13;
-	shw_sp_vec_dQ_dx_14 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_14;
-	shw_sp_vec_dQ_dx_15 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_15;
-	shw_sp_vec_dQ_dx_16 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_16;
-	shw_sp_vec_dQ_dx_17 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_17;
-	shw_sp_vec_dQ_dx_18 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_18;
-	shw_sp_vec_dQ_dx_19 = bdt->GetSPSHWID2().shw_sp_vec_dQ_dx_19;
-	shw_sp_pio_filled = bdt->GetSPPi0Tagger1().shw_sp_pio_filled;
-	shw_sp_pio_flag = bdt->GetSPPi0Tagger1().shw_sp_pio_flag;
-	shw_sp_pio_mip_id = bdt->GetSPPi0Tagger1().shw_sp_pio_mip_id;
-	shw_sp_pio_flag_pio = bdt->GetSPPi0Tagger1().shw_sp_pio_flag_pio;
-	shw_sp_pio_1_flag = bdt->GetSPPi0Tagger1().shw_sp_pio_1_flag;
-	shw_sp_pio_1_mass = bdt->GetSPPi0Tagger1().shw_sp_pio_1_mass;
-	shw_sp_pio_1_pio_type = bdt->GetSPPi0Tagger1().shw_sp_pio_1_pio_type;
-	shw_sp_pio_1_energy_1 = bdt->GetSPPi0Tagger1().shw_sp_pio_1_energy_1;
-	shw_sp_pio_1_energy_2 = bdt->GetSPPi0Tagger1().shw_sp_pio_1_energy_2;
-	shw_sp_pio_1_dis_1 = bdt->GetSPPi0Tagger1().shw_sp_pio_1_dis_1;
-	shw_sp_pio_1_dis_2 = bdt->GetSPPi0Tagger1().shw_sp_pio_1_dis_2;
-	shw_sp_pio_2_v_flag = bdt->GetSPPi0Tagger1().shw_sp_pio_2_v_flag;
-	shw_sp_pio_2_v_dis2 = bdt->GetSPPi0Tagger1().shw_sp_pio_2_v_dis2;
-	shw_sp_pio_2_v_angle2 = bdt->GetSPPi0Tagger1().shw_sp_pio_2_v_angle2;
-	shw_sp_pio_2_v_acc_length = bdt->GetSPPi0Tagger1().shw_sp_pio_2_v_acc_length;
-	shw_sp_lem_flag = bdt->GetSPLowEMichel().shw_sp_lem_flag;
-	shw_sp_lem_shower_total_length = bdt->GetSPLowEMichel().shw_sp_lem_shower_total_length;
-	shw_sp_lem_shower_main_length = bdt->GetSPLowEMichel().shw_sp_lem_shower_main_length;
-	shw_sp_lem_n_3seg = bdt->GetSPLowEMichel().shw_sp_lem_n_3seg;
-	shw_sp_lem_e_charge = bdt->GetSPLowEMichel().shw_sp_lem_e_charge;
-	shw_sp_lem_e_dQdx = bdt->GetSPLowEMichel().shw_sp_lem_e_dQdx;
-	shw_sp_lem_shower_num_segs = bdt->GetSPLowEMichel().shw_sp_lem_shower_num_segs;
-	shw_sp_lem_shower_num_main_segs = bdt->GetSPLowEMichel().shw_sp_lem_shower_num_main_segs;
-	shw_sp_br_filled = bdt->GetSPBadReco1().shw_sp_br_filled;
-	shw_sp_br1_flag = bdt->GetSPBadReco1().shw_sp_br1_flag;
-	shw_sp_br1_1_flag = bdt->GetSPBadReco1().shw_sp_br1_1_flag;
-	shw_sp_br1_1_shower_type = bdt->GetSPBadReco1().shw_sp_br1_1_shower_type;
-	shw_sp_br1_1_vtx_n_segs = bdt->GetSPBadReco1().shw_sp_br1_1_vtx_n_segs;
-	shw_sp_br1_1_energy = bdt->GetSPBadReco1().shw_sp_br1_1_energy;
-	shw_sp_br1_1_n_segs = bdt->GetSPBadReco1().shw_sp_br1_1_n_segs;
-	shw_sp_br1_1_flag_sg_topology = bdt->GetSPBadReco1().shw_sp_br1_1_flag_sg_topology;
-	shw_sp_br1_1_flag_sg_trajectory = bdt->GetSPBadReco1().shw_sp_br1_1_flag_sg_trajectory;
-	shw_sp_br1_1_sg_length = bdt->GetSPBadReco1().shw_sp_br1_1_sg_length;
-	shw_sp_br1_2_flag = bdt->GetSPBadReco1().shw_sp_br1_2_flag;
-	shw_sp_br1_2_energy = bdt->GetSPBadReco1().shw_sp_br1_2_energy;
-	shw_sp_br1_2_n_connected = bdt->GetSPBadReco1().shw_sp_br1_2_n_connected;
-	shw_sp_br1_2_max_length = bdt->GetSPBadReco1().shw_sp_br1_2_max_length;
-	shw_sp_br1_2_n_connected_1 = bdt->GetSPBadReco1().shw_sp_br1_2_n_connected_1;
-	shw_sp_br1_2_vtx_n_segs = bdt->GetSPBadReco1().shw_sp_br1_2_vtx_n_segs;
-	shw_sp_br1_2_n_shower_segs = bdt->GetSPBadReco1().shw_sp_br1_2_n_shower_segs;
-	shw_sp_br1_2_max_length_ratio = bdt->GetSPBadReco1().shw_sp_br1_2_max_length_ratio;
-	shw_sp_br1_2_shower_length = bdt->GetSPBadReco1().shw_sp_br1_2_shower_length;
-	shw_sp_br1_3_flag = bdt->GetSPBadReco1().shw_sp_br1_3_flag;
-	shw_sp_br1_3_energy = bdt->GetSPBadReco1().shw_sp_br1_3_energy;
-	shw_sp_br1_3_n_connected_p = bdt->GetSPBadReco1().shw_sp_br1_3_n_connected_p;
-	shw_sp_br1_3_max_length_p = bdt->GetSPBadReco1().shw_sp_br1_3_max_length_p;
-	shw_sp_br1_3_n_shower_segs = bdt->GetSPBadReco1().shw_sp_br1_3_n_shower_segs;
-	shw_sp_br1_3_flag_sg_topology = bdt->GetSPBadReco1().shw_sp_br1_3_flag_sg_topology;
-	shw_sp_br1_3_flag_sg_trajectory = bdt->GetSPBadReco1().shw_sp_br1_3_flag_sg_trajectory;
-	shw_sp_br1_3_n_shower_main_segs = bdt->GetSPBadReco1().shw_sp_br1_3_n_shower_main_segs;
-	shw_sp_br1_3_sg_length = bdt->GetSPBadReco1().shw_sp_br1_3_sg_length;
-	shw_sp_br_filled = bdt->GetSPBadReco2().shw_sp_br_filled;
-	shw_sp_br2_flag = bdt->GetSPBadReco2().shw_sp_br2_flag;
-	shw_sp_br2_flag_single_shower = bdt->GetSPBadReco2().shw_sp_br2_flag_single_shower;
-	shw_sp_br2_num_valid_tracks = bdt->GetSPBadReco2().shw_sp_br2_num_valid_tracks;
-	shw_sp_br2_energy = bdt->GetSPBadReco2().shw_sp_br2_energy;
-	shw_sp_br2_angle1 = bdt->GetSPBadReco2().shw_sp_br2_angle1;
-	shw_sp_br2_angle2 = bdt->GetSPBadReco2().shw_sp_br2_angle2;
-	shw_sp_br2_angle = bdt->GetSPBadReco2().shw_sp_br2_angle;
-	shw_sp_br2_angle3 = bdt->GetSPBadReco2().shw_sp_br2_angle3;
-	shw_sp_br2_n_shower_main_segs = bdt->GetSPBadReco2().shw_sp_br2_n_shower_main_segs;
-	shw_sp_br2_max_angle = bdt->GetSPBadReco2().shw_sp_br2_max_angle;
-	shw_sp_br2_sg_length = bdt->GetSPBadReco2().shw_sp_br2_sg_length;
-	shw_sp_br2_flag_sg_trajectory = bdt->GetSPBadReco2().shw_sp_br2_flag_sg_trajectory;
-	shw_sp_br_filled = bdt->GetSPBadReco3().shw_sp_br_filled;
-	shw_sp_br3_flag = bdt->GetSPBadReco3().shw_sp_br3_flag;
-	shw_sp_br3_1_flag = bdt->GetSPBadReco3().shw_sp_br3_1_flag;
-	shw_sp_br3_1_energy = bdt->GetSPBadReco3().shw_sp_br3_1_energy;
-	shw_sp_br3_1_n_shower_segments = bdt->GetSPBadReco3().shw_sp_br3_1_n_shower_segments;
-	shw_sp_br3_1_sg_flag_trajectory = bdt->GetSPBadReco3().shw_sp_br3_1_sg_flag_trajectory;
-	shw_sp_br3_1_sg_direct_length = bdt->GetSPBadReco3().shw_sp_br3_1_sg_direct_length;
-	shw_sp_br3_1_sg_length = bdt->GetSPBadReco3().shw_sp_br3_1_sg_length;
-	shw_sp_br3_1_total_main_length = bdt->GetSPBadReco3().shw_sp_br3_1_total_main_length;
-	shw_sp_br3_1_total_length = bdt->GetSPBadReco3().shw_sp_br3_1_total_length;
-	shw_sp_br3_1_iso_angle = bdt->GetSPBadReco3().shw_sp_br3_1_iso_angle;
-	shw_sp_br3_1_sg_flag_topology = bdt->GetSPBadReco3().shw_sp_br3_1_sg_flag_topology;
-	shw_sp_br3_2_flag = bdt->GetSPBadReco3().shw_sp_br3_2_flag;
-	shw_sp_br3_2_n_ele = bdt->GetSPBadReco3().shw_sp_br3_2_n_ele;
-	shw_sp_br3_2_n_other = bdt->GetSPBadReco3().shw_sp_br3_2_n_other;
-	shw_sp_br3_2_energy = bdt->GetSPBadReco3().shw_sp_br3_2_energy;
-	shw_sp_br3_2_total_main_length = bdt->GetSPBadReco3().shw_sp_br3_2_total_main_length;
-	shw_sp_br3_2_total_length = bdt->GetSPBadReco3().shw_sp_br3_2_total_length;
-	shw_sp_br3_2_other_fid = bdt->GetSPBadReco3().shw_sp_br3_2_other_fid;
-	shw_sp_br3_3_v_flag = bdt->GetSPBadReco3().shw_sp_br3_3_v_flag;
-	shw_sp_br3_3_v_energy = bdt->GetSPBadReco3().shw_sp_br3_3_v_energy;
-	shw_sp_br3_3_v_angle = bdt->GetSPBadReco3().shw_sp_br3_3_v_angle;
-	shw_sp_br3_3_v_dir_length = bdt->GetSPBadReco3().shw_sp_br3_3_v_dir_length;
-	shw_sp_br3_3_v_length = bdt->GetSPBadReco3().shw_sp_br3_3_v_length;
-	shw_sp_br3_4_flag = bdt->GetSPBadReco3().shw_sp_br3_4_flag;
-	shw_sp_br3_4_acc_length = bdt->GetSPBadReco3().shw_sp_br3_4_acc_length;
-	shw_sp_br3_4_total_length = bdt->GetSPBadReco3().shw_sp_br3_4_total_length;
-	shw_sp_br3_4_energy = bdt->GetSPBadReco3().shw_sp_br3_4_energy;
-	shw_sp_br3_5_v_flag = bdt->GetSPBadReco3().shw_sp_br3_5_v_flag;
-	shw_sp_br3_5_v_dir_length = bdt->GetSPBadReco3().shw_sp_br3_5_v_dir_length;
-	shw_sp_br3_5_v_total_length = bdt->GetSPBadReco3().shw_sp_br3_5_v_total_length;
-	shw_sp_br3_5_v_flag_avoid_muon_check = bdt->GetSPBadReco3().shw_sp_br3_5_v_flag_avoid_muon_check;
-	shw_sp_br3_5_v_n_seg = bdt->GetSPBadReco3().shw_sp_br3_5_v_n_seg;
-	shw_sp_br3_5_v_angle = bdt->GetSPBadReco3().shw_sp_br3_5_v_angle;
-	shw_sp_br3_5_v_sg_length = bdt->GetSPBadReco3().shw_sp_br3_5_v_sg_length;
-	shw_sp_br3_5_v_energy = bdt->GetSPBadReco3().shw_sp_br3_5_v_energy;
-	shw_sp_br3_5_v_n_main_segs = bdt->GetSPBadReco3().shw_sp_br3_5_v_n_main_segs;
-	shw_sp_br3_5_v_n_segs = bdt->GetSPBadReco3().shw_sp_br3_5_v_n_segs;
-	shw_sp_br3_5_v_shower_main_length = bdt->GetSPBadReco3().shw_sp_br3_5_v_shower_main_length;
-	shw_sp_br3_5_v_shower_total_length = bdt->GetSPBadReco3().shw_sp_br3_5_v_shower_total_length;
-	shw_sp_br3_6_v_flag = bdt->GetSPBadReco3().shw_sp_br3_6_v_flag;
-	shw_sp_br3_6_v_angle = bdt->GetSPBadReco3().shw_sp_br3_6_v_angle;
-	shw_sp_br3_6_v_angle1 = bdt->GetSPBadReco3().shw_sp_br3_6_v_angle1;
-	shw_sp_br3_6_v_flag_shower_trajectory = bdt->GetSPBadReco3().shw_sp_br3_6_v_flag_shower_trajectory;
-	shw_sp_br3_6_v_direct_length = bdt->GetSPBadReco3().shw_sp_br3_6_v_direct_length;
-	shw_sp_br3_6_v_length = bdt->GetSPBadReco3().shw_sp_br3_6_v_length;
-	shw_sp_br3_6_v_n_other_vtx_segs = bdt->GetSPBadReco3().shw_sp_br3_6_v_n_other_vtx_segs;
-	shw_sp_br3_6_v_energy = bdt->GetSPBadReco3().shw_sp_br3_6_v_energy;
-	shw_sp_br3_7_flag = bdt->GetSPBadReco3().shw_sp_br3_7_flag;
-	shw_sp_br3_7_energy = bdt->GetSPBadReco3().shw_sp_br3_7_energy;
-	shw_sp_br3_7_min_angle = bdt->GetSPBadReco3().shw_sp_br3_7_min_angle;
-	shw_sp_br3_7_sg_length = bdt->GetSPBadReco3().shw_sp_br3_7_sg_length;
-	shw_sp_br3_7_shower_main_length = bdt->GetSPBadReco3().shw_sp_br3_7_shower_main_length;
-	shw_sp_br3_8_flag = bdt->GetSPBadReco3().shw_sp_br3_8_flag;
-	shw_sp_br3_8_max_dQ_dx = bdt->GetSPBadReco3().shw_sp_br3_8_max_dQ_dx;
-	shw_sp_br3_8_energy = bdt->GetSPBadReco3().shw_sp_br3_8_energy;
-	shw_sp_br3_8_n_main_segs = bdt->GetSPBadReco3().shw_sp_br3_8_n_main_segs;
-	shw_sp_br3_8_shower_main_length = bdt->GetSPBadReco3().shw_sp_br3_8_shower_main_length;
-	shw_sp_br3_8_shower_length = bdt->GetSPBadReco3().shw_sp_br3_8_shower_length;
-	shw_sp_br_filled = bdt->GetSPBadReco4().shw_sp_br_filled;
-	shw_sp_br4_flag = bdt->GetSPBadReco4().shw_sp_br4_flag;
-	shw_sp_br4_1_flag = bdt->GetSPBadReco4().shw_sp_br4_1_flag;
-	shw_sp_br4_1_shower_main_length = bdt->GetSPBadReco4().shw_sp_br4_1_shower_main_length;
-	shw_sp_br4_1_shower_total_length = bdt->GetSPBadReco4().shw_sp_br4_1_shower_total_length;
-	shw_sp_br4_1_min_dis = bdt->GetSPBadReco4().shw_sp_br4_1_min_dis;
-	shw_sp_br4_1_energy = bdt->GetSPBadReco4().shw_sp_br4_1_energy;
-	shw_sp_br4_1_flag_avoid_muon_check = bdt->GetSPBadReco4().shw_sp_br4_1_flag_avoid_muon_check;
-	shw_sp_br4_1_n_vtx_segs = bdt->GetSPBadReco4().shw_sp_br4_1_n_vtx_segs;
-	shw_sp_br4_1_n_main_segs = bdt->GetSPBadReco4().shw_sp_br4_1_n_main_segs;
-	shw_sp_br4_2_flag = bdt->GetSPBadReco4().shw_sp_br4_2_flag;
-	shw_sp_br4_2_ratio_45 = bdt->GetSPBadReco4().shw_sp_br4_2_ratio_45;
-	shw_sp_br4_2_ratio_35 = bdt->GetSPBadReco4().shw_sp_br4_2_ratio_35;
-	shw_sp_br4_2_ratio_25 = bdt->GetSPBadReco4().shw_sp_br4_2_ratio_25;
-	shw_sp_br4_2_ratio_15 = bdt->GetSPBadReco4().shw_sp_br4_2_ratio_15;
-	shw_sp_br4_2_energy = bdt->GetSPBadReco4().shw_sp_br4_2_energy;
-	shw_sp_br4_2_ratio1_45 = bdt->GetSPBadReco4().shw_sp_br4_2_ratio1_45;
-	shw_sp_br4_2_ratio1_35 = bdt->GetSPBadReco4().shw_sp_br4_2_ratio1_35;
-	shw_sp_br4_2_ratio1_25 = bdt->GetSPBadReco4().shw_sp_br4_2_ratio1_25;
-	shw_sp_br4_2_ratio1_15 = bdt->GetSPBadReco4().shw_sp_br4_2_ratio1_15;
-	shw_sp_br4_2_iso_angle = bdt->GetSPBadReco4().shw_sp_br4_2_iso_angle;
-	shw_sp_br4_2_iso_angle1 = bdt->GetSPBadReco4().shw_sp_br4_2_iso_angle1;
-	shw_sp_br4_2_angle = bdt->GetSPBadReco4().shw_sp_br4_2_angle;
-	shw_sp_hol_flag = bdt->GetSPHighEoverlap().shw_sp_hol_flag;
-	shw_sp_hol_1_flag = bdt->GetSPHighEoverlap().shw_sp_hol_1_flag;
-	shw_sp_hol_1_n_valid_tracks = bdt->GetSPHighEoverlap().shw_sp_hol_1_n_valid_tracks;
-	shw_sp_hol_1_min_angle = bdt->GetSPHighEoverlap().shw_sp_hol_1_min_angle;
-	shw_sp_hol_1_energy = bdt->GetSPHighEoverlap().shw_sp_hol_1_energy;
-	shw_sp_hol_1_flag_all_shower = bdt->GetSPHighEoverlap().shw_sp_hol_1_flag_all_shower;
-	shw_sp_hol_1_min_length = bdt->GetSPHighEoverlap().shw_sp_hol_1_min_length;
-	shw_sp_hol_2_flag = bdt->GetSPHighEoverlap().shw_sp_hol_2_flag;
-	shw_sp_hol_2_min_angle = bdt->GetSPHighEoverlap().shw_sp_hol_2_min_angle;
-	shw_sp_hol_2_medium_dQ_dx = bdt->GetSPHighEoverlap().shw_sp_hol_2_medium_dQ_dx;
-	shw_sp_hol_2_ncount = bdt->GetSPHighEoverlap().shw_sp_hol_2_ncount;
-	shw_sp_hol_2_energy = bdt->GetSPHighEoverlap().shw_sp_hol_2_energy;
-	shw_sp_lol_flag = bdt->GetSPLowEoverlap().shw_sp_lol_flag;
-	shw_sp_lol_1_v_flag = bdt->GetSPLowEoverlap().shw_sp_lol_1_v_flag;
-	shw_sp_lol_1_v_energy = bdt->GetSPLowEoverlap().shw_sp_lol_1_v_energy;
-	shw_sp_lol_1_v_vtx_n_segs = bdt->GetSPLowEoverlap().shw_sp_lol_1_v_vtx_n_segs;
-	shw_sp_lol_1_v_nseg = bdt->GetSPLowEoverlap().shw_sp_lol_1_v_nseg;
-	shw_sp_lol_1_v_angle = bdt->GetSPLowEoverlap().shw_sp_lol_1_v_angle;
-	shw_sp_lol_2_v_flag = bdt->GetSPLowEoverlap().shw_sp_lol_2_v_flag;
-	shw_sp_lol_2_v_length = bdt->GetSPLowEoverlap().shw_sp_lol_2_v_length;
-	shw_sp_lol_2_v_angle = bdt->GetSPLowEoverlap().shw_sp_lol_2_v_angle;
-	shw_sp_lol_2_v_type = bdt->GetSPLowEoverlap().shw_sp_lol_2_v_type;
-	shw_sp_lol_2_v_vtx_n_segs = bdt->GetSPLowEoverlap().shw_sp_lol_2_v_vtx_n_segs;
-	shw_sp_lol_2_v_energy = bdt->GetSPLowEoverlap().shw_sp_lol_2_v_energy;
-	shw_sp_lol_2_v_shower_main_length = bdt->GetSPLowEoverlap().shw_sp_lol_2_v_shower_main_length;
-	shw_sp_lol_2_v_flag_dir_weak = bdt->GetSPLowEoverlap().shw_sp_lol_2_v_flag_dir_weak;
-	shw_sp_lol_3_flag = bdt->GetSPLowEoverlap().shw_sp_lol_3_flag;
-	shw_sp_lol_3_angle_beam = bdt->GetSPLowEoverlap().shw_sp_lol_3_angle_beam;
-	shw_sp_lol_3_n_valid_tracks = bdt->GetSPLowEoverlap().shw_sp_lol_3_n_valid_tracks;
-	shw_sp_lol_3_min_angle = bdt->GetSPLowEoverlap().shw_sp_lol_3_min_angle;
-	shw_sp_lol_3_vtx_n_segs = bdt->GetSPLowEoverlap().shw_sp_lol_3_vtx_n_segs;
-	shw_sp_lol_3_energy = bdt->GetSPLowEoverlap().shw_sp_lol_3_energy;
-	shw_sp_lol_3_shower_main_length = bdt->GetSPLowEoverlap().shw_sp_lol_3_shower_main_length;
-	shw_sp_lol_3_n_out = bdt->GetSPLowEoverlap().shw_sp_lol_3_n_out;
-	shw_sp_lol_3_n_sum = bdt->GetSPLowEoverlap().shw_sp_lol_3_n_sum;
+  shw_sp_num_mip_tracks = bdt.GetSPID().shw_sp_num_mip_tracks;
+  shw_sp_num_muons = bdt.GetSPID().shw_sp_num_muons;
+  shw_sp_num_pions = bdt.GetSPID().shw_sp_num_pions;
+  shw_sp_num_protons = bdt.GetSPID().shw_sp_num_protons;
+  shw_sp_proton_length_1 = bdt.GetSPID().shw_sp_proton_length_1;
+  shw_sp_proton_dqdx_1 = bdt.GetSPID().shw_sp_proton_dqdx_1;
+  shw_sp_proton_energy_1 = bdt.GetSPID().shw_sp_proton_energy_1;
+  shw_sp_proton_length_2 = bdt.GetSPID().shw_sp_proton_length_2;
+  shw_sp_proton_dqdx_2 = bdt.GetSPID().shw_sp_proton_dqdx_2;
+  shw_sp_proton_energy_2 = bdt.GetSPID().shw_sp_proton_energy_2;
+  shw_sp_n_good_showers = bdt.GetSPID().shw_sp_n_good_showers;
+  shw_sp_n_20mev_showers = bdt.GetSPID().shw_sp_n_20mev_showers;
+  shw_sp_n_br1_showers = bdt.GetSPID().shw_sp_n_br1_showers;
+  shw_sp_n_br2_showers = bdt.GetSPID().shw_sp_n_br2_showers;
+  shw_sp_n_br3_showers = bdt.GetSPID().shw_sp_n_br3_showers;
+  shw_sp_n_br4_showers = bdt.GetSPID().shw_sp_n_br4_showers;
+  shw_sp_n_20br1_showers = bdt.GetSPID().shw_sp_n_20br1_showers;
+  shw_sp_20mev_showers = bdt.GetSPID().shw_sp_20mev_showers;
+  shw_sp_br1_showers = bdt.GetSPID().shw_sp_br1_showers;
+  shw_sp_br2_showers = bdt.GetSPID().shw_sp_br2_showers;
+  shw_sp_br3_showers = bdt.GetSPID().shw_sp_br3_showers;
+  shw_sp_br4_showers = bdt.GetSPID().shw_sp_br4_showers;
+  shw_sp_shw_vtx_dis = bdt.GetSPID().shw_sp_shw_vtx_dis;
+  shw_sp_max_shw_dis = bdt.GetSPID().shw_sp_max_shw_dis;
+  shw_sp_filled = bdt.GetSPSHWID1().shw_sp_filled;
+        shw_sp_flag = bdt.GetSPSHWID1().shw_sp_flag;
+        shw_sp_energy = bdt.GetSPSHWID1().shw_sp_energy;
+        shw_sp_vec_dQ_dx_0 = bdt.GetSPSHWID1().shw_sp_vec_dQ_dx_0;
+        shw_sp_vec_dQ_dx_1 = bdt.GetSPSHWID1().shw_sp_vec_dQ_dx_1;
+        shw_sp_max_dQ_dx_sample = bdt.GetSPSHWID1().shw_sp_max_dQ_dx_sample;
+        shw_sp_n_below_threshold = bdt.GetSPSHWID1().shw_sp_n_below_threshold;
+        shw_sp_n_below_zero = bdt.GetSPSHWID1().shw_sp_n_below_zero;
+        shw_sp_n_lowest = bdt.GetSPSHWID1().shw_sp_n_lowest;
+        shw_sp_n_highest = bdt.GetSPSHWID1().shw_sp_n_highest;
+        shw_sp_lowest_dQ_dx = bdt.GetSPSHWID1().shw_sp_lowest_dQ_dx;
+        shw_sp_highest_dQ_dx = bdt.GetSPSHWID1().shw_sp_highest_dQ_dx;
+        shw_sp_medium_dQ_dx = bdt.GetSPSHWID1().shw_sp_medium_dQ_dx;
+        shw_sp_stem_length = bdt.GetSPSHWID1().shw_sp_stem_length;
+        shw_sp_length_main = bdt.GetSPSHWID1().shw_sp_length_main;
+        shw_sp_length_total = bdt.GetSPSHWID1().shw_sp_length_total;
+        shw_sp_angle_beam = bdt.GetSPSHWID1().shw_sp_angle_beam;
+        shw_sp_iso_angle = bdt.GetSPSHWID1().shw_sp_iso_angle;
+        shw_sp_n_vertex = bdt.GetSPSHWID1().shw_sp_n_vertex;
+        shw_sp_n_good_tracks = bdt.GetSPSHWID1().shw_sp_n_good_tracks;
+        shw_sp_E_indirect_max_energy = bdt.GetSPSHWID1().shw_sp_E_indirect_max_energy;
+        shw_sp_flag_all_above = bdt.GetSPSHWID1().shw_sp_flag_all_above;
+        shw_sp_min_dQ_dx_5 = bdt.GetSPSHWID1().shw_sp_min_dQ_dx_5;
+        shw_sp_n_other_vertex = bdt.GetSPSHWID1().shw_sp_n_other_vertex;
+        shw_sp_n_stem_size = bdt.GetSPSHWID1().shw_sp_n_stem_size;
+        shw_sp_flag_stem_trajectory = bdt.GetSPSHWID1().shw_sp_flag_stem_trajectory;
+        shw_sp_min_dis = bdt.GetSPSHWID1().shw_sp_min_dis;
+  shw_sp_vec_mean_dedx = bdt.GetSPSHWID2().shw_sp_vec_mean_dedx;
+        shw_sp_vec_median_dedx = bdt.GetSPSHWID2().shw_sp_vec_median_dedx;
+        shw_sp_vec_dQ_dx_2 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_2;
+        shw_sp_vec_dQ_dx_3 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_3;
+        shw_sp_vec_dQ_dx_4 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_4;
+        shw_sp_vec_dQ_dx_5 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_5;
+        shw_sp_vec_dQ_dx_6 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_6;
+        shw_sp_vec_dQ_dx_7 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_7;
+        shw_sp_vec_dQ_dx_8 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_8;
+        shw_sp_vec_dQ_dx_9 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_9;
+        shw_sp_vec_dQ_dx_10 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_10;
+        shw_sp_vec_dQ_dx_11 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_11;
+        shw_sp_vec_dQ_dx_12 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_12;
+        shw_sp_vec_dQ_dx_13 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_13;
+        shw_sp_vec_dQ_dx_14 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_14;
+        shw_sp_vec_dQ_dx_15 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_15;
+        shw_sp_vec_dQ_dx_16 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_16;
+        shw_sp_vec_dQ_dx_17 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_17;
+        shw_sp_vec_dQ_dx_18 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_18;
+        shw_sp_vec_dQ_dx_19 = bdt.GetSPSHWID2().shw_sp_vec_dQ_dx_19;
+        shw_sp_pio_filled = bdt.GetSPPi0Tagger1().shw_sp_pio_filled;
+        shw_sp_pio_flag = bdt.GetSPPi0Tagger1().shw_sp_pio_flag;
+        shw_sp_pio_mip_id = bdt.GetSPPi0Tagger1().shw_sp_pio_mip_id;
+        shw_sp_pio_flag_pio = bdt.GetSPPi0Tagger1().shw_sp_pio_flag_pio;
+        shw_sp_pio_1_flag = bdt.GetSPPi0Tagger1().shw_sp_pio_1_flag;
+        shw_sp_pio_1_mass = bdt.GetSPPi0Tagger1().shw_sp_pio_1_mass;
+        shw_sp_pio_1_pio_type = bdt.GetSPPi0Tagger1().shw_sp_pio_1_pio_type;
+        shw_sp_pio_1_energy_1 = bdt.GetSPPi0Tagger1().shw_sp_pio_1_energy_1;
+        shw_sp_pio_1_energy_2 = bdt.GetSPPi0Tagger1().shw_sp_pio_1_energy_2;
+        shw_sp_pio_1_dis_1 = bdt.GetSPPi0Tagger1().shw_sp_pio_1_dis_1;
+        shw_sp_pio_1_dis_2 = bdt.GetSPPi0Tagger1().shw_sp_pio_1_dis_2;
+        shw_sp_pio_2_v_flag = bdt.GetSPPi0Tagger1().shw_sp_pio_2_v_flag;
+        shw_sp_pio_2_v_dis2 = bdt.GetSPPi0Tagger1().shw_sp_pio_2_v_dis2;
+        shw_sp_pio_2_v_angle2 = bdt.GetSPPi0Tagger1().shw_sp_pio_2_v_angle2;
+        shw_sp_pio_2_v_acc_length = bdt.GetSPPi0Tagger1().shw_sp_pio_2_v_acc_length;
+        shw_sp_lem_flag = bdt.GetSPLowEMichel().shw_sp_lem_flag;
+        shw_sp_lem_shower_total_length = bdt.GetSPLowEMichel().shw_sp_lem_shower_total_length;
+        shw_sp_lem_shower_main_length = bdt.GetSPLowEMichel().shw_sp_lem_shower_main_length;
+        shw_sp_lem_n_3seg = bdt.GetSPLowEMichel().shw_sp_lem_n_3seg;
+        shw_sp_lem_e_charge = bdt.GetSPLowEMichel().shw_sp_lem_e_charge;
+        shw_sp_lem_e_dQdx = bdt.GetSPLowEMichel().shw_sp_lem_e_dQdx;
+        shw_sp_lem_shower_num_segs = bdt.GetSPLowEMichel().shw_sp_lem_shower_num_segs;
+        shw_sp_lem_shower_num_main_segs = bdt.GetSPLowEMichel().shw_sp_lem_shower_num_main_segs;
+        shw_sp_br_filled = bdt.GetSPBadReco1().shw_sp_br_filled;
+        shw_sp_br1_flag = bdt.GetSPBadReco1().shw_sp_br1_flag;
+        shw_sp_br1_1_flag = bdt.GetSPBadReco1().shw_sp_br1_1_flag;
+        shw_sp_br1_1_shower_type = bdt.GetSPBadReco1().shw_sp_br1_1_shower_type;
+        shw_sp_br1_1_vtx_n_segs = bdt.GetSPBadReco1().shw_sp_br1_1_vtx_n_segs;
+        shw_sp_br1_1_energy = bdt.GetSPBadReco1().shw_sp_br1_1_energy;
+        shw_sp_br1_1_n_segs = bdt.GetSPBadReco1().shw_sp_br1_1_n_segs;
+        shw_sp_br1_1_flag_sg_topology = bdt.GetSPBadReco1().shw_sp_br1_1_flag_sg_topology;
+        shw_sp_br1_1_flag_sg_trajectory = bdt.GetSPBadReco1().shw_sp_br1_1_flag_sg_trajectory;
+        shw_sp_br1_1_sg_length = bdt.GetSPBadReco1().shw_sp_br1_1_sg_length;
+        shw_sp_br1_2_flag = bdt.GetSPBadReco1().shw_sp_br1_2_flag;
+        shw_sp_br1_2_energy = bdt.GetSPBadReco1().shw_sp_br1_2_energy;
+        shw_sp_br1_2_n_connected = bdt.GetSPBadReco1().shw_sp_br1_2_n_connected;
+        shw_sp_br1_2_max_length = bdt.GetSPBadReco1().shw_sp_br1_2_max_length;
+        shw_sp_br1_2_n_connected_1 = bdt.GetSPBadReco1().shw_sp_br1_2_n_connected_1;
+        shw_sp_br1_2_vtx_n_segs = bdt.GetSPBadReco1().shw_sp_br1_2_vtx_n_segs;
+        shw_sp_br1_2_n_shower_segs = bdt.GetSPBadReco1().shw_sp_br1_2_n_shower_segs;
+        shw_sp_br1_2_max_length_ratio = bdt.GetSPBadReco1().shw_sp_br1_2_max_length_ratio;
+        shw_sp_br1_2_shower_length = bdt.GetSPBadReco1().shw_sp_br1_2_shower_length;
+        shw_sp_br1_3_flag = bdt.GetSPBadReco1().shw_sp_br1_3_flag;
+        shw_sp_br1_3_energy = bdt.GetSPBadReco1().shw_sp_br1_3_energy;
+        shw_sp_br1_3_n_connected_p = bdt.GetSPBadReco1().shw_sp_br1_3_n_connected_p;
+        shw_sp_br1_3_max_length_p = bdt.GetSPBadReco1().shw_sp_br1_3_max_length_p;
+        shw_sp_br1_3_n_shower_segs = bdt.GetSPBadReco1().shw_sp_br1_3_n_shower_segs;
+        shw_sp_br1_3_flag_sg_topology = bdt.GetSPBadReco1().shw_sp_br1_3_flag_sg_topology;
+        shw_sp_br1_3_flag_sg_trajectory = bdt.GetSPBadReco1().shw_sp_br1_3_flag_sg_trajectory;
+        shw_sp_br1_3_n_shower_main_segs = bdt.GetSPBadReco1().shw_sp_br1_3_n_shower_main_segs;
+        shw_sp_br1_3_sg_length = bdt.GetSPBadReco1().shw_sp_br1_3_sg_length;
+        shw_sp_br_filled = bdt.GetSPBadReco2().shw_sp_br_filled;
+        shw_sp_br2_flag = bdt.GetSPBadReco2().shw_sp_br2_flag;
+        shw_sp_br2_flag_single_shower = bdt.GetSPBadReco2().shw_sp_br2_flag_single_shower;
+        shw_sp_br2_num_valid_tracks = bdt.GetSPBadReco2().shw_sp_br2_num_valid_tracks;
+        shw_sp_br2_energy = bdt.GetSPBadReco2().shw_sp_br2_energy;
+        shw_sp_br2_angle1 = bdt.GetSPBadReco2().shw_sp_br2_angle1;
+        shw_sp_br2_angle2 = bdt.GetSPBadReco2().shw_sp_br2_angle2;
+        shw_sp_br2_angle = bdt.GetSPBadReco2().shw_sp_br2_angle;
+        shw_sp_br2_angle3 = bdt.GetSPBadReco2().shw_sp_br2_angle3;
+        shw_sp_br2_n_shower_main_segs = bdt.GetSPBadReco2().shw_sp_br2_n_shower_main_segs;
+        shw_sp_br2_max_angle = bdt.GetSPBadReco2().shw_sp_br2_max_angle;
+        shw_sp_br2_sg_length = bdt.GetSPBadReco2().shw_sp_br2_sg_length;
+        shw_sp_br2_flag_sg_trajectory = bdt.GetSPBadReco2().shw_sp_br2_flag_sg_trajectory;
+        shw_sp_br_filled = bdt.GetSPBadReco3().shw_sp_br_filled;
+        shw_sp_br3_flag = bdt.GetSPBadReco3().shw_sp_br3_flag;
+        shw_sp_br3_1_flag = bdt.GetSPBadReco3().shw_sp_br3_1_flag;
+        shw_sp_br3_1_energy = bdt.GetSPBadReco3().shw_sp_br3_1_energy;
+        shw_sp_br3_1_n_shower_segments = bdt.GetSPBadReco3().shw_sp_br3_1_n_shower_segments;
+        shw_sp_br3_1_sg_flag_trajectory = bdt.GetSPBadReco3().shw_sp_br3_1_sg_flag_trajectory;
+        shw_sp_br3_1_sg_direct_length = bdt.GetSPBadReco3().shw_sp_br3_1_sg_direct_length;
+        shw_sp_br3_1_sg_length = bdt.GetSPBadReco3().shw_sp_br3_1_sg_length;
+        shw_sp_br3_1_total_main_length = bdt.GetSPBadReco3().shw_sp_br3_1_total_main_length;
+        shw_sp_br3_1_total_length = bdt.GetSPBadReco3().shw_sp_br3_1_total_length;
+        shw_sp_br3_1_iso_angle = bdt.GetSPBadReco3().shw_sp_br3_1_iso_angle;
+        shw_sp_br3_1_sg_flag_topology = bdt.GetSPBadReco3().shw_sp_br3_1_sg_flag_topology;
+        shw_sp_br3_2_flag = bdt.GetSPBadReco3().shw_sp_br3_2_flag;
+        shw_sp_br3_2_n_ele = bdt.GetSPBadReco3().shw_sp_br3_2_n_ele;
+        shw_sp_br3_2_n_other = bdt.GetSPBadReco3().shw_sp_br3_2_n_other;
+        shw_sp_br3_2_energy = bdt.GetSPBadReco3().shw_sp_br3_2_energy;
+        shw_sp_br3_2_total_main_length = bdt.GetSPBadReco3().shw_sp_br3_2_total_main_length;
+        shw_sp_br3_2_total_length = bdt.GetSPBadReco3().shw_sp_br3_2_total_length;
+        shw_sp_br3_2_other_fid = bdt.GetSPBadReco3().shw_sp_br3_2_other_fid;
+        shw_sp_br3_3_v_flag = bdt.GetSPBadReco3().shw_sp_br3_3_v_flag;
+        shw_sp_br3_3_v_energy = bdt.GetSPBadReco3().shw_sp_br3_3_v_energy;
+        shw_sp_br3_3_v_angle = bdt.GetSPBadReco3().shw_sp_br3_3_v_angle;
+        shw_sp_br3_3_v_dir_length = bdt.GetSPBadReco3().shw_sp_br3_3_v_dir_length;
+        shw_sp_br3_3_v_length = bdt.GetSPBadReco3().shw_sp_br3_3_v_length;
+        shw_sp_br3_4_flag = bdt.GetSPBadReco3().shw_sp_br3_4_flag;
+        shw_sp_br3_4_acc_length = bdt.GetSPBadReco3().shw_sp_br3_4_acc_length;
+        shw_sp_br3_4_total_length = bdt.GetSPBadReco3().shw_sp_br3_4_total_length;
+        shw_sp_br3_4_energy = bdt.GetSPBadReco3().shw_sp_br3_4_energy;
+        shw_sp_br3_5_v_flag = bdt.GetSPBadReco3().shw_sp_br3_5_v_flag;
+        shw_sp_br3_5_v_dir_length = bdt.GetSPBadReco3().shw_sp_br3_5_v_dir_length;
+        shw_sp_br3_5_v_total_length = bdt.GetSPBadReco3().shw_sp_br3_5_v_total_length;
+        shw_sp_br3_5_v_flag_avoid_muon_check = bdt.GetSPBadReco3().shw_sp_br3_5_v_flag_avoid_muon_check;
+        shw_sp_br3_5_v_n_seg = bdt.GetSPBadReco3().shw_sp_br3_5_v_n_seg;
+        shw_sp_br3_5_v_angle = bdt.GetSPBadReco3().shw_sp_br3_5_v_angle;
+        shw_sp_br3_5_v_sg_length = bdt.GetSPBadReco3().shw_sp_br3_5_v_sg_length;
+        shw_sp_br3_5_v_energy = bdt.GetSPBadReco3().shw_sp_br3_5_v_energy;
+        shw_sp_br3_5_v_n_main_segs = bdt.GetSPBadReco3().shw_sp_br3_5_v_n_main_segs;
+        shw_sp_br3_5_v_n_segs = bdt.GetSPBadReco3().shw_sp_br3_5_v_n_segs;
+        shw_sp_br3_5_v_shower_main_length = bdt.GetSPBadReco3().shw_sp_br3_5_v_shower_main_length;
+        shw_sp_br3_5_v_shower_total_length = bdt.GetSPBadReco3().shw_sp_br3_5_v_shower_total_length;
+        shw_sp_br3_6_v_flag = bdt.GetSPBadReco3().shw_sp_br3_6_v_flag;
+        shw_sp_br3_6_v_angle = bdt.GetSPBadReco3().shw_sp_br3_6_v_angle;
+        shw_sp_br3_6_v_angle1 = bdt.GetSPBadReco3().shw_sp_br3_6_v_angle1;
+        shw_sp_br3_6_v_flag_shower_trajectory = bdt.GetSPBadReco3().shw_sp_br3_6_v_flag_shower_trajectory;
+        shw_sp_br3_6_v_direct_length = bdt.GetSPBadReco3().shw_sp_br3_6_v_direct_length;
+        shw_sp_br3_6_v_length = bdt.GetSPBadReco3().shw_sp_br3_6_v_length;
+        shw_sp_br3_6_v_n_other_vtx_segs = bdt.GetSPBadReco3().shw_sp_br3_6_v_n_other_vtx_segs;
+        shw_sp_br3_6_v_energy = bdt.GetSPBadReco3().shw_sp_br3_6_v_energy;
+        shw_sp_br3_7_flag = bdt.GetSPBadReco3().shw_sp_br3_7_flag;
+        shw_sp_br3_7_energy = bdt.GetSPBadReco3().shw_sp_br3_7_energy;
+        shw_sp_br3_7_min_angle = bdt.GetSPBadReco3().shw_sp_br3_7_min_angle;
+        shw_sp_br3_7_sg_length = bdt.GetSPBadReco3().shw_sp_br3_7_sg_length;
+        shw_sp_br3_7_shower_main_length = bdt.GetSPBadReco3().shw_sp_br3_7_shower_main_length;
+        shw_sp_br3_8_flag = bdt.GetSPBadReco3().shw_sp_br3_8_flag;
+        shw_sp_br3_8_max_dQ_dx = bdt.GetSPBadReco3().shw_sp_br3_8_max_dQ_dx;
+        shw_sp_br3_8_energy = bdt.GetSPBadReco3().shw_sp_br3_8_energy;
+        shw_sp_br3_8_n_main_segs = bdt.GetSPBadReco3().shw_sp_br3_8_n_main_segs;
+        shw_sp_br3_8_shower_main_length = bdt.GetSPBadReco3().shw_sp_br3_8_shower_main_length;
+        shw_sp_br3_8_shower_length = bdt.GetSPBadReco3().shw_sp_br3_8_shower_length;
+        shw_sp_br_filled = bdt.GetSPBadReco4().shw_sp_br_filled;
+        shw_sp_br4_flag = bdt.GetSPBadReco4().shw_sp_br4_flag;
+        shw_sp_br4_1_flag = bdt.GetSPBadReco4().shw_sp_br4_1_flag;
+        shw_sp_br4_1_shower_main_length = bdt.GetSPBadReco4().shw_sp_br4_1_shower_main_length;
+        shw_sp_br4_1_shower_total_length = bdt.GetSPBadReco4().shw_sp_br4_1_shower_total_length;
+        shw_sp_br4_1_min_dis = bdt.GetSPBadReco4().shw_sp_br4_1_min_dis;
+        shw_sp_br4_1_energy = bdt.GetSPBadReco4().shw_sp_br4_1_energy;
+        shw_sp_br4_1_flag_avoid_muon_check = bdt.GetSPBadReco4().shw_sp_br4_1_flag_avoid_muon_check;
+        shw_sp_br4_1_n_vtx_segs = bdt.GetSPBadReco4().shw_sp_br4_1_n_vtx_segs;
+        shw_sp_br4_1_n_main_segs = bdt.GetSPBadReco4().shw_sp_br4_1_n_main_segs;
+        shw_sp_br4_2_flag = bdt.GetSPBadReco4().shw_sp_br4_2_flag;
+        shw_sp_br4_2_ratio_45 = bdt.GetSPBadReco4().shw_sp_br4_2_ratio_45;
+        shw_sp_br4_2_ratio_35 = bdt.GetSPBadReco4().shw_sp_br4_2_ratio_35;
+        shw_sp_br4_2_ratio_25 = bdt.GetSPBadReco4().shw_sp_br4_2_ratio_25;
+        shw_sp_br4_2_ratio_15 = bdt.GetSPBadReco4().shw_sp_br4_2_ratio_15;
+        shw_sp_br4_2_energy = bdt.GetSPBadReco4().shw_sp_br4_2_energy;
+        shw_sp_br4_2_ratio1_45 = bdt.GetSPBadReco4().shw_sp_br4_2_ratio1_45;
+        shw_sp_br4_2_ratio1_35 = bdt.GetSPBadReco4().shw_sp_br4_2_ratio1_35;
+        shw_sp_br4_2_ratio1_25 = bdt.GetSPBadReco4().shw_sp_br4_2_ratio1_25;
+        shw_sp_br4_2_ratio1_15 = bdt.GetSPBadReco4().shw_sp_br4_2_ratio1_15;
+        shw_sp_br4_2_iso_angle = bdt.GetSPBadReco4().shw_sp_br4_2_iso_angle;
+        shw_sp_br4_2_iso_angle1 = bdt.GetSPBadReco4().shw_sp_br4_2_iso_angle1;
+        shw_sp_br4_2_angle = bdt.GetSPBadReco4().shw_sp_br4_2_angle;
+        shw_sp_hol_flag = bdt.GetSPHighEoverlap().shw_sp_hol_flag;
+        shw_sp_hol_1_flag = bdt.GetSPHighEoverlap().shw_sp_hol_1_flag;
+        shw_sp_hol_1_n_valid_tracks = bdt.GetSPHighEoverlap().shw_sp_hol_1_n_valid_tracks;
+        shw_sp_hol_1_min_angle = bdt.GetSPHighEoverlap().shw_sp_hol_1_min_angle;
+        shw_sp_hol_1_energy = bdt.GetSPHighEoverlap().shw_sp_hol_1_energy;
+        shw_sp_hol_1_flag_all_shower = bdt.GetSPHighEoverlap().shw_sp_hol_1_flag_all_shower;
+        shw_sp_hol_1_min_length = bdt.GetSPHighEoverlap().shw_sp_hol_1_min_length;
+        shw_sp_hol_2_flag = bdt.GetSPHighEoverlap().shw_sp_hol_2_flag;
+        shw_sp_hol_2_min_angle = bdt.GetSPHighEoverlap().shw_sp_hol_2_min_angle;
+        shw_sp_hol_2_medium_dQ_dx = bdt.GetSPHighEoverlap().shw_sp_hol_2_medium_dQ_dx;
+        shw_sp_hol_2_ncount = bdt.GetSPHighEoverlap().shw_sp_hol_2_ncount;
+        shw_sp_hol_2_energy = bdt.GetSPHighEoverlap().shw_sp_hol_2_energy;
+        shw_sp_lol_flag = bdt.GetSPLowEoverlap().shw_sp_lol_flag;
+        shw_sp_lol_1_v_flag = bdt.GetSPLowEoverlap().shw_sp_lol_1_v_flag;
+        shw_sp_lol_1_v_energy = bdt.GetSPLowEoverlap().shw_sp_lol_1_v_energy;
+        shw_sp_lol_1_v_vtx_n_segs = bdt.GetSPLowEoverlap().shw_sp_lol_1_v_vtx_n_segs;
+        shw_sp_lol_1_v_nseg = bdt.GetSPLowEoverlap().shw_sp_lol_1_v_nseg;
+        shw_sp_lol_1_v_angle = bdt.GetSPLowEoverlap().shw_sp_lol_1_v_angle;
+        shw_sp_lol_2_v_flag = bdt.GetSPLowEoverlap().shw_sp_lol_2_v_flag;
+        shw_sp_lol_2_v_length = bdt.GetSPLowEoverlap().shw_sp_lol_2_v_length;
+        shw_sp_lol_2_v_angle = bdt.GetSPLowEoverlap().shw_sp_lol_2_v_angle;
+        shw_sp_lol_2_v_type = bdt.GetSPLowEoverlap().shw_sp_lol_2_v_type;
+        shw_sp_lol_2_v_vtx_n_segs = bdt.GetSPLowEoverlap().shw_sp_lol_2_v_vtx_n_segs;
+        shw_sp_lol_2_v_energy = bdt.GetSPLowEoverlap().shw_sp_lol_2_v_energy;
+        shw_sp_lol_2_v_shower_main_length = bdt.GetSPLowEoverlap().shw_sp_lol_2_v_shower_main_length;
+        shw_sp_lol_2_v_flag_dir_weak = bdt.GetSPLowEoverlap().shw_sp_lol_2_v_flag_dir_weak;
+        shw_sp_lol_3_flag = bdt.GetSPLowEoverlap().shw_sp_lol_3_flag;
+        shw_sp_lol_3_angle_beam = bdt.GetSPLowEoverlap().shw_sp_lol_3_angle_beam;
+        shw_sp_lol_3_n_valid_tracks = bdt.GetSPLowEoverlap().shw_sp_lol_3_n_valid_tracks;
+        shw_sp_lol_3_min_angle = bdt.GetSPLowEoverlap().shw_sp_lol_3_min_angle;
+        shw_sp_lol_3_vtx_n_segs = bdt.GetSPLowEoverlap().shw_sp_lol_3_vtx_n_segs;
+        shw_sp_lol_3_energy = bdt.GetSPLowEoverlap().shw_sp_lol_3_energy;
+        shw_sp_lol_3_shower_main_length = bdt.GetSPLowEoverlap().shw_sp_lol_3_shower_main_length;
+        shw_sp_lol_3_n_out = bdt.GetSPLowEoverlap().shw_sp_lol_3_n_out;
+        shw_sp_lol_3_n_sum = bdt.GetSPLowEoverlap().shw_sp_lol_3_n_sum;
 
-	cosmic_filled = bdt->GetCosmicTagger().cosmic_filled;
-	cosmic_flag = bdt->GetCosmicTagger().cosmic_flag;
-	cosmic_n_solid_tracks = bdt->GetCosmicTagger().cosmic_n_solid_tracks;
-	cosmic_energy_main_showers = bdt->GetCosmicTagger().cosmic_energy_main_showers;
-	cosmic_energy_direct_showers = bdt->GetCosmicTagger().cosmic_energy_direct_showers;
-	cosmic_energy_indirect_showers = bdt->GetCosmicTagger().cosmic_energy_indirect_showers;
-	cosmic_n_direct_showers = bdt->GetCosmicTagger().cosmic_n_direct_showers;
-	cosmic_n_indirect_showers = bdt->GetCosmicTagger().cosmic_n_indirect_showers;
-	cosmic_n_main_showers = bdt->GetCosmicTagger().cosmic_n_main_showers;
-	gap_filled = bdt->GetGapID().gap_filled;
-	gap_flag = bdt->GetGapID().gap_flag;
-	gap_flag_prolong_u = bdt->GetGapID().gap_flag_prolong_u;
-	gap_flag_prolong_v = bdt->GetGapID().gap_flag_prolong_v;
-	gap_flag_prolong_w = bdt->GetGapID().gap_flag_prolong_w;
-	gap_flag_parallel = bdt->GetGapID().gap_flag_parallel;
-	gap_n_points = bdt->GetGapID().gap_n_points;
-	gap_n_bad = bdt->GetGapID().gap_n_bad;
-	gap_energy = bdt->GetGapID().gap_energy;
-	gap_num_valid_tracks = bdt->GetGapID().gap_num_valid_tracks;
-	gap_flag_single_shower = bdt->GetGapID().gap_flag_single_shower;
-	mip_quality_filled = bdt->GetMipCheck().mip_quality_filled;
-	mip_quality_flag = bdt->GetMipCheck().mip_quality_flag;
-	mip_quality_energy = bdt->GetMipCheck().mip_quality_energy;
-	mip_quality_overlap = bdt->GetMipCheck().mip_quality_overlap;
-	mip_quality_n_showers = bdt->GetMipCheck().mip_quality_n_showers;
-	mip_quality_n_tracks = bdt->GetMipCheck().mip_quality_n_tracks;
-	mip_quality_flag_inside_pi0 = bdt->GetMipCheck().mip_quality_flag_inside_pi0;
-	mip_quality_n_pi0_showers = bdt->GetMipCheck().mip_quality_n_pi0_showers;
-	mip_quality_shortest_length = bdt->GetMipCheck().mip_quality_shortest_length;
-	mip_quality_acc_length = bdt->GetMipCheck().mip_quality_acc_length;
-	mip_quality_shortest_angle = bdt->GetMipCheck().mip_quality_shortest_angle;
-	mip_quality_flag_proton = bdt->GetMipCheck().mip_quality_flag_proton;
-	mip_filled = bdt->GetMipID1().mip_filled;
-	mip_flag = bdt->GetMipID1().mip_flag;
-	mip_energy = bdt->GetMipID1().mip_energy;
-	mip_n_end_reduction = bdt->GetMipID1().mip_n_end_reduction;
-	mip_n_first_mip = bdt->GetMipID1().mip_n_first_mip;
-	mip_n_first_non_mip = bdt->GetMipID1().mip_n_first_non_mip;
-	mip_n_first_non_mip_1 = bdt->GetMipID1().mip_n_first_non_mip_1;
-	mip_n_first_non_mip_2 = bdt->GetMipID1().mip_n_first_non_mip_2;
-	mip_vec_dQ_dx_0 = bdt->GetMipID1().mip_vec_dQ_dx_0;
-	mip_vec_dQ_dx_1 = bdt->GetMipID1().mip_vec_dQ_dx_1;
-	mip_max_dQ_dx_sample = bdt->GetMipID1().mip_max_dQ_dx_sample;
-	mip_n_below_threshold = bdt->GetMipID1().mip_n_below_threshold;
-	mip_n_below_zero = bdt->GetMipID1().mip_n_below_zero;
-	mip_n_lowest = bdt->GetMipID1().mip_n_lowest;
-	mip_n_highest = bdt->GetMipID1().mip_n_highest;
-	mip_lowest_dQ_dx = bdt->GetMipID1().mip_lowest_dQ_dx;
-	mip_highest_dQ_dx = bdt->GetMipID1().mip_highest_dQ_dx;
-	mip_medium_dQ_dx = bdt->GetMipID1().mip_medium_dQ_dx;
-	mip_stem_length = bdt->GetMipID1().mip_stem_length;
-	mip_length_main = bdt->GetMipID1().mip_length_main;
-	mip_length_total = bdt->GetMipID1().mip_length_total;
-	mip_angle_beam = bdt->GetMipID1().mip_angle_beam;
-	mip_iso_angle = bdt->GetMipID1().mip_iso_angle;
-	mip_n_vertex = bdt->GetMipID1().mip_n_vertex;
-	mip_n_good_tracks = bdt->GetMipID1().mip_n_good_tracks;
-	mip_E_indirect_max_energy = bdt->GetMipID1().mip_E_indirect_max_energy;
-	mip_flag_all_above = bdt->GetMipID1().mip_flag_all_above;
-	mip_min_dQ_dx_5 = bdt->GetMipID1().mip_min_dQ_dx_5;
-	mip_n_other_vertex = bdt->GetMipID1().mip_n_other_vertex;
-	mip_n_stem_size = bdt->GetMipID1().mip_n_stem_size;
-	mip_flag_stem_trajectory = bdt->GetMipID1().mip_flag_stem_trajectory;
-	mip_min_dis = bdt->GetMipID1().mip_min_dis;
-	mip_vec_dQ_dx_2 = bdt->GetMipID2().mip_vec_dQ_dx_2;
-	mip_vec_dQ_dx_3 = bdt->GetMipID2().mip_vec_dQ_dx_3;
-	mip_vec_dQ_dx_4 = bdt->GetMipID2().mip_vec_dQ_dx_4;
-	mip_vec_dQ_dx_5 = bdt->GetMipID2().mip_vec_dQ_dx_5;
-	mip_vec_dQ_dx_6 = bdt->GetMipID2().mip_vec_dQ_dx_6;
-	mip_vec_dQ_dx_7 = bdt->GetMipID2().mip_vec_dQ_dx_7;
-	mip_vec_dQ_dx_8 = bdt->GetMipID2().mip_vec_dQ_dx_8;
-	mip_vec_dQ_dx_9 = bdt->GetMipID2().mip_vec_dQ_dx_9;
-	mip_vec_dQ_dx_10 = bdt->GetMipID2().mip_vec_dQ_dx_10;
-	mip_vec_dQ_dx_11 = bdt->GetMipID2().mip_vec_dQ_dx_11;
-	mip_vec_dQ_dx_12 = bdt->GetMipID2().mip_vec_dQ_dx_12;
-	mip_vec_dQ_dx_13 = bdt->GetMipID2().mip_vec_dQ_dx_13;
-	mip_vec_dQ_dx_14 = bdt->GetMipID2().mip_vec_dQ_dx_14;
-	mip_vec_dQ_dx_15 = bdt->GetMipID2().mip_vec_dQ_dx_15;
-	mip_vec_dQ_dx_16 = bdt->GetMipID2().mip_vec_dQ_dx_16;
-	mip_vec_dQ_dx_17 = bdt->GetMipID2().mip_vec_dQ_dx_17;
-	mip_vec_dQ_dx_18 = bdt->GetMipID2().mip_vec_dQ_dx_18;
-	mip_vec_dQ_dx_19 = bdt->GetMipID2().mip_vec_dQ_dx_19;
-	pio_filled = bdt->GetPi0Tagger1().pio_filled;
-	pio_flag = bdt->GetPi0Tagger1().pio_flag;
-	pio_mip_id = bdt->GetPi0Tagger1().pio_mip_id;
-	pio_flag_pio = bdt->GetPi0Tagger1().pio_flag_pio;
-	pio_1_flag = bdt->GetPi0Tagger1().pio_1_flag;
-	pio_1_mass = bdt->GetPi0Tagger1().pio_1_mass;
-	pio_1_pio_type = bdt->GetPi0Tagger1().pio_1_pio_type;
-	pio_1_energy_1 = bdt->GetPi0Tagger1().pio_1_energy_1;
-	pio_1_energy_2 = bdt->GetPi0Tagger1().pio_1_energy_2;
-	pio_1_dis_1 = bdt->GetPi0Tagger1().pio_1_dis_1;
-	pio_1_dis_2 = bdt->GetPi0Tagger1().pio_1_dis_2;
-	pio_2_v_flag = bdt->GetPi0Tagger1().pio_2_v_flag;
-	pio_2_v_dis2 = bdt->GetPi0Tagger1().pio_2_v_dis2;
-	pio_2_v_angle2 = bdt->GetPi0Tagger1().pio_2_v_angle2;
-	pio_2_v_acc_length = bdt->GetPi0Tagger1().pio_2_v_acc_length;
-	sig_flag = bdt->GetPi0Tagger2().sig_flag;
-	sig_1_v_flag = bdt->GetPi0Tagger2().sig_1_v_flag;
-	sig_1_v_angle = bdt->GetPi0Tagger2().sig_1_v_angle;
-	sig_1_v_flag_single_shower = bdt->GetPi0Tagger2().sig_1_v_flag_single_shower;
-	sig_1_v_energy = bdt->GetPi0Tagger2().sig_1_v_energy;
-	sig_1_v_energy_1 = bdt->GetPi0Tagger2().sig_1_v_energy_1;
-	sig_2_v_flag = bdt->GetPi0Tagger2().sig_2_v_flag;
-	sig_2_v_energy = bdt->GetPi0Tagger2().sig_2_v_energy;
-	sig_2_v_shower_angle = bdt->GetPi0Tagger2().sig_2_v_shower_angle;
-	sig_2_v_flag_single_shower = bdt->GetPi0Tagger2().sig_2_v_flag_single_shower;
-	sig_2_v_medium_dQ_dx = bdt->GetPi0Tagger2().sig_2_v_medium_dQ_dx;
-	sig_2_v_start_dQ_dx = bdt->GetPi0Tagger2().sig_2_v_start_dQ_dx;
-	mgo_flag = bdt->GetMultiGamma1().mgo_flag;
-	mgo_energy = bdt->GetMultiGamma1().mgo_energy;
-	mgo_max_energy = bdt->GetMultiGamma1().mgo_max_energy;
-	mgo_total_energy = bdt->GetMultiGamma1().mgo_total_energy;
-	mgo_n_showers = bdt->GetMultiGamma1().mgo_n_showers;
-	mgo_max_energy_1 = bdt->GetMultiGamma1().mgo_max_energy_1;
-	mgo_max_energy_2 = bdt->GetMultiGamma1().mgo_max_energy_2;
-	mgo_total_other_energy = bdt->GetMultiGamma1().mgo_total_other_energy;
-	mgo_n_total_showers = bdt->GetMultiGamma1().mgo_n_total_showers;
-	mgo_total_other_energy_1 = bdt->GetMultiGamma1().mgo_total_other_energy_1;
-	mgt_flag = bdt->GetMultiGamma2().mgt_flag;
-	mgt_flag_single_shower = bdt->GetMultiGamma2().mgt_flag_single_shower;
-	mgt_max_energy = bdt->GetMultiGamma2().mgt_max_energy;
-	mgt_energy = bdt->GetMultiGamma2().mgt_energy;
-	mgt_total_other_energy = bdt->GetMultiGamma2().mgt_total_other_energy;
-	mgt_max_energy_1 = bdt->GetMultiGamma2().mgt_max_energy_1;
-	mgt_e_indirect_max_energy = bdt->GetMultiGamma2().mgt_e_indirect_max_energy;
-	mgt_e_direct_max_energy = bdt->GetMultiGamma2().mgt_e_direct_max_energy;
-	mgt_n_direct_showers = bdt->GetMultiGamma2().mgt_n_direct_showers;
-	mgt_e_direct_total_energy = bdt->GetMultiGamma2().mgt_e_direct_total_energy;
-	mgt_flag_indirect_max_pio = bdt->GetMultiGamma2().mgt_flag_indirect_max_pio;
-	mgt_e_indirect_total_energy = bdt->GetMultiGamma2().mgt_e_indirect_total_energy;
-	stw_flag = bdt->GetSingleGamma1().stw_flag;
-	stw_1_flag = bdt->GetSingleGamma1().stw_1_flag;
-	stw_1_energy = bdt->GetSingleGamma1().stw_1_energy;
-	stw_1_dis = bdt->GetSingleGamma1().stw_1_dis;
-	stw_1_dQ_dx = bdt->GetSingleGamma1().stw_1_dQ_dx;
-	stw_1_flag_single_shower = bdt->GetSingleGamma1().stw_1_flag_single_shower;
-	stw_1_n_pi0 = bdt->GetSingleGamma1().stw_1_n_pi0;
-	stw_1_num_valid_tracks = bdt->GetSingleGamma1().stw_1_num_valid_tracks;
-	stw_2_v_flag = bdt->GetSingleGamma1().stw_2_v_flag;
-	stw_2_v_medium_dQ_dx = bdt->GetSingleGamma1().stw_2_v_medium_dQ_dx;
-	stw_2_v_energy = bdt->GetSingleGamma1().stw_2_v_energy;
-	stw_2_v_angle = bdt->GetSingleGamma1().stw_2_v_angle;
-	stw_2_v_dir_length = bdt->GetSingleGamma1().stw_2_v_dir_length;
-	stw_2_v_max_dQ_dx = bdt->GetSingleGamma1().stw_2_v_max_dQ_dx;
-	stw_3_v_flag = bdt->GetSingleGamma1().stw_3_v_flag;
-	stw_3_v_angle = bdt->GetSingleGamma1().stw_3_v_angle;
-	stw_3_v_dir_length = bdt->GetSingleGamma1().stw_3_v_dir_length;
-	stw_3_v_energy = bdt->GetSingleGamma1().stw_3_v_energy;
-	stw_3_v_medium_dQ_dx = bdt->GetSingleGamma1().stw_3_v_medium_dQ_dx;
-	stw_4_v_flag = bdt->GetSingleGamma1().stw_4_v_flag;
-	stw_4_v_angle = bdt->GetSingleGamma1().stw_4_v_angle;
-	stw_4_v_dis = bdt->GetSingleGamma1().stw_4_v_dis;
-	stw_4_v_energy = bdt->GetSingleGamma1().stw_4_v_energy;
-	spt_flag = bdt->GetSingleGamma2().spt_flag;
-	spt_flag_single_shower = bdt->GetSingleGamma2().spt_flag_single_shower;
-	spt_energy = bdt->GetSingleGamma2().spt_energy;
-	spt_shower_main_length = bdt->GetSingleGamma2().spt_shower_main_length;
-	spt_shower_total_length = bdt->GetSingleGamma2().spt_shower_total_length;
-	spt_angle_beam = bdt->GetSingleGamma2().spt_angle_beam;
-	spt_angle_vertical = bdt->GetSingleGamma2().spt_angle_vertical;
-	spt_max_dQ_dx = bdt->GetSingleGamma2().spt_max_dQ_dx;
-	spt_angle_beam_1 = bdt->GetSingleGamma2().spt_angle_beam_1;
-	spt_angle_drift = bdt->GetSingleGamma2().spt_angle_drift;
-	spt_angle_drift_1 = bdt->GetSingleGamma2().spt_angle_drift_1;
-	spt_num_valid_tracks = bdt->GetSingleGamma2().spt_num_valid_tracks;
-	spt_n_vtx_segs = bdt->GetSingleGamma2().spt_n_vtx_segs;
-	spt_max_length = bdt->GetSingleGamma2().spt_max_length;
-	stem_len_flag = bdt->GetStemLen().stem_len_flag;
-	stem_len_energy = bdt->GetStemLen().stem_len_energy;
-	stem_len_length = bdt->GetStemLen().stem_len_length;
-	stem_len_flag_avoid_muon_check = bdt->GetStemLen().stem_len_flag_avoid_muon_check;
-	stem_len_num_daughters = bdt->GetStemLen().stem_len_num_daughters;
-	stem_len_daughter_length = bdt->GetStemLen().stem_len_daughter_length;
-	lem_flag = bdt->GetLowEMichel().lem_flag;
-	lem_shower_total_length = bdt->GetLowEMichel().lem_shower_total_length;
-	lem_shower_main_length = bdt->GetLowEMichel().lem_shower_main_length;
-	lem_n_3seg = bdt->GetLowEMichel().lem_n_3seg;
-	lem_e_charge = bdt->GetLowEMichel().lem_e_charge;
-	lem_e_dQdx = bdt->GetLowEMichel().lem_e_dQdx;
-	lem_shower_num_segs = bdt->GetLowEMichel().lem_shower_num_segs;
-	lem_shower_num_main_segs = bdt->GetLowEMichel().lem_shower_num_main_segs;
-	brm_flag = bdt->GetBrokenMuon().brm_flag;
-	brm_n_mu_segs = bdt->GetBrokenMuon().brm_n_mu_segs;
-	brm_Ep = bdt->GetBrokenMuon().brm_Ep;
-	brm_energy = bdt->GetBrokenMuon().brm_energy;
-	brm_acc_length = bdt->GetBrokenMuon().brm_acc_length;
-	brm_shower_total_length = bdt->GetBrokenMuon().brm_shower_total_length;
-	brm_connected_length = bdt->GetBrokenMuon().brm_connected_length;
-	brm_n_size = bdt->GetBrokenMuon().brm_n_size;
-	brm_acc_direct_length = bdt->GetBrokenMuon().brm_acc_direct_length;
-	brm_n_shower_main_segs = bdt->GetBrokenMuon().brm_n_shower_main_segs;
-	brm_n_mu_main = bdt->GetBrokenMuon().brm_n_mu_main;
-	cme_flag = bdt->GetMuEnergy().cme_flag;
-	cme_mu_energy = bdt->GetMuEnergy().cme_mu_energy;
-	cme_energy = bdt->GetMuEnergy().cme_energy;
-	cme_mu_length = bdt->GetMuEnergy().cme_mu_length;
-	cme_length = bdt->GetMuEnergy().cme_length;
-	cme_angle_beam = bdt->GetMuEnergy().cme_angle_beam;
-	anc_flag = bdt->GetShowerAngle().anc_flag;
-	anc_energy = bdt->GetShowerAngle().anc_energy;
-	anc_angle = bdt->GetShowerAngle().anc_angle;
-	anc_max_angle = bdt->GetShowerAngle().anc_max_angle;
-	anc_max_length = bdt->GetShowerAngle().anc_max_length;
-	anc_acc_forward_length = bdt->GetShowerAngle().anc_acc_forward_length;
-	anc_acc_backward_length = bdt->GetShowerAngle().anc_acc_backward_length;
-	anc_acc_forward_length1 = bdt->GetShowerAngle().anc_acc_forward_length1;
-	anc_shower_main_length = bdt->GetShowerAngle().anc_shower_main_length;
-	anc_shower_total_length = bdt->GetShowerAngle().anc_shower_total_length;
-	anc_flag_main_outside = bdt->GetShowerAngle().anc_flag_main_outside;
-	stem_dir_filled = bdt->GetBadStem().stem_dir_filled;
-	stem_dir_flag = bdt->GetBadStem().stem_dir_flag;
-	stem_dir_flag_single_shower = bdt->GetBadStem().stem_dir_flag_single_shower;
-	stem_dir_angle = bdt->GetBadStem().stem_dir_angle;
-	stem_dir_energy = bdt->GetBadStem().stem_dir_energy;
-	stem_dir_angle1 = bdt->GetBadStem().stem_dir_angle1;
-	stem_dir_angle2 = bdt->GetBadStem().stem_dir_angle2;
-	stem_dir_angle3 = bdt->GetBadStem().stem_dir_angle3;
-	stem_dir_ratio = bdt->GetBadStem().stem_dir_ratio;
-	vis_flag = bdt->GetVtxInShw().vis_flag;
-	vis_1_filled = bdt->GetVtxInShw().vis_1_filled;
-	vis_1_flag = bdt->GetVtxInShw().vis_1_flag;
-	vis_1_n_vtx_segs = bdt->GetVtxInShw().vis_1_n_vtx_segs;
-	vis_1_energy = bdt->GetVtxInShw().vis_1_energy;
-	vis_1_num_good_tracks = bdt->GetVtxInShw().vis_1_num_good_tracks;
-	vis_1_max_angle = bdt->GetVtxInShw().vis_1_max_angle;
-	vis_1_max_shower_angle = bdt->GetVtxInShw().vis_1_max_shower_angle;
-	vis_1_tmp_length1 = bdt->GetVtxInShw().vis_1_tmp_length1;
-	vis_1_tmp_length2 = bdt->GetVtxInShw().vis_1_tmp_length2;
-	vis_1_particle_type = bdt->GetVtxInShw().vis_1_particle_type;
-	vis_2_filled = bdt->GetVtxInShw().vis_2_filled;
-	vis_2_flag = bdt->GetVtxInShw().vis_2_flag;
-	vis_2_n_vtx_segs = bdt->GetVtxInShw().vis_2_n_vtx_segs;
-	vis_2_min_angle = bdt->GetVtxInShw().vis_2_min_angle;
-	vis_2_min_weak_track = bdt->GetVtxInShw().vis_2_min_weak_track;
-	vis_2_angle_beam = bdt->GetVtxInShw().vis_2_angle_beam;
-	vis_2_min_angle1 = bdt->GetVtxInShw().vis_2_min_angle1;
-	vis_2_iso_angle1 = bdt->GetVtxInShw().vis_2_iso_angle1;
-	vis_2_min_medium_dQ_dx = bdt->GetVtxInShw().vis_2_min_medium_dQ_dx;
-	vis_2_min_length = bdt->GetVtxInShw().vis_2_min_length;
-	vis_2_sg_length = bdt->GetVtxInShw().vis_2_sg_length;
-	vis_2_max_angle = bdt->GetVtxInShw().vis_2_max_angle;
-	vis_2_max_weak_track = bdt->GetVtxInShw().vis_2_max_weak_track;
-	br_filled = bdt->GetBadReco1().br_filled;
-	br1_flag = bdt->GetBadReco1().br1_flag;
-	br1_1_flag = bdt->GetBadReco1().br1_1_flag;
-	br1_1_shower_type = bdt->GetBadReco1().br1_1_shower_type;
-	br1_1_vtx_n_segs = bdt->GetBadReco1().br1_1_vtx_n_segs;
-	br1_1_energy = bdt->GetBadReco1().br1_1_energy;
-	br1_1_n_segs = bdt->GetBadReco1().br1_1_n_segs;
-	br1_1_flag_sg_topology = bdt->GetBadReco1().br1_1_flag_sg_topology;
-	br1_1_flag_sg_trajectory = bdt->GetBadReco1().br1_1_flag_sg_trajectory;
-	br1_1_sg_length = bdt->GetBadReco1().br1_1_sg_length;
-	br1_2_flag = bdt->GetBadReco1().br1_2_flag;
-	br1_2_energy = bdt->GetBadReco1().br1_2_energy;
-	br1_2_n_connected = bdt->GetBadReco1().br1_2_n_connected;
-	br1_2_max_length = bdt->GetBadReco1().br1_2_max_length;
-	br1_2_n_connected_1 = bdt->GetBadReco1().br1_2_n_connected_1;
-	br1_2_vtx_n_segs = bdt->GetBadReco1().br1_2_vtx_n_segs;
-	br1_2_n_shower_segs = bdt->GetBadReco1().br1_2_n_shower_segs;
-	br1_2_max_length_ratio = bdt->GetBadReco1().br1_2_max_length_ratio;
-	br1_2_shower_length = bdt->GetBadReco1().br1_2_shower_length;
-	br1_3_flag = bdt->GetBadReco1().br1_3_flag;
-	br1_3_energy = bdt->GetBadReco1().br1_3_energy;
-	br1_3_n_connected_p = bdt->GetBadReco1().br1_3_n_connected_p;
-	br1_3_max_length_p = bdt->GetBadReco1().br1_3_max_length_p;
-	br1_3_n_shower_segs = bdt->GetBadReco1().br1_3_n_shower_segs;
-	br1_3_flag_sg_topology = bdt->GetBadReco1().br1_3_flag_sg_topology;
-	br1_3_flag_sg_trajectory = bdt->GetBadReco1().br1_3_flag_sg_trajectory;
-	br1_3_n_shower_main_segs = bdt->GetBadReco1().br1_3_n_shower_main_segs;
-	br1_3_sg_length = bdt->GetBadReco1().br1_3_sg_length;
-	br_filled = bdt->GetBadReco2().br_filled;
-	br2_flag = bdt->GetBadReco2().br2_flag;
-	br2_flag_single_shower = bdt->GetBadReco2().br2_flag_single_shower;
-	br2_num_valid_tracks = bdt->GetBadReco2().br2_num_valid_tracks;
-	br2_energy = bdt->GetBadReco2().br2_energy;
-	br2_angle1 = bdt->GetBadReco2().br2_angle1;
-	br2_angle2 = bdt->GetBadReco2().br2_angle2;
-	br2_angle = bdt->GetBadReco2().br2_angle;
-	br2_angle3 = bdt->GetBadReco2().br2_angle3;
-	br2_n_shower_main_segs = bdt->GetBadReco2().br2_n_shower_main_segs;
-	br2_max_angle = bdt->GetBadReco2().br2_max_angle;
-	br2_sg_length = bdt->GetBadReco2().br2_sg_length;
-	br2_flag_sg_trajectory = bdt->GetBadReco2().br2_flag_sg_trajectory;
-	br_filled = bdt->GetBadReco3().br_filled;
-	br3_flag = bdt->GetBadReco3().br3_flag;
-	br3_1_flag = bdt->GetBadReco3().br3_1_flag;
-	br3_1_energy = bdt->GetBadReco3().br3_1_energy;
-	br3_1_n_shower_segments = bdt->GetBadReco3().br3_1_n_shower_segments;
-	br3_1_sg_flag_trajectory = bdt->GetBadReco3().br3_1_sg_flag_trajectory;
-	br3_1_sg_direct_length = bdt->GetBadReco3().br3_1_sg_direct_length;
-	br3_1_sg_length = bdt->GetBadReco3().br3_1_sg_length;
-	br3_1_total_main_length = bdt->GetBadReco3().br3_1_total_main_length;
-	br3_1_total_length = bdt->GetBadReco3().br3_1_total_length;
-	br3_1_iso_angle = bdt->GetBadReco3().br3_1_iso_angle;
-	br3_1_sg_flag_topology = bdt->GetBadReco3().br3_1_sg_flag_topology;
-	br3_2_flag = bdt->GetBadReco3().br3_2_flag;
-	br3_2_n_ele = bdt->GetBadReco3().br3_2_n_ele;
-	br3_2_n_other = bdt->GetBadReco3().br3_2_n_other;
-	br3_2_energy = bdt->GetBadReco3().br3_2_energy;
-	br3_2_total_main_length = bdt->GetBadReco3().br3_2_total_main_length;
-	br3_2_total_length = bdt->GetBadReco3().br3_2_total_length;
-	br3_2_other_fid = bdt->GetBadReco3().br3_2_other_fid;
-	br3_3_v_flag = bdt->GetBadReco3().br3_3_v_flag;
-	br3_3_v_energy = bdt->GetBadReco3().br3_3_v_energy;
-	br3_3_v_angle = bdt->GetBadReco3().br3_3_v_angle;
-	br3_3_v_dir_length = bdt->GetBadReco3().br3_3_v_dir_length;
-	br3_3_v_length = bdt->GetBadReco3().br3_3_v_length;
-	br3_4_flag = bdt->GetBadReco3().br3_4_flag;
-	br3_4_acc_length = bdt->GetBadReco3().br3_4_acc_length;
-	br3_4_total_length = bdt->GetBadReco3().br3_4_total_length;
-	br3_4_energy = bdt->GetBadReco3().br3_4_energy;
-	br3_5_v_flag = bdt->GetBadReco3().br3_5_v_flag;
-	br3_5_v_dir_length = bdt->GetBadReco3().br3_5_v_dir_length;
-	br3_5_v_total_length = bdt->GetBadReco3().br3_5_v_total_length;
-	br3_5_v_flag_avoid_muon_check = bdt->GetBadReco3().br3_5_v_flag_avoid_muon_check;
-	br3_5_v_n_seg = bdt->GetBadReco3().br3_5_v_n_seg;
-	br3_5_v_angle = bdt->GetBadReco3().br3_5_v_angle;
-	br3_5_v_sg_length = bdt->GetBadReco3().br3_5_v_sg_length;
-	br3_5_v_energy = bdt->GetBadReco3().br3_5_v_energy;
-	br3_5_v_n_main_segs = bdt->GetBadReco3().br3_5_v_n_main_segs;
-	br3_5_v_n_segs = bdt->GetBadReco3().br3_5_v_n_segs;
-	br3_5_v_shower_main_length = bdt->GetBadReco3().br3_5_v_shower_main_length;
-	br3_5_v_shower_total_length = bdt->GetBadReco3().br3_5_v_shower_total_length;
-	br3_6_v_flag = bdt->GetBadReco3().br3_6_v_flag;
-	br3_6_v_angle = bdt->GetBadReco3().br3_6_v_angle;
-	br3_6_v_angle1 = bdt->GetBadReco3().br3_6_v_angle1;
-	br3_6_v_flag_shower_trajectory = bdt->GetBadReco3().br3_6_v_flag_shower_trajectory;
-	br3_6_v_direct_length = bdt->GetBadReco3().br3_6_v_direct_length;
-	br3_6_v_length = bdt->GetBadReco3().br3_6_v_length;
-	br3_6_v_n_other_vtx_segs = bdt->GetBadReco3().br3_6_v_n_other_vtx_segs;
-	br3_6_v_energy = bdt->GetBadReco3().br3_6_v_energy;
-	br3_7_flag = bdt->GetBadReco3().br3_7_flag;
-	br3_7_energy = bdt->GetBadReco3().br3_7_energy;
-	br3_7_min_angle = bdt->GetBadReco3().br3_7_min_angle;
-	br3_7_sg_length = bdt->GetBadReco3().br3_7_sg_length;
-	br3_7_shower_main_length = bdt->GetBadReco3().br3_7_shower_main_length;
-	br3_8_flag = bdt->GetBadReco3().br3_8_flag;
-	br3_8_max_dQ_dx = bdt->GetBadReco3().br3_8_max_dQ_dx;
-	br3_8_energy = bdt->GetBadReco3().br3_8_energy;
-	br3_8_n_main_segs = bdt->GetBadReco3().br3_8_n_main_segs;
-	br3_8_shower_main_length = bdt->GetBadReco3().br3_8_shower_main_length;
-	br3_8_shower_length = bdt->GetBadReco3().br3_8_shower_length;
-	br_filled = bdt->GetBadReco4().br_filled;
-	br4_flag = bdt->GetBadReco4().br4_flag;
-	br4_1_flag = bdt->GetBadReco4().br4_1_flag;
-	br4_1_shower_main_length = bdt->GetBadReco4().br4_1_shower_main_length;
-	br4_1_shower_total_length = bdt->GetBadReco4().br4_1_shower_total_length;
-	br4_1_min_dis = bdt->GetBadReco4().br4_1_min_dis;
-	br4_1_energy = bdt->GetBadReco4().br4_1_energy;
-	br4_1_flag_avoid_muon_check = bdt->GetBadReco4().br4_1_flag_avoid_muon_check;
-	br4_1_n_vtx_segs = bdt->GetBadReco4().br4_1_n_vtx_segs;
-	br4_1_n_main_segs = bdt->GetBadReco4().br4_1_n_main_segs;
-	br4_2_flag = bdt->GetBadReco4().br4_2_flag;
-	br4_2_ratio_45 = bdt->GetBadReco4().br4_2_ratio_45;
-	br4_2_ratio_35 = bdt->GetBadReco4().br4_2_ratio_35;
-	br4_2_ratio_25 = bdt->GetBadReco4().br4_2_ratio_25;
-	br4_2_ratio_15 = bdt->GetBadReco4().br4_2_ratio_15;
-	br4_2_energy = bdt->GetBadReco4().br4_2_energy;
-	br4_2_ratio1_45 = bdt->GetBadReco4().br4_2_ratio1_45;
-	br4_2_ratio1_35 = bdt->GetBadReco4().br4_2_ratio1_35;
-	br4_2_ratio1_25 = bdt->GetBadReco4().br4_2_ratio1_25;
-	br4_2_ratio1_15 = bdt->GetBadReco4().br4_2_ratio1_15;
-	br4_2_iso_angle = bdt->GetBadReco4().br4_2_iso_angle;
-	br4_2_iso_angle1 = bdt->GetBadReco4().br4_2_iso_angle1;
-	br4_2_angle = bdt->GetBadReco4().br4_2_angle;
-	tro_flag = bdt->GetTrackOverCluster().tro_flag;
-	tro_1_v_flag = bdt->GetTrackOverCluster().tro_1_v_flag;
-	tro_1_v_particle_type = bdt->GetTrackOverCluster().tro_1_v_particle_type;
-	tro_1_v_flag_dir_weak = bdt->GetTrackOverCluster().tro_1_v_flag_dir_weak;
-	tro_1_v_min_dis = bdt->GetTrackOverCluster().tro_1_v_min_dis;
-	tro_1_v_sg1_length = bdt->GetTrackOverCluster().tro_1_v_sg1_length;
-	tro_1_v_shower_main_length = bdt->GetTrackOverCluster().tro_1_v_shower_main_length;
-	tro_1_v_max_n_vtx_segs = bdt->GetTrackOverCluster().tro_1_v_max_n_vtx_segs;
-	tro_1_v_tmp_length = bdt->GetTrackOverCluster().tro_1_v_tmp_length;
-	tro_1_v_medium_dQ_dx = bdt->GetTrackOverCluster().tro_1_v_medium_dQ_dx;
-	tro_1_v_dQ_dx_cut = bdt->GetTrackOverCluster().tro_1_v_dQ_dx_cut;
-	tro_1_v_flag_shower_topology = bdt->GetTrackOverCluster().tro_1_v_flag_shower_topology;
-	tro_2_v_flag = bdt->GetTrackOverCluster().tro_2_v_flag;
-	tro_2_v_energy = bdt->GetTrackOverCluster().tro_2_v_energy;
-	tro_2_v_stem_length = bdt->GetTrackOverCluster().tro_2_v_stem_length;
-	tro_2_v_iso_angle = bdt->GetTrackOverCluster().tro_2_v_iso_angle;
-	tro_2_v_max_length = bdt->GetTrackOverCluster().tro_2_v_max_length;
-	tro_2_v_angle = bdt->GetTrackOverCluster().tro_2_v_angle;
-	tro_3_flag = bdt->GetTrackOverCluster().tro_3_flag;
-	tro_3_stem_length = bdt->GetTrackOverCluster().tro_3_stem_length;
-	tro_3_n_muon_segs = bdt->GetTrackOverCluster().tro_3_n_muon_segs;
-	tro_3_energy = bdt->GetTrackOverCluster().tro_3_energy;
-	tro_4_v_flag = bdt->GetTrackOverCluster().tro_4_v_flag;
-	tro_4_v_dir2_mag = bdt->GetTrackOverCluster().tro_4_v_dir2_mag;
-	tro_4_v_angle = bdt->GetTrackOverCluster().tro_4_v_angle;
-	tro_4_v_angle1 = bdt->GetTrackOverCluster().tro_4_v_angle1;
-	tro_4_v_angle2 = bdt->GetTrackOverCluster().tro_4_v_angle2;
-	tro_4_v_length = bdt->GetTrackOverCluster().tro_4_v_length;
-	tro_4_v_length1 = bdt->GetTrackOverCluster().tro_4_v_length1;
-	tro_4_v_medium_dQ_dx = bdt->GetTrackOverCluster().tro_4_v_medium_dQ_dx;
-	tro_4_v_end_dQ_dx = bdt->GetTrackOverCluster().tro_4_v_end_dQ_dx;
-	tro_4_v_energy = bdt->GetTrackOverCluster().tro_4_v_energy;
-	tro_4_v_shower_main_length = bdt->GetTrackOverCluster().tro_4_v_shower_main_length;
-	tro_4_v_flag_shower_trajectory = bdt->GetTrackOverCluster().tro_4_v_flag_shower_trajectory;
-	tro_5_v_flag = bdt->GetTrackOverCluster().tro_5_v_flag;
-	tro_5_v_max_angle = bdt->GetTrackOverCluster().tro_5_v_max_angle;
-	tro_5_v_min_angle = bdt->GetTrackOverCluster().tro_5_v_min_angle;
-	tro_5_v_max_length = bdt->GetTrackOverCluster().tro_5_v_max_length;
-	tro_5_v_iso_angle = bdt->GetTrackOverCluster().tro_5_v_iso_angle;
-	tro_5_v_n_vtx_segs = bdt->GetTrackOverCluster().tro_5_v_n_vtx_segs;
-	tro_5_v_min_count = bdt->GetTrackOverCluster().tro_5_v_min_count;
-	tro_5_v_max_count = bdt->GetTrackOverCluster().tro_5_v_max_count;
-	tro_5_v_energy = bdt->GetTrackOverCluster().tro_5_v_energy;
-	hol_flag = bdt->GetHighEoverlap().hol_flag;
-	hol_1_flag = bdt->GetHighEoverlap().hol_1_flag;
-	hol_1_n_valid_tracks = bdt->GetHighEoverlap().hol_1_n_valid_tracks;
-	hol_1_min_angle = bdt->GetHighEoverlap().hol_1_min_angle;
-	hol_1_energy = bdt->GetHighEoverlap().hol_1_energy;
-	hol_1_flag_all_shower = bdt->GetHighEoverlap().hol_1_flag_all_shower;
-	hol_1_min_length = bdt->GetHighEoverlap().hol_1_min_length;
-	hol_2_flag = bdt->GetHighEoverlap().hol_2_flag;
-	hol_2_min_angle = bdt->GetHighEoverlap().hol_2_min_angle;
-	hol_2_medium_dQ_dx = bdt->GetHighEoverlap().hol_2_medium_dQ_dx;
-	hol_2_ncount = bdt->GetHighEoverlap().hol_2_ncount;
-	hol_2_energy = bdt->GetHighEoverlap().hol_2_energy;
-	lol_flag = bdt->GetLowEoverlap().lol_flag;
-	lol_1_v_flag = bdt->GetLowEoverlap().lol_1_v_flag;
-	lol_1_v_energy = bdt->GetLowEoverlap().lol_1_v_energy;
-	lol_1_v_vtx_n_segs = bdt->GetLowEoverlap().lol_1_v_vtx_n_segs;
-	lol_1_v_nseg = bdt->GetLowEoverlap().lol_1_v_nseg;
-	lol_1_v_angle = bdt->GetLowEoverlap().lol_1_v_angle;
-	lol_2_v_flag = bdt->GetLowEoverlap().lol_2_v_flag;
-	lol_2_v_length = bdt->GetLowEoverlap().lol_2_v_length;
-	lol_2_v_angle = bdt->GetLowEoverlap().lol_2_v_angle;
-	lol_2_v_type = bdt->GetLowEoverlap().lol_2_v_type;
-	lol_2_v_vtx_n_segs = bdt->GetLowEoverlap().lol_2_v_vtx_n_segs;
-	lol_2_v_energy = bdt->GetLowEoverlap().lol_2_v_energy;
-	lol_2_v_shower_main_length = bdt->GetLowEoverlap().lol_2_v_shower_main_length;
-	lol_2_v_flag_dir_weak = bdt->GetLowEoverlap().lol_2_v_flag_dir_weak;
-	lol_3_flag = bdt->GetLowEoverlap().lol_3_flag;
-	lol_3_angle_beam = bdt->GetLowEoverlap().lol_3_angle_beam;
-	lol_3_n_valid_tracks = bdt->GetLowEoverlap().lol_3_n_valid_tracks;
-	lol_3_min_angle = bdt->GetLowEoverlap().lol_3_min_angle;
-	lol_3_vtx_n_segs = bdt->GetLowEoverlap().lol_3_vtx_n_segs;
-	lol_3_energy = bdt->GetLowEoverlap().lol_3_energy;
-	lol_3_shower_main_length = bdt->GetLowEoverlap().lol_3_shower_main_length;
-	lol_3_n_out = bdt->GetLowEoverlap().lol_3_n_out;
-	lol_3_n_sum = bdt->GetLowEoverlap().lol_3_n_sum;
-	cosmict_flag_1 = bdt->GetMajorCosmicTagger().cosmict_flag_1; // fiducial volume vertex
-	cosmict_flag_2 = bdt->GetMajorCosmicTagger().cosmict_flag_2;  // single muon
-	cosmict_flag_3 = bdt->GetMajorCosmicTagger().cosmict_flag_3;  // single muon (long)
-	cosmict_flag_4 = bdt->GetMajorCosmicTagger().cosmict_flag_4;  // kinematics muon
-	cosmict_flag_5 = bdt->GetMajorCosmicTagger().cosmict_flag_5; // kinematics muon (long)
-	cosmict_flag_6 = bdt->GetMajorCosmicTagger().cosmict_flag_6; // special ...
-	cosmict_flag_7 = bdt->GetMajorCosmicTagger().cosmict_flag_7;  // muon+ michel
-	cosmict_flag_8 = bdt->GetMajorCosmicTagger().cosmict_flag_8;  // muon + michel + special
-	cosmict_flag_9 = bdt->GetMajorCosmicTagger().cosmict_flag_9;  // this tagger is relevant for nueCC, see "cosmic tagger ones, one case of cosmics ..." (frist one ...)
-	cosmict_flag_10 = bdt->GetMajorCosmicTagger().cosmict_flag_10;  // front upstream (dirt)
-	cosmict_flag = bdt->GetMajorCosmicTagger().cosmict_flag;
-	cosmict_2_filled = bdt->GetMajorCosmicTagger().cosmict_2_filled;
-	cosmict_2_particle_type = bdt->GetMajorCosmicTagger().cosmict_2_particle_type;
-	cosmict_2_n_muon_tracks = bdt->GetMajorCosmicTagger().cosmict_2_n_muon_tracks;
-	cosmict_2_total_shower_length = bdt->GetMajorCosmicTagger().cosmict_2_total_shower_length;
-	cosmict_2_flag_inside = bdt->GetMajorCosmicTagger().cosmict_2_flag_inside;
-	cosmict_2_angle_beam = bdt->GetMajorCosmicTagger().cosmict_2_angle_beam;
-	cosmict_2_flag_dir_weak = bdt->GetMajorCosmicTagger().cosmict_2_flag_dir_weak;
-	cosmict_2_dQ_dx_end = bdt->GetMajorCosmicTagger().cosmict_2_dQ_dx_end;
-	cosmict_2_dQ_dx_front = bdt->GetMajorCosmicTagger().cosmict_2_dQ_dx_front;
-	cosmict_2_theta = bdt->GetMajorCosmicTagger().cosmict_2_theta;
-	cosmict_2_phi = bdt->GetMajorCosmicTagger().cosmict_2_phi;
-	cosmict_2_valid_tracks = bdt->GetMajorCosmicTagger().cosmict_2_valid_tracks;
-	cosmict_3_filled = bdt->GetMajorCosmicTagger().cosmict_3_filled;
-	cosmict_3_flag_inside = bdt->GetMajorCosmicTagger().cosmict_3_flag_inside;
-	cosmict_3_angle_beam = bdt->GetMajorCosmicTagger().cosmict_3_angle_beam;
-	cosmict_3_flag_dir_weak = bdt->GetMajorCosmicTagger().cosmict_3_flag_dir_weak;
-	cosmict_3_dQ_dx_end = bdt->GetMajorCosmicTagger().cosmict_3_dQ_dx_end;
-	cosmict_3_dQ_dx_front = bdt->GetMajorCosmicTagger().cosmict_3_dQ_dx_front;
-	cosmict_3_theta = bdt->GetMajorCosmicTagger().cosmict_3_theta;
-	cosmict_3_phi = bdt->GetMajorCosmicTagger().cosmict_3_phi;
-	cosmict_3_valid_tracks = bdt->GetMajorCosmicTagger().cosmict_3_valid_tracks;
-	cosmict_4_filled = bdt->GetMajorCosmicTagger().cosmict_4_filled;
-	cosmict_4_flag_inside = bdt->GetMajorCosmicTagger().cosmict_4_flag_inside;
-	cosmict_4_angle_beam = bdt->GetMajorCosmicTagger().cosmict_4_angle_beam;
-	cosmict_4_connected_showers = bdt->GetMajorCosmicTagger().cosmict_4_connected_showers;  // need to be careful about the nueCC ...
-	cosmict_5_filled = bdt->GetMajorCosmicTagger().cosmict_5_filled;
-	cosmict_5_flag_inside = bdt->GetMajorCosmicTagger().cosmict_5_flag_inside;
-	cosmict_5_angle_beam = bdt->GetMajorCosmicTagger().cosmict_5_angle_beam;
-	cosmict_5_connected_showers = bdt->GetMajorCosmicTagger().cosmict_5_connected_showers;
-	cosmict_6_filled = bdt->GetMajorCosmicTagger().cosmict_6_filled;
-	cosmict_6_flag_dir_weak = bdt->GetMajorCosmicTagger().cosmict_6_flag_dir_weak;
-	cosmict_6_flag_inside = bdt->GetMajorCosmicTagger().cosmict_6_flag_inside;
-	cosmict_6_angle = bdt->GetMajorCosmicTagger().cosmict_6_angle;
-	cosmict_7_filled = bdt->GetMajorCosmicTagger().cosmict_7_filled;
-	cosmict_7_flag_sec = bdt->GetMajorCosmicTagger().cosmict_7_flag_sec;
-	cosmict_7_n_muon_tracks = bdt->GetMajorCosmicTagger().cosmict_7_n_muon_tracks;
-	cosmict_7_total_shower_length = bdt->GetMajorCosmicTagger().cosmict_7_total_shower_length;
-	cosmict_7_flag_inside = bdt->GetMajorCosmicTagger().cosmict_7_flag_inside;
-	cosmict_7_angle_beam = bdt->GetMajorCosmicTagger().cosmict_7_angle_beam;
-	cosmict_7_flag_dir_weak = bdt->GetMajorCosmicTagger().cosmict_7_flag_dir_weak;
-	cosmict_7_dQ_dx_end = bdt->GetMajorCosmicTagger().cosmict_7_dQ_dx_end;
-	cosmict_7_dQ_dx_front = bdt->GetMajorCosmicTagger().cosmict_7_dQ_dx_front;
-	cosmict_7_theta = bdt->GetMajorCosmicTagger().cosmict_7_theta;
-	cosmict_7_phi = bdt->GetMajorCosmicTagger().cosmict_7_phi;
-	cosmict_8_filled = bdt->GetMajorCosmicTagger().cosmict_8_filled;
-	cosmict_8_flag_out = bdt->GetMajorCosmicTagger().cosmict_8_flag_out;
-	cosmict_8_muon_length = bdt->GetMajorCosmicTagger().cosmict_8_muon_length;
-	cosmict_8_acc_length = bdt->GetMajorCosmicTagger().cosmict_8_acc_length;
-	cosmict_10_flag_inside = bdt->GetMajorCosmicTagger().cosmict_10_flag_inside;
-	cosmict_10_vtx_z = bdt->GetMajorCosmicTagger().cosmict_10_vtx_z;
-	cosmict_10_flag_shower = bdt->GetMajorCosmicTagger().cosmict_10_flag_shower;
-	cosmict_10_flag_dir_weak = bdt->GetMajorCosmicTagger().cosmict_10_flag_dir_weak;
-	cosmict_10_angle_beam = bdt->GetMajorCosmicTagger().cosmict_10_angle_beam;
-	cosmict_10_length = bdt->GetMajorCosmicTagger().cosmict_10_length;
-	numu_cc_flag = bdt->GetNumuCCTagger().numu_cc_flag;
-	numu_cc_flag_1 = bdt->GetNumuCCTagger().numu_cc_flag_1;
-	numu_cc_1_particle_type = bdt->GetNumuCCTagger().numu_cc_1_particle_type;
-	numu_cc_1_length = bdt->GetNumuCCTagger().numu_cc_1_length;
-	numu_cc_1_medium_dQ_dx = bdt->GetNumuCCTagger().numu_cc_1_medium_dQ_dx;
-	numu_cc_1_dQ_dx_cut = bdt->GetNumuCCTagger().numu_cc_1_dQ_dx_cut;
-	numu_cc_1_direct_length = bdt->GetNumuCCTagger().numu_cc_1_direct_length;
-	numu_cc_1_n_daughter_tracks = bdt->GetNumuCCTagger().numu_cc_1_n_daughter_tracks;
-	numu_cc_1_n_daughter_all = bdt->GetNumuCCTagger().numu_cc_1_n_daughter_all;
-	numu_cc_flag_2 = bdt->GetNumuCCTagger().numu_cc_flag_2;
-	numu_cc_2_length = bdt->GetNumuCCTagger().numu_cc_2_length;
-	numu_cc_2_total_length = bdt->GetNumuCCTagger().numu_cc_2_total_length;
-	numu_cc_2_n_daughter_tracks = bdt->GetNumuCCTagger().numu_cc_2_n_daughter_tracks;
-	numu_cc_2_n_daughter_all = bdt->GetNumuCCTagger().numu_cc_2_n_daughter_all;
-	numu_cc_flag_3 = bdt->GetNumuCCTagger().numu_cc_flag_3;
-	numu_cc_3_particle_type = bdt->GetNumuCCTagger().numu_cc_3_particle_type;
-	numu_cc_3_max_length = bdt->GetNumuCCTagger().numu_cc_3_max_length;
-	numu_cc_3_acc_track_length = bdt->GetNumuCCTagger().numu_cc_3_acc_track_length;
-	numu_cc_3_max_length_all = bdt->GetNumuCCTagger().numu_cc_3_max_length_all;
-	numu_cc_3_max_muon_length = bdt->GetNumuCCTagger().numu_cc_3_max_muon_length;
-	numu_cc_3_n_daughter_tracks = bdt->GetNumuCCTagger().numu_cc_3_n_daughter_tracks;
-	numu_cc_3_n_daughter_all = bdt->GetNumuCCTagger().numu_cc_3_n_daughter_all;
-	cosmict_2_4_score = bdt->GetBDTscores().cosmict_2_4_score;
-	cosmict_3_5_score = bdt->GetBDTscores().cosmict_3_5_score;
-	cosmict_6_score = bdt->GetBDTscores().cosmict_6_score;
-	cosmict_7_score = bdt->GetBDTscores().cosmict_7_score;
-	cosmict_8_score = bdt->GetBDTscores().cosmict_8_score;
-	cosmict_10_score = bdt->GetBDTscores().cosmict_10_score;
-	numu_1_score = bdt->GetBDTscores().numu_1_score;
-	numu_2_score = bdt->GetBDTscores().numu_2_score;
-	numu_3_score = bdt->GetBDTscores().numu_3_score;
-	cosmict_score = bdt->GetBDTscores().cosmict_score;
-	numu_score = bdt->GetBDTscores().numu_score;
-	mipid_score = bdt->GetBDTscores().mipid_score;
-	gap_score = bdt->GetBDTscores().gap_score;
-	hol_lol_score = bdt->GetBDTscores().hol_lol_score;
-	cme_anc_score = bdt->GetBDTscores().cme_anc_score;
-	mgo_mgt_score = bdt->GetBDTscores().mgo_mgt_score;
-	br1_score = bdt->GetBDTscores().br1_score;
-	br3_score = bdt->GetBDTscores().br3_score;
-	br3_3_score = bdt->GetBDTscores().br3_3_score;
-	br3_5_score = bdt->GetBDTscores().br3_5_score;
-	br3_6_score = bdt->GetBDTscores().br3_6_score;
-	stemdir_br2_score = bdt->GetBDTscores().stemdir_br2_score;
-	trimuon_score = bdt->GetBDTscores().trimuon_score;
-	br4_tro_score = bdt->GetBDTscores().br4_tro_score;
-	mipquality_score = bdt->GetBDTscores().mipquality_score;
-	pio_1_score = bdt->GetBDTscores().pio_1_score;
-	pio_2_score = bdt->GetBDTscores().pio_2_score;
-	stw_spt_score = bdt->GetBDTscores().stw_spt_score;
-	vis_1_score = bdt->GetBDTscores().vis_1_score;
-	vis_2_score = bdt->GetBDTscores().vis_2_score;
-	stw_2_score = bdt->GetBDTscores().stw_2_score;
-	stw_3_score = bdt->GetBDTscores().stw_3_score;
-	stw_4_score = bdt->GetBDTscores().stw_4_score;
-	sig_1_score = bdt->GetBDTscores().sig_1_score;
-	sig_2_score = bdt->GetBDTscores().sig_2_score;
-	lol_1_score = bdt->GetBDTscores().lol_1_score;
-	lol_2_score = bdt->GetBDTscores().lol_2_score;
-	tro_1_score = bdt->GetBDTscores().tro_1_score;
-	tro_2_score = bdt->GetBDTscores().tro_2_score;
-	tro_4_score = bdt->GetBDTscores().tro_4_score;
-	tro_5_score = bdt->GetBDTscores().tro_5_score;
-	nue_score = bdt->GetBDTscores().nue_score;
+        cosmic_filled = bdt.GetCosmicTagger().cosmic_filled;
+        cosmic_flag = bdt.GetCosmicTagger().cosmic_flag;
+        cosmic_n_solid_tracks = bdt.GetCosmicTagger().cosmic_n_solid_tracks;
+        cosmic_energy_main_showers = bdt.GetCosmicTagger().cosmic_energy_main_showers;
+        cosmic_energy_direct_showers = bdt.GetCosmicTagger().cosmic_energy_direct_showers;
+        cosmic_energy_indirect_showers = bdt.GetCosmicTagger().cosmic_energy_indirect_showers;
+        cosmic_n_direct_showers = bdt.GetCosmicTagger().cosmic_n_direct_showers;
+        cosmic_n_indirect_showers = bdt.GetCosmicTagger().cosmic_n_indirect_showers;
+        cosmic_n_main_showers = bdt.GetCosmicTagger().cosmic_n_main_showers;
+        gap_filled = bdt.GetGapID().gap_filled;
+        gap_flag = bdt.GetGapID().gap_flag;
+        gap_flag_prolong_u = bdt.GetGapID().gap_flag_prolong_u;
+        gap_flag_prolong_v = bdt.GetGapID().gap_flag_prolong_v;
+        gap_flag_prolong_w = bdt.GetGapID().gap_flag_prolong_w;
+        gap_flag_parallel = bdt.GetGapID().gap_flag_parallel;
+        gap_n_points = bdt.GetGapID().gap_n_points;
+        gap_n_bad = bdt.GetGapID().gap_n_bad;
+        gap_energy = bdt.GetGapID().gap_energy;
+        gap_num_valid_tracks = bdt.GetGapID().gap_num_valid_tracks;
+        gap_flag_single_shower = bdt.GetGapID().gap_flag_single_shower;
+        mip_quality_filled = bdt.GetMipCheck().mip_quality_filled;
+        mip_quality_flag = bdt.GetMipCheck().mip_quality_flag;
+        mip_quality_energy = bdt.GetMipCheck().mip_quality_energy;
+        mip_quality_overlap = bdt.GetMipCheck().mip_quality_overlap;
+        mip_quality_n_showers = bdt.GetMipCheck().mip_quality_n_showers;
+        mip_quality_n_tracks = bdt.GetMipCheck().mip_quality_n_tracks;
+        mip_quality_flag_inside_pi0 = bdt.GetMipCheck().mip_quality_flag_inside_pi0;
+        mip_quality_n_pi0_showers = bdt.GetMipCheck().mip_quality_n_pi0_showers;
+        mip_quality_shortest_length = bdt.GetMipCheck().mip_quality_shortest_length;
+        mip_quality_acc_length = bdt.GetMipCheck().mip_quality_acc_length;
+        mip_quality_shortest_angle = bdt.GetMipCheck().mip_quality_shortest_angle;
+        mip_quality_flag_proton = bdt.GetMipCheck().mip_quality_flag_proton;
+        mip_filled = bdt.GetMipID1().mip_filled;
+        mip_flag = bdt.GetMipID1().mip_flag;
+        mip_energy = bdt.GetMipID1().mip_energy;
+        mip_n_end_reduction = bdt.GetMipID1().mip_n_end_reduction;
+        mip_n_first_mip = bdt.GetMipID1().mip_n_first_mip;
+        mip_n_first_non_mip = bdt.GetMipID1().mip_n_first_non_mip;
+        mip_n_first_non_mip_1 = bdt.GetMipID1().mip_n_first_non_mip_1;
+        mip_n_first_non_mip_2 = bdt.GetMipID1().mip_n_first_non_mip_2;
+        mip_vec_dQ_dx_0 = bdt.GetMipID1().mip_vec_dQ_dx_0;
+        mip_vec_dQ_dx_1 = bdt.GetMipID1().mip_vec_dQ_dx_1;
+        mip_max_dQ_dx_sample = bdt.GetMipID1().mip_max_dQ_dx_sample;
+        mip_n_below_threshold = bdt.GetMipID1().mip_n_below_threshold;
+        mip_n_below_zero = bdt.GetMipID1().mip_n_below_zero;
+        mip_n_lowest = bdt.GetMipID1().mip_n_lowest;
+        mip_n_highest = bdt.GetMipID1().mip_n_highest;
+        mip_lowest_dQ_dx = bdt.GetMipID1().mip_lowest_dQ_dx;
+        mip_highest_dQ_dx = bdt.GetMipID1().mip_highest_dQ_dx;
+        mip_medium_dQ_dx = bdt.GetMipID1().mip_medium_dQ_dx;
+        mip_stem_length = bdt.GetMipID1().mip_stem_length;
+        mip_length_main = bdt.GetMipID1().mip_length_main;
+        mip_length_total = bdt.GetMipID1().mip_length_total;
+        mip_angle_beam = bdt.GetMipID1().mip_angle_beam;
+        mip_iso_angle = bdt.GetMipID1().mip_iso_angle;
+        mip_n_vertex = bdt.GetMipID1().mip_n_vertex;
+        mip_n_good_tracks = bdt.GetMipID1().mip_n_good_tracks;
+        mip_E_indirect_max_energy = bdt.GetMipID1().mip_E_indirect_max_energy;
+        mip_flag_all_above = bdt.GetMipID1().mip_flag_all_above;
+        mip_min_dQ_dx_5 = bdt.GetMipID1().mip_min_dQ_dx_5;
+        mip_n_other_vertex = bdt.GetMipID1().mip_n_other_vertex;
+        mip_n_stem_size = bdt.GetMipID1().mip_n_stem_size;
+        mip_flag_stem_trajectory = bdt.GetMipID1().mip_flag_stem_trajectory;
+        mip_min_dis = bdt.GetMipID1().mip_min_dis;
+        mip_vec_dQ_dx_2 = bdt.GetMipID2().mip_vec_dQ_dx_2;
+        mip_vec_dQ_dx_3 = bdt.GetMipID2().mip_vec_dQ_dx_3;
+        mip_vec_dQ_dx_4 = bdt.GetMipID2().mip_vec_dQ_dx_4;
+        mip_vec_dQ_dx_5 = bdt.GetMipID2().mip_vec_dQ_dx_5;
+        mip_vec_dQ_dx_6 = bdt.GetMipID2().mip_vec_dQ_dx_6;
+        mip_vec_dQ_dx_7 = bdt.GetMipID2().mip_vec_dQ_dx_7;
+        mip_vec_dQ_dx_8 = bdt.GetMipID2().mip_vec_dQ_dx_8;
+        mip_vec_dQ_dx_9 = bdt.GetMipID2().mip_vec_dQ_dx_9;
+        mip_vec_dQ_dx_10 = bdt.GetMipID2().mip_vec_dQ_dx_10;
+        mip_vec_dQ_dx_11 = bdt.GetMipID2().mip_vec_dQ_dx_11;
+        mip_vec_dQ_dx_12 = bdt.GetMipID2().mip_vec_dQ_dx_12;
+        mip_vec_dQ_dx_13 = bdt.GetMipID2().mip_vec_dQ_dx_13;
+        mip_vec_dQ_dx_14 = bdt.GetMipID2().mip_vec_dQ_dx_14;
+        mip_vec_dQ_dx_15 = bdt.GetMipID2().mip_vec_dQ_dx_15;
+        mip_vec_dQ_dx_16 = bdt.GetMipID2().mip_vec_dQ_dx_16;
+        mip_vec_dQ_dx_17 = bdt.GetMipID2().mip_vec_dQ_dx_17;
+        mip_vec_dQ_dx_18 = bdt.GetMipID2().mip_vec_dQ_dx_18;
+        mip_vec_dQ_dx_19 = bdt.GetMipID2().mip_vec_dQ_dx_19;
+        pio_filled = bdt.GetPi0Tagger1().pio_filled;
+        pio_flag = bdt.GetPi0Tagger1().pio_flag;
+        pio_mip_id = bdt.GetPi0Tagger1().pio_mip_id;
+        pio_flag_pio = bdt.GetPi0Tagger1().pio_flag_pio;
+        pio_1_flag = bdt.GetPi0Tagger1().pio_1_flag;
+        pio_1_mass = bdt.GetPi0Tagger1().pio_1_mass;
+        pio_1_pio_type = bdt.GetPi0Tagger1().pio_1_pio_type;
+        pio_1_energy_1 = bdt.GetPi0Tagger1().pio_1_energy_1;
+        pio_1_energy_2 = bdt.GetPi0Tagger1().pio_1_energy_2;
+        pio_1_dis_1 = bdt.GetPi0Tagger1().pio_1_dis_1;
+        pio_1_dis_2 = bdt.GetPi0Tagger1().pio_1_dis_2;
+        pio_2_v_flag = bdt.GetPi0Tagger1().pio_2_v_flag;
+        pio_2_v_dis2 = bdt.GetPi0Tagger1().pio_2_v_dis2;
+        pio_2_v_angle2 = bdt.GetPi0Tagger1().pio_2_v_angle2;
+        pio_2_v_acc_length = bdt.GetPi0Tagger1().pio_2_v_acc_length;
+        sig_flag = bdt.GetPi0Tagger2().sig_flag;
+        sig_1_v_flag = bdt.GetPi0Tagger2().sig_1_v_flag;
+        sig_1_v_angle = bdt.GetPi0Tagger2().sig_1_v_angle;
+        sig_1_v_flag_single_shower = bdt.GetPi0Tagger2().sig_1_v_flag_single_shower;
+        sig_1_v_energy = bdt.GetPi0Tagger2().sig_1_v_energy;
+        sig_1_v_energy_1 = bdt.GetPi0Tagger2().sig_1_v_energy_1;
+        sig_2_v_flag = bdt.GetPi0Tagger2().sig_2_v_flag;
+        sig_2_v_energy = bdt.GetPi0Tagger2().sig_2_v_energy;
+        sig_2_v_shower_angle = bdt.GetPi0Tagger2().sig_2_v_shower_angle;
+        sig_2_v_flag_single_shower = bdt.GetPi0Tagger2().sig_2_v_flag_single_shower;
+        sig_2_v_medium_dQ_dx = bdt.GetPi0Tagger2().sig_2_v_medium_dQ_dx;
+        sig_2_v_start_dQ_dx = bdt.GetPi0Tagger2().sig_2_v_start_dQ_dx;
+        mgo_flag = bdt.GetMultiGamma1().mgo_flag;
+        mgo_energy = bdt.GetMultiGamma1().mgo_energy;
+        mgo_max_energy = bdt.GetMultiGamma1().mgo_max_energy;
+        mgo_total_energy = bdt.GetMultiGamma1().mgo_total_energy;
+        mgo_n_showers = bdt.GetMultiGamma1().mgo_n_showers;
+        mgo_max_energy_1 = bdt.GetMultiGamma1().mgo_max_energy_1;
+        mgo_max_energy_2 = bdt.GetMultiGamma1().mgo_max_energy_2;
+        mgo_total_other_energy = bdt.GetMultiGamma1().mgo_total_other_energy;
+        mgo_n_total_showers = bdt.GetMultiGamma1().mgo_n_total_showers;
+        mgo_total_other_energy_1 = bdt.GetMultiGamma1().mgo_total_other_energy_1;
+        mgt_flag = bdt.GetMultiGamma2().mgt_flag;
+        mgt_flag_single_shower = bdt.GetMultiGamma2().mgt_flag_single_shower;
+        mgt_max_energy = bdt.GetMultiGamma2().mgt_max_energy;
+        mgt_energy = bdt.GetMultiGamma2().mgt_energy;
+        mgt_total_other_energy = bdt.GetMultiGamma2().mgt_total_other_energy;
+        mgt_max_energy_1 = bdt.GetMultiGamma2().mgt_max_energy_1;
+        mgt_e_indirect_max_energy = bdt.GetMultiGamma2().mgt_e_indirect_max_energy;
+        mgt_e_direct_max_energy = bdt.GetMultiGamma2().mgt_e_direct_max_energy;
+        mgt_n_direct_showers = bdt.GetMultiGamma2().mgt_n_direct_showers;
+        mgt_e_direct_total_energy = bdt.GetMultiGamma2().mgt_e_direct_total_energy;
+        mgt_flag_indirect_max_pio = bdt.GetMultiGamma2().mgt_flag_indirect_max_pio;
+        mgt_e_indirect_total_energy = bdt.GetMultiGamma2().mgt_e_indirect_total_energy;
+        stw_flag = bdt.GetSingleGamma1().stw_flag;
+        stw_1_flag = bdt.GetSingleGamma1().stw_1_flag;
+        stw_1_energy = bdt.GetSingleGamma1().stw_1_energy;
+        stw_1_dis = bdt.GetSingleGamma1().stw_1_dis;
+        stw_1_dQ_dx = bdt.GetSingleGamma1().stw_1_dQ_dx;
+        stw_1_flag_single_shower = bdt.GetSingleGamma1().stw_1_flag_single_shower;
+        stw_1_n_pi0 = bdt.GetSingleGamma1().stw_1_n_pi0;
+        stw_1_num_valid_tracks = bdt.GetSingleGamma1().stw_1_num_valid_tracks;
+        stw_2_v_flag = bdt.GetSingleGamma1().stw_2_v_flag;
+        stw_2_v_medium_dQ_dx = bdt.GetSingleGamma1().stw_2_v_medium_dQ_dx;
+        stw_2_v_energy = bdt.GetSingleGamma1().stw_2_v_energy;
+        stw_2_v_angle = bdt.GetSingleGamma1().stw_2_v_angle;
+        stw_2_v_dir_length = bdt.GetSingleGamma1().stw_2_v_dir_length;
+        stw_2_v_max_dQ_dx = bdt.GetSingleGamma1().stw_2_v_max_dQ_dx;
+        stw_3_v_flag = bdt.GetSingleGamma1().stw_3_v_flag;
+        stw_3_v_angle = bdt.GetSingleGamma1().stw_3_v_angle;
+        stw_3_v_dir_length = bdt.GetSingleGamma1().stw_3_v_dir_length;
+        stw_3_v_energy = bdt.GetSingleGamma1().stw_3_v_energy;
+        stw_3_v_medium_dQ_dx = bdt.GetSingleGamma1().stw_3_v_medium_dQ_dx;
+        stw_4_v_flag = bdt.GetSingleGamma1().stw_4_v_flag;
+        stw_4_v_angle = bdt.GetSingleGamma1().stw_4_v_angle;
+        stw_4_v_dis = bdt.GetSingleGamma1().stw_4_v_dis;
+        stw_4_v_energy = bdt.GetSingleGamma1().stw_4_v_energy;
+        spt_flag = bdt.GetSingleGamma2().spt_flag;
+        spt_flag_single_shower = bdt.GetSingleGamma2().spt_flag_single_shower;
+        spt_energy = bdt.GetSingleGamma2().spt_energy;
+        spt_shower_main_length = bdt.GetSingleGamma2().spt_shower_main_length;
+        spt_shower_total_length = bdt.GetSingleGamma2().spt_shower_total_length;
+        spt_angle_beam = bdt.GetSingleGamma2().spt_angle_beam;
+        spt_angle_vertical = bdt.GetSingleGamma2().spt_angle_vertical;
+        spt_max_dQ_dx = bdt.GetSingleGamma2().spt_max_dQ_dx;
+        spt_angle_beam_1 = bdt.GetSingleGamma2().spt_angle_beam_1;
+        spt_angle_drift = bdt.GetSingleGamma2().spt_angle_drift;
+        spt_angle_drift_1 = bdt.GetSingleGamma2().spt_angle_drift_1;
+        spt_num_valid_tracks = bdt.GetSingleGamma2().spt_num_valid_tracks;
+        spt_n_vtx_segs = bdt.GetSingleGamma2().spt_n_vtx_segs;
+        spt_max_length = bdt.GetSingleGamma2().spt_max_length;
+        stem_len_flag = bdt.GetStemLen().stem_len_flag;
+        stem_len_energy = bdt.GetStemLen().stem_len_energy;
+        stem_len_length = bdt.GetStemLen().stem_len_length;
+        stem_len_flag_avoid_muon_check = bdt.GetStemLen().stem_len_flag_avoid_muon_check;
+        stem_len_num_daughters = bdt.GetStemLen().stem_len_num_daughters;
+        stem_len_daughter_length = bdt.GetStemLen().stem_len_daughter_length;
+        lem_flag = bdt.GetLowEMichel().lem_flag;
+        lem_shower_total_length = bdt.GetLowEMichel().lem_shower_total_length;
+        lem_shower_main_length = bdt.GetLowEMichel().lem_shower_main_length;
+        lem_n_3seg = bdt.GetLowEMichel().lem_n_3seg;
+        lem_e_charge = bdt.GetLowEMichel().lem_e_charge;
+        lem_e_dQdx = bdt.GetLowEMichel().lem_e_dQdx;
+        lem_shower_num_segs = bdt.GetLowEMichel().lem_shower_num_segs;
+        lem_shower_num_main_segs = bdt.GetLowEMichel().lem_shower_num_main_segs;
+        brm_flag = bdt.GetBrokenMuon().brm_flag;
+        brm_n_mu_segs = bdt.GetBrokenMuon().brm_n_mu_segs;
+        brm_Ep = bdt.GetBrokenMuon().brm_Ep;
+        brm_energy = bdt.GetBrokenMuon().brm_energy;
+        brm_acc_length = bdt.GetBrokenMuon().brm_acc_length;
+        brm_shower_total_length = bdt.GetBrokenMuon().brm_shower_total_length;
+        brm_connected_length = bdt.GetBrokenMuon().brm_connected_length;
+        brm_n_size = bdt.GetBrokenMuon().brm_n_size;
+        brm_acc_direct_length = bdt.GetBrokenMuon().brm_acc_direct_length;
+        brm_n_shower_main_segs = bdt.GetBrokenMuon().brm_n_shower_main_segs;
+        brm_n_mu_main = bdt.GetBrokenMuon().brm_n_mu_main;
+        cme_flag = bdt.GetMuEnergy().cme_flag;
+        cme_mu_energy = bdt.GetMuEnergy().cme_mu_energy;
+        cme_energy = bdt.GetMuEnergy().cme_energy;
+        cme_mu_length = bdt.GetMuEnergy().cme_mu_length;
+        cme_length = bdt.GetMuEnergy().cme_length;
+        cme_angle_beam = bdt.GetMuEnergy().cme_angle_beam;
+        anc_flag = bdt.GetShowerAngle().anc_flag;
+        anc_energy = bdt.GetShowerAngle().anc_energy;
+        anc_angle = bdt.GetShowerAngle().anc_angle;
+        anc_max_angle = bdt.GetShowerAngle().anc_max_angle;
+        anc_max_length = bdt.GetShowerAngle().anc_max_length;
+        anc_acc_forward_length = bdt.GetShowerAngle().anc_acc_forward_length;
+        anc_acc_backward_length = bdt.GetShowerAngle().anc_acc_backward_length;
+        anc_acc_forward_length1 = bdt.GetShowerAngle().anc_acc_forward_length1;
+        anc_shower_main_length = bdt.GetShowerAngle().anc_shower_main_length;
+        anc_shower_total_length = bdt.GetShowerAngle().anc_shower_total_length;
+        anc_flag_main_outside = bdt.GetShowerAngle().anc_flag_main_outside;
+        stem_dir_filled = bdt.GetBadStem().stem_dir_filled;
+        stem_dir_flag = bdt.GetBadStem().stem_dir_flag;
+        stem_dir_flag_single_shower = bdt.GetBadStem().stem_dir_flag_single_shower;
+        stem_dir_angle = bdt.GetBadStem().stem_dir_angle;
+        stem_dir_energy = bdt.GetBadStem().stem_dir_energy;
+        stem_dir_angle1 = bdt.GetBadStem().stem_dir_angle1;
+        stem_dir_angle2 = bdt.GetBadStem().stem_dir_angle2;
+        stem_dir_angle3 = bdt.GetBadStem().stem_dir_angle3;
+        stem_dir_ratio = bdt.GetBadStem().stem_dir_ratio;
+        vis_flag = bdt.GetVtxInShw().vis_flag;
+        vis_1_filled = bdt.GetVtxInShw().vis_1_filled;
+        vis_1_flag = bdt.GetVtxInShw().vis_1_flag;
+        vis_1_n_vtx_segs = bdt.GetVtxInShw().vis_1_n_vtx_segs;
+        vis_1_energy = bdt.GetVtxInShw().vis_1_energy;
+        vis_1_num_good_tracks = bdt.GetVtxInShw().vis_1_num_good_tracks;
+        vis_1_max_angle = bdt.GetVtxInShw().vis_1_max_angle;
+        vis_1_max_shower_angle = bdt.GetVtxInShw().vis_1_max_shower_angle;
+        vis_1_tmp_length1 = bdt.GetVtxInShw().vis_1_tmp_length1;
+        vis_1_tmp_length2 = bdt.GetVtxInShw().vis_1_tmp_length2;
+        vis_1_particle_type = bdt.GetVtxInShw().vis_1_particle_type;
+        vis_2_filled = bdt.GetVtxInShw().vis_2_filled;
+        vis_2_flag = bdt.GetVtxInShw().vis_2_flag;
+        vis_2_n_vtx_segs = bdt.GetVtxInShw().vis_2_n_vtx_segs;
+        vis_2_min_angle = bdt.GetVtxInShw().vis_2_min_angle;
+        vis_2_min_weak_track = bdt.GetVtxInShw().vis_2_min_weak_track;
+        vis_2_angle_beam = bdt.GetVtxInShw().vis_2_angle_beam;
+        vis_2_min_angle1 = bdt.GetVtxInShw().vis_2_min_angle1;
+        vis_2_iso_angle1 = bdt.GetVtxInShw().vis_2_iso_angle1;
+        vis_2_min_medium_dQ_dx = bdt.GetVtxInShw().vis_2_min_medium_dQ_dx;
+        vis_2_min_length = bdt.GetVtxInShw().vis_2_min_length;
+        vis_2_sg_length = bdt.GetVtxInShw().vis_2_sg_length;
+        vis_2_max_angle = bdt.GetVtxInShw().vis_2_max_angle;
+        vis_2_max_weak_track = bdt.GetVtxInShw().vis_2_max_weak_track;
+        br_filled = bdt.GetBadReco1().br_filled;
+        br1_flag = bdt.GetBadReco1().br1_flag;
+        br1_1_flag = bdt.GetBadReco1().br1_1_flag;
+        br1_1_shower_type = bdt.GetBadReco1().br1_1_shower_type;
+        br1_1_vtx_n_segs = bdt.GetBadReco1().br1_1_vtx_n_segs;
+        br1_1_energy = bdt.GetBadReco1().br1_1_energy;
+        br1_1_n_segs = bdt.GetBadReco1().br1_1_n_segs;
+        br1_1_flag_sg_topology = bdt.GetBadReco1().br1_1_flag_sg_topology;
+        br1_1_flag_sg_trajectory = bdt.GetBadReco1().br1_1_flag_sg_trajectory;
+        br1_1_sg_length = bdt.GetBadReco1().br1_1_sg_length;
+        br1_2_flag = bdt.GetBadReco1().br1_2_flag;
+        br1_2_energy = bdt.GetBadReco1().br1_2_energy;
+        br1_2_n_connected = bdt.GetBadReco1().br1_2_n_connected;
+        br1_2_max_length = bdt.GetBadReco1().br1_2_max_length;
+        br1_2_n_connected_1 = bdt.GetBadReco1().br1_2_n_connected_1;
+        br1_2_vtx_n_segs = bdt.GetBadReco1().br1_2_vtx_n_segs;
+        br1_2_n_shower_segs = bdt.GetBadReco1().br1_2_n_shower_segs;
+        br1_2_max_length_ratio = bdt.GetBadReco1().br1_2_max_length_ratio;
+        br1_2_shower_length = bdt.GetBadReco1().br1_2_shower_length;
+        br1_3_flag = bdt.GetBadReco1().br1_3_flag;
+        br1_3_energy = bdt.GetBadReco1().br1_3_energy;
+        br1_3_n_connected_p = bdt.GetBadReco1().br1_3_n_connected_p;
+        br1_3_max_length_p = bdt.GetBadReco1().br1_3_max_length_p;
+        br1_3_n_shower_segs = bdt.GetBadReco1().br1_3_n_shower_segs;
+        br1_3_flag_sg_topology = bdt.GetBadReco1().br1_3_flag_sg_topology;
+        br1_3_flag_sg_trajectory = bdt.GetBadReco1().br1_3_flag_sg_trajectory;
+        br1_3_n_shower_main_segs = bdt.GetBadReco1().br1_3_n_shower_main_segs;
+        br1_3_sg_length = bdt.GetBadReco1().br1_3_sg_length;
+        br_filled = bdt.GetBadReco2().br_filled;
+        br2_flag = bdt.GetBadReco2().br2_flag;
+        br2_flag_single_shower = bdt.GetBadReco2().br2_flag_single_shower;
+        br2_num_valid_tracks = bdt.GetBadReco2().br2_num_valid_tracks;
+        br2_energy = bdt.GetBadReco2().br2_energy;
+        br2_angle1 = bdt.GetBadReco2().br2_angle1;
+        br2_angle2 = bdt.GetBadReco2().br2_angle2;
+        br2_angle = bdt.GetBadReco2().br2_angle;
+        br2_angle3 = bdt.GetBadReco2().br2_angle3;
+        br2_n_shower_main_segs = bdt.GetBadReco2().br2_n_shower_main_segs;
+        br2_max_angle = bdt.GetBadReco2().br2_max_angle;
+        br2_sg_length = bdt.GetBadReco2().br2_sg_length;
+        br2_flag_sg_trajectory = bdt.GetBadReco2().br2_flag_sg_trajectory;
+        br_filled = bdt.GetBadReco3().br_filled;
+        br3_flag = bdt.GetBadReco3().br3_flag;
+        br3_1_flag = bdt.GetBadReco3().br3_1_flag;
+        br3_1_energy = bdt.GetBadReco3().br3_1_energy;
+        br3_1_n_shower_segments = bdt.GetBadReco3().br3_1_n_shower_segments;
+        br3_1_sg_flag_trajectory = bdt.GetBadReco3().br3_1_sg_flag_trajectory;
+        br3_1_sg_direct_length = bdt.GetBadReco3().br3_1_sg_direct_length;
+        br3_1_sg_length = bdt.GetBadReco3().br3_1_sg_length;
+        br3_1_total_main_length = bdt.GetBadReco3().br3_1_total_main_length;
+        br3_1_total_length = bdt.GetBadReco3().br3_1_total_length;
+        br3_1_iso_angle = bdt.GetBadReco3().br3_1_iso_angle;
+        br3_1_sg_flag_topology = bdt.GetBadReco3().br3_1_sg_flag_topology;
+        br3_2_flag = bdt.GetBadReco3().br3_2_flag;
+        br3_2_n_ele = bdt.GetBadReco3().br3_2_n_ele;
+        br3_2_n_other = bdt.GetBadReco3().br3_2_n_other;
+        br3_2_energy = bdt.GetBadReco3().br3_2_energy;
+        br3_2_total_main_length = bdt.GetBadReco3().br3_2_total_main_length;
+        br3_2_total_length = bdt.GetBadReco3().br3_2_total_length;
+        br3_2_other_fid = bdt.GetBadReco3().br3_2_other_fid;
+        br3_3_v_flag = bdt.GetBadReco3().br3_3_v_flag;
+        br3_3_v_energy = bdt.GetBadReco3().br3_3_v_energy;
+        br3_3_v_angle = bdt.GetBadReco3().br3_3_v_angle;
+        br3_3_v_dir_length = bdt.GetBadReco3().br3_3_v_dir_length;
+        br3_3_v_length = bdt.GetBadReco3().br3_3_v_length;
+        br3_4_flag = bdt.GetBadReco3().br3_4_flag;
+        br3_4_acc_length = bdt.GetBadReco3().br3_4_acc_length;
+        br3_4_total_length = bdt.GetBadReco3().br3_4_total_length;
+        br3_4_energy = bdt.GetBadReco3().br3_4_energy;
+        br3_5_v_flag = bdt.GetBadReco3().br3_5_v_flag;
+        br3_5_v_dir_length = bdt.GetBadReco3().br3_5_v_dir_length;
+        br3_5_v_total_length = bdt.GetBadReco3().br3_5_v_total_length;
+        br3_5_v_flag_avoid_muon_check = bdt.GetBadReco3().br3_5_v_flag_avoid_muon_check;
+        br3_5_v_n_seg = bdt.GetBadReco3().br3_5_v_n_seg;
+        br3_5_v_angle = bdt.GetBadReco3().br3_5_v_angle;
+        br3_5_v_sg_length = bdt.GetBadReco3().br3_5_v_sg_length;
+        br3_5_v_energy = bdt.GetBadReco3().br3_5_v_energy;
+        br3_5_v_n_main_segs = bdt.GetBadReco3().br3_5_v_n_main_segs;
+        br3_5_v_n_segs = bdt.GetBadReco3().br3_5_v_n_segs;
+        br3_5_v_shower_main_length = bdt.GetBadReco3().br3_5_v_shower_main_length;
+        br3_5_v_shower_total_length = bdt.GetBadReco3().br3_5_v_shower_total_length;
+        br3_6_v_flag = bdt.GetBadReco3().br3_6_v_flag;
+        br3_6_v_angle = bdt.GetBadReco3().br3_6_v_angle;
+        br3_6_v_angle1 = bdt.GetBadReco3().br3_6_v_angle1;
+        br3_6_v_flag_shower_trajectory = bdt.GetBadReco3().br3_6_v_flag_shower_trajectory;
+        br3_6_v_direct_length = bdt.GetBadReco3().br3_6_v_direct_length;
+        br3_6_v_length = bdt.GetBadReco3().br3_6_v_length;
+        br3_6_v_n_other_vtx_segs = bdt.GetBadReco3().br3_6_v_n_other_vtx_segs;
+        br3_6_v_energy = bdt.GetBadReco3().br3_6_v_energy;
+        br3_7_flag = bdt.GetBadReco3().br3_7_flag;
+        br3_7_energy = bdt.GetBadReco3().br3_7_energy;
+        br3_7_min_angle = bdt.GetBadReco3().br3_7_min_angle;
+        br3_7_sg_length = bdt.GetBadReco3().br3_7_sg_length;
+        br3_7_shower_main_length = bdt.GetBadReco3().br3_7_shower_main_length;
+        br3_8_flag = bdt.GetBadReco3().br3_8_flag;
+        br3_8_max_dQ_dx = bdt.GetBadReco3().br3_8_max_dQ_dx;
+        br3_8_energy = bdt.GetBadReco3().br3_8_energy;
+        br3_8_n_main_segs = bdt.GetBadReco3().br3_8_n_main_segs;
+        br3_8_shower_main_length = bdt.GetBadReco3().br3_8_shower_main_length;
+        br3_8_shower_length = bdt.GetBadReco3().br3_8_shower_length;
+        br_filled = bdt.GetBadReco4().br_filled;
+        br4_flag = bdt.GetBadReco4().br4_flag;
+        br4_1_flag = bdt.GetBadReco4().br4_1_flag;
+        br4_1_shower_main_length = bdt.GetBadReco4().br4_1_shower_main_length;
+        br4_1_shower_total_length = bdt.GetBadReco4().br4_1_shower_total_length;
+        br4_1_min_dis = bdt.GetBadReco4().br4_1_min_dis;
+        br4_1_energy = bdt.GetBadReco4().br4_1_energy;
+        br4_1_flag_avoid_muon_check = bdt.GetBadReco4().br4_1_flag_avoid_muon_check;
+        br4_1_n_vtx_segs = bdt.GetBadReco4().br4_1_n_vtx_segs;
+        br4_1_n_main_segs = bdt.GetBadReco4().br4_1_n_main_segs;
+        br4_2_flag = bdt.GetBadReco4().br4_2_flag;
+        br4_2_ratio_45 = bdt.GetBadReco4().br4_2_ratio_45;
+        br4_2_ratio_35 = bdt.GetBadReco4().br4_2_ratio_35;
+        br4_2_ratio_25 = bdt.GetBadReco4().br4_2_ratio_25;
+        br4_2_ratio_15 = bdt.GetBadReco4().br4_2_ratio_15;
+        br4_2_energy = bdt.GetBadReco4().br4_2_energy;
+        br4_2_ratio1_45 = bdt.GetBadReco4().br4_2_ratio1_45;
+        br4_2_ratio1_35 = bdt.GetBadReco4().br4_2_ratio1_35;
+        br4_2_ratio1_25 = bdt.GetBadReco4().br4_2_ratio1_25;
+        br4_2_ratio1_15 = bdt.GetBadReco4().br4_2_ratio1_15;
+        br4_2_iso_angle = bdt.GetBadReco4().br4_2_iso_angle;
+        br4_2_iso_angle1 = bdt.GetBadReco4().br4_2_iso_angle1;
+        br4_2_angle = bdt.GetBadReco4().br4_2_angle;
+        tro_flag = bdt.GetTrackOverCluster().tro_flag;
+        tro_1_v_flag = bdt.GetTrackOverCluster().tro_1_v_flag;
+        tro_1_v_particle_type = bdt.GetTrackOverCluster().tro_1_v_particle_type;
+        tro_1_v_flag_dir_weak = bdt.GetTrackOverCluster().tro_1_v_flag_dir_weak;
+        tro_1_v_min_dis = bdt.GetTrackOverCluster().tro_1_v_min_dis;
+        tro_1_v_sg1_length = bdt.GetTrackOverCluster().tro_1_v_sg1_length;
+        tro_1_v_shower_main_length = bdt.GetTrackOverCluster().tro_1_v_shower_main_length;
+        tro_1_v_max_n_vtx_segs = bdt.GetTrackOverCluster().tro_1_v_max_n_vtx_segs;
+        tro_1_v_tmp_length = bdt.GetTrackOverCluster().tro_1_v_tmp_length;
+        tro_1_v_medium_dQ_dx = bdt.GetTrackOverCluster().tro_1_v_medium_dQ_dx;
+        tro_1_v_dQ_dx_cut = bdt.GetTrackOverCluster().tro_1_v_dQ_dx_cut;
+        tro_1_v_flag_shower_topology = bdt.GetTrackOverCluster().tro_1_v_flag_shower_topology;
+        tro_2_v_flag = bdt.GetTrackOverCluster().tro_2_v_flag;
+        tro_2_v_energy = bdt.GetTrackOverCluster().tro_2_v_energy;
+        tro_2_v_stem_length = bdt.GetTrackOverCluster().tro_2_v_stem_length;
+        tro_2_v_iso_angle = bdt.GetTrackOverCluster().tro_2_v_iso_angle;
+        tro_2_v_max_length = bdt.GetTrackOverCluster().tro_2_v_max_length;
+        tro_2_v_angle = bdt.GetTrackOverCluster().tro_2_v_angle;
+        tro_3_flag = bdt.GetTrackOverCluster().tro_3_flag;
+        tro_3_stem_length = bdt.GetTrackOverCluster().tro_3_stem_length;
+        tro_3_n_muon_segs = bdt.GetTrackOverCluster().tro_3_n_muon_segs;
+        tro_3_energy = bdt.GetTrackOverCluster().tro_3_energy;
+        tro_4_v_flag = bdt.GetTrackOverCluster().tro_4_v_flag;
+        tro_4_v_dir2_mag = bdt.GetTrackOverCluster().tro_4_v_dir2_mag;
+        tro_4_v_angle = bdt.GetTrackOverCluster().tro_4_v_angle;
+        tro_4_v_angle1 = bdt.GetTrackOverCluster().tro_4_v_angle1;
+        tro_4_v_angle2 = bdt.GetTrackOverCluster().tro_4_v_angle2;
+        tro_4_v_length = bdt.GetTrackOverCluster().tro_4_v_length;
+        tro_4_v_length1 = bdt.GetTrackOverCluster().tro_4_v_length1;
+        tro_4_v_medium_dQ_dx = bdt.GetTrackOverCluster().tro_4_v_medium_dQ_dx;
+        tro_4_v_end_dQ_dx = bdt.GetTrackOverCluster().tro_4_v_end_dQ_dx;
+        tro_4_v_energy = bdt.GetTrackOverCluster().tro_4_v_energy;
+        tro_4_v_shower_main_length = bdt.GetTrackOverCluster().tro_4_v_shower_main_length;
+        tro_4_v_flag_shower_trajectory = bdt.GetTrackOverCluster().tro_4_v_flag_shower_trajectory;
+        tro_5_v_flag = bdt.GetTrackOverCluster().tro_5_v_flag;
+        tro_5_v_max_angle = bdt.GetTrackOverCluster().tro_5_v_max_angle;
+        tro_5_v_min_angle = bdt.GetTrackOverCluster().tro_5_v_min_angle;
+        tro_5_v_max_length = bdt.GetTrackOverCluster().tro_5_v_max_length;
+        tro_5_v_iso_angle = bdt.GetTrackOverCluster().tro_5_v_iso_angle;
+        tro_5_v_n_vtx_segs = bdt.GetTrackOverCluster().tro_5_v_n_vtx_segs;
+        tro_5_v_min_count = bdt.GetTrackOverCluster().tro_5_v_min_count;
+        tro_5_v_max_count = bdt.GetTrackOverCluster().tro_5_v_max_count;
+        tro_5_v_energy = bdt.GetTrackOverCluster().tro_5_v_energy;
+        hol_flag = bdt.GetHighEoverlap().hol_flag;
+        hol_1_flag = bdt.GetHighEoverlap().hol_1_flag;
+        hol_1_n_valid_tracks = bdt.GetHighEoverlap().hol_1_n_valid_tracks;
+        hol_1_min_angle = bdt.GetHighEoverlap().hol_1_min_angle;
+        hol_1_energy = bdt.GetHighEoverlap().hol_1_energy;
+        hol_1_flag_all_shower = bdt.GetHighEoverlap().hol_1_flag_all_shower;
+        hol_1_min_length = bdt.GetHighEoverlap().hol_1_min_length;
+        hol_2_flag = bdt.GetHighEoverlap().hol_2_flag;
+        hol_2_min_angle = bdt.GetHighEoverlap().hol_2_min_angle;
+        hol_2_medium_dQ_dx = bdt.GetHighEoverlap().hol_2_medium_dQ_dx;
+        hol_2_ncount = bdt.GetHighEoverlap().hol_2_ncount;
+        hol_2_energy = bdt.GetHighEoverlap().hol_2_energy;
+        lol_flag = bdt.GetLowEoverlap().lol_flag;
+        lol_1_v_flag = bdt.GetLowEoverlap().lol_1_v_flag;
+        lol_1_v_energy = bdt.GetLowEoverlap().lol_1_v_energy;
+        lol_1_v_vtx_n_segs = bdt.GetLowEoverlap().lol_1_v_vtx_n_segs;
+        lol_1_v_nseg = bdt.GetLowEoverlap().lol_1_v_nseg;
+        lol_1_v_angle = bdt.GetLowEoverlap().lol_1_v_angle;
+        lol_2_v_flag = bdt.GetLowEoverlap().lol_2_v_flag;
+        lol_2_v_length = bdt.GetLowEoverlap().lol_2_v_length;
+        lol_2_v_angle = bdt.GetLowEoverlap().lol_2_v_angle;
+        lol_2_v_type = bdt.GetLowEoverlap().lol_2_v_type;
+        lol_2_v_vtx_n_segs = bdt.GetLowEoverlap().lol_2_v_vtx_n_segs;
+        lol_2_v_energy = bdt.GetLowEoverlap().lol_2_v_energy;
+        lol_2_v_shower_main_length = bdt.GetLowEoverlap().lol_2_v_shower_main_length;
+        lol_2_v_flag_dir_weak = bdt.GetLowEoverlap().lol_2_v_flag_dir_weak;
+        lol_3_flag = bdt.GetLowEoverlap().lol_3_flag;
+        lol_3_angle_beam = bdt.GetLowEoverlap().lol_3_angle_beam;
+        lol_3_n_valid_tracks = bdt.GetLowEoverlap().lol_3_n_valid_tracks;
+        lol_3_min_angle = bdt.GetLowEoverlap().lol_3_min_angle;
+        lol_3_vtx_n_segs = bdt.GetLowEoverlap().lol_3_vtx_n_segs;
+        lol_3_energy = bdt.GetLowEoverlap().lol_3_energy;
+        lol_3_shower_main_length = bdt.GetLowEoverlap().lol_3_shower_main_length;
+        lol_3_n_out = bdt.GetLowEoverlap().lol_3_n_out;
+        lol_3_n_sum = bdt.GetLowEoverlap().lol_3_n_sum;
+        cosmict_flag_1 = bdt.GetMajorCosmicTagger().cosmict_flag_1; // fiducial volume vertex
+        cosmict_flag_2 = bdt.GetMajorCosmicTagger().cosmict_flag_2;  // single muon
+        cosmict_flag_3 = bdt.GetMajorCosmicTagger().cosmict_flag_3;  // single muon (long)
+        cosmict_flag_4 = bdt.GetMajorCosmicTagger().cosmict_flag_4;  // kinematics muon
+        cosmict_flag_5 = bdt.GetMajorCosmicTagger().cosmict_flag_5; // kinematics muon (long)
+        cosmict_flag_6 = bdt.GetMajorCosmicTagger().cosmict_flag_6; // special ...
+        cosmict_flag_7 = bdt.GetMajorCosmicTagger().cosmict_flag_7;  // muon+ michel
+        cosmict_flag_8 = bdt.GetMajorCosmicTagger().cosmict_flag_8;  // muon + michel + special
+        cosmict_flag_9 = bdt.GetMajorCosmicTagger().cosmict_flag_9;  // this tagger is relevant for nueCC, see "cosmic tagger ones, one case of cosmics ..." (frist one ...)
+        cosmict_flag_10 = bdt.GetMajorCosmicTagger().cosmict_flag_10;  // front upstream (dirt)
+        cosmict_flag = bdt.GetMajorCosmicTagger().cosmict_flag;
+        cosmict_2_filled = bdt.GetMajorCosmicTagger().cosmict_2_filled;
+        cosmict_2_particle_type = bdt.GetMajorCosmicTagger().cosmict_2_particle_type;
+        cosmict_2_n_muon_tracks = bdt.GetMajorCosmicTagger().cosmict_2_n_muon_tracks;
+        cosmict_2_total_shower_length = bdt.GetMajorCosmicTagger().cosmict_2_total_shower_length;
+        cosmict_2_flag_inside = bdt.GetMajorCosmicTagger().cosmict_2_flag_inside;
+        cosmict_2_angle_beam = bdt.GetMajorCosmicTagger().cosmict_2_angle_beam;
+        cosmict_2_flag_dir_weak = bdt.GetMajorCosmicTagger().cosmict_2_flag_dir_weak;
+        cosmict_2_dQ_dx_end = bdt.GetMajorCosmicTagger().cosmict_2_dQ_dx_end;
+        cosmict_2_dQ_dx_front = bdt.GetMajorCosmicTagger().cosmict_2_dQ_dx_front;
+        cosmict_2_theta = bdt.GetMajorCosmicTagger().cosmict_2_theta;
+        cosmict_2_phi = bdt.GetMajorCosmicTagger().cosmict_2_phi;
+        cosmict_2_valid_tracks = bdt.GetMajorCosmicTagger().cosmict_2_valid_tracks;
+        cosmict_3_filled = bdt.GetMajorCosmicTagger().cosmict_3_filled;
+        cosmict_3_flag_inside = bdt.GetMajorCosmicTagger().cosmict_3_flag_inside;
+        cosmict_3_angle_beam = bdt.GetMajorCosmicTagger().cosmict_3_angle_beam;
+        cosmict_3_flag_dir_weak = bdt.GetMajorCosmicTagger().cosmict_3_flag_dir_weak;
+        cosmict_3_dQ_dx_end = bdt.GetMajorCosmicTagger().cosmict_3_dQ_dx_end;
+        cosmict_3_dQ_dx_front = bdt.GetMajorCosmicTagger().cosmict_3_dQ_dx_front;
+        cosmict_3_theta = bdt.GetMajorCosmicTagger().cosmict_3_theta;
+        cosmict_3_phi = bdt.GetMajorCosmicTagger().cosmict_3_phi;
+        cosmict_3_valid_tracks = bdt.GetMajorCosmicTagger().cosmict_3_valid_tracks;
+        cosmict_4_filled = bdt.GetMajorCosmicTagger().cosmict_4_filled;
+        cosmict_4_flag_inside = bdt.GetMajorCosmicTagger().cosmict_4_flag_inside;
+        cosmict_4_angle_beam = bdt.GetMajorCosmicTagger().cosmict_4_angle_beam;
+        cosmict_4_connected_showers = bdt.GetMajorCosmicTagger().cosmict_4_connected_showers;  // need to be careful about the nueCC ...
+        cosmict_5_filled = bdt.GetMajorCosmicTagger().cosmict_5_filled;
+        cosmict_5_flag_inside = bdt.GetMajorCosmicTagger().cosmict_5_flag_inside;
+        cosmict_5_angle_beam = bdt.GetMajorCosmicTagger().cosmict_5_angle_beam;
+        cosmict_5_connected_showers = bdt.GetMajorCosmicTagger().cosmict_5_connected_showers;
+        cosmict_6_filled = bdt.GetMajorCosmicTagger().cosmict_6_filled;
+        cosmict_6_flag_dir_weak = bdt.GetMajorCosmicTagger().cosmict_6_flag_dir_weak;
+        cosmict_6_flag_inside = bdt.GetMajorCosmicTagger().cosmict_6_flag_inside;
+        cosmict_6_angle = bdt.GetMajorCosmicTagger().cosmict_6_angle;
+        cosmict_7_filled = bdt.GetMajorCosmicTagger().cosmict_7_filled;
+        cosmict_7_flag_sec = bdt.GetMajorCosmicTagger().cosmict_7_flag_sec;
+        cosmict_7_n_muon_tracks = bdt.GetMajorCosmicTagger().cosmict_7_n_muon_tracks;
+        cosmict_7_total_shower_length = bdt.GetMajorCosmicTagger().cosmict_7_total_shower_length;
+        cosmict_7_flag_inside = bdt.GetMajorCosmicTagger().cosmict_7_flag_inside;
+        cosmict_7_angle_beam = bdt.GetMajorCosmicTagger().cosmict_7_angle_beam;
+        cosmict_7_flag_dir_weak = bdt.GetMajorCosmicTagger().cosmict_7_flag_dir_weak;
+        cosmict_7_dQ_dx_end = bdt.GetMajorCosmicTagger().cosmict_7_dQ_dx_end;
+        cosmict_7_dQ_dx_front = bdt.GetMajorCosmicTagger().cosmict_7_dQ_dx_front;
+        cosmict_7_theta = bdt.GetMajorCosmicTagger().cosmict_7_theta;
+        cosmict_7_phi = bdt.GetMajorCosmicTagger().cosmict_7_phi;
+        cosmict_8_filled = bdt.GetMajorCosmicTagger().cosmict_8_filled;
+        cosmict_8_flag_out = bdt.GetMajorCosmicTagger().cosmict_8_flag_out;
+        cosmict_8_muon_length = bdt.GetMajorCosmicTagger().cosmict_8_muon_length;
+        cosmict_8_acc_length = bdt.GetMajorCosmicTagger().cosmict_8_acc_length;
+        cosmict_10_flag_inside = bdt.GetMajorCosmicTagger().cosmict_10_flag_inside;
+        cosmict_10_vtx_z = bdt.GetMajorCosmicTagger().cosmict_10_vtx_z;
+        cosmict_10_flag_shower = bdt.GetMajorCosmicTagger().cosmict_10_flag_shower;
+        cosmict_10_flag_dir_weak = bdt.GetMajorCosmicTagger().cosmict_10_flag_dir_weak;
+        cosmict_10_angle_beam = bdt.GetMajorCosmicTagger().cosmict_10_angle_beam;
+        cosmict_10_length = bdt.GetMajorCosmicTagger().cosmict_10_length;
+        numu_cc_flag = bdt.GetNumuCCTagger().numu_cc_flag;
+        numu_cc_flag_1 = bdt.GetNumuCCTagger().numu_cc_flag_1;
+        numu_cc_1_particle_type = bdt.GetNumuCCTagger().numu_cc_1_particle_type;
+        numu_cc_1_length = bdt.GetNumuCCTagger().numu_cc_1_length;
+        numu_cc_1_medium_dQ_dx = bdt.GetNumuCCTagger().numu_cc_1_medium_dQ_dx;
+        numu_cc_1_dQ_dx_cut = bdt.GetNumuCCTagger().numu_cc_1_dQ_dx_cut;
+        numu_cc_1_direct_length = bdt.GetNumuCCTagger().numu_cc_1_direct_length;
+        numu_cc_1_n_daughter_tracks = bdt.GetNumuCCTagger().numu_cc_1_n_daughter_tracks;
+        numu_cc_1_n_daughter_all = bdt.GetNumuCCTagger().numu_cc_1_n_daughter_all;
+        numu_cc_flag_2 = bdt.GetNumuCCTagger().numu_cc_flag_2;
+        numu_cc_2_length = bdt.GetNumuCCTagger().numu_cc_2_length;
+        numu_cc_2_total_length = bdt.GetNumuCCTagger().numu_cc_2_total_length;
+        numu_cc_2_n_daughter_tracks = bdt.GetNumuCCTagger().numu_cc_2_n_daughter_tracks;
+        numu_cc_2_n_daughter_all = bdt.GetNumuCCTagger().numu_cc_2_n_daughter_all;
+        numu_cc_flag_3 = bdt.GetNumuCCTagger().numu_cc_flag_3;
+        numu_cc_3_particle_type = bdt.GetNumuCCTagger().numu_cc_3_particle_type;
+        numu_cc_3_max_length = bdt.GetNumuCCTagger().numu_cc_3_max_length;
+        numu_cc_3_acc_track_length = bdt.GetNumuCCTagger().numu_cc_3_acc_track_length;
+        numu_cc_3_max_length_all = bdt.GetNumuCCTagger().numu_cc_3_max_length_all;
+        numu_cc_3_max_muon_length = bdt.GetNumuCCTagger().numu_cc_3_max_muon_length;
+        numu_cc_3_n_daughter_tracks = bdt.GetNumuCCTagger().numu_cc_3_n_daughter_tracks;
+        numu_cc_3_n_daughter_all = bdt.GetNumuCCTagger().numu_cc_3_n_daughter_all;
+        cosmict_2_4_score = bdt.GetBDTscores().cosmict_2_4_score;
+        cosmict_3_5_score = bdt.GetBDTscores().cosmict_3_5_score;
+        cosmict_6_score = bdt.GetBDTscores().cosmict_6_score;
+        cosmict_7_score = bdt.GetBDTscores().cosmict_7_score;
+        cosmict_8_score = bdt.GetBDTscores().cosmict_8_score;
+        cosmict_10_score = bdt.GetBDTscores().cosmict_10_score;
+        numu_1_score = bdt.GetBDTscores().numu_1_score;
+        numu_2_score = bdt.GetBDTscores().numu_2_score;
+        numu_3_score = bdt.GetBDTscores().numu_3_score;
+        cosmict_score = bdt.GetBDTscores().cosmict_score;
+        numu_score = bdt.GetBDTscores().numu_score;
+        mipid_score = bdt.GetBDTscores().mipid_score;
+        gap_score = bdt.GetBDTscores().gap_score;
+        hol_lol_score = bdt.GetBDTscores().hol_lol_score;
+        cme_anc_score = bdt.GetBDTscores().cme_anc_score;
+        mgo_mgt_score = bdt.GetBDTscores().mgo_mgt_score;
+        br1_score = bdt.GetBDTscores().br1_score;
+        br3_score = bdt.GetBDTscores().br3_score;
+        br3_3_score = bdt.GetBDTscores().br3_3_score;
+        br3_5_score = bdt.GetBDTscores().br3_5_score;
+        br3_6_score = bdt.GetBDTscores().br3_6_score;
+        stemdir_br2_score = bdt.GetBDTscores().stemdir_br2_score;
+        trimuon_score = bdt.GetBDTscores().trimuon_score;
+        br4_tro_score = bdt.GetBDTscores().br4_tro_score;
+        mipquality_score = bdt.GetBDTscores().mipquality_score;
+        pio_1_score = bdt.GetBDTscores().pio_1_score;
+        pio_2_score = bdt.GetBDTscores().pio_2_score;
+        stw_spt_score = bdt.GetBDTscores().stw_spt_score;
+        vis_1_score = bdt.GetBDTscores().vis_1_score;
+        vis_2_score = bdt.GetBDTscores().vis_2_score;
+        stw_2_score = bdt.GetBDTscores().stw_2_score;
+        stw_3_score = bdt.GetBDTscores().stw_3_score;
+        stw_4_score = bdt.GetBDTscores().stw_4_score;
+        sig_1_score = bdt.GetBDTscores().sig_1_score;
+        sig_2_score = bdt.GetBDTscores().sig_2_score;
+        lol_1_score = bdt.GetBDTscores().lol_1_score;
+        lol_2_score = bdt.GetBDTscores().lol_2_score;
+        tro_1_score = bdt.GetBDTscores().tro_1_score;
+        tro_2_score = bdt.GetBDTscores().tro_2_score;
+        tro_4_score = bdt.GetBDTscores().tro_4_score;
+        tro_5_score = bdt.GetBDTscores().tro_5_score;
+        nue_score = bdt.GetBDTscores().nue_score;
+
 }
 
-void WireCellAnaTree::ReadKINEvar(art::Ptr<nsm::NuSelectionKINE> kine)
+void WireCellAnaTree::ReadKINEvar(nsm::NuSelectionKINE const& kine)
 {
-	kine_reco_Enu = kine->GetKineInfo().kine_reco_Enu;
-	kine_reco_add_energy = kine->GetKineInfo().kine_reco_add_energy;
-	kine_energy_particle = kine->GetKineInfo().kine_energy_particle;
-	kine_energy_info = kine->GetKineInfo().kine_energy_info;
-	kine_particle_type = kine->GetKineInfo().kine_particle_type;
-	kine_energy_included = kine->GetKineInfo().kine_energy_included;
-	kine_pio_mass = kine->GetKineInfo().kine_pio_mass;
-	kine_pio_flag = kine->GetKineInfo().kine_pio_flag;
-	kine_pio_vtx_dis = kine->GetKineInfo().kine_pio_vtx_dis;
-	kine_pio_energy_1 = kine->GetKineInfo().kine_pio_energy_1;
-	kine_pio_theta_1 = kine->GetKineInfo().kine_pio_theta_1;
-	kine_pio_phi_1 = kine->GetKineInfo().kine_pio_phi_1;
-	kine_pio_dis_1 = kine->GetKineInfo().kine_pio_dis_1;
-	kine_pio_energy_2 = kine->GetKineInfo().kine_pio_energy_2;
-	kine_pio_theta_2 = kine->GetKineInfo().kine_pio_theta_2;
-	kine_pio_phi_2 = kine->GetKineInfo().kine_pio_phi_2;
-	kine_pio_dis_2 = kine->GetKineInfo().kine_pio_dis_2;
-	kine_pio_angle = kine->GetKineInfo().kine_pio_angle;
+        kine_reco_Enu = kine.GetKineInfo().kine_reco_Enu;
+        kine_reco_add_energy = kine.GetKineInfo().kine_reco_add_energy;
+        kine_energy_particle = kine.GetKineInfo().kine_energy_particle;
+        kine_energy_info = kine.GetKineInfo().kine_energy_info;
+        kine_particle_type = kine.GetKineInfo().kine_particle_type;
+        kine_energy_included = kine.GetKineInfo().kine_energy_included;
+        kine_pio_mass = kine.GetKineInfo().kine_pio_mass;
+        kine_pio_flag = kine.GetKineInfo().kine_pio_flag;
+        kine_pio_vtx_dis = kine.GetKineInfo().kine_pio_vtx_dis;
+        kine_pio_energy_1 = kine.GetKineInfo().kine_pio_energy_1;
+        kine_pio_theta_1 = kine.GetKineInfo().kine_pio_theta_1;
+        kine_pio_phi_1 = kine.GetKineInfo().kine_pio_phi_1;
+        kine_pio_dis_1 = kine.GetKineInfo().kine_pio_dis_1;
+        kine_pio_energy_2 = kine.GetKineInfo().kine_pio_energy_2;
+        kine_pio_theta_2 = kine.GetKineInfo().kine_pio_theta_2;
+        kine_pio_phi_2 = kine.GetKineInfo().kine_pio_phi_2;
+        kine_pio_dis_2 = kine.GetKineInfo().kine_pio_dis_2;
+        kine_pio_angle = kine.GetKineInfo().kine_pio_angle;
 }
 
 
@@ -7250,6 +7219,8 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
       ccnd4= x*(f_ccnd4_a)-(f_ccnd4_b);//for x dependent correction
       if(Ph_Tot>150){ccnd3=f_ccnd3_a-f_ccnd3_b*Ph_Tot+f_ccnd3_c*Ph_Tot*Ph_Tot;}
       else{ccnd3=f_ccnd3_d;}
+
+      
       //all the corrections
       TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)]+ccnd1+ccnd2+ccnd3+ccnd4;
       std::cout<<"TT3_array[i] "<<i<<" "<<TT3_array[i]<<std::endl;

@@ -3,19 +3,19 @@
 
 #include <iostream>
 #include "SelectionToolBase.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/TrackShowerScoreFuncs.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
-#include "../CommonDefs/Typedefs.h"
-#include "../CommonDefs/PIDFuncs.h"
-#include "../CommonDefs/CalibrationFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Typedefs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/PIDFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/CalibrationFuncs.h"
 
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/BacktrackingFuncs.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 #include "ubevt/Database/TPCEnergyCalib/TPCEnergyCalibProvider.h"
@@ -235,10 +235,10 @@ namespace selection
     bool NuMuSelection::isFiducial(const double x[3]) const
     {
         
-        art::ServiceHandle<geo::Geometry> geo;
+        auto const& tpc = art::ServiceHandle<geo::Geometry>{}->TPC();
         std::vector<double> bnd = {
-            0., 2. * geo->DetHalfWidth(), -geo->DetHalfHeight(), geo->DetHalfHeight(),
-            0., geo->DetLength()};
+            0., 2. * tpc.HalfWidth(), -tpc.HalfHeight(), tpc.HalfHeight(),
+            0., tpc.Length()};
         
         bool is_x =
         x[0] > (bnd[0] + fFidvolXstart) && x[0] < (bnd[1] - fFidvolXend);

@@ -48,6 +48,9 @@ void EnergyHelper::dQdx(const TVector3 &pfp_dir,
                         std::vector<float> &pitches)
 {
 
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
+
     float tolerance = 0.001;
   int vermode = 0;
      if(vermode != 0)std::cout << "[EnergyHelper} Entered dQdx function" << std::endl;
@@ -59,8 +62,8 @@ void EnergyHelper::dQdx(const TVector3 &pfp_dir,
         std::vector<float> cluster_axis;
         std::vector<float> cluster_start;
         std::vector<float> cluster_end;
-        float start_x = _detprop->ConvertTicksToX(_cl->StartTick(), _cl->Plane());
-        float end_x = _detprop->ConvertTicksToX(_cl->EndTick(), _cl->Plane());
+        float start_x = detProp.ConvertTicksToX(_cl->StartTick(), _cl->Plane());
+        float end_x = detProp.ConvertTicksToX(_cl->EndTick(), _cl->Plane());
         float pitch = getPitch(pfp_dir, _cl->Plane().Plane);
         if (pitch >= 0)
         {
@@ -96,7 +99,7 @@ void EnergyHelper::dQdx(const TVector3 &pfp_dir,
         for (auto &hit : hits)
         {
           if(vermode != 0) std::cout << "[EnergyHelper} loop over hits" << std::endl;
-            float hit_pos_x = _detprop->ConvertTicksToX(hit->PeakTime(), _cl->Plane());
+            float hit_pos_x = detProp.ConvertTicksToX(hit->PeakTime(), _cl->Plane());
           if(vermode != 0) std::cout << "[EnergyHelper} loop over hits, got hitpos x" << std::endl;
             std::vector<float> hit_pos = {hit->WireID().Wire * _wire_spacing, hit_pos_x};
 

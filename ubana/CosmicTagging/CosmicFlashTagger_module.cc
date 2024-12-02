@@ -16,8 +16,8 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 #include "lardataobj/RecoBase/Track.h"
@@ -25,6 +25,7 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -108,7 +109,7 @@ private:
 };
 
 
-CosmicFlashTagger::CosmicFlashTagger(fhicl::ParameterSet const & p)
+CosmicFlashTagger::CosmicFlashTagger(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _pfp_producer            = p.get<std::string>("PFPTrackAssProducer");
   _opflash_producer_beam   = p.get<std::string>("BeamOpFlashProducer");
@@ -127,11 +128,11 @@ CosmicFlashTagger::CosmicFlashTagger(fhicl::ParameterSet const & p)
   if(_debug) _incompChecker.PrintConfig();
 
   // Use '_detp' to find 'efield' and 'temp'
-  auto const* _detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  double efield = _detp -> Efield();
-  double temp   = _detp -> Temperature();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
+  double efield = detProp.Efield();
+  double temp   = detProp.Temperature();
   // Determine the drift velocity from 'efield' and 'temp'
-  fDriftVelocity = _detp -> DriftVelocity(efield,temp); 
+  fDriftVelocity = detProp.DriftVelocity(efield,temp);
   if (_debug) std::cout << "Using drift velocity = " << fDriftVelocity << " cm/us, with E = " << efield << ", and T = " << temp << std::endl;
 
   if (_debug) {
@@ -176,8 +177,6 @@ void CosmicFlashTagger::produce(art::Event & e)
   // Reset the flash match manager
   _mgr.Reset();
 
-  ::art::ServiceHandle<geo::Geometry> geo;
-
   // Get Beam Flashes from the ART event
   ::art::Handle<std::vector<recob::OpFlash> > beamflash_h;
   e.getByLabel(_opflash_producer_beam,beamflash_h);
@@ -195,6 +194,9 @@ void CosmicFlashTagger::produce(art::Event & e)
   lar_pandora::LArPandoraHelper::CollectTracks(e, _pfp_producer, trackVector, PFPtoTracks);
 
   // Loop through beam flashes 
+  ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
+
   _n_beam_flashes = 0;
   beam_flashes.clear();
   for (size_t n = 0; n < beamflash_h->size(); n++) {
@@ -211,7 +213,7 @@ void CosmicFlashTagger::produce(art::Event & e)
       _beam_flash_spec.resize(_n_beam_flashes);
       _beam_flash_spec[_n_beam_flashes-1].resize(geo->NOpDets());
       for (unsigned int i = 0; i < geo->NOpDets(); i++) {
-        unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMap.OpDetFromOpChannel(i);
         _beam_flash_spec[_n_beam_flashes-1][opdet] = flash.PE(i);
       }
       _beam_flash_time.resize(_n_beam_flashes);
@@ -224,7 +226,7 @@ void CosmicFlashTagger::produce(art::Event & e)
     f.pe_v.resize(geo->NOpDets());
     f.pe_err_v.resize(geo->NOpDets());
     for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMap.OpDetFromOpChannel(i);
       if (_do_opdet_swap && e.isRealData()) {
         opdet = _opdet_swap_map.at(opdet);
       }
@@ -386,15 +388,14 @@ void CosmicFlashTagger::AddFlashPosition(::flashana::Flash_t & flash) {
   for (unsigned int opdet = 0; opdet < pePerOpDetId.size(); opdet++) {
 
     // Get physical detector location for this opDet
-    double PMTxyz[3] = {0.,0.,0.};
     ::art::ServiceHandle<geo::Geometry> geo;
-    geo->OpDetGeoFromOpDet(opdet).GetCenter(PMTxyz);
+    auto const PMTxyz = geo->OpDetGeoFromOpDet(opdet).GetCenter();
  
     // Add up the position, weighting with PEs
-    sumy    += pePerOpDetId[opdet]*PMTxyz[1];
-    sumy2   += pePerOpDetId[opdet]*PMTxyz[1]*PMTxyz[1];
-    sumz    += pePerOpDetId[opdet]*PMTxyz[2];
-    sumz2   += pePerOpDetId[opdet]*PMTxyz[2]*PMTxyz[2];
+    sumy    += pePerOpDetId[opdet]*PMTxyz.Y();
+    sumy2   += pePerOpDetId[opdet]*PMTxyz.Y()*PMTxyz.Y();
+    sumz    += pePerOpDetId[opdet]*PMTxyz.Z();
+    sumz2   += pePerOpDetId[opdet]*PMTxyz.Z()*PMTxyz.Z();
 
     totalPE += pePerOpDetId[opdet];
   }

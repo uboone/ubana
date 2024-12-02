@@ -1,66 +1,58 @@
-cet_enable_asserts()
+cet_build_plugin(
+  MCTruthTestAna art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  larsim::MCCheater_BackTrackerService_service
+  larsim::MCCheater_ParticleInventoryService_service
+  lardata::Utilities
+  lardata::LArPropertiesService
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+)
+
+cet_make_library(
+  LIBRARY_NAME IMCTruthMatching INTERFACE
+  SOURCE IMCTruthMatching.h
+  LIBRARIES
+  INTERFACE
+  lardataobj::RecoBase
+  nusimdata::SimulationBase
+  nug4::ParticleNavigation
+  canvas::canvas
+)
+
+cet_write_plugin_builder(
+  uboone_tool::IMCTruthMatching art::tool Modules
+  INSTALL_BUILDER
+  LIBRARIES CONDITIONAL
+  ubana::IMCTruthMatching
+)
+
+include(uboone_tool::IMCTruthMatching)
+
+cet_build_plugin(
+  AssociationsTruth uboone_tool::IMCTruthMatching
+  LIBRARIES
+  PRIVATE
+  ubana::AnalysisTree_MCTruth_MCTruthBase
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  art::Framework_Principal
+)
+
+cet_build_plugin(
+  BackTrackerTruth uboone_tool::IMCTruthMatching
+  LIBRARIES
+  PRIVATE
+  larsim::MCCheater_ParticleInventoryService_service
+  larsim::MCCheater_BackTrackerService_service
+  larcore::Geometry_Geometry_service
+  art_root_io::TFileService_service
+)
+
 add_subdirectory(MCTruthBase)
-
-art_make( MODULE_LIBRARIES lardataobj_RecoBase
-                           larcorealg_Geometry
-                           larcore_Geometry_Geometry_service
-                           lardata_RecoObjects
-                           lardata_Utilities
-                           larsim_MCCheater_BackTrackerService_service
-                           larsim_MCCheater_ParticleInventoryService_service
-                           ubana_AnalysisTree_MCTruth_MCTruthBase
-                           nutools_ParticleNavigation
-                           ${ART_FRAMEWORK_CORE}
-                           ${ART_FRAMEWORK_PRINCIPAL}
-                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                           ${ART_FRAMEWORK_SERVICES_BASIC}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                           art_Persistency_Common
-                           art_Persistency_Provenance
-                           art_Utilities
-                           canvas
-                           ${MF_MESSAGELOGGER}
-                           
-                           ${FHICLCPP}
-                           ${CETLIB}
-                           cetlib_except
-                           ${Boost_FILESYSTEM_LIBRARY}
-                           ${Boost_SYSTEM_LIBRARY}
-                           ${CLHEP}
-                           ${ROOT_BASIC_LIB_LIST}
-
-          TOOL_LIBRARIES   lardataobj_RecoBase
-                           larcorealg_Geometry
-                           larcore_Geometry_Geometry_service
-                           lardata_RecoObjects
-                           lardata_Utilities
-                           larsim_MCCheater_BackTrackerService_service
-                           larsim_MCCheater_ParticleInventoryService_service
-                           ubana_AnalysisTree_MCTruth_MCTruthBase
-                           nutools_ParticleNavigation
-                           ${ART_FRAMEWORK_CORE}
-                           ${ART_FRAMEWORK_PRINCIPAL}
-                           ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                           ${ART_FRAMEWORK_SERVICES_BASIC}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                           ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                           art_Persistency_Common
-                           art_Persistency_Provenance
-                           art_Utilities
-                           canvas
-                           ${MF_MESSAGELOGGER}
-                           
-                           ${FHICLCPP}
-                           ${CETLIB}
-                           cetlib_except
-                           ${Boost_FILESYSTEM_LIBRARY}
-                           ${Boost_SYSTEM_LIBRARY}
-                           ${CLHEP}
-                           ${ROOT_BASIC_LIB_LIST}
-        )
 
 install_headers()
 install_source()

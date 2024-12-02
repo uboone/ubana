@@ -15,11 +15,11 @@
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "art/Framework/Principal/Event.h"
 
 // LArSoft includes
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcore/Geometry/Geometry.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 #include "lardata/Utilities/AssociationUtil.h"
@@ -36,12 +36,11 @@
 
 namespace neutrinoid {
 
-TrackPairPlusVertexAlg::TrackPairPlusVertexAlg(fhicl::ParameterSet const &pset) : fMyProducerModule(0)
+TrackPairPlusVertexAlg::TrackPairPlusVertexAlg(fhicl::ParameterSet const &pset)
 {
     this->reconfigure(pset);
     
     m_geometry = lar::providerFrom<geo::Geometry>();
-    m_detector = lar::providerFrom<detinfo::DetectorPropertiesService>();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -77,10 +76,9 @@ void TrackPairPlusVertexAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs
     return;
 }
     
-void TrackPairPlusVertexAlg::produces(art::EDProducer* owner)
+void TrackPairPlusVertexAlg::produces(art::ProducesCollector& collector)
 {
-    fMyProducerModule = owner;
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
+    collector.produces< art::Assns<recob::Vertex, recob::Track> >();
 }
 
     
@@ -241,7 +239,7 @@ bool TrackPairPlusVertexAlg::findNeutrinoCandidates(art::Event & event) const
         if (bestDistance < fNeutrinoVtxTrackDistCut)
         {
             // Make an association between the best vertex and the matching tracks
-            util::CreateAssn(*fMyProducerModule, event, bestVertexVec[0], bestTrackVec, *vertexTrackAssociations);
+            util::CreateAssn(event, bestVertexVec[0], bestTrackVec, *vertexTrackAssociations);
         }
     }
     

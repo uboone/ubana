@@ -15,6 +15,7 @@
 
 // Framework Includes
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "art/Framework/Principal/Event.h"
 
 // LArSoft includes
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
@@ -39,9 +40,7 @@
 namespace neutrinoid {
 
 NuMuCCInclusiveAlg::NuMuCCInclusiveAlg(fhicl::ParameterSet const &pset) :
-    fMyProducerModule(0),
-    fGeometry(lar::providerFrom<geo::Geometry>()),
-    fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
+    fGeometry(lar::providerFrom<geo::Geometry>())
 {
     this->reconfigure(pset);
 }
@@ -61,9 +60,10 @@ void NuMuCCInclusiveAlg::reconfigure(fhicl::ParameterSet const &inputPset)
     fVertexModuleLabel       = pset.get<std::string> ("VertexModuleLabel");
     fOpFlashModuleLabel      = pset.get<std::string> ("OpFlashModuleLabel");
     
-    fDistToEdgeX             = fGeometry->DetHalfWidth()   - pset.get<double>("DistToEdgeX",   10.);
-    fDistToEdgeY             = fGeometry->DetHalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
-    fDistToEdgeZ             = fGeometry->DetLength() / 2. - pset.get<double>("DistToEdgeZ",   10.);
+    auto const& tpc = fGeometry->TPC();
+    fDistToEdgeX             = tpc.HalfWidth()   - pset.get<double>("DistToEdgeX",   10.);
+    fDistToEdgeY             = tpc.HalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
+    fDistToEdgeZ             = tpc.Length() / 2. - pset.get<double>("DistToEdgeZ",   10.);
     
     fFlashWidth              = pset.get<double>      ("FlashWidth",                            80.);
     fBeamMin                 = pset.get<double>      ("BeamMin",                              3.55);
@@ -90,11 +90,10 @@ void NuMuCCInclusiveAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs)
     return;
 }
     
-void NuMuCCInclusiveAlg::produces(art::EDProducer* owner)
+void NuMuCCInclusiveAlg::produces(art::ProducesCollector& collector)
 {
-    fMyProducerModule = owner;
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::Track> >();
-    fMyProducerModule->produces< art::Assns<recob::Vertex, recob::PFParticle> >();
+    collector.produces< art::Assns<recob::Vertex, recob::Track> >();
+    collector.produces< art::Assns<recob::Vertex, recob::PFParticle> >();
 }
 
     
@@ -230,14 +229,14 @@ bool NuMuCCInclusiveAlg::findNeutrinoCandidates(art::Event & event) const
                     art::Ptr<recob::Vertex> vertex(vertexVecHandle,VertexCandidate);
                     art::Ptr<recob::Track>  track(trackVecHandle,TrackCandidate);
                     
-                    util::CreateAssn(*fMyProducerModule, event, track, vertex, *vertexTrackAssociations);
+                    util::CreateAssn(event, track, vertex, *vertexTrackAssociations);
                     
                     // Find the associated PFParticle
                     std::vector<art::Ptr<recob::PFParticle>> pfParticleVec = trackToPFPartAssns.at(track.key());
                     
                     if (!pfParticleVec.empty())
                     {
-                        util::CreateAssn(*fMyProducerModule, event, pfParticleVec[0], vertex, *vertexPFParticleAssociations);
+                        util::CreateAssn(event, pfParticleVec[0], vertex, *vertexPFParticleAssociations);
                     }
                 }
             }
@@ -253,9 +252,10 @@ bool NuMuCCInclusiveAlg::findNeutrinoCandidates(art::Event & event) const
     
 bool NuMuCCInclusiveAlg::inFV(double x, double y, double z) const
 {
-    double distInX = x - fGeometry->DetHalfWidth();
+    auto const& tpc = fGeometry->TPC();
+    double distInX = x - tpc.HalfWidth();
     double distInY = y;
-    double distInZ = z - 0.5 * fGeometry->DetLength();
+    double distInZ = z - 0.5 * tpc.Length();
     
     if (fabs(distInX) < fDistToEdgeX && fabs(distInY) < fDistToEdgeY && fabs(distInZ) < fDistToEdgeZ) return true;
     

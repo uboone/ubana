@@ -1,17 +1,18 @@
 #include "FlashMatchingToolBase_tool.h"
 #include "SliceCandidate.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 
 namespace flashmatch {
-  
+
   class FlashMatchingTool : public FlashMatchingToolBase {
-    
+
   public:
-    
+
     /**
      *  @brief  Default constructor
      *
@@ -23,12 +24,12 @@ namespace flashmatch {
       std::cout << "Called constructor" << std::endl;
       configure(pset);
     }
-    
+
     // default destructor
     ~FlashMatchingTool(){};
-    
+
     void configure(const fhicl::ParameterSet& pset);
-    
+
     /**
      *  @brief  Classify slices as neutrino or cosmic
      *
@@ -36,24 +37,24 @@ namespace flashmatch {
      *  @param  evt the art event
      */
     float ClassifySlice(const art::Event &evt,
-			const std::vector< art::Ptr<recob::PFParticle> > &pfp_v,
-			const std::vector< std::vector<art::Ptr< recob::SpacePoint> > > &spacepoint_v_v,
-			const std::vector< std::vector<art::Ptr<recob::Hit> > > &hit_v_v,
-			std::vector<float>& recospectrum,
-			std::vector<float>& hypospectrum);
+                        const std::vector< art::Ptr<recob::PFParticle> > &pfp_v,
+                        const std::vector< std::vector<art::Ptr< recob::SpacePoint> > > &spacepoint_v_v,
+                        const std::vector< std::vector<art::Ptr<recob::Hit> > > &hit_v_v,
+                        std::vector<float>& recospectrum,
+                        std::vector<float>& hypospectrum);
 
 
     float ClassifyTrack(const art::Event &evt,
-			const std::vector<art::Ptr< recob::SpacePoint> > &spacepoint_v,
-			const std::vector<art::Ptr<recob::Hit> > &hit_v,
-			std::vector<float>& recospectrum,
-			std::vector<float>& hypospectrum);
+                        const std::vector<art::Ptr< recob::SpacePoint> > &spacepoint_v,
+                        const std::vector<art::Ptr<recob::Hit> > &hit_v,
+                        std::vector<float>& recospectrum,
+                        std::vector<float>& hypospectrum);
 
 
   private:
 
     //float Classify(const art::Event &evt, const flashmatch::FlashMatchingTool::SliceCandidate& slice);
-    
+
     // -------------------------------------------------------------------------------------------------------------------------------------
     /**
      *  @brief  A description of the reason the tool couldn't find a neutrino candidate
@@ -67,32 +68,32 @@ namespace flashmatch {
        *  @param  reason the reason for the failure
        */
       FailureMode(const std::string &reason)
-	: m_reason(reason)
+        : m_reason(reason)
       {}
-      
+
       /**
        *  @brief  Default destructor - explains the failure
        */
       ~FailureMode()
       {
-	std::cout << "[Flash neutrino ID] Failed to find neutrino slice: ";
-	std::cout << m_reason << std::endl
-		  << std::endl;
+        std::cout << "[Flash neutrino ID] Failed to find neutrino slice: ";
+        std::cout << m_reason << std::endl
+                  << std::endl;
       }
 
       void Print()
       {
-	std::cout << "[Flash neutrino ID] Failed to find neutrino slice: ";
-	std::cout << m_reason << std::endl
-		  << std::endl;
+        std::cout << "[Flash neutrino ID] Failed to find neutrino slice: ";
+        std::cout << m_reason << std::endl
+                  << std::endl;
       }
-      
+
     private:
       std::string m_reason;  ///< The reason for the failure
     };
-    
+
     // -------------------------------------------------------------------------------------------------------------------------------------
-    
+
     /**
      *  @brief  Class to hold information about the event for monitoring
      */
@@ -106,19 +107,19 @@ namespace flashmatch {
        */
       void Reset(const art::Event &event)
       {
-	m_run = event.run();
-	m_subRun = event.subRun();
-	m_event = event.event();
-	m_nFlashes = -std::numeric_limits<int>::max();
-	m_nFlashesInBeamWindow = -std::numeric_limits<int>::max();
-	m_hasBeamFlash = false;
-	m_nSlices = -std::numeric_limits<int>::max();
-	m_nSlicesAfterPrecuts = -std::numeric_limits<int>::max();
-	m_foundATargetSlice = false;
-	m_targetSliceMethod = -1;
+        m_run = event.run();
+        m_subRun = event.subRun();
+        m_event = event.event();
+        m_nFlashes = -std::numeric_limits<int>::max();
+        m_nFlashesInBeamWindow = -std::numeric_limits<int>::max();
+        m_hasBeamFlash = false;
+        m_nSlices = -std::numeric_limits<int>::max();
+        m_nSlicesAfterPrecuts = -std::numeric_limits<int>::max();
+        m_foundATargetSlice = false;
+        m_targetSliceMethod = -1;
       }
-      
-      
+
+
       int  m_run;                   ///< The run number
       int  m_subRun;                ///< The subRun number
       int  m_event;                 ///< The event number
@@ -129,13 +130,13 @@ namespace flashmatch {
       int  m_nSlicesAfterPrecuts;   ///< The number of slices remaining after the preselection cuts
       bool m_foundATargetSlice;     ///< If a slice was identified as the target (neutrino)
       int  m_targetSliceMethod;     ///< 0: only one slice passed precuts, 1: has best toposcore, 2: has best flashmatchscore
-    };    
-        
+    };
+
     // -------------------------------------------------------------------------------------------------------------------------------------
-    
+
     typedef std::vector<SliceCandidate> SliceCandidateVector;
     typedef std::vector<FlashCandidate> FlashCandidateVector;
-    
+
     /**
      *  @brief  Get the candidate flashes in the event
      *
@@ -150,11 +151,11 @@ namespace flashmatch {
       const auto flashes(*event.getValidHandle<std::vector<recob::OpFlash>>(flashTag));
 
       for (const auto &flash : flashes)
-	flashCandidates.emplace_back(event, flash);
-      
+        flashCandidates.emplace_back(event, flash);
+
       m_outputEvent.m_nFlashes = flashCandidates.size();
     }
-    
+
     /**
      *  @breif  Try to find the brightest flash with sufficent photoelectons that is in time with the beam
      *
@@ -172,41 +173,41 @@ namespace flashmatch {
 
       // Find the brightest flash in the beam window
       for (unsigned int flashIndex = 0; flashIndex < flashCandidates.size(); ++flashIndex)
-	{
-	  // ATTN non const reference is required since monitoring variables are stored in the slice candidate
-	  auto &flashCandidate(flashCandidates.at(flashIndex));
-	  
-	  if (!flashCandidate.IsInBeamWindow(m_beamWindowStart, m_beamWindowEnd))
-	    continue;
-	  
-	  m_outputEvent.m_nFlashesInBeamWindow++;
-	  
-	  const auto totalPE(flashCandidate.m_totalPE);
-	  if (totalPE < maxTotalPE)
-	    continue;
+        {
+          // ATTN non const reference is required since monitoring variables are stored in the slice candidate
+          auto &flashCandidate(flashCandidates.at(flashIndex));
 
-	  foundFlashInBeamWindow = true;
-	  maxTotalPE = totalPE;
-	  brightestFlashIndex = flashIndex;
-	}
-      
+          if (!flashCandidate.IsInBeamWindow(m_beamWindowStart, m_beamWindowEnd))
+            continue;
+
+          m_outputEvent.m_nFlashesInBeamWindow++;
+
+          const auto totalPE(flashCandidate.m_totalPE);
+          if (totalPE < maxTotalPE)
+            continue;
+
+          foundFlashInBeamWindow = true;
+          maxTotalPE = totalPE;
+          brightestFlashIndex = flashIndex;
+        }
+
       if (!foundFlashInBeamWindow)
-	throw FailureMode("There were no flashes in the beam window");
-      
+        throw FailureMode("There were no flashes in the beam window");
+
       // Ensure it is sufficiently bright
       auto &brightestFlash(flashCandidates.at(brightestFlashIndex));
       brightestFlash.m_isBrightestInWindow = true;
-      
+
       if (!brightestFlash.PassesPEThreshold(m_minBeamFlashPE))
-	throw FailureMode("No flashes in the beam window passed the PE threshold");
-      
+        throw FailureMode("No flashes in the beam window passed the PE threshold");
+
       // Save the monitoring information
       brightestFlash.m_isBeamFlash = true;
       m_outputEvent.m_hasBeamFlash = true;
-      
+
       return brightestFlash;
     }
-    
+
     /**
      *  @brief  get the score
      *
@@ -220,37 +221,37 @@ namespace flashmatch {
       //unsigned int bestFlashMatchSliceIndex(std::numeric_limits<unsigned int>::max());
       //unsigned int bestCombinedSliceIndex(std::numeric_limits<unsigned int>::max());
       m_outputEvent.m_nSlicesAfterPrecuts = 0;
-      
+
       /*
       // Apply the pre-selection cuts to ensure that the slice is compatible with the beam flash
       if (!slice.IsCompatibleWithBeamFlash(beamFlash, m_maxDeltaY, m_maxDeltaZ, m_maxDeltaYSigma, m_maxDeltaZSigma,
       m_minChargeToLightRatio, m_maxChargeToLightRatio)) {
-      
+
       std::cout << "Not compatible with beam flash!" << std::endl;
       return 0;
       }
       */
-      
+
       m_outputEvent.m_nSlicesAfterPrecuts++;
-      
+
       // ATTN if there is only one slice that passes the pre-selection cuts, then the score won't be used
       const auto &score(slice.GetFlashMatchScore(beamFlash, m_flashMatchManager));
-      
+
       //foundViableSlice = true;
-      
+
       return score;
     }
-    
+
   private:
-    
+
     std::string  m_flashLabel;    ///< The label of the flash producer
     std::string  m_pandoraLabel;  ///< The label of the allOutcomes pandora producer
-    
+
     // Cuts for selecting the beam flash
     float        m_beamWindowStart;  ///< The start time of the beam window
     float        m_beamWindowEnd;    ///< The end time of the beam window
     float        m_minBeamFlashPE;   ///< The minimum number of photoelectrons required to consider a flash as the beam flash
-    
+
     // Coefficient to account for the x-dependency in the charge light-ratio
     //float        m_xclCoef;          ///< m_xclCoef*log10(chargeToLightRatio)- centerX
 
@@ -290,7 +291,7 @@ namespace flashmatch {
     TTree                                  *m_pFlashTree;          ///< The flash tree
 
   };
-  
+
 
 void FlashMatchingTool::configure(const fhicl::ParameterSet& pset) {
     m_flashLabel = pset.get<std::string>("FlashLabel");
@@ -312,7 +313,7 @@ void FlashMatchingTool::configure(const fhicl::ParameterSet& pset) {
     m_mcParticleLabel = m_hasMCNeutrino ? pset.get<std::string>("MCParticleLabel") : "";
     m_hitLabel = m_hasMCNeutrino ? pset.get<std::string>("HitLabel") : "";
     m_backtrackLabel = m_hasMCNeutrino ? pset.get<std::string>("BacktrackerLabel") : "";
-    m_flashMatchManager.Configure(pset.get<flashana::Config_t>("FlashMatchConfig")); 
+    m_flashMatchManager.Configure(pset.get<flashana::Config_t>("FlashMatchConfig"));
 
 
     // Set up the output branches
@@ -338,16 +339,16 @@ void FlashMatchingTool::configure(const fhicl::ParameterSet& pset) {
   }
 
   float FlashMatchingTool::ClassifySlice(const art::Event &evt,
-					 const std::vector< art::Ptr<recob::PFParticle> > &pfp_v,
-					 const std::vector< std::vector<art::Ptr< recob::SpacePoint> > > &spacepoint_v_v,
-					 const std::vector< std::vector<art::Ptr<recob::Hit> > > &hit_v_v,
-					 std::vector<float>& recospectrum,
-					 std::vector<float>& hypospectrum)
+                                         const std::vector< art::Ptr<recob::PFParticle> > &pfp_v,
+                                         const std::vector< std::vector<art::Ptr< recob::SpacePoint> > > &spacepoint_v_v,
+                                         const std::vector< std::vector<art::Ptr<recob::Hit> > > &hit_v_v,
+                                         std::vector<float>& recospectrum,
+                                         std::vector<float>& hypospectrum)
 
   {
     // Reset the output addresses in case we are writing monitoring details to an output file
     //m_outputEvent.Reset(evt);
-    
+
     // create slice candidate
     SliceCandidate slice(pfp_v, spacepoint_v_v, hit_v_v, m_chargeToNPhotonsTrack, m_chargeToNPhotonsShower);
 
@@ -357,121 +358,119 @@ void FlashMatchingTool::configure(const fhicl::ParameterSet& pset) {
 
       FlashCandidateVector flashCandidates;
       FlashCandidate beamFlash;
-      
+
       float score = 0;
-      
+
       try
-	{
-	  // Find the flash, if any, in time with the beam with the largest number of photoelectrons that is sufficiently bright
-	  this->GetFlashCandidates(evt, flashCandidates);
-	  beamFlash = this->GetBeamFlash(flashCandidates);
-	}
+        {
+          // Find the flash, if any, in time with the beam with the largest number of photoelectrons that is sufficiently bright
+          this->GetFlashCandidates(evt, flashCandidates);
+          beamFlash = this->GetBeamFlash(flashCandidates);
+        }
       catch (...)//const FailureMode &)
-	{
-	  return score;
-	  //std::cout << "Failure!" << std::endl;
-	}
+        {
+          return score;
+          //std::cout << "Failure!" << std::endl;
+        }
       try
-	{
-	  if (m_outputEvent.m_hasBeamFlash)
-	    {
-	      // get score for match
-	      score = this->GetSliceScore(beamFlash, slice);
+        {
+          if (m_outputEvent.m_hasBeamFlash)
+            {
+              // get score for match
+              score = this->GetSliceScore(beamFlash, slice);
 
-	      recospectrum = beamFlash.m_peSpectrum;
-	      hypospectrum = beamFlash.m_peHypSpectrum;
+              recospectrum = beamFlash.m_peSpectrum;
+              hypospectrum = beamFlash.m_peHypSpectrum;
 
-	      if (m_pFlashTree){
-		m_outputFlash = beamFlash;
-		m_pFlashTree->Fill();
-	      }
+              if (m_pFlashTree){
+                m_outputFlash = beamFlash;
+                m_pFlashTree->Fill();
+              }
 
-	    }
-	  else
-	    {
-	      std::cout << "No beam flash!" << std::endl;
-	      slice.m_isConsideredByFlashId = 0;
-	    }
-	}
+            }
+          else
+            {
+              std::cout << "No beam flash!" << std::endl;
+              slice.m_isConsideredByFlashId = 0;
+            }
+        }
       catch (const FailureMode &)
-	{
-	  //std::cout << "Failure 2!" << std::endl;
-	}
-      
-      
+        {
+          //std::cout << "Failure 2!" << std::endl;
+        }
+
+
       return score;
 
   }
 
 
   float FlashMatchingTool::ClassifyTrack(const art::Event &evt,
-					 const std::vector<art::Ptr< recob::SpacePoint> > &spacepoint_v,
-					 const std::vector<art::Ptr<recob::Hit> > &hit_v,
-					 std::vector<float>& recospectrum,
-					 std::vector<float>& hypospectrum)
+                                         const std::vector<art::Ptr< recob::SpacePoint> > &spacepoint_v,
+                                         const std::vector<art::Ptr<recob::Hit> > &hit_v,
+                                         std::vector<float>& recospectrum,
+                                         std::vector<float>& hypospectrum)
 
 
   {
     // Reset the output addresses in case we are writing monitoring details to an output file
     //m_outputEvent.Reset(evt);
-    
+
     // create slice candidate
     SliceCandidate slice(spacepoint_v, hit_v, m_chargeToNPhotonsTrack, m_chargeToNPhotonsShower);
 
       FlashCandidateVector flashCandidates;
       FlashCandidate beamFlash;
-      
+
       float score = 0;
-      
+
       try
-	{
-	  // Find the flash, if any, in time with the beam with the largest number of photoelectrons that is sufficiently bright
-	  this->GetFlashCandidates(evt, flashCandidates);
-	  beamFlash = this->GetBeamFlash(flashCandidates);
-	}
+        {
+          // Find the flash, if any, in time with the beam with the largest number of photoelectrons that is sufficiently bright
+          this->GetFlashCandidates(evt, flashCandidates);
+          beamFlash = this->GetBeamFlash(flashCandidates);
+        }
       catch ( FailureMode &exc)
-	{
-	  exc.Print();
-	  return score;
-	  //std::cout << "Failure!" << std::endl;
-	}
+        {
+          exc.Print();
+          return score;
+          //std::cout << "Failure!" << std::endl;
+        }
       try
-	{
-	  if (m_outputEvent.m_hasBeamFlash)
-	    {
-	      // get score for match
-	      score = this->GetSliceScore(beamFlash, slice);
+        {
+          if (m_outputEvent.m_hasBeamFlash)
+            {
+              // get score for match
+              score = this->GetSliceScore(beamFlash, slice);
 
-	      recospectrum = beamFlash.m_peSpectrum;
-	      hypospectrum = beamFlash.m_peHypSpectrum;
+              recospectrum = beamFlash.m_peSpectrum;
+              hypospectrum = beamFlash.m_peHypSpectrum;
 
-	      if (m_pFlashTree){
-		m_outputFlash = beamFlash;
-		m_pFlashTree->Fill();
-	      }
-	    }
-	  else
-	    {
-	      std::cout << "No beam flash!" << std::endl;
-	      slice.m_isConsideredByFlashId = 0;
-	    }
-	}
+              if (m_pFlashTree){
+                m_outputFlash = beamFlash;
+                m_pFlashTree->Fill();
+              }
+            }
+          else
+            {
+              std::cout << "No beam flash!" << std::endl;
+              slice.m_isConsideredByFlashId = 0;
+            }
+        }
       catch (const FailureMode &)
-	{
-	  //std::cout << "Failure 2!" << std::endl;
-	}
-      
+        {
+          //std::cout << "Failure 2!" << std::endl;
+        }
 
 
-      
+
+
       return score;
 
     //return Classify(evt, slice);
   }
 
-    
-    
-  DEFINE_ART_CLASS_TOOL(FlashMatchingTool)  
+
+
+  DEFINE_ART_CLASS_TOOL(FlashMatchingTool)
 } // end namespace
-
-

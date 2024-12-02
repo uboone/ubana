@@ -18,9 +18,9 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileDirectory.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -125,7 +125,8 @@ LEEPhotonAnalysis::LEEPhotonAnalysis(fhicl::ParameterSet const & p) :
   fspec_event(UINT_MAX),
   fvq(ftrack_producer,
       fshower_producer,
-      frmcm) {
+      frmcm),
+  fftv{art::ServiceHandle<geo::Geometry>()->TPC()} {
 
   art::ServiceHandle<art::TFileService> tfs;
   fPOTtree = tfs->make<TTree>("get_pot", "");

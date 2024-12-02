@@ -1,120 +1,272 @@
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-include_directories( $ENV{PANDORA_INC} )
-include_directories( $ENV{LARPANDORACONTENT_INC} )
+cet_build_plugin(
+  ACPTTagger art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubreco::UBFlashFinder
+  ubobj::Trigger
+  larpandora::LArPandoraInterface
+  larevt::SpaceChargeService
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
-# define ROOTLIB
-set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl)
+cet_build_plugin(
+  CandidateConsistency art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_Algorithms
+  ubana::UBXSec_HitCosmicTag_Algorithms
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
+  ubcore::LLBasicTool_GeoAlgo
+  ubobj::UBXSec
+  ubevt::Utilities_SignalShapingServiceMicroBooNE_service
+  larpandora::LArPandoraInterface
+  larreco::RecoAlg
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
-link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
+cet_build_plugin(
+  CosmicFlashMatch art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_Algorithms
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
+  ubcore::Geometry
+  ubobj::UBXSec
+  larpandora::LArPandoraInterface
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
-art_make( BASENAME_ONLY
-          LIBRARY_NAME     uboonecode_uboone_UBXSec
-          LIB_LIBRARIES
-                   uboonecode_uboone_UBXSec_Algorithms
-                   ubobj_UBXSec
-                   ubobj_Trigger
-                   HitCosmicTag_Base 
-                   HitCosmicTag_Algorithms
-                   ubana_BasicTool_GeoAlgo
-                   uboone_UBFlashFinder
-		   ubreco_SelectionTool_OpT0FinderBase
-		   ubreco_SelectionTool_OpT0FinderAlgorithms
-	  	   larcorealg_Geometry
-		   larcore_Geometry_Geometry_service
-                   ubraw_RawData
-                   SignalShapingServiceMicroBooNE_service
-                   larevt_CalibrationDBI_IOVData
-                   larevt_CalibrationDBI_Providers
-                   larsim_MCCheater_BackTrackerService_service
-                   larreco_RecoAlg
-                   #Simulation
-		   #Utilities
-		   #TimeService_service
-		   #MCBase
-                   lardataobj_RawData
-		   lardataobj_RecoBase
-                   lardataobj_AnalysisBase
-                   lardata_Utilities
-                   larpandora_LArPandoraInterface
-                   nusimdata_SimulationBase
-                   ${PANDORASDK}
-                   ${PANDORAMONITORING}
-                   #larpandora_LArPandoraContent
-                   ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
-		   ${ART_FRAMEWORK_CORE}
-		   ${ART_FRAMEWORK_PRINCIPAL}
-                   ${ART_FRAMEWORK_BASIC}
-		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                   art_Persistency_Common canvas
-                   art_Persistency_Provenance canvas
-                   art_Utilities canvas
-                   ${ART_PERSISTENCY_COMMON}
-		   ${ART_PERSISTENCY_PROVENANCE}
-		   ${ART_UTILITIES}
-		   ${MF_MESSAGELOGGER}
-		   
-		   ${FHICLCPP}
-		   cetlib cetlib_except
-		   ${ROOT_GEOM}
-		   ${ROOT_XMLIO}
-		   ${ROOT_GDML}
-		   ${ROOT_BASIC_LIB_LIST}
-                   ${ROOT_EG}
+cet_build_plugin(
+  CosmicTaggerAna art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_Algorithms
+  ubobj::UBXSec
+  larpandora::LArPandoraInterface
+  lardata::Utilities
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
 
-          MODULE_LIBRARIES
-                   uboonecode_uboone_UBXSec_Algorithms 
-                   ubobj_UBXSec
-		   ubobj_Trigger
-                   HitCosmicTag_Base
-                   HitCosmicTag_Algorithms
-                   #uboonecode_uboone_UBXSec
-                   larsim_MCCheater_BackTrackerService_service
-		   larpandora_LArPandoraInterface
-                   #                   larpandora_LArPandoraContent
+cet_build_plugin(
+  CosmicTrackHitTagger art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_Algorithms
+  ubobj::Trigger
+  larpandora::LArPandoraInterface
+  lardata::Utilities
+  lardataobj::RecoBase
+)
 
-		   ubana_BasicTool_GeoAlgo
-		   ubreco_SelectionTool_OpT0FinderBase
-		   ubreco_SelectionTool_OpT0FinderAlgorithms
-                   uboone_UBFlashFinder
+cet_build_plugin(
+  DeDxAna art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_Algorithms
+  ubobj::UBXSec
+  larpandora::LArPandoraInterface
+  larevt::DetPedestalService
+  lardata::Utilities
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
 
-                   ubraw_RawData
-                   larreco_RecoAlg
-                   SignalShapingServiceMicroBooNE_service
-                   larevt_CalibrationDBI_IOVData
-                   larevt_CalibrationDBI_Providers
-	  	   larcorealg_Geometry
-		   larcore_Geometry_Geometry_service
-		   lardataobj_RecoBase
-                   lardataobj_AnalysisBase
-                   lardata_Utilities
-                   larsim_Simulation lardataobj_Simulation 
-                   nusimdata_SimulationBase
-		   ${UBOONECODE_LIB}
-		   ${LARDATA_LIB}
-		   ${ART_FRAMEWORK_CORE}
-		   ${ART_FRAMEWORK_PRINCIPAL}
-                   ${ART_FRAMEWORK_BASIC}
-		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		   ${ART_PERSISTENCY_COMMON}
-		   ${ART_PERSISTENCY_PROVENANCE}
-		   ${ART_UTILITIES}
-		   ${MF_MESSAGELOGGER}
-		   
-		   ${FHICLCPP}
-		   cetlib cetlib_except
-		   ${ROOT_GEOM}
-		   ${ROOT_XMLIO}
-		   ${ROOT_GDML}
-		   ${ROOT_BASIC_LIB_LIST}
-                   ${ROOT_EG}
-                   )
+cet_build_plugin(
+  FlashMatchCalib art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
+  ubcore::Geometry
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  GeoCosmicTagger art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubobj::UBXSec
+  lardata::Utilities
+  lardata::LArPropertiesService
+  lardata::DetectorPropertiesService
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+)
+
+cet_build_plugin(
+  InTimeStudy art::EDProducer
+  LIBRARIES
+  PRIVATE
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  nusimdata::SimulationBase
+)
+
+cet_build_plugin(
+  NeutrinoFlashMatch art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_Algorithms
+  ubreco::LLSelectionTool_OpT0Finder_Algorithms
+  ubcore::Geometry
+  ubobj::UBXSec
+  larpandora::LArPandoraInterface
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  NeutrinoMCFlash art::EDProducer
+  LIBRARIES
+  PRIVATE
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  nusimdata::SimulationBase
+)
+
+cet_build_plugin(
+  PhotonActivity art::EDProducer
+  LIBRARIES
+  PRIVATE
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  RecoTrueMatcher art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_Algorithms
+  ubobj::UBXSec
+  larpandora::LArPandoraInterface
+  larsim::MCCheater_ParticleInventoryService_service
+  lardata::Utilities
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  nusimdata::SimulationBase
+)
+
+cet_build_plugin(
+  SimpleAna art::EDAnalyzer
+  LIBRARIES
+  PRIVATE
+  ubcore::LLBasicTool_GeoAlgo
+  ubobj::UBXSec
+  larsim::EventWeight_Base
+  larcore::Geometry_Geometry_service
+  art_root_io::TFileService_service
+  nusimdata::SimulationBase
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  StoppingMuonTagger art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_HitCosmicTag_Algorithms
+  ubana::Utilities
+  ubreco::UBFlashFinder
+  ubobj::UBXSec
+  larpandora::LArPandoraInterface
+  larreco::RecoAlg
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  art_root_io::TFileService_service
+  ROOT::Tree
+)
+
+cet_build_plugin(
+  TPCObjectMaker art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_Algorithms
+  ubcore::LLBasicTool_GeoAlgo
+  ubobj::UBXSec
+  larpandora::LArPandoraInterface
+  larsim::MCCheater_BackTrackerService_service
+  lardata::Utilities
+  larcore::Geometry_Geometry_service
+  lardataobj::RecoBase
+  nusimdata::SimulationBase
+)
+
+cet_build_plugin(
+  UBXSec art::EDProducer
+  LIBRARIES
+  PRIVATE
+  ubana::UBXSec_Algorithms
+  ubreco::UBFlashFinder
+  ubevt::Utilities
+  ubobj::UBXSec
+  ubobj::Trigger
+  larpandora::LArPandoraInterface
+  larreco::RecoAlg
+  larsim::EventWeight_Base
+  larevt::SpaceChargeService
+  lardata::Utilities
+  lardata::DetectorPropertiesService
+  lardata::DetectorClocksService
+  larcore::Geometry_Geometry_service
+  lardataobj::RawData
+  lardataobj::RecoBase
+  lardataobj::AnalysisBase
+  nug4::ParticleNavigation
+  art_root_io::TFileService_service
+  ROOT::Tree
+  ROOT::EG
+)
 
 install_headers()
 install_fhicl()
 install_source()
-

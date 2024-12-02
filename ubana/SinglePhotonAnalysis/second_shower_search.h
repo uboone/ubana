@@ -1,3 +1,6 @@
+#ifndef UBANA_SINGLEPHOTONANALYSIS_SECOND_SHOWER_SEARCH_H
+#define UBANA_SINGLEPHOTONANALYSIS_SECOND_SHOWER_SEARCH_H
+
 #include "SinglePhoton_module.h"
 #include "TCanvas.h"
 #include "TGraph.h"
@@ -16,7 +19,7 @@ namespace single_photon
 
 
 
-    void SinglePhoton::ClearSecondShowers(){
+    inline void SinglePhoton::ClearSecondShowers(){
         m_sss_num_unassociated_hits=0;
         m_sss_num_unassociated_hits_below_threshold=0;
         m_sss_num_associated_hits=0;
@@ -56,7 +59,7 @@ namespace single_photon
         m_sss_candidate_remerge.clear();
     }
 
-    void SinglePhoton::ClearStubs(){
+    inline void SinglePhoton::ClearStubs(){
 	m_trackstub_num_unassociated_hits = 0; 
         m_trackstub_unassociated_hits_below_threshold = 0; 
         m_trackstub_associated_hits=0; 
@@ -102,12 +105,12 @@ namespace single_photon
         m_trackstub_candidate_group_timeoverlap_fraction.clear();   
     }
 
-    void SinglePhoton::ResizeSecondShowers(size_t size){
+    inline void SinglePhoton::ResizeSecondShowers(size_t size){
 
     }
 
 
-    void SinglePhoton::CreateSecondShowerBranches(){
+    inline void SinglePhoton::CreateSecondShowerBranches(){
         vertex_tree->Branch("sss_num_unassociated_hits",&m_sss_num_unassociated_hits,"sss_num_unassociated_hits/I");
         vertex_tree->Branch("sss_num_unassociated_hits_below_threshold",&m_sss_num_unassociated_hits_below_threshold,"sss_num_unassociated_hits_below_threshold/I");
         vertex_tree->Branch("sss_num_associated_hits",&m_sss_num_associated_hits,"sss_num_associated_hits/I");
@@ -192,7 +195,7 @@ namespace single_photon
 
     }
 
-    void SinglePhoton::CreateStubBranches(){
+    inline void SinglePhoton::CreateStubBranches(){
 
         vertex_tree->Branch("trackstub_num_unassociated_hits",&m_trackstub_num_unassociated_hits,"trackstub_num_unassociated_hits/I");
         vertex_tree->Branch("trackstub_unassociated_hits_below_threshold",&m_trackstub_unassociated_hits_below_threshold,"trackstub_unassociated_hits_below_threshold/I");
@@ -243,7 +246,7 @@ namespace single_photon
 
 
 
-    void SinglePhoton::SecondShowerSearch(
+    inline void SinglePhoton::SecondShowerSearch(
             const std::vector<art::Ptr<recob::Track>>& tracks, std::map<art::Ptr<recob::Track>, art::Ptr<recob::PFParticle>> & trackToPFParticleMap,
             const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>, art::Ptr<recob::PFParticle>> & showerToPFParticleMap,
             const std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,  
@@ -475,11 +478,10 @@ namespace single_photon
             }
 
             std::cout<<"SinglePhoton::SSS\t||\tTick Min: "<<tick_min<<" Max: "<<tick_max<<std::endl;
-            auto const TPC = (*geom).begin_TPC();
-            auto ID = TPC.ID();
+            auto const ID = *geom->begin<geo::TPCID>();
             int fCryostat = ID.Cryostat;
             int fTPC = ID.TPC;
-            std::cout<<"SinglePhoton::SSS\t||\t" << TPC.ID() << "= the beginning TPC ID" <<std::endl;
+            std::cout<<"SinglePhoton::SSS\t||\t" << ID << "= the beginning TPC ID" <<std::endl;
             std::cout<<"SinglePhoton::SSS\t||\tthe cryostat id = " << fCryostat << std::endl;  
             std::cout<<"SinglePhoton::SSS\t||\tthe tpc id = " << fTPC << std::endl;  
 
@@ -496,8 +498,8 @@ namespace single_photon
 
                 if(i==0 || i ==4 || i == 8) pader->SetLeftMargin(0.1);
 
-                std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *geom)};
-                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, *theDetector)};
+                std::vector<double> wire = {(double)calcWire(m_vertex_pos_y, m_vertex_pos_z, i, fTPC, fCryostat, *m_channelMap)};
+                std::vector<double> time = {calcTime(m_vertex_pos_x, i, fTPC,fCryostat, theDetector)};
 
                 vertex_time[i] = time[0];
                 vertex_wire[i] = wire[0];
@@ -541,7 +543,7 @@ namespace single_photon
                 int ok = bad_channel_list_fixed_mcc9[i].second;       
 
                 if(ok>1)continue;
-                auto hs = geom->ChannelToWire(badchan);
+                auto hs = m_channelMap->ChannelToWire(badchan);
 
                 //std::cout<<"KNK: "<<bc<<" "<<hs[0]<<" "<<result.start().X()<<" "<<result.start().Y()<<" "<<result.start().Z()<<" "<<result.end().X()<<" "<<result.end().Y()<<" "<<result.end().Z()<<std::endl; 
                 int thisp = (int)hs[0].Plane;
@@ -818,7 +820,7 @@ namespace single_photon
 
                     double mean_summed_ADC = 0.0;
                     for(auto &h:hitz){
-                        mean_summed_ADC +=h->SummedADC();
+                        mean_summed_ADC +=h->ROISummedADC();
                     }
                     mean_summed_ADC = mean_summed_ADC/(double)num_hits_in_cluster;
 
@@ -887,8 +889,8 @@ namespace single_photon
                             //cluster closest point )ssscorz.close_wire and close_tick
                             //recob::Shower start point, convered to wire tick.
 
-                            double shr_wire = (double)calcWire(m_reco_shower_starty[0], m_reco_shower_startz[0], i, fTPC, fCryostat, *geom);
-                            double shr_time = calcTime(m_reco_shower_startx[0], i, fTPC,fCryostat, *theDetector);
+                            double shr_wire = (double)calcWire(m_reco_shower_starty[0], m_reco_shower_startz[0], i, fTPC, fCryostat, *m_channelMap);
+                            double shr_time = calcTime(m_reco_shower_startx[0], i, fTPC,fCryostat, theDetector);
 
                             std::vector<double> vec_c = {(double)(vertex_wire[i]-ssscorz.close_wire), (double)(vertex_time[i]-ssscorz.close_tick)};
                             std::vector<double> vec_s = {(double)vertex_wire[i]-shr_wire, (double)vertex_time[i]-shr_time};
@@ -1065,7 +1067,7 @@ namespace single_photon
 
 
 
-    TGraph* SinglePhoton::GetNearestNpts(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hitz, double vertex_wire, double vertex_tick, int Npts){
+    inline TGraph* SinglePhoton::GetNearestNpts(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hitz, double vertex_wire, double vertex_tick, int Npts){
 
         std::vector<double>t_wire;
         std::vector<double>t_tick;
@@ -1098,7 +1100,7 @@ namespace single_photon
         return new TGraph(t_wire.size(),&t_wire[0],&t_tick[0]);
     }
 
-    sss_score SinglePhoton::ScoreCluster(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hits, double vertex_wire, double vertex_tick, const art::Ptr<recob::Shower> &shower){
+    inline sss_score SinglePhoton::ScoreCluster(int p, int cl, std::vector<art::Ptr<recob::Hit>> &hits, double vertex_wire, double vertex_tick, const art::Ptr<recob::Shower> &shower){
         sss_score score(p,cl);
         score.n_hits = hits.size();
 
@@ -1249,7 +1251,7 @@ namespace single_photon
         return score;
     }
 
-    int SinglePhoton::CompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,
+    inline int SinglePhoton::CompareToShowers(int p ,int cl, std::vector<art::Ptr<recob::Hit>>& hitz,double vertex_wire,double vertex_tick,
             const std::vector<art::Ptr<recob::Shower>>& showers, std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & showerToPFParticleMap,      const   std::map<art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,                    double eps){
 
 
@@ -1295,7 +1297,7 @@ namespace single_photon
 
 
 
-    std::vector<double>SinglePhoton::SecondShowerMatching(
+    inline std::vector<double> SinglePhoton::SecondShowerMatching(
 	    std::vector<art::Ptr<recob::Hit>>& hitz,
             art::FindManyP<simb::MCParticle,anab::BackTrackerHitMatchingData>& mcparticles_per_hit,
             std::vector<art::Ptr<simb::MCParticle>>& mcParticleVector,
@@ -1315,7 +1317,8 @@ namespace single_photon
 
         //energy for an MCParticle that comprises the most energy when sum over associated hits in PFP
         //total energy of the reco PFP taken from the sum of the hits associated to an MCParticle
-        double maxe=-1, tote=0;                
+        // double maxe=-1, tote=0;                // tote is unused
+        double maxe=-1;
 
         std::vector<double> total_energy_on_plane = {0.0,0.0,0.0};
         art::Ptr<simb::MCParticle> best_matched_mcparticle; //pointer for the MCParticle match we will calculate
@@ -1355,7 +1358,7 @@ namespace single_photon
                     map_asso_mcparticles_energy[particle_vec[i_p]][which_plane] += match_vec[i_p]->energy;
                 }
                 //add the energy of the back tracked hit to the total energy for the PFP
-                tote += match_vec[i_p]->energy; //calculate total energy deposited
+                // tote += match_vec[i_p]->energy; //calculate total energy deposited // unused
                 total_energy_on_plane[which_plane]+=match_vec[i_p]->energy;
 
                 //want the MCParticle with the max total energy summed from the back tracker hit energy from hits in PFP
@@ -1560,7 +1563,7 @@ namespace single_photon
 
     //************************************************ Shower Search Slice Second SSS3D ********** /
 
-    void SinglePhoton::ClearSecondShowers3D(){
+    inline void SinglePhoton::ClearSecondShowers3D(){
 
         m_sss3d_num_showers = 0;
         m_sss3d_shower_start_x.clear();
@@ -1582,7 +1585,7 @@ namespace single_photon
     }
 
 
-    void SinglePhoton::CreateSecondShowerBranches3D(){
+    inline void SinglePhoton::CreateSecondShowerBranches3D(){
         vertex_tree->Branch("sss3d_num_showers",&m_sss3d_num_showers,"sss3d_num_showers/I");
 
         vertex_tree->Branch("sss3d_shower_start_x",&m_sss3d_shower_start_x);
@@ -1605,7 +1608,7 @@ namespace single_photon
     }
 
 
-    void SinglePhoton::SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>,  art::Ptr<recob::PFParticle>> & NormalTrackToPFParticleMap, art::Event const & evt ){
+    inline void SinglePhoton::SecondShowerSearch3D(std::vector<art::Ptr<recob::Shower>> & showers,std::map<art::Ptr<recob::Shower>,  art::Ptr<recob::PFParticle>> & NormalShowerToPFParticleMap,  std::vector<art::Ptr<recob::Track>> & tracks, std::map<art::Ptr<recob::Track>,  art::Ptr<recob::PFParticle>> & NormalTrackToPFParticleMap, art::Event const & evt ){
 
         std::string sss3dlabel = "allShr";//"pandoraAllOutcomesShower"
         double max_conv_dist = 80.0;
@@ -1744,7 +1747,7 @@ namespace single_photon
 
 
 
-    void SinglePhoton::SimpleSecondShowerCluster(){
+    inline void SinglePhoton::SimpleSecondShowerCluster(){
 
         std::string base = "sss3d_";
         std::vector<std::string> mod = {"ioc_ranked","invar_ranked"};
@@ -1982,7 +1985,7 @@ namespace single_photon
                     double mean_energy = 0.0;
 
                     double mean_impact = 0.0;
-                    double mean_conv = 0.0;
+                    // double mean_conv = 0.0; // unused
                     double min_conv = 999;
 
                     double min_impact = 999;
@@ -2010,7 +2013,7 @@ namespace single_photon
                         mean_min_dist +=m_sss_candidate_min_dist.at(ic)/(double)nt;
                         mean_energy +=m_sss_candidate_energy.at(ic)/(double)nt;
                         mean_impact +=m_sss_candidate_impact_parameter.at(ic)/(double)nt;
-                        mean_conv +=m_sss_candidate_min_dist.at(ic)/(double)nt;
+                        // mean_conv +=m_sss_candidate_min_dist.at(ic)/(double)nt; // unused
                         mean_invar +=eff_invar/(double)nt;
                         mean_invar_diff +=eff_invar_diff/(double)nt;
 
@@ -2073,7 +2076,7 @@ namespace single_photon
 
 
    
-    std::pair<bool, std::vector<double>> SinglePhoton::clusterCandidateOverlap(const std::vector<int> & candidate_indices, const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks){
+    inline std::pair<bool, std::vector<double>> SinglePhoton::clusterCandidateOverlap(const std::vector<int> & candidate_indices, const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks){
 
         size_t size = candidate_indices.size();
 	if(size == 0){
@@ -2123,7 +2126,7 @@ namespace single_photon
     }
 
    
-    std::pair<int, std::pair<std::vector<std::vector<double>>, std::vector<double>>> SinglePhoton::GroupClusterCandidate(int num_clusters,  const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks){
+    inline std::pair<int, std::pair<std::vector<std::vector<double>>, std::vector<double>>> SinglePhoton::GroupClusterCandidate(int num_clusters,  const std::vector<int>& cluster_planes, const std::vector<double>& cluster_max_ticks, const std::vector<double>& cluster_min_ticks){
 	std::cout << "SinglePhoton::group_cluster_candidate\t|| Total of " << num_clusters << " to be grouped" << std::endl;
 
 	int num_cluster_groups=0; // number of matched cluster groups in total
@@ -2166,3 +2169,5 @@ namespace single_photon
     } 
 
 }
+
+#endif

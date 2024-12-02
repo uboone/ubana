@@ -22,8 +22,9 @@
 
 // Framework Includes
 #include "art/Framework/Core/EDProducer.h"
+#include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 // LArSoft includes
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
@@ -44,12 +45,11 @@
 
 namespace neutrinoid {
 
-Cluster2DNuAlg::Cluster2DNuAlg(fhicl::ParameterSet const &pset) : fMyProducerModule(0)
+Cluster2DNuAlg::Cluster2DNuAlg(fhicl::ParameterSet const &pset)
 {
     this->reconfigure(pset);
     
     m_geometry = lar::providerFrom<geo::Geometry>();
-    m_detector = lar::providerFrom<detinfo::DetectorPropertiesService>();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -81,12 +81,11 @@ void Cluster2DNuAlg::reconfigure(fhicl::ParameterSet const &pset)
     
 void Cluster2DNuAlg::beginJob(art::ServiceHandle<art::TFileService>& tfs) {}
     
-void Cluster2DNuAlg::produces(art::EDProducer* owner)
+void Cluster2DNuAlg::produces(art::ProducesCollector& collector)
 {
-    fMyProducerModule = owner;
     //fMyProducerModule->produces< std::vector<anab::CosmicTag> >();
     //fMyProducerModule->produces< std::vector<recob::Cluster> >();
-    fMyProducerModule->produces< art::Assns <anab::CosmicTag, recob::Cluster> >();
+    collector.produces< art::Assns <anab::CosmicTag, recob::Cluster> >();
     //fMyProducerModule->produces< art::Assns <recob::Cluster, recob::Cluster> >();
 }
 
@@ -282,7 +281,7 @@ bool Cluster2DNuAlg::findNeutrinoCandidates(art::Event & event) const
                 	if (!cosmicVec.empty())
                 	{
                             art::Ptr<anab::CosmicTag>& cosmicTag(cosmicVec.front());
-                            util::CreateAssn(*fMyProducerModule, event, cosmicTag, clusterPtrVec, *cosmicClusterAssociations);
+                            util::CreateAssn(event, cosmicTag, clusterPtrVec, *cosmicClusterAssociations);
                 	                                    
 				
 			}

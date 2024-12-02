@@ -1,11 +1,27 @@
-set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore  -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl)
-link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} ${ROOTLIB} )
-art_make( BASENAME_ONLY
-   	      LIBRARY_NAME     HitCosmicTag_Base
-	      LIB_LIBRARIES
-	      ${ROOT_BASIC_LIB_LIST}
-	      ${FHICLCPP}
-              cetlib cetlib_except
-	    )
+cet_make_library(
+  SOURCE
+  BaseAlgorithm.cxx
+  BaseDqDsCalculatorAlgo.cxx
+  BaseDqDsSmootherAlgo.cxx
+  BaseHitOrdererAlgo.cxx
+  BaseHitSmootherAlgo.cxx
+  BaseLocalLinearityCalculatorAlgo.cxx
+  BaseStartHitFinderAlgo.cxx
+  CosmicTagManager.cxx
+  CustomAlgoFactory.cxx
+  DqDsCalculatorFactory.cxx
+  DqDsSmootherFactory.cxx
+  HitCosmicTagException.cxx
+  HitCosmicTagLogger.cxx
+  HitOrdererFactory.cxx
+  HitSmootherFactory.cxx
+  LocalLinearityCalculatorFactory.cxx
+  StartHitFinderFactory.cxx
+  Tools.cxx
+  LIBRARIES
+  PUBLIC
+  fhiclcpp::fhiclcpp
+)
+
 install_headers()
 install_source()

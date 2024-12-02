@@ -36,15 +36,17 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
+#include <algorithm>
 #include <memory>
 
 // Data products include
@@ -77,7 +79,6 @@
 //Algorithms include
 #include "ubana/UBXSec/Algorithms/UBXSecHelper.h"
 #include "ubcore/LLBasicTool/GeoAlgo/GeoTrajectory.h"
-#include "ubana/UBXSec/Algorithms/FiducialVolume.h"
 #include "ubana/UBXSec/Algorithms/StoppingMuonTaggerHelper.h"
 #include "ubana/UBXSec/HitCosmicTag/Base/DataTypes.h"
 #include "ubana/UBXSec/HitCosmicTag/Base/CosmicTagManager.h"
@@ -143,19 +144,19 @@ private:
 
   ::flashana::FlashMatchManager       _mgr;
 
-  void ContainPoint(double *);
+  void ContainPoint(geo::Point_t&);
   std::vector<double> GetFlashHypo(art::Ptr<recob::Track>, double);
   bool IsCathodeCrossing(art::Ptr<recob::Track>, double &);
 
   ::art::ServiceHandle<geo::Geometry> geo;
-  ::detinfo::DetectorProperties const* fDetectorProperties;
+  geo::WireReadoutGeom const* _channelMap = &art::ServiceHandle<geo::WireReadout const>()->Get();
 
   ::cosmictag::CosmicTagManager _ct_manager;
 
 };
 
 
-CandidateConsistency::CandidateConsistency(fhicl::ParameterSet const & p)
+CandidateConsistency::CandidateConsistency(fhicl::ParameterSet const & p) : EDProducer{p}
 {
 
   _tpcobject_producer        = p.get<std::string>("TPCObjectProducer",  "TPCObjectMaker::UBXSec");
@@ -177,8 +178,6 @@ CandidateConsistency::CandidateConsistency(fhicl::ParameterSet const & p)
 
   _mgr.Configure(p.get<flashana::Config_t>("FlashMatchConfig"));
 
-  fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
-
   produces< std::vector<anab::CosmicTag>>();
   produces< art::Assns<ubana::TPCObject, anab::CosmicTag>>();
 
@@ -197,7 +196,7 @@ void CandidateConsistency::produce(art::Event & e)
   // Construct map wire->channel for collection plane
   std::map<int,int> wire_to_channel;
   for (unsigned int ch = 0; ch < 8256; ch++) {
-    for ( auto wire_id : geo->ChannelToWire(ch)) {
+    for ( auto wire_id : _channelMap->ChannelToWire(ch)) {
       if (wire_id.Plane == 2) {
         wire_to_channel[wire_id.Wire] = ch;
       }
@@ -228,6 +227,7 @@ void CandidateConsistency::produce(art::Event & e)
   lar_pandora::ShowersToHits showers_to_hits;
   lar_pandora::LArPandoraHelper::CollectShowers(e, _shower_producer, shower_v, showers_to_hits);
 
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e);
 
   for (size_t i = 0; i < tpcobj_v.size(); i++) {
 
@@ -264,21 +264,21 @@ void CandidateConsistency::produce(art::Event & e)
     // Collect objects that are close to the vertex
     //
     std::vector<art::Ptr<recob::Track>>  selected_tracks;
-    std::vector<TVector3>                selected_tracks_vertex;
+    std::vector<geo::Point_t>            selected_tracks_vertex;
     std::vector<art::Ptr<recob::Shower>> selected_showers;
-    std::vector<TVector3>                selected_showers_vertex;
+    std::vector<geo::Point_t>            selected_showers_vertex;
 
     // 1) Tracks
     for (auto t : tracks) {
 
       if ( (t->Vertex<TVector3>() - vtx_xyz).Mag() < _tolerance ) {
         selected_tracks.push_back(t);
-        selected_tracks_vertex.push_back(t->Vertex<TVector3>());
+        selected_tracks_vertex.push_back(t->Vertex());
       }
 
       if ( (t->End<TVector3>() - vtx_xyz).Mag() < _tolerance ) {
         selected_tracks.push_back(t);
-        selected_tracks_vertex.push_back(t->End<TVector3>());
+        selected_tracks_vertex.push_back(t->End());
       }
 
 
@@ -289,7 +289,7 @@ void CandidateConsistency::produce(art::Event & e)
 
       if ( (s->ShowerStart() - vtx_xyz).Mag() < _tolerance ) {
         selected_showers.push_back(s);
-        selected_showers_vertex.push_back(s->ShowerStart());
+        selected_showers_vertex.push_back(geo::vect::toPoint(s->ShowerStart()));
       }
 
     }
@@ -323,8 +323,8 @@ void CandidateConsistency::produce(art::Event & e)
         if (h->View() != 2) continue;
         
         cosmictag::SimpleHit sh;
-        sh.t = fDetectorProperties->ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
-        sh.w = h->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2));
+        sh.t = detProp.ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
+        sh.w = h->WireID().Wire * _channelMap->Plane(geo::PlaneID(0,0,2)).WirePitch();
 
         sh.plane = h->View();
         sh.integral = h->Integral();
@@ -341,10 +341,11 @@ void CandidateConsistency::produce(art::Event & e)
       _ct_manager.Emplace(std::move(sc));
 
       // Creating an approximate start hit given the TPCObject vertex
-      double vertex[3] = {selected_tracks_vertex.at(i).X(), selected_tracks_vertex.at(i).Y(), selected_tracks_vertex.at(i).Z()};
+      auto& vertex = selected_tracks_vertex.at(i);
       this->ContainPoint(vertex);
-      double vertex_t = fDetectorProperties->ConvertXToTicks(vertex[0], geo::PlaneID(0,0,2))/4.;
-      int vertex_w    = geo->NearestWire(vertex, 2);
+      geo::PlaneID const plane_2{0, 0, 2};
+      double vertex_t = detProp.ConvertXToTicks(vertex.X(), plane_2)/4.;
+      int vertex_w    = _channelMap->Plane(plane_2).NearestWireID(vertex).Wire;
 
       cosmictag::SimpleHit start;
       start.time = vertex_t;
@@ -474,8 +475,8 @@ void CandidateConsistency::produce(art::Event & e)
         if (h->View() != 2) continue;
         
         cosmictag::SimpleHit sh;
-        sh.t = fDetectorProperties->ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
-        sh.w = h->WireID().Wire * geo->WirePitch(geo::PlaneID(0,0,2));
+        sh.t = detProp.ConvertTicksToX(h->PeakTime(), geo::PlaneID(0,0,2));
+        sh.w = h->WireID().Wire * _channelMap->Plane(geo::PlaneID(0,0,2)).WirePitch();
 
         sh.plane = h->View();
         sh.integral = h->Integral();
@@ -493,10 +494,11 @@ void CandidateConsistency::produce(art::Event & e)
       _ct_manager.Emplace(std::move(sc));
 
       // Creating an approximate start hit
-      double vertex[3] = {selected_showers_vertex.at(i).X(), selected_showers_vertex.at(i).Y(), selected_showers_vertex.at(i).Z()};
+      auto& vertex = selected_showers_vertex.at(i);
       this->ContainPoint(vertex);
-      double vertex_t = fDetectorProperties->ConvertXToTicks(vertex[0], geo::PlaneID(0,0,2))/4.;
-      int vertex_w    = geo->NearestWire(vertex, 2);
+      geo::PlaneID const plane_2{0, 0, 2};
+      double vertex_t = detProp.ConvertXToTicks(vertex.X(), plane_2)/4.;
+      int vertex_w    = _channelMap->Plane(plane_2).NearestWireID(vertex).Wire;
 
       cosmictag::SimpleHit start;
       start.time = vertex_t;
@@ -594,28 +596,13 @@ void CandidateConsistency::produce(art::Event & e)
   if(_debug) std::cout << "[CandidateConsistency] Ends." << std::endl;
 }
 
-void CandidateConsistency::ContainPoint(double * point) {
+void CandidateConsistency::ContainPoint(geo::Point_t& point) {
 
-  double x = point[0];
-  double y = point[1];
-  double z = point[2];
-
-  double e = std::numeric_limits<double>::epsilon();
-
-  if (x < 0. + e)
-    point[0] = 0. + e;
-  if (x > 2.*geo->DetHalfWidth() - e)
-    point[0] = 2.*geo->DetHalfWidth() - e;
-
-  if (y < -geo->DetHalfWidth() + e)
-    point[1] = -geo->DetHalfWidth() + e;
-  if (y > geo->DetHalfWidth() - e)
-    point[1] = geo->DetHalfWidth() - e;
-
-  if (z < 0. + e) 
-    point[2] = 0.+ e;
-  if (z > geo->DetLength() - e)
-    point[2] = geo->DetLength() - e;
+  auto const& tpc = geo->TPC();
+  constexpr double e = std::numeric_limits<double>::epsilon();
+  point.SetX(std::clamp(point.X(), e, 2.*tpc.HalfWidth() - e));
+  point.SetY(std::clamp(point.Y(), -tpc.HalfWidth() + e, tpc.HalfWidth() - e));
+  point.SetZ(std::clamp(point.Z(), e, tpc.Length() - e));
 
 }
 
@@ -625,8 +612,9 @@ bool CandidateConsistency::IsCathodeCrossing(art::Ptr<recob::Track> trk_ptr, dou
 
   x_offset = -1.;
 
-  double _BOTTOM = -geo->DetHalfHeight() + 25.; //cm
-  double _TOP    = geo->DetHalfHeight() - 25.; //cm 
+  auto const& tpc = geo->TPC();
+  double _BOTTOM = -tpc.HalfHeight() + 25.; //cm
+  double _TOP    = tpc.HalfHeight() - 25.; //cm
 
   std::vector<TVector3> sorted_trk;
 
@@ -656,7 +644,7 @@ bool CandidateConsistency::IsCathodeCrossing(art::Ptr<recob::Track> trk_ptr, dou
 
     if (top.X() > bottom.X()){
       // Track crosses 
-      x_offset = geo->DetHalfWidth()*2 - top.X();
+      x_offset = tpc.HalfWidth()*2 - top.X();
       return true;
     }
   }
@@ -669,7 +657,7 @@ bool CandidateConsistency::IsCathodeCrossing(art::Ptr<recob::Track> trk_ptr, dou
 
     if (top.X() < bottom.X()){
       // Track crosses 
-      x_offset = geo->DetHalfWidth()*2 - bottom.X();
+      x_offset = tpc.HalfWidth()*2 - bottom.X();
       return true;
     }
   }

@@ -20,5 +20,5 @@ add_subdirectory(SinglePhotonAnalysis)
 add_subdirectory(TreeReader)
 add_subdirectory(Arborist)
 add_subdirectory(searchingfornues)
-
+add_subdirectory(Utilities)
 add_subdirectory(redk2nu)

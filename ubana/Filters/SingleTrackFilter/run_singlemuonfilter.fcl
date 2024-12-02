@@ -9,7 +9,7 @@ process_name: singletrackfilter
 
 services:{
    TFileService: { fileName: "Filter_singletrack_muon.root" }
-   #ExptGeoHelperInterface:         @local::microboone_geometry_helper
+   #WireReadout:         @local::microboone_wire_readout
    #Geometry:                       @local::microboone_geo
    @table::microboone_services
 }

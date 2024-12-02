@@ -4,8 +4,9 @@
 #include <iostream>
 #include "AnalysisToolBase.h"
 
-#include "../CommonDefs/Typedefs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Typedefs.h"
 
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larreco/RecoAlg/Geometric3DVertexFitter.h"
 
 namespace analysis
@@ -109,6 +110,9 @@ void VertexAnalysis::analyzeEvent(art::Event const &e, bool fData)
 
 void VertexAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_pfp_v, bool fData, bool selected)
 {
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e, clockData);
+
   auto trk_fit_h = e.getValidHandle<std::vector<recob::Track>>(fTRKFITproducer);
   std::vector<art::Ptr<recob::Track> > trk_fit_v;
   art::fill_ptr_vector(trk_fit_v, trk_fit_h);
@@ -156,7 +160,7 @@ void VertexAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_
 
   if (_n_tracks_pandora > 1)
   {
-    trkf::VertexWrapper track_vtx = fitter->fitTracks(pandora_tracks);
+    trkf::VertexWrapper track_vtx = fitter->fitTracks(detProp, pandora_tracks);
     _vtx_fit_pandora_is_valid = track_vtx.isValid();
     if (_vtx_fit_pandora_is_valid)
     {
@@ -167,7 +171,7 @@ void VertexAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_
   }
   if (_n_tracks_tkfit > 1)
   {
-    trkf::VertexWrapper trackfit_vtx = fitter->fitTracks(fitted_tracks);
+    trkf::VertexWrapper trackfit_vtx = fitter->fitTracks(detProp, fitted_tracks);
     _vtx_fit_tkfit_is_valid = trackfit_vtx.isValid();
     if (_vtx_fit_tkfit_is_valid)
     {

@@ -1,21 +1,20 @@
 # basic source code CMakeLists.txt
 
 art_make(BASENAME_ONLY
-	LIB_LIBRARIES 
+	LIB_LIBRARIES
 		lardataobj_RecoBase
 		lardataobj_AnalysisBase
 		larcorealg_Geometry
     larcore_Geometry_Geometry_service
 		lardata_Utilities
-		${SIMULATIONBASE}
-		${MF_MESSAGELOGGER}
-		${MF_UTILITIES}
-		${FHICLCPP}
-		cetlib cetlib_except
-		${CLHEP}
-		${ROOT_BASIC_LIB_LIST}
-		${G4_LIB_LIST}
-	MODULE_LIBRARIES  
+		nusimdata::SimulationBase
+		messagefacility::MF_MessageLogger
+		
+		fhiclcpp::fhiclcpp
+		cetlib::cetlib
+                cetlib_except::cetlib_except
+		CLHEP::CLHEP
+	MODULE_LIBRARIES
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
 		larsim_Simulation
@@ -27,25 +26,23 @@ art_make(BASENAME_ONLY
 		larcorealg_Geometry
     larcore_Geometry_Geometry_service
 		lardata_Utilities
-		nusimdata_SimulationBase
-		${ART_FRAMEWORK_CORE}
-		${ART_FRAMEWORK_PRINCIPAL}
-		${ART_FRAMEWORK_SERVICES_REGISTRY}
-		${ART_FRAMEWORK_SERVICES_BASIC}
-		${ART_FRAMEWORK_SERVICES_OPTIONAL}
-		${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		art_Persistency_Common
-		art_Persistency_Provenance
-		art_Utilities
-		${MF_MESSAGELOGGER}
-		${MF_UTILITIES}
-		${FHICLCPP}
-		cetlib cetlib_except
-		${CLHEP}
-		${ROOT_BASIC_LIB_LIST}
-		${G4_LIB_LIST}
-	)
+		nusimdata::SimulationBase
+		art::Framework_Core
+		art::Framework_Principal
+		art::Framework_Services_Registry
+		art_root_io::tfile_support ROOT::Core
+		art_root_io::TFileService_service
+		art::Framework_Services_Optional_RandomNumberGenerator_service
+		art::Persistency_Common
+		art::Persistency_Provenance
+		art::Utilities
+		messagefacility::MF_MessageLogger
+		
+		fhiclcpp::fhiclcpp
+		cetlib::cetlib
+                cetlib_except::cetlib_except
+		CLHEP::CLHEP
+	) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.21.01) - deprecated: use art_make_library(), art_dictonary(), and cet_build_plugin() with explicit source lists and plugin base types
 
 install_headers()
 install_source()

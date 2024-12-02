@@ -1,11 +1,15 @@
+#ifndef UBANA_SINGLEPHOTONANALYSIS_BAD_CHANNEL_MATCHING_H
+#define UBANA_SINGLEPHOTONANALYSIS_BAD_CHANNEL_MATCHING_H
+
 #include "SinglePhoton_module.h"
 
+#include "larcorealg/Geometry/WireReadoutGeom.h"
 
 namespace single_photon
 {
 
     //line between x1 and x2, point x0;
-    double dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& point){
+    inline double dist_line_point( std::vector<double>&X1, std::vector<double>& X2, std::vector<double>& point){
         double x1 =X1.at(0);
         double y1 =X1.at(1);
         double z1 =X1.at(2);
@@ -38,8 +42,8 @@ namespace single_photon
 
 
     // minimum distance between point and dead wire
-    double distanceToNearestDeadWire(int plane, double Ypoint, double Zpoint,
-                const geo::GeometryCore * geom,
+    inline double distanceToNearestDeadWire(int plane, double Ypoint, double Zpoint,
+                const geo::WireReadoutGeom* channelMap,
                 std::vector<std::pair<int,int>> & bad_channel_list_fixed_mcc9 ){
 
              double min_dist = 999999;
@@ -49,16 +53,17 @@ namespace single_photon
                    int is_ok = bad_channel_list_fixed_mcc9[i].second;       
                         if(is_ok>1)continue;
 
-                   auto wireids = geom->ChannelToWire(channel); //type of wireids: IDs of all the connected wires to the channel
-                   auto result = geom->WireEndPoints(wireids[0]);
+                   auto wireids = channelMap->ChannelToWire(channel); //type of wireids: IDs of all the connected wires to the channel
+                   auto result = channelMap->WireEndPoints(wireids[0]);
                         
                     //std::cout<<"KNK: "<<bc<<" "<<hs[0]<<" "<<result.start().X()<<" "<<result.start().Y()<<" "<<result.start().Z()<<" "<<result.end().X()<<" "<<result.end().Y()<<" "<<result.end().Z()<<std::endl; 
 //                    std::cout<<wireids[0].Plane<<" "<<result.start().X()<<std::endl;
                     if(plane != (int)wireids[0].Plane) continue;
 
 		    // for the dead wires on the same plane 
-                    std::vector<double> start = {0.0,result.start().Y(),result.start().Z()};
-                    std::vector<double> end = {0.0,result.end().Y(),result.end().Z()};
+                    auto const [b, e] = result;
+                    std::vector<double> start = {0.0,b.Y(),b.Z()};
+                    std::vector<double> end = {0.0,e.Y(),e.Z()};
                     std::vector<double> point = {0.0,Ypoint,Zpoint};
                     double dist = dist_line_point(start,end,point);
                     min_dist = std::min(dist,min_dist);
@@ -76,7 +81,6 @@ namespace single_photon
                 std::vector<T>& objects, 
                 std::map< T, art::Ptr<recob::PFParticle> > & objectToPFParticleMap,
                 std::map< art::Ptr<recob::PFParticle>, std::vector<art::Ptr<recob::Hit>> > & pfParticleToHitsMap,
-                const geo::GeometryCore * geom,
                 std::vector<std::pair<int,int>> & bad_channel_list_fixed_mcc9){
 
 
@@ -104,13 +108,13 @@ namespace single_photon
                         int ok = bad_channel_list_fixed_mcc9[i].second;       
                         if(ok>1)continue;
                         int dist =hit->Channel()-bc;
-                        auto hs = geom->ChannelToWire(bc);
+                        // auto hs = geom->ChannelToWire(bc);
                         //std::cout<<"AG: "<<hs.size()<<"  BC("<<bc<<"): "<<hs[0]<<" ours: ("<<hit->Channel()<<"): "<<hit->WireID()<<std::endl;
                         //this is the right format for my plotting routine
                         //std::cout<<"KNK: "<<bc<<" "<<hs[0]<<" "<< badchannels[offset+1]<<" "<<badchannels[offset+2]<<std::endl;
-                        std::vector<double> start(3);
-                        std::vector<double> end(3);
-                        auto result = geom->WireEndPoints(hs[0]);
+                        // std::vector<double> start(3);
+                        // std::vector<double> end(3);
+                        // auto result = geom->WireEndPoints(hs[0]);
                         
                 //        std::cout<<"KNK: "<<bc<<" "<<hs[0]<<" "<<result.start().X()<<" "<<result.start().Y()<<" "<<result.start().Z()<<" "<<result.end().X()<<" "<<result.end().Y()<<" "<<result.end().Z()<<std::endl; 
 
@@ -127,3 +131,5 @@ namespace single_photon
         }
 
 }//namespace end
+
+#endif

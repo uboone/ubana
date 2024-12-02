@@ -17,13 +17,14 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include <memory>
 
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "lardataobj/RecoBase/OpFlash.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/RawData/TriggerData.h"
 #include <limits>
@@ -114,7 +115,7 @@ private:
 
 
 FlashTrigger::FlashTrigger(fhicl::ParameterSet const & p)
-  : _flash_tree(nullptr)
+  : EDFilter{p}, _flash_tree(nullptr)
 // Initialize member data here.
 {
   // Call appropriate produces<>() functions here.
@@ -216,13 +217,13 @@ void FlashTrigger::AnalyzeFlash(const recob::OpFlash& flash)
   ClearAnalysisVariables();
   
   // Geometry service
-  art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
 
-  for(unsigned int opch=0; opch<geo->MaxOpChannel(); ++opch) {
+  for(unsigned int opch=0; opch<channelMap.MaxOpChannel(); ++opch) {
 
     if(opch>32) continue;
 
-    auto const opdet = geo->OpDetFromOpChannel(opch);
+    auto const opdet = channelMap.OpDetFromOpChannel(opch);
 
     auto const pe = flash.PE(opch);
 

@@ -141,6 +141,11 @@ namespace analysis
     sp.find_file("searchingfornues/booster_bkg_0304_noext.model",_filename);
     xgtest = XGBoosterLoadModel(booster_bkg_0p, _filename.c_str());
     assert(xgtest==0);
+
+    // Need to do something with xgtest in prof build.
+
+    if(xgtest != 0)
+      throw cet::exception("BDT_tool") << "xgtest = " << xgtest;
   }
 
   BDT::~BDT()
@@ -156,6 +161,11 @@ namespace analysis
     xgtest = XGBoosterFree(booster_nonpi0_np);
     xgtest = XGBoosterFree(booster_bkg_0p);
     assert(xgtest==0);
+
+    // Need to do something with xgtest in prof build.
+
+    if(xgtest != 0)
+      std::cout << "In BDT destructor xgtest = " << xgtest << std::endl;   // Can't throw here.
   }
 
   //----------------------------------------------------------------------------
@@ -399,6 +409,11 @@ namespace analysis
     //
 
     assert(xgtest==0);
+
+    // Need to do something with xgtest in prof build.
+
+    if(xgtest != 0)
+      throw cet::exception("BDT_tool") << "xgtest = " << xgtest;
 
     return;
   }

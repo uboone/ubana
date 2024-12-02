@@ -20,7 +20,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"

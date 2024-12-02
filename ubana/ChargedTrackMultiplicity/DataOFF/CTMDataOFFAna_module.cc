@@ -19,8 +19,8 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindMany.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
@@ -61,7 +61,6 @@
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/MCSFitResult.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 #include "ubobj/Trigger/ubdaqSoftwareTriggerData.h"
@@ -324,7 +323,6 @@
      *  @brief Standard useful properties
      */
     geo::GeometryCore const*            fGeometry;           ///< pointer to the Geometry service
-    detinfo::DetectorProperties const*  fDetector;           ///< Pointer to the detector properties
     /// @}
     
    };
@@ -333,8 +331,7 @@
     // Constructor
    CTMDataOFFAna::CTMDataOFFAna(fhicl::ParameterSet const& pset): 
    EDAnalyzer(pset),
-   fGeometry(lar::providerFrom<geo::Geometry>()),
-   fDetector(lar::providerFrom<detinfo::DetectorPropertiesService>())
+   fGeometry(lar::providerFrom<geo::Geometry>())
   {
       this->reconfigure(pset);
   }
@@ -761,9 +758,10 @@
     fGenieGenModuleLabel     = pset.get< std::string > ("GenieGenModuleLabel", "generator");    
     fTrackMCSFitLabel        = pset.get< std::string > ("TrackMCSFitLabel", "pandoraNuMCSMu");
 
-    fDistToEdgeX             = fGeometry->DetHalfWidth()   - pset.get<double>("DistToEdgeX",   10.);
-    fDistToEdgeY             = fGeometry->DetHalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
-    fDistToEdgeZ             = fGeometry->DetLength() / 2. - pset.get<double>("DistToEdgeZ",   10.);
+    auto const& tpc = fGeometry->TPC();
+    fDistToEdgeX             = tpc.HalfWidth()   - pset.get<double>("DistToEdgeX",   10.);
+    fDistToEdgeY             = tpc.HalfHeight()  - pset.get<double>("DistToEdgeY",   20.);
+    fDistToEdgeZ             = tpc.Length() / 2. - pset.get<double>("DistToEdgeZ",   10.);
     
     fFlashWidth              = pset.get<double>      ("FlashWidth", 80.);
     fBeamMin                 = pset.get<double>      ("BeamMin", 3.65);
@@ -776,9 +774,10 @@
  //========================================================================	
 bool CTMDataOFFAna::inFV(double x, double y, double z) const
 {
-    double distInX = x - fGeometry->DetHalfWidth();
+    auto const& tpc = fGeometry->TPC();
+    double distInX = x - tpc.HalfWidth();
     double distInY = y;
-    double distInZ = z - 0.5 * fGeometry->DetLength();
+    double distInZ = z - 0.5 * tpc.Length();
     
     if (fabs(distInX) < fDistToEdgeX && fabs(distInY) < fDistToEdgeY && fabs(distInZ) < fDistToEdgeZ) return true;
     
@@ -1526,4 +1525,3 @@ double CTMDataOFFAna::FlashTrackDist(double flash, double start, double end) con
  } // namespace CTMDataOFFAna_module
  
   #endif //CTMDATAOFFANA_H
-  

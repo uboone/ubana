@@ -37,8 +37,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 #include "lardataobj/RecoBase/PFParticle.h"
@@ -51,6 +51,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/Geometry/WireReadout.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
@@ -154,7 +155,7 @@ private:
 };
 
 
-NeutrinoFlashMatch::NeutrinoFlashMatch(fhicl::ParameterSet const & p)
+NeutrinoFlashMatch::NeutrinoFlashMatch(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   _pfp_producer            = p.get<std::string>("PFParticleModule",      "pandoraNu");
   _track_producer          = p.get<std::string>("TrackModule",           "pandoraNu");
@@ -213,6 +214,7 @@ void NeutrinoFlashMatch::produce(art::Event & e)
     std::cout << "[NeutrinoFlashMatch] WARNING!!! Swapping OpDets. I hope you know what you are doing." << std::endl;
   }        
   ::art::ServiceHandle<geo::Geometry> geo;
+  auto const& channelMap = art::ServiceHandle<geo::WireReadout const>()->Get();
 
   _mgr.Reset();
   _result.clear();
@@ -247,7 +249,7 @@ void NeutrinoFlashMatch::produce(art::Event & e)
     f.pe_v.resize(geo->NOpDets());
     f.pe_err_v.resize(geo->NOpDets());
     for (unsigned int i = 0; i < f.pe_v.size(); i++) {
-      unsigned int opdet = geo->OpDetFromOpChannel(i);
+      unsigned int opdet = channelMap.OpDetFromOpChannel(i);
       if (_do_opdet_swap && e.isRealData()) {
         opdet = _opdet_swap_map.at(opdet);
       }
@@ -313,7 +315,7 @@ void NeutrinoFlashMatch::produce(art::Event & e)
       auto const& flash = (*nuMcflash_h)[0];
       _numc_flash_spec.resize(geo->NOpDets());
       for (unsigned int i = 0; i < geo->NOpDets(); i++) {
-        unsigned int opdet = geo->OpDetFromOpChannel(i);
+        unsigned int opdet = channelMap.OpDetFromOpChannel(i);
         _numc_flash_spec[opdet] = flash.PE(i);
       }
     }
@@ -693,15 +695,14 @@ void NeutrinoFlashMatch::GetFlashLocation(std::vector<double> pePerOpDet,
     }
 
     // Get physical detector location for this opChannel
-    double PMTxyz[3];
     ::art::ServiceHandle<geo::Geometry> geo;
-    geo->OpDetGeoFromOpDet(opdet).GetCenter(PMTxyz);
+    auto const PMTxyz = geo->OpDetGeoFromOpDet(opdet).GetCenter();
 
     // Add up the position, weighting with PEs
-    sumy    += pePerOpDet[opdet]*PMTxyz[1];
-    sumy2   += pePerOpDet[opdet]*PMTxyz[1]*PMTxyz[1];
-    sumz    += pePerOpDet[opdet]*PMTxyz[2];
-    sumz2   += pePerOpDet[opdet]*PMTxyz[2]*PMTxyz[2];
+    sumy    += pePerOpDet[opdet]*PMTxyz.Y();
+    sumy2   += pePerOpDet[opdet]*PMTxyz.Y()*PMTxyz.Y();
+    sumz    += pePerOpDet[opdet]*PMTxyz.Z();
+    sumz2   += pePerOpDet[opdet]*PMTxyz.Z()*PMTxyz.Z();
 
     totalPE += pePerOpDet[opdet];
   }
