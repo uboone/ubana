@@ -203,6 +203,7 @@ private:
   Float_t f_evtDeltaTimeNS;
   Float_t f_evtTimeNS;
   Float_t f_evtTimeNS_redk2nu;
+  Float_t f_Ph_Tot;
   double  calib[32];
 
   Int_t		f_mcflux_run;
@@ -1929,6 +1930,7 @@ void WireCellAnaTree::initOutput()
   if(!fMC || fIsNuMI) {
     fPFeval->Branch("evtDeltaTimeNS", &f_evtDeltaTimeNS);
     fPFeval->Branch("evtTimeNS", &f_evtTimeNS);
+    fPFeval->Branch("Ph_Tot", &f_Ph_Tot);
     if(f_get_redk2nu_time){
       fPFeval->Branch("evtTimeNS_redk2nu", &f_evtTimeNS_redk2nu);
     }
@@ -5604,6 +5606,7 @@ void WireCellAnaTree::resetOutput()
   f_evtDeltaTimeNS = -99999.;
   f_evtTimeNS = -99999.;
   f_evtTimeNS_redk2nu = -99999.;
+  f_Ph_Tot = -99999.;
   for(int i=0;i<32;i++){calib[i]=0;}
 
 	f_mcflux_run = -1;
@@ -7233,6 +7236,7 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
   }
   f_evtTimeNS = Med_TT3;
   f_evtTimeNS_redk2nu = Med_TT3+f_redk2nu_deltatime;
+  f_Ph_Tot = Ph_Tot;
   std::cout<<"f_evtTimeNS "<<f_evtTimeNS<<"  f_evtTimeNS_redk2nu "<<f_evtTimeNS_redk2nu<<std::endl;
 
   //Merge Peaks, shift may be incorrect for NuMi
