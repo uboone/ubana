@@ -100,7 +100,7 @@ public:
   void ReadBDTvar(nsm::NuSelectionBDT const& bdt);
   void ReadKINEvar(nsm::NuSelectionKINE const& kine);
   void nsbeamtiming(art::Event const& e);
-  void getPMTwf(art::Event const& e, double maxP[32],double timeP[32]);
+  void getPMTwf(art::Event const& e, double maxP[32],double timeP[32],bool Sat[32]);
   double getBeamWF(art::Event const& e);
   std::tuple< std::vector<float>*,std::vector<float>*,std::vector<float>*,std::vector<float>* > get_extrapolated_times(art::Ptr<simb::MCParticle> particle, double mother_time);
   double get_dE_dx_range(double R, int pdg);
@@ -1685,6 +1685,9 @@ private:
   std::vector<float> *f_PMT_Time;
   std::vector<float> *f_PMT_Amp;
   std::vector<float> *f_PMT_TimeProp;
+  std::vector<float> *f_PMT_TimeDP;
+  std::vector<float> *f_PMT_TimeDL;
+  std::vector<bool> *f_PMT_Sat;
   float f_RWM_Time;
 
   int mc_isnu; // is neutrino interaction
@@ -2069,6 +2072,9 @@ void WireCellAnaTree::initOutput()
     fPFeval->Branch("PMT_Time", &f_PMT_Time);
     fPFeval->Branch("PMT_Amp", &f_PMT_Amp);
     fPFeval->Branch("PMT_TimeProp", &f_PMT_TimeProp);
+    fPFeval->Branch("PMT_TimeDP", &f_PMT_TimeDP);
+    fPFeval->Branch("PMT_TimeDL", &f_PMT_TimeDL);
+    fPFeval->Branch("PMT_Sat", &f_PMT_Sat);
     fPFeval->Branch("RWM_Time", &f_RWM_Time);
 
   }
@@ -5565,6 +5571,9 @@ void WireCellAnaTree::resetOutput()
     f_PMT_Time->clear();
     f_PMT_Amp->clear();
     f_PMT_TimeProp->clear();
+    f_PMT_TimeDP->clear();
+    f_PMT_TimeDL->clear();
+    f_PMT_Sat->clear();
     f_RWM_Time = -999;
   }
 
@@ -7033,9 +7042,11 @@ void WireCellAnaTree::ReadKINEvar(nsm::NuSelectionKINE const& kine)
 void WireCellAnaTree::nsbeamtiming(art::Event const& e)
 {
   double max[32],time[32];
+  bool Sat[32];
+  for(int i=0; i<32; i++){Sat[i]=false;}
   double BeamT0 = -99999.;
   std::vector<int>* pmtid = new std::vector<int>;
-  getPMTwf(e,max,time);
+  getPMTwf(e,max,time,Sat);
   const lariov::PmtGainProvider& gain_provider = art::ServiceHandle<lariov::PmtGainService>()->GetProvider();
   for (int i=0; i<32; i++){
     calib[i] = gain_provider.ExtraInfo(i).GetFloatData("amplitude_gain");
@@ -7171,7 +7182,7 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
   double MaxLim=2.5;
   std::vector<int> N_pmt;
   double ccnd1, ccnd2,ccnd3, ccnd4;
-  double Ph_Tot, RWM_T, nuToF, DPh,DLh, tPhelp,tp;
+  double Ph_Tot, RWM_T, nuToF, DPh,DLh, tPhelp,tp, tDPhelp,tDP, tDLhelp,tDL;
   double Med_TT3=-9999.;
   double TT_merged = -9999.;
   nuToF=0;
@@ -7183,6 +7194,8 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
   //do not use a time cut in the NuMI case
   if((max[q]>MaxLim && q!=17 && q!=28) && ((time[q]>3000.0 && time[q]<5000.0) || fIsNuMI ) ){N_pmt.push_back(q); Ph_Tot=Ph_Tot+max[q]; pmtid->push_back(q);}}
   std::vector<double> timeProp = std::vector<double>(N_pmt.size(),0);
+  std::vector<double> timeDP = std::vector<double>(N_pmt.size(),0);
+  std::vector<double> timeDL = std::vector<double>(N_pmt.size(),0);
   //--------------------------------------------------------------------------------------------------------------------
   if(N_pmt.size()>2){
     RWM_T=BeamT0;
@@ -7197,20 +7210,38 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
     nuToF=dist*0.033356;
     for(uint i=0; i<N_pmt.size(); i++){
         tp=5000000000.0;
+        tDL=5000000000.0;
+        tDP=5000000000.0;
 	for(uint j=0; j<sps_x->size(); j++){
           DPh=abs(sqrt(TMath::Power(x-sps_x->at(j),2)+TMath::Power(y-sps_y->at(j),2)+TMath::Power(z-sps_z->at(j),2)));
           DLh=abs(sqrt(TMath::Power(PMT[N_pmt.at(i)][0]-sps_x->at(j),2)+TMath::Power(PMT[N_pmt.at(i)][1]-sps_y->at(j),2)+TMath::Power(PMT[N_pmt.at(i)][2]-sps_z->at(j),2)));
           if(!f_ns_time_usePID){
             tPhelp=(DPh*fsol)+(DLh*0.0746);
-            if(f_ns_time_no_photon){tPhelp=(DPh*fsol);}
+            tDPhelp=(DPh*fsol);
+            tDLhelp=(DLh*0.0746);
+            if(f_ns_time_no_photon){
+              tPhelp=(DPh*fsol);
+              tDLhelp=0;
+            }
 	  }
 	  else{
             tPhelp=sps_t->at(j)+(DLh*0.0746);
-	    if(f_ns_time_no_photon){tPhelp=sps_t->at(j);}
+            tDPhelp=sps_t->at(j);
+            tDLhelp=(DLh*0.0746);
+	    if(f_ns_time_no_photon){
+              tPhelp=sps_t->at(j);
+              tDLhelp=0;
+            }
 	  }
-  	  if(tPhelp<tp){tp=tPhelp;}
+  	  if(tPhelp<tp){
+            tp=tPhelp;
+            tDP=tDPhelp;
+            tDL=tDLhelp;
+          }
 	}
         timeProp[i]=tp;
+        timeDP[i]=tDP;
+        timeDL[i]=tDL;
     }
     double TT3_array[32];
     //do not think we have to make this correction for NuMI, may need to revisit
@@ -7257,13 +7288,16 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
     for(uint pmt=0; pmt<pmtid->size(); pmt++){
       int id = pmtid->at(pmt);
       f_PMT_TimeProp->push_back(timeProp[pmt]);
+      f_PMT_TimeDP->push_back(timeDP[pmt]);
+      f_PMT_TimeDL->push_back(timeDL[pmt]);
       f_PMT_Time->push_back(time[id]);
       f_PMT_Amp->push_back(max[id]);
+      f_PMT_Sat->push_back(Sat[id]);
     }
   }
 
 }
-void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double timeP[32])
+void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double timeP[32], bool Sat[32])
 {
     //set number of samples to look at, different for BNB and NuMI
     int samples = 500;
@@ -7336,8 +7370,8 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     TT[q]=(tca-abs(tcb*TMath::Power(-log(0.5/tcc),0.25)))/0.064; max[q]=max0;
     //----------------------------------------------
     //check for saturated wf
-    if(maxZ<=saturation){TT[q]=TT[q]; max[q]=max[q];}
-      else if(maxZ>saturation) {
+    if(maxZ<=saturation){TT[q]=TT[q]; max[q]=max[q]; Sat[q]=false;}
+      else if(maxZ>saturation) { Sat[q]=true;
         //counting the number of ticks above the saturation, extended for NuMI
         for(int i=3*64; i<samples_64*64; i++){
         if(TF==0){if(Raw_wf_v[i+1]>4094 && Raw_wf_v[i]<=4094){tickF=i; TF=1;}}
@@ -7367,7 +7401,6 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     }
     //-------------------------------------------------------------------------------------------------------
     for(int q=0; q<32; q++){maxP[q]=max[q]; timeP[q]=TT[q];} //only two variables needed
-    std::cout<<" maxP[0]: "<<maxP[0]<<" timeP[0]: "<<timeP[0]<<std::endl;
 }
 double WireCellAnaTree::getBeamWF(art::Event const& e)
 {
