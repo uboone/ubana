@@ -31,6 +31,7 @@ cet_build_plugin(
   nusimdata::SimulationBase
   ROOT::Tree
   ROOT::Hist
+  dk2nu::Tree
 )
 
 cet_build_plugin(
