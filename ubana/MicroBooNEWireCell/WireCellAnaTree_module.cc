@@ -98,7 +98,7 @@ public:
   void save_weights(art::Event const& e);
   void save_LEEweights(art::Event const& e);
   void ReadBDTvar(nsm::NuSelectionBDT const& bdt);
-  void ReadSSMBDTvar(art::Ptr<nsm::NuSelectionBDT> bdt);
+  void ReadSSMBDTvar(nsm::NuSelectionBDT const& bdt);
   void ReadKINEvar(nsm::NuSelectionKINE const& kine);
   void nsbeamtiming(art::Event const& e);
   void getPMTwf(art::Event const& e, double maxP[32],double timeP[32],bool Sat[32]);
@@ -3543,8 +3543,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
                 f_match_notFC_DC = c.GetNotFCDC();
                 f_match_charge = c.GetCharge();
                 f_match_energy = c.GetEnergy();
-                f_lm_cluster_length = c->GetLength();
-                f_image_fail = c->GetImageFail();
+                f_lm_cluster_length = c.GetLength();
+                f_image_fail = c.GetImageFail();
 	}
 
         auto const& charge_vec = e.getProduct<std::vector<nsm::NuSelectionCharge>>(fChargeLabel);
@@ -4266,7 +4266,6 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		return;
 	}
         for(nsm::NuSelectionKINE const& kine : *kinehandle) {
-	        ReadSSMKINEvar(kine);
                 if(f_lm_cluster_length>10){
                   ReadKINEvar(kine);
                 }
