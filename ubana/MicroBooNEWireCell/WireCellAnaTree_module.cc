@@ -98,6 +98,7 @@ public:
   void save_weights(art::Event const& e);
   void save_LEEweights(art::Event const& e);
   void ReadBDTvar(nsm::NuSelectionBDT const& bdt);
+  void ReadSSMBDTvar(art::Ptr<nsm::NuSelectionBDT> bdt);
   void ReadKINEvar(nsm::NuSelectionKINE const& kine);
   void nsbeamtiming(art::Event const& e);
   void getPMTwf(art::Event const& e, double maxP[32],double timeP[32],bool Sat[32]);
@@ -659,6 +660,37 @@ private:
   std::vector<float> *ssmsp_containing_shower_id= new std::vector<float>;
   std::vector<float> *ssmsp_containing_shower_ke= new std::vector<float>;
   std::vector<float> *ssmsp_containing_shower_flag= new std::vector<float>;
+    // KINE and other BDT variables saved seperatly for KDAR 
+  float ssm_kine_reco_Enu;
+  float ssm_kine_reco_add_energy;
+  std::vector<float> *ssm_kine_energy_particle = new std::vector<float>;
+  std::vector<int> *ssm_kine_energy_info = new std::vector<int>;
+  std::vector<int> *ssm_kine_particle_type = new std::vector<int>;
+  std::vector<int> *ssm_kine_energy_included = new std::vector<int>;
+  float ssm_kine_pio_mass;
+  int   ssm_kine_pio_flag;
+  float ssm_kine_pio_vtx_dis;
+  float ssm_kine_pio_energy_1;
+  float ssm_kine_pio_theta_1;
+  float ssm_kine_pio_phi_1;
+  float ssm_kine_pio_dis_1;
+  float ssm_kine_pio_energy_2;
+  float ssm_kine_pio_theta_2;
+  float ssm_kine_pio_phi_2;
+  float ssm_kine_pio_dis_2;
+  float ssm_kine_pio_angle;
+  float ssm_numu_cc_flag;
+  float ssm_cosmict_flag_1; // fiducial volume vertex
+  float ssm_cosmict_flag_2;  // single muon
+  float ssm_cosmict_flag_3;  // single muon (long)
+  float ssm_cosmict_flag_4;  // kinematics muon
+  float ssm_cosmict_flag_5; // kinematics muon (long)
+  float ssm_cosmict_flag_6; // special ...
+  float ssm_cosmict_flag_7;  // muon+ michel
+  float ssm_cosmict_flag_8;  // muon + michel + special
+  float ssm_cosmict_flag_9;  // this tagger is relevant for nueCC, see "cosmic tagger ones, one case of cosmics ..." (frist one ...)
+  std::vector<float> *ssm_cosmict_flag_10 = new std::vector<float>;  // front upstream (dirt)
+  float ssm_cosmict_flag;
 
   //single photon vars
   float shw_sp_flag;
@@ -1596,6 +1628,8 @@ private:
   Bool_t          f_match_notFC_DC;
   Float_t         f_match_charge; // main flag collection plane charge
   Float_t         f_match_energy;
+  Float_t         f_lm_cluster_length;
+  Bool_t          f_image_fail;
   Float_t	  f_match_chargeU;
   Float_t	  f_match_chargeV;
   Float_t	  f_match_chargeY;
@@ -1858,6 +1892,8 @@ void WireCellAnaTree::initOutput()
   fTreeEval->Branch("match_chargeV", 		&f_match_chargeV);
   fTreeEval->Branch("match_chargeY", 		&f_match_chargeY);
   fTreeEval->Branch("match_energyY", 		&f_match_energyY);
+  fTreeEval->Branch("lm_cluster_length",        &f_lm_cluster_length);
+  fTreeEval->Branch("image_fail",               &f_image_fail);
   fTreeEval->Branch("light_mismatch", 		&f_lightmismatch);
   fTreeEval->Branch("match_charge", 		&f_match_charge);
   fTreeEval->Branch("match_energy", 		&f_match_energy);
@@ -2488,6 +2524,39 @@ void WireCellAnaTree::initOutput()
       fBDT->Branch("ssmsp_containing_shower_id", &ssmsp_containing_shower_id);
       fBDT->Branch("ssmsp_containing_shower_ke", &ssmsp_containing_shower_ke);
       fBDT->Branch("ssmsp_containing_shower_flag", &ssmsp_containing_shower_flag);
+   // Kine vars
+      if(f_KINEvars){
+        fBDT->Branch("ssm_kine_reco_Enu",&ssm_kine_reco_Enu,"ssm_kine_reco_Enu/F");
+        fBDT->Branch("ssm_kine_reco_add_energy",&ssm_kine_reco_add_energy,"ssm_kine_reco_add_energy/F");
+        fBDT->Branch("ssm_kine_energy_particle",&ssm_kine_energy_particle);
+        fBDT->Branch("ssm_kine_energy_info",&ssm_kine_energy_info);
+        fBDT->Branch("ssm_kine_particle_type",&ssm_kine_particle_type);
+        fBDT->Branch("ssm_kine_energy_included",&ssm_kine_energy_included);
+        fBDT->Branch("ssm_kine_pio_mass",&ssm_kine_pio_mass,"ssm_kine_pio_mass/F");
+        fBDT->Branch("ssm_kine_pio_flag",&ssm_kine_pio_flag,"ssm_kine_pio_flag/I");
+        fBDT->Branch("ssm_kine_pio_vtx_dis",&ssm_kine_pio_vtx_dis,"ssm_kine_pio_vtx_dis/F");
+        fBDT->Branch("ssm_kine_pio_energy_1",&ssm_kine_pio_energy_1,"ssm_kine_pio_energy_1/F");
+        fBDT->Branch("ssm_kine_pio_theta_1",&ssm_kine_pio_theta_1,"ssm_kine_pio_theta_1/F");
+        fBDT->Branch("ssm_kine_pio_phi_1",&ssm_kine_pio_phi_1,"ssm_kine_pio_phi_1/F");
+        fBDT->Branch("ssm_kine_pio_dis_1",&ssm_kine_pio_dis_1,"ssm_kine_pio_dis_1/F");
+        fBDT->Branch("ssm_kine_pio_energy_2",&ssm_kine_pio_energy_2,"ssm_kine_pio_energy_2/F");
+        fBDT->Branch("ssm_kine_pio_theta_2",&ssm_kine_pio_theta_2,"ssm_kine_pio_theta_2/F");
+        fBDT->Branch("ssm_kine_pio_phi_2",&ssm_kine_pio_phi_2,"ssm_kine_pio_phi_2/F");
+        fBDT->Branch("ssm_kine_pio_dis_2",&ssm_kine_pio_dis_2,"ssm_kine_pio_dis_2/F");
+        fBDT->Branch("ssm_kine_pio_angle",&ssm_kine_pio_angle,"ssm_kine_pio_angle/F");
+      }
+      fBDT->Branch("ssm_numu_cc_flag",&ssm_numu_cc_flag);
+      fBDT->Branch("ssm_cosmict_flag_1",&ssm_cosmict_flag_1,"ssm_cosmict_flag_1/F");
+      fBDT->Branch("ssm_cosmict_flag_2",&ssm_cosmict_flag_2,"ssm_cosmict_flag_2/F");
+      fBDT->Branch("ssm_cosmict_flag_3",&ssm_cosmict_flag_3,"ssm_cosmict_flag_3/F");
+      fBDT->Branch("ssm_cosmict_flag_4",&ssm_cosmict_flag_4,"ssm_cosmict_flag_4/F");
+      fBDT->Branch("ssm_cosmict_flag_5",&ssm_cosmict_flag_5,"ssm_cosmict_flag_5/F");
+      fBDT->Branch("ssm_cosmict_flag_6",&ssm_cosmict_flag_6,"ssm_cosmict_flag_6/F");
+      fBDT->Branch("ssm_cosmict_flag_7",&ssm_cosmict_flag_7,"ssm_cosmict_flag_7/F");
+      fBDT->Branch("ssm_cosmict_flag_8",&ssm_cosmict_flag_8,"ssm_cosmict_flag_8/F");
+      fBDT->Branch("ssm_cosmict_flag_9",&ssm_cosmict_flag_9,"ssm_cosmict_flag_9/F");
+      fBDT->Branch("ssm_cosmict_flag_10",&ssm_cosmict_flag_10);
+      fBDT->Branch("ssm_cosmict_flag",&ssm_cosmict_flag,"ssm_cosmict_flag/F");
   }
 
   //single photon shower
@@ -3455,6 +3524,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		f_match_notFC_DC = false;
 		f_match_charge = -1;
 		f_match_energy = -1;
+                f_lm_cluster_length = -1;
+                f_image_fail = false;
 	}
         for(nsm::NuSelectionContainment const& c : containment_vec) {
                 f_flash_found = c.GetFlashFound();
@@ -3472,6 +3543,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
                 f_match_notFC_DC = c.GetNotFCDC();
                 f_match_charge = c.GetCharge();
                 f_match_energy = c.GetEnergy();
+                f_lm_cluster_length = c->GetLength();
+                f_image_fail = c->GetImageFail();
 	}
 
         auto const& charge_vec = e.getProduct<std::vector<nsm::NuSelectionCharge>>(fChargeLabel);
@@ -4164,7 +4237,12 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		return;
 	}
         for(nsm::NuSelectionBDT const& bdt : *bdthandle) {
-		ReadBDTvar(bdt);
+                //Always fill, we get nue files when we pass KDAR gen sel 
+                ReadSSMBDTvar(bdt);
+                //Only fill the rest if we passed the regular generic nu selection
+                if(f_lm_cluster_length>10){
+                  ReadBDTvar(bdt);
+                }
 	std::cout<<"BDT input vars check: \n"<<
 	"Cosmic Tagger: "<<
         bdt.GetCosmicTagger().cosmic_filled<<" "<<
@@ -4188,7 +4266,10 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		return;
 	}
         for(nsm::NuSelectionKINE const& kine : *kinehandle) {
-		ReadKINEvar(kine);
+	        ReadSSMKINEvar(kine);
+                if(f_lm_cluster_length>10){
+                  ReadKINEvar(kine);
+                }
 	std::cout<<"KINE input vars check: \n"<<
 
 	kine.GetKineInfo().kine_reco_Enu<<" "<<
@@ -4219,9 +4300,10 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	kine.GetKineInfo().kine_pio_angle<<"\n";
 	}
       }
-  if ( (!fMC || fIsNuMI) && kine_reco_Enu>-1.) {nsbeamtiming(e);}
-
-	fTreeEval->Fill();
+  //if ( (!fMC || fIsNuMI) && kine_reco_Enu>-1.) {nsbeamtiming(e);}
+  //if ( (!fMC || fIsNuMI) && numu_cc_flag!=-1) {nsbeamtiming(e);}
+  if ( (!fMC || fIsNuMI) && (numu_cc_flag!=-1 || (ssm_numu_cc_flag!=-1 && f_ssmBDT) ) ) {nsbeamtiming(e);}
+        fTreeEval->Fill();
 	fPFeval->Fill();
 	fBDT->Fill();
 	fKINE->Fill();
@@ -4691,6 +4773,37 @@ void WireCellAnaTree::resetOutput()
   ssmsp_containing_shower_id=nullptr;
   ssmsp_containing_shower_ke=nullptr;
   ssmsp_containing_shower_flag=nullptr;
+    //Kine vars
+  ssm_kine_reco_Enu=-1;
+  ssm_kine_reco_add_energy=-1;
+  ssm_kine_energy_particle=nullptr;
+  ssm_kine_energy_info=nullptr;
+  ssm_kine_particle_type=nullptr;
+  ssm_kine_energy_included=nullptr;
+  ssm_kine_pio_mass=-1;
+  ssm_kine_pio_flag=-1;
+  ssm_kine_pio_vtx_dis=-1;
+  ssm_kine_pio_energy_1=-1;
+  ssm_kine_pio_theta_1=-1;
+  ssm_kine_pio_phi_1=-1;
+  ssm_kine_pio_dis_1=-1;
+  ssm_kine_pio_energy_2=-1;
+  ssm_kine_pio_theta_2=-1;
+  ssm_kine_pio_phi_2=-1;
+  ssm_kine_pio_dis_2=-1;
+  ssm_kine_pio_angle=-1;
+  ssm_numu_cc_flag = -1;
+  ssm_cosmict_flag_1=-1; // fiducial volume vertex
+  ssm_cosmict_flag_2=-1;  // single muon
+  ssm_cosmict_flag_3=-1;  // single muon (long)
+  ssm_cosmict_flag_4=-1;  // kinematics muon
+  ssm_cosmict_flag_5=-1; // kinematics muon (long)
+  ssm_cosmict_flag_6=-1; // special ...
+  ssm_cosmict_flag_7=-1;  // muon+ michel
+  ssm_cosmict_flag_8=-1;  // muon + michel + special
+  ssm_cosmict_flag_9=-1;  // this tagger is relevant for nueCC, see "cosmic tagger ones, one case of cosmics ..." (frist one ...)
+  ssm_cosmict_flag_10=nullptr;  // front upstream (dirt)
+  ssm_cosmict_flag=-1;
 
     // single photon shower identification
   shw_sp_flag = -1;
@@ -5787,9 +5900,8 @@ void WireCellAnaTree::save_LEEweights(art::Event const& e)
 }
 
 
-void WireCellAnaTree::ReadBDTvar(nsm::NuSelectionBDT const& bdt)
+void WireCellAnaTree::ReadSSMBDTvar(nsm::NuSelectionBDT const& bdt)
 {
-
   
   ssm_flag_st_kdar = bdt.Getstkdar().ssm_flag_st_kdar;
   ssm_Nsm = bdt.Getstkdar().ssm_Nsm;
@@ -6186,7 +6298,41 @@ void WireCellAnaTree::ReadBDTvar(nsm::NuSelectionBDT const& bdt)
   ssmsp_containing_shower_id = bdt.Getstkdar().ssmsp_containing_shower_id;
   ssmsp_containing_shower_ke = bdt.Getstkdar().ssmsp_containing_shower_ke;
   ssmsp_containing_shower_flag = bdt.Getstkdar().ssmsp_containing_shower_flag;
+  // Kine Vars
+  ssm_kine_reco_Enu = bdt.Getstkdar().ssm_kine_reco_Enu;
+  ssm_kine_reco_add_energy = bdt.Getstkdar().ssm_kine_reco_add_energy;
+  ssm_kine_energy_particle = bdt.Getstkdar().ssm_kine_energy_particle;
+  ssm_kine_energy_info = bdt.Getstkdar().ssm_kine_energy_info;
+  ssm_kine_particle_type = bdt.Getstkdar().ssm_kine_particle_type;
+  ssm_kine_energy_included = bdt.Getstkdar().ssm_kine_energy_included;
+  ssm_kine_pio_mass = bdt.Getstkdar().ssm_kine_pio_mass;
+  ssm_kine_pio_flag = bdt.Getstkdar().ssm_kine_pio_flag;
+  ssm_kine_pio_vtx_dis = bdt.Getstkdar().ssm_kine_pio_vtx_dis;
+  ssm_kine_pio_energy_1 = bdt.Getstkdar().ssm_kine_pio_energy_1;
+  ssm_kine_pio_theta_1 = bdt.Getstkdar().ssm_kine_pio_theta_1;
+  ssm_kine_pio_phi_1 = bdt.Getstkdar().ssm_kine_pio_phi_1;
+  ssm_kine_pio_dis_1 = bdt.Getstkdar().ssm_kine_pio_dis_1;
+  ssm_kine_pio_energy_2 = bdt.Getstkdar().ssm_kine_pio_energy_2;
+  ssm_kine_pio_theta_2 = bdt.Getstkdar().ssm_kine_pio_theta_2;
+  ssm_kine_pio_phi_2 = bdt.Getstkdar().ssm_kine_pio_phi_2;
+  ssm_kine_pio_dis_2 = bdt.Getstkdar().ssm_kine_pio_dis_2;
+  ssm_kine_pio_angle = bdt.Getstkdar().ssm_kine_pio_angle;
+  ssm_numu_cc_flag = bdt.Getstkdar().ssm_numu_cc_flag;
+  ssm_cosmict_flag_1 = bdt.Getstkdar().ssm_cosmict_flag_1; // fiducial volume vertex
+  ssm_cosmict_flag_2 = bdt.Getstkdar().ssm_cosmict_flag_2;  // single muon
+  ssm_cosmict_flag_3 = bdt.Getstkdar().ssm_cosmict_flag_3;  // single muon (long)
+  ssm_cosmict_flag_4 = bdt.Getstkdar().ssm_cosmict_flag_4;  // kinematics muon
+  ssm_cosmict_flag_5 = bdt.Getstkdar().ssm_cosmict_flag_5; // kinematics muon (long)
+  ssm_cosmict_flag_6 = bdt.Getstkdar().ssm_cosmict_flag_6; // special ...
+  ssm_cosmict_flag_7 = bdt.Getstkdar().ssm_cosmict_flag_7;  // muon+ michel
+  ssm_cosmict_flag_8 = bdt.Getstkdar().ssm_cosmict_flag_8;  // muon + michel + special
+  ssm_cosmict_flag_9 = bdt.Getstkdar().ssm_cosmict_flag_9;  // this tagger is relevant for nueCC, see "cosmic tagger ones, one case of cosmics ..." (frist one ...)
+  ssm_cosmict_flag_10 = bdt.Getstkdar().ssm_cosmict_flag_10;  // front upstream (dirt)
+  ssm_cosmict_flag = bdt.Getstkdar().ssm_cosmict_flag;
+}
 
+void WireCellAnaTree::ReadBDTvar(nsm::NuSelectionBDT const& bdt)
+{
   shw_sp_num_mip_tracks = bdt.GetSPID().shw_sp_num_mip_tracks;
   shw_sp_num_muons = bdt.GetSPID().shw_sp_num_muons;
   shw_sp_num_pions = bdt.GetSPID().shw_sp_num_pions;
@@ -7365,6 +7511,15 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     TGraph *gr = new TGraph(samples,x_wf_v,Norm_wf_v);
     TF1 *fit = new TF1("fit","[2]*exp(-TMath::Power(([0]-x)/[1],4))",tick-10, tick);
     fit->SetParameters(tick,2,1);  gr->Fit("fit","Q","",tick-10, tick);
+//std::cout<<std::endl;
+//std::cout<<"tick "<<tick<<std::endl;
+//std::cout<<std::endl;
+//for(int i=0; i<3; i++){std::cout<<fit->GetParameter(i)<<", ";}
+//std::cout<<std::endl;
+//for(int i=0; i<samples; i++){std::cout<<gr->GetPointY(i)<<", ";}
+//std::cout<<std::endl;
+//std::cout<<std::endl;
+
     tca=fit->GetParameter(0);  tcb=fit->GetParameter(1);  tcc=fit->GetParameter(2);
     //timing is the risign edge half height
     TT[q]=(tca-abs(tcb*TMath::Power(-log(0.5/tcc),0.25)))/0.064; max[q]=max0;
@@ -7372,29 +7527,55 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     //check for saturated wf
     if(maxZ<=saturation){TT[q]=TT[q]; max[q]=max[q]; Sat[q]=false;}
       else if(maxZ>saturation) { Sat[q]=true;
+std::cout<<"Saturated PMT ch "<<q<<std::endl;
         //counting the number of ticks above the saturation, extended for NuMI
         for(int i=3*64; i<samples_64*64; i++){
+//std::cout<<"Saturated PMT ch "<<q<<"  "<<Raw_wf_v[i]<<std::endl;
         if(TF==0){if(Raw_wf_v[i+1]>4094 && Raw_wf_v[i]<=4094){tickF=i; TF=1;}}
         if(TB==0){if(Raw_wf_v[i]>4094 && Raw_wf_v[i+1]<=4094){tickB=i; TB=1;}}}
         FB=tickB-tickF;  if(FB>99){FB=99;}
-        //amplitude discrete correction
+ 	//amplitude discrete correction
         maxZhelp1=maxZ/Frac[FB]; tick=tickF; Nss=0; is=0;
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){Nss=Nss+1;}}
-        double txSS[256],tySS[256],txSS2[256],tySS2[256];
+        //double txSS[256],tySS[256],txSS2[256],tySS2[256];
+	double txSS[1500],tySS[1500],txSS2[1500],tySS2[1500];
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){txSS[is]=i*1.0; tySS[is]=Raw_wf_v[i]/maxZhelp1; is=is+1;}}
-        TGraph *g1 = new TGraph(Nss,txSS,tySS);
+std::cout<<std::endl;
+std::cout<<std::endl;
+        for(int i=3*64; i<samples_64*64; i++){std::cout<<Raw_wf_v[i]<<", ";}
+std::cout<<std::endl;
+std::cout<<std::endl;
+std::cout<<"FB "<<FB<<" tickB "<<tickB<<" tickF "<<tickF<<" Nss "<<Nss<<std::endl;
+std::cout<<"Fit 1 from "<<tick-30<<" to "<<tick+250<<std::endl;
+	TGraph *g1 = new TGraph(Nss,txSS,tySS);
         TF1 *fitS1 = new TF1("fitS1","[9]*(exp(-TMath::Power(([0]-(x-[8]))/[1],4))*0.5*(TMath::Erf(-(x-[8])-[7])+1.0)+([5]+[4]*exp(-TMath::Power(([2]-(x-[8]))/[3],2)))*exp((-(x-[8]))/[6])*0.5*(TMath::Erf([7]+(x-[8]))+1.0))",tick-30, tick+250);
-        fitS1->SetParameters(pLL[0],pLL[1],pLL[2],pLL[3],pLL[4],pLL[5],pLL[6],pLL[7],tick,1.);
+	fitS1->SetParameters(pLL[0],pLL[1],pLL[2],pLL[3],pLL[4],pLL[5],pLL[6],pLL[7],tick,1.);
         for(int i=0; i<8; i++){fitS1->FixParameter(i,pLL[i]);} g1->Fit("fitS1","Q","",tick-30, tick+250);
         tickFit1=fitS1->GetParameter(8); maxZhelp2=fitS1->GetParameter(9);  maxZhelp3=maxZhelp1/maxZhelp2;
         //amplitude fit correction
         for(int i=0; i<Nss; i++){txSS2[i]=txSS[i]; tySS2[i]=tySS[i]/maxZhelp2;}
-        TGraph *g2 = new TGraph(Nss,txSS2,tySS2);
+std::cout<<"Fit 2 from "<<tick-30<<" to "<<tick+250<<std::endl;
+	TGraph *g2 = new TGraph(Nss,txSS2,tySS2);
         TF1 *fitS2 = new TF1("fitS2","exp(-TMath::Power(([0]-(x-[8]))/[1],4))*0.5*(TMath::Erf(-(x-[8])-[7])+1.0)+([5]+[4]*exp(-TMath::Power(([2]-(x-[8]))/[3],2)))*exp((-(x-[8]))/[6])*0.5*(TMath::Erf([7]+(x-[8]))+1.0)",tick-30, tick+250);
         fitS2->SetParameters(pLL[0],pLL[1],pLL[2],pLL[3],pLL[4],pLL[5],pLL[6],pLL[7],tickFit1);
         for(int i=0; i<8; i++){fitS2->FixParameter(i,pLL[i]);}
         g2->Fit("fitS2","Q","",tick-30, tick+250);  tickFit2=fitS2->GetParameter(8);
-        //timing is the risign edge half height
+std::cout<<std::endl;
+std::cout<<std::endl;
+for(int i=0; i<10; i++){std::cout<<fitS1->GetParameter(i)<<", ";}
+std::cout<<std::endl;
+for(int i=tick-30; i<tick+250; i++){std::cout<<g1->GetPointY(i)<<", ";}
+std::cout<<std::endl;
+std::cout<<std::endl;
+
+std::cout<<std::endl;
+std::cout<<std::endl;
+for(int i=0; i<9; i++){std::cout<<fitS2->GetParameter(i)<<", ";}
+std::cout<<std::endl;
+for(int i=tick-30; i<tick+250; i++){std::cout<<g2->GetPointY(i)<<", ";}
+std::cout<<std::endl;
+std::cout<<std::endl;
+
         TT[q]=tickFit2/0.064; max[q]=maxZhelp3;}
     //-------------------------------------------------------------------------------------------------------
     H_time->Fill(TT[q]);
