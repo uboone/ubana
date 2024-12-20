@@ -3,7 +3,7 @@
 #include "proximityclustering.fcl"
 #include "eventweight_microboone_genie_knobs.fcl"
 
-#include "blipreco_configs.fcl"
+#include "microboone_blipreco.fcl"
 
 FidVol: {
     Xstart: 10.
