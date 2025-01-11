@@ -109,7 +109,7 @@ public:
 
 private:
   //debugging
-  bool flag_bad;
+  //bool flag_bad;
 
   // Declare member data here.
 
@@ -1713,7 +1713,7 @@ private:
   TH1F *H_maxH;
   TH1F *H_t0_Beam;
   TH2F *H_TimeVsPh;
-  TH1F *ns_time;
+  //TH1F *ns_time;
 
   //for redk2nu resimulating beam structure
   double fTimeBetweenBuckets;  //time between buckets
