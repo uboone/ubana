@@ -30,9 +30,10 @@ cp $wc_input_celltree WCPwork/
 
 echo "set up additional environment for wirecell" | tee -a wirecell.log
 cd WCPwork 
-setup numpy v1_14_3 -q e17:openblas:p2714b:prof
-setup libtorch v1_0_1 -q e17:prof
-setup SparseConvNet 8422a6f -q e17:prof
+#setup numpy v1_14_3 -q e17:openblas:p2714b:prof
+#setup libtorch v1_0_1 -q e17:prof
+#setup SparseConvNet 8422a6f -q e17:prof
+setup SparseConvNet v01_00_00
 export PYTHONPATH=$WCP_FQ_DIR/python:$PYTHONPATH #may not needed any longer; already appened in uboonecode
 
 echo "Create symlink to stash dCache WCP external data files" | tee -a ../wirecell.log
