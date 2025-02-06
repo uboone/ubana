@@ -270,6 +270,7 @@ NuSelectionFilter:{
         secondshower:  @local::SecondShowerTaggerTool
         eventfilter:   @local::EventFilterTool
         mcfilter:      @local::MCFilterAnalysisTool
+        blip:          @local::BlipAnalysisTool
     }
 }
 
@@ -333,4 +334,14 @@ NeutrinoSliceHits: {
     Clusterproducer: "pandora"
     Pfpproducer: "pandora"
     Sliceproducer: "pandora"
+}
+
+BlipAnalysisTool: {
+    tool_type: "BlipAnalysis"
+    SaveSCECorrLocation:  true  # Save SCE-corrected blip location
+    SaveSCECorrEnergy:    true  # Save SCE/lifetime-corrected blip energy and charge
+    SaveOnlyNuEvts:       true  # Only save blips for evts w/identified nu PFP
+    NuBlipRadius:         250   # Only save blips within this dist of nu vtx [cm]
+                                # ^^ set <= 0 to save ALL blips in neutrino events
+    LiteMode:             false # save bare minimum (x,y,z,size,energy,trueG4ID)
 }

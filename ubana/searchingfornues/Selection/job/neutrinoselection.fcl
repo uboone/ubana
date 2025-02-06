@@ -365,7 +365,7 @@ NuSelectionFilter:{
         secondshower:  @local::SecondShowerTaggerTool
         eventfilter:   @local::EventFilterTool
         mcfilter:      @local::MCFilterAnalysisTool
-        #blip:          @local::BlipAnalysisTool
+        blip:          @local::BlipAnalysisTool
         #neutron:       @local::NeutronAnalysisTool
     }
 }

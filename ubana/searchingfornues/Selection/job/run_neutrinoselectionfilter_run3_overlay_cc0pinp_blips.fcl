@@ -1,2 +1,0 @@
-#include "run_neutrinoselectionfilter_run3_overlay_cc0pinp.fcl"
-physics.filters.nuselection.AnalysisTools.blip: @local::BlipAnalysisTool
