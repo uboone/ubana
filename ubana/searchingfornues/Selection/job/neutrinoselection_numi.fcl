@@ -230,6 +230,16 @@ shrreco3dKalmanShowercalidata: @local::microboone_reco_data_producers.pandoracal
 shrreco3dKalmanShowercalidata.TrackModuleLabel:       "shrreco3dKalmanShower"
 shrreco3dKalmanShowercalidata.CalorimetryModuleLabel: "shrreco3dKalmanShowercalo"
 
+BlipAnalysisTool: {
+    tool_type: "BlipAnalysis"
+    SaveSCECorrLocation:  true  # Save SCE-corrected blip location
+    SaveSCECorrEnergy:    true  # Save SCE/lifetime-corrected blip energy and charge
+    SaveOnlyNuEvts:       true  # Only save blips for evts w/identified nu PFP
+    NuBlipRadius:         250   # Only save blips within this dist of nu vtx [cm]
+                                # ^^ set <= 0 to save ALL blips in neutrino events
+    LiteMode:             false # save bare minimum (x,y,z,size,energy,trueG4ID)
+}
+
 NuSelectionFilter:{
     module_type: NeutrinoSelectionFilter
     Verbose: false
@@ -334,14 +344,4 @@ NeutrinoSliceHits: {
     Clusterproducer: "pandora"
     Pfpproducer: "pandora"
     Sliceproducer: "pandora"
-}
-
-BlipAnalysisTool: {
-    tool_type: "BlipAnalysis"
-    SaveSCECorrLocation:  true  # Save SCE-corrected blip location
-    SaveSCECorrEnergy:    true  # Save SCE/lifetime-corrected blip energy and charge
-    SaveOnlyNuEvts:       true  # Only save blips for evts w/identified nu PFP
-    NuBlipRadius:         250   # Only save blips within this dist of nu vtx [cm]
-                                # ^^ set <= 0 to save ALL blips in neutrino events
-    LiteMode:             false # save bare minimum (x,y,z,size,energy,trueG4ID)
 }
