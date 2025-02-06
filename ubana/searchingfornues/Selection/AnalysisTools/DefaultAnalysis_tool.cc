@@ -306,6 +306,18 @@ private:
   std::vector<float> _mc_completeness;
   std::vector<float> _mc_purity;
 
+  // mc truth from neutrino event generator
+  std::vector<int> _mc_generator_pdg;
+  std::vector<float> _mc_generator_E;
+  std::vector<float> _mc_generator_px;
+  std::vector<float> _mc_generator_py;
+  std::vector<float> _mc_generator_pz;
+
+  std::vector<int> _mc_generator_mother;
+  std::vector<int> _mc_generator_rescatter;
+  std::vector<int> _mc_generator_trackid;
+  std::vector<int> _mc_generator_statuscode;
+
   float _true_pt;
   float _true_pt_visible;
   float _true_p;
@@ -1197,6 +1209,16 @@ void DefaultAnalysis::setBranches(TTree *_tree)
 
   _tree->Branch("mc_end_p", "std::vector< float >", &_mc_end_p);
 
+  _tree->Branch("mc_generator_pdg", "std::vector< int >", &_mc_generator_pdg);
+  _tree->Branch("mc_generator_mother", "std::vector< int >", &_mc_generator_mother);
+  _tree->Branch("mc_generator_rescatter", "std::vector< int >", &_mc_generator_rescatter);
+  _tree->Branch("mc_generator_trackid", "std::vector< int >", &_mc_generator_trackid);
+  _tree->Branch("mc_generator_statuscode", "std::vector< int >", &_mc_generator_statuscode);
+  _tree->Branch("mc_generator_E", "std::vector< float >", &_mc_generator_E);
+  _tree->Branch("mc_generator_px", "std::vector< float >", &_mc_generator_px);
+  _tree->Branch("mc_generator_py", "std::vector< float >", &_mc_generator_py);
+  _tree->Branch("mc_generator_pz", "std::vector< float >", &_mc_generator_pz);
+
   _tree->Branch("mc_completeness", "std::vector< float >", &_mc_completeness);
   _tree->Branch("mc_purity", "std::vector< float >", &_mc_purity);
 
@@ -1394,6 +1416,17 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
   _mc_completeness.clear();
   _mc_purity.clear();
 
+  _mc_generator_pdg.clear();
+  _mc_generator_E.clear();
+  _mc_generator_px.clear();
+  _mc_generator_py.clear();
+  _mc_generator_pz.clear();
+  _mc_generator_mother.clear();
+
+  _mc_generator_rescatter.clear();
+  _mc_generator_trackid.clear();
+  _mc_generator_statuscode.clear();
+
   _true_pt = 0;
   _true_pt_visible = 0;
   _true_p = 0;
@@ -1517,6 +1550,17 @@ void DefaultAnalysis::SaveTruth(art::Event const &e)
   {
 
     auto const &part = mct.GetParticle(i);
+
+    // save all the particle from neutrino generator
+    _mc_generator_pdg.push_back(part.PdgCode());
+    _mc_generator_E.push_back(part.E());
+    _mc_generator_px.push_back(part.Px());
+    _mc_generator_py.push_back(part.Py());
+    _mc_generator_pz.push_back(part.Pz());
+    _mc_generator_mother.push_back(part.Mother());
+    _mc_generator_rescatter.push_back(part.Rescatter());
+    _mc_generator_trackid.push_back(part.TrackId());
+    _mc_generator_statuscode.push_back(part.StatusCode());
 
     // for eta does not have to be statuscode==1
     if (part.PdgCode() == 221) { 
