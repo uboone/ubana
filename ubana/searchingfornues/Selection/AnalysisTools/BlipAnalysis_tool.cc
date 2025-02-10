@@ -7,358 +7,411 @@
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 
-#include "../CommonDefs/Typedefs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Typedefs.h"
 
 // backtracking tools
-#include "../CommonDefs/BacktrackingFuncs.h"
-#include "../CommonDefs/TrackShowerScoreFuncs.h"
-#include "../CommonDefs/PIDFuncs.h"
-#include "../CommonDefs/SCECorrections.h"
-#include "../CommonDefs/Geometry.h"
-
-#include "../CommonDefs/LLR_PID.h"
-#include "../CommonDefs/LLRPID_proton_muon_lookup.h"
-#include "../CommonDefs/LLRPID_correction_lookup.h"
-#include "../CommonDefs/CalibrationFuncs.h"
-
-#include "larreco/RecoAlg/TrajectoryMCSFitter.h"
-#include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
-#include "larreco/RecoAlg/TrackMomentumCalculator.h"
-
-// Blip Reco
-#include "ubreco/BlipReco/Alg/BlipRecoAlg.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/PIDFuncs.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/SCECorrections.h"
+#include "ubana/searchingfornues/Selection/CommonDefs/Geometry.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "ubreco/BlipReco/Utils/DataTypes.h"
 
 namespace analysis
 {
-//////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //
 // Class:       BlipAnalysis
 // File:        BlipAnalysis.cc
 //
-//              A basic analysis example
+//  This analysis tool reads MeV-scale blip information from files
+//  (blipobj::Blip data products) and saves them to the output ntuple.
+//  To save space, only blips within some configurable distance from 
+//  the identified neutrino vertex will be saved to the ntuple.
+//
 //
 // Configuration parameters:
 //
-// TBD
+//  BlipProducer      : producer of blip collection saved to event to be read
+//  NuBlipRadius      : radius of acceptance around neutrino vertex
+//  SaveSCECorrLoc    : save the SCE-corrected blip location
+//  SaveSCECorrEnergy : save the SCE- and lifetime-corrected charge and energy
 //
-// Created by Afroditi Papadopoulou and Burke Irwin (burke.irwin7@gmail.com) on 01/24/2023
+// Original tool created by Afroditi Papadopoulou & Burke Irwin (burke.irwin7@gmail.com) on 01/24/2023.
+// Updated for MCC10 by Will Foreman (wforeman.phys@gmail.com) on 01/28/2025.
 //
 ////////////////////////////////////////////////////////////////////////
 
 class BlipAnalysis : public AnalysisToolBase
 {
+
 public:
-  /**
-  * @brief Cosntructor
-  * @param parameter set
-  */	
+  
+  /// @brief  Constructor
   BlipAnalysis(const fhicl::ParameterSet &pset);
 
-  /**
-  * @brief Destructor
-  */
+  /// @brief  Destructor
   ~BlipAnalysis(){};
 
   // provide for initialization
   void configure(fhicl::ParameterSet const &pset);
-  
-  /**
-  * @brief Analysis function
-  */
+
+  /// @brief Analysis function
   void analyzeEvent(art::Event const &e, bool fData) override;
 
-  /**
-  * @brief Analyze slice
-  */
+  /// @brief Analyze slice
   void analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_pfp_v, bool fData, bool selected) override;
+     
+  /// @brief Method for adding a blip's info to the branch vectors
+  void addTheBlip(art::Ptr<blipobj::Blip> blip);
 
-  /**
-  * @brief Save truth info for event associated to neutrino
-  */
-  void SaveTruth(art::Event const &e);
-
-  /**
-  * @brief Fill Default info for event associated to neutrino
-  */
-  void fillDefault();
-
-  /**
-  * @brief set branches for TTree
-  */
+  /// @brief set branches for TTree
   void setBranches(TTree *_tree) override;
 
-  /**
-  * @brief reset branches for TTree
-  */
+  /// @brief reset ttree branches
   void resetTTree(TTree *_tree) override;
+  
+  /// @brief reset ttree branches
+  void resetVariables();
+
+  /// @brief truncate float variable to desired decimal precision
+  float truncate(float input, double base);
 
 private:
+
+  // --- fcl parameters ---
+  art::InputTag fBlipProducer;// blip collection producer
+  float   fNuBlipRadius;      // cm (set <= 0 --> saves all blips in the event)
+  bool    fSaveSCECorrLoc;    // option to save SCE-corrected location
+  bool    fSaveSCECorrEnergy; // option to save SCE- and lifetime-corrected energy
+  bool    fSaveOnlyNuEvts;    // only save blips for neutrino PFP events
+  bool    fLiteMode;          // save bare minimum of variables
+
+  // --- event identifiers --- 
   int _run, _sub, _evt;
+  
+  // --- 3D blip information ---
+  int _nblips;                          // number of blips found in this event
+  std::vector<int>    _blip_id;         // unique blip ID
+  std::vector<int>    _blip_tpc;        // blip TPC
+  std::vector<int>    _blip_nplanes;    // number of planes matched (2 or 3)
+  std::vector<float>  _blip_proxtrkdist;// distance to closest track
+  std::vector<int>    _blip_proxtrkid;  // track ID of closest track
+  std::vector<bool>   _blip_touchtrk;   // is blip touching a track (ie, delta-like?)
+  std::vector<int>    _blip_touchtrkid; // track ID of touched track
+  std::vector<bool>   _blip_bydeadwire; // is blip adjacent to a dead channel on coll plane?
+  std::vector<float>  _blip_badwirefrac;// frac of blip's wires (across all planes) deemed bad/noisy
+  std::vector<float>  _blip_x;          // reconstructed X [cm]
+  std::vector<float>  _blip_y;          // reconstructed Y [cm]
+  std::vector<float>  _blip_z;          // reconstructed Z [cm]
+  std::vector<float>  _blip_sigmayz;    // difference in central wire intersection points
+  std::vector<float>  _blip_dx;         // length along drift direction [cm]
+  std::vector<float>  _blip_dw;         // length projected onto axis perp. to wire orientation
+  std::vector<float>  _blip_size;       // projected size in 3D (based on dx and dw)
+  std::vector<float>  _blip_charge;     // charge reconstructed at calo plane (usually collection) [e-]
+  std::vector<float>  _blip_energy;     // reconstructed energy [MeVee]
+  std::vector<int>    _blip_true_g4id;  // truth-matched G4 track ID
+  std::vector<int>    _blip_true_pdg;   // truth-matched PDG
+  std::vector<float>  _blip_true_energy;// true energy deposited
+  // plane-specific information
+  std::vector<int>    _blip_pl0_nwires;       // number of wires on this plane
+  std::vector<int>    _blip_pl1_nwires;       // number of wires on this plane
+  std::vector<int>    _blip_pl2_nwires;       // number of wires on this plane
+  std::vector<int>    _blip_pl0_nwiresbad;    // number of wires deemed noisy
+  std::vector<int>    _blip_pl1_nwiresbad;    // number of wires deemed noisy
+  std::vector<int>    _blip_pl2_nwiresbad;    // number of wires deemed noisy
+  std::vector<bool>   _blip_pl0_bydeadwire;   // is adjacent to a dead channel?
+  std::vector<bool>   _blip_pl1_bydeadwire;   // is adjacent to a dead channel?
+  std::vector<bool>   _blip_pl2_bydeadwire;   // is adjacent to a dead channel?
+  std::vector<int>    _blip_pl0_centerwire;   // central wire number
+  std::vector<int>    _blip_pl1_centerwire;   // central wire number
+  std::vector<int>    _blip_pl2_centerwire;   // central wire number
 
-  blip::BlipRecoAlg* fBlipAlg;
-
-  //Blip Reco
-  std::vector<int>   _blip_ID;
-  std::vector<bool>  _blip_isValid;
-  std::vector<int>   _blip_TPC;
-  std::vector<int>   _blip_NPlanes;
-  std::vector<int>   _blip_MaxWireSpan;
-  std::vector<float> _blip_Energy;
-  std::vector<float> _blip_EnergyESTAR;
-  std::vector<float> _blip_Time;
-  std::vector<float> _blip_ProxTrkDist;
-  std::vector<int>   _blip_ProxTrkID;
-  std::vector<bool>  _blip_inCylinder;
-  std::vector<float> _blip_X;
-  std::vector<float> _blip_Y;
-  std::vector<float> _blip_Z;
-  std::vector<float> _blip_SigmaYZ;
-  std::vector<float> _blip_dX;
-  std::vector<float> _blip_dYZ;
-  std::vector<float> _blip_Charge;
-
-  std::vector<int>   _blip_LeadG4ID;
-
-  //Blip Truth
-  std::vector<int>         _blip_pdg;
-  std::vector<std::string> _blip_process;
-  std::vector<float>       _blip_vx;
-  std::vector<float>       _blip_vy;
-  std::vector<float>       _blip_vz;
-  std::vector<float>       _blip_E;
-  std::vector<float>       _blip_mass;
-  std::vector<int>   	   _blip_trkid;
 };
 
-BlipAnalysis::BlipAnalysis(const fhicl::ParameterSet &pset)
+
+//----------------------------------------------------------------------------
+BlipAnalysis::BlipAnalysis(const fhicl::ParameterSet &p)
 {
-  fBlipAlg = new blip::BlipRecoAlg( pset.get<fhicl::ParameterSet>("BlipAlg") );
+  fBlipProducer       = p.get<art::InputTag>("BlipProducer",        "blipreco");
+  fSaveOnlyNuEvts     = p.get<bool>         ("SaveOnlyNuEvts",      true);
+  fNuBlipRadius       = p.get<float>        ("NuBlipRadius",        300.);
+  fSaveSCECorrLoc     = p.get<bool>         ("SaveSCECorrLocation", true);
+  fSaveSCECorrEnergy  = p.get<bool>         ("SaveSCECorrEnergy",   true);
+  fLiteMode           = p.get<bool>         ("LiteMode",            false);
 }
 
-void BlipAnalysis::configure(fhicl::ParameterSet const &pset)
+
+//----------------------------------------------------------------------------
+void BlipAnalysis::configure(fhicl::ParameterSet const &p)
 {
 }
 
+//---------------------------------------------------------------------------
+float BlipAnalysis::truncate(float input, double base){
+  if( base > 0 ) return roundf( input / base ) * base;
+  else return input;
+}
+
+//----------------------------------------------------------------------------
+void BlipAnalysis::addTheBlip(art::Ptr<blipobj::Blip> blip){
+    
+    // get reconstructed position
+    //TVector3 loc;
+    TVector3 loc = (fSaveSCECorrLoc) ? blip->PositionSCE : blip->Position;
+    
+    // get reconstructed charge and energy
+    float energy = -9; float charge = -9;
+    if( fSaveSCECorrEnergy ) {
+      energy = blip->Energy; 
+      charge = blip->Charge;
+    } else {
+      energy = blip->EnergyCorr;  
+      charge = blip->ChargeCorr;
+    }
+
+    float energyTrue = blip->truth.Energy;
+    float size = sqrt( pow(blip->dX,2) + pow(blip->dYZ,2) );
+    float x = loc.X();
+    float y = loc.Y();
+    float z = loc.Z();
+
+    // bad wire frac
+    int nwirestot = 0;
+    int nwiresbad = 0;
+    for(int j=0; j<3; j++){
+      int nb = std::max(0,blip->clusters[j].NWiresBad);
+      int nn = std::max(0,blip->clusters[j].NWiresNoisy);
+      nwiresbad += (nb + nn);
+      nwirestot = blip->clusters[j].NWires;
+    }
+    float badwirefrac = float(nwiresbad)/nwirestot;
+
+    // truncate some floats for reduced data size
+    x       = truncate(x,0.01);
+    y       = truncate(y,0.01);
+    z       = truncate(z,0.01);
+    energy  = truncate(energy,0.001);
+    charge  = truncate(charge,10);
+    size    = truncate(size,0.01);
+    energyTrue = truncate(energyTrue,0.001);
+
+
+    bool isTouchTrk = (blip->TouchTrkID >= 0 );
+    _blip_id          .push_back(blip->ID);
+    _blip_tpc         .push_back(blip->TPC);
+    _blip_nplanes     .push_back(blip->NPlanes);    
+    _blip_proxtrkdist .push_back(blip->ProxTrkDist);
+    _blip_proxtrkid   .push_back(blip->ProxTrkID);
+    _blip_touchtrk    .push_back(isTouchTrk);
+    _blip_touchtrkid  .push_back(blip->TouchTrkID);
+    _blip_bydeadwire  .push_back(blip->clusters[2].DeadWireSep==0);
+    _blip_badwirefrac .push_back(badwirefrac);
+    _blip_x           .push_back(x);
+    _blip_y           .push_back(y);
+    _blip_z           .push_back(z);
+    _blip_sigmayz     .push_back(blip->SigmaYZ);
+    _blip_dx          .push_back(blip->dX);
+    _blip_dw          .push_back(blip->dYZ);
+    _blip_size        .push_back(size);
+    _blip_charge      .push_back(charge);
+    _blip_energy      .push_back(energy);
+    _blip_true_g4id   .push_back(blip->truth.LeadG4ID);
+    _blip_true_pdg    .push_back(blip->truth.LeadG4PDG);
+    _blip_true_energy .push_back(energyTrue);
+    _blip_pl0_nwires  .push_back(blip->clusters[0].NWires);
+    _blip_pl1_nwires  .push_back(blip->clusters[1].NWires);
+    _blip_pl2_nwires  .push_back(blip->clusters[2].NWires);
+    _blip_pl0_nwiresbad  .push_back(blip->clusters[0].NWiresBad);
+    _blip_pl1_nwiresbad  .push_back(blip->clusters[1].NWiresBad);
+    _blip_pl2_nwiresbad  .push_back(blip->clusters[2].NWiresBad);
+    _blip_pl0_bydeadwire  .push_back((blip->clusters[0].DeadWireSep==0));
+    _blip_pl1_bydeadwire  .push_back((blip->clusters[1].DeadWireSep==0));
+    _blip_pl2_bydeadwire  .push_back((blip->clusters[2].DeadWireSep==0));
+    _blip_pl0_centerwire  .push_back(blip->clusters[0].CenterWire); 
+    _blip_pl1_centerwire  .push_back(blip->clusters[1].CenterWire);
+    _blip_pl2_centerwire  .push_back(blip->clusters[2].CenterWire);
+
+}
+
+//----------------------------------------------------------------------------
 void BlipAnalysis::analyzeEvent(art::Event const &e, bool fData)
 {
   _evt = e.event();
   _sub = e.subRun();
   _run = e.run();
   std::cout << "[BlipAnalysis::analyzeEvent] Run: " << _run << ", SubRun: " << _sub << ", Event: " << _evt << std::endl;
+
+  //================================================
+  // If a non-zero radius was configured, or we are
+  // only saving neutrino events, then exit out of this 
+  // function and wait for 'analyzeSlice'
+  //================================================
+  if( fSaveOnlyNuEvts   ) return;
+  if( fNuBlipRadius > 0 ) return;
+  
+  //==========================================
+  // ... otherwise, save all blips in the event
+  //==========================================
+  // reset branch vectors
+  resetVariables(); 
+  // loop over blips saved to the event
+  art::Handle< std::vector<blipobj::Blip> > blipHandle;
+  std::vector<art::Ptr<blipobj::Blip> > bliplist;
+  if (e.getByLabel(fBlipProducer,blipHandle))
+    art::fill_ptr_vector(bliplist, blipHandle);
+  _nblips = bliplist.size();
+  std::cout<<"Saving all "<<_nblips<<" blips in the event\n"; 
+  for(size_t i=0; i<bliplist.size(); i++)
+    addTheBlip(bliplist[i]);
+
 }
 
+
+//----------------------------------------------------------------------------
 void BlipAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_pfp_v, bool fData, bool selected)
 {
-  //Blip Reco
-  fBlipAlg->RunBlipReco(e);
-  std::vector<blip::Blip> blipVec = fBlipAlg->blips;
+  
+  //================================================
+  // If NO radius was configured, it means the user 
+  // wants to save all blips, which would have already 
+  // been done in the call to 'analyzeEvent' unless 
+  // the "SaveOnlyNuEvts" flag is enabled.
+  //================================================
+  if( !fSaveOnlyNuEvts   ) return;
+  if( fNuBlipRadius <= 0 ) fNuBlipRadius = 99999.;
 
-  std::cout << "number of blips = " << blipVec.size() << std::endl;
+  std::cout
+  <<"********** BlipAnalysis::analyzeSlice **********\n"
+  <<" saving only blips < "<<fNuBlipRadius<<" cm from neutrino vtx\n";
 
-  //Blip Truth
-  art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
-  art::Handle< std::vector<simb::MCParticle> > mcparticleHandle;
-  std::vector<art::Ptr<simb::MCTruth> > mclist;
-  std::vector<art::Ptr<simb::MCParticle> > mcparticle;
+  // reset branch vectors
+  resetVariables();
 
-  if ( e.getByLabel("generator",mctruthListHandle) )
-  {
-    art::fill_ptr_vector(mclist, mctruthListHandle);
+  // get the neutrino vertex; skip if none found
+  TVector3 nuvtx;
+  bool foundVertex = false;
+  for (auto pfp : slice_pfp_v){
+    if (!pfp->IsPrimary()) continue;
+    double xyz[3] = {};
+    auto vtx = pfp.get<recob::Vertex>();
+    if (vtx.size() != 1) break;
+    vtx.at(0)->XYZ(xyz);
+    nuvtx.SetXYZ(xyz[0], xyz[1], xyz[2]);
+    foundVertex = true;
+    break;
   }
+  if( !foundVertex ) return;
+  std::cout
+  <<" nuvtx position: ("<<nuvtx.X()<<", "<<nuvtx.Y()<<", "<<nuvtx.Z()<<") cm\n";
 
-  if ( e.getByLabel("largeant",mcparticleHandle) )
-  {
-    art::fill_ptr_vector(mcparticle, mcparticleHandle);
+  // add only blips around vertex
+  art::Handle< std::vector<blipobj::Blip> > blipHandle;
+  std::vector<art::Ptr<blipobj::Blip> > bliplist;
+  if (e.getByLabel(fBlipProducer,blipHandle))
+    art::fill_ptr_vector(bliplist, blipHandle);
+  for(size_t i=0; i<bliplist.size(); i++){
+    auto& blip = bliplist[i];
+    //TVector3 loc;
+    TVector3 loc = (fSaveSCECorrLoc) ? blip->PositionSCE : blip->Position;
+    if( (loc-nuvtx).Mag() > fNuBlipRadius ) continue;
+    addTheBlip(blip);
+    _nblips++;
   }
+  std::cout
+  <<" total blips in the event: "<<bliplist.size()<<"\n"
+  <<" blips saved: "<<_nblips<<"\n"
+  <<"************************************************\n";
 
-  for(size_t i=0; i<blipVec.size(); i++)
-  {
-
-    // Blip Reco
-    _blip_ID.push_back(blipVec[i].ID);
-    _blip_isValid.push_back(blipVec[i].isValid);
-    _blip_TPC.push_back(blipVec[i].TPC);
-    _blip_NPlanes.push_back(blipVec[i].NPlanes);
-    _blip_MaxWireSpan.push_back(blipVec[i].MaxWireSpan);
-    _blip_Energy.push_back(blipVec[i].Energy);
-    _blip_EnergyESTAR.push_back(blipVec[i].EnergyESTAR);
-    _blip_Time.push_back(blipVec[i].Time);
-    _blip_ProxTrkDist.push_back(blipVec[i].ProxTrkDist);
-    _blip_ProxTrkID.push_back(blipVec[i].ProxTrkID);
-    _blip_inCylinder.push_back(blipVec[i].inCylinder);
-    _blip_X.push_back(blipVec[i].X() );
-    _blip_Y.push_back(blipVec[i].Y() );
-    _blip_Z.push_back(blipVec[i].Z() );
-    _blip_SigmaYZ.push_back(blipVec[i].SigmaYZ);
-    _blip_dX.push_back(blipVec[i].dX);
-    _blip_dYZ.push_back(blipVec[i].dYZ);
-    _blip_Charge.push_back(blipVec[i].Charge);
-    _blip_LeadG4ID.push_back(blipVec[i].truth.LeadG4ID);
-
-    // Blip Truth
-    // Default values if no matching is performed
-    int b_pdg=-999;
-    std::string b_pro="null";
-    float b_vx=-999;
-    float b_vy=-999;
-    float b_vz=-999;
-    float b_E=-999;
-    float b_mass=-999;
-    int   b_tid=-999;
-
-    // Only for MC
-    if (!fData)
-    {
-      b_pdg = blipVec[i].truth.LeadG4PDG;
-      int blip_to_mcpar = -1;
-      std::vector<int> _neutron_trkid;
-      for (int i_mcp = 0; i_mcp < (int) mcparticle.size(); i_mcp++)
-      {
-        if (mcparticle[i_mcp]->TrackId()==blipVec[i].truth.LeadG4ID)
-        {
-              blip_to_mcpar = i_mcp;
-	      
-        } // end of if-statement, only if the true blip ID corresponds to an MCParticle
-      } // End of the loop over the MCParticles
-
-
-      if (blip_to_mcpar > -1)
-      {
-	for (int i_n = 0; i_n < (int) _neutron_trkid.size(); i_n++)
-        {
-        }
-        b_pro = mcparticle[blip_to_mcpar]->Process();
-        b_vx = mcparticle[blip_to_mcpar]->Vx();
-        b_vy = mcparticle[blip_to_mcpar]->Vy();
-        b_vz = mcparticle[blip_to_mcpar]->Vz();
-        b_mass = mcparticle[blip_to_mcpar]->Mass();
-        b_E = mcparticle[blip_to_mcpar]->E();
-	b_tid = mcparticle[blip_to_mcpar]->TrackId();
-      } // End of the if-statement, only if the true blip ID corresponds to an MCParticle
-    } // End of the if-statement, only for MC
-
-    _blip_pdg.push_back(b_pdg);
-    _blip_process.push_back(b_pro);
-    _blip_vx.push_back(b_vx);
-    _blip_vy.push_back(b_vy);
-    _blip_vz.push_back(b_vz);
-    _blip_E.push_back(b_E);
-    _blip_mass.push_back(b_mass);
-    _blip_trkid.push_back(b_tid);
-  } // End of the loop over the blips
-
-  } //End BlipAnalysis
-
-
-
-void BlipAnalysis::fillDefault()
-{
-
-  // Blip Reco
-  _blip_ID.push_back(std::numeric_limits<int>::lowest());
-  _blip_isValid.push_back(false);
-  _blip_TPC.push_back(std::numeric_limits<int>::lowest());
-  _blip_NPlanes.push_back(std::numeric_limits<int>::lowest());
-  _blip_MaxWireSpan.push_back(std::numeric_limits<int>::lowest());
-  _blip_Energy.push_back(std::numeric_limits<float>::lowest());
-  _blip_EnergyESTAR.push_back(std::numeric_limits<float>::lowest());
-  _blip_Time.push_back(std::numeric_limits<float>::lowest());
-  _blip_ProxTrkDist.push_back(std::numeric_limits<float>::lowest());
-  _blip_ProxTrkID.push_back(std::numeric_limits<int>::lowest());
-  _blip_inCylinder.push_back(false);
-  _blip_X.push_back(std::numeric_limits<float>::lowest());
-  _blip_Y.push_back(std::numeric_limits<float>::lowest());
-  _blip_Z.push_back(std::numeric_limits<float>::lowest());
-  _blip_SigmaYZ.push_back(std::numeric_limits<float>::lowest());
-  _blip_dX.push_back(std::numeric_limits<float>::lowest());
-  _blip_dYZ.push_back(std::numeric_limits<float>::lowest());
-  _blip_Charge.push_back(std::numeric_limits<float>::lowest());
-
-  // Blip Truth
-  _blip_pdg.push_back(std::numeric_limits<int>::lowest());
-  _blip_process.push_back("null");
-  _blip_vx.push_back(std::numeric_limits<float>::lowest());
-  _blip_vy.push_back(std::numeric_limits<float>::lowest());
-  _blip_vz.push_back(std::numeric_limits<float>::lowest());
-  _blip_E.push_back(std::numeric_limits<float>::lowest());
-  _blip_mass.push_back(std::numeric_limits<float>::lowest());
-  _blip_trkid.push_back(std::numeric_limits<int>::lowest());
 }
 
+
+//----------------------------------------------------------------------------
 void BlipAnalysis::setBranches(TTree *_tree)
 {
-
-  // Blip Reco
-  _tree->Branch("blip_ID", "std::vector< int >", &_blip_ID);
-  _tree->Branch("blip_isValid", "std::vector< bool >", &_blip_isValid);
-  _tree->Branch("blip_TPC", "std::vector< int >", &_blip_TPC);
-  _tree->Branch("blip_NPlanes", "std::vector< int >", &_blip_NPlanes);
-  _tree->Branch("blip_MaxWireSpan", "std::vector< int >", &_blip_MaxWireSpan);
-  _tree->Branch("blip_Energy", "std::vector< float >", &_blip_Energy);
-  _tree->Branch("blip_EnergyESTAR", "std::vector< float >", &_blip_EnergyESTAR);
-  _tree->Branch("blip_Time", "std::vector< float >", &_blip_Time);
-  _tree->Branch("blip_ProxTrkDist", "std::vector< float >", &_blip_ProxTrkDist);
-  _tree->Branch("blip_ProxTrkID", "std::vector< int >", &_blip_ProxTrkID);
-  _tree->Branch("blip_inCylinder", "std::vector< bool >", &_blip_inCylinder);
-  _tree->Branch("blip_X", "std::vector< float >", &_blip_X);
-  _tree->Branch("blip_Y", "std::vector< float >", &_blip_Y);
-  _tree->Branch("blip_Z", "std::vector< float >", &_blip_Z);
-  _tree->Branch("blip_SigmaYZ", "std::vector< float >", &_blip_SigmaYZ);
-  _tree->Branch("blip_dX", "std::vector< float >", &_blip_dX);
-  _tree->Branch("blip_dYZ", "std::vector< float >", &_blip_dYZ);
-  _tree->Branch("blip_Charge","std::vector< float >", &_blip_Charge);
-  _tree->Branch("blip_LeadG4ID","std::vector< int >", &_blip_LeadG4ID);
-
-  // Blip Truth
-  _tree->Branch("blip_pdg", "std::vector< int >", &_blip_pdg);
-  _tree->Branch("blip_process", "std::vector< std::string >", &_blip_process);
-  _tree->Branch("blip_vx", "std::vector< float >", &_blip_vx);
-  _tree->Branch("blip_vy", "std::vector< float >", &_blip_vy);
-  _tree->Branch("blip_vz", "std::vector< float >", &_blip_vz);
-  _tree->Branch("blip_E", "std::vector< float >", &_blip_E);
-  _tree->Branch("blip_mass", "std::vector< float >", &_blip_mass);
-  _tree->Branch("blip_trkid", "std::vector< int >", &_blip_trkid);
+  _tree->Branch("nblips_saved",           &_nblips,         "nblips_saved/I");
+  //_tree->Branch("blip_id",        "std::vector< int >",  &_blip_id);
+  _tree->Branch("blip_x",           "std::vector< float >",   &_blip_x);
+  _tree->Branch("blip_y",           "std::vector< float >",   &_blip_y);
+  _tree->Branch("blip_z",           "std::vector< float >",   &_blip_z);
+  _tree->Branch("blip_size",        "std::vector< float >",   &_blip_size);
+  _tree->Branch("blip_energy",      "std::vector< float >",   &_blip_energy);
+  if( !fLiteMode ) {
+  _tree->Branch("blip_charge",      "std::vector< float >",   &_blip_charge);
+  _tree->Branch("blip_nplanes",     "std::vector< int >",     &_blip_nplanes);
+  _tree->Branch("blip_proxtrkdist", "std::vector< float >",   &_blip_proxtrkdist);
+  _tree->Branch("blip_proxtrkid",   "std::vector< int >",     &_blip_proxtrkid);
+  _tree->Branch("blip_touchtrk",    "std::vector< bool >",    &_blip_touchtrk);
+  _tree->Branch("blip_touchtrkid",  "std::vector< int >",     &_blip_touchtrkid);
+  //_tree->Branch("blip_bydeadwire",  "std::vector< bool >",    &_blip_bydeadwire);
+  _tree->Branch("blip_badwirefrac",  "std::vector< float >",    &_blip_badwirefrac);
+  _tree->Branch("blip_pl0_nwires",  "std::vector< int >",     &_blip_pl0_nwires);
+  _tree->Branch("blip_pl1_nwires",  "std::vector< int >",     &_blip_pl1_nwires);
+  _tree->Branch("blip_pl2_nwires",  "std::vector< int >",     &_blip_pl2_nwires);
+  //_tree->Branch("blip_pl0_nwiresbad", "std::vector< int >",   &_blip_pl0_nwiresbad);
+  //_tree->Branch("blip_pl1_nwiresbad", "std::vector< int >",   &_blip_pl1_nwiresbad);
+  //_tree->Branch("blip_pl2_nwiresbad", "std::vector< int >",   &_blip_pl2_nwiresbad);
+  _tree->Branch("blip_pl0_bydeadwire","std::vector< bool >",  &_blip_pl0_bydeadwire);
+  _tree->Branch("blip_pl1_bydeadwire","std::vector< bool >",  &_blip_pl1_bydeadwire);
+  _tree->Branch("blip_pl2_bydeadwire","std::vector< bool >",  &_blip_pl2_bydeadwire);
+  _tree->Branch("blip_pl0_centerwire","std::vector< int >",   &_blip_pl0_centerwire);
+  _tree->Branch("blip_pl1_centerwire","std::vector< int >",   &_blip_pl1_centerwire);
+  _tree->Branch("blip_pl2_centerwire","std::vector< int >",   &_blip_pl2_centerwire);
+  }
+  _tree->Branch("blip_true_g4id",   "std::vector< int >",     &_blip_true_g4id);
+  if( !fLiteMode ){ 
+  _tree->Branch("blip_true_energy", "std::vector< float >",   &_blip_true_energy);
+  }
 }
 
+
+//----------------------------------------------------------------------------
 void BlipAnalysis::resetTTree(TTree *_tree)
 {
-
-  // Blip Reco
-  _blip_ID.clear();
-  _blip_isValid.clear();
-  _blip_TPC.clear();
-  _blip_NPlanes.clear();
-  _blip_MaxWireSpan.clear();
-  _blip_Energy.clear();
-  _blip_EnergyESTAR.clear();
-  _blip_Time.clear();
-  _blip_ProxTrkDist.clear();
-  _blip_ProxTrkID.clear();
-  _blip_inCylinder.clear();
-  _blip_X.clear();
-  _blip_Y.clear();
-  _blip_Z.clear();
-  _blip_SigmaYZ.clear();
-  _blip_dX.clear();
-  _blip_dYZ.clear();
-  _blip_Charge.clear();
-  _blip_LeadG4ID.clear();
-
-  // Blip Truth
-  _blip_pdg.clear();
-  _blip_process.clear();
-  _blip_vx.clear();
-  _blip_vy.clear();
-  _blip_vz.clear();
-  _blip_E.clear();
-  _blip_mass.clear();
-  _blip_trkid.clear();
+  resetVariables();
 }
+
+
+//----------------------------------------------------------------------------
+void BlipAnalysis::resetVariables()
+{
+    _nblips          = 0;
+    _blip_id          .clear(); 
+    _blip_tpc         .clear(); 
+    _blip_nplanes     .clear(); 
+    _blip_proxtrkdist .clear(); 
+    _blip_proxtrkid   .clear(); 
+    _blip_touchtrk    .clear(); 
+    _blip_touchtrkid  .clear();
+    _blip_bydeadwire  .clear();
+    _blip_badwirefrac.clear();
+    _blip_x           .clear(); 
+    _blip_y           .clear(); 
+    _blip_z           .clear(); 
+    _blip_sigmayz     .clear(); 
+    _blip_dx          .clear();  
+    _blip_dw          .clear(); 
+    _blip_size        .clear(); 
+    _blip_charge      .clear(); 
+    _blip_energy      .clear(); 
+    _blip_true_g4id   .clear(); 
+    _blip_true_pdg    .clear(); 
+    _blip_true_energy .clear(); 
+    _blip_pl0_nwires  .clear(); 
+    _blip_pl1_nwires  .clear(); 
+    _blip_pl2_nwires  .clear(); 
+    _blip_pl0_nwiresbad .clear();
+    _blip_pl1_nwiresbad .clear();
+    _blip_pl2_nwiresbad .clear();
+    _blip_pl0_bydeadwire.clear();
+    _blip_pl1_bydeadwire.clear();
+    _blip_pl2_bydeadwire.clear();
+    _blip_pl0_centerwire.clear();
+    _blip_pl1_centerwire.clear();
+    _blip_pl2_centerwire.clear();
+}
+
 
 DEFINE_ART_CLASS_TOOL(BlipAnalysis)
-}
+} // namespace analysis
 
 #endif
-
-
-

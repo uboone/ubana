@@ -11,7 +11,7 @@ echo $UBOONECODE_VERSION | tee -a wirecell.log
 echo $WCP_VERSION | tee -a wirecell.log
 date | tee -a wirecell.log
 
-wc_input_celltree=`ls celltreeDATA*.root | xargs | awk '{print $1}'`
+wc_input_celltree=`ls celltreeOVERLAY*.root | xargs | awk '{print $1}'`
 if [ ! -e "$wc_input_celltree" ]; then
 	echo "Celltree root not found!" | tee -a wirecell.log
 	exit 201
@@ -20,7 +20,7 @@ fi
 echo "contents in this directory: " | tee -a wirecell.log
 ls -t | tee -a wirecell.log
 
-wc_eventcount=`grep event_count celltreeDATA*.json | awk '{print substr($2, 1, length($2)-1)}'`
+wc_eventcount=`grep event_count celltreeOVERLAY*.json | awk '{print substr($2, 1, length($2)-1)}'`
 echo "celltree input: $wc_input_celltree, number of events: $wc_eventcount" | tee -a wirecell.log
 
 echo "now working in $wc_workdir" | tee -a wirecell.log
@@ -30,7 +30,10 @@ cp $wc_input_celltree WCPwork/
 
 echo "set up additional environment for wirecell" | tee -a wirecell.log
 cd WCPwork 
-setup scn v01_00_00
+#setup numpy v1_14_3 -q e17:openblas:p2714b:prof
+#setup libtorch v1_0_1 -q e17:prof
+#setup SparseConvNet 8422a6f -q e17:prof
+setup SparseConvNet v01_00_00
 export PYTHONPATH=$WCP_FQ_DIR/python:$PYTHONPATH #may not needed any longer; already appened in uboonecode
 
 echo "Create symlink to stash dCache WCP external data files" | tee -a ../wirecell.log
@@ -46,13 +49,17 @@ touch WCP_analysis.log
 for ((n=0; n<$(($wc_eventcount)); n++))
 do
 	echo "event $n processing starts." | tee -a ../wirecell.log
-	wire-cell-imaging-lmem-celltree ./input_data_files/ChannelWireGeometry_v2.txt $wc_input_celltree $n -d0 -a1 -s2 2>&1 | tee -a ../wirecell.log
+	wire-cell-imaging-lmem-celltree ./input_data_files/ChannelWireGeometry_v2.txt $wc_input_celltree $n -d1 -s2 2>&1 | tee -a ../wirecell.log
 	echo "event $n imaging finished." | tee -a ../wirecell.log
 	###empty images
 	numgoodcell=`tail -n 10 ../wirecell.log | grep "mcell" | awk '{print $5}'`
 	echo "Number of good cells: $numgoodcell" | tee -a ../wirecell.log 
 	if [ x$numgoodcell != x -a "$numgoodcell" = "0" ]; then
       		echo "WARNING: empty 3D image!" | tee -a ../wirecell.log
+		touch nuseldummy_imaging${n}.root
+		touch portdummy_imaging${n}.root
+		rm result_*.root
+		continue	
 	fi
 
 	echo "event $n matching starts."
@@ -64,7 +71,10 @@ do
 		input2=${input1#*result_}
 		echo $input2 | tee -a ../wirecell.log
 		mv $imagingfile imaging_$input2.root
-		prod-wire-cell-matching-nusel ./input_data_files/ChannelWireGeometry_v2.txt imaging_$input2.root -y1 -d0 2>&1 | tee -a ../wirecell.log
+		#prod-nusel-eval ./input_data_files/ChannelWireGeometry_v2.txt imaging_$input2.root -d0 -p1 2>&1 | tee -a ../wirecell.log
+		prod-wire-cell-matching-nusel ./input_data_files/ChannelWireGeometry_v2.txt imaging_$input2.root -d1 2>&1 | tee -a ../wirecell.log
+		#mv nuselEval*.root nusel_$input2.root
+		#mv port*.root porting_$input2.root
 		warning=`tail -n 1 ../wirecell.log`
 		echo "$warning"
 		if [ "$warning" = "No points! Quit! " ]; then
@@ -72,11 +82,6 @@ do
 			touch nuseldummy_${input2}.root
 			touch portdummy_${input2}.root
 		fi
-                image_fail=`grep "image_fail for ${input2}" ../wirecell.log | awk '{print $1}'`
-                if [ x$image_fail != x -a "$image_fail" = "1" ]; then
-                        mv nuselEval_${input2}.root nuselEvalImageFail_${input2}.root
-                        mv port_${input2}.root portImageFail_${input2}.root
-                fi
 	done
 	echo "event $n matching finished."
 done
@@ -85,21 +90,11 @@ echo "Merge output" | tee -a ../wirecell.log
 echo "contents in this directory: " | tee -a ../wirecell.log
 ls -t | tee -a ../wirecell.log
 hadd merge.root ./port_*.root
-hadd nuselDATA_WCP.root ./nuselEval_*.root
-#hadd the files without image failures seperatly to make sure the tree structure is good
-for file in nuselEvalImageFail*; do
-    if [[ -f $file ]]; then
-        mv merge.root merge_temp.root
-        mv nuselDATA_WCP.root nuselDATA_WCP_temp.root
-        hadd merge.root merge_temp.root portImageFail*
-        hadd nuselDATA_WCP.root nuselDATA_WCP_temp.root nuselEvalImageFail*
-        break
-    fi
-done
+hadd nuselOVERLAY_WCP.root ./nuselEval_*.root
 
 # stage2 (reco2) starts here
 echo "wirecell stage2 starts here"
-wc_input_celltree="nuselDATA_WCP.root"
+wc_input_celltree="nuselOVERLAY_WCP.root"
 ###
 # The number of entries of the input file could be
 # less than the total number of events in the artroot 
@@ -131,7 +126,6 @@ do
 		mv $stmfile STM_$stminput2.root
 		### only if in-time match found
 		test_stm STM_$stminput2.root 1>>WCP_STM.log 2>STMerror.log
-                test_stm_kdar STM_$stminput2.root 1>>WCP_STM_KDAR.log 2>STMerror.log
 		cat STMerror.log | tee -a ../wirecell.log 
 	done
 	echo "event $n cosmic rejection finished." | tee -a ../wirecell.log
@@ -153,6 +147,9 @@ do
         echo "WCP cosmic tagger: $wcreco2_runinfo $wcreco2_tag1 $wcreco2_tag2 $wcreco2_tag3 $wcreco2_tag4 $wcreco2_tag5 $wcreco2_tag6 $wcreco2_tag7" | tee -a WCP_analysis.log 
 	if [ -n "$wcreco2_runinfo" ]; then 
         if [ $wcreco2_tag1 != 0 -a $wcreco2_tag2 = 0 -a $wcreco2_tag3 = 0 -a $wcreco2_tag4 = 0 -a $wcreco2_tag5 = 0 -a $wcreco2_tag6 = 0 -a $(echo "$wcreco2_tag7 > 0"|bc) = 1 ]; then
+                #run=`echo $runinfo | awk -F "_" '{print $1}'`
+                #subrun=`echo $runinfo | awk -F "_" '{print $2}'`
+                #event=`echo $runinfo | awk -F "_" '{print $3}'`
 
 		echo "event $n nue starts." | tee -a WCP_analysis.log	
 		wire-cell-prod-nue ./input_data_files/ChannelWireGeometry_v2.txt $wc_input_celltree $n -d0 2>&1 | tee -a WCP_analysis.log
@@ -183,21 +180,28 @@ echo "contents in this directory: " | tee -a ../wirecell.log
 ls -t | tee -a ../wirecell.log
 
 echo "Check the number of root files" | tee -a ../wirecell.log
-wc_nevts1=`ls nusel*root | grep -E "Eval|dummy" | wc -l` # ignore nuselDATA_WCP.root
+wc_nevts1=`ls nusel*root | grep -E "Eval|dummy" | wc -l` # ignore nuselOVERLAY_WCP.root
 wc_nevts2=`ls port*.root | wc -l`
 wc_nevts3=`ls STM*.root | wc -l`
 if [ $wc_nevts1 = $wc_nevts2 -a $wc_nevts1 = $wc_nevts3 -a $wc_nevts1 = $wc_eventcount ]; then
 	echo "Good!" | tee -a ../wirecell.log
 else
 	echo "Bad: nusel $wc_nevts1, port $wc_nevts2, stm $wc_nevts3, input $wc_eventcount" | tee -a ../wirecell.log
+ 	##touch merge.root ### empty merge.root --> WCP failure	
 	exit 204
 fi
 
+
 mv WCP_STM.log $wc_workdir
-mv WCP_STM_KDAR.log $wc_workdir
 mv WCP_analysis.log $wc_workdir
+# mv imaging*.root $wc_workdir
+# mv nuselDATA_WCP.root $wc_workdir
+# mv merge.root $wc_workdir # to not confuse production system
+                            # keep it in WCPwork, see run_slimmed_port_data.fcl
+# mv nue_*.root $wc_workdir # run_wcpf_port.fcl
+
 cd $wc_workdir
-rm celltreeDATA*.root
+rm celltreeOVERLAY*.root
 echo "Done! Done! Done!" | tee -a wirecell.log
 date | tee -a wirecell.log
 
