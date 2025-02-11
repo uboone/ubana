@@ -337,7 +337,7 @@ NuSelectionFilter:{
         default: @local::DefaultAnalysisTool
         # you can add more analysis tools here
         slicepurcompl: @local::SlicePurComplTool
-        # nugraphcounts: @local::NuGraphCountsTool
+        nugraphcounts: @local::NuGraphCountsTool
         containment:   @local::ContainmentAnalysis
         #shower:        @local::ShowerAnalysisTool
         #showerstart:        @local::ShowerStartPointTool
