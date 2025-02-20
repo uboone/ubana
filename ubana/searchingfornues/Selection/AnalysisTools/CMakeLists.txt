@@ -305,6 +305,20 @@ cet_build_plugin(
 )
 
 cet_build_plugin(
+  BlipAnalysis uboone_tool::AnalysisToolBase
+  LIBRARIES
+  PRIVATE
+  ubevt::Database_TPCEnergyCalib
+  larreco::RecoAlg
+  larcore::ServiceUtil
+  lardataalg::DetectorInfo
+  lardataobj::MCBase
+  nusimdata::SimulationBase
+  ROOT::EG
+  ubreco::BlipReco_Alg
+)
+
+cet_build_plugin(
   VertexAnalysis uboone_tool::AnalysisToolBase
   LIBRARIES
   PRIVATE
