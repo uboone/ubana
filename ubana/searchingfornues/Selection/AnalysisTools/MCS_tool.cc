@@ -303,7 +303,7 @@ void MCS::configure(fhicl::ParameterSet const &p)
 ///
 void MCS::analyzeEvent(art::Event const &e, bool fData)
 {
-  std::cout << "[MCS::analyzeEvent] Run: " << e.run() << ", SubRun: " << e.subRun() << ", Event: " << e.event() << std::endl;
+  //std::cout << "[MCS::analyzeEvent] Run: " << e.run() << ", SubRun: " << e.subRun() << ", Event: " << e.event() << std::endl;
   //art::ValidHandle<std::vector<recob::Hit>> inputHits = e.getValidHandle<std::vector<recob::Hit>>(fHproducer);
   //evnhits = inputHits->size();
 }
@@ -526,39 +526,68 @@ void MCS::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_p
     //TVector3 shrPointB = PFP_PCAres.endPoints.second;
     //double dShrVtxA = pythagoras(shrPointA(0), _shrvtx(0), shrPointA(1), _shrvtx(1), shrPointA(2), _shrvtx(2));
     //double dShrVtxB = pythagoras(shrPointB(0), _shrvtx(0), shrPointB(1), _shrvtx(1), shrPointB(2), _shrvtx(2));
-    TVector3 shrFirst(PFPcloud[0].x,PFPcloud[0].y,PFPcloud[0].z);
+    if (PFPcloud.size()>0) {
+      TVector3 shrFirst(PFPcloud[0].x,PFPcloud[0].y,PFPcloud[0].z);
   
-    //Do Delta Median Calculations
-    _DeltaMed = DoDeltaMed(PFPcloud, shrFirst, PFPcentroid);
-    _DeltaMed1h = DoDeltaMed(PFPcloud1h, shrFirst, PFPcentroid);
-    _DeltaMed2h = DoDeltaMed(PFPcloud2h, shrFirst, PFPcentroid);
+      //Do Delta Median Calculations
+      _DeltaMed = DoDeltaMed(PFPcloud, shrFirst, PFPcentroid);
+      _DeltaMed1h = DoDeltaMed(PFPcloud1h, shrFirst, PFPcentroid);
+      _DeltaMed2h = DoDeltaMed(PFPcloud2h, shrFirst, PFPcentroid);
 
-    _DeltaRMS = DoDeltaRMS(PFPcloud, shrFirst, PFPcentroid);
-    _DeltaRMS1h = DoDeltaRMS(PFPcloud1h, shrFirst, PFPcentroid);
-    _DeltaRMS2h = DoDeltaRMS(PFPcloud2h, shrFirst, PFPcentroid);
+      _DeltaRMS = DoDeltaRMS(PFPcloud, shrFirst, PFPcentroid);
+      _DeltaRMS1h = DoDeltaRMS(PFPcloud1h, shrFirst, PFPcentroid);
+      _DeltaRMS2h = DoDeltaRMS(PFPcloud2h, shrFirst, PFPcentroid);
 
-    _CylFrac_1cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 1.);
-    _CylFrac1h_1cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 1.);
-    _CylFrac2h_1cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 1.);
+      _CylFrac_1cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 1.);
+      _CylFrac1h_1cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 1.);
+      _CylFrac2h_1cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 1.);
 
-    _CylFrac_2cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 2.);
-    _CylFrac1h_2cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 2.);
-    _CylFrac2h_2cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 2.);
+      _CylFrac_2cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 2.);
+      _CylFrac1h_2cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 2.);
+      _CylFrac2h_2cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 2.);
 
-    _CylFrac_3cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 3.);
-    _CylFrac1h_3cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 3.);
-    _CylFrac2h_3cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 3.);
+      _CylFrac_3cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 3.);
+      _CylFrac1h_3cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 3.);
+      _CylFrac2h_3cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 3.);
 
-    _CylFrac_4cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 4.);
-    _CylFrac1h_4cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 4.);
-    _CylFrac2h_4cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 4.);
+      _CylFrac_4cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 4.);
+      _CylFrac1h_4cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 4.);
+      _CylFrac2h_4cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 4.);
 
-    _CylFrac_5cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 5.);
-    _CylFrac1h_5cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 5.);
-    _CylFrac2h_5cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 5.);
+      _CylFrac_5cm = DoCylFracCalc(PFPcloud, shrFirst, PFPcentroid, 5.);
+      _CylFrac1h_5cm = DoCylFracCalc(PFPcloud1h, shrFirst, PFPcentroid, 5.);
+      _CylFrac2h_5cm = DoCylFracCalc(PFPcloud2h, shrFirst, PFPcentroid, 5.);
+    } else {
+      //std::cout << "MCS Tool - ZERO SIZE SPS" << std::endl;
 
+      _DeltaMed = -999.;
+      _DeltaMed1h = -999.;
+      _DeltaMed2h = -999.;
 
+      _DeltaRMS = -999.;
+      _DeltaRMS1h = -999.;
+      _DeltaRMS2h = -999.;
 
+      _CylFrac_1cm = -999.;
+      _CylFrac1h_1cm = -999.;
+      _CylFrac2h_1cm = -999.;
+
+      _CylFrac_2cm = -999.;
+      _CylFrac1h_2cm = -999.;
+      _CylFrac2h_2cm = -999.;
+
+      _CylFrac_3cm = -999.;
+      _CylFrac1h_3cm = -999.;
+      _CylFrac2h_3cm = -999.;
+
+      _CylFrac_4cm = -999.;
+      _CylFrac1h_4cm = -999.;
+      _CylFrac2h_4cm = -999.;
+
+      _CylFrac_5cm = -999.;
+      _CylFrac1h_5cm = -999.;
+      _CylFrac2h_5cm = -999.;
+    }
     
     //Showering Start finder
     double winSize = 5.;// 5 cm

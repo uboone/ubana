@@ -84,6 +84,7 @@ namespace analysis
     art::InputTag fSpacePointproducer;
     art::InputTag fAllPFPproducer;
     art::InputTag fAllSpacePointproducer;
+    std::vector<art::InputTag> fPFPproducersInit;
     // art::InputTag fAllT0producer;
     art::InputTag fHproducer;
     art::InputTag fHTproducer;
@@ -107,6 +108,9 @@ namespace analysis
     float  m_chargeToNPhotonsTrack;   ///< The conversion factor between charge and number of photons for tracks
     float  m_chargeToNPhotonsShower;  ///< The conversion factor between charge and number of photons for showers
 
+    int _slice_orig_pass_id;
+    float _slice_orig_topo_score;
+
     std::map<unsigned int, unsigned int> _pfpmap;
 
     flashana::FlashMatchManager    m_flashMatchManager;       ///< The flash match manager
@@ -129,6 +133,7 @@ namespace analysis
     fSpacePointproducer = p.get< art::InputTag >("SpacePointproducer");
     fAllPFPproducer = p.get< art::InputTag >("AllPFPproducer");
     fAllSpacePointproducer = p.get< art::InputTag >("AllSpacePointproducer");
+    fPFPproducersInit = p.get< std::vector<art::InputTag> >("PFPproducersInit");
     // fAllT0producer  = p.get< art::InputTag >("AllT0producer" );
     fHproducer = p.get<art::InputTag>("Hproducer");
     fHTproducer = p.get<art::InputTag>("HTproducer");
@@ -158,7 +163,6 @@ namespace analysis
   ///
   void FlashMatching::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_pfp_v, bool fData, bool selected)
   {
-
     art::ValidHandle<std::vector<recob::PFParticle>> pfp_h = e.getValidHandle<std::vector<recob::PFParticle>>(fPFPproducer);
     // grab PFP -> T0 flash-matching association for the event
     art::FindManyP< anab::T0 > pfp_t0_assn_v(pfp_h, e, fT0producer);
@@ -369,6 +373,45 @@ namespace analysis
     }// for all PFPs
 
 
+    // test whether the original slice passed the slice id
+    bool passedOriginal = false;
+    float nuscore = -1.;
+    for (auto tag : fPFPproducersInit) {
+      //std::cout << "tag=" << tag << std::endl;
+      art::Handle<std::vector<recob::PFParticle>> orig_pfp_h;
+      if (e.getByLabel(tag,orig_pfp_h)==false) continue;
+      //std::cout << "found" << std::endl;
+      art::FindManyP< larpandoraobj::PFParticleMetadata > orig_pfp_meta_assn_v(orig_pfp_h, e, tag);
+      for (size_t p=0; p < orig_pfp_h->size(); p++) {
+	auto const& pfp = orig_pfp_h->at(p);
+	const art::Ptr<recob::PFParticle> pfp_ptr(orig_pfp_h, p);
+	//std::cout << "pf pdg=" << pfp.PdgCode() << std::endl;
+	if (pfp.PdgCode()==12 || pfp.PdgCode()==14) {
+	  passedOriginal = true;
+	  // get metadata
+	  if (orig_pfp_meta_assn_v.size() <= p) { std::cout << "NO METADATA!" << std::endl; continue; }
+	  auto metadatalist = orig_pfp_meta_assn_v.at(p);
+	  if (metadatalist.empty() == false) {
+	    for (unsigned int j=0; j<metadatalist.size(); ++j) {
+	      const art::Ptr<larpandoraobj::PFParticleMetadata> &metadata(metadatalist.at(j));
+	      auto particleproperties = metadata->GetPropertiesMap();
+	      if (!particleproperties.empty())
+		for (std::map<std::string, float>::const_iterator it = particleproperties.begin(); it != particleproperties.end(); ++it) {
+		  if ( it->first == "NuScore" )
+		    nuscore = it->second;
+		}// for all metadata items in the particle metadata
+	    }// for entries in list
+	  }// if there is metadata available
+	  break;
+	}
+      }
+      _slice_orig_pass_id = passedOriginal;
+      _slice_orig_topo_score = nuscore;
+      break;
+    }
+    //std::cout << "passedOriginal=" << passedOriginal << " score=" << nuscore << std::endl;
+    //
+
     return;
   }
 
@@ -401,6 +444,9 @@ namespace analysis
     _tree->Branch("cosmic_nhits_v","std::vector<int>",&_cosmic_nhits_v);
     _tree->Branch("cosmic_nunhits_v","std::vector<int>",&_cosmic_nunhits_v);
     _tree->Branch("cosmic_isclear_v","std::vector<int>",&_cosmic_isclear_v);
+
+    _tree->Branch("slice_orig_pass_id",&_slice_orig_pass_id,"slice_orig_pass_id/I");
+    _tree->Branch("slice_orig_topo_score",&_slice_orig_topo_score,"slice_orig_topo_score/F");
   }
   
   void FlashMatching::resetTTree(TTree* _tree)
@@ -428,6 +474,8 @@ namespace analysis
     _flash_timewidth_flash_matching = std::numeric_limits<float>::lowest();
     _flash_ywidth_flash_matching = std::numeric_limits<float>::lowest();
     _flash_zwidth_flash_matching = std::numeric_limits<float>::lowest();
+    _slice_orig_pass_id = -1;
+    _slice_orig_topo_score = -1.;
   }
 
   void FlashMatching::AddDaughters(const art::Ptr<recob::PFParticle>& pfp_ptr,  const art::ValidHandle<std::vector<recob::PFParticle> >& pfp_h, std::vector<art::Ptr<recob::PFParticle> > &pfp_v) {
