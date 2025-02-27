@@ -62,6 +62,10 @@ physics:
       PFDump_min_truth_energy:  0.010 # GeV
 
       # nanosecond beam timing
+      SaveSPS:              true
+      SavePMT:              true
+      ns_time_usePID:       true
+
       ShiftOffset: 0 #0 for Run 1, 387.8 for Run 3 before RWM cable change and 118.3 Run 3 after RWM cable change and Run 4
       isRun3: false #is this run 3 (where the RWM cable changed)?
       # various fit parameters for corrections

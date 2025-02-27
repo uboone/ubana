@@ -7196,7 +7196,7 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
   for (int i=0; i<32; i++){
     calib[i] = gain_provider.ExtraInfo(i).GetFloatData("amplitude_gain");
   }
-  if(!fMC) {BeamT0 = getBeamWF(e);}
+  if(!fMC && fFileType.find("ext")==std::string::npos) {BeamT0 = getBeamWF(e);}
   else{BeamT0 = 0;}//no RWM signal simulated for now, so just set this to 0
   Float_t x =        f_reco_nuvtxX;
   Float_t y =        f_reco_nuvtxY;
