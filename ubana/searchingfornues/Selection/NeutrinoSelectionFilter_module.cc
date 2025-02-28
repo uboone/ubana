@@ -298,6 +298,7 @@ bool NeutrinoSelectionFilter::filter(art::Event &e)
       }
 
       for (size_t i = 0; i < _analysisToolsVec.size(); i++) {
+	//std::cout << "analysis tool i=" << i << std::endl;
         _analysisToolsVec[i]->analyzeSlice(e, slice_pfp_v, fData, selected);
       }
 
