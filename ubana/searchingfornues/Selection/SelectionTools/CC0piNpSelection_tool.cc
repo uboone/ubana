@@ -763,11 +763,15 @@ bool CC0piNpSelection::selectEvent(art::Event const &e,
                     _shr_openangle = shr->OpenAngle();
 
 		    auto &pca_pxy_v = pfp_pxy.get<recob::PCAxis>();
-		    if (pca_pxy_v.size() > 0)
+		    if (pca_pxy_v.size() > 0 && pca_pxy_v[0]->getNumHitsUsed()>0)
 		    {
 		      _shr_pca_0 = pca_pxy_v[0]->getEigenValues()[0];
 		      _shr_pca_1 = pca_pxy_v[0]->getEigenValues()[1];
 		      _shr_pca_2 = pca_pxy_v[0]->getEigenValues()[2];
+		    } else {
+		      _shr_pca_0 = 1.;
+		      _shr_pca_1 = 0.;
+		      _shr_pca_2 = 0.;
 		    }
 
 		    for (size_t pl = 0; pl < 3; pl++)
