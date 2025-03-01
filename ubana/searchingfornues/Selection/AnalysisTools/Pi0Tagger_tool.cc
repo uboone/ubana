@@ -636,7 +636,7 @@ void Pi0Tagger::analyzeEvent(art::Event const &e, bool fData)
 
     _pi0_nshower = std::numeric_limits<int>::min();
     _pi0_ntrack  = std::numeric_limits<int>::min();
-
+    Reset();
     return;
   }
 

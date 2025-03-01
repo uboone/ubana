@@ -267,6 +267,7 @@ FlashMatchingTool: {
     SpacePointproducer: "pandora"
     AllPFPproducer: "pandoraPatRec:allOutcomes"
     AllSpacePointproducer: "pandoraPatRec:allOutcomes"
+    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2"]
     Hproducer: "gaushit"
     HTproducer: "gaushitTruthMatch"
     ChargeToNPhotonsTrack: 164.0
@@ -347,7 +348,7 @@ NuSelectionFilter:{
         default: @local::DefaultAnalysisTool
         # you can add more analysis tools here
         slicepurcompl: @local::SlicePurComplTool
-        # nugraphcounts: @local::NuGraphCountsTool
+        nugraphcounts: @local::NuGraphCountsTool
         containment:   @local::ContainmentAnalysis
         #shower:        @local::ShowerAnalysisTool
         #showerstart:        @local::ShowerStartPointTool
@@ -359,7 +360,7 @@ NuSelectionFilter:{
         pi0truth:      @local::Pi0TruthAnalysisTool
         cosmicip:      @local::CosmicIPTool
         nuenergy:      @local::NeutrinoEnergyTool
-        #flashmatchid:  @local::FlashMatchingTool
+        flashmatchid:  @local::FlashMatchingTool
         pi0tagger:     @local::Pi0TaggerTool
         # zbdt:          @local::BDTTool #note: analysis tools are run in alphabetical order and this needs to be the last one
         secondshower:  @local::SecondShowerTaggerTool
