@@ -169,6 +169,9 @@ void NuGraphCounts::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t
   for (auto pfp : slice_pfp_v)
   {
 
+    //exclude the neutrino pfp
+    if (pfp->PdgCode()!=11 && pfp->PdgCode()!=13) continue;
+
     // get hits associated to this PFParticle through the clusters
     std::vector<art::Ptr<recob::Hit>> hit_v;
     auto clus_pxy_v = pfp.get<recob::Cluster>();

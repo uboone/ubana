@@ -28,11 +28,25 @@ fi
 
 mv $FCL wrapper_update_wcpf_port.fcl
 
+flag_numi="false"
+if ls Physics*numi*.root 1> /dev/null 2>&1 || ls Beam*numi*.root 1> /dev/null 2>&1 ; then
+        flag_numi="true"
+        echo Running NuMI fhcl
+elif ls *numi*.fcl 1> /dev/null 2>&1; then
+        flag_numi="true"
+        echo Running NuMI fhcl
+else
+	echo Running BNB fhcl
+fi
+
+
+
 # Generate wrapper.
 
 cat <<EOF > $FCL
 #include "wrapper_update_wcpf_port.fcl"
 
+physics.producers.wirecellPF.ssmBDT:                      ${flag_numi}
 physics.producers.wirecellPF.PFInput_prefix:              "WCPwork/nue"
 
 EOF
