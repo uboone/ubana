@@ -58,3 +58,15 @@ physics.analyzers.wcpweights.GenieKnobs:        [ "All_UBGenie"
                                                 , "splines_general_Spline"
                                                 , "xsr_scc_Fa3_SCC"
                                                 , "xsr_scc_Fv3_SCC" ]
+
+physics.analyzers.wcpselection.ccnd1_a: 0
+physics.analyzers.wcpselection.ccnd1_b: 0
+physics.analyzers.wcpselection.ccnd2_a: 0
+physics.analyzers.wcpselection.ccnd2_b: 0
+physics.analyzers.wcpselection.ccnd3_a: 0
+physics.analyzers.wcpselection.ccnd3_b: 0
+physics.analyzers.wcpselection.ccnd3_c: 0
+physics.analyzers.wcpselection.ccnd3_d: 0
+physics.analyzers.wcpselection.ccnd4_a: 0
+physics.analyzers.wcpselection.ccnd4_b: 0
+
