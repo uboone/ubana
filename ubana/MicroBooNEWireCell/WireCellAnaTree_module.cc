@@ -329,29 +329,30 @@ private:
 
   TTree* fSpacepoints;
 
-  std::vector<float>	*Trec_spacepoints_x;
-  std::vector<float>	*Trec_spacepoints_y;
-  std::vector<float>	*Trec_spacepoints_z;
-  std::vector<float>	*Trec_spacepoints_q;
+  std::vector<double>	*Trec_spacepoints_x = new std::vector<double>;
+  std::vector<double>	*Trec_spacepoints_y = new std::vector<double>;
+  std::vector<double>	*Trec_spacepoints_z = new std::vector<double>;
+  std::vector<double>	*Trec_spacepoints_q = new std::vector<double>;
 
-  std::vector<float>	*Treccharge_spacepoints_x;
-  std::vector<float>	*Treccharge_spacepoints_y;
-  std::vector<float>	*Treccharge_spacepoints_z;
-  std::vector<float>	*Treccharge_spacepoints_q;
+  std::vector<double>	*Treccharge_spacepoints_x = new std::vector<double>;
+  std::vector<double>	*Treccharge_spacepoints_y = new std::vector<double>;
+  std::vector<double>	*Treccharge_spacepoints_z = new std::vector<double>;
+  std::vector<double>	*Treccharge_spacepoints_q = new std::vector<double>;
 
-  std::vector<float>	*Trecchargeblob_spacepoints_x;
-  std::vector<float>	*Trecchargeblob_spacepoints_y;
-  std::vector<float>	*Trecchargeblob_spacepoints_z;
-  std::vector<float>	*Trecchargeblob_spacepoints_q;
+  std::vector<double>	*Trecchargeblob_spacepoints_x = new std::vector<double>;
+  std::vector<double>	*Trecchargeblob_spacepoints_y = new std::vector<double>;
+  std::vector<double>	*Trecchargeblob_spacepoints_z = new std::vector<double>;
+  std::vector<double>	*Trecchargeblob_spacepoints_q = new std::vector<double>;
 
-  std::vector<float>	*Tcluster_spacepoints_x;
-  std::vector<float>	*Tcluster_spacepoints_y;
-  std::vector<float>	*Tcluster_spacepoints_z;
+  std::vector<double>	*Tcluster_spacepoints_x = new std::vector<double>;
+  std::vector<double>	*Tcluster_spacepoints_y = new std::vector<double>;
+  std::vector<double>	*Tcluster_spacepoints_z = new std::vector<double>;
+  std::vector<double>	*Tcluster_spacepoints_q = new std::vector<double>;
 
-  std::vector<float>	*TrueEDep_spacepoints_x;
-  std::vector<float>	*TrueEDep_spacepoints_y;
-  std::vector<float>	*TrueEDep_spacepoints_z;
-  std::vector<float>	*TrueEDep_spacepoints_q;
+  std::vector<double>	*TrueEDep_spacepoints_x = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_y = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_z = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_q = new std::vector<double>;
 
   /// BDT input vars
   TTree* fBDT;
@@ -2198,6 +2199,8 @@ void WireCellAnaTree::initOutput()
 
   }
 
+  fSpacepoints = tfs->make<TTree>("T_spacepoints", "T_spacepoints");
+
   if (f_saveTrecchargeblobSpacePoints){
     std::cout << "setting Trecchargeblob_spacepoints branches" << std::endl;
     fSpacepoints->Branch("Trecchargeblob_spacepoints_x", &Trecchargeblob_spacepoints_x);
@@ -3753,16 +3756,27 @@ void WireCellAnaTree::analyze(art::Event const& e)
 
     std::cout << "loading TrecchargeblobSpacePoints from artroot" << std::endl;
 
-    auto spacepoint_vec = e.getProduct<std::vector<TrecchargeblobSpacePoint>>("TclusterSpacePoints_portedWCSpacePointsTcluster");
+    auto spacepoint_vec = e.getProduct<std::vector<TrecchargeblobSpacePoint>>("portedWCSpacePointsTrecchargeblob");
+
+    std::cout << "loaded TrecchargeblobSpacePoints from artroot" << std::endl;
+    
+    Tcluster_spacepoints_x->clear();
+    Tcluster_spacepoints_y->clear();
+    Tcluster_spacepoints_z->clear();
+    Tcluster_spacepoints_q->clear();
+
+    std::cout << "cleared variables" << std::endl;
 
     std::cout << "spacepoint_vec.size(): " << spacepoint_vec.size() << std::endl;
 
     for (auto const& spacepoint: spacepoint_vec){
-      std::cout << "spacepoint.x: " << spacepoint.x << std::endl;
-      std::cout << "spacepoint.y: " << spacepoint.y << std::endl;
-      std::cout << "spacepoint.z: " << spacepoint.z << std::endl;
-      std::cout << "spacepoint.q: " << spacepoint.q << std::endl;
+      Tcluster_spacepoints_x->push_back(spacepoint.x);
+      Tcluster_spacepoints_y->push_back(spacepoint.y);
+      Tcluster_spacepoints_z->push_back(spacepoint.z);
+      Tcluster_spacepoints_q->push_back(spacepoint.q);
     }
+
+    fSpacepoints->Fill();
 
   }
 
