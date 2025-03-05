@@ -1938,6 +1938,12 @@ void WireCellAnaTree::initOutput()
   fTreePot->Branch("spill_tor875", &fspill_tor875);
   fTreePot->Branch("spill_tor875good", &fspill_tor875good);
 
+  // additions for adding spacepoints
+
+  std::cout << "adding spacepoints" << std::endl;
+
+  // done with additions for adding spacepoints
+
   /// PF validation
   fPFeval = tfs->make<TTree>("T_PFeval", "T_PFeval");
   fPFeval->Branch("run", 			&f_run);
