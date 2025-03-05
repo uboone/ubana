@@ -69,6 +69,66 @@
 
 class WireCellAnaTree;
 
+struct TrecSpacePoint {
+  double x;
+  double y;
+  double z;
+  double q;
+  double nq;
+  int cluster_id;
+  int real_cluster_id;
+  int sub_cluster_id;
+};
+
+struct TrecchargeSpacePoint {
+  double x;
+  double y;
+  double z;
+  double q;
+  double nq;
+  int cluster_id;
+  int real_cluster_id;
+  int sub_cluster_id;
+  double chi2;
+  double ndf;
+  double pu;
+  double pv;
+  double pw;
+  double pt;
+  double reduced_chi2;
+  int flag_vertex;
+  int flag_shower;
+  double rr;
+};
+
+struct TrecchargeblobSpacePoint {
+  double x;
+  double y;
+  double z;
+  double q;
+  double nq;
+  int cluster_id;
+  int real_cluster_id;
+  int sub_cluster_id;
+  double chi2;
+  double ndf;
+};
+
+struct TclusterSpacePoint {
+  double x;
+  double y;
+  double z;
+  double q;
+  double nq;
+  int cluster_id;
+  int real_cluster_id;
+  int sub_cluster_id;
+  int time_slice;
+  int ch_u;
+  int ch_v;
+  int ch_w;
+};
+
 
 class WireCellAnaTree : public art::EDAnalyzer {
 public:
@@ -156,6 +216,12 @@ private:
   bool f_ns_time_usePID; 
   bool f_ns_time_no_photon;
   float fsol; 
+
+  bool f_saveTrecSpacePoints;
+  bool f_saveTrecchargeSpacePoints;
+  bool f_saveTrecchargeblobSpacePoints;
+  bool f_saveTclusterSpacePoints;
+  bool f_saveTrueEDepSpacePoints;
 
   float f_shiftoffset;
   bool f_isrun3;
@@ -260,6 +326,32 @@ private:
   Float_t       f_redk2nu_time_nospill;
   Float_t       f_redk2nu_deltatime;
   /// other truth info as follows save in this tree
+
+  TTree* fSpacepoints;
+
+  std::vector<float>	*Trec_spacepoints_x;
+  std::vector<float>	*Trec_spacepoints_y;
+  std::vector<float>	*Trec_spacepoints_z;
+  std::vector<float>	*Trec_spacepoints_q;
+
+  std::vector<float>	*Treccharge_spacepoints_x;
+  std::vector<float>	*Treccharge_spacepoints_y;
+  std::vector<float>	*Treccharge_spacepoints_z;
+  std::vector<float>	*Treccharge_spacepoints_q;
+
+  std::vector<float>	*Trecchargeblob_spacepoints_x;
+  std::vector<float>	*Trecchargeblob_spacepoints_y;
+  std::vector<float>	*Trecchargeblob_spacepoints_z;
+  std::vector<float>	*Trecchargeblob_spacepoints_q;
+
+  std::vector<float>	*Tcluster_spacepoints_x;
+  std::vector<float>	*Tcluster_spacepoints_y;
+  std::vector<float>	*Tcluster_spacepoints_z;
+
+  std::vector<float>	*TrueEDep_spacepoints_x;
+  std::vector<float>	*TrueEDep_spacepoints_y;
+  std::vector<float>	*TrueEDep_spacepoints_z;
+  std::vector<float>	*TrueEDep_spacepoints_q;
 
   /// BDT input vars
   TTree* fBDT;
@@ -1813,6 +1905,12 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   f_save_track_position = pset.get<bool>("save_track_position", false);
   f_PFDump_min_truth_energy = pset.get<float>("PFDump_min_truth_energy", 0);
 
+  f_saveTrecSpacePoints = pset.get<bool>("SaveTrecSpacePoints", false);
+  f_saveTrecchargeSpacePoints = pset.get<bool>("SaveTrecchargeSpacePoints", false);
+  f_saveTrecchargeblobSpacePoints = pset.get<bool>("SaveTrecchargeblobSpacePoints", false);
+  f_saveTclusterSpacePoints = pset.get<bool>("SaveTclusterSpacePoints", false);
+  f_saveTrueEDepSpacePoints = pset.get<bool>("SaveTrueEDepSpacePoints", false);
+
   f_savesps = pset.get<bool>("SaveSPS", false);
 
   f_savepmt  = pset.get<bool>("SavePMT", false);
@@ -2098,6 +2196,15 @@ void WireCellAnaTree::initOutput()
       fPFeval->Branch("reco_endMomentum", &reco_endMomentum, "reco_endMomentum[reco_Ntrack][4]/F");
       fPFeval->Branch("reco_daughters", &reco_daughters);
 
+  }
+
+  if (f_saveTrecchargeblobSpacePoints){
+    std::cout << "setting Trecchargeblob_spacepoints branches" << std::endl;
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_x", &Trecchargeblob_spacepoints_x);
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_y", &Trecchargeblob_spacepoints_y);
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_z", &Trecchargeblob_spacepoints_z);
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_q", &Trecchargeblob_spacepoints_q);
+    std::cout << "done setting Trecchargeblob_spacepoints branches" << std::endl;
   }
 
   if (f_savesps){
@@ -3642,6 +3749,24 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	if( f_match_type&1U || (f_match_type>>1)&1U ) f_lightmismatch = true;
 	else f_lightmismatch = false;
 
+  if (f_saveTrecchargeblobSpacePoints){
+
+    std::cout << "loading TrecchargeblobSpacePoints from artroot" << std::endl;
+
+    auto spacepoint_vec = e.getProduct<std::vector<TrecchargeblobSpacePoint>>("TclusterSpacePoints_portedWCSpacePointsTcluster");
+
+    std::cout << "spacepoint_vec.size(): " << spacepoint_vec.size() << std::endl;
+
+    for (auto const& spacepoint: spacepoint_vec){
+      std::cout << "spacepoint.x: " << spacepoint.x << std::endl;
+      std::cout << "spacepoint.y: " << spacepoint.y << std::endl;
+      std::cout << "spacepoint.z: " << spacepoint.z << std::endl;
+      std::cout << "spacepoint.q: " << spacepoint.q << std::endl;
+    }
+
+  }
+
+
 	/// PF validation starts
 	// reco start [nested loop]
       if( f_wirecellPF ){
@@ -4312,6 +4437,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	fPFeval->Fill();
 	fBDT->Fill();
 	fKINE->Fill();
+  fSpacepoints->Fill();
 }
 
 void WireCellAnaTree::endSubRun(art::SubRun const& sr)
