@@ -170,6 +170,7 @@ private:
   float f_ccnd4_a;
   float f_ccnd4_b;
 
+  bool f_get_ns_time;
   bool f_get_redk2nu_time;
   // output
   /// PF validation
@@ -1835,6 +1836,8 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   f_ccnd4_a = pset.get<float>("ccnd4_a", 0);
   f_ccnd4_b = pset.get<float>("ccnd4_b", 0);
 
+  f_get_ns_time = pset.get<bool>("get_ns_time", true);
+
   f_get_redk2nu_time = pset.get<bool>("get_redk2nu_time", false);
   fTimeBetweenBuckets     = pset.get<float>("TimeBetweenBuckets",1e9/53.103e6);
   fBucketTimeSigma        = pset.get<float>("BucketTimeSigma",0.750);
@@ -1855,13 +1858,13 @@ void WireCellAnaTree::initOutput()
 
   art::ServiceHandle<art::TFileService> tfs;
 
-  if(!fMC && !fIsNuMI){
+  if( f_get_ns_time && !fIsNuMI){
     //ns beam timing plots for validation
     H_time= tfs->make<TH1F>("H_time","Time PMT",500, 0,6000);
     H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",800,2000,2100);
     H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",800,3000,8450);
     H_TimeVsPh= tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,500);
-  }else if(fIsNuMI){
+  }else if(f_get_ns_time && fIsNuMI){
     H_time= tfs->make<TH1F>("H_time","Time PMT",2000, 0,20000);
     H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",2400,1800,2100);
     H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",300,0,150);
@@ -1966,7 +1969,7 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("reco_protonvtxZ", 		&f_reco_protonvtxZ);
   fPFeval->Branch("reco_protonMomentum", 	&f_reco_protonMomentum, "reco_protonMomentum[4]/F");
 
-  if(!fMC || fIsNuMI) {
+  if(f_get_ns_time) {
     fPFeval->Branch("evtDeltaTimeNS", &f_evtDeltaTimeNS);
     fPFeval->Branch("evtTimeNS", &f_evtTimeNS);
     fPFeval->Branch("Ph_Tot", &f_Ph_Tot);
@@ -4189,23 +4192,27 @@ void WireCellAnaTree::analyze(art::Event const& e)
         if(f_get_redk2nu_time){
           double spill_time = TimeOffset();
 	  double propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356;
-	  art::Handle<std::vector<bsim::Dk2Nu>> dk2nu_flux_handle;
-	  std::vector<art::Ptr<bsim::Dk2Nu> > dk2nu_flux;
-          e.getByLabel("generator",dk2nu_flux_handle);
-          art::fill_ptr_vector(dk2nu_flux,dk2nu_flux_handle);
-	  if(dk2nu_flux.size()==0){
-            std::cout<<"no redk2nu found"<<std::endl;
-	  }
-	  else{
-            art::Ptr<bsim::Dk2Nu> this_dk2nu_flux = dk2nu_flux.at(0);
-	    std::vector<bsim::Ancestor> ancestors = this_dk2nu_flux->ancestor;
-            double decay_time = ancestors.back().startt;
-            f_redk2nu_time = propegation_time + decay_time + spill_time;
-	    f_redk2nu_time_nospill = propegation_time + decay_time;
-	    f_redk2nu_deltatime = f_redk2nu_time - f_truth_nu_pos[3];
-            std::cout<<"redk2nu: "<<"og time "<<f_truth_nu_pos[3]<<"  redk2nu_time "<<f_redk2nu_time<<"  f_redk2nu_deltatime "<<f_redk2nu_deltatime<<"  spill_time "<<spill_time<<" decay_time "<<decay_time<<" propegation_time "<<propegation_time<<"  time to window "<<decay_time+(f_mcflux_dk2gen)*100*0.033356<<"  time to vtx "<<decay_time+(f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356<<"  ancestors.front().startt "<<ancestors.front().startt<<"  seed "<<fRndmGen->GetSeed()<<std::endl;
-          }
-  	}
+          double decay_time = 0;
+          if(fIsNuMI){
+	    art::Handle<std::vector<bsim::Dk2Nu>> dk2nu_flux_handle;
+	    std::vector<art::Ptr<bsim::Dk2Nu> > dk2nu_flux;
+            e.getByLabel("generator",dk2nu_flux_handle);
+            art::fill_ptr_vector(dk2nu_flux,dk2nu_flux_handle);
+	    if(dk2nu_flux.size()==0){
+              std::cout<<"no redk2nu found"<<std::endl;
+              return;
+	    }
+	    else{
+              art::Ptr<bsim::Dk2Nu> this_dk2nu_flux = dk2nu_flux.at(0);
+	      std::vector<bsim::Ancestor> ancestors = this_dk2nu_flux->ancestor;
+              decay_time = ancestors.back().startt;
+            }
+          }//fIsNuMI
+          f_redk2nu_time = propegation_time + decay_time + spill_time;
+	  f_redk2nu_time_nospill = propegation_time + decay_time;
+	  f_redk2nu_deltatime = f_redk2nu_time - f_truth_nu_pos[3];
+          std::cout<<"redk2nu: "<<"og time "<<f_truth_nu_pos[3]<<"  redk2nu_time "<<f_redk2nu_time<<"  f_redk2nu_deltatime "<<f_redk2nu_deltatime<<"  spill_time "<<spill_time<<" decay_time "<<decay_time<<" propegation_time "<<propegation_time<<"  time to window "<<decay_time+(f_mcflux_dk2gen)*100*0.033356<<"  time to vtx "<<decay_time+(f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356<<"  seed "<<fRndmGen->GetSeed()<<std::endl;
+  	}//f_get_redk2nu_time
 	
 	/// truth end
 	std::cout<<"Corrected Truth Neutrino vertex: ("<<f_truth_corr_nuvtxX<<", "<<f_truth_corr_nuvtxY<<", "<<f_truth_corr_nuvtxZ<<")"<<"\n";
@@ -4301,7 +4308,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
       }
   //if ( (!fMC || fIsNuMI) && kine_reco_Enu>-1.) {nsbeamtiming(e);}
   //if ( (!fMC || fIsNuMI) && numu_cc_flag!=-1) {nsbeamtiming(e);}
-  if ( (!fMC || fIsNuMI) && (numu_cc_flag!=-1 || (ssm_numu_cc_flag!=-1 && f_ssmBDT) ) ) {nsbeamtiming(e);}
+  if ( f_get_ns_time && (numu_cc_flag!=-1 || (ssm_numu_cc_flag!=-1 && f_ssmBDT) ) ) {nsbeamtiming(e);}
         fTreeEval->Fill();
 	fPFeval->Fill();
 	fBDT->Fill();
@@ -7321,6 +7328,15 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
     -3.27857, -1.41196, 1.59643, 1.41425, -1.62682, -2.55772, 1.49136, -0.522791, 0.974533};
   if(fMC){
     for(int i=0; i<32; i++){offset[i]=0;}//no need to apply the additional pmt calibration to the MC
+    for(int j=0; j<3; j++){//do the PMT remapping for the MC
+      double temp = PMT[31][j];
+      PMT[31][j] = PMT[30][j];
+      PMT[30][j] = PMT[29][j];
+      PMT[29][j] = PMT[28][j];
+      PMT[28][j] = PMT[27][j];
+      PMT[27][j] = PMT[26][j];
+      PMT[26][j] = temp;
+    }
   }
   //================================================================================================================
   double gap=18.936;
@@ -7402,7 +7418,6 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
       
       //all the corrections
       TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)]+ccnd1+ccnd2+ccnd3+ccnd4;
-      std::cout<<"TT3_array[i] "<<i<<" "<<TT3_array[i]<<std::endl;
     }
     Med_TT3=TMath::Median((Long64_t)N_pmt.size(),TT3_array);
     //Fill a 2d histogram with  TT3_array[i] vs max[N_pmt.at(i)] this is usefull to check for any errors
@@ -7510,15 +7525,6 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     TGraph *gr = new TGraph(samples,x_wf_v,Norm_wf_v);
     TF1 *fit = new TF1("fit","[2]*exp(-TMath::Power(([0]-x)/[1],4))",tick-10, tick);
     fit->SetParameters(tick,2,1);  gr->Fit("fit","Q","",tick-10, tick);
-//std::cout<<std::endl;
-//std::cout<<"tick "<<tick<<std::endl;
-//std::cout<<std::endl;
-//for(int i=0; i<3; i++){std::cout<<fit->GetParameter(i)<<", ";}
-//std::cout<<std::endl;
-//for(int i=0; i<samples; i++){std::cout<<gr->GetPointY(i)<<", ";}
-//std::cout<<std::endl;
-//std::cout<<std::endl;
-
     tca=fit->GetParameter(0);  tcb=fit->GetParameter(1);  tcc=fit->GetParameter(2);
     //timing is the risign edge half height
     TT[q]=(tca-abs(tcb*TMath::Power(-log(0.5/tcc),0.25)))/0.064; max[q]=max0;
@@ -7526,10 +7532,8 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     //check for saturated wf
     if(maxZ<=saturation){TT[q]=TT[q]; max[q]=max[q]; Sat[q]=false;}
       else if(maxZ>saturation) { Sat[q]=true;
-std::cout<<"Saturated PMT ch "<<q<<std::endl;
         //counting the number of ticks above the saturation, extended for NuMI
         for(int i=3*64; i<samples_64*64; i++){
-//std::cout<<"Saturated PMT ch "<<q<<"  "<<Raw_wf_v[i]<<std::endl;
         if(TF==0){if(Raw_wf_v[i+1]>4094 && Raw_wf_v[i]<=4094){tickF=i; TF=1;}}
         if(TB==0){if(Raw_wf_v[i]>4094 && Raw_wf_v[i+1]<=4094){tickB=i; TB=1;}}}
         FB=tickB-tickF;  if(FB>99){FB=99;}
@@ -7539,13 +7543,6 @@ std::cout<<"Saturated PMT ch "<<q<<std::endl;
         //double txSS[256],tySS[256],txSS2[256],tySS2[256];
 	double txSS[1500],tySS[1500],txSS2[1500],tySS2[1500];
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){txSS[is]=i*1.0; tySS[is]=Raw_wf_v[i]/maxZhelp1; is=is+1;}}
-std::cout<<std::endl;
-std::cout<<std::endl;
-        for(int i=3*64; i<samples_64*64; i++){std::cout<<Raw_wf_v[i]<<", ";}
-std::cout<<std::endl;
-std::cout<<std::endl;
-std::cout<<"FB "<<FB<<" tickB "<<tickB<<" tickF "<<tickF<<" Nss "<<Nss<<std::endl;
-std::cout<<"Fit 1 from "<<tick-30<<" to "<<tick+250<<std::endl;
 	TGraph *g1 = new TGraph(Nss,txSS,tySS);
         TF1 *fitS1 = new TF1("fitS1","[9]*(exp(-TMath::Power(([0]-(x-[8]))/[1],4))*0.5*(TMath::Erf(-(x-[8])-[7])+1.0)+([5]+[4]*exp(-TMath::Power(([2]-(x-[8]))/[3],2)))*exp((-(x-[8]))/[6])*0.5*(TMath::Erf([7]+(x-[8]))+1.0))",tick-30, tick+250);
 	fitS1->SetParameters(pLL[0],pLL[1],pLL[2],pLL[3],pLL[4],pLL[5],pLL[6],pLL[7],tick,1.);
@@ -7553,28 +7550,11 @@ std::cout<<"Fit 1 from "<<tick-30<<" to "<<tick+250<<std::endl;
         tickFit1=fitS1->GetParameter(8); maxZhelp2=fitS1->GetParameter(9);  maxZhelp3=maxZhelp1/maxZhelp2;
         //amplitude fit correction
         for(int i=0; i<Nss; i++){txSS2[i]=txSS[i]; tySS2[i]=tySS[i]/maxZhelp2;}
-std::cout<<"Fit 2 from "<<tick-30<<" to "<<tick+250<<std::endl;
 	TGraph *g2 = new TGraph(Nss,txSS2,tySS2);
         TF1 *fitS2 = new TF1("fitS2","exp(-TMath::Power(([0]-(x-[8]))/[1],4))*0.5*(TMath::Erf(-(x-[8])-[7])+1.0)+([5]+[4]*exp(-TMath::Power(([2]-(x-[8]))/[3],2)))*exp((-(x-[8]))/[6])*0.5*(TMath::Erf([7]+(x-[8]))+1.0)",tick-30, tick+250);
         fitS2->SetParameters(pLL[0],pLL[1],pLL[2],pLL[3],pLL[4],pLL[5],pLL[6],pLL[7],tickFit1);
         for(int i=0; i<8; i++){fitS2->FixParameter(i,pLL[i]);}
         g2->Fit("fitS2","Q","",tick-30, tick+250);  tickFit2=fitS2->GetParameter(8);
-std::cout<<std::endl;
-std::cout<<std::endl;
-for(int i=0; i<10; i++){std::cout<<fitS1->GetParameter(i)<<", ";}
-std::cout<<std::endl;
-for(int i=tick-30; i<tick+250; i++){std::cout<<g1->GetPointY(i)<<", ";}
-std::cout<<std::endl;
-std::cout<<std::endl;
-
-std::cout<<std::endl;
-std::cout<<std::endl;
-for(int i=0; i<9; i++){std::cout<<fitS2->GetParameter(i)<<", ";}
-std::cout<<std::endl;
-for(int i=tick-30; i<tick+250; i++){std::cout<<g2->GetPointY(i)<<", ";}
-std::cout<<std::endl;
-std::cout<<std::endl;
-
         TT[q]=tickFit2/0.064; max[q]=maxZhelp3;}
     //-------------------------------------------------------------------------------------------------------
     H_time->Fill(TT[q]);
