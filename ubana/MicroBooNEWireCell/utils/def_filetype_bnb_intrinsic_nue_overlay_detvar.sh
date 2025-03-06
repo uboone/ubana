@@ -133,12 +133,12 @@ physics.analyzers.wcpweights.IsNuMI:                 ${flag_numi}
 
 physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
 
-physics.analyzers.wcpselection.get_redk2nu_time:     ${flag_redk2nu}
+physics.analyzers.wcpselection.get_reboone_time:     ${flag_reboone}
 physics.analyzers.wcpselection.TimeBetweenBuckets: 18.831
 physics.analyzers.wcpselection.BucketTimeSigma: 2.0
 physics.analyzers.wcpselection.NBucketsPerBatch: 84
 physics.analyzers.wcpselection.NFilledBucketsPerBatch: 81
-physics.analyzers.wcpselection.BatchIntensities: {1}
+physics.analyzers.wcpselection.BatchIntensities: [1]
 
 physics.analyzers.wcpselection.SaveLeeWeights:       ${flag_SaveLeeWeights}
 

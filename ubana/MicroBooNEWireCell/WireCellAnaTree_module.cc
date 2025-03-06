@@ -48,6 +48,8 @@
 #include "TRandom3.h"
 #include "dk2nu/tree/dk2nu.h"
 
+#include "ubana/ReBooNE/Utils/BooNEInfo.h"
+
 #include "lardataobj/MCBase/MCShower.h"
 
 #include "TTree.h"
@@ -171,7 +173,9 @@ private:
   float f_ccnd4_b;
 
   bool f_get_ns_time;
+  bool f_get_spill_time;
   bool f_get_redk2nu_time;
+  bool f_get_reboone_time;
   // output
   /// PF validation
   /// when fPFValidation is true
@@ -204,7 +208,7 @@ private:
 
   Float_t f_evtDeltaTimeNS;
   Float_t f_evtTimeNS;
-  Float_t f_evtTimeNS_redk2nu;
+  Float_t f_evtTimeNS_cor;
   Float_t f_Ph_Tot;
   double  calib[32];
 
@@ -257,9 +261,10 @@ private:
   Float_t f_truth_photon_dis;
   Float_t	f_truth_nu_pos[4]; // X,Y,Z,T
   Float_t	f_truth_nu_momentum[4]; // Px,Py,Pz,E
-  Float_t       f_redk2nu_time;
-  Float_t       f_redk2nu_time_nospill;
-  Float_t       f_redk2nu_deltatime;
+  Float_t       f_cor_nu_time;
+  Float_t       f_cor_nu_time_nospill;
+  Float_t       f_cor_nu_time_spill;
+  Float_t       f_cor_nu_deltatime;
   /// other truth info as follows save in this tree
 
   /// BDT input vars
@@ -1750,7 +1755,7 @@ private:
   TH2F *H_TimeVsPh;
   //TH1F *ns_time;
 
-  //for redk2nu resimulating beam structure
+  //for resimulating beam structure
   double fTimeBetweenBuckets;  //time between buckets
   double fBucketTimeSigma;  //how wide is distribution in bucket
   double fNBucketsPerBatch;   
@@ -1838,6 +1843,8 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
 
   f_get_ns_time = pset.get<bool>("get_ns_time", true);
 
+  f_get_spill_time = pset.get<bool>("get_spill_time", false);
+  f_get_reboone_time = pset.get<bool>("get_reboone_time", false);
   f_get_redk2nu_time = pset.get<bool>("get_redk2nu_time", false);
   fTimeBetweenBuckets     = pset.get<float>("TimeBetweenBuckets",1e9/53.103e6);
   fBucketTimeSigma        = pset.get<float>("BucketTimeSigma",0.750);
@@ -1846,7 +1853,7 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fGlobalOffset           = pset.get<double>("GlobalOffset",0);
   fbi = pset.get<std::vector<double>>("BatchIntensities",{1,1,1,1,1,1}); // all ones would be equal batches, set last to lower to emulate slip stacking
   if(fbi.size()==0){fbi = {1,1,1,1,1,1};}
-  if(f_get_redk2nu_time){
+  if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){
     fRndmGen = new TRandom3(0);
     CalculateCPDF(fbi);
   }
@@ -1973,8 +1980,8 @@ void WireCellAnaTree::initOutput()
     fPFeval->Branch("evtDeltaTimeNS", &f_evtDeltaTimeNS);
     fPFeval->Branch("evtTimeNS", &f_evtTimeNS);
     fPFeval->Branch("Ph_Tot", &f_Ph_Tot);
-    if(f_get_redk2nu_time){
-      fPFeval->Branch("evtTimeNS_redk2nu", &f_evtTimeNS_redk2nu);
+    if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){
+      fPFeval->Branch("evtTimeNS_cor", &f_evtTimeNS_cor);
     }
   }
 
@@ -2040,10 +2047,11 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("truth_photon_dis", &f_truth_photon_dis);
   fPFeval->Branch("truth_nu_pos",         	&f_truth_nu_pos, "truth_nu_pos[4]/F");
   fPFeval->Branch("truth_nu_momentum",         	&f_truth_nu_momentum, "truth_nu_momentum[4]/F");
-    if(f_get_redk2nu_time){
-      fPFeval->Branch("redk2nu_time",          &f_redk2nu_time);
-      fPFeval->Branch("redk2nu_time_nospill",          &f_redk2nu_time_nospill);
-      fPFeval->Branch("redk2nu_deltatime",          &f_redk2nu_deltatime);
+    if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){
+      fPFeval->Branch("cor_nu_time",          &f_cor_nu_time);
+      fPFeval->Branch("cor_nu_time_nospill",  &f_cor_nu_time_nospill);
+      fPFeval->Branch("cor_nu_time_spill",    &f_cor_nu_time_spill);
+      fPFeval->Branch("cor_nu_deltatime",     &f_cor_nu_deltatime);
     }
   }
 
@@ -4187,13 +4195,14 @@ void WireCellAnaTree::analyze(art::Event const& e)
         }
 
 	}
-	//
 
-        if(f_get_redk2nu_time){
+	//Code to resimulate the neutrino time
+        if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){
           double spill_time = TimeOffset();
-	  double propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356;
+          double propegation_time = 0;
           double decay_time = 0;
-          if(fIsNuMI){
+          if(f_get_redk2nu_time){
+	    propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356;
 	    art::Handle<std::vector<bsim::Dk2Nu>> dk2nu_flux_handle;
 	    std::vector<art::Ptr<bsim::Dk2Nu> > dk2nu_flux;
             e.getByLabel("generator",dk2nu_flux_handle);
@@ -4207,13 +4216,37 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	      std::vector<bsim::Ancestor> ancestors = this_dk2nu_flux->ancestor;
               decay_time = ancestors.back().startt;
             }
-          }//fIsNuMI
-          f_redk2nu_time = propegation_time + decay_time + spill_time;
-	  f_redk2nu_time_nospill = propegation_time + decay_time;
-	  f_redk2nu_deltatime = f_redk2nu_time - f_truth_nu_pos[3];
-          std::cout<<"redk2nu: "<<"og time "<<f_truth_nu_pos[3]<<"  redk2nu_time "<<f_redk2nu_time<<"  f_redk2nu_deltatime "<<f_redk2nu_deltatime<<"  spill_time "<<spill_time<<" decay_time "<<decay_time<<" propegation_time "<<propegation_time<<"  time to window "<<decay_time+(f_mcflux_dk2gen)*100*0.033356<<"  time to vtx "<<decay_time+(f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356<<"  seed "<<fRndmGen->GetSeed()<<std::endl;
-  	}//f_get_redk2nu_time
-	
+          }//f_get_redk2nu_time
+
+          else if(f_get_reboone_time){
+            art::Handle<std::vector<BooNEInfo>> flux_handle_bnb;
+            std::vector<art::Ptr<BooNEInfo> > bnb_flux;
+            e.getByLabel("generator", flux_handle_bnb);
+            art::fill_ptr_vector(bnb_flux, flux_handle_bnb);
+            if(bnb_flux.size()==0){
+              std::cout<<"no ReBooNE found"<<std::endl;
+              return;
+            }
+            else {
+              art::Ptr<BooNEInfo> this_bnb_flux = bnb_flux.at(0);
+              decay_time = this_bnb_flux->nu_startt; //start time of neutrino, convert to ns
+              //auto _vtxt = this_bnb_flux->nu_vtx_t;
+              propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356;
+            }
+          }//f_get_reboone_time
+
+          else if(f_get_spill_time){  
+            propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx+f_mcflux_vx/100)*100*0.033356;
+          }
+
+          f_cor_nu_time = propegation_time + decay_time + spill_time;
+	  f_cor_nu_time_nospill = propegation_time + decay_time;
+	  f_cor_nu_time_spill = spill_time;
+          f_cor_nu_deltatime = f_cor_nu_time - f_truth_nu_pos[3];
+
+          std::cout<<"Origional nu time "<<f_truth_nu_pos[3]<<" Corrected nu Time: "<<f_cor_nu_time<<"  spill time: "<<spill_time<<"  decay time: "<<decay_time<<"  propegation time: "<<propegation_time<<std::endl;
+        }
+
 	/// truth end
 	std::cout<<"Corrected Truth Neutrino vertex: ("<<f_truth_corr_nuvtxX<<", "<<f_truth_corr_nuvtxY<<", "<<f_truth_corr_nuvtxZ<<")"<<"\n";
 	std::cout<<"Corrected Truth Shower vertex: ("<<f_truth_corr_showervtxX<<", "<<f_truth_corr_showervtxY<<", "<<f_truth_corr_showervtxZ<<")"<<"\n";
@@ -5733,7 +5766,7 @@ void WireCellAnaTree::resetOutput()
 
   f_evtDeltaTimeNS = -99999.;
   f_evtTimeNS = -99999.;
-  f_evtTimeNS_redk2nu = -99999.;
+  f_evtTimeNS_cor = -99999.;
   f_Ph_Tot = -99999.;
   for(int i=0;i<32;i++){calib[i]=0;}
 
@@ -5799,9 +5832,10 @@ void WireCellAnaTree::resetOutput()
 	f_truth_nu_momentum[2] = -1;
 	f_truth_nu_momentum[3] = -1;
 
-	f_redk2nu_time = -1;
-	f_redk2nu_time_nospill = -1;
-	f_redk2nu_deltatime = 0;
+	f_cor_nu_time = -1;
+	f_cor_nu_time_nospill = -1;
+        f_cor_nu_time_spill = -1;
+	f_cor_nu_deltatime = 0;
 
 	fPrimaryID.clear();
 	fShowerID.clear();
@@ -7426,9 +7460,11 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
     }
   }
   f_evtTimeNS = Med_TT3;
-  f_evtTimeNS_redk2nu = Med_TT3+f_redk2nu_deltatime;
+  if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){ 
+    f_evtTimeNS_cor = Med_TT3+f_cor_nu_deltatime; 
+    std::cout<<"evtTimeNS "<<f_evtTimeNS<<"  Corrected evtTimeNS: "<<f_evtTimeNS_cor<<std::endl;
+  }
   f_Ph_Tot = Ph_Tot;
-  std::cout<<"f_evtTimeNS "<<f_evtTimeNS<<"  f_evtTimeNS_redk2nu "<<f_evtTimeNS_redk2nu<<std::endl;
 
   //Merge Peaks, shift may be incorrect for NuMi
   double Shift=3166.9;
