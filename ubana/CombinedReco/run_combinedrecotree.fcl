@@ -1,0 +1,294 @@
+#include "time_memory_tracker_microboone.fcl"
+#include "services_microboone.fcl"
+#include "database_microboone.fcl"
+#include "databaseutil_microboone.fcl"
+#include "neutrinoselection.fcl"
+process_name: CombinedRecoAnaTree
+
+services:
+{
+  TFileService: { fileName: "combine_reco_ana_hist.root" }
+  TimeTracker:             @local::microboone_time_tracker
+  MemoryTracker:           @local::microboone_memory_tracker
+  FileCatalogMetadata:     @local::art_file_catalog_data
+  @table::microboone_services
+  PmtGainService: @local::microboone_pmtgain_service
+  RandomNumberGenerator: {}                     #ART native random number generator
+  @table::microboone_reco_data_services
+  message:      @local::standard_info
+}
+
+services.DatabaseUtil.ShouldConnect: false
+services.TPCEnergyCalibService.TPCEnergyCalibProvider: @local::microboone_tpcenergycalib_provider_data
+
+#services.DetectorProperties.NumberTimeSamples:                             6400
+#services.DetectorProperties.ReadOutWindowSize:                             6400
+services.DetectorClocksService.InheritClockConfig:                         false
+services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
+
+services.SpaceCharge.EnableCorrSCE: true
+services.SpaceCharge.EnableSimEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+
+source:
+{
+  module_type: RootInput
+  fileNames:   ["dummy.root"]
+  maxEvents:   -1
+}
+
+physics:
+{
+   producers:
+   {
+
+        # collect un-clustered hits in slice and cluster them by proximity
+        nuslicehits: @local::NeutrinoSliceHits
+        proximity: @local::ProximityClustering
+
+        shrreco3d:                        @local::microboone_reco_data_producers.shrreco3d
+        shrreco3dKalmanShower:            @local::shrreco3dKalmanShower
+        shrreco3dKalmanShowercalo:        @local::shrreco3dKalmanShowercalodata
+        shrreco3dKalmanShowercali:        @local::shrreco3dKalmanShowercalidata
+        pandoraTrack:                     @local::microboone_pandoraTrackCreation
+        pandoraTrackcalo:                 @local::microboone_reco_data_producers.pandoracalo
+        pandoraTrackpid:                  @local::particleidconfig
+        pandoraTrackcali:                 @local::microboone_reco_data_producers.pandoracaliSCE
+        pandoraTrackcalipid:              @local::particleidconfig
+  }
+  filters:
+  {
+        nuselection: @local::NuSelectionFilterEmpty
+  }
+  analyzers:
+  {
+    wcpselection:
+    {
+      module_type:      "WireCellAnaTree"
+      ContainmentLabel: "nuselMetrics"
+      ChargeLabel:      "nuselMetrics"
+      TruthLabel:       "nuselMetrics"
+      MatchLabel:       "nuselMetrics"
+      STMLabel:       	"nuselMetricsSTM"
+      FileType:		"empty" # e.g. "prodgenie_bnb_intrinsic_nue_overlay_run1"
+
+      MC:               false
+      SaveWeights:	false # cv, spline
+      SaveLeeWeights:	false # lee
+      IsNuMI:		false
+      NuMIOldReweight:		false
+
+      # WeightLabel:      "eventweight::EventWeightMar18"
+      WeightLabel:      "eventweightSep24::EventWeightSep24"
+      WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
+
+      POT_counting:	true
+      POT_inputTag:	"beamdata:bnbETOR875" # overlay: "generator" 
+
+      ## Wire-Cell particle flow
+      wirecellPF:	true	
+      BDTvars:		true
+      KINEvars:		true
+      PF_validation: 	true
+      PF_inputtag:	"wirecellPF"
+      PFtruth_inputtag: "largeant"
+      Threshold_showerKE: 0.070 # units: GeV
+
+      PFDump:                   true
+      save_track_position:      false
+      PFDump_min_truth_energy:  0.010 # GeV
+
+      # nanosecond beam timing
+      ShiftOffset: 0 #0 for Run 1, 387.8 for Run 3 before RWM cable change and 118.3 Run 3 after RWM cable change and Run 4
+      isRun3: false #is this run 3 (where the RWM cable changed)?
+      # various fit parameters for corrections
+      ccnd1_a: 0.529594 
+      ccnd1_b: 7.13804
+      ccnd2_a: 0.068752
+      ccnd2_b: 2.32023
+      ccnd3_a: 0.4697
+      ccnd3_b: 0.004233
+      ccnd3_c: 0.000001006
+      ccnd3_d: -0.195
+    }
+
+    wcpweights:
+    {
+      module_type:      "WireCellEventWeightTree"
+      STMLabel:         "nuselMetricsSTM"
+      TruthLabel:       "nuselMetrics"
+      FileType:         "empty"
+
+      SaveWeights:      false # cv, spline
+      SaveLeeWeights:   false # lee
+      SaveFullWeights:  false # various universes
+      IsNuMI:		false
+      NuMIOldReweight:		false
+
+      # MCEventWeightLabels: [ "eventweight::EventWeightMar18" ] # moduleLabel:instanceName:processName
+      MCEventWeightLabels: [ "eventweightSep24::EventWeightSep24"
+                            ,"eventweightSep24::EventWeightSep24ExtraGENIE1"
+                            ,"eventweightSep24::EventWeightSep24ExtraGENIE2"
+                            ,"eventweightSep24::EventWeightSep24ExtraGENIE3"
+                            ,"eventweightSep24::EventWeightSep24ExtraGENIE4"
+                            ,"eventweightSep24::EventWeightSep24ExtraGENIE5" ]
+      # WeightLabel:	"eventweight::EventWeightMar18"
+      WeightLabel:	"eventweightSep24::EventWeightSep24"
+      WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
+
+      SaveGenieWeights: true # save Genie weights if vtx inside active volume
+      # GenieKnobs:       [  "All_UBGenie"
+      #                     ,"AxFFCCQEshape_UBGenie"
+      #                     ,"DecayAngMEC_UBGenie"
+      #                     ,"NormCCCOH_UBGenie"
+      #                     ,"NormNCCOH_UBGenie"
+      #                     ,"RPA_CCQE_UBGenie"
+      #                     ,"RootinoFix_UBGenie"
+      #                     ,"ThetaDelta2NRad_UBGenie"
+      #                     ,"Theta_Delta2Npi_UBGenie"
+      #                     ,"TunedCentralValue_UBGenie"
+      #                     ,"VecFFCCQEshape_UBGenie"
+      #                     ,"XSecShape_CCMEC_UBGenie"
+      #                     ,"xsr_scc_Fa3_SCC"
+      #                     ,"xsr_scc_Fv3_SCC" ]
+
+      GenieKnobs:        [ "All_UBGenie"
+                         , "AxFFCCQEshape_UBGenie"
+                         , "DecayAngMEC_UBGenie"
+                         , "NormCCCOH_UBGenie"
+                         , "NormNCCOH_UBGenie"
+                         , "RPA_CCQE_UBGenie"
+                         , "RootinoFix_UBGenie"
+                         , "ThetaDelta2NRad_UBGenie"
+                         , "Theta_Delta2Npi_UBGenie"
+                         , "TunedCentralValue_UBGenie"
+                         , "VecFFCCQEshape_UBGenie"
+                         , "XSecShape_CCMEC_UBGenie"
+                         , "expskin_FluxUnisim"
+                         , "horncurrent_FluxUnisim"
+                         , "kminus_PrimaryHadronNormalization"
+                         , "kplus_PrimaryHadronFeynmanScaling"
+                         , "kzero_PrimaryHadronSanfordWang"
+                         , "nucleoninexsec_FluxUnisim"
+                         , "nucleonqexsec_FluxUnisim"
+                         , "nucleontotxsec_FluxUnisim"
+                         , "piminus_PrimaryHadronSWCentralSplineVariation"
+                         , "pioninexsec_FluxUnisim"
+                         , "pionqexsec_FluxUnisim"
+                         , "piontotxsec_FluxUnisim"
+                         , "piplus_PrimaryHadronSWCentralSplineVariation"
+                         , "reinteractions_piminus_Geant4"
+                         , "reinteractions_piplus_Geant4"
+                         , "reinteractions_proton_Geant4"
+                         , "splines_general_Spline"
+                         , "xsr_scc_Fa3_SCC"
+                         , "xsr_scc_Fv3_SCC" ]
+
+    }
+
+    wcppfdump:
+    {
+      module_type:      "WireCellPFDump"
+      PFDump:           false # do PF dump if true
+      MC:               false # save truth PF if true
+      FileType:         "empty" # e.g. "prodgenie_bnb_intrinsic_nue_overlay_run1"
+      PF_inputtag:      "wirecellPF" # for reco PF
+      PFtruth_inputtag: "largeant" # for truth PF
+    }
+  }
+
+  # ana: [ wcpselection, wcpweights ]
+  ana: [ wcpselection ]
+
+  p1: [ nuslicehits, proximity, shrreco3d, shrreco3dKalmanShower, shrreco3dKalmanShowercalo, shrreco3dKalmanShowercali, pandoraTrack, pandoraTrackcalo, pandoraTrackpid, pandoraTrackcali, pandoraTrackcalipid, nuselection]
+
+  e1: [ rootout ]
+  ## trigger_paths contains the paths that modify the art::Event
+  # trigger_paths: [ ana ]
+  trigger_paths: [ p1 ]
+
+  stream1: [ out1 ]
+  ## end_paths contains the paths that do not modify the art::Event
+  # end_paths: [ stream1 ]
+  # end_paths: [ stream1, ana ]
+  end_paths: [ ana ]
+}
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   dataTier: "reconstructed"
+   compressionLevel: 1
+   saveMemoryObjectThreshold: 0
+   fileName: "%ifb_%tc_WCPsl.root"
+ }
+ rootout:
+ {
+    module_type: RootOutput
+    fileName: "FilteredNuEvents.root"
+    compressionLevel: 0
+    SelectEvents: [p1]
+    dataTier: "ana"
+ }
+}
+
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+services.SpaceCharge.EnableCalEfieldSCE: true
+services.SpaceCharge.EnableCalSpatialSCE: true
+services.SpaceCharge.EnableCorrSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.SpaceCharge.EnableSimEfieldSCE: true
+services.SpaceCharge.InputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_fwd_Jan18.root"
+services.SpaceCharge.ResponseType: "Voxelized_TH3"
+services.SpaceCharge.service_provider: "SpaceChargeServiceMicroBooNE"
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400
+services.DetectorClocksService.TriggerOffsetTPC: -0.400e3
+services.DetectorClocksService.InheritClockConfig:  false
+#services.BackTrackerService:  @local::microboone_backtrackerservice
+#services.ParticleInventoryService: @local::standard_particleinventoryservice
+
+#physics.filters.nuselection.SelectionTool: @local::ShowerSelectionTool
+#physics.filters.nuselection.AnalysisTools.default.BacktrackTag: "" #"gaushitTruthMatch"
+physics.filters.nuselection.IsData: true
+
+physics.producers.pandoraTrack.PFParticleLabel:                                                "pandora"
+physics.producers.pandoraTrack.UseAllParticles:                                                true
+
+physics.producers.pandoraTrackcalo.TrackModuleLabel:                                           "pandoraTrack"
+physics.producers.pandoraTrackcalo.SpacePointModuleLabel:                                      "pandora"
+#physics.producers.pandoraTrackcalo.CaloAlg.CalAreaConstants:                                   @local::microboone_reco_data_producers.pandoracalo.CaloAlg.CalAreaConstants #[4.31e-3, 4.02e-3, 4.10e-3]
+
+physics.producers.pandoraTrackcali.CaloAlg.CalAreaConstants:                                   @local::microboone_reco_data_producers.pandoracalo.CaloAlg.CalAreaConstants #  @local::microboone_reco_data_producers.pandoracalo.CaloAlg.CalAreaConstants #[4.31e-3, 4.02e-3, 4.10e-3]
+physics.producers.pandoraTrackcali.TrackModuleLabel:                                           "pandoraTrack"
+physics.producers.pandoraTrackcali.CalorimetryModuleLabel:                                     "pandoraTrackcalo"
+#physics.producers.pandoraTrackcali.CorrectSCE:                                                 true
+
+physics.producers.pandoraTrackpid.ProducerLabels.CaloTrackAssn:                                "pandoraTrackcalo"
+physics.producers.pandoraTrackpid.ProducerLabels.CalorimetryLabel:                             "pandoraTrackcalo"
+physics.producers.pandoraTrackpid.ProducerLabels.HitTrackAssn:                                 "pandoraTrack"
+physics.producers.pandoraTrackpid.ProducerLabels.TrackLabel:                                   "pandoraTrack"
+
+physics.producers.pandoraTrackcalipid.ProducerLabels.CaloTrackAssn:                            "pandoraTrackcali"
+physics.producers.pandoraTrackcalipid.ProducerLabels.CalorimetryLabel:                         "pandoraTrackcali"
+physics.producers.pandoraTrackcalipid.ProducerLabels.HitTrackAssn:                             "pandoraTrack"
+physics.producers.pandoraTrackcalipid.ProducerLabels.TrackLabel:                               "pandoraTrack"
+physics.producers.pandoraTrackcalipid.Chi2PIDAlg.UseMedian:                                    true
+
+physics.producers.proximity.VtxProducer: "pandora"
+physics.producers.proximity.HitProducer: "nuslicehits"
+
+physics.producers.pandoraTrackcali.ELifetimeCorrection: true
+physics.producers.shrreco3dKalmanShowercali.ELifetimeCorrection: true
+
+microboone_tfile_metadata:
+{
+  JSONFileName:          ["combine_reco_ana_hist.json"]
+  GenerateTFileMetadata: [true]
+  dataTier:              ["root-tuple"]
+  fileFormat:            ["root"]
+}
