@@ -37,6 +37,8 @@
 #include "nusimdata/SimulationBase/MCNeutrino.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 
+#include "lardataobj/Simulation/SimEnergyDeposit.h"
+
 #include "ubobj/WcpPort/NuSelectionContainment.h"
 #include "ubobj/WcpPort/NuSelectionMatch.h"
 #include "ubobj/WcpPort/NuSelectionTruth.h"
@@ -349,10 +351,15 @@ private:
   std::vector<double>	*Tcluster_spacepoints_z = new std::vector<double>;
   std::vector<double>	*Tcluster_spacepoints_q = new std::vector<double>;
 
-  std::vector<double>	*TrueEDep_spacepoints_x = new std::vector<double>;
-  std::vector<double>	*TrueEDep_spacepoints_y = new std::vector<double>;
-  std::vector<double>	*TrueEDep_spacepoints_z = new std::vector<double>;
-  std::vector<double>	*TrueEDep_spacepoints_q = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_startx = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_starty = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_startz = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_endx = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_endy = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_endz = new std::vector<double>;
+  std::vector<double>	*TrueEDep_spacepoints_edep = new std::vector<double>;
+  std::vector<int>	  *TrueEDep_spacepoints_pdg = new std::vector<int>;
+  
 
   /// BDT input vars
   TTree* fBDT;
@@ -2037,12 +2044,6 @@ void WireCellAnaTree::initOutput()
   fTreePot->Branch("spill_tor875", &fspill_tor875);
   fTreePot->Branch("spill_tor875good", &fspill_tor875good);
 
-  // additions for adding spacepoints
-
-  std::cout << "adding spacepoints" << std::endl;
-
-  // done with additions for adding spacepoints
-
   /// PF validation
   fPFeval = tfs->make<TTree>("T_PFeval", "T_PFeval");
   fPFeval->Branch("run", 			&f_run);
@@ -2201,14 +2202,45 @@ void WireCellAnaTree::initOutput()
 
   fSpacepoints = tfs->make<TTree>("T_spacepoints", "T_spacepoints");
 
+  if (f_saveTrecSpacePoints){
+    fSpacepoints->Branch("Trec_spacepoints_x", &Trec_spacepoints_x);
+    fSpacepoints->Branch("Trec_spacepoints_y", &Trec_spacepoints_y);
+    fSpacepoints->Branch("Trec_spacepoints_z", &Trec_spacepoints_z);
+    fSpacepoints->Branch("Trec_spacepoints_q", &Trec_spacepoints_q);
+  }
+
+  if (f_saveTrecchargeSpacePoints){
+    fSpacepoints->Branch("Treccharge_spacepoints_x", &Treccharge_spacepoints_x);
+    fSpacepoints->Branch("Treccharge_spacepoints_y", &Treccharge_spacepoints_y);
+    fSpacepoints->Branch("Treccharge_spacepoints_z", &Treccharge_spacepoints_z);
+    fSpacepoints->Branch("Treccharge_spacepoints_q", &Treccharge_spacepoints_q);
+  }
+
   if (f_saveTrecchargeblobSpacePoints){
-    std::cout << "setting Trecchargeblob_spacepoints branches" << std::endl;
     fSpacepoints->Branch("Trecchargeblob_spacepoints_x", &Trecchargeblob_spacepoints_x);
     fSpacepoints->Branch("Trecchargeblob_spacepoints_y", &Trecchargeblob_spacepoints_y);
     fSpacepoints->Branch("Trecchargeblob_spacepoints_z", &Trecchargeblob_spacepoints_z);
     fSpacepoints->Branch("Trecchargeblob_spacepoints_q", &Trecchargeblob_spacepoints_q);
-    std::cout << "done setting Trecchargeblob_spacepoints branches" << std::endl;
   }
+
+  if (f_saveTclusterSpacePoints){
+    fSpacepoints->Branch("Tcluster_spacepoints_x", &Tcluster_spacepoints_x);
+    fSpacepoints->Branch("Tcluster_spacepoints_y", &Tcluster_spacepoints_y);
+    fSpacepoints->Branch("Tcluster_spacepoints_z", &Tcluster_spacepoints_z);
+    fSpacepoints->Branch("Tcluster_spacepoints_q", &Tcluster_spacepoints_q);
+  }
+
+  if (f_saveTrueEDepSpacePoints){
+    fSpacepoints->Branch("TrueEDep_spacepoints_startx", &TrueEDep_spacepoints_startx);
+    fSpacepoints->Branch("TrueEDep_spacepoints_starty", &TrueEDep_spacepoints_starty);
+    fSpacepoints->Branch("TrueEDep_spacepoints_startz", &TrueEDep_spacepoints_startz);
+    fSpacepoints->Branch("TrueEDep_spacepoints_endx", &TrueEDep_spacepoints_endx);
+    fSpacepoints->Branch("TrueEDep_spacepoints_endy", &TrueEDep_spacepoints_endy);
+    fSpacepoints->Branch("TrueEDep_spacepoints_endz", &TrueEDep_spacepoints_endz);
+    fSpacepoints->Branch("TrueEDep_spacepoints_edep", &TrueEDep_spacepoints_edep);
+    fSpacepoints->Branch("TrueEDep_spacepoints_pdg", &TrueEDep_spacepoints_pdg);
+  }
+  
 
   if (f_savesps){
     fPFeval->Branch("reco_sps_x", &f_sps_x);
@@ -3752,34 +3784,87 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	if( f_match_type&1U || (f_match_type>>1)&1U ) f_lightmismatch = true;
 	else f_lightmismatch = false;
 
+  if (f_saveTrecSpacePoints){
+    auto spacepoint_vec = e.getProduct<std::vector<TrecSpacePoint>>("portedWCSpacePointsTrec");
+    Trec_spacepoints_x->clear();
+    Trec_spacepoints_y->clear();
+    Trec_spacepoints_z->clear();
+    Trec_spacepoints_q->clear();
+    for (auto const& spacepoint: spacepoint_vec){
+      Trec_spacepoints_x->push_back(spacepoint.x);
+      Trec_spacepoints_y->push_back(spacepoint.y);
+      Trec_spacepoints_z->push_back(spacepoint.z);
+      Trec_spacepoints_q->push_back(spacepoint.q);
+    }
+  }
+
+  if (f_saveTrecchargeSpacePoints){
+    auto spacepoint_vec = e.getProduct<std::vector<TrecchargeSpacePoint>>("portedWCSpacePointsTreccharge");
+    Treccharge_spacepoints_x->clear();
+    Treccharge_spacepoints_y->clear();
+    Treccharge_spacepoints_z->clear();
+    Treccharge_spacepoints_q->clear();
+    for (auto const& spacepoint: spacepoint_vec){
+      Treccharge_spacepoints_x->push_back(spacepoint.x);
+      Treccharge_spacepoints_y->push_back(spacepoint.y);
+      Treccharge_spacepoints_z->push_back(spacepoint.z);
+      Treccharge_spacepoints_q->push_back(spacepoint.q);
+    }
+  }
+
   if (f_saveTrecchargeblobSpacePoints){
-
-    std::cout << "loading TrecchargeblobSpacePoints from artroot" << std::endl;
-
     auto spacepoint_vec = e.getProduct<std::vector<TrecchargeblobSpacePoint>>("portedWCSpacePointsTrecchargeblob");
+    Trecchargeblob_spacepoints_x->clear();
+    Trecchargeblob_spacepoints_y->clear();
+    Trecchargeblob_spacepoints_z->clear();
+    Trecchargeblob_spacepoints_q->clear();
+    for (auto const& spacepoint: spacepoint_vec){
+      Trecchargeblob_spacepoints_x->push_back(spacepoint.x);
+      Trecchargeblob_spacepoints_y->push_back(spacepoint.y);
+      Trecchargeblob_spacepoints_z->push_back(spacepoint.z);
+      Trecchargeblob_spacepoints_q->push_back(spacepoint.q);
+    }
+  }
 
-    std::cout << "loaded TrecchargeblobSpacePoints from artroot" << std::endl;
-    
+  if (f_saveTclusterSpacePoints){
+    auto spacepoint_vec = e.getProduct<std::vector<TclusterSpacePoint>>("portedWCSpacePointsTcluster");
     Tcluster_spacepoints_x->clear();
     Tcluster_spacepoints_y->clear();
     Tcluster_spacepoints_z->clear();
     Tcluster_spacepoints_q->clear();
-
-    std::cout << "cleared variables" << std::endl;
-
-    std::cout << "spacepoint_vec.size(): " << spacepoint_vec.size() << std::endl;
-
     for (auto const& spacepoint: spacepoint_vec){
       Tcluster_spacepoints_x->push_back(spacepoint.x);
       Tcluster_spacepoints_y->push_back(spacepoint.y);
       Tcluster_spacepoints_z->push_back(spacepoint.z);
       Tcluster_spacepoints_q->push_back(spacepoint.q);
     }
-
-    fSpacepoints->Fill();
-
   }
 
+  if (f_saveTrueEDepSpacePoints){
+    std::cout << "Loading TrueEDepSpacePoints" << std::endl;
+    auto const& energy_deposit_vec = e.getProduct<std::vector<sim::SimEnergyDeposit>>("ionization");
+    std::cout << "energy_deposit_vec.size(): " << energy_deposit_vec.size() << std::endl;
+    TrueEDep_spacepoints_startx->clear();
+    TrueEDep_spacepoints_starty->clear();
+    TrueEDep_spacepoints_startz->clear();
+    TrueEDep_spacepoints_endx->clear();
+    TrueEDep_spacepoints_endy->clear();
+    TrueEDep_spacepoints_endz->clear();
+    TrueEDep_spacepoints_edep->clear();
+    TrueEDep_spacepoints_pdg->clear();
+    for (auto const& energy_deposit: energy_deposit_vec){
+      auto start_pos = energy_deposit.Start();
+      auto end_pos = energy_deposit.End();
+      TrueEDep_spacepoints_startx->push_back(start_pos.X());
+      TrueEDep_spacepoints_starty->push_back(start_pos.Y());
+      TrueEDep_spacepoints_startz->push_back(start_pos.Z());
+      TrueEDep_spacepoints_endx->push_back(end_pos.X());
+      TrueEDep_spacepoints_endy->push_back(end_pos.Y());
+      TrueEDep_spacepoints_endz->push_back(end_pos.Z());
+      TrueEDep_spacepoints_edep->push_back(energy_deposit.Energy());
+      TrueEDep_spacepoints_pdg->push_back(energy_deposit.PdgCode());
+    }
+  }
 
 	/// PF validation starts
 	// reco start [nested loop]
