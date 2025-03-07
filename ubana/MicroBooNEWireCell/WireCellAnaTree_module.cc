@@ -206,6 +206,13 @@ private:
   Float_t	f_reco_protonvtxZ;
   Float_t	f_reco_protonMomentum[4];
 
+  bool f_MCS;
+  std::string fMCSLabel;
+  double       f_mcs_mu_tracklen; // Muon length in cm
+  double       f_mcs_emu_tracklen; // Pure range based, in GeV
+  double       f_mcs_emu_MCS; // MCS based, in GeV
+  double       f_mcs_ambiguity_MCS; // "Goodness" of MCS estimation
+
   Float_t f_evtDeltaTimeNS;
   Float_t f_evtTimeNS;
   Float_t f_evtTimeNS_cor;
@@ -1819,6 +1826,9 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   f_save_track_position = pset.get<bool>("save_track_position", false);
   f_PFDump_min_truth_energy = pset.get<float>("PFDump_min_truth_energy", 0);
 
+  f_MCS = pset.get<bool>("MCS", false);
+  fMCSLabel = pset.get<std::string>("MCSLabel","WireCellMCS");
+
   f_savesps = pset.get<bool>("SaveSPS", false);
 
   f_savepmt  = pset.get<bool>("SavePMT", false);
@@ -2124,6 +2134,13 @@ void WireCellAnaTree::initOutput()
     fPFeval->Branch("PMT_Sat", &f_PMT_Sat);
     fPFeval->Branch("RWM_Time", &f_RWM_Time);
 
+  }
+
+  if (f_MCS){
+    fPFeval->Branch("mcs_mu_tracklen", &f_mcs_mu_tracklen);
+    fPFeval->Branch("mcs_emu_tracklen", &f_mcs_emu_tracklen);
+    fPFeval->Branch("mcs_emu_MCS", &f_mcs_emu_MCS);
+    fPFeval->Branch("mcs_ambiguity_MCS", &f_mcs_ambiguity_MCS);
   }
 
   fBDT = tfs->make<TTree>("T_BDTvars", "T_BDTvars");
@@ -4339,8 +4356,23 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	kine.GetKineInfo().kine_pio_angle<<"\n";
 	}
       }
-  //if ( (!fMC || fIsNuMI) && kine_reco_Enu>-1.) {nsbeamtiming(e);}
-  //if ( (!fMC || fIsNuMI) && numu_cc_flag!=-1) {nsbeamtiming(e);}
+
+  // Adding MCS product
+  if(f_MCS){
+    std::cout<<"--- MCS  ---"<<std::endl;
+    auto const& mcs_vec = e.getProduct<std::vector<double>>(fMCSLabel);
+    if(mcs_vec.size()==0) {
+      std::cout<<"WARNING: no WireCellMCS product but f_MCS==1" << std::endl;
+    }
+    else{
+      f_mcs_mu_tracklen = mcs_vec.at(0);
+      f_mcs_emu_tracklen = mcs_vec.at(1);
+      f_mcs_emu_MCS = mcs_vec.at(2);
+      f_mcs_ambiguity_MCS = mcs_vec.at(3);
+      std::cout<<"tracklen: "<<f_mcs_mu_tracklen<<"  emu_tracklen: "<<f_mcs_emu_tracklen<<"  emu_MCS: "<<f_mcs_emu_MCS<<"  ambiguity_MCS: "<<f_mcs_ambiguity_MCS<<std::endl;
+    }
+  }
+
   if ( f_get_ns_time && (numu_cc_flag!=-1 || (ssm_numu_cc_flag!=-1 && f_ssmBDT) ) ) {nsbeamtiming(e);}
         fTreeEval->Fill();
 	fPFeval->Fill();
@@ -5763,6 +5795,11 @@ void WireCellAnaTree::resetOutput()
 	f_reco_protonMomentum[1] = -1;
 	f_reco_protonMomentum[2] = -1;
 	f_reco_protonMomentum[3] = -1;
+
+  f_mcs_mu_tracklen = 9999;
+  f_mcs_emu_tracklen = -9999;
+  f_mcs_emu_MCS = -9999;
+  f_mcs_ambiguity_MCS = -9999;
 
   f_evtDeltaTimeNS = -99999.;
   f_evtTimeNS = -99999.;
