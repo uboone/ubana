@@ -80,7 +80,7 @@ private:
   
   std::string fTmploc;
 
-  TFile *fCachedEntriesFile;
+  //TFile *fCachedEntriesFile;
 
 };
 

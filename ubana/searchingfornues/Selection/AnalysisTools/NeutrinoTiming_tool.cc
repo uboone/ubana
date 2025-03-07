@@ -138,15 +138,15 @@ namespace analysis
     float f_ccnd3_b;
     float f_ccnd3_c;
     float f_ccnd3_d;
-    float f_ccnd4_a;
-    float f_ccnd4_b;
+    //float f_ccnd4_a;
+    //float f_ccnd4_b;
     int _run;
 
     float _time_offset; // variable stored in TTree
     float _mc_interaction_time;    // variable stored in TTree
     float _interaction_time_modulo; // variable stored in TTree
     float _interaction_time_abs;    // variable stored in TTree
-    float _spill_time;
+    //float _spill_time;
     float _vtxt;
 
     Float_t	f_mcflux_dk2gen; // distance from decay to ray origin
