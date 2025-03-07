@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+microboone_reboone: {
+  module_type: ReBooNE
+  truth_label: "generator"
+  flux_location_template: "/cvmfs/uboone.osgstorage.org/stash/uboonebeam/bnb/bnb_redecay_fluxes_02.05.2018_463/beam_%i.root"
+}
+
+END_PROLOG
