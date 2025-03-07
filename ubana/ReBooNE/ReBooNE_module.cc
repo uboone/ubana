@@ -113,7 +113,7 @@ void reboone::ReBooNE::produce(art::Event& e)
   std::unique_ptr<std::vector<BooNEInfo>> boonecol(new std::vector<BooNEInfo>);
   std::unique_ptr< art::Assns<simb::MCTruth, BooNEInfo> > tdkassn(new art::Assns<simb::MCTruth, BooNEInfo>);
   art::PtrMaker<BooNEInfo> makeBooNEPtr(e);
-  std::cout << "Truth label:" << fGenLabel << std::endl;
+
   if(e.getByLabel(fGenLabel, fluxHandle) && e.getByLabel(fGenLabel, truthHandle)) {
     art::FindManyP<simb::MCTruth> flux2truth(fluxHandle, e, fGenLabel);
     for(size_t iflux = 0; iflux < fluxHandle->size(); ++iflux) {
@@ -121,23 +121,20 @@ void reboone::ReBooNE::produce(art::Event& e)
       const int run = f.frun;
       const int nu_pdg = f.fntype;
       const double nu_ene = f.fnenergyn;
-      const double decay_vertex_x = f.fvx;
-      const double decay_vertex_y = f.fvy;
-      const double decay_vertex_z = f.fvz;
+      //const double decay_vertex_x = f.fvx;
+      //const double decay_vertex_y = f.fvy;
+      //const double decay_vertex_z = f.fvz;
 
       float windowbase_corr[3] = {620.963 , 500.563 , -1001.35};
 
       std::cout << "Flux job: " << run << std::endl;
       
       auto load_trees = [&](const std::string& fn) -> std::vector<TTree*> {
-        std::cout << "Load Trees" << std::endl;
         
-        std::cout << "Enter load_tree function" << std::endl;
         std::vector<TTree*> boone_trees;
         fCurrFile = new TFile(fn.c_str());
-        std::cout << "Opened file: " << fn << std::endl;
+        std::cout << "Opening file: " << fn << std::endl;
         TTree *tBoone = dynamic_cast<TTree*>(fCurrFile->Get(fBooNETree.c_str()));
-        std::cout << "tBoone cast" << std::endl;
         if(!tBoone) {
           throw cet::exception("LogicError") << "Cannot find BooNE ntuple tree " << fBooNETree << " in " << fn <<  std::endl;
         }
@@ -152,7 +149,6 @@ void reboone::ReBooNE::produce(art::Event& e)
         tBoone->SetBranchAddress("fin_mom",&fBooneNtp.fin_mom[0][0]);
         tBoone->SetBranchAddress("fin_pol",&fBooneNtp.fin_pol[0][0]);
         boone_trees.push_back(tBoone);
-        std::cout << "BNB tree loaded!" << std::endl;
 
         TTree *tWindow = dynamic_cast<TTree*>(fCurrFile->Get("h220"));
         if(!tWindow) {
@@ -165,7 +161,7 @@ void reboone::ReBooNE::produce(art::Event& e)
         tWindow->SetBranchAddress("windowdir1",&fBeamNtp.windowdir1[0]);
         tWindow->SetBranchAddress("windowdir2",&fBeamNtp.windowdir2[0]);
         boone_trees.push_back(tWindow);
-        std::cout << "Window tree loaded!" << std::endl;
+
 
         return boone_trees;
       };
@@ -175,7 +171,6 @@ void reboone::ReBooNE::produce(art::Event& e)
         std::vector<TTree*> boone_trees = load_trees(fname);
         std::cout << "Trees loaded!" << std::endl;
         std::cout << "Entries in tBoone tree: " << boone_trees[0]->GetEntries() << std::endl;
-        std::cout << "Entries in tWindow tree: " << boone_trees[1]->GetEntries() << std::endl;
 
         boone_trees[1]->GetEntry(0);
         std::cout << "POT count: " << fBeamNtp.pot << std::endl;
@@ -194,13 +189,13 @@ void reboone::ReBooNE::produce(art::Event& e)
       double targ_y = fBeamNtp.targ_pos_beam[1]/100;
       double targ_z = fBeamNtp.targ_pos_beam[2]/100;
       double tank_z = (fBeamNtp.tank_pos_beam[2]+windowbase_corr[2])/100;
-      const int event = f.fevtno;
+      //const int event = f.fevtno;
 
-      std::cout << "Looking for event: " << event << std::endl;
-      std::cout << "At vertex: " << decay_vertex_x << " " << decay_vertex_y << " " << decay_vertex_z << std::endl;
-      std::cout << "With energy: " << nu_ene << std::endl;
-      std::cout << "Beam info: " << fBeamNtp.targ_pos_beam[2] << " " << fBeamNtp.windowbase[2]  << " " << windowbase_corr[2] << std::endl;
-      std::cout << "Target pos: " << targ_x << " " << targ_y << " " << targ_z << std::endl;
+      //std::cout << "Looking for event: " << event << std::endl;
+      //std::cout << "At vertex: " << decay_vertex_x << " " << decay_vertex_y << " " << decay_vertex_z << std::endl;
+      //std::cout << "With energy: " << nu_ene << std::endl;
+      //std::cout << "Beam info: " << fBeamNtp.targ_pos_beam[2] << " " << fBeamNtp.windowbase[2]  << " " << windowbase_corr[2] << std::endl;
+      //std::cout << "Target pos: " << targ_x << " " << targ_y << " " << targ_z << std::endl;
 
       
 
@@ -254,21 +249,21 @@ void reboone::ReBooNE::produce(art::Event& e)
 			                          pow(nu_z-tank_z,2) );
 
           fBooNEInfo.nu_vtx_t    = fBooneNtp.ini_t[0]/1e9 + dist/TMath::C(); //s
-          std::cout << "Found a corresponding entry!" << std::endl;
-          std::cout << "i : " << entry << std::endl;
-          std::cout << "BooNE energy: " <<  fBooneNtp.ini_eng[0] << std::endl;
-          std::cout << "BooNE vertex: " << fBooNEInfo.nu_vtx_x << " " << fBooNEInfo.nu_vtx_y << " " << fBooNEInfo.nu_vtx_z << std::endl;
-          std::cout << "Nu momentum: " << nu_momx << " " << nu_momy << " " << nu_momz << std::endl;
-          std::cout << "Nu position: " << nu_x << " " << nu_y << " " << nu_z << std::endl;
-          std::cout << "Dist: " << dist << std::endl;
-          std::cout << "Time: " << fBooneNtp.ini_t[0] << std::endl;
-          std::cout << "BooNE time: " << fBooNEInfo.nu_vtx_t << std::endl;
+          //std::cout << "Found a corresponding entry!" << std::endl;
+          //std::cout << "i : " << entry << std::endl;
+          //std::cout << "BooNE energy: " <<  fBooneNtp.ini_eng[0] << std::endl;
+          //std::cout << "BooNE vertex: " << fBooNEInfo.nu_vtx_x << " " << fBooNEInfo.nu_vtx_y << " " << fBooNEInfo.nu_vtx_z << std::endl;
+          //std::cout << "Nu momentum: " << nu_momx << " " << nu_momy << " " << nu_momz << std::endl;
+          //std::cout << "Nu position: " << nu_x << " " << nu_y << " " << nu_z << std::endl;
+          //std::cout << "Dist: " << dist << std::endl;
+          //std::cout << "Time: " << fBooneNtp.ini_t[0] << std::endl;
+          //std::cout << "BooNE time: " << fBooNEInfo.nu_vtx_t << std::endl;
           found_boones.push_back(fBooNEInfo);  
         }
       }
       
       
-      std::cout << "Found " << found_boones.size() << " corresponding entries!" << std::endl; 
+      //std::cout << "Found " << found_boones.size() << " corresponding entries!" << std::endl; 
       
       boonecol->push_back(found_boones.front());
       auto boonePtr = makeBooNEPtr(boonecol->size()-1);

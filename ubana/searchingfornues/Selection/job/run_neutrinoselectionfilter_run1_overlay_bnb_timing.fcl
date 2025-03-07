@@ -1,0 +1,37 @@
+#include "run_neutrinoselectionfilter_run1_overlay.fcl"
+
+physics.filters.nuselection.AnalysisTools.shower:      @local::ShowerAnalysisTool
+physics.filters.nuselection.AnalysisTools.timing:      @local::NeutrinoTimingAnalysisTool
+physics.filters.nuselection.AnalysisTools.zbdt: @local::BDTTool
+
+physics.filters.nuselection.SelectionTool: @local::CC0PiNpSelectionTool
+#physics.filters.nuselection.AnalysisTools.timing.LogicWFProducer : "pmtreadoutnonoise:UnspecifiedLogic"
+#physics.filters.nuselection.AnalysisTools.timing.beam_window : 800
+#physics.filters.nuselection.AnalysisTools.timing.isRun3 : true
+
+#physics.filters.nuselection.AnalysisTools.default.makeNuMINtuple: true
+physics.filters.nuselection.AnalysisTools.timing.isMC: true
+physics.filters.nuselection.AnalysisTools.timing.isNuMI: false
+
+
+physics.filters.nuselection.AnalysisTools.timing.usePID: false
+
+physics.filters.nuselection.AnalysisTools.timing.TimeBetweenBuckets: 18.936
+physics.filters.nuselection.AnalysisTools.timing.BucketTimeSigma: 1.308
+physics.filters.nuselection.AnalysisTools.timing.BatchIntensities: [1] # 1 batch
+
+
+physics.filters.nuselection.AnalysisTools.timing.ccnd1_a: 0 
+physics.filters.nuselection.AnalysisTools.timing.ccnd1_b: 0
+physics.filters.nuselection.AnalysisTools.timing.ccnd2_a: 0 
+physics.filters.nuselection.AnalysisTools.timing.ccnd2_b: 0 
+physics.filters.nuselection.AnalysisTools.timing.ccnd3_a: 0
+physics.filters.nuselection.AnalysisTools.timing.ccnd3_b: 0
+physics.filters.nuselection.AnalysisTools.timing.ccnd3_c: 0
+physics.filters.nuselection.AnalysisTools.timing.ccnd3_d: 0
+physics.filters.nuselection.AnalysisTools.timing.ccnd4_a: 0 
+physics.filters.nuselection.AnalysisTools.timing.ccnd4_b: 0
+
+
+physics.filters.nuselection.AnalysisTools.nugraphcounts: ""
+
