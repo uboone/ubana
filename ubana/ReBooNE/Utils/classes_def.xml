@@ -1,0 +1,12 @@
+<lcgdict>
+<class name="BooNEInfo"/>
+<class name="art::Wrapper<std::vector<BooNEInfo> >"/>
+<class name="std::vector<BooNEInfo>"/>
+
+<class name="art::Wrapper<art::Assns<BooNEInfo, simb::MCTruth> >"/>
+<class name="art::Assns<BooNEInfo, simb::MCTruth>"/>
+
+<class name="art::Wrapper<art::Assns<simb::MCTruth, BooNEInfo> >"/>
+<class name="art::Assns<simb::MCTruth, BooNEInfo>"/>
+
+</lcgdict>

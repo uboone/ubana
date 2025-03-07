@@ -1,0 +1,38 @@
+#include "time_memory_tracker_microboone.fcl"
+#include "reboone.fcl"
+#include "services_microboone.fcl"
+
+process_name: ReBooNE
+
+services: {
+  TimeTracker: @local::microboone_time_tracker
+  MemoryTracker: @local::microboone_memory_tracker
+}
+
+physics: {
+  producers: {
+    # use the same generator label, to not confuse downstream code
+    generator: @local::microboone_reboone
+  }
+  sim: [ generator ]
+  trigger_paths: [ sim ]
+  stream1: [ out1 ]
+  end_paths: [ stream1 ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "%ifb_reboone.root"
+    dataTier: "reconstructed"
+    compressionLevel: 1
+    saveMemoryObjectThreshold: 0
+  }
+}
+
+
+physics.producers.generator.truth_label: "generator"
+physics.producers.generator.flux_location_template: "/cvmfs/uboone.osgstorage.org/stash/uboonebeam/bnb_redecay/bnb_redecay_fluxes_02.05.2018_463/beammc_%04d.root"
+physics.producers.generator.BooNETree: "h201"
