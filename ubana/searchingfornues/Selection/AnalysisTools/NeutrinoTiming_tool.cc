@@ -183,7 +183,7 @@ namespace analysis
     //int& tickSum, int tickP[32],
     //double& maxSum, double& timeSum, double maxP[32], double timeP[32]);
     
-    void nsbeamtiming(std::vector<std::vector<art::Ptr<recob::SpacePoint> > > spacepoint_v_v);
+    void nsbeamtiming(art::Event const& e, std::vector<std::vector<art::Ptr<recob::SpacePoint> > > spacepoint_v_v);
     void CalculateCPDF(std::vector<double> bi);
     void get_sim_time(art::Event const& e);
     double TimeOffset();
@@ -225,6 +225,12 @@ namespace analysis
     f_ccnd3_d = p.get<float>("ccnd3_d", -0.195);
     //f_ccnd4_a = pset.get<float>("ccnd4_a", 0);
     //f_ccnd4_b = pset.get<float>("ccnd4_b", 0);
+
+    f_sim_time           = -1;
+    f_sim_time_nospill   = -1;
+	  f_sim_deltatime      = -1;
+    _mc_interaction_time = -99999.;
+    _time_offset         = -1;
 
 
     //Beam parameters
@@ -472,14 +478,13 @@ namespace analysis
           f_truth_nu_pos[1] = position.Y();
           f_truth_nu_pos[2] = position.Z();
           f_truth_nu_pos[3] = position.T();
-          get_sim_time(e);
         }
       }
    }
 
     
     std::cout << "[NeutrinoTiming] run ns beam timing " << std::endl;
-    nsbeamtiming(spacepoint_v_v);
+    nsbeamtiming(e, spacepoint_v_v);
 
     _interaction_time_modulo = _evtDeltaTimeNS;
     _interaction_time_abs = _evtTimeNS;
@@ -568,8 +573,10 @@ namespace analysis
     
     //=======================================================================================================
     //=======================================================================================================
-    std::vector<std::vector<double>> Help_wf_v(32, std::vector<double> (samples));
-    std::vector<double> x_wf_v(samples), Raw_wf_v(samples), Base_wf_v(samples), Norm_wf_v(samples);
+    //std::vector<std::vector<double>> Help_wf_v(32, std::vector<double> (samples));
+    //std::vector<double> x_wf_v(samples), Raw_wf_v(samples), Base_wf_v(samples), Norm_wf_v(samples);
+    double Help_wf_v[32][1500];
+    double x_wf_v[1500], Raw_wf_v[1500], Base_wf_v[1500], Norm_wf_v[1500];
     double maxZ,max0,base;   int basebinmax,tick;
     double tca,tcb,tcc, TT[32], max[32];
     
@@ -593,15 +600,15 @@ namespace analysis
     for(int q=0; q<32; q++){
       for(int i=0; i<samples; i++){
 	      Help_wf_v[q][i]=_wf_v[q][i];
-	      if (i > 100 && i < 110) 
+	      //if (i > 100 && i < 110) 
 	      //std::cout << "[NeutrinoTimingDebug::getPMTwf()] PMT " << q << " @ tick " << i << " has ADC " << Help_wf_v[q][i] << std::endl;
 	      if (Help_wf_v[q][i] > max_pmt_v[q]) { max_pmt_v[q] = Help_wf_v[q][i]; max_tick_v[q] = i; }
       }
     }
 
-    for (size_t nn=0; nn < 32; nn++) {
+    //for (size_t nn=0; nn < 32; nn++) {
       //std::cout << "[NeutrinoTimingDebug] PMT " << nn << " has maximum tick @ " <<  max_tick_v[nn] << " with value " << max_pmt_v[nn] << "." << std::endl;
-    }
+    //}
 
     _wf_v.clear(); _wf_v.shrink_to_fit();
     
@@ -623,7 +630,7 @@ namespace analysis
 	      Raw_wf_v[i]=Help_wf_v[q][i];
       }
       //Getting raw wf max amplitude and max amp tick
-      for(int i=3*64; i<5*64; i++){if(maxZ<Raw_wf_v[i]){maxZ=Raw_wf_v[i]; tick=i;}}
+      for(int i=3*64; i<samples_64*64; i++){if(maxZ<Raw_wf_v[i]){maxZ=Raw_wf_v[i]; tick=i;}}
       //Baseline removal
       TH1F *basehelp= new TH1F("basehelp","basehelp",400, 1900,2200);
       basebinmax=0; for(int i=0; i<3*64; i++){basehelp->Fill(Raw_wf_v[i]);}
@@ -634,7 +641,7 @@ namespace analysis
       for(int i=0; i<samples; i++){max0=maxZ-base;
 	      Base_wf_v[i]=Raw_wf_v[i]-base; Norm_wf_v[i]=Base_wf_v[i]/max0;}
       //fitting the normalized baseline subtracted wf
-      TGraph *gr = new TGraph(samples,&(x_wf_v[0]),&(Norm_wf_v[0]));
+      TGraph *gr = new TGraph(samples,x_wf_v,Norm_wf_v);
       TF1 *fit = new TF1("fit","[2]*exp(-TMath::Power(([0]-x)/[1],4))",tick-10, tick);
       fit->SetParameters(tick,2,1);  gr->Fit("fit","Q","",tick-10, tick);
       tca=fit->GetParameter(0);  tcb=fit->GetParameter(1);  tcc=fit->GetParameter(2);
@@ -649,7 +656,7 @@ namespace analysis
       }
       else if(maxZ>saturation) {
 	      //counting the number of ticks above the saturation
-	      for(int i=3*64; i<7*64; i++){
+	      for(int i=3*64; i<samples_64*64; i++){
 	        if(TF==0){if(Raw_wf_v[i+1]>4094 && Raw_wf_v[i]<=4094){tickF=i; TF=1;}}
 	        if(TB==0){if(Raw_wf_v[i]>4094 && Raw_wf_v[i+1]<=4094){tickB=i; TB=1;}}
         }
@@ -705,8 +712,9 @@ namespace analysis
     //=======================================================================================================
     //=======================================================================================================
 
-    double beamBase,BBmax,pca,pcb,pcc, TT = -99999.0;
-    std::vector<double> wx(samples), wy(samples);
+    double beamBase, wx[500], wy[500], BBmax,pca,pcb,pcc, TT = -99999.0;
+    //std::vector<double> wx(samples), wy(samples);
+
     int Btick,tickMax;
     //=======================================================================================================
     //-------baseline calculation-------------------------------------------
@@ -725,7 +733,7 @@ namespace analysis
     tickMax=0;
     for(int i=Btick-20; i<Btick+10; i++){if(wy[i-1]<1 && wy[i]==1){tickMax=i;}}
     //wf fit
-    TGraph *gr0 = new TGraph(samples, &(wx[0]),&(wy[0]));
+    TGraph *gr0 = new TGraph(500, &(wx[0]),&(wy[0]));
     TF1 *fit = new TF1("fit","[2]*exp(-TMath::Power((x-[0])/[1],4))",tickMax-6, tickMax);
     fit->SetParameters(tickMax,2,1);     gr0->Fit("fit","Q","",tickMax-6, tickMax);
     pca=fit->GetParameter(0); pcb=fit->GetParameter(1); pcc=fit->GetParameter(2);
@@ -738,7 +746,7 @@ namespace analysis
     }
 }
 
-  void NeutrinoTiming::nsbeamtiming(std::vector<std::vector<art::Ptr<recob::SpacePoint> > > spacepoint_v_v)
+  void NeutrinoTiming::nsbeamtiming(art::Event const& e, std::vector<std::vector<art::Ptr<recob::SpacePoint> > > spacepoint_v_v)
   { 
 
     Float_t x =	_nuvtx_x;
@@ -750,7 +758,6 @@ namespace analysis
     std::vector<float> *sps_x = new std::vector<float>;
     std::vector<float> *sps_y = new std::vector<float>;
     std::vector<float> *sps_z = new std::vector<float>;
-    // = new std::vector<float>;
 
     if(!fUsePID){ //default
       for (size_t s=0; s < spacepoint_v_v.size(); s++) {
@@ -844,6 +851,9 @@ namespace analysis
    //--------------------------------------------------------------------------------------------------------------------
     std::cout << "[NeutrinoTimingDebug] PMT size : " << N_pmt.size() << std::endl;
     if(N_pmt.size()>2){
+
+      get_sim_time(e);
+
       RWM_T=BeamT0;
       //std::cout << "[NeutrinoTimingDebug] RWM_T : " << RWM_T << std::endl;
       double dist = z;
