@@ -166,6 +166,7 @@ cet_build_plugin(
   lardataobj::RawData
   lardataobj::AnalysisBase
   lardataobj::MCBase
+  dk2nu::Tree
 )
 
 cet_build_plugin(
