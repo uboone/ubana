@@ -92,7 +92,7 @@ fi
 sample_type='single_photon_overlay'
 flag_SaveLeeWeights="false"
 flag_numi="false"
-flag_redk2nu="false"
+flag_reboone="false"
 beam="bnb"
 horncur=""
 
@@ -118,6 +118,7 @@ elif ls *reg4_LY_suppression75*.fcl 1> /dev/null 2>&1; then
 elif ls *reg4_LY_attenuation8m*.fcl 1> /dev/null 2>&1; then
         detvar_type="LY_attenuation"
 else
+        flag_reboone="true"
 	echo "WARNING: Unable to establish DetVar type."
         echo "Setting this to tbe the CV sample."
         echo "Please check fhicls to ensure this is correct."
@@ -131,7 +132,13 @@ physics.analyzers.wcpselection.IsNuMI:               ${flag_numi}
 physics.analyzers.wcpweights.IsNuMI:                 ${flag_numi}
 
 physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
-physics.analyzers.wcpselection.get_redk2nu_time:     ${flag_redk2nu}
+
+physics.analyzers.wcpselection.get_reboone_time:     ${flag_reboone}
+physics.analyzers.wcpselection.TimeBetweenBuckets: 18.831
+physics.analyzers.wcpselection.BucketTimeSigma: 2.0
+physics.analyzers.wcpselection.NBucketsPerBatch: 84
+physics.analyzers.wcpselection.NFilledBucketsPerBatch: 81
+physics.analyzers.wcpselection.BatchIntensities: [1]
 
 physics.analyzers.wcpselection.SaveLeeWeights:       ${flag_SaveLeeWeights}
 
