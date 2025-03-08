@@ -606,10 +606,9 @@ bool CC0piNpSelection::selectEvent(art::Event const &e,
                         auto clus_hit_v = clus.get<recob::Hit>();
                         _hits_outfv += clus_hit_v.size();
                     }
-                    continue;
+                    //continue;
                 }
-
-                _n_showers_contained++;
+                else _n_showers_contained++;
 
                 // store hits for each plane
                 std::vector<std::vector<art::Ptr<recob::Hit>>> cluster_hits_v_v(3, std::vector<art::Ptr<recob::Hit>>());
@@ -1070,9 +1069,9 @@ bool CC0piNpSelection::selectEvent(art::Event const &e,
                         auto clus_hit_v = clus.get<recob::Hit>();
                         _hits_outfv += clus_hit_v.size();
                     }
-                    continue;
+                    //continue;
                 }
-                _n_tracks_contained++;
+                else _n_tracks_contained++;
                 unsigned int trk_hits = 0;
 
                 std::vector<art::Ptr<recob::Hit>> hit_v;
