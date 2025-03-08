@@ -348,21 +348,33 @@ private:
   std::vector<double>	*Trec_spacepoints_y = new std::vector<double>;
   std::vector<double>	*Trec_spacepoints_z = new std::vector<double>;
   std::vector<double>	*Trec_spacepoints_q = new std::vector<double>;
+  std::vector<double>   *Trec_spacepoints_cluster_id = new std::vector<double>;
+  std::vector<double>   *Trec_spacepoints_real_cluster_id = new std::vector<double>;
+  std::vector<double>   *Trec_spacepoints_sub_cluster_id = new std::vector<double>;
 
   std::vector<double>	*Treccharge_spacepoints_x = new std::vector<double>;
   std::vector<double>	*Treccharge_spacepoints_y = new std::vector<double>;
   std::vector<double>	*Treccharge_spacepoints_z = new std::vector<double>;
   std::vector<double>	*Treccharge_spacepoints_q = new std::vector<double>;
+  std::vector<double>   *Treccharge_spacepoints_cluster_id = new std::vector<double>;
+  std::vector<double>   *Treccharge_spacepoints_real_cluster_id = new std::vector<double>;
+  std::vector<double>   *Treccharge_spacepoints_sub_cluster_id = new std::vector<double>;
 
   std::vector<double>	*Trecchargeblob_spacepoints_x = new std::vector<double>;
   std::vector<double>	*Trecchargeblob_spacepoints_y = new std::vector<double>;
   std::vector<double>	*Trecchargeblob_spacepoints_z = new std::vector<double>;
   std::vector<double>	*Trecchargeblob_spacepoints_q = new std::vector<double>;
+  std::vector<double>   *Trecchargeblob_spacepoints_cluster_id = new std::vector<double>;
+  std::vector<double>   *Trecchargeblob_spacepoints_real_cluster_id = new std::vector<double>;
+  std::vector<double>   *Trecchargeblob_spacepoints_sub_cluster_id = new std::vector<double>;
 
   std::vector<double>	*Tcluster_spacepoints_x = new std::vector<double>;
   std::vector<double>	*Tcluster_spacepoints_y = new std::vector<double>;
   std::vector<double>	*Tcluster_spacepoints_z = new std::vector<double>;
   std::vector<double>	*Tcluster_spacepoints_q = new std::vector<double>;
+  std::vector<double>   *Tcluster_spacepoints_cluster_id = new std::vector<double>;
+  std::vector<double>   *Tcluster_spacepoints_real_cluster_id = new std::vector<double>;
+  std::vector<double>   *Tcluster_spacepoints_sub_cluster_id = new std::vector<double>;
 
   std::vector<double>	*TrueEDep_spacepoints_startx = new std::vector<double>;
   std::vector<double>	*TrueEDep_spacepoints_starty = new std::vector<double>;
@@ -2228,6 +2240,9 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("Trec_spacepoints_y", &Trec_spacepoints_y);
     fSpacepoints->Branch("Trec_spacepoints_z", &Trec_spacepoints_z);
     fSpacepoints->Branch("Trec_spacepoints_q", &Trec_spacepoints_q);
+    fSpacepoints->Branch("Trec_spacepoints_cluster_id", &Trec_spacepoints_cluster_id);
+    fSpacepoints->Branch("Trec_spacepoints_real_cluster_id", &Trec_spacepoints_real_cluster_id);
+    fSpacepoints->Branch("Trec_spacepoints_sub_cluster_id", &Trec_spacepoints_sub_cluster_id);
   }
 
   if (f_saveTrecchargeSpacePoints){
@@ -2235,6 +2250,9 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("Treccharge_spacepoints_y", &Treccharge_spacepoints_y);
     fSpacepoints->Branch("Treccharge_spacepoints_z", &Treccharge_spacepoints_z);
     fSpacepoints->Branch("Treccharge_spacepoints_q", &Treccharge_spacepoints_q);
+    fSpacepoints->Branch("Treccharge_spacepoints_cluster_id", &Treccharge_spacepoints_cluster_id);
+    fSpacepoints->Branch("Treccharge_spacepoints_real_cluster_id", &Treccharge_spacepoints_real_cluster_id);
+    fSpacepoints->Branch("Treccharge_spacepoints_sub_cluster_id", &Treccharge_spacepoints_sub_cluster_id);
   }
 
   if (f_saveTrecchargeblobSpacePoints){
@@ -2242,6 +2260,9 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("Trecchargeblob_spacepoints_y", &Trecchargeblob_spacepoints_y);
     fSpacepoints->Branch("Trecchargeblob_spacepoints_z", &Trecchargeblob_spacepoints_z);
     fSpacepoints->Branch("Trecchargeblob_spacepoints_q", &Trecchargeblob_spacepoints_q);
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_cluster_id", &Trecchargeblob_spacepoints_cluster_id);
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_real_cluster_id", &Trecchargeblob_spacepoints_real_cluster_id);
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_sub_cluster_id", &Trecchargeblob_spacepoints_sub_cluster_id);
   }
 
   if (f_saveTclusterSpacePoints){
@@ -2249,6 +2270,9 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("Tcluster_spacepoints_y", &Tcluster_spacepoints_y);
     fSpacepoints->Branch("Tcluster_spacepoints_z", &Tcluster_spacepoints_z);
     fSpacepoints->Branch("Tcluster_spacepoints_q", &Tcluster_spacepoints_q);
+    fSpacepoints->Branch("Tcluster_spacepoints_cluster_id", &Tcluster_spacepoints_cluster_id);
+    fSpacepoints->Branch("Tcluster_spacepoints_real_cluster_id", &Tcluster_spacepoints_real_cluster_id);
+    fSpacepoints->Branch("Tcluster_spacepoints_sub_cluster_id", &Tcluster_spacepoints_sub_cluster_id);
   }
 
   if (f_saveTrueEDepSpacePoints){
@@ -2281,7 +2305,6 @@ void WireCellAnaTree::initOutput()
     fPFeval->Branch("PMT_TimeDL", &f_PMT_TimeDL);
     fPFeval->Branch("PMT_Sat", &f_PMT_Sat);
     fPFeval->Branch("RWM_Time", &f_RWM_Time);
-
   }
 
   if (f_MCS){
@@ -3818,11 +3841,17 @@ void WireCellAnaTree::analyze(art::Event const& e)
     Trec_spacepoints_y->clear();
     Trec_spacepoints_z->clear();
     Trec_spacepoints_q->clear();
+    Trec_spacepoints_cluster_id->clear();
+    Trec_spacepoints_real_cluster_id->clear();
+    Trec_spacepoints_sub_cluster_id->clear();
     for (auto const& spacepoint: spacepoint_vec){
       Trec_spacepoints_x->push_back(spacepoint.x);
       Trec_spacepoints_y->push_back(spacepoint.y);
       Trec_spacepoints_z->push_back(spacepoint.z);
       Trec_spacepoints_q->push_back(spacepoint.q);
+      Trec_spacepoints_cluster_id->push_back(spacepoint.cluster_id);
+      Trec_spacepoints_real_cluster_id->push_back(spacepoint.real_cluster_id);
+      Trec_spacepoints_sub_cluster_id->push_back(spacepoint.sub_cluster_id);
     }
   }
 
@@ -3832,11 +3861,17 @@ void WireCellAnaTree::analyze(art::Event const& e)
     Treccharge_spacepoints_y->clear();
     Treccharge_spacepoints_z->clear();
     Treccharge_spacepoints_q->clear();
+    Treccharge_spacepoints_cluster_id->clear();
+    Treccharge_spacepoints_real_cluster_id->clear();
+    Treccharge_spacepoints_sub_cluster_id->clear();
     for (auto const& spacepoint: spacepoint_vec){
       Treccharge_spacepoints_x->push_back(spacepoint.x);
       Treccharge_spacepoints_y->push_back(spacepoint.y);
       Treccharge_spacepoints_z->push_back(spacepoint.z);
       Treccharge_spacepoints_q->push_back(spacepoint.q);
+      Treccharge_spacepoints_cluster_id->push_back(spacepoint.cluster_id);
+      Treccharge_spacepoints_real_cluster_id->push_back(spacepoint.real_cluster_id);
+      Treccharge_spacepoints_sub_cluster_id->push_back(spacepoint.sub_cluster_id);
     }
   }
 
@@ -3846,11 +3881,17 @@ void WireCellAnaTree::analyze(art::Event const& e)
     Trecchargeblob_spacepoints_y->clear();
     Trecchargeblob_spacepoints_z->clear();
     Trecchargeblob_spacepoints_q->clear();
+    Trecchargeblob_spacepoints_cluster_id->clear();
+    Trecchargeblob_spacepoints_real_cluster_id->clear();
+    Trecchargeblob_spacepoints_sub_cluster_id->clear();
     for (auto const& spacepoint: spacepoint_vec){
       Trecchargeblob_spacepoints_x->push_back(spacepoint.x);
       Trecchargeblob_spacepoints_y->push_back(spacepoint.y);
       Trecchargeblob_spacepoints_z->push_back(spacepoint.z);
       Trecchargeblob_spacepoints_q->push_back(spacepoint.q);
+      Trecchargeblob_spacepoints_cluster_id->push_back(spacepoint.cluster_id);
+      Trecchargeblob_spacepoints_real_cluster_id->push_back(spacepoint.real_cluster_id);
+      Trecchargeblob_spacepoints_sub_cluster_id->push_back(spacepoint.sub_cluster_id);
     }
   }
 
@@ -3860,11 +3901,17 @@ void WireCellAnaTree::analyze(art::Event const& e)
     Tcluster_spacepoints_y->clear();
     Tcluster_spacepoints_z->clear();
     Tcluster_spacepoints_q->clear();
+    Tcluster_spacepoints_cluster_id->clear();
+    Tcluster_spacepoints_real_cluster_id->clear();
+    Tcluster_spacepoints_sub_cluster_id->clear();
     for (auto const& spacepoint: spacepoint_vec){
       Tcluster_spacepoints_x->push_back(spacepoint.x);
       Tcluster_spacepoints_y->push_back(spacepoint.y);
       Tcluster_spacepoints_z->push_back(spacepoint.z);
       Tcluster_spacepoints_q->push_back(spacepoint.q);
+      Tcluster_spacepoints_cluster_id->push_back(spacepoint.cluster_id);
+      Tcluster_spacepoints_real_cluster_id->push_back(spacepoint.real_cluster_id);
+      Tcluster_spacepoints_sub_cluster_id->push_back(spacepoint.sub_cluster_id);
     }
   }
 
