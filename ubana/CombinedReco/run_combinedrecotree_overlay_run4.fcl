@@ -1,4 +1,0 @@
-#include "run_combinedrecotree_overlay_run3.fcl"
-
-physics.filters.nuselection.AnalysisTools.flashmatchid: @local::FlashMatchingTool
-physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
