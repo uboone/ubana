@@ -103,6 +103,11 @@ private:
   std::vector<float> pfng2shrfrac;
   std::vector<float> pfng2mclfrac;
   std::vector<float> pfng2dfsfrac;
+  std::vector<float> pfng2mipavrg;
+  std::vector<float> pfng2hipavrg;
+  std::vector<float> pfng2shravrg;
+  std::vector<float> pfng2mclavrg;
+  std::vector<float> pfng2dfsavrg;
 
 };
 
@@ -189,10 +194,14 @@ void NuGraphCounts::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t
     //
     if (hit_v.size()>0) {
       std::vector<int> ng2sempfpcounts(5,0);
+      std::vector<float> ng2sempfptotscr(5,0);
       for (auto& hit : hit_v) {
 	  auto scores = hitsWithScores[hit.key()].get<anab::FeatureVector<5>>();
 	  std::vector<float> ng2semscores;
-	  for (size_t i=0;i<scores.size();i++) ng2semscores.push_back(scores[i]);
+	  for (size_t i=0;i<scores.size();i++) {
+	    ng2semscores.push_back(scores[i]);
+	    ng2sempfptotscr[i] += scores[i];
+	  }
 	  unsigned int sem_label = arg_max(ng2semscores);
 	  ng2sempfpcounts[sem_label]++;
 	  ng2semclucounts[sem_label]++;
@@ -203,6 +212,11 @@ void NuGraphCounts::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t
       pfng2shrfrac.push_back(float(ng2sempfpcounts[2])/hit_v.size());
       pfng2mclfrac.push_back(float(ng2sempfpcounts[3])/hit_v.size());
       pfng2dfsfrac.push_back(float(ng2sempfpcounts[4])/hit_v.size());
+      pfng2mipavrg.push_back(float(ng2sempfptotscr[0])/hit_v.size());
+      pfng2hipavrg.push_back(float(ng2sempfptotscr[1])/hit_v.size());
+      pfng2shravrg.push_back(float(ng2sempfptotscr[2])/hit_v.size());
+      pfng2mclavrg.push_back(float(ng2sempfptotscr[3])/hit_v.size());
+      pfng2dfsavrg.push_back(float(ng2sempfptotscr[4])/hit_v.size());
     } else {
       pfng2semlabel.push_back(-1);
       pfng2mipfrac.push_back(-1);
@@ -210,6 +224,11 @@ void NuGraphCounts::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t
       pfng2shrfrac.push_back(-1);
       pfng2mclfrac.push_back(-1);
       pfng2dfsfrac.push_back(-1);
+      pfng2mipavrg.push_back(-1);
+      pfng2hipavrg.push_back(-1);
+      pfng2shravrg.push_back(-1);
+      pfng2mclavrg.push_back(-1);
+      pfng2dfsavrg.push_back(-1);
     }
     //
   }
@@ -250,6 +269,11 @@ void NuGraphCounts::setBranches(TTree *_tree)
   _tree->Branch("pfng2shrfrac", &pfng2shrfrac);
   _tree->Branch("pfng2mclfrac", &pfng2mclfrac);
   _tree->Branch("pfng2dfsfrac", &pfng2dfsfrac);
+  _tree->Branch("pfng2mipavrg", &pfng2mipavrg);
+  _tree->Branch("pfng2hipavrg", &pfng2hipavrg);
+  _tree->Branch("pfng2shravrg", &pfng2shravrg);
+  _tree->Branch("pfng2mclavrg", &pfng2mclavrg);
+  _tree->Branch("pfng2dfsavrg", &pfng2dfsavrg);
 }
 
 void NuGraphCounts::resetTTree(TTree *_tree)
@@ -273,6 +297,11 @@ void NuGraphCounts::resetTTree(TTree *_tree)
   pfng2shrfrac.clear();
   pfng2mclfrac.clear();
   pfng2dfsfrac.clear();
+  pfng2mipavrg.clear();
+  pfng2hipavrg.clear();
+  pfng2shravrg.clear();
+  pfng2mclavrg.clear();
+  pfng2dfsavrg.clear();
 }
 
 DEFINE_ART_CLASS_TOOL(NuGraphCounts)
