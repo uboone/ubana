@@ -1,0 +1,56 @@
+#include "run_combinedrecotree.fcl"
+
+services.DatabaseUtil.ShouldConnect: false
+services.TPCEnergyCalibService.TPCEnergyCalibProvider: @local::microboone_tpcenergycalib_provider_data
+
+#services.DetectorProperties.NumberTimeSamples:                             6400
+#services.DetectorProperties.ReadOutWindowSize:                             6400
+services.DetectorClocksService.InheritClockConfig:                         false
+services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
+
+services.SpaceCharge.EnableCorrSCE: true
+services.SpaceCharge.EnableSimEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
+
+#physics.filters.nuselection.SelectionTool: @local::ShowerSelectionTool
+#physics.filters.nuselection.AnalysisTools.default.BacktrackTag: "" #"gaushitTruthMatch"
+physics.filters.nuselection.IsData: true
+
+physics.producers.pandoraTrack.PFParticleLabel:                                                "pandora"
+physics.producers.pandoraTrack.UseAllParticles:                                                true
+
+physics.producers.pandoraTrackcalo.TrackModuleLabel:                                           "pandoraTrack"
+physics.producers.pandoraTrackcalo.SpacePointModuleLabel:                                      "pandora"
+#physics.producers.pandoraTrackcalo.CaloAlg.CalAreaConstants:                                   @local::microboone_reco_data_producers.pandoracalo.CaloAlg.CalAreaConstants #[4.31e-3, 4.02e-3, 4.10e-3]
+
+physics.producers.pandoraTrackcali.CaloAlg.CalAreaConstants:                                   @local::microboone_reco_data_producers.pandoracalo.CaloAlg.CalAreaConstants #  @local::microboone_reco_data_producers.pandoracalo.CaloAlg.CalAreaConstants #[4.31e-3, 4.02e-3, 4.10e-3]
+physics.producers.pandoraTrackcali.TrackModuleLabel:                                           "pandoraTrack"
+physics.producers.pandoraTrackcali.CalorimetryModuleLabel:                                     "pandoraTrackcalo"
+#physics.producers.pandoraTrackcali.CorrectSCE:                                                 true
+
+physics.producers.pandoraTrackpid.ProducerLabels.CaloTrackAssn:                                "pandoraTrackcalo"
+physics.producers.pandoraTrackpid.ProducerLabels.CalorimetryLabel:                             "pandoraTrackcalo"
+physics.producers.pandoraTrackpid.ProducerLabels.HitTrackAssn:                                 "pandoraTrack"
+physics.producers.pandoraTrackpid.ProducerLabels.TrackLabel:                                   "pandoraTrack"
+
+physics.producers.pandoraTrackcalipid.ProducerLabels.CaloTrackAssn:                            "pandoraTrackcali"
+physics.producers.pandoraTrackcalipid.ProducerLabels.CalorimetryLabel:                         "pandoraTrackcali"
+physics.producers.pandoraTrackcalipid.ProducerLabels.HitTrackAssn:                             "pandoraTrack"
+physics.producers.pandoraTrackcalipid.ProducerLabels.TrackLabel:                               "pandoraTrack"
+physics.producers.pandoraTrackcalipid.Chi2PIDAlg.UseMedian:                                    true
+
+physics.producers.proximity.VtxProducer: "pandora"
+physics.producers.proximity.HitProducer: "nuslicehits"
+
+
+microboone_tfile_metadata: {
+   GenerateTFileMetadata: true
+   JSONFileName: "neutrinoselection_filt.root.json"
+   dataTier: "root-tuple"
+   fileFormat: "root"
+}
+
+physics.producers.pandoraTrackcali.ELifetimeCorrection: true
+physics.producers.shrreco3dKalmanShowercali.ELifetimeCorrection: true
