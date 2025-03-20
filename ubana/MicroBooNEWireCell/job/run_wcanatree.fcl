@@ -62,7 +62,7 @@ physics:
       PFDump_min_truth_energy:  0.010 # GeV
 
       # LANTERN integration options
-      RunLArPID:          true
+      RunLArPID:          false
       LArPIDModel:        "LArPID_default_network_weights_torchscript_v2_model.pt"
       PixelThreshold:     5
       AllPlaneThreshold:  true
