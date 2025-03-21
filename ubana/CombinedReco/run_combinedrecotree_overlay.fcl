@@ -28,6 +28,7 @@ physics.filters.nuselection.IsData: false
 ###physics.producers.shrreco3dKalmanShowercali: @local::shrreco3dKalmanShowercalimc
 
 physics.analyzers.wcpselection.MC:		true
+physics.analyzers.wcpselection.RunBackTracking:	true
 physics.analyzers.wcpselection.SaveWeights:	true
 physics.analyzers.wcpselection.POT_inputTag:	"generator"
 
