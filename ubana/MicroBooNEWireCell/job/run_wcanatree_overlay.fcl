@@ -1,7 +1,7 @@
 #include "run_wcanatree.fcl"
 
 physics.analyzers.wcpselection.MC:		true
-physics.analyzers.wcpselection.RunBackTracking:	false
+physics.analyzers.wcpselection.RunBackTracking:	true
 physics.analyzers.wcpselection.SaveWeights:	true
 physics.analyzers.wcpselection.POT_inputTag:	"generator"
 
