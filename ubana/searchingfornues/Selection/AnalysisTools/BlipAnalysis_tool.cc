@@ -358,6 +358,7 @@ void BlipAnalysis::setBranches(TTree *_tree)
   _tree->Branch("blip_pl2_centerwire","std::vector< int >",   &_blip_pl2_centerwire);
   }
   _tree->Branch("blip_true_g4id",   "std::vector< int >",     &_blip_true_g4id);
+  _tree->Branch("blip_true_pdg",    "std::vector< int >",     &_blip_true_pdg);
   if( !fLiteMode ){ 
   _tree->Branch("blip_true_energy", "std::vector< float >",   &_blip_true_energy);
   }
