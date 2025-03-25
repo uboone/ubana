@@ -99,7 +99,9 @@ physics:
       PFDump:                   true
       save_track_position:      false
       PFDump_min_truth_energy:  0.010 # GeV
-      
+
+      MCS:          true      
+
       # nanosecond beam timing
       SaveSPS:              true
       SavePMT:              true
