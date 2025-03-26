@@ -101,6 +101,15 @@ physics:
       PFDump_min_truth_energy:  0.010 # GeV
 
       MCS:          true      
+      
+      # LANTERN integration options
+      RunLArPID:          true
+      LArPIDModel:        "LArPID_default_network_weights_torchscript_v2_model.pt"
+      PixelThreshold:     5
+      AllPlaneThreshold:  true
+      LArCVImageFile:     "merged_dlreco.root"
+      TickBack:           false
+      RunBackTracking:    false
 
       # nanosecond beam timing
       SaveSPS:              true

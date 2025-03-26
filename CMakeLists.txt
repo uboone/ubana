@@ -28,6 +28,7 @@ cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 cet_cmake_module_directories(Modules BINARY)
 
 find_package( ubreco REQUIRED EXPORT )
+find_package( ubcv REQUIRED EXPORT )
 find_package( larana REQUIRED EXPORT )
 find_package( larpandora REQUIRED EXPORT )
 find_package( swtrigger REQUIRED EXPORT )

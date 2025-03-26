@@ -10,6 +10,10 @@
 // 03.15.2021 modified by Haiwang Yu (hyu@bnl.gov)
 ////////////////////////////////////////////////////////////////////////
 
+//The following two headers MUST come before any ROOT includes to deal with ROOT/libtorch conflict
+#include "ubcv/LArCVImageMaker/LArPIDInterface.h"
+#include "ubcv/LArCVImageMaker/LArCVBackTracker.h"
+
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -36,6 +40,7 @@
 #include "nusimdata/SimulationBase/MCFlux.h"
 #include "nusimdata/SimulationBase/MCNeutrino.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
+#include "larlite/DataFormat/storage_manager.h"
 
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
 
@@ -69,6 +74,10 @@
 
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
+#include <cmath>
+#include <cstdlib>
+#include <memory>
 
 
 class WireCellAnaTree;
@@ -154,6 +163,7 @@ public:
 
   // user defined
   void reconfigure(fhicl::ParameterSet const& pset);
+  void initLanternIntegration();
   void initOutput();
   void resetOutput();
   void ShowerID(int trackId);
@@ -244,6 +254,24 @@ private:
   bool f_get_spill_time;
   bool f_get_redk2nu_time;
   bool f_get_reboone_time;
+
+  // LArPID and MC backtracking (from LANTERN) options:
+  bool fRunLArPID; //run LArPID network over reco particles
+  std::string fLArPIDModel; //checkpoint file for LArPID state dict (model weights)
+  bool fPixelThreshold; //only run model over prongs with at least this many pixels in at least one plane
+  bool fAllPlaneThreshold; //if true, only run model over prongs that pass the pixel threshold in all three planes
+  std::string fLArCVImageFile; //LArCV image file needed for LArPID and MC backtracking
+  bool fTickBack; //if true, read in larcv images with reverse time order
+  bool fRunBackTracking; //run MC backtracking from larcv images
+
+  //index for current entry in larcv image file 
+  unsigned int iImg_start;
+  //storage managers for accessing info from larcv image file
+  std::unique_ptr<larcv::IOManager> iolcv;
+  std::unique_ptr<larlite::storage_manager> ioll;
+  //LArPID torchscript model
+  LArPID::TorchModel model;
+
   // output
   /// PF validation
   /// when fPFValidation is true
@@ -1832,6 +1860,26 @@ private:
   float reco_startMomentum[MAX_TRACKS][4];  // start momentum of this track; size == reco_Ntrack
   float reco_endMomentum[MAX_TRACKS][4];  // end momentum of this track; size == reco_Ntrack
   std::vector<std::vector<int> > *reco_daughters;  // daughters id of this track; vector
+  int reco_larpid_classified[MAX_TRACKS]; //LArPID pdg label
+  int reco_larpid_pdg[MAX_TRACKS]; //LArPID pdg label
+  int reco_larpid_proccess[MAX_TRACKS]; //LArPID primary vs. secondary production process class
+  float reco_larpid_completeness[MAX_TRACKS]; //LArPID reconstruction completeness estimate
+  float reco_larpid_purity[MAX_TRACKS]; //LArPID reconstruction purity estimate
+  float reco_larpid_pidScore_el[MAX_TRACKS]; //LArPID electron score from particle classifier
+  float reco_larpid_pidScore_ph[MAX_TRACKS]; //LArPID photon score from particle classifier
+  float reco_larpid_pidScore_mu[MAX_TRACKS]; //LArPID muon score from particle classifier
+  float reco_larpid_pidScore_pi[MAX_TRACKS]; //LArPID pion score from particle classifier
+  float reco_larpid_pidScore_pr[MAX_TRACKS]; //LArPID proton score from particle classifier
+  float reco_larpid_procScore_prim[MAX_TRACKS]; //LArPID primary score from production process classifier
+  float reco_larpid_procScore_ntrl[MAX_TRACKS]; //LArPID secondary with neutral parent score from process classifier
+  float reco_larpid_procScore_chgd[MAX_TRACKS]; //LArPID secondary with charged parent score from process classifier
+  int reco_truthMatch_pdg[MAX_TRACKS]; //MC back tracking: pdg of best match simulated particle
+  int reco_truthMatch_id[MAX_TRACKS]; //MC back tracking: track id (truth_id variable) of best match sim particle
+  float reco_truthMatch_purity[MAX_TRACKS]; //MC back tracking: fraction of reco particle from best match sim particle
+  float reco_truthMatch_completeness[MAX_TRACKS]; //MC backtracking: fraction of best match sim particle reconstructed
+  int reco_truthMatch_nSimParts[MAX_TRACKS]; //MC backtracking: number of different sim particle types matched
+  std::vector<std::vector<int>> reco_truthMatch_simPart_pdg; //MC backtracking: pdg of contributing particle type
+  std::vector<std::vector<float>> reco_truthMatch_simPart_purity;//MC backtracking: purity contributing particle type
 
   std::vector<float> *f_sps_x;
   std::vector<float> *f_sps_y;
@@ -1896,6 +1944,9 @@ WireCellAnaTree::WireCellAnaTree(fhicl::ParameterSet const& p)
 
   // fcl config
   reconfigure(p);
+
+  //initialize LArPID model and LArCV MC Backtracking objects
+  if(fRunLArPID || fRunBackTracking) initLanternIntegration();
 
   // T_eval / event
   // Histograms / event
@@ -1984,6 +2035,69 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){
     fRndmGen = new TRandom3(0);
     CalculateCPDF(fbi);
+  }
+
+  fRunLArPID = pset.get<bool>("RunLArPID", true);
+  fLArPIDModel = pset.get<std::string>("LArPIDModel", "LArPID_default_network_weights_torchscript_v2_model.pt");
+  fPixelThreshold = pset.get<unsigned int>("PixelThreshold", 5);
+  fAllPlaneThreshold = pset.get<bool>("AllPlaneThreshold", true);
+  fLArCVImageFile = pset.get<std::string>("LArCVImageFile", "merged_dlreco.root");
+  fTickBack = pset.get<bool>("TickBack", false);
+  fRunBackTracking = pset.get<bool>("RunBackTracking", true);
+
+  if(fRunLArPID && !f_PFDump){
+    std::cout << "WARNING invalid configuration: RunLArPID = true but PFDump = false" << std::endl;
+    std::cout << " Can't write LArPID output with PFDump = false. Won't run LArPID." << std::endl;
+    fRunLArPID = false;
+  }
+
+  if(fRunBackTracking && !fMC){
+    std::cout << "WARNING invalid configuration: RunBackTracking = true but MC = false" << std::endl;
+    std::cout << "Can't do MC backtracking for data." << std::endl;
+    fRunBackTracking = false;
+  }
+
+  if(fRunBackTracking && !f_PFDump){
+    std::cout << "WARNING invalid configuration: RunBackTracking = true but PFDump = false" << std::endl;
+    std::cout << "Can't write particle-level backtracking info with PFDump = false." << std::endl;
+    fRunBackTracking = false;
+  }
+
+}
+
+void WireCellAnaTree::initLanternIntegration()
+{
+  //initialize index for current entry in larcv/larlite file
+  iImg_start = 0;
+
+  //setup larcv io manager for LArPID and MC back tracking
+  auto tickDir = larcv::IOManager::kTickForward;
+  if(fTickBack) tickDir = larcv::IOManager::kTickBackward;
+  iolcv = std::make_unique<larcv::IOManager>(larcv::IOManager::kREAD,"larcv",tickDir);
+  iolcv -> add_in_file(fLArCVImageFile);
+  if(fTickBack) iolcv -> reverse_all_products();
+  iolcv -> initialize();
+
+  if(fRunBackTracking){
+    //setup larlite storage manager for MC back tracking
+    ioll = std::make_unique<larlite::storage_manager>(larlite::storage_manager::kREAD);
+    ioll -> add_in_filename(fLArCVImageFile);
+    ioll -> set_data_to_read( "mctrack", "mcreco" );
+    ioll -> set_data_to_read( "mcshower", "mcreco" );
+    ioll -> set_data_to_read( "mctruth", "generator" );
+    ioll -> set_data_to_read( "gtruth", "generator" );
+    ioll -> set_data_to_read( "mcflux", "generator" );
+    ioll -> set_data_to_read( "mctruth", "corsika" );
+    ioll -> open();
+  }
+
+  if(fRunLArPID){
+    //load LArPID network weights, initialize model
+    const char* ubdlDir = std::getenv("UBDL_BASEDIR");
+    std::string modelPath(ubdlDir);
+    modelPath += "/model_weights/";
+    modelPath += fLArPIDModel;
+    model.Initialize(modelPath, false);
   }
 }
 
@@ -2231,6 +2345,31 @@ void WireCellAnaTree::initOutput()
       fPFeval->Branch("reco_endMomentum", &reco_endMomentum, "reco_endMomentum[reco_Ntrack][4]/F");
       fPFeval->Branch("reco_daughters", &reco_daughters);
 
+      if(fRunLArPID){
+        fPFeval->Branch("reco_larpid_classified", &reco_larpid_classified, "reco_larpid_classified[reco_Ntrack]/I");
+        fPFeval->Branch("reco_larpid_pdg", &reco_larpid_pdg, "reco_larpid_pdg[reco_Ntrack]/I");
+        fPFeval->Branch("reco_larpid_proccess", &reco_larpid_proccess, "reco_larpid_proccess[reco_Ntrack]/I");
+        fPFeval->Branch("reco_larpid_completeness", &reco_larpid_completeness, "reco_larpid_completeness[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_purity", &reco_larpid_purity, "reco_larpid_purity[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_el", &reco_larpid_pidScore_el, "reco_larpid_pidScore_el[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_ph", &reco_larpid_pidScore_ph, "reco_larpid_pidScore_ph[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_mu", &reco_larpid_pidScore_mu, "reco_larpid_pidScore_mu[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_pi", &reco_larpid_pidScore_pi, "reco_larpid_pidScore_pi[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_pr", &reco_larpid_pidScore_pr, "reco_larpid_pidScore_pr[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_procScore_prim", &reco_larpid_procScore_prim, "reco_larpid_procScore_prim[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_procScore_ntrl", &reco_larpid_procScore_ntrl, "reco_larpid_procScore_ntrl[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_procScore_chgd", &reco_larpid_procScore_chgd, "reco_larpid_procScore_chgd[reco_Ntrack]/F");
+      }
+
+      if(fRunBackTracking){
+        fPFeval->Branch("reco_truthMatch_pdg", &reco_truthMatch_pdg, "reco_truthMatch_pdg[reco_Ntrack]/I");
+        fPFeval->Branch("reco_truthMatch_id", &reco_truthMatch_id, "reco_truthMatch_id[reco_Ntrack]/I");
+        fPFeval->Branch("reco_truthMatch_purity", &reco_truthMatch_purity, "reco_truthMatch_purity[reco_Ntrack]/F");
+        fPFeval->Branch("reco_truthMatch_completeness", &reco_truthMatch_completeness, "reco_truthMatch_completeness[reco_Ntrack]/F");
+        fPFeval->Branch("reco_truthMatch_nSimParts", &reco_truthMatch_nSimParts, "reco_truthMatch_nSimParts[reco_Ntrack]/I");
+        fPFeval->Branch("reco_truthMatch_simPart_pdg", &reco_truthMatch_simPart_pdg);
+        fPFeval->Branch("reco_truthMatch_simPart_purity", &reco_truthMatch_simPart_purity);
+      }
   }
 
   fSpacepoints = tfs->make<TTree>("T_spacepoints", "T_spacepoints");
@@ -3948,6 +4087,79 @@ void WireCellAnaTree::analyze(art::Event const& e)
         if (! particleHandle ) return;
         std::cout << "particles.size(): " << particleHandle->size() << std::endl;
 
+        //prep work for LArPID and MC backtracking
+
+        //initialize variables that will be used if LArPID or MC backtracking is requested
+        bool fRunLArPID_evt = fRunLArPID;
+        bool fRunBackTracking_evt = fRunBackTracking;
+        bool larpidVars_filled = false;
+        bool backtrackVars_filled = false;
+        std::vector<larcv::Image2D> adc_v;
+        std::vector<larcv::Image2D> thrumu_v;
+        std::unordered_map<int, LArPID::ParticleInfo> particleMap;
+
+        if(fRunLArPID || fRunBackTracking){
+
+          //get wire images from larcv file
+          larcv::EventImage2D* wireImage2D = nullptr;
+          larcv::EventImage2D* cosmicImage2D = nullptr;
+          for(unsigned int iImg = iImg_start; iImg < iolcv->get_n_entries(); ++iImg){
+            iolcv -> read_entry(iImg);
+            larcv::EventImage2D* wireImg = (larcv::EventImage2D*)(iolcv->get_data(larcv::kProductImage2D,"wire"));
+            if((int)wireImg->run() == f_run && (int)wireImg->subrun() == f_subRun && (int)wireImg->event() == f_event){
+              wireImage2D = wireImg;
+              cosmicImage2D = (larcv::EventImage2D*)(iolcv->get_data(larcv::kProductImage2D,"thrumu"));
+              iImg_start = iImg+1;
+              if(fRunBackTracking) ioll -> go_to(iImg);
+              break;
+            }
+          }
+
+          //make sure we have matching event, turn off LArPID and MC backtracking for this event if not
+          if(wireImage2D == nullptr || cosmicImage2D == nullptr){
+            std::cout << "WARNING: Matching event from LArCV image file not found. Skipping LArPID and MC backtracking for this event." << std::endl;
+            fRunLArPID_evt = false;
+            fRunBackTracking_evt = false;
+          }
+          else{
+            adc_v = wireImage2D->Image2DArray();
+            thrumu_v = cosmicImage2D->Image2DArray();
+          }
+
+        }
+
+        //fill map of particle id to struct with particle reco info needed for LArPID and MC back tracking
+        if(fRunLArPID_evt || fRunBackTracking_evt){
+
+          //loop over reco particles to initialize map and assign LArPID crop point
+          for (auto const& particle : *particleHandle) {
+            if(std::abs(particle.PdgCode()) == 11 || std::abs(particle.PdgCode()) == 22){
+              TVector3 crop(particle.Vx(), particle.Vy(), particle.Vz());
+              LArPID::ParticleInfo newParticle(crop);
+              particleMap[particle.TrackId()] = newParticle;
+            }
+            else{
+              TVector3 crop(particle.EndX(), particle.EndY(), particle.EndZ());
+              LArPID::ParticleInfo newParticle(crop);
+              particleMap[particle.TrackId()] = newParticle;
+            }
+          }
+
+          //loop over spacepoints to set pixels associated with each reco particle in particleMap
+          auto spacepoint_vec = *e.getValidHandle<std::vector<TrecSpacePoint>>("portedWCSpacePointsTrec");
+          for (auto const& point : spacepoint_vec) {
+            if(particleMap.count(point.real_cluster_id) < 1) continue;
+            larlite::larflow3dhit hit;
+            for(unsigned int p = 0; p < adc_v.size(); ++p){
+              auto center2D = larutil::GeometryHelper::GetME()->Point_3Dto2D(point.x,point.y,point.z,p);
+              if(p == 0) hit.tick = (int)(center2D.t/larutil::GeometryHelper::GetME()->TimeToCm() + 3200.);
+              if(p < hit.targetwire.size()) hit.targetwire[p] = (int)(center2D.w/larutil::GeometryHelper::GetME()->WireToCm());
+              else hit.targetwire.push_back((int)(center2D.w/larutil::GeometryHelper::GetME()->WireToCm()));
+            }   
+            particleMap[point.real_cluster_id].larflowProng.push_back(hit);
+          }
+
+        }
 
         for (auto const& particle: *particleHandle){
 
@@ -3980,6 +4192,82 @@ void WireCellAnaTree::analyze(art::Event const& e)
             reco_daughters->push_back(std::vector<int>());
             for (int i=0; i<particle.NumberDaughters(); ++i) {
                 reco_daughters->back().push_back(particle.Daughter(i));
+            }
+
+            if(fRunLArPID_evt || fRunBackTracking_evt){
+
+             const LArPID::ParticleInfo& lanternPartInfo = particleMap[particle.TrackId()];
+             auto prong_vv = LArPID::make_cropped_initial_sparse_prong_image_reco(adc_v, thrumu_v,
+              lanternPartInfo.larflowProng, lanternPartInfo.cropPoint, 10., 512, 512);
+
+             if(fRunLArPID_evt){
+               bool thresholdPassInOne = false;
+               bool thresholdPassInAll = true;
+               for(size_t p = 0; p < 3; ++p){
+                 if(prong_vv[p].size() >= fPixelThreshold) thresholdPassInOne = true;
+                 else thresholdPassInAll = false;
+               }
+               if(thresholdPassInAll || (thresholdPassInOne && !fAllPlaneThreshold)){
+                 LArPID::ModelOutput larpid_output = model.run_inference(prong_vv);
+                 reco_larpid_classified[reco_Ntrack-1] = 1;
+                 reco_larpid_pdg[reco_Ntrack-1] = larpid_output.pid;
+                 reco_larpid_proccess[reco_Ntrack-1] = larpid_output.process;
+                 reco_larpid_completeness[reco_Ntrack-1] = larpid_output.completeness;
+                 reco_larpid_purity[reco_Ntrack-1] = larpid_output.purity;
+                 reco_larpid_pidScore_el[reco_Ntrack-1] = larpid_output.electron_score;
+                 reco_larpid_pidScore_ph[reco_Ntrack-1] = larpid_output.photon_score;
+                 reco_larpid_pidScore_mu[reco_Ntrack-1] = larpid_output.muon_score;
+                 reco_larpid_pidScore_pi[reco_Ntrack-1] = larpid_output.pion_score;
+                 reco_larpid_pidScore_pr[reco_Ntrack-1] = larpid_output.proton_score;
+                 reco_larpid_procScore_prim[reco_Ntrack-1] = larpid_output.primary_score;
+                 reco_larpid_procScore_ntrl[reco_Ntrack-1] = larpid_output.neutralParent_score;
+                 reco_larpid_procScore_chgd[reco_Ntrack-1] = larpid_output.chargedParent_score;
+                 larpidVars_filled = true;
+               }
+             }
+
+             if(fRunBackTracking_evt && fMC){
+               LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *iolcv, *ioll, adc_v);
+               reco_truthMatch_pdg[reco_Ntrack-1] = truthMatch.pdg;
+               reco_truthMatch_id[reco_Ntrack-1] = truthMatch.tid;
+               reco_truthMatch_purity[reco_Ntrack-1] = truthMatch.purity;
+               reco_truthMatch_completeness[reco_Ntrack-1] = truthMatch.completeness;
+               reco_truthMatch_nSimParts[reco_Ntrack-1] = (int)truthMatch.allMatches.size();
+               std::vector<int> truthMatch_all_pdgs;
+               std::vector<float> truthMatch_all_purities;
+               for(unsigned int iBT = 0; iBT < truthMatch.allMatches.size(); ++iBT){
+                 truthMatch_all_pdgs.push_back(truthMatch.allMatches[iBT].pdg);
+                 truthMatch_all_purities.push_back(truthMatch.allMatches[iBT].purity);
+               }
+               reco_truthMatch_simPart_pdg.push_back(truthMatch_all_pdgs);
+               reco_truthMatch_simPart_purity.push_back(truthMatch_all_purities);
+               backtrackVars_filled = true;
+             }
+
+            }
+
+            if(fRunLArPID && !larpidVars_filled){
+              reco_larpid_classified[reco_Ntrack-1] = 0;
+              reco_larpid_pdg[reco_Ntrack-1] = 0;
+              reco_larpid_proccess[reco_Ntrack-1] = -1;
+              reco_larpid_completeness[reco_Ntrack-1] = -1.;
+              reco_larpid_purity[reco_Ntrack-1] = -1.;
+              reco_larpid_pidScore_el[reco_Ntrack-1] = -99.;
+              reco_larpid_pidScore_ph[reco_Ntrack-1] = -99.;
+              reco_larpid_pidScore_mu[reco_Ntrack-1] = -99.;
+              reco_larpid_pidScore_pi[reco_Ntrack-1] = -99.;
+              reco_larpid_pidScore_pr[reco_Ntrack-1] = -99.;
+              reco_larpid_procScore_prim[reco_Ntrack-1] = -99.;
+              reco_larpid_procScore_ntrl[reco_Ntrack-1] = -99.;
+              reco_larpid_procScore_chgd[reco_Ntrack-1] = -99.;
+            }
+
+            if(fRunBackTracking && !backtrackVars_filled){
+               reco_truthMatch_pdg[reco_Ntrack-1] = 0;
+               reco_truthMatch_id[reco_Ntrack-1] = -9;
+               reco_truthMatch_purity[reco_Ntrack-1] = -1.;
+               reco_truthMatch_completeness[reco_Ntrack-1] = -1.;
+               reco_truthMatch_nSimParts[reco_Ntrack-1] = 0;
             }
         }
 
@@ -5996,6 +6284,8 @@ void WireCellAnaTree::resetOutput()
           reco_Ntrack = 0;
           reco_process->clear();
           reco_daughters->clear();
+          reco_truthMatch_simPart_pdg.clear();
+          reco_truthMatch_simPart_purity.clear();
           if (fMC_trackPosition) fMC_trackPosition->Clear();
 
           mc_isnu = 0;
