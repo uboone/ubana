@@ -10,6 +10,10 @@
 // 03.15.2021 modified by Haiwang Yu (hyu@bnl.gov)
 ////////////////////////////////////////////////////////////////////////
 
+//The following two headers MUST come before any ROOT includes to deal with ROOT/libtorch conflict
+#include "ubcv/LArCVImageMaker/LArPIDInterface.h"
+#include "ubcv/LArCVImageMaker/LArCVBackTracker.h"
+
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -36,6 +40,7 @@
 #include "nusimdata/SimulationBase/MCFlux.h"
 #include "nusimdata/SimulationBase/MCNeutrino.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
+#include "larlite/DataFormat/storage_manager.h"
 
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
 
@@ -49,6 +54,8 @@
 
 #include "TRandom3.h"
 #include "dk2nu/tree/dk2nu.h"
+
+#include "ubana/ReBooNE/Utils/BooNEInfo.h"
 
 #include "lardataobj/MCBase/MCShower.h"
 
@@ -67,6 +74,10 @@
 
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
+#include <cmath>
+#include <cstdlib>
+#include <memory>
 
 
 class WireCellAnaTree;
@@ -152,6 +163,7 @@ public:
 
   // user defined
   void reconfigure(fhicl::ParameterSet const& pset);
+  void initLanternIntegration();
   void initOutput();
   void resetOutput();
   void ShowerID(int trackId);
@@ -238,7 +250,28 @@ private:
   float f_ccnd4_a;
   float f_ccnd4_b;
 
+  bool f_get_ns_time;
+  bool f_get_spill_time;
   bool f_get_redk2nu_time;
+  bool f_get_reboone_time;
+
+  // LArPID and MC backtracking (from LANTERN) options:
+  bool fRunLArPID; //run LArPID network over reco particles
+  std::string fLArPIDModel; //checkpoint file for LArPID state dict (model weights)
+  bool fPixelThreshold; //only run model over prongs with at least this many pixels in at least one plane
+  bool fAllPlaneThreshold; //if true, only run model over prongs that pass the pixel threshold in all three planes
+  std::string fLArCVImageFile; //LArCV image file needed for LArPID and MC backtracking
+  bool fTickBack; //if true, read in larcv images with reverse time order
+  bool fRunBackTracking; //run MC backtracking from larcv images
+
+  //index for current entry in larcv image file 
+  unsigned int iImg_start;
+  //storage managers for accessing info from larcv image file
+  std::unique_ptr<larcv::IOManager> iolcv;
+  std::unique_ptr<larlite::storage_manager> ioll;
+  //LArPID torchscript model
+  LArPID::TorchModel model;
+
   // output
   /// PF validation
   /// when fPFValidation is true
@@ -269,9 +302,16 @@ private:
   Float_t	f_reco_protonvtxZ;
   Float_t	f_reco_protonMomentum[4];
 
+  bool f_MCS;
+  std::string fMCSLabel;
+  double       f_mcs_mu_tracklen; // Muon length in cm
+  double       f_mcs_emu_tracklen; // Pure range based, in GeV
+  double       f_mcs_emu_MCS; // MCS based, in GeV
+  double       f_mcs_ambiguity_MCS; // "Goodness" of MCS estimation
+
   Float_t f_evtDeltaTimeNS;
   Float_t f_evtTimeNS;
-  Float_t f_evtTimeNS_redk2nu;
+  Float_t f_evtTimeNS_cor;
   Float_t f_Ph_Tot;
   double  calib[32];
 
@@ -324,9 +364,10 @@ private:
   Float_t f_truth_photon_dis;
   Float_t	f_truth_nu_pos[4]; // X,Y,Z,T
   Float_t	f_truth_nu_momentum[4]; // Px,Py,Pz,E
-  Float_t       f_redk2nu_time;
-  Float_t       f_redk2nu_time_nospill;
-  Float_t       f_redk2nu_deltatime;
+  Float_t       f_cor_nu_time;
+  Float_t       f_cor_nu_time_nospill;
+  Float_t       f_cor_nu_time_spill;
+  Float_t       f_cor_nu_deltatime;
   /// other truth info as follows save in this tree
 
   TTree* fSpacepoints;
@@ -335,21 +376,33 @@ private:
   std::vector<double>	*Trec_spacepoints_y = new std::vector<double>;
   std::vector<double>	*Trec_spacepoints_z = new std::vector<double>;
   std::vector<double>	*Trec_spacepoints_q = new std::vector<double>;
+  std::vector<double>   *Trec_spacepoints_cluster_id = new std::vector<double>;
+  std::vector<double>   *Trec_spacepoints_real_cluster_id = new std::vector<double>;
+  std::vector<double>   *Trec_spacepoints_sub_cluster_id = new std::vector<double>;
 
   std::vector<double>	*Treccharge_spacepoints_x = new std::vector<double>;
   std::vector<double>	*Treccharge_spacepoints_y = new std::vector<double>;
   std::vector<double>	*Treccharge_spacepoints_z = new std::vector<double>;
   std::vector<double>	*Treccharge_spacepoints_q = new std::vector<double>;
+  std::vector<double>   *Treccharge_spacepoints_cluster_id = new std::vector<double>;
+  std::vector<double>   *Treccharge_spacepoints_real_cluster_id = new std::vector<double>;
+  std::vector<double>   *Treccharge_spacepoints_sub_cluster_id = new std::vector<double>;
 
   std::vector<double>	*Trecchargeblob_spacepoints_x = new std::vector<double>;
   std::vector<double>	*Trecchargeblob_spacepoints_y = new std::vector<double>;
   std::vector<double>	*Trecchargeblob_spacepoints_z = new std::vector<double>;
   std::vector<double>	*Trecchargeblob_spacepoints_q = new std::vector<double>;
+  std::vector<double>   *Trecchargeblob_spacepoints_cluster_id = new std::vector<double>;
+  std::vector<double>   *Trecchargeblob_spacepoints_real_cluster_id = new std::vector<double>;
+  std::vector<double>   *Trecchargeblob_spacepoints_sub_cluster_id = new std::vector<double>;
 
   std::vector<double>	*Tcluster_spacepoints_x = new std::vector<double>;
   std::vector<double>	*Tcluster_spacepoints_y = new std::vector<double>;
   std::vector<double>	*Tcluster_spacepoints_z = new std::vector<double>;
   std::vector<double>	*Tcluster_spacepoints_q = new std::vector<double>;
+  std::vector<double>   *Tcluster_spacepoints_cluster_id = new std::vector<double>;
+  std::vector<double>   *Tcluster_spacepoints_real_cluster_id = new std::vector<double>;
+  std::vector<double>   *Tcluster_spacepoints_sub_cluster_id = new std::vector<double>;
 
   std::vector<double>	*TrueEDep_spacepoints_startx = new std::vector<double>;
   std::vector<double>	*TrueEDep_spacepoints_starty = new std::vector<double>;
@@ -1807,6 +1860,26 @@ private:
   float reco_startMomentum[MAX_TRACKS][4];  // start momentum of this track; size == reco_Ntrack
   float reco_endMomentum[MAX_TRACKS][4];  // end momentum of this track; size == reco_Ntrack
   std::vector<std::vector<int> > *reco_daughters;  // daughters id of this track; vector
+  int reco_larpid_classified[MAX_TRACKS]; //LArPID pdg label
+  int reco_larpid_pdg[MAX_TRACKS]; //LArPID pdg label
+  int reco_larpid_proccess[MAX_TRACKS]; //LArPID primary vs. secondary production process class
+  float reco_larpid_completeness[MAX_TRACKS]; //LArPID reconstruction completeness estimate
+  float reco_larpid_purity[MAX_TRACKS]; //LArPID reconstruction purity estimate
+  float reco_larpid_pidScore_el[MAX_TRACKS]; //LArPID electron score from particle classifier
+  float reco_larpid_pidScore_ph[MAX_TRACKS]; //LArPID photon score from particle classifier
+  float reco_larpid_pidScore_mu[MAX_TRACKS]; //LArPID muon score from particle classifier
+  float reco_larpid_pidScore_pi[MAX_TRACKS]; //LArPID pion score from particle classifier
+  float reco_larpid_pidScore_pr[MAX_TRACKS]; //LArPID proton score from particle classifier
+  float reco_larpid_procScore_prim[MAX_TRACKS]; //LArPID primary score from production process classifier
+  float reco_larpid_procScore_ntrl[MAX_TRACKS]; //LArPID secondary with neutral parent score from process classifier
+  float reco_larpid_procScore_chgd[MAX_TRACKS]; //LArPID secondary with charged parent score from process classifier
+  int reco_truthMatch_pdg[MAX_TRACKS]; //MC back tracking: pdg of best match simulated particle
+  int reco_truthMatch_id[MAX_TRACKS]; //MC back tracking: track id (truth_id variable) of best match sim particle
+  float reco_truthMatch_purity[MAX_TRACKS]; //MC back tracking: fraction of reco particle from best match sim particle
+  float reco_truthMatch_completeness[MAX_TRACKS]; //MC backtracking: fraction of best match sim particle reconstructed
+  int reco_truthMatch_nSimParts[MAX_TRACKS]; //MC backtracking: number of different sim particle types matched
+  std::vector<std::vector<int>> reco_truthMatch_simPart_pdg; //MC backtracking: pdg of contributing particle type
+  std::vector<std::vector<float>> reco_truthMatch_simPart_purity;//MC backtracking: purity contributing particle type
 
   std::vector<float> *f_sps_x;
   std::vector<float> *f_sps_y;
@@ -1849,7 +1922,7 @@ private:
   TH2F *H_TimeVsPh;
   //TH1F *ns_time;
 
-  //for redk2nu resimulating beam structure
+  //for resimulating beam structure
   double fTimeBetweenBuckets;  //time between buckets
   double fBucketTimeSigma;  //how wide is distribution in bucket
   double fNBucketsPerBatch;   
@@ -1871,6 +1944,9 @@ WireCellAnaTree::WireCellAnaTree(fhicl::ParameterSet const& p)
 
   // fcl config
   reconfigure(p);
+
+  //initialize LArPID model and LArCV MC Backtracking objects
+  if(fRunLArPID || fRunBackTracking) initLanternIntegration();
 
   // T_eval / event
   // Histograms / event
@@ -1919,6 +1995,9 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   f_saveTclusterSpacePoints = pset.get<bool>("SaveTclusterSpacePoints", false);
   f_saveTrueEDepSpacePoints = pset.get<bool>("SaveTrueEDepSpacePoints", false);
 
+  f_MCS = pset.get<bool>("MCS", false);
+  fMCSLabel = pset.get<std::string>("MCSLabel","WireCellMCS");
+
   f_savesps = pset.get<bool>("SaveSPS", false);
 
   f_savepmt  = pset.get<bool>("SavePMT", false);
@@ -1941,6 +2020,10 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   f_ccnd4_a = pset.get<float>("ccnd4_a", 0);
   f_ccnd4_b = pset.get<float>("ccnd4_b", 0);
 
+  f_get_ns_time = pset.get<bool>("get_ns_time", true);
+
+  f_get_spill_time = pset.get<bool>("get_spill_time", false);
+  f_get_reboone_time = pset.get<bool>("get_reboone_time", false);
   f_get_redk2nu_time = pset.get<bool>("get_redk2nu_time", false);
   fTimeBetweenBuckets     = pset.get<float>("TimeBetweenBuckets",1e9/53.103e6);
   fBucketTimeSigma        = pset.get<float>("BucketTimeSigma",0.750);
@@ -1949,9 +2032,72 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fGlobalOffset           = pset.get<double>("GlobalOffset",0);
   fbi = pset.get<std::vector<double>>("BatchIntensities",{1,1,1,1,1,1}); // all ones would be equal batches, set last to lower to emulate slip stacking
   if(fbi.size()==0){fbi = {1,1,1,1,1,1};}
-  if(f_get_redk2nu_time){
+  if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){
     fRndmGen = new TRandom3(0);
     CalculateCPDF(fbi);
+  }
+
+  fRunLArPID = pset.get<bool>("RunLArPID", true);
+  fLArPIDModel = pset.get<std::string>("LArPIDModel", "LArPID_default_network_weights_torchscript_v2_model.pt");
+  fPixelThreshold = pset.get<unsigned int>("PixelThreshold", 5);
+  fAllPlaneThreshold = pset.get<bool>("AllPlaneThreshold", true);
+  fLArCVImageFile = pset.get<std::string>("LArCVImageFile", "merged_dlreco.root");
+  fTickBack = pset.get<bool>("TickBack", false);
+  fRunBackTracking = pset.get<bool>("RunBackTracking", true);
+
+  if(fRunLArPID && !f_PFDump){
+    std::cout << "WARNING invalid configuration: RunLArPID = true but PFDump = false" << std::endl;
+    std::cout << " Can't write LArPID output with PFDump = false. Won't run LArPID." << std::endl;
+    fRunLArPID = false;
+  }
+
+  if(fRunBackTracking && !fMC){
+    std::cout << "WARNING invalid configuration: RunBackTracking = true but MC = false" << std::endl;
+    std::cout << "Can't do MC backtracking for data." << std::endl;
+    fRunBackTracking = false;
+  }
+
+  if(fRunBackTracking && !f_PFDump){
+    std::cout << "WARNING invalid configuration: RunBackTracking = true but PFDump = false" << std::endl;
+    std::cout << "Can't write particle-level backtracking info with PFDump = false." << std::endl;
+    fRunBackTracking = false;
+  }
+
+}
+
+void WireCellAnaTree::initLanternIntegration()
+{
+  //initialize index for current entry in larcv/larlite file
+  iImg_start = 0;
+
+  //setup larcv io manager for LArPID and MC back tracking
+  auto tickDir = larcv::IOManager::kTickForward;
+  if(fTickBack) tickDir = larcv::IOManager::kTickBackward;
+  iolcv = std::make_unique<larcv::IOManager>(larcv::IOManager::kREAD,"larcv",tickDir);
+  iolcv -> add_in_file(fLArCVImageFile);
+  if(fTickBack) iolcv -> reverse_all_products();
+  iolcv -> initialize();
+
+  if(fRunBackTracking){
+    //setup larlite storage manager for MC back tracking
+    ioll = std::make_unique<larlite::storage_manager>(larlite::storage_manager::kREAD);
+    ioll -> add_in_filename(fLArCVImageFile);
+    ioll -> set_data_to_read( "mctrack", "mcreco" );
+    ioll -> set_data_to_read( "mcshower", "mcreco" );
+    ioll -> set_data_to_read( "mctruth", "generator" );
+    ioll -> set_data_to_read( "gtruth", "generator" );
+    ioll -> set_data_to_read( "mcflux", "generator" );
+    ioll -> set_data_to_read( "mctruth", "corsika" );
+    ioll -> open();
+  }
+
+  if(fRunLArPID){
+    //load LArPID network weights, initialize model
+    const char* ubdlDir = std::getenv("UBDL_BASEDIR");
+    std::string modelPath(ubdlDir);
+    modelPath += "/model_weights/";
+    modelPath += fLArPIDModel;
+    model.Initialize(modelPath, false);
   }
 }
 
@@ -1961,13 +2107,13 @@ void WireCellAnaTree::initOutput()
 
   art::ServiceHandle<art::TFileService> tfs;
 
-  if(!fMC && !fIsNuMI){
+  if( f_get_ns_time && !fIsNuMI){
     //ns beam timing plots for validation
     H_time= tfs->make<TH1F>("H_time","Time PMT",500, 0,6000);
     H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",800,2000,2100);
     H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",800,3000,8450);
     H_TimeVsPh= tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,500);
-  }else if(fIsNuMI){
+  }else if(f_get_ns_time && fIsNuMI){
     H_time= tfs->make<TH1F>("H_time","Time PMT",2000, 0,20000);
     H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",2400,1800,2100);
     H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",300,0,150);
@@ -2072,12 +2218,12 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("reco_protonvtxZ", 		&f_reco_protonvtxZ);
   fPFeval->Branch("reco_protonMomentum", 	&f_reco_protonMomentum, "reco_protonMomentum[4]/F");
 
-  if(!fMC || fIsNuMI) {
+  if(f_get_ns_time) {
     fPFeval->Branch("evtDeltaTimeNS", &f_evtDeltaTimeNS);
     fPFeval->Branch("evtTimeNS", &f_evtTimeNS);
     fPFeval->Branch("Ph_Tot", &f_Ph_Tot);
-    if(f_get_redk2nu_time){
-      fPFeval->Branch("evtTimeNS_redk2nu", &f_evtTimeNS_redk2nu);
+    if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){
+      fPFeval->Branch("evtTimeNS_cor", &f_evtTimeNS_cor);
     }
   }
 
@@ -2143,10 +2289,11 @@ void WireCellAnaTree::initOutput()
   fPFeval->Branch("truth_photon_dis", &f_truth_photon_dis);
   fPFeval->Branch("truth_nu_pos",         	&f_truth_nu_pos, "truth_nu_pos[4]/F");
   fPFeval->Branch("truth_nu_momentum",         	&f_truth_nu_momentum, "truth_nu_momentum[4]/F");
-    if(f_get_redk2nu_time){
-      fPFeval->Branch("redk2nu_time",          &f_redk2nu_time);
-      fPFeval->Branch("redk2nu_time_nospill",          &f_redk2nu_time_nospill);
-      fPFeval->Branch("redk2nu_deltatime",          &f_redk2nu_deltatime);
+    if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){
+      fPFeval->Branch("cor_nu_time",          &f_cor_nu_time);
+      fPFeval->Branch("cor_nu_time_nospill",  &f_cor_nu_time_nospill);
+      fPFeval->Branch("cor_nu_time_spill",    &f_cor_nu_time_spill);
+      fPFeval->Branch("cor_nu_deltatime",     &f_cor_nu_deltatime);
     }
   }
 
@@ -2198,6 +2345,31 @@ void WireCellAnaTree::initOutput()
       fPFeval->Branch("reco_endMomentum", &reco_endMomentum, "reco_endMomentum[reco_Ntrack][4]/F");
       fPFeval->Branch("reco_daughters", &reco_daughters);
 
+      if(fRunLArPID){
+        fPFeval->Branch("reco_larpid_classified", &reco_larpid_classified, "reco_larpid_classified[reco_Ntrack]/I");
+        fPFeval->Branch("reco_larpid_pdg", &reco_larpid_pdg, "reco_larpid_pdg[reco_Ntrack]/I");
+        fPFeval->Branch("reco_larpid_proccess", &reco_larpid_proccess, "reco_larpid_proccess[reco_Ntrack]/I");
+        fPFeval->Branch("reco_larpid_completeness", &reco_larpid_completeness, "reco_larpid_completeness[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_purity", &reco_larpid_purity, "reco_larpid_purity[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_el", &reco_larpid_pidScore_el, "reco_larpid_pidScore_el[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_ph", &reco_larpid_pidScore_ph, "reco_larpid_pidScore_ph[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_mu", &reco_larpid_pidScore_mu, "reco_larpid_pidScore_mu[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_pi", &reco_larpid_pidScore_pi, "reco_larpid_pidScore_pi[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_pidScore_pr", &reco_larpid_pidScore_pr, "reco_larpid_pidScore_pr[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_procScore_prim", &reco_larpid_procScore_prim, "reco_larpid_procScore_prim[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_procScore_ntrl", &reco_larpid_procScore_ntrl, "reco_larpid_procScore_ntrl[reco_Ntrack]/F");
+        fPFeval->Branch("reco_larpid_procScore_chgd", &reco_larpid_procScore_chgd, "reco_larpid_procScore_chgd[reco_Ntrack]/F");
+      }
+
+      if(fRunBackTracking){
+        fPFeval->Branch("reco_truthMatch_pdg", &reco_truthMatch_pdg, "reco_truthMatch_pdg[reco_Ntrack]/I");
+        fPFeval->Branch("reco_truthMatch_id", &reco_truthMatch_id, "reco_truthMatch_id[reco_Ntrack]/I");
+        fPFeval->Branch("reco_truthMatch_purity", &reco_truthMatch_purity, "reco_truthMatch_purity[reco_Ntrack]/F");
+        fPFeval->Branch("reco_truthMatch_completeness", &reco_truthMatch_completeness, "reco_truthMatch_completeness[reco_Ntrack]/F");
+        fPFeval->Branch("reco_truthMatch_nSimParts", &reco_truthMatch_nSimParts, "reco_truthMatch_nSimParts[reco_Ntrack]/I");
+        fPFeval->Branch("reco_truthMatch_simPart_pdg", &reco_truthMatch_simPart_pdg);
+        fPFeval->Branch("reco_truthMatch_simPart_purity", &reco_truthMatch_simPart_purity);
+      }
   }
 
   fSpacepoints = tfs->make<TTree>("T_spacepoints", "T_spacepoints");
@@ -2207,6 +2379,9 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("Trec_spacepoints_y", &Trec_spacepoints_y);
     fSpacepoints->Branch("Trec_spacepoints_z", &Trec_spacepoints_z);
     fSpacepoints->Branch("Trec_spacepoints_q", &Trec_spacepoints_q);
+    fSpacepoints->Branch("Trec_spacepoints_cluster_id", &Trec_spacepoints_cluster_id);
+    fSpacepoints->Branch("Trec_spacepoints_real_cluster_id", &Trec_spacepoints_real_cluster_id);
+    fSpacepoints->Branch("Trec_spacepoints_sub_cluster_id", &Trec_spacepoints_sub_cluster_id);
   }
 
   if (f_saveTrecchargeSpacePoints){
@@ -2214,6 +2389,9 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("Treccharge_spacepoints_y", &Treccharge_spacepoints_y);
     fSpacepoints->Branch("Treccharge_spacepoints_z", &Treccharge_spacepoints_z);
     fSpacepoints->Branch("Treccharge_spacepoints_q", &Treccharge_spacepoints_q);
+    fSpacepoints->Branch("Treccharge_spacepoints_cluster_id", &Treccharge_spacepoints_cluster_id);
+    fSpacepoints->Branch("Treccharge_spacepoints_real_cluster_id", &Treccharge_spacepoints_real_cluster_id);
+    fSpacepoints->Branch("Treccharge_spacepoints_sub_cluster_id", &Treccharge_spacepoints_sub_cluster_id);
   }
 
   if (f_saveTrecchargeblobSpacePoints){
@@ -2221,6 +2399,9 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("Trecchargeblob_spacepoints_y", &Trecchargeblob_spacepoints_y);
     fSpacepoints->Branch("Trecchargeblob_spacepoints_z", &Trecchargeblob_spacepoints_z);
     fSpacepoints->Branch("Trecchargeblob_spacepoints_q", &Trecchargeblob_spacepoints_q);
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_cluster_id", &Trecchargeblob_spacepoints_cluster_id);
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_real_cluster_id", &Trecchargeblob_spacepoints_real_cluster_id);
+    fSpacepoints->Branch("Trecchargeblob_spacepoints_sub_cluster_id", &Trecchargeblob_spacepoints_sub_cluster_id);
   }
 
   if (f_saveTclusterSpacePoints){
@@ -2228,6 +2409,9 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("Tcluster_spacepoints_y", &Tcluster_spacepoints_y);
     fSpacepoints->Branch("Tcluster_spacepoints_z", &Tcluster_spacepoints_z);
     fSpacepoints->Branch("Tcluster_spacepoints_q", &Tcluster_spacepoints_q);
+    fSpacepoints->Branch("Tcluster_spacepoints_cluster_id", &Tcluster_spacepoints_cluster_id);
+    fSpacepoints->Branch("Tcluster_spacepoints_real_cluster_id", &Tcluster_spacepoints_real_cluster_id);
+    fSpacepoints->Branch("Tcluster_spacepoints_sub_cluster_id", &Tcluster_spacepoints_sub_cluster_id);
   }
 
   if (f_saveTrueEDepSpacePoints){
@@ -2260,7 +2444,13 @@ void WireCellAnaTree::initOutput()
     fPFeval->Branch("PMT_TimeDL", &f_PMT_TimeDL);
     fPFeval->Branch("PMT_Sat", &f_PMT_Sat);
     fPFeval->Branch("RWM_Time", &f_RWM_Time);
+  }
 
+  if (f_MCS){
+    fPFeval->Branch("mcs_mu_tracklen", &f_mcs_mu_tracklen);
+    fPFeval->Branch("mcs_emu_tracklen", &f_mcs_emu_tracklen);
+    fPFeval->Branch("mcs_emu_MCS", &f_mcs_emu_MCS);
+    fPFeval->Branch("mcs_ambiguity_MCS", &f_mcs_ambiguity_MCS);
   }
 
   fBDT = tfs->make<TTree>("T_BDTvars", "T_BDTvars");
@@ -3790,11 +3980,17 @@ void WireCellAnaTree::analyze(art::Event const& e)
     Trec_spacepoints_y->clear();
     Trec_spacepoints_z->clear();
     Trec_spacepoints_q->clear();
+    Trec_spacepoints_cluster_id->clear();
+    Trec_spacepoints_real_cluster_id->clear();
+    Trec_spacepoints_sub_cluster_id->clear();
     for (auto const& spacepoint: spacepoint_vec){
       Trec_spacepoints_x->push_back(spacepoint.x);
       Trec_spacepoints_y->push_back(spacepoint.y);
       Trec_spacepoints_z->push_back(spacepoint.z);
       Trec_spacepoints_q->push_back(spacepoint.q);
+      Trec_spacepoints_cluster_id->push_back(spacepoint.cluster_id);
+      Trec_spacepoints_real_cluster_id->push_back(spacepoint.real_cluster_id);
+      Trec_spacepoints_sub_cluster_id->push_back(spacepoint.sub_cluster_id);
     }
   }
 
@@ -3804,11 +4000,17 @@ void WireCellAnaTree::analyze(art::Event const& e)
     Treccharge_spacepoints_y->clear();
     Treccharge_spacepoints_z->clear();
     Treccharge_spacepoints_q->clear();
+    Treccharge_spacepoints_cluster_id->clear();
+    Treccharge_spacepoints_real_cluster_id->clear();
+    Treccharge_spacepoints_sub_cluster_id->clear();
     for (auto const& spacepoint: spacepoint_vec){
       Treccharge_spacepoints_x->push_back(spacepoint.x);
       Treccharge_spacepoints_y->push_back(spacepoint.y);
       Treccharge_spacepoints_z->push_back(spacepoint.z);
       Treccharge_spacepoints_q->push_back(spacepoint.q);
+      Treccharge_spacepoints_cluster_id->push_back(spacepoint.cluster_id);
+      Treccharge_spacepoints_real_cluster_id->push_back(spacepoint.real_cluster_id);
+      Treccharge_spacepoints_sub_cluster_id->push_back(spacepoint.sub_cluster_id);
     }
   }
 
@@ -3818,11 +4020,17 @@ void WireCellAnaTree::analyze(art::Event const& e)
     Trecchargeblob_spacepoints_y->clear();
     Trecchargeblob_spacepoints_z->clear();
     Trecchargeblob_spacepoints_q->clear();
+    Trecchargeblob_spacepoints_cluster_id->clear();
+    Trecchargeblob_spacepoints_real_cluster_id->clear();
+    Trecchargeblob_spacepoints_sub_cluster_id->clear();
     for (auto const& spacepoint: spacepoint_vec){
       Trecchargeblob_spacepoints_x->push_back(spacepoint.x);
       Trecchargeblob_spacepoints_y->push_back(spacepoint.y);
       Trecchargeblob_spacepoints_z->push_back(spacepoint.z);
       Trecchargeblob_spacepoints_q->push_back(spacepoint.q);
+      Trecchargeblob_spacepoints_cluster_id->push_back(spacepoint.cluster_id);
+      Trecchargeblob_spacepoints_real_cluster_id->push_back(spacepoint.real_cluster_id);
+      Trecchargeblob_spacepoints_sub_cluster_id->push_back(spacepoint.sub_cluster_id);
     }
   }
 
@@ -3832,11 +4040,17 @@ void WireCellAnaTree::analyze(art::Event const& e)
     Tcluster_spacepoints_y->clear();
     Tcluster_spacepoints_z->clear();
     Tcluster_spacepoints_q->clear();
+    Tcluster_spacepoints_cluster_id->clear();
+    Tcluster_spacepoints_real_cluster_id->clear();
+    Tcluster_spacepoints_sub_cluster_id->clear();
     for (auto const& spacepoint: spacepoint_vec){
       Tcluster_spacepoints_x->push_back(spacepoint.x);
       Tcluster_spacepoints_y->push_back(spacepoint.y);
       Tcluster_spacepoints_z->push_back(spacepoint.z);
       Tcluster_spacepoints_q->push_back(spacepoint.q);
+      Tcluster_spacepoints_cluster_id->push_back(spacepoint.cluster_id);
+      Tcluster_spacepoints_real_cluster_id->push_back(spacepoint.real_cluster_id);
+      Tcluster_spacepoints_sub_cluster_id->push_back(spacepoint.sub_cluster_id);
     }
   }
 
@@ -3873,6 +4087,79 @@ void WireCellAnaTree::analyze(art::Event const& e)
         if (! particleHandle ) return;
         std::cout << "particles.size(): " << particleHandle->size() << std::endl;
 
+        //prep work for LArPID and MC backtracking
+
+        //initialize variables that will be used if LArPID or MC backtracking is requested
+        bool fRunLArPID_evt = fRunLArPID;
+        bool fRunBackTracking_evt = fRunBackTracking;
+        bool larpidVars_filled = false;
+        bool backtrackVars_filled = false;
+        std::vector<larcv::Image2D> adc_v;
+        std::vector<larcv::Image2D> thrumu_v;
+        std::unordered_map<int, LArPID::ParticleInfo> particleMap;
+
+        if(fRunLArPID || fRunBackTracking){
+
+          //get wire images from larcv file
+          larcv::EventImage2D* wireImage2D = nullptr;
+          larcv::EventImage2D* cosmicImage2D = nullptr;
+          for(unsigned int iImg = iImg_start; iImg < iolcv->get_n_entries(); ++iImg){
+            iolcv -> read_entry(iImg);
+            larcv::EventImage2D* wireImg = (larcv::EventImage2D*)(iolcv->get_data(larcv::kProductImage2D,"wire"));
+            if((int)wireImg->run() == f_run && (int)wireImg->subrun() == f_subRun && (int)wireImg->event() == f_event){
+              wireImage2D = wireImg;
+              cosmicImage2D = (larcv::EventImage2D*)(iolcv->get_data(larcv::kProductImage2D,"thrumu"));
+              iImg_start = iImg+1;
+              if(fRunBackTracking) ioll -> go_to(iImg);
+              break;
+            }
+          }
+
+          //make sure we have matching event, turn off LArPID and MC backtracking for this event if not
+          if(wireImage2D == nullptr || cosmicImage2D == nullptr){
+            std::cout << "WARNING: Matching event from LArCV image file not found. Skipping LArPID and MC backtracking for this event." << std::endl;
+            fRunLArPID_evt = false;
+            fRunBackTracking_evt = false;
+          }
+          else{
+            adc_v = wireImage2D->Image2DArray();
+            thrumu_v = cosmicImage2D->Image2DArray();
+          }
+
+        }
+
+        //fill map of particle id to struct with particle reco info needed for LArPID and MC back tracking
+        if(fRunLArPID_evt || fRunBackTracking_evt){
+
+          //loop over reco particles to initialize map and assign LArPID crop point
+          for (auto const& particle : *particleHandle) {
+            if(std::abs(particle.PdgCode()) == 11 || std::abs(particle.PdgCode()) == 22){
+              TVector3 crop(particle.Vx(), particle.Vy(), particle.Vz());
+              LArPID::ParticleInfo newParticle(crop);
+              particleMap[particle.TrackId()] = newParticle;
+            }
+            else{
+              TVector3 crop(particle.EndX(), particle.EndY(), particle.EndZ());
+              LArPID::ParticleInfo newParticle(crop);
+              particleMap[particle.TrackId()] = newParticle;
+            }
+          }
+
+          //loop over spacepoints to set pixels associated with each reco particle in particleMap
+          auto spacepoint_vec = *e.getValidHandle<std::vector<TrecSpacePoint>>("portedWCSpacePointsTrec");
+          for (auto const& point : spacepoint_vec) {
+            if(particleMap.count(point.real_cluster_id) < 1) continue;
+            larlite::larflow3dhit hit;
+            for(unsigned int p = 0; p < adc_v.size(); ++p){
+              auto center2D = larutil::GeometryHelper::GetME()->Point_3Dto2D(point.x,point.y,point.z,p);
+              if(p == 0) hit.tick = (int)(center2D.t/larutil::GeometryHelper::GetME()->TimeToCm() + 3200.);
+              if(p < hit.targetwire.size()) hit.targetwire[p] = (int)(center2D.w/larutil::GeometryHelper::GetME()->WireToCm());
+              else hit.targetwire.push_back((int)(center2D.w/larutil::GeometryHelper::GetME()->WireToCm()));
+            }   
+            particleMap[point.real_cluster_id].larflowProng.push_back(hit);
+          }
+
+        }
 
         for (auto const& particle: *particleHandle){
 
@@ -3905,6 +4192,82 @@ void WireCellAnaTree::analyze(art::Event const& e)
             reco_daughters->push_back(std::vector<int>());
             for (int i=0; i<particle.NumberDaughters(); ++i) {
                 reco_daughters->back().push_back(particle.Daughter(i));
+            }
+
+            if(fRunLArPID_evt || fRunBackTracking_evt){
+
+             const LArPID::ParticleInfo& lanternPartInfo = particleMap[particle.TrackId()];
+             auto prong_vv = LArPID::make_cropped_initial_sparse_prong_image_reco(adc_v, thrumu_v,
+              lanternPartInfo.larflowProng, lanternPartInfo.cropPoint, 10., 512, 512);
+
+             if(fRunLArPID_evt){
+               bool thresholdPassInOne = false;
+               bool thresholdPassInAll = true;
+               for(size_t p = 0; p < 3; ++p){
+                 if(prong_vv[p].size() >= fPixelThreshold) thresholdPassInOne = true;
+                 else thresholdPassInAll = false;
+               }
+               if(thresholdPassInAll || (thresholdPassInOne && !fAllPlaneThreshold)){
+                 LArPID::ModelOutput larpid_output = model.run_inference(prong_vv);
+                 reco_larpid_classified[reco_Ntrack-1] = 1;
+                 reco_larpid_pdg[reco_Ntrack-1] = larpid_output.pid;
+                 reco_larpid_proccess[reco_Ntrack-1] = larpid_output.process;
+                 reco_larpid_completeness[reco_Ntrack-1] = larpid_output.completeness;
+                 reco_larpid_purity[reco_Ntrack-1] = larpid_output.purity;
+                 reco_larpid_pidScore_el[reco_Ntrack-1] = larpid_output.electron_score;
+                 reco_larpid_pidScore_ph[reco_Ntrack-1] = larpid_output.photon_score;
+                 reco_larpid_pidScore_mu[reco_Ntrack-1] = larpid_output.muon_score;
+                 reco_larpid_pidScore_pi[reco_Ntrack-1] = larpid_output.pion_score;
+                 reco_larpid_pidScore_pr[reco_Ntrack-1] = larpid_output.proton_score;
+                 reco_larpid_procScore_prim[reco_Ntrack-1] = larpid_output.primary_score;
+                 reco_larpid_procScore_ntrl[reco_Ntrack-1] = larpid_output.neutralParent_score;
+                 reco_larpid_procScore_chgd[reco_Ntrack-1] = larpid_output.chargedParent_score;
+                 larpidVars_filled = true;
+               }
+             }
+
+             if(fRunBackTracking_evt && fMC){
+               LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *iolcv, *ioll, adc_v);
+               reco_truthMatch_pdg[reco_Ntrack-1] = truthMatch.pdg;
+               reco_truthMatch_id[reco_Ntrack-1] = truthMatch.tid;
+               reco_truthMatch_purity[reco_Ntrack-1] = truthMatch.purity;
+               reco_truthMatch_completeness[reco_Ntrack-1] = truthMatch.completeness;
+               reco_truthMatch_nSimParts[reco_Ntrack-1] = (int)truthMatch.allMatches.size();
+               std::vector<int> truthMatch_all_pdgs;
+               std::vector<float> truthMatch_all_purities;
+               for(unsigned int iBT = 0; iBT < truthMatch.allMatches.size(); ++iBT){
+                 truthMatch_all_pdgs.push_back(truthMatch.allMatches[iBT].pdg);
+                 truthMatch_all_purities.push_back(truthMatch.allMatches[iBT].purity);
+               }
+               reco_truthMatch_simPart_pdg.push_back(truthMatch_all_pdgs);
+               reco_truthMatch_simPart_purity.push_back(truthMatch_all_purities);
+               backtrackVars_filled = true;
+             }
+
+            }
+
+            if(fRunLArPID && !larpidVars_filled){
+              reco_larpid_classified[reco_Ntrack-1] = 0;
+              reco_larpid_pdg[reco_Ntrack-1] = 0;
+              reco_larpid_proccess[reco_Ntrack-1] = -1;
+              reco_larpid_completeness[reco_Ntrack-1] = -1.;
+              reco_larpid_purity[reco_Ntrack-1] = -1.;
+              reco_larpid_pidScore_el[reco_Ntrack-1] = -99.;
+              reco_larpid_pidScore_ph[reco_Ntrack-1] = -99.;
+              reco_larpid_pidScore_mu[reco_Ntrack-1] = -99.;
+              reco_larpid_pidScore_pi[reco_Ntrack-1] = -99.;
+              reco_larpid_pidScore_pr[reco_Ntrack-1] = -99.;
+              reco_larpid_procScore_prim[reco_Ntrack-1] = -99.;
+              reco_larpid_procScore_ntrl[reco_Ntrack-1] = -99.;
+              reco_larpid_procScore_chgd[reco_Ntrack-1] = -99.;
+            }
+
+            if(fRunBackTracking && !backtrackVars_filled){
+               reco_truthMatch_pdg[reco_Ntrack-1] = 0;
+               reco_truthMatch_id[reco_Ntrack-1] = -9;
+               reco_truthMatch_purity[reco_Ntrack-1] = -1.;
+               reco_truthMatch_completeness[reco_Ntrack-1] = -1.;
+               reco_truthMatch_nSimParts[reco_Ntrack-1] = 0;
             }
         }
 
@@ -4414,29 +4777,58 @@ void WireCellAnaTree::analyze(art::Event const& e)
         }
 
 	}
-	//
 
-        if(f_get_redk2nu_time){
+	//Code to resimulate the neutrino time
+        if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){
           double spill_time = TimeOffset();
-	  double propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356;
-	  art::Handle<std::vector<bsim::Dk2Nu>> dk2nu_flux_handle;
-	  std::vector<art::Ptr<bsim::Dk2Nu> > dk2nu_flux;
-          e.getByLabel("generator",dk2nu_flux_handle);
-          art::fill_ptr_vector(dk2nu_flux,dk2nu_flux_handle);
-	  if(dk2nu_flux.size()==0){
-            std::cout<<"no redk2nu found"<<std::endl;
-	  }
-	  else{
-            art::Ptr<bsim::Dk2Nu> this_dk2nu_flux = dk2nu_flux.at(0);
-	    std::vector<bsim::Ancestor> ancestors = this_dk2nu_flux->ancestor;
-            double decay_time = ancestors.back().startt;
-            f_redk2nu_time = propegation_time + decay_time + spill_time;
-	    f_redk2nu_time_nospill = propegation_time + decay_time;
-	    f_redk2nu_deltatime = f_redk2nu_time - f_truth_nu_pos[3];
-            std::cout<<"redk2nu: "<<"og time "<<f_truth_nu_pos[3]<<"  redk2nu_time "<<f_redk2nu_time<<"  f_redk2nu_deltatime "<<f_redk2nu_deltatime<<"  spill_time "<<spill_time<<" decay_time "<<decay_time<<" propegation_time "<<propegation_time<<"  time to window "<<decay_time+(f_mcflux_dk2gen)*100*0.033356<<"  time to vtx "<<decay_time+(f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356<<"  ancestors.front().startt "<<ancestors.front().startt<<"  seed "<<fRndmGen->GetSeed()<<std::endl;
+          double propegation_time = 0;
+          double decay_time = 0;
+          if(f_get_redk2nu_time){
+	    propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356;
+	    art::Handle<std::vector<bsim::Dk2Nu>> dk2nu_flux_handle;
+	    std::vector<art::Ptr<bsim::Dk2Nu> > dk2nu_flux;
+            e.getByLabel("generator",dk2nu_flux_handle);
+            art::fill_ptr_vector(dk2nu_flux,dk2nu_flux_handle);
+	    if(dk2nu_flux.size()==0){
+              std::cout<<"no redk2nu found"<<std::endl;
+              return;
+	    }
+	    else{
+              art::Ptr<bsim::Dk2Nu> this_dk2nu_flux = dk2nu_flux.at(0);
+	      std::vector<bsim::Ancestor> ancestors = this_dk2nu_flux->ancestor;
+              decay_time = ancestors.back().startt;
+            }
+          }//f_get_redk2nu_time
+
+          else if(f_get_reboone_time){
+            art::Handle<std::vector<BooNEInfo>> flux_handle_bnb;
+            std::vector<art::Ptr<BooNEInfo> > bnb_flux;
+            e.getByLabel("generator", flux_handle_bnb);
+            art::fill_ptr_vector(bnb_flux, flux_handle_bnb);
+            if(bnb_flux.size()==0){
+              std::cout<<"no ReBooNE found"<<std::endl;
+              return;
+            }
+            else {
+              art::Ptr<BooNEInfo> this_bnb_flux = bnb_flux.at(0);
+              decay_time = this_bnb_flux->nu_startt; //start time of neutrino, convert to ns
+              //auto _vtxt = this_bnb_flux->nu_vtx_t;
+              propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356;
+            }
+          }//f_get_reboone_time
+
+          else if(f_get_spill_time){  
+            propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx+f_mcflux_vx/100)*100*0.033356;
           }
-  	}
-	
+
+          f_cor_nu_time = propegation_time + decay_time + spill_time;
+	        f_cor_nu_time_nospill = propegation_time + decay_time;
+	        f_cor_nu_time_spill = spill_time;
+          f_cor_nu_deltatime = f_cor_nu_time - f_truth_nu_pos[3];
+
+          std::cout<<"Origional nu time "<<f_truth_nu_pos[3]<<" Corrected nu Time: "<<f_cor_nu_time<<"  spill time: "<<spill_time<<"  decay time: "<<decay_time<<"  propegation time: "<<propegation_time<<std::endl;
+        }
+
 	/// truth end
 	std::cout<<"Corrected Truth Neutrino vertex: ("<<f_truth_corr_nuvtxX<<", "<<f_truth_corr_nuvtxY<<", "<<f_truth_corr_nuvtxZ<<")"<<"\n";
 	std::cout<<"Corrected Truth Shower vertex: ("<<f_truth_corr_showervtxX<<", "<<f_truth_corr_showervtxY<<", "<<f_truth_corr_showervtxZ<<")"<<"\n";
@@ -4529,9 +4921,24 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	kine.GetKineInfo().kine_pio_angle<<"\n";
 	}
       }
-  //if ( (!fMC || fIsNuMI) && kine_reco_Enu>-1.) {nsbeamtiming(e);}
-  //if ( (!fMC || fIsNuMI) && numu_cc_flag!=-1) {nsbeamtiming(e);}
-  if ( (!fMC || fIsNuMI) && (numu_cc_flag!=-1 || (ssm_numu_cc_flag!=-1 && f_ssmBDT) ) ) {nsbeamtiming(e);}
+
+  // Adding MCS product
+  if(f_MCS){
+    std::cout<<"--- MCS  ---"<<std::endl;
+    auto const& mcs_vec = e.getProduct<std::vector<double>>(fMCSLabel);
+    if(mcs_vec.size()==0) {
+      std::cout<<"WARNING: no WireCellMCS product but f_MCS==1" << std::endl;
+    }
+    else{
+      f_mcs_mu_tracklen = mcs_vec.at(0);
+      f_mcs_emu_tracklen = mcs_vec.at(1);
+      f_mcs_emu_MCS = mcs_vec.at(2);
+      f_mcs_ambiguity_MCS = mcs_vec.at(3);
+      std::cout<<"tracklen: "<<f_mcs_mu_tracklen<<"  emu_tracklen: "<<f_mcs_emu_tracklen<<"  emu_MCS: "<<f_mcs_emu_MCS<<"  ambiguity_MCS: "<<f_mcs_ambiguity_MCS<<std::endl;
+    }
+  }
+
+  if ( f_get_ns_time && (numu_cc_flag!=-1 || (ssm_numu_cc_flag!=-1 && f_ssmBDT) ) ) {nsbeamtiming(e);}
         fTreeEval->Fill();
 	fPFeval->Fill();
 	fBDT->Fill();
@@ -5877,6 +6284,8 @@ void WireCellAnaTree::resetOutput()
           reco_Ntrack = 0;
           reco_process->clear();
           reco_daughters->clear();
+          reco_truthMatch_simPart_pdg.clear();
+          reco_truthMatch_simPart_purity.clear();
           if (fMC_trackPosition) fMC_trackPosition->Clear();
 
           mc_isnu = 0;
@@ -5955,9 +6364,14 @@ void WireCellAnaTree::resetOutput()
 	f_reco_protonMomentum[2] = -1;
 	f_reco_protonMomentum[3] = -1;
 
+  f_mcs_mu_tracklen = 9999;
+  f_mcs_emu_tracklen = -9999;
+  f_mcs_emu_MCS = -9999;
+  f_mcs_ambiguity_MCS = -9999;
+
   f_evtDeltaTimeNS = -99999.;
   f_evtTimeNS = -99999.;
-  f_evtTimeNS_redk2nu = -99999.;
+  f_evtTimeNS_cor = -99999.;
   f_Ph_Tot = -99999.;
   for(int i=0;i<32;i++){calib[i]=0;}
 
@@ -6023,9 +6437,10 @@ void WireCellAnaTree::resetOutput()
 	f_truth_nu_momentum[2] = -1;
 	f_truth_nu_momentum[3] = -1;
 
-	f_redk2nu_time = -1;
-	f_redk2nu_time_nospill = -1;
-	f_redk2nu_deltatime = 0;
+	f_cor_nu_time = -1;
+	f_cor_nu_time_nospill = -1;
+        f_cor_nu_time_spill = -1;
+	f_cor_nu_deltatime = 0;
 
 	fPrimaryID.clear();
 	fShowerID.clear();
@@ -7552,6 +7967,15 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
     -3.27857, -1.41196, 1.59643, 1.41425, -1.62682, -2.55772, 1.49136, -0.522791, 0.974533};
   if(fMC){
     for(int i=0; i<32; i++){offset[i]=0;}//no need to apply the additional pmt calibration to the MC
+    for(int j=0; j<3; j++){//do the PMT remapping for the MC
+      double temp = PMT[31][j];
+      PMT[31][j] = PMT[30][j];
+      PMT[30][j] = PMT[29][j];
+      PMT[29][j] = PMT[28][j];
+      PMT[28][j] = PMT[27][j];
+      PMT[27][j] = PMT[26][j];
+      PMT[26][j] = temp;
+    }
   }
   //================================================================================================================
   double gap=18.936;
@@ -7633,7 +8057,6 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
       
       //all the corrections
       TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)]+ccnd1+ccnd2+ccnd3+ccnd4;
-      std::cout<<"TT3_array[i] "<<i<<" "<<TT3_array[i]<<std::endl;
     }
     Med_TT3=TMath::Median((Long64_t)N_pmt.size(),TT3_array);
     //Fill a 2d histogram with  TT3_array[i] vs max[N_pmt.at(i)] this is usefull to check for any errors
@@ -7642,9 +8065,11 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
     }
   }
   f_evtTimeNS = Med_TT3;
-  f_evtTimeNS_redk2nu = Med_TT3+f_redk2nu_deltatime;
+  if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){ 
+    f_evtTimeNS_cor = Med_TT3+f_cor_nu_deltatime; 
+    std::cout<<"evtTimeNS "<<f_evtTimeNS<<"  Corrected evtTimeNS: "<<f_evtTimeNS_cor<<std::endl;
+  }
   f_Ph_Tot = Ph_Tot;
-  std::cout<<"f_evtTimeNS "<<f_evtTimeNS<<"  f_evtTimeNS_redk2nu "<<f_evtTimeNS_redk2nu<<std::endl;
 
   //Merge Peaks, shift may be incorrect for NuMi
   double Shift=3166.9;
@@ -7741,15 +8166,6 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     TGraph *gr = new TGraph(samples,x_wf_v,Norm_wf_v);
     TF1 *fit = new TF1("fit","[2]*exp(-TMath::Power(([0]-x)/[1],4))",tick-10, tick);
     fit->SetParameters(tick,2,1);  gr->Fit("fit","Q","",tick-10, tick);
-//std::cout<<std::endl;
-//std::cout<<"tick "<<tick<<std::endl;
-//std::cout<<std::endl;
-//for(int i=0; i<3; i++){std::cout<<fit->GetParameter(i)<<", ";}
-//std::cout<<std::endl;
-//for(int i=0; i<samples; i++){std::cout<<gr->GetPointY(i)<<", ";}
-//std::cout<<std::endl;
-//std::cout<<std::endl;
-
     tca=fit->GetParameter(0);  tcb=fit->GetParameter(1);  tcc=fit->GetParameter(2);
     //timing is the risign edge half height
     TT[q]=(tca-abs(tcb*TMath::Power(-log(0.5/tcc),0.25)))/0.064; max[q]=max0;
@@ -7757,10 +8173,8 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     //check for saturated wf
     if(maxZ<=saturation){TT[q]=TT[q]; max[q]=max[q]; Sat[q]=false;}
       else if(maxZ>saturation) { Sat[q]=true;
-std::cout<<"Saturated PMT ch "<<q<<std::endl;
         //counting the number of ticks above the saturation, extended for NuMI
         for(int i=3*64; i<samples_64*64; i++){
-//std::cout<<"Saturated PMT ch "<<q<<"  "<<Raw_wf_v[i]<<std::endl;
         if(TF==0){if(Raw_wf_v[i+1]>4094 && Raw_wf_v[i]<=4094){tickF=i; TF=1;}}
         if(TB==0){if(Raw_wf_v[i]>4094 && Raw_wf_v[i+1]<=4094){tickB=i; TB=1;}}}
         FB=tickB-tickF;  if(FB>99){FB=99;}
@@ -7770,13 +8184,6 @@ std::cout<<"Saturated PMT ch "<<q<<std::endl;
         //double txSS[256],tySS[256],txSS2[256],tySS2[256];
 	double txSS[1500],tySS[1500],txSS2[1500],tySS2[1500];
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){txSS[is]=i*1.0; tySS[is]=Raw_wf_v[i]/maxZhelp1; is=is+1;}}
-std::cout<<std::endl;
-std::cout<<std::endl;
-        for(int i=3*64; i<samples_64*64; i++){std::cout<<Raw_wf_v[i]<<", ";}
-std::cout<<std::endl;
-std::cout<<std::endl;
-std::cout<<"FB "<<FB<<" tickB "<<tickB<<" tickF "<<tickF<<" Nss "<<Nss<<std::endl;
-std::cout<<"Fit 1 from "<<tick-30<<" to "<<tick+250<<std::endl;
 	TGraph *g1 = new TGraph(Nss,txSS,tySS);
         TF1 *fitS1 = new TF1("fitS1","[9]*(exp(-TMath::Power(([0]-(x-[8]))/[1],4))*0.5*(TMath::Erf(-(x-[8])-[7])+1.0)+([5]+[4]*exp(-TMath::Power(([2]-(x-[8]))/[3],2)))*exp((-(x-[8]))/[6])*0.5*(TMath::Erf([7]+(x-[8]))+1.0))",tick-30, tick+250);
 	fitS1->SetParameters(pLL[0],pLL[1],pLL[2],pLL[3],pLL[4],pLL[5],pLL[6],pLL[7],tick,1.);
@@ -7784,28 +8191,11 @@ std::cout<<"Fit 1 from "<<tick-30<<" to "<<tick+250<<std::endl;
         tickFit1=fitS1->GetParameter(8); maxZhelp2=fitS1->GetParameter(9);  maxZhelp3=maxZhelp1/maxZhelp2;
         //amplitude fit correction
         for(int i=0; i<Nss; i++){txSS2[i]=txSS[i]; tySS2[i]=tySS[i]/maxZhelp2;}
-std::cout<<"Fit 2 from "<<tick-30<<" to "<<tick+250<<std::endl;
 	TGraph *g2 = new TGraph(Nss,txSS2,tySS2);
         TF1 *fitS2 = new TF1("fitS2","exp(-TMath::Power(([0]-(x-[8]))/[1],4))*0.5*(TMath::Erf(-(x-[8])-[7])+1.0)+([5]+[4]*exp(-TMath::Power(([2]-(x-[8]))/[3],2)))*exp((-(x-[8]))/[6])*0.5*(TMath::Erf([7]+(x-[8]))+1.0)",tick-30, tick+250);
         fitS2->SetParameters(pLL[0],pLL[1],pLL[2],pLL[3],pLL[4],pLL[5],pLL[6],pLL[7],tickFit1);
         for(int i=0; i<8; i++){fitS2->FixParameter(i,pLL[i]);}
         g2->Fit("fitS2","Q","",tick-30, tick+250);  tickFit2=fitS2->GetParameter(8);
-std::cout<<std::endl;
-std::cout<<std::endl;
-for(int i=0; i<10; i++){std::cout<<fitS1->GetParameter(i)<<", ";}
-std::cout<<std::endl;
-for(int i=tick-30; i<tick+250; i++){std::cout<<g1->GetPointY(i)<<", ";}
-std::cout<<std::endl;
-std::cout<<std::endl;
-
-std::cout<<std::endl;
-std::cout<<std::endl;
-for(int i=0; i<9; i++){std::cout<<fitS2->GetParameter(i)<<", ";}
-std::cout<<std::endl;
-for(int i=tick-30; i<tick+250; i++){std::cout<<g2->GetPointY(i)<<", ";}
-std::cout<<std::endl;
-std::cout<<std::endl;
-
         TT[q]=tickFit2/0.064; max[q]=maxZhelp3;}
     //-------------------------------------------------------------------------------------------------------
     H_time->Fill(TT[q]);

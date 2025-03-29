@@ -22,6 +22,9 @@ cet_build_plugin(
   LIBRARIES
   PRIVATE
   ubobj::WcpPort
+  ubcv::LArCVImageMaker
+  larcv::DataFormat
+  larlite::DataFormat
   larsim::EventWeight_Base
   larevt::SpaceChargeService
   larevt::PmtGainService

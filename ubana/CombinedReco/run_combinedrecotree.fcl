@@ -2,17 +2,35 @@
 #include "services_microboone.fcl"
 #include "database_microboone.fcl"
 #include "databaseutil_microboone.fcl"
-process_name: WireCellAnaTree
+#include "neutrinoselection.fcl"
+process_name: CombinedRecoAnaTree
 
 services:
 {
-  TFileService: { fileName: "reco_stage_2_hist.root" }
+  TFileService: { fileName: "combine_reco_ana_hist.root" }
   TimeTracker:             @local::microboone_time_tracker
   MemoryTracker:           @local::microboone_memory_tracker
   FileCatalogMetadata:     @local::art_file_catalog_data
   @table::microboone_services
   PmtGainService: @local::microboone_pmtgain_service
+  RandomNumberGenerator: {}                     #ART native random number generator
+  @table::microboone_reco_data_services
+  message:      @local::standard_info
 }
+
+services.DatabaseUtil.ShouldConnect: false
+services.TPCEnergyCalibService.TPCEnergyCalibProvider: @local::microboone_tpcenergycalib_provider_data
+
+#services.DetectorProperties.NumberTimeSamples:                             6400
+#services.DetectorProperties.ReadOutWindowSize:                             6400
+services.DetectorClocksService.InheritClockConfig:                         false
+services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
+
+services.SpaceCharge.EnableCorrSCE: true
+services.SpaceCharge.EnableSimEfieldSCE: true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+services.SpaceCharge.CalibrationInputFilename: "SpaceCharge/SCEoffsets_dataDriven_combined_bkwd_Jan18.root"
 
 source:
 {
@@ -23,6 +41,27 @@ source:
 
 physics:
 {
+   producers:
+   {
+
+        # collect un-clustered hits in slice and cluster them by proximity
+        nuslicehits: @local::NeutrinoSliceHits
+        proximity: @local::ProximityClustering
+
+        shrreco3d:                        @local::microboone_reco_data_producers.shrreco3d
+        shrreco3dKalmanShower:            @local::shrreco3dKalmanShower
+        shrreco3dKalmanShowercalo:        @local::shrreco3dKalmanShowercalodata
+        shrreco3dKalmanShowercali:        @local::shrreco3dKalmanShowercalidata
+        pandoraTrack:                     @local::microboone_pandoraTrackCreation
+        pandoraTrackcalo:                 @local::microboone_reco_data_producers.pandoracalo
+        pandoraTrackpid:                  @local::particleidconfig
+        pandoraTrackcali:                 @local::microboone_reco_data_producers.pandoracaliSCE
+        pandoraTrackcalipid:              @local::particleidconfig
+  }
+  filters:
+  {
+        nuselection: @local::NuSelectionFilterEmpty
+  }
   analyzers:
   {
     wcpselection:
@@ -61,6 +100,8 @@ physics:
       save_track_position:      false
       PFDump_min_truth_energy:  0.010 # GeV
 
+      MCS:          true      
+      
       # LANTERN integration options
       RunLArPID:          true
       LArPIDModel:        "LArPID_default_network_weights_torchscript_v2_model.pt"
@@ -69,8 +110,6 @@ physics:
       LArCVImageFile:     "merged_dlreco.root"
       TickBack:           false
       RunBackTracking:    false
-
-      MCS:          true
 
       # nanosecond beam timing
       SaveSPS:              true
@@ -83,7 +122,8 @@ physics:
       SaveTrecchargeblobSpacePoints: true # these top three spacepoints aren't very big, making the resulting ntuple about 25% larger
       SaveTclusterSpacePoints: false # this one is especially large, making the resulting ntuple about 14x larger
       SaveTrueEDepSpacePoints: false # this one is especially large, making the resulting ntuple about 5x larger
-
+      
+      # nanosecond beam timing
       ShiftOffset: 0 #0 for Run 1, 387.8 for Run 3 before RWM cable change and 118.3 Run 3 after RWM cable change and Run 4
       isRun3: false #is this run 3 (where the RWM cable changed)?
       # various fit parameters for corrections
@@ -184,8 +224,13 @@ physics:
 
   # ana: [ wcpselection, wcpweights ]
   ana: [ wcpselection ]
+
+  p1: [ nuslicehits, proximity, shrreco3d, shrreco3dKalmanShower, shrreco3dKalmanShowercalo, shrreco3dKalmanShowercali, pandoraTrack, pandoraTrackcalo, pandoraTrackpid, pandoraTrackcali, pandoraTrackcalipid, nuselection]
+
+  e1: [ rootout ]
   ## trigger_paths contains the paths that modify the art::Event
   # trigger_paths: [ ana ]
+  trigger_paths: [ p1 ]
 
   stream1: [ out1 ]
   ## end_paths contains the paths that do not modify the art::Event
@@ -203,6 +248,14 @@ outputs:
    compressionLevel: 1
    saveMemoryObjectThreshold: 0
    fileName: "%ifb_%tc_WCPsl.root"
+ }
+ rootout:
+ {
+    module_type: RootOutput
+    fileName: "FilteredNuEvents.root"
+    compressionLevel: 0
+    SelectEvents: [p1]
+    dataTier: "ana"
  }
 }
 
@@ -222,9 +275,42 @@ services.DetectorClocksService.InheritClockConfig:  false
 #services.BackTrackerService:  @local::microboone_backtrackerservice
 #services.ParticleInventoryService: @local::standard_particleinventoryservice
 
+#physics.filters.nuselection.SelectionTool: @local::ShowerSelectionTool
+#physics.filters.nuselection.AnalysisTools.default.BacktrackTag: "" #"gaushitTruthMatch"
+physics.filters.nuselection.IsData: true
+
+physics.producers.pandoraTrack.PFParticleLabel:                                                "pandora"
+physics.producers.pandoraTrack.UseAllParticles:                                                true
+
+physics.producers.pandoraTrackcalo.TrackModuleLabel:                                           "pandoraTrack"
+physics.producers.pandoraTrackcalo.SpacePointModuleLabel:                                      "pandora"
+#physics.producers.pandoraTrackcalo.CaloAlg.CalAreaConstants:                                   @local::microboone_reco_data_producers.pandoracalo.CaloAlg.CalAreaConstants #[4.31e-3, 4.02e-3, 4.10e-3]
+
+physics.producers.pandoraTrackcali.CaloAlg.CalAreaConstants:                                   @local::microboone_reco_data_producers.pandoracalo.CaloAlg.CalAreaConstants #  @local::microboone_reco_data_producers.pandoracalo.CaloAlg.CalAreaConstants #[4.31e-3, 4.02e-3, 4.10e-3]
+physics.producers.pandoraTrackcali.TrackModuleLabel:                                           "pandoraTrack"
+physics.producers.pandoraTrackcali.CalorimetryModuleLabel:                                     "pandoraTrackcalo"
+#physics.producers.pandoraTrackcali.CorrectSCE:                                                 true
+
+physics.producers.pandoraTrackpid.ProducerLabels.CaloTrackAssn:                                "pandoraTrackcalo"
+physics.producers.pandoraTrackpid.ProducerLabels.CalorimetryLabel:                             "pandoraTrackcalo"
+physics.producers.pandoraTrackpid.ProducerLabels.HitTrackAssn:                                 "pandoraTrack"
+physics.producers.pandoraTrackpid.ProducerLabels.TrackLabel:                                   "pandoraTrack"
+
+physics.producers.pandoraTrackcalipid.ProducerLabels.CaloTrackAssn:                            "pandoraTrackcali"
+physics.producers.pandoraTrackcalipid.ProducerLabels.CalorimetryLabel:                         "pandoraTrackcali"
+physics.producers.pandoraTrackcalipid.ProducerLabels.HitTrackAssn:                             "pandoraTrack"
+physics.producers.pandoraTrackcalipid.ProducerLabels.TrackLabel:                               "pandoraTrack"
+physics.producers.pandoraTrackcalipid.Chi2PIDAlg.UseMedian:                                    true
+
+physics.producers.proximity.VtxProducer: "pandora"
+physics.producers.proximity.HitProducer: "nuslicehits"
+
+physics.producers.pandoraTrackcali.ELifetimeCorrection: true
+physics.producers.shrreco3dKalmanShowercali.ELifetimeCorrection: true
+
 microboone_tfile_metadata:
 {
-  JSONFileName:          ["reco_stage_2_hist.root.json"]
+  JSONFileName:          ["combine_reco_ana_hist.json"]
   GenerateTFileMetadata: [true]
   dataTier:              ["root-tuple"]
   fileFormat:            ["root"]

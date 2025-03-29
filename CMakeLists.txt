@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 find_package(cetmodules REQUIRED)
-project(ubana VERSION 10.04.05 LANGUAGES CXX)
+project(ubana VERSION 10.04.07.01 LANGUAGES CXX)
 
 include(CetCMakeEnv)
 cet_cmake_env()
@@ -28,6 +28,7 @@ cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 cet_cmake_module_directories(Modules BINARY)
 
 find_package( ubreco REQUIRED EXPORT )
+find_package( ubcv REQUIRED EXPORT )
 find_package( larana REQUIRED EXPORT )
 find_package( larpandora REQUIRED EXPORT )
 find_package( swtrigger REQUIRED EXPORT )
