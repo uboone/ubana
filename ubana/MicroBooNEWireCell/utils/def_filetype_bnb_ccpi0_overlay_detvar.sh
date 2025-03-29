@@ -44,11 +44,12 @@ run_number=`echo $next_stage_input | cut -d '-' -f3`
 echo $run_number
 
 FT_STREAM="run1"
-
+BucketTimeSigma='1.3'
 if [ "$run_number" -ge "3420"  ] && [  "8316" -ge "$run_number"  ];    # in the run1 run number interval
 then
         echo "run run1 fhicl"
         FT_STREAM="run1"
+	BucketTimeSigma='2.5'
 elif [ "$run_number" -ge "0008317"  ] && [  "0011048" -ge "$run_number"  ];   # in the run2 run number interval
 then
         echo "run run2a fhicl"
@@ -135,7 +136,7 @@ physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
 
 physics.analyzers.wcpselection.get_reboone_time:     ${flag_reboone}
 physics.analyzers.wcpselection.TimeBetweenBuckets: 18.831
-physics.analyzers.wcpselection.BucketTimeSigma: 2.0
+physics.analyzers.wcpselection.BucketTimeSigma: ${BucketTimeSigma}
 physics.analyzers.wcpselection.NBucketsPerBatch: 84
 physics.analyzers.wcpselection.NFilledBucketsPerBatch: 81
 physics.analyzers.wcpselection.BatchIntensities: [1]

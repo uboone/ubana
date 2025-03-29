@@ -249,6 +249,9 @@ private:
   float f_ccnd3_d;
   float f_ccnd4_a;
   float f_ccnd4_b;
+  float f_ccnd4_2_a;
+  float f_ccnd4_2_b;
+  float f_dist_cut_x_cor;
 
   bool f_get_ns_time;
   bool f_get_spill_time;
@@ -2019,6 +2022,9 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   f_ccnd3_d = pset.get<float>("ccnd3_d", -0.195);
   f_ccnd4_a = pset.get<float>("ccnd4_a", 0);
   f_ccnd4_b = pset.get<float>("ccnd4_b", 0);
+  f_ccnd4_2_a = pset.get<float>("ccnd4_2_a", 0);
+  f_ccnd4_2_b = pset.get<float>("ccnd4_2_b", 0);
+  f_dist_cut_x_cor = pset.get<float>("dist_cut_x_cor", 99999);
 
   f_get_ns_time = pset.get<bool>("get_ns_time", true);
 
@@ -8051,6 +8057,7 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
       ccnd1= timeProp[i]*(f_ccnd1_a)-(f_ccnd1_b);
       ccnd2= max[N_pmt.at(i)]*(f_ccnd2_a)-(f_ccnd2_b);
       ccnd4= x*(f_ccnd4_a)-(f_ccnd4_b);//for x dependent correction
+      if(x>f_dist_cut_x_cor) ccnd4= x*(f_ccnd4_2_a)-(f_ccnd4_2_b);//for x dependent correction at high x in the MC
       if(Ph_Tot>150){ccnd3=f_ccnd3_a-f_ccnd3_b*Ph_Tot+f_ccnd3_c*Ph_Tot*Ph_Tot;}
       else{ccnd3=f_ccnd3_d;}
 
