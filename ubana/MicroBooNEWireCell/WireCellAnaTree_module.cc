@@ -4149,6 +4149,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
           auto spacepoint_vec = *e.getValidHandle<std::vector<TrecSpacePoint>>("portedWCSpacePointsTrec");
           for (auto const& point : spacepoint_vec) {
             if(particleMap.count(point.real_cluster_id) < 1) continue;
+            if( !larutil::GeometryHelper::GetME()->Contained(point.x,point.y,point.z) ) continue;
             larlite::larflow3dhit hit;
             for(unsigned int p = 0; p < adc_v.size(); ++p){
               auto center2D = larutil::GeometryHelper::GetME()->Point_3Dto2D(point.x,point.y,point.z,p);
