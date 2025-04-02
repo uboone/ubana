@@ -110,6 +110,9 @@ namespace analysis
     TH1F *H_time;
     TH1F *H_maxH;
     TH1F *H_t0_Beam;
+    TH1F *H_SimTime;
+    TH1F *H_TruthTime;
+    TH1F *H_ns_time;
     TH2F *H_TimeVsPh;
 
     // beam timing variables
@@ -125,7 +128,6 @@ namespace analysis
     bool fMC;
     bool f_isrun3;
     bool f_isnumi;
-    bool f_isdata;
     bool fUsePID;
 
     float f_shiftoffset;
@@ -209,8 +211,7 @@ namespace analysis
     fSpacePointproducer = p.get< art::InputTag >("SpacePointproducer");
 
     f_shiftoffset = p.get<float>("ShiftOffset", 0);
-    f_isnumi = p.get<bool>("isNuMI", true);
-    f_isdata = p.get<bool>("isData", true);
+    f_isnumi = p.get<bool>("isNuMI", false);
     f_isrun3 = p.get<bool>("isRun3", false);
     fMC      = p.get<bool>("isMC", false);
     fUsePID   = p.get<bool>("usePID", true);
@@ -254,11 +255,14 @@ namespace analysis
       H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",2400,1800,2100);
       H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",300,0,150);
       H_TimeVsPh= tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,500);
-    }else if (!fMC && !f_isnumi){
-      H_time= tfs->make<TH1F>("H_time","Time PMT",500, 0,6000);
-      H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",800,2000,2100);
-      H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",800,3000,8450);
-      H_TimeVsPh= tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,500);
+    }else{
+      H_time      = tfs->make<TH1F>("H_time","Time PMT",500, 0,6000);
+      H_maxH      = tfs->make<TH1F>("H_maxH","Max amplitude",800,2000,2100);
+      H_t0_Beam   = tfs->make<TH1F>("H_t0_Beam","T_0 beam",800,3000,8450);
+      H_TimeVsPh  = tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,500);
+      H_TruthTime = tfs->make<TH1F>("H_Truthtime","H_Truthtime",  100, 2000, 5000);
+      H_SimTime   = tfs->make<TH1F>("H_SimTime","H_SimTime",  100, 2000, 7000);
+      H_ns_time   = tfs->make<TH1F>("H_ns_time","H_ns_time",  100, 2000, 7000);
     }
 
   }
@@ -563,7 +567,7 @@ namespace analysis
 
     if(f_isnumi){
       samples_64 = 23;
-      samples = samples_numi;
+      samples = 1500;
     }
 
     //std::cout << "[NeutrinoTiming:getPMTwf()] samples_64: "<< samples_64 << " samples: "<< samples << std::endl;
@@ -600,8 +604,7 @@ namespace analysis
     for(int q=0; q<32; q++){
       for(int i=0; i<samples; i++){
 	      Help_wf_v[q][i]=_wf_v[q][i];
-	      //if (i > 100 && i < 110) 
-	      //std::cout << "[NeutrinoTimingDebug::getPMTwf()] PMT " << q << " @ tick " << i << " has ADC " << Help_wf_v[q][i] << std::endl;
+	      //if (i > 100 && i < 110) std::cout << "[NeutrinoTimingDebug::getPMTwf()] PMT " << q << " @ tick " << i << " has ADC " << Help_wf_v[q][i] << std::endl;
 	      if (Help_wf_v[q][i] > max_pmt_v[q]) { max_pmt_v[q] = Help_wf_v[q][i]; max_tick_v[q] = i; }
       }
     }
@@ -883,7 +886,17 @@ namespace analysis
       double TT3_array[32];
       if(f_isrun3 && _run>17200 && _run<17400 && !f_isnumi){if(RWM_T>5450){ f_shiftoffset=118.3;}}
       float RWM_offset = 5700.0 - f_shiftoffset;
-      //if(fMC) RWM_offset = 0;
+      if(fMC) { //Force corrections to 0 for MC for now, calibration upcoming
+        f_ccnd1_a = 0;
+        f_ccnd1_b = 0;
+        f_ccnd2_a = 0;
+        f_ccnd2_b = 0;
+        f_ccnd3_a = 0;
+        f_ccnd3_b = 0;
+        f_ccnd3_c = 0;
+        f_ccnd3_d = 0;
+      }
+
       
       for(uint i=0; i<N_pmt.size(); i++){
 	      ccnd1= timeProp[i]*(f_ccnd1_a)-(f_ccnd1_b);
@@ -896,33 +909,33 @@ namespace analysis
 	
 	      //all the corrections
 	      TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)]+ccnd1+ccnd2+ccnd3;
-        //std::cout << "[NeutrinoTimingDebug] RWM offset: " << RWM_offset << std::endl;
-        //std::cout << "[NeutrinoTimingDebug] PMT time: " << time[N_pmt.at(i)]<< std::endl;
-        //std::cout << "[NeutrinoTimingDebug] Corrected PMT " << i << " timing " << TT3_array[i] << std::endl;
+        std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
+        std::cout << "[NeutrinoTimingDebug] PMT time: " << time[N_pmt.at(i)]<< std::endl;
+        std::cout << "[NeutrinoTimingDebug] Corrected PMT " << i << " timing " << TT3_array[i] << std::endl;
       }
       Med_TT3=TMath::Median((Long64_t)N_pmt.size(),TT3_array);
       //Fill a 2d histogram with  TT3_array[i] vs max[N_pmt.at(i)] this is usefull to check for any errors
-      /*for(uint i=0; i<N_pmt.size(); i++){
+      for(uint i=0; i<N_pmt.size(); i++){
 	      H_TimeVsPh->Fill( TT3_array[i]-Med_TT3, max[N_pmt.at(i)]);
-      }*/
+      }
     }// if PMT size > 2
 
     _evtTimeNS = Med_TT3;
     if(fMC) _evtTimeNS = Med_TT3 + f_sim_deltatime;
 
     std::cout << "[NeutrinoTimingDebug] Med_TT3 "<< Med_TT3 <<std::endl;
+    H_ns_time->Fill(_evtTimeNS);
   
     //Merge Peaks
     double Shift=3166.9;
-    double TThelp=Med_TT3-Shift+gap*0.5;
     double bunches = 81;
     if(f_isnumi){Shift=11567.87; gap=18.83; bunches=503;}
 
     //_evtTimeNS = TThelp;
-    
-    //std::cout << "[NeutrinoTimingDebug] TThelp : "  << TThelp << std::endl;
+    double TThelp= Med_TT3 - Shift + gap * 0.5;
+    std::cout << "[NeutrinoTimingDebug] TThelp : "  << TThelp << std::endl;
     //merge peaks
-    if(TThelp>=0 && TThelp<gap*bunches){
+    if(TThelp>=0 && TThelp < gap * bunches){
       TT_merged=(TThelp-(int((TThelp)/gap))*gap)-gap*0.5;
     }
     else {TT_merged=-9999;}
@@ -979,12 +992,15 @@ namespace analysis
           decay_time = ancestors.back().startt; //start time of neutrino 
         }
       }
-      f_sim_time = propagation_time + decay_time + spill_time; // WC-like version
-      //f_sim_time = f_truth_nu_pos[3] + decay_time + spill_time; // GENIE version
+      f_sim_time = propagation_time + decay_time + spill_time;
+      //f_sim_time = f_mcflux_gen2vtx*100*0.033356 + _vtxt*1e9 + spill_time; // GENIE version
       f_sim_time_nospill = propagation_time + decay_time;
       f_sim_deltatime = f_sim_time - f_truth_nu_pos[3];
-      std::cout << "[NeutrinoTimingDebug] Truth_time: "<< f_truth_nu_pos[3] << " f_sim_time: " << f_sim_time << "  f_sim_deltatime: " << f_sim_deltatime << "  spill_time: "<<  spill_time <<  "  decay_time: "<< decay_time << "  propagation_time: "<< propagation_time << " vtxt: " << _vtxt << std::endl; 
+      std::cout << "[NeutrinoTimingDebug] Truth_time: "<< f_truth_nu_pos[3] << " f_sim_time: " << f_sim_time << "  f_sim_deltatime: " << f_sim_deltatime << "  spill_time: "<<  spill_time <<  "  decay_time: "<< decay_time << "  propagation_time: "<< propagation_time << " vtxt: " << _vtxt*1e9 << std::endl; 
+      H_SimTime->Fill(f_sim_time);
+      H_TruthTime->Fill(f_truth_nu_pos[3]);
     }
+
   }
 
   double NeutrinoTiming::TimeOffset(){
