@@ -13,6 +13,8 @@ physics.filters.nuselection.SelectionTool: @local::CC0PiNpSelectionTool
 physics.filters.nuselection.AnalysisTools.shower:   @local::ShowerAnalysisTool
 physics.filters.nuselection.AnalysisTools.default.makeNuMINtuple: true
 
+physics.filters.nuselection.AnalysisTools.timing.isRun3: true
+
 physics.filters.nuselection.AnalysisTools.slicepurcompl.OrigHTproducer: "gaushitTruthMatch::OverlayWireModRecoStage1b"
 physics.filters.nuselection.AnalysisTools.slicepurcompl.OrigHproducer: "gaushit::OverlayWireModRecoStage1a"
 SlicePurComplTool.OrigHTproducer: "gaushitTruthMatch::OverlayWireModRecoStage1b"

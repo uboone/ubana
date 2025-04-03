@@ -217,6 +217,20 @@ NeutrinoTimingAnalysisTool: {
     LogicWFproducer: "pmtreadout:UnspecifiedLogic"
     FLASHproducer: "simpleFlashBeam"
     SpacePointproducer: "pandora"
+    TimeBetweenBuckets: 18.936
+    BucketTimeSigma: 1.308
+    BatchIntensities: [1] # 1 batch
+    ShiftOffset: 0 #0 for Run 1, 387.8 for Run 3 before RWM cable change and 118.3 Run 3 after RWM cable change and Run 4
+    isRun3: false #is this run 3 (where the RWM cable changed)?
+    # various fit parameters for corrections
+    ccnd1_a: 0.529594 
+    ccnd1_b: 7.13804
+    ccnd2_a: 0.068752
+    ccnd2_b: 2.32023
+    ccnd3_a: 0.4697
+    ccnd3_b: 0.004233
+    ccnd3_c: 0.000001006
+    ccnd3_d: -0.195
 }
 
 

@@ -31,3 +31,14 @@ physics.filters.nuselection.AnalysisTools.zbdt.TrigResProducer: "TriggerResults:
 # I think the lines below need to be uncommented for pure MC but is ok to leave out for overlays
 ###physics.producers.shrreco3dKalmanShowercalo: @local::shrreco3dKalmanShowercalomc
 ###physics.producers.shrreco3dKalmanShowercali: @local::shrreco3dKalmanShowercalimc
+
+physics.filters.nuselection.AnalysisTools.timing.isMC: true
+physics.filters.nuselection.AnalysisTools.timing.isNuMI: true
+
+physics.filters.nuselection.AnalysisTools.default.makeNuMINtuple: true
+physics.filters.nuselection.AnalysisTools.timing.IsNuMI: true
+physics.filters.nuselection.AnalysisTools.timing.TimeBetweenBuckets: 18.831
+physics.filters.nuselection.AnalysisTools.timing.BucketTimeSigma: 0.750
+physics.filters.nuselection.AnalysisTools.timing.BatchIntensities: [1,1,1,1,1,1] # 6 batches
+physics.filters.nuselection.AnalysisTools.timing.NBucketsPerBatch: 84
+physics.filters.nuselection.AnalysisTools.timing.NFilledBucketsPerBatch: 81
