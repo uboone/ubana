@@ -1,4 +1,4 @@
-#include "run_neutrinoselectionfilter_run1_data.fcl"
+#include "run_neutrinoselectionfilter_run1_data_numi.fcl"
 
 # configure CRT veto module
 #physics.filters.crtveto: @local::UBCRTCosmicFilterBNBON
@@ -11,6 +11,10 @@
 physics.filters.nuselection.AnalysisTools.crtApproach:   @local::CRTApproachAnalysisTool
 physics.filters.nuselection.AnalysisTools.crtApproach.TrackAssnModuleLabel: "crttrackmatch"
 physics.filters.nuselection.AnalysisTools.default.CRTVetoproducer: "crtveto"
+
 physics.filters.nuselection.AnalysisTools.timing.isRun3: true
+
+
+
 
 
