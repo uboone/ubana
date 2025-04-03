@@ -173,7 +173,7 @@ namespace analysis
     Float_t	f_truth_nu_pos[4]; // X,Y,Z,T
     double  calib[32];
 
-    const int samples_numi = 1500;
+    //const int samples_numi = 1500;
 
     std::map<unsigned int, unsigned int> _pfpmap;
 
