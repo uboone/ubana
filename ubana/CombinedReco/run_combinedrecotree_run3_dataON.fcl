@@ -12,4 +12,6 @@ physics.filters.nuselection.AnalysisTools.crtApproach:   @local::CRTApproachAnal
 physics.filters.nuselection.AnalysisTools.crtApproach.TrackAssnModuleLabel: "crttrackmatch"
 physics.filters.nuselection.AnalysisTools.default.CRTVetoproducer: "crtveto"
 
+physics.filters.nuselection.AnalysisTools.timing.isRun3: true
+
 

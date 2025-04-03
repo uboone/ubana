@@ -104,8 +104,6 @@ namespace analysis
     art::InputTag fLogicWFproducer;
     art::InputTag fSpacePointproducer;
 
-    std::string fBeam;
-
     //beam timing plots
     TH1F *H_time;
     TH1F *H_maxH;
@@ -214,8 +212,7 @@ namespace analysis
     f_isnumi = p.get<bool>("isNuMI", false);
     f_isrun3 = p.get<bool>("isRun3", false);
     fMC      = p.get<bool>("isMC", false);
-    fUsePID   = p.get<bool>("usePID", true);
-    fBeam     = p.get<std::string>("BeamLabel", "BNB");
+    fUsePID   = p.get<bool>("usePID", false);
     f_ccnd1_a = p.get<float>("ccnd1_a", 0.529594);
     f_ccnd1_b = p.get<float>("ccnd1_b", 7.13804);
     f_ccnd2_a = p.get<float>("ccnd2_a", 0.068752);
@@ -909,9 +906,9 @@ namespace analysis
 	
 	      //all the corrections
 	      TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)]+ccnd1+ccnd2+ccnd3;
-        std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
-        std::cout << "[NeutrinoTimingDebug] PMT time: " << time[N_pmt.at(i)]<< std::endl;
-        std::cout << "[NeutrinoTimingDebug] Corrected PMT " << i << " timing " << TT3_array[i] << std::endl;
+        //std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
+        //std::cout << "[NeutrinoTimingDebug] PMT time: " << time[N_pmt.at(i)]<< std::endl;
+        //std::cout << "[NeutrinoTimingDebug] Corrected PMT " << i << " timing " << TT3_array[i] << std::endl;
       }
       Med_TT3=TMath::Median((Long64_t)N_pmt.size(),TT3_array);
       //Fill a 2d histogram with  TT3_array[i] vs max[N_pmt.at(i)] this is usefull to check for any errors
