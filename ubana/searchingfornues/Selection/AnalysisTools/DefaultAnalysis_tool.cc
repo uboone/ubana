@@ -285,6 +285,8 @@ private:
   unsigned int _hits_v;
   unsigned int _hits_y;
 
+  std::vector<int> _mc_trackid;     // G4 Track ID
+  std::vector<int> _mc_mother;      // mother TrackID
   std::vector<int> _mc_pdg;
   std::vector<float> _mc_E;
   std::vector<uint> _mc_n_elastic; // number of elastic scatters
@@ -1189,6 +1191,8 @@ void DefaultAnalysis::setBranches(TTree *_tree)
   _tree->Branch("topological_score", &_topo_score, "topological_score/F");
   _tree->Branch("slclustfrac", &slclustfrac, "slclustfrac/F");
 
+  _tree->Branch("mc_trackid", "std::vector< int >", &_mc_trackid);
+  _tree->Branch("mc_mother", "std::vector< int >", &_mc_mother);
   _tree->Branch("mc_pdg", "std::vector< int >", &_mc_pdg);
   _tree->Branch("mc_E", "std::vector< float >", &_mc_E);
 
@@ -1397,6 +1401,8 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
   _mc_E.clear();
   _mc_n_elastic.clear();
   _mc_n_inelastic.clear();
+  _mc_trackid.clear();
+  _mc_mother.clear();
   _mc_pdg.clear();
 
   _mc_px.clear();
@@ -1687,7 +1693,9 @@ void DefaultAnalysis::SaveTruth(art::Event const &e)
     }
 
     _mc_E.push_back(mcp.E());
-
+    
+    _mc_trackid.push_back(mcp.TrackId());
+    _mc_mother.push_back(mcp.Mother());
     _mc_pdg.push_back(mcp.PdgCode());
 
     auto nElastic = 0u;

@@ -251,7 +251,10 @@ namespace analysis
       H_time= tfs->make<TH1F>("H_time","Time PMT",2000, 0,20000);
       H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",2400,1800,2100);
       H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",300,0,150);
-      H_TimeVsPh= tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,500);
+      H_TimeVsPh= tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,1500);
+      H_TruthTime = tfs->make<TH1F>("H_Truthtime","H_Truthtime",  100, 2000, 5000);
+      H_SimTime   = tfs->make<TH1F>("H_SimTime","H_SimTime",  100, 2000, 7000);
+      H_ns_time   = tfs->make<TH1F>("H_ns_time","H_ns_time",  100, 2000, 7000);
     }else{
       H_time      = tfs->make<TH1F>("H_time","Time PMT",500, 0,6000);
       H_maxH      = tfs->make<TH1F>("H_maxH","Max amplitude",800,2000,2100);
@@ -495,7 +498,7 @@ namespace analysis
       _mc_interaction_time = f_sim_time;
     }
 
-    std::cout << "[NeutrinoTimingDebug] interaction_time_abs: " << _interaction_time_abs << " interaction_time_modulo: "<< _interaction_time_modulo << " mc_interaction_time: " << _mc_interaction_time << " time_offset: "<< _time_offset << std::endl;
+    //std::cout << "[NeutrinoTimingDebug] interaction_time_abs: " << _interaction_time_abs << " interaction_time_modulo: "<< _interaction_time_modulo << " mc_interaction_time: " << _mc_interaction_time << " time_offset: "<< _time_offset << std::endl;
   
   return;
   }
@@ -665,7 +668,7 @@ namespace analysis
 	      maxZhelp1=maxZ/Frac[FB]; tick=tickF; Nss=0; is=0;
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){Nss=Nss+1;}}
       
-        double txSS[256],tySS[256],txSS2[256],tySS2[256];
+        double txSS[1500],tySS[1500],txSS2[1500],tySS2[1500];
       
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){txSS[is]=i*1.0; tySS[is]=Raw_wf_v[i]/maxZhelp1; is=is+1;}}
         TGraph *g1 = new TGraph(Nss,txSS,tySS);
