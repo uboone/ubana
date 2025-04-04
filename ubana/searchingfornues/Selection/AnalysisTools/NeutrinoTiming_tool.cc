@@ -251,7 +251,10 @@ namespace analysis
       H_time= tfs->make<TH1F>("H_time","Time PMT",2000, 0,20000);
       H_maxH= tfs->make<TH1F>("H_maxH","Max amplitude",2400,1800,2100);
       H_t0_Beam= tfs->make<TH1F>("H_t0_Beam","T_0 beam",300,0,150);
-      H_TimeVsPh= tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,500);
+      H_TimeVsPh= tfs->make<TH2F>("H_TimeVsPh","H_TimeVsPh",  100, -50,50,  100, 0,1500);
+      H_TruthTime = tfs->make<TH1F>("H_Truthtime","H_Truthtime",  100, 2000, 5000);
+      H_SimTime   = tfs->make<TH1F>("H_SimTime","H_SimTime",  100, 2000, 7000);
+      H_ns_time   = tfs->make<TH1F>("H_ns_time","H_ns_time",  100, 2000, 7000);
     }else{
       H_time      = tfs->make<TH1F>("H_time","Time PMT",500, 0,6000);
       H_maxH      = tfs->make<TH1F>("H_maxH","Max amplitude",800,2000,2100);
@@ -665,7 +668,7 @@ namespace analysis
 	      maxZhelp1=maxZ/Frac[FB]; tick=tickF; Nss=0; is=0;
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){Nss=Nss+1;}}
       
-        double txSS[256],tySS[256],txSS2[256],tySS2[256];
+        double txSS[1500],tySS[1500],txSS2[1500],tySS2[1500];
       
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){txSS[is]=i*1.0; tySS[is]=Raw_wf_v[i]/maxZhelp1; is=is+1;}}
         TGraph *g1 = new TGraph(Nss,txSS,tySS);
@@ -855,7 +858,7 @@ namespace analysis
       get_sim_time(e);
 
       RWM_T=BeamT0;
-      //std::cout << "[NeutrinoTimingDebug] RWM_T : " << RWM_T << std::endl;
+      std::cout << "[NeutrinoTimingDebug] RWM_T : " << RWM_T << std::endl;
       double dist = z;
       
       if(f_isnumi) {
@@ -866,7 +869,7 @@ namespace analysis
         dist = ( (min_a-x)*target_dir[0] + (min_b-y)*target_dir[1] + (min_c-z)*target_dir[2] ) / sqrt(target_dir[0]*target_dir[0] + target_dir[1]*target_dir[1] + target_dir[2]*target_dir[2] );
       }
       nuToF=dist*0.033356;
-      //std::cout << "[NeutrinoTimingDebug] nuToF : " << nuToF << std::endl;
+      std::cout << "[NeutrinoTimingDebug] nuToF : " << nuToF << std::endl;
       std::vector<double> timeProp = std::vector<double>(N_pmt.size(),0);
       for(uint i=0; i<N_pmt.size(); i++){
         tp=5000000000.0;
@@ -877,7 +880,7 @@ namespace analysis
           if(tPhelp<tp){tp=tPhelp;}
         }
         timeProp[i]=tp;
-        //std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
+        std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
       }
      
       double TT3_array[32];
@@ -906,9 +909,9 @@ namespace analysis
 	
 	      //all the corrections
 	      TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)]+ccnd1+ccnd2+ccnd3;
-        //std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
-        //std::cout << "[NeutrinoTimingDebug] PMT time: " << time[N_pmt.at(i)]<< std::endl;
-        //std::cout << "[NeutrinoTimingDebug] Corrected PMT " << i << " timing " << TT3_array[i] << std::endl;
+        std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
+        std::cout << "[NeutrinoTimingDebug] PMT time: " << time[N_pmt.at(i)]<< std::endl;
+        std::cout << "[NeutrinoTimingDebug] Corrected PMT " << i << " timing " << TT3_array[i] << std::endl;
       }
       Med_TT3=TMath::Median((Long64_t)N_pmt.size(),TT3_array);
       //Fill a 2d histogram with  TT3_array[i] vs max[N_pmt.at(i)] this is usefull to check for any errors
