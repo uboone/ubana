@@ -498,7 +498,7 @@ namespace analysis
       _mc_interaction_time = f_sim_time;
     }
 
-    std::cout << "[NeutrinoTimingDebug] interaction_time_abs: " << _interaction_time_abs << " interaction_time_modulo: "<< _interaction_time_modulo << " mc_interaction_time: " << _mc_interaction_time << " time_offset: "<< _time_offset << std::endl;
+    //std::cout << "[NeutrinoTimingDebug] interaction_time_abs: " << _interaction_time_abs << " interaction_time_modulo: "<< _interaction_time_modulo << " mc_interaction_time: " << _mc_interaction_time << " time_offset: "<< _time_offset << std::endl;
   
   return;
   }
@@ -858,7 +858,7 @@ namespace analysis
       get_sim_time(e);
 
       RWM_T=BeamT0;
-      std::cout << "[NeutrinoTimingDebug] RWM_T : " << RWM_T << std::endl;
+      //std::cout << "[NeutrinoTimingDebug] RWM_T : " << RWM_T << std::endl;
       double dist = z;
       
       if(f_isnumi) {
@@ -869,7 +869,7 @@ namespace analysis
         dist = ( (min_a-x)*target_dir[0] + (min_b-y)*target_dir[1] + (min_c-z)*target_dir[2] ) / sqrt(target_dir[0]*target_dir[0] + target_dir[1]*target_dir[1] + target_dir[2]*target_dir[2] );
       }
       nuToF=dist*0.033356;
-      std::cout << "[NeutrinoTimingDebug] nuToF : " << nuToF << std::endl;
+      //std::cout << "[NeutrinoTimingDebug] nuToF : " << nuToF << std::endl;
       std::vector<double> timeProp = std::vector<double>(N_pmt.size(),0);
       for(uint i=0; i<N_pmt.size(); i++){
         tp=5000000000.0;
@@ -880,7 +880,7 @@ namespace analysis
           if(tPhelp<tp){tp=tPhelp;}
         }
         timeProp[i]=tp;
-        std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
+        //std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
       }
      
       double TT3_array[32];
@@ -909,9 +909,9 @@ namespace analysis
 	
 	      //all the corrections
 	      TT3_array[i]=(time[N_pmt.at(i)])-RWM_T+RWM_offset-nuToF-timeProp[i]-offset[N_pmt.at(i)]+ccnd1+ccnd2+ccnd3;
-        std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
-        std::cout << "[NeutrinoTimingDebug] PMT time: " << time[N_pmt.at(i)]<< std::endl;
-        std::cout << "[NeutrinoTimingDebug] Corrected PMT " << i << " timing " << TT3_array[i] << std::endl;
+        //std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
+        //std::cout << "[NeutrinoTimingDebug] PMT time: " << time[N_pmt.at(i)]<< std::endl;
+        //std::cout << "[NeutrinoTimingDebug] Corrected PMT " << i << " timing " << TT3_array[i] << std::endl;
       }
       Med_TT3=TMath::Median((Long64_t)N_pmt.size(),TT3_array);
       //Fill a 2d histogram with  TT3_array[i] vs max[N_pmt.at(i)] this is usefull to check for any errors
