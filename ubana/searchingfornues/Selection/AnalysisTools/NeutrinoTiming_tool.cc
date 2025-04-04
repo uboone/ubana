@@ -665,7 +665,7 @@ namespace analysis
 	      maxZhelp1=maxZ/Frac[FB]; tick=tickF; Nss=0; is=0;
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){Nss=Nss+1;}}
       
-        double txSS[256],tySS[256],txSS2[256],tySS2[256];
+        double txSS[1500],tySS[1500],txSS2[1500],tySS2[1500];
       
         for(int i=3*64; i<samples_64*64; i++){if(Raw_wf_v[i]<4095){txSS[is]=i*1.0; tySS[is]=Raw_wf_v[i]/maxZhelp1; is=is+1;}}
         TGraph *g1 = new TGraph(Nss,txSS,tySS);
