@@ -1,9 +1,10 @@
+#include "microboone_singlephoton.fcl"
 #include "time_memory_tracker_microboone.fcl"
 #include "services_microboone.fcl"
 #include "database_microboone.fcl"
 #include "databaseutil_microboone.fcl"
 #include "neutrinoselection.fcl"
-process_name: CombinedRecoAnaTree
+process_name: CombinedRecoAnaTree2
 
 services:
 {
@@ -57,10 +58,13 @@ physics:
         pandoraTrackpid:                  @local::particleidconfig
         pandoraTrackcali:                 @local::microboone_reco_data_producers.pandoracaliSCE
         pandoraTrackcalipid:              @local::particleidconfig
+        allShr:                           @local::microboone_pandoraShowerCreation
+
   }
   filters:
   {
-        nuselection: @local::NuSelectionFilterEmpty
+        nuselection: @local::NuSelectionFilterEmpty 
+        singlephotonana: @local::singlephoton_analyzer  
   }
   analyzers:
   {
@@ -103,7 +107,7 @@ physics:
       MCS:          true      
       
       # LANTERN integration options
-      RunLArPID:          true
+      RunLArPID:          false
       LArPIDModel:        "LArPID_default_network_weights_torchscript_v2_model.pt"
       PixelThreshold:     5
       AllPlaneThreshold:  true
@@ -225,7 +229,7 @@ physics:
   # ana: [ wcpselection, wcpweights ]
   ana: [ wcpselection ]
 
-  p1: [ nuslicehits, proximity, shrreco3d, shrreco3dKalmanShower, shrreco3dKalmanShowercalo, shrreco3dKalmanShowercali, pandoraTrack, pandoraTrackcalo, pandoraTrackpid, pandoraTrackcali, pandoraTrackcalipid, nuselection]
+  p1: [ nuslicehits, proximity, shrreco3d, shrreco3dKalmanShower, shrreco3dKalmanShowercalo, shrreco3dKalmanShowercali, pandoraTrack, pandoraTrackcalo, pandoraTrackpid, pandoraTrackcali, pandoraTrackcalipid, nuselection ,allShr, singlephotonana]
 
   e1: [ rootout ]
   ## trigger_paths contains the paths that modify the art::Event
@@ -307,6 +311,11 @@ physics.producers.proximity.HitProducer: "nuslicehits"
 
 physics.producers.pandoraTrackcali.ELifetimeCorrection: true
 physics.producers.shrreco3dKalmanShowercali.ELifetimeCorrection: true
+
+
+physics.producers.allShr.PFParticleLabel: "pandoraPatRec:allOutcomes"
+physics.filters.singlephotonana.TruncMeanFraction: 10.0
+services.DetectorClocksService.TrigModuleName:               "daq"
 
 microboone_tfile_metadata:
 {
