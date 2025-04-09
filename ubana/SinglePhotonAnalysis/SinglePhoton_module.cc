@@ -1527,7 +1527,7 @@ namespace single_photon
 
         if (m_fill_trees &&  (  (filter_pass_2g1p && m_run_pi0_filter_2g1p) || (filter_pass_2g0p && m_run_pi0_filter_2g0p) || !m_run_pi0_filter ) ) {
             vertex_tree->Fill();
-            ncdelta_slice_tree->Fill();
+            //ncdelta_slice_tree->Fill();
             eventweight_tree->Fill();
             true_eventweight_tree->Fill();
             geant4_tree->Fill();
@@ -1567,7 +1567,7 @@ namespace single_photon
         vertex_tree = tfs->make<TTree>("vertex_tree", "vertex_tree");
         pot_tree = tfs->make<TTree>("pot_tree", "pot_tree");
         eventweight_tree = tfs->make<TTree>("eventweight_tree", "eventweight_tree");
-        ncdelta_slice_tree = tfs->make<TTree>("ncdelta_slice_tree", "ncdelta_slice_tree");
+        //ncdelta_slice_tree = tfs->make<TTree>("ncdelta_slice_tree", "ncdelta_slice_tree");
         run_subrun_tree = tfs->make<TTree>("run_subrun_tree","run_subrun_tree");
         geant4_tree = tfs->make<TTree>("geant4_tree","geant4_tree");
 
