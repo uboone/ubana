@@ -49,7 +49,7 @@ if [ "$run_number" -ge "3420"  ] && [  "8316" -ge "$run_number"  ];    # in the 
 then
         echo "run run1 fhicl"
         FT_STREAM="run1"
-        BucketTimeSigma='2.5'
+        BucketTimeSigma='2.8'
 elif [ "$run_number" -ge "0008317"  ] && [  "0011048" -ge "$run_number"  ];   # in the run2 run number interval
 then
         echo "run run2a fhicl"
