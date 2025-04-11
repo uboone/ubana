@@ -103,7 +103,7 @@ physics.analyzers.wcpweights.IsNuMI:                 ${flag_numi}
 physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
 
 physics.analyzers.wcpselection.get_reboone_time:     true
-physics.analyzers.wcpselection.TimeBetweenBuckets: 18.831
+physics.analyzers.wcpselection.TimeBetweenBuckets: 18.936
 physics.analyzers.wcpselection.BucketTimeSigma: ${BucketTimeSigma}
 physics.analyzers.wcpselection.NBucketsPerBatch: 84
 physics.analyzers.wcpselection.NFilledBucketsPerBatch: 81
