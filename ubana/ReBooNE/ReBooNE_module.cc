@@ -39,7 +39,7 @@
 //Additional includes
 #include "ubana/ReBooNE/Utils/BooNENtuple.h"
 #include "ubana/ReBooNE/Utils/BeamNtuple.h"
-#include "ubana/ReBooNE/Utils/BooNEInfo.h"
+#include "ubobj/ReBooNE/BooNEInfo.h"
 
 namespace reboone {
   class ReBooNE;

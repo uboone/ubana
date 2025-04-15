@@ -14,7 +14,7 @@
 #include "ubana/searchingfornues/Selection/CommonDefs/SCECorrections.h"
 #include "ubana/searchingfornues/Selection/CommonDefs/Geometry.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
-#include "ubreco/BlipReco/Utils/DataTypes.h"
+#include "ubobj/Blip/DataTypes.h"
 
 namespace analysis
 {

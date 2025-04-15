@@ -55,7 +55,7 @@
 #include "TRandom3.h"
 #include "dk2nu/tree/dk2nu.h"
 
-#include "ubana/ReBooNE/Utils/BooNEInfo.h"
+#include "ubobj/ReBooNE/BooNEInfo.h"
 
 #include "lardataobj/MCBase/MCShower.h"
 
