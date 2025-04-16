@@ -39,3 +39,6 @@ physics.filters.nuselection.AnalysisTools.timing.BucketTimeSigma: 0.750
 physics.filters.nuselection.AnalysisTools.timing.BatchIntensities: [1,1,1,1,1,1] # 6 batches
 physics.filters.nuselection.AnalysisTools.timing.NBucketsPerBatch: 84
 physics.filters.nuselection.AnalysisTools.timing.NFilledBucketsPerBatch: 81
+
+physics.filters.nuselection.AnalysisTools.timing.isMC: true
+physics.filters.nuselection.AnalysisTools.timing.isNuMI: true
