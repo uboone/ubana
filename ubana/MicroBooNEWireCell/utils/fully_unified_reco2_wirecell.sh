@@ -15,6 +15,7 @@ wc_input_celltree=""
 isOVERLAY=0
 data_type="DATA"
 isNuMI=0
+image_fail_check=1
 
 if ls celltreeDATA*.root 1> /dev/null 2>&1; then
         wc_input_celltree=`ls celltreeDATA*.root | xargs | awk '{print $1}'`
@@ -25,6 +26,7 @@ elif ls celltreeOVERLAY*.root 1> /dev/null 2>&1; then
         wc_input_celltree=`ls celltreeOVERLAY*.root | xargs | awk '{print $1}'`
       	isOVERLAY=1
 	data_type='OVERLAY'
+        image_fail_check=2 #needed to recover the truth info for these events 
         if ls *numi*.fcl 1> /dev/null 2>&1; then
                 isNuMI=1
         fi
@@ -85,7 +87,7 @@ do
 		input2=${input1#*result_}
 		echo $input2 | tee -a ../wirecell.log
 		mv $imagingfile imaging_$input2.root
-		prod-wire-cell-matching-nusel ./input_data_files/ChannelWireGeometry_v2.txt imaging_$input2.root -y1 -d$isOVERLAY 2>&1 | tee -a ../wirecell.log
+		prod-wire-cell-matching-nusel ./input_data_files/ChannelWireGeometry_v2.txt imaging_$input2.root -y$image_fail_check -d$isOVERLAY 2>&1 | tee -a ../wirecell.log
 		warning=`tail -n 1 ../wirecell.log`
 		echo "$warning"
 		if [ "$warning" = "No points! Quit! " ]; then

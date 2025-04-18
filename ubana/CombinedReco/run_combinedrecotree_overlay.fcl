@@ -37,4 +37,18 @@ physics.analyzers.wcpselection.POT_inputTag:	"generator"
 physics.analyzers.wcpweights.SaveWeights:	true
 physics.analyzers.wcpweights.SaveFullWeights:	true
 
+physics.analyzers.wcpselection.ccnd1_a: 0
+physics.analyzers.wcpselection.ccnd1_b: 0
+physics.analyzers.wcpselection.ccnd2_a: 0
+physics.analyzers.wcpselection.ccnd2_b: 0
+physics.analyzers.wcpselection.ccnd3_a: 0
+physics.analyzers.wcpselection.ccnd3_b: 0
+physics.analyzers.wcpselection.ccnd3_c: 0
+physics.analyzers.wcpselection.ccnd3_d: 0
+physics.analyzers.wcpselection.ccnd4_a: 0
+physics.analyzers.wcpselection.ccnd4_b: 0
+physics.analyzers.wcpselection.ccnd4_2_a: 0
+physics.analyzers.wcpselection.ccnd4_2_b: 0
+physics.analyzers.wcpselection.dist_cut_x_cor: 99999
+
 physics.ana: [wcpselection, wcpweights]
