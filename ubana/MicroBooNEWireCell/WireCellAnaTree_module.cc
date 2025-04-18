@@ -6405,6 +6405,19 @@ void WireCellAnaTree::resetOutput()
 	f_mcflux_dk2gen = -1;
 	f_mcflux_gen2vtx = -1;
 
+  f_truth_nuEnergy = -1;
+  f_truth_energyInside = -1;
+  f_truth_electronInside = -1;
+  f_truth_nuPdg = -1;
+  f_truth_isCC = -1;
+  f_truth_isEligible = -1;
+  f_truth_isFC = -1;
+  f_truth_vtxInside = -1;
+  f_truth_vtxX = -1;
+  f_truth_vtxY = -1;
+  f_truth_vtxZ = -1;
+  f_truth_nuTime = -1;
+
 	f_truth_corr_nuvtxX = -1; // truth -(SCE)-> SED -(nu time offset)-> reco [trigger offset O(10) ns ignored]
 	f_truth_corr_nuvtxY = -1;
 	f_truth_corr_nuvtxZ = -1;
