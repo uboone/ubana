@@ -192,8 +192,8 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
 	std::cout<<"--- NuSelectionSTM ---"<<std::endl;
 	if(stm_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
-		return;
-	} 
+		//return;
+	}else{
 	if(stm_vec.size()<1) {
 		f_stm_eventtype = -1;
 		f_stm_lowenergy = -1;
@@ -212,17 +212,19 @@ void WireCellEventWeightTree::analyze(art::Event const& e)
                 f_stm_FullDead = s.GetFullDead();
                 f_stm_clusterlength = s.GetClusterLength();
 	}
+}
 
         f_truth_vtxInside = false;
         auto const& truth_vec = e.getProduct<std::vector<nsm::NuSelectionTruth>>(fTruthLabel);
 	std::cout<<"--- NuSelectionTruth  ---"<<std::endl;
-	if(truth_vec.size()!=1) {
+	if(truth_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
-		return;
-	} 
+		//return;
+	}else{ 
         for(nsm::NuSelectionTruth const& t : truth_vec) {
                 f_truth_vtxInside = t.GetIsVtxInside();
 	}
+}
 
 	/// save GENIE weights
 	if(fSaveWeights) save_weights(e);	
