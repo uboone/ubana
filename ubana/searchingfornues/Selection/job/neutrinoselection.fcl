@@ -249,6 +249,8 @@ SlicePurComplTool: {
     HTproducer: "gaushitTruthMatch"
     OrigHproducer: "gaushit::OverlayStage1a"
     OrigHTproducer: "gaushitTruthMatch::OverlayRecoStage1b"
+    PreFiltHproducer: "nuslhits"
+    PreFiltHTproducer: "nuslhits"
 }
 
 NuGraphCountsTool: {
