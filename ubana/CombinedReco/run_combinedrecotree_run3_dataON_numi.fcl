@@ -1,0 +1,17 @@
+#include "run_combinedrecotree_run1_data_numi.fcl"
+
+# configure CRT veto module
+#physics.filters.crtveto: @local::UBCRTCosmicFilterBNBON
+#physics.filters.crtveto.useAsFilter: false
+#physics.filters.crtveto.CRTHitProducer: "merger"
+#physics.filters.crtveto.DTOffset: 68600.
+
+#physics.p1: [ crtveto, @sequence::physics.p1 ]
+
+physics.filters.nuselection.AnalysisTools.crtApproach:   @local::CRTApproachAnalysisTool
+physics.filters.nuselection.AnalysisTools.crtApproach.TrackAssnModuleLabel: "crttrackmatch"
+physics.filters.nuselection.AnalysisTools.default.CRTVetoproducer: "crtveto"
+
+physics.filters.nuselection.AnalysisTools.timing.isRun3: true
+
+
