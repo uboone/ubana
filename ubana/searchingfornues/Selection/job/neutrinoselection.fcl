@@ -364,7 +364,7 @@ NuSelectionFilter:{
         default: @local::DefaultAnalysisTool
         # you can add more analysis tools here
         slicepurcompl: @local::SlicePurComplTool
-        nugraphcounts: @local::NuGraphCountsTool
+        #nugraphcounts: @local::NuGraphCountsTool
         containment:   @local::ContainmentAnalysis
         #shower:        @local::ShowerAnalysisTool
         #showerstart:        @local::ShowerStartPointTool
@@ -382,7 +382,7 @@ NuSelectionFilter:{
         secondshower:  @local::SecondShowerTaggerTool
         eventfilter:   @local::EventFilterTool
         mcfilter:      @local::MCFilterAnalysisTool
-        blip:          @local::BlipAnalysisTool
+        #blip:          @local::BlipAnalysisTool
         #neutron:       @local::NeutronAnalysisTool
         timing:        @local::NeutrinoTimingAnalysisTool
     }
