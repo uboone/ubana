@@ -229,7 +229,7 @@ physics:
   # ana: [ wcpselection, wcpweights ]
   ana: [ wcpselection ]
 
-  p1: [ nuslicehits, proximity, shrreco3d, shrreco3dKalmanShower, shrreco3dKalmanShowercalo, shrreco3dKalmanShowercali, pandoraTrack, pandoraTrackcalo, pandoraTrackpid, pandoraTrackcali, pandoraTrackcalipid, nuselection ,allShr, singlephotonana]
+  p1: [ nuslicehits, proximity, shrreco3d, shrreco3dKalmanShower, shrreco3dKalmanShowercalo, shrreco3dKalmanShowercali, pandoraTrack, pandoraTrackcalo, pandoraTrackpid, pandoraTrackcali, pandoraTrackcalipid, allShr, singlephotonana, nuselection ]
 
   e1: [ rootout ]
   ## trigger_paths contains the paths that modify the art::Event
