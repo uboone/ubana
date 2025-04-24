@@ -1781,6 +1781,9 @@ namespace single_photon
             double m_mctruth_nu_vertex_x;
             double m_mctruth_nu_vertex_y;
             double m_mctruth_nu_vertex_z;
+            double m_mctruth_nu_vertex_x_nonsce;
+            double m_mctruth_nu_vertex_y_nonsce;
+            double m_mctruth_nu_vertex_z_nonsce;
             double m_mctruth_reco_vertex_dist;
             double m_mctruth_lepton_E;
             int m_mctruth_nu_pdg;

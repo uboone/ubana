@@ -11,6 +11,9 @@ namespace single_photon
         m_mctruth_nu_vertex_y = -9999;
         m_mctruth_nu_vertex_z = -9999;
         m_mctruth_reco_vertex_dist = -9999;
+        m_mctruth_nu_vertex_x_nonsce = -9999;
+        m_mctruth_nu_vertex_y_nonsce = -9999;
+        m_mctruth_nu_vertex_z_nonsce = -9999;
         m_mctruth_ccnc = -99;
         m_mctruth_qsqr = -99;
         m_mctruth_nu_E = -99;
@@ -140,6 +143,11 @@ namespace single_photon
         vertex_tree->Branch("mctruth_nu_vertex_x",&m_mctruth_nu_vertex_x);
         vertex_tree->Branch("mctruth_nu_vertex_y",&m_mctruth_nu_vertex_y);
         vertex_tree->Branch("mctruth_nu_vertex_z",&m_mctruth_nu_vertex_z);
+        vertex_tree->Branch("mctruth_nu_vertex_x_nonsce",&m_mctruth_nu_vertex_x_nonsce);
+        vertex_tree->Branch("mctruth_nu_vertex_y_nonsce",&m_mctruth_nu_vertex_y_nonsce);
+        vertex_tree->Branch("mctruth_nu_vertex_z_nonsce",&m_mctruth_nu_vertex_z_nonsce);
+
+
         vertex_tree->Branch("mctruth_reco_vertex_dist",&m_mctruth_reco_vertex_dist);
 
         vertex_tree->Branch("mctruth_lepton_pdg",&m_mctruth_lepton_pdg);
@@ -281,13 +289,19 @@ namespace single_photon
                 if(m_is_verbose) std::cout<<"Getting SC corrected vertex position"<<std::endl;
                 std::vector<double> corrected(3);
 	        // get corrected lepton position
-                this->spacecharge_correction( truth->GetNeutrino().Lepton(),corrected);
+            
+                this->spacecharge_correction(truth->GetNeutrino().Lepton(),corrected);
 
                 m_mctruth_nu_vertex_x = corrected[0];
                 m_mctruth_nu_vertex_y = corrected[1];
                 m_mctruth_nu_vertex_z = corrected[2];
                 m_mctruth_reco_vertex_dist = sqrt(pow (m_mctruth_nu_vertex_x-m_vertex_pos_x,2)+pow (m_mctruth_nu_vertex_y-m_vertex_pos_y,2)+pow (m_mctruth_nu_vertex_z-m_vertex_pos_z,2));
-            
+           
+                m_mctruth_nu_vertex_x_nonsce = truth->GetNeutrino().Lepton().Vx();
+                m_mctruth_nu_vertex_y_nonsce = truth->GetNeutrino().Lepton().Vy();
+                m_mctruth_nu_vertex_z_nonsce = truth->GetNeutrino().Lepton().Vz();
+
+
             }
 
 
@@ -329,7 +343,26 @@ namespace single_photon
                 m_mctruth_daughters_process[j] = par.Process();  //Process() and EndProcess() return string
                 m_mctruth_daughters_end_process[j] = par.EndProcess();
 
-                if(m_is_textgen) continue; //quick hack, fix in files
+                if(m_is_textgen){
+                    //If its textgen, the corrected mctruth_nu_vertex will fail. Fill here from the daughters
+    
+                    if(m_mctruth_nu_vertex_x < -999){
+                        std::vector<double> corrected(3);
+                        this->spacecharge_correction(par,corrected);
+                        m_mctruth_nu_vertex_x = corrected[0];
+                        m_mctruth_nu_vertex_y = corrected[1];
+                        m_mctruth_nu_vertex_z = corrected[2];
+                        m_mctruth_reco_vertex_dist = sqrt(pow (m_mctruth_nu_vertex_x-m_vertex_pos_x,2)+pow (m_mctruth_nu_vertex_y-m_vertex_pos_y,2)+pow (m_mctruth_nu_vertex_z-m_vertex_pos_z,2));
+                   
+                        m_mctruth_nu_vertex_x_nonsce = par.Vx();
+                        m_mctruth_nu_vertex_y_nonsce = par.Vy();
+                        m_mctruth_nu_vertex_z_nonsce = par.Vz();
+
+
+                    }            
+                    
+                continue; //quick hack, fix in files
+                }
 
                 switch(m_mctruth_daughters_pdg[j]){
                     case(22): // if it's a gamma

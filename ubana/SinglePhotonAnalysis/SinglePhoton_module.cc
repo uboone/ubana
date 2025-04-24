@@ -1527,7 +1527,7 @@ namespace single_photon
 
         if (m_fill_trees &&  (  (filter_pass_2g1p && m_run_pi0_filter_2g1p) || (filter_pass_2g0p && m_run_pi0_filter_2g0p) || !m_run_pi0_filter ) ) {
             vertex_tree->Fill();
-            ncdelta_slice_tree->Fill();
+            //ncdelta_slice_tree->Fill();
             eventweight_tree->Fill();
             true_eventweight_tree->Fill();
             geant4_tree->Fill();
