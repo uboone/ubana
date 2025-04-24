@@ -36,7 +36,7 @@ singlephoton_analyzer:{
     SEAviewStubMakePDF: false 
     SEAviewStubNumRecoShower: 1
     SEAviewStubNumRecoTrack: 0
-
+    
     FillTrees: true
     RunPi0Filter: false
     FilterMode2g1p: false
@@ -53,7 +53,8 @@ singlephoton_analyzer:{
     wire_spacing : 0.3 
     width_box : 1.
     length_box : 4.
-    
+    TruncMeanFraction: 10.0
+
     truthmatching_signaldef : "ncdelta"
     runAllPFPs: "false"
     exiting_photon_energy: 0.02

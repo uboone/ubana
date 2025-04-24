@@ -4,7 +4,7 @@
 #include "database_microboone.fcl"
 #include "databaseutil_microboone.fcl"
 #include "neutrinoselection.fcl"
-process_name: CombinedRecoAnaTree2
+process_name: CombinedRecoAnaTree
 
 services:
 {
@@ -59,7 +59,6 @@ physics:
         pandoraTrackcali:                 @local::microboone_reco_data_producers.pandoracaliSCE
         pandoraTrackcalipid:              @local::particleidconfig
         allShr:                           @local::microboone_pandoraShowerCreation
-
   }
   filters:
   {
@@ -107,7 +106,7 @@ physics:
       MCS:          true      
       
       # LANTERN integration options
-      RunLArPID:          false
+      RunLArPID:          true
       LArPIDModel:        "LArPID_default_network_weights_torchscript_v2_model.pt"
       PixelThreshold:     5
       AllPlaneThreshold:  true
@@ -312,10 +311,7 @@ physics.producers.proximity.HitProducer: "nuslicehits"
 physics.producers.pandoraTrackcali.ELifetimeCorrection: true
 physics.producers.shrreco3dKalmanShowercali.ELifetimeCorrection: true
 
-
 physics.producers.allShr.PFParticleLabel: "pandoraPatRec:allOutcomes"
-physics.filters.singlephotonana.TruncMeanFraction: 10.0
-services.DetectorClocksService.TrigModuleName:               "daq"
 
 microboone_tfile_metadata:
 {
