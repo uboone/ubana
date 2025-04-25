@@ -2,3 +2,10 @@
 
 physics.filters.nuselection.AnalysisTools.flashmatchid: @local::FlashMatchingTool
 physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
+
+#nstiming
+physics.filters.nuselection.AnalysisTools.timing.isNuMI: true
+physics.filters.nuselection.AnalysisTools.timing.isRun3: true
+physics.filters.nuselection.AnalysisTools.timing.isMC: true
+physics.filters.nuselection.AnalysisTools.timing.MCOffset: 1754
+physics.filters.nuselection.AnalysisTools.timing.SaveExtraInfo: true

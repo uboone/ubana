@@ -2,3 +2,5 @@
 
 physics.filters.nuselection.AnalysisTools.flashmatchid: @local::FlashMatchingTool
 physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
+
+physics.filters.nuselection.AnalysisTools.timing.isNuMI: true
