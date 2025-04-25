@@ -121,7 +121,7 @@ namespace analysis
     double _maxP[32]; 
     double _timeP[32];
     double _RWM_T;
-    double _BeamT0;
+    //double _BeamT0;
 
     bool fMC;
     bool f_isrun3;
