@@ -2056,6 +2056,15 @@ namespace single_photon
             return;
         }
 
+        // mcc9.10 quick fix for new pandora
+        if (nTracks >0 && nShowers == 1)
+        {
+            showers.push_back(associatedShowers.front());
+            showerToNuPFParticleMap[showers.back()] = pParticle;
+            // std::cout<<"adding to showerToNuPFParticleMap this shower with id "<<  associatedShowers.front()->ID() << " and PFP "<< pParticle->Self()<<std::endl;
+
+            return;
+        }
         throw cet::exception("SinglePhoton") << "  There were " << nTracks << " tracks and " << nShowers << " showers associated with PFParticle " << pParticle->Self();
 
     }
