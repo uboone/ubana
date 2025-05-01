@@ -60,16 +60,16 @@ physics.analyzers.wcpweights.GenieKnobs:        [ "All_UBGenie"
                                                 , "xsr_scc_Fv3_SCC" ]
 
 
-physics.analyzers.wcpselection.ccnd1_a: 0.17956
-physics.analyzers.wcpselection.ccnd1_b: 2.604
+physics.analyzers.wcpselection.ccnd1_a: 0
+physics.analyzers.wcpselection.ccnd1_b: 0
 physics.analyzers.wcpselection.ccnd2_a: 0
 physics.analyzers.wcpselection.ccnd2_b: 0
 physics.analyzers.wcpselection.ccnd3_a: 0
 physics.analyzers.wcpselection.ccnd3_b: 0
 physics.analyzers.wcpselection.ccnd3_c: 0
 physics.analyzers.wcpselection.ccnd3_d: 0
-physics.analyzers.wcpselection.ccnd4_a: -0.0338
-physics.analyzers.wcpselection.ccnd4_b: -2.8479
-physics.analyzers.wcpselection.ccnd4_2_a: 0.0124
-physics.analyzers.wcpselection.ccnd4_2_b: 4.4716
-physics.analyzers.wcpselection.dist_cut_x_cor: 150
+physics.analyzers.wcpselection.ccnd4_a: 0
+physics.analyzers.wcpselection.ccnd4_b: 0
+physics.analyzers.wcpselection.ccnd4_2_a: 0
+physics.analyzers.wcpselection.ccnd4_2_b: 0
+physics.analyzers.wcpselection.dist_cut_x_cor: 99999

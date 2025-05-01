@@ -64,7 +64,7 @@ do
 		input2=${input1#*result_}
 		echo $input2 | tee -a ../wirecell.log
 		mv $imagingfile imaging_$input2.root
-		prod-wire-cell-matching-nusel ./input_data_files/ChannelWireGeometry_v2.txt imaging_$input2.root -y1 -d1 2>&1 | tee -a ../wirecell.log
+		prod-wire-cell-matching-nusel ./input_data_files/ChannelWireGeometry_v2.txt imaging_$input2.root -y2 -d1 2>&1 | tee -a ../wirecell.log
 		warning=`tail -n 1 ../wirecell.log`
 		echo "$warning"
 		if [ "$warning" = "No points! Quit! " ]; then

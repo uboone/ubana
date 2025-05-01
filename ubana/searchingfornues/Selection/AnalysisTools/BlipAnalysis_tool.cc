@@ -14,7 +14,7 @@
 #include "ubana/searchingfornues/Selection/CommonDefs/SCECorrections.h"
 #include "ubana/searchingfornues/Selection/CommonDefs/Geometry.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
-#include "ubreco/BlipReco/Utils/DataTypes.h"
+#include "ubobj/Blip/DataTypes.h"
 
 namespace analysis
 {
@@ -158,7 +158,7 @@ void BlipAnalysis::addTheBlip(art::Ptr<blipobj::Blip> blip){
     // get reconstructed position
     //TVector3 loc;
     TVector3 loc = (fSaveSCECorrLoc) ? blip->PositionSCE : blip->Position;
-    
+
     // get reconstructed charge and energy
     float energy = -9; float charge = -9;
     if( fSaveSCECorrEnergy ) {
@@ -333,7 +333,9 @@ void BlipAnalysis::setBranches(TTree *_tree)
   _tree->Branch("blip_x",           "std::vector< float >",   &_blip_x);
   _tree->Branch("blip_y",           "std::vector< float >",   &_blip_y);
   _tree->Branch("blip_z",           "std::vector< float >",   &_blip_z);
-  _tree->Branch("blip_size",        "std::vector< float >",   &_blip_size);
+  //_tree->Branch("blip_size",        "std::vector< float >",   &_blip_size);
+  _tree->Branch("blip_dx",          "std::vector< float >",   &_blip_dx);
+  _tree->Branch("blip_dw",          "std::vector< float >",   &_blip_dw);
   _tree->Branch("blip_energy",      "std::vector< float >",   &_blip_energy);
   if( !fLiteMode ) {
   _tree->Branch("blip_charge",      "std::vector< float >",   &_blip_charge);
@@ -343,7 +345,7 @@ void BlipAnalysis::setBranches(TTree *_tree)
   _tree->Branch("blip_touchtrk",    "std::vector< bool >",    &_blip_touchtrk);
   _tree->Branch("blip_touchtrkid",  "std::vector< int >",     &_blip_touchtrkid);
   //_tree->Branch("blip_bydeadwire",  "std::vector< bool >",    &_blip_bydeadwire);
-  _tree->Branch("blip_badwirefrac",  "std::vector< float >",    &_blip_badwirefrac);
+  //_tree->Branch("blip_badwirefrac",  "std::vector< float >",    &_blip_badwirefrac);
   _tree->Branch("blip_pl0_nwires",  "std::vector< int >",     &_blip_pl0_nwires);
   _tree->Branch("blip_pl1_nwires",  "std::vector< int >",     &_blip_pl1_nwires);
   _tree->Branch("blip_pl2_nwires",  "std::vector< int >",     &_blip_pl2_nwires);
@@ -353,9 +355,9 @@ void BlipAnalysis::setBranches(TTree *_tree)
   _tree->Branch("blip_pl0_bydeadwire","std::vector< bool >",  &_blip_pl0_bydeadwire);
   _tree->Branch("blip_pl1_bydeadwire","std::vector< bool >",  &_blip_pl1_bydeadwire);
   _tree->Branch("blip_pl2_bydeadwire","std::vector< bool >",  &_blip_pl2_bydeadwire);
-  _tree->Branch("blip_pl0_centerwire","std::vector< int >",   &_blip_pl0_centerwire);
-  _tree->Branch("blip_pl1_centerwire","std::vector< int >",   &_blip_pl1_centerwire);
-  _tree->Branch("blip_pl2_centerwire","std::vector< int >",   &_blip_pl2_centerwire);
+  //_tree->Branch("blip_pl0_centerwire","std::vector< int >",   &_blip_pl0_centerwire);
+  //_tree->Branch("blip_pl1_centerwire","std::vector< int >",   &_blip_pl1_centerwire);
+  //_tree->Branch("blip_pl2_centerwire","std::vector< int >",   &_blip_pl2_centerwire);
   }
   _tree->Branch("blip_true_g4id",   "std::vector< int >",     &_blip_true_g4id);
   _tree->Branch("blip_true_pdg",    "std::vector< int >",     &_blip_true_pdg);

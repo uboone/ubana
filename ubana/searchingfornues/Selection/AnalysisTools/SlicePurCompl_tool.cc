@@ -81,6 +81,8 @@ private:
   art::InputTag fHTproducer;
   art::InputTag fOrigHproducer;
   art::InputTag fOrigHTproducer;
+  art::InputTag fPreFiltHproducer;
+  art::InputTag fPreFiltHTproducer;
   //
   std::vector<size_t> lepid; //lepton
   std::vector<size_t> proid; //protons
@@ -102,6 +104,7 @@ private:
 
   // TTree variables
   // per event
+  int origevnhits;
   int origevnunhits;
   int origevnunhits2;
   int origevlepnhits;
@@ -111,6 +114,16 @@ private:
   int origevneunhits;
   int origevgamnhits;
   int origevothnhits;
+  int prefiltnhits;
+  int prefiltnunhits;
+  int prefiltnunhits2;
+  int prefiltlepnhits;
+  int prefiltpronhits;
+  int prefiltpi1nhits;
+  int prefiltpi0nhits;
+  int prefiltneunhits;
+  int prefiltgamnhits;
+  int prefiltothnhits;
   int evnunhits;
   int evlepnhits;
   int evpronhits;
@@ -162,6 +175,8 @@ SlicePurCompl::SlicePurCompl(const fhicl::ParameterSet &p)
   fHTproducer = p.get<art::InputTag>("HTproducer");
   fOrigHproducer = p.get<art::InputTag>("OrigHproducer");
   fOrigHTproducer = p.get<art::InputTag>("OrigHTproducer");
+  fPreFiltHproducer = p.get<art::InputTag>("PreFiltHproducer");
+  fPreFiltHTproducer = p.get<art::InputTag>("PreFiltHTproducer");
 }
 
 //----------------------------------------------------------------------------
@@ -298,6 +313,7 @@ void SlicePurCompl::analyzeEvent(art::Event const &e, bool fData)
   if (fOrigHproducer.empty()==false) {
     auto hitsOrig = e.getValidHandle<std::vector<recob::Hit>>(fOrigHproducer);
     auto assocMCPartOrig = std::unique_ptr<art::FindManyP<simb::MCParticle, anab::BackTrackerHitMatchingData>>(new art::FindManyP<simb::MCParticle, anab::BackTrackerHitMatchingData>(hitsOrig, e, fOrigHTproducer));
+    origevnhits = hitsOrig->size();
     int nOrigNuHits = 0;
     for (size_t ih=0;ih<hitsOrig->size();ih++) {
       const art::Ptr<recob::Hit> hit_ptr(hitsOrig, ih);
@@ -322,6 +338,7 @@ void SlicePurCompl::analyzeEvent(art::Event const &e, bool fData)
     origevothnhits = nothhitsOrig;
 
   } else {
+    origevnhits = inputHits->size();
     origevnunhits = evnunhits;
     origevnunhits2 = evnunhits;
     origevlepnhits = evlepnhits;
@@ -331,6 +348,47 @@ void SlicePurCompl::analyzeEvent(art::Event const &e, bool fData)
     origevneunhits = evneunhits;
     origevgamnhits = evgamnhits;
     origevothnhits = evothnhits;
+
+  }
+
+  if (fPreFiltHproducer.empty()==false) {
+    auto hitsPreFilt = e.getValidHandle<std::vector<recob::Hit>>(fPreFiltHproducer);
+    auto assocMCPartPreFilt = std::unique_ptr<art::FindManyP<simb::MCParticle, anab::BackTrackerHitMatchingData>>(new art::FindManyP<simb::MCParticle, anab::BackTrackerHitMatchingData>(hitsPreFilt, e, fPreFiltHTproducer));
+    prefiltnhits = hitsPreFilt->size();
+    int nPreFiltNuHits = 0;
+    for (size_t ih=0;ih<hitsPreFilt->size();ih++) {
+      const art::Ptr<recob::Hit> hit_ptr(hitsPreFilt, ih);
+      if (assocMCPartPreFilt->at(hit_ptr.key()).size()) nPreFiltNuHits++;
+    }
+    prefiltnunhits = nPreFiltNuHits;
+
+    int nlephitsPreFilt = 0, nprohitsPreFilt = 0, npi1hitsPreFilt = 0, npi0hitsPreFilt = 0, nneuhitsPreFilt = 0, ngamhitsPreFilt = 0, nothhitsPreFilt = 0;
+    std::vector<art::Ptr<recob::Hit>> inHitsPreFiltPtrV;
+    for (unsigned int ih = 0; ih < hitsPreFilt->size(); ih++)
+      inHitsPreFiltPtrV.push_back({hitsPreFilt, ih});
+    incrementCounts(inHitsPreFiltPtrV, assocMCPartPreFilt,
+		    lepid, proid, pi1id, pi0id, neuid, gamid, othid,
+		    nlephitsPreFilt, nprohitsPreFilt, npi1hitsPreFilt, npi0hitsPreFilt, nneuhitsPreFilt, ngamhitsPreFilt, nothhitsPreFilt);
+    prefiltnunhits2 = nlephitsPreFilt + nprohitsPreFilt + npi1hitsPreFilt + npi0hitsPreFilt + nneuhitsPreFilt + ngamhitsPreFilt + nothhitsPreFilt;
+    prefiltlepnhits = nlephitsPreFilt;
+    prefiltpronhits = nprohitsPreFilt;
+    prefiltpi1nhits = npi1hitsPreFilt;
+    prefiltpi0nhits = npi0hitsPreFilt;
+    prefiltneunhits = nneuhitsPreFilt;
+    prefiltgamnhits = ngamhitsPreFilt;
+    prefiltothnhits = nothhitsPreFilt;
+
+  } else {
+    prefiltnhits = inputHits->size();
+    prefiltnunhits = evnunhits;
+    prefiltnunhits2 = evnunhits;
+    prefiltlepnhits = evlepnhits;
+    prefiltpronhits = evpronhits;
+    prefiltpi1nhits = evpi1nhits;
+    prefiltpi0nhits = evpi0nhits;
+    prefiltneunhits = evneunhits;
+    prefiltgamnhits = evgamnhits;
+    prefiltothnhits = evothnhits;
 
   }
   return;
@@ -415,6 +473,7 @@ void SlicePurCompl::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t
 
 void SlicePurCompl::setBranches(TTree *_tree)
 {
+  _tree->Branch("origevnhits", &origevnhits, "origevnhits/I");
   _tree->Branch("origevnunhits", &origevnunhits, "origevnunhits/I");
   _tree->Branch("origevnunhits2", &origevnunhits2, "origevnunhits2/I");
   _tree->Branch("origevlepnhits", &origevlepnhits, "origevlepnhits/I");
@@ -424,6 +483,17 @@ void SlicePurCompl::setBranches(TTree *_tree)
   _tree->Branch("origevneunhits", &origevneunhits, "origevneunhits/I");
   _tree->Branch("origevgamnhits", &origevgamnhits, "origevgamnhits/I");
   _tree->Branch("origevothnhits", &origevothnhits, "origevothnhits/I");
+
+  _tree->Branch("prefiltnhits", &prefiltnhits, "prefiltnhits/I");
+  _tree->Branch("prefiltnunhits", &prefiltnunhits, "prefiltnunhits/I");
+  _tree->Branch("prefiltnunhits2", &prefiltnunhits2, "prefiltnunhits2/I");
+  _tree->Branch("prefiltlepnhits", &prefiltlepnhits, "prefiltlepnhits/I");
+  _tree->Branch("prefiltpronhits", &prefiltpronhits, "prefiltpronhits/I");
+  _tree->Branch("prefiltpi1nhits", &prefiltpi1nhits, "prefiltpi1nhits/I");
+  _tree->Branch("prefiltpi0nhits", &prefiltpi0nhits, "prefiltpi0nhits/I");
+  _tree->Branch("prefiltneunhits", &prefiltneunhits, "prefiltneunhits/I");
+  _tree->Branch("prefiltgamnhits", &prefiltgamnhits, "prefiltgamnhits/I");
+  _tree->Branch("prefiltothnhits", &prefiltothnhits, "prefiltothnhits/I");
 
   _tree->Branch("evnunhits", &evnunhits, "evnunhits/I");
   _tree->Branch("evlepnhits", &evlepnhits, "evlepnhits/I");
@@ -458,6 +528,7 @@ void SlicePurCompl::setBranches(TTree *_tree)
 
 void SlicePurCompl::resetTTree(TTree *_tree)
 {
+  origevnhits = std::numeric_limits<int>::min();
   origevnunhits = std::numeric_limits<int>::min();
   origevnunhits2 = std::numeric_limits<int>::min();
   origevlepnhits = std::numeric_limits<int>::min();
@@ -469,6 +540,17 @@ void SlicePurCompl::resetTTree(TTree *_tree)
   origevothnhits = std::numeric_limits<int>::min();
   nu_purity_from_pfp = std::numeric_limits<int>::min();
   nu_completeness_from_pfp = std::numeric_limits<int>::min();
+  //
+  prefiltnhits = std::numeric_limits<int>::min();
+  prefiltnunhits = std::numeric_limits<int>::min();
+  prefiltnunhits2 = std::numeric_limits<int>::min();
+  prefiltlepnhits = std::numeric_limits<int>::min();
+  prefiltpronhits = std::numeric_limits<int>::min();
+  prefiltpi1nhits = std::numeric_limits<int>::min();
+  prefiltpi0nhits = std::numeric_limits<int>::min();
+  prefiltneunhits = std::numeric_limits<int>::min();
+  prefiltgamnhits = std::numeric_limits<int>::min();
+  prefiltothnhits = std::numeric_limits<int>::min();
   //
   evnunhits = std::numeric_limits<int>::min();
   evlepnhits = std::numeric_limits<int>::min();

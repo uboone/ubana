@@ -139,6 +139,7 @@ cat <<EOF > $FCL
 
 physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
 
+physics.analyzers.wcpselection.IsNuMI:               ${flag_numi}
 physics.analyzers.wcpselection.ccnd1_a: ${ccnd1_a} 
 physics.analyzers.wcpselection.ccnd1_b: ${ccnd1_b}
 physics.analyzers.wcpselection.ccnd2_a: ${ccnd2_a} 

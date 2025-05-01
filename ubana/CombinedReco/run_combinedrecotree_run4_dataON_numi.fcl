@@ -1,5 +1,6 @@
-#include "run_combinedrecotree_run3_dataON.fcl"
+#include "run_combinedrecotree_run3_dataON_numi.fcl"
 
 physics.filters.nuselection.AnalysisTools.flashmatchid: @local::FlashMatchingTool
 physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
-physics.filters.nuselection.AnalysisTools.timing.isEXT: false
+
+physics.filters.nuselection.AnalysisTools.timing.isNuMI: true

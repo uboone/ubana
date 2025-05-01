@@ -55,7 +55,7 @@
 #include "TRandom3.h"
 #include "dk2nu/tree/dk2nu.h"
 
-#include "ubana/ReBooNE/Utils/BooNEInfo.h"
+#include "ubobj/ReBooNE/BooNEInfo.h"
 
 #include "lardataobj/MCBase/MCShower.h"
 
@@ -3850,8 +3850,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	std::cout<<"--- NuSelectionContainment ---"<<std::endl;
 	if(containment_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
-		return;
-	}
+		//return;
+	}else{
 	if(containment_vec.size()<1) {
 		f_flash_found = false;
 		f_flash_found_asInt = -1;
@@ -3890,25 +3890,27 @@ void WireCellAnaTree::analyze(art::Event const& e)
                 f_lm_cluster_length = c.GetLength();
                 f_image_fail = c.GetImageFail();
 	}
+}
 
         auto const& charge_vec = e.getProduct<std::vector<nsm::NuSelectionCharge>>(fChargeLabel);
 	std::cout<<"--- NuSelectionCharge  ---"<<std::endl;
-	if(charge_vec.size()!=1) {
+	if(charge_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
-		return;
-	}
+		//return;
+	}else{
         for(nsm::NuSelectionCharge const& c : charge_vec) {
                 f_match_chargeU = c.GetChargeU();
                 f_match_chargeV = c.GetChargeV();
                 f_match_chargeY = c.GetChargeY();
 	}
+}
 
         auto const& stm_vec = e.getProduct<std::vector<nsm::NuSelectionSTM>>(fSTMLabel);
 	std::cout<<"--- NuSelectionSTM ---"<<std::endl;
 	if(stm_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
-		return;
-	}
+		//return;
+	}else{
 	if(stm_vec.size()<1) {
 		f_stm_eventtype = -1;
 		f_stm_lowenergy = -1;
@@ -3927,15 +3929,16 @@ void WireCellAnaTree::analyze(art::Event const& e)
                 f_stm_FullDead = s.GetFullDead();
                 f_stm_clusterlength = s.GetClusterLength();
 	}
+}
 
 	if(fMC==true){
 
         auto const& truth_vec = e.getProduct<std::vector<nsm::NuSelectionTruth>>(fTruthLabel);
 	std::cout<<"--- NuSelectionTruth  ---"<<std::endl;
-	if(truth_vec.size()!=1) {
+	if(truth_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
-		return;
-	}
+		//return;
+	}else{
         for(nsm::NuSelectionTruth const& t : truth_vec) {
                 f_truth_nuEnergy = t.GetNuEnergy();
                 f_truth_energyInside = t.GetEnergyInside();
@@ -3950,13 +3953,14 @@ void WireCellAnaTree::analyze(art::Event const& e)
                 f_truth_vtxZ = t.GetVtxZ();
                 f_truth_nuTime = t.GetTime();
 	}
+}
 
         auto const& match_vec = e.getProduct<std::vector<nsm::NuSelectionMatch>>(fMatchLabel);
 	std::cout<<"--- NuSelectionMatch  ---"<<std::endl;
-	if(match_vec.size()!=1) {
+	if(match_vec.size()>1) {
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
-		return;
-	}
+		//return;
+	}else{
         for(nsm::NuSelectionMatch const& m : match_vec) {
                 f_match_completeness = m.GetCompleteness();
                 f_match_completeness_energy = m.GetCompletenessEnergy();
@@ -3964,6 +3968,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
                 f_match_purity_xz = m.GetPurityXZ();
                 f_match_purity_xy = m.GetPurityXY();
 	}
+}
 
 	/// save GENIE weights
 	if(fSaveWeights) save_weights(e);
@@ -4863,8 +4868,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	std::cout<<"--- NuSelectionBDT ---"<<std::endl;
         if(bdthandle->size()>1) {
 		std::cout<<"WARNING: >1 set of BDT input variables" << std::endl;
-		return;
-	}
+		//return;
+	}else{
         for(nsm::NuSelectionBDT const& bdt : *bdthandle) {
                 //Always fill, we get nue files when we pass KDAR gen sel 
                 ReadSSMBDTvar(bdt);
@@ -4884,6 +4889,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
         bdt.GetCosmicTagger().cosmic_n_indirect_showers<<" "<<
         bdt.GetCosmicTagger().cosmic_n_main_showers<<"\n";
 	}
+}
       }
 
       if(f_KINEvars){
@@ -4892,8 +4898,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	std::cout<<"--- NuSelectionKINE ---"<<std::endl;
         if(kinehandle->size()>1) {
 		std::cout<<"WARNING: >1 set of KINE input variables" << std::endl;
-		return;
-	}
+		//return;
+	}else{
         for(nsm::NuSelectionKINE const& kine : *kinehandle) {
                 if(f_lm_cluster_length>10){
                   ReadKINEvar(kine);
@@ -4927,6 +4933,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	kine.GetKineInfo().kine_pio_dis_2<<" "<<
 	kine.GetKineInfo().kine_pio_angle<<"\n";
 	}
+}
       }
 
   // Adding MCS product
@@ -6397,6 +6404,19 @@ void WireCellAnaTree::resetOutput()
 	f_mcflux_genz = -1;
 	f_mcflux_dk2gen = -1;
 	f_mcflux_gen2vtx = -1;
+
+  f_truth_nuEnergy = -1;
+  f_truth_energyInside = -1;
+  f_truth_electronInside = -1;
+  f_truth_nuPdg = -1;
+  f_truth_isCC = -1;
+  f_truth_isEligible = -1;
+  f_truth_isFC = -1;
+  f_truth_vtxInside = -1;
+  f_truth_vtxX = -1;
+  f_truth_vtxY = -1;
+  f_truth_vtxZ = -1;
+  f_truth_nuTime = -1;
 
 	f_truth_corr_nuvtxX = -1; // truth -(SCE)-> SED -(nu time offset)-> reco [trigger offset O(10) ns ignored]
 	f_truth_corr_nuvtxY = -1;

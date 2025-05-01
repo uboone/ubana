@@ -1,0 +1,8 @@
+#include "run_neutrinoselectionfilter_run3_dataON_cc0pinp_numi.fcl"
+
+physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
+
+physics.filters.nuselection.AnalysisTools.flashmatchid: @local::FlashMatchingTool
+physics.filters.nuselection.AnalysisTools.timing.isNuMI: true
+physics.filters.nuselection.AnalysisTools.timing.isEXT: true
+physics.filters.nuselection.AnalysisTools.timing.isMC: false

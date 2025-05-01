@@ -1,3 +1,10 @@
 #include "run_neutrinoselectionfilter_run3_overlay_cc0pinp_numi.fcl"
 
 physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
+
+#nstiming
+physics.filters.nuselection.AnalysisTools.timing.isNuMI: true
+physics.filters.nuselection.AnalysisTools.timing.isRun3: true
+physics.filters.nuselection.AnalysisTools.timing.isMC: true
+physics.filters.nuselection.AnalysisTools.timing.MCOffset: 1754
+physics.filters.nuselection.AnalysisTools.timing.SaveExtraInfo: true
