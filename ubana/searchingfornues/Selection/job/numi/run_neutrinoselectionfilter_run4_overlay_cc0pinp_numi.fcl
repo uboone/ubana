@@ -1,5 +1,6 @@
 #include "run_neutrinoselectionfilter_run3_overlay_cc0pinp_numi.fcl"
 
+physics.filters.nuselection.AnalysisTools.flashmatchid: @local::FlashMatchingTool
 physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
 
 #nstiming
