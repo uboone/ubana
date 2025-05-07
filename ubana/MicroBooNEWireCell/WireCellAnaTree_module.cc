@@ -238,7 +238,6 @@ private:
   bool f_saveTrueEDepSpacePoints;
 
   float f_shiftoffset;
-  bool f_isrun3;
   float f_ccnd1_a;
   float f_ccnd1_b;
   float f_ccnd2_a;
@@ -1891,6 +1890,9 @@ private:
   std::vector<float> *f_sps_pdg;
   std::vector<float> *f_sps_id;
 
+  std::string fnstimePMTLabel;
+  std::string fnstimeRWMLabel;
+
   std::vector<int> *f_PMT_ID;
   std::vector<float> *f_PMT_Time;
   std::vector<float> *f_PMT_Amp;
@@ -1926,6 +1928,8 @@ private:
   //TH1F *ns_time;
 
   //for resimulating beam structure
+  std::string fnstimeRedk2nuLabel;
+  std::string fnstimeRbooneLabel;
   double fTimeBetweenBuckets;  //time between buckets
   double fBucketTimeSigma;  //how wide is distribution in bucket
   double fNBucketsPerBatch;   
@@ -2003,6 +2007,10 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
 
   f_savesps = pset.get<bool>("SaveSPS", false);
 
+
+  fnstimePMTLabel = pset.get<std::string>("nstimePMTLabel", "pmtreadout:OpdetBeamHighGain");
+  fnstimeRWMLabel = pset.get<std::string>("nstimeRWMLabel", "pmtreadout:UnspecifiedLogic");
+
   f_savepmt  = pset.get<bool>("SavePMT", false);
 
   f_ns_time_useSSMvtx = pset.get<bool>("ns_time_useSSMvtx", false);
@@ -2011,7 +2019,6 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fsol = pset.get<float>("ns_time_sol", 0.033356);
 
   f_shiftoffset = pset.get<float>("ShiftOffset", 0);
-  f_isrun3 = pset.get<bool>("isRun3", false);
   f_ccnd1_a = pset.get<float>("ccnd1_a", 0.529594);
   f_ccnd1_b = pset.get<float>("ccnd1_b", 7.13804);
   f_ccnd2_a = pset.get<float>("ccnd2_a", 0.068752);
@@ -2028,6 +2035,8 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
 
   f_get_ns_time = pset.get<bool>("get_ns_time", true);
 
+  fnstimeRedk2nuLabel = pset.get<std::string>("nstimeRedk2nuLabel", "generator");
+  fnstimeRebooneLabel = pset.get<std::string>("nstimeRebooneLabel", "generator");
   f_get_spill_time = pset.get<bool>("get_spill_time", false);
   f_get_reboone_time = pset.get<bool>("get_reboone_time", false);
   f_get_redk2nu_time = pset.get<bool>("get_redk2nu_time", false);
@@ -4799,7 +4808,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	    propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx)*100*0.033356;
 	    art::Handle<std::vector<bsim::Dk2Nu>> dk2nu_flux_handle;
 	    std::vector<art::Ptr<bsim::Dk2Nu> > dk2nu_flux;
-            e.getByLabel("generator",dk2nu_flux_handle);
+            e.getByLabel(fnstimeRedk2nuLabel,dk2nu_flux_handle);
             art::fill_ptr_vector(dk2nu_flux,dk2nu_flux_handle);
 	    if(dk2nu_flux.size()==0){
               std::cout<<"no redk2nu found"<<std::endl;
@@ -4815,7 +4824,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
           else if(f_get_reboone_time){
             art::Handle<std::vector<BooNEInfo>> flux_handle_bnb;
             std::vector<art::Ptr<BooNEInfo> > bnb_flux;
-            e.getByLabel("generator", flux_handle_bnb);
+            e.getByLabel(fnstimeRebooneLabel, flux_handle_bnb);
             art::fill_ptr_vector(bnb_flux, flux_handle_bnb);
             if(bnb_flux.size()==0){
               std::cout<<"no ReBooNE found"<<std::endl;
@@ -8072,7 +8081,7 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
     }
     double TT3_array[32];
     //do not think we have to make this correction for NuMI, may need to revisit
-    if(f_isrun3 && f_run>17200 && f_run<17400 && !fIsNuMI){if(RWM_T>5450){ f_shiftoffset=118.3;}}
+    if(f_run>17200 && f_run<17400 && !fIsNuMI){if(RWM_T>5450){ f_shiftoffset=118.3;}}
     float RWM_offset = 5700.0 - f_shiftoffset;
     for(uint i=0; i<N_pmt.size(); i++){
       ccnd1= timeProp[i]*(f_ccnd1_a)-(f_ccnd1_b);
@@ -8096,6 +8105,9 @@ void WireCellAnaTree::nsbeamtiming(art::Event const& e)
   if(f_get_redk2nu_time || f_get_reboone_time || f_get_spill_time){ 
     f_evtTimeNS_cor = Med_TT3+f_cor_nu_deltatime; 
     std::cout<<"evtTimeNS "<<f_evtTimeNS<<"  Corrected evtTimeNS: "<<f_evtTimeNS_cor<<std::endl;
+  }
+  else{
+    std::cout<<"evtTimeNS "<<f_evtTimeNS<<std::endl;
   }
   f_Ph_Tot = Ph_Tot;
 
@@ -8134,10 +8146,9 @@ void WireCellAnaTree::getPMTwf(art::Event const& e, double maxP[32], double time
     if(fIsNuMI){samples=1500; samples_64=23;}//do we need to go this much further?
     //get waveforms
     art::Handle< std::vector< raw::OpDetWaveform > > wf_handle;
-    if(!fMC) {e.getByLabel( "pmtreadout:OpdetBeamHighGain", wf_handle );}
-    else{e.getByLabel( "mixer:OpdetBeamHighGain", wf_handle );}//MC in this instead
+    e.getByLabel( fnstimePMTLabel, wf_handle );
     if(!wf_handle.isValid()) {
-      std::cout<<"BeamTiming: No pmtreadout:OpdetBeamHighGain!"<<std::endl;
+      std::cout<<"BeamTiming: No "<<fnstimePMTLabel<<std::endl;
       return;
     }
     //clear waveform
@@ -8237,16 +8248,15 @@ double WireCellAnaTree::getBeamWF(art::Event const& e)
     //get RWM--------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------
     art::Handle< std::vector< raw::OpDetWaveform > > wf_handle_beam;
-    e.getByLabel( "pmtreadout:UnspecifiedLogic", wf_handle_beam );
+    e.getByLabel( fnstimeRWMLabel, wf_handle_beam );
     if(!wf_handle_beam.isValid()) {
-      std::cout<<"BeamTiming: No pmtreadout:UnspecifiedLogic!"<<std::endl;
+      std::cout<<"BeamTiming: No "<<fnstimePMTLabel<<std::endl;
       return -99999.0;
     }
     std::vector<double> *wf_w_03 = new std::vector<double>;
     for (size_t i=0; i < wf_handle_beam->size(); i++) {
       auto const wf = wf_handle_beam->at(i);
       auto ch = wf.ChannelNumber();
-      std::cout<<"Channel: "<<ch<<"  size: "<<wf.size()<<std::endl;
       // BNB RWM is ch 39, NuMI RWM is ch 37
       if ( (ch != 39 && !fIsNuMI) || (ch != 37 && fIsNuMI) ) continue;
       for (size_t n=0; n < wf.size(); n++){

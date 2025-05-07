@@ -44,8 +44,8 @@ run_number=`echo $next_stage_input | cut -d '-' -f3`
 echo $run_number
 
 FT_STREAM="run1"
-isRun3="false"
 ShiftOffset="0"
+nstimePMTLabel="pmtreadout:OpdetBeamHighGain"
 if [ "$run_number" -ge "3420"  ] && [  "8316" -ge "$run_number"  ];    # in the run1 run number interval
 then
         echo "run run1 fhicl"
@@ -62,39 +62,42 @@ elif [ "$run_number" -ge "0013697"  ] && [  "0014116" -ge "$run_number"  ];    #
 then
         echo "run run3a fhicl"
         FT_STREAM="run3"
-	isRun3="true"
         ShiftOffset="387.8"
 elif [ "$run_number" -ge "14117"  ] && [  "0018960" -ge "$run_number"  ];    # in the run3 run number interval
 then
         echo "run run3b fhicl"
         FT_STREAM="run3"
-	isRun3="true"
         ShiftOffset="387.8"
 elif [ "$run_number" -ge "0018961"  ] && [  "0019752" -ge "$run_number"  ];  # in the run4 run number interval, run4a has four epochs, we may need to split it
 then
         echo "run run4a fhicl"
         FT_STREAM="run4a"
 	ShiftOffset="118.3"
+        nstimePMTLabel="doublePMTFilter:OpdetBeamHighGain"
 elif [ "$run_number" -ge "0019753"  ] && [  "0021285" -ge "$run_number"  ];  # in the run4 run number interval, run4b has four epochs, we may need to split it
 then
         echo "run run4b fhicl"
         FT_STREAM="run4b"
 	ShiftOffset="118.3"
+        nstimePMTLabel="doublePMTFilter:OpdetBeamHighGain"
 elif [ "$run_number" -ge "0021286"  ] && [  "0022269" -ge "$run_number"  ];  # in the run4 run number interval, run4c has four epochs, we may need to split it
 then
         echo "run run4c fhicl"
         FT_STREAM="run4c"
 	ShiftOffset="118.3"
+        nstimePMTLabel="doublePMTFilter:OpdetBeamHighGain"
 elif [ "$run_number" -ge "0022270"  ] && [  "0024319" -ge "$run_number"  ];  # in the run4 run number interval, run4d has four epochs, we may need to split it
 then
         echo "run run4d fhicl"
         FT_STREAM="run4d"
 	ShiftOffset="118.3"
+        nstimePMTLabel="doublePMTFilter:OpdetBeamHighGain"
 elif [ "$run_number" -ge "0024320"  ] && [  "0025768" -ge "$run_number"  ];  # in the run5 run number interval
 then
         echo "run run5 fhicl"
         FT_STREAM="run5"
 	ShiftOffset="118.3"
+        nstimePMTLabel="doublePMTFilter:OpdetBeamHighGain"
 fi
 
 ccnd1_a="0.529594"
@@ -124,13 +127,14 @@ if ls Physics*numi*.root 1> /dev/null 2>&1 || ls Beam*numi*.root 1> /dev/null 2>
         ccnd3_d="0"
         ccnd4_a="0.0125"
         ccnd4_b="2.3152"
-        isRun3="false"
         ShiftOffset="0"
+        nstimePMTLabel="pmtreadout:OpdetBeamHighGain"
 fi
 
 flag_ext="data"
 if ls Physics*ext*.root 1> /dev/null 2>&1 || ls Beam*ext*.root 1> /dev/null 2>&1 ; then
 	flag_ext="ext"
+        nstimePMTLabel="pmtreadout:OpdetBeamHighGain"
 fi
 
 
@@ -150,9 +154,9 @@ physics.analyzers.wcpselection.ccnd3_c: ${ccnd3_c}
 physics.analyzers.wcpselection.ccnd3_d: ${ccnd3_d}
 physics.analyzers.wcpselection.ccnd4_a: ${ccnd4_a} 
 physics.analyzers.wcpselection.ccnd4_b: ${ccnd4_b} 
+physics.analyzers.wcpselection.nstimePMTLabel: ${nstimePMTLabel}  
 
 physics.analyzers.wcpselection.ShiftOffset: ${ShiftOffset}
-physics.analyzers.wcpselection.isRun3: ${isRun3}
 
 physics.analyzers.wcpselection.FileType: "${flag_ext}_${beam}_${FT_STREAM}"
 physics.analyzers.wcpweights.FileType: "${flag_ext}_${beam}_${FT_STREAM}"
