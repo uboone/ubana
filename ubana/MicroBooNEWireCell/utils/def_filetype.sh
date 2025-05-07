@@ -46,7 +46,17 @@ echo $run_number
 FT_STREAM="run1"
 ShiftOffset="0"
 nstimePMTLabel="pmtreadout:OpdetBeamHighGain"
-if [ "$run_number" -ge "3420"  ] && [  "8316" -ge "$run_number"  ];    # in the run1 run number interval
+if [ "$run_number" -ge "3420"  ] && [  "3984" -ge "$run_number"  ];    # in the run1a open trigger run number interval
+then
+        echo "run run1 fhicl"
+        FT_STREAM="run1a"
+        nstimePMTLabel="doublePMTFilter:OpdetBeamHighGain"
+elif [ "$run_number" -ge "3985"  ] && [  "4951" -ge "$run_number"  ];    # in the run1b open trigger run number interval
+then
+        echo "run run1 fhicl"
+        FT_STREAM="run1b"
+        nstimePMTLabel="doublePMTFilter:OpdetBeamHighGain"
+elif [ "$run_number" -ge "4952"  ] && [  "8316" -ge "$run_number"  ];    # in the run1 run number interval
 then
         echo "run run1 fhicl"
         FT_STREAM="run1"
