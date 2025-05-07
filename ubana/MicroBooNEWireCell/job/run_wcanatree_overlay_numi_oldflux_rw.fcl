@@ -73,3 +73,4 @@ physics.analyzers.wcpselection.ccnd4_b: 0
 physics.analyzers.wcpselection.ccnd4_2_a: 0
 physics.analyzers.wcpselection.ccnd4_2_b: 0
 physics.analyzers.wcpselection.dist_cut_x_cor: 99999
+physics.analyzers.wcpselection.nstimePMTLabel: "mixer:OpdetBeamHighGain"
