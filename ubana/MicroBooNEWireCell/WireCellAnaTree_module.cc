@@ -1929,7 +1929,7 @@ private:
 
   //for resimulating beam structure
   std::string fnstimeRedk2nuLabel;
-  std::string fnstimeRbooneLabel;
+  std::string fnstimeRebooneLabel;
   double fTimeBetweenBuckets;  //time between buckets
   double fBucketTimeSigma;  //how wide is distribution in bucket
   double fNBucketsPerBatch;   
