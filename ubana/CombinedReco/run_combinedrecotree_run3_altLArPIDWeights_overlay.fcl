@@ -1,0 +1,3 @@
+#include "run_combinedrecotree_run3_overlay.fcl"
+
+physics.analyzers.wcpselection.LArPIDModel: "LArPID_alternate_network_weights_torchscript_v2_model.pt"
