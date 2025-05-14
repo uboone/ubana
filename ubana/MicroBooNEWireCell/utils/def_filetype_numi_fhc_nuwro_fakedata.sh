@@ -37,7 +37,7 @@ mv $FCL mix_wrapper.fcl
 
 # Generate wrapper according to run_number
 # get the file that will be used as input for next stage
-next_stage_input=`ls -t1 *.root | egrep -v 'celltree|hist|larlite|larcv|Supplemental|TGraphs' | head -n1`
+next_stage_input=`ls -t1 *.root | egrep -v 'celltree|hist|larlite|larcv|Supplemental|TGraphs' | artroot_filter.py | head -n1`
 echo $next_stage_input
 # get the run number
 run_number=`echo $next_stage_input | cut -d '-' -f3`
