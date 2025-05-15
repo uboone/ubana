@@ -252,6 +252,8 @@ void BlipAnalysis::analyzeEvent(art::Event const &e, bool fData)
   //==========================================
   // ... otherwise, save all blips in the event
   //==========================================
+  std::cout
+  <<"********** BlipAnalysis::analyzeEvent **********\n";
   // reset branch vectors
   resetVariables(); 
   // loop over blips saved to the event
@@ -263,6 +265,9 @@ void BlipAnalysis::analyzeEvent(art::Event const &e, bool fData)
   std::cout<<"Saving all "<<_nblips<<" blips in the event\n"; 
   for(size_t i=0; i<bliplist.size(); i++)
     addTheBlip(bliplist[i]);
+  
+  std::cout
+  <<"************************************************\n";
 
 }
 
