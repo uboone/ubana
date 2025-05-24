@@ -8,6 +8,7 @@
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
+#include "nusimdata/SimulationBase/GTruth.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCFlux.h"
 #include "larcore/Geometry/Geometry.h"
@@ -173,6 +174,10 @@ private:
   float _nu_l;  /**< propagation length [m] */
   float _nu_pt; /**< transverse momentum of interaction [GeV/c] */
   float _theta; /**< angle between incoming and outgoing leptons, in radians */
+  float _w;     /**< hadronic invariant mass [GeV] */
+  float _Q2;    /**< momentum transfer Q^2 [GeV^2] */
+  float _x;     /**< Bjorken x=Q^2/(2M*(E_neutrino-E_lepton)), unitless */
+  float _y;     /**< inelasticity y=1-(E_lepton/E_neutrino), unitless */
 
   int _nu_pdg;           /**< neutrino PDG code */
   int _ccnc;             /**< CC or NC tag from GENIE */
@@ -187,6 +192,7 @@ private:
   double _par_decay_pz;   /**< decay z momentum of parent of the neutrino [beamline coord] */
   double _baseline;        /**< distance of the decay to uboone origin */
   int _interaction;      /**< Interaction code from GENIE */
+  int _resid;            /**< Baryon resonance id from GENIE */
   bool _isVtxInFiducial; /**< true if neutrino in fiducial volume */
   bool _truthFiducial;   /**< is the truth information contained. Require all track start/end point in FV and showers deposit > 60% of energy in TPC or deposit at least 100 MeV in TPC */
 
@@ -1044,10 +1050,15 @@ void DefaultAnalysis::setBranches(TTree *_tree)
     _tree->Branch("swtrig_post_ext", &_swtrig_post_ext, "swtrig_post_ext/I");
   }
   _tree->Branch("interaction", &_interaction, "interaction/I");
+  _tree->Branch("resid", &_resid, "resid/I");
   _tree->Branch("nu_e", &_nu_e, "nu_e/F");
   _tree->Branch("nu_l", &_nu_l, "nu_l/F");
   _tree->Branch("nu_pt", &_nu_pt, "nu_pt/F");
   _tree->Branch("theta", &_theta, "theta/F");
+  _tree->Branch("w", &_w, "w/F");
+  _tree->Branch("Q2", &_Q2, "Q2/F");
+  _tree->Branch("x", &_x, "x/F");
+  _tree->Branch("y", &_y, "y/F");
   _tree->Branch("isVtxInFiducial", &_isVtxInFiducial, "isVtxInFiducial/O");
   _tree->Branch("truthFiducial", &_truthFiducial, "truthFiducial/O");
 
@@ -1239,6 +1250,10 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
   _nu_l = std::numeric_limits<float>::lowest();
   _theta = std::numeric_limits<float>::lowest();
   _nu_pt = std::numeric_limits<float>::lowest();
+  _w = std::numeric_limits<float>::lowest();
+  _Q2 = std::numeric_limits<float>::lowest();
+  _x = std::numeric_limits<float>::lowest();
+  _y = std::numeric_limits<float>::lowest();
 
   if(fMakeNuMINtuple){
   // By default let the swtrigger value be 1
@@ -1269,6 +1284,7 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
   }
 
   _interaction = std::numeric_limits<int>::lowest();
+  _resid = std::numeric_limits<int>::lowest();
   _pass = 0;
   _swtrig = 0;
 
@@ -1444,6 +1460,9 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
 void DefaultAnalysis::SaveTruth(art::Event const &e)
 {
 
+  // load GTruth
+  auto const &gt_h = e.getValidHandle<std::vector<simb::GTruth>>(fMCTproducer);
+
   // load MCTruth
   auto const &mct_h = e.getValidHandle<std::vector<simb::MCTruth>>(fMCTproducer);
 
@@ -1501,6 +1520,9 @@ void DefaultAnalysis::SaveTruth(art::Event const &e)
     }// if flux handle is valid
   }// if ignore MCFlux is false
   
+  auto gt = gt_h->at(0);
+  _resid = gt.fResNum;
+
   auto mct = mct_h->at(0);
   if (mct.NeutrinoSet()){ // NeutrinoSet(): whether the neutrino information has been set
     auto neutrino = mct.GetNeutrino();
@@ -1533,6 +1555,10 @@ void DefaultAnalysis::SaveTruth(art::Event const &e)
 
     _theta = neutrino.Theta();
     _nu_pt = neutrino.Pt();
+    _w = neutrino.W();
+    _Q2 = neutrino.QSqr();
+    _x = neutrino.X();
+    _y = neutrino.Y();
 
     double vtx[3] = {_true_nu_vtx_x, _true_nu_vtx_y, _true_nu_vtx_z};
     _isVtxInFiducial = searchingfornues::isFiducial(vtx,
