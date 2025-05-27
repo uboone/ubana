@@ -20,7 +20,7 @@ EventFilterTool: {
 
 SecondShowerTaggerTool: {
     tool_type: "SecondShowerTagger"
-    Clusterproducer: "proximity"
+    Clusterproducer: "cmerger"
     Hitproducer: "gaushit"
 }
 
@@ -247,7 +247,7 @@ SlicePurComplTool: {
     MCPproducer: "largeant"
     Hproducer: "gaushit"
     HTproducer: "gaushitTruthMatch"
-    OrigHproducer: "gaushit::OverlayStage1a"
+    OrigHproducer: "gaushit::DataRecoStage1Test" #"gaushit::OverlayStage1a"
     OrigHTproducer: "gaushitTruthMatch::OverlayRecoStage1b"
     PreFiltHproducer: "nuslhits"
     PreFiltHTproducer: "nuslhits"
@@ -258,6 +258,7 @@ NuGraphCountsTool: {
     CLSproducer: "pandora"
     SLCproducer: "pandora"
     NG2producer: "gaushit:semantic"
+    NG2FiltProducer: "gaushit:filter"
 }
 
 PMTNoiseTool: {
@@ -283,7 +284,7 @@ FlashMatchingTool: {
     SpacePointproducer: "pandora"
     AllPFPproducer: "pandoraPatRec:allOutcomes"
     AllSpacePointproducer: "pandoraPatRec:allOutcomes"
-    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2"]
+    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2","pandora::DataRecoStage2","pandora::Reco2WithCalo"]
     Hproducer: "gaushit"
     HTproducer: "gaushitTruthMatch"
     ChargeToNPhotonsTrack: 164.0
@@ -364,7 +365,7 @@ NuSelectionFilter:{
         default: @local::DefaultAnalysisTool
         # you can add more analysis tools here
         slicepurcompl: @local::SlicePurComplTool
-        #nugraphcounts: @local::NuGraphCountsTool
+        nugraphcounts: @local::NuGraphCountsTool
         containment:   @local::ContainmentAnalysis
         #shower:        @local::ShowerAnalysisTool
         #showerstart:        @local::ShowerStartPointTool

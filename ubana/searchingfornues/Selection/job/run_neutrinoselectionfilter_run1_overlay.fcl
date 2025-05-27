@@ -31,3 +31,4 @@ physics.filters.nuselection.IsData: false
 #ns timing 
 physics.filters.nuselection.AnalysisTools.timing:      @local::NeutrinoTimingAnalysisTool
 physics.filters.nuselection.AnalysisTools.timing.isMC: true
+physics.filters.nuselection.AnalysisTools.slicepurcompl.OrigHproducer: "gaushit::OverlayStage1a"
