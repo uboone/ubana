@@ -64,6 +64,7 @@ cet_build_plugin(
   LIBRARIES
   PRIVATE
   ubobj::CRT
+  larpandora::LArPandoraInterface
   larevt::SpaceChargeService
   lardata::Utilities
   lardata::DetectorPropertiesService

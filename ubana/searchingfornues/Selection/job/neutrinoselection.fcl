@@ -120,8 +120,8 @@ NeutronAnalysisTool: {
 
 CosmicIPTool: {
     tool_type: "CosmicIP"
-    SpacePointproducer: "pandora"
     PFPproducer: "pandora"
+    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2","pandora::DataRecoStage2","pandora::Reco2WithCalo"]
     TrkShrScore: 0.5
 }
 
@@ -258,6 +258,7 @@ NuGraphCountsTool: {
     CLSproducer: "pandora"
     SLCproducer: "pandora"
     NG2producer: "gaushit:semantic"
+    NG2FiltProducer: "gaushit:filter"
 }
 
 PMTNoiseTool: {
@@ -283,7 +284,7 @@ FlashMatchingTool: {
     SpacePointproducer: "pandora"
     AllPFPproducer: "pandoraPatRec:allOutcomes"
     AllSpacePointproducer: "pandoraPatRec:allOutcomes"
-    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2"]
+    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2","pandora::DataRecoStage2","pandora::Reco2WithCalo"]
     Hproducer: "gaushit"
     HTproducer: "gaushitTruthMatch"
     ChargeToNPhotonsTrack: 164.0
