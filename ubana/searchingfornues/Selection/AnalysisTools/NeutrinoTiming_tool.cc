@@ -158,7 +158,10 @@ namespace analysis
     float _prop_time;
     float _vtxt;
     float _mc_offset;
-    
+
+    //re-calibration variables
+    std::vector<float> _PMT_time;
+    std::vector<float> _PMT_timeProp; 
 
     Float_t	f_mcflux_dk2gen; // distance from decay to ray origin
     Float_t	f_mcflux_gen2vtx; // distance from ray origin to event vtx
@@ -214,8 +217,8 @@ namespace analysis
 
     fPFPproducer = p.get< art::InputTag >("PFPproducer");
     fT0producer  = p.get< art::InputTag >("T0producer" );
-    fPMTWFproducer  = p.get< art::InputTag >("PMTWFproducer" );
-    fLogicWFproducer = p.get< art::InputTag >("LogicWFproducer");
+    fPMTWFproducer  = p.get< art::InputTag >("nstimePMTWFproducer", "pmtreadout:OpdetBeamHighGain");
+    fLogicWFproducer = p.get< art::InputTag >("LogicWFproducer", "pmtreadout:UnspecifiedLogic");
     fFLASHproducer  = p.get< art::InputTag >("FLASHproducer" );
     fSpacePointproducer = p.get< art::InputTag >("SpacePointproducer");
 
@@ -248,6 +251,8 @@ namespace analysis
 	  f_sim_deltatime      = 0;
     _mc_interaction_time = 0;
     _sim_time_offset     = 0;
+
+
 
 
     //Beam parameters
@@ -319,12 +324,13 @@ namespace analysis
     }
 
     // load PMT waveforms
-    //art::Handle< std::vector< raw::OpDetWaveform > > wf_handle;
-    //e.getByLabel( fPMTWFproducer, wf_handle );
-
     art::Handle< std::vector< raw::OpDetWaveform > > wf_handle;
-    if(!fMC) {e.getByLabel( "pmtreadout:OpdetBeamHighGain", wf_handle );}
-    else{e.getByLabel( "mixer:OpdetBeamHighGain", wf_handle );}//MC in this instead
+    e.getByLabel( fPMTWFproducer, wf_handle );
+    std::cout << "[NeutrinoTimingDebug] wf_handle label: " << fPMTWFproducer << std::endl;
+
+    //art::Handle< std::vector< raw::OpDetWaveform > > wf_handle;
+    //if(!fMC) {e.getByLabel( "pmtreadout:OpdetBeamHighGain", wf_handle );}
+    //else{e.getByLabel( "mixer:OpdetBeamHighGain", wf_handle );}//MC in this instead
 
     if(!wf_handle.isValid()) {
       std::cerr<<"BeamTiming: No pmtreadout:OpdetBeamHighGain! Skip neutrino timing."<<std::endl;
@@ -531,8 +537,10 @@ namespace analysis
     _tree->Branch("interaction_time_modulo",&_interaction_time_modulo,"interaction_time_modulo/F");
 
     if(fSaveExtraInfo){
-      _tree->Branch("pmt_size",&_pmt_size,"pmt_size/F");
-      _tree->Branch("Med_TT3", &_Med_TT3, "Med_TT3");
+      _tree->Branch("pmt_size",&_pmt_size,"pmt_size/I");
+      _tree->Branch("Med_TT3", &_Med_TT3, "Med_TT3/F");
+      _tree->Branch("pmt_timeProp", &_PMT_timeProp, "timeProp/F");
+      _tree->Branch("pmt_time", &_PMT_time, "time/F");
     }
     
 
@@ -543,11 +551,10 @@ namespace analysis
       if(fSaveExtraInfo){
         _tree->Branch("spill_time",&_spill_time,"spill_time/F");
         _tree->Branch("decay_time", &_decay_time, "decay_time/F");
-        _tree->Branch("propagation_time", &_prop_time, "propagation_time");
+        _tree->Branch("propagation_time", &_prop_time, "propagation_time/F");
       }
-    }
-    else{
-      if (fSaveExtraInfo) _tree->Branch("beam_t0",&_RWM_T,"beam_t0/F");
+    }else{
+      if (fSaveExtraInfo) _tree->Branch("beam_t0",&_RWM_T,"beam_t0/D");
     }
     //_tree->Branch("Ph_Tot", &f_Ph_Tot);
   }
@@ -557,11 +564,22 @@ namespace analysis
     _interaction_time_abs    = std::numeric_limits<float>::lowest();
     _interaction_time_modulo = std::numeric_limits<float>::lowest();
 
+    if(fSaveExtraInfo){
+      _pmt_size      = std::numeric_limits<int>::lowest();
+      _Med_TT3       = std::numeric_limits<float>::lowest();
+      _PMT_timeProp.clear();
+      _PMT_time.clear();
+    }
+
     if(fMC){
       _mc_interaction_time   = std::numeric_limits<float>::lowest();
-      _sim_time_offset           = std::numeric_limits<float>::lowest();
-      _spill_time             = std::numeric_limits<float>::lowest();
+      _sim_time_offset       = std::numeric_limits<float>::lowest();
+      _spill_time            = std::numeric_limits<float>::lowest();
     }
+    else{
+      _RWM_T = std::numeric_limits<float>::lowest();
+    }
+    
   }
 
   void NeutrinoTiming::AddDaughters(const art::Ptr<recob::PFParticle>& pfp_ptr,  const art::ValidHandle<std::vector<recob::PFParticle> >& pfp_h, std::vector<art::Ptr<recob::PFParticle> > &pfp_v) {
@@ -778,11 +796,10 @@ namespace analysis
     pca=fit->GetParameter(0); pcb=fit->GetParameter(1); pcc=fit->GetParameter(2);
     //timing is the rising edge half height
     TT=(pca-abs(pcb*TMath::Power(-log(0.5/pcc),0.25)))/0.064;
-    std::cout << "[NeutrinoTimingDebug] RWM time : " << TT << std::endl;
-    H_t0_Beam->Fill(TT);
     _RWM_T = TT;
-
-    }
+    std::cout << "[NeutrinoTimingDebug] RWM time (_RMW_T) : " << _RWM_T << std::endl;
+    H_t0_Beam->Fill(TT);
+  }
 }
 
   void NeutrinoTiming::nsbeamtiming(art::Event const& e, std::vector<std::vector<art::Ptr<recob::SpacePoint> > > spacepoint_v_v)
@@ -915,6 +932,7 @@ namespace analysis
           if(tPhelp<tp){tp=tPhelp;}
         }
         timeProp[i]=tp;
+      
         //std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
       }
      
@@ -954,6 +972,10 @@ namespace analysis
         std::cout << "[NeutrinoTimingDebug] timeProp: " << timeProp[i] << std::endl;
         std::cout << "[NeutrinoTimingDebug] PMT time: " << time[N_pmt.at(i)]<< std::endl;
         std::cout << "[NeutrinoTimingDebug] Corrected PMT " << i << " timing " << TT3_array[i] << std::endl;
+        if(fSaveExtraInfo){
+          _PMT_timeProp.push_back(timeProp[i]);
+          _PMT_time.push_back(time[N_pmt.at(i)]);
+        }
       }
       Med_TT3=TMath::Median((Long64_t)N_pmt.size(),TT3_array);
       //Fill a 2d histogram with  TT3_array[i] vs max[N_pmt.at(i)] this is usefull to check for any errors
@@ -962,6 +984,7 @@ namespace analysis
       }
     }// if PMT size > 2
 
+
     _evtTimeNS = Med_TT3;
     _Med_TT3 = Med_TT3;
     if(fMC) {
@@ -969,7 +992,7 @@ namespace analysis
       _evtTimeNS = Med_TT3 + f_sim_deltatime + _mc_offset;
     }
 
-    std::cout << "[NeutrinoTimingDebug] Med_TT3 "<< Med_TT3 <<std::endl;
+    std::cout << "[NeutrinoTimingDebug] Med_TT3 "<< _Med_TT3 <<std::endl;
     H_ns_time->Fill(_evtTimeNS);
   
     //Merge Peaks
