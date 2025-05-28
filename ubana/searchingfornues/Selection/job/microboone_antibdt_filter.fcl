@@ -55,7 +55,7 @@ microboone_antibdtfilter:
        cosmicip: {
           tool_type: "CosmicIP"
           PFPproducer: "pandora"
-          SpacePointproducer: "pandora"
+          PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2","pandora::DataRecoStage2","pandora::Reco2WithCalo"]
           TrkShrScore: 5e-1
        }
        default: {

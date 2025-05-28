@@ -200,8 +200,24 @@ void SlicePurCompl::configure(fhicl::ParameterSet const &p)
 void SlicePurCompl::analyzeEvent(art::Event const &e, bool fData)
 {
 
-  if (fData)
+  if (fData) {
+    art::ValidHandle<std::vector<recob::Hit>> inputHits = e.getValidHandle<std::vector<recob::Hit>>(fHproducer);
+    if (fOrigHproducer.empty()==false) {
+      auto hitsOrig = e.getValidHandle<std::vector<recob::Hit>>(fOrigHproducer);
+      origevnhits = hitsOrig->size();
+    } else {
+      origevnhits = inputHits->size();
+    }
+    //
+    if (fPreFiltHproducer.empty()==false) {
+      auto hitsPreFilt = e.getValidHandle<std::vector<recob::Hit>>(fPreFiltHproducer);
+      prefiltnhits = hitsPreFilt->size();
+    } else {
+      origevnhits = inputHits->size();
+    }
+    //
     return;
+  }
 
   // momentum of primary products of the neutrino interaction
   std::vector<double> plep; //lepton

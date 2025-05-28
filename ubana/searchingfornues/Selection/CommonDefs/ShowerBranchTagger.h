@@ -56,8 +56,8 @@ namespace searchingfornues
    * @input time2cm -> time 2 cm conversion
    * @return 2d distance [cm]
    */
-  float HitPtDistance(const TVector3& pt3d, const art::Ptr<recob::Hit> &hit,
-		      const float& wire2cm, const float& time2cm) {
+  template <class T> float HitPtDistance(const TVector3& pt3d, const T &hit,
+					 const float& wire2cm, const float& time2cm) {
 
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
     
