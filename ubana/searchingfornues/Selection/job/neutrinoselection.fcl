@@ -20,7 +20,7 @@ EventFilterTool: {
 
 SecondShowerTaggerTool: {
     tool_type: "SecondShowerTagger"
-    Clusterproducer: "proximity"
+    Clusterproducer: "cmerger"
     Hitproducer: "gaushit"
 }
 
@@ -247,7 +247,7 @@ SlicePurComplTool: {
     MCPproducer: "largeant"
     Hproducer: "gaushit"
     HTproducer: "gaushitTruthMatch"
-    OrigHproducer: "gaushit::OverlayStage1a"
+    OrigHproducer: "gaushit::DataRecoStage1Test" #"gaushit::OverlayStage1a"
     OrigHTproducer: "gaushitTruthMatch::OverlayRecoStage1b"
     PreFiltHproducer: "nuslhits"
     PreFiltHTproducer: "nuslhits"
