@@ -3,3 +3,4 @@
 physics.filters.nuselection.AnalysisTools.flashmatchid: @local::FlashMatchingTool
 physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
 physics.filters.nuselection.AnalysisTools.timing.MCOffset: 1567
+physics.filters.nuselection.AnalysisTools.timing.nstimePMTWFproducer: "mixer:OpdetBeamHighGain"
