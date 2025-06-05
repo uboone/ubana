@@ -1,0 +1,5 @@
+#include "run_combinedrecotree_run1_data.fcl"
+
+physics.filters.nuselection.AnalysisTools.timing.isEXT: false
+physics.filters.nuselection.AnalysisTools.timing.isMC: false
+physics.filters.nuselection.AnalysisTools.timing.nstimePMTWFproducer: "doublePMTFilter:OpdetBeamHighGain"
