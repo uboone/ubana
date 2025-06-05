@@ -1,4 +1,4 @@
-#include "run_combinedrecotree_run1_data_numi.fcl"
+#include "run_combinedrecotree_run1_dataON_numi.fcl"
 
 # configure CRT veto module
 #physics.filters.crtveto: @local::UBCRTCosmicFilterBNBON

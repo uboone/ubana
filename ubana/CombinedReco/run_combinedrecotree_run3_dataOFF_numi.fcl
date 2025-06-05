@@ -1,5 +1,7 @@
 #include "run_combinedrecotree_run3_dataON_numi.fcl"
 
+physics.filters.nuselection.AnalysisTools.timing.isEXT: true
+physics.filters.nuselection.AnalysisTools.timing.isMC: false
 
 #physics.filters.crtveto: @local::UBCRTCosmicFilterBNBOFF
 #physics.filters.crtveto.useAsFilter: false
