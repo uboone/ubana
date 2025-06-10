@@ -21,6 +21,9 @@ physics.filters.nuselection.IsData: false
 
 physics.filters.nuselection.AnalysisTools.timing.isMC: true
 
+# By default, the data hit collection is set. Need to set this to use the overlay one:
+physics.filters.nuselection.AnalysisTools.slicepurcompl.OrigHproducer: "gaushit::OverlayStage1a"
+
 #physics.filters.nuselection.AnalysisTools.flashmatchid.FlashMatchConfig: @local::flash_neutrino_id_tool_overlay.FlashMatchConfig
 
 #physics.filters.nuselection.AnalysisTools.zbdt.TrigResProducer: "TriggerResults::OverlayFiltersPostStage2"
@@ -58,3 +61,4 @@ physics.filters.singlephotonana.beamgateStartTime: 3.57
 physics.filters.singlephotonana.beamgateEndTime: 5.25
 
 physics.ana: [wcpselection, wcpweights]
+
