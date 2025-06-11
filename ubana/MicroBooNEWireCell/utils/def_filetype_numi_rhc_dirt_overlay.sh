@@ -45,14 +45,17 @@ echo $run_number
 
 FT_STREAM="run1"
 
+STANDARD_OVERLAY="DataOverlayNoTPC"
 if [ "$run_number" -ge "3420"  ] && [  "8316" -ge "$run_number"  ];    # in the run1 run number interval
 then
         echo "run run1 fhicl"
         FT_STREAM="run1"
+STANDARD_OVERLAY="DataOverlayOptical"
 elif [ "$run_number" -ge "0008317"  ] && [  "0011048" -ge "$run_number"  ];   # in the run2 run number interval
 then
         echo "run run2a fhicl"
         FT_STREAM="run2"
+STANDARD_OVERLAY="DataOverlayOptical"
 elif [ "$run_number" -ge "0011049"  ] && [  "0013696" -ge "$run_number"  ];   # in the run2 run number interval
 then
         echo "run run2b fhicl"
@@ -96,6 +99,7 @@ horncur='_rhc'
 cat <<EOF > $FCL
 #include "mix_wrapper.fcl"
 
+physics.filters.nuselection.AnalysisTools.default.NuMISWTriggerProcName: "${STANDARD_OVERLAY}"
 physics.analyzers.wcpselection.IsNuMI:               ${flag_numi}
 physics.analyzers.wcpweights.IsNuMI:                 ${flag_numi}
 
