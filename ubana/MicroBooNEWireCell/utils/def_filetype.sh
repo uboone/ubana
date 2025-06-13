@@ -164,7 +164,7 @@ physics.analyzers.wcpselection.ccnd3_c: ${ccnd3_c}
 physics.analyzers.wcpselection.ccnd3_d: ${ccnd3_d}
 physics.analyzers.wcpselection.ccnd4_a: ${ccnd4_a} 
 physics.analyzers.wcpselection.ccnd4_b: ${ccnd4_b} 
-physics.analyzers.wcpselection.nstimePMTLabel: ${nstimePMTLabel}  
+physics.analyzers.wcpselection.nstimePMTLabel: "${nstimePMTLabel}"  
 
 physics.analyzers.wcpselection.ShiftOffset: ${ShiftOffset}
 
