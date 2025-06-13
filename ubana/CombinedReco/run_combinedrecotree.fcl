@@ -85,7 +85,7 @@ physics:
 
       # WeightLabel:      "eventweight::EventWeightMar18"
       WeightLabel:      "eventweightSep24::EventWeightSep24"
-      WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
+      WeightLeeLabel:   "eventweightLEE"
 
       POT_counting:	true
       POT_inputTag:	"beamdata:bnbETOR875" # overlay: "generator" 
@@ -162,7 +162,7 @@ physics:
                             ,"eventweightSep24::EventWeightSep24ExtraGENIE5" ]
       # WeightLabel:	"eventweight::EventWeightMar18"
       WeightLabel:	"eventweightSep24::EventWeightSep24"
-      WeightLeeLabel:   "eventweightLEE::EventWeightLEE"
+      WeightLeeLabel:   "eventweightLEE"
 
       SaveGenieWeights: true # save Genie weights if vtx inside active volume
       # GenieKnobs:       [  "All_UBGenie"
