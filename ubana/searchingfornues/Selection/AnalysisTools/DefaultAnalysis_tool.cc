@@ -130,6 +130,7 @@ private:
 
   bool fMakeNuMINtuple;
   bool fIgnoreMCFlux;
+  bool fIgnoreGenie;
 
   const int k_nu_e_other = 1;
   const int k_nu_e_cc0pi0p = 10;
@@ -371,6 +372,7 @@ DefaultAnalysis::DefaultAnalysis(const fhicl::ParameterSet &p)
 
   fMakeNuMINtuple = p.get<bool>("makeNuMINtuple", false);
   fIgnoreMCFlux = p.get<bool>("ignoreMCFlux", false);
+  fIgnoreGenie = p.get<bool>("ignoreGenie", false);
   NuMIOpFilterProd = p.get<std::string>("NuMIOpFiltProcName","");
   NuMISWTrigProd   = p.get<std::string>("NuMISWTriggerProcName","" );
 }
@@ -1461,7 +1463,7 @@ void DefaultAnalysis::SaveTruth(art::Event const &e)
 {
 
   // load GTruth
-  auto const &gt_h = e.getValidHandle<std::vector<simb::GTruth>>(fMCTproducer);
+  //auto const &gt_h = e.getValidHandle<std::vector<simb::GTruth>>(fMCTproducer);
 
   // load MCTruth
   auto const &mct_h = e.getValidHandle<std::vector<simb::MCTruth>>(fMCTproducer);
@@ -1520,8 +1522,13 @@ void DefaultAnalysis::SaveTruth(art::Event const &e)
     }// if flux handle is valid
   }// if ignore MCFlux is false
   
+  if (!fIgnoreGenie){
+  // load GTruth
+  auto const &gt_h = e.getValidHandle<std::vector<simb::GTruth>>(fMCTproducer);
+
   auto gt = gt_h->at(0);
   _resid = gt.fResNum;
+  }
 
   auto mct = mct_h->at(0);
   if (mct.NeutrinoSet()){ // NeutrinoSet(): whether the neutrino information has been set
