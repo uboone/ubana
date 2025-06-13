@@ -1,0 +1,4 @@
+#include "run_combinedrecotree_run1_dataON_numi.fcl"
+
+physics.filters.nuselection.AnalysisTools.timing.isEXT: true
+physics.filters.nuselection.AnalysisTools.timing.isMC: false

@@ -71,6 +71,7 @@ namespace analysis
   private:
 
     art::InputTag fClusterproducer;
+    art::InputTag fPFPproducer;
     art::InputTag fHitproducer;
 
     float _wire2cm, _time2cm;
@@ -88,6 +89,10 @@ namespace analysis
     float _secondshower_U_dot, _secondshower_V_dot, _secondshower_Y_dot;
     // charge-weighted direction of cluster w.r.t. vertex
     float _secondshower_U_dir, _secondshower_V_dir, _secondshower_Y_dir;
+    // number of clusters per plane
+    int _secondshower_U_03_ncluster, _secondshower_V_03_ncluster, _secondshower_Y_03_ncluster;
+    int _secondshower_U_10_ncluster, _secondshower_V_10_ncluster, _secondshower_Y_10_ncluster;
+    int _secondshower_U_20_ncluster, _secondshower_V_20_ncluster, _secondshower_Y_20_ncluster;
     
   };
   
@@ -145,6 +150,8 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
   void SecondShowerTagger::analyzeSlice(art::Event const& e, std::vector<ProxyPfpElem_t>& slice_pfp_v, bool fData, bool selected)
   {
 
+    std::cout << "[SecondShowerTagger] START analyzeSlice" << std::endl;
+
     // STEP (1) load neutrino vertex
     TVector3 nuvtx;
     Double_t xyz[3] = {};
@@ -169,16 +176,73 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
 
       }// if neutrino PFP
 
+
+      
     }// for all PFParticles
 
+    // STEP (1.5): find clusters associated with PFParticles in slice
+    std::cout << "[SecondShowerTagger] MESSAGE" << std::endl;
+    // clusters associated to each PFParticle
+    std::vector<std::vector<size_t>> used_cluster_idx_v;
+    for (const auto& pfp_pxy : slice_pfp_v) {
+      std::cout << "[SecondShowerTagger] New PFParticle " << std::endl;
+      auto cluster_v = pfp_pxy.get<recob::Cluster>();
+      for (size_t c=0; c < cluster_v.size(); c++) {
+	std::cout << "[SecondShowerTagger] \t Cluster index is " << (*cluster_v[c]).ID() << std::endl;
+	std::vector<size_t> used_cluster_idx = {static_cast<size_t>((*cluster_v[c]).ID()), (*cluster_v[c]).Plane().Plane};
+        used_cluster_idx_v.push_back( used_cluster_idx );
+//        used_cluster_idx_v.push_back( (*cluster_v[c]).ID() );
+        std::cout << "cluster_v[c].Plane().Plane" << (*cluster_v[c]).Plane().Plane << std::endl;
+        std::cout << "cluster_v[c].NHits()" << (*cluster_v[c]).NHits() << std::endl;
+      }// for each associated cluster
+    }// for all PFParticles
+    
+    //const std::vector< art::Ptr<recob::SpacePoint> >& spacepoint_ptr_v = pfp_spacepoint_assn_v.at( pfp_ptr.key() );
+
+    /*
+    // grab PFParticles in event
+    auto const& pfp_h = e.getValidHandle<std::vector<recob::PFParticle> >(fPFPproducer);
+
+    // grab clusters associated with PFParticles
+    art::FindManyP<recob::Cluster> pfp_cluster_assn_v(pfp_h, e, fPFPproducer);
+
+    // store indices of all clusters associated to pfparticles
+    std::vector<size_t> cluster_idx_v;
+
+    // loop over all PFPs 
+    for (const auto& pfp_pxy : slice_pfp_v) {
+
+      const std::vector<art::Ptr<recob::Cluster> >& clusters(pfp_cluster_assn_v.at(pfp_pxy.index()));
+      // get cluster indices
+      for (auto& cl : clusters) shr_clusters.push_back(*cl);
+      for (size_t c=0; c < clusters.size(); c++) {
+	
+	cluster_idx_v.push_back(clusters[c].index());
+      }
+    }// for all pfparticles
+    */
+
+    
     // STEP (2) : find, per plane, largest 2D cluster
 
-    // grab clusters themselves
+    // grab clustnoselectionfilter_run1_overlay_cc0pinp.fclers themselves
     auto const& cluster_h = e.getValidHandle<std::vector<recob::Cluster> >(fClusterproducer);
     // get hits associated to clusters
     art::FindManyP<recob::Hit> clus_hit_assn_v(cluster_h, e, fClusterproducer);
     // grab hits themselves
     auto const& hit_h = e.getValidHandle<std::vector<recob::Hit> >(fHitproducer);
+
+    _secondshower_U_03_ncluster = 0;
+    _secondshower_V_03_ncluster = 0;
+    _secondshower_Y_03_ncluster = 0;
+
+    _secondshower_U_10_ncluster = 0;
+    _secondshower_V_10_ncluster = 0;
+    _secondshower_Y_10_ncluster = 0;
+
+    _secondshower_U_20_ncluster = 0;
+    _secondshower_V_20_ncluster = 0;
+    _secondshower_Y_20_ncluster = 0;
     
     for (unsigned int pl=0; pl < 3; pl++) {
     
@@ -196,7 +260,17 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
       // loop through clusters
       for (size_t c=0; c < cluster_h->size(); c++) {
 	//auto clus = cluster_h->at(c);
-	
+
+	// is this cluster already used? -> SKIP
+	std::cout << "Plane " << pl  << std::endl;
+        // std::vector<size_t> cluster_idx = {static_cast<size_t>(c), pl};
+	std::vector<size_t> cluster_idx = {static_cast<size_t>(cluster_h->at(c).ID()), pl}; // Giuseppe's suggestion
+	if (std::find(used_cluster_idx_v.begin(), used_cluster_idx_v.end(), cluster_idx) != used_cluster_idx_v.end()){
+	  std::cout << "[SecondShowerTagger] cluster " << c << " is already used in a reco PFParticle" << std::endl;
+	  continue;
+	}
+	std::cout << "[SecondShowerTagger] cluster " << c << " is an un-matched cluster" << std::endl;
+
 	// get associated hits
 	auto clus_hit_v = clus_hit_assn_v.at( c );
 	
@@ -212,6 +286,24 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
 	if (PLANE != pl) continue;
 	
 	int clushits = clus_hit_v.size();
+
+	if (clushits >= 3) {
+	  if (pl==0) { _secondshower_U_03_ncluster += 1; }
+	  if (pl==1) { _secondshower_V_03_ncluster += 1; }
+	  if (pl==2) { _secondshower_Y_03_ncluster += 1; }
+	}
+
+	if (clushits >= 10) {
+	  if (pl==0) { _secondshower_U_10_ncluster += 1; }
+	  if (pl==1) { _secondshower_V_10_ncluster += 1; }
+	  if (pl==2) { _secondshower_Y_10_ncluster += 1; }
+	}
+
+	if (clushits >= 20) {
+	  if (pl==0) { _secondshower_U_20_ncluster += 1; }
+	  if (pl==1) { _secondshower_V_20_ncluster += 1; }
+	  if (pl==2) { _secondshower_Y_20_ncluster += 1; }
+	}
 
 	// we are focusing on the largest cluster per plane
 	// continue if not this one
@@ -297,6 +389,18 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
     _tree->Branch("secondshower_Y_dot"       , &_secondshower_Y_dot       , "secondshower_Y_dot/F"       );
     _tree->Branch("secondshower_Y_dir"       , &_secondshower_Y_dir       , "secondshower_Y_dir/F"       );
 
+    _tree->Branch("secondshower_U_03_ncluster"      , &_secondshower_U_03_ncluster      , "secondshower_U_03_ncluster/I"      );
+    _tree->Branch("secondshower_V_03_ncluster"      , &_secondshower_V_03_ncluster      , "secondshower_V_03_ncluster/I"      );
+    _tree->Branch("secondshower_Y_03_ncluster"      , &_secondshower_Y_03_ncluster      , "secondshower_Y_03_ncluster/I"      );
+
+    _tree->Branch("secondshower_U_10_ncluster"      , &_secondshower_U_10_ncluster      , "secondshower_U_10_ncluster/I"      );
+    _tree->Branch("secondshower_V_10_ncluster"      , &_secondshower_V_10_ncluster      , "secondshower_V_10_ncluster/I"      );
+    _tree->Branch("secondshower_Y_10_ncluster"      , &_secondshower_Y_10_ncluster      , "secondshower_Y_10_ncluster/I"      );
+
+    _tree->Branch("secondshower_U_20_ncluster"      , &_secondshower_U_20_ncluster      , "secondshower_U_20_ncluster/I"      );
+    _tree->Branch("secondshower_V_20_ncluster"      , &_secondshower_V_20_ncluster      , "secondshower_V_20_ncluster/I"      );
+    _tree->Branch("secondshower_Y_20_ncluster"      , &_secondshower_Y_20_ncluster      , "secondshower_Y_20_ncluster/I"      );
+
 
     return;
   }
@@ -323,6 +427,16 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
     _secondshower_Y_eigenratio  = std::numeric_limits<float>::lowest();
     _secondshower_Y_dot     = std::numeric_limits<float>::lowest();
     _secondshower_Y_dir     = std::numeric_limits<float>::lowest();
+
+    _secondshower_U_03_ncluster = std::numeric_limits<int>::lowest();
+    _secondshower_V_03_ncluster = std::numeric_limits<int>::lowest();
+    _secondshower_Y_03_ncluster = std::numeric_limits<int>::lowest();
+    _secondshower_U_10_ncluster = std::numeric_limits<int>::lowest();
+    _secondshower_V_10_ncluster = std::numeric_limits<int>::lowest();
+    _secondshower_Y_10_ncluster = std::numeric_limits<int>::lowest();
+    _secondshower_U_20_ncluster = std::numeric_limits<int>::lowest();
+    _secondshower_V_20_ncluster = std::numeric_limits<int>::lowest();
+    _secondshower_Y_20_ncluster = std::numeric_limits<int>::lowest();
 
     return;
   }// end of reset function

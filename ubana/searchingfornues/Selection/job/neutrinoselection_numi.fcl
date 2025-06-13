@@ -73,7 +73,7 @@ TrackAnalysisTool: {
 
 CosmicIPTool: {
     tool_type: "CosmicIP"
-    SpacePointproducer: "pandora"
+    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2","pandora::DataRecoStage2","pandora::Reco2WithCalo"]
     PFPproducer: "pandora"
     TrkShrScore: 0.5
 }

@@ -20,7 +20,7 @@ EventFilterTool: {
 
 SecondShowerTaggerTool: {
     tool_type: "SecondShowerTagger"
-    Clusterproducer: "proximity"
+    Clusterproducer: "cmerger"
     Hitproducer: "gaushit"
 }
 
@@ -86,8 +86,8 @@ BlipAnalysisTool: {
     tool_type: "BlipAnalysis"
     SaveSCECorrLocation:  true  # Save SCE-corrected blip location
     SaveSCECorrEnergy:    true  # Save SCE/lifetime-corrected blip energy and charge
-    SaveOnlyNuEvts:       true  # Only save blips for evts w/identified nu PFP
-    NuBlipRadius:         250   # Only save blips within this dist of nu vtx [cm]
+    SaveOnlyNuEvts:       false # Only save blips for evts w/identified nu PFP
+    NuBlipRadius:         -1    # Only save blips within this dist of nu vtx [cm]
                                 # ^^ set <= 0 to save ALL blips in neutrino events
     LiteMode:             false # save bare minimum (x,y,z,size,energy,trueG4ID)
 }
@@ -120,8 +120,8 @@ NeutronAnalysisTool: {
 
 CosmicIPTool: {
     tool_type: "CosmicIP"
-    SpacePointproducer: "pandora"
     PFPproducer: "pandora"
+    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2","pandora::DataRecoStage2","pandora::Reco2WithCalo"]
     TrkShrScore: 0.5
 }
 
@@ -247,7 +247,7 @@ SlicePurComplTool: {
     MCPproducer: "largeant"
     Hproducer: "gaushit"
     HTproducer: "gaushitTruthMatch"
-    OrigHproducer: "gaushit::OverlayStage1a"
+    OrigHproducer: "gaushit::DataRecoStage1Test" #"gaushit::OverlayStage1a"
     OrigHTproducer: "gaushitTruthMatch::OverlayRecoStage1b"
     PreFiltHproducer: "nuslhits"
     PreFiltHTproducer: "nuslhits"
@@ -258,6 +258,7 @@ NuGraphCountsTool: {
     CLSproducer: "pandora"
     SLCproducer: "pandora"
     NG2producer: "gaushit:semantic"
+    NG2FiltProducer: "gaushit:filter"
 }
 
 PMTNoiseTool: {
@@ -283,7 +284,7 @@ FlashMatchingTool: {
     SpacePointproducer: "pandora"
     AllPFPproducer: "pandoraPatRec:allOutcomes"
     AllSpacePointproducer: "pandoraPatRec:allOutcomes"
-    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2"]
+    PFPproducersInit: ["pandoraInit","pandora::OverlayRecoStage2","pandora::DataRecoStage2","pandora::Reco2WithCalo"]
     Hproducer: "gaushit"
     HTproducer: "gaushitTruthMatch"
     ChargeToNPhotonsTrack: 164.0
@@ -364,7 +365,7 @@ NuSelectionFilter:{
         default: @local::DefaultAnalysisTool
         # you can add more analysis tools here
         slicepurcompl: @local::SlicePurComplTool
-        #nugraphcounts: @local::NuGraphCountsTool
+        nugraphcounts: @local::NuGraphCountsTool
         containment:   @local::ContainmentAnalysis
         #shower:        @local::ShowerAnalysisTool
         #showerstart:        @local::ShowerStartPointTool
@@ -382,7 +383,7 @@ NuSelectionFilter:{
         secondshower:  @local::SecondShowerTaggerTool
         eventfilter:   @local::EventFilterTool
         mcfilter:      @local::MCFilterAnalysisTool
-        #blip:          @local::BlipAnalysisTool
+        blip:          @local::BlipAnalysisTool
         #neutron:       @local::NeutronAnalysisTool
         timing:        @local::NeutrinoTimingAnalysisTool
     }

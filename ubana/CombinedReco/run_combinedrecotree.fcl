@@ -278,6 +278,9 @@ services.DetectorClocksService.InheritClockConfig:  false
 #services.BackTrackerService:  @local::microboone_backtrackerservice
 #services.ParticleInventoryService: @local::standard_particleinventoryservice
 
+physics.filters.nuselection.AnalysisTools.shower: @local::ShowerAnalysisTool
+physics.filters.nuselection.AnalysisTools.zbdt: @local::BDTTool
+physics.filters.nuselection.SelectionTool: @local::CC0PiNpSelectionTool
 #physics.filters.nuselection.SelectionTool: @local::ShowerSelectionTool
 #physics.filters.nuselection.AnalysisTools.default.BacktrackTag: "" #"gaushitTruthMatch"
 physics.filters.nuselection.IsData: true
@@ -312,6 +315,9 @@ physics.producers.pandoraTrackcali.ELifetimeCorrection: true
 physics.producers.shrreco3dKalmanShowercali.ELifetimeCorrection: true
 
 physics.producers.allShr.PFParticleLabel: "pandoraPatRecInit:allOutcomes"
+physics.filters.singlephotonana.TrackLabel:"pandoraTrack"
+physics.filters.singlephotonana.ParticleIDLabel:"pandoraTrackcalipid"
+physics.filters.singlephotonana.CaloLabel:  "pandoraTrackcali"
 
 microboone_tfile_metadata:
 {
