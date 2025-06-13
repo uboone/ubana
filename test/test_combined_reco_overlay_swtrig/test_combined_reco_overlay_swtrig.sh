@@ -31,31 +31,33 @@ do
   if [[ $fcl == *run1* ]]; then
     if [[ $fcl == *numi* ]]; then
       echo "Run 1 numi"
-      pname=DataOverlayOpticalNuMI
+      trigsim=standard_overlay_optical_numi_uboone_updated.fcl
     else
       echo "Run 1 bnb"
-      pname=DataOverlayOptical
+      trigsim=standard_overlay_optical_uboone.fcl
     fi
   elif [[ $fcl == *run3* ]]; then
     if [[ $fcl == *numi* ]]; then
       echo "Run 3 numi"
-      pname=DataOverlayNoTPCNuMI
+      trigsim=standard_overlay_notpc_numi_uboone_updated.fcl
     else
       echo "Run 3 bnb"
-      pname=DataOverlayNoTPC
+      trigsim=standard_overlay_notpc_uboone.fcl
     fi
   elif [[ $fcl == *run4* ]]; then
     if [[ $fcl == *numi* ]]; then
       echo "Run 4 numi"
-      pname=DataOverlayNoTPCNuMI
+      trigsim=standard_overlay_notpc_numi_uboone_updated.fcl
     else
       echo "Run 4 bnb"
-      pname=DataOverlayNoTPC
+      trigsim=standard_overlay_notpc_uboone.fcl
     fi
   else
     echo "Unknown epoch."
     exit 1
   fi
+  echo "Trigsim fcl file = $trigsim"
+  pname=`fhicl-dump $trigsim | grep process_name | awk '{print $2}' | tr -d '"'`
   echo "Expected swtrig process name = $pname"
 
   # Check swtrig process name.
