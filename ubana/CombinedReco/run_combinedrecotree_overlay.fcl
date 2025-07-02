@@ -20,6 +20,7 @@ physics.filters.nuselection.AnalysisTools.default.BacktrackTag: "gaushitTruthMat
 physics.filters.nuselection.IsData: false
 
 physics.filters.nuselection.AnalysisTools.timing.isMC: true
+physics.filters.nuselection.AnalysisTools.timing.nstimePMTWFproducer: "mixer:OpdetBeamHighGain"
 
 # By default, the data hit collection is set. Need to set this to use the overlay one:
 physics.filters.nuselection.AnalysisTools.slicepurcompl.OrigHproducer: "gaushit::OverlayStage1a"
