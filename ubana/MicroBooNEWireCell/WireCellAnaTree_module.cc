@@ -2474,6 +2474,7 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("TrueEDep_spacepoints_pdg", &TrueEDep_spacepoints_pdg);
   }
 
+
   if (f_savesps){
     fPFeval->Branch("reco_sps_x", &f_sps_x);
     fPFeval->Branch("reco_sps_y", &f_sps_y);
@@ -3926,8 +3927,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		f_match_notFC_DC = false;
 		f_match_charge = -1;
 		f_match_energy = -1;
-		f_lm_cluster_length = -1;
-		f_image_fail = false;
+                f_lm_cluster_length = -1;
+                f_image_fail = false;
 	}
         for(nsm::NuSelectionContainment const& c : containment_vec) {
                 f_flash_found = c.GetFlashFound();
