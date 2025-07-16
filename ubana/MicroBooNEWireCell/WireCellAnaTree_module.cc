@@ -2472,7 +2472,7 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("TrueEDep_spacepoints_endz", &TrueEDep_spacepoints_endz);
     fSpacepoints->Branch("TrueEDep_spacepoints_edep", &TrueEDep_spacepoints_edep);
     fSpacepoints->Branch("TrueEDep_spacepoints_pdg", &TrueEDep_spacepoints_pdg);
-  }  
+  }
 
   if (f_savesps){
     fPFeval->Branch("reco_sps_x", &f_sps_x);
@@ -3910,7 +3910,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
 		//return;
 	}else{
-                if(containment_vec.size()<1) {
+  if(containment_vec.size()<1) {
                 f_flash_found = false;
                 f_flash_found_asInt = -1;
                 f_flash_time = -1;
@@ -3931,12 +3931,12 @@ void WireCellAnaTree::analyze(art::Event const& e)
                 }
         for(nsm::NuSelectionContainment const& c : containment_vec) {
                 f_flash_found = c.GetFlashFound();
-		            f_flash_found_asInt = f_flash_found? 1:0;
+                f_flash_found_asInt = f_flash_found? 1:0;
                 f_flash_time = c.GetFlashTime();
                 f_flash_measPe = c.GetFlashMeasPe();
                 f_flash_predPe = c.GetFlashPredPe();
                 f_match_found = c.GetMatchFound();
-		            f_match_found_asInt = f_match_found? 1:0;
+                f_match_found_asInt = f_match_found? 1:0;
                 f_match_type = c.GetMatchType();
                 f_match_isFC = c.GetIsFC();
                 f_match_isTgm = c.GetIsTGM();
@@ -3947,7 +3947,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
                 f_match_energy = c.GetEnergy();
                 f_lm_cluster_length = c.GetLength();
                 f_image_fail = c.GetImageFail();
-	}
+  }
 }
 
         auto const& charge_vec = e.getProduct<std::vector<nsm::NuSelectionCharge>>(fChargeLabel);
