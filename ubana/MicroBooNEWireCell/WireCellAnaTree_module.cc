@@ -2473,7 +2473,7 @@ void WireCellAnaTree::initOutput()
     fSpacepoints->Branch("TrueEDep_spacepoints_edep", &TrueEDep_spacepoints_edep);
     fSpacepoints->Branch("TrueEDep_spacepoints_pdg", &TrueEDep_spacepoints_pdg);
   }
-
+  
 
   if (f_savesps){
     fPFeval->Branch("reco_sps_x", &f_sps_x);
