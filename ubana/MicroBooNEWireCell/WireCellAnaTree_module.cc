@@ -3910,33 +3910,33 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		std::cout<<"WARNING: >1 in-beam matched TPC activity?!" << std::endl;
 		//return;
 	}else{
-  if(containment_vec.size()<1) {
-                f_flash_found = false;
-                f_flash_found_asInt = -1;
-                f_flash_time = -1;
-                f_flash_measPe = -1;
-                f_flash_predPe = -1;
-                f_match_found = false;
-                f_match_found_asInt = -1;
-                f_match_type = -1;
-                f_match_isFC = false;
-                f_match_isTgm = false;
-                f_match_notFC_FV = false;
-                f_match_notFC_SP = false;
-                f_match_notFC_DC = false;
-                f_match_charge = -1;
-                f_match_energy = -1;
-                f_lm_cluster_length = -1;
-                f_image_fail = false;
-                }
+	if(containment_vec.size()<1) {
+		f_flash_found = false;
+		f_flash_found_asInt = -1;
+		f_flash_time = -1;
+		f_flash_measPe = -1;
+		f_flash_predPe = -1;
+		f_match_found = false;
+		f_match_found_asInt = -1;
+		f_match_type = -1;
+		f_match_isFC = false;
+		f_match_isTgm = false;
+		f_match_notFC_FV = false;
+		f_match_notFC_SP = false;
+		f_match_notFC_DC = false;
+		f_match_charge = -1;
+		f_match_energy = -1;
+		f_lm_cluster_length = -1;
+		f_image_fail = false;
+	}
         for(nsm::NuSelectionContainment const& c : containment_vec) {
                 f_flash_found = c.GetFlashFound();
-                f_flash_found_asInt = f_flash_found? 1:0;
+		f_flash_found_asInt = f_flash_found? 1:0;
                 f_flash_time = c.GetFlashTime();
                 f_flash_measPe = c.GetFlashMeasPe();
                 f_flash_predPe = c.GetFlashPredPe();
                 f_match_found = c.GetMatchFound();
-                f_match_found_asInt = f_match_found? 1:0;
+		f_match_found_asInt = f_match_found? 1:0;
                 f_match_type = c.GetMatchType();
                 f_match_isFC = c.GetIsFC();
                 f_match_isTgm = c.GetIsTGM();
@@ -3947,7 +3947,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
                 f_match_energy = c.GetEnergy();
                 f_lm_cluster_length = c.GetLength();
                 f_image_fail = c.GetImageFail();
-  }
+	}
 }
 
         auto const& charge_vec = e.getProduct<std::vector<nsm::NuSelectionCharge>>(fChargeLabel);
