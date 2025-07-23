@@ -2,7 +2,7 @@
 #include "database_microboone.fcl"
 #include "celltreeub_overlay.fcl"
 
-process_name: CellTreeUB
+process_name: CellTreeUB2
 
 services:
 {
