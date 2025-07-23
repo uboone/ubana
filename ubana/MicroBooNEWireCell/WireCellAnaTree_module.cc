@@ -4262,7 +4262,6 @@ void WireCellAnaTree::analyze(art::Event const& e)
              }
 
              if(fRunBackTracking_evt && fMC){
-               // LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *iolcv, *ioll, adc_v);
                LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *mcpg, *mcpm, adc_v);
                reco_truthMatch_pdg[reco_Ntrack-1] = truthMatch.pdg;
                reco_truthMatch_id[reco_Ntrack-1] = truthMatch.tid;
