@@ -271,6 +271,8 @@ private:
   //storage managers for accessing info from larcv image file
   std::unique_ptr<larcv::IOManager> iolcv;
   std::unique_ptr<larlite::storage_manager> ioll;
+  std::unique_ptr<ublarcvapp::mctools::MCPixelPGraph> mcpg;
+  std::unique_ptr<ublarcvapp::mctools::MCPixelPMap> mcpm;
   //LArPID torchscript model
   LArPID::TorchModel model;
 
@@ -2104,6 +2106,7 @@ void WireCellAnaTree::initLanternIntegration()
     ioll -> set_data_to_read( "mcflux", "generator" );
     ioll -> set_data_to_read( "mctruth", "corsika" );
     ioll -> open();
+
   }
 
   if(fRunLArPID){
@@ -4130,8 +4133,19 @@ void WireCellAnaTree::analyze(art::Event const& e)
               wireImage2D = wireImg;
               cosmicImage2D = (larcv::EventImage2D*)(iolcv->get_data(larcv::kProductImage2D,"thrumu"));
               iImg_start = iImg+1;
-              if(fRunBackTracking) ioll -> go_to(iImg);
-              break;
+              if(fRunBackTracking) {
+                ioll -> go_to(iImg);
+
+                // initialize our pixel graphs and pixel maps here for the desired RSE
+                mcpg = std::make_unique<ublarcvapp::mctools::MCPixelPGraph>();
+                mcpg->set_adc_treename("wire");
+                mcpg->buildgraph(*iolcv, *ioll);
+
+                mcpm = std::make_unique<ublarcvapp::mctools::MCPixelPMap>();
+                mcpm->set_adc_treename("wire");
+                mcpm->buildmap(*iolcv, *mcpg);
+                break;
+              }
             }
           }
 
@@ -4248,7 +4262,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
              }
 
              if(fRunBackTracking_evt && fMC){
-               LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *iolcv, *ioll, adc_v);
+               // LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *iolcv, *ioll, adc_v);
+               LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *mcpg, *mcpm, adc_v);
                reco_truthMatch_pdg[reco_Ntrack-1] = truthMatch.pdg;
                reco_truthMatch_id[reco_Ntrack-1] = truthMatch.tid;
                reco_truthMatch_purity[reco_Ntrack-1] = truthMatch.purity;
