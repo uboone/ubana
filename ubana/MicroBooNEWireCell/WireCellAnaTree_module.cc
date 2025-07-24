@@ -271,6 +271,8 @@ private:
   //storage managers for accessing info from larcv image file
   std::unique_ptr<larcv::IOManager> iolcv;
   std::unique_ptr<larlite::storage_manager> ioll;
+  std::unique_ptr<ublarcvapp::mctools::MCPixelPGraph> mcpg; // for each  mctrack and mcshower object, make a list of pixels in each plane
+  std::unique_ptr<ublarcvapp::mctools::MCPixelPMap>   mcpm; // for each pixel, associate true particles to it.
   //LArPID torchscript model
   LArPID::TorchModel model;
 
@@ -2090,6 +2092,14 @@ void WireCellAnaTree::initLanternIntegration()
   if(fTickBack) tickDir = larcv::IOManager::kTickBackward;
   iolcv = std::make_unique<larcv::IOManager>(larcv::IOManager::kREAD,"larcv",tickDir);
   iolcv -> add_in_file(fLArCVImageFile);
+  // iolcv -> specify_data_read( larcv::kProductImage2D, "wire" );
+  // iolcv -> specify_data_read( larcv::kProductImage2D, "thrumu" );
+  // if(fMC) {
+  //   iolcv -> specify_data_read( larcv::kProductImage2D, "instance" );
+  //   iolcv -> specify_data_read( larcv::kProductImage2D, "segment" );
+  //   iolcv -> specify_data_read( larcv::kProductImage2D, "ancestor" );
+  //   iolcv -> specify_data_read( larcv::kProductImage2D, "larflow" );
+  // }
   if(fTickBack) iolcv -> reverse_all_products();
   iolcv -> initialize();
 
@@ -2105,6 +2115,11 @@ void WireCellAnaTree::initLanternIntegration()
     ioll -> set_data_to_read( "mctruth", "corsika" );
     ioll -> open();
   }
+
+  mcpg = std::make_unique<ublarcvapp::mctools::MCPixelPGraph>();
+  mcpm = std::make_unique<ublarcvapp::mctools::MCPixelPMap>();
+  mcpg->set_adc_treename("wire");
+  mcpm->set_adc_treename("wire");
 
   if(fRunLArPID){
     //load LArPID network weights, initialize model
@@ -4105,7 +4120,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
       if( f_wirecellPF ){
         auto particleHandle = e.getHandle<std::vector<simb::MCParticle>>(fPFInputTag);
         if (! particleHandle ) return;
-        std::cout << "particles.size(): " << particleHandle->size() << std::endl;
+        //std::cout << "particles.size(): " << particleHandle->size() << std::endl;
 
         //prep work for LArPID and MC backtracking
 
@@ -4114,15 +4129,13 @@ void WireCellAnaTree::analyze(art::Event const& e)
         bool fRunBackTracking_evt = fRunBackTracking;
         bool larpidVars_filled = false;
         bool backtrackVars_filled = false;
-        std::vector<larcv::Image2D> adc_v;
-        std::vector<larcv::Image2D> thrumu_v;
         std::unordered_map<int, LArPID::ParticleInfo> particleMap;
+	larcv::EventImage2D* wireImage2D   = nullptr;
+	larcv::EventImage2D* cosmicImage2D = nullptr;
 
         if(fRunLArPID || fRunBackTracking){
 
           //get wire images from larcv file
-          larcv::EventImage2D* wireImage2D = nullptr;
-          larcv::EventImage2D* cosmicImage2D = nullptr;
           for(unsigned int iImg = iImg_start; iImg < iolcv->get_n_entries(); ++iImg){
             iolcv -> read_entry(iImg);
             larcv::EventImage2D* wireImg = (larcv::EventImage2D*)(iolcv->get_data(larcv::kProductImage2D,"wire"));
@@ -4142,14 +4155,28 @@ void WireCellAnaTree::analyze(art::Event const& e)
             fRunBackTracking_evt = false;
           }
           else{
-            adc_v = wireImage2D->Image2DArray();
-            thrumu_v = cosmicImage2D->Image2DArray();
+	    // these are copy calls! Remove these and only use the const references returned by Image2DArray()
+            //adc_v = wireImage2D->Image2DArray();
+            //thrumu_v = cosmicImage2D->Image2DArray();
           }
 
         }
 
+	// if we're running the backtracking for the event, build the MCPixelPGraph and MCPixelPMap
+	if ( fRunBackTracking_evt && fMC ) {
+	  mcpg->clear();
+	  mcpm->pixMap.clear();
+	  //std::cout << "Build MCPixelPGraph to do backtracking for this event" << std::endl;
+	  mcpg->buildgraph( *iolcv, *ioll );
+	  //std::cout << "Build MCPixelPMap to do backtracking for this event" << std::endl;
+	  mcpm->buildmap(*iolcv, *mcpg);
+	  //std::cout << " ... done" << std::endl;
+	}
+
         //fill map of particle id to struct with particle reco info needed for LArPID and MC back tracking
         if(fRunLArPID_evt || fRunBackTracking_evt){
+
+	  const std::vector< larcv::Image2D >& adc_v    = wireImage2D->Image2DArray();
 
           //loop over reco particles to initialize map and assign LArPID crop point
           for (auto const& particle : *particleHandle) {
@@ -4217,6 +4244,9 @@ void WireCellAnaTree::analyze(art::Event const& e)
 
             if(fRunLArPID_evt || fRunBackTracking_evt){
 
+	     const std::vector< larcv::Image2D >& adc_v    = wireImage2D->Image2DArray();
+	     const std::vector< larcv::Image2D >& thrumu_v = cosmicImage2D->Image2DArray(); 
+
              const LArPID::ParticleInfo& lanternPartInfo = particleMap[particle.TrackId()];
              auto prong_vv = LArPID::make_cropped_initial_sparse_prong_image_reco(adc_v, thrumu_v,
               lanternPartInfo.larflowProng, lanternPartInfo.cropPoint, 10., 512, 512);
@@ -4229,6 +4259,9 @@ void WireCellAnaTree::analyze(art::Event const& e)
                  else thresholdPassInAll = false;
                }
                if(thresholdPassInAll || (thresholdPassInOne && !fAllPlaneThreshold)){
+
+		 //std::cout << "Running LArPID inference on prong" << std::endl;
+
                  LArPID::ModelOutput larpid_output = model.run_inference(prong_vv);
                  reco_larpid_classified[reco_Ntrack-1] = 1;
                  reco_larpid_pdg[reco_Ntrack-1] = larpid_output.pid;
@@ -4248,7 +4281,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
              }
 
              if(fRunBackTracking_evt && fMC){
-               LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *iolcv, *ioll, adc_v);
+	       LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *mcpg, *mcpm, adc_v);
                reco_truthMatch_pdg[reco_Ntrack-1] = truthMatch.pdg;
                reco_truthMatch_id[reco_Ntrack-1] = truthMatch.tid;
                reco_truthMatch_purity[reco_Ntrack-1] = truthMatch.purity;
