@@ -173,6 +173,7 @@ public:
   void save_LEEweights(art::Event const& e);
   void ReadBDTvar(nsm::NuSelectionBDT const& bdt);
   void ReadSSMBDTvar(nsm::NuSelectionBDT const& bdt);
+  void ReadWCPMTInfo(nsm::NuSelectionBDT const& bdt);
   void ReadKINEvar(nsm::NuSelectionKINE const& kine);
   void nsbeamtiming(art::Event const& e);
   void getPMTwf(art::Event const& e, double maxP[32],double timeP[32],bool Sat[32]);
@@ -2191,21 +2192,6 @@ void WireCellAnaTree::initOutput()
   fTreeEval->Branch("stm_FullDead",		&f_stm_FullDead);
   fTreeEval->Branch("stm_clusterlength",	&f_stm_clusterlength);
 
-  // new variables for PMT info
-  fTreeEval->Branch("WCPMTInfoPePred", 		&f_WCPMTInfoPePred);
-  fTreeEval->Branch("WCPMTInfoPeMeas", 		&f_WCPMTInfoPeMeas);
-  fTreeEval->Branch("WCPMTInfoPeMeasErr", 	&f_WCPMTInfoPeMeasErr);
-  fTreeEval->Branch("WCPMTInfoTPCClusterID", 	&f_WCPMTInfoTPCClusterID);
-  fTreeEval->Branch("WCPMTInfoFlashID", 		&f_WCPMTInfoFlashID);
-  fTreeEval->Branch("WCPMTInfoStrength", 		&f_WCPMTInfoStrength);
-  fTreeEval->Branch("WCPMTInfoEventType", 		&f_WCPMTInfoEventType);
-  fTreeEval->Branch("WCPMTInfoKSDistance", 		&f_WCPMTInfoKSDistance);
-  fTreeEval->Branch("WCPMTInfoChi2", 		&f_WCPMTInfoChi2);
-  fTreeEval->Branch("WCPMTInfoNDF", 		&f_WCPMTInfoNDF);
-  fTreeEval->Branch("WCPMTInfoClusterLength", 	&f_WCPMTInfoClusterLength);
-  fTreeEval->Branch("WCPMTInfoNeutrinoType", 	&f_WCPMTInfoNeutrinoType);
-  fTreeEval->Branch("WCPMTInfoFlashTime", 		&f_WCPMTInfoFlashTime);
-
   if( fMC==true ){
   fTreeEval->Branch("truth_nuEnergy", 		&f_truth_nuEnergy);
   fTreeEval->Branch("truth_energyInside", 	&f_truth_energyInside);
@@ -2493,22 +2479,6 @@ void WireCellAnaTree::initOutput()
     fPFeval->Branch("PMT_TimeDL", &f_PMT_TimeDL);
     fPFeval->Branch("PMT_Sat", &f_PMT_Sat);
     fPFeval->Branch("RWM_Time", &f_RWM_Time);
-  }
-
-  if (f_saveWCPMTInfo){
-    fPFeval->Branch("WCPMTInfoPePred", &f_WCPMTInfoPePred);
-    fPFeval->Branch("WCPMTInfoPeMeas", &f_WCPMTInfoPeMeas);
-    fPFeval->Branch("WCPMTInfoPeMeasErr", &f_WCPMTInfoPeMeasErr);
-    fPFeval->Branch("WCPMTInfoTPCClusterID", &f_WCPMTInfoTPCClusterID);
-    fPFeval->Branch("WCPMTInfoFlashID", &f_WCPMTInfoFlashID);
-    fPFeval->Branch("WCPMTInfoStrength", &f_WCPMTInfoStrength);
-    fPFeval->Branch("WCPMTInfoEventType", &f_WCPMTInfoEventType);
-    fPFeval->Branch("WCPMTInfoKSDistance", &f_WCPMTInfoKSDistance);
-    fPFeval->Branch("WCPMTInfoChi2", &f_WCPMTInfoChi2);
-    fPFeval->Branch("WCPMTInfoNDF", &f_WCPMTInfoNDF);
-    fPFeval->Branch("WCPMTInfoClusterLength", &f_WCPMTInfoClusterLength);
-    fPFeval->Branch("WCPMTInfoNeutrinoType", &f_WCPMTInfoNeutrinoType);
-    fPFeval->Branch("WCPMTInfoFlashTime", &f_WCPMTInfoFlashTime);
   }
 
   if (f_MCS){
@@ -3852,6 +3822,22 @@ void WireCellAnaTree::initOutput()
   fBDT->Branch("nue_score",&nue_score,"nue_score/F");
   }
 
+  if (f_saveWCPMTInfo){
+    fBDT->Branch("WCPMTInfoPePred", 		&f_WCPMTInfoPePred);
+    fBDT->Branch("WCPMTInfoPeMeas", 		&f_WCPMTInfoPeMeas);
+    fBDT->Branch("WCPMTInfoPeMeasErr", 	&f_WCPMTInfoPeMeasErr);
+    fBDT->Branch("WCPMTInfoTPCClusterID", 	&f_WCPMTInfoTPCClusterID);
+    fBDT->Branch("WCPMTInfoFlashID", 		&f_WCPMTInfoFlashID);
+    fBDT->Branch("WCPMTInfoStrength", 		&f_WCPMTInfoStrength);
+    fBDT->Branch("WCPMTInfoEventType", 		&f_WCPMTInfoEventType);
+    fBDT->Branch("WCPMTInfoKSDistance", 		&f_WCPMTInfoKSDistance);
+    fBDT->Branch("WCPMTInfoChi2", 		&f_WCPMTInfoChi2);
+    fBDT->Branch("WCPMTInfoNDF", 		&f_WCPMTInfoNDF);
+    fBDT->Branch("WCPMTInfoClusterLength", 	&f_WCPMTInfoClusterLength);
+    fBDT->Branch("WCPMTInfoNeutrinoType", 	&f_WCPMTInfoNeutrinoType);
+    fBDT->Branch("WCPMTInfoFlashTime", 		&f_WCPMTInfoFlashTime);
+  }
+
   fKINE = tfs->make<TTree>("T_KINEvars", "T_KINEvars");
   if(f_KINEvars){
   fKINE->Branch("kine_reco_Enu",&kine_reco_Enu,"kine_reco_Enu/F");
@@ -4158,33 +4144,39 @@ void WireCellAnaTree::analyze(art::Event const& e)
     f_WCPMTInfoPeMeas->clear();
     f_WCPMTInfoPeMeasErr->clear();
     
-    auto WCPMTInfoPePred_handle = e.getValidHandle<std::vector<double>>({"wirecellPF", "WCPMTInfoPePred"});
-    std::cout << "WCPMTInfoPePred values: ";
-    for (auto const& pePred: *WCPMTInfoPePred_handle){
-      f_WCPMTInfoPePred->push_back(pePred);
-      std::cout << pePred << " ";
+    auto WCPMTInfo_handle = e.getValidHandle<std::vector<nsm::NuSelectionBDT::WCPMTInfo>>({"wirecellPF", "WCPMTInfo"});
+    if (!WCPMTInfo_handle->empty()) {
+      auto const& wcpmtinfo = WCPMTInfo_handle->at(0);
+      
+      // Copy vector data
+      if (wcpmtinfo.WCPMTInfoPePred) {
+        for (auto const& pePred: *wcpmtinfo.WCPMTInfoPePred){
+          f_WCPMTInfoPePred->push_back(pePred);
+        }
+      }
+      if (wcpmtinfo.WCPMTInfoPeMeas) {
+        for (auto const& peMeas: *wcpmtinfo.WCPMTInfoPeMeas){
+          f_WCPMTInfoPeMeas->push_back(peMeas);
+        }
+      }
+      if (wcpmtinfo.WCPMTInfoPeMeasErr) {
+        for (auto const& peMeasErr: *wcpmtinfo.WCPMTInfoPeMeasErr){
+          f_WCPMTInfoPeMeasErr->push_back(peMeasErr);
+        }
+      }
+      
+      // Copy scalar data
+      f_WCPMTInfoTPCClusterID = wcpmtinfo.WCPMTInfoTPCClusterID;
+      f_WCPMTInfoFlashID = wcpmtinfo.WCPMTInfoFlashID;
+      f_WCPMTInfoStrength = wcpmtinfo.WCPMTInfoStrength;
+      f_WCPMTInfoEventType = wcpmtinfo.WCPMTInfoEventType;
+      f_WCPMTInfoKSDistance = wcpmtinfo.WCPMTInfoKSDistance;
+      f_WCPMTInfoChi2 = wcpmtinfo.WCPMTInfoChi2;
+      f_WCPMTInfoNDF = wcpmtinfo.WCPMTInfoNDF;
+      f_WCPMTInfoClusterLength = wcpmtinfo.WCPMTInfoClusterLength;
+      f_WCPMTInfoNeutrinoType = wcpmtinfo.WCPMTInfoNeutrinoType;
+      f_WCPMTInfoFlashTime = wcpmtinfo.WCPMTInfoFlashTime;
     }
-    std::cout << "\n";
-
-    auto WCPMTInfoPeMeas_handle = e.getValidHandle<std::vector<double>>({"wirecellPF", "WCPMTInfoPeMeas"});
-    for (auto const& peMeas: *WCPMTInfoPeMeas_handle){
-      f_WCPMTInfoPeMeas->push_back(peMeas);
-    }
-    auto WCPMTInfoPeMeasErr_handle = e.getValidHandle<std::vector<double>>({"wirecellPF", "WCPMTInfoPeMeasErr"});
-    for (auto const& peMeasErr: *WCPMTInfoPeMeasErr_handle){
-      f_WCPMTInfoPeMeasErr->push_back(peMeasErr);
-    }
-
-    f_WCPMTInfoTPCClusterID = *e.getValidHandle<int>({"wirecellPF", "WCPMTInfoTPCClusterID"});
-    f_WCPMTInfoFlashID = *e.getValidHandle<int>({"wirecellPF", "WCPMTInfoFlashID"});
-    f_WCPMTInfoStrength = *e.getValidHandle<double>({"wirecellPF", "WCPMTInfoStrength"});
-    f_WCPMTInfoEventType = *e.getValidHandle<int>({"wirecellPF", "WCPMTInfoEventType"});
-    f_WCPMTInfoKSDistance = *e.getValidHandle<double>({"wirecellPF", "WCPMTInfoKSDistance"});
-    f_WCPMTInfoChi2 = *e.getValidHandle<double>({"wirecellPF", "WCPMTInfoChi2"});
-    f_WCPMTInfoNDF = *e.getValidHandle<int>({"wirecellPF", "WCPMTInfoNDF"});
-    f_WCPMTInfoClusterLength = *e.getValidHandle<double>({"wirecellPF", "WCPMTInfoClusterLength"});
-    f_WCPMTInfoNeutrinoType = *e.getValidHandle<int>({"wirecellPF", "WCPMTInfoNeutrinoType"});
-    f_WCPMTInfoFlashTime = *e.getValidHandle<double>({"wirecellPF", "WCPMTInfoFlashTime"});
   }
 
 	/// PF validation starts
@@ -4986,6 +4978,35 @@ void WireCellAnaTree::analyze(art::Event const& e)
         bdt.GetCosmicTagger().cosmic_n_main_showers<<"\n";
 	}
 }
+      }
+
+      if (f_saveWCPMTInfo){
+        auto bdthandle = e.getHandle<std::vector<nsm::NuSelectionBDT>>(fPFInputTag);
+        if (! bdthandle) return;
+	std::cout<<"--- NuSelectionWCPMTInfo ---"<<std::endl;
+        if(bdthandle->size()>1) {
+		std::cout<<"WARNING: >1 set of WCPMTInfo input variables" << std::endl;
+		//return;
+	        }else{
+                        for(nsm::NuSelectionBDT const& bdt : *bdthandle) {
+                                ReadWCPMTInfo(bdt);
+                                std::cout<<"WCPMTInfo input vars check: \n"<<
+                                bdt.GetWCPMTInfo().WCPMTInfoPePred<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoPeMeas<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoPeMeasErr<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoTPCClusterID<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoFlashID<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoStrength<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoEventType<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoKSDistance<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoChi2<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoNDF<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoClusterLength<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoNeutrinoType<<" "<<
+                                bdt.GetWCPMTInfo().WCPMTInfoFlashTime<<"\n";
+                        }
+                }
+
       }
 
       if(f_KINEvars){
@@ -6681,6 +6702,23 @@ void WireCellAnaTree::save_LEEweights(art::Event const& e)
       }
     }
   }
+}
+
+void WireCellAnaTree::ReadWCPMTInfo(nsm::NuSelectionBDT const& bdt)
+{
+  f_WCPMTInfoPePred = bdt.GetWCPMTInfo().WCPMTInfoPePred;
+  f_WCPMTInfoPeMeas = bdt.GetWCPMTInfo().WCPMTInfoPeMeas;
+  f_WCPMTInfoPeMeasErr = bdt.GetWCPMTInfo().WCPMTInfoPeMeasErr;
+  f_WCPMTInfoTPCClusterID = bdt.GetWCPMTInfo().WCPMTInfoTPCClusterID;
+  f_WCPMTInfoFlashID = bdt.GetWCPMTInfo().WCPMTInfoFlashID;
+  f_WCPMTInfoStrength = bdt.GetWCPMTInfo().WCPMTInfoStrength;
+  f_WCPMTInfoEventType = bdt.GetWCPMTInfo().WCPMTInfoEventType;
+  f_WCPMTInfoKSDistance = bdt.GetWCPMTInfo().WCPMTInfoKSDistance;
+  f_WCPMTInfoChi2 = bdt.GetWCPMTInfo().WCPMTInfoChi2;
+  f_WCPMTInfoNDF = bdt.GetWCPMTInfo().WCPMTInfoNDF;
+  f_WCPMTInfoClusterLength = bdt.GetWCPMTInfo().WCPMTInfoClusterLength;
+  f_WCPMTInfoNeutrinoType = bdt.GetWCPMTInfo().WCPMTInfoNeutrinoType;
+  f_WCPMTInfoFlashTime = bdt.GetWCPMTInfo().WCPMTInfoFlashTime;
 }
 
 
