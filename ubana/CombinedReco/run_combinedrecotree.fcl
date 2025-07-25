@@ -38,6 +38,7 @@ source:
   module_type: RootInput
   fileNames:   ["dummy.root"]
   maxEvents:   -1
+  saveMemoryObjectThreshold: 0
 }
 
 physics:
