@@ -51,6 +51,7 @@
 #include "ubobj/WcpPort/NuSelectionSTM.h"
 #include "ubobj/WcpPort/NuSelectionBDT.h"
 #include "ubobj/WcpPort/NuSelectionKINE.h"
+#include "ubobj/WcpPort/WCPMTInfo.h"
 
 #include "TRandom3.h"
 #include "dk2nu/tree/dk2nu.h"
@@ -4144,7 +4145,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
     f_WCPMTInfoPeMeas->clear();
     f_WCPMTInfoPeMeasErr->clear();
     
-    auto WCPMTInfo_handle = e.getValidHandle<std::vector<nsm::NuSelectionBDT::WCPMTInfo>>({"wirecellPF", "WCPMTInfo"});
+    auto WCPMTInfo_handle = e.getValidHandle<std::vector<nsm::WCPMTInfo>>({"wirecellPF", "WCPMTInfo"});
     if (!WCPMTInfo_handle->empty()) {
       auto const& wcpmtinfo = WCPMTInfo_handle->at(0);
       
