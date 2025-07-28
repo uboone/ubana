@@ -23,6 +23,7 @@ source:
   fileNames:  [ "gen.root" ]
   firstEvent : 1
   maxEvents:  -1
+  saveMemoryObjectThreshold: 0
 }
 
 
@@ -34,6 +35,7 @@ outputs:
         fileName:    "%ifb_postwcct.root"
         dataTier:    "reconstructed"
         compressionLevel: 1
+        saveMemoryObjectThreshold: 0
         }
 }
 
