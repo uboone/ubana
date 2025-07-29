@@ -23,6 +23,7 @@ source:
   fileNames:  [ "gen.root" ]
   firstEvent : 1
   maxEvents:  -1
+  saveMemoryObjectThreshold: 0
 }
 
 

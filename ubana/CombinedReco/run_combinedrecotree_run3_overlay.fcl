@@ -18,3 +18,5 @@ physics.filters.nuselection.AnalysisTools.zbdt: @local::BDTTool
 
 physics.filters.nuselection.SelectionTool: @local::CC0PiNpSelectionTool
 physics.filters.nuselection.AnalysisTools.timing.isRun3: true
+
+physics.analyzers.wcpselection.LArPIDModel: "LArPID_alternate_network_weights_torchscript_v2_model.pt"

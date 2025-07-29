@@ -9,3 +9,5 @@ physics.filters.nuselection.AnalysisTools.timing.isRun3: true
 physics.filters.nuselection.AnalysisTools.timing.isMC: true
 physics.filters.nuselection.AnalysisTools.timing.MCOffset: 1754
 physics.filters.nuselection.AnalysisTools.timing.SaveExtraInfo: true
+
+physics.analyzers.wcpselection.LArPIDModel: "LArPID_default_network_weights_torchscript_v2_model.pt"
