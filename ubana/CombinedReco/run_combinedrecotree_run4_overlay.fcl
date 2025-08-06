@@ -4,3 +4,5 @@ physics.filters.nuselection.AnalysisTools.flashmatchid: @local::FlashMatchingToo
 physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
 physics.filters.nuselection.AnalysisTools.timing.MCOffset: 1567
 physics.filters.nuselection.AnalysisTools.timing.nstimePMTWFproducer: "mixer:OpdetBeamHighGain"
+
+physics.analyzers.wcpselection.LArPIDModel: "LArPID_default_network_weights_torchscript_v2_model.pt"

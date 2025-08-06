@@ -84,6 +84,9 @@ physics:
       SaveTclusterSpacePoints: false # this one is especially large, making the resulting ntuple about 14x larger
       SaveTrueEDepSpacePoints: false # this one is especially large, making the resulting ntuple about 5x larger
 
+      # New WC PMT Info
+      SaveWCPMTInfo: true
+
       ShiftOffset: 0 #0 for Run 1, 387.8 for Run 3 before RWM cable change and 118.3 Run 3 after RWM cable change and Run 4
       isRun3: false #is this run 3 (where the RWM cable changed)?
       # various fit parameters for corrections

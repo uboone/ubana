@@ -51,6 +51,7 @@
 #include "ubobj/WcpPort/NuSelectionSTM.h"
 #include "ubobj/WcpPort/NuSelectionBDT.h"
 #include "ubobj/WcpPort/NuSelectionKINE.h"
+#include "ubobj/WcpPort/WCPMTInfo.h"
 
 #include "TRandom3.h"
 #include "dk2nu/tree/dk2nu.h"
@@ -237,6 +238,8 @@ private:
   bool f_saveTclusterSpacePoints;
   bool f_saveTrueEDepSpacePoints;
 
+  bool f_saveWCPMTInfo;
+
   float f_shiftoffset;
   float f_ccnd1_a;
   float f_ccnd1_b;
@@ -271,6 +274,8 @@ private:
   //storage managers for accessing info from larcv image file
   std::unique_ptr<larcv::IOManager> iolcv;
   std::unique_ptr<larlite::storage_manager> ioll;
+  std::unique_ptr<ublarcvapp::mctools::MCPixelPGraph> mcpg; // for each  mctrack and mcshower object, make a list of pixels in each plane
+  std::unique_ptr<ublarcvapp::mctools::MCPixelPMap>   mcpm; // for each pixel, associate true particles to it.
   //LArPID torchscript model
   LArPID::TorchModel model;
 
@@ -1791,6 +1796,21 @@ private:
   Float_t	  f_match_energyY;
   Bool_t	  f_lightmismatch;
 
+  // new variables for PMT info
+  std::vector<double> *f_WCPMTInfoPePred = new std::vector<double>;
+  std::vector<double> *f_WCPMTInfoPeMeas = new std::vector<double>;
+  std::vector<double> *f_WCPMTInfoPeMeasErr = new std::vector<double>;
+  Int_t f_WCPMTInfoTPCClusterID;
+  Int_t f_WCPMTInfoFlashID;
+  Double_t f_WCPMTInfoStrength;
+  Int_t f_WCPMTInfoEventType;
+  Double_t f_WCPMTInfoKSDistance;
+  Double_t f_WCPMTInfoChi2;
+  Int_t f_WCPMTInfoNDF;
+  Double_t f_WCPMTInfoClusterLength;
+  Int_t f_WCPMTInfoNeutrinoType;
+  Double_t f_WCPMTInfoFlashTime;
+
   Float_t         f_truth_nuEnergy;
   Float_t         f_truth_energyInside;
   Float_t         f_truth_electronInside;
@@ -2002,6 +2022,8 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   f_saveTclusterSpacePoints = pset.get<bool>("SaveTclusterSpacePoints", false);
   f_saveTrueEDepSpacePoints = pset.get<bool>("SaveTrueEDepSpacePoints", false);
 
+  f_saveWCPMTInfo = pset.get<bool>("SaveWCPMTInfo", false);
+
   f_MCS = pset.get<bool>("MCS", false);
   fMCSLabel = pset.get<std::string>("MCSLabel","WireCellMCS");
 
@@ -2090,6 +2112,14 @@ void WireCellAnaTree::initLanternIntegration()
   if(fTickBack) tickDir = larcv::IOManager::kTickBackward;
   iolcv = std::make_unique<larcv::IOManager>(larcv::IOManager::kREAD,"larcv",tickDir);
   iolcv -> add_in_file(fLArCVImageFile);
+  // iolcv -> specify_data_read( larcv::kProductImage2D, "wire" );
+  // iolcv -> specify_data_read( larcv::kProductImage2D, "thrumu" );
+  // if(fMC) {
+  //   iolcv -> specify_data_read( larcv::kProductImage2D, "instance" );
+  //   iolcv -> specify_data_read( larcv::kProductImage2D, "segment" );
+  //   iolcv -> specify_data_read( larcv::kProductImage2D, "ancestor" );
+  //   iolcv -> specify_data_read( larcv::kProductImage2D, "larflow" );
+  // }
   if(fTickBack) iolcv -> reverse_all_products();
   iolcv -> initialize();
 
@@ -2105,6 +2135,11 @@ void WireCellAnaTree::initLanternIntegration()
     ioll -> set_data_to_read( "mctruth", "corsika" );
     ioll -> open();
   }
+
+  mcpg = std::make_unique<ublarcvapp::mctools::MCPixelPGraph>();
+  mcpm = std::make_unique<ublarcvapp::mctools::MCPixelPMap>();
+  mcpg->set_adc_treename("wire");
+  mcpm->set_adc_treename("wire");
 
   if(fRunLArPID){
     //load LArPID network weights, initialize model
@@ -3802,6 +3837,23 @@ void WireCellAnaTree::initOutput()
   fBDT->Branch("nue_score",&nue_score,"nue_score/F");
   }
 
+  if (f_saveWCPMTInfo){
+    std::cout << "setting WCPMTInfo fBDT branches" << std::endl;
+    fBDT->Branch("WCPMTInfoPePred", 		&f_WCPMTInfoPePred);
+    fBDT->Branch("WCPMTInfoPeMeas", 		&f_WCPMTInfoPeMeas);
+    fBDT->Branch("WCPMTInfoPeMeasErr", 	&f_WCPMTInfoPeMeasErr);
+    fBDT->Branch("WCPMTInfoTPCClusterID", 	&f_WCPMTInfoTPCClusterID);
+    fBDT->Branch("WCPMTInfoFlashID", 		&f_WCPMTInfoFlashID);
+    fBDT->Branch("WCPMTInfoStrength", 		&f_WCPMTInfoStrength);
+    fBDT->Branch("WCPMTInfoEventType", 		&f_WCPMTInfoEventType);
+    fBDT->Branch("WCPMTInfoKSDistance", 		&f_WCPMTInfoKSDistance);
+    fBDT->Branch("WCPMTInfoChi2", 		&f_WCPMTInfoChi2);
+    fBDT->Branch("WCPMTInfoNDF", 		&f_WCPMTInfoNDF);
+    fBDT->Branch("WCPMTInfoClusterLength", 	&f_WCPMTInfoClusterLength);
+    fBDT->Branch("WCPMTInfoNeutrinoType", 	&f_WCPMTInfoNeutrinoType);
+    fBDT->Branch("WCPMTInfoFlashTime", 		&f_WCPMTInfoFlashTime);
+  }
+
   fKINE = tfs->make<TTree>("T_KINEvars", "T_KINEvars");
   if(f_KINEvars){
   fKINE->Branch("kine_reco_Enu",&kine_reco_Enu,"kine_reco_Enu/F");
@@ -4100,12 +4152,74 @@ void WireCellAnaTree::analyze(art::Event const& e)
     }
   }
 
+  if (f_saveWCPMTInfo){
+
+    std::cout << "Saving WCPMTInfo" << std::endl;
+        
+    f_WCPMTInfoPePred->clear();
+    f_WCPMTInfoPeMeas->clear();
+    f_WCPMTInfoPeMeasErr->clear();
+    
+    auto WCPMTInfo_handle = e.getValidHandle<std::vector<nsm::WCPMTInfo>>({"wirecellPF", "WCPMTInfo"});
+    if (!WCPMTInfo_handle->empty()) {
+      auto const& wcpmtinfo = WCPMTInfo_handle->at(0);
+      
+      // Copy vector data
+      if (wcpmtinfo.WCPMTInfoPePred) {
+        std::cout << "pePred: ";
+        for (auto const& pePred: *wcpmtinfo.WCPMTInfoPePred){
+          f_WCPMTInfoPePred->push_back(pePred);
+          std::cout << pePred << ", ";
+        }
+        std::cout << std::endl;
+      }
+      if (wcpmtinfo.WCPMTInfoPeMeas) {
+        std::cout << "peMeas: ";
+        for (auto const& peMeas: *wcpmtinfo.WCPMTInfoPeMeas){
+          f_WCPMTInfoPeMeas->push_back(peMeas);
+          std::cout << peMeas << ", ";
+        }
+        std::cout << std::endl;
+      }
+      if (wcpmtinfo.WCPMTInfoPeMeasErr) {
+        std::cout << "peMeasErr: ";
+        for (auto const& peMeasErr: *wcpmtinfo.WCPMTInfoPeMeasErr){
+          f_WCPMTInfoPeMeasErr->push_back(peMeasErr);
+          std::cout << peMeasErr << ", ";
+        }
+        std::cout << std::endl;
+      }
+      
+      f_WCPMTInfoTPCClusterID = wcpmtinfo.WCPMTInfoTPCClusterID;
+      f_WCPMTInfoFlashID = wcpmtinfo.WCPMTInfoFlashID;
+      f_WCPMTInfoStrength = wcpmtinfo.WCPMTInfoStrength;
+      f_WCPMTInfoEventType = wcpmtinfo.WCPMTInfoEventType;
+      f_WCPMTInfoKSDistance = wcpmtinfo.WCPMTInfoKSDistance;
+      f_WCPMTInfoChi2 = wcpmtinfo.WCPMTInfoChi2;
+      f_WCPMTInfoNDF = wcpmtinfo.WCPMTInfoNDF;
+      f_WCPMTInfoClusterLength = wcpmtinfo.WCPMTInfoClusterLength;
+      f_WCPMTInfoNeutrinoType = wcpmtinfo.WCPMTInfoNeutrinoType;
+      f_WCPMTInfoFlashTime = wcpmtinfo.WCPMTInfoFlashTime;
+
+      std::cout << "WCPMTInfoTPCClusterID: " << wcpmtinfo.WCPMTInfoTPCClusterID << std::endl;
+      std::cout << "WCPMTInfoFlashID: " << wcpmtinfo.WCPMTInfoFlashID << std::endl;
+      std::cout << "WCPMTInfoStrength: " << wcpmtinfo.WCPMTInfoStrength << std::endl;
+      std::cout << "WCPMTInfoEventType: " << wcpmtinfo.WCPMTInfoEventType << std::endl;
+      std::cout << "WCPMTInfoKSDistance: " << wcpmtinfo.WCPMTInfoKSDistance << std::endl;
+      std::cout << "WCPMTInfoChi2: " << wcpmtinfo.WCPMTInfoChi2 << std::endl;
+      std::cout << "WCPMTInfoNDF: " << wcpmtinfo.WCPMTInfoNDF << std::endl;
+      std::cout << "WCPMTInfoClusterLength: " << wcpmtinfo.WCPMTInfoClusterLength << std::endl;
+      std::cout << "WCPMTInfoNeutrinoType: " << wcpmtinfo.WCPMTInfoNeutrinoType << std::endl;
+      std::cout << "WCPMTInfoFlashTime: " << wcpmtinfo.WCPMTInfoFlashTime << std::endl;
+    }
+  }
+
 	/// PF validation starts
 	// reco start [nested loop]
       if( f_wirecellPF ){
         auto particleHandle = e.getHandle<std::vector<simb::MCParticle>>(fPFInputTag);
         if (! particleHandle ) return;
-        std::cout << "particles.size(): " << particleHandle->size() << std::endl;
+        //std::cout << "particles.size(): " << particleHandle->size() << std::endl;
 
         //prep work for LArPID and MC backtracking
 
@@ -4114,15 +4228,13 @@ void WireCellAnaTree::analyze(art::Event const& e)
         bool fRunBackTracking_evt = fRunBackTracking;
         bool larpidVars_filled = false;
         bool backtrackVars_filled = false;
-        std::vector<larcv::Image2D> adc_v;
-        std::vector<larcv::Image2D> thrumu_v;
         std::unordered_map<int, LArPID::ParticleInfo> particleMap;
+	larcv::EventImage2D* wireImage2D   = nullptr;
+	larcv::EventImage2D* cosmicImage2D = nullptr;
 
         if(fRunLArPID || fRunBackTracking){
 
           //get wire images from larcv file
-          larcv::EventImage2D* wireImage2D = nullptr;
-          larcv::EventImage2D* cosmicImage2D = nullptr;
           for(unsigned int iImg = iImg_start; iImg < iolcv->get_n_entries(); ++iImg){
             iolcv -> read_entry(iImg);
             larcv::EventImage2D* wireImg = (larcv::EventImage2D*)(iolcv->get_data(larcv::kProductImage2D,"wire"));
@@ -4142,14 +4254,28 @@ void WireCellAnaTree::analyze(art::Event const& e)
             fRunBackTracking_evt = false;
           }
           else{
-            adc_v = wireImage2D->Image2DArray();
-            thrumu_v = cosmicImage2D->Image2DArray();
+	    // these are copy calls! Remove these and only use the const references returned by Image2DArray()
+            //adc_v = wireImage2D->Image2DArray();
+            //thrumu_v = cosmicImage2D->Image2DArray();
           }
 
         }
 
+	// if we're running the backtracking for the event, build the MCPixelPGraph and MCPixelPMap
+	if ( fRunBackTracking_evt && fMC ) {
+	  mcpg->clear();
+	  mcpm->pixMap.clear();
+	  //std::cout << "Build MCPixelPGraph to do backtracking for this event" << std::endl;
+	  mcpg->buildgraph( *iolcv, *ioll );
+	  //std::cout << "Build MCPixelPMap to do backtracking for this event" << std::endl;
+	  mcpm->buildmap(*iolcv, *mcpg);
+	  //std::cout << " ... done" << std::endl;
+	}
+
         //fill map of particle id to struct with particle reco info needed for LArPID and MC back tracking
         if(fRunLArPID_evt || fRunBackTracking_evt){
+
+	  const std::vector< larcv::Image2D >& adc_v    = wireImage2D->Image2DArray();
 
           //loop over reco particles to initialize map and assign LArPID crop point
           for (auto const& particle : *particleHandle) {
@@ -4217,6 +4343,9 @@ void WireCellAnaTree::analyze(art::Event const& e)
 
             if(fRunLArPID_evt || fRunBackTracking_evt){
 
+	     const std::vector< larcv::Image2D >& adc_v    = wireImage2D->Image2DArray();
+	     const std::vector< larcv::Image2D >& thrumu_v = cosmicImage2D->Image2DArray(); 
+
              const LArPID::ParticleInfo& lanternPartInfo = particleMap[particle.TrackId()];
              auto prong_vv = LArPID::make_cropped_initial_sparse_prong_image_reco(adc_v, thrumu_v,
               lanternPartInfo.larflowProng, lanternPartInfo.cropPoint, 10., 512, 512);
@@ -4229,6 +4358,9 @@ void WireCellAnaTree::analyze(art::Event const& e)
                  else thresholdPassInAll = false;
                }
                if(thresholdPassInAll || (thresholdPassInOne && !fAllPlaneThreshold)){
+
+		 //std::cout << "Running LArPID inference on prong" << std::endl;
+
                  LArPID::ModelOutput larpid_output = model.run_inference(prong_vv);
                  reco_larpid_classified[reco_Ntrack-1] = 1;
                  reco_larpid_pdg[reco_Ntrack-1] = larpid_output.pid;
@@ -4248,7 +4380,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
              }
 
              if(fRunBackTracking_evt && fMC){
-               LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *iolcv, *ioll, adc_v);
+	       LArCVBackTrack::TruthMatchResults truthMatch = LArCVBackTrack::run_backtracker(prong_vv, *mcpg, *mcpm, adc_v);
                reco_truthMatch_pdg[reco_Ntrack-1] = truthMatch.pdg;
                reco_truthMatch_id[reco_Ntrack-1] = truthMatch.tid;
                reco_truthMatch_purity[reco_Ntrack-1] = truthMatch.purity;
@@ -5029,6 +5161,7 @@ void WireCellAnaTree::ProtonID(int trackId)
 
 void WireCellAnaTree::resetOutput()
 {
+        std::cout << "resetting output" << std::endl;
 	// live period within each event
 	// maybe redundant here
 	if(f_BDTvars){
@@ -6350,6 +6483,23 @@ void WireCellAnaTree::resetOutput()
     f_PMT_TimeDL->clear();
     f_PMT_Sat->clear();
     f_RWM_Time = -999;
+  }
+
+  if (f_saveWCPMTInfo){
+    f_WCPMTInfoPePred->clear();
+    f_WCPMTInfoPeMeas->clear();
+    f_WCPMTInfoPeMeasErr->clear();
+    std::cout << "clearing f_WCPMTInfo variables" << std::endl;
+    f_WCPMTInfoTPCClusterID = -1;
+    f_WCPMTInfoFlashID = -1;
+    f_WCPMTInfoStrength = -1;
+    f_WCPMTInfoEventType = -1;
+    f_WCPMTInfoKSDistance = -1;
+    f_WCPMTInfoChi2 = -1;
+    f_WCPMTInfoNDF = -1;
+    f_WCPMTInfoClusterLength = -1;
+    f_WCPMTInfoNeutrinoType = -1;
+    f_WCPMTInfoFlashTime = -1;
   }
 
 	f_neutrino_type = -1;
