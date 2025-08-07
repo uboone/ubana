@@ -4396,7 +4396,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
                reco_truthMatch_simPart_purity.push_back(truthMatch_all_purities);
                backtrackVars_filled = true;
              }
-
+             mcpg->clear();
+             mcpm->pixMap.clear();
             }
 
             if(fRunLArPID && !larpidVars_filled){
