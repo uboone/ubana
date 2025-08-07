@@ -4228,7 +4228,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
         bool fRunBackTracking_evt = fRunBackTracking;
         bool larpidVars_filled = false;
         bool backtrackVars_filled = false;
-        std::unordered_map<int, LArPID::ParticleInfo> particleMap;
+        std::unordered_map<int, LArPID::ParticleInfo> particleMap(particleHandle->size());
 	larcv::EventImage2D* wireImage2D   = nullptr;
 	larcv::EventImage2D* cosmicImage2D = nullptr;
 
