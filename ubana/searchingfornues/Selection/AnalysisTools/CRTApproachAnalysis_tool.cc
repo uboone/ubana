@@ -314,6 +314,7 @@ namespace analysis
     _run     = std::numeric_limits<int>::min();
     _sub     = std::numeric_limits<int>::min();
     _evt     = std::numeric_limits<int>::min();
+    _closestNuCosmicDist  =  999999999.;
   }
 
   
@@ -416,7 +417,7 @@ namespace analysis
     _nu_cosmic_End_y   = -9999.;
     _nu_cosmic_End_z   = -9999.;
     _nu_cosmic_TrackID = -9999.;
-    _closestNuCosmicDist  =  999999999.;
+    //_closestNuCosmicDist  =  999999999.;
 
     _rand_vtx_x            = -9999.;
     _rand_vtx_y            = -9999.;
