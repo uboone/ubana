@@ -4462,6 +4462,9 @@ void WireCellAnaTree::analyze(art::Event const& e)
 		// not an actual mass reconstruction since PID tells us the mass if you believe
 		// END
 	}
+        mcpg->clear();
+        mcpm->pixMap.clear();
+
 	for (size_t i=0; i<fPrimaryID.size(); i++){
 		//std::cout<<"Primary particle:  "<< fPrimaryID.at(i) <<std::endl;
 		MuonID(fPrimaryID.at(i));
