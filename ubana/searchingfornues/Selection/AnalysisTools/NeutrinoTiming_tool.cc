@@ -838,8 +838,8 @@ namespace analysis
     }
     
     //getPMTwf(e,max,time);
-    if(!fMC) BeamT0 = _RWM_T;
-    else if (fMC || fIsEXT) BeamT0 = 0;
+    if(!fMC && !fIsEXT) BeamT0 = _RWM_T;
+    else BeamT0 = 0;
     
     double PMT0[3]={-11.4545, -28.625, 990.356};  double PMT1[3]={-11.4175, 27.607, 989.712};
     double PMT2[3]={-11.7755, -56.514, 951.865};  double PMT3[3]={-11.6415, 55.313, 951.861};
