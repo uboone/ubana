@@ -311,6 +311,9 @@ private:
   std::vector<float> _mc_endy;
   std::vector<float> _mc_endz;
 
+  std::vector<std::string> _mc_process;
+  std::vector<std::string> _mc_end_process;
+
   std::vector<float> _mc_completeness;
   std::vector<float> _mc_purity;
 
@@ -1222,6 +1225,9 @@ void DefaultAnalysis::setBranches(TTree *_tree)
   _tree->Branch("mc_py", "std::vector< float >", &_mc_py);
   _tree->Branch("mc_pz", "std::vector< float >", &_mc_pz);
 
+  _tree->Branch("mc_process", "std::vector< std::string >", &_mc_process);
+  _tree->Branch("mc_end_process", "std::vector< std::string >", &_mc_end_process);
+  
   _tree->Branch("mc_end_p", "std::vector< float >", &_mc_end_p);
 
   _tree->Branch("mc_generator_pdg", "std::vector< int >", &_mc_generator_pdg);
@@ -1434,6 +1440,9 @@ void DefaultAnalysis::resetTTree(TTree *_tree)
   _mc_endx.clear();
   _mc_endy.clear();
   _mc_endz.clear();
+  
+  _mc_process.clear();
+  _mc_end_process.clear();
 
   _mc_completeness.clear();
   _mc_purity.clear();
@@ -1744,6 +1753,9 @@ void DefaultAnalysis::SaveTruth(art::Event const &e)
     _mc_endx.push_back(mcp.EndX());
     _mc_endy.push_back(mcp.EndY());
     _mc_endz.push_back(mcp.EndZ());
+   
+    _mc_process.push_back(mcp.Process());
+    _mc_end_process.push_back(mcp.EndProcess());
 
     _mc_completeness.push_back(std::numeric_limits<float>::lowest());
     _mc_purity.push_back(std::numeric_limits<float>::lowest());
