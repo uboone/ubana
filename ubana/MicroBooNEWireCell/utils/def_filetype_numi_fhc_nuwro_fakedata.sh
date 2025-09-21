@@ -37,7 +37,7 @@ mv $FCL mix_wrapper.fcl
 
 # Generate wrapper according to run_number
 # get the file that will be used as input for next stage
-next_stage_input=`ls -t1 *.root | egrep -v 'celltree|hist|larlite|larcv|Supplemental|TGraphs' | head -n1`
+next_stage_input=`ls -t1 *.root | egrep -v 'celltree|hist|larlite|larcv|Supplemental|TGraphs' | artroot_filter.py | head -n1`
 echo $next_stage_input
 run_number=`lar -c eventdump.fcl $next_stage_input -n 1 | grep "Begin processing the 1st record" | awk '{match($0, /run: ([0-9]+)/, arr); print arr[1]}'`
 echo $run_number
