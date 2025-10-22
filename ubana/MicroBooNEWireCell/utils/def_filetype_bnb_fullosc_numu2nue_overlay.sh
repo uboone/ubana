@@ -39,9 +39,24 @@ mv $FCL mix_wrapper.fcl
 # get the file that will be used as input for next stage
 next_stage_input=`ls -t1 *.root | egrep -v 'celltree|hist|larlite|larcv|Supplemental|TGraphs' | artroot_filter.py | head -n1`
 echo $next_stage_input
-# get the run number
-run_number=`echo $next_stage_input | cut -d '-' -f3`
+run_number=`lar -c eventdump.fcl $next_stage_input -n 1 | grep "Begin processing the 1st record" | awk '{match($0, /run: ([0-9]+)/, arr); print arr[1]}'`
 echo $run_number
+# Make sure we got an int
+if [[ "$run_number" =~ ^-?[0-9]+$ ]]; then
+  # Make sure the run number is sensible
+  if [ "$run_number" -le "3419" ]; then
+    echo "run number too small, rechecking"
+    run_number=`echo $next_stage_input | cut -d '-' -f3`
+  elif [ "$run_number" -ge "0025769" ]; then
+    echo "run number too big, rechecking"
+    run_number=`echo $next_stage_input | cut -d '-' -f3`
+  fi
+else
+  echo "run number is not an integer, rechecking"
+  run_number=`echo $next_stage_input | cut -d '-' -f3`
+fi
+echo $run_number
+
 
 FT_STREAM="run1"
 BucketTimeSigma='1.3'

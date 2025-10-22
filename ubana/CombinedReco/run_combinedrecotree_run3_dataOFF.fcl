@@ -10,3 +10,5 @@ physics.filters.nuselection.AnalysisTools.timing.isMC: false
 #physics.filters.crtveto.useAsFilter: false
 #physics.filters.crtveto.CRTHitProducer: "merger"
 #physics.filters.crtveto.DTOffset: 68600.
+
+physics.analyzers.wcpselection.LArPIDModel: "LArPID_alternate_network_weights_torchscript_v2_model.pt"
