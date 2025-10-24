@@ -263,11 +263,14 @@ private:
   // LArPID and MC backtracking (from LANTERN) options:
   bool fRunLArPID; //run LArPID network over reco particles
   std::string fLArPIDModel; //checkpoint file for LArPID state dict (model weights)
-  bool fPixelThreshold; //only run model over prongs with at least this many pixels in at least one plane
+  int fPixelThreshold; //only run model over prongs with at least this many pixels in at least one plane
+  double fThresholdForPixel; // Charge needed to form a pixel
   bool fAllPlaneThreshold; //if true, only run model over prongs that pass the pixel threshold in all three planes
   std::string fLArCVImageFile; //LArCV image file needed for LArPID and MC backtracking
   bool fTickBack; //if true, read in larcv images with reverse time order
   bool fRunBackTracking; //run MC backtracking from larcv images
+  double fLanternWCxOffset; // Offset between WC reco and Lantern expectation when forming prongs
+
 
   //index for current entry in larcv image file 
   unsigned int iImg_start;
@@ -2078,10 +2081,12 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fRunLArPID = pset.get<bool>("RunLArPID", true);
   fLArPIDModel = pset.get<std::string>("LArPIDModel", "LArPID_default_network_weights_torchscript_v2_model.pt");
   fPixelThreshold = pset.get<unsigned int>("PixelThreshold", 5);
+  fThresholdForPixel = pset.get<double>("ThresholdForPixel", 0.1);
   fAllPlaneThreshold = pset.get<bool>("AllPlaneThreshold", true);
   fLArCVImageFile = pset.get<std::string>("LArCVImageFile", "merged_dlreco.root");
   fTickBack = pset.get<bool>("TickBack", false);
   fRunBackTracking = pset.get<bool>("RunBackTracking", true);
+  fLaneterWCxOffset = pset.get<double>("LaneterWCxOffset", 1.4);
 
   if(fRunLArPID && !f_PFDump){
     std::cout << "WARNING invalid configuration: RunLArPID = true but PFDump = false" << std::endl;
@@ -4297,10 +4302,11 @@ void WireCellAnaTree::analyze(art::Event const& e)
           auto spacepoint_vec = *e.getValidHandle<std::vector<TrecSpacePoint>>("portedWCSpacePointsTrec");
           for (auto const& point : spacepoint_vec) {
             if(particleMap.count(point.real_cluster_id) < 1) continue;
-            if( !larutil::GeometryHelper::GetME()->Contained(point.x,point.y,point.z) ) continue;
+            double x_cor = point.x + fLanternWCxOffset;
+            if( !larutil::GeometryHelper::GetME()->Contained(x_cor,point.y,point.z) ) continue;
             larlite::larflow3dhit hit;
             for(unsigned int p = 0; p < adc_v.size(); ++p){
-              auto center2D = larutil::GeometryHelper::GetME()->Point_3Dto2D(point.x,point.y,point.z,p);
+              auto center2D = larutil::GeometryHelper::GetME()->Point_3Dto2D(x_cor,point.y,point.z,p);
               if(p == 0) hit.tick = (int)(center2D.t/larutil::GeometryHelper::GetME()->TimeToCm() + 3200.);
               if(p < hit.targetwire.size()) hit.targetwire[p] = (int)(center2D.w/larutil::GeometryHelper::GetME()->WireToCm());
               else hit.targetwire.push_back((int)(center2D.w/larutil::GeometryHelper::GetME()->WireToCm()));
@@ -4350,7 +4356,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 
              const LArPID::ParticleInfo& lanternPartInfo = particleMap[particle.TrackId()];
              auto prong_vv = LArPID::make_cropped_initial_sparse_prong_image_reco(adc_v, thrumu_v,
-              lanternPartInfo.larflowProng, lanternPartInfo.cropPoint, 10., 512, 512);
+              lanternPartInfo.larflowProng, lanternPartInfo.cropPoint, fThresholdForPixel, 512, 512);
 
              if(fRunLArPID_evt){
                bool thresholdPassInOne = false;
