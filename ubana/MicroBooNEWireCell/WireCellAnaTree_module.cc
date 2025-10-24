@@ -263,7 +263,7 @@ private:
   // LArPID and MC backtracking (from LANTERN) options:
   bool fRunLArPID; //run LArPID network over reco particles
   std::string fLArPIDModel; //checkpoint file for LArPID state dict (model weights)
-  int fPixelThreshold; //only run model over prongs with at least this many pixels in at least one plane
+  unsigned int fPixelThreshold; //only run model over prongs with at least this many pixels in at least one plane
   double fThresholdForPixel; // Charge needed to form a pixel
   bool fAllPlaneThreshold; //if true, only run model over prongs that pass the pixel threshold in all three planes
   std::string fLArCVImageFile; //LArCV image file needed for LArPID and MC backtracking
@@ -2086,7 +2086,7 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fLArCVImageFile = pset.get<std::string>("LArCVImageFile", "merged_dlreco.root");
   fTickBack = pset.get<bool>("TickBack", false);
   fRunBackTracking = pset.get<bool>("RunBackTracking", true);
-  fLaneterWCxOffset = pset.get<double>("LaneterWCxOffset", 1.4);
+  fLanternWCxOffset = pset.get<double>("LaneterWCxOffset", 1.4);
 
   if(fRunLArPID && !f_PFDump){
     std::cout << "WARNING invalid configuration: RunLArPID = true but PFDump = false" << std::endl;
