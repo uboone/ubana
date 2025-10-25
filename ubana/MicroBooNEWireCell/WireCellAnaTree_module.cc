@@ -2086,7 +2086,7 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fLArCVImageFile = pset.get<std::string>("LArCVImageFile", "merged_dlreco.root");
   fTickBack = pset.get<bool>("TickBack", false);
   fRunBackTracking = pset.get<bool>("RunBackTracking", true);
-  fLanternWCxOffset = pset.get<double>("LaneterWCxOffset", 1.4);
+  fLanternWCxOffset = pset.get<double>("LanternWCxOffset", 1.4);
 
   if(fRunLArPID && !f_PFDump){
     std::cout << "WARNING invalid configuration: RunLArPID = true but PFDump = false" << std::endl;
