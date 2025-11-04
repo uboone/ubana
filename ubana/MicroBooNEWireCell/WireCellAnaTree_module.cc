@@ -270,7 +270,7 @@ private:
   bool fTickBack; //if true, read in larcv images with reverse time order
   bool fRunBackTracking; //run MC backtracking from larcv images
   double fLanternWCxOffset; // Offset between WC reco and Lantern expectation when forming prongs
-
+  double fSmartLanternWCxOffset; // Flag to let the ntuple maker figure out the offset between WC reco and Lantern expectation when forming prongs
 
   //index for current entry in larcv image file 
   unsigned int iImg_start;
@@ -2087,6 +2087,7 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   fTickBack = pset.get<bool>("TickBack", false);
   fRunBackTracking = pset.get<bool>("RunBackTracking", true);
   fLanternWCxOffset = pset.get<double>("LanternWCxOffset", 1.35);
+  fSmartLanternWCxOffset = pset.get<bool>("SmartLanternWCxOffset", true);
 
   if(fRunLArPID && !f_PFDump){
     std::cout << "WARNING invalid configuration: RunLArPID = true but PFDump = false" << std::endl;
@@ -3892,6 +3893,14 @@ void WireCellAnaTree::analyze(art::Event const& e)
   // reset output at the beginning of each event
   resetOutput();
 
+  // Set up spacecharge
+  auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+
+  // Get other constants for LArPID
+  float v_cm_per_us    = ::larutil::LArProperties::GetME()->DriftVelocity();
+  float us_per_tick   = (::larutil::DetectorProperties::GetME()->SamplingRate()*1.0e-3); // value return is in MHz, convert to usec
+  double trig_g4time_ns = 4050.0;
+
   // read NuMetrics
 	std::cout<<" RUN: "<<e.run()<<"\n SUBRUN: "<<e.subRun()<<"\n EVENT: "<<e.id().event()<<std::endl;
 	f_run = e.run();
@@ -4240,7 +4249,7 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	larcv::EventImage2D* cosmicImage2D = nullptr;
 
         if(fRunLArPID || fRunBackTracking){
-
+          iImg_start=0;
           //get wire images from larcv file
           for(unsigned int iImg = iImg_start; iImg < iolcv->get_n_entries(); ++iImg){
             iolcv -> read_entry(iImg);
@@ -4302,12 +4311,21 @@ void WireCellAnaTree::analyze(art::Event const& e)
           auto spacepoint_vec = *e.getValidHandle<std::vector<TrecSpacePoint>>("portedWCSpacePointsTrec");
           for (auto const& point : spacepoint_vec) {
             if(particleMap.count(point.real_cluster_id) < 1) continue;
-            double x_cor = point.x + fLanternWCxOffset;
+	    double x_cor = point.x;
+	    if(fSmartLanternWCxOffset){
+	      auto sce_offset = SCE->GetPosOffsets(geo::Point_t(x_cor, point.y, point.z));
+              double cor_flash_time = f_flash_time+0.48;
+              double dx_trigger_cm = (cor_flash_time*1000 - trig_g4time_ns)*1.0e-3*v_cm_per_us;
+	      x_cor = (point.x - cor_flash_time*1.101*0.1)/(1.101/1.098) - 0.6 + sce_offset.X(); // Undo the WC stuff
+              x_cor = x_cor-sce_offset.X()+0.7+dx_trigger_cm; // Apply the Lantern stuff
+	    }else{
+              x_cor += fLanternWCxOffset;
+	    }
             if( !larutil::GeometryHelper::GetME()->Contained(x_cor,point.y,point.z) ) continue;
             larlite::larflow3dhit hit;
             for(unsigned int p = 0; p < adc_v.size(); ++p){
               auto center2D = larutil::GeometryHelper::GetME()->Point_3Dto2D(x_cor,point.y,point.z,p);
-              if(p == 0) hit.tick = (int)(center2D.t/larutil::GeometryHelper::GetME()->TimeToCm() + 3200.);
+              if(p == 0) hit.tick = (int)(center2D.t/v_cm_per_us/us_per_tick + 3200.);
               if(p < hit.targetwire.size()) hit.targetwire[p] = (int)(center2D.w/larutil::GeometryHelper::GetME()->WireToCm());
               else hit.targetwire.push_back((int)(center2D.w/larutil::GeometryHelper::GetME()->WireToCm()));
             }   
@@ -4553,8 +4571,8 @@ void WireCellAnaTree::analyze(art::Event const& e)
 	/// truth start
         auto particleHandle2 = e.getHandle<std::vector<simb::MCParticle>>(fPFtruthInputTag);
         if (! particleHandle2 ) return;
-	// Get space charge correction
-	auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+	// Not need anymore becouse we grab it earlier
+	// auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
         /**
          *  Construct track-id to MCParticle index mapping
