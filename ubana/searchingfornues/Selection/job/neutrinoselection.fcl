@@ -384,7 +384,7 @@ NuSelectionFilter:{
         eventfilter:   @local::EventFilterTool
         mcfilter:      @local::MCFilterAnalysisTool
         blip:          @local::BlipAnalysisTool
-        #neutron:       @local::NeutronAnalysisTool
+        neutron:       @local::NeutronAnalysisTool
         timing:        @local::NeutrinoTimingAnalysisTool
     }
 }
