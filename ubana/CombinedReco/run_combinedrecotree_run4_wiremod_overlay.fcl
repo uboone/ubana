@@ -1,0 +1,6 @@
+#include "run_combinedrecotree_run4_overlay.fcl"
+physics.filters.nuselection.AnalysisTools.flashmatchid.ApplyLifetimeCorr: true
+physics.filters.nuselection.AnalysisTools.slicepurcompl.OrigHTproducer: "gaushitTruthMatch::OverlayWireModRecoStage1b"
+physics.filters.nuselection.AnalysisTools.slicepurcompl.OrigHproducer: "gaushit::OverlayWireModRecoStage1a"
+SlicePurComplTool.OrigHTproducer: "gaushitTruthMatch::OverlayWireModRecoStage1b"
+SlicePurComplTool.OrigHproducer: "gaushit::OverlayWireModRecoStage1a"
