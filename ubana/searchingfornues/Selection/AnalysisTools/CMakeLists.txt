@@ -158,6 +158,21 @@ cet_build_plugin(
 )
 
 cet_build_plugin(
+  NeutronAnalysis uboone_tool::AnalysisToolBase
+  LIBRARIES
+  PRIVATE
+  ubobj::CRT
+  ubevt::Database_TPCEnergyCalib
+  larpandora::LArPandoraInterface
+  larreco::RecoAlg
+  larcore::ServiceUtil
+  lardataalg::DetectorInfo
+  lardataobj::MCBase
+  nusimdata::SimulationBase
+  ROOT::EG
+)
+
+cet_build_plugin(
   NeutrinoTiming uboone_tool::AnalysisToolBase
   LIBRARIES
   PRIVATE
