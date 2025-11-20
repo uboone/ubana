@@ -173,6 +173,7 @@ cet_build_plugin(
 )
 
 cet_build_plugin(
+<<<<<<< HEAD
   NeutronWeights uboone_tool::AnalysisToolBase
   SOURCE                               # <--- list sources after this
     NeutronWeights_tool.cc
@@ -192,6 +193,8 @@ cet_build_plugin(
 )
 
 cet_build_plugin(
+=======
+>>>>>>> origin/v10_04_07_br
   NeutrinoTiming uboone_tool::AnalysisToolBase
   LIBRARIES
   PRIVATE

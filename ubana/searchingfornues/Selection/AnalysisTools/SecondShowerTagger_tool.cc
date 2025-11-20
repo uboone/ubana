@@ -183,13 +183,17 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
     // STEP (1.5): find clusters associated with PFParticles in slice
     std::cout << "[SecondShowerTagger] MESSAGE" << std::endl;
     // clusters associated to each PFParticle
-    std::vector<std::vector<size_t>> used_cluster_idx_v;
+    std::vector<std::pair<int, size_t>> used_cluster_idx_v;
     for (const auto& pfp_pxy : slice_pfp_v) {
       std::cout << "[SecondShowerTagger] New PFParticle " << std::endl;
+      //
+      float trkscore = searchingfornues::GetTrackShowerScore(pfp_pxy);
+      if ((trkscore < 0) || (trkscore >= 0.5)) { std::cout << "[SecondShowerTagger] track-shower score is " << trkscore << " -> track-like. Skip..." << std::endl; continue; }
+      //
       auto cluster_v = pfp_pxy.get<recob::Cluster>();
       for (size_t c=0; c < cluster_v.size(); c++) {
 	std::cout << "[SecondShowerTagger] \t Cluster index is " << (*cluster_v[c]).ID() << std::endl;
-	std::vector<size_t> used_cluster_idx = {static_cast<size_t>((*cluster_v[c]).ID()), (*cluster_v[c]).Plane().Plane};
+	std::pair<int, size_t> used_cluster_idx = {(*cluster_v[c]).ID(), (*cluster_v[c]).Plane().Plane};
         used_cluster_idx_v.push_back( used_cluster_idx );
 //        used_cluster_idx_v.push_back( (*cluster_v[c]).ID() );
         std::cout << "cluster_v[c].Plane().Plane" << (*cluster_v[c]).Plane().Plane << std::endl;
@@ -261,16 +265,6 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
       for (size_t c=0; c < cluster_h->size(); c++) {
 	//auto clus = cluster_h->at(c);
 
-	// is this cluster already used? -> SKIP
-	std::cout << "Plane " << pl  << std::endl;
-        // std::vector<size_t> cluster_idx = {static_cast<size_t>(c), pl};
-	std::vector<size_t> cluster_idx = {static_cast<size_t>(cluster_h->at(c).ID()), pl}; // Giuseppe's suggestion
-	if (std::find(used_cluster_idx_v.begin(), used_cluster_idx_v.end(), cluster_idx) != used_cluster_idx_v.end()){
-	  std::cout << "[SecondShowerTagger] cluster " << c << " is already used in a reco PFParticle" << std::endl;
-	  continue;
-	}
-	std::cout << "[SecondShowerTagger] cluster " << c << " is an un-matched cluster" << std::endl;
-
 	// get associated hits
 	auto clus_hit_v = clus_hit_assn_v.at( c );
 	
@@ -284,6 +278,16 @@ void SecondShowerTagger::analyzeEvent(art::Event const &e, bool fData)
 	
 	// focus one plane at a time
 	if (PLANE != pl) continue;
+
+	// is this cluster already used? -> SKIP
+	std::cout << "Plane " << pl  << std::endl;
+        // std::vector<size_t> cluster_idx = {static_cast<size_t>(c), pl};
+	std::pair<int, size_t> cluster_idx = {cluster_h->at(c).ID(), pl}; // Giuseppe's suggestion
+	if (std::find(used_cluster_idx_v.begin(), used_cluster_idx_v.end(), cluster_idx) != used_cluster_idx_v.end()){
+	  std::cout << "[SecondShowerTagger] cluster " << c << " is already used in a reco PFParticle" << std::endl;
+	  continue;
+	}
+	std::cout << "[SecondShowerTagger] cluster " << c << " is an un-matched cluster" << std::endl;
 	
 	int clushits = clus_hit_v.size();
 
