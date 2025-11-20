@@ -118,6 +118,32 @@ NeutronAnalysisTool: {
     RecalibrateHits: true
 }
 
+NeutronWeightsTool: {
+    tool_type: "NeutronWeights"
+    XSecFile: "/pnfs/uboone/persistent/users/mhernan/neutron_inelastic_cross_section_mod.root"
+    NominalHistName: "xsec_histogram"
+    MiniCaptainGraphName: "miniCaptain_graph"
+    NUniverses: 1000
+    SeedBase:   1337
+    TRKproducer: "pandoraTrack"
+    PFPproducer: "pandora"
+    PCAproducer: "pandora"
+    VTXproducer: "pandora"
+    SHRproducer: "shrreco3d"
+    CLSproducer: "pandora"
+    MCTproducer: "generator"
+    MCPproducer: "largeant"
+    Hproducer: "gaushit"
+    BacktrackTag: "gaushitTruthMatch"
+    MCRproducer: "mcreco"
+    SLCproducer: "pandora"
+    MCFluxproducer: "generator"
+    PIDproducer: "pandoraTrackcalipid"
+    CALOproducer: "pandoraTrackcali"
+    ADCtoE: @local::microboone_reco_data_producers.shrreco3d.ADCtoE
+    RecalibrateHits: true
+}
+
 CosmicIPTool: {
     tool_type: "CosmicIP"
     PFPproducer: "pandora"
@@ -384,8 +410,9 @@ NuSelectionFilter:{
         eventfilter:   @local::EventFilterTool
         mcfilter:      @local::MCFilterAnalysisTool
         blip:          @local::BlipAnalysisTool
-        #neutron:       @local::NeutronAnalysisTool
+        neutron:       @local::NeutronAnalysisTool
         timing:        @local::NeutrinoTimingAnalysisTool
+	neutronw:      @local::NeutronWeightsTool
     }
 }
 
