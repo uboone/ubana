@@ -60,6 +60,7 @@ cet_build_plugin(
   lardataobj::RecoBase
   art_root_io::TFileService_service
   ROOT::Tree
+  ROOT::Hist
 )
 
 cet_build_plugin(
