@@ -173,6 +173,25 @@ cet_build_plugin(
 )
 
 cet_build_plugin(
+  NeutronWeights uboone_tool::AnalysisToolBase
+  SOURCE                               # <--- list sources after this
+    NeutronWeights_tool.cc
+    NeutronReweighter.cc
+    NeutronReweighter.h
+  LIBRARIES
+  PRIVATE
+  ubobj::CRT
+  ubevt::Database_TPCEnergyCalib
+  larpandora::LArPandoraInterface
+  larreco::RecoAlg
+  larcore::ServiceUtil
+  lardataalg::DetectorInfo
+  lardataobj::MCBase
+  nusimdata::SimulationBase
+  ROOT::EG
+)
+
+cet_build_plugin(
   NeutrinoTiming uboone_tool::AnalysisToolBase
   LIBRARIES
   PRIVATE
