@@ -120,7 +120,7 @@ NeutronAnalysisTool: {
 
 NeutronWeightsTool: {
     tool_type: "NeutronWeights"
-    XSecFile: "/pnfs/uboone/persistent/users/mhernan/neutron_inelastic_cross_section_mod.root"
+    XSecFile: "neutron_inelastic_cross_section_mod.root"
     NominalHistName: "xsec_histogram"
     MiniCaptainGraphName: "miniCaptain_graph"
     NUniverses: 1000
