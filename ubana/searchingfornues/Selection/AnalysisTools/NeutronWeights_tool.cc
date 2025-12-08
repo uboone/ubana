@@ -16,8 +16,7 @@ NeutronWeights::NeutronWeights(fhicl::ParameterSet const& pset) { configure(pset
 
 void NeutronWeights::configure(fhicl::ParameterSet const& p) {
 
-  fXSecFile    = p.get<std::string>("XSecFile",
-                  "xsecHistograms/neutron_inelastic_cross_section_mod.root");
+  fXSecFile    = p.get<std::string>("XSecFile");
   fNUniverses  = p.get<int>("NUniverses", 1000);
   fSeedBase    = p.get<int>("ZSeedBase", 1337);
 

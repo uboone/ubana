@@ -1,4 +1,5 @@
 #include "NeutronReweighter.h"
+#include "cetlib/search_path.h"
 #include "TH1D.h"
 #include "TFile.h"
 
@@ -17,8 +18,6 @@ NeutronReweighter::NeutronReweighter() {
       _scaledG4xsec   = nullptr;
       _curr_univ_xsec = nullptr;
     
-//  this->SetXsecFileName("/exp/uboone/data/users/mhernan/neutron_inelastic_cross_section_mod.root");
-this->SetXsecFileName("/pnfs/uboone/persistent/users/mhernan/neutron_inelastic_cross_section_mod.root"); 
  return;
 }
 
@@ -60,10 +59,11 @@ void NeutronReweighter::Configure(){
     _randomNumbers->push_back(gauss(rng));
   }
 
-//  TFile* file = TFile::Open(_xsecFileName.c_str(), "READ");
+  cet::search_path sp("FW_SEARCH_PATH");
+  std::string xsecFilePath = sp.find_file(_xsecFileName);
+  std::cout << "NeutronReweighter: reading cross section file " << xsecFilePath << std::endl;
+  TFile* file = TFile::Open(xsecFilePath.c_str(), "READ");
 
-//TFile* file = TFile::Open("/exp/uboone/data/users/mhernan/neutron_inelastic_cross_section_mod.root","READ");
-TFile* file = TFile::Open("/pnfs/uboone/persistent/users/mhernan/neutron_inelastic_cross_section_mod.root","READ");
   if (!file || file->IsZombie()) {
     //throw std::runtime_error("Failed to open xsec file: " + filename);
    std::cout << "ERROR" << std::endl;
