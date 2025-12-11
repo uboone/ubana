@@ -12,6 +12,7 @@ cet_make_library(
   canvas::canvas
   fhiclcpp::fhiclcpp
   ROOT::MathCore
+  ROOT::Hist
 )
 
 install_fhicl()

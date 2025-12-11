@@ -21,6 +21,7 @@ cet_make_library(
   larsim::MCCheater_ParticleInventoryService_service
   larevt::DetPedestalService
   lardataobj::RecoBase
+  lardataalg::UtilitiesHeaders
   art_root_io::TFileService_service
   fhiclcpp::fhiclcpp
 )

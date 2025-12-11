@@ -39,6 +39,7 @@ cet_build_plugin(
   lardataobj::RecoBase
   lardataobj::AnalysisBase
   art_root_io::TFileService_service
+  ROOT::Hist
 )
 
 cet_build_plugin(

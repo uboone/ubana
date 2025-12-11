@@ -3,6 +3,8 @@
 
 #include "EnergyHelper.h"
 
+#include "lardataalg/Utilities/TrackingTypeUtils.h"
+
 namespace lee {
 
 	double EnergyHelper::showerEnergy(const art::Ptr<recob::Shower> &shower,

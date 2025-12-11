@@ -11,6 +11,8 @@ cet_make_library(
   VertexBuilder.cxx
   VertexQuality.cxx
   LIBRARIES
+  PRIVATE
+  lardataalg::UtilitiesHeaders
   PUBLIC
   ubcore::LLBasicTool_GeoAlgo
   ubobj::Trigger
