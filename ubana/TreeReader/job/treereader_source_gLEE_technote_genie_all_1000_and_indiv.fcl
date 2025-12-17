@@ -1,7 +1,7 @@
 #include "services_microboone.fcl"
 #include "microboone_eventweight_service.fcl"
 #include "seedservice_microboone.fcl"
-#include "eventweight_treereader.fcl"
+#include "eventweight_treereader_gLEE_technote_genie_all_1000_and_indiv.fcl"
 
 process_name: TreeReader
 
@@ -19,7 +19,7 @@ source: {
   skipEvents: 0
   maxEvents: -1
   inputType: "ntuple"
-  treeName: "singlephotonana/eventweight_tree"
+  treeName: "eventweight_tree"
   dataProductName: "TreeReader"
   branches: {
     run: "run"
@@ -129,7 +129,7 @@ source: {
 outputs: {
  out1: {
    module_type: RootOutput
-   fileName: "treereader__%ifb_%tc.root"
+   fileName: "treereader_gLEE_%ifb_%tc.root"
    compressionLevel: 1
    dataTier: "simulated"
   }
