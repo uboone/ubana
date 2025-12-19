@@ -1,9 +1,9 @@
 BEGIN_PROLOG
 
 #include "multisigma_eventweight_microboone_flux.fcl"
-#include "eventweight_microboone_genie.fcl"
+#include "multisigma_eventweight_microboone_genie.fcl"
 #include "eventweight_microboone_spline.fcl"
-#include "eventweight_microboone_xs.fcl"
+#include "multisigma_eventweight_microboone_xs.fcl"
 
 microboone_eventweight_sep24: {
   module_type: "EventWeight"

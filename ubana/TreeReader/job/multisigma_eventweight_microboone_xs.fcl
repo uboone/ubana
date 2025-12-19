@@ -1,0 +1,99 @@
+##########################################################
+## Additional cross section weights
+##########################################################
+
+microboone_eventweight_xs: {
+  ##########################################################
+  ## Second-class currents, nue/numu Cross Section Ratio
+  ##
+  ## References:
+  ##
+  ##   * MicroBooNE DocDB 7896 (A. Furmanski)
+  ##   * MicroBooNE DocDB 7899 (L. Jiang, A. Mastbaum)
+  ##   * M. Day, K.S. McFarland, PRD 86 053003 (2012)
+  ##
+  ## Maintainer: Libo Jiang (jiangl@fnal.gov)
+  ##
+  ##########################################################
+
+  weight_functions_xsr: [ xsr_scc_Fv3, xsr_scc_Fa3 ]
+
+  xsr_scc_Fv3: {
+    type: SCC
+    histogram_file: "systematics/scc/numu_nue_xsratio_2dhists.root"
+    random_seed: 54
+    parameter_list: ["Fv3"]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  xsr_scc_Fa3: {
+    type: SCC
+    histogram_file: "systematics/scc/numu_nue_xsratio_2dhists.root"
+    random_seed: 55
+    parameter_list: ["Fa3"]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  # Single function to reweight all cross section ratio parameters at once
+  #xsr_all: {
+  #  type: SCC
+  #  histogram_file: "systematics/scc/numu_nue_xsratio_2dhists.root"
+  #  random_seed: 56
+  #  parameter_list: ["Fv3", "Fa3"]
+  #  parameter_sigma: [1, 1]
+  #  mode: multisim
+  #  number_of_multisims: 10
+  #}
+
+  ##########################################################
+  ## Model ratios: Default to Valencia
+  ##
+  ## Maintainer: A. Mastbaum (mastbaum@uchicago.edu)
+  ##
+  ##########################################################
+
+  ## Deprecated in favor of new MCC9 MEC reweighting
+  ## -- S. Gardiner
+
+  #weight_functions_model: [ model_q0q3_ccmec, model_q0q3_ccqe ]
+
+  #model_q0q3_ccmec: {
+  #  type: HistogramWeight
+  #  random_seed: 54
+  #  mode: multisim
+  #  number_of_multisims: 1000
+  #  rw_hist_file: "systematics/q0q3_rw/q0q3_rw_valencia.root"
+  #  rw_hist_object: "q0q3_ccmec_valencia_default"
+  #  sigma: 1
+  #  norm_scale: 0.6
+  #  event_filter: "ccmec"
+  #}
+
+  #model_q0q3_ccqe: {
+  #  type: HistogramWeight
+  #  random_seed: 54
+  #  mode: multisim
+  #  number_of_multisims: 1000
+  #  rw_hist_file: "systematics/q0q3_rw/q0q3_rw_valencia.root"
+  #  rw_hist_object: "q0q3_ccqe_valencia_default"
+  #  sigma: 1
+  #  norm_scale: 1.1
+  #  event_filter: "ccqe"
+  #}
+
+  ##########################################################
+  # All additional cross section reweighters
+  ##########################################################
+
+  weight_functions_xs: [
+    xsr_scc_Fv3, xsr_scc_Fa3
+    # Deprecated in favor of new MCC9 MEC reweighting
+    # -- S. Gardiner
+    #model_q0q3_ccmec, model_q0q3_ccqe
+  ]
+}
+
