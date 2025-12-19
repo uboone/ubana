@@ -1,6 +1,6 @@
 BEGIN_PROLOG
 
-#include "eventweight_microboone_flux.fcl"
+#include "multisigma_eventweight_microboone_flux.fcl"
 #include "eventweight_microboone_genie.fcl"
 #include "eventweight_microboone_spline.fcl"
 #include "eventweight_microboone_xs.fcl"
