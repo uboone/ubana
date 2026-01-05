@@ -51,12 +51,13 @@ physics.filters.singlephotonana.beamgateStartTime: 3.19
 physics.filters.singlephotonana.beamgateEndTime: 4.87
 physics.filters.singlephotonana.BadChannelProducer: "nfspl1"
 
-microboone_tfile_metadata: {
-   GenerateTFileMetadata: true
-   JSONFileName: "neutrinoselection_filt.root.json"
-   dataTier: "root-tuple"
-   fileFormat: "root"
-}
+# Removed to fix metadata issue
+#microboone_tfile_metadata: {
+#   GenerateTFileMetadata: true
+#   JSONFileName: "neutrinoselection_filt.root.json"
+#   dataTier: "root-tuple"
+#   fileFormat: "root"
+#}
 
 physics.producers.pandoraTrackcali.ELifetimeCorrection: true
 physics.producers.shrreco3dKalmanShowercali.ELifetimeCorrection: true
