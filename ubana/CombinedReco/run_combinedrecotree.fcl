@@ -8,7 +8,7 @@ process_name: CombinedRecoAnaTree
 
 services:
 {
-  TFileService: { fileName: "combine_reco_ana_hist.root" }
+  TFileService: { fileName: "reco_stage_2_hist.root" }
   TimeTracker:             @local::microboone_time_tracker
   MemoryTracker:           @local::microboone_memory_tracker
   FileCatalogMetadata:     @local::art_file_catalog_data
@@ -325,7 +325,7 @@ physics.filters.singlephotonana.CaloLabel:  "pandoraTrackcali"
 
 microboone_tfile_metadata:
 {
-  JSONFileName:          ["combine_reco_ana_hist.json"]
+  JSONFileName:          ["reco_stage_2_hist.root.json"]
   GenerateTFileMetadata: [true]
   dataTier:              ["root-tuple"]
   fileFormat:            ["root"]
