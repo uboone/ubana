@@ -49,10 +49,49 @@ else
   exit 3
 fi
 
-root -l -b <<EOF
+ROOT_EXIT_CODE=0
+root -l -b <<EOF || ROOT_EXIT_CODE=$?
 .L ${MACRO}
-merge_arborist_into_ntuple("${ARB_FILE}","${SRC_FILE}","${OUT_FILE}");
-.q
+int rc = merge_arborist_into_ntuple("${ARB_FILE}","${SRC_FILE}","${OUT_FILE}");
+gSystem->Exit(rc);
 EOF
+
+if [[ "${ROOT_EXIT_CODE}" -ne 0 ]]; then
+  echo "ERROR: ROOT macro failed with exit code ${ROOT_EXIT_CODE}" >&2
+  exit 4
+fi
+
+# Verify the spline_weights tree exists in the output
+echo "Verifying spline_weights tree in output..."
+VERIFY_CODE=0
+root -l -b -q <<VERIFY_EOF || VERIFY_CODE=$?
+{
+  TFile f("${OUT_FILE}", "READ");
+  if (f.IsZombie()) {
+    std::cerr << "ERROR: Cannot open output file: ${OUT_FILE}" << std::endl;
+    gSystem->Exit(10);
+  }
+  TTree* t = (TTree*)f.Get("spline_weights");
+  if (!t) {
+    std::cerr << "ERROR: spline_weights tree NOT FOUND in output file!" << std::endl;
+    f.ls();
+    gSystem->Exit(11);
+  }
+  Long64_t nentries = t->GetEntries();
+  if (nentries == 0) {
+    std::cerr << "ERROR: spline_weights tree has 0 entries!" << std::endl;
+    gSystem->Exit(12);
+  }
+  std::cout << "OK: spline_weights tree found with " << nentries << " entries" << std::endl;
+  gSystem->Exit(0);
+}
+VERIFY_EOF
+
+if [[ "${VERIFY_CODE}" -ne 0 ]]; then
+  echo "ERROR: Verification failed - spline_weights tree missing or empty (code ${VERIFY_CODE})" >&2
+  exit 5
+fi
+
+echo "Merge completed successfully."
 
 

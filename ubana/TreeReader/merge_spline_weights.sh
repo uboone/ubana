@@ -204,15 +204,57 @@ ARB_OUT_ABS="$(pwd)/${ARB_OUT}"
 echo "Arborist output:   ${ARB_OUT_ABS}"
 echo "Merging into output ntuple: ${OUTPUT_NTUPLE}"
 
-"${MERGE_SCRIPT}" "${ARB_OUT_ABS}" "${SOURCE_NTUPLE}" "${OUTPUT_NTUPLE}"
+MERGE_EXIT_CODE=0
+"${MERGE_SCRIPT}" "${ARB_OUT_ABS}" "${SOURCE_NTUPLE}" "${OUTPUT_NTUPLE}" || MERGE_EXIT_CODE=$?
+
+if [[ "${MERGE_EXIT_CODE}" -ne 0 ]]; then
+  echo "ERROR: Merge script failed with exit code ${MERGE_EXIT_CODE}" >&2
+  exit 7
+fi
 
 # Verify the output file was created
 if [[ ! -f "${OUTPUT_NTUPLE}" ]]; then
   echo "ERROR: Output ntuple was not created: ${OUTPUT_NTUPLE}" >&2
-  exit 7
+  exit 8
 fi
 
 echo "Output file created: ${OUTPUT_NTUPLE} ($(stat -c%s "${OUTPUT_NTUPLE}") bytes)"
+
+# Double-check spline_weights tree exists (redundant but ensures we don't copy bad files)
+echo "Final verification of spline_weights tree..."
+FINAL_CHECK=0
+root -l -b -q <<FINAL_EOF || FINAL_CHECK=$?
+{
+  TFile f("${OUTPUT_NTUPLE}", "READ");
+  if (f.IsZombie()) {
+    std::cerr << "ERROR: Cannot open output file for final check" << std::endl;
+    gSystem->Exit(1);
+  }
+  TTree* t = (TTree*)f.Get("spline_weights");
+  if (!t) {
+    std::cerr << "ERROR: spline_weights tree NOT FOUND in final output!" << std::endl;
+    std::cerr << "File contents:" << std::endl;
+    f.ls();
+    gSystem->Exit(2);
+  }
+  Long64_t nentries = t->GetEntries();
+  Int_t nbranches = t->GetListOfBranches()->GetEntries();
+  std::cout << "VERIFIED: spline_weights tree has " << nentries << " entries and " << nbranches << " branches" << std::endl;
+  
+  // Also check that we have more than just the identifier branches (run/subrun/event/entry)
+  if (nbranches <= 4) {
+    std::cerr << "ERROR: spline_weights tree only has " << nbranches << " branches (expected weight branches too)" << std::endl;
+    t->Print();
+    gSystem->Exit(3);
+  }
+  gSystem->Exit(0);
+}
+FINAL_EOF
+
+if [[ "${FINAL_CHECK}" -ne 0 ]]; then
+  echo "ERROR: Final verification failed - spline_weights tree is missing or malformed (code ${FINAL_CHECK})" >&2
+  exit 9
+fi
 
 # Copy output to pnfs output directory
 # project.py passes --outdir to the job wrapper, we need to find it
