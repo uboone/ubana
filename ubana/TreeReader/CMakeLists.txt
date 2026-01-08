@@ -92,5 +92,6 @@ art_make( EXCLUDE TreeReader_source.cc ${INTERFACEFILES}
 install_headers()
 install_source()
 install_fhicl()
+install_scripts()
 
 add_subdirectory(job)

@@ -35,7 +35,19 @@ SRC_FILE="$2"
 OUT_FILE="$3"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MACRO="${SCRIPT_DIR}/merge_arborist_into_ntuple.C"
+
+# Look for the macro in the script dir first (dev environment),
+# then fall back to the installed source location (via UBANA_DIR).
+if [[ -f "${SCRIPT_DIR}/merge_arborist_into_ntuple.C" ]]; then
+  MACRO="${SCRIPT_DIR}/merge_arborist_into_ntuple.C"
+elif [[ -n "${UBANA_DIR:-}" && -f "${UBANA_DIR}/source/ubana/TreeReader/merge_arborist_into_ntuple.C" ]]; then
+  MACRO="${UBANA_DIR}/source/ubana/TreeReader/merge_arborist_into_ntuple.C"
+else
+  echo "ERROR: Cannot find merge_arborist_into_ntuple.C" >&2
+  echo "Looked in: ${SCRIPT_DIR}/" >&2
+  [[ -n "${UBANA_DIR:-}" ]] && echo "       and: ${UBANA_DIR}/source/ubana/TreeReader/" >&2
+  exit 3
+fi
 
 root -l -b <<EOF
 .L ${MACRO}
