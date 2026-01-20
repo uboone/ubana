@@ -41,10 +41,17 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# First try to find merge_arborist_into_ntuple.sh in the same directory as this script
 MERGE_SCRIPT="${SCRIPT_DIR}/merge_arborist_into_ntuple.sh"
 
+# If not found there, try to find it on PATH (both scripts are installed to bin/)
 if [[ ! -x "${MERGE_SCRIPT}" ]]; then
-  echo "ERROR: merge script not found/executable: ${MERGE_SCRIPT}" >&2
+  MERGE_SCRIPT="$(which merge_arborist_into_ntuple.sh 2>/dev/null)"
+fi
+
+if [[ -z "${MERGE_SCRIPT}" ]] || [[ ! -x "${MERGE_SCRIPT}" ]]; then
+  echo "ERROR: merge_arborist_into_ntuple.sh not found in ${SCRIPT_DIR} or on PATH" >&2
   exit 3
 fi
 
@@ -103,7 +110,8 @@ fetch_consumed_file() {
 
 detect_ntuple_file() {
   # Return first file that looks like the original ntuple:
-  # has TDirectory "singlephotonana" and isn't an arborist/treereader output.
+  # has TTree "singlephotonana/eventweight_tree" and isn't an arborist/treereader output.
+  # Note: ART ROOT files may have a "singlephotonana" directory but not the eventweight_tree.
   echo "DEBUG: Looking for ntuple files in $(pwd):" >&2
   echo "DEBUG: All files in directory:" >&2
   ls -la >&2 || true
@@ -113,13 +121,15 @@ detect_ntuple_file() {
     [[ -f "$f" ]] || continue
     [[ "$f" == treereader* ]] && continue
     [[ "$f" == arborist_*_out.root ]] && continue
-    echo "DEBUG: Checking $f for singlephotonana directory..." >&2
-    # Check for "singlephotonana" directory.
+    [[ "$f" == RootOutput* ]] && continue  # Skip ART ROOT output files
+    echo "DEBUG: Checking $f for singlephotonana/eventweight_tree..." >&2
+    # Check for "singlephotonana/eventweight_tree" TTree (not just directory).
+    # This distinguishes ntuples from ART ROOT files which may have singlephotonana dir.
     if root -l -b -q <<EOF >/dev/null 2>&1
 TFile tf("$f");
 if (tf.IsZombie()) { gSystem->Exit(1); }
-auto* d = tf.GetDirectory("singlephotonana");
-gSystem->Exit(d ? 0 : 2);
+TTree* t = (TTree*)tf.Get("singlephotonana/eventweight_tree");
+gSystem->Exit(t ? 0 : 2);
 EOF
     then
       echo "DEBUG: Found ntuple: $f" >&2
