@@ -13,42 +13,43 @@
 microboone_eventweight_flux: {
   weight_functions_flux: [
     horncurrent, expskin,
-    #piplus, piminus, 
+    piplus, piminus, 
     kplus, kzero, kminus,
     pioninexsec, pionqexsec, piontotxsec,
     nucleontotxsec, nucleonqexsec, nucleoninexsec
   ]
 
   # SplineVariation is based on sampling from a HARP covariance matrix, doesn't make sense for multisigma or splines
-  #piplus: {
-  #  type: PrimaryHadronSWCentralSplineVariation
-  #  random_seed: 2
-  #  parameter_list: ["piplus"]
-  #  parameter_sigma: 1
-  #  #mode: multisim
-  #  scale_factor: 1
-  #  number_of_multisims: 7
-  #  PrimaryHadronGeantCode: 211 # geant code for particle production on Be
-  #  weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
-  #  ExternalData: "beamData/ExternalData/BNBExternalData_uBooNE_SplinesHARP.root"
-  #  ExternalFit: "beamData/ExternalData/BNBExternalData_uBooNE.root"
-  #  use_MiniBooNE_random_numbers: false
-  #}
+  # But we include it here anyway in order to build a covariance matrix (potentially eigen-decomposable into splines later)
+  piplus: {
+    type: PrimaryHadronSWCentralSplineVariation
+    random_seed: 2
+    parameter_list: ["piplus"]
+    parameter_sigma: 1 
+    mode: multisim
+    scale_factor: 1
+    number_of_multisims: 1000
+    PrimaryHadronGeantCode: 211 # geant code for particle production on Be
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    ExternalData: "beamData/ExternalData/BNBExternalData_uBooNE_SplinesHARP.root"
+    ExternalFit: "beamData/ExternalData/BNBExternalData_uBooNE.root"
+    use_MiniBooNE_random_numbers: false
+  }
 
-  #piminus: {
-  #  type: PrimaryHadronSWCentralSplineVariation
-  #  random_seed: 3
-  #  parameter_list: ["piminus"]
-  #  parameter_sigma: 1 
-  #  mode: multisim
-  #  scale_factor: 1
-  #  number_of_multisims: 1000
-  #  PrimaryHadronGeantCode: -211 # geant code for particle production on Be
-  #  weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
-  #  ExternalData: "beamData/ExternalData/BNBExternalData_uBooNE_SplinesHARP.root"
-  #  ExternalFit: "beamData/ExternalData/BNBExternalData_uBooNE.root"
-  #  use_MiniBooNE_random_numbers: false
-  #}
+  piminus: {
+    type: PrimaryHadronSWCentralSplineVariation
+    random_seed: 3
+    parameter_list: ["piminus"]
+    parameter_sigma: 1 
+    mode: multisim
+    scale_factor: 1
+    number_of_multisims: 1000
+    PrimaryHadronGeantCode: -211 # geant code for particle production on Be
+    weight_calculator: "MicroBooNE" # "MicroBooNE" OR "MiniBooNE"
+    ExternalData: "beamData/ExternalData/BNBExternalData_uBooNE_SplinesHARP.root"
+    ExternalFit: "beamData/ExternalData/BNBExternalData_uBooNE.root"
+    use_MiniBooNE_random_numbers: false
+  }
 
   kplus: {
     type: PrimaryHadronFeynmanScaling
