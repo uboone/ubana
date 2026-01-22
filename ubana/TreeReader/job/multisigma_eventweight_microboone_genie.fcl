@@ -44,15 +44,24 @@ microboone_eventweight_genie: {
   # INDIVIDUAL WEIGHT CALCULATORS
   # Thse use "minmax" mode and represent a variation between two extremes. The
   # recommended uncertainty is the full spread between them.
+  #RPA_CCQE: {
+  #  type: UBGenie
+  #  random_seed: 2
+  #  parameter_list: [ "RPA_CCQE" ]
+  #  parameter_sigma: [ 0.4 ]
+  #  parameter_min: [ -0.249 ]
+  #  parameter_max: [ 0.551 ]
+  #  mode: minmax 
+  #  number_of_multisims: 2
+  #}
+
   RPA_CCQE: {
     type: UBGenie
     random_seed: 2
     parameter_list: [ "RPA_CCQE" ]
-    parameter_sigma: [ 0.4 ]
-    parameter_min: [ -0.249 ]
-    parameter_max: [ 0.551 ]
-    mode: minmax 
-    number_of_multisims: 2
+    parameter_sigma: [-1.449, -1.049, -0.649, -0.249, 0.151, 0.551, 0.951, 1.351] # Initially minmax unisim between -0.249 and 0.551, with sigma = 0.4
+    mode: multisigma
+    number_of_multisims: 7
   }
 
   XSecShape_CCMEC: {
@@ -123,27 +132,45 @@ microboone_eventweight_genie: {
   }
 
   # Unisim variation of CC COH normalization (still finalizing approach)
+  #NormCCCOH: {
+  #  type: UBGenie
+  #  random_seed: 56
+  #  parameter_list: [ "NormCCCOH" ]
+  #  parameter_sigma: [ 1 ]
+  #  parameter_min: [ 0.0 ] # MCC9 nominal (Berger-Sehgal)
+  #  parameter_max: [ 1.0 ] # +100% normalization
+  #  mode: minmax
+  #  number_of_multisims: 2
+  #}
+
   NormCCCOH: {
     type: UBGenie
     random_seed: 56
     parameter_list: [ "NormCCCOH" ]
-    parameter_sigma: [ 1 ]
-    parameter_min: [ 0.0 ] # MCC9 nominal (Berger-Sehgal)
-    parameter_max: [ 1.0 ] # +100% normalization
-    mode: minmax
-    number_of_multisims: 2
+    parameter_sigma: [-1, 0, 1, 2, 3] # NormCCCOH uses +/- 100%, so the minimum is -1 sigma
+    mode: multisigma
+    number_of_multisims: 5
   }
 
   # Unisim variation of NC COH normalization (still finalizing approach)
+  #NormNCCOH: {
+  #  type: UBGenie
+  #  random_seed: 57
+  #  parameter_list: [ "NormNCCOH" ]
+  #  parameter_sigma: [ 1 ]
+  #  parameter_min: [ 0.0 ] # MCC9 nominal (Berger-Sehgal)
+  #  parameter_max: [ 1.0 ] # +100% normalization
+  #  mode: minmax
+  #  number_of_multisims: 2
+  #}
+
   NormNCCOH: {
     type: UBGenie
     random_seed: 57
     parameter_list: [ "NormNCCOH" ]
-    parameter_sigma: [ 1 ]
-    parameter_min: [ 0.0 ] # MCC9 nominal (Berger-Sehgal)
-    parameter_max: [ 1.0 ] # +100% normalization
-    mode: minmax
-    number_of_multisims: 2
+    parameter_sigma: [-1, 0, 1, 2, 3] # NormNCCOH uses +/- 100%, so the minimum is -1 sigma
+    mode: multisigma
+    number_of_multisims: 5
   }
 
   # Single function that applies all weights needed to obtain
@@ -204,18 +231,18 @@ microboone_eventweight_genie: {
     type: UBGenie
     random_seed: 57
     parameter_list: [ "NormCCMEC" ]
-    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3] # NormCCMEC uses +/- 50%
+    parameter_sigma: [ -2, -1, 0, 1, 2, 3] # NormCCMEC uses +/- 50%, so the minimum is -2 sigma
     mode: multisigma
-    number_of_multisims: 7
+    number_of_multisims: 6
   }
 
   NormNCMEC: {
     type: UBGenie
     random_seed: 57
     parameter_list: [ "NormNCMEC" ]
-    parameter_sigma: [ -6, -4, -2, 0, 2, 4, 6] # NormNCMEC uses +/- 100%
+    parameter_sigma: [ -2, 0, 2, 4, 6] # NormNCMEC uses +/- 100%, so the minimum is -1 sigma with 100% error, or -2 sigma with 50% error as default in GENIE reweight
     mode: multisigma
-    number_of_multisims: 7
+    number_of_multisims: 5
   }
 
   FracPN_CCMEC: {
