@@ -19,6 +19,10 @@
 // - If an event exists in source but not in Arborist output (e.g., skipped due to
 //   processing errors), the weights are filled with sentinel value -9898.
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wunneeded-internal-declaration"
+#endif
+
 #include "TFile.h"
 #include "TTree.h"
 #include "TDirectory.h"
