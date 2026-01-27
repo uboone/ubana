@@ -1,0 +1,39 @@
+BEGIN_PROLOG
+
+#include "multisigma_eventweight_microboone_genie.fcl"
+#include "eventweight_microboone_spline.fcl"
+#include "multisigma_eventweight_microboone_xs.fcl"
+# no flux uncertainty for NuMI here
+
+microboone_eventweight_sep24: {
+  module_type: "EventWeight"
+
+  # Throw exception if weight outside limits
+  min_weight: 0
+  max_weight: 1000
+
+  genie_module_label: generator  
+
+  # Revised MicroBooNE CV tune, 24 September 2020
+  # Based on 4-parameter fit with NUISANCE to T2K 2016 CC0pi data
+  genie_central_values: {
+    MaCCQE: 4.9778 # GENIE knob setting, gives Ma = 1.10 GeV
+    RPA_CCQE: 0.151 # 0 --> Nieves CCQE default, 1 --> RPA off
+    NormCCMEC: 1.31189 # GENIE knob setting, gives scaling factor of 1.66
+    XSecShape_CCMEC: 1.0 # 0 --> Nieves CCMEC default, 1 --> GENIE empirical
+  }
+
+  # Load calculator configurations
+  @table::microboone_eventweight_genie
+  @table::microboone_eventweight_spline
+  @table::microboone_eventweight_xs
+}
+
+# All available weight functions
+microboone_eventweight_sep24.weight_functions: [
+  @sequence::microboone_eventweight_sep24.weight_functions_genie,
+  @sequence::microboone_eventweight_sep24.weight_functions_spline,
+  @sequence::microboone_eventweight_sep24.weight_functions_xs
+]
+
+END_PROLOG
