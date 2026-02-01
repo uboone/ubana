@@ -259,6 +259,7 @@ private:
   bool f_get_spill_time;
   bool f_get_redk2nu_time;
   bool f_get_reboone_time;
+  bool f_no_mcflux;
 
   // LArPID and MC backtracking (from LANTERN) options:
   bool fRunLArPID; //run LArPID network over reco particles
@@ -2066,6 +2067,7 @@ void WireCellAnaTree::reconfigure(fhicl::ParameterSet const& pset)
   f_get_spill_time = pset.get<bool>("get_spill_time", false);
   f_get_reboone_time = pset.get<bool>("get_reboone_time", false);
   f_get_redk2nu_time = pset.get<bool>("get_redk2nu_time", false);
+  f_no_mcflux = pset.get<bool>("no_mcflux", false);
   fTimeBetweenBuckets     = pset.get<float>("TimeBetweenBuckets",1e9/53.103e6);
   fBucketTimeSigma        = pset.get<float>("BucketTimeSigma",0.750);
   fNBucketsPerBatch       = pset.get<int>("NBucketsPerBatch",84);
@@ -4998,13 +5000,13 @@ void WireCellAnaTree::analyze(art::Event const& e)
             }
           }//f_get_reboone_time
 
-          else if(f_get_spill_time){  
+          else if(f_get_spill_time && !f_no_mcflux){ 
             propegation_time = (f_mcflux_dk2gen+f_mcflux_gen2vtx+f_mcflux_vx/100)*100*0.033356;
           }
 
           f_cor_nu_time = propegation_time + decay_time + spill_time;
-	        f_cor_nu_time_nospill = propegation_time + decay_time;
-	        f_cor_nu_time_spill = spill_time;
+	  f_cor_nu_time_nospill = propegation_time + decay_time;
+	  f_cor_nu_time_spill = spill_time;
           f_cor_nu_deltatime = f_cor_nu_time - f_truth_nu_pos[3];
 
           std::cout<<"Origional nu time "<<f_truth_nu_pos[3]<<" Corrected nu Time: "<<f_cor_nu_time<<"  spill time: "<<spill_time<<"  decay time: "<<decay_time<<"  propegation time: "<<propegation_time<<std::endl;
