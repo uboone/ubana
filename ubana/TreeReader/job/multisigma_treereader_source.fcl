@@ -1,7 +1,7 @@
 #include "services_microboone.fcl"
 #include "microboone_eventweight_service.fcl"
 #include "seedservice_microboone.fcl"
-#include "eventweight_treereader.fcl"
+#include "multisigma_eventweight_microboone_sep24.fcl"
 
 process_name: TreeReader
 
@@ -129,7 +129,7 @@ source: {
 outputs: {
  out1: {
    module_type: RootOutput
-   fileName: "treereader__%ifb_%tc.root"
+   fileName: "treereader_gLEE_%ifb_%tc.root"
    compressionLevel: 1
    dataTier: "simulated"
   }
@@ -137,7 +137,7 @@ outputs: {
 
 physics: {
  producers: {
-   mcweight: @local::treereader_eventweight
+   mcweight: @local::microboone_eventweight_sep24
    rns: { module_type: "RandomNumberSaver" }
  }
 

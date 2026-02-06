@@ -1,0 +1,691 @@
+# Reweightable GENIE cross section model uncertainties
+# Revised 24 September 2020
+# See supporting note (docDB #27018) for details
+#
+# Maintainer: Steven Gardiner <gardiner@fnal.gov>
+microboone_eventweight_genie: {
+
+  weight_functions_genie: [
+    RPA_CCQE, XSecShape_CCMEC, AxFFCCQEshape,
+    VecFFCCQEshape, DecayAngMEC, Theta_Delta2Npi,
+    ThetaDelta2NRad, NormCCCOH, NormNCCOH, TunedCentralValue,
+
+    #All, 
+
+    # QE
+    "MaCCQE", "CoulombCCQE", "MaNCEL", "EtaNCEL",
+
+    # MEC
+    "NormCCMEC", "NormNCMEC", "FracPN_CCMEC", "FracDelta_CCMEC",
+
+    # RES
+    "MaCCRES", "MvCCRES", "MaNCRES", "MvNCRES",
+
+    # Non-resonant background
+    "NonRESBGvpCC1pi", "NonRESBGvpCC2pi", "NonRESBGvpNC1pi", "NonRESBGvpNC2pi",
+    "NonRESBGvnCC1pi", "NonRESBGvnCC2pi", "NonRESBGvnNC1pi", "NonRESBGvnNC2pi",
+    "NonRESBGvbarpCC1pi", "NonRESBGvbarpCC2pi", "NonRESBGvbarpNC1pi",
+    "NonRESBGvbarpNC2pi", "NonRESBGvbarnCC1pi", "NonRESBGvbarnCC2pi", "NonRESBGvbarnNC1pi",
+    "NonRESBGvbarnNC2pi", "AhtBY", "BhtBY", "CV1uBY", "CV2uBY",
+
+    # Hadronization
+    "AGKYxF1pi", "AGKYpT1pi",
+
+    # FSI
+    "MFP_pi", "MFP_N", "FrCEx_pi", "FrInel_pi", "FrAbs_pi",
+    "FrCEx_N", "FrInel_N", "FrAbs_N",
+
+    # Delta resonance decays
+    "RDecBR1gamma", "RDecBR1eta",
+
+    RootinoFix
+  ]
+
+  # INDIVIDUAL WEIGHT CALCULATORS
+  # Thse use "minmax" mode and represent a variation between two extremes. The
+  # recommended uncertainty is the full spread between them.
+  #RPA_CCQE: {
+  #  type: UBGenie
+  #  random_seed: 2
+  #  parameter_list: [ "RPA_CCQE" ]
+  #  parameter_sigma: [ 0.4 ]
+  #  parameter_min: [ -0.249 ]
+  #  parameter_max: [ 0.551 ]
+  #  mode: minmax 
+  #  number_of_multisims: 2
+  #}
+
+  RPA_CCQE: {
+    type: UBGenie
+    random_seed: 2
+    parameter_list: [ "RPA_CCQE" ]
+    parameter_sigma: [-1.449, -1.049, -0.649, -0.249, 0.151, 0.551, 0.951, 1.351] # Initially minmax unisim between -0.249 and 0.551, with sigma = 0.4
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  XSecShape_CCMEC: {
+    type: UBGenie
+    random_seed: 4
+    parameter_list: [ "XSecShape_CCMEC" ]
+    parameter_sigma: [ 1 ]
+    parameter_min: [ 0.0 ]
+    parameter_max: [ 1.0 ]
+    mode: minmax
+    number_of_multisims: 2
+  }
+
+  AxFFCCQEshape: {
+    type: UBGenie
+    random_seed: 5
+    parameter_list: [ "AxFFCCQEshape" ]
+    parameter_sigma: [ 1 ]
+    parameter_min: [ 0.0 ]
+    parameter_max: [ 1.0 ]
+    mode: minmax
+    number_of_multisims: 2
+  }
+
+  VecFFCCQEshape: {
+    type: UBGenie
+    random_seed: 6
+    parameter_list: [ "VecFFCCQEshape" ]
+    parameter_sigma: [ 1 ]
+    parameter_min: [ 0.0 ]
+    parameter_max: [ 1.0 ]
+    mode: minmax
+    number_of_multisims: 2
+  }
+
+  DecayAngMEC: {
+    type: UBGenie
+    random_seed: 7
+    parameter_list: [ "DecayAngMEC" ]
+    parameter_sigma: [ 1 ]
+    parameter_min: [ 0.0 ]
+    parameter_max: [ 1.0 ]
+    mode: minmax
+    number_of_multisims: 2
+  }
+  
+  Theta_Delta2Npi: {
+    type: UBGenie
+    random_seed: 53
+    parameter_list: [ "Theta_Delta2Npi" ]
+    parameter_sigma: [ 1 ]
+    parameter_min: [ 0.0 ]
+    parameter_max: [ 1.0 ]
+    mode: minmax
+    number_of_multisims: 2
+  }
+
+  # New angular distribution variation for radiative Delta decays
+  ThetaDelta2NRad: {
+    type: UBGenie
+    random_seed: 54
+    parameter_list: [ "ThetaDelta2Rad" ]
+    parameter_sigma: [ 1 ]
+    parameter_min: [ 0.0 ]
+    parameter_max: [ 1.0 ]
+    mode: minmax
+    number_of_multisims: 2
+  }
+
+  # Unisim variation of CC COH normalization (still finalizing approach)
+  #NormCCCOH: {
+  #  type: UBGenie
+  #  random_seed: 56
+  #  parameter_list: [ "NormCCCOH" ]
+  #  parameter_sigma: [ 1 ]
+  #  parameter_min: [ 0.0 ] # MCC9 nominal (Berger-Sehgal)
+  #  parameter_max: [ 1.0 ] # +100% normalization
+  #  mode: minmax
+  #  number_of_multisims: 2
+  #}
+
+  NormCCCOH: {
+    type: UBGenie
+    random_seed: 56
+    parameter_list: [ "NormCCCOH" ]
+    parameter_sigma: [-1, 0, 1, 2, 3] # NormCCCOH uses +/- 100%, so the minimum is -1 sigma
+    mode: multisigma
+    number_of_multisims: 5
+  }
+
+  # Unisim variation of NC COH normalization (still finalizing approach)
+  #NormNCCOH: {
+  #  type: UBGenie
+  #  random_seed: 57
+  #  parameter_list: [ "NormNCCOH" ]
+  #  parameter_sigma: [ 1 ]
+  #  parameter_min: [ 0.0 ] # MCC9 nominal (Berger-Sehgal)
+  #  parameter_max: [ 1.0 ] # +100% normalization
+  #  mode: minmax
+  #  number_of_multisims: 2
+  #}
+
+  NormNCCOH: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NormNCCOH" ]
+    parameter_sigma: [-1, 0, 1, 2, 3] # NormNCCOH uses +/- 100%, so the minimum is -1 sigma
+    mode: multisigma
+    number_of_multisims: 5
+  }
+
+  # Single function that applies all weights needed to obtain
+  # a new tuned central value
+  # NOTE: For samples generated with GENIE v3.0.4 splines, the
+  # spline weight to convert v3.0.4 --> v3.0.4a cross sections
+  # still needs to be applied as well.
+  TunedCentralValue: {
+    type: UBGenie
+    random_seed: 99
+    parameter_list: [ "MaCCQE", "RPA_CCQE", "NormCCMEC", "XSecShape_CCMEC" ]
+    # Dummy sigmas (central values are specified in EventWeight module configuration
+    # to ensure consistency across all weight calculators)
+    parameter_sigma: [ 1, 1, 1, 1 ]
+    mode: central_value
+    number_of_multisims: 1
+  }
+
+  # splitting up each component of All_UBGenie:
+
+  MaCCQE: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "MaCCQE" ]
+    parameter_sigma: [ -10.403205, -6.93547, -3.467735, 0, 3.467735, 6.93547, 10.403205 ] # MaCCQE uses +/- 0.10 GeV about the tuned central value
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  CoulombCCQE: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "CoulombCCQE" ]
+    parameter_sigma: [ -4.5, -3, -1.5, 0, 1.5, 3, 4.5 ] # CoulombCCQE uses +/- 30%
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  MaNCEL: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "MaNCEL" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  EtaNCEL: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "EtaNCEL" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NormCCMEC: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NormCCMEC" ]
+    parameter_sigma: [ -2, -1, 0, 1, 2, 3] # NormCCMEC uses +/- 50%, so the minimum is -2 sigma
+    mode: multisigma
+    number_of_multisims: 6
+  }
+
+  NormNCMEC: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NormNCMEC" ]
+    parameter_sigma: [ -2, 0, 2, 4, 6] # NormNCMEC uses +/- 100%, so the minimum is -1 sigma with 100% error, or -2 sigma with 50% error as default in GENIE reweight
+    mode: multisigma
+    number_of_multisims: 5
+  }
+
+  FracPN_CCMEC: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "FracPN_CCMEC" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  FracDelta_CCMEC: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "FracDelta_CCMEC" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  MaCCRES: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "MaCCRES" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  MvCCRES: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "MvCCRES" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  MaNCRES: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "MaNCRES" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  MvNCRES: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "MvNCRES" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvpCC1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvpCC1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvpCC2pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvpCC2pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvpNC1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvpNC1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvpNC2pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvpNC2pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvnCC1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvnCC1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvnCC2pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvnCC2pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvnNC1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvnNC1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvnNC2pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvnNC2pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvbarpCC1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvbarpCC1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvbarpCC2pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvbarpCC2pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvbarpNC1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvbarpNC1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvbarpNC2pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvbarpNC2pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvbarnCC1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvbarnCC1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvbarnCC2pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvbarnCC2pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvbarnNC1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvbarnNC1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  NonRESBGvbarnNC2pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "NonRESBGvbarnNC2pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  AhtBY: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "AhtBY" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  BhtBY: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "BhtBY" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  CV1uBY: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "CV1uBY" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  CV2uBY: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "CV2uBY" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  AGKYxF1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "AGKYxF1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  AGKYpT1pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "AGKYpT1pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  MFP_pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "MFP_pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  MFP_N: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "MFP_N" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  FrCEx_pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "FrCEx_pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  FrInel_pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "FrInel_pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  FrAbs_pi: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "FrAbs_pi" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  FrCEx_N: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "FrCEx_N" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  FrInel_N: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "FrInel_N" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  FrAbs_N: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "FrAbs_N" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  RDecBR1gamma: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "RDecBR1gamma" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+  RDecBR1eta: {
+    type: UBGenie
+    random_seed: 57
+    parameter_list: [ "RDecBR1eta" ]
+    parameter_sigma: [ -3, -2, -1, 0, 1, 2, 3]
+    mode: multisigma
+    number_of_multisims: 7
+  }
+
+
+#  # ALL OTHER RECOMMENDED SYSTEMATIC VARIATIONS THROWN TOGETHER
+#  All: {
+#    type: UBGenie
+#    random_seed: 100
+#
+#    parameter_list: [
+#
+#      # QE
+#      "MaCCQE", "CoulombCCQE", "MaNCEL", "EtaNCEL",
+#
+#      # MEC
+#      "NormCCMEC", "NormNCMEC", "FracPN_CCMEC", "FracDelta_CCMEC",
+#
+#      # RES
+#      "MaCCRES", "MvCCRES", "MaNCRES", "MvNCRES",
+#
+#      # Non-resonant background
+#      "NonRESBGvpCC1pi", "NonRESBGvpCC2pi", "NonRESBGvpNC1pi", "NonRESBGvpNC2pi",
+#      "NonRESBGvnCC1pi", "NonRESBGvnCC2pi", "NonRESBGvnNC1pi", "NonRESBGvnNC2pi",
+#      "NonRESBGvbarpCC1pi", "NonRESBGvbarpCC2pi", "NonRESBGvbarpNC1pi",
+#      "NonRESBGvbarpNC2pi", "NonRESBGvbarnCC1pi", "NonRESBGvbarnCC2pi", "NonRESBGvbarnNC1pi",
+#      "NonRESBGvbarnNC2pi", "AhtBY", "BhtBY", "CV1uBY", "CV2uBY",
+#
+#      # Hadronization
+#      "AGKYxF1pi", "AGKYpT1pi",
+#
+#      # FSI
+#      "MFP_pi", "MFP_N", "FrCEx_pi", "FrInel_pi", "FrAbs_pi",
+#      "FrCEx_N", "FrInel_N", "FrAbs_N",
+#
+#      # Delta resonance decays
+#      "RDecBR1gamma", "RDecBR1eta"
+#    ]
+#    parameter_sigma: [
+#      3.467735, # MaCCQE uses +/- 0.10 GeV about the tuned central value
+#      1.5, # CoulombCCQE uses +/- 30%
+#      1, 1,
+#      1.0, # NormCCMEC uses +/- 50%
+#      2.0, # NormNCMEC uses +/- 100%
+#      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+#      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+#    ]
+#    mode: multisim
+#    number_of_multisims: 100
+#  }
+
+  # Special weight that zeros out events that suffer from the "RES ROOTino" bug
+  # See, e.g., docDB #27564
+  RootinoFix: {
+    type: UBGenie
+    random_seed: 101
+    parameter_list: [ "RESRootino" ]
+    # Dummy sigma provided here to keep the framework happy.
+    # The knob value associated with this calculator is not
+    # actually used. All affected events are assigned a weight of
+    # zero. All other events are assigned a weight of one.
+    parameter_sigma: [ 1 ]
+    mode: multisim
+    number_of_multisims: 1
+  }
+
+  AltTune5T2K: {
+    type: UBGenie
+    random_seed: 102
+    parameter_list: [ "MaCCQE", "NormCCMEC", "XSecShape_CCMEC", "RPA_CCQE", "SigmaEv_CCMEC" ]
+    # Dummy sigma and "min" values
+    parameter_sigma: [ 1, 1, 1, 1, 1 ]
+    parameter_min: [ 0.0, 0.0, 0.0, 0.0, 0.0 ]
+    # "Max" universe corresponds to alternate tuned CV
+    parameter_max: [ 5.55196, 0.953714, 1.0, 0.182462, 0.215613 ]
+    mode: minmax
+    number_of_multisims: 2
+  }
+
+  AltTune5T2KplusMB: {
+    type: UBGenie
+    random_seed: 103
+    parameter_list: [ "MaCCQE", "NormCCMEC", "XSecShape_CCMEC", "RPA_CCQE", "SigmaEv_CCMEC" ]
+    # Dummy sigma and "min" values
+    parameter_sigma: [ 1, 1, 1, 1, 1 ]
+    parameter_min: [ 0.0, 0.0, 0.0, 0.0, 0.0 ]
+    # "Max" universe corresponds to alternate tuned CV
+    parameter_max: [ 7.80039, 0.138887, 1.0, 0.318336, 0.79357 ]
+    mode: minmax
+    number_of_multisims: 2
+  }
+
+  AltTune4T2KplusMB: {
+    type: UBGenie
+    random_seed: 104
+    parameter_list: [ "MaCCQE", "NormCCMEC", "XSecShape_CCMEC", "RPA_CCQE" ]
+    # Dummy sigma and "min" values
+    parameter_sigma: [ 1, 1, 1, 1 ]
+    parameter_min: [ 0.0, 0.0, 0.0, 0.0 ]
+    # "Max" universe corresponds to alternate tuned CV
+    parameter_max: [ 7.03259, 0.872399, 1.0, 0.316635 ]
+    mode: minmax
+    number_of_multisims: 2
+  }
+
+}

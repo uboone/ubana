@@ -88,6 +88,12 @@ void NTupleInterface::SetRootFile(TFile* inputFile, TString treeName, fhicl::Par
   // GTruth
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_ProbePDG").c_str()                 , &GTruth_ProbePDG);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_tgtPDG").c_str()                   , &GTruth_tgtPDG);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_tgtA").c_str()                     , &GTruth_tgtA);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_tgtZ").c_str()                     , &GTruth_tgtZ);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_tgtP4x").c_str()                 , &GTruth_tgtP4x);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_tgtP4y").c_str()                 , &GTruth_tgtP4y);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_tgtP4z").c_str()                 , &GTruth_tgtP4z);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_tgtP4E").c_str()                 , &GTruth_tgtP4E);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_weight").c_str()                   , &GTruth_weight);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_probability").c_str()              , &GTruth_probability);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_Xsec").c_str()                     , &GTruth_Xsec);
@@ -100,11 +106,14 @@ void NTupleInterface::SetRootFile(TFile* inputFile, TString treeName, fhicl::Par
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_Gscatter").c_str()                 , &GTruth_Gscatter);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_Gint").c_str()                     , &GTruth_Gint);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_ResNum").c_str()                   , &GTruth_ResNum);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_DecayMode").c_str()                   , &GTruth_DecayMode);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumPiPlus").c_str()                , &GTruth_NumPiPlus);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumPi0").c_str()                   , &GTruth_NumPi0);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumPiMinus").c_str()               , &GTruth_NumPiMinus);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumProton").c_str()                , &GTruth_NumProton);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_NumNeutron").c_str()               , &GTruth_NumNeutron);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_StrangeHadronPDG").c_str()   , &GTruth_StrangeHadronPDG);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_CharmHadronPDG").c_str()   , &GTruth_CharmHadronPDG);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_gX").c_str()                       , &GTruth_gX);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_gY").c_str()                       , &GTruth_gY);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_gT").c_str()                       , &GTruth_gT);
@@ -118,6 +127,7 @@ void NTupleInterface::SetRootFile(TFile* inputFile, TString treeName, fhicl::Par
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_HitNucP4x").c_str()                , &GTruth_HitNucP4x);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_HitNucP4y").c_str()                , &GTruth_HitNucP4y);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_HitNucP4z").c_str()                , &GTruth_HitNucP4z);
+  fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_HitNucPos").c_str()                , &GTruth_HitNucPos);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_HitNucP4E").c_str()                , &GTruth_HitNucP4E);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_FShadSystP4x").c_str()             , &GTruth_FShadSystP4x);
   fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_FShadSystP4y").c_str()             , &GTruth_FShadSystP4y);
@@ -128,10 +138,12 @@ void NTupleInterface::SetRootFile(TFile* inputFile, TString treeName, fhicl::Par
   if (fDLMode) {
     fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsSeaQuark").c_str(), &GTruth_IsSeaQuark_int);
     fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsCharm").c_str()   , &GTruth_IsCharm_int);
+    fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsStrange").c_str()   , &GTruth_IsStrange_int);
   }
   else {
     fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsSeaQuark").c_str(), &GTruth_IsSeaQuark);
     fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsCharm").c_str()   , &GTruth_IsCharm);
+    fTree->SetBranchAddress(branchDef.get<std::string>("GTruth_IsStrange").c_str()   , &GTruth_IsStrange);
   }
 
   fNEntries = fTree->GetEntries();
@@ -267,6 +279,13 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
   }
 
   gtruth.ftgtPDG = GTruth_tgtPDG;
+  gtruth.ftgtA = GTruth_tgtA;
+  gtruth.ftgtZ = GTruth_tgtZ;
+  gtruth.fTgtP4 = TLorentzVector(
+    GTruth_tgtP4x,
+    GTruth_tgtP4y,
+    GTruth_tgtP4z,
+    GTruth_tgtP4E);
   gtruth.fweight = GTruth_weight;
   gtruth.fprobability = GTruth_probability;
   gtruth.fXsec = GTruth_Xsec;
@@ -280,6 +299,9 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
   gtruth.fGscatter = GTruth_Gscatter;
   gtruth.fGint = GTruth_Gint;
   gtruth.fResNum = GTruth_ResNum;
+  gtruth.fDecayMode = GTruth_DecayMode;
+  gtruth.fStrangeHadronPdg = GTruth_StrangeHadronPDG;
+  gtruth.fCharmHadronPdg = GTruth_CharmHadronPDG;
   gtruth.fNumPiPlus = GTruth_NumPiPlus;
   gtruth.fNumPi0 = GTruth_NumPi0;
   gtruth.fNumPiMinus = GTruth_NumPiMinus;
@@ -296,11 +318,13 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
     GTruth_ProbeP4y,
     GTruth_ProbeP4z,
     GTruth_ProbeP4E);
+  
   gtruth.fHitNucP4 = TLorentzVector(
     GTruth_HitNucP4x,
     GTruth_HitNucP4y,
     GTruth_HitNucP4z,
     GTruth_HitNucP4E);
+  gtruth.fHitNucPos = GTruth_HitNucPos;
   gtruth.fFShadSystP4 = TLorentzVector(
     GTruth_FShadSystP4x,
     GTruth_FShadSystP4y,
@@ -311,11 +335,13 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
     gtruth.fProbePDG = MCFlux_ntype;  // Grab nu PDG from MCFlux
     gtruth.fIsSeaQuark = GTruth_IsSeaQuark_int;
     gtruth.fIsCharm = GTruth_IsCharm_int;
+    gtruth.fIsStrange = GTruth_IsStrange_int;
   }
   else {
     gtruth.fProbePDG = GTruth_ProbePDG;
     gtruth.fIsSeaQuark = GTruth_IsSeaQuark;
     gtruth.fIsCharm = GTruth_IsCharm;
+    gtruth.fIsStrange = GTruth_IsStrange;
   }
 
   if (fVerbose) {
@@ -349,6 +375,7 @@ bool NTupleInterface::FillGTruth(Long64_t ientry, simb::GTruth& gtruth) {
     gtruth.fProbeP4.Print();
     std::cout << "gtruth.fHitNucP4   :";
     gtruth.fHitNucP4.Print();
+    std::cout << "gtruth.fHitNucPos   :" << gtruth.fHitNucPos  << std::endl;
     std::cout << "gtruth.fFShadSystP4:";
     gtruth.fFShadSystP4.Print();
     std::cout << "=======================================" << std::endl;
