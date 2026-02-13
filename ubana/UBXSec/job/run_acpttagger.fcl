@@ -1,6 +1,5 @@
 #include "services_microboone.fcl"
 #include "singles_microboone.fcl"
-#include "largeantmodules_microboone.fcl"
 #include "mcreco.fcl"
 #include "detsimmodules_microboone.fcl"
 #include "triggersim_microboone.fcl"

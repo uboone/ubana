@@ -1,5 +1,4 @@
 #include "services_microboone.fcl"
-#include "largeantmodules_microboone.fcl"
 #include "mcreco.fcl"
 #include "time_memory_tracker_microboone.fcl"
 
