@@ -251,8 +251,8 @@ product		version		qual	flags		<table_format=2>
 larana		v10_02_00	-
 larpandora	v10_02_00	-
 ubraw		v10_16_00	-
-ubreco		v10_17_02	-
-ubcv            v10_17_02	-
+ubreco		v10_20_00	-
+ubcv            v10_20_00	-
 cetmodules	v3_24_01	-	only_for_build
 end_product_list
 ####################################
