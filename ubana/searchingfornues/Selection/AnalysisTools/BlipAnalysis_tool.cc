@@ -1,6 +1,8 @@
 #ifndef ANALYSIS_BLIPANALYSIS_CXX
 #define ANALYSIS_BLIPANALYSIS_CXX
 
+#include "ubreco/BlipReco/RNN/BlipRNNAlg.h" // gives error if added before other includes
+
 #include <iostream>
 #include "AnalysisToolBase.h"
 
@@ -14,7 +16,9 @@
 #include "ubana/searchingfornues/Selection/CommonDefs/SCECorrections.h"
 #include "ubana/searchingfornues/Selection/CommonDefs/Geometry.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
-#include "ubobj/Blip/DataTypes.h"
+
+// blip reco stuff
+#include "ubreco/BlipReco/Alg/BlipRecoAlg.h"
 
 namespace analysis
 {
@@ -39,6 +43,10 @@ namespace analysis
 // Original tool created by Afroditi Papadopoulou & Burke Irwin (burke.irwin7@gmail.com) on 01/24/2023.
 // Updated for MCC10 by Will Foreman (wforeman.phys@gmail.com) on 01/28/2025.
 //
+// Updates (Will Foreman, 02/19/2026)
+//    - Option to re-run blip reconstruction instead of reading saved blips
+//    - Inclusion of Liani Silva's proton blip direction RNN
+//
 ////////////////////////////////////////////////////////////////////////
 
 class BlipAnalysis : public AnalysisToolBase
@@ -62,7 +70,7 @@ public:
   void analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_pfp_v, bool fData, bool selected) override;
      
   /// @brief Method for adding a blip's info to the branch vectors
-  void addTheBlip(art::Ptr<blipobj::Blip> blip);
+  void addTheBlip(blipobj::Blip const &blip);
 
   /// @brief set branches for TTree
   void setBranches(TTree *_tree) override;
@@ -77,6 +85,15 @@ public:
   float truncate(float input, double base);
 
 private:
+  
+  // --- new params 02/2026 ---
+  bool    fRerunBlipReco;     // Re-run blip reco and use new output
+  bool    fEnableRNN;         // Use blip-direction predictor (TorchLib)
+
+  blip::BlipRecoAlg *fBlipAlg;
+  blip::BlipRNNAlg  *fBlipRNN;
+  TVector3  _blipdir;
+  bool      _blipdir_isValid;
 
   // --- fcl parameters ---
   art::InputTag fBlipProducer;// blip collection producer
@@ -85,6 +102,10 @@ private:
   bool    fSaveSCECorrEnergy; // option to save SCE- and lifetime-corrected energy
   bool    fSaveOnlyNuEvts;    // only save blips for neutrino PFP events
   bool    fLiteMode;          // save bare minimum of variables
+  
+  // -- params for trk ID determination (will eventually be moved to ubreco/BlipReco)
+  art::InputTag fTrkProducerInit;
+  art::InputTag fHitProducerInit;
 
   // --- event identifiers --- 
   int _run, _sub, _evt;
@@ -96,6 +117,8 @@ private:
   std::vector<int>    _blip_nplanes;    // number of planes matched (2 or 3)
   std::vector<float>  _blip_proxtrkdist;// distance to closest track
   std::vector<int>    _blip_proxtrkid;  // track ID of closest track
+  std::vector<int>    _blip_trkid;      // track ID of track that blips shares hits with
+  std::vector<float>  _blip_trkidfrac;  //   - fraction of blip's hits that are shared w/track
   std::vector<bool>   _blip_touchtrk;   // is blip touching a track (ie, delta-like?)
   std::vector<int>    _blip_touchtrkid; // track ID of touched track
   std::vector<bool>   _blip_bydeadwire; // is blip adjacent to a dead channel on coll plane?
@@ -112,6 +135,8 @@ private:
   std::vector<int>    _blip_true_g4id;  // truth-matched G4 track ID
   std::vector<int>    _blip_true_pdg;   // truth-matched PDG
   std::vector<float>  _blip_true_energy;// true energy deposited
+  std::vector<int>    _blip_true_primancPDG; // primary blip ancestor PDG
+  std::vector<int>    _blip_true_primancG4ID; // primary ancestor G4 TrackID
   // plane-specific information
   std::vector<int>    _blip_pl0_nwires;       // number of wires on this plane
   std::vector<int>    _blip_pl1_nwires;       // number of wires on this plane
@@ -125,6 +150,24 @@ private:
   std::vector<int>    _blip_pl0_centerwire;   // central wire number
   std::vector<int>    _blip_pl1_centerwire;   // central wire number
   std::vector<int>    _blip_pl2_centerwire;   // central wire number
+  std::vector<bool>   _blip_rnn_vdir_isValid; // Is RNN output valid?
+  std::vector<float>  _blip_rnn_vdir_x;       // RNN-predicted blip direction (protons)
+  std::vector<float>  _blip_rnn_vdir_y;       // RNN-predicted blip direction (protons)
+  std::vector<float>  _blip_rnn_vdir_z;       // RNN-predicted blip direction (protons)
+  
+  std::vector<int>    _blip_true_ncategory;   // Help categorize origin of blip
+        //  -9 = no truth match (data/overlay)
+        //  0  = truth-matched, but not falling in category
+        //  1  = primary (n,1p)
+        //  2  = primary (n,Np)
+        //  3  = secondary (n,1p)
+        //  4  = secondary (n,Np)
+        //  5  = primary (n,gamma)
+        //  6  = secondary (n,gamma)
+        //  7  = ncapture gamma
+        //  8  = mu capture gamma 
+
+  bool RNNModelLoaded = false;
 
 };
 
@@ -132,12 +175,28 @@ private:
 //----------------------------------------------------------------------------
 BlipAnalysis::BlipAnalysis(const fhicl::ParameterSet &p)
 {
+  fRerunBlipReco      = p.get<bool>         ("RerunBlipReco",       false);
   fBlipProducer       = p.get<art::InputTag>("BlipProducer",        "blipreco");
   fSaveOnlyNuEvts     = p.get<bool>         ("SaveOnlyNuEvts",      true);
   fNuBlipRadius       = p.get<float>        ("NuBlipRadius",        300.);
   fSaveSCECorrLoc     = p.get<bool>         ("SaveSCECorrLocation", true);
   fSaveSCECorrEnergy  = p.get<bool>         ("SaveSCECorrEnergy",   true);
   fLiteMode           = p.get<bool>         ("LiteMode",            false);
+
+  fTrkProducerInit    = p.get<art::InputTag>("TrkProducerInit",   "pandoraInit");
+  fHitProducerInit    = p.get<art::InputTag>("HitProducerInit",   "gaushit::DataRecoStage1Test");
+
+  fEnableRNN          = p.get<bool>         ("EnableRNN",         false);
+  
+  _blipdir_isValid = false;
+  if( fRerunBlipReco ) {
+    fBlipAlg = new blip::BlipRecoAlg( p.get<fhicl::ParameterSet>("BlipAlg") );
+    if( fEnableRNN ){ 
+      fBlipRNN = new blip::BlipRNNAlg( p.get<fhicl::ParameterSet>("BlipRNN") );
+      RNNModelLoaded = fBlipRNN->model_loaded;
+    }
+  }
+
 }
 
 
@@ -153,24 +212,23 @@ float BlipAnalysis::truncate(float input, double base){
 }
 
 //----------------------------------------------------------------------------
-void BlipAnalysis::addTheBlip(art::Ptr<blipobj::Blip> blip){
-    
+void BlipAnalysis::addTheBlip( blipobj::Blip const &blip) {
     // get reconstructed position
-    //TVector3 loc;
-    TVector3 loc = (fSaveSCECorrLoc) ? blip->PositionSCE : blip->Position;
+    //TVector3 loc = (fSaveSCECorrLoc) ? blip->PositionSCE : blip->Position;
+    TVector3 loc = (fSaveSCECorrLoc) ? blip.PositionSCE : blip.Position;
 
     // get reconstructed charge and energy
     float energy = -9; float charge = -9;
     if( fSaveSCECorrEnergy ) {
-      energy = blip->Energy; 
-      charge = blip->Charge;
+      energy = blip.Energy; 
+      charge = blip.Charge;
     } else {
-      energy = blip->EnergyCorr;  
-      charge = blip->ChargeCorr;
+      energy = blip.EnergyCorr;  
+      charge = blip.ChargeCorr;
     }
 
-    float energyTrue = blip->truth.Energy;
-    float size = sqrt( pow(blip->dX,2) + pow(blip->dYZ,2) );
+    float energyTrue = blip.truth.Energy;
+    float size = sqrt( pow(blip.dX,2) + pow(blip.dYZ,2) );
     float x = loc.X();
     float y = loc.Y();
     float z = loc.Z();
@@ -179,10 +237,10 @@ void BlipAnalysis::addTheBlip(art::Ptr<blipobj::Blip> blip){
     int nwirestot = 0;
     int nwiresbad = 0;
     for(int j=0; j<3; j++){
-      int nb = std::max(0,blip->clusters[j].NWiresBad);
-      int nn = std::max(0,blip->clusters[j].NWiresNoisy);
+      int nb = std::max(0,blip.clusters[j].NWiresBad);
+      int nn = std::max(0,blip.clusters[j].NWiresNoisy);
       nwiresbad += (nb + nn);
-      nwirestot = blip->clusters[j].NWires;
+      nwirestot = blip.clusters[j].NWires;
     }
     float badwirefrac = float(nwiresbad)/nwirestot;
 
@@ -195,52 +253,63 @@ void BlipAnalysis::addTheBlip(art::Ptr<blipobj::Blip> blip){
     size    = truncate(size,0.01);
     energyTrue = truncate(energyTrue,0.001);
 
-
-    bool isTouchTrk = (blip->TouchTrkID >= 0 );
-    _blip_id          .push_back(blip->ID);
-    _blip_tpc         .push_back(blip->TPC);
-    _blip_nplanes     .push_back(blip->NPlanes);    
-    _blip_proxtrkdist .push_back(blip->ProxTrkDist);
-    _blip_proxtrkid   .push_back(blip->ProxTrkID);
+    bool isTouchTrk = (blip.TouchTrkID >= 0 );
+    _blip_id          .push_back(blip.ID);
+    _blip_tpc         .push_back(blip.TPC);
+    _blip_nplanes     .push_back(blip.NPlanes);    
+    _blip_proxtrkdist .push_back(blip.ProxTrkDist);
+    _blip_proxtrkid   .push_back(blip.ProxTrkID);
     _blip_touchtrk    .push_back(isTouchTrk);
-    _blip_touchtrkid  .push_back(blip->TouchTrkID);
-    _blip_bydeadwire  .push_back(blip->clusters[2].DeadWireSep==0);
+    _blip_touchtrkid  .push_back(blip.TouchTrkID);
+    _blip_bydeadwire  .push_back(blip.clusters[2].DeadWireSep==0);
     _blip_badwirefrac .push_back(badwirefrac);
     _blip_x           .push_back(x);
     _blip_y           .push_back(y);
     _blip_z           .push_back(z);
-    _blip_sigmayz     .push_back(blip->SigmaYZ);
-    _blip_dx          .push_back(blip->dX);
-    _blip_dw          .push_back(blip->dYZ);
+    _blip_sigmayz     .push_back(blip.SigmaYZ);
+    _blip_dx          .push_back(blip.dX);
+    _blip_dw          .push_back(blip.dYZ);
     _blip_size        .push_back(size);
     _blip_charge      .push_back(charge);
     _blip_energy      .push_back(energy);
-    _blip_true_g4id   .push_back(blip->truth.LeadG4ID);
-    _blip_true_pdg    .push_back(blip->truth.LeadG4PDG);
+    _blip_true_g4id   .push_back(blip.truth.LeadG4ID);
+    _blip_true_pdg    .push_back(blip.truth.LeadG4PDG);
     _blip_true_energy .push_back(energyTrue);
-    _blip_pl0_nwires  .push_back(blip->clusters[0].NWires);
-    _blip_pl1_nwires  .push_back(blip->clusters[1].NWires);
-    _blip_pl2_nwires  .push_back(blip->clusters[2].NWires);
-    _blip_pl0_nwiresbad  .push_back(blip->clusters[0].NWiresBad);
-    _blip_pl1_nwiresbad  .push_back(blip->clusters[1].NWiresBad);
-    _blip_pl2_nwiresbad  .push_back(blip->clusters[2].NWiresBad);
-    _blip_pl0_bydeadwire  .push_back((blip->clusters[0].DeadWireSep==0));
-    _blip_pl1_bydeadwire  .push_back((blip->clusters[1].DeadWireSep==0));
-    _blip_pl2_bydeadwire  .push_back((blip->clusters[2].DeadWireSep==0));
-    _blip_pl0_centerwire  .push_back(blip->clusters[0].CenterWire); 
-    _blip_pl1_centerwire  .push_back(blip->clusters[1].CenterWire);
-    _blip_pl2_centerwire  .push_back(blip->clusters[2].CenterWire);
+    _blip_pl0_nwires  .push_back(blip.clusters[0].NWires);
+    _blip_pl1_nwires  .push_back(blip.clusters[1].NWires);
+    _blip_pl2_nwires  .push_back(blip.clusters[2].NWires);
+    _blip_pl0_nwiresbad   .push_back(blip.clusters[0].NWiresBad);
+    _blip_pl1_nwiresbad   .push_back(blip.clusters[1].NWiresBad);
+    _blip_pl2_nwiresbad   .push_back(blip.clusters[2].NWiresBad);
+    _blip_pl0_bydeadwire  .push_back((blip.clusters[0].DeadWireSep==0));
+    _blip_pl1_bydeadwire  .push_back((blip.clusters[1].DeadWireSep==0));
+    _blip_pl2_bydeadwire  .push_back((blip.clusters[2].DeadWireSep==0));
+    _blip_pl0_centerwire  .push_back(blip.clusters[0].CenterWire); 
+    _blip_pl1_centerwire  .push_back(blip.clusters[1].CenterWire);
+    _blip_pl2_centerwire  .push_back(blip.clusters[2].CenterWire);
+    if( fRerunBlipReco ) {
+      _blip_trkid         .push_back(fBlipAlg->map_blip_trkID[blip.ID]);
+      _blip_trkidfrac     .push_back(fBlipAlg->map_blip_trkIDfrac[blip.ID]);
+      _blip_rnn_vdir_isValid .push_back(_blipdir_isValid);
+      _blip_rnn_vdir_x  .push_back(_blipdir.X());
+      _blip_rnn_vdir_y  .push_back(_blipdir.Y());
+      _blip_rnn_vdir_z  .push_back(_blipdir.Z());
+      _blip_true_primancPDG .push_back(fBlipAlg->map_blip_primaryPDG[blip.ID]);
+      _blip_true_primancG4ID.push_back(fBlipAlg->map_blip_primaryG4ID[blip.ID]);
+      _blip_true_ncategory.push_back(fBlipAlg->map_blip_ncategory[blip.ID]);
+    }
 
 }
 
 //----------------------------------------------------------------------------
-void BlipAnalysis::analyzeEvent(art::Event const &e, bool fData)
+void BlipAnalysis::analyzeEvent(art::Event const &evt, bool fData)
 {
-  _evt = e.event();
-  _sub = e.subRun();
-  _run = e.run();
+  _evt = evt.event();
+  _sub = evt.subRun();
+  _run = evt.run();
   std::cout << "[BlipAnalysis::analyzeEvent] Run: " << _run << ", SubRun: " << _sub << ", Event: " << _evt << std::endl;
-
+  
+  
   //================================================
   // If a non-zero radius was configured, or we are
   // only saving neutrino events, then exit out of this 
@@ -248,23 +317,55 @@ void BlipAnalysis::analyzeEvent(art::Event const &e, bool fData)
   //================================================
   if( fSaveOnlyNuEvts   ) return;
   if( fNuBlipRadius > 0 ) return;
-  
+
   //==========================================
   // ... otherwise, save all blips in the event
   //==========================================
   std::cout
   <<"********** BlipAnalysis::analyzeEvent **********\n";
-  // reset branch vectors
+  
   resetVariables(); 
-  // loop over blips saved to the event
-  art::Handle< std::vector<blipobj::Blip> > blipHandle;
-  std::vector<art::Ptr<blipobj::Blip> > bliplist;
-  if (e.getByLabel(fBlipProducer,blipHandle))
-    art::fill_ptr_vector(bliplist, blipHandle);
-  _nblips = bliplist.size();
-  std::cout<<"Saving all "<<_nblips<<" blips in the event\n"; 
-  for(size_t i=0; i<bliplist.size(); i++)
-    addTheBlip(bliplist[i]);
+  
+  if( !fRerunBlipReco ) {
+
+    //----------------------------------
+    // loop over blips saved to the event
+    art::Handle< std::vector<blipobj::Blip> > blipHandle;
+    std::vector<art::Ptr<blipobj::Blip> > bliplist;
+    if (evt.getByLabel(fBlipProducer,blipHandle))
+      art::fill_ptr_vector(bliplist, blipHandle);
+    _nblips = bliplist.size();
+    std::cout<<"Saving all "<<_nblips<<" blips in the event\n"; 
+    for(size_t i=0; i<bliplist.size(); i++){
+      addTheBlip(*bliplist[i]);
+    }
+
+  } else {
+    //----------------------------------
+    // Re-run the blip reconstruction, this
+    // enables us to use new features in the
+    // reco that weren't available at the time
+    // of production
+    fBlipAlg->RunBlipReco(evt);
+    _nblips = fBlipAlg->blips.size();
+    for(int i=0; i<_nblips; i++){
+      auto& blp = fBlipAlg->blips[i];
+      
+      // Call the direction RNN
+      if( fEnableRNN && RNNModelLoaded ) {
+        _blipdir.SetXYZ(-9,-9,-9);
+        _blipdir_isValid = false;
+        std::vector<float> dir = fBlipRNN->predict(blp,fBlipAlg->hitinfo);
+        if(dir.size()==3){
+          _blipdir.SetXYZ(dir[0],dir[1],dir[2]);
+          _blipdir_isValid = true;
+        }
+      }
+      
+      addTheBlip(blp);
+    }
+  }
+
   
   std::cout
   <<"************************************************\n";
@@ -319,7 +420,7 @@ void BlipAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t>
     //TVector3 loc;
     TVector3 loc = (fSaveSCECorrLoc) ? blip->PositionSCE : blip->Position;
     if( (loc-nuvtx).Mag() > fNuBlipRadius ) continue;
-    addTheBlip(blip);
+    addTheBlip(*blip);
     _nblips++;
   }
   std::cout
@@ -369,6 +470,17 @@ void BlipAnalysis::setBranches(TTree *_tree)
   if( !fLiteMode ){ 
   _tree->Branch("blip_true_energy", "std::vector< float >",   &_blip_true_energy);
   }
+  if( fRerunBlipReco ) {
+  _tree->Branch("blip_trkid",     "std::vector< int >",     &_blip_trkid);
+  _tree->Branch("blip_trkidfrac", "std::vector< float >",   &_blip_trkidfrac);
+  _tree->Branch("blip_rnn_vdir_isValid","std::vector< bool >",   &_blip_rnn_vdir_isValid);
+  _tree->Branch("blip_rnn_vdir_x","std::vector< float >",   &_blip_rnn_vdir_x);
+  _tree->Branch("blip_rnn_vdir_y","std::vector< float >",   &_blip_rnn_vdir_y);
+  _tree->Branch("blip_rnn_vdir_z","std::vector< float >",   &_blip_rnn_vdir_z);
+  _tree->Branch("blip_true_primancPDG","std::vector< int >",   &_blip_true_primancPDG);
+  _tree->Branch("blip_true_primancG4ID","std::vector< int >",   &_blip_true_primancG4ID);
+  _tree->Branch("blip_true_ncategory","std::vector< int >",   &_blip_true_ncategory);
+  }
 }
 
 
@@ -416,6 +528,14 @@ void BlipAnalysis::resetVariables()
     _blip_pl0_centerwire.clear();
     _blip_pl1_centerwire.clear();
     _blip_pl2_centerwire.clear();
+    _blip_trkid         .clear();
+    _blip_trkidfrac     .clear();
+    _blip_rnn_vdir_x    .clear();
+    _blip_rnn_vdir_y    .clear();
+    _blip_rnn_vdir_z    .clear();
+    _blip_true_primancPDG  .clear();
+    _blip_true_primancG4ID .clear();
+    _blip_true_ncategory .clear();
 }
 
 
