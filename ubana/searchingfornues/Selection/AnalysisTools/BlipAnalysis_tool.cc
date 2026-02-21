@@ -137,6 +137,9 @@ private:
   std::vector<float>  _blip_true_energy;// true energy deposited
   std::vector<int>    _blip_true_primancPDG; // primary blip ancestor PDG
   std::vector<int>    _blip_true_primancG4ID; // primary ancestor G4 TrackID
+  std::vector<float>  _blip_true_dir_x;   // Initial momentum direction of truth-matched particle
+  std::vector<float>  _blip_true_dir_y;   // Initial momentum direction of truth-matched particle
+  std::vector<float>  _blip_true_dir_z;   // Initial momentum direction of truth-matched particle
   // plane-specific information
   std::vector<int>    _blip_pl0_nwires;       // number of wires on this plane
   std::vector<int>    _blip_pl1_nwires;       // number of wires on this plane
@@ -150,10 +153,10 @@ private:
   std::vector<int>    _blip_pl0_centerwire;   // central wire number
   std::vector<int>    _blip_pl1_centerwire;   // central wire number
   std::vector<int>    _blip_pl2_centerwire;   // central wire number
-  std::vector<bool>   _blip_rnn_vdir_isValid; // Is RNN output valid?
-  std::vector<float>  _blip_rnn_vdir_x;       // RNN-predicted blip direction (protons)
-  std::vector<float>  _blip_rnn_vdir_y;       // RNN-predicted blip direction (protons)
-  std::vector<float>  _blip_rnn_vdir_z;       // RNN-predicted blip direction (protons)
+  std::vector<bool>   _blip_rnn_dir_isValid; // Is RNN output valid?
+  std::vector<float>  _blip_rnn_dir_x;       // RNN-predicted blip direction (protons)
+  std::vector<float>  _blip_rnn_dir_y;       // RNN-predicted blip direction (protons)
+  std::vector<float>  _blip_rnn_dir_z;       // RNN-predicted blip direction (protons)
   
   std::vector<int>    _blip_true_ncategory;   // Help categorize origin of blip
         //  -9 = no truth match (data/overlay)
@@ -290,13 +293,23 @@ void BlipAnalysis::addTheBlip( blipobj::Blip const &blip) {
     if( fRerunBlipReco ) {
       _blip_trkid         .push_back(fBlipAlg->map_blip_trkID[blip.ID]);
       _blip_trkidfrac     .push_back(fBlipAlg->map_blip_trkIDfrac[blip.ID]);
-      _blip_rnn_vdir_isValid .push_back(_blipdir_isValid);
-      _blip_rnn_vdir_x  .push_back(_blipdir.X());
-      _blip_rnn_vdir_y  .push_back(_blipdir.Y());
-      _blip_rnn_vdir_z  .push_back(_blipdir.Z());
+      _blip_rnn_dir_isValid .push_back(_blipdir_isValid);
+      _blip_rnn_dir_x  .push_back(_blipdir.X());
+      _blip_rnn_dir_y  .push_back(_blipdir.Y());
+      _blip_rnn_dir_z  .push_back(_blipdir.Z());
       _blip_true_primancPDG .push_back(fBlipAlg->map_blip_primaryPDG[blip.ID]);
       _blip_true_primancG4ID.push_back(fBlipAlg->map_blip_primaryG4ID[blip.ID]);
       _blip_true_ncategory.push_back(fBlipAlg->map_blip_ncategory[blip.ID]);
+      TVector3 tdir(-9,-9,-9);
+      int g4idx = blip.truth.LeadG4Index;
+      if( g4idx >= 0 ) {
+        auto& p = fBlipAlg->pinfo[g4idx];
+        tdir.SetXYZ(p.Px,p.Py,p.Pz);
+        tdir.SetMag(1);
+      }
+      _blip_true_dir_x.push_back(tdir.X()); 
+      _blip_true_dir_y.push_back(tdir.Y()); 
+      _blip_true_dir_z.push_back(tdir.Z()); 
     }
 
 }
@@ -352,13 +365,13 @@ void BlipAnalysis::analyzeEvent(art::Event const &evt, bool fData)
       auto& blp = fBlipAlg->blips[i];
       
       // Call the direction RNN
+      _blipdir_isValid = false;
+      _blipdir.SetXYZ(-9,-9,-9);
       if( fEnableRNN && RNNModelLoaded ) {
-        _blipdir.SetXYZ(-9,-9,-9);
-        _blipdir_isValid = false;
         std::vector<float> dir = fBlipRNN->predict(blp,fBlipAlg->hitinfo);
         if(dir.size()==3){
           _blipdir.SetXYZ(dir[0],dir[1],dir[2]);
-          _blipdir_isValid = true;
+          _blipdir_isValid = ( _blipdir.Mag() < 1.01 ) ? true : false;
         }
       }
       
@@ -473,13 +486,17 @@ void BlipAnalysis::setBranches(TTree *_tree)
   if( fRerunBlipReco ) {
   _tree->Branch("blip_trkid",     "std::vector< int >",     &_blip_trkid);
   _tree->Branch("blip_trkidfrac", "std::vector< float >",   &_blip_trkidfrac);
-  _tree->Branch("blip_rnn_vdir_isValid","std::vector< bool >",   &_blip_rnn_vdir_isValid);
-  _tree->Branch("blip_rnn_vdir_x","std::vector< float >",   &_blip_rnn_vdir_x);
-  _tree->Branch("blip_rnn_vdir_y","std::vector< float >",   &_blip_rnn_vdir_y);
-  _tree->Branch("blip_rnn_vdir_z","std::vector< float >",   &_blip_rnn_vdir_z);
+  _tree->Branch("blip_rnn_dir_isValid","std::vector< bool >",   &_blip_rnn_dir_isValid);
+  _tree->Branch("blip_rnn_dir_x","std::vector< float >",   &_blip_rnn_dir_x);
+  _tree->Branch("blip_rnn_dir_y","std::vector< float >",   &_blip_rnn_dir_y);
+  _tree->Branch("blip_rnn_dir_z","std::vector< float >",   &_blip_rnn_dir_z);
   _tree->Branch("blip_true_primancPDG","std::vector< int >",   &_blip_true_primancPDG);
   _tree->Branch("blip_true_primancG4ID","std::vector< int >",   &_blip_true_primancG4ID);
   _tree->Branch("blip_true_ncategory","std::vector< int >",   &_blip_true_ncategory);
+  _tree->Branch("blip_true_dir_x","std::vector< float >",   &_blip_true_dir_x);
+  _tree->Branch("blip_true_dir_y","std::vector< float >",   &_blip_true_dir_y);
+  _tree->Branch("blip_true_dir_z","std::vector< float >",   &_blip_true_dir_z);
+
   }
 }
 
@@ -530,12 +547,16 @@ void BlipAnalysis::resetVariables()
     _blip_pl2_centerwire.clear();
     _blip_trkid         .clear();
     _blip_trkidfrac     .clear();
-    _blip_rnn_vdir_x    .clear();
-    _blip_rnn_vdir_y    .clear();
-    _blip_rnn_vdir_z    .clear();
+    _blip_rnn_dir_isValid.clear();
+    _blip_rnn_dir_x    .clear();
+    _blip_rnn_dir_y    .clear();
+    _blip_rnn_dir_z    .clear();
     _blip_true_primancPDG  .clear();
     _blip_true_primancG4ID .clear();
     _blip_true_ncategory .clear();
+    _blip_true_dir_x  .clear();
+    _blip_true_dir_y  .clear();
+    _blip_true_dir_z  .clear();
 }
 
 
