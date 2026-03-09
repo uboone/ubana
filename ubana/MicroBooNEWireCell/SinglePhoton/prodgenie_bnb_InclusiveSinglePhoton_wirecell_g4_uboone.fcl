@@ -45,11 +45,11 @@ physics:
    largeant: @local::microboone_largeant
    drift:    {
                  module_type: SimDriftElectrons
-                 SimulationLabel: "largeant:TPCActive"
+                 SimulationLabel: "largeant:LArG4DetectorServicevolTPCActive"
              }
    ionization: {
                  module_type: "larsim/ElectronDrift/ShiftEdepSCE"
-                 EDepTag:     "largeant:TPCActive"
+                 EDepTag:     "largeant:LArG4DetectorServicevolTPCActive"
                  MakeAnaTree: false
                }
     mcreco:    @local::standard_mcreco
