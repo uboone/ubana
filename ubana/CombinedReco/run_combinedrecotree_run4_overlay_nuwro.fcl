@@ -1,0 +1,4 @@
+#include "run_combinedrecotree_run4_overlay.fcl"
+physics.filters.nuselection.AnalysisTools.default.ignoreMCFlux: true
+physics.filters.nuselection.AnalysisTools.default.ignoreGTruth: true
+physics.filters.singlephotonana.isTextGen: true
