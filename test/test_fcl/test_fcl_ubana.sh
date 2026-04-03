@@ -1,5 +1,11 @@
 #! /bin/bash
 
+# Skip this test if libtorch is not set up.
+
+if [ x$LIBTORCH_DIR = x ]; then
+  exit 0
+fi
+
 # Loop over all installed fcl files.
 
 find $MRB_BUILDDIR/ubana/job -name \*.fcl -print | while read fcl
