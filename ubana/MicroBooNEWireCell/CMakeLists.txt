@@ -17,6 +17,7 @@ cet_build_plugin(
   ROOT::Tree
 )
 
+if(Torch_FOUND)
 cet_build_plugin(
   WireCellAnaTree art::EDAnalyzer
   LIBRARIES
@@ -36,6 +37,7 @@ cet_build_plugin(
   ROOT::Hist
   dk2nu::Tree
 )
+endif()
 
 cet_build_plugin(
   WireCellEventWeightTree art::EDAnalyzer

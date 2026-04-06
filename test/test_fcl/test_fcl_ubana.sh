@@ -1,22 +1,26 @@
 #! /bin/bash
 
-# Skip this test if libtorch is not set up.
-
-if [ x$LIBTORCH_DIR = x ]; then
-  exit 0
-fi
-
 # Loop over all installed fcl files.
 
 find $MRB_BUILDDIR/ubana/job -name \*.fcl -print | while read fcl
 do
+  fclbase=`basename ${fcl}`
+
+  # Skip some tests if libtorch is not set up.
+
+  if [ x$LIBTORCH_DIR = x ]; then
+    if [[ $fclbase == mcc8*sel2_lite*.fcl ]]; then
+      continue
+    fi
+  fi
+
   echo "Testing fcl file $fcl"
 
   # Parse this fcl file.
 
-  fclout=`basename ${fcl}`.out
-  larout=`basename ${fcl}`.lar.out
-  larerr=`basename ${fcl}`.lar.err
+  fclout=${fclbase}.out
+  larout=${fclbase}.lar.out
+  larerr=${fclbase}.lar.err
   lar -c $fcl --debug-config $fclout > $larout 2> $larerr
 
   # Exit status 1 counts as success.
