@@ -86,14 +86,12 @@ public:
 
 private:
   
-  // --- new params 02/2026 ---
-  bool    fRerunBlipReco;     // Re-run blip reco and use new output
-  bool    fEnableRNN;         // Use blip-direction predictor (TorchLib)
 
   blip::BlipRecoAlg *fBlipAlg;
   blip::BlipRNNAlg  *fBlipRNN;
   TVector3  _blipdir;
   bool      _blipdir_isValid;
+  bool      _RNNModelLoaded = false;
 
   // --- fcl parameters ---
   art::InputTag fBlipProducer;// blip collection producer
@@ -102,13 +100,13 @@ private:
   bool    fSaveSCECorrEnergy; // option to save SCE- and lifetime-corrected energy
   bool    fSaveOnlyNuEvts;    // only save blips for neutrino PFP events
   bool    fLiteMode;          // save bare minimum of variables
-  
-  // -- params for trk ID determination (will eventually be moved to ubreco/BlipReco)
-  art::InputTag fTrkProducerInit;
-  art::InputTag fHitProducerInit;
+  // --- new params 02/2026 ---
+  bool    fRerunBlipReco;     // Re-run blip reco and use new output
+  bool    fEnableRNN;         // Use blip-direction predictor (TorchLib)
 
   // --- event identifiers --- 
   int _run, _sub, _evt;
+  float _elifetime;
   
   // --- 3D blip information ---
   int _nblips;                          // number of blips found in this event
@@ -170,7 +168,6 @@ private:
         //  7  = ncapture gamma
         //  8  = mu capture gamma 
 
-  bool RNNModelLoaded = false;
 
 };
 
@@ -185,10 +182,6 @@ BlipAnalysis::BlipAnalysis(const fhicl::ParameterSet &p)
   fSaveSCECorrLoc     = p.get<bool>         ("SaveSCECorrLocation", true);
   fSaveSCECorrEnergy  = p.get<bool>         ("SaveSCECorrEnergy",   true);
   fLiteMode           = p.get<bool>         ("LiteMode",            false);
-
-  fTrkProducerInit    = p.get<art::InputTag>("TrkProducerInit",   "pandoraInit");
-  fHitProducerInit    = p.get<art::InputTag>("HitProducerInit",   "gaushit::DataRecoStage1Test");
-
   fEnableRNN          = p.get<bool>         ("EnableRNN",         false);
   
   _blipdir_isValid = false;
@@ -196,7 +189,7 @@ BlipAnalysis::BlipAnalysis(const fhicl::ParameterSet &p)
     fBlipAlg = new blip::BlipRecoAlg( p.get<fhicl::ParameterSet>("BlipAlg") );
     if( fEnableRNN ){ 
       fBlipRNN = new blip::BlipRNNAlg( p.get<fhicl::ParameterSet>("BlipRNN") );
-      RNNModelLoaded = fBlipRNN->model_loaded;
+      _RNNModelLoaded = fBlipRNN->model_loaded;
     }
   }
 
@@ -217,7 +210,6 @@ float BlipAnalysis::truncate(float input, double base){
 //----------------------------------------------------------------------------
 void BlipAnalysis::addTheBlip( blipobj::Blip const &blip) {
     // get reconstructed position
-    //TVector3 loc = (fSaveSCECorrLoc) ? blip->PositionSCE : blip->Position;
     TVector3 loc = (fSaveSCECorrLoc) ? blip.PositionSCE : blip.Position;
 
     // get reconstructed charge and energy
@@ -354,32 +346,29 @@ void BlipAnalysis::analyzeEvent(art::Event const &evt, bool fData)
     }
 
   } else {
+    
     //----------------------------------
-    // Re-run the blip reconstruction, this
-    // enables us to use new features in the
-    // reco that weren't available at the time
-    // of production
+    // Re-run the blip reconstruction, this enables us to use 
+    // new features in the reco that weren't available at the 
+    // time of most recent productions in 2025.
     fBlipAlg->RunBlipReco(evt);
+    _elifetime = fBlipAlg->kLifetime;
     _nblips = fBlipAlg->blips.size();
     for(int i=0; i<_nblips; i++){
       auto& blp = fBlipAlg->blips[i];
-      
-      // Call the direction RNN
       _blipdir_isValid = false;
       _blipdir.SetXYZ(-9,-9,-9);
-      if( fEnableRNN && RNNModelLoaded ) {
+      if( fEnableRNN && _RNNModelLoaded ) {
         std::vector<float> dir = fBlipRNN->predict(blp,fBlipAlg->hitinfo);
         if(dir.size()==3){
           _blipdir.SetXYZ(dir[0],dir[1],dir[2]);
           _blipdir_isValid = ( _blipdir.Mag() < 1.01 ) ? true : false;
         }
       }
-      
       addTheBlip(blp);
     }
   }
 
-  
   std::cout
   <<"************************************************\n";
 
@@ -447,7 +436,8 @@ void BlipAnalysis::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t>
 //----------------------------------------------------------------------------
 void BlipAnalysis::setBranches(TTree *_tree)
 {
-  _tree->Branch("nblips_saved",           &_nblips,         "nblips_saved/I");
+  _tree->Branch("elifetime",        &_elifetime,      "elifetime/F");
+  _tree->Branch("nblips_saved",     &_nblips,         "nblips_saved/I");
   //_tree->Branch("blip_id",        "std::vector< int >",  &_blip_id);
   _tree->Branch("blip_x",           "std::vector< float >",   &_blip_x);
   _tree->Branch("blip_y",           "std::vector< float >",   &_blip_y);
@@ -511,7 +501,8 @@ void BlipAnalysis::resetTTree(TTree *_tree)
 //----------------------------------------------------------------------------
 void BlipAnalysis::resetVariables()
 {
-    _nblips          = 0;
+    _nblips           = 0;
+    _elifetime        = 0;
     _blip_id          .clear(); 
     _blip_tpc         .clear(); 
     _blip_nplanes     .clear(); 
