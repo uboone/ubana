@@ -92,10 +92,10 @@ microboone_eventweight_flux: {
     random_seed: 6
     parameter_list: ["kminus"]
     parameter_sigma: 1 # not used for multisigma
-    multisigmas: [-3, -2, -1, 0, 1, 2, 3]
+    multisigmas: [-1, 0, 1, 2, 3]
     mode: multisigma
     scale_factor: 1
-    number_of_multisims: 7
+    number_of_multisims: 5
     PrimaryHadronGeantCode: -321 # geant code for particle production on Be
     weight_calculator: "MiniBooNE" # Do not use "MicroBooNE" here. This leads to crashes.
                                    # S. Gardiner, 13 January 2020
