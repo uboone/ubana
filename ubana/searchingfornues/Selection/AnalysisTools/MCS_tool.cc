@@ -625,9 +625,9 @@ void MCS::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_p
       float new1Cr = tempPCAResults.eRatios(0);
       float new2Cr = tempPCAResults.eRatios(1);
       float new3Cr = tempPCAResults.eRatios(2);
-      if(isnan(new1Cr)) new1Cr = -9999;
-      if(isnan(new2Cr)) new2Cr = -9999;
-      if(isnan(new3Cr)) new3Cr = -9999;
+      if(std::isnan(new1Cr)) new1Cr = -9999;
+      if(std::isnan(new2Cr)) new2Cr = -9999;
+      if(std::isnan(new3Cr)) new3Cr = -9999;
       _PCAWin_1Cr_5cm.push_back(new1Cr);
       _PCAWin_2Cr_5cm.push_back(new2Cr);
       _PCAWin_3Cr_5cm.push_back(new3Cr);
@@ -663,11 +663,11 @@ void MCS::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_p
     PCAASResult PCAAS_5cm = DoPCAASCalc(shrStartcloud_5cm, _shrvtx(0), _shrvtx(1), _shrvtx(2));
     _shrPCA1CAS_5cm = PCAAS_5cm.AS1C; _shrPCA2CAS_5cm = PCAAS_5cm.AS2C; _shrPCA3CAS_5cm = PCAAS_5cm.AS3C;
 
-    if(isnan(_shrStartMCS_5cm) || isinf(_shrStartMCS_5cm)) _shrStartMCS_5cm = -9999;
-    if(isnan(_shrMCSAS_5cm) || isinf(_shrMCSAS_5cm)) _shrMCSAS_5cm = -9999;
-    if(isnan(_shrPCA1CAS_5cm) || isinf(_shrPCA1CAS_5cm)) _shrPCA1CAS_5cm = -9999;
-    if(isnan(_shrPCA2CAS_5cm) || isinf(_shrPCA2CAS_5cm)) _shrPCA2CAS_5cm = -9999;
-    if(isnan(_shrPCA3CAS_5cm) || isinf(_shrPCA3CAS_5cm)) _shrPCA3CAS_5cm = -9999;
+    if(std::isnan(_shrStartMCS_5cm) || std::isinf(_shrStartMCS_5cm)) _shrStartMCS_5cm = -9999;
+    if(std::isnan(_shrMCSAS_5cm) || std::isinf(_shrMCSAS_5cm)) _shrMCSAS_5cm = -9999;
+    if(std::isnan(_shrPCA1CAS_5cm) || std::isinf(_shrPCA1CAS_5cm)) _shrPCA1CAS_5cm = -9999;
+    if(std::isnan(_shrPCA2CAS_5cm) || std::isinf(_shrPCA2CAS_5cm)) _shrPCA2CAS_5cm = -9999;
+    if(std::isnan(_shrPCA3CAS_5cm) || std::isinf(_shrPCA3CAS_5cm)) _shrPCA3CAS_5cm = -9999;
 
     //2.5 cm study///
     double winSize_2_5 = 2.5;// 5 cm
@@ -705,9 +705,9 @@ void MCS::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_p
       float new1Cr_2_5 = tempPCAResults_2_5.eRatios(0);
       float new2Cr_2_5 = tempPCAResults_2_5.eRatios(1);
       float new3Cr_2_5 = tempPCAResults_2_5.eRatios(2);
-      if(isnan(new1Cr_2_5)) new1Cr_2_5 = -9999;
-      if(isnan(new2Cr_2_5)) new2Cr_2_5 = -9999;
-      if(isnan(new3Cr_2_5)) new3Cr_2_5 = -9999;
+      if(std::isnan(new1Cr_2_5)) new1Cr_2_5 = -9999;
+      if(std::isnan(new2Cr_2_5)) new2Cr_2_5 = -9999;
+      if(std::isnan(new3Cr_2_5)) new3Cr_2_5 = -9999;
       _PCAWin_1Cr_2_5cm.push_back(new1Cr_2_5);
       _PCAWin_2Cr_2_5cm.push_back(new2Cr_2_5);
       _PCAWin_3Cr_2_5cm.push_back(new3Cr_2_5);
@@ -741,11 +741,11 @@ void MCS::analyzeSlice(art::Event const &e, std::vector<ProxyPfpElem_t> &slice_p
     PCAASResult PCAAS_2_5cm = DoPCAASCalc(shrStartcloud_2_5cm, _shrvtx(0), _shrvtx(1), _shrvtx(2));
     _shrPCA1CAS_2_5cm = PCAAS_2_5cm.AS1C; _shrPCA2CAS_2_5cm = PCAAS_2_5cm.AS2C; _shrPCA3CAS_2_5cm = PCAAS_2_5cm.AS3C;
 
-    if(isnan(_shrStartMCS_2_5cm) || isinf(_shrStartMCS_2_5cm)) _shrStartMCS_2_5cm = -9999;
-    if(isnan(_shrMCSAS_2_5cm) || isinf(_shrMCSAS_2_5cm)) _shrMCSAS_2_5cm = -9999;
-    if(isnan(_shrPCA1CAS_2_5cm) || isinf(_shrPCA1CAS_2_5cm)) _shrPCA1CAS_2_5cm = -9999;
-    if(isnan(_shrPCA2CAS_2_5cm) || isinf(_shrPCA2CAS_2_5cm)) _shrPCA2CAS_2_5cm = -9999;
-    if(isnan(_shrPCA3CAS_2_5cm) || isinf(_shrPCA3CAS_2_5cm)) _shrPCA3CAS_2_5cm = -9999;
+    if(std::isnan(_shrStartMCS_2_5cm) || std::isinf(_shrStartMCS_2_5cm)) _shrStartMCS_2_5cm = -9999;
+    if(std::isnan(_shrMCSAS_2_5cm) || std::isinf(_shrMCSAS_2_5cm)) _shrMCSAS_2_5cm = -9999;
+    if(std::isnan(_shrPCA1CAS_2_5cm) || std::isinf(_shrPCA1CAS_2_5cm)) _shrPCA1CAS_2_5cm = -9999;
+    if(std::isnan(_shrPCA2CAS_2_5cm) || std::isinf(_shrPCA2CAS_2_5cm)) _shrPCA2CAS_2_5cm = -9999;
+    if(std::isnan(_shrPCA3CAS_2_5cm) || std::isinf(_shrPCA3CAS_2_5cm)) _shrPCA3CAS_2_5cm = -9999;
 
   }//End of looping through pfparticles in neutrino slice//
   
@@ -1036,7 +1036,7 @@ PCAResults MCS::DoPCA(const SpcPointCloud &points) {
       drms += pow(delta, 2.);
     }
     drms = sqrt(drms/((double) cloud.size()));
-    if(isnan(drms) || isinf(drms)) drms = -1;
+    if(std::isnan(drms) || isinf(drms)) drms = -1;
     return drms;
   }
 
@@ -1086,7 +1086,7 @@ PCAResults MCS::DoPCA(const SpcPointCloud &points) {
     float X_0 = 14.;
     //double X = pythagoras(StartP(0),EndP(0),StartP(1),EndP(1),StartP(2),EndP(2))
     float mcs = (13.6/(4.*sqrt(3.)))*(X*sqrt(X/X_0))/drms;
-    if(isnan(mcs) || isinf(mcs)) mcs = -1;
+    if(std::isnan(mcs) || isinf(mcs)) mcs = -1;
     return mcs;
   }
 
@@ -1098,7 +1098,7 @@ PCAResults MCS::DoPCA(const SpcPointCloud &points) {
       if (delta <= rad) cylfrac += 1;
     }
     cylfrac = cylfrac/((float) cloud.size());
-    if(isnan(cylfrac) || isinf(cylfrac)) cylfrac = -1;
+    if(std::isnan(cylfrac) || isinf(cylfrac)) cylfrac = -1;
     return cylfrac;
   }
 
@@ -1121,7 +1121,7 @@ PCAResults MCS::DoPCA(const SpcPointCloud &points) {
     TVector3 FirstP2h(cloud2h[0].x, cloud2h[0].y, cloud2h[0].z);
     float mcs1h = DoMCSCalc(cloud1h, vtx, PCACloud1h.centroid); float mcs2h = DoMCSCalc(cloud2h, FirstP2h, PCACloud2h.centroid);
     float mcsAS = (mcs1h - mcs2h)/(mcs1h + mcs2h);
-    if(isnan(mcsAS) || isinf(mcsAS)) mcsAS = -1;
+    if(std::isnan(mcsAS) || std::isinf(mcsAS)) mcsAS = -1;
     return mcsAS;
   }
 
@@ -1145,9 +1145,9 @@ PCAASResult MCS::DoPCAASCalc(SpcPointCloud cloud, float nuvX, float nuvY, float 
 
     float pca3C_1h = pcaCloud1h.eRatios(2); float pca3C_2h = pcaCloud2h.eRatios(2); 
     float pca3C_AS = (pca3C_1h - pca3C_2h)/(pca3C_1h + pca3C_2h);
-    if(isnan(pca1C_AS) || isinf(pca1C_AS)) pca1C_AS = -9999;
-    if(isnan(pca2C_AS) || isinf(pca2C_AS)) pca2C_AS = -9999;
-    if(isnan(pca3C_AS) || isinf(pca3C_AS)) pca3C_AS = -9999;
+    if(std::isnan(pca1C_AS) || std::isinf(pca1C_AS)) pca1C_AS = -9999;
+    if(std::isnan(pca2C_AS) || std::isinf(pca2C_AS)) pca2C_AS = -9999;
+    if(std::isnan(pca3C_AS) || std::isinf(pca3C_AS)) pca3C_AS = -9999;
     PCAASResult results;
     results.AS1C = pca1C_AS; results.AS2C = pca2C_AS; results.AS3C = pca3C_AS;
     return results;
@@ -1177,7 +1177,7 @@ float MCS::DoDeltaMed(SpcPointCloud cloud, TVector3 LStart, TVector3 LEnd){
     deltas_v.push_back(delta);
   }
   float median = CalcMed(deltas_v);
-  if (isnan(median)||isinf(median)) median = -1.;
+  if (std::isnan(median)||std::isinf(median)) median = -1.;
   return median;
 }  
 
