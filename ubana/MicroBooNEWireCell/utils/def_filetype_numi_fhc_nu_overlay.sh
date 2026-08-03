@@ -115,13 +115,10 @@ physics.analyzers.wcpselection.IsNuMI:               ${flag_numi}
 physics.analyzers.wcpweights.IsNuMI:                 ${flag_numi}
 
 physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
-
-physics.analyzers.wcpselection.no_mcflux: true
-physics.analyzers.wcpselection.get_spill_time: true
+physics.analyzers.wcpselection.get_redk2nu_time:     ${flag_numi}
 
 physics.analyzers.wcpselection.SaveLeeWeights:       ${flag_SaveLeeWeights}
 physics.analyzers.wcpweights.SaveLeeWeights:         ${flag_SaveLeeWeights}
-
 
 physics.analyzers.wcpselection.FileType: "prodgenie_${beam}${horncur}_${sample_type}_${FT_STREAM}"
 physics.analyzers.wcpweights.FileType: "prodgenie_${beam}${horncur}_${sample_type}_${FT_STREAM}"
