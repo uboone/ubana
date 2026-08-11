@@ -133,8 +133,8 @@ private:
   std::vector<int>    _blip_true_g4id;  // truth-matched G4 track ID
   std::vector<int>    _blip_true_pdg;   // truth-matched PDG
   std::vector<float>  _blip_true_energy;// true energy deposited
-  std::vector<int>    _blip_true_primancPDG; // primary blip ancestor PDG
-  std::vector<int>    _blip_true_primancG4ID; // primary ancestor G4 TrackID
+  std::vector<int>    _blip_primary_ancestor_pdg; // primary blip ancestor PDG
+  std::vector<int>    _blip_primary_ancestor_g4id; // primary ancestor G4 TrackID
   std::vector<float>  _blip_true_dir_x;   // Initial momentum direction of truth-matched particle
   std::vector<float>  _blip_true_dir_y;   // Initial momentum direction of truth-matched particle
   std::vector<float>  _blip_true_dir_z;   // Initial momentum direction of truth-matched particle
@@ -156,7 +156,7 @@ private:
   std::vector<float>  _blip_rnn_dir_y;       // RNN-predicted blip direction (protons)
   std::vector<float>  _blip_rnn_dir_z;       // RNN-predicted blip direction (protons)
   
-  std::vector<int>    _blip_true_ncategory;   // Help categorize origin of blip
+  std::vector<int>    _blip_true_category;   // Help categorize origin of blip
         //  -9 = no truth match (data/overlay)
         //  0  = truth-matched, but not falling in category
         //  1  = primary (n,1p)
@@ -167,7 +167,6 @@ private:
         //  6  = secondary (n,gamma)
         //  7  = ncapture gamma
         //  8  = mu capture gamma 
-
 
 };
 
@@ -289,9 +288,9 @@ void BlipAnalysis::addTheBlip( blipobj::Blip const &blip) {
       _blip_rnn_dir_x  .push_back(_blipdir.X());
       _blip_rnn_dir_y  .push_back(_blipdir.Y());
       _blip_rnn_dir_z  .push_back(_blipdir.Z());
-      _blip_true_primancPDG .push_back(fBlipAlg->map_blip_primaryPDG[blip.ID]);
-      _blip_true_primancG4ID.push_back(fBlipAlg->map_blip_primaryG4ID[blip.ID]);
-      _blip_true_ncategory.push_back(fBlipAlg->map_blip_ncategory[blip.ID]);
+      _blip_primary_ancestor_pdg .push_back(fBlipAlg->map_blip_primaryPDG[blip.ID]);
+      _blip_primary_ancestor_g4id.push_back(fBlipAlg->map_blip_primaryG4ID[blip.ID]);
+      _blip_true_category.push_back(fBlipAlg->map_blip_ncategory[blip.ID]);
       TVector3 tdir(-9,-9,-9);
       int g4idx = blip.truth.LeadG4Index;
       if( g4idx >= 0 ) {
@@ -480,12 +479,12 @@ void BlipAnalysis::setBranches(TTree *_tree)
   _tree->Branch("blip_rnn_dir_x","std::vector< float >",   &_blip_rnn_dir_x);
   _tree->Branch("blip_rnn_dir_y","std::vector< float >",   &_blip_rnn_dir_y);
   _tree->Branch("blip_rnn_dir_z","std::vector< float >",   &_blip_rnn_dir_z);
-  _tree->Branch("blip_true_primancPDG","std::vector< int >",   &_blip_true_primancPDG);
-  _tree->Branch("blip_true_primancG4ID","std::vector< int >",   &_blip_true_primancG4ID);
-  _tree->Branch("blip_true_ncategory","std::vector< int >",   &_blip_true_ncategory);
-  _tree->Branch("blip_true_dir_x","std::vector< float >",   &_blip_true_dir_x);
-  _tree->Branch("blip_true_dir_y","std::vector< float >",   &_blip_true_dir_y);
-  _tree->Branch("blip_true_dir_z","std::vector< float >",   &_blip_true_dir_z);
+  _tree->Branch("blip_primary_ancestor_pdg","std::vector< int >",   &_blip_primary_ancestor_pdg);
+  _tree->Branch("blip_primary_ancestor_g4id","std::vector< int >",   &_blip_primary_ancestor_g4id);
+  _tree->Branch("blip_true_category","std::vector< int >",   &_blip_true_category);
+  //_tree->Branch("blip_true_dir_x","std::vector< float >",   &_blip_true_dir_x);
+  //_tree->Branch("blip_true_dir_y","std::vector< float >",   &_blip_true_dir_y);
+  //_tree->Branch("blip_true_dir_z","std::vector< float >",   &_blip_true_dir_z);
 
   }
 }
@@ -542,9 +541,9 @@ void BlipAnalysis::resetVariables()
     _blip_rnn_dir_x    .clear();
     _blip_rnn_dir_y    .clear();
     _blip_rnn_dir_z    .clear();
-    _blip_true_primancPDG  .clear();
-    _blip_true_primancG4ID .clear();
-    _blip_true_ncategory .clear();
+    _blip_primary_ancestor_pdg.clear();
+    _blip_primary_ancestor_g4id.clear();
+    _blip_true_category.clear();
     _blip_true_dir_x  .clear();
     _blip_true_dir_y  .clear();
     _blip_true_dir_z  .clear();

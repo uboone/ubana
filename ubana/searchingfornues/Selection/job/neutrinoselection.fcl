@@ -3,6 +3,7 @@
 #include "proximityclustering.fcl"
 #include "eventweight_microboone_genie_knobs.fcl"
 
+
 #include "microboone_blipreco.fcl"
 
 FidVol: {
@@ -90,7 +91,15 @@ BlipAnalysisTool: {
     NuBlipRadius:         -1    # Only save blips within this dist of nu vtx [cm]
                                 # ^^ set <= 0 to save ALL blips in neutrino events
     LiteMode:             false # save bare minimum (x,y,z,size,energy,trueG4ID)
+    RerunBlipReco:        true  # re-run blip reconstruction instead of reading saved reco2-blips
+    BlipAlg:              @local::microboone_blipalg
+    EnableRNN:            true  # enable RNN direction predictor for proton blips 
+                                # (^^ REQUIRES re-run of blipreco)
 }
+BlipAnalysisTool.BlipAlg.CalAreaConstants: [4.31e-3, 4.02e-3, 4.10e-3]
+BlipAnalysisTool.BlipAlg.DebugMode: false
+BlipAnalysisTool.BlipRNN.ModelFilename: "model_blipRNN.pt"
+
 
 BlipAnalysisToolMCC9: {
   tool_type: "BlipAnalysisMCC9"
