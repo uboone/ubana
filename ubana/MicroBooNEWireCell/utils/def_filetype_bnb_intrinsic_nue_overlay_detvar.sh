@@ -108,33 +108,33 @@ fi
 sample_type='intrinsic_nue'
 flag_SaveLeeWeights="true"
 flag_numi="false"
-flag_redk2nu="false"
+flag_reboone="false"
 beam="bnb"
 horncur=""
 
 
 
 detvar_type="cv"
-if ls *reg4_SCE*.fcl 1> /dev/null 2>&1; then
+if ls *reg4_SCE*.fcl* 1> /dev/null 2>&1 || grep -ql "reg4_SCE" Stage0.fcl 2> /dev/null; then
 	detvar_type="SCE"
-elif ls *reg4_recombination*.fcl 1> /dev/null 2>&1; then
+elif ls *reg4_recombination*.fcl* 1> /dev/null 2>&1 || grep -ql "reg4_recombination" Stage0.fcl 2> /dev/null; then
         detvar_type="recombination"
-elif ls *wiremod_ScaleX*.fcl 1> /dev/null 2>&1; then
+elif ls *wiremod_ScaleX*.fcl* 1> /dev/null 2>&1 || grep -ql "wiremod_ScaleX" Stage0.fcl 2> /dev/null; then
         detvar_type="WMX"
-elif ls *wiremod_ScaleYZ*.fcl 1> /dev/null 2>&1; then
+elif ls *wiremod_ScaleYZ*.fcl* 1> /dev/null 2>&1 || grep -ql "wiremod_ScaleYZ" Stage0.fcl 2> /dev/null; then
         detvar_type="WMYZ"
-elif ls *wiremod_ScaleAngleYZ*.fcl 1> /dev/null 2>&1; then
+elif ls *wiremod_ScaleAngleYZ*.fcl* 1> /dev/null 2>&1 || grep -ql "wiremod_ScaleAngleYZ" Stage0.fcl 2> /dev/null; then
         detvar_type="WMThetaYZ"
-elif ls *wiremod_ScaleAngleXZ*.fcl 1> /dev/null 2>&1; then
+elif ls *wiremod_ScaleAngleXZ*.fcl* 1> /dev/null 2>&1 || grep -ql "wiremod_ScaleAngleXZ" Stage0.fcl 2> /dev/null; then
         detvar_type="WMThetaXZ"
-elif ls *reg4_LY_reyliegh*.fcl 1> /dev/null 2>&1; then
+elif ls *reg4_LY_reyliegh*.fcl* 1> /dev/null 2>&1 || grep -ql "reg4_LY_reyliegh" Stage0.fcl 2> /dev/null; then
         detvar_type="LY_reyliegh"
-elif ls *reg4_LY_suppression75*.fcl 1> /dev/null 2>&1; then
+elif ls *reg4_LY_suppression75*.fcl* 1> /dev/null 2>&1 || grep -ql "reg4_LY_suppression75" Stage0.fcl 2> /dev/null; then
         detvar_type="LY_down"
-elif ls *reg4_LY_attenuation8m*.fcl 1> /dev/null 2>&1; then
+elif ls *reg4_LY_attenuation8m*.fcl* 1> /dev/null 2>&1 || grep -ql "reg4_LY_attenuation8m" Stage0.fcl 2> /dev/null; then
         detvar_type="LY_attenuation"
 else
-	flag_redk2nu="true"
+	flag_reboone="true"
 	echo "WARNING: Unable to establish DetVar type."
         echo "Setting this to tbe the CV sample."
         echo "Please check fhicls to ensure this is correct."

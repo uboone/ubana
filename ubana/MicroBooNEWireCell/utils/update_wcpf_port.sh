@@ -32,7 +32,7 @@ flag_numi="false"
 if ls Physics*numi*.root 1> /dev/null 2>&1 || ls Beam*numi*.root 1> /dev/null 2>&1 ; then
         flag_numi="true"
         echo Running NuMI fhcl
-elif ls *numi*.fcl 1> /dev/null 2>&1; then
+elif ls *numi*.fcl* 1> /dev/null 2>&1 || grep -ql "numi" Stage0.fcl 2> /dev/null; then
         flag_numi="true"
         echo Running NuMI fhcl
 else
