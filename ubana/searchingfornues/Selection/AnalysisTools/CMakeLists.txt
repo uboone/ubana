@@ -352,6 +352,7 @@ cet_build_plugin(
   nusimdata::SimulationBase
   ROOT::EG
   ubreco::BlipReco_Alg
+  ubreco::BlipReco_RNN
 )
 
 cet_build_plugin(
