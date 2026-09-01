@@ -122,8 +122,6 @@ physics.analyzers.wcpweights.IsNuMI:                 ${flag_numi}
 
 physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
 
-physics.analyzers.wcpselection.get_redk2nu_time:     ${flag_numi}
-
 physics.analyzers.wcpselection.no_mcflux:     true
 physics.analyzers.wcpselection.get_spill_time:     true
 physics.analyzers.wcpselection.TimeBetweenBuckets: 18.936

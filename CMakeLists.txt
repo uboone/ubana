@@ -34,7 +34,7 @@ find_package( ubcv REQUIRED EXPORT )
 find_package( larana REQUIRED EXPORT )
 find_package( larpandora REQUIRED EXPORT )
 find_package( swtrigger REQUIRED EXPORT )
-find_package(Eigen3 REQUIRED)
+find_package( Eigen3 REQUIRED )
 
 # macros for dictionary and simple_plugin
 include(ArtDictionary)

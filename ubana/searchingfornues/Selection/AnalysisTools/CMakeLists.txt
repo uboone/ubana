@@ -340,6 +340,7 @@ cet_build_plugin(
   ROOT::EG
 )
 
+if(Torch_FOUND)
 cet_build_plugin(
   BlipAnalysis uboone_tool::AnalysisToolBase
   LIBRARIES
@@ -352,7 +353,9 @@ cet_build_plugin(
   nusimdata::SimulationBase
   ROOT::EG
   ubreco::BlipReco_Alg
+  ubreco::BlipReco_RNN
 )
+endif()
 
 cet_build_plugin(
   VertexAnalysis uboone_tool::AnalysisToolBase

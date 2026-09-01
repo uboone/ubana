@@ -27,7 +27,7 @@ elif ls celltreeOVERLAY*.root 1> /dev/null 2>&1; then
       	isOVERLAY=1
 	data_type='OVERLAY'
         image_fail_check=2 #needed to recover the truth info for these events 
-        if ls *numi*.fcl 1> /dev/null 2>&1; then
+        if ls *numi*.fcl* 1> /dev/null 2>&1 || grep -ql "numi" Stage0.fcl 2> /dev/null; then
                 isNuMI=1
         fi
 else
