@@ -361,7 +361,7 @@ template<typename ContainerType>
 struct ArrayHandler {
   inline static void Write(JSONWriter *writer, const ContainerType &array) {
     typedef typename ContainerType::value_type ElemType;
-    writer->BeginArray(array.size() > 10 || !dmlc::is_pod<ElemType>::value);
+    writer->BeginArray(array.size() > 10 || !dmlc::is_trivial<ElemType>::value);
     for (typename ContainerType::const_iterator it = array.begin();
          it != array.end(); ++it) {
       writer->WriteArrayItem(*it);

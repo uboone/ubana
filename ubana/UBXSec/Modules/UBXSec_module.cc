@@ -66,7 +66,6 @@
 #include "lardataalg/DetectorInfo/DetectorClocks.h"
 #include "larsim/EventWeight/Base/MCEventWeight.h"
 
-#include "ubobj/UBXSec/UBXSecEvent.h"
 #include "ubobj/UBXSec/SelectionResult.h"
 
 #include "ubana/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
@@ -115,6 +114,11 @@
 #include <TParticlePDG.h>
 
 #include <fstream>
+
+// Putting this include last because it has a "using namespace std" statement.
+
+#include "ubobj/UBXSec/UBXSecEvent.h"
+
 
 
 namespace ubxsec {

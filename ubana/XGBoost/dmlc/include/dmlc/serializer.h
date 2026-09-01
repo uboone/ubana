@@ -247,7 +247,7 @@ struct Handler {
    * \param data the data obeject to be serialized
    */
   inline static void Write(Stream *strm, const T &data) {
-    IfThenElse<dmlc::is_pod<T>::value,
+    IfThenElse<dmlc::is_trivial<T>::value,
                PODHandler<T>,
                IfThenElse<dmlc::has_saveload<T>::value,
                           SaveLoadClassHandler<T>,
@@ -262,7 +262,7 @@ struct Handler {
    * \return whether the read is successful
    */
   inline static bool Read(Stream *strm, T *data) {
-    return IfThenElse<dmlc::is_pod<T>::value,
+    return IfThenElse<dmlc::is_trivial<T>::value,
                       PODHandler<T>,
                       IfThenElse<dmlc::has_saveload<T>::value,
                                  SaveLoadClassHandler<T>,
@@ -276,13 +276,13 @@ struct Handler {
 template<typename T>
 struct Handler<std::vector<T> > {
   inline static void Write(Stream *strm, const std::vector<T> &data) {
-    IfThenElse<dmlc::is_pod<T>::value,
+    IfThenElse<dmlc::is_trivial<T>::value,
                PODVectorHandler<T>,
                ComposeVectorHandler<T>, std::vector<T> >
     ::Write(strm, data);
   }
   inline static bool Read(Stream *strm, std::vector<T> *data) {
-    return IfThenElse<dmlc::is_pod<T>::value,
+    return IfThenElse<dmlc::is_trivial<T>::value,
                       PODVectorHandler<T>,
                       ComposeVectorHandler<T>,
                       std::vector<T> >
@@ -293,14 +293,14 @@ struct Handler<std::vector<T> > {
 template<typename T>
 struct Handler<std::basic_string<T> > {
   inline static void Write(Stream *strm, const std::basic_string<T> &data) {
-    IfThenElse<dmlc::is_pod<T>::value,
+    IfThenElse<dmlc::is_trivial<T>::value,
                PODStringHandler<T>,
                UndefinedSerializerFor<T>,
                std::basic_string<T> >
     ::Write(strm, data);
   }
   inline static bool Read(Stream *strm, std::basic_string<T> *data) {
-    return IfThenElse<dmlc::is_pod<T>::value,
+    return IfThenElse<dmlc::is_trivial<T>::value,
                       PODStringHandler<T>,
                       UndefinedSerializerFor<T>,
                       std::basic_string<T> >
@@ -311,14 +311,14 @@ struct Handler<std::basic_string<T> > {
 template<typename TA, typename TB>
 struct Handler<std::pair<TA, TB> > {
   inline static void Write(Stream *strm, const std::pair<TA, TB> &data) {
-    IfThenElse<dmlc::is_pod<TA>::value && dmlc::is_pod<TB>::value,
+    IfThenElse<dmlc::is_trivial<TA>::value && dmlc::is_trivial<TB>::value,
                PODHandler<std::pair<TA, TB> >,
                PairHandler<TA, TB>,
                std::pair<TA, TB> >
     ::Write(strm, data);
   }
   inline static bool Read(Stream *strm, std::pair<TA, TB> *data) {
-    return IfThenElse<dmlc::is_pod<TA>::value && dmlc::is_pod<TB>::value,
+    return IfThenElse<dmlc::is_trivial<TA>::value && dmlc::is_trivial<TB>::value,
                       PODHandler<std::pair<TA, TB> >,
                       PairHandler<TA, TB>,
                       std::pair<TA, TB> >

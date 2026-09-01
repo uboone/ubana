@@ -87,7 +87,7 @@
 #>  define_pythonpath
 ####################################
 parent		ubana
-defaultqual	e20
+defaultqual	e26
 ####################################
 
 ####################################
@@ -248,8 +248,8 @@ fwdir	product_dir	scripts
 #
 ####################################
 product		version		qual	flags		<table_format=2>
-larana		v10_02_08	-
-larpandora	v10_05_00	-
+larana		v10_02_09	-
+larpandora	v10_05_01	-
 ubraw		v10_23_00	-
 ubreco		v10_23_00	-
 ubcv            v10_23_00	-
@@ -311,12 +311,10 @@ end_product_list
 qualifier	ubreco		ubraw		larana		larpandora        ubcv
 c14:debug       c14:debug       c14:debug       c14:debug       c14:debug         c14:debug
 c14:prof        c14:prof        c14:prof        c14:prof        c14:prof          c14:prof
-c7:debug	c7:debug	c7:debug	c7:debug	c7:debug          c7:debug
-c7:prof		c7:prof		c7:prof		c7:prof		c7:prof           c7:prof
 e26:debug       e26:debug       e26:debug       e26:debug       e26:debug         e26:debug
 e26:prof        e26:prof        e26:prof        e26:prof        e26:prof          e26:prof
-e20:debug	e20:debug	e20:debug	e20:debug	e20:debug         e20:debug
-e20:prof	e20:prof	e20:prof	e20:prof	e20:prof          e20:prof
+e28:debug       e28:debug       e28:debug       e28:debug       e28:debug         e28:debug
+e28:prof        e28:prof        e28:prof        e28:prof        e28:prof          e28:prof
 end_qualifier_list
 ####################################
 

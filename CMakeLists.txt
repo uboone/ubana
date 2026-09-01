@@ -18,9 +18,10 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
   WERROR
   NO_UNDEFINED
   ALLOW_DEPRECATIONS
-  EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs -Wno-expansion-to-defined 
+  EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs -Wno-expansion-to-defined -Wno-maybe-uninitialized
   -Wno-error=array-bounds
   #-Wno-error=unused-variable 
+  -Wno-aggressive-loop-optimizations
 )
 
 

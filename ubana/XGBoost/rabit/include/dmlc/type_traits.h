@@ -18,10 +18,10 @@ namespace dmlc {
  * \tparam T the type to query
  */
 template<typename T>
-struct is_pod {
+struct is_trivial {
 #if DMLC_USE_CXX11
   /*! \brief the value of the traits */
-  static const bool value = std::is_pod<T>::value;
+  static const bool value = std::is_trivial<T>::value;
 #else
   /*! \brief the value of the traits */
   static const bool value = false;
@@ -122,17 +122,17 @@ struct IfThenElseType;
 //! \cond Doxygen_Suppress
 // declare special traits when C++11 is not available
 #if DMLC_USE_CXX11 == 0
-DMLC_DECLARE_TRAITS(is_pod, char, true);
-DMLC_DECLARE_TRAITS(is_pod, int8_t, true);
-DMLC_DECLARE_TRAITS(is_pod, int16_t, true);
-DMLC_DECLARE_TRAITS(is_pod, int32_t, true);
-DMLC_DECLARE_TRAITS(is_pod, int64_t, true);
-DMLC_DECLARE_TRAITS(is_pod, uint8_t, true);
-DMLC_DECLARE_TRAITS(is_pod, uint16_t, true);
-DMLC_DECLARE_TRAITS(is_pod, uint32_t, true);
-DMLC_DECLARE_TRAITS(is_pod, uint64_t, true);
-DMLC_DECLARE_TRAITS(is_pod, float, true);
-DMLC_DECLARE_TRAITS(is_pod, double, true);
+DMLC_DECLARE_TRAITS(is_trivial, char, true);
+DMLC_DECLARE_TRAITS(is_trivial, int8_t, true);
+DMLC_DECLARE_TRAITS(is_trivial, int16_t, true);
+DMLC_DECLARE_TRAITS(is_trivial, int32_t, true);
+DMLC_DECLARE_TRAITS(is_trivial, int64_t, true);
+DMLC_DECLARE_TRAITS(is_trivial, uint8_t, true);
+DMLC_DECLARE_TRAITS(is_trivial, uint16_t, true);
+DMLC_DECLARE_TRAITS(is_trivial, uint32_t, true);
+DMLC_DECLARE_TRAITS(is_trivial, uint64_t, true);
+DMLC_DECLARE_TRAITS(is_trivial, float, true);
+DMLC_DECLARE_TRAITS(is_trivial, double, true);
 
 DMLC_DECLARE_TRAITS(is_integral, char, true);
 DMLC_DECLARE_TRAITS(is_integral, int8_t, true);

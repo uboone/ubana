@@ -682,7 +682,7 @@ class FieldEntry<int>
     : public FieldEntryNumeric<FieldEntry<int>, int> {
  public:
   // construct
-  FieldEntry<int>() : is_enum_(false) {}
+  FieldEntry() : is_enum_(false) {}
   // parent
   typedef FieldEntryNumeric<FieldEntry<int>, int> Parent;
   // override set

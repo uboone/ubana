@@ -367,7 +367,7 @@ inline bool RowSet::Load(dmlc::Stream* fi) {
 }  // namespace xgboost
 
 namespace dmlc {
-DMLC_DECLARE_TRAITS(is_pod, xgboost::SparseBatch::Entry, true);
+DMLC_DECLARE_TRAITS(is_trivial, xgboost::SparseBatch::Entry, true);
 DMLC_DECLARE_TRAITS(has_saveload, xgboost::RowSet, true);
 }
 #endif  // XGBOOST_DATA_H_
