@@ -129,7 +129,7 @@ void SaveSliceHits::produce(art::Event& e)
     _pfpmap[pfpself] = p;
   }
 
-  size_t slicekey; // key for neutrino slice
+  size_t slicekey = 0; // key for neutrino slice
 
   // loop through PFParticles
   for (size_t p=0; p < pfp_h->size(); p++) {

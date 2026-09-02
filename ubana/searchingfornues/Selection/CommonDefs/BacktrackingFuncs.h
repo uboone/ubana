@@ -139,7 +139,7 @@ public:
   float px, py, pz, e;
   std::vector<unsigned int> tids;
   int nhits = 0;
-  float start_x, start_y, start_z, start_t;
+  float start_x=0., start_y=0., start_z=0., start_t=0.;
 };
 
 std::vector<BtPart> initBacktrackingParticleVec(const std::vector<sim::MCShower> &inputMCShower,
