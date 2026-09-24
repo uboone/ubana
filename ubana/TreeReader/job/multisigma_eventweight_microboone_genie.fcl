@@ -123,7 +123,7 @@ microboone_eventweight_genie: {
   ThetaDelta2NRad: {
     type: UBGenie
     random_seed: 54
-    parameter_list: [ "ThetaDelta2Rad" ]
+    parameter_list: [ "ThetaDelta2NRad" ]
     parameter_sigma: [ 1 ]
     parameter_min: [ 0.0 ]
     parameter_max: [ 1.0 ]
