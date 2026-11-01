@@ -1,11 +1,11 @@
 #! /bin/bash
 #------------------------------------------------------------------
 #
-# reco2 <initsource> for ExtGen GiBUU overlay samples (BNB): wraps the
+# reco2 <initsource> for ExtGen NuWro overlay samples (BNB): wraps the
 # combined-reco-tree fcl and sets the Wire-Cell analysis parameters,
 # as def_filetype_kdar_overlay.sh did for the HepMC GiBUU samples:
-#   FileType "prodgibuu_GB25_<beam>_nu_overlay_<run period>"
-#   (a label in the trees; GB25 = the ExtGen GiBUU tune GB25_05a_00_000).
+#   FileType "prodnuwro_NW25_<beam>_nu_overlay_<run period>"
+#   (a label in the trees; NW25 = the ExtGen NuWro tune NW25_11a_00_000).
 # For NuMI samples set beam=numi and flag_numi=true below.
 #
 # The run period comes from the run number of the stage's input file.
@@ -53,14 +53,12 @@ cat <<EOF2 > $FCL
 #include "mix_wrapper.fcl"
 
 physics.analyzers.wcpselection.IsNuMI:               ${flag_numi}
-physics.analyzers.wcpweights.IsNuMI:                 ${flag_numi}
 
 physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
 
 physics.analyzers.wcpselection.get_redk2nu_time:     ${flag_numi}
 
 physics.analyzers.wcpselection.SaveLeeWeights:       ${flag_SaveLeeWeights}
-physics.analyzers.wcpweights.SaveLeeWeights:         ${flag_SaveLeeWeights}
 
 physics.analyzers.wcpselection.get_reboone_time:     true
 physics.analyzers.wcpselection.TimeBetweenBuckets: 18.936
@@ -73,7 +71,7 @@ physics.analyzers.wcpselection.MC:              true
 physics.analyzers.wcpselection.SaveWeights:     false
 physics.analyzers.wcpselection.POT_inputTag:    "generator"
 
-physics.analyzers.wcpselection.FileType: "prodgibuu_GB25_${beam}_nu_overlay_${FT_STREAM}"
+physics.analyzers.wcpselection.FileType: "prodnuwro_NW25_${beam}_nu_overlay_${FT_STREAM}"
 
 physics.ana: [wcpselection]
 physics.end_paths: [ stream1, ana ]
