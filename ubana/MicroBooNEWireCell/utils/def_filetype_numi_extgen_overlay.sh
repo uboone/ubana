@@ -19,6 +19,64 @@
 
 # Make sure batch environment variables needed by this script are defined.
 
+# Read the config
+
+deffiletype='nu_overlay'
+horn='rhc'
+generator='G25'
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+
+  -t|--filetype )
+    if [ $# -gt 1 ]; then
+      echo "Defining WireCell filetype to be $2"
+      deffiletype=$2
+      shift
+    else
+      echo "Bad $1 argument"
+      exit 1
+    fi
+    ;;
+
+  -g|--generator )
+    if [ $# -gt 1 ]; then
+      echo "Defining WireCell generator filetype to be $2"
+      generator=$2
+      shift
+    else
+      echo "Bad $1 argument"
+      exit 1
+    fi
+    ;;
+
+  -h|--horn )
+    if [ $# -gt 1 ]; then
+      echo "Defining WireCell horn filetype to be $2"
+      horn=$2
+      shift
+    else
+      echo "Bad $1 argument"
+      exit 1
+    fi
+    ;;
+
+  -* )
+    echo "Unknown option $1"
+    dohelp
+    exit 1
+    ;;
+
+  * )
+    echo "Bad argument $1"
+    dohelp
+    exit 1
+    ;;
+
+  esac
+  shift
+done
+
 if [ x$FCL = x ]; then
   echo "Variable FCL not defined."
   exit 1
@@ -122,7 +180,7 @@ physics.analyzers.wcpselection.MC:              true
 physics.analyzers.wcpselection.SaveWeights:     false
 physics.analyzers.wcpselection.POT_inputTag:    "generator"
 
-physics.analyzers.wcpselection.FileType: "prodgibuu_GB25_${beam}_nu_overlay_${FT_STREAM}"
+physics.analyzers.wcpselection.FileType: "prodgibuu_${generator}_${beam}_${horn}_${deffiletype}_${FT_STREAM}"
 
 physics.ana: [wcpselection]
 physics.end_paths: [ stream1, ana ]

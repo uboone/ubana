@@ -12,6 +12,50 @@
 #
 #------------------------------------------------------------------
 
+deffiletype='nu_overlay'
+generator='G25'
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+
+  -t|--filetype )
+    if [ $# -gt 1 ]; then
+      echo "Defining WireCell filetype to be $2"
+      deffiletype=$2
+      shift
+    else
+      echo "Bad $1 argument"
+      exit 1
+    fi
+    ;;
+
+  -g|--generator )
+    if [ $# -gt 1 ]; then
+      echo "Defining WireCell generator filetype to be $2"
+      generator=$2
+      shift
+    else
+      echo "Bad $1 argument"
+      exit 1
+    fi
+    ;;
+
+  -* )
+    echo "Unknown option $1"
+    dohelp
+    exit 1
+    ;;
+
+  * )
+    echo "Bad argument $1"
+    dohelp
+    exit 1
+    ;;
+
+  esac
+  shift
+done
+
 beam="bnb"
 flag_numi="false"
 flag_SaveLeeWeights="false"
@@ -71,7 +115,7 @@ physics.analyzers.wcpselection.MC:              true
 physics.analyzers.wcpselection.SaveWeights:     false
 physics.analyzers.wcpselection.POT_inputTag:    "generator"
 
-physics.analyzers.wcpselection.FileType: "prodnuwro_NW25_${beam}_nu_overlay_${FT_STREAM}"
+physics.analyzers.wcpselection.FileType: "prodnuwro_${generator}_${beam}_${deffiletype}_${FT_STREAM}"
 
 physics.ana: [wcpselection]
 physics.end_paths: [ stream1, ana ]
