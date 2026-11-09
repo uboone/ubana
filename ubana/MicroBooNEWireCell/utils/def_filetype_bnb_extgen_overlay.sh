@@ -1,16 +1,35 @@
 #! /bin/bash
 #------------------------------------------------------------------
 #
-# reco2 <initsource> for ExtGen NuWro overlay samples (BNB): wraps the
-# combined-reco-tree fcl and sets the Wire-Cell analysis parameters,
-# as def_filetype_kdar_overlay.sh did for the HepMC GiBUU samples:
-#   FileType "prodnuwro_NW25_<beam>_nu_overlay_<run period>"
-#   (a label in the trees; NW25 = the ExtGen NuWro tune NW25_11a_00_000).
-# For NuMI samples set beam=numi and flag_numi=true below.
+# Purpose: This script is intended to update the configuration
+#          of the fhicl using the initilization source hook. It
+#          makes a wrapper fcl file that overrides certain fcl
+#          parameters used by module WireCellAnaTree and
+#          WireCellEventWeightTree, specifically:
+#        
+#          physics.analyzers.wcpselection.FileType: "data_extbnb_run3_G1"
+#          physics.analyzers.wcpweights.FileType: "data_extbnb_run3_G1"
 #
-# The run period comes from the run number of the stage's input file.
+# Created: Wenqiang Gu, 14-Jan-2021
+#         
+# Updated: Liang Liu,   03-Jan-2025
+#          Unified this script for all runs
 #
 #------------------------------------------------------------------
+
+# Make sure batch environment variables needed by this script are defined.
+
+if [ x$FCL = x ]; then
+  echo "Variable FCL not defined."
+  exit 1
+fi
+
+# Make sure fcl file $FCL exists.
+
+if [ ! -f $FCL ]; then
+  echo "Fcl file $FCL does not exist."
+  exit 1
+fi
 
 deffiletype='nu_overlay'
 generator='G25'
@@ -56,53 +75,90 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-beam="bnb"
-flag_numi="false"
-flag_SaveLeeWeights="false"
-BucketTimeSigma='1.3'
 
-if [ x$FCL = x ]; then
-  echo "Variable FCL not defined."
-  exit 1
-fi
-if [ ! -f $FCL ]; then
-  echo "Fcl file $FCL does not exist."
-  exit 1
-fi
+# Rename the existing fcl file $FCL to something else.
 
 mv $FCL mix_wrapper.fcl
 
-# run number of the file the next stage reads
+# Generate wrapper according to run_number
+# get the file that will be used as input for next stage
 next_stage_input=`ls -t1 *.root | egrep -v 'celltree|hist|larlite|larcv|Supplemental|TGraphs' | artroot_filter.py | head -n1`
-run_number=`echo $next_stage_input | cut -d '-' -f3`
-[[ "$run_number" =~ ^[0-9]+$ ]] && run_number=$((10#$run_number)) || run_number=0
-echo "$next_stage_input: run $run_number"
-
-FT_STREAM="unknown"
-if   [ "$run_number" -ge  3420 ] && [ "$run_number" -le  8316 ]; 
-then 
-FT_STREAM="run1"
-BucketTimeSigma="2.8"
-elif [ "$run_number" -ge  8317 ] && [ "$run_number" -le 13696 ]; then FT_STREAM="run2"
-elif [ "$run_number" -ge 13697 ] && [ "$run_number" -le 18960 ]; then FT_STREAM="run3"
-elif [ "$run_number" -ge 18961 ] && [ "$run_number" -le 19752 ]; then FT_STREAM="run4a"
-elif [ "$run_number" -ge 19753 ] && [ "$run_number" -le 21285 ]; then FT_STREAM="run4b"
-elif [ "$run_number" -ge 21286 ] && [ "$run_number" -le 22269 ]; then FT_STREAM="run4c"
-elif [ "$run_number" -ge 22270 ] && [ "$run_number" -le 24319 ]; then FT_STREAM="run4d"
-elif [ "$run_number" -ge 24320 ] && [ "$run_number" -le 25768 ]; then FT_STREAM="run5"
+echo $next_stage_input
+run_number=`lar -c eventdump.fcl $next_stage_input -n 1 | grep "Begin processing the 1st record" | awk '{match($0, /run: ([0-9]+)/, arr); print arr[1]}'`
+echo $run_number
+# Make sure we got an int
+if [[ "$run_number" =~ ^-?[0-9]+$ ]]; then
+  # Make sure the run number is sensible
+  if [ "$run_number" -le "3419" ]; then
+    echo "run number too small, rechecking"
+    run_number=`echo $next_stage_input | cut -d '-' -f3`
+  elif [ "$run_number" -ge "0025769" ]; then
+    echo "run number too big, rechecking"
+    run_number=`echo $next_stage_input | cut -d '-' -f3`
+  fi
+else
+  echo "run number is not an integer, rechecking"
+  run_number=`echo $next_stage_input | cut -d '-' -f3`
 fi
-echo "FileType stream $FT_STREAM"
+echo $run_number
 
-cat <<EOF2 > $FCL
+
+FT_STREAM="run1"
+BucketTimeSigma='1.3'
+if [ "$run_number" -ge "3420"  ] && [  "8316" -ge "$run_number"  ];    # in the run1 run number interval
+then
+        echo "run run1 fhicl"
+        FT_STREAM="run1"
+        BucketTimeSigma="2.8"
+elif [ "$run_number" -ge "0008317"  ] && [  "0011048" -ge "$run_number"  ];   # in the run2 run number interval
+then
+        echo "run run2a fhicl"
+        FT_STREAM="run2"
+elif [ "$run_number" -ge "0011049"  ] && [  "0013696" -ge "$run_number"  ];   # in the run2 run number interval
+then
+        echo "run run2b fhicl"
+        FT_STREAM="run2"
+elif [ "$run_number" -ge "0013697"  ] && [  "0014116" -ge "$run_number"  ];    # in the run3 run number interval
+then
+        echo "run run3a fhicl"
+        FT_STREAM="run3"
+elif [ "$run_number" -ge "14117"  ] && [  "0018960" -ge "$run_number"  ];    # in the run3 run number interval
+then
+        echo "run run3b fhicl"
+        FT_STREAM="run3"
+elif [ "$run_number" -ge "0018961"  ] && [  "0019752" -ge "$run_number"  ];  # in the run4 run number interval, run4a has four epochs, we may need to split it
+then
+        echo "run run4a fhicl"
+        FT_STREAM="run4a"
+elif [ "$run_number" -ge "0019753"  ] && [  "0021285" -ge "$run_number"  ];  # in the run4 run number interval, run4b has four epochs, we may need to split it
+then
+        echo "run run4b fhicl"
+        FT_STREAM="run4b"
+elif [ "$run_number" -ge "0021286"  ] && [  "0022269" -ge "$run_number"  ];  # in the run4 run number interval, run4c has four epochs, we may need to split it
+then
+        echo "run run4c fhicl"
+        FT_STREAM="run4c"
+elif [ "$run_number" -ge "0022270"  ] && [  "0024319" -ge "$run_number"  ];  # in the run4 run number interval, run4d has four epochs, we may need to split it
+then
+        echo "run run4d fhicl"
+        FT_STREAM="run4d"
+elif [ "$run_number" -ge "0024320"  ] && [  "0025768" -ge "$run_number"  ];  # in the run5 run number interval
+then
+        echo "run run5 fhicl"
+        FT_STREAM="run5"
+fi
+
+flag_SaveLeeWeights="false"
+flag_numi="false"
+beam="bnb"
+
+cat <<EOF > $FCL
 #include "mix_wrapper.fcl"
 
 physics.analyzers.wcpselection.IsNuMI:               ${flag_numi}
+physics.analyzers.wcpweights.IsNuMI:                 ${flag_numi}
 
 physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
-
-physics.analyzers.wcpselection.get_redk2nu_time:     ${flag_numi}
-
-physics.analyzers.wcpselection.SaveLeeWeights:       ${flag_SaveLeeWeights}
 
 physics.analyzers.wcpselection.get_reboone_time:     true
 physics.analyzers.wcpselection.TimeBetweenBuckets: 18.936
@@ -111,25 +167,29 @@ physics.analyzers.wcpselection.NBucketsPerBatch: 84
 physics.analyzers.wcpselection.NFilledBucketsPerBatch: 81
 physics.analyzers.wcpselection.BatchIntensities: [1]
 
-physics.analyzers.wcpselection.MC:              true
-physics.analyzers.wcpselection.SaveWeights:     false
-physics.analyzers.wcpselection.POT_inputTag:    "generator"
+physics.analyzers.wcpselection.SaveLeeWeights:       ${flag_SaveLeeWeights}
+physics.analyzers.wcpweights.SaveLeeWeights:         ${flag_SaveLeeWeights}
 
-physics.analyzers.wcpselection.FileType: "prodnuwro_${generator}_${beam}_${deffiletype}_${FT_STREAM}"
+physics.analyzers.wcpweights.MCEventWeightLabels:  [ "eventweightSep24::EventWeightSep24" ]
 
-physics.ana: [wcpselection]
+physics.analyzers.wcpselection.FileType: "extgen_${generator}_${beam}_${deffiletype}_${FT_STREAM}"
+physics.analyzers.wcpweights.FileType: "extgen_${generator}_${beam}_${deffiletype}_${FT_STREAM}"
+
 physics.end_paths: [ stream1, ana ]
 
 services.TFileService.fileName: 	"reco_stage_2_hist.root"
 microboone_tfile_metadata.JSONFileName: ["reco_stage_2_hist.root.json"]
 
-EOF2
+EOF
+
+# Make sure IFDH service is configured in fcl file.
 
 if ! lar --debug-config=/dev/stdout -c $FCL | grep -q IFDH:; then
-  cat <<EOF2 >> $FCL
+  cat <<EOF >> $FCL
 services.IFDH:
 {
 }
 
-EOF2
+EOF
 fi
+

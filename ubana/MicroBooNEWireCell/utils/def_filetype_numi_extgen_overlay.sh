@@ -19,7 +19,17 @@
 
 # Make sure batch environment variables needed by this script are defined.
 
-# Read the config
+if [ x$FCL = x ]; then
+  echo "Variable FCL not defined."
+  exit 1
+fi
+
+# Make sure fcl file $FCL exists.
+
+if [ ! -f $FCL ]; then
+  echo "Fcl file $FCL does not exist."
+  exit 1
+fi
 
 deffiletype='nu_overlay'
 horn='rhc'
@@ -77,17 +87,6 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-if [ x$FCL = x ]; then
-  echo "Variable FCL not defined."
-  exit 1
-fi
-
-# Make sure fcl file $FCL exists.
-
-if [ ! -f $FCL ]; then
-  echo "Fcl file $FCL does not exist."
-  exit 1
-fi
 
 # Rename the existing fcl file $FCL to something else.
 
@@ -160,29 +159,27 @@ then
         FT_STREAM="run5"
 fi
 
-sample_type="nu_overlay"
 flag_SaveLeeWeights="false"
 flag_numi="true"
 beam="numi"
-horncur='_rhc'
 
 cat <<EOF > $FCL
 #include "mix_wrapper.fcl"
 
 physics.analyzers.wcpselection.IsNuMI:               ${flag_numi}
+physics.analyzers.wcpweights.IsNuMI:                 ${flag_numi}
 
 physics.analyzers.wcpselection.ssmBDT:               ${flag_numi}
 physics.analyzers.wcpselection.get_redk2nu_time:     ${flag_numi}
 
 physics.analyzers.wcpselection.SaveLeeWeights:       ${flag_SaveLeeWeights}
+physics.analyzers.wcpweights.SaveLeeWeights:         ${flag_SaveLeeWeights}
 
-physics.analyzers.wcpselection.MC:              true
-physics.analyzers.wcpselection.SaveWeights:     false
-physics.analyzers.wcpselection.POT_inputTag:    "generator"
+ physics.analyzers.wcpweights.MCEventWeightLabels:  [ "eventweightSep24::EventWeightSep24" ]
 
-physics.analyzers.wcpselection.FileType: "prodgibuu_${generator}_${beam}_${horn}_${deffiletype}_${FT_STREAM}"
+physics.analyzers.wcpselection.FileType: "extgen_${generator}_${beam}_${horn}_${deffiletype}_${FT_STREAM}"
+physics.analyzers.wcpselection.FileType: "extgen_${generator}_${beam}_${horn}_${deffiletype}_${FT_STREAM}"
 
-physics.ana: [wcpselection]
 physics.end_paths: [ stream1, ana ]
 
 services.TFileService.fileName: 	"reco_stage_2_hist.root"
