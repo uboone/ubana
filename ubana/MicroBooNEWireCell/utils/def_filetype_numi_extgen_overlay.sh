@@ -178,7 +178,7 @@ physics.analyzers.wcpweights.SaveLeeWeights:         ${flag_SaveLeeWeights}
  physics.analyzers.wcpweights.MCEventWeightLabels:  [ "eventweightSep24::EventWeightSep24" ]
 
 physics.analyzers.wcpselection.FileType: "extgen_${generator}_${beam}_${horn}_${deffiletype}_${FT_STREAM}"
-physics.analyzers.wcpselection.FileType: "extgen_${generator}_${beam}_${horn}_${deffiletype}_${FT_STREAM}"
+physics.analyzers.wcpweights.FileType: "extgen_${generator}_${beam}_${horn}_${deffiletype}_${FT_STREAM}"
 
 physics.end_paths: [ stream1, ana ]
 
