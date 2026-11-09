@@ -175,7 +175,14 @@ physics.analyzers.wcpselection.get_redk2nu_time:     ${flag_numi}
 physics.analyzers.wcpselection.SaveLeeWeights:       ${flag_SaveLeeWeights}
 physics.analyzers.wcpweights.SaveLeeWeights:         ${flag_SaveLeeWeights}
 
- physics.analyzers.wcpweights.MCEventWeightLabels:  [ "eventweightSep24::EventWeightSep24" ]
+# the main pass (run_eventweight_microboone_sept24_numi_<horn>_no_xs.fcl) and the five extra PPFX
+# passes (run_eventweight_microboone_sept24_extrappfx_<n>_numi_<horn>_no_xs.fcl); all six must have run
+physics.analyzers.wcpweights.MCEventWeightLabels:  [ "eventweightSep24::EventWeightSep24"
+                                                     ,"eventweightSep24::EventWeightSep24ExtraGENIE1"
+                                                     ,"eventweightSep24::EventWeightSep24ExtraGENIE2"
+                                                     ,"eventweightSep24::EventWeightSep24ExtraGENIE3"
+                                                     ,"eventweightSep24::EventWeightSep24ExtraGENIE4"
+                                                     ,"eventweightSep24::EventWeightSep24ExtraGENIE5" ]
 
 physics.analyzers.wcpselection.FileType: "extgen_${generator}_${beam}_${horn}_${deffiletype}_${FT_STREAM}"
 physics.analyzers.wcpweights.FileType: "extgen_${generator}_${beam}_${horn}_${deffiletype}_${FT_STREAM}"
