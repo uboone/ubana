@@ -6729,7 +6729,9 @@ void WireCellAnaTree::save_weights(art::Event const& e)
   }
 
   if (fIsNuMI) {
-    f_weight_spline *= ppfx_cv_UBPPFXCV; // absorb NuMI's cv correction into spline
+    // absorb NuMI's cv correction into spline
+    if ( f_weight_spline == -1 ) f_weight_spline = ppfx_cv_UBPPFXCV;
+    else                         f_weight_spline *= ppfx_cv_UBPPFXCV; 
     // std::cout << "weight_spline *= ppfx_cv_UBPPFXCV, where ppfx_cv_UBPPFXCV= " << ppfx_cv_UBPPFXCV << std::endl;
   }
 
