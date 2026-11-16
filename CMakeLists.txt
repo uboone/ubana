@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 find_package(cetmodules REQUIRED)
-project(ubana VERSION 10.32.00 LANGUAGES CXX)
+project(ubana VERSION 11.00.00 LANGUAGES CXX)
 
 include(CetCMakeEnv)
 cet_cmake_env()
@@ -20,6 +20,7 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
   ALLOW_DEPRECATIONS
   EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs -Wno-expansion-to-defined
   -Wno-error=array-bounds
+  -Wno-deprecated-declarations
   #-Wno-error=unused-variable
 )
 
